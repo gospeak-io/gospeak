@@ -60,31 +60,39 @@
             <li class="breadcrumb-item"><a href="../../../groups.html">Groups</a></li>
             <li class="breadcrumb-item"><a href="../../../groups/ht-paris.html">HumanTalks Paris</a></li>
             <li class="breadcrumb-item"><a href="../../../groups/ht-paris/events.html">Events</a></li>
-            <li class="breadcrumb-item active" aria-current="page">HumanTalks Paris Mars 2019</li>
+            <li class="breadcrumb-item active" aria-current="page">new</li>
         </ol>
     </div>
 </nav>
 
 <div class="container">
-    <div>
-        <span class="float-right">
-            <a class="btn btn-outline-secondary" href="2019-03.html" title="edit" aria-hidden="true">
-                <i class="fas fa-edit"></i>
-            </a>
-            <a class="btn btn-danger" href="../events.html" title="delete" aria-hidden="true">
-                <i class="fas fa-trash"></i>
-            </a>
-        </span>
-        <h1>HumanTalks Paris Mars 2019</h1>
+    <div class="page-header">
+        <h1>Add an event</h1>
     </div>
 
-    <h2>Planned talks</h2>
-
-    TODO
-
-    <h2>Submitted talks</h2>
-
-    TODO
+    <form method="GET" action="2019-03.html">
+        <div class="row form-group">
+            <label class="col-sm-2 col-form-label" for="name">Name</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="name" placeholder="Event name" aria-describedby="nameHelp">
+                <small id="nameHelp" class="form-text text-muted">Name of the event</small>
+            </div>
+        </div>
+        <div class="row form-group">
+            <label class="col-sm-2 col-form-label" for="slug">Slug</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="slug" name="slug" placeholder="Event slug"
+                       aria-describedby="slugHelp">
+                <small id="slugHelp" class="form-text text-muted">Reference of the event (in urls for example)</small>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-10 offset-sm-2">
+                <a href="../events.html" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </form>
 
 </div>
 
@@ -97,5 +105,16 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
+<script>
+    var nameInput = $('#name');
+    var slugInput = $('#slug');
+
+    nameInput.change(function() {
+        if(slugInput.val() === '') {
+            var newSlug = nameInput.val().replace(/ /g, '-');
+            slugInput.val(newSlug);
+        }
+    });
+</script>
 </body>
 </html>

@@ -12,7 +12,7 @@ GET        /speakers/:slug                      fr.gospeak.web.??? # speaker pag
 
 # private pages
 GET        /a                                   fr.gospeak.web.??? # user home
-GET        /a/me                                fr.gospeak.web.??? # user profile
+GET        /a/profile                           fr.gospeak.web.??? # user profile
 GET        /a/talks                             fr.gospeak.web.??? # user talks
 GET        /a/talks/:slug                       fr.gospeak.web.??? # user talk
 GET        /a/talks/:slug/:id                   fr.gospeak.web.??? # user talk proposal (talk slug, proposal id)

@@ -40,7 +40,7 @@
                     <div class="dropdown-menu" aria-labelledby="userMenu">
                         <a class="dropdown-item" href="../../groups.html">Groups</a>
                         <a class="dropdown-item" href="../../talks.html">Talks</a>
-                        <a class="dropdown-item" href="../../me.html">Profile</a>
+                        <a class="dropdown-item" href="../../profile.html">Profile</a>
                     </div>
                 </div>
                 <a class="nav-item nav-link active" href="events.html">Events <span class="sr-only">(current)</span></a>
@@ -65,8 +65,32 @@
 </nav>
 
 <div class="container">
+    <div>
+        <span class="float-right">
+            <a class="btn btn-primary" href="events/create.html">Create event</a>
+        </span>
+        <h1>5 events</h1>
+    </div>
 
-    <h1>Events</h1>
+    <form method="GET" action="events.html" class="float-right">
+        <label class="sr-only" for="search">Search</label>
+        <div class="input-group">
+            <input type="text" class="form-control" id="search" name="search" placeholder="Search...">
+            <div class="input-group-append">
+                <button type="submit" class="btn btn-secondary">Search</button>
+            </div>
+        </div>
+    </form>
+
+    <nav aria-label="Event pagination">
+        <ul class="pagination">
+            <li class="page-item disabled"><a class="page-link" href="events.html">Previous</a></li>
+            <li class="page-item active"><a class="page-link" href="events.html">1 <span class="sr-only">(current)</span></a></li>
+            <li class="page-item"><a class="page-link" href="?page=2">2</a></li>
+            <li class="page-item"><a class="page-link" href="?page=3">3</a></li>
+            <li class="page-item"><a class="page-link" href="?page=2">Next</a></li>
+        </ul>
+    </nav>
 
     <ul class="list-unstyled">
         <li class="media card my-2" style="padding: 10px">
@@ -90,6 +114,16 @@
             </div>
         </li>
     </ul>
+
+    <nav aria-label="Event pagination">
+        <ul class="pagination">
+            <li class="page-item disabled"><a class="page-link" href="events.html">Previous</a></li>
+            <li class="page-item active"><a class="page-link" href="events.html">1 <span class="sr-only">(current)</span></a></li>
+            <li class="page-item"><a class="page-link" href="?page=2">2</a></li>
+            <li class="page-item"><a class="page-link" href="?page=3">3</a></li>
+            <li class="page-item"><a class="page-link" href="?page=2">Next</a></li>
+        </ul>
+    </nav>
 
 </div>
 
