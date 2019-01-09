@@ -32,9 +32,11 @@ val doobie = Seq(
   "org.tpolecat" %% "doobie-h2",
   "org.tpolecat" %% "doobie-postgres").map(_ % doobieVersion)
 val doobieTest = Seq(
-  "org.tpolecat" %% "doobie-scalatest").map(_ % doobieVersion % Test)
+  "org.tpolecat" %% "doobie-scalatest" % doobieVersion).map(_ % Test)
 val flyway = Seq(
   "org.flywaydb" % "flyway-core" % "5.1.4")
+val playTest = Seq(
+  "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2").map(_ % Test)
 val webjars = Seq(
   "org.webjars.npm" % "jquery" % "3.3.1",
   "org.webjars.npm" % "bootstrap" % "4.1.3")
@@ -42,11 +44,11 @@ val logback = Seq(
   "org.slf4j" % "slf4j-api" % "1.7.25",
   "ch.qos.logback" % "logback-classic" % "1.2.3")
 val scalaTest = Seq(
-  "org.scalatest" %% "scalatest" % "3.0.5" % Test)
+  "org.scalatest" %% "scalatest" % "3.0.5").map(_ % Test)
 val scalaCheck = Seq(
-  "org.scalacheck" %% "scalacheck" % "1.14.0" % Test,
-  "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.0" % Test,
-  "com.danielasfregola" %% "random-data-generator" % "2.6" % Test)
+  "org.scalacheck" %% "scalacheck" % "1.14.0",
+  "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.0",
+  "com.danielasfregola" %% "random-data-generator" % "2.6").map(_ % Test)
 
 val scalautilsDependencies = cats ++ scalaTest
 val coreDependencies = cats ++ scalaTest
@@ -82,8 +84,10 @@ val infra = (project in file("infra"))
 
 val web = (project in file("web"))
   .dependsOn(core, infra)
+  .enablePlugins(PlayScala)
   .settings(
     name := "web",
+    libraryDependencies += guice,
     libraryDependencies ++= webDependencies,
     commonSettings
   )
