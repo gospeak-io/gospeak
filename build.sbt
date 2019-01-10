@@ -6,7 +6,7 @@ ThisBuild / organization := "fr.gospeak"
 /**
   * Global settings
   */
-val commonSettings = Seq(
+val commonSettings: Seq[Setting[_]] = Seq(
   scalacOptions ++= Seq(
     "-deprecation",
     "-Ypartial-unification"),
@@ -83,8 +83,8 @@ val infra = (project in file("infra"))
   )
 
 val web = (project in file("web"))
-  .dependsOn(core, infra)
   .enablePlugins(PlayScala)
+  .dependsOn(core, infra)
   .settings(
     name := "web",
     libraryDependencies += guice,
@@ -93,6 +93,8 @@ val web = (project in file("web"))
   )
 
 val global = (project in file("."))
+  .enablePlugins(PlayScala)
+  .dependsOn(web)
   .aggregate(scalautils, core, infra, web) // send commands to every module
   .settings(
     name := "gospeak"
