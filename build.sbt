@@ -35,6 +35,10 @@ val doobieTest = Seq(
   "org.tpolecat" %% "doobie-scalatest" % doobieVersion).map(_ % Test)
 val flyway = Seq(
   "org.flywaydb" % "flyway-core" % "5.1.4")
+val macwireVersion = "2.3.1"
+val play = Seq(
+  "com.softwaremill.macwire" %% "macros" % macwireVersion % Provided,
+  "com.softwaremill.macwire" %% "macrosakka" % macwireVersion % Provided)
 val playTest = Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2").map(_ % Test)
 val webjars = Seq(
@@ -53,7 +57,7 @@ val scalaCheck = Seq(
 val scalautilsDependencies = cats ++ scalaTest
 val coreDependencies = cats ++ scalaTest
 val infraDependencies = circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
-val webDependencies = webjars ++ logback ++ scalaTest ++ scalaCheck
+val webDependencies = play ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest
 
 
 /**
@@ -87,7 +91,6 @@ val web = (project in file("web"))
   .dependsOn(core, infra)
   .settings(
     name := "web",
-    libraryDependencies += guice,
     libraryDependencies ++= webDependencies,
     commonSettings
   )
@@ -96,6 +99,4 @@ val global = (project in file("."))
   .enablePlugins(PlayScala)
   .dependsOn(web)
   .aggregate(scalautils, core, infra, web) // send commands to every module
-  .settings(
-    name := "gospeak"
-  )
+  .settings(name := "gospeak")
