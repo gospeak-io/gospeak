@@ -1,27 +1,28 @@
 # public pages
-GET        /                    fr.gospeak.web.controllers.HomeCtrl.index
-#GET        /                                    fr.gospeak.web.??? # public home page, explaining website features
-#GET        /login                               fr.gospeak.web.??? # login page
-#GET        /cfps                                fr.gospeak.web.??? # list of public cfps
-#GET        /groups                              fr.gospeak.web.??? # list of public groups
-#GET        /groups/:slug                        fr.gospeak.web.??? # group page
-#GET        /groups/:slug/cfp                    fr.gospeak.web.??? # group cfp
-#GET        /groups/:slug/events                 fr.gospeak.web.??? # group public events
-#GET        /groups/:slug/talks                  fr.gospeak.web.??? # group public talks
-#GET        /speakers                            fr.gospeak.web.??? # list of public speakers
-#GET        /speakers/:slug                      fr.gospeak.web.??? # speaker page
+GET        /                                           fr.gospeak.web.controllers.HomeCtrl.index
+GET        /cfps                                       fr.gospeak.web.controllers.HomeCtrl.cfps
+GET        /groups                                     fr.gospeak.web.controllers.HomeCtrl.groups
+#GET        /groups/:group                        fr.gospeak.web.??? # group page
+#GET        /groups/:group/cfp                    fr.gospeak.web.??? # group cfp
+#GET        /groups/:group/events                 fr.gospeak.web.??? # group public events
+#GET        /groups/:group/talks                  fr.gospeak.web.??? # group public talks
+GET        /speakers                                   fr.gospeak.web.controllers.HomeCtrl.speakers
+#GET        /speakers/:speaker                      fr.gospeak.web.??? # speaker page
+
+GET        /login                                      fr.gospeak.web.controllers.HomeCtrl.login
 
 # private pages
-#GET        /a                                   fr.gospeak.web.??? # user home
-#GET        /a/profile                           fr.gospeak.web.??? # user profile
-#GET        /a/talks                             fr.gospeak.web.??? # user talks
-#GET        /a/talks/:slug                       fr.gospeak.web.??? # user talk
-#GET        /a/talks/:slug/:id                   fr.gospeak.web.??? # user talk proposal (talk slug, proposal id)
-#GET        /a/groups                            fr.gospeak.web.??? # user groups
-#GET        /a/groups/:slug                      fr.gospeak.web.??? # group home
-#GET        /a/groups/:slug/events               fr.gospeak.web.??? # group events
-#GET        /a/groups/:slug/events/:slug         fr.gospeak.web.??? # group event
-#GET        /a/groups/:slug/proposals            fr.gospeak.web.??? # group proposals
-#GET        /a/groups/:slug/proposals/:id        fr.gospeak.web.??? # group proposal
+GET        /a                                          fr.gospeak.web.controllers.authed.HomeCtrl.index
+GET        /a/profile                                  fr.gospeak.web.controllers.authed.HomeCtrl.profile()
+GET        /a/talks                                    fr.gospeak.web.controllers.authed.HomeCtrl.talks()
+GET        /a/talks/:talk                              fr.gospeak.web.controllers.authed.HomeCtrl.talk(talk: String)
+GET        /a/talks/:talk/:proposal                    fr.gospeak.web.controllers.authed.HomeCtrl.proposal(talk: String, proposal: String)
+GET        /a/groups                                   fr.gospeak.web.controllers.authed.HomeCtrl.groups()
+GET        /a/groups/:group                            fr.gospeak.web.controllers.authed.GroupCtrl.group(group: String)
+GET        /a/groups/:group/events                     fr.gospeak.web.controllers.authed.GroupCtrl.events(group: String)
+GET        /a/groups/:group/events/create              fr.gospeak.web.controllers.authed.GroupCtrl.createEvent(group: String)
+GET        /a/groups/:group/events/:event              fr.gospeak.web.controllers.authed.GroupCtrl.event(group: String, event: String)
+GET        /a/groups/:group/proposals                  fr.gospeak.web.controllers.authed.GroupCtrl.proposals(group: String)
+GET        /a/groups/:group/proposals/:proposal        fr.gospeak.web.controllers.authed.GroupCtrl.proposal(group: String, proposal: String)
 
-GET        /assets/*file        controllers.Assets.versioned(path="/public", file: Asset)
+GET        /assets/*file                               controllers.Assets.versioned(path="/public", file: Asset)

@@ -44,6 +44,7 @@ val playTest = Seq(
 val webjars = Seq(
   "org.webjars.npm" % "jquery" % "3.3.1",
   "org.webjars.npm" % "bootstrap" % "4.1.3")
+  //"org.webjars.npm" % "@fortawesome/fontawesome-free" % "5.6.3")
 val logback = Seq(
   "org.slf4j" % "slf4j-api" % "1.7.25",
   "ch.qos.logback" % "logback-classic" % "1.2.3")

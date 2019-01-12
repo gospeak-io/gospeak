@@ -1,0 +1,58 @@
+@import fr.gospeak.web.controllers.authed.routes.GroupCtrl
+@import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.views.html.partials.container
+
+@()(h: HeaderInfo, b: Breadcrumb)
+@container("Gospeak", h, Some(b)) {
+    <div class="page-header">
+        <h1>Add an event</h1>
+    </div>
+
+    <form method="GET" action="@GroupCtrl.event("ht-paris", "2019-03")">
+        <div class="row form-group">
+            <label class="col-sm-2 col-form-label" for="name">Name</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="name" name="name" placeholder="Event name" aria-describedby="nameHelp">
+                <small id="nameHelp" class="form-text text-muted">Name of the event</small>
+            </div>
+        </div>
+        <div class="row form-group">
+            <label class="col-sm-2 col-form-label" for="slug">Slug</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="slug" name="slug" placeholder="Event slug" aria-describedby="slugHelp">
+                <small id="slugHelp" class="form-text text-muted">Reference of the event (in urls for example)</small>
+            </div>
+        </div>
+        <div class="row form-group">
+            <label class="col-sm-2 col-form-label" for="datetime">Date and time</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control input-datetime" id="datetime" name="datetime" placeholder="ex: 12/07/2019 19:00">
+            </div>
+        </div>
+        <div class="row form-group">
+            <label class="col-sm-2 col-form-label" for="date">Date</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control input-date" id="date" name="date" placeholder="ex: 12/07/2019">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-10 offset-sm-2">
+                <a href="@GroupCtrl.events("ht-paris")" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </form>
+
+    <script>
+            console.log("SCRIPT aaa");
+            var nameInput = $('#name');
+            var slugInput = $('#slug');
+
+            nameInput.change(function () {
+                if (slugInput.val() === '') {
+                    var newSlug = slugify(nameInput.val());
+                    slugInput.val(newSlug);
+                }
+            });
+    </script>
+}

@@ -1,0 +1,11 @@
+@import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.views.html.partials.{breadcrumb, header, main}
+
+@(title: String, h: HeaderInfo, b: Option[Breadcrumb] = None)(content: Html)
+@main(title) {
+    @header(h)
+    @b.map { b => @breadcrumb(b) }
+    <div class="container">
+    @content
+    </div>
+}

@@ -1,0 +1,26 @@
+@import fr.gospeak.web.controllers.authed.routes.GroupCtrl
+@import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.views.html.partials.container
+
+@()(h: HeaderInfo, b: Breadcrumb)
+@container("Gospeak", h, Some(b)) {
+    <div>
+        <span class="float-right">
+            <a class="btn btn-outline-secondary" href="@GroupCtrl.createEvent("ht-paris")" title="edit" aria-hidden="true">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a class="btn btn-danger" href="@GroupCtrl.events("ht-paris")" title="delete" aria-hidden="true">
+                <i class="fas fa-trash"></i>
+            </a>
+        </span>
+        <h1>HumanTalks Paris Mars 2019</h1>
+    </div>
+
+    <h2>Planned talks</h2>
+
+    TODO
+
+    <h2>Submitted talks</h2>
+
+    TODO
+}

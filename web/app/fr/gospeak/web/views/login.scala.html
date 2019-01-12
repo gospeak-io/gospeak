@@ -1,0 +1,11 @@
+@import fr.gospeak.web.controllers.authed.routes.HomeCtrl
+@import fr.gospeak.web.views.domain.HeaderInfo
+@import fr.gospeak.web.views.html.partials.container
+
+@()(h: HeaderInfo)
+@container("Gospeak", h) {
+    <div>
+        <h1>Login (TODO)</h1>
+    </div>
+    <a href="@HomeCtrl.index()" class="btn btn-primary">LOGIN</a>
+}

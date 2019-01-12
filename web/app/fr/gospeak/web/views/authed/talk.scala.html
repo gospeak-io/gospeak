@@ -1,0 +1,23 @@
+@import fr.gospeak.web.controllers.authed.routes.HomeCtrl
+@import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.views.html.partials.container
+
+@()(h: HeaderInfo, b: Breadcrumb)
+@container("Gospeak", h, Some(b)) {
+    <div>
+        <h1>Why FP</h1>
+    </div>
+
+    <p>
+        Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin. Cras
+        purus
+        odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate
+        fringilla. Donec lacinia congue felis in faucibus.
+    </p>
+
+    <h2>Submitted to</h2>
+
+    <ul>
+        <li><a href="@HomeCtrl.proposal("why-fp", "abc-123")">HumanTalks Paris</a></li>
+    </ul>
+}

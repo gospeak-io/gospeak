@@ -1,7 +1,7 @@
 package fr.gospeak.web
 
 import com.softwaremill.macwire.wire
-import fr.gospeak.web.controllers.HomeCtrl
+import fr.gospeak.web.controllers._
 import play.api.routing.Router
 import play.api.{Application, ApplicationLoader, BuiltInComponentsFromContext, LoggerConfigurator}
 import play.filters.HttpFiltersComponents
@@ -22,6 +22,8 @@ class GospeakComponents(context: ApplicationLoader.Context)
     with _root_.controllers.AssetsComponents {
 
   lazy val homeCtrl: HomeCtrl = wire[HomeCtrl]
+  lazy val authedHomeCtrl: authed.HomeCtrl = wire[authed.HomeCtrl]
+  lazy val authedGroupCtrl: authed.GroupCtrl = wire[authed.GroupCtrl]
 
   override lazy val router: Router = {
     val prefix = "/"

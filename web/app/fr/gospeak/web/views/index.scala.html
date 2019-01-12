@@ -1,5 +1,42 @@
-@()
+@import fr.gospeak.web.views.domain.HeaderInfo
+@import fr.gospeak.web.views.html.partials.container
 
-@main("Welcome to Play") {
-  <h1>Welcome to Play!</h1>
+@()(h: HeaderInfo)
+@container("Gospeak", h) {
+    <h1 style="text-align: center;
+        margin: 50px auto;">Gospeak</h1>
+
+    <div class="card-deck">
+        <div class="card">
+            <img class="card-img-top" src="@routes.Assets.versioned("lib/web/img/speaking.jpg")" alt="Card image cap">
+            <div class="card-body">
+                <h5 class="card-title">For meetup orga</h5>
+                <p class="card-text">
+            <ul>
+                <li>Simple CFP</li>
+                <li>Create events</li>
+            </ul>
+            </div>
+        </div>
+        <div class="card">
+            <img class="card-img-top" src="@routes.Assets.versioned("lib/web/img/speaking.jpg")" alt="Card image cap">
+            <div class="card-body">
+                <h5 class="card-title">For speakers</h5>
+                <p class="card-text">
+            <ul>
+                <li>Find meetups to speak</li>
+            </ul>
+            </div>
+        </div>
+        <div class="card">
+            <img class="card-img-top" src="@routes.Assets.versioned("lib/web/img/speaking.jpg")" alt="Card image cap">
+            <div class="card-body">
+                <h5 class="card-title">For everybody</h5>
+                <p class="card-text">
+            <ul>
+                <li>Find video talks</li>
+            </ul>
+            </div>
+        </div>
+    </div>
 }
