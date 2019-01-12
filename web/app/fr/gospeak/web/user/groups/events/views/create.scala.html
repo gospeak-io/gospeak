@@ -1,14 +1,15 @@
+@import fr.gospeak.core.domain.Group
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 @import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.views.html.partials.container
 
-@()(h: HeaderInfo, b: Breadcrumb)
+@(group: Group)(h: HeaderInfo, b: Breadcrumb)
 @container("Gospeak", h, Some(b)) {
     <div class="page-header">
         <h1>Add an event</h1>
     </div>
 
-    <form method="GET" action="@EventCtrl.detail("ht-paris", "2019-03")">
+    <form method="POST" action="@EventCtrl.doCreate(group.slug.value)">
         <div class="row form-group">
             <label class="col-sm-2 col-form-label" for="name">Name</label>
             <div class="col-sm-10">
@@ -37,22 +38,21 @@
         </div>
         <div class="row">
             <div class="col-sm-10 offset-sm-2">
-                <a href="@EventCtrl.list("ht-paris")" class="btn btn-secondary">Cancel</a>
+                <a href="@EventCtrl.list(group.slug.value)" class="btn btn-secondary">Cancel</a>
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
         </div>
     </form>
+    @*<script>
+    console.log("SCRIPT TODO");
+    var nameInput = $('#name');
+    var slugInput = $('#slug');
 
-    <script>
-            console.log("SCRIPT aaa");
-            var nameInput = $('#name');
-            var slugInput = $('#slug');
-
-            nameInput.change(function () {
-                if (slugInput.val() === '') {
-                    var newSlug = slugify(nameInput.val());
-                    slugInput.val(newSlug);
-                }
-            });
-    </script>
+    nameInput.change(function () {
+    if (slugInput.val() === '') {
+    var newSlug = slugify(nameInput.val());
+    slugInput.val(newSlug);
+    }
+    });
+    </script>*@
 }

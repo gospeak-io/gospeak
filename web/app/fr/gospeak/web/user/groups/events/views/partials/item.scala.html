@@ -1,15 +1,15 @@
+@import fr.gospeak.core.domain.{Event, Group}
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 
-@()
+@(group: Group, event: Event)
 <li class="media card my-2 event-item">
     <div class="media-body">
         <h5 class="mt-0 mb-1">
-            <a href="@EventCtrl.detail("ht-paris", "2019-03")">HumanTalks Paris Mars 2019</a>
+            <a href="@EventCtrl.detail(group.slug.value, event.slug.value)">@event.name.value</a>
         </h5>
-        <b class="text-danger">Missing venue</b>, 2 planned talks
-        <ul>
-            <li><a href="#">Talk 1</a></li>
-            <li><a href="#">Talk 2</a></li>
-        </ul>
+        @event.venue.map { v => @v, }.getOrElse {
+            <b class="text-danger">Missing venue</b>,
+        }
+        @event.talks.length planned talks
     </div>
 </li>

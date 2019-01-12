@@ -1,7 +1,12 @@
 package fr.gospeak.core.domain
 
+import fr.gospeak.core.domain.utils.{DataClass, UuidIdBuilder}
+
 case class User(id: User.Id,
-                firstName: String)
+                firstName: String,
+                lastName: String) {
+  def name: String = s"$firstName $lastName"
+}
 
 object User {
 

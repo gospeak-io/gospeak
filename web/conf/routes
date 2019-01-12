@@ -1,29 +1,34 @@
-# public pages
-GET        /                                           fr.gospeak.web.HomeCtrl.index
-GET        /cfps                                       fr.gospeak.web.cfps.CfpCtrl.list
-GET        /groups                                     fr.gospeak.web.groups.GroupCtrl.list
-#GET        /groups/:group                        fr.gospeak.web.??? # group page
-#GET        /groups/:group/cfp                    fr.gospeak.web.??? # group cfp
-#GET        /groups/:group/events                 fr.gospeak.web.??? # group public events
-#GET        /groups/:group/talks                  fr.gospeak.web.??? # group public talks
-GET        /speakers                                   fr.gospeak.web.speakers.SpeakerCtrl.list
-#GET        /speakers/:speaker                      fr.gospeak.web.??? # speaker page
+GET         /                                           fr.gospeak.web.HomeCtrl.index
 
-GET        /login                                      fr.gospeak.web.auth.AuthCtrl.login
-GET        /logout                                     fr.gospeak.web.auth.AuthCtrl.logout
+GET         /cfps                                       fr.gospeak.web.cfps.CfpCtrl.list
 
-# private pages
-GET        /u                                          fr.gospeak.web.user.UserCtrl.index
-GET        /u/profile                                  fr.gospeak.web.user.UserCtrl.profile
-GET        /u/talks                                    fr.gospeak.web.user.talks.TalkCtrl.list()
-GET        /u/talks/:talk                              fr.gospeak.web.user.talks.TalkCtrl.detail(talk: String)
-GET        /u/talks/:talk/:proposal                    fr.gospeak.web.user.talks.proposal.ProposalCtrl.detail(talk: String, proposal: String)
-GET        /u/groups                                   fr.gospeak.web.user.groups.GroupCtrl.list()
-GET        /u/groups/:group                            fr.gospeak.web.user.groups.GroupCtrl.detail(group: String)
-GET        /u/groups/:group/events                     fr.gospeak.web.user.groups.events.EventCtrl.list(group: String, search: Option[String] ?= None, sortBy: Option[String] ?= None, page: Option[Int] ?= None, pageSize: Option[Int] ?= None)
-GET        /u/groups/:group/events/create              fr.gospeak.web.user.groups.events.EventCtrl.create(group: String)
-GET        /u/groups/:group/events/:event              fr.gospeak.web.user.groups.events.EventCtrl.detail(group: String, event: String)
-GET        /u/groups/:group/proposals                  fr.gospeak.web.user.groups.proposals.ProposalCtrl.list(group: String, search: Option[String] ?= None, sortBy: Option[String] ?= None, page: Option[Int] ?= None, pageSize: Option[Int] ?= None)
-GET        /u/groups/:group/proposals/:proposal        fr.gospeak.web.user.groups.proposals.ProposalCtrl.detail(group: String, proposal: String)
+GET         /groups                                     fr.gospeak.web.groups.GroupCtrl.list
+#GET         /groups/:group                              fr.gospeak.web.??? # group page
+#GET         /groups/:group/cfp                          fr.gospeak.web.??? # group cfp
+#GET         /groups/:group/events                       fr.gospeak.web.??? # group public events
+#GET         /groups/:group/talks                        fr.gospeak.web.??? # group public talks
 
-GET        /assets/*file                               controllers.Assets.versioned(path="/public", file: Asset)
+GET         /speakers                                   fr.gospeak.web.speakers.SpeakerCtrl.list
+#GET         /speakers/:speaker                          fr.gospeak.web.??? # speaker page
+
+GET         /login                                      fr.gospeak.web.auth.AuthCtrl.login
+GET         /logout                                     fr.gospeak.web.auth.AuthCtrl.logout
+
+GET         /u                                          fr.gospeak.web.user.UserCtrl.index
+GET         /u/profile                                  fr.gospeak.web.user.UserCtrl.profile
+
+GET         /u/talks                                    fr.gospeak.web.user.talks.TalkCtrl.list()
+GET         /u/talks/:talk                              fr.gospeak.web.user.talks.TalkCtrl.detail(talk: String)
+GET         /u/talks/:talk/proposals                    fr.gospeak.web.user.talks.proposals.ProposalCtrl.list(talk: String)
+GET         /u/talks/:talk/proposals/:proposal          fr.gospeak.web.user.talks.proposals.ProposalCtrl.detail(talk: String, proposal: String)
+
+GET         /u/groups                                   fr.gospeak.web.user.groups.GroupCtrl.list()
+GET         /u/groups/:group                            fr.gospeak.web.user.groups.GroupCtrl.detail(group: String)
+GET         /u/groups/:group/events                     fr.gospeak.web.user.groups.events.EventCtrl.list(group: String, search: Option[String] ?= None, sortBy: Option[String] ?= None, page: Option[Int] ?= None, pageSize: Option[Int] ?= None)
+GET         /u/groups/:group/events/create              fr.gospeak.web.user.groups.events.EventCtrl.create(group: String)
+POST        /u/groups/:group/events/create              fr.gospeak.web.user.groups.events.EventCtrl.doCreate(group: String)
+GET         /u/groups/:group/events/:event              fr.gospeak.web.user.groups.events.EventCtrl.detail(group: String, event: String)
+GET         /u/groups/:group/proposals                  fr.gospeak.web.user.groups.proposals.ProposalCtrl.list(group: String, search: Option[String] ?= None, sortBy: Option[String] ?= None, page: Option[Int] ?= None, pageSize: Option[Int] ?= None)
+GET         /u/groups/:group/proposals/:proposal        fr.gospeak.web.user.groups.proposals.ProposalCtrl.detail(group: String, proposal: String)
+
+GET         /assets/*file                               controllers.Assets.versioned(path="/public", file: Asset)

@@ -1,24 +1,24 @@
+@import fr.gospeak.core.domain.{Event, Group}
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 @import fr.gospeak.web.user.groups.events.views.html.partials.item
 @import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.views.html.partials.{container, pagination, search}
 
-@()(h: HeaderInfo, b: Breadcrumb)
+@(group: Group, events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)
 @container("Gospeak", h, Some(b)) {
     <div>
         <span class="float-right">
-            <a class="btn btn-primary" href="@EventCtrl.create("ht-paris")">Create event</a>
+            <a class="btn btn-primary" href="@EventCtrl.create(group.slug.value)">Create event</a>
         </span>
-        <h1>5 events</h1>
+        <h1>@events.length events</h1>
     </div>
 
-    @search(EventCtrl.list("ht-paris"))
-    @pagination(p => EventCtrl.list("ht-paris", page = Some(p)))
+    @search(EventCtrl.list(group.slug.value))
+    @pagination(p => EventCtrl.list(group.slug.value, page = Some(p)))
 
     <ul class="list-unstyled">
-        @item()
-        @item()
+    @events.map { e => @item(group, e) }
     </ul>
 
-    @pagination(p => EventCtrl.list("ht-paris", page = Some(p)))
+    @pagination(p => EventCtrl.list(group.slug.value, page = Some(p)))
 }

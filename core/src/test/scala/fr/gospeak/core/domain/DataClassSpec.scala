@@ -1,5 +1,6 @@
 package fr.gospeak.core.domain
 
+import fr.gospeak.core.domain.utils.{DataClass, UuidIdBuilder}
 import org.scalatest.{FunSpec, Matchers}
 
 import scala.util.{Failure, Success}

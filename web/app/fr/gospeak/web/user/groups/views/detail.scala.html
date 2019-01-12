@@ -1,17 +1,17 @@
+@import fr.gospeak.core.domain.{Event, Group}
 @import fr.gospeak.web.user.groups.events.views.html.partials.{item => eventItem}
 @import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.views.html.partials.container
 
-@()(h: HeaderInfo, b: Breadcrumb)
+@(group: Group, events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)
 @container("Gospeak", h, Some(b)) {
     <div>
-        <h1>HumanTalks Paris</h1>
+        <h1>@group.name.value</h1>
     </div>
 
     <h2>Incoming events</h2>
 
     <ul class="list-unstyled">
-        @eventItem()
-        @eventItem()
+    @events.map { e => @eventItem(group, e) }
     </ul>
 }

@@ -1,23 +1,28 @@
 package fr.gospeak.web.user
 
-import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.user.UserCtrl._
 import fr.gospeak.web.views.domain._
+import fr.gospeak.web.{HomeCtrl, Values}
 import play.api.mvc._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class UserCtrl(cc: ControllerComponents) extends AbstractController(cc) {
-  def index(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    Ok(views.html.index()(indexHeader, breadcrumb(user)))
+  private val user = Values.user // logged user
+
+  def index(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    for {
+      groups <- Values.getGroups(user.id)
+      talks <- Values.getTalks(user.id)
+    } yield Ok(views.html.index(groups, talks)(indexHeader, breadcrumb(user.name)))
   }
 
   def profile(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    Ok(views.html.profile()(header.activeFor(routes.UserCtrl.profile()), breadcrumb(user).add("Profile" -> routes.UserCtrl.profile())))
+    Ok(views.html.profile()(header.activeFor(routes.UserCtrl.profile()), breadcrumb(user.name).add("Profile" -> routes.UserCtrl.profile())))
   }
 }
 
 object UserCtrl {
-  val user = "Loïc"
-
   val userNav: Seq[NavLink] = Seq(
     NavLink("Groups", groups.routes.GroupCtrl.list()),
     NavLink("Talks", talks.routes.TalkCtrl.list()),

@@ -1,13 +1,10 @@
+@import fr.gospeak.core.domain.Talk
 @import fr.gospeak.web.user.talks.routes.TalkCtrl
 
-@()
+@(talk: Talk)
 <li class="media my-4 talk-item">
-    <img class="mr-3" src="@routes.Assets.versioned("lib/web/img/64x64.svg")" alt="Generic placeholder image">
     <div class="media-body">
-        <h5 class="mt-0 mb-1"><a href="@TalkCtrl.detail("why-fp")">Why FP</a></h5>
-        Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin. Cras
-        purus
-        odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate
-        fringilla. Donec lacinia congue felis in faucibus.
+        <h5 class="mt-0 mb-1"><a href="@TalkCtrl.detail(talk.slug.value)">@talk.title.value</a></h5>
+        @talk.description
     </div>
 </li>

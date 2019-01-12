@@ -1,23 +1,25 @@
-@import fr.gospeak.web.user.talks.proposal.routes.ProposalCtrl
+@import fr.gospeak.core.domain.{Group, Proposal, Talk}
+@import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.views.html.partials.container
 
-@()(h: HeaderInfo, b: Breadcrumb)
+@(talk: Talk, proposals: Seq[(Group, Proposal)])(h: HeaderInfo, b: Breadcrumb)
 @container("Gospeak", h, Some(b)) {
     <div>
-        <h1>Why FP</h1>
+        <h1>@talk.title.value</h1>
     </div>
 
-    <p>
-        Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin. Cras
-        purus
-        odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate
-        fringilla. Donec lacinia congue felis in faucibus.
-    </p>
+    <p>@talk.description</p>
 
-    <h2>Submitted to</h2>
+    @if(proposals.isEmpty) {
+        <h2>Talk not submitted yet</h2>
+    } else {
+        <h2>Submitted to</h2>
 
-    <ul>
-        <li><a href="@ProposalCtrl.detail("why-fp", "abc-123")">HumanTalks Paris</a></li>
-    </ul>
+        <ul>
+        @proposals.map { case (group, proposal) =>
+        <li><a href="@ProposalCtrl.detail(talk.slug.value, proposal.id.value)">@group.name.value (@proposal.title.value)</a></li>
+        }
+        </ul>
+    }
 }

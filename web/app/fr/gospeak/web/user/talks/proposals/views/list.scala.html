@@ -1,0 +1,15 @@
+@import fr.gospeak.core.domain.{Proposal, Group, Talk}
+@import fr.gospeak.web.user.talks.proposals.views.html.partials.item
+@import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.views.html.partials.container
+
+@(talk: Talk, proposals: Seq[(Group, Proposal)])(h: HeaderInfo, b: Breadcrumb)
+@container("Gospeak", h, Some(b)) {
+    <div>
+        <h1>@proposals.length proposals</h1>
+    </div>
+
+    <ul class="list-unstyled">
+    @proposals.map { case (g, p) => @item(talk, g, p) }
+    </ul>
+}

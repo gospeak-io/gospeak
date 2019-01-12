@@ -1,0 +1,11 @@
+@import fr.gospeak.core.domain.{Group, Proposal, Talk}
+@import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
+
+@(talk: Talk, group: Group, proposal: Proposal)
+<li class="media card my-2 proposal-item">
+    <div class="media-body">
+        <h5 class="mt-0 mb-1">
+            <a href="@ProposalCtrl.detail(talk.slug.value, proposal.id.value)">@group.name.value (@proposal.title.value)</a>
+        </h5>
+    </div>
+</li>

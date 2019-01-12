@@ -1,15 +1,15 @@
+@import fr.gospeak.core.domain.Group
 @import fr.gospeak.web.user.groups.views.html.partials.item
 @import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.views.html.partials.container
 
-@()(h: HeaderInfo, b: Breadcrumb)
+@(groups: Seq[Group])(h: HeaderInfo, b: Breadcrumb)
 @container("Gospeak", h, Some(b)) {
     <div>
         <h1>Groups</h1>
     </div>
 
     <ul class="list-unstyled">
-        @item()
-        @item()
+    @groups.map { g => @item(g) }
     </ul>
 }

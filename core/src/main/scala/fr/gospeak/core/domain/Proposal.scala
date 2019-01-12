@@ -1,6 +1,12 @@
 package fr.gospeak.core.domain
 
-case class Proposal(id: Proposal.Id)
+import fr.gospeak.core.domain.utils.{DataClass, UuidIdBuilder}
+
+case class Proposal(id: Proposal.Id,
+                    talk: Talk.Id,
+                    group: Group.Id,
+                    title: Talk.Title,
+                    description: String)
 
 object Proposal {
 

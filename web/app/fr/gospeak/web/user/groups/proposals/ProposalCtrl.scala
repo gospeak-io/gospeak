@@ -1,24 +1,44 @@
 package fr.gospeak.web.user.groups.proposals
 
-import fr.gospeak.web.user.UserCtrl
+import fr.gospeak.core.domain.Proposal
+import fr.gospeak.web.Values
 import fr.gospeak.web.user.groups.GroupCtrl
 import fr.gospeak.web.user.groups.proposals.ProposalCtrl._
 import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo, NavLink}
 import play.api.mvc._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
 class ProposalCtrl(cc: ControllerComponents) extends AbstractController(cc) {
-  def list(group: String, search: Option[String], sortBy: Option[String], page: Option[Int], pageSize: Option[Int]): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    Ok(views.html.list()(listHeader(group), listBreadcrumb(UserCtrl.user, group -> GroupCtrl.groupName)))
+  private val user = Values.user // logged user
+
+  def list(group: String, search: Option[String], sortBy: Option[String], page: Option[Int], pageSize: Option[Int]): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    for {
+      groupIdOpt <- Values.getGroupId(group)
+      groupOpt <- groupIdOpt.map(Values.getGroup(_, user.id)).getOrElse(Future.successful(None))
+      proposals <- groupIdOpt.map(Values.getProposals).getOrElse(Future.successful(Seq()))
+    } yield groupOpt
+      .map { groupElt => Ok(views.html.list(groupElt, proposals)(listHeader(group), listBreadcrumb(user.name, group -> groupElt.name.value))) }
+      .getOrElse(NotFound)
   }
 
-  def detail(group: String, proposal: String): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    Ok(views.html.detail()(header(group), breadcrumb(UserCtrl.user, group -> GroupCtrl.groupName, proposal -> proposalName)))
+  def detail(group: String, proposal: String): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    val proposalId = Proposal.Id.from(proposal).get
+    for {
+      groupIdOpt <- Values.getGroupId(group)
+      groupOpt <- groupIdOpt.map(Values.getGroup(_, user.id)).getOrElse(Future.successful(None))
+      proposalOpt <- Values.getProposal(proposalId)
+    } yield {
+      (for {
+        groupElt <- groupOpt
+        proposalElt <- proposalOpt
+      } yield Ok(views.html.detail(proposalElt)(header(group), breadcrumb(user.name, group -> groupElt.name.value, proposal -> proposalElt.title.value)))).getOrElse(NotFound)
+    }
   }
 }
 
 object ProposalCtrl {
-  val proposalName = "Why FP"
-
   def listHeader(group: String): HeaderInfo =
     GroupCtrl.header(group)
       .copy(brand = NavLink("Gospeak", fr.gospeak.web.user.groups.routes.GroupCtrl.detail(group)))
