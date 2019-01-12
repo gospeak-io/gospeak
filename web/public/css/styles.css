@@ -1,8 +1,22 @@
 .breadcrumb-container {
     background-color: #e9ecef;
 }
+
 .page-header {
     padding-bottom: 9px;
     margin: 40px 0 20px;
     border-bottom: 1px solid #eee;
+}
+
+.home-title {
+    text-align: center;
+    margin: 50px auto;
+}
+
+.event-item, .proposal-item {
+    padding: 10px;
+}
+
+.group-item h5 a, .event-item h5 a, .proposal-item h5 a, .talk-item h5 a {
+    color: inherit;
 }

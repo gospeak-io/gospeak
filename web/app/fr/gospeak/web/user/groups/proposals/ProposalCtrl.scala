@@ -7,7 +7,7 @@ import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo, NavLink}
 import play.api.mvc._
 
 class ProposalCtrl(cc: ControllerComponents) extends AbstractController(cc) {
-  def list(group: String): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
+  def list(group: String, search: Option[String], sortBy: Option[String], page: Option[Int], pageSize: Option[Int]): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
     Ok(views.html.list()(listHeader(group), listBreadcrumb(UserCtrl.user, group -> GroupCtrl.groupName)))
   }
 

@@ -23,7 +23,7 @@ GET        /u/groups/:group                            fr.gospeak.web.user.group
 GET        /u/groups/:group/events                     fr.gospeak.web.user.groups.events.EventCtrl.list(group: String, search: Option[String] ?= None, sortBy: Option[String] ?= None, page: Option[Int] ?= None, pageSize: Option[Int] ?= None)
 GET        /u/groups/:group/events/create              fr.gospeak.web.user.groups.events.EventCtrl.create(group: String)
 GET        /u/groups/:group/events/:event              fr.gospeak.web.user.groups.events.EventCtrl.detail(group: String, event: String)
-GET        /u/groups/:group/proposals                  fr.gospeak.web.user.groups.proposals.ProposalCtrl.list(group: String)
+GET        /u/groups/:group/proposals                  fr.gospeak.web.user.groups.proposals.ProposalCtrl.list(group: String, search: Option[String] ?= None, sortBy: Option[String] ?= None, page: Option[Int] ?= None, pageSize: Option[Int] ?= None)
 GET        /u/groups/:group/proposals/:proposal        fr.gospeak.web.user.groups.proposals.ProposalCtrl.detail(group: String, proposal: String)
 
 GET        /assets/*file                               controllers.Assets.versioned(path="/public", file: Asset)

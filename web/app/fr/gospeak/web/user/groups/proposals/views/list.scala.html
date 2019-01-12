@@ -1,14 +1,20 @@
+@import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.user.groups.proposals.views.html.partials.item
 @import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.views.html.partials.container
+@import fr.gospeak.web.views.html.partials.{container, pagination, search}
 
 @()(h: HeaderInfo, b: Breadcrumb)
 @container("Gospeak", h, Some(b)) {
     <div>
-        <h1>Proposals</h1>
+        <h1>1 proposal</h1>
     </div>
+
+    @search(ProposalCtrl.list("ht-paris"))
+    @pagination(p => ProposalCtrl.list("ht-paris", page = Some(p)))
 
     <ul class="list-unstyled">
     @item()
     </ul>
+
+    @pagination(p => ProposalCtrl.list("ht-paris", page = Some(p)))
 }
