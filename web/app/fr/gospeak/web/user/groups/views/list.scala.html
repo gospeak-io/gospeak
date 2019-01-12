@@ -1,10 +1,15 @@
-@import fr.gospeak.web.controllers.authed.routes.HomeCtrl
+@import fr.gospeak.web.user.groups.views.html.partials.item
 @import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.views.html.partials.container
 
 @()(h: HeaderInfo, b: Breadcrumb)
 @container("Gospeak", h, Some(b)) {
     <div>
-        <h1>Why FP proposal to HumanTalks Paris</h1>
+        <h1>Groups</h1>
     </div>
+
+    <ul class="list-unstyled">
+        @item()
+        @item()
+    </ul>
 }

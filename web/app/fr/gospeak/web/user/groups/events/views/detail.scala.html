@@ -1,4 +1,4 @@
-@import fr.gospeak.web.controllers.authed.routes.GroupCtrl
+@import fr.gospeak.web.user.groups.events.routes.EventCtrl
 @import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.views.html.partials.container
 
@@ -6,10 +6,10 @@
 @container("Gospeak", h, Some(b)) {
     <div>
         <span class="float-right">
-            <a class="btn btn-outline-secondary" href="@GroupCtrl.createEvent("ht-paris")" title="edit" aria-hidden="true">
+            <a class="btn btn-outline-secondary" href="@EventCtrl.create("ht-paris")" title="edit" aria-hidden="true">
                 <i class="fas fa-edit"></i>
             </a>
-            <a class="btn btn-danger" href="@GroupCtrl.events("ht-paris")" title="delete" aria-hidden="true">
+            <a class="btn btn-danger" href="@EventCtrl.list("ht-paris")" title="delete" aria-hidden="true">
                 <i class="fas fa-trash"></i>
             </a>
         </span>

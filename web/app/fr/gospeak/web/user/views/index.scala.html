@@ -1,0 +1,25 @@
+@import fr.gospeak.web.user.groups.views.html.partials.{item => groupItem}
+@import fr.gospeak.web.user.talks.views.html.partials.{item => talkItem}
+@import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.views.html.partials.container
+
+@()(h: HeaderInfo, b: Breadcrumb)
+@container("Gospeak", h, Some(b)) {
+    <div>
+        <h1>Welcome Loïc</h1>
+    </div>
+
+    <h2>Your groups</h2>
+
+    <ul class="list-unstyled">
+        @groupItem()
+        @groupItem()
+    </ul>
+
+    <h2>Your active talks</h2>
+
+    <ul class="list-unstyled">
+        @talkItem()
+        @talkItem()
+    </ul>
+}

@@ -1,4 +1,4 @@
-@import fr.gospeak.web.controllers.authed.routes.HomeCtrl
+@import fr.gospeak.web.user.talks.proposal.routes.ProposalCtrl
 @import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.views.html.partials.container
 
@@ -18,6 +18,6 @@
     <h2>Submitted to</h2>
 
     <ul>
-        <li><a href="@HomeCtrl.proposal("why-fp", "abc-123")">HumanTalks Paris</a></li>
+        <li><a href="@ProposalCtrl.detail("why-fp", "abc-123")">HumanTalks Paris</a></li>
     </ul>
 }

@@ -1,0 +1,9 @@
+@import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.views.html.partials.container
+
+@()(h: HeaderInfo, b: Breadcrumb)
+@container("Gospeak", h, Some(b)) {
+    <div>
+        <h1>Why FP</h1>
+    </div>
+}
