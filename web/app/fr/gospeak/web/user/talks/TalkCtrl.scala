@@ -3,7 +3,7 @@ package fr.gospeak.web.user.talks
 import cats.data.OptionT
 import cats.instances.future._
 import fr.gospeak.core.domain.{Talk, User}
-import fr.gospeak.web.Values
+import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.user.talks.TalkCtrl._
 import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo, NavLink}
@@ -11,12 +11,12 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class TalkCtrl(cc: ControllerComponents) extends AbstractController(cc) {
-  private val user = Values.user // logged user
+class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
+  private val user = db.getUser() // logged user
 
   def list(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     for {
-      talks <- Values.getTalks(user.id)
+      talks <- db.getTalks(user.id)
       h = UserCtrl.header.activeFor(routes.TalkCtrl.list())
       b = listBreadcrumb(user.name)
     } yield Ok(views.html.list(talks)(h, b))
@@ -24,9 +24,9 @@ class TalkCtrl(cc: ControllerComponents) extends AbstractController(cc) {
 
   def detail(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     (for {
-      talkId <- OptionT(Values.getTalkId(talk))
-      talkElt <- OptionT(Values.getTalk(talkId, user.id))
-      proposals <- OptionT.liftF(Values.getProposals(talkId))
+      talkId <- OptionT(db.getTalkId(talk))
+      talkElt <- OptionT(db.getTalk(talkId, user.id))
+      proposals <- OptionT.liftF(db.getProposals(talkId))
       h = header(talk)
       b = breadcrumb(user.name, talk -> talkElt.title)
     } yield Ok(views.html.detail(talkElt, proposals)(h, b))).value.map(_.getOrElse(NotFound))

@@ -2,9 +2,9 @@ package fr.gospeak.web.user.groups.events
 
 import cats.data.OptionT
 import cats.instances.future._
+import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Event, Group, User}
-import fr.gospeak.web.Values
-import fr.gospeak.web.domain.Page
+import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.user.groups.GroupCtrl
 import fr.gospeak.web.user.groups.events.EventCtrl._
 import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo, NavLink}
@@ -12,14 +12,14 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class EventCtrl(cc: ControllerComponents) extends AbstractController(cc) {
-  private val user = Values.user // logged user
+class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
+  private val user = db.getUser() // logged user
 
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     (for {
-      groupId <- OptionT(Values.getGroupId(group))
-      groupElt <- OptionT(Values.getGroup(groupId, user.id))
-      events <- OptionT.liftF(Values.getEvents(groupId))
+      groupId <- OptionT(db.getGroupId(group))
+      groupElt <- OptionT(db.getGroup(groupId, user.id))
+      events <- OptionT.liftF(db.getEvents(groupId))
       eventPage = Page(events, params, Page.Total(45))
       h = listHeader(group)
       b = listBreadcrumb(user.name, group -> groupElt.name)
@@ -28,8 +28,8 @@ class EventCtrl(cc: ControllerComponents) extends AbstractController(cc) {
 
   def create(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     (for {
-      groupId <- OptionT(Values.getGroupId(group))
-      groupElt <- OptionT(Values.getGroup(groupId, user.id))
+      groupId <- OptionT(db.getGroupId(group))
+      groupElt <- OptionT(db.getGroup(groupId, user.id))
       h = header(group)
       b = listBreadcrumb(user.name, group -> groupElt.name).add("New" -> routes.EventCtrl.create(group))
     } yield Ok(views.html.create(groupElt)(h, b))).value.map(_.getOrElse(NotFound))
@@ -41,10 +41,10 @@ class EventCtrl(cc: ControllerComponents) extends AbstractController(cc) {
 
   def detail(group: Group.Slug, event: Event.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     (for {
-      groupId <- OptionT(Values.getGroupId(group))
-      eventId <- OptionT(Values.getEventId(groupId, event))
-      groupElt <- OptionT(Values.getGroup(groupId, user.id))
-      eventElt <- OptionT(Values.getEvent(eventId))
+      groupId <- OptionT(db.getGroupId(group))
+      eventId <- OptionT(db.getEventId(groupId, event))
+      groupElt <- OptionT(db.getGroup(groupId, user.id))
+      eventElt <- OptionT(db.getEvent(eventId))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name, event -> eventElt.name)
     } yield Ok(views.html.detail(groupElt, eventElt)(h, b))).value.map(_.getOrElse(NotFound))

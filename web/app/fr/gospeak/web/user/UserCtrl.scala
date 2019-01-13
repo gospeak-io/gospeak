@@ -1,20 +1,21 @@
 package fr.gospeak.web.user
 
 import fr.gospeak.core.domain.User
+import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.user.UserCtrl._
 import fr.gospeak.web.views.domain._
-import fr.gospeak.web.{HomeCtrl, Values}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class UserCtrl(cc: ControllerComponents) extends AbstractController(cc) {
-  private val user = Values.user // logged user
+class UserCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
+  private val user = db.getUser() // logged user
 
   def index(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     for {
-      groups <- Values.getGroups(user.id)
-      talks <- Values.getTalks(user.id)
+      groups <- db.getGroups(user.id)
+      talks <- db.getTalks(user.id)
     } yield Ok(views.html.index(groups, talks)(indexHeader, breadcrumb(user.name)))
   }
 

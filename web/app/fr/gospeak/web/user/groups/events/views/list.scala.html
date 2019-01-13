@@ -1,10 +1,9 @@
+@import fr.gospeak.core.domain.utils.Page
 @import fr.gospeak.core.domain.{Event, Group}
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 @import fr.gospeak.web.user.groups.events.views.html.partials.item
 @import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.views.html.partials.{container, pagination, search}
-
-@import fr.gospeak.web.domain.Page
 @(group: Group, events: Page[Event])(h: HeaderInfo, b: Breadcrumb)
 @container("Gospeak", h, Some(b)) {
     <div>

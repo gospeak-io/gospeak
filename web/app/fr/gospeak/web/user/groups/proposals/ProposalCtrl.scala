@@ -2,9 +2,9 @@ package fr.gospeak.web.user.groups.proposals
 
 import cats.data.OptionT
 import cats.instances.future._
+import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Group, Proposal, User}
-import fr.gospeak.web.Values
-import fr.gospeak.web.domain.Page
+import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.user.groups.GroupCtrl
 import fr.gospeak.web.user.groups.proposals.ProposalCtrl._
 import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo, NavLink}
@@ -12,14 +12,14 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ProposalCtrl(cc: ControllerComponents) extends AbstractController(cc) {
-  private val user = Values.user // logged user
+class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
+  private val user = db.getUser() // logged user
 
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     (for {
-      groupId <- OptionT(Values.getGroupId(group))
-      groupElt <- OptionT(Values.getGroup(groupId, user.id))
-      proposals <- OptionT.liftF(Values.getProposals(groupId))
+      groupId <- OptionT(db.getGroupId(group))
+      groupElt <- OptionT(db.getGroup(groupId, user.id))
+      proposals <- OptionT.liftF(db.getProposals(groupId))
       proposalPage = Page(proposals, params, Page.Total(45))
       h = listHeader(group)
       b = listBreadcrumb(user.name, group -> groupElt.name)
@@ -28,9 +28,9 @@ class ProposalCtrl(cc: ControllerComponents) extends AbstractController(cc) {
 
   def detail(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     (for {
-      groupId <- OptionT(Values.getGroupId(group))
-      groupElt <- OptionT(Values.getGroup(groupId, user.id))
-      proposalElt <- OptionT(Values.getProposal(proposal))
+      groupId <- OptionT(db.getGroupId(group))
+      groupElt <- OptionT(db.getGroup(groupId, user.id))
+      proposalElt <- OptionT(db.getProposal(proposal))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name, proposal -> proposalElt.title)
     } yield Ok(views.html.detail(proposalElt)(h, b))).value.map(_.getOrElse(NotFound))

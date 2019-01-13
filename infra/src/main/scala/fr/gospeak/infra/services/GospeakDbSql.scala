@@ -1,10 +1,11 @@
-package fr.gospeak.web
+package fr.gospeak.infra.services
 
 import fr.gospeak.core.domain._
+import fr.gospeak.core.services.GospeakDb
 
 import scala.concurrent.Future
 
-object Values {
+class GospeakDbSql extends GospeakDb {
   private val userId = User.Id.generate()
   private val group1 = Group.Id.generate()
   private val group2 = Group.Id.generate()
@@ -40,29 +41,29 @@ object Values {
   private val proposals: Seq[Proposal] = Seq(
     Proposal(proposal1, talk1, group1, Proposal.Title("Why FP"), "temporary description"))
 
-  val user: User = users.find(_.id == userId).head // logged user
+  override def getUser(): User = users.find(_.id == userId).head // TODO mock auth, to remove
 
-  def getGroupId(group: Group.Slug): Future[Option[Group.Id]] = Future.successful(groups.find(_.slug == group).map(_.id))
+  override def getGroupId(group: Group.Slug): Future[Option[Group.Id]] = Future.successful(groups.find(_.slug == group).map(_.id))
 
-  def getEventId(group: Group.Id, event: Event.Slug): Future[Option[Event.Id]] = Future.successful(events.find(_.slug == event).map(_.id))
+  override def getEventId(group: Group.Id, event: Event.Slug): Future[Option[Event.Id]] = Future.successful(events.find(_.slug == event).map(_.id))
 
-  def getTalkId(talk: Talk.Slug): Future[Option[Talk.Id]] = Future.successful(talks.find(_.slug == talk).map(_.id))
+  override def getTalkId(talk: Talk.Slug): Future[Option[Talk.Id]] = Future.successful(talks.find(_.slug == talk).map(_.id))
 
-  def getGroups(user: User.Id): Future[Seq[Group]] = Future.successful(groups.filter(_.owners.contains(user)))
+  override def getGroups(user: User.Id): Future[Seq[Group]] = Future.successful(groups.filter(_.owners.contains(user)))
 
-  def getGroup(id: Group.Id, user: User.Id): Future[Option[Group]] = Future.successful(groups.find(_.id == id).filter(_.owners.contains(user)))
+  override def getGroup(id: Group.Id, user: User.Id): Future[Option[Group]] = Future.successful(groups.find(_.id == id).filter(_.owners.contains(user)))
 
-  def getEvents(group: Group.Id): Future[Seq[Event]] = Future.successful(events.filter(_.group == group))
+  override def getEvents(group: Group.Id): Future[Seq[Event]] = Future.successful(events.filter(_.group == group))
 
-  def getEvent(id: Event.Id): Future[Option[Event]] = Future.successful(events.find(_.id == id))
+  override def getEvent(id: Event.Id): Future[Option[Event]] = Future.successful(events.find(_.id == id))
 
-  def getTalks(user: User.Id): Future[Seq[Talk]] = Future.successful(talks.filter(_.speakers.contains(user)))
+  override def getTalks(user: User.Id): Future[Seq[Talk]] = Future.successful(talks.filter(_.speakers.contains(user)))
 
-  def getTalk(id: Talk.Id, user: User.Id): Future[Option[Talk]] = Future.successful(talks.find(_.id == id).filter(_.speakers.contains(user)))
+  override def getTalk(id: Talk.Id, user: User.Id): Future[Option[Talk]] = Future.successful(talks.find(_.id == id).filter(_.speakers.contains(user)))
 
-  def getProposals(talk: Talk.Id): Future[Seq[(Group, Proposal)]] = Future.successful(proposals.filter(_.talk == talk).flatMap(p => groups.find(_.id == p.group).map(g => (g, p))))
+  override def getProposals(talk: Talk.Id): Future[Seq[(Group, Proposal)]] = Future.successful(proposals.filter(_.talk == talk).flatMap(p => groups.find(_.id == p.group).map(g => (g, p))))
 
-  def getProposals(group: Group.Id): Future[Seq[Proposal]] = Future.successful(proposals.filter(_.group == group))
+  override def getProposals(group: Group.Id): Future[Seq[Proposal]] = Future.successful(proposals.filter(_.group == group))
 
-  def getProposal(id: Proposal.Id): Future[Option[Proposal]] = Future.successful(proposals.find(_.id == id))
+  override def getProposal(id: Proposal.Id): Future[Option[Proposal]] = Future.successful(proposals.find(_.id == id))
 }

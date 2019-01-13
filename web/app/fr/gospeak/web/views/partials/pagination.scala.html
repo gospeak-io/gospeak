@@ -1,13 +1,12 @@
-@import fr.gospeak.web.domain.Page
-@import fr.gospeak.web.domain.Page.PageNo
+@import fr.gospeak.core.domain.utils.Page
 
 @(page: Page[_], link: Page.Params => Call)
 <nav aria-label="pagination">
     <ul class="pagination">
-        <li class="page-item disabled"><a class="page-link" href="@link(page.params.copy(page = PageNo(1)))">Previous</a></li>
-        <li class="page-item active"><a class="page-link" href="@link(page.params.copy(page = PageNo(1)))">1 <span class="sr-only">(current)</span></a></li>
-        <li class="page-item"><a class="page-link" href="@link(page.params.copy(page = PageNo(2)))">2</a></li>
-        <li class="page-item"><a class="page-link" href="@link(page.params.copy(page = PageNo(3)))">3</a></li>
-        <li class="page-item"><a class="page-link" href="@link(page.params.copy(page = PageNo(2)))">Next</a></li>
+        <li class="page-item disabled"><a class="page-link" href="@link(page.params.copy(page = Page.No(1)))">Previous</a></li>
+        <li class="page-item active"><a class="page-link" href="@link(page.params.copy(page = Page.No(1)))">1 <span class="sr-only">(current)</span></a></li>
+        <li class="page-item"><a class="page-link" href="@link(page.params.copy(page = Page.No(2)))">2</a></li>
+        <li class="page-item"><a class="page-link" href="@link(page.params.copy(page = Page.No(3)))">3</a></li>
+        <li class="page-item"><a class="page-link" href="@link(page.params.copy(page = Page.No(2)))">Next</a></li>
     </ul>
 </nav>
