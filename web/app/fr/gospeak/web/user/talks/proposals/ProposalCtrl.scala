@@ -1,5 +1,7 @@
 package fr.gospeak.web.user.talks.proposals
 
+import cats.data.OptionT
+import cats.instances.future._
 import fr.gospeak.core.domain.{Group, Proposal, Talk, User}
 import fr.gospeak.web.Values
 import fr.gospeak.web.user.talks.TalkCtrl
@@ -8,36 +10,29 @@ import fr.gospeak.web.views.domain.Breadcrumb
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class ProposalCtrl(cc: ControllerComponents) extends AbstractController(cc) {
   private val user = Values.user // logged user
 
   def list(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    for {
-      talkId <- Values.getTalkId(talk)
-      talkOpt <- talkId.map(Values.getTalk(_, user.id)).getOrElse(Future.successful(None))
-      proposals <- talkId.map(Values.getProposals).getOrElse(Future.successful(Seq()))
-    } yield talkOpt
-      .map { talkElt => Ok(views.html.list(talkElt, proposals)(TalkCtrl.header(talkElt.slug), listBreadcrumb(user.name, talk -> talkElt.title))) }
-      .getOrElse(NotFound)
+    (for {
+      talkId <- OptionT(Values.getTalkId(talk))
+      talkElt <- OptionT(Values.getTalk(talkId, user.id))
+      proposals <- OptionT.liftF(Values.getProposals(talkId))
+      h = TalkCtrl.header(talkElt.slug)
+      b = listBreadcrumb(user.name, talk -> talkElt.title)
+    } yield Ok(views.html.list(talkElt, proposals)(h, b))).value.map(_.getOrElse(NotFound))
   }
 
   def detail(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    for {
-      talkIdOpt <- Values.getTalkId(talk)
-      talkOpt <- talkIdOpt.map(Values.getTalk(_, user.id)).getOrElse(Future.successful(None))
-      proposalOpt <- Values.getProposal(proposal)
-      groupOpt <- proposalOpt.map(p => Values.getGroup(p.group, user.id)).getOrElse(Future.successful(None))
-    } yield {
-      (for {
-        proposalElt <- proposalOpt
-        talkElt <- talkOpt
-        groupElt <- groupOpt
-      } yield {
-        Ok(views.html.detail(groupElt, proposalElt)(TalkCtrl.header(talkElt.slug), breadcrumb(user.name, talk -> talkElt.title, proposal -> groupElt.name)))
-      }).getOrElse(NotFound)
-    }
+    (for {
+      talkId <- OptionT(Values.getTalkId(talk))
+      talkElt <- OptionT(Values.getTalk(talkId, user.id))
+      proposalElt <- OptionT(Values.getProposal(proposal))
+      groupElt <- OptionT(Values.getGroup(proposalElt.group, user.id))
+      h = TalkCtrl.header(talkElt.slug)
+      b = breadcrumb(user.name, talk -> talkElt.title, proposal -> groupElt.name)
+    } yield Ok(views.html.detail(groupElt, proposalElt)(h, b))).value.map(_.getOrElse(NotFound))
   }
 }
 

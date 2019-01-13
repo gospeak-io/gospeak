@@ -1,5 +1,7 @@
 package fr.gospeak.web.user.talks
 
+import cats.data.OptionT
+import cats.instances.future._
 import fr.gospeak.core.domain.{Talk, User}
 import fr.gospeak.web.Values
 import fr.gospeak.web.user.UserCtrl
@@ -8,7 +10,6 @@ import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo, NavLink}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class TalkCtrl(cc: ControllerComponents) extends AbstractController(cc) {
   private val user = Values.user // logged user
@@ -16,17 +17,19 @@ class TalkCtrl(cc: ControllerComponents) extends AbstractController(cc) {
   def list(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     for {
       talks <- Values.getTalks(user.id)
-    } yield Ok(views.html.list(talks)(UserCtrl.header.activeFor(routes.TalkCtrl.list()), listBreadcrumb(user.name)))
+      h = UserCtrl.header.activeFor(routes.TalkCtrl.list())
+      b = listBreadcrumb(user.name)
+    } yield Ok(views.html.list(talks)(h, b))
   }
 
   def detail(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    for {
-      talkId <- Values.getTalkId(talk)
-      talkOpt <- talkId.map(Values.getTalk(_, user.id)).getOrElse(Future.successful(None))
-      proposals <- talkOpt.map(t => Values.getProposals(t.id)).getOrElse(Future.successful(Seq()))
-    } yield talkOpt
-      .map { talkElt => Ok(views.html.detail(talkElt, proposals)(header(talk), breadcrumb(user.name, talk -> talkElt.title))) }
-      .getOrElse(NotFound)
+    (for {
+      talkId <- OptionT(Values.getTalkId(talk))
+      talkElt <- OptionT(Values.getTalk(talkId, user.id))
+      proposals <- OptionT.liftF(Values.getProposals(talkId))
+      h = header(talk)
+      b = breadcrumb(user.name, talk -> talkElt.title)
+    } yield Ok(views.html.detail(talkElt, proposals)(h, b))).value.map(_.getOrElse(NotFound))
   }
 }
 

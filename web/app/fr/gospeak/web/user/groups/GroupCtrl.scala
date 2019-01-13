@@ -1,5 +1,7 @@
 package fr.gospeak.web.user.groups
 
+import cats.data.OptionT
+import cats.instances.future._
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.user.groups.GroupCtrl._
@@ -8,7 +10,6 @@ import fr.gospeak.web.{HomeCtrl, Values}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class GroupCtrl(cc: ControllerComponents) extends AbstractController(cc) {
   private val user = Values.user // logged user
@@ -16,17 +17,19 @@ class GroupCtrl(cc: ControllerComponents) extends AbstractController(cc) {
   def list(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     for {
       groups <- Values.getGroups(user.id)
-    } yield Ok(views.html.list(groups)(UserCtrl.header.activeFor(routes.GroupCtrl.list()), listBreadcrumb(user.name)))
+      h = UserCtrl.header.activeFor(routes.GroupCtrl.list())
+      b = listBreadcrumb(user.name)
+    } yield Ok(views.html.list(groups)(h, b))
   }
 
   def detail(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    for {
-      groupIdOpt <- Values.getGroupId(group)
-      groupOpt <- groupIdOpt.map(Values.getGroup(_, user.id)).getOrElse(Future.successful(None))
-      events <- groupOpt.map(g => Values.getEvents(g.id)).getOrElse(Future.successful(Seq()))
-    } yield groupOpt
-      .map { groupElt => Ok(views.html.detail(groupElt, events)(header(group), breadcrumb(user.name, group -> groupElt.name))) }
-      .getOrElse(NotFound)
+    (for {
+      groupId <- OptionT(Values.getGroupId(group))
+      groupElt <- OptionT(Values.getGroup(groupId, user.id))
+      events <- OptionT.liftF(Values.getEvents(groupId))
+      h = header(group)
+      b = breadcrumb(user.name, group -> groupElt.name)
+    } yield Ok(views.html.detail(groupElt, events)(h, b))).value.map(_.getOrElse(NotFound))
   }
 }
 

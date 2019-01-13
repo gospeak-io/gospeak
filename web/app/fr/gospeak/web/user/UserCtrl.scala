@@ -19,7 +19,9 @@ class UserCtrl(cc: ControllerComponents) extends AbstractController(cc) {
   }
 
   def profile(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    Ok(views.html.profile()(header.activeFor(routes.UserCtrl.profile()), breadcrumb(user.name).add("Profile" -> routes.UserCtrl.profile())))
+    val h = header.activeFor(routes.UserCtrl.profile())
+    val b = breadcrumb(user.name).add("Profile" -> routes.UserCtrl.profile())
+    Ok(views.html.profile()(h, b))
   }
 }
 
