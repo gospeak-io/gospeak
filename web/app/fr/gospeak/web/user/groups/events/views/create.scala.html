@@ -9,7 +9,7 @@
         <h1>Add an event</h1>
     </div>
 
-    <form method="POST" action="@EventCtrl.doCreate(group.slug.value)">
+    <form method="POST" action="@EventCtrl.doCreate(group.slug)">
         <div class="row form-group">
             <label class="col-sm-2 col-form-label" for="name">Name</label>
             <div class="col-sm-10">
@@ -38,7 +38,7 @@
         </div>
         <div class="row">
             <div class="col-sm-10 offset-sm-2">
-                <a href="@EventCtrl.list(group.slug.value)" class="btn btn-secondary">Cancel</a>
+                <a href="@EventCtrl.list(group.slug)" class="btn btn-secondary">Cancel</a>
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
         </div>

@@ -18,7 +18,7 @@
 
         <ul>
         @proposals.map { case (group, proposal) =>
-        <li><a href="@ProposalCtrl.detail(talk.slug.value, proposal.id.value)">@group.name.value (@proposal.title.value)</a></li>
+        <li><a href="@ProposalCtrl.detail(talk.slug, proposal.id)">@group.name.value (@proposal.title.value)</a></li>
         }
         </ul>
     }

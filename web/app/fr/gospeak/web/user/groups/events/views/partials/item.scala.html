@@ -5,7 +5,7 @@
 <li class="media card my-2 event-item">
     <div class="media-body">
         <h5 class="mt-0 mb-1">
-            <a href="@EventCtrl.detail(group.slug.value, event.slug.value)">@event.name.value</a>
+            <a href="@EventCtrl.detail(group.slug, event.slug)">@event.name.value</a>
         </h5>
         @event.venue.map { v => @v, }.getOrElse {
             <b class="text-danger">Missing venue</b>,

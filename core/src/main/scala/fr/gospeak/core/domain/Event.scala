@@ -12,12 +12,12 @@ case class Event(id: Event.Id,
 
 object Event {
 
-  class Id private(val value: String) extends DataClass(value)
+  class Id private(value: String) extends DataClass(value)
 
   object Id extends UuidIdBuilder[Event.Id]("Event.Id", new Event.Id(_))
 
-  case class Slug(value: String) extends DataClass(value)
+  case class Slug(value: String) extends AnyVal
 
-  case class Name(value: String) extends DataClass(value)
+  case class Name(value: String) extends AnyVal
 
 }

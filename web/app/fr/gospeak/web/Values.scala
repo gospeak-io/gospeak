@@ -38,15 +38,15 @@ object Values {
     Talk(talk3, Talk.Slug("nodejs-news"), Talk.Title("NodeJs news"), "Cras sit amet nibh libero, in gravida nulla..", Seq()))
 
   private val proposals: Seq[Proposal] = Seq(
-    Proposal(proposal1, talk1, group1, Talk.Title("Why FP"), "temporary description"))
+    Proposal(proposal1, talk1, group1, Proposal.Title("Why FP"), "temporary description"))
 
   val user: User = users.find(_.id == userId).head // logged user
 
-  def getGroupId(group: String): Future[Option[Group.Id]] = Future.successful(groups.find(_.slug.value == group).map(_.id))
+  def getGroupId(group: Group.Slug): Future[Option[Group.Id]] = Future.successful(groups.find(_.slug == group).map(_.id))
 
-  def getEventId(group: Group.Id, event: String): Future[Option[Event.Id]] = Future.successful(events.find(_.slug.value == event).map(_.id))
+  def getEventId(group: Group.Id, event: Event.Slug): Future[Option[Event.Id]] = Future.successful(events.find(_.slug == event).map(_.id))
 
-  def getTalkId(talk: String): Future[Option[Talk.Id]] = Future.successful(talks.find(_.slug.value == talk).map(_.id))
+  def getTalkId(talk: Talk.Slug): Future[Option[Talk.Id]] = Future.successful(talks.find(_.slug == talk).map(_.id))
 
   def getGroups(user: User.Id): Future[Seq[Group]] = Future.successful(groups.filter(_.owners.contains(user)))
 

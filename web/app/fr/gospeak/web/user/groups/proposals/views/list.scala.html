@@ -1,21 +1,22 @@
 @import fr.gospeak.core.domain.{Group, Proposal}
+@import fr.gospeak.web.domain.Page
 @import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.user.groups.proposals.views.html.partials.item
 @import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.views.html.partials.{container, pagination, search}
 
-@(group: Group, proposals: Seq[Proposal])(h: HeaderInfo, b: Breadcrumb)
+@(group: Group, proposals: Page[Proposal])(h: HeaderInfo, b: Breadcrumb)
 @container("Gospeak", h, Some(b)) {
     <div>
-        <h1>@proposals.length proposals</h1>
+        <h1>@proposals.total.value proposals</h1>
     </div>
 
-    @search(ProposalCtrl.list(group.slug.value))
-    @pagination(p => ProposalCtrl.list(group.slug.value, page = Some(p)))
+    @search(ProposalCtrl.list(group.slug))
+    @pagination(proposals, p => ProposalCtrl.list(group.slug, p))
 
     <ul class="list-unstyled">
-    @proposals.map { p => @item(group, p) }
+    @proposals.items.map { p => @item(group, p) }
     </ul>
 
-    @pagination(p => ProposalCtrl.list(group.slug.value, page = Some(p)))
+    @pagination(proposals, p => ProposalCtrl.list(group.slug, p))
 }

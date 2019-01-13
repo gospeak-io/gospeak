@@ -10,12 +10,12 @@ case class Talk(id: Talk.Id,
 
 object Talk {
 
-  class Id private(val value: String) extends DataClass(value)
+  class Id private(value: String) extends DataClass(value)
 
   object Id extends UuidIdBuilder[Talk.Id]("Presentation.Id", new Talk.Id(_))
 
-  case class Slug(value: String) extends DataClass(value)
+  case class Slug(value: String) extends AnyVal
 
-  case class Title(value: String) extends DataClass(value)
+  case class Title(value: String) extends AnyVal
 
 }

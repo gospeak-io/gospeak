@@ -1,5 +1,6 @@
 package fr.gospeak.web.user
 
+import fr.gospeak.core.domain.User
 import fr.gospeak.web.user.UserCtrl._
 import fr.gospeak.web.views.domain._
 import fr.gospeak.web.{HomeCtrl, Values}
@@ -36,7 +37,7 @@ object UserCtrl {
   val header: HeaderInfo =
     indexHeader.copy(brand = NavLink("Gospeak", routes.UserCtrl.index()))
 
-  def breadcrumb(user: String) = Breadcrumb(Seq(
+  def breadcrumb(user: User.Name) = Breadcrumb(Seq(
     BreadcrumbLink("Public", fr.gospeak.web.routes.HomeCtrl.index()),
-    BreadcrumbLink(user, routes.UserCtrl.index())))
+    BreadcrumbLink(user.value, routes.UserCtrl.index())))
 }

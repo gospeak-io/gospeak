@@ -7,12 +7,15 @@ import scala.util.{Failure, Success}
 
 class DataClassSpec extends FunSpec with Matchers {
 
-  class Id(val value: String) extends DataClass(value)
+  class Id(value: String) extends DataClass(value)
 
   describe("DataClass") {
     it("should print value in toString") {
       val id = new Id("toto")
       id.toString shouldBe id.value
+    }
+    it("should define equality") {
+      new Id("toto") shouldBe new Id("toto")
     }
   }
   describe("UuidIdBuilder") {

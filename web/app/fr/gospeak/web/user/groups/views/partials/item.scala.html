@@ -4,7 +4,7 @@
 @(group: Group)
 <li class="media my-4 group-item">
     <div class="media-body">
-        <h5 class="mt-0 mb-1"><a href="@GroupCtrl.detail(group.slug.value)">@group.name.value</a></h5>
+        <h5 class="mt-0 mb-1"><a href="@GroupCtrl.detail(group.slug)">@group.name.value</a></h5>
         @group.description
     </div>
 </li>
