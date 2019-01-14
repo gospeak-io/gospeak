@@ -2,7 +2,7 @@ package fr.gospeak.web.groups
 
 import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.groups.GroupCtrl._
-import fr.gospeak.web.views.domain.HeaderInfo
+import fr.gospeak.web.domain.HeaderInfo
 import play.api.mvc._
 
 class GroupCtrl(cc: ControllerComponents) extends AbstractController(cc) {

@@ -7,7 +7,7 @@ import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.user.groups.GroupCtrl._
-import fr.gospeak.web.views.domain._
+import fr.gospeak.web.domain._
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global

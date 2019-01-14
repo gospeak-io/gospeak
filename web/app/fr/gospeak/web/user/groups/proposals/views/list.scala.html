@@ -2,11 +2,11 @@
 @import fr.gospeak.core.domain.{Group, Proposal}
 @import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.user.groups.proposals.views.html.partials.item
-@import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.views.html.partials.{container, pagination, search}
 
 @(group: Group, proposals: Page[Proposal])(h: HeaderInfo, b: Breadcrumb)
-@container("Gospeak", h, Some(b)) {
+@container("Gospeak", h, Some(b))() {
     <div>
         <h1>@proposals.total.value proposals</h1>
     </div>
@@ -19,4 +19,4 @@
     </ul>
 
     @pagination(proposals, p => ProposalCtrl.list(group.slug, p))
-}
+}()

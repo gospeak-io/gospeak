@@ -1,0 +1,13 @@
+@import fr.gospeak.web.views.partials.form.Utils
+
+@(field: Field, args: Seq[(String, String)] = Seq())
+<input
+    type="@Utils.getArg(args, "type", "text")"
+    class="form-control @Utils.getArg(args, "class") @if(field.hasErrors) {is-invalid}"
+    id="@Utils.id(args, field)"
+    name="@Utils.getArg(args, "name", field.name)"
+    value="@Utils.getArg(args, "value", field.value.getOrElse(""))"
+    @Utils.getArg(args, "placeholder").map { v => placeholder="@v" }
+    @Utils.isRequired(field).map { _ => required="" }
+    @Utils.hasPattern(field).map { c => pattern="@{c._2.head.toString}" }
+    @Utils.getArg(args, "help").map { v => aria-describedby="@v" }>

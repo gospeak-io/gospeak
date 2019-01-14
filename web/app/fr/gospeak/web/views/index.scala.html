@@ -1,8 +1,8 @@
-@import fr.gospeak.web.views.domain.HeaderInfo
+@import fr.gospeak.web.domain.HeaderInfo
 @import fr.gospeak.web.views.html.partials.container
 
 @()(h: HeaderInfo)
-@container("Gospeak", h) {
+@container("Gospeak", h)() {
     <h1 class="home-title">Gospeak</h1>
 
     <div class="card-deck">
@@ -38,4 +38,4 @@
             </div>
         </div>
     </div>
-}
+}()

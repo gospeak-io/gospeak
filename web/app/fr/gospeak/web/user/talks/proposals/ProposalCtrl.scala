@@ -6,7 +6,7 @@ import fr.gospeak.core.domain.{Group, Proposal, Talk, User}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.user.talks.TalkCtrl
 import fr.gospeak.web.user.talks.proposals.ProposalCtrl._
-import fr.gospeak.web.views.domain.Breadcrumb
+import fr.gospeak.web.domain.Breadcrumb
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global

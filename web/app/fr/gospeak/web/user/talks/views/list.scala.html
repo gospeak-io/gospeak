@@ -1,10 +1,10 @@
 @import fr.gospeak.core.domain.Talk
 @import fr.gospeak.web.user.talks.views.html.partials.item
-@import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.views.html.partials.container
 
 @(talks: Seq[Talk])(h: HeaderInfo, b: Breadcrumb)
-@container("Gospeak", h, Some(b)) {
+@container("Gospeak", h, Some(b))() {
     <div>
         <h1>Talks</h1>
     </div>
@@ -12,4 +12,4 @@
     <ul class="list-unstyled">
     @talks.map { t => @item(t) }
     </ul>
-}
+}()

@@ -1,7 +1,7 @@
 package fr.gospeak.web
 
 import fr.gospeak.web.HomeCtrl._
-import fr.gospeak.web.views.domain.{HeaderInfo, NavLink}
+import fr.gospeak.web.domain.{HeaderInfo, NavLink}
 import play.api.mvc._
 
 class HomeCtrl(cc: ControllerComponents) extends AbstractController(cc) {

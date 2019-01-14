@@ -2,7 +2,7 @@ package fr.gospeak.web.auth
 
 import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.auth.AuthCtrl._
-import fr.gospeak.web.views.domain.HeaderInfo
+import fr.gospeak.web.domain.HeaderInfo
 import play.api.mvc._
 
 class AuthCtrl(cc: ControllerComponents) extends AbstractController(cc) {

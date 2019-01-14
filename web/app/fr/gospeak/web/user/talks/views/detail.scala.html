@@ -1,10 +1,10 @@
 @import fr.gospeak.core.domain.{Group, Proposal, Talk}
 @import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.views.html.partials.container
 
 @(talk: Talk, proposals: Seq[(Group, Proposal)])(h: HeaderInfo, b: Breadcrumb)
-@container("Gospeak", h, Some(b)) {
+@container("Gospeak", h, Some(b))() {
     <div>
         <h1>@talk.title.value</h1>
     </div>
@@ -22,4 +22,4 @@
         }
         </ul>
     }
-}
+}()

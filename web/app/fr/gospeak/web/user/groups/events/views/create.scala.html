@@ -1,58 +1,41 @@
 @import fr.gospeak.core.domain.Group
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.user.groups.events.EventForm
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
-@import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.views.html.partials.container
+@import fr.gospeak.web.views.html.partials.form._
 
-@(group: Group)(h: HeaderInfo, b: Breadcrumb)
-@container("Gospeak", h, Some(b)) {
+@(group: Group, form: Form[EventForm.Create])(h: HeaderInfo, b: Breadcrumb)(implicit req: Request[AnyContent], messages: Messages)
+@container("Gospeak", h, Some(b))() {
     <div class="page-header">
         <h1>Add an event</h1>
     </div>
 
-    <form method="POST" action="@EventCtrl.doCreate(group.slug)">
-        <div class="row form-group">
-            <label class="col-sm-2 col-form-label" for="name">Name</label>
-            <div class="col-sm-10">
-                <input type="text" class="form-control" id="name" name="name" placeholder="Event name" aria-describedby="nameHelp">
-                <small id="nameHelp" class="form-text text-muted">Name of the event</small>
-            </div>
-        </div>
-        <div class="row form-group">
-            <label class="col-sm-2 col-form-label" for="slug">Slug</label>
-            <div class="col-sm-10">
-                <input type="text" class="form-control" id="slug" name="slug" placeholder="Event slug" aria-describedby="slugHelp">
-                <small id="slugHelp" class="form-text text-muted">Reference of the event (in urls for example)</small>
-            </div>
-        </div>
-        <div class="row form-group">
-            <label class="col-sm-2 col-form-label" for="datetime">Date and time</label>
-            <div class="col-sm-10">
-                <input type="text" class="form-control input-datetime" id="datetime" name="datetime" placeholder="ex: 12/07/2019 19:00">
-            </div>
-        </div>
-        <div class="row form-group">
-            <label class="col-sm-2 col-form-label" for="date">Date</label>
-            <div class="col-sm-10">
-                <input type="text" class="form-control input-date" id="date" name="date" placeholder="ex: 12/07/2019">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-10 offset-sm-2">
-                <a href="@EventCtrl.list(group.slug)" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-        </div>
-    </form>
-    @*<script>
-    console.log("SCRIPT TODO");
-    var nameInput = $('#name');
-    var slugInput = $('#slug');
-
-    nameInput.change(function () {
-    if (slugInput.val() === '') {
-    var newSlug = slugify(nameInput.val());
-    slugInput.val(newSlug);
+    @formElt(EventCtrl.doCreate(group.slug)) {
+        @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
+            @inputText(field, ("placeholder" -> "Event name") +: args)
+        }
+        @fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the event (in urls for example)")) { (field, args) =>
+            @inputText(field, ("placeholder" -> "Event slug") +: args)
+        }
+        @actionsHorizontal() {
+            <a href="@EventCtrl.list(group.slug)" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        }
     }
-    });
-    </script>*@
+} {
+    <script>
+            var nameInput = $('#@form("name").id');
+            var slugInput = $('#@form("slug").id');
+
+            nameInput.change(function () {
+                var name = nameInput.val();
+                var prevName = nameInput.data("prev");
+                var oldSlug = slugInput.val();
+                if (oldSlug === '' || oldSlug === slugify(prevName)) {
+                    slugInput.val(slugify(name));
+                }
+                nameInput.data("prev", name);
+            });
+    </script>
 }

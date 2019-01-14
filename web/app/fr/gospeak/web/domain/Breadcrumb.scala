@@ -1,4 +1,4 @@
-package fr.gospeak.web.views.domain
+package fr.gospeak.web.domain
 
 import play.api.mvc.Call
 

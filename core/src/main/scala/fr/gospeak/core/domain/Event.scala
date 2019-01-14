@@ -6,7 +6,9 @@ case class Event(id: Event.Id,
                  slug: Event.Slug,
                  group: Group.Id,
                  name: Event.Name,
-                 description: String,
+                 // start: datetime
+                 // duration: Option[Duration]
+                 description: Option[String],
                  venue: Option[String],
                  talks: Seq[Proposal.Id])
 

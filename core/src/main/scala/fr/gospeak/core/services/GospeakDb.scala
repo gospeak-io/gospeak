@@ -21,6 +21,8 @@ trait GospeakDb {
 
   def getEvent(id: Event.Id): Future[Option[Event]]
 
+  def createEvent(group: Group.Id, slug: Event.Slug, name: Event.Name): Future[Event]
+
   def getTalks(user: User.Id): Future[Seq[Talk]]
 
   def getTalk(id: Talk.Id, user: User.Id): Future[Option[Talk]]

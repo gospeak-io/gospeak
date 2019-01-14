@@ -1,0 +1,6 @@
+@import helper.CSRF
+
+@(c: Call)(content: Html)(implicit req: Request[AnyContent])
+<form method="@c.method" action="@CSRF(c).url">
+    @content
+</form>

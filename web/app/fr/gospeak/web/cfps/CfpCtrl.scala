@@ -2,7 +2,7 @@ package fr.gospeak.web.cfps
 
 import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.cfps.CfpCtrl._
-import fr.gospeak.web.views.domain.HeaderInfo
+import fr.gospeak.web.domain.HeaderInfo
 import play.api.mvc._
 
 class CfpCtrl(cc: ControllerComponents) extends AbstractController(cc) {

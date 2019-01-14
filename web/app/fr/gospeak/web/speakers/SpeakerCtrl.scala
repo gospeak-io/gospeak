@@ -2,7 +2,7 @@ package fr.gospeak.web.speakers
 
 import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.speakers.SpeakerCtrl._
-import fr.gospeak.web.views.domain.HeaderInfo
+import fr.gospeak.web.domain.HeaderInfo
 import play.api.mvc._
 
 class SpeakerCtrl(cc: ControllerComponents) extends AbstractController(cc) {

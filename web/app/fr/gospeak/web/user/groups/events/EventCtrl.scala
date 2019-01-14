@@ -5,14 +5,17 @@ import cats.instances.future._
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Event, Group, User}
 import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.groups.GroupCtrl
 import fr.gospeak.web.user.groups.events.EventCtrl._
-import fr.gospeak.web.views.domain.{Breadcrumb, HeaderInfo, NavLink}
+import play.api.data.Form
+import play.api.i18n._
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
+class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) with I18nSupport {
   private val user = db.getUser() // logged user
 
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -27,16 +30,29 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
   }
 
   def create(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    createForm(group, EventForm.create)
+  }
+
+  def doCreate(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    EventForm.create.bindFromRequest.fold(
+      formWithErrors => createForm(group, formWithErrors),
+      data => {
+        (for {
+          groupId <- OptionT(db.getGroupId(group))
+          // TODO check if slug not already exist
+          _ <- OptionT.liftF(db.createEvent(groupId, data.slug, data.name))
+        } yield Redirect(routes.EventCtrl.detail(group, data.slug))).value.map(_.getOrElse(NotFound))
+      }
+    )
+  }
+
+  private def createForm(group: Group.Slug, form: Form[EventForm.Create])(implicit req: Request[AnyContent]): Future[Result] = {
     (for {
       groupId <- OptionT(db.getGroupId(group))
       groupElt <- OptionT(db.getGroup(groupId, user.id))
       h = header(group)
       b = listBreadcrumb(user.name, group -> groupElt.name).add("New" -> routes.EventCtrl.create(group))
-    } yield Ok(views.html.create(groupElt)(h, b))).value.map(_.getOrElse(NotFound))
-  }
-
-  def doCreate(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    ???
+    } yield Ok(views.html.create(groupElt, form)(h, b))).value.map(_.getOrElse(NotFound))
   }
 
   def detail(group: Group.Slug, event: Event.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
