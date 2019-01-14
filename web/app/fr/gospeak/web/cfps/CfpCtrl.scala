@@ -7,7 +7,7 @@ import play.api.mvc._
 
 class CfpCtrl(cc: ControllerComponents) extends AbstractController(cc) {
   def list(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    Ok(views.html.list()(header))
+    Ok(html.list()(header))
   }
 }
 

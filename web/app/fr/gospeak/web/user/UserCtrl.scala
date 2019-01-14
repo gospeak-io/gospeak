@@ -16,13 +16,13 @@ class UserCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
     for {
       groups <- db.getGroups(user.id)
       talks <- db.getTalks(user.id)
-    } yield Ok(views.html.index(groups, talks)(indexHeader, breadcrumb(user.name)))
+    } yield Ok(html.index(groups, talks)(indexHeader, breadcrumb(user.name)))
   }
 
   def profile(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
     val h = header.activeFor(routes.UserCtrl.profile())
     val b = breadcrumb(user.name).add("Profile" -> routes.UserCtrl.profile())
-    Ok(views.html.profile()(h, b))
+    Ok(html.profile()(h, b))
   }
 }
 

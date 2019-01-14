@@ -7,7 +7,7 @@ import play.api.mvc._
 
 class AuthCtrl(cc: ControllerComponents) extends AbstractController(cc) {
   def login(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    Ok(views.html.login()(header))
+    Ok(html.login()(header))
   }
 
   def logout(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>

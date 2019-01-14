@@ -20,7 +20,7 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
       groups <- db.getGroups(user.id)
       h = UserCtrl.header.activeFor(routes.GroupCtrl.list())
       b = listBreadcrumb(user.name)
-    } yield Ok(views.html.list(groups)(h, b))
+    } yield Ok(html.list(groups)(h, b))
   }
 
   def detail(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -30,7 +30,7 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
       events <- OptionT.liftF(db.getEvents(groupId))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name)
-    } yield Ok(views.html.detail(groupElt, events)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.detail(groupElt, events)(h, b))).value.map(_.getOrElse(NotFound))
   }
 }
 

@@ -26,7 +26,7 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
       eventPage = Page(events, params, Page.Total(45))
       h = listHeader(group)
       b = listBreadcrumb(user.name, group -> groupElt.name)
-    } yield Ok(views.html.list(groupElt, eventPage)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.list(groupElt, eventPage)(h, b))).value.map(_.getOrElse(NotFound))
   }
 
   def create(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -52,7 +52,7 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
       groupElt <- OptionT(db.getGroup(groupId, user.id))
       h = header(group)
       b = listBreadcrumb(user.name, group -> groupElt.name).add("New" -> routes.EventCtrl.create(group))
-    } yield Ok(views.html.create(groupElt, form)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.create(groupElt, form)(h, b))).value.map(_.getOrElse(NotFound))
   }
 
   def detail(group: Group.Slug, event: Event.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -63,7 +63,7 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
       eventElt <- OptionT(db.getEvent(eventId))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name, event -> eventElt.name)
-    } yield Ok(views.html.detail(groupElt, eventElt)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.detail(groupElt, eventElt)(h, b))).value.map(_.getOrElse(NotFound))
   }
 }
 

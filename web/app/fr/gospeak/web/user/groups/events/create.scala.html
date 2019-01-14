@@ -2,8 +2,8 @@
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.user.groups.events.EventForm
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
-@import fr.gospeak.web.views.html.partials.container
-@import fr.gospeak.web.views.html.partials.form._
+@import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.partials.form.html._
 
 @(group: Group, form: Form[EventForm.Create])(h: HeaderInfo, b: Breadcrumb)(implicit req: Request[AnyContent], messages: Messages)
 @container("Gospeak", h, Some(b))() {
@@ -13,10 +13,10 @@
 
     @formElt(EventCtrl.doCreate(group.slug)) {
         @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
-            @inputText(field, ("placeholder" -> "Event name") +: args)
+            @inputText(field, Seq("placeholder" -> "Event name", "autofocus" -> "true") ++ args)
         }
         @fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the event (in urls for example)")) { (field, args) =>
-            @inputText(field, ("placeholder" -> "Event slug") +: args)
+            @inputText(field, Seq("placeholder" -> "Event slug") ++ args)
         }
         @actionsHorizontal() {
             <a href="@EventCtrl.list(group.slug)" class="btn btn-secondary">Cancel</a>

@@ -1,5 +1,5 @@
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.views.html.partials.{breadcrumb, header, main}
+@import fr.gospeak.web.partials.html.{breadcrumb, header, main}
 
 @(title: String, h: HeaderInfo, b: Option[Breadcrumb] = None)(style: Html = Html(""))(content: Html)(script: Html = Html(""))
 @main(title, style, script) {

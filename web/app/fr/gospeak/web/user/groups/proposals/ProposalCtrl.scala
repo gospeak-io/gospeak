@@ -23,7 +23,7 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
       proposalPage = Page(proposals, params, Page.Total(45))
       h = listHeader(group)
       b = listBreadcrumb(user.name, group -> groupElt.name)
-    } yield Ok(views.html.list(groupElt, proposalPage)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.list(groupElt, proposalPage)(h, b))).value.map(_.getOrElse(NotFound))
   }
 
   def detail(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -33,7 +33,7 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
       proposalElt <- OptionT(db.getProposal(proposal))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name, proposal -> proposalElt.title)
-    } yield Ok(views.html.detail(proposalElt)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.detail(proposalElt)(h, b))).value.map(_.getOrElse(NotFound))
   }
 }
 

@@ -1,4 +1,4 @@
-@import fr.gospeak.web.views.partials.form.Utils
+@import fr.gospeak.web.partials.form.Utils
 
 @(field: Field, args: Seq[(String, String)] = Seq())
 <input
@@ -10,4 +10,5 @@
     @Utils.getArg(args, "placeholder").map { v => placeholder="@v" }
     @Utils.isRequired(field).map { _ => required="" }
     @Utils.hasPattern(field).map { c => pattern="@{c._2.head.toString}" }
+    @Utils.getArg(args, "autofocus").map { _ => autofocus="" }
     @Utils.getArg(args, "help").map { v => aria-describedby="@v" }>

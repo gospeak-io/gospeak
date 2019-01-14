@@ -1,4 +1,4 @@
-package fr.gospeak.web.views.partials.form
+package fr.gospeak.web.partials.form
 
 import fr.gospeak.web.utils.Mappings
 import play.api.data.Field

@@ -21,7 +21,7 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
       proposals <- OptionT.liftF(db.getProposals(talkId))
       h = TalkCtrl.header(talkElt.slug)
       b = listBreadcrumb(user.name, talk -> talkElt.title)
-    } yield Ok(views.html.list(talkElt, proposals)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.list(talkElt, proposals)(h, b))).value.map(_.getOrElse(NotFound))
   }
 
   def detail(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -32,7 +32,7 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
       groupElt <- OptionT(db.getGroup(proposalElt.group, user.id))
       h = TalkCtrl.header(talkElt.slug)
       b = breadcrumb(user.name, talk -> talkElt.title, proposal -> groupElt.name)
-    } yield Ok(views.html.detail(groupElt, proposalElt)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.detail(groupElt, proposalElt)(h, b))).value.map(_.getOrElse(NotFound))
   }
 }
 

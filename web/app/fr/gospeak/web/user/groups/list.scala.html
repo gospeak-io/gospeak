@@ -1,7 +1,7 @@
 @import fr.gospeak.core.domain.Group
-@import fr.gospeak.web.user.groups.views.html.partials.item
+@import fr.gospeak.web.user.groups.partials.html.item
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.views.html.partials.container
+@import fr.gospeak.web.partials.html.container
 
 @(groups: Seq[Group])(h: HeaderInfo, b: Breadcrumb)
 @container("Gospeak", h, Some(b))() {

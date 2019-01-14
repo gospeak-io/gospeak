@@ -6,7 +6,7 @@ import play.api.mvc._
 
 class HomeCtrl(cc: ControllerComponents) extends AbstractController(cc) {
   def index(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    Ok(views.html.index()(header))
+    Ok(html.index()(header))
   }
 }
 

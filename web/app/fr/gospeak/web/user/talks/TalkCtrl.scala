@@ -2,6 +2,7 @@ package fr.gospeak.web.user.talks
 
 import cats.data.OptionT
 import cats.instances.future._
+import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Talk, User}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.user.UserCtrl
@@ -14,12 +15,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
   private val user = db.getUser() // logged user
 
-  def list(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+  def list(params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     for {
       talks <- db.getTalks(user.id)
+      talkPage = Page(talks, params, Page.Total(45))
       h = UserCtrl.header.activeFor(routes.TalkCtrl.list())
       b = listBreadcrumb(user.name)
-    } yield Ok(views.html.list(talks)(h, b))
+    } yield Ok(html.list(talkPage)(h, b))
   }
 
   def detail(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -29,7 +31,7 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
       proposals <- OptionT.liftF(db.getProposals(talkId))
       h = header(talk)
       b = breadcrumb(user.name, talk -> talkElt.title)
-    } yield Ok(views.html.detail(talkElt, proposals)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.detail(talkElt, proposals)(h, b))).value.map(_.getOrElse(NotFound))
   }
 }
 
