@@ -19,11 +19,10 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
     (for {
       groupId <- OptionT(db.getGroupId(group))
       groupElt <- OptionT(db.getGroup(groupId, user.id))
-      proposals <- OptionT.liftF(db.getProposals(groupId))
-      proposalPage = Page(proposals, params, Page.Total(45))
+      proposals <- OptionT.liftF(db.getProposals(groupId, params))
       h = listHeader(group)
       b = listBreadcrumb(user.name, group -> groupElt.name)
-    } yield Ok(html.list(groupElt, proposalPage)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.list(groupElt, proposals)(h, b))).value.map(_.getOrElse(NotFound))
   }
 
   def detail(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>

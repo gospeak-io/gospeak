@@ -15,11 +15,11 @@
     </div>
 
     @search(EventCtrl.list(group.slug))
-    @pagination(events, p => EventCtrl.list(group.slug, p))
+    @pagination(events, EventCtrl.list(group.slug, _))
 
     <ul class="list-unstyled">
     @events.items.map { e => @item(group, e) }
     </ul>
 
-    @pagination(events, p => EventCtrl.list(group.slug, p))
+    @pagination(events, EventCtrl.list(group.slug, _))
 }()

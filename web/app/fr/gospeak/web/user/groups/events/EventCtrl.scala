@@ -22,11 +22,10 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
     (for {
       groupId <- OptionT(db.getGroupId(group))
       groupElt <- OptionT(db.getGroup(groupId, user.id))
-      events <- OptionT.liftF(db.getEvents(groupId))
-      eventPage = Page(events, params, Page.Total(45))
+      events <- OptionT.liftF(db.getEvents(groupId, params))
       h = listHeader(group)
       b = listBreadcrumb(user.name, group -> groupElt.name)
-    } yield Ok(html.list(groupElt, eventPage)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.list(groupElt, events)(h, b))).value.map(_.getOrElse(NotFound))
   }
 
   def create(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>

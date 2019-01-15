@@ -15,11 +15,11 @@
     </div>
 
     @search(TalkCtrl.list())
-    @pagination(talks, p => TalkCtrl.list(p))
+    @pagination(talks, TalkCtrl.list)
 
     <ul class="list-unstyled">
     @talks.items.map { t => @item(t) }
     </ul>
 
-    @pagination(talks, p => TalkCtrl.list(p))
+    @pagination(talks, TalkCtrl.list)
 }()

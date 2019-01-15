@@ -1,15 +1,22 @@
-@import fr.gospeak.core.domain.{Proposal, Group, Talk}
-@import fr.gospeak.web.user.talks.proposals.partials.html.item
+@import fr.gospeak.core.domain.utils.Page
+@import fr.gospeak.core.domain.{Group, Proposal, Talk}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.partials.html.{container, pagination, search}
+@import fr.gospeak.web.user.talks.proposals.partials.html.item
+@import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
 
-@(talk: Talk, proposals: Seq[(Group, Proposal)])(h: HeaderInfo, b: Breadcrumb)
+@(talk: Talk, proposals: Page[(Group, Proposal)])(h: HeaderInfo, b: Breadcrumb)
 @container("Gospeak", h, Some(b))() {
     <div>
-        <h1>@proposals.length proposals</h1>
+        <h1>@proposals.total.value proposals</h1>
     </div>
 
+    @search(ProposalCtrl.list(talk.slug))
+    @pagination(proposals, ProposalCtrl.list(talk.slug, _))
+
     <ul class="list-unstyled">
-    @proposals.map { case (g, p) => @item(talk, g, p) }
+    @proposals.items.map { case (g, p) => @item(talk, g, p) }
     </ul>
+
+    @pagination(proposals, ProposalCtrl.list(talk.slug, _))
 }()

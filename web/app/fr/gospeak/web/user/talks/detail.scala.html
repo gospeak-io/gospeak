@@ -1,9 +1,10 @@
+@import fr.gospeak.core.domain.utils.Page
 @import fr.gospeak.core.domain.{Group, Proposal, Talk}
 @import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.html.container
 
-@(talk: Talk, proposals: Seq[(Group, Proposal)])(h: HeaderInfo, b: Breadcrumb)
+@(talk: Talk, proposals: Page[(Group, Proposal)])(h: HeaderInfo, b: Breadcrumb)
 @container("Gospeak", h, Some(b))() {
     <div>
         <h1>@talk.title.value</h1>
@@ -11,15 +12,18 @@
 
     <p>@talk.description</p>
 
-    @if(proposals.isEmpty) {
+    @if(proposals.total.value == 0) {
         <h2>Talk not submitted yet</h2>
     } else {
         <h2>Submitted to</h2>
 
         <ul>
-        @proposals.map { case (group, proposal) =>
-        <li><a href="@ProposalCtrl.detail(talk.slug, proposal.id)">@group.name.value (@proposal.title.value)</a></li>
-        }
+            @proposals.items.map { case (group, proposal) =>
+            <li><a href="@ProposalCtrl.detail(talk.slug, proposal.id)">@group.name.value (@proposal.title.value)</a></li>
+            }
+            @if(!proposals.isLast) {
+                <li><a href="@ProposalCtrl.list(talk.slug)">More...</a></li>
+            }
         </ul>
     }
 }()

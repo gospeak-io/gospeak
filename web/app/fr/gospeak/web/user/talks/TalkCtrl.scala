@@ -20,11 +20,10 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
 
   def list(params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     for {
-      talks <- db.getTalks(user.id)
-      talkPage = Page(talks, params, Page.Total(45))
+      talks <- db.getTalks(user.id, params)
       h = listHeader
       b = listBreadcrumb(user.name)
-    } yield Ok(html.list(talkPage)(h, b))
+    } yield Ok(html.list(talks)(h, b))
   }
 
   def create(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -55,7 +54,7 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
     (for {
       talkId <- OptionT(db.getTalkId(talk))
       talkElt <- OptionT(db.getTalk(talkId, user.id))
-      proposals <- OptionT.liftF(db.getProposals(talkId))
+      proposals <- OptionT.liftF(db.getProposals(talkId, Page.Params.defaults))
       h = header(talk)
       b = breadcrumb(user.name, talk -> talkElt.title)
     } yield Ok(html.detail(talkElt, proposals)(h, b))).value.map(_.getOrElse(NotFound))

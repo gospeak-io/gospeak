@@ -21,10 +21,10 @@ GET         /u/talks                                    fr.gospeak.web.user.talk
 GET         /u/talks/create                             fr.gospeak.web.user.talks.TalkCtrl.create
 POST        /u/talks/create                             fr.gospeak.web.user.talks.TalkCtrl.doCreate
 GET         /u/talks/:talk                              fr.gospeak.web.user.talks.TalkCtrl.detail(talk: Talk.Slug)
-GET         /u/talks/:talk/proposals                    fr.gospeak.web.user.talks.proposals.ProposalCtrl.list(talk: Talk.Slug)
+GET         /u/talks/:talk/proposals                    fr.gospeak.web.user.talks.proposals.ProposalCtrl.list(talk: Talk.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/talks/:talk/proposals/:proposal          fr.gospeak.web.user.talks.proposals.ProposalCtrl.detail(talk: Talk.Slug, proposal: Proposal.Id)
 
-GET         /u/groups                                   fr.gospeak.web.user.groups.GroupCtrl.list()
+GET         /u/groups                                   fr.gospeak.web.user.groups.GroupCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group                            fr.gospeak.web.user.groups.GroupCtrl.detail(group: Group.Slug)
 GET         /u/groups/:group/events                     fr.gospeak.web.user.groups.events.EventCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/events/create              fr.gospeak.web.user.groups.events.EventCtrl.create(group: Group.Slug)

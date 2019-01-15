@@ -1,6 +1,7 @@
 package fr.gospeak.web.user
 
 import fr.gospeak.core.domain.User
+import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.user.UserCtrl._
@@ -14,8 +15,8 @@ class UserCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
 
   def index(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     for {
-      groups <- db.getGroups(user.id)
-      talks <- db.getTalks(user.id)
+      groups <- db.getGroups(user.id, Page.Params.defaults)
+      talks <- db.getTalks(user.id, Page.Params.defaults)
     } yield Ok(html.index(groups, talks)(indexHeader, breadcrumb(user.name)))
   }
 

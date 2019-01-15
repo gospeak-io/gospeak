@@ -2,6 +2,7 @@ package fr.gospeak.web.user.talks.proposals
 
 import cats.data.OptionT
 import cats.instances.future._
+import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Group, Proposal, Talk, User}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.user.talks.TalkCtrl
@@ -14,11 +15,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
   private val user = db.getUser() // logged user
 
-  def list(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+  def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     (for {
       talkId <- OptionT(db.getTalkId(talk))
       talkElt <- OptionT(db.getTalk(talkId, user.id))
-      proposals <- OptionT.liftF(db.getProposals(talkId))
+      proposals <- OptionT.liftF(db.getProposals(talkId, params))
       h = TalkCtrl.header(talkElt.slug)
       b = listBreadcrumb(user.name, talk -> talkElt.title)
     } yield Ok(html.list(talkElt, proposals)(h, b))).value.map(_.getOrElse(NotFound))

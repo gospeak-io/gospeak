@@ -1,9 +1,11 @@
+@import fr.gospeak.core.domain.utils.Page
 @import fr.gospeak.core.domain.{Event, Group}
-@import fr.gospeak.web.user.groups.events.partials.html.{item => eventItem}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.user.groups.events.partials.html.{item => eventItem}
+@import fr.gospeak.web.user.groups.events.routes.EventCtrl
 
-@(group: Group, events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)
+@(group: Group, events: Page[Event])(h: HeaderInfo, b: Breadcrumb)
 @container("Gospeak", h, Some(b))() {
     <div>
         <h1>@group.name.value</h1>
@@ -12,6 +14,9 @@
     <h2>Incoming events</h2>
 
     <ul class="list-unstyled">
-    @events.map { e => @eventItem(group, e) }
+        @events.items.map { e => @eventItem(group, e) }
+        @if(!events.isLast) {
+            <a href="@EventCtrl.list(group.slug)">More...</a>
+        }
     </ul>
 }()
