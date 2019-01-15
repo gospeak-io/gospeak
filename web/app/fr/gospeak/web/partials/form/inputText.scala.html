@@ -11,4 +11,5 @@
     @Utils.isRequired(field).map { _ => required="" }
     @Utils.hasPattern(field).map { c => pattern="@{c._2.head.toString}" }
     @Utils.getArg(args, "autofocus").map { _ => autofocus="" }
-    @Utils.getArg(args, "help").map { v => aria-describedby="@v" }>
+    @Utils.getArg(args, "help").map { v => aria-describedby="@v" }
+    @Utils.attributes(args, Seq("type", "class", "id", "name", "value", "placeholder", "required", "pattern", "autofocus", "help"))>

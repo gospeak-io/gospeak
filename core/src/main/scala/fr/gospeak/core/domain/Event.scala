@@ -1,6 +1,6 @@
 package fr.gospeak.core.domain
 
-import fr.gospeak.core.domain.utils.{DataClass, UuidIdBuilder}
+import fr.gospeak.core.domain.utils.{DataClass, Meta, UuidIdBuilder}
 
 case class Event(id: Event.Id,
                  slug: Event.Slug,
@@ -10,7 +10,8 @@ case class Event(id: Event.Id,
                  // duration: Option[Duration]
                  description: Option[String],
                  venue: Option[String],
-                 talks: Seq[Proposal.Id])
+                 talks: Seq[Proposal.Id],
+                 meta: Meta)
 
 object Event {
 

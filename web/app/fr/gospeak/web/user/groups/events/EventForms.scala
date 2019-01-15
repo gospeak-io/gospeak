@@ -5,7 +5,7 @@ import fr.gospeak.web.utils.Mappings._
 import play.api.data.Forms._
 import play.api.data._
 
-object EventForm {
+object EventForms {
 
   case class Create(name: Event.Name, slug: Event.Slug)
 

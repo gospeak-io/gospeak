@@ -1,14 +1,14 @@
 @import fr.gospeak.core.domain.Group
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.user.groups.events.EventForm
+@import fr.gospeak.web.user.groups.events.EventForms
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 @import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.partials.form.html._
 
-@(group: Group, form: Form[EventForm.Create])(h: HeaderInfo, b: Breadcrumb)(implicit req: Request[AnyContent], messages: Messages)
+@(group: Group, form: Form[EventForms.Create])(h: HeaderInfo, b: Breadcrumb)(implicit req: Request[AnyContent], messages: Messages)
 @container("Gospeak", h, Some(b))() {
     <div class="page-header">
-        <h1>Add an event</h1>
+        <h1>Create an event</h1>
     </div>
 
     @formElt(EventCtrl.doCreate(group.slug)) {
@@ -16,26 +16,11 @@
             @inputText(field, Seq("placeholder" -> "Event name", "autofocus" -> "true") ++ args)
         }
         @fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the event (in urls for example)")) { (field, args) =>
-            @inputText(field, Seq("placeholder" -> "Event slug") ++ args)
+            @inputText(field, Seq("placeholder" -> "Event slug", "slug-for" -> form("name").id) ++ args)
         }
         @actionsHorizontal() {
             <a href="@EventCtrl.list(group.slug)" class="btn btn-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="submit" class="btn btn-primary">Create</button>
         }
     }
-} {
-    <script>
-            var nameInput = $('#@form("name").id');
-            var slugInput = $('#@form("slug").id');
-
-            nameInput.change(function () {
-                var name = nameInput.val();
-                var prevName = nameInput.data("prev");
-                var oldSlug = slugInput.val();
-                if (oldSlug === '' || oldSlug === slugify(prevName)) {
-                    slugInput.val(slugify(name));
-                }
-                nameInput.data("prev", name);
-            });
-    </script>
-}
+}()

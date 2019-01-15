@@ -5,23 +5,50 @@ import cats.instances.future._
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Talk, User}
 import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.user.talks.TalkCtrl._
-import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
+import play.api.data.Form
+import play.api.i18n.I18nSupport
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
+class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) with I18nSupport {
   private val user = db.getUser() // logged user
 
   def list(params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     for {
       talks <- db.getTalks(user.id)
       talkPage = Page(talks, params, Page.Total(45))
-      h = UserCtrl.header.activeFor(routes.TalkCtrl.list())
+      h = listHeader
       b = listBreadcrumb(user.name)
     } yield Ok(html.list(talkPage)(h, b))
+  }
+
+  def create(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    createForm(TalkForms.create)
+  }
+
+  def doCreate(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    TalkForms.create.bindFromRequest.fold(
+      formWithErrors => createForm(formWithErrors),
+      data => {
+        (for {
+          // TODO check if slug not already exist
+          _ <- OptionT.liftF(db.createTalk(data.slug, data.title, data.description, user.id))
+        } yield Redirect(routes.TalkCtrl.detail(data.slug))).value.map(_.getOrElse(NotFound))
+      }
+    )
+  }
+
+  private def createForm(form: Form[TalkForms.Create])(implicit req: Request[AnyContent]): Future[Result] = {
+    (for {
+      _ <- OptionT.liftF(Future.successful())
+      h = listHeader
+      b = listBreadcrumb(user.name).add("New" -> routes.TalkCtrl.create())
+    } yield Ok(html.create(form)(h, b))).value.map(_.getOrElse(NotFound))
   }
 
   def detail(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -36,6 +63,9 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
 }
 
 object TalkCtrl {
+  def listHeader: HeaderInfo =
+    UserCtrl.header.activeFor(routes.TalkCtrl.list())
+
   def listBreadcrumb(user: User.Name): Breadcrumb =
     UserCtrl.breadcrumb(user).add("Talks" -> routes.TalkCtrl.list())
 

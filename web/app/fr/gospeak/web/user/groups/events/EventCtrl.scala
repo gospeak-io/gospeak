@@ -30,23 +30,23 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
   }
 
   def create(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    createForm(group, EventForm.create)
+    createForm(group, EventForms.create)
   }
 
   def doCreate(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    EventForm.create.bindFromRequest.fold(
+    EventForms.create.bindFromRequest.fold(
       formWithErrors => createForm(group, formWithErrors),
       data => {
         (for {
           groupId <- OptionT(db.getGroupId(group))
           // TODO check if slug not already exist
-          _ <- OptionT.liftF(db.createEvent(groupId, data.slug, data.name))
+          _ <- OptionT.liftF(db.createEvent(groupId, data.slug, data.name, user.id))
         } yield Redirect(routes.EventCtrl.detail(group, data.slug))).value.map(_.getOrElse(NotFound))
       }
     )
   }
 
-  private def createForm(group: Group.Slug, form: Form[EventForm.Create])(implicit req: Request[AnyContent]): Future[Result] = {
+  private def createForm(group: Group.Slug, form: Form[EventForms.Create])(implicit req: Request[AnyContent]): Future[Result] = {
     (for {
       groupId <- OptionT(db.getGroupId(group))
       groupElt <- OptionT(db.getGroup(groupId, user.id))

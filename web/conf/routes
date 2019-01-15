@@ -18,6 +18,8 @@ GET         /u                                          fr.gospeak.web.user.User
 GET         /u/profile                                  fr.gospeak.web.user.UserCtrl.profile
 
 GET         /u/talks                                    fr.gospeak.web.user.talks.TalkCtrl.list(params: Page.Params ?= Page.Params.defaults)
+GET         /u/talks/create                             fr.gospeak.web.user.talks.TalkCtrl.create
+POST        /u/talks/create                             fr.gospeak.web.user.talks.TalkCtrl.doCreate
 GET         /u/talks/:talk                              fr.gospeak.web.user.talks.TalkCtrl.detail(talk: Talk.Slug)
 GET         /u/talks/:talk/proposals                    fr.gospeak.web.user.talks.proposals.ProposalCtrl.list(talk: Talk.Slug)
 GET         /u/talks/:talk/proposals/:proposal          fr.gospeak.web.user.talks.proposals.ProposalCtrl.detail(talk: Talk.Slug, proposal: Proposal.Id)
