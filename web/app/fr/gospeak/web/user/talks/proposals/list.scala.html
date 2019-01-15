@@ -11,12 +11,12 @@
         <h1>@proposals.total.value proposals</h1>
     </div>
 
-    @search(ProposalCtrl.list(talk.slug))
-    @pagination(proposals, ProposalCtrl.list(talk.slug, _))
+    <div class="float-right">@pagination(proposals, ProposalCtrl.list(talk.slug, _))</div>
+    @search(proposals, ProposalCtrl.list(talk.slug))
 
     <ul class="list-unstyled">
     @proposals.items.map { case (g, p) => @item(talk, g, p) }
     </ul>
 
-    @pagination(proposals, ProposalCtrl.list(talk.slug, _))
+    <div class="float-right">@pagination(proposals, ProposalCtrl.list(talk.slug, _))</div>
 }()

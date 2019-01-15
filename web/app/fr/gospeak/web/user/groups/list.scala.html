@@ -11,12 +11,12 @@
         <h1>@groups.total.value groups</h1>
     </div>
 
-    @search(GroupCtrl.list())
-    @pagination(groups, GroupCtrl.list)
+    <div class="float-right">@pagination(groups, GroupCtrl.list)</div>
+    @search(groups, GroupCtrl.list())
 
     <ul class="list-unstyled">
     @groups.items.map { g => @item(g) }
     </ul>
 
-    @pagination(groups, GroupCtrl.list)
+    <div class="float-right">@pagination(groups, GroupCtrl.list)</div>
 }()

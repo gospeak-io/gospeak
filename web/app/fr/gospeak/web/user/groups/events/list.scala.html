@@ -14,12 +14,12 @@
         <h1>@events.total.value events</h1>
     </div>
 
-    @search(EventCtrl.list(group.slug))
-    @pagination(events, EventCtrl.list(group.slug, _))
+    <div class="float-right">@pagination(events, EventCtrl.list(group.slug, _))</div>
+    @search(events, EventCtrl.list(group.slug))
 
     <ul class="list-unstyled">
     @events.items.map { e => @item(group, e) }
     </ul>
 
-    @pagination(events, EventCtrl.list(group.slug, _))
+    <div class="float-right">@pagination(events, EventCtrl.list(group.slug, _))</div>
 }()

@@ -14,12 +14,12 @@
         <h1>@talks.total.value talks</h1>
     </div>
 
-    @search(TalkCtrl.list())
-    @pagination(talks, TalkCtrl.list)
+    <div class="float-right">@pagination(talks, TalkCtrl.list)</div>
+    @search(talks, TalkCtrl.list())
 
     <ul class="list-unstyled">
     @talks.items.map { t => @item(t) }
     </ul>
 
-    @pagination(talks, TalkCtrl.list)
+    <div class="float-right">@pagination(talks, TalkCtrl.list)</div>
 }()

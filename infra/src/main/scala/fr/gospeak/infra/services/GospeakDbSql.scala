@@ -53,7 +53,7 @@ class GospeakDbSql extends GospeakDb {
 
   override def getGroups(user: User.Id, params: Page.Params): Future[Page[Group]] = {
     val res = groups.filter(_.owners.contains(user))
-      .filter(t => params.search.forall(s => t.name.value.contains(s) || t.description.contains(s)))
+      .filter(t => params.search.forall(s => contains(t.name.value, s) || contains(t.description, s)))
       .sortBy(t => params.sortBy.map(_.value) match {
         case Some("description") => t.description
         case None => t.name.value
@@ -66,7 +66,7 @@ class GospeakDbSql extends GospeakDb {
 
   override def getEvents(group: Group.Id, params: Page.Params): Future[Page[Event]] = {
     val res = events.filter(_.group == group)
-      .filter(t => params.search.forall(s => t.name.value.contains(s) || t.description.contains(s)))
+      .filter(t => params.search.forall(s => contains(t.name.value, s) || t.description.forall(contains(_, s))))
       .sortBy(t => params.sortBy.map(_.value) match {
         case Some("description") => t.description.getOrElse("")
         case None => t.name.value
@@ -85,7 +85,7 @@ class GospeakDbSql extends GospeakDb {
 
   override def getTalks(user: User.Id, params: Page.Params): Future[Page[Talk]] = {
     val res = talks.filter(_.speakers.contains(user))
-      .filter(t => params.search.forall(s => t.title.value.contains(s) || t.description.contains(s)))
+      .filter(t => params.search.forall(s => contains(t.title.value, s) || contains(t.description, s)))
       .sortBy(t => params.sortBy.map(_.value) match {
         case Some("description") => t.description
         case None => t.title.value
@@ -104,7 +104,7 @@ class GospeakDbSql extends GospeakDb {
 
   override def getProposals(talk: Talk.Id, params: Page.Params): Future[Page[(Group, Proposal)]] = {
     val res = proposals.filter(_.talk == talk).flatMap(p => groups.find(_.id == p.group).map(g => (g, p)))
-      .filter(t => params.search.forall(s => t._2.title.value.contains(s) || t._2.description.contains(s)))
+      .filter(t => params.search.forall(s => contains(t._2.title.value, s) || contains(t._2.description, s)))
       .sortBy(t => params.sortBy.map(_.value) match {
         case Some("description") => t._2.description
         case None => t._2.title.value
@@ -115,7 +115,7 @@ class GospeakDbSql extends GospeakDb {
 
   override def getProposals(group: Group.Id, params: Page.Params): Future[Page[Proposal]] = {
     val res = proposals.filter(_.group == group)
-      .filter(t => params.search.forall(s => t.title.value.contains(s) || t.description.contains(s)))
+      .filter(t => params.search.forall(s => contains(t.title.value, s) || contains(t.description, s)))
       .sortBy(t => params.sortBy.map(_.value) match {
         case Some("description") => t.description
         case None => t.title.value
@@ -125,4 +125,6 @@ class GospeakDbSql extends GospeakDb {
   }
 
   override def getProposal(id: Proposal.Id): Future[Option[Proposal]] = Future.successful(proposals.find(_.id == id))
+
+  private def contains(str: String, q: Page.Search): Boolean = str.toLowerCase.contains(q.value.toLowerCase)
 }
