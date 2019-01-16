@@ -1,9 +1,9 @@
-@import fr.gospeak.core.domain.{Event, Group}
-@import fr.gospeak.web.user.groups.events.routes.EventCtrl
+@import fr.gospeak.core.domain.{Event, Group, User}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.user.groups.events.routes.EventCtrl
 
-@(group: Group, event: Event)(h: HeaderInfo, b: Breadcrumb)
+@(group: Group, event: Event)(h: HeaderInfo, b: Breadcrumb)(implicit user: User)
 @container("Gospeak", h, Some(b))() {
     <div>
         <span class="float-right">

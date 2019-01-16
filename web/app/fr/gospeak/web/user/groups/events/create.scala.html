@@ -1,11 +1,11 @@
-@import fr.gospeak.core.domain.Group
+@import fr.gospeak.core.domain.{Group, User}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.partials.form.html._
+@import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.user.groups.events.EventForms
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
-@import fr.gospeak.web.partials.html.container
-@import fr.gospeak.web.partials.form.html._
 
-@(group: Group, form: Form[EventForms.Create])(h: HeaderInfo, b: Breadcrumb)(implicit req: Request[AnyContent], messages: Messages)
+@(group: Group, form: Form[EventForms.Create])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages)
 @container("Gospeak", h, Some(b))() {
     <div class="page-header">
         <h1>Create an event</h1>

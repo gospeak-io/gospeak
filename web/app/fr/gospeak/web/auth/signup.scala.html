@@ -1,21 +1,30 @@
-@import fr.gospeak.web.auth.AuthForms.Login
+@import fr.gospeak.web.auth.AuthForms.Signup
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.domain.HeaderInfo
-@import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.partials.form.html._
+@import fr.gospeak.web.partials.html.container
 
-@(form: Form[Login])(h: HeaderInfo)(implicit req: Request[AnyContent])
+@(form: Form[Signup])(h: HeaderInfo)(implicit req: Request[AnyContent])
 @container("Gospeak", h)() {
     <div class="login">
         <div class="card bg-light shadow">
             <div class="card-body">
-            @formElt(AuthCtrl.doLogin()) {
+            @formElt(AuthCtrl.doSignup()) {
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1"><i class="fas fa-user"></i></span>
+                        </div>
+                        @inputText(form("first-name"), Seq("placeholder" -> "First Name", "autofocus" -> "true"))
+                        @inputText(form("last-name"), Seq("placeholder" -> "Last Name"))
+                    </div>
+                </div>
                 <div class="form-group">
                     <div class="input-group">
                         <div class="input-group-prepend">
                             <span class="input-group-text" id="basic-addon1"><i class="fas fa-envelope"></i></span>
                         </div>
-                        @inputEmail(form("email"), Seq("placeholder" -> "Email", "autofocus" -> "true"))
+                        @inputEmail(form("email"), Seq("placeholder" -> "Email"))
                     </div>
                 </div>
                 <div class="form-group">
@@ -26,13 +35,12 @@
                         @inputPassword(form("password"), Seq("placeholder" -> "Password"))
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-lg btn-block mt-4">Login</button>
+                <button type="submit" class="btn btn-primary btn-lg btn-block mt-4">Sign Up</button>
             }
             </div>
         </div>
         <div class="mt-2">
-            <a href="@AuthCtrl.signup()" class="text-muted float-right">Create new account</a>
-            <a href="@AuthCtrl.passwordReset()" class="text-muted">Forgot password ?</a>
+            <a href="@AuthCtrl.login()" class="text-muted float-right">Login</a>
         </div>
     </div>
 }()

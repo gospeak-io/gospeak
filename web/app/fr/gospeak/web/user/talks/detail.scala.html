@@ -1,10 +1,10 @@
 @import fr.gospeak.core.domain.utils.Page
-@import fr.gospeak.core.domain.{Group, Proposal, Talk}
-@import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
+@import fr.gospeak.core.domain.{Group, Proposal, Talk, User}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
 
-@(talk: Talk, proposals: Page[(Group, Proposal)])(h: HeaderInfo, b: Breadcrumb)
+@(talk: Talk, proposals: Page[(Group, Proposal)])(h: HeaderInfo, b: Breadcrumb)(implicit user: User)
 @container("Gospeak", h, Some(b))() {
     <div>
         <h1>@talk.title.value</h1>

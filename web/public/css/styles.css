@@ -1,3 +1,9 @@
+.login {
+    width: 500px;
+    margin: auto;
+    margin-top: 50px;
+}
+
 .breadcrumb-container {
     background-color: #e9ecef;
 }

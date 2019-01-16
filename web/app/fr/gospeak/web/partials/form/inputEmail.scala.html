@@ -1,0 +1,4 @@
+@import fr.gospeak.web.partials.form.html.inputText
+
+@(field: Field, args: Seq[(String, String)] = Seq())
+@inputText(field, ("type" -> "email") +: args)

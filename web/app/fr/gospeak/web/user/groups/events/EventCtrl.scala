@@ -16,9 +16,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) with I18nSupport {
-  private val user = db.getUser() // logged user
-
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = db.authed() // logged user
     (for {
       groupId <- OptionT(db.getGroupId(group))
       groupElt <- OptionT(db.getGroup(groupId, user.id))
@@ -29,10 +28,12 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
   }
 
   def create(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = db.authed() // logged user
     createForm(group, EventForms.create)
   }
 
   def doCreate(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = db.authed() // logged user
     EventForms.create.bindFromRequest.fold(
       formWithErrors => createForm(group, formWithErrors),
       data => {
@@ -45,7 +46,7 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
     )
   }
 
-  private def createForm(group: Group.Slug, form: Form[EventForms.Create])(implicit req: Request[AnyContent]): Future[Result] = {
+  private def createForm(group: Group.Slug, form: Form[EventForms.Create])(implicit req: Request[AnyContent], user: User): Future[Result] = {
     (for {
       groupId <- OptionT(db.getGroupId(group))
       groupElt <- OptionT(db.getGroup(groupId, user.id))
@@ -55,6 +56,7 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
   }
 
   def detail(group: Group.Slug, event: Event.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = db.authed() // logged user
     (for {
       groupId <- OptionT(db.getGroupId(group))
       eventId <- OptionT(db.getEventId(groupId, event))

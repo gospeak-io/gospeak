@@ -13,9 +13,8 @@ import play.api.mvc._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
-  private val user = db.getUser() // logged user
-
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = db.authed() // logged user
     (for {
       groupId <- OptionT(db.getGroupId(group))
       groupElt <- OptionT(db.getGroup(groupId, user.id))
@@ -26,6 +25,7 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
   }
 
   def detail(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = db.authed() // logged user
     (for {
       groupId <- OptionT(db.getGroupId(group))
       groupElt <- OptionT(db.getGroup(groupId, user.id))

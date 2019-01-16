@@ -14,9 +14,8 @@ import play.api.mvc._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
-  private val user = db.getUser() // logged user
-
   def list(params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = db.authed() // logged user
     for {
       groups <- db.getGroups(user.id, params)
       h = UserCtrl.header.activeFor(routes.GroupCtrl.list())
@@ -25,6 +24,7 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
   }
 
   def detail(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = db.authed() // logged user
     (for {
       groupId <- OptionT(db.getGroupId(group))
       groupElt <- OptionT(db.getGroup(groupId, user.id))

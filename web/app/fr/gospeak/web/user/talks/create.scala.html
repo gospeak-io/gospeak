@@ -1,11 +1,11 @@
-@import fr.gospeak.core.domain.Group
+@import fr.gospeak.core.domain.User
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.partials.form.html._
+@import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.user.talks.TalkForms
 @import fr.gospeak.web.user.talks.routes.TalkCtrl
-@import fr.gospeak.web.partials.html.container
-@import fr.gospeak.web.partials.form.html._
 
-@(form: Form[TalkForms.Create])(h: HeaderInfo, b: Breadcrumb)(implicit req: Request[AnyContent], messages: Messages)
+@(form: Form[TalkForms.Create])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages)
 @container("Gospeak", h, Some(b))() {
     <div class="page-header">
         <h1>Create a talk</h1>

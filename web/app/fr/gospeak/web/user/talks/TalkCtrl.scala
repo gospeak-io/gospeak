@@ -16,9 +16,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) with I18nSupport {
-  private val user = db.getUser() // logged user
-
   def list(params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = db.authed() // logged user
     for {
       talks <- db.getTalks(user.id, params)
       h = listHeader
@@ -27,10 +26,12 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
   }
 
   def create(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = db.authed() // logged user
     createForm(TalkForms.create)
   }
 
   def doCreate(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = db.authed() // logged user
     TalkForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
       data => {
@@ -42,7 +43,7 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
     )
   }
 
-  private def createForm(form: Form[TalkForms.Create])(implicit req: Request[AnyContent]): Future[Result] = {
+  private def createForm(form: Form[TalkForms.Create])(implicit req: Request[AnyContent], user: User): Future[Result] = {
     (for {
       _ <- OptionT.liftF(Future.successful())
       h = listHeader
@@ -51,6 +52,7 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
   }
 
   def detail(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = db.authed() // logged user
     (for {
       talkId <- OptionT(db.getTalkId(talk))
       talkElt <- OptionT(db.getTalk(talkId, user.id))

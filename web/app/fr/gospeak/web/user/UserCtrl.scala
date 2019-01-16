@@ -11,9 +11,8 @@ import play.api.mvc._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class UserCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
-  private val user = db.getUser() // logged user
-
   def index(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = db.authed() // logged user
     for {
       groups <- db.getGroups(user.id, Page.Params.defaults)
       talks <- db.getTalks(user.id, Page.Params.defaults)
@@ -21,6 +20,7 @@ class UserCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
   }
 
   def profile(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
+    implicit val user: User = db.authed() // logged user
     val h = header.activeFor(routes.UserCtrl.profile())
     val b = breadcrumb(user.name).add("Profile" -> routes.UserCtrl.profile())
     Ok(html.profile()(h, b))

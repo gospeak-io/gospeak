@@ -1,14 +1,14 @@
 package fr.gospeak.infra.services
 
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{Meta, Page}
+import fr.gospeak.core.domain.utils.{Email, Meta, Page}
 import fr.gospeak.core.services.GospeakDb
 
 import scala.collection.mutable
 import scala.concurrent.Future
 
 class GospeakDbSql extends GospeakDb {
-  private val userId = User.Id.generate()
+  private val user1 = User.Id.generate()
   private val group1 = Group.Id.generate()
   private val group2 = Group.Id.generate()
   private val group3 = Group.Id.generate()
@@ -22,28 +22,51 @@ class GospeakDbSql extends GospeakDb {
   private val proposal1 = Proposal.Id.generate()
 
   private val users = mutable.ArrayBuffer(
-    User(userId, "Loïc", "Knuchel"))
+    User(user1, "Loïc", "Knuchel", Email("loicknuchel@gmail.com")),
+    User(User.Id.generate(), "Empty", "User", Email("empty@mail.com")))
 
   private val groups = mutable.ArrayBuffer(
-    Group(group1, Group.Slug("ht-paris"), Group.Name("HumanTalks Paris"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", Seq(userId)),
+    Group(group1, Group.Slug("ht-paris"), Group.Name("HumanTalks Paris"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", Seq(user1)),
     Group(group2, Group.Slug("paris-js"), Group.Name("Paris.Js"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", Seq()),
-    Group(group3, Group.Slug("data-gov"), Group.Name("Data governance"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", Seq(userId)))
+    Group(group3, Group.Slug("data-gov"), Group.Name("Data governance"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", Seq(user1)))
 
   private val events = mutable.ArrayBuffer(
-    Event(event1, Event.Slug("2019-03"), group1, Event.Name("HumanTalks Paris Mars 2019"), Some("desc"), Some("Zeenea"), Seq(proposal1), Meta(userId)),
-    Event(event2, Event.Slug("2019-04"), group1, Event.Name("HumanTalks Paris Avril 2019"), None, None, Seq(), Meta(userId)),
-    Event(event3, Event.Slug("2019-03"), group2, Event.Name("Paris.Js Avril"), None, None, Seq(), Meta(userId)),
-    Event(event4, Event.Slug("2019-03"), group3, Event.Name("Nouveaux modèles de gouvenance"), None, None, Seq(), Meta(userId)))
+    Event(event1, Event.Slug("2019-03"), group1, Event.Name("HumanTalks Paris Mars 2019"), Some("desc"), Some("Zeenea"), Seq(proposal1), Meta(user1)),
+    Event(event2, Event.Slug("2019-04"), group1, Event.Name("HumanTalks Paris Avril 2019"), None, None, Seq(), Meta(user1)),
+    Event(event3, Event.Slug("2019-03"), group2, Event.Name("Paris.Js Avril"), None, None, Seq(), Meta(user1)),
+    Event(event4, Event.Slug("2019-03"), group3, Event.Name("Nouveaux modèles de gouvenance"), None, None, Seq(), Meta(user1)))
 
   private val talks = mutable.ArrayBuffer(
-    Talk(talk1, Talk.Slug("why-fp"), Talk.Title("Why FP"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", Seq(userId), Meta(userId)),
-    Talk(talk2, Talk.Slug("scala-best-practices"), Talk.Title("Scala Best Practices"), "Cras sit amet nibh libero, in gravida nulla..", Seq(userId), Meta(userId)),
-    Talk(talk3, Talk.Slug("nodejs-news"), Talk.Title("NodeJs news"), "Cras sit amet nibh libero, in gravida nulla..", Seq(), Meta(userId)))
+    Talk(talk1, Talk.Slug("why-fp"), Talk.Title("Why FP"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", Seq(user1), Meta(user1)),
+    Talk(talk2, Talk.Slug("scala-best-practices"), Talk.Title("Scala Best Practices"), "Cras sit amet nibh libero, in gravida nulla..", Seq(user1), Meta(user1)),
+    Talk(talk3, Talk.Slug("nodejs-news"), Talk.Title("NodeJs news"), "Cras sit amet nibh libero, in gravida nulla..", Seq(), Meta(user1)))
 
   private val proposals = mutable.ArrayBuffer(
     Proposal(proposal1, talk1, group1, Proposal.Title("Why FP"), "temporary description"))
 
-  override def getUser(): User = users.find(_.id == userId).head // TODO mock auth, to remove
+  private var logged: Option[User] = users.headOption
+
+  override def setLogged(user: User): Future[Unit] = {
+    logged = Some(user)
+    Future.successful(())
+  }
+
+  override def logout(): Future[Unit] = {
+    logged = None
+    Future.successful(())
+  }
+
+  override def userAware(): Option[User] = logged
+
+  override def authed(): User = logged.get
+
+  override def createUser(firstName: String, lastName: String, email: Email): Future[User] = {
+    val user = User(User.Id.generate(), firstName, lastName, email)
+    users += user
+    Future.successful(user)
+  }
+
+  override def getUser(email: Email): Future[Option[User]] = Future.successful(users.find(_.email == email))
 
   override def getGroupId(group: Group.Slug): Future[Option[Group.Id]] = Future.successful(groups.find(_.slug == group).map(_.id))
 

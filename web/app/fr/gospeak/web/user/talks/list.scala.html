@@ -1,11 +1,11 @@
-@import fr.gospeak.core.domain.Talk
 @import fr.gospeak.core.domain.utils.Page
+@import fr.gospeak.core.domain.{Talk, User}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.user.talks.routes.TalkCtrl
-@import fr.gospeak.web.user.talks.partials.html.item
 @import fr.gospeak.web.partials.html.{container, pagination, search}
+@import fr.gospeak.web.user.talks.partials.html.item
+@import fr.gospeak.web.user.talks.routes.TalkCtrl
 
-@(talks: Page[Talk])(h: HeaderInfo, b: Breadcrumb)
+@(talks: Page[Talk])(h: HeaderInfo, b: Breadcrumb)(implicit user: User)
 @container("Gospeak", h, Some(b))() {
     <div>
         <span class="float-right">

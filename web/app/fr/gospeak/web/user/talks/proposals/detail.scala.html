@@ -1,8 +1,8 @@
-@import fr.gospeak.core.domain.{Group, Proposal}
+@import fr.gospeak.core.domain.{Group, Proposal, User}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.html.container
 
-@(group: Group, proposal: Proposal)(h: HeaderInfo, b: Breadcrumb)
+@(group: Group, proposal: Proposal)(h: HeaderInfo, b: Breadcrumb)(implicit user: User)
 @container("Gospeak", h, Some(b))() {
     <div>
         <h1>@proposal.title.value proposal to @group.name.value</h1>

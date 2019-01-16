@@ -1,7 +1,8 @@
+@import fr.gospeak.core.domain.User
 @import fr.gospeak.web.domain.HeaderInfo
 @import fr.gospeak.web.partials.html.container
 
-@()(h: HeaderInfo)
+@()(h: HeaderInfo)(implicit user: Option[User])
 @container("Gospeak", h)() {
     <h1 class="home-title">Gospeak</h1>
 

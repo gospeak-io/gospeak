@@ -1,12 +1,19 @@
 package fr.gospeak.core.services
 
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Page
+import fr.gospeak.core.domain.utils.{Email, Page}
 
 import scala.concurrent.Future
 
 trait GospeakDb {
-  def getUser(): User // TODO mock auth, to remove
+  def setLogged(user: User): Future[Unit] // TODO mock auth, to remove
+  def logout(): Future[Unit] // TODO mock auth, to remove
+  def userAware(): Option[User] // TODO mock auth, to remove
+  def authed(): User // TODO mock auth, to remove
+
+  def createUser(firstName: String, lastName: String, email: Email): Future[User]
+
+  def getUser(email: Email): Future[Option[User]]
 
   def getGroupId(group: Group.Slug): Future[Option[Group.Id]]
 

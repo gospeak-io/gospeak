@@ -1,16 +1,16 @@
 @import fr.gospeak.core.domain.utils.Page
-@import fr.gospeak.core.domain.{Group, Talk}
-@import fr.gospeak.web.user.groups.partials.html.{item => groupItem}
-@import fr.gospeak.web.user.talks.partials.html.{item => talkItem}
-@import fr.gospeak.web.user.groups.routes.GroupCtrl
-@import fr.gospeak.web.user.talks.routes.TalkCtrl
+@import fr.gospeak.core.domain.{Group, Talk, User}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.user.groups.partials.html.{item => groupItem}
+@import fr.gospeak.web.user.groups.routes.GroupCtrl
+@import fr.gospeak.web.user.talks.partials.html.{item => talkItem}
+@import fr.gospeak.web.user.talks.routes.TalkCtrl
 
-@(groups: Page[Group], talks: Page[Talk])(h: HeaderInfo, b: Breadcrumb)
+@(groups: Page[Group], talks: Page[Talk])(h: HeaderInfo, b: Breadcrumb)(implicit user: User)
 @container("Gospeak", h, Some(b))() {
     <div>
-        <h1>Welcome Loïc</h1>
+        <h1>Welcome @user.firstName</h1>
     </div>
 
     <h2>Your groups</h2>

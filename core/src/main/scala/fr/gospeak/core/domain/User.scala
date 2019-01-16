@@ -1,10 +1,11 @@
 package fr.gospeak.core.domain
 
-import fr.gospeak.core.domain.utils.{DataClass, UuidIdBuilder}
+import fr.gospeak.core.domain.utils.{DataClass, Email, UuidIdBuilder}
 
 case class User(id: User.Id,
                 firstName: String,
-                lastName: String) {
+                lastName: String,
+                email: Email) {
   def name: User.Name = User.Name(s"$firstName $lastName")
 }
 
