@@ -2,7 +2,7 @@ package fr.gospeak.web
 
 import com.softwaremill.macwire.wire
 import fr.gospeak.core.services.GospeakDb
-import fr.gospeak.infra.services.GospeakDbSql
+import fr.gospeak.infra.services.GospeakDbInMemory
 import fr.gospeak.web.auth.AuthCtrl
 import fr.gospeak.web.cfps.CfpCtrl
 import fr.gospeak.web.groups.GroupCtrl
@@ -27,7 +27,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
     with HttpFiltersComponents
     with _root_.controllers.AssetsComponents {
 
-  lazy val db: GospeakDb = wire[GospeakDbSql]
+  lazy val db: GospeakDb = wire[GospeakDbInMemory]
 
   lazy val homeCtrl = wire[HomeCtrl]
   lazy val cfpCtrl = wire[CfpCtrl]

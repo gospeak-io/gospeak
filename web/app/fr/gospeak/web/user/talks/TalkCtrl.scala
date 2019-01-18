@@ -45,7 +45,7 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
 
   private def createForm(form: Form[TalkForms.Create])(implicit req: Request[AnyContent], user: User): Future[Result] = {
     (for {
-      _ <- OptionT.liftF(Future.successful())
+      _ <- OptionT.liftF(Future.successful(()))
       h = listHeader
       b = listBreadcrumb(user.name).add("New" -> routes.TalkCtrl.create())
     } yield Ok(html.create(form)(h, b))).value.map(_.getOrElse(NotFound))

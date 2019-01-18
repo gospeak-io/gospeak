@@ -7,7 +7,7 @@ import fr.gospeak.core.services.GospeakDb
 import scala.collection.mutable
 import scala.concurrent.Future
 
-class GospeakDbSql extends GospeakDb {
+class GospeakDbInMemory extends GospeakDb {
   private val user1 = User.Id.generate()
   private val group1 = Group.Id.generate()
   private val group2 = Group.Id.generate()
@@ -79,7 +79,7 @@ class GospeakDbSql extends GospeakDb {
       .filter(t => params.search.forall(s => contains(t.name.value, s) || contains(t.description, s)))
       .sortBy(t => params.sortBy.map(_.value) match {
         case Some("description") => t.description
-        case None => t.name.value
+        case _ => t.name.value
       })
     val page = Page(res.slice(params.offsetStart, params.offsetEnd), params, Page.Total(res.length))
     Future.successful(page)
@@ -92,7 +92,7 @@ class GospeakDbSql extends GospeakDb {
       .filter(t => params.search.forall(s => contains(t.name.value, s) || t.description.forall(contains(_, s))))
       .sortBy(t => params.sortBy.map(_.value) match {
         case Some("description") => t.description.getOrElse("")
-        case None => t.name.value
+        case _ => t.name.value
       })
     val page = Page(res.slice(params.offsetStart, params.offsetEnd), params, Page.Total(res.length))
     Future.successful(page)
@@ -111,7 +111,7 @@ class GospeakDbSql extends GospeakDb {
       .filter(t => params.search.forall(s => contains(t.title.value, s) || contains(t.description, s)))
       .sortBy(t => params.sortBy.map(_.value) match {
         case Some("description") => t.description
-        case None => t.title.value
+        case _ => t.title.value
       })
     val page = Page(res.slice(params.offsetStart, params.offsetEnd), params, Page.Total(res.length))
     Future.successful(page)
@@ -130,7 +130,7 @@ class GospeakDbSql extends GospeakDb {
       .filter(t => params.search.forall(s => contains(t._2.title.value, s) || contains(t._2.description, s)))
       .sortBy(t => params.sortBy.map(_.value) match {
         case Some("description") => t._2.description
-        case None => t._2.title.value
+        case _ => t._2.title.value
       })
     val page = Page(res.slice(params.offsetStart, params.offsetEnd), params, Page.Total(res.length))
     Future.successful(page)
@@ -141,7 +141,7 @@ class GospeakDbSql extends GospeakDb {
       .filter(t => params.search.forall(s => contains(t.title.value, s) || contains(t.description, s)))
       .sortBy(t => params.sortBy.map(_.value) match {
         case Some("description") => t.description
-        case None => t.title.value
+        case _ => t.title.value
       })
     val page = Page(res.slice(params.offsetStart, params.offsetEnd), params, Page.Total(res.length))
     Future.successful(page)
