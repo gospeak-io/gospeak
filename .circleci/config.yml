@@ -1,0 +1,39 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/gospeak
+    docker:
+      - image: openjdk:8
+    environment:
+      - SBT_VERSION: 1.2.8
+    steps:
+      - run: echo 'export ARTIFACT_BUILD=$CIRCLE_PROJECT_REPONAME-$CIRCLE_BUILD_NUM.zip' >> $BASH_ENV
+      - run:
+          name: Get sbt binary
+          command: |
+            apt update && apt install -y curl
+            curl -L -o sbt-$SBT_VERSION.deb https://dl.bintray.com/sbt/debian/sbt-$SBT_VERSION.deb
+            dpkg -i sbt-$SBT_VERSION.deb
+            rm sbt-$SBT_VERSION.deb
+            apt-get update
+            apt-get install -y sbt python-pip git
+            apt-get clean && apt-get autoclean
+      - checkout
+      - restore_cache:
+          key: sbt-cache
+      - run:
+          name: Compile gospeak dist package
+          command: cat /dev/null | sbt clean update dist
+      - store_artifacts:
+          path: target/universal/gospeak.zip
+          destination: gospeak
+      - save_cache:
+          key: sbt-cache
+          paths:
+            - "~/.ivy2/cache"
+            - "~/.sbt"
+            - "~/.m2"
+      - run: sbt printTests
+      - run: sbt "testOnly  $(circleci tests split --split-by=timings --timings-type=classname test-full-class-names.log | tr '\n' ' ') -- -u ./test-results/junit"
+      - store_test_results:
+          path: ./test-results

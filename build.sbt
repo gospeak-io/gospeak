@@ -44,7 +44,7 @@ val playTest = Seq(
 val webjars = Seq(
   "org.webjars.npm" % "jquery" % "3.3.1",
   "org.webjars.npm" % "bootstrap" % "4.1.3")
-  //"org.webjars.npm" % "@fortawesome/fontawesome-free" % "5.6.3")
+//"org.webjars.npm" % "@fortawesome/fontawesome-free" % "5.6.3")
 val logback = Seq(
   "org.slf4j" % "slf4j-api" % "1.7.25",
   "ch.qos.logback" % "logback-classic" % "1.2.3")
@@ -103,6 +103,24 @@ val web = (project in file("web"))
 
 val global = (project in file("."))
   .enablePlugins(PlayScala)
+  .enablePlugins(JavaAppPackaging)
   .dependsOn(web)
   .aggregate(scalautils, core, infra, web) // send commands to every module
   .settings(name := "gospeak")
+
+// rename zip file created from `dist` command
+packageName in Universal := "gospeak"
+
+// needed to parallelise tests in circleci: https://tanin.nanakorn.com/technical/2018/09/10/parallelise-tests-in-sbt-on-circle-ci.html
+val printTests = taskKey[Unit]("Print full class names of tests to the file `test-full-class-names.log`.")
+printTests := {
+  import java.io._
+
+  println("Print full class names of tests to the file `test-full-class-names.log`.")
+
+  val pw = new PrintWriter(new File("test-full-class-names.log"))
+  (definedTests in Test).value.sortBy(_.name).foreach { t =>
+    pw.println(t.name)
+  }
+  pw.close()
+}
