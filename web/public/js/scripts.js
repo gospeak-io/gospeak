@@ -2,7 +2,8 @@ function slugify(str) {
     return (str || '')
         .trim()
         .toLowerCase()
-        .replace(/[ _'"]/g, '-')
+        .replace(/[ _+'"]/g, '-')
+        .replace(/--/g, '-')
         .normalize('NFD').replace(/[^a-z0-9-]/g, '');
 }
 
