@@ -16,7 +16,7 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
-      talkId <- OptionT(db.getTalkId(talk))
+      talkId <- OptionT(db.getTalkId(user.id, talk))
       talkElt <- OptionT(db.getTalk(talkId, user.id))
       proposals <- OptionT.liftF(db.getProposals(talkId, params))
       h = TalkCtrl.header(talkElt.slug)
@@ -27,7 +27,7 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
   def detail(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
-      talkId <- OptionT(db.getTalkId(talk))
+      talkId <- OptionT(db.getTalkId(user.id, talk))
       talkElt <- OptionT(db.getTalk(talkId, user.id))
       proposalElt <- OptionT(db.getProposal(proposal))
       groupElt <- OptionT(db.getGroup(proposalElt.group, user.id))

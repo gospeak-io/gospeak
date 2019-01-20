@@ -1,13 +1,14 @@
 package fr.gospeak.core.domain
 
-import fr.gospeak.core.domain.utils.{DataClass, Meta, UuidIdBuilder}
+import cats.data.NonEmptyList
+import fr.gospeak.core.domain.utils.{DataClass, Info, UuidIdBuilder}
 
 case class Talk(id: Talk.Id,
                 slug: Talk.Slug,
                 title: Talk.Title,
                 description: String,
-                speakers: Seq[User.Id], // TODO NonEmptyList
-                meta: Meta)
+                speakers: NonEmptyList[User.Id],
+                info: Info)
 
 object Talk {
 

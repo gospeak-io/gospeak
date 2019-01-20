@@ -1,13 +1,13 @@
 package fr.gospeak.core.services
 
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{Email, Page}
+import fr.gospeak.core.domain.utils.{Done, Email, Page}
 
 import scala.concurrent.Future
 
 trait GospeakDb {
-  def setLogged(user: User): Future[Unit] // TODO mock auth, to remove
-  def logout(): Future[Unit] // TODO mock auth, to remove
+  def setLogged(user: User): Future[Done] // TODO mock auth, to remove
+  def logout(): Future[Done] // TODO mock auth, to remove
   def userAware(): Option[User] // TODO mock auth, to remove
   def authed(): User // TODO mock auth, to remove
 
@@ -15,11 +15,11 @@ trait GospeakDb {
 
   def getUser(email: Email): Future[Option[User]]
 
-  def getGroupId(group: Group.Slug): Future[Option[Group.Id]]
+  def getGroupId(slug: Group.Slug): Future[Option[Group.Id]]
 
-  def getEventId(group: Group.Id, event: Event.Slug): Future[Option[Event.Id]]
+  def getEventId(group: Group.Id, slug: Event.Slug): Future[Option[Event.Id]]
 
-  def getTalkId(talk: Talk.Slug): Future[Option[Talk.Id]]
+  def getTalkId(user: User.Id, slug: Talk.Slug): Future[Option[Talk.Id]]
 
   def getGroups(user: User.Id, params: Page.Params): Future[Page[Group]]
 
@@ -37,9 +37,9 @@ trait GospeakDb {
 
   def createTalk(slug: Talk.Slug, title: Talk.Title, description: String, by: User.Id): Future[Talk]
 
-  def getProposals(talk: Talk.Id, params: Page.Params): Future[Page[(Group, Proposal)]]
-
   def getProposals(group: Group.Id, params: Page.Params): Future[Page[Proposal]]
+
+  def getProposals(talk: Talk.Id, params: Page.Params): Future[Page[(Group, Proposal)]]
 
   def getProposal(id: Proposal.Id): Future[Option[Proposal]]
 }

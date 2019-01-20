@@ -36,7 +36,7 @@ object Mappings {
   }
 
   val mail: Mapping[Email] = stringMapping(Email, _.value, required)
-  val password: Mapping[Password] = stringMapping(Password, _.value, required)
+  val password: Mapping[Password] = stringMapping(Password, _.decode, required)
   val talkSlug: Mapping[Talk.Slug] = stringMapping(Talk.Slug, _.value, required, pattern("[a-z0-9-]+".r))
   val talkTitle: Mapping[Talk.Title] = stringMapping(Talk.Title, _.value, required)
   val eventSlug: Mapping[Event.Slug] = stringMapping(Event.Slug, _.value, required, pattern("[a-z0-9-]+".r))

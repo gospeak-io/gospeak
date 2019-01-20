@@ -4,14 +4,14 @@ import java.time.Instant
 
 import fr.gospeak.core.domain.User
 
-case class Meta(created: Instant,
+case class Info(created: Instant,
                 createdBy: User.Id,
                 updated: Instant,
                 updatedBy: User.Id)
 
-object Meta {
-  def apply(by: User.Id): Meta = {
+object Info {
+  def apply(by: User.Id): Info = {
     val now = Instant.now()
-    new Meta(now, by, now, by)
+    new Info(now, by, now, by)
   }
 }

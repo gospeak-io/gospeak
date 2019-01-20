@@ -11,6 +11,8 @@ case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total) {
 
   def no(i: Page.No): Page.Params = params.copy(page = i)
 
+  def map[B](f: A => B): Page[B] = Page(items.map(f), params, total)
+
   private val width = 3
   private val lastPage: Int = math.ceil(total.value.toDouble / params.pageSize.value).toInt
   private val middleStart: Int = (params.page.value - width).max(1)
@@ -33,17 +35,17 @@ object Page {
   }
 
   object Search {
-    val key = "search"
+    val key = "q"
   }
 
-  case class SortBy(value: String) extends AnyVal {
-    def key: String = SortBy.key
+  case class OrderBy(value: String) extends AnyVal {
+    def key: String = OrderBy.key
 
     def nonEmpty: Boolean = value.nonEmpty
   }
 
-  object SortBy {
-    val key = "sort-by"
+  object OrderBy {
+    val key = "sort"
   }
 
   // should be at least 1
@@ -74,7 +76,7 @@ object Page {
 
   case class Total(value: Int) extends AnyVal
 
-  case class Params(search: Option[Search], sortBy: Option[SortBy], page: No, pageSize: Size) {
+  case class Params(search: Option[Search], orderBy: Option[OrderBy], page: No, pageSize: Size) {
     val offsetStart: Int = (page.value - 1) * pageSize.value
     val offsetEnd: Int = page.value * pageSize.value
 

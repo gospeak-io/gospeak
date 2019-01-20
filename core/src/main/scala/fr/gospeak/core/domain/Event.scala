@@ -1,17 +1,17 @@
 package fr.gospeak.core.domain
 
-import fr.gospeak.core.domain.utils.{DataClass, Meta, UuidIdBuilder}
+import fr.gospeak.core.domain.utils.{DataClass, Info, UuidIdBuilder}
 
-case class Event(id: Event.Id,
+case class Event(group: Group.Id,
+                 id: Event.Id,
                  slug: Event.Slug,
-                 group: Group.Id,
                  name: Event.Name,
                  // start: datetime
                  // duration: Option[Duration]
                  description: Option[String],
                  venue: Option[String],
                  talks: Seq[Proposal.Id],
-                 meta: Meta)
+                 info: Info)
 
 object Event {
 

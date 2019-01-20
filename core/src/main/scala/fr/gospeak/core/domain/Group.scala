@@ -1,12 +1,14 @@
 package fr.gospeak.core.domain
 
-import fr.gospeak.core.domain.utils.{DataClass, UuidIdBuilder}
+import cats.data.NonEmptyList
+import fr.gospeak.core.domain.utils.{DataClass, Info, UuidIdBuilder}
 
 case class Group(id: Group.Id,
                  slug: Group.Slug,
                  name: Group.Name,
                  description: String,
-                 owners: Seq[User.Id])
+                 owners: NonEmptyList[User.Id],
+                 info: Info)
 
 object Group {
 

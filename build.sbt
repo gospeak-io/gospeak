@@ -26,11 +26,12 @@ val circe = Seq(
   "io.circe" %% "circe-parser",
   "io.circe" %% "circe-literal",
   "io.circe" %% "circe-java8").map(_ % "0.10.1")
-val doobieVersion = "0.5.3" // 0.6.0 depends on fs2 1.0.0 which is incompatible with http4s 0.18.21
+val doobieVersion = "0.6.0"
 val doobie = Seq(
   "org.tpolecat" %% "doobie-core",
   "org.tpolecat" %% "doobie-h2",
-  "org.tpolecat" %% "doobie-postgres").map(_ % doobieVersion)
+  "org.tpolecat" %% "doobie-postgres",
+  "org.tpolecat" %% "doobie-hikari").map(_ % doobieVersion)
 val doobieTest = Seq(
   "org.tpolecat" %% "doobie-scalatest" % doobieVersion).map(_ % Test)
 val flyway = Seq(

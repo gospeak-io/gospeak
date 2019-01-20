@@ -1,11 +1,15 @@
 package fr.gospeak.core.domain
 
+import java.time.Instant
+
 import fr.gospeak.core.domain.utils.{DataClass, Email, UuidIdBuilder}
 
 case class User(id: User.Id,
                 firstName: String,
                 lastName: String,
-                email: Email) {
+                email: Email,
+                created: Instant,
+                updated: Instant) {
   def name: User.Name = User.Name(s"$firstName $lastName")
 }
 
