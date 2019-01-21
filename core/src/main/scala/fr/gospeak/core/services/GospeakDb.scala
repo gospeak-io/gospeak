@@ -5,7 +5,7 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{Done, Email, Page}
 
 trait GospeakDb {
-  def setLogged(user: User): IO[Done] // TODO mock auth, to remove
+  def login(user: User): IO[Done] // TODO mock auth, to remove
   def logout(): IO[Done] // TODO mock auth, to remove
   def userAware(): Option[User] // TODO mock auth, to remove
   def authed(): User // TODO mock auth, to remove

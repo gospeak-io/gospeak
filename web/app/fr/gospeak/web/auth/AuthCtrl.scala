@@ -20,7 +20,7 @@ class AuthCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
       formWithErrors => IO.pure(Ok(html.signup(formWithErrors)(header))),
       data => for {
         user <- db.createUser(data.firstName, data.lastName, data.email)
-        _ <- db.setLogged(user)
+        _ <- db.login(user)
       } yield Redirect(fr.gospeak.web.user.routes.UserCtrl.index())
     ).unsafeToFuture()
   }
@@ -36,7 +36,7 @@ class AuthCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
     AuthForms.login.bindFromRequest.fold(
       formWithErrors => IO.pure(Ok(html.login(formWithErrors)(header))),
       data => db.getUser(data.email).flatMap {
-        case Some(user) => db.setLogged(user).map(_ => Redirect(fr.gospeak.web.user.routes.UserCtrl.index()))
+        case Some(user) => db.login(user).map(_ => Redirect(fr.gospeak.web.user.routes.UserCtrl.index()))
         case None => IO.pure(Ok(html.login(AuthForms.login.fill(data))(header)))
       }
     ).unsafeToFuture()

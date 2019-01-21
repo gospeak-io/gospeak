@@ -81,7 +81,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   private var logged: Option[User] = Some(users.head)
 
-  override def setLogged(user: User): IO[Done] = {
+  override def login(user: User): IO[Done] = {
     logged = Some(user)
     IO.pure(Done)
   }
