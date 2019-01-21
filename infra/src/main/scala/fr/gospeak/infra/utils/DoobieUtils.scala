@@ -20,6 +20,14 @@ object DoobieUtils {
     case c: PostgreSQL => Transactor.fromDriverManager[IO]("org.postgresql.Driver", c.url, c.user, c.pass.decode)
   }
 
+  def selectPage[A](in: Page.Params => (doobie.Query0[A], doobie.Query0[Long]), params: Page.Params): doobie.ConnectionIO[Page[A]] = {
+    val (select, count) = in(params)
+    for {
+      elts <- select.to[List]
+      total <- count.unique
+    } yield Page(elts, params, Page.Total(total))
+  }
+
   object Fragments {
     val empty = fr0""
     val space = fr0" "
@@ -33,19 +41,22 @@ object DoobieUtils {
     def buildSelect(table: Fragment, fields: Fragment, where: Fragment): Fragment =
       buildSelect(table, fields) ++ space ++ where
 
+    case class Paginate(where: Fragment, orderBy: Fragment, limit: Fragment) {
+      def all: Fragment = Seq(where, orderBy, limit).reduce(_ ++ _)
+    }
+
     // TODO improve tests & extract some methods
-    def paginate(params: Page.Params, searchFields: Seq[String], defaultSort: Page.OrderBy, whereOpt: Option[Fragment] = None, prefix: Option[String] = None): Fragment = {
+    def paginate(params: Page.Params, searchFields: Seq[String], defaultSort: Page.OrderBy, whereOpt: Option[Fragment] = None, prefix: Option[String] = None): Paginate = {
       val search = params.search.filter(_ => searchFields.nonEmpty)
         .map { search => searchFields.map(s => Fragment.const(prefix.map(_ + ".").getOrElse("") + s) ++ fr"LIKE '%${search.value}%'").reduce(_ ++ fr"OR" ++ _) }
         .map { search => whereOpt.map(_ ++ fr" AND" ++ fr0"(" ++ search ++ fr")").getOrElse(fr"WHERE" ++ search) }
         .orElse(whereOpt.map(_ ++ space))
         .getOrElse(empty)
 
-      Seq(
+      Paginate(
         search,
         orderByFragment(params.orderBy.getOrElse(defaultSort), prefix),
-        limitFragment(params.offsetStart, params.pageSize)
-      ).reduce(_ ++ _)
+        limitFragment(params.offsetStart, params.pageSize))
     }
 
     private def orderByFragment(orderBy: Page.OrderBy, prefix: Option[String]): Fragment =

@@ -1,10 +1,10 @@
 package fr.gospeak.infra.services.storage.sql.tables
 
-import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.scalatest.IOChecker
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{Info, Page}
+import fr.gospeak.infra.services.storage.sql.tables.EventTable._
 import fr.gospeak.infra.testingutils.Values
 import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
 
@@ -23,7 +23,6 @@ class EventTableSpec extends FunSpec with Matchers with IOChecker with BeforeAnd
   override def afterAll(): Unit = db.dropTables().unsafeRunSync()
 
   describe("EventTable") {
-    import EventTable._
     describe("insert") {
       it("should generate the query") {
         val q = insert(event)
@@ -47,14 +46,11 @@ class EventTableSpec extends FunSpec with Matchers with IOChecker with BeforeAnd
     }
     describe("selectPage") {
       it("should generate the query") {
-        val q = selectPageQuery(groupId, params)
-        q.sql shouldBe "SELECT group_id, id, slug, name, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE group_id=? ORDER BY name OFFSET 0 LIMIT 20"
-        check(q)
-      }
-      it("should generate the query for total") {
-        val q = countPageQuery(groupId, params)
-        q.sql shouldBe "SELECT count(*) FROM events WHERE group_id=?"
-        check(q)
+        val (s, c) = selectPageQuery(groupId, params)
+        s.sql shouldBe "SELECT group_id, id, slug, name, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE group_id=? ORDER BY name OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM events WHERE group_id=? "
+        check(s)
+        check(c)
       }
     }
   }

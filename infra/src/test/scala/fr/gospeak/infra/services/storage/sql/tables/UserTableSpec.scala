@@ -6,6 +6,7 @@ import cats.effect.IO
 import doobie.scalatest.IOChecker
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.domain.utils.Email
+import fr.gospeak.infra.services.storage.sql.tables.UserTable._
 import fr.gospeak.infra.testingutils.Values
 import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
 
@@ -19,7 +20,6 @@ class UserTableSpec extends FunSpec with Matchers with IOChecker with BeforeAndA
   override def afterAll(): Unit = db.dropTables().unsafeRunSync()
 
   describe("UserTable") {
-    import UserTable._
     describe("insert") {
       it("should generate the query") {
         val q = insert(user)

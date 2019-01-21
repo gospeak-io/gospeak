@@ -5,6 +5,7 @@ import cats.effect.IO
 import doobie.scalatest._
 import fr.gospeak.core.domain.utils.{Info, Page}
 import fr.gospeak.core.domain.{Talk, User}
+import fr.gospeak.infra.services.storage.sql.tables.TalkTable._
 import fr.gospeak.infra.testingutils.Values
 import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
 
@@ -22,7 +23,6 @@ class TalkTableSpec extends FunSpec with Matchers with IOChecker with BeforeAndA
   override def afterAll(): Unit = db.dropTables().unsafeRunSync()
 
   describe("TalkTable") {
-    import TalkTable._
     describe("insert") {
       it("should generate the query") {
         val q = insert(talk)
@@ -46,14 +46,11 @@ class TalkTableSpec extends FunSpec with Matchers with IOChecker with BeforeAndA
     }
     describe("selectPage") {
       it("should generate the query") {
-        val q = selectPageQuery(userId, params)
-        q.sql shouldBe "SELECT id, slug, title, description, speakers, created, created_by, updated, updated_by FROM talks WHERE speakers LIKE ? ORDER BY title OFFSET 0 LIMIT 20"
-        check(q)
-      }
-      it("should generate the query for total") {
-        val q = countPageQuery(userId, params)
-        q.sql shouldBe "SELECT count(*) FROM talks WHERE speakers LIKE ?"
-        check(q)
+        val (s, c) = selectPageQuery(userId, params)
+        s.sql shouldBe "SELECT id, slug, title, description, speakers, created, created_by, updated, updated_by FROM talks WHERE speakers LIKE ? ORDER BY title OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM talks WHERE speakers LIKE ? "
+        check(s)
+        check(c)
       }
     }
   }

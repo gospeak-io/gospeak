@@ -6,6 +6,7 @@ import doobie.util.fragment.Fragment
 import doobie.util.update.Update
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Group, User}
+import fr.gospeak.infra.utils.DoobieUtils
 import fr.gospeak.infra.utils.DoobieUtils.Fragments.{buildInsert, buildSelect, paginate}
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 
@@ -27,11 +28,10 @@ object GroupTable {
   private[tables] def selectOneQuery(id: Group.Id, user: User.Id): doobie.Query0[Group] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id AND owners LIKE ${"%" + user.value + "%"}").query[Group]
 
-  private[tables] def selectPageQuery(user: User.Id, params: Page.Params): doobie.Query0[Group] =
-    buildSelect(tableFr, fieldsFr, paginate(params, searchFields, defaultSort, Some(fr0"WHERE owners LIKE ${"%" + user.value + "%"}"))).query[Group]
-
-  private[tables] def countPageQuery(user: User.Id, params: Page.Params): doobie.Query0[Long] =
-    buildSelect(tableFr, fr0"count(*)", fr0"WHERE owners LIKE ${"%" + user.value + "%"}").query[Long]
+  private[tables] def selectPageQuery(user: User.Id, params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
+    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE owners LIKE ${"%" + user.value + "%"}"))
+    (buildSelect(tableFr, fieldsFr, page.all).query[Group], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+  }
 
   def insert(elt: Group): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
@@ -42,8 +42,5 @@ object GroupTable {
 
   def selectOne(id: Group.Id, user: User.Id): doobie.ConnectionIO[Option[Group]] = selectOneQuery(id, user).option
 
-  def selectPage(user: User.Id, params: Page.Params): doobie.ConnectionIO[Page[Group]] = for {
-    elts <- selectPageQuery(user, params).to[List]
-    total <- countPageQuery(user, params).unique
-  } yield Page(elts, params, Page.Total(total.toInt))
+  def selectPage(user: User.Id, params: Page.Params): doobie.ConnectionIO[Page[Group]] = DoobieUtils.selectPage(selectPageQuery(user, _), params)
 }

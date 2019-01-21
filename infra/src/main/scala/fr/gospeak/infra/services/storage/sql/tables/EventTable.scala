@@ -6,6 +6,7 @@ import doobie.util.fragment.Fragment
 import doobie.util.update.Update
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Event, Group}
+import fr.gospeak.infra.utils.DoobieUtils
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 
@@ -27,11 +28,10 @@ object EventTable {
   private[tables] def selectOneQuery(id: Event.Id): doobie.Query0[Event] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[Event]
 
-  private[tables] def selectPageQuery(group: Group.Id, params: Page.Params): doobie.Query0[Event] =
-    buildSelect(tableFr, fieldsFr, paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group"))).query[Event]
-
-  private[tables] def countPageQuery(group: Group.Id, params: Page.Params): doobie.Query0[Long] =
-    buildSelect(tableFr, fr0"count(*)", fr0"WHERE group_id=$group").query[Long]
+  private[tables] def selectPageQuery(group: Group.Id, params: Page.Params): (doobie.Query0[Event], doobie.Query0[Long]) = {
+    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group"))
+    (buildSelect(tableFr, fieldsFr, page.all).query[Event], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+  }
 
   def insert(elt: Event): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
@@ -42,8 +42,5 @@ object EventTable {
 
   def selectOne(id: Event.Id): doobie.ConnectionIO[Option[Event]] = selectOneQuery(id).option
 
-  def selectPage(group: Group.Id, params: Page.Params): doobie.ConnectionIO[Page[Event]] = for {
-    elts <- selectPageQuery(group, params).to[List]
-    total <- countPageQuery(group, params).unique
-  } yield Page(elts, params, Page.Total(total.toInt))
+  def selectPage(group: Group.Id, params: Page.Params): doobie.ConnectionIO[Page[Event]] = DoobieUtils.selectPage(selectPageQuery(group, _), params)
 }

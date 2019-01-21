@@ -74,7 +74,7 @@ object Page {
     val key = "page-size"
   }
 
-  case class Total(value: Int) extends AnyVal
+  case class Total(value: Long) extends AnyVal
 
   case class Params(search: Option[Search], orderBy: Option[OrderBy], page: No, pageSize: Size) {
     val offsetStart: Int = (page.value - 1) * pageSize.value

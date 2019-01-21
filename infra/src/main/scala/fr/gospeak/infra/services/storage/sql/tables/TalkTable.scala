@@ -6,6 +6,7 @@ import doobie.util.fragment.Fragment
 import doobie.util.update.Update
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Talk, User}
+import fr.gospeak.infra.utils.DoobieUtils
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 
@@ -27,11 +28,10 @@ object TalkTable {
   private[tables] def selectOneQuery(id: Talk.Id, user: User.Id): doobie.Query0[Talk] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id AND speakers LIKE ${"%" + user.value + "%"}").query[Talk]
 
-  private[tables] def selectPageQuery(user: User.Id, params: Page.Params): doobie.Query0[Talk] =
-    buildSelect(tableFr, fieldsFr, paginate(params, searchFields, defaultSort, Some(fr0"WHERE speakers LIKE ${"%" + user.value + "%"}"))).query[Talk]
-
-  private[tables] def countPageQuery(user: User.Id, params: Page.Params): doobie.Query0[Long] =
-    buildSelect(tableFr, fr0"count(*)", fr0"WHERE speakers LIKE ${"%" + user.value + "%"}").query[Long]
+  private[tables] def selectPageQuery(user: User.Id, params: Page.Params): (doobie.Query0[Talk], doobie.Query0[Long]) = {
+    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE speakers LIKE ${"%" + user.value + "%"}"))
+    (buildSelect(tableFr, fieldsFr, page.all).query[Talk], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+  }
 
   def insert(elt: Talk): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
@@ -42,8 +42,5 @@ object TalkTable {
 
   def selectOne(id: Talk.Id, user: User.Id): doobie.ConnectionIO[Option[Talk]] = selectOneQuery(id, user).option
 
-  def selectPage(user: User.Id, params: Page.Params): doobie.ConnectionIO[Page[Talk]] = for {
-    elts <- selectPageQuery(user, params).to[List]
-    total <- countPageQuery(user, params).unique
-  } yield Page(elts, params, Page.Total(total.toInt))
+  def selectPage(user: User.Id, params: Page.Params): doobie.ConnectionIO[Page[Talk]] = DoobieUtils.selectPage(selectPageQuery(user, _), params)
 }
