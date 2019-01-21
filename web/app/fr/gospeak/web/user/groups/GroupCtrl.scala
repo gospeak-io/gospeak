@@ -1,26 +1,23 @@
 package fr.gospeak.web.user.groups
 
 import cats.data.OptionT
-import cats.instances.future._
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.HomeCtrl
+import fr.gospeak.web.domain._
 import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.user.groups.GroupCtrl._
-import fr.gospeak.web.domain._
 import play.api.mvc._
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
   def list(params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
-    for {
+    (for {
       groups <- db.getGroups(user.id, params)
       h = UserCtrl.header.activeFor(routes.GroupCtrl.list())
       b = listBreadcrumb(user.name)
-    } yield Ok(html.list(groups)(h, b))
+    } yield Ok(html.list(groups)(h, b))).unsafeToFuture()
   }
 
   def detail(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -31,7 +28,7 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
       events <- OptionT.liftF(db.getEvents(groupId, Page.Params.defaults))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name)
-    } yield Ok(html.detail(groupElt, events)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.detail(groupElt, events)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
   }
 }
 

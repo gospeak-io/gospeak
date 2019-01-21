@@ -53,7 +53,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
     println("Starting application")
     db.dropTables().unsafeRunSync()
     db.createTables().unsafeRunSync()
-    Await.result(db.insertMockData(), Duration.Inf)
+    db.insertMockData().unsafeRunSync()
   }
 
   onStart()

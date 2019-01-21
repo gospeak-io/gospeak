@@ -11,9 +11,6 @@ import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.infra.services.storage.sql.tables._
 import fr.gospeak.infra.utils.{DoobieUtils, FlywayUtils}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-
 class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   private val flyway = FlywayUtils.build(conf)
   private[sql] val xa = DoobieUtils.transactor(conf)
@@ -32,7 +29,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   def dropTables(): IO[Done] = IO(flyway.clean()).map(_ => Done)
 
-  def insertMockData(): Future[Done] = {
+  def insertMockData(): IO[Done] = {
     val group1 = Group.Id.generate()
     val group2 = Group.Id.generate()
     val group3 = Group.Id.generate()
@@ -74,73 +71,73 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       Proposal(proposal4, talk3, group1, Proposal.Title("NodeJs news"), "temporary description", Info(user1)),
       Proposal(proposal5, talk4, group2, Proposal.Title("ScalaJS + React = ♥"), "temporary description", Info(user2)))
     for {
-      _ <- run(UserTable.insertMany(users)).filter(_ == users.length)
-      _ <- run(TalkTable.insertMany(talks)).filter(_ == talks.length)
-      _ <- run(GroupTable.insertMany(groups)).filter(_ == groups.length)
-      _ <- run(EventTable.insertMany(events)).filter(_ == events.length)
-      _ <- run(ProposalTable.insertMany(proposals)).filter(_ == proposals.length)
+      _ <- run(UserTable.insertMany(users))
+      _ <- run(TalkTable.insertMany(talks))
+      _ <- run(GroupTable.insertMany(groups))
+      _ <- run(EventTable.insertMany(events))
+      _ <- run(ProposalTable.insertMany(proposals))
     } yield Done
   }
 
   private var logged: Option[User] = Some(users.head)
 
-  override def setLogged(user: User): Future[Done] = {
+  override def setLogged(user: User): IO[Done] = {
     logged = Some(user)
-    Future.successful(Done)
+    IO.pure(Done)
   }
 
-  override def logout(): Future[Done] = {
+  override def logout(): IO[Done] = {
     logged = None
-    Future.successful(Done)
+    IO.pure(Done)
   }
 
   override def userAware(): Option[User] = logged
 
   override def authed(): User = logged.get
 
-  override def createUser(firstName: String, lastName: String, email: Email): Future[User] = {
+  override def createUser(firstName: String, lastName: String, email: Email): IO[User] = {
     val now = Instant.now()
     run(UserTable.insert, User(User.Id.generate(), firstName, lastName, email, now, now))
   }
 
-  override def getUser(email: Email): Future[Option[User]] = run(UserTable.selectOne(email))
+  override def getUser(email: Email): IO[Option[User]] = run(UserTable.selectOne(email))
 
-  override def getGroupId(slug: Group.Slug): Future[Option[Group.Id]] = run(GroupTable.slugToId(slug))
+  override def getGroupId(slug: Group.Slug): IO[Option[Group.Id]] = run(GroupTable.slugToId(slug))
 
-  override def getEventId(group: Group.Id, slug: Event.Slug): Future[Option[Event.Id]] = run(EventTable.slugToId(group, slug))
+  override def getEventId(group: Group.Id, slug: Event.Slug): IO[Option[Event.Id]] = run(EventTable.slugToId(group, slug))
 
-  override def getTalkId(user: User.Id, slug: Talk.Slug): Future[Option[Talk.Id]] = run(TalkTable.slugToId(user, slug))
+  override def getTalkId(user: User.Id, slug: Talk.Slug): IO[Option[Talk.Id]] = run(TalkTable.slugToId(user, slug))
 
-  override def getGroups(user: User.Id, params: Page.Params): Future[Page[Group]] = run(GroupTable.selectPage(user, params))
+  override def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]] = run(GroupTable.selectPage(user, params))
 
-  override def getGroup(id: Group.Id, user: User.Id): Future[Option[Group]] = run(GroupTable.selectOne(id, user))
+  override def getGroup(id: Group.Id, user: User.Id): IO[Option[Group]] = run(GroupTable.selectOne(id, user))
 
-  override def getEvents(group: Group.Id, params: Page.Params): Future[Page[Event]] = run(EventTable.selectPage(group, params))
+  override def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(EventTable.selectPage(group, params))
 
-  override def getEvent(id: Event.Id): Future[Option[Event]] = run(EventTable.selectOne(id))
+  override def getEvent(id: Event.Id): IO[Option[Event]] = run(EventTable.selectOne(id))
 
-  override def createEvent(group: Group.Id, slug: Event.Slug, name: Event.Name, by: User.Id): Future[Event] =
+  override def createEvent(group: Group.Id, slug: Event.Slug, name: Event.Name, by: User.Id): IO[Event] =
     run(EventTable.insert, Event(group, Event.Id.generate(), slug, name, None, None, Seq(), Info(by)))
 
-  override def getTalks(user: User.Id, params: Page.Params): Future[Page[Talk]] = run(TalkTable.selectPage(user, params))
+  override def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(TalkTable.selectPage(user, params))
 
-  override def getTalk(id: Talk.Id, user: User.Id): Future[Option[Talk]] = run(TalkTable.selectOne(id, user))
+  override def getTalk(id: Talk.Id, user: User.Id): IO[Option[Talk]] = run(TalkTable.selectOne(id, user))
 
-  override def createTalk(slug: Talk.Slug, title: Talk.Title, description: String, by: User.Id): Future[Talk] =
+  override def createTalk(slug: Talk.Slug, title: Talk.Title, description: String, by: User.Id): IO[Talk] =
     run(TalkTable.insert, Talk(Talk.Id.generate(), slug, title, description, NonEmptyList.one(by), Info(by)))
 
-  override def getProposals(group: Group.Id, params: Page.Params): Future[Page[Proposal]] = run(ProposalTable.selectPage(group, params))
+  override def getProposals(group: Group.Id, params: Page.Params): IO[Page[Proposal]] = run(ProposalTable.selectPage(group, params))
 
-  override def getProposals(talk: Talk.Id, params: Page.Params): Future[Page[(Group, Proposal)]] = run(ProposalTable.selectPage(talk, params))
+  override def getProposals(talk: Talk.Id, params: Page.Params): IO[Page[(Group, Proposal)]] = run(ProposalTable.selectPage(talk, params))
 
-  override def getProposal(id: Proposal.Id): Future[Option[Proposal]] = run(ProposalTable.selectOne(id))
+  override def getProposal(id: Proposal.Id): IO[Option[Proposal]] = run(ProposalTable.selectOne(id))
 
-  private def run[A](i: A => doobie.Update0, v: A): Future[A] =
-    i(v).run.transact(xa).unsafeToFuture.flatMap {
-      case 1 => Future.successful(v)
-      case code => Future.failed(new Exception(s"Failed to insert $v (code: $code)"))
+  private def run[A](i: A => doobie.Update0, v: A): IO[A] =
+    i(v).run.transact(xa).flatMap {
+      case 1 => IO.pure(v)
+      case code => IO.raiseError(new Exception(s"Failed to insert $v (code: $code)"))
     }
 
-  private def run[A](v: doobie.ConnectionIO[A]): Future[A] =
-    v.transact(xa).unsafeToFuture
+  private def run[A](v: doobie.ConnectionIO[A]): IO[A] =
+    v.transact(xa)
 }

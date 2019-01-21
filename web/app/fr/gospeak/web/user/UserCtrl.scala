@@ -4,24 +4,22 @@ import fr.gospeak.core.domain.User
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.HomeCtrl
-import fr.gospeak.web.user.UserCtrl._
 import fr.gospeak.web.domain._
+import fr.gospeak.web.user.UserCtrl._
 import play.api.mvc._
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class UserCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
   def index(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
-    for {
+    (for {
       groups <- db.getGroups(user.id, Page.Params.defaults)
       talks <- db.getTalks(user.id, Page.Params.defaults)
-    } yield Ok(html.index(groups, talks)(indexHeader, breadcrumb(user.name)))
+    } yield Ok(html.index(groups, talks)(indexHeader, breadcrumb(user.name)))).unsafeToFuture()
   }
 
   def profile(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
-    val h = header.activeFor(routes.UserCtrl.profile())
+  val h = header.activeFor(routes.UserCtrl.profile())
     val b = breadcrumb(user.name).add("Profile" -> routes.UserCtrl.profile())
     Ok(html.profile()(h, b))
   }

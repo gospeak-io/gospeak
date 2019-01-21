@@ -1,7 +1,7 @@
 package fr.gospeak.web.user.groups.events
 
 import cats.data.OptionT
-import cats.instances.future._
+import cats.effect.IO
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Event, Group, User}
 import fr.gospeak.core.services.GospeakDb
@@ -12,9 +12,6 @@ import play.api.data.Form
 import play.api.i18n._
 import play.api.mvc._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-
 class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) with I18nSupport {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
@@ -24,12 +21,12 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
       events <- OptionT.liftF(db.getEvents(groupId, params))
       h = listHeader(group)
       b = listBreadcrumb(user.name, group -> groupElt.name)
-    } yield Ok(html.list(groupElt, events)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.list(groupElt, events)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
   }
 
   def create(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
-    createForm(group, EventForms.create)
+    createForm(group, EventForms.create).unsafeToFuture()
   }
 
   def doCreate(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -43,10 +40,10 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
           _ <- OptionT.liftF(db.createEvent(groupId, data.slug, data.name, user.id))
         } yield Redirect(routes.EventCtrl.detail(group, data.slug))).value.map(_.getOrElse(NotFound))
       }
-    )
+    ).unsafeToFuture()
   }
 
-  private def createForm(group: Group.Slug, form: Form[EventForms.Create])(implicit req: Request[AnyContent], user: User): Future[Result] = {
+  private def createForm(group: Group.Slug, form: Form[EventForms.Create])(implicit req: Request[AnyContent], user: User): IO[Result] = {
     (for {
       groupId <- OptionT(db.getGroupId(group))
       groupElt <- OptionT(db.getGroup(groupId, user.id))
@@ -64,7 +61,7 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
       eventElt <- OptionT(db.getEvent(eventId))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name, event -> eventElt.name)
-    } yield Ok(html.detail(groupElt, eventElt)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.detail(groupElt, eventElt)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
   }
 }
 
