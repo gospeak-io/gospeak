@@ -22,8 +22,8 @@
             @inputText(field, args)
         }
         @actionsHorizontal() {
-            <a href="@TalkCtrl.list()" class="btn btn-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary">Create</button>
+            @btnCancel(TalkCtrl.list())
+            @btnSubmit("Create")
         }
     }
 }()

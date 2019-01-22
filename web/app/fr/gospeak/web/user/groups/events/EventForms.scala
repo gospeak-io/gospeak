@@ -7,7 +7,7 @@ import play.api.data._
 
 object EventForms {
 
-  case class Create(name: Event.Name, slug: Event.Slug)
+  final case class Create(name: Event.Name, slug: Event.Slug)
 
   val create: Form[Create] = Form(mapping(
     "name" -> eventName,

@@ -8,6 +8,9 @@
 @(groups: Page[Group])(h: HeaderInfo, b: Breadcrumb)(implicit user: User)
 @container("Gospeak", h, Some(b))() {
     <div>
+        <span class="float-right">
+            <a class="btn btn-primary" href="@GroupCtrl.create()">Create a group</a>
+        </span>
         <h1>@groups.total.value groups</h1>
     </div>
 

@@ -1,0 +1,14 @@
+@import fr.gospeak.core.domain.{Group, Talk, User}
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.user.talks.proposing.routes.ProposingCtrl
+
+@(talk: Talk, group: Group)(h: HeaderInfo, b: Breadcrumb)(implicit user: User)
+@container("Gospeak", h, Some(b))() {
+    <div>
+        <span class="float-right">
+            <a href="@ProposingCtrl.create(talk.slug, group.slug)" class="btn btn-primary">Propose</a>
+        </span>
+        <h1>Propose @talk.title.value to @group.name.value</h1>
+    </div>
+}()

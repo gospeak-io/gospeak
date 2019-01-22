@@ -14,35 +14,39 @@ trait GospeakDb {
 
   def getUser(email: Email): IO[Option[User]]
 
-  def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]]
-
-  def getGroup(id: Group.Id, user: User.Id): IO[Option[Group]]
+  def createGroup(slug: Group.Slug, name: Group.Name, description: String, by: User.Id): IO[Group]
 
   def getGroupId(slug: Group.Slug): IO[Option[Group.Id]]
 
-  def createGroup(slug: Group.Slug, name: Group.Name, description: String, by: User.Id): IO[Group]
+  def getGroup(id: Group.Id, user: User.Id): IO[Option[Group]]
 
-  def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]]
+  def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]]
 
-  def getEvent(id: Event.Id): IO[Option[Event]]
+  def getGroupWithCfp(id: Group.Id): IO[Option[Group]]
 
-  def getEventId(group: Group.Id, slug: Event.Slug): IO[Option[Event.Id]]
+  def getGroupsWithCfp(params: Page.Params): IO[Page[Group]]
 
   def createEvent(group: Group.Id, slug: Event.Slug, name: Event.Name, by: User.Id): IO[Event]
 
-  def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]]
+  def getEventId(group: Group.Id, slug: Event.Slug): IO[Option[Event.Id]]
 
-  def getTalk(id: Talk.Id, user: User.Id): IO[Option[Talk]]
+  def getEvent(id: Event.Id): IO[Option[Event]]
+
+  def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]]
+
+  def createTalk(slug: Talk.Slug, title: Talk.Title, description: String, by: User.Id): IO[Talk]
 
   def getTalkId(user: User.Id, slug: Talk.Slug): IO[Option[Talk.Id]]
 
-  def createTalk(slug: Talk.Slug, title: Talk.Title, description: String, by: User.Id): IO[Talk]
+  def getTalk(id: Talk.Id, user: User.Id): IO[Option[Talk]]
+
+  def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]]
+
+  def createProposal(talk: Talk.Id, group: Group.Id, title: Talk.Title, description: String, by: User.Id): IO[Proposal]
+
+  def getProposal(id: Proposal.Id): IO[Option[Proposal]]
 
   def getProposals(group: Group.Id, params: Page.Params): IO[Page[Proposal]]
 
   def getProposals(talk: Talk.Id, params: Page.Params): IO[Page[(Group, Proposal)]]
-
-  def getProposal(id: Proposal.Id): IO[Option[Proposal]]
-
-  def createProposal(talk: Talk.Id, group: Group.Id, title: Proposal.Title, description: String, by: User.Id): IO[Proposal]
 }

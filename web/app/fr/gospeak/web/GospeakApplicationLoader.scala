@@ -42,6 +42,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val userGroupEventCtrl = wire[user.groups.events.EventCtrl]
   lazy val userGroupProposalCtrl = wire[user.groups.proposals.ProposalCtrl]
   lazy val userTalkCtrl = wire[user.talks.TalkCtrl]
+  lazy val userTalkProposingCtrl = wire[user.talks.proposing.ProposingCtrl]
   lazy val userTalkProposalCtrl = wire[user.talks.proposals.ProposalCtrl]
 
   override lazy val router: Router = {

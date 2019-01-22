@@ -15,7 +15,7 @@ class ProposalTableSpec extends FunSpec with Matchers with IOChecker with Before
   private val talkId = Talk.Id.generate()
   private val groupId = Group.Id.generate()
   private val proposalId = Proposal.Id.generate()
-  private val proposal = Proposal(proposalId, talkId, groupId, Proposal.Title("My Proposal"), "best talk", Info(userId))
+  private val proposal = Proposal(proposalId, talkId, groupId, Talk.Title("My Proposal"), "best talk", Info(userId))
   private val params = Page.Params()
 
   override def beforeAll(): Unit = db.createTables().unsafeRunSync()

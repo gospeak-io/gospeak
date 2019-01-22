@@ -13,7 +13,12 @@
         <h1>Welcome @user.firstName</h1>
     </div>
 
-    <h2>Your groups</h2>
+    <div>
+        <span class="float-right">
+            <a class="btn btn-primary" href="@GroupCtrl.create()">Create a group</a>
+        </span>
+        <h2>Your groups</h2>
+    </div>
 
     <ul class="list-unstyled">
         @groups.items.map { g => @groupItem(g) }
@@ -22,7 +27,12 @@
         }
     </ul>
 
-    <h2>Your active talks</h2>
+    <div>
+        <span class="float-right">
+            <a class="btn btn-primary" href="@TalkCtrl.create()">Create a talk</a>
+        </span>
+        <h2>Your active talks</h2>
+    </div>
 
     <ul class="list-unstyled">
         @talks.items.map { t => @talkItem(t) }

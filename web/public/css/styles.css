@@ -23,6 +23,9 @@
     padding: 10px;
 }
 
-.group-item h5 a, .event-item h5 a, .proposal-item h5 a, .talk-item h5 a {
+.group-item h5 a:not(.btn),
+.event-item h5 a:not(.btn),
+.proposal-item h5 a:not(.btn),
+.talk-item h5 a:not(.btn) {
     color: inherit;
 }

@@ -1,0 +1,29 @@
+@import fr.gospeak.core.domain.{Group, Talk, User}
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.partials.form.html._
+@import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.user.talks.proposing.ProposingForms
+@import fr.gospeak.web.user.talks.proposing.routes.ProposingCtrl
+
+@(form: Form[ProposingForms.Create], talk: Talk, group: Group)(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages)
+@container("Gospeak", h, Some(b))() {
+    <div class="page-header">
+        <h1>Propose @talk.title.value to @group.name.value</h1>
+    </div>
+
+    @formElt(ProposingCtrl.doCreate(talk.slug, group.slug)) {
+        <blockquote class="blockquote">
+            <p class="mb-0">TODO: proposal advices for group</p>
+        </blockquote>
+        @fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title for your proposal (you can adapt your talk title)")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
+        }
+        @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Give a abstract of your talk, you should make orga and people listen at you")) { (field, args) =>
+            @inputText(field, args)
+        }
+        @actionsHorizontal() {
+            @btnCancel(ProposingCtrl.detail(talk.slug, group.slug))
+            @btnSubmit("Propose your talk")
+        }
+    }
+}()

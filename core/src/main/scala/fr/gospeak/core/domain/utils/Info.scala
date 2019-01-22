@@ -4,10 +4,10 @@ import java.time.Instant
 
 import fr.gospeak.core.domain.User
 
-case class Info(created: Instant,
-                createdBy: User.Id,
-                updated: Instant,
-                updatedBy: User.Id)
+final case class Info(created: Instant,
+                      createdBy: User.Id,
+                      updated: Instant,
+                      updatedBy: User.Id)
 
 object Info {
   def apply(by: User.Id, now: Instant = Instant.now()): Info =

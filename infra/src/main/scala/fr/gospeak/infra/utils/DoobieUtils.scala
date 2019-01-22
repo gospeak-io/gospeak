@@ -34,7 +34,7 @@ object DoobieUtils {
     def buildSelect(table: Fragment, fields: Fragment, where: Fragment): Fragment =
       buildSelect(table, fields) ++ space ++ where
 
-    case class Paginate(where: Fragment, orderBy: Fragment, limit: Fragment) {
+    final case class Paginate(where: Fragment, orderBy: Fragment, limit: Fragment) {
       def all: Fragment = Seq(where, orderBy, limit).reduce(_ ++ _)
     }
 

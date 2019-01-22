@@ -2,7 +2,7 @@ package fr.gospeak.web.user.groups.proposals
 
 import cats.data.OptionT
 import fr.gospeak.core.domain.utils.Page
-import fr.gospeak.core.domain.{Group, Proposal, User}
+import fr.gospeak.core.domain.{Group, Proposal, Talk, User}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.groups.GroupCtrl
@@ -45,6 +45,6 @@ object ProposalCtrl {
   def header(group: Group.Slug): HeaderInfo =
     listHeader(group)
 
-  def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name), proposal: (Proposal.Id, Proposal.Title)): Breadcrumb =
+  def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name), proposal: (Proposal.Id, Talk.Title)): Breadcrumb =
     listBreadcrumb(user, group).add(proposal._2.value -> routes.ProposalCtrl.detail(group._1, proposal._1))
 }

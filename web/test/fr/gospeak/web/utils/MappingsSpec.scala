@@ -7,7 +7,7 @@ import play.api.data.validation.{Invalid, Valid, ValidationError}
 
 class MappingsSpec extends FunSpec with Matchers {
 
-  case class Value(value: String)
+  final case class Value(value: String)
 
   describe("Mappings") {
     describe("required") {

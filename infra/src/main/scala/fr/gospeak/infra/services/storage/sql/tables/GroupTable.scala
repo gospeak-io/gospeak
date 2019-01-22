@@ -25,11 +25,23 @@ object GroupTable {
   def slugToId(slug: Group.Slug): doobie.Query0[Group.Id] =
     buildSelect(tableFr, fr0"id", fr0"WHERE slug=$slug").query[Group.Id]
 
-  def selectOne(id: Group.Id, user: User.Id): doobie.Query0[Group] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id AND owners LIKE ${"%" + user.value + "%"}").query[Group]
+  def selectOwned(id: Group.Id, user: User.Id): doobie.Query0[Group] =
+    selectOne(Some(fr0"WHERE owners LIKE ${"%" + user.value + "%"}"), id)
 
-  def selectPage(user: User.Id, params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE owners LIKE ${"%" + user.value + "%"}"))
+  def selectOwned(user: User.Id, params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) =
+    selectPage(Some(fr0"WHERE owners LIKE ${"%" + user.value + "%"}"), params)
+
+  def selectWithCfp(id: Group.Id): doobie.Query0[Group] =
+    selectOne(None, id)
+
+  def selectWithCfp(params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) =
+    selectPage(None, params) // TODO filter by has opened cfp
+
+  private def selectOne(where: Option[Fragment], id: Group.Id): doobie.Query0[Group] =
+    buildSelect(tableFr, fieldsFr, where.map(_ ++ fr0" AND id=$id").getOrElse(fr0"WHERE id=$id")).query[Group]
+
+  private def selectPage(where: Option[Fragment], params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
+    val page = paginate(params, searchFields, defaultSort, where)
     (buildSelect(tableFr, fieldsFr, page.all).query[Group], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 }

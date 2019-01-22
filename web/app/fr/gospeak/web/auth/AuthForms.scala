@@ -7,7 +7,7 @@ import play.api.data.Forms._
 
 object AuthForms {
 
-  case class Signup(firstName: String, lastName: String, email: Email, password: Password)
+  final case class Signup(firstName: String, lastName: String, email: Email, password: Password)
 
   val signup: Form[Signup] = Form(mapping(
     "first-name" -> nonEmptyText,
@@ -16,14 +16,14 @@ object AuthForms {
     "password" -> password
   )(Signup.apply)(Signup.unapply))
 
-  case class Login(email: Email, password: Password)
+  final case class Login(email: Email, password: Password)
 
   val login: Form[Login] = Form(mapping(
     "email" -> mail,
     "password" -> password
   )(Login.apply)(Login.unapply))
 
-  case class PasswordReset(email: Email)
+  final case class PasswordReset(email: Email)
 
   val passwordReset: Form[PasswordReset] = Form(mapping(
     "email" -> mail

@@ -3,10 +3,14 @@
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.user.talks.proposing.routes.ProposingCtrl
 
 @(talk: Talk, proposals: Page[(Group, Proposal)])(h: HeaderInfo, b: Breadcrumb)(implicit user: User)
 @container("Gospeak", h, Some(b))() {
     <div>
+        <span class="float-right">
+            <a class="btn btn-primary" href="@ProposingCtrl.list(talk.slug)">Find group to propose this talk</a>
+        </span>
         <h1>@talk.title.value</h1>
     </div>
 

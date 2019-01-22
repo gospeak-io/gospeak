@@ -1,6 +1,6 @@
 package fr.gospeak.core.domain.utils
 
-case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total) {
+final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total) {
   assert(items.length <= params.pageSize.value, s"Page can't have more items (${items.length}) than its size (${params.pageSize.value})")
   private val last: Int = math.ceil(total.value.toDouble / params.pageSize.value).toInt
   val hasManyPages: Boolean = total.value > params.pageSize.value
@@ -30,7 +30,7 @@ case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total) {
 
 object Page {
 
-  case class Search(value: String) extends AnyVal {
+  final case class Search(value: String) extends AnyVal {
     def key: String = Search.key
 
     def nonEmpty: Boolean = value.nonEmpty
@@ -40,7 +40,7 @@ object Page {
     val key = "q"
   }
 
-  case class OrderBy(value: String) extends AnyVal {
+  final case class OrderBy(value: String) extends AnyVal {
     def key: String = OrderBy.key
 
     def nonEmpty: Boolean = value.nonEmpty
@@ -51,7 +51,7 @@ object Page {
   }
 
   // should be at least 1
-  case class No(value: Int) extends AnyVal {
+  final case class No(value: Int) extends AnyVal {
     def key: String = No.key
 
     def nonEmpty: Boolean = value > Params.defaults.page.value
@@ -66,7 +66,7 @@ object Page {
   }
 
   // should be at least 1
-  case class Size(value: Int) extends AnyVal {
+  final case class Size(value: Int) extends AnyVal {
     def key: String = Size.key
 
     def nonEmpty: Boolean = value != Params.defaults.pageSize.value
@@ -76,12 +76,12 @@ object Page {
     val key = "page-size"
   }
 
-  case class Total(value: Long) extends AnyVal
+  final case class Total(value: Long) extends AnyVal
 
-  case class Params(page: No = Params.defaults.page,
-                    pageSize: Size = Params.defaults.pageSize,
-                    search: Option[Search] = Params.defaults.search,
-                    orderBy: Option[OrderBy] = Params.defaults.orderBy) {
+  final case class Params(page: No = Params.defaults.page,
+                          pageSize: Size = Params.defaults.pageSize,
+                          search: Option[Search] = Params.defaults.search,
+                          orderBy: Option[OrderBy] = Params.defaults.orderBy) {
     val offsetStart: Int = (page.value - 1) * pageSize.value
     val offsetEnd: Int = page.value * pageSize.value
   }

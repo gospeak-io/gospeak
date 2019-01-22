@@ -110,7 +110,7 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
         val group = db.createGroup(Group.Slug("slug"), Group.Name("name"), "desc", user.id).unsafeRunSync()
         db.getProposals(talk.id, page).unsafeRunSync().items shouldBe Seq()
         db.getProposals(group.id, page).unsafeRunSync().items shouldBe Seq()
-        val proposal = db.createProposal(talk.id, group.id, Proposal.Title("title"), "desc", user.id).unsafeRunSync()
+        val proposal = db.createProposal(talk.id, group.id, Talk.Title("title"), "desc", user.id).unsafeRunSync()
         db.getProposals(talk.id, page).unsafeRunSync().items shouldBe Seq(group -> proposal)
         db.getProposals(group.id, page).unsafeRunSync().items shouldBe Seq(proposal)
         db.getProposal(proposal.id).unsafeRunSync() shouldBe Some(proposal)
@@ -118,19 +118,19 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
       it("should fail to create a proposal when talk does not exists") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         val group = db.createGroup(Group.Slug("slug"), Group.Name("name"), "desc", user.id).unsafeRunSync()
-        an[Exception] should be thrownBy db.createProposal(Talk.Id.generate(), group.id, Proposal.Title("title"), "desc", user.id).unsafeRunSync()
+        an[Exception] should be thrownBy db.createProposal(Talk.Id.generate(), group.id, Talk.Title("title"), "desc", user.id).unsafeRunSync()
       }
       it("should fail to create a proposal when group does not exists") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         val talk = db.createTalk(Talk.Slug("slug"), Talk.Title("title"), "desc", user.id).unsafeRunSync()
-        an[Exception] should be thrownBy db.createProposal(talk.id, Group.Id.generate(), Proposal.Title("title"), "desc", user.id).unsafeRunSync()
+        an[Exception] should be thrownBy db.createProposal(talk.id, Group.Id.generate(), Talk.Title("title"), "desc", user.id).unsafeRunSync()
       }
       it("should fail on duplicate group and talk") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         val talk = db.createTalk(Talk.Slug("slug"), Talk.Title("title"), "desc", user.id).unsafeRunSync()
         val group = db.createGroup(Group.Slug("slug"), Group.Name("name"), "desc", user.id).unsafeRunSync()
-        db.createProposal(talk.id, group.id, Proposal.Title("title"), "desc", user.id).unsafeRunSync()
-        an[Exception] should be thrownBy db.createProposal(talk.id, group.id, Proposal.Title("title"), "desc", user.id).unsafeRunSync()
+        db.createProposal(talk.id, group.id, Talk.Title("title"), "desc", user.id).unsafeRunSync()
+        an[Exception] should be thrownBy db.createProposal(talk.id, group.id, Talk.Title("title"), "desc", user.id).unsafeRunSync()
       }
     }
   }

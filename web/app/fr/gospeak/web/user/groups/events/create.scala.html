@@ -19,8 +19,8 @@
             @inputText(field, Seq("placeholder" -> "Event slug", "slug-for" -> form("name").id) ++ args)
         }
         @actionsHorizontal() {
-            <a href="@EventCtrl.list(group.slug)" class="btn btn-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary">Create</button>
+            @btnCancel(EventCtrl.list(group.slug))
+            @btnSubmit("Create")
         }
     }
 }()

@@ -37,18 +37,30 @@ class GroupTableSpec extends FunSpec with Matchers with IOChecker with BeforeAnd
         check(q)
       }
     }
-    describe("selectOne") {
-      it("should generate the query") {
-        val q = selectOne(groupId, userId)
-        q.sql shouldBe "SELECT id, slug, name, description, owners, created, created_by, updated, updated_by FROM groups WHERE id=? AND owners LIKE ?"
+    describe("selectOwned") {
+      it("should generate single query") {
+        val q = selectOwned(groupId, userId)
+        q.sql shouldBe "SELECT id, slug, name, description, owners, created, created_by, updated, updated_by FROM groups WHERE owners LIKE ? AND id=?"
         check(q)
       }
-    }
-    describe("selectPage") {
-      it("should generate the query") {
-        val (s, c) = selectPage(userId, params)
+      it("should generate page query") {
+        val (s, c) = selectOwned(userId, params)
         s.sql shouldBe "SELECT id, slug, name, description, owners, created, created_by, updated, updated_by FROM groups WHERE owners LIKE ? ORDER BY name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM groups WHERE owners LIKE ? "
+        check(s)
+        check(c)
+      }
+    }
+    describe("selectWithCfp") {
+      it("should generate single query") {
+        val q = selectWithCfp(groupId)
+        q.sql shouldBe "SELECT id, slug, name, description, owners, created, created_by, updated, updated_by FROM groups WHERE id=?"
+        check(q)
+      }
+      it("should generate page query") {
+        val (s, c) = selectWithCfp(params)
+        s.sql shouldBe "SELECT id, slug, name, description, owners, created, created_by, updated, updated_by FROM groups ORDER BY name OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM groups "
         check(s)
         check(c)
       }
