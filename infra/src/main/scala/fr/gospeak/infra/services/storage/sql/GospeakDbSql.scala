@@ -9,6 +9,7 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{Done, Email, Info, Page}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.infra.services.storage.sql.tables._
+import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.infra.utils.{DoobieUtils, FlywayUtils}
 
 class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
@@ -30,6 +31,8 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   def dropTables(): IO[Done] = IO(flyway.clean()).map(_ => Done)
 
   def insertMockData(): IO[Done] = {
+    import fr.gospeak.infra.utils.DoobieUtils.Mappings._
+    val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
     val group1 = Group.Id.generate()
     val group2 = Group.Id.generate()
     val group3 = Group.Id.generate()
@@ -71,66 +74,73 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       Proposal(proposal4, talk3, group1, Proposal.Title("NodeJs news"), "temporary description", Info(user1)),
       Proposal(proposal5, talk4, group2, Proposal.Title("ScalaJS + React = ♥"), "temporary description", Info(user2)))
     for {
-      _ <- run(UserTable.insertMany(users))
-      _ <- run(TalkTable.insertMany(talks))
-      _ <- run(GroupTable.insertMany(groups))
-      _ <- run(EventTable.insertMany(events))
-      _ <- run(ProposalTable.insertMany(proposals))
+      _ <- run(Queries.insertMany(UserTable.insert)(users))
+      _ <- run(Queries.insertMany(TalkTable.insert)(talks))
+      _ <- run(Queries.insertMany(GroupTable.insert)(groups))
+      _ <- run(Queries.insertMany(EventTable.insert)(events))
+      _ <- run(Queries.insertMany(ProposalTable.insert)(proposals))
     } yield Done
   }
 
   private var logged: Option[User] = Some(users.head)
 
-  override def login(user: User): IO[Done] = {
+  override def login(user: User): IO[Done] = { // TODO mock auth, to remove
     logged = Some(user)
     IO.pure(Done)
   }
 
-  override def logout(): IO[Done] = {
+  override def logout(): IO[Done] = { // TODO mock auth, to remove
     logged = None
     IO.pure(Done)
   }
 
-  override def userAware(): Option[User] = logged
+  override def userAware(): Option[User] = logged // TODO mock auth, to remove
 
-  override def authed(): User = logged.get
+  override def authed(): User = logged.get // TODO mock auth, to remove
 
-  override def createUser(firstName: String, lastName: String, email: Email): IO[User] = {
-    val now = Instant.now()
-    run(UserTable.insert, User(User.Id.generate(), firstName, lastName, email, now, now))
-  }
+  override def getUser(email: Email): IO[Option[User]] = run(UserTable.selectOne(email).option)
 
-  override def getUser(email: Email): IO[Option[User]] = run(UserTable.selectOne(email))
+  override def createUser(firstName: String, lastName: String, email: Email): IO[User] =
+    run(UserTable.insert, User(User.Id.generate(), firstName, lastName, email, Instant.now(), Instant.now()))
 
-  override def getGroupId(slug: Group.Slug): IO[Option[Group.Id]] = run(GroupTable.slugToId(slug))
+  override def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(GroupTable.selectPage(user, _), params))
 
-  override def getEventId(group: Group.Id, slug: Event.Slug): IO[Option[Event.Id]] = run(EventTable.slugToId(group, slug))
+  override def getGroup(id: Group.Id, user: User.Id): IO[Option[Group]] = run(GroupTable.selectOne(id, user).option)
 
-  override def getTalkId(user: User.Id, slug: Talk.Slug): IO[Option[Talk.Id]] = run(TalkTable.slugToId(user, slug))
+  override def getGroupId(slug: Group.Slug): IO[Option[Group.Id]] = run(GroupTable.slugToId(slug).option)
 
-  override def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]] = run(GroupTable.selectPage(user, params))
+  override def createGroup(slug: Group.Slug, name: Group.Name, description: String, by: User.Id): IO[Group] =
+    run(GroupTable.insert, Group(Group.Id.generate(), slug, name, description, NonEmptyList.of(by), Info(by)))
 
-  override def getGroup(id: Group.Id, user: User.Id): IO[Option[Group]] = run(GroupTable.selectOne(id, user))
+  override def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(Queries.selectPage(EventTable.selectPage(group, _), params))
 
-  override def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(EventTable.selectPage(group, params))
+  override def getEvent(id: Event.Id): IO[Option[Event]] = run(EventTable.selectOne(id).option)
 
-  override def getEvent(id: Event.Id): IO[Option[Event]] = run(EventTable.selectOne(id))
+  override def getEventId(group: Group.Id, slug: Event.Slug): IO[Option[Event.Id]] = run(EventTable.slugToId(group, slug).option)
 
   override def createEvent(group: Group.Id, slug: Event.Slug, name: Event.Name, by: User.Id): IO[Event] =
     run(EventTable.insert, Event(group, Event.Id.generate(), slug, name, None, None, Seq(), Info(by)))
 
-  override def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(TalkTable.selectPage(user, params))
+  override def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(TalkTable.selectPage(user, _), params))
 
-  override def getTalk(id: Talk.Id, user: User.Id): IO[Option[Talk]] = run(TalkTable.selectOne(id, user))
+  override def getTalk(id: Talk.Id, user: User.Id): IO[Option[Talk]] = run(TalkTable.selectOne(id, user).option)
+
+  override def getTalkId(user: User.Id, slug: Talk.Slug): IO[Option[Talk.Id]] = run(TalkTable.slugToId(user, slug).option)
 
   override def createTalk(slug: Talk.Slug, title: Talk.Title, description: String, by: User.Id): IO[Talk] =
-    run(TalkTable.insert, Talk(Talk.Id.generate(), slug, title, description, NonEmptyList.one(by), Info(by)))
+    getTalkId(by, slug).flatMap {
+      case None => run(TalkTable.insert, Talk(Talk.Id.generate(), slug, title, description, NonEmptyList.one(by), Info(by)))
+      case _ => IO.raiseError(new Exception(s"You already have a talk with slug $slug"))
+    }
 
-  override def getProposals(group: Group.Id, params: Page.Params): IO[Page[Proposal]] = run(ProposalTable.selectPage(group, params))
+  override def getProposals(group: Group.Id, params: Page.Params): IO[Page[Proposal]] = run(Queries.selectPage(ProposalTable.selectPage(group, _), params))
 
-  override def getProposals(talk: Talk.Id, params: Page.Params): IO[Page[(Group, Proposal)]] = run(ProposalTable.selectPage(talk, params))
+  override def getProposals(talk: Talk.Id, params: Page.Params): IO[Page[(Group, Proposal)]] = run(Queries.selectPage(ProposalTable.selectPage(talk, _), params))
 
-  override def getProposal(id: Proposal.Id): IO[Option[Proposal]] = run(ProposalTable.selectOne(id))
+  override def getProposal(id: Proposal.Id): IO[Option[Proposal]] = run(ProposalTable.selectOne(id).option)
+
+  override def createProposal(talk: Talk.Id, group: Group.Id, title: Proposal.Title, description: String, by: User.Id): IO[Proposal] =
+    run(ProposalTable.insert, Proposal(Proposal.Id.generate(), talk, group, title, description, Info(by)))
 
   private def run[A](i: A => doobie.Update0, v: A): IO[A] =
     i(v).run.transact(xa).flatMap {

@@ -10,8 +10,6 @@ case class Info(created: Instant,
                 updatedBy: User.Id)
 
 object Info {
-  def apply(by: User.Id): Info = {
-    val now = Instant.now()
+  def apply(by: User.Id, now: Instant = Instant.now()): Info =
     new Info(now, by, now, by)
-  }
 }

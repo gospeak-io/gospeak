@@ -16,7 +16,7 @@ class GroupTableSpec extends FunSpec with Matchers with IOChecker with BeforeAnd
   private val groupId = Group.Id.generate()
   private val slug = Group.Slug("ht-paris")
   private val group = Group(groupId, slug, Group.Name("HT Paris"), "s", NonEmptyList.of(userId), Info(userId))
-  private val params = Page.Params(None, None, Page.No(1), Page.Size(20))
+  private val params = Page.Params()
 
   override def beforeAll(): Unit = db.createTables().unsafeRunSync()
 
@@ -32,21 +32,21 @@ class GroupTableSpec extends FunSpec with Matchers with IOChecker with BeforeAnd
     }
     describe("slugToId") {
       it("should generate the query") {
-        val q = slugToIdQuery(slug)
+        val q = slugToId(slug)
         q.sql shouldBe "SELECT id FROM groups WHERE slug=?"
         check(q)
       }
     }
     describe("selectOne") {
       it("should generate the query") {
-        val q = selectOneQuery(groupId, userId)
+        val q = selectOne(groupId, userId)
         q.sql shouldBe "SELECT id, slug, name, description, owners, created, created_by, updated, updated_by FROM groups WHERE id=? AND owners LIKE ?"
         check(q)
       }
     }
     describe("selectPage") {
       it("should generate the query") {
-        val (s, c) = selectPageQuery(userId, params)
+        val (s, c) = selectPage(userId, params)
         s.sql shouldBe "SELECT id, slug, name, description, owners, created, created_by, updated, updated_by FROM groups WHERE owners LIKE ? ORDER BY name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM groups WHERE owners LIKE ? "
         check(s)

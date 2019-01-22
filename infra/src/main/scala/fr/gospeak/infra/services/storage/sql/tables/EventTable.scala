@@ -1,12 +1,9 @@
 package fr.gospeak.infra.services.storage.sql.tables
 
-import cats.data.NonEmptyList
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import doobie.util.update.Update
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Event, Group}
-import fr.gospeak.infra.utils.DoobieUtils
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 
@@ -22,25 +19,17 @@ object EventTable {
   private def values(e: Event): Fragment =
     fr0"${e.group}, ${e.id}, ${e.slug}, ${e.name}, ${e.description}, ${e.venue}, ${e.talks}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
-  private[tables] def slugToIdQuery(group: Group.Id, slug: Event.Slug): doobie.Query0[Event.Id] =
+  def insert(elt: Event): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
+
+  // slug should be unique for the group
+  def slugToId(group: Group.Id, slug: Event.Slug): doobie.Query0[Event.Id] =
     buildSelect(tableFr, fr0"id", fr0"WHERE slug=$slug AND group_id=$group").query[Event.Id]
 
-  private[tables] def selectOneQuery(id: Event.Id): doobie.Query0[Event] =
+  def selectOne(id: Event.Id): doobie.Query0[Event] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[Event]
 
-  private[tables] def selectPageQuery(group: Group.Id, params: Page.Params): (doobie.Query0[Event], doobie.Query0[Long]) = {
+  def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[Event], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Event], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
-
-  def insert(elt: Event): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
-
-  def insertMany(elts: NonEmptyList[Event]): doobie.ConnectionIO[Int] = Update[Event](insert(elts.head).sql).updateMany(elts)
-
-  // slug should be unique for the group
-  def slugToId(group: Group.Id, slug: Event.Slug): doobie.ConnectionIO[Option[Event.Id]] = slugToIdQuery(group, slug).option
-
-  def selectOne(id: Event.Id): doobie.ConnectionIO[Option[Event]] = selectOneQuery(id).option
-
-  def selectPage(group: Group.Id, params: Page.Params): doobie.ConnectionIO[Page[Event]] = DoobieUtils.selectPage(selectPageQuery(group, _), params)
 }

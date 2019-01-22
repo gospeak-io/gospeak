@@ -32,7 +32,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
         }
       }
       describe("pagination") {
-        val p = Page.Params(Some(Page.Search("q")), Some(Page.OrderBy("name")), Page.No(3), Page.Size(20))
+        val p = Page.Params(Page.No(3), Page.Size(20), Some(Page.Search("q")), Some(Page.OrderBy("name")))
         it("should build pagination sql") {
           paginate(p, searchFields, defaultSort).all.toString() shouldBe Paginate(
             where = fr0"WHERE name LIKE '%?%' OR description LIKE '%?%' ",

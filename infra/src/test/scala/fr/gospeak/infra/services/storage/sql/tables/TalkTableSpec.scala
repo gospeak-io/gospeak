@@ -16,7 +16,7 @@ class TalkTableSpec extends FunSpec with Matchers with IOChecker with BeforeAndA
   private val talkId = Talk.Id.generate()
   private val slug = Talk.Slug("my-talk")
   private val talk = Talk(talkId, slug, Talk.Title("My Talk"), "best talk", NonEmptyList.of(userId), Info(userId))
-  private val params = Page.Params(None, None, Page.No(1), Page.Size(20))
+  private val params = Page.Params()
 
   override def beforeAll(): Unit = db.createTables().unsafeRunSync()
 
@@ -32,21 +32,21 @@ class TalkTableSpec extends FunSpec with Matchers with IOChecker with BeforeAndA
     }
     describe("slugToId") {
       it("should generate the query") {
-        val q = slugToIdQuery(userId, slug)
+        val q = slugToId(userId, slug)
         q.sql shouldBe "SELECT id FROM talks WHERE slug=? AND speakers LIKE ?"
         check(q)
       }
     }
     describe("selectOne") {
       it("should generate the query") {
-        val q = selectOneQuery(talkId, userId)
+        val q = selectOne(talkId, userId)
         q.sql shouldBe "SELECT id, slug, title, description, speakers, created, created_by, updated, updated_by FROM talks WHERE id=? AND speakers LIKE ?"
         check(q)
       }
     }
     describe("selectPage") {
       it("should generate the query") {
-        val (s, c) = selectPageQuery(userId, params)
+        val (s, c) = selectPage(userId, params)
         s.sql shouldBe "SELECT id, slug, title, description, speakers, created, created_by, updated, updated_by FROM talks WHERE speakers LIKE ? ORDER BY title OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM talks WHERE speakers LIKE ? "
         check(s)

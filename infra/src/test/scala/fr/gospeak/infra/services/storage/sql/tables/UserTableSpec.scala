@@ -29,7 +29,7 @@ class UserTableSpec extends FunSpec with Matchers with IOChecker with BeforeAndA
     }
     describe("selectOne") {
       it("should generate the query") {
-        val q = selectOneQuery(Email("john@mail.com"))
+        val q = selectOne(Email("john@mail.com"))
         q.sql shouldBe "SELECT id, first_name, last_name, email, created, updated FROM users WHERE email=?"
         check(q)
       }

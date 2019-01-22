@@ -10,7 +10,7 @@ case class User(id: User.Id,
                 email: Email,
                 created: Instant,
                 updated: Instant) {
-  def name: User.Name = User.Name(s"$firstName $lastName")
+  def name: User.Name = User.Name(firstName, lastName)
 }
 
 object User {
@@ -20,5 +20,9 @@ object User {
   object Id extends UuidIdBuilder[User.Id]("User.Id", new User.Id(_))
 
   case class Name(value: String) extends AnyVal
+
+  object Name {
+    def apply(firstName: String, lastName: String): Name = new Name(s"$firstName $lastName")
+  }
 
 }

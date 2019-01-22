@@ -16,7 +16,7 @@ class EventTableSpec extends FunSpec with Matchers with IOChecker with BeforeAnd
   private val eventId = Event.Id.generate()
   private val slug = Event.Slug("my-event")
   private val event = Event(groupId, eventId, slug, Event.Name("My Event"), Some("best talk"), None, Seq(Proposal.Id.generate()), Info(userId))
-  private val params = Page.Params(None, None, Page.No(1), Page.Size(20))
+  private val params = Page.Params()
 
   override def beforeAll(): Unit = db.createTables().unsafeRunSync()
 
@@ -32,21 +32,21 @@ class EventTableSpec extends FunSpec with Matchers with IOChecker with BeforeAnd
     }
     describe("slugToId") {
       it("should generate the query") {
-        val q = slugToIdQuery(groupId, slug)
+        val q = slugToId(groupId, slug)
         q.sql shouldBe "SELECT id FROM events WHERE slug=? AND group_id=?"
         check(q)
       }
     }
     describe("selectOne") {
       it("should generate the query") {
-        val q = selectOneQuery(eventId)
+        val q = selectOne(eventId)
         q.sql shouldBe "SELECT group_id, id, slug, name, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE id=?"
         check(q)
       }
     }
     describe("selectPage") {
       it("should generate the query") {
-        val (s, c) = selectPageQuery(groupId, params)
+        val (s, c) = selectPage(groupId, params)
         s.sql shouldBe "SELECT group_id, id, slug, name, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE group_id=? ORDER BY name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM events WHERE group_id=? "
         check(s)

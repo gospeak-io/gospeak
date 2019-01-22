@@ -14,25 +14,25 @@ CREATE TABLE talks (
   description VARCHAR(2048) NOT NULL,
   speakers    VARCHAR(184)  NOT NULL,
   created     TIMESTAMP     NOT NULL,
-  created_by  CHAR(36)      NOT NULL,
+  created_by  CHAR(36)      NOT NULL REFERENCES users(id),
   updated     TIMESTAMP     NOT NULL,
-  updated_by  CHAR(36)      NOT NULL
+  updated_by  CHAR(36)      NOT NULL REFERENCES users(id)
 );
 
 CREATE TABLE groups (
   id          CHAR(36)      NOT NULL PRIMARY KEY,
-  slug        VARCHAR(30)   NOT NULL,
+  slug        VARCHAR(30)   NOT NULL UNIQUE,
   name        VARCHAR(100)  NOT NULL,
   description VARCHAR(2048) NOT NULL,
   owners      VARCHAR(184)  NOT NULL,
   created     TIMESTAMP     NOT NULL,
-  created_by  CHAR(36)      NOT NULL,
+  created_by  CHAR(36)      NOT NULL REFERENCES users(id),
   updated     TIMESTAMP     NOT NULL,
-  updated_by  CHAR(36)      NOT NULL
+  updated_by  CHAR(36)      NOT NULL REFERENCES users(id)
 );
 
 CREATE TABLE events (
-  group_id    CHAR(36)      NOT NULL,
+  group_id    CHAR(36)      NOT NULL REFERENCES groups(id),
   id          CHAR(36)      NOT NULL PRIMARY KEY,
   slug        VARCHAR(30)   NOT NULL,
   name        VARCHAR(100)  NOT NULL,
@@ -40,19 +40,21 @@ CREATE TABLE events (
   venue       VARCHAR(2048),
   talks       VARCHAR(184)  NOT NULL,
   created     TIMESTAMP     NOT NULL,
-  created_by  CHAR(36)      NOT NULL,
+  created_by  CHAR(36)      NOT NULL REFERENCES users(id),
   updated     TIMESTAMP     NOT NULL,
-  updated_by  CHAR(36)      NOT NULL
+  updated_by  CHAR(36)      NOT NULL REFERENCES users(id),
+  UNIQUE (group_id, slug)
 );
 
 CREATE TABLE proposals (
   id          CHAR(36)      NOT NULL PRIMARY KEY,
-  talk_id     CHAR(36)      NOT NULL,
-  group_id    CHAR(36)      NOT NULL,
+  talk_id     CHAR(36)      NOT NULL REFERENCES talks(id),
+  group_id    CHAR(36)      NOT NULL REFERENCES groups(id),
   title       VARCHAR(100)  NOT NULL,
   description VARCHAR(2048) NOT NULL,
   created     TIMESTAMP     NOT NULL,
-  created_by  CHAR(36)      NOT NULL,
+  created_by  CHAR(36)      NOT NULL REFERENCES users(id),
   updated     TIMESTAMP     NOT NULL,
-  updated_by  CHAR(36)      NOT NULL
+  updated_by  CHAR(36)      NOT NULL REFERENCES users(id),
+  UNIQUE (talk_id, group_id)
 );

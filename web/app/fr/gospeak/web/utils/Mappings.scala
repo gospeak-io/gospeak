@@ -11,34 +11,42 @@ import scala.util.matching.Regex
 
 object Mappings {
   val requiredConstraint = "constraint.required"
-  val patternConstraint = "constraint.pattern"
+  val requiredError = "error.required"
 
-  private def required[T](stringify: T => String): Constraint[T] = Constraint[T](requiredConstraint) { o =>
-    if (o == null) Invalid(ValidationError("error.required"))
-    else if (stringify(o).trim.isEmpty) Invalid(ValidationError("error.required"))
-    else Valid
-  }
-
-  private def pattern[T](regex: Regex)(stringify: T => String): Constraint[T] = Constraint[T](patternConstraint, regex) { o =>
-    if (o == null) Invalid(ValidationError("error.pattern", regex))
-    else regex.unapplySeq(stringify(o)).map(_ => Valid).getOrElse(Invalid(ValidationError("error.pattern", regex)))
-  }
-
-  private def stringMapping[Out](from: String => Out, to: Out => String, cs: ((Out => String) => Constraint[Out])*): Mapping[Out] = {
-    val formatter = new Formatter[Out] {
-      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Out] =
-        data.get(key).map(from).toRight(Seq(FormError(key, "error.required", Nil)))
-
-      override def unbind(key: String, value: Out): Map[String, String] =
-        Map(key -> to(value))
+  private[utils] def required[A](stringify: A => String): Constraint[A] = Constraint[A](requiredConstraint) { o =>
+    if (o == null) Invalid(ValidationError(requiredError))
+    else {
+      val str = stringify(o)
+      if (str == null) Invalid(ValidationError(requiredError))
+      else if (str.trim.isEmpty) Invalid(ValidationError(requiredError))
+      else Valid
     }
-    of(formatter).verifying(cs.map(_ (to)): _*)
   }
 
+  val patternConstraint = "constraint.pattern"
+  val patternError = "error.pattern"
+
+  private[utils] def pattern[A](regex: Regex)(stringify: A => String): Constraint[A] = Constraint[A](patternConstraint, regex) { o =>
+    if (o == null) Invalid(ValidationError(patternError, regex))
+    else regex.unapplySeq(stringify(o)).map(_ => Valid).getOrElse(Invalid(ValidationError(patternError, regex)))
+  }
+
+  private[utils] def formatter[A](from: String => A, to: A => String): Formatter[A] = new Formatter[A] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], A] =
+      data.get(key).map(from).toRight(Seq(FormError(key, requiredError)))
+
+    override def unbind(key: String, value: A): Map[String, String] =
+      Map(key -> to(value))
+  }
+
+  private def stringMapping[A](from: String => A, to: A => String, cs: ((A => String) => Constraint[A])*): Mapping[A] =
+    of(formatter(from, to)).verifying(cs.map(_ (to)): _*)
+
+  private val slugRegex = "[a-z0-9-]+".r
   val mail: Mapping[Email] = stringMapping(Email, _.value, required)
   val password: Mapping[Password] = stringMapping(Password, _.decode, required)
-  val talkSlug: Mapping[Talk.Slug] = stringMapping(Talk.Slug, _.value, required, pattern("[a-z0-9-]+".r))
+  val talkSlug: Mapping[Talk.Slug] = stringMapping(Talk.Slug, _.value, required, pattern(slugRegex))
   val talkTitle: Mapping[Talk.Title] = stringMapping(Talk.Title, _.value, required)
-  val eventSlug: Mapping[Event.Slug] = stringMapping(Event.Slug, _.value, required, pattern("[a-z0-9-]+".r))
+  val eventSlug: Mapping[Event.Slug] = stringMapping(Event.Slug, _.value, required, pattern(slugRegex))
   val eventName: Mapping[Event.Name] = stringMapping(Event.Name, _.value, required)
 }

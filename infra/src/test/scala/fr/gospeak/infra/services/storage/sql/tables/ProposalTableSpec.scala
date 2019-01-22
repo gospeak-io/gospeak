@@ -16,7 +16,7 @@ class ProposalTableSpec extends FunSpec with Matchers with IOChecker with Before
   private val groupId = Group.Id.generate()
   private val proposalId = Proposal.Id.generate()
   private val proposal = Proposal(proposalId, talkId, groupId, Proposal.Title("My Proposal"), "best talk", Info(userId))
-  private val params = Page.Params(None, None, Page.No(1), Page.Size(20))
+  private val params = Page.Params()
 
   override def beforeAll(): Unit = db.createTables().unsafeRunSync()
 
@@ -32,14 +32,14 @@ class ProposalTableSpec extends FunSpec with Matchers with IOChecker with Before
     }
     describe("selectOne") {
       it("should generate the query") {
-        val q = selectOneQuery(proposalId)
+        val q = selectOne(proposalId)
         q.sql shouldBe "SELECT id, talk_id, group_id, title, description, created, created_by, updated, updated_by FROM proposals WHERE id=?"
         check(q)
       }
     }
     describe("selectPage for group") {
       it("should generate the query") {
-        val (s, c) = selectPageQuery(groupId, params)
+        val (s, c) = selectPage(groupId, params)
         s.sql shouldBe "SELECT id, talk_id, group_id, title, description, created, created_by, updated, updated_by FROM proposals WHERE group_id=? ORDER BY title OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM proposals WHERE group_id=? "
         check(s)
@@ -48,7 +48,7 @@ class ProposalTableSpec extends FunSpec with Matchers with IOChecker with Before
     }
     describe("selectPage for talk") {
       it("should generate the query") {
-        val (s, c) = selectPageQuery(talkId, params)
+        val (s, c) = selectPage(talkId, params)
         s.sql shouldBe "SELECT g.id, g.slug, g.name, g.description, g.owners, g.created, g.created_by, g.updated, g.updated_by, p.id, p.talk_id, p.group_id, p.title, p.description, p.created, p.created_by, p.updated, p.updated_by FROM groups g INNER JOIN proposals p ON p.group_id=g.id WHERE p.talk_id=? ORDER BY p.title OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM groups g INNER JOIN proposals p ON p.group_id=g.id WHERE p.talk_id=? "
         check(s)

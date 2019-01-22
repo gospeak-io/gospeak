@@ -4,8 +4,9 @@ import cats.data.NonEmptyList
 import cats.effect.{ContextShift, IO}
 import doobie.Transactor
 import doobie.implicits._
-import doobie.util.Meta
+import doobie.util.{Meta, Write}
 import doobie.util.fragment.Fragment
+import doobie.util.update.Update
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain._
 import fr.gospeak.infra.services.storage.sql.{DbSqlConf, H2, PostgreSQL}
@@ -18,14 +19,6 @@ object DoobieUtils {
   def transactor(conf: DbSqlConf): doobie.Transactor[IO] = conf match {
     case c: H2 => Transactor.fromDriverManager[IO](c.driver, c.url, "", "")
     case c: PostgreSQL => Transactor.fromDriverManager[IO]("org.postgresql.Driver", c.url, c.user, c.pass.decode)
-  }
-
-  def selectPage[A](in: Page.Params => (doobie.Query0[A], doobie.Query0[Long]), params: Page.Params): doobie.ConnectionIO[Page[A]] = {
-    val (select, count) = in(params)
-    for {
-      elts <- select.to[List]
-      total <- count.unique
-    } yield Page(elts, params, Page.Total(total))
   }
 
   object Fragments {
@@ -65,6 +58,19 @@ object DoobieUtils {
 
     private def limitFragment(start: Int, size: Page.Size): Fragment =
       fr"OFFSET" ++ Fragment.const(start.toString) ++ fr"LIMIT" ++ Fragment.const0(size.value.toString)
+  }
+
+  object Queries {
+    def insertMany[A](insert: A => doobie.Update0)(elts: NonEmptyList[A])(implicit w: Write[A]): doobie.ConnectionIO[Int] =
+      Update[A](insert(elts.head).sql).updateMany(elts)
+
+    def selectPage[A](in: Page.Params => (doobie.Query0[A], doobie.Query0[Long]), params: Page.Params): doobie.ConnectionIO[Page[A]] = {
+      val (select, count) = in(params)
+      for {
+        elts <- select.to[List]
+        total <- count.unique
+      } yield Page(elts, params, Page.Total(total))
+    }
   }
 
   object Mappings {

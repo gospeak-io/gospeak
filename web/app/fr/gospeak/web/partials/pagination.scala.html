@@ -1,14 +1,14 @@
 @import fr.gospeak.core.domain.utils.Page
 
 @(page: Page[_], link: Page.Params => Call)
-@pageLink(i: Page.No) = {
-@if(page.isCurrent(i)) {
+@pageLink(p: Page.Params) = {
+@if(page.isCurrent(p)) {
     <li class="page-item active">
-        <a class="page-link" href="@link(page.no(i))">@i.value <span class="sr-only">(current)</span></a>
+        <a class="page-link" href="@link(p)">@p.page.value <span class="sr-only">(current)</span></a>
     </li>
 } else {
     <li class="page-item">
-        <a class="page-link" href="@link(page.no(i))">@i.value</a>
+        <a class="page-link" href="@link(p)">@p.page.value</a>
     </li>
 }
 }

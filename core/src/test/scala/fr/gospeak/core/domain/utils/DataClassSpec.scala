@@ -1,6 +1,5 @@
-package fr.gospeak.core.domain
+package fr.gospeak.core.domain.utils
 
-import fr.gospeak.core.domain.utils.{DataClass, UuidIdBuilder}
 import org.scalatest.{FunSpec, Matchers}
 
 import scala.util.{Failure, Success}
@@ -16,6 +15,7 @@ class DataClassSpec extends FunSpec with Matchers {
     }
     it("should define equality") {
       new Id("toto") shouldBe new Id("toto")
+      new Id("toto") should not be new Id("tata")
     }
   }
   describe("UuidIdBuilder") {
