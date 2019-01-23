@@ -22,10 +22,6 @@ trait GospeakDb {
 
   def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]]
 
-  def getGroupWithCfp(id: Group.Id): IO[Option[Group]]
-
-  def getGroupsWithCfp(params: Page.Params): IO[Page[Group]]
-
   def createEvent(group: Group.Id, slug: Event.Slug, name: Event.Name, by: User.Id): IO[Event]
 
   def getEventId(group: Group.Id, slug: Event.Slug): IO[Option[Event.Id]]
@@ -33,6 +29,16 @@ trait GospeakDb {
   def getEvent(id: Event.Id): IO[Option[Event]]
 
   def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]]
+
+  def createCfp(slug: Cfp.Slug, name: Cfp.Name, description: String, group: Group.Id, by: User.Id): IO[Cfp]
+
+  def getCfpId(slug: Cfp.Slug): IO[Option[Cfp.Id]]
+
+  def getCfp(id: Group.Id): IO[Option[Cfp]]
+
+  def getCfp(id: Cfp.Id): IO[Option[Cfp]]
+
+  def getCfps(params: Page.Params): IO[Page[Cfp]]
 
   def createTalk(slug: Talk.Slug, title: Talk.Title, description: String, by: User.Id): IO[Talk]
 
@@ -42,11 +48,11 @@ trait GospeakDb {
 
   def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]]
 
-  def createProposal(talk: Talk.Id, group: Group.Id, title: Talk.Title, description: String, by: User.Id): IO[Proposal]
+  def createProposal(talk: Talk.Id, cfp: Cfp.Id, title: Talk.Title, description: String, by: User.Id): IO[Proposal]
 
   def getProposal(id: Proposal.Id): IO[Option[Proposal]]
 
-  def getProposals(group: Group.Id, params: Page.Params): IO[Page[Proposal]]
+  def getProposals(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal]]
 
-  def getProposals(talk: Talk.Id, params: Page.Params): IO[Page[(Group, Proposal)]]
+  def getProposals(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
 }

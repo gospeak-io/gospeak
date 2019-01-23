@@ -1,6 +1,6 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.core.domain.{Event, Group, Proposal, Talk}
+import fr.gospeak.core.domain._
 import fr.gospeak.web.utils.PathBindables._
 import org.scalatest.{FunSpec, Matchers}
 
@@ -22,6 +22,12 @@ class PathBindablesSpec extends FunSpec with Matchers {
       it("should bind & unbind") {
         talkSlugPathBinder.bind("key", "value") shouldBe Right(Talk.Slug("value"))
         talkSlugPathBinder.unbind("key", Talk.Slug("value")) shouldBe "value"
+      }
+    }
+    describe("cfpSlugPathBinder") {
+      it("should bind & unbind") {
+        cfpSlugPathBinder.bind("key", "value") shouldBe Right(Cfp.Slug("value"))
+        cfpSlugPathBinder.unbind("key", Cfp.Slug("value")) shouldBe "value"
       }
     }
     describe("proposalIdPathBinder") {

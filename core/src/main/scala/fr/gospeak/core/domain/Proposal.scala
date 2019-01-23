@@ -4,7 +4,7 @@ import fr.gospeak.core.domain.utils.{DataClass, Info, UuidIdBuilder}
 
 final case class Proposal(id: Proposal.Id,
                           talk: Talk.Id,
-                          group: Group.Id,
+                          cfp: Cfp.Id,
                           title: Talk.Title,
                           description: String,
                           info: Info)

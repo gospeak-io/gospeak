@@ -2,7 +2,7 @@ package fr.gospeak.web.user.talks.proposals
 
 import cats.data.OptionT
 import fr.gospeak.core.domain.utils.Page
-import fr.gospeak.core.domain.{Group, Proposal, Talk, User}
+import fr.gospeak.core.domain._
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.user.talks.TalkCtrl
@@ -27,10 +27,10 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
       talkId <- OptionT(db.getTalkId(user.id, talk))
       talkElt <- OptionT(db.getTalk(talkId, user.id))
       proposalElt <- OptionT(db.getProposal(proposal))
-      groupElt <- OptionT(db.getGroup(proposalElt.group, user.id))
+      cfpElt <- OptionT(db.getCfp(proposalElt.cfp))
       h = TalkCtrl.header(talkElt.slug)
-      b = breadcrumb(user.name, talk -> talkElt.title, proposal -> groupElt.name)
-    } yield Ok(html.detail(groupElt, proposalElt)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
+      b = breadcrumb(user.name, talk -> talkElt.title, proposal -> cfpElt.name)
+    } yield Ok(html.detail(cfpElt, proposalElt)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
   }
 }
 
@@ -38,6 +38,6 @@ object ProposalCtrl {
   def listBreadcrumb(user: User.Name, talk: (Talk.Slug, Talk.Title)): Breadcrumb =
     TalkCtrl.breadcrumb(user, talk).add("Proposals" -> routes.ProposalCtrl.list(talk._1))
 
-  def breadcrumb(user: User.Name, talk: (Talk.Slug, Talk.Title), proposal: (Proposal.Id, Group.Name)): Breadcrumb =
+  def breadcrumb(user: User.Name, talk: (Talk.Slug, Talk.Title), proposal: (Proposal.Id, Cfp.Name)): Breadcrumb =
     listBreadcrumb(user, talk).add(proposal._2.value -> routes.ProposalCtrl.detail(talk._1, proposal._1))
 }

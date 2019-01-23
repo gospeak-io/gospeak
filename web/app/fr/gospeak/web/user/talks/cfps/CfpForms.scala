@@ -1,11 +1,11 @@
-package fr.gospeak.web.user.talks.proposing
+package fr.gospeak.web.user.talks.cfps
 
 import fr.gospeak.core.domain.Talk
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
 
-object ProposingForms {
+object CfpForms {
 
   final case class Create(title: Talk.Title, description: String)
 

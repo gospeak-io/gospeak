@@ -9,6 +9,7 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{Done, Email, Info, Page}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.infra.services.storage.sql.tables._
+import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.infra.utils.{DoobieUtils, FlywayUtils}
 
@@ -31,11 +32,12 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   def dropTables(): IO[Done] = IO(flyway.clean()).map(_ => Done)
 
   def insertMockData(): IO[Done] = {
-    import fr.gospeak.infra.utils.DoobieUtils.Mappings._
     val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
     val group1 = Group.Id.generate()
     val group2 = Group.Id.generate()
     val group3 = Group.Id.generate()
+    val cfp1 = Cfp.Id.generate()
+    val cfp2 = Cfp.Id.generate()
     val event1 = Event.Id.generate()
     val event2 = Event.Id.generate()
     val event3 = Event.Id.generate()
@@ -55,6 +57,9 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       Group(group1, Group.Slug("ht-paris"), Group.Name("HumanTalks Paris"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(user1, user3), Info(user1)),
       Group(group2, Group.Slug("paris-js"), Group.Name("Paris.Js"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(user3), Info(user3)),
       Group(group3, Group.Slug("data-gov"), Group.Name("Data governance"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(user1), Info(user1)))
+    val cfps = NonEmptyList.of(
+      Cfp(cfp1, Cfp.Slug("ht-paris"), Cfp.Name("HumanTalks Paris"), "Les HumanTalks Paris c'est 4 talks de 10 min...", group1, Info(user1)),
+      Cfp(cfp2, Cfp.Slug("paris-js"), Cfp.Name("Paris.Js"), "Submit your talk to exchange with the Paris JS community", group2, Info(user3)))
     val events = NonEmptyList.of(
       Event(group1, event1, Event.Slug("2019-03"), Event.Name("HumanTalks Paris Mars 2019"), Some("desc"), Some("Zeenea"), Seq(), Info(user1)),
       Event(group1, event2, Event.Slug("2019-04"), Event.Name("HumanTalks Paris Avril 2019"), None, None, Seq(), Info(user3)),
@@ -68,16 +73,17 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       Talk(talk5, Talk.Slug("gagner-1-million"), Talk.Title("Gagner 1 Million au BlackJack avec Akka"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(user2), Info(user2)),
       Talk(talk6, Talk.Slug("demarrer-avec-spark"), Talk.Title("7 conseils pour démarrer avec Spark"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(user2), Info(user2)))
     val proposals = NonEmptyList.of(
-      Proposal(proposal1, talk1, group1, Talk.Title("Why FP"), "temporary description", Info(user1)),
-      Proposal(proposal2, talk2, group1, Talk.Title("Scala Best Practices"), "temporary description", Info(user1)),
-      Proposal(proposal3, talk2, group2, Talk.Title("Scala Best Practices"), "temporary description", Info(user1)),
-      Proposal(proposal4, talk3, group1, Talk.Title("NodeJs news"), "temporary description", Info(user1)),
-      Proposal(proposal5, talk4, group2, Talk.Title("ScalaJS + React = ♥"), "temporary description", Info(user2)))
+      Proposal(proposal1, talk1, cfp1, Talk.Title("Why FP"), "temporary description", Info(user1)),
+      Proposal(proposal2, talk2, cfp1, Talk.Title("Scala Best Practices"), "temporary description", Info(user1)),
+      Proposal(proposal3, talk2, cfp2, Talk.Title("Scala Best Practices"), "temporary description", Info(user1)),
+      Proposal(proposal4, talk3, cfp1, Talk.Title("NodeJs news"), "temporary description", Info(user1)),
+      Proposal(proposal5, talk4, cfp2, Talk.Title("ScalaJS + React = ♥"), "temporary description", Info(user2)))
     for {
       _ <- run(Queries.insertMany(UserTable.insert)(users))
-      _ <- run(Queries.insertMany(TalkTable.insert)(talks))
       _ <- run(Queries.insertMany(GroupTable.insert)(groups))
+      _ <- run(Queries.insertMany(CfpTable.insert)(cfps))
       _ <- run(Queries.insertMany(EventTable.insert)(events))
+      _ <- run(Queries.insertMany(TalkTable.insert)(talks))
       _ <- run(Queries.insertMany(ProposalTable.insert)(proposals))
     } yield Done
   }
@@ -108,13 +114,9 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getGroupId(slug: Group.Slug): IO[Option[Group.Id]] = run(GroupTable.slugToId(slug).option)
 
-  override def getGroup(id: Group.Id, user: User.Id): IO[Option[Group]] = run(GroupTable.selectOwned(id, user).option)
+  override def getGroup(id: Group.Id, user: User.Id): IO[Option[Group]] = run(GroupTable.selectOne(id, user).option)
 
-  override def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(GroupTable.selectOwned(user, _), params))
-
-  override def getGroupWithCfp(id: Group.Id): IO[Option[Group]] = run(GroupTable.selectWithCfp(id).option)
-
-  override def getGroupsWithCfp(params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(GroupTable.selectWithCfp, params))
+  override def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(GroupTable.selectPage(user, _), params))
 
   override def createEvent(group: Group.Id, slug: Event.Slug, name: Event.Name, by: User.Id): IO[Event] =
     run(EventTable.insert, Event(group, Event.Id.generate(), slug, name, None, None, Seq(), Info(by)))
@@ -124,6 +126,17 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def getEvent(id: Event.Id): IO[Option[Event]] = run(EventTable.selectOne(id).option)
 
   override def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(Queries.selectPage(EventTable.selectPage(group, _), params))
+
+  override def createCfp(slug: Cfp.Slug, name: Cfp.Name, description: String, group: Group.Id, by: User.Id): IO[Cfp] =
+    run(CfpTable.insert, Cfp(Cfp.Id.generate(), slug, name, description, group, Info(by)))
+
+  override def getCfpId(slug: Cfp.Slug): IO[Option[Cfp.Id]] = run(CfpTable.slugToId(slug).option)
+
+  override def getCfp(id: Group.Id): IO[Option[Cfp]] = run(CfpTable.selectOne(id).option)
+
+  override def getCfp(id: Cfp.Id): IO[Option[Cfp]] = run(CfpTable.selectOne(id).option)
+
+  override def getCfps(params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(CfpTable.selectPage, params))
 
   override def createTalk(slug: Talk.Slug, title: Talk.Title, description: String, by: User.Id): IO[Talk] =
     getTalkId(by, slug).flatMap {
@@ -137,14 +150,14 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(TalkTable.selectPage(user, _), params))
 
-  override def createProposal(talk: Talk.Id, group: Group.Id, title: Talk.Title, description: String, by: User.Id): IO[Proposal] =
-    run(ProposalTable.insert, Proposal(Proposal.Id.generate(), talk, group, title, description, Info(by)))
+  override def createProposal(talk: Talk.Id, cfp: Cfp.Id, title: Talk.Title, description: String, by: User.Id): IO[Proposal] =
+    run(ProposalTable.insert, Proposal(Proposal.Id.generate(), talk, cfp, title, description, Info(by)))
 
   override def getProposal(id: Proposal.Id): IO[Option[Proposal]] = run(ProposalTable.selectOne(id).option)
 
-  override def getProposals(group: Group.Id, params: Page.Params): IO[Page[Proposal]] = run(Queries.selectPage(ProposalTable.selectPage(group, _), params))
+  override def getProposals(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal]] = run(Queries.selectPage(ProposalTable.selectPage(cfp, _), params))
 
-  override def getProposals(talk: Talk.Id, params: Page.Params): IO[Page[(Group, Proposal)]] = run(Queries.selectPage(ProposalTable.selectPage(talk, _), params))
+  override def getProposals(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]] = run(Queries.selectPage(ProposalTable.selectPage(talk, _), params))
 
   private def run[A](i: A => doobie.Update0, v: A): IO[A] =
     i(v).run.transact(xa).flatMap {

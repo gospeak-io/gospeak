@@ -1,0 +1,14 @@
+@import fr.gospeak.core.domain.{Cfp, Talk, User}
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.user.talks.cfps.routes.CfpCtrl
+
+@(talk: Talk, cfp: Cfp)(h: HeaderInfo, b: Breadcrumb)(implicit user: User)
+@container("Gospeak", h, Some(b))() {
+    <div>
+        <span class="float-right">
+            <a href="@CfpCtrl.create(talk.slug, cfp.slug)" class="btn btn-primary">Propose</a>
+        </span>
+        <h1>Propose @talk.title.value to @cfp.name.value</h1>
+    </div>
+}()

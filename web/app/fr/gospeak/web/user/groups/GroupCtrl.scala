@@ -9,7 +9,6 @@ import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.domain._
 import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.user.groups.GroupCtrl._
-import fr.gospeak.web.user.talks.routes
 import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.mvc._

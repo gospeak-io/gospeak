@@ -1,6 +1,6 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.core.domain.{Event, Group, Proposal, Talk}
+import fr.gospeak.core.domain._
 import play.api.mvc.PathBindable
 
 object PathBindables {
@@ -28,11 +28,19 @@ object PathBindables {
       slug.value
   }
 
+  implicit def cfpSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Cfp.Slug] = new PathBindable[Cfp.Slug] {
+    override def bind(key: String, value: String): Either[String, Cfp.Slug] =
+      stringBinder.bind(key, value).map(Cfp.Slug)
+
+    override def unbind(key: String, id: Cfp.Slug): String =
+      id.value
+  }
+
   implicit def proposalIdPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Proposal.Id] = new PathBindable[Proposal.Id] {
     override def bind(key: String, value: String): Either[String, Proposal.Id] =
       stringBinder.bind(key, value).flatMap(Proposal.Id.from(_).toEither.swap.map(_.getMessage).swap)
 
-    override def unbind(key: String, slug: Proposal.Id): String =
-      slug.value
+    override def unbind(key: String, id: Proposal.Id): String =
+      id.value
   }
 }

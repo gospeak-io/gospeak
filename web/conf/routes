@@ -1,47 +1,47 @@
-GET         /                                             fr.gospeak.web.HomeCtrl.index
+GET         /                                           fr.gospeak.web.HomeCtrl.index
 
-GET         /cfps                                         fr.gospeak.web.cfps.CfpCtrl.list
+GET         /cfps                                       fr.gospeak.web.cfps.CfpCtrl.list
 
-GET         /groups                                       fr.gospeak.web.groups.GroupCtrl.list
+GET         /groups                                     fr.gospeak.web.groups.GroupCtrl.list
 #GET         /groups/:group                              fr.gospeak.web.??? # group page
 #GET         /groups/:group/cfp                          fr.gospeak.web.??? # group cfp
 #GET         /groups/:group/events                       fr.gospeak.web.??? # group public events
 #GET         /groups/:group/talks                        fr.gospeak.web.??? # group public talks
 
-GET         /speakers                                     fr.gospeak.web.speakers.SpeakerCtrl.list
+GET         /speakers                                   fr.gospeak.web.speakers.SpeakerCtrl.list
 #GET         /speakers/:speaker                          fr.gospeak.web.??? # speaker page
 
-GET         /signup                                       fr.gospeak.web.auth.AuthCtrl.signup
-POST        /signup                                       fr.gospeak.web.auth.AuthCtrl.doSignup
-GET         /login                                        fr.gospeak.web.auth.AuthCtrl.login
-POST        /login                                        fr.gospeak.web.auth.AuthCtrl.doLogin
-GET         /passwordReset                                fr.gospeak.web.auth.AuthCtrl.passwordReset
-POST        /passwordReset                                fr.gospeak.web.auth.AuthCtrl.doPasswordReset
-GET         /logout                                       fr.gospeak.web.auth.AuthCtrl.logout
+GET         /signup                                     fr.gospeak.web.auth.AuthCtrl.signup
+POST        /signup                                     fr.gospeak.web.auth.AuthCtrl.doSignup
+GET         /login                                      fr.gospeak.web.auth.AuthCtrl.login
+POST        /login                                      fr.gospeak.web.auth.AuthCtrl.doLogin
+GET         /passwordReset                              fr.gospeak.web.auth.AuthCtrl.passwordReset
+POST        /passwordReset                              fr.gospeak.web.auth.AuthCtrl.doPasswordReset
+GET         /logout                                     fr.gospeak.web.auth.AuthCtrl.logout
 
-GET         /u                                            fr.gospeak.web.user.UserCtrl.index
-GET         /u/profile                                    fr.gospeak.web.user.UserCtrl.profile
+GET         /u                                          fr.gospeak.web.user.UserCtrl.index
+GET         /u/profile                                  fr.gospeak.web.user.UserCtrl.profile
 
-GET         /u/talks                                      fr.gospeak.web.user.talks.TalkCtrl.list(params: Page.Params ?= Page.Params.defaults)
-GET         /u/talks/create                               fr.gospeak.web.user.talks.TalkCtrl.create
-POST        /u/talks/create                               fr.gospeak.web.user.talks.TalkCtrl.doCreate
-GET         /u/talks/:talk                                fr.gospeak.web.user.talks.TalkCtrl.detail(talk: Talk.Slug)
-GET         /u/talks/:talk/proposing                      fr.gospeak.web.user.talks.proposing.ProposingCtrl.list(talk: Talk.Slug, params: Page.Params ?= Page.Params.defaults)
-GET         /u/talks/:talk/proposing/:group               fr.gospeak.web.user.talks.proposing.ProposingCtrl.detail(talk: Talk.Slug, group: Group.Slug)
-GET         /u/talks/:talk/proposing/:group/create        fr.gospeak.web.user.talks.proposing.ProposingCtrl.create(talk: Talk.Slug, group: Group.Slug)
-POST        /u/talks/:talk/proposing/:group/create        fr.gospeak.web.user.talks.proposing.ProposingCtrl.doCreate(talk: Talk.Slug, group: Group.Slug)
-GET         /u/talks/:talk/proposals                      fr.gospeak.web.user.talks.proposals.ProposalCtrl.list(talk: Talk.Slug, params: Page.Params ?= Page.Params.defaults)
-GET         /u/talks/:talk/proposals/:proposal            fr.gospeak.web.user.talks.proposals.ProposalCtrl.detail(talk: Talk.Slug, proposal: Proposal.Id)
+GET         /u/talks                                    fr.gospeak.web.user.talks.TalkCtrl.list(params: Page.Params ?= Page.Params.defaults)
+GET         /u/talks/create                             fr.gospeak.web.user.talks.TalkCtrl.create
+POST        /u/talks/create                             fr.gospeak.web.user.talks.TalkCtrl.doCreate
+GET         /u/talks/:talk                              fr.gospeak.web.user.talks.TalkCtrl.detail(talk: Talk.Slug)
+GET         /u/talks/:talk/cfps                         fr.gospeak.web.user.talks.cfps.CfpCtrl.list(talk: Talk.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /u/talks/:talk/cfps/:cfp                    fr.gospeak.web.user.talks.cfps.CfpCtrl.detail(talk: Talk.Slug, cfp: Cfp.Slug)
+GET         /u/talks/:talk/cfps/:cfp/create             fr.gospeak.web.user.talks.cfps.CfpCtrl.create(talk: Talk.Slug, cfp: Cfp.Slug)
+POST        /u/talks/:talk/cfps/:cfp/create             fr.gospeak.web.user.talks.cfps.CfpCtrl.doCreate(talk: Talk.Slug, cfp: Cfp.Slug)
+GET         /u/talks/:talk/proposals                    fr.gospeak.web.user.talks.proposals.ProposalCtrl.list(talk: Talk.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /u/talks/:talk/proposals/:proposal          fr.gospeak.web.user.talks.proposals.ProposalCtrl.detail(talk: Talk.Slug, proposal: Proposal.Id)
 
-GET         /u/groups                                     fr.gospeak.web.user.groups.GroupCtrl.list(params: Page.Params ?= Page.Params.defaults)
-GET         /u/groups/create                              fr.gospeak.web.user.groups.GroupCtrl.create
-POST        /u/groups/create                              fr.gospeak.web.user.groups.GroupCtrl.doCreate
-GET         /u/groups/:group                              fr.gospeak.web.user.groups.GroupCtrl.detail(group: Group.Slug)
-GET         /u/groups/:group/events                       fr.gospeak.web.user.groups.events.EventCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
-GET         /u/groups/:group/events/create                fr.gospeak.web.user.groups.events.EventCtrl.create(group: Group.Slug)
-POST        /u/groups/:group/events/create                fr.gospeak.web.user.groups.events.EventCtrl.doCreate(group: Group.Slug)
-GET         /u/groups/:group/events/:event                fr.gospeak.web.user.groups.events.EventCtrl.detail(group: Group.Slug, event: Event.Slug)
-GET         /u/groups/:group/proposals                    fr.gospeak.web.user.groups.proposals.ProposalCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
-GET         /u/groups/:group/proposals/:proposal          fr.gospeak.web.user.groups.proposals.ProposalCtrl.detail(group: Group.Slug, proposal: Proposal.Id)
+GET         /u/groups                                   fr.gospeak.web.user.groups.GroupCtrl.list(params: Page.Params ?= Page.Params.defaults)
+GET         /u/groups/create                            fr.gospeak.web.user.groups.GroupCtrl.create
+POST        /u/groups/create                            fr.gospeak.web.user.groups.GroupCtrl.doCreate
+GET         /u/groups/:group                            fr.gospeak.web.user.groups.GroupCtrl.detail(group: Group.Slug)
+GET         /u/groups/:group/events                     fr.gospeak.web.user.groups.events.EventCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /u/groups/:group/events/create              fr.gospeak.web.user.groups.events.EventCtrl.create(group: Group.Slug)
+POST        /u/groups/:group/events/create              fr.gospeak.web.user.groups.events.EventCtrl.doCreate(group: Group.Slug)
+GET         /u/groups/:group/events/:event              fr.gospeak.web.user.groups.events.EventCtrl.detail(group: Group.Slug, event: Event.Slug)
+GET         /u/groups/:group/proposals                  fr.gospeak.web.user.groups.proposals.ProposalCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /u/groups/:group/proposals/:proposal        fr.gospeak.web.user.groups.proposals.ProposalCtrl.detail(group: Group.Slug, proposal: Proposal.Id)
 
-GET         /assets/*file                                 controllers.Assets.versioned(path="/public", file: Asset)
+GET         /assets/*file                               controllers.Assets.versioned(path="/public", file: Asset)

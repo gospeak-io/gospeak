@@ -15,7 +15,8 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
     (for {
       groupId <- OptionT(db.getGroupId(group))
       groupElt <- OptionT(db.getGroup(groupId, user.id))
-      proposals <- OptionT.liftF(db.getProposals(groupId, params))
+      cfpElt <- OptionT(db.getCfp(groupId))
+      proposals <- OptionT.liftF(db.getProposals(cfpElt.id, params))
       h = listHeader(group)
       b = listBreadcrumb(user.name, group -> groupElt.name)
     } yield Ok(html.list(groupElt, proposals)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()

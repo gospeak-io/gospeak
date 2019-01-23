@@ -76,6 +76,38 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
         an[Exception] should be thrownBy db.createEvent(group.id, slug, Event.Name("name"), user.id).unsafeRunSync()
       }
     }
+    describe("Cfp") {
+      val slug = Cfp.Slug("slug")
+      it("should create and retrieve a cfp for a group") {
+        val user = db.createUser(firstName, lastName, email).unsafeRunSync()
+        val group = db.createGroup(Group.Slug("slug"), Group.Name("name"), "desc", user.id).unsafeRunSync()
+        db.getCfps(page).unsafeRunSync().items shouldBe Seq()
+        db.getCfp(group.id).unsafeRunSync() shouldBe None
+        db.getCfpId(slug).unsafeRunSync() shouldBe None
+        val cfp = db.createCfp(slug, Cfp.Name("name"), "desc", group.id, user.id).unsafeRunSync()
+        db.getCfps(page).unsafeRunSync().items shouldBe Seq(cfp)
+        db.getCfp(group.id).unsafeRunSync() shouldBe Some(cfp)
+        db.getCfp(cfp.id).unsafeRunSync() shouldBe Some(cfp)
+        db.getCfpId(slug).unsafeRunSync() shouldBe Some(cfp.id)
+      }
+      it("should fail to create a cfp when the group does not exists") {
+        val user = db.createUser(firstName, lastName, email).unsafeRunSync()
+        an[Exception] should be thrownBy db.createCfp(slug, Cfp.Name("name"), "desc", Group.Id.generate(), user.id).unsafeRunSync()
+      }
+      it("should fail to create two cfp for a group") {
+        val user = db.createUser(firstName, lastName, email).unsafeRunSync()
+        val group = db.createGroup(Group.Slug("slug"), Group.Name("name"), "desc", user.id).unsafeRunSync()
+        db.createCfp(slug, Cfp.Name("name"), "desc", group.id, user.id).unsafeRunSync()
+        an[Exception] should be thrownBy db.createCfp(slug, Cfp.Name("name"), "desc", group.id, user.id).unsafeRunSync()
+      }
+      it("should fail on duplicate slug") {
+        val user = db.createUser(firstName, lastName, email).unsafeRunSync()
+        val group1 = db.createGroup(Group.Slug("slug1"), Group.Name("name"), "desc", user.id).unsafeRunSync()
+        val group2 = db.createGroup(Group.Slug("slug2"), Group.Name("name"), "desc", user.id).unsafeRunSync()
+        db.createCfp(slug, Cfp.Name("name"), "desc", group1.id, user.id).unsafeRunSync()
+        an[Exception] should be thrownBy db.createCfp(slug, Cfp.Name("name"), "desc", group2.id, user.id).unsafeRunSync()
+      }
+    }
     describe("Talk") {
       val slug = Talk.Slug("slug")
       it("should create and retrieve") {
@@ -108,29 +140,32 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         val talk = db.createTalk(Talk.Slug("slug"), Talk.Title("title"), "desc", user.id).unsafeRunSync()
         val group = db.createGroup(Group.Slug("slug"), Group.Name("name"), "desc", user.id).unsafeRunSync()
+        val cfp = db.createCfp(Cfp.Slug("slug"), Cfp.Name("name"), "desc", group.id, user.id).unsafeRunSync()
         db.getProposals(talk.id, page).unsafeRunSync().items shouldBe Seq()
-        db.getProposals(group.id, page).unsafeRunSync().items shouldBe Seq()
-        val proposal = db.createProposal(talk.id, group.id, Talk.Title("title"), "desc", user.id).unsafeRunSync()
-        db.getProposals(talk.id, page).unsafeRunSync().items shouldBe Seq(group -> proposal)
-        db.getProposals(group.id, page).unsafeRunSync().items shouldBe Seq(proposal)
+        db.getProposals(cfp.id, page).unsafeRunSync().items shouldBe Seq()
+        val proposal = db.createProposal(talk.id, cfp.id, Talk.Title("title"), "desc", user.id).unsafeRunSync()
+        db.getProposals(talk.id, page).unsafeRunSync().items shouldBe Seq(cfp -> proposal)
+        db.getProposals(cfp.id, page).unsafeRunSync().items shouldBe Seq(proposal)
         db.getProposal(proposal.id).unsafeRunSync() shouldBe Some(proposal)
       }
       it("should fail to create a proposal when talk does not exists") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         val group = db.createGroup(Group.Slug("slug"), Group.Name("name"), "desc", user.id).unsafeRunSync()
-        an[Exception] should be thrownBy db.createProposal(Talk.Id.generate(), group.id, Talk.Title("title"), "desc", user.id).unsafeRunSync()
+        val cfp = db.createCfp(Cfp.Slug("slug"), Cfp.Name("name"), "desc", group.id, user.id).unsafeRunSync()
+        an[Exception] should be thrownBy db.createProposal(Talk.Id.generate(), cfp.id, Talk.Title("title"), "desc", user.id).unsafeRunSync()
       }
-      it("should fail to create a proposal when group does not exists") {
+      it("should fail to create a proposal when cfp does not exists") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         val talk = db.createTalk(Talk.Slug("slug"), Talk.Title("title"), "desc", user.id).unsafeRunSync()
-        an[Exception] should be thrownBy db.createProposal(talk.id, Group.Id.generate(), Talk.Title("title"), "desc", user.id).unsafeRunSync()
+        an[Exception] should be thrownBy db.createProposal(talk.id, Cfp.Id.generate(), Talk.Title("title"), "desc", user.id).unsafeRunSync()
       }
-      it("should fail on duplicate group and talk") {
+      it("should fail on duplicate cfp and talk") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         val talk = db.createTalk(Talk.Slug("slug"), Talk.Title("title"), "desc", user.id).unsafeRunSync()
         val group = db.createGroup(Group.Slug("slug"), Group.Name("name"), "desc", user.id).unsafeRunSync()
-        db.createProposal(talk.id, group.id, Talk.Title("title"), "desc", user.id).unsafeRunSync()
-        an[Exception] should be thrownBy db.createProposal(talk.id, group.id, Talk.Title("title"), "desc", user.id).unsafeRunSync()
+        val cfp = db.createCfp(Cfp.Slug("slug"), Cfp.Name("name"), "desc", group.id, user.id).unsafeRunSync()
+        db.createProposal(talk.id, cfp.id, Talk.Title("title"), "desc", user.id).unsafeRunSync()
+        an[Exception] should be thrownBy db.createProposal(talk.id, cfp.id, Talk.Title("title"), "desc", user.id).unsafeRunSync()
       }
     }
   }

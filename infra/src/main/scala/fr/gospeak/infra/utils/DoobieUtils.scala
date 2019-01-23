@@ -84,6 +84,9 @@ object DoobieUtils {
     implicit val eventIdMeta: Meta[Event.Id] = Meta[String].timap(Event.Id.from(_).get)(_.value)
     implicit val eventSlugMeta: Meta[Event.Slug] = Meta[String].timap(Event.Slug)(_.value)
     implicit val eventNameMeta: Meta[Event.Name] = Meta[String].timap(Event.Name)(_.value)
+    implicit val cfpIdMeta: Meta[Cfp.Id] = Meta[String].timap(Cfp.Id.from(_).get)(_.value)
+    implicit val cfpSlugMeta: Meta[Cfp.Slug] = Meta[String].timap(Cfp.Slug)(_.value)
+    implicit val cfpNameMeta: Meta[Cfp.Name] = Meta[String].timap(Cfp.Name)(_.value)
     implicit val proposalIdMeta: Meta[Proposal.Id] = Meta[String].timap(Proposal.Id.from(_).get)(_.value)
     implicit val userIdNelMeta: Meta[NonEmptyList[User.Id]] = Meta[String].timap(
       s => NonEmptyList.fromListUnsafe(s.split(",").filter(_.nonEmpty).map(User.Id.from(_).get).toList))(

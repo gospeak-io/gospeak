@@ -1,7 +1,7 @@
 package fr.gospeak.web.utils
 
 import fr.gospeak.core.domain.utils.{Email, Password}
-import fr.gospeak.core.domain.{Event, Group, Talk}
+import fr.gospeak.core.domain.{Cfp, Event, Group, Talk}
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.validation._
@@ -51,4 +51,5 @@ object Mappings {
   val eventName: Mapping[Event.Name] = stringMapping(Event.Name, _.value, required)
   val talkSlug: Mapping[Talk.Slug] = stringMapping(Talk.Slug, _.value, required, pattern(slugRegex))
   val talkTitle: Mapping[Talk.Title] = stringMapping(Talk.Title, _.value, required)
+  val cfpName: Mapping[Cfp.Name] = stringMapping(Cfp.Name, _.value, required)
 }
