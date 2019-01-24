@@ -21,12 +21,8 @@ object GroupTable {
 
   def insert(elt: Group): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
-  // slug should be unique on the platform
-  def slugToId(slug: Group.Slug): doobie.Query0[Group.Id] =
-    buildSelect(tableFr, fr0"id", fr0"WHERE slug=$slug").query[Group.Id]
-
-  def selectOne(id: Group.Id, user: User.Id): doobie.Query0[Group] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE owners LIKE ${"%" + user.value + "%"} AND id=$id").query[Group]
+  def selectOne(user: User.Id, slug: Group.Slug): doobie.Query0[Group] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE owners LIKE ${"%" + user.value + "%"} AND slug=$slug").query[Group]
 
   def selectPage(user: User.Id, params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE owners LIKE ${"%" + user.value + "%"}"))

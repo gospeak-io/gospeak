@@ -13,9 +13,8 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
-      groupId <- OptionT(db.getGroupId(group))
-      groupElt <- OptionT(db.getGroup(groupId, user.id))
-      cfpElt <- OptionT(db.getCfp(groupId))
+      groupElt <- OptionT(db.getGroup(user.id, group))
+      cfpElt <- OptionT(db.getCfp(groupElt.id))
       proposals <- OptionT.liftF(db.getProposals(cfpElt.id, params))
       h = listHeader(group)
       b = listBreadcrumb(user.name, group -> groupElt.name)
@@ -25,8 +24,7 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
   def detail(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
-      groupId <- OptionT(db.getGroupId(group))
-      groupElt <- OptionT(db.getGroup(groupId, user.id))
+      groupElt <- OptionT(db.getGroup(user.id, group))
       proposalElt <- OptionT(db.getProposal(proposal))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name, proposal -> proposalElt.title)

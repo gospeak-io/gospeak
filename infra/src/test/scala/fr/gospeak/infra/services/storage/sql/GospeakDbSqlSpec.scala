@@ -33,19 +33,16 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
       it("should create and retrieve a group") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         db.getGroups(user.id, page).unsafeRunSync().items shouldBe Seq()
-        db.getGroupId(slug).unsafeRunSync() shouldBe None
         val group = db.createGroup(slug, Group.Name("name"), "desc", user.id).unsafeRunSync()
         db.getGroups(user.id, page).unsafeRunSync().items shouldBe Seq(group)
-        db.getGroup(group.id, user.id).unsafeRunSync() shouldBe Some(group)
-        db.getGroupId(slug).unsafeRunSync() shouldBe Some(group.id)
+        db.getGroup(user.id, slug).unsafeRunSync() shouldBe Some(group)
       }
       it("should not retrieve not owned groups") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         val user2 = db.createUser("A", "A", Email("aaa@aaa.com")).unsafeRunSync()
         val group = db.createGroup(slug, Group.Name("name"), "desc", user2.id).unsafeRunSync()
         db.getGroups(user.id, page).unsafeRunSync().items shouldBe Seq()
-        db.getGroup(group.id, user.id).unsafeRunSync() shouldBe None
-        db.getGroupId(slug).unsafeRunSync() shouldBe Some(group.id)
+        db.getGroup(user.id, slug).unsafeRunSync() shouldBe None
       }
       it("should fail on duplicate slug") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
@@ -59,11 +56,9 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         val group = db.createGroup(Group.Slug("slug"), Group.Name("name"), "desc", user.id).unsafeRunSync()
         db.getEvents(group.id, page).unsafeRunSync().items shouldBe Seq()
-        db.getEventId(group.id, slug).unsafeRunSync() shouldBe None
         val event = db.createEvent(group.id, slug, Event.Name("name"), user.id).unsafeRunSync()
         db.getEvents(group.id, page).unsafeRunSync().items shouldBe Seq(event)
-        db.getEvent(event.id).unsafeRunSync() shouldBe Some(event)
-        db.getEventId(group.id, slug).unsafeRunSync() shouldBe Some(event.id)
+        db.getEvent(group.id, slug).unsafeRunSync() shouldBe Some(event)
       }
       it("should fail to create an event when the group does not exists") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
@@ -83,12 +78,10 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
         val group = db.createGroup(Group.Slug("slug"), Group.Name("name"), "desc", user.id).unsafeRunSync()
         db.getCfps(page).unsafeRunSync().items shouldBe Seq()
         db.getCfp(group.id).unsafeRunSync() shouldBe None
-        db.getCfpId(slug).unsafeRunSync() shouldBe None
         val cfp = db.createCfp(slug, Cfp.Name("name"), "desc", group.id, user.id).unsafeRunSync()
         db.getCfps(page).unsafeRunSync().items shouldBe Seq(cfp)
         db.getCfp(group.id).unsafeRunSync() shouldBe Some(cfp)
-        db.getCfp(cfp.id).unsafeRunSync() shouldBe Some(cfp)
-        db.getCfpId(slug).unsafeRunSync() shouldBe Some(cfp.id)
+        db.getCfp(slug).unsafeRunSync() shouldBe Some(cfp)
       }
       it("should fail to create a cfp when the group does not exists") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
@@ -113,19 +106,16 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
       it("should create and retrieve") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         db.getTalks(user.id, page).unsafeRunSync().items shouldBe Seq()
-        db.getTalkId(user.id, slug).unsafeRunSync() shouldBe None
         val talk = db.createTalk(slug, Talk.Title("title"), "desc", user.id).unsafeRunSync()
         db.getTalks(user.id, page).unsafeRunSync().items shouldBe Seq(talk)
-        db.getTalk(talk.id, user.id).unsafeRunSync() shouldBe Some(talk)
-        db.getTalkId(user.id, slug).unsafeRunSync() shouldBe Some(talk.id)
+        db.getTalk(user.id, slug).unsafeRunSync() shouldBe Some(talk)
       }
       it("should not retrieve not owned talks") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         val user2 = db.createUser("A", "A", Email("aaa@aaa.com")).unsafeRunSync()
         val talk = db.createTalk(slug, Talk.Title("title"), "desc", user2.id).unsafeRunSync()
         db.getTalks(user.id, page).unsafeRunSync().items shouldBe Seq()
-        db.getTalk(talk.id, user.id).unsafeRunSync() shouldBe None
-        db.getTalkId(user.id, slug).unsafeRunSync() shouldBe None
+        db.getTalk(user.id, slug).unsafeRunSync() shouldBe None
       }
       it("should fail on duplicate slug on same user") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()

@@ -30,17 +30,10 @@ class TalkTableSpec extends FunSpec with Matchers with IOChecker with BeforeAndA
         check(q)
       }
     }
-    describe("slugToId") {
-      it("should generate the query") {
-        val q = slugToId(userId, slug)
-        q.sql shouldBe "SELECT id FROM talks WHERE slug=? AND speakers LIKE ?"
-        check(q)
-      }
-    }
     describe("selectOne") {
       it("should generate the query") {
-        val q = selectOne(talkId, userId)
-        q.sql shouldBe "SELECT id, slug, title, description, speakers, created, created_by, updated, updated_by FROM talks WHERE id=? AND speakers LIKE ?"
+        val q = selectOne(userId, slug)
+        q.sql shouldBe "SELECT id, slug, title, description, speakers, created, created_by, updated, updated_by FROM talks WHERE speakers LIKE ? AND slug=?"
         check(q)
       }
     }

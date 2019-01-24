@@ -21,12 +21,8 @@ object EventTable {
 
   def insert(elt: Event): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
-  // slug should be unique for the group
-  def slugToId(group: Group.Id, slug: Event.Slug): doobie.Query0[Event.Id] =
-    buildSelect(tableFr, fr0"id", fr0"WHERE slug=$slug AND group_id=$group").query[Event.Id]
-
-  def selectOne(id: Event.Id): doobie.Query0[Event] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[Event]
+  def selectOne(group: Group.Id, event: Event.Slug): doobie.Query0[Event] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE group_id=$group AND slug=$event").query[Event]
 
   def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[Event], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group"))

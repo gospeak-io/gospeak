@@ -30,14 +30,12 @@ class CfpTableSpec extends FunSpec with Matchers with IOChecker with BeforeAndAf
         check(q)
       }
     }
-    describe("slugToId") {
-      it("should generate the query") {
-        val q = slugToId(slug)
-        q.sql shouldBe "SELECT id FROM cfps WHERE slug=?"
+    describe("selectOne") {
+      it("should generate query for cfp slug") {
+        val q = selectOne(slug)
+        q.sql shouldBe "SELECT id, slug, name, description, group_id, created, created_by, updated, updated_by FROM cfps WHERE slug=?"
         check(q)
       }
-    }
-    describe("selectOne") {
       it("should generate query for cfp id") {
         val q = selectOne(cfpId)
         q.sql shouldBe "SELECT id, slug, name, description, group_id, created, created_by, updated, updated_by FROM cfps WHERE id=?"

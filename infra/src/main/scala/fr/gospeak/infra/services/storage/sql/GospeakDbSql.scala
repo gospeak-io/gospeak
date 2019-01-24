@@ -112,41 +112,35 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def createGroup(slug: Group.Slug, name: Group.Name, description: String, by: User.Id): IO[Group] =
     run(GroupTable.insert, Group(Group.Id.generate(), slug, name, description, NonEmptyList.of(by), Info(by)))
 
-  override def getGroupId(slug: Group.Slug): IO[Option[Group.Id]] = run(GroupTable.slugToId(slug).option)
-
-  override def getGroup(id: Group.Id, user: User.Id): IO[Option[Group]] = run(GroupTable.selectOne(id, user).option)
+  override def getGroup(user: User.Id, slug: Group.Slug): IO[Option[Group]] = run(GroupTable.selectOne(user, slug).option)
 
   override def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(GroupTable.selectPage(user, _), params))
 
   override def createEvent(group: Group.Id, slug: Event.Slug, name: Event.Name, by: User.Id): IO[Event] =
     run(EventTable.insert, Event(group, Event.Id.generate(), slug, name, None, None, Seq(), Info(by)))
 
-  override def getEventId(group: Group.Id, slug: Event.Slug): IO[Option[Event.Id]] = run(EventTable.slugToId(group, slug).option)
-
-  override def getEvent(id: Event.Id): IO[Option[Event]] = run(EventTable.selectOne(id).option)
+  override def getEvent(group: Group.Id, event: Event.Slug): IO[Option[Event]] = run(EventTable.selectOne(group, event).option)
 
   override def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(Queries.selectPage(EventTable.selectPage(group, _), params))
 
   override def createCfp(slug: Cfp.Slug, name: Cfp.Name, description: String, group: Group.Id, by: User.Id): IO[Cfp] =
     run(CfpTable.insert, Cfp(Cfp.Id.generate(), slug, name, description, group, Info(by)))
 
-  override def getCfpId(slug: Cfp.Slug): IO[Option[Cfp.Id]] = run(CfpTable.slugToId(slug).option)
-
-  override def getCfp(id: Group.Id): IO[Option[Cfp]] = run(CfpTable.selectOne(id).option)
+  override def getCfp(slug: Cfp.Slug): IO[Option[Cfp]] = run(CfpTable.selectOne(slug).option)
 
   override def getCfp(id: Cfp.Id): IO[Option[Cfp]] = run(CfpTable.selectOne(id).option)
+
+  override def getCfp(id: Group.Id): IO[Option[Cfp]] = run(CfpTable.selectOne(id).option)
 
   override def getCfps(params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(CfpTable.selectPage, params))
 
   override def createTalk(slug: Talk.Slug, title: Talk.Title, description: String, by: User.Id): IO[Talk] =
-    getTalkId(by, slug).flatMap {
+    getTalk(by, slug).flatMap {
       case None => run(TalkTable.insert, Talk(Talk.Id.generate(), slug, title, description, NonEmptyList.one(by), Info(by)))
       case _ => IO.raiseError(new Exception(s"You already have a talk with slug $slug"))
     }
 
-  override def getTalkId(user: User.Id, slug: Talk.Slug): IO[Option[Talk.Id]] = run(TalkTable.slugToId(user, slug).option)
-
-  override def getTalk(id: Talk.Id, user: User.Id): IO[Option[Talk]] = run(TalkTable.selectOne(id, user).option)
+  override def getTalk(user: User.Id, slug: Talk.Slug): IO[Option[Talk]] = run(TalkTable.selectOne(user, slug).option)
 
   override def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(TalkTable.selectPage(user, _), params))
 

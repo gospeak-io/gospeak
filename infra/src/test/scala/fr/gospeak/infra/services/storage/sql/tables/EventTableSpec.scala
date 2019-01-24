@@ -30,17 +30,10 @@ class EventTableSpec extends FunSpec with Matchers with IOChecker with BeforeAnd
         check(q)
       }
     }
-    describe("slugToId") {
-      it("should generate the query") {
-        val q = slugToId(groupId, slug)
-        q.sql shouldBe "SELECT id FROM events WHERE slug=? AND group_id=?"
-        check(q)
-      }
-    }
     describe("selectOne") {
       it("should generate the query") {
-        val q = selectOne(eventId)
-        q.sql shouldBe "SELECT group_id, id, slug, name, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE id=?"
+        val q = selectOne(groupId, slug)
+        q.sql shouldBe "SELECT group_id, id, slug, name, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE group_id=? AND slug=?"
         check(q)
       }
     }

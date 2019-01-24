@@ -51,9 +51,8 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
   def detail(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
-      talkId <- OptionT(db.getTalkId(user.id, talk))
-      talkElt <- OptionT(db.getTalk(talkId, user.id))
-      proposals <- OptionT.liftF(db.getProposals(talkId, Page.Params.defaults))
+      talkElt <- OptionT(db.getTalk(user.id, talk))
+      proposals <- OptionT.liftF(db.getProposals(talkElt.id, Page.Params.defaults))
       h = header(talk)
       b = breadcrumb(user.name, talk -> talkElt.title)
     } yield Ok(html.detail(talkElt, proposals)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()

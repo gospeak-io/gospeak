@@ -30,17 +30,10 @@ class GroupTableSpec extends FunSpec with Matchers with IOChecker with BeforeAnd
         check(q)
       }
     }
-    describe("slugToId") {
-      it("should generate the query") {
-        val q = slugToId(slug)
-        q.sql shouldBe "SELECT id FROM groups WHERE slug=?"
-        check(q)
-      }
-    }
     describe("selectOne") {
       it("should generate the query") {
-        val q = selectOne(groupId, userId)
-        q.sql shouldBe "SELECT id, slug, name, description, owners, created, created_by, updated, updated_by FROM groups WHERE owners LIKE ? AND id=?"
+        val q = selectOne(userId, slug)
+        q.sql shouldBe "SELECT id, slug, name, description, owners, created, created_by, updated, updated_by FROM groups WHERE owners LIKE ? AND slug=?"
         check(q)
       }
     }

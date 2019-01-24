@@ -52,9 +52,8 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
   def detail(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
-      groupId <- OptionT(db.getGroupId(group))
-      groupElt <- OptionT(db.getGroup(groupId, user.id))
-      events <- OptionT.liftF(db.getEvents(groupId, Page.Params.defaults))
+      groupElt <- OptionT(db.getGroup(user.id, group))
+      events <- OptionT.liftF(db.getEvents(groupElt.id, Page.Params.defaults))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name)
     } yield Ok(html.detail(groupElt, events)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()

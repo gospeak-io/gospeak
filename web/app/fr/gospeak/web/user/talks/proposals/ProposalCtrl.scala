@@ -13,9 +13,8 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
-      talkId <- OptionT(db.getTalkId(user.id, talk))
-      talkElt <- OptionT(db.getTalk(talkId, user.id))
-      proposals <- OptionT.liftF(db.getProposals(talkId, params))
+      talkElt <- OptionT(db.getTalk(user.id, talk))
+      proposals <- OptionT.liftF(db.getProposals(talkElt.id, params))
       h = TalkCtrl.header(talkElt.slug)
       b = listBreadcrumb(user.name, talk -> talkElt.title)
     } yield Ok(html.list(talkElt, proposals)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
@@ -24,8 +23,7 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
   def detail(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
-      talkId <- OptionT(db.getTalkId(user.id, talk))
-      talkElt <- OptionT(db.getTalk(talkId, user.id))
+      talkElt <- OptionT(db.getTalk(user.id, talk))
       proposalElt <- OptionT(db.getProposal(proposal))
       cfpElt <- OptionT(db.getCfp(proposalElt.cfp))
       h = TalkCtrl.header(talkElt.slug)

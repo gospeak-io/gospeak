@@ -21,12 +21,8 @@ object TalkTable {
 
   def insert(elt: Talk): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
-  // slug should be unique for the user
-  def slugToId(user: User.Id, slug: Talk.Slug): doobie.Query0[Talk.Id] =
-    buildSelect(tableFr, fr0"id", fr0"WHERE slug=$slug AND speakers LIKE ${"%" + user.value + "%"}").query[Talk.Id]
-
-  def selectOne(id: Talk.Id, user: User.Id): doobie.Query0[Talk] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id AND speakers LIKE ${"%" + user.value + "%"}").query[Talk]
+  def selectOne(user: User.Id, slug: Talk.Slug): doobie.Query0[Talk] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND slug=$slug").query[Talk]
 
   def selectPage(user: User.Id, params: Page.Params): (doobie.Query0[Talk], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE speakers LIKE ${"%" + user.value + "%"}"))

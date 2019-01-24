@@ -21,9 +21,8 @@ object CfpTable {
 
   def insert(elt: Cfp): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
-  // slug should be unique on the platform
-  def slugToId(slug: Cfp.Slug): doobie.Query0[Cfp.Id] =
-    buildSelect(tableFr, fr0"id", fr0"WHERE slug=$slug").query[Cfp.Id]
+  def selectOne(slug: Cfp.Slug): doobie.Query0[Cfp] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE slug=$slug").query[Cfp]
 
   def selectOne(id: Cfp.Id): doobie.Query0[Cfp] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[Cfp]
