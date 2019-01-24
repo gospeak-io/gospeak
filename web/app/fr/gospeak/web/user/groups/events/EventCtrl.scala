@@ -68,11 +68,16 @@ object EventCtrl {
       .activeFor(routes.EventCtrl.list(group))
 
   def listBreadcrumb(user: User.Name, group: (Group.Slug, Group.Name)): Breadcrumb =
-    GroupCtrl.breadcrumb(user, group).add("Events" -> routes.EventCtrl.list(group._1))
+    group match {
+      case (groupSlug, _) => GroupCtrl.breadcrumb(user, group).add("Events" -> routes.EventCtrl.list(groupSlug))
+    }
 
   def header(group: Group.Slug): HeaderInfo =
     listHeader(group)
 
   def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name), event: (Event.Slug, Event.Name)): Breadcrumb =
-    listBreadcrumb(user, group).add(event._2.value -> routes.EventCtrl.detail(group._1, event._1))
+    (group, event) match {
+      case ((groupSlug, _), (eventSlug, eventName)) =>
+        listBreadcrumb(user, group).add(eventName.value -> routes.EventCtrl.detail(groupSlug, eventSlug))
+    }
 }

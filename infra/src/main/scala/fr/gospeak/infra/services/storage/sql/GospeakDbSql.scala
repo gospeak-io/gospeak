@@ -64,20 +64,20 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       Event(group1, event1, Event.Slug("2019-03"), Event.Name("HumanTalks Paris Mars 2019"), Some("desc"), Some("Zeenea"), Seq(), Info(user1)),
       Event(group1, event2, Event.Slug("2019-04"), Event.Name("HumanTalks Paris Avril 2019"), None, None, Seq(), Info(user3)),
       Event(group2, event3, Event.Slug("2019-03"), Event.Name("Paris.Js Avril"), None, None, Seq(), Info(user3)),
-      Event(group3, event4, Event.Slug("2019-03"), Event.Name("Nouveaux modèles de gouvenance"), None, None, Seq(), Info(user1)))
+      Event(group3, event4, Event.Slug("2019-03"), Event.Name("Nouveaux modeles de gouvenance"), None, None, Seq(), Info(user1)))
     val talks = NonEmptyList.of(
       Talk(talk1, Talk.Slug("why-fp"), Talk.Title("Why FP"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(user1), Info(user1)),
       Talk(talk2, Talk.Slug("scala-best-practices"), Talk.Title("Scala Best Practices"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(user1, user2), Info(user1)),
       Talk(talk3, Talk.Slug("nodejs-news"), Talk.Title("NodeJs news"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(user1), Info(user1)),
-      Talk(talk4, Talk.Slug("scalajs-react"), Talk.Title("ScalaJS + React = ♥"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(user2, user1), Info(user2)),
+      Talk(talk4, Talk.Slug("scalajs-react"), Talk.Title("ScalaJS + React = <3"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(user2, user1), Info(user2)),
       Talk(talk5, Talk.Slug("gagner-1-million"), Talk.Title("Gagner 1 Million au BlackJack avec Akka"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(user2), Info(user2)),
-      Talk(talk6, Talk.Slug("demarrer-avec-spark"), Talk.Title("7 conseils pour démarrer avec Spark"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(user2), Info(user2)))
+      Talk(talk6, Talk.Slug("demarrer-avec-spark"), Talk.Title("7 conseils pour demarrer avec Spark"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(user2), Info(user2)))
     val proposals = NonEmptyList.of(
       Proposal(proposal1, talk1, cfp1, Talk.Title("Why FP"), "temporary description", Info(user1)),
       Proposal(proposal2, talk2, cfp1, Talk.Title("Scala Best Practices"), "temporary description", Info(user1)),
       Proposal(proposal3, talk2, cfp2, Talk.Title("Scala Best Practices"), "temporary description", Info(user1)),
       Proposal(proposal4, talk3, cfp1, Talk.Title("NodeJs news"), "temporary description", Info(user1)),
-      Proposal(proposal5, talk4, cfp2, Talk.Title("ScalaJS + React = ♥"), "temporary description", Info(user2)))
+      Proposal(proposal5, talk4, cfp2, Talk.Title("ScalaJS + React = <3"), "temporary description", Info(user2)))
     for {
       _ <- run(Queries.insertMany(UserTable.insert)(users))
       _ <- run(Queries.insertMany(GroupTable.insert)(groups))

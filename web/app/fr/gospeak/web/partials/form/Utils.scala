@@ -10,7 +10,7 @@ object Utils {
   type Constraint = (String, Seq[Any])
 
   def getArg(args: Args, key: String): Option[String] =
-    args.find(_._1 == key).map(_._2)
+    args.find { case (k, _) => k == key }.map { case (_, v) => v }
 
   def getArg(args: Args, key: String, default: => String): String =
     getArg(args, key).getOrElse(default)
@@ -25,11 +25,13 @@ object Utils {
     args.collect { case (key, value) if !ignoring.contains(key) => Html(s""" $key="$value"""") }
 
   def isRequired(field: Field): Option[Constraint] =
-    field.constraints.find(_._1 == Mappings.requiredConstraint)
+    field.constraints.find { case (k, _) => k == Mappings.requiredConstraint }
 
   def hasPattern(field: Field): Option[Constraint] =
-    field.constraints.find(_._1 == Mappings.patternConstraint)
+    field.constraints.find { case (k, _) => k == Mappings.patternConstraint }
 
   def format(c: Constraint)(implicit messages: Messages): String =
-    messages(c._1, c._2: _*)
+    c match {
+      case (message, args) => messages(message, args: _*)
+    }
 }

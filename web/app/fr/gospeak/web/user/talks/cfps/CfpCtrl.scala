@@ -66,8 +66,13 @@ class CfpCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControlle
 
 object CfpCtrl {
   def listBreadcrumb(user: User.Name, talk: (Talk.Slug, Talk.Title)): Breadcrumb =
-    TalkCtrl.breadcrumb(user, talk).add("Proposing" -> routes.CfpCtrl.list(talk._1))
+    talk match {
+      case (talkSlug, _) => TalkCtrl.breadcrumb(user, talk).add("Proposing" -> routes.CfpCtrl.list(talkSlug))
+    }
 
   def breadcrumb(user: User.Name, talk: (Talk.Slug, Talk.Title), cfp: (Cfp.Slug, Cfp.Name)): Breadcrumb =
-    listBreadcrumb(user, talk).add(cfp._2.value -> routes.CfpCtrl.detail(talk._1, cfp._1))
+    (talk, cfp) match {
+      case ((talkSlug, _), (cfpSlug, cfpName)) =>
+        listBreadcrumb(user, talk).add(cfpName.value -> routes.CfpCtrl.detail(talkSlug, cfpSlug))
+    }
 }

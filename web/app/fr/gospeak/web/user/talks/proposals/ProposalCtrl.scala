@@ -1,8 +1,8 @@
 package fr.gospeak.web.user.talks.proposals
 
 import cats.data.OptionT
-import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.user.talks.TalkCtrl
@@ -34,8 +34,13 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
 
 object ProposalCtrl {
   def listBreadcrumb(user: User.Name, talk: (Talk.Slug, Talk.Title)): Breadcrumb =
-    TalkCtrl.breadcrumb(user, talk).add("Proposals" -> routes.ProposalCtrl.list(talk._1))
+    talk match {
+      case (talkSlug, _) => TalkCtrl.breadcrumb(user, talk).add("Proposals" -> routes.ProposalCtrl.list(talkSlug))
+    }
 
   def breadcrumb(user: User.Name, talk: (Talk.Slug, Talk.Title), proposal: (Proposal.Id, Cfp.Name)): Breadcrumb =
-    listBreadcrumb(user, talk).add(proposal._2.value -> routes.ProposalCtrl.detail(talk._1, proposal._1))
+    (talk, proposal) match {
+      case ((talkSlug, _), (proposalId, cfpName)) =>
+        listBreadcrumb(user, talk).add(cfpName.value -> routes.ProposalCtrl.detail(talkSlug, proposalId))
+    }
 }

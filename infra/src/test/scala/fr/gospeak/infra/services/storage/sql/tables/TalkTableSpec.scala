@@ -1,26 +1,14 @@
 package fr.gospeak.infra.services.storage.sql.tables
 
 import cats.data.NonEmptyList
-import cats.effect.IO
-import doobie.scalatest._
-import fr.gospeak.core.domain.utils.{Info, Page}
-import fr.gospeak.core.domain.{Talk, User}
+import fr.gospeak.core.domain.Talk
+import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.infra.services.storage.sql.tables.TalkTable._
-import fr.gospeak.infra.testingutils.Values
-import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
+import fr.gospeak.infra.services.storage.sql.tables.testingutils.TableSpec
 
-class TalkTableSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterAll {
-  private val db = Values.db
-  val transactor: doobie.Transactor[IO] = db.xa
-  private val userId = User.Id.generate()
-  private val talkId = Talk.Id.generate()
+class TalkTableSpec extends TableSpec {
   private val slug = Talk.Slug("my-talk")
   private val talk = Talk(talkId, slug, Talk.Title("My Talk"), "best talk", NonEmptyList.of(userId), Info(userId))
-  private val params = Page.Params()
-
-  override def beforeAll(): Unit = db.createTables().unsafeRunSync()
-
-  override def afterAll(): Unit = db.dropTables().unsafeRunSync()
 
   describe("TalkTable") {
     describe("insert") {

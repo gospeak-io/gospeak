@@ -16,10 +16,11 @@ object Mappings {
   private[utils] def required[A](stringify: A => String): Constraint[A] = Constraint[A](requiredConstraint) { o =>
     if (o == null) Invalid(ValidationError(requiredError))
     else {
-      val str = stringify(o)
-      if (str == null) Invalid(ValidationError(requiredError))
-      else if (str.trim.isEmpty) Invalid(ValidationError(requiredError))
-      else Valid
+      stringify(o) match {
+        case null => Invalid(ValidationError(requiredError))
+        case str if str.trim.isEmpty => Invalid(ValidationError(requiredError))
+        case _ => Valid
+      }
     }
   }
 

@@ -17,8 +17,6 @@ class MappingsSpec extends FunSpec with Matchers {
         c(Value("aaa")) shouldBe Valid
         c(Value(" ")) shouldBe Invalid(List(ValidationError("error.required")))
         c(Value("")) shouldBe Invalid(List(ValidationError("error.required")))
-        c(Value(null)) shouldBe Invalid(List(ValidationError("error.required")))
-        c(null.asInstanceOf[Value]) shouldBe Invalid(List(ValidationError("error.required")))
       }
     }
     describe("pattern") {
@@ -30,8 +28,6 @@ class MappingsSpec extends FunSpec with Matchers {
         c(Value("bb")) shouldBe Invalid(List(ValidationError("error.pattern", regex)))
         c(Value(" ")) shouldBe Invalid(List(ValidationError("error.pattern", regex)))
         c(Value("")) shouldBe Invalid(List(ValidationError("error.pattern", regex)))
-        c(Value(null)) shouldBe Invalid(List(ValidationError("error.pattern", regex)))
-        c(null.asInstanceOf[Value]) shouldBe Invalid(List(ValidationError("error.pattern", regex)))
       }
     }
     describe("formatter") {

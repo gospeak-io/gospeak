@@ -72,5 +72,7 @@ object TalkCtrl {
       .activeFor(routes.TalkCtrl.list())
 
   def breadcrumb(user: User.Name, talk: (Talk.Slug, Talk.Title)): Breadcrumb =
-    listBreadcrumb(user).add(talk._2.value -> routes.TalkCtrl.detail(talk._1))
+    talk match {
+      case (talkSlug, talkTitle) => listBreadcrumb(user).add(talkTitle.value -> routes.TalkCtrl.detail(talkSlug))
+    }
 }
