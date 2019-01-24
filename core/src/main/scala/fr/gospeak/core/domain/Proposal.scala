@@ -13,6 +13,6 @@ object Proposal {
 
   final class Id private(value: String) extends DataClass(value)
 
-  object Id extends UuidIdBuilder[Proposal.Id]("Proposal.Id", new Proposal.Id(_))
+  object Id extends UuidIdBuilder[Id]("Proposal.Id", new Id(_))
 
 }

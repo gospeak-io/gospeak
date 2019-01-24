@@ -33,4 +33,16 @@ class DataClassSpec extends FunSpec with Matchers {
       builder.errors("792886f8-d92a-4066-ad17-f92a0a93a42c") shouldBe empty
     }
   }
+  describe("SlugBuilder") {
+    val builder = new SlugBuilder[Id]("Id", new Id(_)) {}
+
+    it("should build a Slug from String") {
+      builder.from("wrong slug") shouldBe a[Failure[_]]
+      builder.from("my-slug-2") shouldBe a[Success[_]]
+    }
+    it("should check for correctness") {
+      builder.errors("wrong slug") should not be empty
+      builder.errors("my-slug-2") shouldBe empty
+    }
+  }
 }

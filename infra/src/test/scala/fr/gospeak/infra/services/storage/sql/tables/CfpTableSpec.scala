@@ -6,7 +6,7 @@ import fr.gospeak.infra.services.storage.sql.tables.CfpTable._
 import fr.gospeak.infra.services.storage.sql.tables.testingutils.TableSpec
 
 class CfpTableSpec extends TableSpec {
-  private val slug = Cfp.Slug("slug")
+  private val slug = Cfp.Slug.from("slug").get
   private val cfp = Cfp(cfpId, slug, Cfp.Name("Name"), "desc", groupId, Info(userId))
 
   describe("CfpTable") {

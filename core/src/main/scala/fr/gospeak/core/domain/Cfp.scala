@@ -1,6 +1,6 @@
 package fr.gospeak.core.domain
 
-import fr.gospeak.core.domain.utils.{DataClass, Info, UuidIdBuilder}
+import fr.gospeak.core.domain.utils.{DataClass, Info, SlugBuilder, UuidIdBuilder}
 
 final case class Cfp(id: Cfp.Id,
                      slug: Cfp.Slug,
@@ -13,9 +13,11 @@ object Cfp {
 
   final class Id private(value: String) extends DataClass(value)
 
-  object Id extends UuidIdBuilder[Cfp.Id]("Cfp.Id", new Cfp.Id(_))
+  object Id extends UuidIdBuilder[Id]("Cfp.Id", new Id(_))
 
-  final case class Slug(value: String) extends AnyVal
+  final class Slug private(value: String) extends DataClass(value)
+
+  object Slug extends SlugBuilder[Slug]("Cfp.Slug", new Slug(_))
 
   final case class Name(value: String) extends AnyVal
 

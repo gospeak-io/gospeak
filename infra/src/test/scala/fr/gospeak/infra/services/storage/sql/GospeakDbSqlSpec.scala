@@ -30,7 +30,7 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
       }
     }
     describe("Group") {
-      val slug = Group.Slug("group")
+      val slug = Group.Slug.from("group").get
       it("should create and retrieve a group") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         db.getGroups(user.id, page).unsafeRunSync().items shouldBe Seq()
@@ -53,7 +53,7 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
       }
     }
     describe("Event") {
-      val slug = Event.Slug("slug")
+      val slug = Event.Slug.from("slug").get
       it("should create and retrieve an event for a group") {
         val (user, group) = createEltsForEvents().unsafeRunSync()
         db.getEvents(group.id, page).unsafeRunSync().items shouldBe Seq()
@@ -75,12 +75,12 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
       def createEltsForEvents(): IO[(User, Group)] = {
         for {
           user <- db.createUser(firstName, lastName, email)
-          group <- db.createGroup(Group.Slug("slug"), Group.Name("name"), "desc", user.id)
+          group <- db.createGroup(Group.Slug.from("slug").get, Group.Name("name"), "desc", user.id)
         } yield (user, group)
       }
     }
     describe("Cfp") {
-      val slug = Cfp.Slug("slug")
+      val slug = Cfp.Slug.from("slug").get
       it("should create and retrieve a cfp for a group") {
         val (user, group) = createEltsForCfp().unsafeRunSync()
         db.getCfps(page).unsafeRunSync().items shouldBe Seq()
@@ -103,7 +103,7 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
       }
       it("should fail on duplicate slug") {
         val (user, group1) = createEltsForCfp().unsafeRunSync()
-        val group2 = db.createGroup(Group.Slug("slug2"), Group.Name("name"), "desc", user.id).unsafeRunSync()
+        val group2 = db.createGroup(Group.Slug.from("slug2").get, Group.Name("name"), "desc", user.id).unsafeRunSync()
         db.createCfp(slug, Cfp.Name("name"), "desc", group1.id, user.id).unsafeRunSync()
         an[Exception] should be thrownBy db.createCfp(slug, Cfp.Name("name"), "desc", group2.id, user.id).unsafeRunSync()
       }
@@ -111,12 +111,12 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
       def createEltsForCfp(): IO[(User, Group)] = {
         for {
           user <- db.createUser(firstName, lastName, email)
-          group <- db.createGroup(Group.Slug("slug"), Group.Name("name"), "desc", user.id)
+          group <- db.createGroup(Group.Slug.from("slug").get, Group.Name("name"), "desc", user.id)
         } yield (user, group)
       }
     }
     describe("Talk") {
-      val slug = Talk.Slug("slug")
+      val slug = Talk.Slug.from("slug").get
       it("should create and retrieve") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         db.getTalks(user.id, page).unsafeRunSync().items shouldBe Seq()
@@ -152,13 +152,13 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
       }
       it("should fail to create a proposal when talk does not exists") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
-        val group = db.createGroup(Group.Slug("slug"), Group.Name("name"), "desc", user.id).unsafeRunSync()
-        val cfp = db.createCfp(Cfp.Slug("slug"), Cfp.Name("name"), "desc", group.id, user.id).unsafeRunSync()
+        val group = db.createGroup(Group.Slug.from("slug").get, Group.Name("name"), "desc", user.id).unsafeRunSync()
+        val cfp = db.createCfp(Cfp.Slug.from("slug").get, Cfp.Name("name"), "desc", group.id, user.id).unsafeRunSync()
         an[Exception] should be thrownBy db.createProposal(Talk.Id.generate(), cfp.id, Talk.Title("title"), "desc", user.id).unsafeRunSync()
       }
       it("should fail to create a proposal when cfp does not exists") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
-        val talk = db.createTalk(Talk.Slug("slug"), Talk.Title("title"), "desc", user.id).unsafeRunSync()
+        val talk = db.createTalk(Talk.Slug.from("slug").get, Talk.Title("title"), "desc", user.id).unsafeRunSync()
         an[Exception] should be thrownBy db.createProposal(talk.id, Cfp.Id.generate(), Talk.Title("title"), "desc", user.id).unsafeRunSync()
       }
       it("should fail on duplicate cfp and talk") {
@@ -170,9 +170,9 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
       def createEltsForProposal(): IO[(User, Group, Cfp, Talk)] = {
         for {
           user <- db.createUser(firstName, lastName, email)
-          group <- db.createGroup(Group.Slug("slug"), Group.Name("name"), "desc", user.id)
-          cfp <- db.createCfp(Cfp.Slug("slug"), Cfp.Name("name"), "desc", group.id, user.id)
-          talk <- db.createTalk(Talk.Slug("slug"), Talk.Title("title"), "desc", user.id)
+          group <- db.createGroup(Group.Slug.from("slug").get, Group.Name("name"), "desc", user.id)
+          cfp <- db.createCfp(Cfp.Slug.from("slug").get, Cfp.Name("name"), "desc", group.id, user.id)
+          talk <- db.createTalk(Talk.Slug.from("slug").get, Talk.Title("title"), "desc", user.id)
         } yield (user, group, cfp, talk)
       }
     }

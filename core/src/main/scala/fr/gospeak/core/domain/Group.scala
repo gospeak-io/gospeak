@@ -1,7 +1,7 @@
 package fr.gospeak.core.domain
 
 import cats.data.NonEmptyList
-import fr.gospeak.core.domain.utils.{DataClass, Info, UuidIdBuilder}
+import fr.gospeak.core.domain.utils.{DataClass, Info, SlugBuilder, UuidIdBuilder}
 
 final case class Group(id: Group.Id,
                        slug: Group.Slug,
@@ -14,9 +14,11 @@ object Group {
 
   final class Id private(value: String) extends DataClass(value)
 
-  object Id extends UuidIdBuilder[Group.Id]("Group.Id", new Group.Id(_))
+  object Id extends UuidIdBuilder[Id]("Group.Id", new Id(_))
 
-  final case class Slug(value: String) extends AnyVal
+  final class Slug private(value: String) extends DataClass(value)
+
+  object Slug extends SlugBuilder[Slug]("Group.Slug", new Slug(_))
 
   final case class Name(value: String) extends AnyVal
 

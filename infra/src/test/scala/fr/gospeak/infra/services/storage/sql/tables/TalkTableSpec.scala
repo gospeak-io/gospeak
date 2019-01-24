@@ -7,7 +7,7 @@ import fr.gospeak.infra.services.storage.sql.tables.TalkTable._
 import fr.gospeak.infra.services.storage.sql.tables.testingutils.TableSpec
 
 class TalkTableSpec extends TableSpec {
-  private val slug = Talk.Slug("my-talk")
+  private val slug = Talk.Slug.from("my-talk").get
   private val talk = Talk(talkId, slug, Talk.Title("My Talk"), "best talk", NonEmptyList.of(userId), Info(userId))
 
   describe("TalkTable") {

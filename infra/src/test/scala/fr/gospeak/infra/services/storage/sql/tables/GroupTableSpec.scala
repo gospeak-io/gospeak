@@ -7,7 +7,7 @@ import fr.gospeak.infra.services.storage.sql.tables.GroupTable._
 import fr.gospeak.infra.services.storage.sql.tables.testingutils.TableSpec
 
 class GroupTableSpec extends TableSpec {
-  private val slug = Group.Slug("ht-paris")
+  private val slug = Group.Slug.from("ht-paris").get
   private val group = Group(groupId, slug, Group.Name("HT Paris"), "s", NonEmptyList.of(userId), Info(userId))
 
   describe("GroupTable") {

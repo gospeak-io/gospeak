@@ -8,26 +8,30 @@ class PathBindablesSpec extends FunSpec with Matchers {
   describe("PathBindables") {
     describe("groupSlugPathBinder") {
       it("should bind & unbind") {
-        groupSlugPathBinder.bind("key", "value") shouldBe Right(Group.Slug("value"))
-        groupSlugPathBinder.unbind("key", Group.Slug("value")) shouldBe "value"
+        val slug = Group.Slug.from("value").get
+        groupSlugPathBinder.bind("key", "value") shouldBe Right(slug)
+        groupSlugPathBinder.unbind("key", slug) shouldBe "value"
       }
     }
     describe("eventSlugPathBinder") {
       it("should bind & unbind") {
-        eventSlugPathBinder.bind("key", "value") shouldBe Right(Event.Slug("value"))
-        eventSlugPathBinder.unbind("key", Event.Slug("value")) shouldBe "value"
+        val slug = Event.Slug.from("value").get
+        eventSlugPathBinder.bind("key", "value") shouldBe Right(slug)
+        eventSlugPathBinder.unbind("key", slug) shouldBe "value"
       }
     }
     describe("talkSlugPathBinder") {
       it("should bind & unbind") {
-        talkSlugPathBinder.bind("key", "value") shouldBe Right(Talk.Slug("value"))
-        talkSlugPathBinder.unbind("key", Talk.Slug("value")) shouldBe "value"
+        val slug = Talk.Slug.from("value").get
+        talkSlugPathBinder.bind("key", "value") shouldBe Right(slug)
+        talkSlugPathBinder.unbind("key", slug) shouldBe "value"
       }
     }
     describe("cfpSlugPathBinder") {
       it("should bind & unbind") {
-        cfpSlugPathBinder.bind("key", "value") shouldBe Right(Cfp.Slug("value"))
-        cfpSlugPathBinder.unbind("key", Cfp.Slug("value")) shouldBe "value"
+        val slug = Cfp.Slug.from("value").get
+        cfpSlugPathBinder.bind("key", "value") shouldBe Right(slug)
+        cfpSlugPathBinder.unbind("key", slug) shouldBe "value"
       }
     }
     describe("proposalIdPathBinder") {
