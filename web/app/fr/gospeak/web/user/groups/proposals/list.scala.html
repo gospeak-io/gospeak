@@ -1,22 +1,28 @@
 @import fr.gospeak.core.domain.utils.Page
-@import fr.gospeak.core.domain.{Group, Proposal, User}
+@import fr.gospeak.core.domain.{Cfp, Group, Proposal, User}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.html.{container, pagination, search}
 @import fr.gospeak.web.user.groups.proposals.partials.html.item
 @import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.user.groups.settings.routes.SettingsCtrl
 
-@(group: Group, proposals: Page[Proposal])(h: HeaderInfo, b: Breadcrumb)(implicit user: User)
+@(group: Group, cfpOpt: Option[Cfp], proposals: Page[Proposal])(h: HeaderInfo, b: Breadcrumb)(implicit user: User)
 @container("Gospeak", h, Some(b))() {
-    <div>
-        <h1>@proposals.total.value proposals</h1>
-    </div>
+    @cfpOpt.map { cfp =>
+        <div>
+            <h1>@proposals.total.value proposals</h1>
+        </div>
 
-    <div class="float-right">@pagination(proposals, ProposalCtrl.list(group.slug, _))</div>
-    @search(proposals, ProposalCtrl.list(group.slug))
+        <div class="float-right">@pagination(proposals, ProposalCtrl.list(group.slug, _))</div>
+        @search(proposals, ProposalCtrl.list(group.slug))
 
-    <ul class="list-unstyled">
-    @proposals.items.map { p => @item(group, p) }
-    </ul>
+        <ul class="list-unstyled">
+        @proposals.items.map { p => @item(group, p) }
+        </ul>
 
-    <div class="float-right">@pagination(proposals, ProposalCtrl.list(group.slug, _))</div>
+        <div class="float-right">@pagination(proposals, ProposalCtrl.list(group.slug, _))</div>
+    }.getOrElse {
+        You don't have any proposal because your CFP is not enabled
+        <a class="btn btn-primary" href="@SettingsCtrl.cfp(group.slug)">Enable your CFP</a>
+    }
 }()

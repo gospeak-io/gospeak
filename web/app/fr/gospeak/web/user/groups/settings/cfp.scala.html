@@ -1,0 +1,31 @@
+@import fr.gospeak.core.domain.{Cfp, Group, User}
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.partials.form.html._
+@import fr.gospeak.web.user.groups.events.partials.html.{item => eventItem}
+@import fr.gospeak.web.user.groups.settings.routes.SettingsCtrl
+@import fr.gospeak.web.user.groups.routes.GroupCtrl
+@import fr.gospeak.web.user.groups.settings.SettingsForms
+
+@(form: Form[SettingsForms.CfpCreate], group: Group, cfpOpt: Option[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages)
+@container("Gospeak", h, Some(b))() {
+    <div>
+        <h1>CFP settings</h1>
+    </div>
+
+    @formElt(SettingsCtrl.cfpCreate(group.slug)) {
+        @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of your CFP (publicly visible), can be the same as your group name")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
+        }
+        @fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference for your CFP (in urls for example), should be unique")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "ex: awesome-fp-the-practical-way", "slug-for" -> form("name").id) ++ args)
+        }
+        @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Describe your group, and what you are expecting from proposed talks")) { (field, args) =>
+            @inputText(field, args)
+        }
+        @actionsHorizontal() {
+            @btnCancel(GroupCtrl.detail(group.slug))
+            @btnSubmit("Create")
+        }
+    }
+}()

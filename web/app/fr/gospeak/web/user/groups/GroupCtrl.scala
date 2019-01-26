@@ -63,7 +63,8 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
 object GroupCtrl {
   def groupNav(group: Group.Slug): Seq[NavLink] = Seq(
     NavLink("Events", events.routes.EventCtrl.list(group)),
-    NavLink("Proposals", proposals.routes.ProposalCtrl.list(group)))
+    NavLink("Proposals", proposals.routes.ProposalCtrl.list(group)),
+    NavLink("Settings", settings.routes.SettingsCtrl.list(group)))
 
   def listHeader: HeaderInfo =
     UserCtrl.header.activeFor(routes.GroupCtrl.list())

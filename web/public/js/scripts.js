@@ -14,12 +14,12 @@ function slugify(str) {
         var srcInput = $('#'+slugInput.attr('slug-for'));
         srcInput.change(function() {
             var src = srcInput.val();
-            var prevSrc = srcInput.data("prev");
+            var prevSrc = srcInput.data('prev');
             var oldSlug = slugInput.val();
             if (oldSlug === '' || oldSlug === slugify(prevSrc)) {
                 slugInput.val(slugify(src));
             }
-            srcInput.data("prev", src);
+            srcInput.data('prev', src);
         });
     });
 })();

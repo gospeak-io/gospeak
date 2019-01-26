@@ -29,6 +29,7 @@ final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total)
 }
 
 object Page {
+  def empty[A](params: Params): Page[A] = Page[A](Seq(), params, Total(0))
 
   final case class Search(value: String) extends AnyVal {
     def key: String = Search.key

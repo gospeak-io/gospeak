@@ -65,7 +65,8 @@ object Mappings {
   val groupName: Mapping[Group.Name] = stringMapping(Group.Name, _.value, required)
   val eventSlug: Mapping[Event.Slug] = stringTryMapping(Event.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
   val eventName: Mapping[Event.Name] = stringMapping(Event.Name, _.value, required)
+  val cfpSlug: Mapping[Cfp.Slug] = stringTryMapping(Cfp.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
+  val cfpName: Mapping[Cfp.Name] = stringMapping(Cfp.Name, _.value, required)
   val talkSlug: Mapping[Talk.Slug] = stringTryMapping(Talk.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
   val talkTitle: Mapping[Talk.Title] = stringMapping(Talk.Title, _.value, required)
-  val cfpName: Mapping[Cfp.Name] = stringMapping(Cfp.Name, _.value, required)
 }

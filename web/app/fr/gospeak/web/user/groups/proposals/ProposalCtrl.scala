@@ -1,8 +1,9 @@
 package fr.gospeak.web.user.groups.proposals
 
 import cats.data.OptionT
+import cats.effect.IO
+import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Page
-import fr.gospeak.core.domain.{Group, Proposal, Talk, User}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.groups.GroupCtrl
@@ -14,11 +15,11 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
     implicit val user: User = db.authed() // logged user
     (for {
       groupElt <- OptionT(db.getGroup(user.id, group))
-      cfpElt <- OptionT(db.getCfp(groupElt.id))
-      proposals <- OptionT.liftF(db.getProposals(cfpElt.id, params))
+      cfpOpt <- OptionT.liftF(db.getCfp(groupElt.id))
+      proposals <- cfpOpt.map(cfpElt => OptionT.liftF(db.getProposals(cfpElt.id, params))).getOrElse(OptionT.pure[IO](Page.empty[Proposal](params)))
       h = listHeader(group)
       b = listBreadcrumb(user.name, group -> groupElt.name)
-    } yield Ok(html.list(groupElt, proposals)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
+    } yield Ok(html.list(groupElt, cfpOpt, proposals)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
   }
 
   def detail(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
