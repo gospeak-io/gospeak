@@ -13,9 +13,9 @@ class UserCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   def index(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
-      groups <- db.getGroups(user.id, Page.Params.defaults)
       talks <- db.getTalks(user.id, Page.Params.defaults)
-    } yield Ok(html.index(groups, talks)(indexHeader, breadcrumb(user.name)))).unsafeToFuture()
+      groups <- db.getGroups(user.id, Page.Params.defaults)
+    } yield Ok(html.index(talks, groups)(indexHeader, breadcrumb(user.name)))).unsafeToFuture()
   }
 
   def profile(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>

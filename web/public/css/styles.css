@@ -8,6 +8,11 @@
     background-color: #e9ecef;
 }
 
+.card-header .btn-sm {
+    margin-top: -7px;
+    margin-bottom: -3px;
+}
+
 .page-header {
     padding-bottom: 9px;
     margin: 40px 0 20px;

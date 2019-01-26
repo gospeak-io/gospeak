@@ -7,12 +7,17 @@ function slugify(str) {
         .normalize('NFD').replace(/[^a-z0-9-]/g, '');
 }
 
+// enable bootstrap features
+(function () {
+    $('[data-toggle="tooltip"]').tooltip();
+})();
+
 // build slug from an other field
 (function () {
-    $('input[slug-for]').each(function() {
+    $('input[slug-for]').each(function () {
         var slugInput = $(this);
-        var srcInput = $('#'+slugInput.attr('slug-for'));
-        srcInput.change(function() {
+        var srcInput = $('#' + slugInput.attr('slug-for'));
+        srcInput.change(function () {
             var src = srcInput.val();
             var prevSrc = srcInput.data('prev');
             var oldSlug = slugInput.val();

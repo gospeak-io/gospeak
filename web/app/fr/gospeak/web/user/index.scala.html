@@ -7,37 +7,83 @@
 @import fr.gospeak.web.user.talks.partials.html.{item => talkItem}
 @import fr.gospeak.web.user.talks.routes.TalkCtrl
 
-@(groups: Page[Group], talks: Page[Talk])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
+@(talks: Page[Talk], groups: Page[Group])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
+@cardItem(url: Call, text: String, badge: Int, badgeTooltip: String) = {
+@if(badge > 1) {
+    <a href="@url" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+        @text
+        <span class="badge badge-primary badge-pill" title="@badgeTooltip" data-toggle="tooltip" data-placement="left">@badge</span>
+    </a>
+} else {
+    <a href="@url" class="list-group-item list-group-item-action">@text</a>
+}
+}
 @container("Gospeak", h, Some(b))() {
-    <div>
-        <h1>Welcome @user.firstName</h1>
-    </div>
-
-    <div>
-        <span class="float-right">
-            <a class="btn btn-primary" href="@GroupCtrl.create()">Create a group</a>
-        </span>
-        <h2>Your groups</h2>
-    </div>
-
-    <ul class="list-unstyled">
-        @groups.items.map { g => @groupItem(g) }
-        @if(!groups.isLast) {
-            <a href="@GroupCtrl.list()">More...</a>
+    <div class="row">
+        <div class="col-6">
+        @if(talks.isEmpty) {
+            <div class="card">
+                <h5 class="card-header">Talks</h5>
+                <div class="card-body text-center">
+                    <h5 class="card-title">Manage your talks with Gospeak !</h5>
+                    <p class="card-text">
+                        Create your talks, find groups to submit them, allow organizers to contact you to speak, show them publicly
+                    </p>
+                    <a href="@TalkCtrl.create()" class="btn btn-primary">Create your first talk</a>
+                </div>
+            </div>
+        } else {
+            <div class="card">
+                <h5 class="card-header">
+                    <span class="float-right">
+                        <a class="btn btn-primary btn-sm" href="@TalkCtrl.create()">Create a talk</a>
+                    </span>
+                    Your talks
+                </h5>
+                <div class="list-group list-group-flush">
+                @talks.items.map { t => @cardItem(TalkCtrl.detail(t.slug), t.title.value, t.speakers.length, "Number of speakers") }
+                </div>
+                @if(!talks.isLast) {
+                    <div class="card-footer">
+                        <a href="@TalkCtrl.list()" class="float-right">View all...</a>
+                    </div>
+                }
+            </div>
         }
-    </ul>
-
-    <div>
-        <span class="float-right">
-            <a class="btn btn-primary" href="@TalkCtrl.create()">Create a talk</a>
-        </span>
-        <h2>Your active talks</h2>
-    </div>
-
-    <ul class="list-unstyled">
-        @talks.items.map { t => @talkItem(t) }
-        @if(!talks.isLast) {
-            <a href="@TalkCtrl.list()">More...</a>
+        </div>
+        <div class="col">
+        @if(groups.isEmpty) {
+            <div class="card">
+                <h5 class="card-header">Groups</h5>
+                <div class="card-body text-center">
+                    <h5 class="card-title">Organizing conferences or meetups ?<br>Let Gospeak help you</h5>
+                    <p class="card-text">
+                        Create events, receive talk proposal with a CFP, manages sponsors, slack & meetup integration
+                    </p>
+                    <a href="#" class="btn btn-primary">Join an existing group</a>
+                    or
+                    <a href="@GroupCtrl.create()" class="btn btn-primary">Create your own group</a>
+                </div>
+            </div>
+        } else {
+            <div class="card">
+                <h5 class="card-header">
+                    <span class="float-right">
+                        <a class="btn btn-primary btn-sm" href="#">Join a group</a>
+                        <a class="btn btn-primary btn-sm" href="@GroupCtrl.create()">Create a group</a>
+                    </span>
+                    Your groups
+                </h5>
+                <ul class="list-group list-group-flush">
+                @groups.items.map { g => @cardItem(GroupCtrl.detail(g.slug), g.name.value, g.owners.length, "Number of organizers") }
+                </ul>
+                @if(!groups.isLast) {
+                    <div class="card-footer">
+                        <a href="@GroupCtrl.list()" class="float-right">View all...</a>
+                    </div>
+                }
+            </div>
         }
-    </ul>
+        </div>
+    </div>
 }()

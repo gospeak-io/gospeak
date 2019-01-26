@@ -3,11 +3,18 @@ package fr.gospeak.core.domain.utils
 final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total) {
   assert(items.length <= params.pageSize.value, s"Page can't have more items (${items.length}) than its size (${params.pageSize.value})")
   private val last: Int = math.ceil(total.value.toDouble / params.pageSize.value).toInt
-  val hasManyPages: Boolean = total.value > params.pageSize.value
-  val isFirst: Boolean = params.page.value == 1
-  val isLast: Boolean = params.offsetEnd >= total.value
-  val previous: Page.Params = params.copy(page = Page.No(math.max(params.page.value - 1, 1)))
-  val next: Page.Params = params.copy(page = Page.No(math.min(params.page.value + 1, last)))
+
+  def hasManyPages: Boolean = total.value > params.pageSize.value
+
+  def isEmpty: Boolean = total.value == 0
+
+  def isFirst: Boolean = params.page.value == 1
+
+  def isLast: Boolean = params.offsetEnd >= total.value
+
+  def previous: Page.Params = params.copy(page = Page.No(math.max(params.page.value - 1, 1)))
+
+  def next: Page.Params = params.copy(page = Page.No(math.min(params.page.value + 1, last)))
 
   def isCurrent(i: Page.Params): Boolean = params.page == i.page
 
