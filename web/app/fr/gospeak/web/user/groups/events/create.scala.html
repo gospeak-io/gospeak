@@ -5,7 +5,7 @@
 @import fr.gospeak.web.user.groups.events.EventForms
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 
-@(group: Group, form: Form[EventForms.Create])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages)
+@(group: Group, form: Form[EventForms.Create])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
 @container("Gospeak", h, Some(b))() {
     <div class="page-header">
         <h1>Create an event</h1>

@@ -6,9 +6,10 @@ import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.domain._
 import fr.gospeak.web.user.UserCtrl._
+import fr.gospeak.web.utils.UICtrl
 import play.api.mvc._
 
-class UserCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
+class UserCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   def index(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {

@@ -7,7 +7,7 @@
 @import fr.gospeak.web.user.talks.partials.html.{item => talkItem}
 @import fr.gospeak.web.user.talks.routes.TalkCtrl
 
-@(groups: Page[Group], talks: Page[Talk])(h: HeaderInfo, b: Breadcrumb)(implicit user: User)
+@(groups: Page[Group], talks: Page[Talk])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
 @container("Gospeak", h, Some(b))() {
     <div>
         <h1>Welcome @user.firstName</h1>

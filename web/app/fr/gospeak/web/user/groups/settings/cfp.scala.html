@@ -7,7 +7,7 @@
 @import fr.gospeak.web.user.groups.routes.GroupCtrl
 @import fr.gospeak.web.user.groups.settings.SettingsForms
 
-@(form: Form[SettingsForms.CfpCreate], group: Group, cfpOpt: Option[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages)
+@(form: Form[SettingsForms.CfpCreate], group: Group, cfpOpt: Option[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
 @container("Gospeak", h, Some(b))() {
     <div>
         <h1>CFP settings</h1>

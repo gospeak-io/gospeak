@@ -7,9 +7,10 @@ import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.user.talks.TalkCtrl
 import fr.gospeak.web.user.talks.proposals.ProposalCtrl._
+import fr.gospeak.web.utils.UICtrl
 import play.api.mvc._
 
-class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
+class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
@@ -17,7 +18,7 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
       proposals <- OptionT.liftF(db.getProposals(talkElt.id, params))
       h = TalkCtrl.header(talkElt.slug)
       b = listBreadcrumb(user.name, talk -> talkElt.title)
-    } yield Ok(html.list(talkElt, proposals)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
+    } yield Ok(html.list(talkElt, proposals)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 
   def detail(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -28,7 +29,7 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
       cfpElt <- OptionT(db.getCfp(proposalElt.cfp))
       h = TalkCtrl.header(talkElt.slug)
       b = breadcrumb(user.name, talk -> talkElt.title, proposal -> cfpElt.name)
-    } yield Ok(html.detail(cfpElt, proposalElt)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
+    } yield Ok(html.detail(cfpElt, proposalElt)(h, b))).value.map(_.getOrElse(proposalNotFound(talk, proposal))).unsafeToFuture()
   }
 }
 

@@ -8,11 +8,12 @@ import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.groups.GroupCtrl
 import fr.gospeak.web.user.groups.events.EventCtrl._
+import fr.gospeak.web.user.groups.routes.{GroupCtrl => GroupRoutes}
+import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
-import play.api.i18n._
 import play.api.mvc._
 
-class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) with I18nSupport {
+class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
@@ -20,7 +21,7 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
       events <- OptionT.liftF(db.getEvents(groupElt.id, params))
       h = listHeader(group)
       b = listBreadcrumb(user.name, group -> groupElt.name)
-    } yield Ok(html.list(groupElt, events)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
+    } yield Ok(html.list(groupElt, events)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
   def create(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -37,7 +38,7 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
           groupElt <- OptionT(db.getGroup(user.id, group))
           // TODO check if slug not already exist
           _ <- OptionT.liftF(db.createEvent(groupElt.id, data.slug, data.name, user.id))
-        } yield Redirect(routes.EventCtrl.detail(group, data.slug))).value.map(_.getOrElse(NotFound))
+        } yield Redirect(routes.EventCtrl.detail(group, data.slug))).value.map(_.getOrElse(groupNotFound(group)))
       }
     ).unsafeToFuture()
   }
@@ -47,7 +48,7 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
       groupElt <- OptionT(db.getGroup(user.id, group))
       h = header(group)
       b = listBreadcrumb(user.name, group -> groupElt.name).add("New" -> routes.EventCtrl.create(group))
-    } yield Ok(html.create(groupElt, form)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.create(groupElt, form)(h, b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
   def detail(group: Group.Slug, event: Event.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -57,14 +58,14 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
       eventElt <- OptionT(db.getEvent(groupElt.id, event))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name, event -> eventElt.name)
-    } yield Ok(html.detail(groupElt, eventElt)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, eventElt)(h, b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 }
 
 object EventCtrl {
   def listHeader(group: Group.Slug): HeaderInfo =
     GroupCtrl.header(group)
-      .copy(brand = NavLink("Gospeak", fr.gospeak.web.user.groups.routes.GroupCtrl.detail(group)))
+      .copy(brand = NavLink("Gospeak", GroupRoutes.detail(group)))
       .activeFor(routes.EventCtrl.list(group))
 
   def listBreadcrumb(user: User.Name, group: (Group.Slug, Group.Name)): Breadcrumb =

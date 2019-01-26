@@ -8,11 +8,11 @@ import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.user.talks.TalkCtrl._
+import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
-import play.api.i18n.I18nSupport
 import play.api.mvc._
 
-class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) with I18nSupport {
+class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   def list(params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
@@ -31,21 +31,17 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
     implicit val user: User = db.authed() // logged user
     TalkForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
-      data => {
-        (for {
-          // TODO check if slug not already exist
-          _ <- OptionT.liftF(db.createTalk(data.slug, data.title, data.description, user.id))
-        } yield Redirect(routes.TalkCtrl.detail(data.slug))).value.map(_.getOrElse(NotFound))
-      }
+      data => for {
+        // TODO check if slug not already exist
+        _ <- db.createTalk(data.slug, data.title, data.description, user.id)
+      } yield Redirect(routes.TalkCtrl.detail(data.slug))
     ).unsafeToFuture()
   }
 
   private def createForm(form: Form[TalkForms.Create])(implicit req: Request[AnyContent], user: User): IO[Result] = {
-    (for {
-      _ <- OptionT.liftF(IO.pure(()))
-      h = listHeader
-      b = listBreadcrumb(user.name).add("New" -> routes.TalkCtrl.create())
-    } yield Ok(html.create(form)(h, b))).value.map(_.getOrElse(NotFound))
+    val h = listHeader
+    val b = listBreadcrumb(user.name).add("New" -> routes.TalkCtrl.create())
+    IO.pure(Ok(html.create(form)(h, b)))
   }
 
   def detail(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -55,7 +51,7 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControll
       proposals <- OptionT.liftF(db.getProposals(talkElt.id, Page.Params.defaults))
       h = header(talk)
       b = breadcrumb(user.name, talk -> talkElt.title)
-    } yield Ok(html.detail(talkElt, proposals)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
+    } yield Ok(html.detail(talkElt, proposals)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 }
 

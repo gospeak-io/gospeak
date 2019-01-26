@@ -5,9 +5,10 @@ import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.auth.AuthCtrl._
 import fr.gospeak.web.domain.HeaderInfo
+import fr.gospeak.web.utils.UICtrl
 import play.api.mvc._
 
-class AuthCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
+class AuthCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   def signup(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
     db.userAware() match {
       case Some(_) => Redirect(fr.gospeak.web.user.routes.UserCtrl.index())

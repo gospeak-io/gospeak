@@ -8,11 +8,11 @@ import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.groups.GroupCtrl
 import fr.gospeak.web.user.groups.routes.{GroupCtrl => GroupRoutes}
 import fr.gospeak.web.user.groups.settings.SettingsCtrl._
+import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
-import play.api.i18n.I18nSupport
 import play.api.mvc._
 
-class SettingsCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) with I18nSupport {
+class SettingsCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   def list(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
@@ -20,7 +20,7 @@ class SettingsCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
       cfpOpt <- OptionT.liftF(db.getCfp(groupElt.id))
       h = listHeader(group)
       b = listBreadcrumb(user.name, group -> groupElt.name)
-    } yield Ok(html.list(groupElt, cfpOpt)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
+    } yield Ok(html.list(groupElt, cfpOpt)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
   def cfp(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -36,7 +36,7 @@ class SettingsCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
         (for {
           groupElt <- OptionT(db.getGroup(user.id, group))
           _ <- OptionT.liftF(db.createCfp(data.slug, data.name, data.description, groupElt.id, user.id))
-        } yield Redirect(GroupRoutes.detail(group))).value.map(_.getOrElse(NotFound))
+        } yield Redirect(GroupRoutes.detail(group))).value.map(_.getOrElse(groupNotFound(group)))
       }
     ).unsafeToFuture()
   }
@@ -47,7 +47,7 @@ class SettingsCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractCont
       cfpOpt <- OptionT.liftF(db.getCfp(groupElt.id))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name, "CFP" -> routes.SettingsCtrl.cfp(group))
-    } yield Ok(html.cfp(form, groupElt, cfpOpt)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.cfp(form, groupElt, cfpOpt)(h, b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 }
 

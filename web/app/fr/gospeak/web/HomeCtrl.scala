@@ -4,9 +4,10 @@ import fr.gospeak.core.domain.User
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.HomeCtrl._
 import fr.gospeak.web.domain.{HeaderInfo, NavLink}
+import fr.gospeak.web.utils.UICtrl
 import play.api.mvc._
 
-class HomeCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) {
+class HomeCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   def index(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
     implicit val user: Option[User] = db.userAware() // logged user
     Ok(html.index()(header))

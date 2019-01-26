@@ -9,11 +9,11 @@ import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.user.talks.TalkCtrl
 import fr.gospeak.web.user.talks.cfps.CfpCtrl._
 import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
+import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
-import play.api.i18n.I18nSupport
 import play.api.mvc._
 
-class CfpCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) with I18nSupport {
+class CfpCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
@@ -21,7 +21,7 @@ class CfpCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControlle
       cfps <- OptionT.liftF(db.getCfps(params))
       h = TalkCtrl.header(talkElt.slug)
       b = listBreadcrumb(user.name, talk -> talkElt.title)
-    } yield Ok(html.list(talkElt, cfps)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
+    } yield Ok(html.list(talkElt, cfps)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 
   def detail(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -31,7 +31,7 @@ class CfpCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControlle
       cfpElt <- OptionT(db.getCfp(cfp))
       h = TalkCtrl.header(talkElt.slug)
       b = breadcrumb(user.name, talk -> talkElt.title, cfp -> cfpElt.name)
-    } yield Ok(html.detail(talkElt, cfpElt)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
+    } yield Ok(html.detail(talkElt, cfpElt)(h, b))).value.map(_.getOrElse(cfpNotFound(talk, cfp))).unsafeToFuture()
   }
 
   def create(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -48,7 +48,7 @@ class CfpCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControlle
           talkElt <- OptionT(db.getTalk(user.id, talk))
           cfpElt <- OptionT(db.getCfp(cfp))
           proposal <- OptionT.liftF(db.createProposal(talkElt.id, cfpElt.id, data.title, data.description, user.id))
-        } yield Redirect(ProposalCtrl.detail(talk, proposal.id))).value.map(_.getOrElse(NotFound))
+        } yield Redirect(ProposalCtrl.detail(talk, proposal.id))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }
     ).unsafeToFuture()
   }
@@ -60,7 +60,7 @@ class CfpCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControlle
       filledForm = if (form.hasErrors) form else form.fill(CfpForms.Create(talkElt.title, talkElt.description))
       h = TalkCtrl.header(talkElt.slug)
       b = breadcrumb(user.name, talk -> talkElt.title, cfp -> cfpElt.name).add("New" -> routes.CfpCtrl.create(talk, cfp))
-    } yield Ok(html.create(filledForm, talkElt, cfpElt)(h, b))).value.map(_.getOrElse(NotFound))
+    } yield Ok(html.create(filledForm, talkElt, cfpElt)(h, b))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
   }
 }
 

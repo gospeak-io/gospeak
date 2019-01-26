@@ -9,11 +9,11 @@ import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.domain._
 import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.user.groups.GroupCtrl._
+import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
-import play.api.i18n.I18nSupport
 import play.api.mvc._
 
-class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractController(cc) with I18nSupport {
+class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   def list(params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = db.authed() // logged user
     (for {
@@ -32,21 +32,17 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
     implicit val user: User = db.authed() // logged user
     GroupForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
-      data => {
-        (for {
-          // TODO check if slug not already exist
-          _ <- OptionT.liftF(db.createGroup(data.slug, data.name, data.description, user.id))
-        } yield Redirect(routes.GroupCtrl.detail(data.slug))).value.map(_.getOrElse(NotFound))
-      }
+      data => for {
+        // TODO check if slug not already exist
+        _ <- db.createGroup(data.slug, data.name, data.description, user.id)
+      } yield Redirect(routes.GroupCtrl.detail(data.slug))
     ).unsafeToFuture()
   }
 
   private def createForm(form: Form[GroupForms.Create])(implicit req: Request[AnyContent], user: User): IO[Result] = {
-    (for {
-      _ <- OptionT.liftF(IO.pure(()))
-      h = listHeader
-      b = listBreadcrumb(user.name).add("New" -> routes.GroupCtrl.create())
-    } yield Ok(html.create(form)(h, b))).value.map(_.getOrElse(NotFound))
+    val h = listHeader
+    val b = listBreadcrumb(user.name).add("New" -> routes.GroupCtrl.create())
+    IO.pure(Ok(html.create(form)(h, b)))
   }
 
   def detail(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -56,7 +52,7 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends AbstractControl
       events <- OptionT.liftF(db.getEvents(groupElt.id, Page.Params.defaults))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name)
-    } yield Ok(html.detail(groupElt, events)(h, b))).value.map(_.getOrElse(NotFound)).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, events)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 }
 
