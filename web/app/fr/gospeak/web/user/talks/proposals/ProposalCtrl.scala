@@ -4,15 +4,16 @@ import cats.data.OptionT
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.web.auth.AuthService
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.user.talks.TalkCtrl
 import fr.gospeak.web.user.talks.proposals.ProposalCtrl._
 import fr.gospeak.web.utils.UICtrl
 import play.api.mvc._
 
-class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
+class ProposalCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extends UICtrl(cc) {
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     (for {
       talkElt <- OptionT(db.getTalk(user.id, talk))
       proposals <- OptionT.liftF(db.getProposals(talkElt.id, params))
@@ -22,7 +23,7 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   }
 
   def detail(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     (for {
       talkElt <- OptionT(db.getTalk(user.id, talk))
       proposalElt <- OptionT(db.getProposal(proposal))

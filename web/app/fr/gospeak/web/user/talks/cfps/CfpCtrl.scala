@@ -5,6 +5,7 @@ import cats.effect.IO
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Cfp, Talk, User}
 import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.web.auth.AuthService
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.user.talks.TalkCtrl
 import fr.gospeak.web.user.talks.cfps.CfpCtrl._
@@ -13,9 +14,9 @@ import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
 
-class CfpCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
+class CfpCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extends UICtrl(cc) {
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     (for {
       talkElt <- OptionT(db.getTalk(user.id, talk))
       cfps <- OptionT.liftF(db.getCfps(params))
@@ -25,7 +26,7 @@ class CfpCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   }
 
   def detail(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     (for {
       talkElt <- OptionT(db.getTalk(user.id, talk))
       cfpElt <- OptionT(db.getCfp(cfp))
@@ -35,12 +36,12 @@ class CfpCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   }
 
   def create(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     createForm(CfpForms.create, talk, cfp).unsafeToFuture()
   }
 
   def doCreate(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     CfpForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors, talk, cfp),
       data => {

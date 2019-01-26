@@ -4,14 +4,15 @@ import fr.gospeak.core.domain.User
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.HomeCtrl
+import fr.gospeak.web.auth.AuthService
 import fr.gospeak.web.domain._
 import fr.gospeak.web.user.UserCtrl._
 import fr.gospeak.web.utils.UICtrl
 import play.api.mvc._
 
-class UserCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
+class UserCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extends UICtrl(cc) {
   def index(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     (for {
       talks <- db.getTalks(user.id, Page.Params.defaults)
       groups <- db.getGroups(user.id, Page.Params.defaults)
@@ -19,8 +20,8 @@ class UserCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   }
 
   def profile(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
-  val h = header.activeFor(routes.UserCtrl.profile())
+    implicit val user: User = auth.authed()
+    val h = header.activeFor(routes.UserCtrl.profile())
     val b = breadcrumb(user.name).add("Profile" -> routes.UserCtrl.profile())
     Ok(html.profile()(h, b))
   }

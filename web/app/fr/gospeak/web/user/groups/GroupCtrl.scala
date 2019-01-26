@@ -6,6 +6,7 @@ import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.HomeCtrl
+import fr.gospeak.web.auth.AuthService
 import fr.gospeak.web.domain._
 import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.user.groups.GroupCtrl._
@@ -13,9 +14,9 @@ import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
 
-class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
+class GroupCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extends UICtrl(cc) {
   def list(params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     (for {
       groups <- db.getGroups(user.id, params)
       h = listHeader
@@ -24,12 +25,12 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   }
 
   def create(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     createForm(GroupForms.create).unsafeToFuture()
   }
 
   def doCreate(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     GroupForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
       data => for {
@@ -46,7 +47,7 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   }
 
   def detail(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     (for {
       groupElt <- OptionT(db.getGroup(user.id, group))
       events <- OptionT.liftF(db.getEvents(groupElt.id, Page.Params.defaults))

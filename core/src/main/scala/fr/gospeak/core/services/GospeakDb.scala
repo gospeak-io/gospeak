@@ -2,14 +2,9 @@ package fr.gospeak.core.services
 
 import cats.effect.IO
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{Done, Email, Page}
+import fr.gospeak.core.domain.utils.{Email, Page}
 
 trait GospeakDb {
-  def login(user: User): IO[Done] // TODO mock auth, to remove
-  def logout(): IO[Done] // TODO mock auth, to remove
-  def userAware(): Option[User] // TODO mock auth, to remove
-  def authed(): User // TODO mock auth, to remove
-
   def createUser(firstName: String, lastName: String, email: Email): IO[User]
 
   def getUser(email: Email): IO[Option[User]]

@@ -5,6 +5,7 @@ import cats.effect.IO
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Talk, User}
 import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.web.auth.AuthService
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.user.talks.TalkCtrl._
@@ -12,9 +13,9 @@ import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
 
-class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
+class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extends UICtrl(cc) {
   def list(params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     (for {
       talks <- db.getTalks(user.id, params)
       h = listHeader
@@ -23,12 +24,12 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   }
 
   def create(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     createForm(TalkForms.create).unsafeToFuture()
   }
 
   def doCreate(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     TalkForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
       data => for {
@@ -45,7 +46,7 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   }
 
   def detail(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     (for {
       talkElt <- OptionT(db.getTalk(user.id, talk))
       proposals <- OptionT.liftF(db.getProposals(talkElt.id, Page.Params.defaults))

@@ -2,7 +2,7 @@ package fr.gospeak.web
 
 import com.softwaremill.macwire.wire
 import fr.gospeak.infra.services.storage.sql.{DbSqlConf, GospeakDbSql, H2}
-import fr.gospeak.web.auth.AuthCtrl
+import fr.gospeak.web.auth.{AuthCtrl, AuthService}
 import fr.gospeak.web.cfps.CfpCtrl
 import fr.gospeak.web.groups.GroupCtrl
 import fr.gospeak.web.speakers.SpeakerCtrl
@@ -11,9 +11,6 @@ import play.api.routing.Router
 import play.api.{Application, ApplicationLoader, BuiltInComponentsFromContext, LoggerConfigurator}
 import play.filters.HttpFiltersComponents
 import router.Routes
-
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 class GospeakApplicationLoader extends ApplicationLoader {
   override def load(context: ApplicationLoader.Context): Application = {
@@ -31,6 +28,8 @@ class GospeakComponents(context: ApplicationLoader.Context)
 
   lazy val dbConf: DbSqlConf = H2("org.h2.Driver", "jdbc:h2:mem:gospeak_db;MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1")
   lazy val db = wire[GospeakDbSql]
+
+  lazy val auth = wire[AuthService]
 
   lazy val homeCtrl = wire[HomeCtrl]
   lazy val cfpCtrl = wire[CfpCtrl]

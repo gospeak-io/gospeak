@@ -5,15 +5,16 @@ import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.web.auth.AuthService
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.groups.GroupCtrl
 import fr.gospeak.web.user.groups.proposals.ProposalCtrl._
 import fr.gospeak.web.utils.UICtrl
 import play.api.mvc._
 
-class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
+class ProposalCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extends UICtrl(cc) {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     (for {
       groupElt <- OptionT(db.getGroup(user.id, group))
       cfpOpt <- OptionT.liftF(db.getCfp(groupElt.id))
@@ -24,7 +25,7 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   }
 
   def detail(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     (for {
       groupElt <- OptionT(db.getGroup(user.id, group))
       proposalElt <- OptionT(db.getProposal(proposal))

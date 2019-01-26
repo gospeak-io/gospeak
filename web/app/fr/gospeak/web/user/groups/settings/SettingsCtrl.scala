@@ -4,6 +4,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.web.auth.AuthService
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.groups.GroupCtrl
 import fr.gospeak.web.user.groups.routes.{GroupCtrl => GroupRoutes}
@@ -12,9 +13,9 @@ import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
 
-class SettingsCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
+class SettingsCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extends UICtrl(cc) {
   def list(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     (for {
       groupElt <- OptionT(db.getGroup(user.id, group))
       cfpOpt <- OptionT.liftF(db.getCfp(groupElt.id))
@@ -24,12 +25,12 @@ class SettingsCtrl(cc: ControllerComponents, db: GospeakDb) extends UICtrl(cc) {
   }
 
   def cfp(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     cfpForm(group, SettingsForms.cfpCreate).unsafeToFuture()
   }
 
   def cfpCreate(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = db.authed() // logged user
+    implicit val user: User = auth.authed()
     SettingsForms.cfpCreate.bindFromRequest.fold(
       formWithErrors => cfpForm(group, formWithErrors),
       data => {

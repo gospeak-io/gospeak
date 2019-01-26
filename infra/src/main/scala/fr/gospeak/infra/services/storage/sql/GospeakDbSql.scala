@@ -17,14 +17,14 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   private val flyway = FlywayUtils.build(conf)
   private[sql] val xa = DoobieUtils.transactor(conf)
 
-  private val user1 = User.Id.generate()
-  private val user2 = User.Id.generate()
-  private val user3 = User.Id.generate()
+  private val userDemo = User.Id.generate()
+  private val userSpeaker = User.Id.generate()
+  private val userOrga = User.Id.generate()
 
   private val users = NonEmptyList.of(
-    User(user1, "Demo", "User", Email("demo@mail.com"), Instant.now(), Instant.now()),
-    User(user2, "Speaker", "User", Email("speaker@mail.com"), Instant.now(), Instant.now()),
-    User(user3, "Orga", "User", Email("orga@mail.com"), Instant.now(), Instant.now()),
+    User(userDemo, "Demo", "User", Email("demo@mail.com"), Instant.now(), Instant.now()),
+    User(userSpeaker, "Speaker", "User", Email("speaker@mail.com"), Instant.now(), Instant.now()),
+    User(userOrga, "Orga", "User", Email("orga@mail.com"), Instant.now(), Instant.now()),
     User(User.Id.generate(), "Empty", "User", Email("empty@mail.com"), Instant.now(), Instant.now()))
 
   def createTables(): IO[Int] = IO(flyway.migrate())
@@ -36,6 +36,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     val group1 = Group.Id.generate()
     val group2 = Group.Id.generate()
     val group3 = Group.Id.generate()
+    val group4 = Group.Id.generate()
     val cfp1 = Cfp.Id.generate()
     val cfp2 = Cfp.Id.generate()
     val event1 = Event.Id.generate()
@@ -48,61 +49,58 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     val talk4 = Talk.Id.generate()
     val talk5 = Talk.Id.generate()
     val talk6 = Talk.Id.generate()
+    val talk7 = Talk.Id.generate()
     val proposal1 = Proposal.Id.generate()
     val proposal2 = Proposal.Id.generate()
     val proposal3 = Proposal.Id.generate()
     val proposal4 = Proposal.Id.generate()
     val proposal5 = Proposal.Id.generate()
     val groups = NonEmptyList.of(
-      Group(group1, Group.Slug.from("ht-paris").get, Group.Name("HumanTalks Paris"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(user1, user3), Info(user1)),
-      Group(group2, Group.Slug.from("paris-js").get, Group.Name("Paris.Js"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(user3), Info(user3)),
-      Group(group3, Group.Slug.from("data-gov").get, Group.Name("Data governance"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(user1), Info(user1)))
+      Group(group1, Group.Slug.from("ht-paris").get, Group.Name("HumanTalks Paris"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userDemo, userOrga), Info(userDemo)),
+      Group(group2, Group.Slug.from("paris-js").get, Group.Name("Paris.Js"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userOrga), Info(userOrga)),
+      Group(group3, Group.Slug.from("data-gov").get, Group.Name("Data governance"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userDemo), Info(userDemo)),
+      Group(group4, Group.Slug.from("big-group").get, Group.Name("Big Group"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userOrga), Info(userOrga)))
     val cfps = NonEmptyList.of(
-      Cfp(cfp1, Cfp.Slug.from("ht-paris").get, Cfp.Name("HumanTalks Paris"), "Les HumanTalks Paris c'est 4 talks de 10 min...", group1, Info(user1)),
-      Cfp(cfp2, Cfp.Slug.from("paris-js").get, Cfp.Name("Paris.Js"), "Submit your talk to exchange with the Paris JS community", group2, Info(user3)))
+      Cfp(cfp1, Cfp.Slug.from("ht-paris").get, Cfp.Name("HumanTalks Paris"), "Les HumanTalks Paris c'est 4 talks de 10 min...", group1, Info(userDemo)),
+      Cfp(cfp2, Cfp.Slug.from("paris-js").get, Cfp.Name("Paris.Js"), "Submit your talk to exchange with the Paris JS community", group2, Info(userOrga)))
     val events = NonEmptyList.of(
-      Event(group1, event1, Event.Slug.from("2019-03").get, Event.Name("HumanTalks Paris Mars 2019"), Some("desc"), Some("Zeenea"), Seq(), Info(user1)),
-      Event(group1, event2, Event.Slug.from("2019-04").get, Event.Name("HumanTalks Paris Avril 2019"), None, None, Seq(), Info(user3)),
-      Event(group2, event3, Event.Slug.from("2019-03").get, Event.Name("Paris.Js Avril"), None, None, Seq(), Info(user3)),
-      Event(group3, event4, Event.Slug.from("2019-03").get, Event.Name("Nouveaux modeles de gouvenance"), None, None, Seq(), Info(user1)))
+      Event(group1, event1, Event.Slug.from("2019-03").get, Event.Name("HumanTalks Paris Mars 2019"), Some("desc"), Some("Zeenea"), Seq(), Info(userDemo)),
+      Event(group1, event2, Event.Slug.from("2019-04").get, Event.Name("HumanTalks Paris Avril 2019"), None, None, Seq(), Info(userOrga)),
+      Event(group2, event3, Event.Slug.from("2019-03").get, Event.Name("Paris.Js Avril"), None, None, Seq(), Info(userOrga)),
+      Event(group3, event4, Event.Slug.from("2019-03").get, Event.Name("Nouveaux modeles de gouvenance"), None, None, Seq(), Info(userDemo)))
     val talks = NonEmptyList.of(
-      Talk(talk1, Talk.Slug.from("why-fp").get, Talk.Title("Why FP"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(user1), Info(user1)),
-      Talk(talk2, Talk.Slug.from("scala-best-practices").get, Talk.Title("Scala Best Practices"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(user1, user2), Info(user1)),
-      Talk(talk3, Talk.Slug.from("nodejs-news").get, Talk.Title("NodeJs news"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(user1), Info(user1)),
-      Talk(talk4, Talk.Slug.from("scalajs-react").get, Talk.Title("ScalaJS + React = <3"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(user2, user1), Info(user2)),
-      Talk(talk5, Talk.Slug.from("gagner-1-million").get, Talk.Title("Gagner 1 Million au BlackJack avec Akka"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(user2), Info(user2)),
-      Talk(talk6, Talk.Slug.from("demarrer-avec-spark").get, Talk.Title("7 conseils pour demarrer avec Spark"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(user2), Info(user2)))
+      Talk(talk1, Talk.Slug.from("why-fp").get, Talk.Title("Why FP"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userDemo), Info(userDemo)),
+      Talk(talk2, Talk.Slug.from("scala-best-practices").get, Talk.Title("Scala Best Practices"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userDemo, userSpeaker), Info(userDemo)),
+      Talk(talk3, Talk.Slug.from("nodejs-news").get, Talk.Title("NodeJs news"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userDemo), Info(userDemo)),
+      Talk(talk4, Talk.Slug.from("scalajs-react").get, Talk.Title("ScalaJS + React = <3"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker, userDemo), Info(userSpeaker)),
+      Talk(talk5, Talk.Slug.from("gagner-1-million").get, Talk.Title("Gagner 1 Million au BlackJack avec Akka"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker), Info(userSpeaker)),
+      Talk(talk6, Talk.Slug.from("demarrer-avec-spark").get, Talk.Title("7 conseils pour demarrer avec Spark"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker), Info(userSpeaker)),
+      Talk(talk7, Talk.Slug.from("big-talk").get, Talk.Title("Big Talk"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker), Info(userSpeaker)))
     val proposals = NonEmptyList.of(
-      Proposal(proposal1, talk1, cfp1, Talk.Title("Why FP"), "temporary description", Info(user1)),
-      Proposal(proposal2, talk2, cfp1, Talk.Title("Scala Best Practices"), "temporary description", Info(user1)),
-      Proposal(proposal3, talk2, cfp2, Talk.Title("Scala Best Practices"), "temporary description", Info(user1)),
-      Proposal(proposal4, talk3, cfp1, Talk.Title("NodeJs news"), "temporary description", Info(user1)),
-      Proposal(proposal5, talk4, cfp2, Talk.Title("ScalaJS + React = <3"), "temporary description", Info(user2)))
+      Proposal(proposal1, talk1, cfp1, Talk.Title("Why FP"), "temporary description", Info(userDemo)),
+      Proposal(proposal2, talk2, cfp1, Talk.Title("Scala Best Practices"), "temporary description", Info(userDemo)),
+      Proposal(proposal3, talk2, cfp2, Talk.Title("Scala Best Practices"), "temporary description", Info(userDemo)),
+      Proposal(proposal4, talk3, cfp1, Talk.Title("NodeJs news"), "temporary description", Info(userDemo)),
+      Proposal(proposal5, talk4, cfp2, Talk.Title("ScalaJS + React = <3"), "temporary description", Info(userSpeaker)))
+    val generated = (1 to 20).toList.map { i =>
+      val groupId = Group.Id.generate()
+      val cfpId = Cfp.Id.generate()
+      val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userOrga), Info(userOrga))
+      val c = Cfp(cfpId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), "Only your best talks !", groupId, Info(userOrga))
+      val e = Event(group4, Event.Id.generate(), Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), None, None, Seq(), Info(userOrga))
+      val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Title(s"Z Talk $i"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userSpeaker), Info(userSpeaker))
+      val p = Proposal(Proposal.Id.generate(), talk7, cfpId, Talk.Title(s"Z Proposal $i"), "temporary description", Info(userSpeaker))
+      (g, c, e, t, p)
+    }
     for {
       _ <- run(Queries.insertMany(UserTable.insert)(users))
-      _ <- run(Queries.insertMany(GroupTable.insert)(groups))
-      _ <- run(Queries.insertMany(CfpTable.insert)(cfps))
-      _ <- run(Queries.insertMany(EventTable.insert)(events))
-      _ <- run(Queries.insertMany(TalkTable.insert)(talks))
-      _ <- run(Queries.insertMany(ProposalTable.insert)(proposals))
+      _ <- run(Queries.insertMany(GroupTable.insert)(groups ++ generated.map(_._1)))
+      _ <- run(Queries.insertMany(CfpTable.insert)(cfps ++ generated.map(_._2)))
+      _ <- run(Queries.insertMany(EventTable.insert)(events ++ generated.map(_._3)))
+      _ <- run(Queries.insertMany(TalkTable.insert)(talks ++ generated.map(_._4)))
+      _ <- run(Queries.insertMany(ProposalTable.insert)(proposals ++ generated.map(_._5)))
     } yield Done
   }
-
-  private var logged: Option[User] = Some(users.head)
-
-  override def login(user: User): IO[Done] = { // TODO mock auth, to remove
-    logged = Some(user)
-    IO.pure(Done)
-  }
-
-  override def logout(): IO[Done] = { // TODO mock auth, to remove
-    logged = None
-    IO.pure(Done)
-  }
-
-  override def userAware(): Option[User] = logged // TODO mock auth, to remove
-
-  override def authed(): User = logged.get // TODO mock auth, to remove
 
   override def createUser(firstName: String, lastName: String, email: Email): IO[User] =
     run(UserTable.insert, User(User.Id.generate(), firstName, lastName, email, Instant.now(), Instant.now()))
