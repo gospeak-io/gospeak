@@ -16,11 +16,12 @@ sealed trait NavMenu extends Product with Serializable {
 }
 
 final case class NavLink(name: String, link: Call, active: Boolean = false) extends NavMenu {
-  override def activeFor(c: Call): NavMenu =
+  override def activeFor(c: Call): NavLink =
     if (c == link) copy(active = true)
     else copy(active = false)
 }
 
 final case class NavDropdown(name: String, links: Seq[NavLink]) extends NavMenu {
-  override def activeFor(c: Call): NavMenu = this
+  override def activeFor(c: Call): NavDropdown =
+    copy(links = links.map(_.activeFor(c)))
 }

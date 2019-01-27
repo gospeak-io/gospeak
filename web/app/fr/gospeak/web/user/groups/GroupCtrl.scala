@@ -72,7 +72,8 @@ object GroupCtrl {
   def header(group: Group.Slug): HeaderInfo = HeaderInfo(
     brand = NavLink("Gospeak", fr.gospeak.web.user.routes.UserCtrl.index()),
     links = NavDropdown("Public", HomeCtrl.publicNav) +: NavDropdown("User", UserCtrl.userNav) +: groupNav(group),
-    rightLinks = Seq(NavLink("logout", fr.gospeak.web.auth.routes.AuthCtrl.logout())))
+    rightLinks = UserCtrl.rightNav)
+    .activeFor(routes.GroupCtrl.list())
 
   def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name)): Breadcrumb =
     listBreadcrumb(user).add(group._2.value -> routes.GroupCtrl.detail(group._1))

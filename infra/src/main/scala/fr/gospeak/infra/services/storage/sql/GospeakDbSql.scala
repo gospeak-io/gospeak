@@ -82,7 +82,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       Proposal(proposal3, talk2, cfp2, Talk.Title("Scala Best Practices"), "temporary description", Info(userDemo)),
       Proposal(proposal4, talk3, cfp1, Talk.Title("NodeJs news"), "temporary description", Info(userDemo)),
       Proposal(proposal5, talk4, cfp2, Talk.Title("ScalaJS + React = <3"), "temporary description", Info(userSpeaker)))
-    val generated = (1 to 20).toList.map { i =>
+    val generated = (1 to 25).toList.map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
       val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userOrga), Info(userOrga))

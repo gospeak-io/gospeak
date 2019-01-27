@@ -22,8 +22,8 @@
                         <a class="nav-link dropdown-toggle" href="#" id="dropdown-@name" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">@name</a>
                         <div class="dropdown-menu" aria-labelledby="dropdown-@name">
                         @links.map {
-                            case NavLink(name, link, _) => {
-                                <a class="dropdown-item" href="@link">@name</a>
+                            case NavLink(name, link, active) => {
+                                <a class="dropdown-item @if(active) {active}" href="@link">@name</a>
                             }
                         }
                         </div>
@@ -40,7 +40,18 @@
                     case NavLink(name, link, false) => {
                         <a class="nav-item nav-link" href="@link">@name</a>
                     }
-                    case _ => {}
+                    case NavDropdown(name, links) => {
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="dropdown-@name" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">@Html(name)</a>
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-@name">
+                            @links.map {
+                                case NavLink(name, link, active) => {
+                                    <a class="dropdown-item @if(active) {active}" href="@link">@name</a>
+                                }
+                            }
+                            </div>
+                        </div>
+                    }
                 }
                 </div>
             }

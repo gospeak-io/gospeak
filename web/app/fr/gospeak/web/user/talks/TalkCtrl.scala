@@ -64,7 +64,7 @@ object TalkCtrl {
     UserCtrl.breadcrumb(user).add("Talks" -> routes.TalkCtrl.list())
 
   def header(talk: Talk.Slug): HeaderInfo =
-    UserCtrl.header.copy(brand = NavLink("Gospeak", routes.TalkCtrl.detail(talk)))
+    UserCtrl.header
       .copy(brand = NavLink("Gospeak", fr.gospeak.web.user.routes.UserCtrl.index()))
       .activeFor(routes.TalkCtrl.list())
 

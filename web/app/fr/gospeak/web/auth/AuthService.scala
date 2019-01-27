@@ -21,12 +21,13 @@ class AuthService(db: GospeakDb) {
   }
 
   def userAware()(implicit req: Request[AnyContent]): Option[User] = {
-    req.queryString.get("user")
+    val user = req.queryString.get("user")
       .flatMap(_.headOption)
       .map { u => if (u.contains("@")) u else u + "@mail.com" }
       .map(Email)
       .flatMap(db.getUser(_).unsafeRunSync())
-      .orElse(logged)
+    user.foreach(login(_).unsafeRunSync())
+    user.orElse(logged)
   }
 
   def authed()(implicit req: Request[AnyContent]): User =

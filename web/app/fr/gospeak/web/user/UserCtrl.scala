@@ -14,9 +14,9 @@ class UserCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
   def index(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
     (for {
-      talks <- db.getTalks(user.id, Page.Params.defaults)
       groups <- db.getGroups(user.id, Page.Params.defaults)
-    } yield Ok(html.index(talks, groups)(indexHeader, breadcrumb(user.name)))).unsafeToFuture()
+      talks <- db.getTalks(user.id, Page.Params.defaults)
+    } yield Ok(html.index(groups, talks)(indexHeader, breadcrumb(user.name)))).unsafeToFuture()
   }
 
   def profile(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
@@ -30,13 +30,17 @@ class UserCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
 object UserCtrl {
   val userNav: Seq[NavLink] = Seq(
     NavLink("Groups", groups.routes.GroupCtrl.list()),
-    NavLink("Talks", talks.routes.TalkCtrl.list()),
-    NavLink("Profile", routes.UserCtrl.profile()))
+    NavLink("Talks", talks.routes.TalkCtrl.list()))
+
+  private val leftNav = NavDropdown("Public", HomeCtrl.publicNav) +: userNav
+  val rightNav: Seq[NavMenu] = Seq(NavDropdown("<i class=\"fas fa-user\"></i>", Seq(
+    NavLink("Profile", routes.UserCtrl.profile()),
+    NavLink("logout", fr.gospeak.web.auth.routes.AuthCtrl.logout()))))
 
   val indexHeader: HeaderInfo = HeaderInfo(
     brand = NavLink("Gospeak", fr.gospeak.web.routes.HomeCtrl.index()),
-    links = NavDropdown("Public", HomeCtrl.publicNav) +: userNav,
-    rightLinks = Seq(NavLink("logout", fr.gospeak.web.auth.routes.AuthCtrl.logout())))
+    links = leftNav,
+    rightLinks = rightNav)
 
   val header: HeaderInfo =
     indexHeader.copy(brand = NavLink("Gospeak", routes.UserCtrl.index()))
