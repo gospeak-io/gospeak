@@ -8,6 +8,8 @@ final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total)
 
   def isEmpty: Boolean = total.value == 0
 
+  def nonEmpty: Boolean = !isEmpty
+
   def isFirst: Boolean = params.page.value == 1
 
   def isLast: Boolean = params.offsetEnd >= total.value

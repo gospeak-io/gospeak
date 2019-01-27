@@ -1,0 +1,16 @@
+@import fr.gospeak.core.domain.Talk
+@(s: Talk.Status)
+@s match {
+    case Talk.Status.Created => {
+        <span class="badge badge-dark">@s.toString</span>
+    }
+    case Talk.Status.Public => {
+        <span class="badge badge-primary">@s.toString</span>
+    }
+    case Talk.Status.Private => {
+        <span class="badge badge-secondary">@s.toString</span>
+    }
+    case Talk.Status.Archived => {
+        <span class="badge badge-light">@s.toString</span>
+    }
+}

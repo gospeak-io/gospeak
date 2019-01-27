@@ -14,7 +14,7 @@ object ProposalTable {
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "title", "description")
-  private val defaultSort = Page.OrderBy("title")
+  private val defaultSort = Page.OrderBy("-created")
 
   private def values(e: Proposal): Fragment =
     fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.title}, ${e.description}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"

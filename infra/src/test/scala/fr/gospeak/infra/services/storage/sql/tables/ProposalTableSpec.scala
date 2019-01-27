@@ -26,7 +26,7 @@ class ProposalTableSpec extends TableSpec {
     describe("selectPage for group") {
       it("should generate the query") {
         val (s, c) = selectPage(cfpId, params)
-        s.sql shouldBe "SELECT id, talk_id, cfp_id, title, description, created, created_by, updated, updated_by FROM proposals WHERE cfp_id=? ORDER BY title OFFSET 0 LIMIT 20"
+        s.sql shouldBe "SELECT id, talk_id, cfp_id, title, description, created, created_by, updated, updated_by FROM proposals WHERE cfp_id=? ORDER BY created DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM proposals WHERE cfp_id=? "
         check(s)
         check(c)
@@ -35,7 +35,10 @@ class ProposalTableSpec extends TableSpec {
     describe("selectPage for talk") {
       it("should generate the query") {
         val (s, c) = selectPage(talkId, params)
-        s.sql shouldBe "SELECT c.id, c.slug, c.name, c.description, c.group_id, c.created, c.created_by, c.updated, c.updated_by, p.id, p.talk_id, p.cfp_id, p.title, p.description, p.created, p.created_by, p.updated, p.updated_by FROM cfps c INNER JOIN proposals p ON p.cfp_id=c.id WHERE p.talk_id=? ORDER BY p.title OFFSET 0 LIMIT 20"
+        s.sql shouldBe
+          "SELECT c.id, c.slug, c.name, c.description, c.group_id, c.created, c.created_by, c.updated, c.updated_by, " +
+            "p.id, p.talk_id, p.cfp_id, p.title, p.description, p.created, p.created_by, p.updated, p.updated_by " +
+            "FROM cfps c INNER JOIN proposals p ON p.cfp_id=c.id WHERE p.talk_id=? ORDER BY p.created DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM cfps c INNER JOIN proposals p ON p.cfp_id=c.id WHERE p.talk_id=? "
         check(s)
         check(c)

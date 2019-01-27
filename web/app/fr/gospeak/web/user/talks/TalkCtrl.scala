@@ -51,10 +51,11 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
     implicit val user: User = auth.authed()
     (for {
       talkElt <- OptionT(db.getTalk(user.id, talk))
+      speakers <- OptionT.liftF(db.getUsers(talkElt.speakers))
       proposals <- OptionT.liftF(db.getProposals(talkElt.id, Page.Params.defaults))
       h = header(talk)
       b = breadcrumb(user.name, talk -> talkElt.title)
-    } yield Ok(html.detail(talkElt, proposals)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
+    } yield Ok(html.detail(talkElt, speakers, proposals)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 }
 

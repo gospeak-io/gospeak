@@ -54,7 +54,7 @@ object DoobieUtils {
     }
 
     private def orderByFragment(orderBy: Page.OrderBy, prefix: Option[String]): Fragment =
-      if (orderBy.value.startsWith("-")) fr"ORDER BY" ++ Fragment.const(prefix.map(_ + ".").getOrElse("") + orderBy.value.stripPrefix("-") + "DESC")
+      if (orderBy.value.startsWith("-")) fr"ORDER BY" ++ Fragment.const(prefix.map(_ + ".").getOrElse("") + orderBy.value.stripPrefix("-") + " DESC")
       else fr"ORDER BY" ++ Fragment.const(prefix.map(_ + ".").getOrElse("") + orderBy.value)
 
     private def limitFragment(start: Int, size: Page.Size): Fragment =

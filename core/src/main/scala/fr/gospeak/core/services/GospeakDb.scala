@@ -1,5 +1,6 @@
 package fr.gospeak.core.services
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{Email, Page}
@@ -10,6 +11,8 @@ trait GospeakDb {
   def createUser(firstName: String, lastName: String, email: Email): IO[User]
 
   def getUser(email: Email): IO[Option[User]]
+
+  def getUsers(ids: NonEmptyList[User.Id]): IO[Seq[User]]
 
   def createGroup(slug: Group.Slug, name: Group.Name, description: String, by: User.Id): IO[Group]
 

@@ -71,9 +71,9 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       Event(group2, event3, Event.Slug.from("2019-03").get, Event.Name("Paris.Js Avril"), None, None, Seq(), Info(userOrga)),
       Event(group3, event4, Event.Slug.from("2019-03").get, Event.Name("Nouveaux modeles de gouvenance"), None, None, Seq(), Info(userDemo)))
     val talks = NonEmptyList.of(
-      Talk(talk1, Talk.Slug.from("why-fp").get, Talk.Title("Why FP"), Duration.apply(10, MINUTES), Talk.Status.Public, "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userDemo), Info(userDemo)),
+      Talk(talk1, Talk.Slug.from("why-fp").get, Talk.Title("Why FP"), Duration.apply(10, MINUTES), Talk.Status.Private, "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userDemo), Info(userDemo)),
       Talk(talk2, Talk.Slug.from("scala-best-practices").get, Talk.Title("Scala Best Practices"), Duration.apply(10, MINUTES), Talk.Status.Public, "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userDemo, userSpeaker), Info(userDemo)),
-      Talk(talk3, Talk.Slug.from("nodejs-news").get, Talk.Title("NodeJs news"), Duration.apply(10, MINUTES), Talk.Status.Public, "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userDemo), Info(userDemo)),
+      Talk(talk3, Talk.Slug.from("nodejs-news").get, Talk.Title("NodeJs news"), Duration.apply(10, MINUTES), Talk.Status.Created, "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userDemo), Info(userDemo)),
       Talk(talk4, Talk.Slug.from("scalajs-react").get, Talk.Title("ScalaJS + React = <3"), Duration.apply(50, MINUTES), Talk.Status.Archived, "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker, userDemo), Info(userSpeaker)),
       Talk(talk5, Talk.Slug.from("gagner-1-million").get, Talk.Title("Gagner 1 Million au BlackJack avec Akka"), Duration.apply(15, MINUTES), Talk.Status.Private, "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker), Info(userSpeaker)),
       Talk(talk6, Talk.Slug.from("demarrer-avec-spark").get, Talk.Title("7 conseils pour demarrer avec Spark"), Duration.apply(45, MINUTES), Talk.Status.Public, "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker), Info(userSpeaker)),
@@ -82,8 +82,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       Proposal(proposal1, talk1, cfp1, Talk.Title("Why FP"), "temporary description", Info(userDemo)),
       Proposal(proposal2, talk2, cfp1, Talk.Title("Scala Best Practices"), "temporary description", Info(userDemo)),
       Proposal(proposal3, talk2, cfp2, Talk.Title("Scala Best Practices"), "temporary description", Info(userDemo)),
-      Proposal(proposal4, talk3, cfp1, Talk.Title("NodeJs news"), "temporary description", Info(userDemo)),
-      Proposal(proposal5, talk4, cfp2, Talk.Title("ScalaJS + React = <3"), "temporary description", Info(userSpeaker)))
+      Proposal(proposal4, talk3, cfp1, Talk.Title("NodeJs news"), "temporary description", Info(userDemo)))
     val generated = (1 to 25).toList.map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
@@ -108,6 +107,8 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     run(UserTable.insert, User(User.Id.generate(), firstName, lastName, email, Instant.now(), Instant.now()))
 
   override def getUser(email: Email): IO[Option[User]] = run(UserTable.selectOne(email).option)
+
+  override def getUsers(ids: NonEmptyList[User.Id]): IO[Seq[User]] = run(UserTable.selectAll(ids).to[List])
 
   override def createGroup(slug: Group.Slug, name: Group.Name, description: String, by: User.Id): IO[Group] =
     run(GroupTable.insert, Group(Group.Id.generate(), slug, name, description, NonEmptyList.of(by), Info(by)))
