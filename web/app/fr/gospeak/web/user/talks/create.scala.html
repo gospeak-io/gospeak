@@ -12,14 +12,18 @@
     </div>
 
     @formElt(TalkCtrl.doCreate()) {
+        @displayGlobalErrors(form)
         @fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title of your talk")) { (field, args) =>
             @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
         }
         @fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference for your talk (in urls for example)")) { (field, args) =>
             @inputText(field, Seq("placeholder" -> "Talk slug", "slug-for" -> form("title").id) ++ args)
         }
+        @fieldHorizontal(form("duration"), Seq("label" -> "Duration", "help" -> "Duration of your talk")) { (field, args) =>
+            @inputDuration(field, args)
+        }
         @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Give a abstract of your talk, you should make orga and people listen at you")) { (field, args) =>
-            @inputText(field, args)
+            @inputTextarea(field, args)
         }
         @actionsHorizontal() {
             @btnCancel(TalkCtrl.list())

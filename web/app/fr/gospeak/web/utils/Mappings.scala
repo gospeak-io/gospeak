@@ -7,6 +7,7 @@ import play.api.data.format.Formatter
 import play.api.data.validation._
 import play.api.data.{FormError, Mapping}
 
+import scala.concurrent.duration._
 import scala.util.Try
 import scala.util.matching.Regex
 
@@ -41,6 +42,19 @@ object Mappings {
       Map(key -> to(value))
   }
 
+  val numberError = "error.number"
+
+  private[utils] def longFormatter[A](from: Long => A, to: A => Long): Formatter[A] = new Formatter[A] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], A] =
+      data.get(key)
+        .map(s => Try(s.toLong).toEither.left.map(t => Seq(FormError(key, numberError, t.getMessage))))
+        .map(_.right.map(from))
+        .getOrElse(Left(Seq(FormError(key, requiredError))))
+
+    override def unbind(key: String, value: A): Map[String, String] =
+      Map(key -> to(value).toString)
+  }
+
   val formatError = "error.format"
 
   private[utils] def stringTryFormatter[A](from: String => Try[A], to: A => String): Formatter[A] = new Formatter[A] {
@@ -58,6 +72,11 @@ object Mappings {
 
   private def stringTryMapping[A](from: String => Try[A], to: A => String, cs: ((A => String) => Constraint[A])*): Mapping[A] =
     of(stringTryFormatter(from, to)).verifying(cs.map(_ (to)): _*)
+
+  private def longMapping[A](from: Long => A, to: A => Long, cs: ((A => Long) => Constraint[A])*): Mapping[A] =
+    of(longFormatter(from, to)).verifying(cs.map(_ (to)): _*)
+
+  val duration: Mapping[FiniteDuration] = longMapping(Duration.apply(_, MINUTES), _.toMinutes)
 
   val mail: Mapping[Email] = stringMapping(Email, _.value, required)
   val password: Mapping[Password] = stringMapping(Password, _.decode, required)

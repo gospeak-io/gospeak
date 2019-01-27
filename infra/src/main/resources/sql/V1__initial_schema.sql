@@ -11,6 +11,8 @@ CREATE TABLE talks (
   id          CHAR(36)      NOT NULL PRIMARY KEY,
   slug        VARCHAR(30)   NOT NULL,
   title       VARCHAR(100)  NOT NULL,
+  duration    BIGINT        NOT NULL,
+  status      VARCHAR(10)   NOT NULL,
   description VARCHAR(2048) NOT NULL,
   speakers    VARCHAR(184)  NOT NULL,
   created     TIMESTAMP     NOT NULL,

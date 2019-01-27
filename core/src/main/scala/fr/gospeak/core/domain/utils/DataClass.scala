@@ -2,6 +2,8 @@ package fr.gospeak.core.domain.utils
 
 import java.util.UUID
 
+import fr.gospeak.libs.scalautils.Extensions._
+
 import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
 
@@ -60,4 +62,11 @@ abstract class SlugBuilder[T](clazz: String, build: String => T) {
 
 object SlugBuilder {
   val pattern: Regex = "[a-z0-9-]+".r
+}
+
+abstract class EnumBuilder[T](clazz: String) {
+  val all: Seq[T]
+
+  def from(str: String): Try[T] =
+    all.find(_.toString == str).toTry(new Exception(s"$str in an invalid $clazz"))
 }

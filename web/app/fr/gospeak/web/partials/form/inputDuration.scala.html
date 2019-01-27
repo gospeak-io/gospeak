@@ -1,0 +1,22 @@
+@import fr.gospeak.web.partials.form.Utils
+
+@(field: Field, args: Seq[(String, String)] = Seq())
+<div class="form-row align-items-center @if(field.hasErrors) {is-invalid}">
+    <div class="col-2">
+        <input
+            type="number"
+            class="form-control @Utils.getArg(args, "class") @if(field.hasErrors) {is-invalid}"
+            id="@Utils.id(args, field)"
+            name="@Utils.getArg(args, "name", field.name)"
+            value="@Utils.getArg(args, "value", field.value.getOrElse(""))"
+            @Utils.getArg(args, "placeholder").map { v => placeholder="@v" }
+            @Utils.isRequired(field).map { _ => required="" }
+            @Utils.hasPattern(field).map { c => pattern="@{c._2.head.toString}" }
+            @Utils.getArg(args, "autofocus").map { _ => autofocus="" }
+            @Utils.getArg(args, "help").map { v => aria-describedby="@v" }
+            @Utils.attributes(args, Seq("type", "class", "id", "name", "value", "placeholder", "required", "pattern", "autofocus", "help"))>
+    </div>
+    <div class="col">
+        Duration in minutes
+    </div>
+</div>

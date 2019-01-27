@@ -1,8 +1,4 @@
-.login {
-    width: 500px;
-    margin: auto;
-    margin-top: 50px;
-}
+/* Bootstrap overrides/extensions */
 
 .breadcrumb-container {
     background-color: #e9ecef;
@@ -11,6 +7,18 @@
 .card-header .btn-sm {
     margin-top: -7px;
     margin-bottom: -3px;
+}
+
+.form-row.is-invalid ~ .invalid-feedback {
+    display: block;
+}
+
+/* My styles */
+
+.login {
+    width: 500px;
+    margin: auto;
+    margin-top: 50px;
 }
 
 .page-header {

@@ -8,6 +8,18 @@ class DataClassSpec extends FunSpec with Matchers {
 
   class Id(value: String) extends DataClass(value)
 
+  sealed trait Status extends Product with Serializable
+
+  object Status {
+
+    case object Start extends Status
+
+    case object Run extends Status
+
+    case object End extends Status
+
+  }
+
   describe("DataClass") {
     it("should print value in toString") {
       val id = new Id("toto")
@@ -43,6 +55,22 @@ class DataClassSpec extends FunSpec with Matchers {
     it("should check for correctness") {
       builder.errors("wrong slug") should not be empty
       builder.errors("my-slug-2") shouldBe empty
+    }
+  }
+  describe("EnumBuilder") {
+    val builder = new EnumBuilder[Status]("Status") {
+      val all: Seq[Status] = Seq(Status.Start, Status.Run, Status.End)
+    }
+    it("should parse and serialize all Status") {
+      builder.all.foreach { status =>
+        val str = status.toString
+        val parsed = builder.from(str)
+        parsed shouldBe Success(status)
+      }
+    }
+    it("should fail on unknown status") {
+      builder.from("") shouldBe a[Failure[_]]
+      builder.from("fake") shouldBe a[Failure[_]]
     }
   }
 }

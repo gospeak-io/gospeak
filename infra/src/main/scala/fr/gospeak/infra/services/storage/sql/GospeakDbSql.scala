@@ -13,6 +13,8 @@ import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.infra.utils.{DoobieUtils, FlywayUtils}
 
+import scala.concurrent.duration._
+
 class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   private val flyway = FlywayUtils.build(conf)
   private[sql] val xa = DoobieUtils.transactor(conf)
@@ -69,13 +71,13 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       Event(group2, event3, Event.Slug.from("2019-03").get, Event.Name("Paris.Js Avril"), None, None, Seq(), Info(userOrga)),
       Event(group3, event4, Event.Slug.from("2019-03").get, Event.Name("Nouveaux modeles de gouvenance"), None, None, Seq(), Info(userDemo)))
     val talks = NonEmptyList.of(
-      Talk(talk1, Talk.Slug.from("why-fp").get, Talk.Title("Why FP"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userDemo), Info(userDemo)),
-      Talk(talk2, Talk.Slug.from("scala-best-practices").get, Talk.Title("Scala Best Practices"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userDemo, userSpeaker), Info(userDemo)),
-      Talk(talk3, Talk.Slug.from("nodejs-news").get, Talk.Title("NodeJs news"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userDemo), Info(userDemo)),
-      Talk(talk4, Talk.Slug.from("scalajs-react").get, Talk.Title("ScalaJS + React = <3"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker, userDemo), Info(userSpeaker)),
-      Talk(talk5, Talk.Slug.from("gagner-1-million").get, Talk.Title("Gagner 1 Million au BlackJack avec Akka"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker), Info(userSpeaker)),
-      Talk(talk6, Talk.Slug.from("demarrer-avec-spark").get, Talk.Title("7 conseils pour demarrer avec Spark"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker), Info(userSpeaker)),
-      Talk(talk7, Talk.Slug.from("big-talk").get, Talk.Title("Big Talk"), "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker), Info(userSpeaker)))
+      Talk(talk1, Talk.Slug.from("why-fp").get, Talk.Title("Why FP"), Duration.apply(10, MINUTES), Talk.Status.Public, "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userDemo), Info(userDemo)),
+      Talk(talk2, Talk.Slug.from("scala-best-practices").get, Talk.Title("Scala Best Practices"), Duration.apply(10, MINUTES), Talk.Status.Public, "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userDemo, userSpeaker), Info(userDemo)),
+      Talk(talk3, Talk.Slug.from("nodejs-news").get, Talk.Title("NodeJs news"), Duration.apply(10, MINUTES), Talk.Status.Public, "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userDemo), Info(userDemo)),
+      Talk(talk4, Talk.Slug.from("scalajs-react").get, Talk.Title("ScalaJS + React = <3"), Duration.apply(50, MINUTES), Talk.Status.Archived, "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker, userDemo), Info(userSpeaker)),
+      Talk(talk5, Talk.Slug.from("gagner-1-million").get, Talk.Title("Gagner 1 Million au BlackJack avec Akka"), Duration.apply(15, MINUTES), Talk.Status.Private, "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker), Info(userSpeaker)),
+      Talk(talk6, Talk.Slug.from("demarrer-avec-spark").get, Talk.Title("7 conseils pour demarrer avec Spark"), Duration.apply(45, MINUTES), Talk.Status.Public, "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker), Info(userSpeaker)),
+      Talk(talk7, Talk.Slug.from("big-talk").get, Talk.Title("Big Talk"), Duration.apply(10, MINUTES), Talk.Status.Public, "Cras sit amet nibh libero, in gravida nulla..", NonEmptyList.of(userSpeaker), Info(userSpeaker)))
     val proposals = NonEmptyList.of(
       Proposal(proposal1, talk1, cfp1, Talk.Title("Why FP"), "temporary description", Info(userDemo)),
       Proposal(proposal2, talk2, cfp1, Talk.Title("Scala Best Practices"), "temporary description", Info(userDemo)),
@@ -88,7 +90,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userOrga), Info(userOrga))
       val c = Cfp(cfpId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), "Only your best talks !", groupId, Info(userOrga))
       val e = Event(group4, Event.Id.generate(), Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), None, None, Seq(), Info(userOrga))
-      val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Title(s"Z Talk $i"), "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userSpeaker), Info(userSpeaker))
+      val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Title(s"Z Talk $i"), Duration.apply(10, MINUTES), Talk.Status.Created, "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", NonEmptyList.of(userSpeaker), Info(userSpeaker))
       val p = Proposal(Proposal.Id.generate(), talk7, cfpId, Talk.Title(s"Z Proposal $i"), "temporary description", Info(userSpeaker))
       (g, c, e, t, p)
     }
@@ -132,9 +134,9 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getCfps(params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(CfpTable.selectPage, params))
 
-  override def createTalk(slug: Talk.Slug, title: Talk.Title, description: String, by: User.Id): IO[Talk] =
+  override def createTalk(slug: Talk.Slug, title: Talk.Title, duration: FiniteDuration, description: String, by: User.Id): IO[Talk] =
     getTalk(by, slug).flatMap {
-      case None => run(TalkTable.insert, Talk(Talk.Id.generate(), slug, title, description, NonEmptyList.one(by), Info(by)))
+      case None => run(TalkTable.insert, Talk(Talk.Id.generate(), slug, title, duration, Talk.Status.Created, description, NonEmptyList.one(by), Info(by)))
       case _ => IO.raiseError(new Exception(s"You already have a talk with slug $slug"))
     }
 

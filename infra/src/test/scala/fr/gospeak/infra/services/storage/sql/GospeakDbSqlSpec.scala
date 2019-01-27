@@ -2,9 +2,11 @@ package fr.gospeak.infra.services.storage.sql
 
 import cats.effect.IO
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{Email, Page}
+import fr.gospeak.core.domain.utils.{Done, Email, Page}
 import fr.gospeak.infra.testingutils.Values
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
+
+import scala.concurrent.duration._
 
 class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
   private val db = Values.db
@@ -121,23 +123,23 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         db.getTalks(user.id, page).unsafeRunSync().items shouldBe Seq()
         db.getTalk(user.id, slug).unsafeRunSync() shouldBe None
-        val talk = db.createTalk(slug, Talk.Title("title"), "desc", user.id).unsafeRunSync()
+        val talk = db.createTalk(slug, Talk.Title("title"), Duration(10, MINUTES), "desc", user.id).unsafeRunSync()
         db.getTalks(user.id, page).unsafeRunSync().items shouldBe Seq(talk)
         db.getTalk(user.id, slug).unsafeRunSync() shouldBe Some(talk)
       }
       it("should not retrieve not owned talks") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         val user2 = db.createUser("A", "A", Email("aaa@aaa.com")).unsafeRunSync()
-        val talk = db.createTalk(slug, Talk.Title("title"), "desc", user2.id).unsafeRunSync()
+        val talk = db.createTalk(slug, Talk.Title("title"), Duration(10, MINUTES), "desc", user2.id).unsafeRunSync()
         db.getTalks(user.id, page).unsafeRunSync().items shouldBe Seq()
         db.getTalk(user.id, slug).unsafeRunSync() shouldBe None
       }
       it("should fail on duplicate slug on same user") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         val user2 = db.createUser("A", "A", Email("aaa@aaa.com")).unsafeRunSync()
-        db.createTalk(slug, Talk.Title("title"), "desc", user.id).unsafeRunSync()
-        db.createTalk(slug, Talk.Title("title"), "desc", user2.id).unsafeRunSync()
-        an[Exception] should be thrownBy db.createTalk(slug, Talk.Title("title"), "desc", user.id).unsafeRunSync()
+        db.createTalk(slug, Talk.Title("title"), Duration(10, MINUTES), "desc", user.id).unsafeRunSync()
+        db.createTalk(slug, Talk.Title("title"), Duration(10, MINUTES), "desc", user2.id).unsafeRunSync()
+        an[Exception] should be thrownBy db.createTalk(slug, Talk.Title("title"), Duration(10, MINUTES), "desc", user.id).unsafeRunSync()
       }
     }
     describe("Proposal") {
@@ -158,7 +160,7 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
       }
       it("should fail to create a proposal when cfp does not exists") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
-        val talk = db.createTalk(Talk.Slug.from("slug").get, Talk.Title("title"), "desc", user.id).unsafeRunSync()
+        val talk = db.createTalk(Talk.Slug.from("slug").get, Talk.Title("title"), Duration(10, MINUTES), "desc", user.id).unsafeRunSync()
         an[Exception] should be thrownBy db.createProposal(talk.id, Cfp.Id.generate(), Talk.Title("title"), "desc", user.id).unsafeRunSync()
       }
       it("should fail on duplicate cfp and talk") {
@@ -172,8 +174,13 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
           user <- db.createUser(firstName, lastName, email)
           group <- db.createGroup(Group.Slug.from("slug").get, Group.Name("name"), "desc", user.id)
           cfp <- db.createCfp(Cfp.Slug.from("slug").get, Cfp.Name("name"), "desc", group.id, user.id)
-          talk <- db.createTalk(Talk.Slug.from("slug").get, Talk.Title("title"), "desc", user.id)
+          talk <- db.createTalk(Talk.Slug.from("slug").get, Talk.Title("title"), Duration(10, MINUTES), "desc", user.id)
         } yield (user, group, cfp, talk)
+      }
+    }
+    describe("insertMockData") {
+      it("should not fail") {
+        db.insertMockData().unsafeRunSync() shouldBe Done
       }
     }
   }

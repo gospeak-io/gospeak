@@ -32,10 +32,12 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
     implicit val user: User = auth.authed()
     TalkForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
-      data => for {
-        // TODO check if slug not already exist
-        _ <- db.createTalk(data.slug, data.title, data.description, user.id)
-      } yield Redirect(routes.TalkCtrl.detail(data.slug))
+      data => db.getTalk(user.id, data.slug).flatMap {
+        case Some(talk) =>
+          createForm(TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${talk.title.value}"))
+        case None =>
+          db.createTalk(data.slug, data.title, data.duration, data.description, user.id).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+      }
     ).unsafeToFuture()
   }
 

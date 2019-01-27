@@ -13,10 +13,12 @@ class MappingsSpec extends FunSpec with Matchers {
 
   object Value {
     def from(in: String): Try[Value] = {
-      if(in.nonEmpty && in.length < 4) Success(Value(in))
+      if (in.nonEmpty && in.length < 4) Success(Value(in))
       else Failure(new Exception("Wrong format"))
     }
   }
+
+  case class LongValue(value: Long)
 
   describe("Mappings") {
     describe("required") {
@@ -50,6 +52,20 @@ class MappingsSpec extends FunSpec with Matchers {
         f.bind("key", Map()) shouldBe Left(List(FormError("key", List(requiredError))))
       }
     }
+    describe("longFormatter") {
+      val f = longFormatter[LongValue](LongValue, _.value)
+      it("should bind & unbind value") {
+        val value = LongValue(12)
+        f.bind("key", Map("key" -> value.value.toString)) shouldBe Right(value)
+        f.unbind("key", value) shouldBe Map("key" -> value.value.toString)
+      }
+      it("should return format error") {
+        f.bind("key", Map("key" -> "aa")) shouldBe Left(List(FormError("key", List(numberError), "For input string: \"aa\"")))
+      }
+      it("should return required error") {
+        f.bind("key", Map()) shouldBe Left(List(FormError("key", List(requiredError))))
+      }
+    }
     describe("stringTryFormatter") {
       val f = stringTryFormatter[Value](Value.from, _.value)
       it("should bind & unbind value") {
@@ -57,11 +73,11 @@ class MappingsSpec extends FunSpec with Matchers {
         f.bind("key", Map("key" -> value.value)) shouldBe Right(value)
         f.unbind("key", value) shouldBe Map("key" -> value.value)
       }
-      it("should return required error") {
-        f.bind("key", Map()) shouldBe Left(List(FormError("key", List(requiredError))))
-      }
       it("should return format error") {
         f.bind("key", Map("key" -> "")) shouldBe Left(List(FormError("key", List(formatError), "Wrong format")))
+      }
+      it("should return required error") {
+        f.bind("key", Map()) shouldBe Left(List(FormError("key", List(requiredError))))
       }
     }
   }

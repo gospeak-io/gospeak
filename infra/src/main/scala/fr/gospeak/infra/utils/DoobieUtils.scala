@@ -4,14 +4,15 @@ import cats.data.NonEmptyList
 import cats.effect.{ContextShift, IO}
 import doobie.Transactor
 import doobie.implicits._
-import doobie.util.{Meta, Write}
 import doobie.util.fragment.Fragment
 import doobie.util.update.Update
-import fr.gospeak.core.domain.utils.Page
+import doobie.util.{Meta, Write}
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.infra.services.storage.sql.{DbSqlConf, H2, PostgreSQL}
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 object DoobieUtils {
   private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
@@ -74,10 +75,13 @@ object DoobieUtils {
   }
 
   object Mappings {
+    implicit val finiteDurationMeta: Meta[FiniteDuration] = Meta[Long].timap(Duration.fromNanos)(_.toNanos)
+
     implicit val userIdMeta: Meta[User.Id] = Meta[String].timap(User.Id.from(_).get)(_.value)
     implicit val talkIdMeta: Meta[Talk.Id] = Meta[String].timap(Talk.Id.from(_).get)(_.value)
     implicit val talkSlugMeta: Meta[Talk.Slug] = Meta[String].timap(Talk.Slug.from(_).get)(_.value)
     implicit val talkTitleMeta: Meta[Talk.Title] = Meta[String].timap(Talk.Title)(_.value)
+    implicit val talkStatusMeta: Meta[Talk.Status] = Meta[String].timap(Talk.Status.from(_).get)(_.toString)
     implicit val groupIdMeta: Meta[Group.Id] = Meta[String].timap(Group.Id.from(_).get)(_.value)
     implicit val groupSlugMeta: Meta[Group.Slug] = Meta[String].timap(Group.Slug.from(_).get)(_.value)
     implicit val groupNameMeta: Meta[Group.Name] = Meta[String].timap(Group.Name)(_.value)
