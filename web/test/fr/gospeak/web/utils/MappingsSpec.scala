@@ -1,5 +1,6 @@
 package fr.gospeak.web.utils
 
+import fr.gospeak.libs.scalautils.CustomException
 import fr.gospeak.web.utils.Mappings._
 import org.scalatest.{FunSpec, Matchers}
 import play.api.data.FormError
@@ -14,7 +15,7 @@ class MappingsSpec extends FunSpec with Matchers {
   object Value {
     def from(in: String): Try[Value] = {
       if (in.nonEmpty && in.length < 4) Success(Value(in))
-      else Failure(new Exception("Wrong format"))
+      else Failure(CustomException("Wrong format"))
     }
   }
 

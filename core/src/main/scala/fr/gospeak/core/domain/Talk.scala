@@ -30,7 +30,7 @@ object Talk {
 
   object Status extends EnumBuilder[Status]("Talk.Status") {
 
-    case object Created extends Status
+    case object Draft extends Status
 
     case object Private extends Status
 
@@ -38,7 +38,7 @@ object Talk {
 
     case object Archived extends Status
 
-    val all: Seq[Status] = Seq(Created, Private, Public, Archived)
+    val all: Seq[Status] = Seq(Draft, Private, Public, Archived)
   }
 
 }

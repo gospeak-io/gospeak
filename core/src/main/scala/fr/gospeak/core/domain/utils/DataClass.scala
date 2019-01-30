@@ -2,6 +2,7 @@ package fr.gospeak.core.domain.utils
 
 import java.util.UUID
 
+import fr.gospeak.libs.scalautils.CustomException
 import fr.gospeak.libs.scalautils.Extensions._
 
 import scala.util.matching.Regex
@@ -34,7 +35,7 @@ abstract class UuidIdBuilder[T](clazz: String, build: String => T) {
   def from(in: String): Try[T] = {
     val errs = errors(in)
     if (errs.isEmpty) Success(build(in))
-    else Failure(new Exception(s"'$in' is an invalid $clazz: " + errs.mkString(", ")))
+    else Failure(CustomException(s"'$in' is an invalid $clazz: " + errs.mkString(", ")))
   }
 
   def errors(in: String): Seq[String] = {
@@ -49,7 +50,7 @@ abstract class SlugBuilder[T](clazz: String, build: String => T) {
   def from(in: String): Try[T] = {
     val errs = errors(in)
     if (errs.isEmpty) Success(build(in))
-    else Failure(new Exception(s"'$in' is an invalid $clazz: " + errs.mkString(", ")))
+    else Failure(CustomException(s"'$in' is an invalid $clazz: " + errs.mkString(", ")))
   }
 
   def errors(in: String): Seq[String] = {
@@ -68,5 +69,5 @@ abstract class EnumBuilder[T](clazz: String) {
   val all: Seq[T]
 
   def from(str: String): Try[T] =
-    all.find(_.toString == str).toTry(new Exception(s"$str in an invalid $clazz"))
+    all.find(_.toString == str).toTry(CustomException(s"$str in an invalid $clazz"))
 }

@@ -10,7 +10,7 @@ import scala.concurrent.duration.{Duration, MINUTES}
 
 class TalkTableSpec extends TableSpec {
   private val slug = Talk.Slug.from("my-talk").get
-  private val talk = Talk(talkId, slug, Talk.Title("My Talk"), Duration(10, MINUTES), Talk.Status.Created, "best talk", NonEmptyList.of(userId), Info(userId))
+  private val talk = Talk(talkId, slug, Talk.Title("My Talk"), Duration(10, MINUTES), Talk.Status.Draft, "best talk", NonEmptyList.of(userId), Info(userId))
 
   describe("TalkTable") {
     describe("insert") {
