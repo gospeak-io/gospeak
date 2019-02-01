@@ -9,7 +9,7 @@
 
 @(talk: Talk, speakers: Seq[User], proposals: Page[(Cfp, Proposal)])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
 @container("Gospeak", h, Some(b))() {
-    @if(talk.status == Talk.Status.Created) {
+    @if(talk.status == Talk.Status.Draft) {
         <div class="alert alert-info" role="alert">
             <p class="mb-0 float-right">
                 <a class="btn btn-sm btn-secondary"
