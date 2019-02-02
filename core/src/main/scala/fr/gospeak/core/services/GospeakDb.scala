@@ -5,8 +5,6 @@ import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{Done, Email, Page}
 
-import scala.concurrent.duration.FiniteDuration
-
 trait GospeakDb {
   def createUser(firstName: String, lastName: String, email: Email): IO[User]
 
@@ -36,13 +34,15 @@ trait GospeakDb {
 
   def getCfps(params: Page.Params): IO[Page[Cfp]]
 
-  def createTalk(slug: Talk.Slug, title: Talk.Title, duration: FiniteDuration, description: String, by: User.Id): IO[Talk]
+  def createTalk(data: Talk.Data, by: User.Id): IO[Talk]
 
   def getTalk(user: User.Id, slug: Talk.Slug): IO[Option[Talk]]
 
   def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]]
 
-  def setStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done]
+  def updateTalk(user: User.Id, slug: Talk.Slug)(data: Talk.Data): IO[Done]
+
+  def updateTalkStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done]
 
   def createProposal(talk: Talk.Id, cfp: Cfp.Id, title: Talk.Title, description: String, by: User.Id): IO[Proposal]
 

@@ -12,7 +12,9 @@ final case class Talk(id: Talk.Id,
                       status: Talk.Status,
                       description: String,
                       speakers: NonEmptyList[User.Id],
-                      info: Info)
+                      info: Info) {
+  def data: Talk.Data = Talk.Data(slug, title, duration, description)
+}
 
 object Talk {
 
@@ -46,5 +48,7 @@ object Talk {
 
     val all: Seq[Status] = Seq(Draft, Private, Public, Archived)
   }
+
+  final case class Data(slug: Talk.Slug, title: Talk.Title, duration: FiniteDuration, description: String)
 
 }

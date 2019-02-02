@@ -33,15 +33,15 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
     TalkForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
       data => db.getTalk(user.id, data.slug).flatMap {
-        case Some(talk) =>
-          createForm(TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${talk.title.value}"))
+        case Some(duplicate) =>
+          createForm(TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
         case None =>
-          db.createTalk(data.slug, data.title, data.duration, data.description, user.id).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+          db.createTalk(data, user.id).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
     ).unsafeToFuture()
   }
 
-  private def createForm(form: Form[TalkForms.Create])(implicit req: Request[AnyContent], user: User): IO[Result] = {
+  private def createForm(form: Form[Talk.Data])(implicit req: Request[AnyContent], user: User): IO[Result] = {
     val h = listHeader
     val b = listBreadcrumb(user.name).add("New" -> routes.TalkCtrl.create())
     IO.pure(Ok(html.create(form)(h, b)))
@@ -58,9 +58,39 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
     } yield Ok(html.detail(talkElt, speakers, proposals)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 
+  def edit(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = auth.authed()
+    editForm(TalkForms.create, talk, isEmpty = true).unsafeToFuture()
+  }
+
+  def doEdit(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = auth.authed()
+    TalkForms.create.bindFromRequest.fold(
+      formWithErrors => editForm(formWithErrors, talk),
+      data => db.getTalk(user.id, data.slug).flatMap {
+        case Some(duplicate) if data.slug != talk =>
+          editForm(TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"), talk)
+        case _ =>
+          db.updateTalk(user.id, talk)(data).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+      }
+    ).unsafeToFuture()
+  }
+
+  private def editForm(form: Form[Talk.Data], slug: Talk.Slug, isEmpty: Boolean = false)(implicit req: Request[AnyContent], user: User): IO[Result] = {
+    db.getTalk(user.id, slug).map {
+      case Some(talk) =>
+        val h = header(talk.slug)
+        val b = breadcrumb(user.name, talk.slug -> talk.title).add("Edit" -> routes.TalkCtrl.edit(talk.slug))
+        val filledForm = if(isEmpty) form.fill(talk.data) else form
+        Ok(html.edit(filledForm, talk)(h, b))
+      case None =>
+        talkNotFound(slug)
+    }
+  }
+
   def changeStatus(talk: Talk.Slug, status: Talk.Status): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
-    db.setStatus(user.id, talk)(status)
+    db.updateTalkStatus(user.id, talk)(status)
       .map(_ => Redirect(routes.TalkCtrl.detail(talk)))
       .unsafeToFuture()
   }

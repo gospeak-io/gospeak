@@ -8,13 +8,10 @@ import play.api.data.Forms._
 import scala.concurrent.duration.FiniteDuration
 
 object TalkForms {
-
-  final case class Create(slug: Talk.Slug, title: Talk.Title, duration: FiniteDuration, description: String)
-
-  val create: Form[Create] = Form(mapping(
+  val create: Form[Talk.Data] = Form(mapping(
     "slug" -> talkSlug,
     "title" -> talkTitle,
     "duration" -> duration,
     "description" -> nonEmptyText
-  )(Create.apply)(Create.unapply))
+  )(Talk.Data.apply)(Talk.Data.unapply))
 }

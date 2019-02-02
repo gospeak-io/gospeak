@@ -136,17 +136,29 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getCfps(params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(CfpTable.selectPage, params))
 
-  override def createTalk(slug: Talk.Slug, title: Talk.Title, duration: FiniteDuration, description: String, by: User.Id): IO[Talk] =
-    getTalk(by, slug).flatMap {
-      case None => run(TalkTable.insert, Talk(Talk.Id.generate(), slug, title, duration, Talk.Status.Draft, description, NonEmptyList.one(by), Info(by)))
-      case _ => IO.raiseError(CustomException(s"You already have a talk with slug $slug"))
+  override def createTalk(data: Talk.Data, by: User.Id): IO[Talk] =
+    getTalk(by, data.slug).flatMap {
+      case None => run(TalkTable.insert, Talk(Talk.Id.generate(), data.slug, data.title, data.duration, Talk.Status.Draft, data.description, NonEmptyList.one(by), Info(by)))
+      case _ => IO.raiseError(CustomException(s"You already have a talk with slug ${data.slug}"))
     }
 
   override def getTalk(user: User.Id, slug: Talk.Slug): IO[Option[Talk]] = run(TalkTable.selectOne(user, slug).option)
 
   override def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(TalkTable.selectPage(user, _), params))
 
-  override def setStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done] = run(TalkTable.updateStatus(user, slug)(status))
+  override def updateTalk(user: User.Id, slug: Talk.Slug)(data: Talk.Data): IO[Done] = {
+    if(data.slug != slug) {
+      // FIXME: should also check for other speakers !!!
+      getTalk(user, data.slug).flatMap {
+        case None => run(TalkTable.updateAll(user, slug)(data, Instant.now()))
+        case _ => IO.raiseError(CustomException(s"You already have a talk with slug ${data.slug}"))
+      }
+    } else {
+      run(TalkTable.updateAll(user, slug)(data, Instant.now()))
+    }
+  }
+
+  override def updateTalkStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done] = run(TalkTable.updateStatus(user, slug)(status))
 
   override def createProposal(talk: Talk.Id, cfp: Cfp.Id, title: Talk.Title, description: String, by: User.Id): IO[Proposal] =
     run(ProposalTable.insert, Proposal(Proposal.Id.generate(), talk, cfp, title, description, Info(by)))

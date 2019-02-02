@@ -36,7 +36,7 @@
                     <i class="fas fa-cog"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">
-                    <a class="dropdown-item" href="TODO">Edit</a>
+                    <a class="dropdown-item" href="@TalkCtrl.edit(talk.slug)">Edit</a>
                     @if(talk.status != Talk.Status.Public) {
                         @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Public), "Make it public", Seq(
                             "class" -> "dropdown-item",

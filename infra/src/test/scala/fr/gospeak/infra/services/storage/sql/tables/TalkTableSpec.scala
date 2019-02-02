@@ -1,5 +1,7 @@
 package fr.gospeak.infra.services.storage.sql.tables
 
+import java.time.Instant
+
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.Talk
 import fr.gospeak.core.domain.utils.Info
@@ -10,6 +12,7 @@ import scala.concurrent.duration.{Duration, MINUTES}
 
 class TalkTableSpec extends TableSpec {
   private val slug = Talk.Slug.from("my-talk").get
+  private val data = Talk.Data(slug, Talk.Title("My Talk"), Duration(10, MINUTES), "best talk")
   private val talk = Talk(talkId, slug, Talk.Title("My Talk"), Duration(10, MINUTES), Talk.Status.Draft, "best talk", NonEmptyList.of(userId), Info(userId))
 
   describe("TalkTable") {
@@ -34,6 +37,13 @@ class TalkTableSpec extends TableSpec {
         c.sql shouldBe "SELECT count(*) FROM talks WHERE speakers LIKE ? "
         check(s)
         check(c)
+      }
+    }
+    describe("updateAll") {
+      it("should generate the query") {
+        val q = updateAll(userId, slug)(data, Instant.now())
+        q.sql shouldBe "UPDATE talks SET slug=?, title=?, duration=?, description=?, updated=?, updated_by=? WHERE speakers LIKE ? AND slug=?"
+        check(q)
       }
     }
     describe("updateStatus") {
