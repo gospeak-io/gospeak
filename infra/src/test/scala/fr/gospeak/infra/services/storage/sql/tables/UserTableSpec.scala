@@ -3,9 +3,9 @@ package fr.gospeak.infra.services.storage.sql.tables
 import java.time.Instant
 
 import fr.gospeak.core.domain.User
-import fr.gospeak.core.domain.utils.Email
 import fr.gospeak.infra.services.storage.sql.tables.UserTable._
 import fr.gospeak.infra.services.storage.sql.tables.testingutils.TableSpec
+import fr.gospeak.libs.scalautils.domain.Email
 
 class UserTableSpec extends TableSpec {
   private val user = User(User.Id.generate(), "John", "Doe", Email("john@mail.com"), Instant.now(), Instant.now())

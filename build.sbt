@@ -96,7 +96,7 @@ val web = (project in file("web"))
     libraryDependencies ++= webDependencies,
     routesImport ++= Seq(
       "fr.gospeak.core.domain._",
-      "fr.gospeak.core.domain.utils.Page",
+      "fr.gospeak.libs.scalautils.domain.Page",
       "fr.gospeak.web.utils.PathBindables._",
       "fr.gospeak.web.utils.QueryStringBindables._"),
     commonSettings

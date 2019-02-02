@@ -1,4 +1,4 @@
-package fr.gospeak.core.domain.utils
+package fr.gospeak.libs.scalautils.domain
 
 final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total) {
   assert(items.length <= params.pageSize.value, s"Page can't have more items (${items.length}) than its size (${params.pageSize.value})")

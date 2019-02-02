@@ -6,13 +6,14 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{Done, Email, Info, Page}
+import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.infra.services.storage.sql.tables._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.infra.utils.{DoobieUtils, FlywayUtils}
 import fr.gospeak.libs.scalautils.CustomException
+import fr.gospeak.libs.scalautils.domain.{Done, Email, Page}
 
 import scala.concurrent.duration._
 

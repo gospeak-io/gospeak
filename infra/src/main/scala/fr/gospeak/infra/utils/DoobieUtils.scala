@@ -8,8 +8,8 @@ import doobie.util.fragment.Fragment
 import doobie.util.update.Update
 import doobie.util.{Meta, Write}
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.infra.services.storage.sql.{DbSqlConf, H2, PostgreSQL}
+import fr.gospeak.libs.scalautils.domain.Page
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}

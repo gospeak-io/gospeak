@@ -2,8 +2,8 @@ package fr.gospeak.infra.services.storage.sql
 
 import cats.effect.IO
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{Done, Email, Page}
 import fr.gospeak.infra.testingutils.Values
+import fr.gospeak.libs.scalautils.domain.{Done, Email, Page}
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
 
 import scala.concurrent.duration._

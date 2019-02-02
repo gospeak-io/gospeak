@@ -3,9 +3,9 @@ package fr.gospeak.infra.services.storage.sql.tables.testingutils
 import cats.effect.IO
 import doobie.scalatest.IOChecker
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.infra.services.storage.sql.GospeakDbSql
 import fr.gospeak.infra.testingutils.Values
+import fr.gospeak.libs.scalautils.domain.Page
 import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
 
 trait TableSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterAll {

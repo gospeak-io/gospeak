@@ -1,6 +1,7 @@
 package fr.gospeak.core.domain
 
-import fr.gospeak.core.domain.utils.{DataClass, Info, SlugBuilder, UuidIdBuilder}
+import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.libs.scalautils.domain.{DataClass, SlugBuilder, UuidIdBuilder}
 
 final case class Event(group: Group.Id,
                        id: Event.Id,

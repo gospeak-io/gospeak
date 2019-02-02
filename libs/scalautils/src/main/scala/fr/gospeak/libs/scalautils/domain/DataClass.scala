@@ -1,4 +1,4 @@
-package fr.gospeak.core.domain.utils
+package fr.gospeak.libs.scalautils.domain
 
 import java.util.UUID
 

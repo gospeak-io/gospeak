@@ -3,8 +3,8 @@ package fr.gospeak.web.user.groups.proposals
 import cats.data.OptionT
 import cats.effect.IO
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.AuthService
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.groups.GroupCtrl

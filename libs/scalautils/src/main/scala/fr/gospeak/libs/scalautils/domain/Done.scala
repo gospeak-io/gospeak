@@ -1,4 +1,4 @@
-package fr.gospeak.core.domain.utils
+package fr.gospeak.libs.scalautils.domain
 
 /**
   * Type to signify computation completion when there is no result

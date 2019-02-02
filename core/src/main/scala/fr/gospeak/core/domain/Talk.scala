@@ -2,6 +2,7 @@ package fr.gospeak.core.domain
 
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils._
+import fr.gospeak.libs.scalautils.domain.{DataClass, EnumBuilder, SlugBuilder, UuidIdBuilder}
 
 import scala.concurrent.duration.FiniteDuration
 

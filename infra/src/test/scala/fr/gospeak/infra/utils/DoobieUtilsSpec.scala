@@ -2,8 +2,8 @@ package fr.gospeak.infra.utils
 
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
+import fr.gospeak.libs.scalautils.domain.Page
 import org.scalatest.{FunSpec, Matchers}
 
 class DoobieUtilsSpec extends FunSpec with Matchers {

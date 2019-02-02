@@ -1,6 +1,7 @@
 package fr.gospeak.core.domain
 
-import fr.gospeak.core.domain.utils.{DataClass, Info, UuidIdBuilder}
+import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.libs.scalautils.domain.{DataClass, UuidIdBuilder}
 
 final case class Proposal(id: Proposal.Id,
                           talk: Talk.Id,

@@ -4,9 +4,9 @@ import cats.data.NonEmptyList
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.User
-import fr.gospeak.core.domain.utils.Email
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
+import fr.gospeak.libs.scalautils.domain.Email
 
 object UserTable {
   private val _ = userIdMeta // for intellij not remove DoobieUtils.Mappings import

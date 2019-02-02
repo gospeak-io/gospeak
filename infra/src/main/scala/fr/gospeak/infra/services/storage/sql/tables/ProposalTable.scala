@@ -2,10 +2,10 @@ package fr.gospeak.infra.services.storage.sql.tables
 
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Cfp, Proposal, Talk}
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
+import fr.gospeak.libs.scalautils.domain.Page
 
 object ProposalTable {
   private val _ = proposalIdMeta // for intellij not remove DoobieUtils.Mappings import

@@ -3,7 +3,7 @@ package fr.gospeak.core.services
 import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{Done, Email, Page}
+import fr.gospeak.libs.scalautils.domain.{Done, Email, Page}
 
 trait GospeakDb {
   def createUser(firstName: String, lastName: String, email: Email): IO[User]

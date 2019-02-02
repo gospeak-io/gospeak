@@ -2,8 +2,8 @@ package fr.gospeak.web.user.talks.proposals
 
 import cats.data.OptionT
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.AuthService
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.user.talks.TalkCtrl

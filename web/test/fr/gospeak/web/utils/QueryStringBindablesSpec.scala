@@ -1,6 +1,6 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.core.domain.utils.Page._
+import fr.gospeak.libs.scalautils.domain.Page._
 import fr.gospeak.web.utils.QueryStringBindables._
 import org.scalatest.{FunSpec, Matchers}
 

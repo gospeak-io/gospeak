@@ -2,10 +2,10 @@ package fr.gospeak.infra.services.storage.sql.tables
 
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Event, Group}
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
+import fr.gospeak.libs.scalautils.domain.Page
 
 object EventTable {
   private val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import

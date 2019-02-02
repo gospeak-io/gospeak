@@ -2,7 +2,7 @@ package fr.gospeak.core.domain
 
 import java.time.Instant
 
-import fr.gospeak.core.domain.utils.{DataClass, Email, UuidIdBuilder}
+import fr.gospeak.libs.scalautils.domain.{DataClass, Email, UuidIdBuilder}
 
 final case class User(id: User.Id,
                       firstName: String,

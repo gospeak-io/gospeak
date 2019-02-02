@@ -2,8 +2,8 @@ package fr.gospeak.web.auth
 
 import cats.effect.IO
 import fr.gospeak.core.domain.User
-import fr.gospeak.core.domain.utils.{Done, Email}
 import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.libs.scalautils.domain.{Done, Email}
 import play.api.mvc.{AnyContent, Request}
 
 // TODO mock auth, to remove

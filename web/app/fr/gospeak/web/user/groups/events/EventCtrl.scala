@@ -2,9 +2,9 @@ package fr.gospeak.web.user.groups.events
 
 import cats.data.OptionT
 import cats.effect.IO
-import fr.gospeak.core.domain.utils.Page
 import fr.gospeak.core.domain.{Event, Group, User}
 import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.AuthService
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.groups.GroupCtrl

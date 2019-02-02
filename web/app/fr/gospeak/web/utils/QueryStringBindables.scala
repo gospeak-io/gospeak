@@ -1,6 +1,6 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.core.domain.utils.Page
+import fr.gospeak.libs.scalautils.domain.Page
 import play.api.mvc.QueryStringBindable
 
 object QueryStringBindables {
