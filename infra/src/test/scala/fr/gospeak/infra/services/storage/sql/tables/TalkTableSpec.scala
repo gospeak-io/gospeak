@@ -36,5 +36,12 @@ class TalkTableSpec extends TableSpec {
         check(c)
       }
     }
+    describe("updateStatus") {
+      it("should generate the query") {
+        val q = updateStatus(userId, slug)(Talk.Status.Public)
+        q.sql shouldBe "UPDATE talks SET status=? WHERE speakers LIKE ? AND slug=?"
+        check(q)
+      }
+    }
   }
 }

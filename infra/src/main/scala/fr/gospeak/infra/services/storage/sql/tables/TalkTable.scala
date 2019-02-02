@@ -28,4 +28,7 @@ object TalkTable {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE speakers LIKE ${"%" + user.value + "%"}"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Talk], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
+
+  def updateStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): doobie.Update0 =
+    buildUpdate(tableFr, fr0"status=$status", fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND slug=$slug").update
 }

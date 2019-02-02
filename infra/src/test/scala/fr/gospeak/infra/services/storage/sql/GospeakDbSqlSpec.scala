@@ -141,6 +141,13 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
         db.createTalk(slug, Talk.Title("title"), Duration(10, MINUTES), "desc", user2.id).unsafeRunSync()
         an[Exception] should be thrownBy db.createTalk(slug, Talk.Title("title"), Duration(10, MINUTES), "desc", user.id).unsafeRunSync()
       }
+      it("should update the status") {
+        val user = db.createUser(firstName, lastName, email).unsafeRunSync()
+        val talk = db.createTalk(slug, Talk.Title("title"), Duration(10, MINUTES), "desc", user.id).unsafeRunSync()
+        db.getTalk(user.id, slug).unsafeRunSync().map(_.status) shouldBe Some(Talk.Status.Draft)
+        db.setStatus(user.id, slug)(Talk.Status.Public).unsafeRunSync()
+        db.getTalk(user.id, slug).unsafeRunSync().map(_.status) shouldBe Some(Talk.Status.Public)
+      }
     }
     describe("Proposal") {
       it("should create and retrieve a proposal for a group and talk") {

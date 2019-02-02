@@ -57,6 +57,13 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
       b = breadcrumb(user.name, talk -> talkElt.title)
     } yield Ok(html.detail(talkElt, speakers, proposals)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
+
+  def changeStatus(talk: Talk.Slug, status: Talk.Status): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = auth.authed()
+    db.setStatus(user.id, talk)(status)
+      .map(_ => Redirect(routes.TalkCtrl.detail(talk)))
+      .unsafeToFuture()
+  }
 }
 
 object TalkCtrl {

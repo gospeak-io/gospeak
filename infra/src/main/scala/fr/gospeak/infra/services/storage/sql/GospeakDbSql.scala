@@ -146,6 +146,8 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(TalkTable.selectPage(user, _), params))
 
+  override def setStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done] = run(TalkTable.updateStatus(user, slug)(status))
+
   override def createProposal(talk: Talk.Id, cfp: Cfp.Id, title: Talk.Title, description: String, by: User.Id): IO[Proposal] =
     run(ProposalTable.insert, Proposal(Proposal.Id.generate(), talk, cfp, title, description, Info(by)))
 
@@ -159,6 +161,12 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     i(v).run.transact(xa).flatMap {
       case 1 => IO.pure(v)
       case code => IO.raiseError(CustomException(s"Failed to insert $v (code: $code)"))
+    }
+
+  private def run(i: => doobie.Update0): IO[Done] =
+    i.run.transact(xa).flatMap {
+      case 1 => IO.pure(Done)
+      case code => IO.raiseError(CustomException(s"Failed to update $i (code: $code)"))
     }
 
   private def run[A](v: doobie.ConnectionIO[A]): IO[A] =

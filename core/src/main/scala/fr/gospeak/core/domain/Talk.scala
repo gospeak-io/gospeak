@@ -32,11 +32,17 @@ object Talk {
 
     case object Draft extends Status
 
-    case object Private extends Status
+    case object Private extends Status {
+      def description = "Only you can see it, you can propose it to groups but organizers will not see it"
+    }
 
-    case object Public extends Status
+    case object Public extends Status {
+      def description = "Group organizers will be able to search for it and send you speaking proposals"
+    }
 
-    case object Archived extends Status
+    case object Archived extends Status {
+      def description = "When your talk is not actual anymore. It will be hided by default everywhere"
+    }
 
     val all: Seq[Status] = Seq(Draft, Private, Public, Archived)
   }

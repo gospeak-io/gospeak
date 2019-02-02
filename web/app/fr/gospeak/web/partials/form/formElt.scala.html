@@ -1,6 +1,7 @@
 @import helper.CSRF
+@import fr.gospeak.web.partials.form.Utils
 
-@(c: Call)(content: Html)(implicit req: Request[AnyContent])
-<form method="@c.method" action="@CSRF(c).url">
+@(call: Call, args: Seq[(String, String)] = Seq())(content: Html)(implicit req: Request[AnyContent])
+<form method="@call.method" action="@CSRF(call).url" @Utils.getArg(args, "class").map { c => class="@c" }>
     @content
 </form>

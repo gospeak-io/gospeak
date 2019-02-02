@@ -3,7 +3,7 @@ package fr.gospeak.core.services
 import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{Email, Page}
+import fr.gospeak.core.domain.utils.{Done, Email, Page}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -41,6 +41,8 @@ trait GospeakDb {
   def getTalk(user: User.Id, slug: Talk.Slug): IO[Option[Talk]]
 
   def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]]
+
+  def setStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done]
 
   def createProposal(talk: Talk.Id, cfp: Cfp.Id, title: Talk.Title, description: String, by: User.Id): IO[Proposal]
 

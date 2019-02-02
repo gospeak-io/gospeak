@@ -31,6 +31,11 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
           buildSelect(table, fields, whereOpt.get).toString() shouldBe """Fragment("SELECT id, name, description FROM mytable WHERE id=?")"""
         }
       }
+      describe("buildUpdate") {
+        it("should build update statement") {
+          buildUpdate(table, fr0"name=$name", whereOpt.get).toString() shouldBe """Fragment("UPDATE mytable SET name=? WHERE id=?")"""
+        }
+      }
       describe("pagination") {
         val p = Page.Params(Page.No(3), Page.Size(20), Some(Page.Search("q")), Some(Page.OrderBy("name")))
         it("should build pagination sql") {

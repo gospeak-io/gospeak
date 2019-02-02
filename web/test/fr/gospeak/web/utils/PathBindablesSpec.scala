@@ -27,6 +27,14 @@ class PathBindablesSpec extends FunSpec with Matchers {
         talkSlugPathBinder.unbind("key", slug) shouldBe "value"
       }
     }
+    describe("talkStatusPathBinder") {
+      it("should bind & unbind") {
+        Talk.Status.all.foreach { status =>
+          talkStatusPathBinder.bind("key", status.toString) shouldBe Right(status)
+          talkStatusPathBinder.unbind("key", status) shouldBe status.toString
+        }
+      }
+    }
     describe("cfpSlugPathBinder") {
       it("should bind & unbind") {
         val slug = Cfp.Slug.from("value").get

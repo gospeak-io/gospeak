@@ -28,6 +28,14 @@ object PathBindables {
       slug.value
   }
 
+  implicit def talkStatusPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Talk.Status] = new PathBindable[Talk.Status] {
+    override def bind(key: String, value: String): Either[String, Talk.Status] =
+      stringBinder.bind(key, value).flatMap(Talk.Status.from(_).toEither.swap.map(_.getMessage).swap)
+
+    override def unbind(key: String, status: Talk.Status): String =
+      status.toString
+  }
+
   implicit def cfpSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Cfp.Slug] = new PathBindable[Cfp.Slug] {
     override def bind(key: String, value: String): Either[String, Cfp.Slug] =
       stringBinder.bind(key, value).flatMap(Cfp.Slug.from(_).toEither.swap.map(_.getMessage).swap)
