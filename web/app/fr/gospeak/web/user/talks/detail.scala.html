@@ -9,7 +9,7 @@
 @import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.user.talks.cfps.routes.CfpCtrl
 
-@(talk: Talk, speakers: Seq[User], proposals: Page[(Cfp, Proposal)])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], flash: Flash)
+@(talk: Talk, speakers: Seq[User], proposals: Page[(Cfp, Proposal)])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
 @container("Gospeak", h, Some(b))() {
     @if(talk.status == Talk.Status.Draft) {
         <div class="alert alert-info" role="alert">

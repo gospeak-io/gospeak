@@ -1,3 +1,5 @@
 @import java.time.Instant
+@import fr.gospeak.web.utils.Formats
+
 @(i: Instant)
-@i @* TODO calculate time ago (missing timezone) *@
+<span title="@Formats.time(i)">@Formats.timeAgo(i)</span>
