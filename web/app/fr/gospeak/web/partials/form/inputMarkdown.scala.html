@@ -1,0 +1,21 @@
+@import fr.gospeak.web.partials.form.Utils
+
+@(field: Field, args: Seq[(String, String)] = Seq())
+<div class="markdown-editor">
+    <ul class="nav nav-tabs" role="tablist" id="@Utils.id(args, field)-tab">
+        <li class="nav-item">
+            <a class="nav-link active" id="@Utils.id(args, field)-write-tab" data-toggle="tab" href="#@Utils.id(args, field)-write" role="tab" aria-controls="@Utils.id(args, field)-write" aria-selected="true" tabindex="-1">Write</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="@Utils.id(args, field)-preview-tab" data-toggle="tab" href="#@Utils.id(args, field)-preview" role="tab" aria-controls="@Utils.id(args, field)-preview" aria-selected="false" tabindex="-1">Preview</a>
+        </li>
+    </ul>
+    <div class="tab-content" id="@Utils.id(args, field)-content">
+        <div class="tab-pane fade show active" id="@Utils.id(args, field)-write" role="tabpanel" aria-labelledby="@Utils.id(args, field)-write-tab">
+            @inputTextarea(field, args)
+        </div>
+        <div class="tab-pane fade" id="@Utils.id(args, field)-preview" role="tabpanel" aria-labelledby="@Utils.id(args, field)-preview-tab">
+            TODO
+        </div>
+    </div>
+</div>

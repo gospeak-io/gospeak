@@ -7,13 +7,14 @@ import fr.gospeak.core.domain.Talk
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.infra.services.storage.sql.tables.TalkTable._
 import fr.gospeak.infra.services.storage.sql.tables.testingutils.TableSpec
+import fr.gospeak.libs.scalautils.domain.Markdown
 
 import scala.concurrent.duration.{Duration, MINUTES}
 
 class TalkTableSpec extends TableSpec {
   private val slug = Talk.Slug.from("my-talk").get
-  private val data = Talk.Data(slug, Talk.Title("My Talk"), Duration(10, MINUTES), "best talk")
-  private val talk = Talk(talkId, slug, Talk.Title("My Talk"), Duration(10, MINUTES), Talk.Status.Draft, "best talk", NonEmptyList.of(userId), Info(userId))
+  private val data = Talk.Data(slug, Talk.Title("My Talk"), Duration(10, MINUTES), Markdown("best talk"))
+  private val talk = Talk(talkId, slug, Talk.Title("My Talk"), Duration(10, MINUTES), Talk.Status.Draft, Markdown("best talk"), NonEmptyList.of(userId), Info(userId))
 
   describe("TalkTable") {
     describe("insert") {

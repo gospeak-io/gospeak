@@ -13,14 +13,14 @@ object AuthForms {
     "first-name" -> nonEmptyText,
     "last-name" -> nonEmptyText,
     "email" -> mail,
-    "password" -> password
+    "password" -> secret
   )(Signup.apply)(Signup.unapply))
 
   final case class Login(email: Email, password: Secret)
 
   val login: Form[Login] = Form(mapping(
     "email" -> mail,
-    "password" -> password
+    "password" -> secret
   )(Login.apply)(Login.unapply))
 
   final case class PasswordReset(email: Email)

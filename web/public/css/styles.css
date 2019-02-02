@@ -19,6 +19,14 @@
     display: inline;
 }
 
+.markdown {
+    margin-bottom: 0;
+}
+
+.markdown-editor .tab-content {
+    margin-top: 5px;
+}
+
 .login {
     width: 500px;
     margin: auto;

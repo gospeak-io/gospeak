@@ -3,7 +3,7 @@ package fr.gospeak.core.services
 import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
-import fr.gospeak.libs.scalautils.domain.{Done, Email, Page}
+import fr.gospeak.libs.scalautils.domain.{Done, Email, Markdown, Page}
 
 trait GospeakDb {
   def createUser(firstName: String, lastName: String, email: Email): IO[User]
@@ -44,7 +44,7 @@ trait GospeakDb {
 
   def updateTalkStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done]
 
-  def createProposal(talk: Talk.Id, cfp: Cfp.Id, title: Talk.Title, description: String, by: User.Id): IO[Proposal]
+  def createProposal(talk: Talk.Id, cfp: Cfp.Id, title: Talk.Title, description: Markdown, by: User.Id): IO[Proposal]
 
   def getProposal(id: Proposal.Id): IO[Option[Proposal]]
 

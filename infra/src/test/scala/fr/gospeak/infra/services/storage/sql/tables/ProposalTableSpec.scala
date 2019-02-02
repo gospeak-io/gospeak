@@ -4,9 +4,10 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.infra.services.storage.sql.tables.ProposalTable._
 import fr.gospeak.infra.services.storage.sql.tables.testingutils.TableSpec
+import fr.gospeak.libs.scalautils.domain.Markdown
 
 class ProposalTableSpec extends TableSpec {
-  private val proposal = Proposal(proposalId, talkId, cfpId, Talk.Title("My Proposal"), "best talk", Info(userId))
+  private val proposal = Proposal(proposalId, talkId, cfpId, Talk.Title("My Proposal"), Markdown("best talk"), Info(userId))
 
   describe("ProposalTable") {
     describe("insert") {

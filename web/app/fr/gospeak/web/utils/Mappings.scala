@@ -1,7 +1,7 @@
 package fr.gospeak.web.utils
 
 import fr.gospeak.core.domain.{Cfp, Event, Group, Talk}
-import fr.gospeak.libs.scalautils.domain.{Email, Secret, SlugBuilder}
+import fr.gospeak.libs.scalautils.domain.{Email, Markdown, Secret, SlugBuilder}
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.validation._
@@ -78,8 +78,10 @@ object Mappings {
 
   val duration: Mapping[FiniteDuration] = longMapping(Duration.apply(_, MINUTES), _.toMinutes)
 
+  val markdown: Mapping[Markdown] = stringMapping(Markdown, _.value, required)
   val mail: Mapping[Email] = stringMapping(Email, _.value, required)
-  val password: Mapping[Secret] = stringMapping(Secret, _.decode, required)
+  val secret: Mapping[Secret] = stringMapping(Secret, _.decode, required)
+
   val groupSlug: Mapping[Group.Slug] = stringTryMapping(Group.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
   val groupName: Mapping[Group.Name] = stringMapping(Group.Name, _.value, required)
   val eventSlug: Mapping[Event.Slug] = stringTryMapping(Event.Slug.from, _.value, required, pattern(SlugBuilder.pattern))

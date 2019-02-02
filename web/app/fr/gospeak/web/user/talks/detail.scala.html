@@ -3,7 +3,7 @@
 @import fr.gospeak.web.user.talks.partials
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.html.container
-@import fr.gospeak.web.partials.display.html.timeAgo
+@import fr.gospeak.web.partials.display.html._
 @import fr.gospeak.web.partials.form.html.formBtn
 @import fr.gospeak.web.user.talks.routes.TalkCtrl
 @import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
@@ -65,7 +65,7 @@
         @partials.html.status(talk.status) @partials.html.duration(talk.duration)
     </div>
 
-    <p>@talk.description</p>
+    <p>@markdown(talk.description)</p>
 
     <p>Speakers: @talk.speakers.toList.map { id => @partials.html.speaker(speakers, id) }</p>
 

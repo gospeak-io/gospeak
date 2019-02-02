@@ -2,7 +2,7 @@ package fr.gospeak.core.domain
 
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils._
-import fr.gospeak.libs.scalautils.domain.{DataClass, EnumBuilder, SlugBuilder, UuidIdBuilder}
+import fr.gospeak.libs.scalautils.domain._
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -11,7 +11,7 @@ final case class Talk(id: Talk.Id,
                       title: Talk.Title,
                       duration: FiniteDuration,
                       status: Talk.Status,
-                      description: String,
+                      description: Markdown,
                       speakers: NonEmptyList[User.Id],
                       info: Info) {
   def data: Talk.Data = Talk.Data(slug, title, duration, description)
@@ -50,6 +50,6 @@ object Talk {
     val all: Seq[Status] = Seq(Draft, Private, Public, Archived)
   }
 
-  final case class Data(slug: Talk.Slug, title: Talk.Title, duration: FiniteDuration, description: String)
+  final case class Data(slug: Talk.Slug, title: Talk.Title, duration: FiniteDuration, description: Markdown)
 
 }
