@@ -7,13 +7,15 @@
 
 @(talk: Talk, cfps: Page[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
 @container("Gospeak", h, Some(b))() {
-    <div>
-        <h1>Submit proposal for @talk.title.value</h1>
-    </div>
-
     @if(cfps.isEmpty) {
-        <h3>No available CFP to propose this talk</h3>
+        <div class="jumbotron">
+            <h1>No available CFP to propose @talk.title.value <i class="far fa-sad-tear"></i></h1>
+        </div>
     } else {
+        <div>
+            <h1>Submit proposal for @talk.title.value</h1>
+        </div>
+
         <div class="float-right">@pagination(cfps, CfpCtrl.list(talk.slug, _))</div>
         @search(cfps, CfpCtrl.list(talk.slug))
 

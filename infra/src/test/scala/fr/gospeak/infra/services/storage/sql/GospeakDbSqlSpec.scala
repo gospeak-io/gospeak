@@ -12,7 +12,7 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
   private val db = Values.db
   private val firstName = "John"
   private val lastName = "Doe"
-  private val email = Email("john@doe.com")
+  private val email = Email.from("john@doe.com").get
   private val desc = Markdown("desc")
   private val page = Page.Params()
 
@@ -44,7 +44,7 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
       }
       it("should not retrieve not owned groups") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
-        val user2 = db.createUser("A", "A", Email("aaa@aaa.com")).unsafeRunSync()
+        val user2 = db.createUser("A", "A", Email.from("aaa@aaa.com").get).unsafeRunSync()
         db.createGroup(slug, Group.Name("name"), desc, user2.id).unsafeRunSync()
         db.getGroups(user.id, page).unsafeRunSync().items shouldBe Seq()
         db.getGroup(user.id, slug).unsafeRunSync() shouldBe None
@@ -132,14 +132,14 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
       }
       it("should not retrieve not owned talks") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
-        val user2 = db.createUser("A", "A", Email("aaa@aaa.com")).unsafeRunSync()
+        val user2 = db.createUser("A", "A", Email.from("aaa@aaa.com").get).unsafeRunSync()
         val talk = db.createTalk(data, user2.id).unsafeRunSync()
         db.getTalks(user.id, page).unsafeRunSync().items shouldBe Seq()
         db.getTalk(user.id, slug).unsafeRunSync() shouldBe None
       }
       it("should fail on duplicate slug on same user") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
-        val user2 = db.createUser("A", "A", Email("aaa@aaa.com")).unsafeRunSync()
+        val user2 = db.createUser("A", "A", Email.from("aaa@aaa.com").get).unsafeRunSync()
         db.createTalk(data, user.id).unsafeRunSync()
         db.createTalk(data, user2.id).unsafeRunSync()
         an[Exception] should be thrownBy db.createTalk(data, user.id).unsafeRunSync()

@@ -8,7 +8,7 @@ import play.api.mvc.{AnyContent, Request}
 
 // TODO mock auth, to remove
 class AuthService(db: GospeakDb) {
-  private var logged: Option[User] = db.getUser(Email("demo@mail.com")).unsafeRunSync()
+  private var logged: Option[User] = db.getUser(Email.from("demo@mail.com").get).unsafeRunSync()
 
   def login(user: User): IO[Done] = {
     logged = Some(user)
@@ -24,7 +24,7 @@ class AuthService(db: GospeakDb) {
     val user = req.queryString.get("user")
       .flatMap(_.headOption)
       .map { u => if (u.contains("@")) u else u + "@mail.com" }
-      .map(Email)
+      .map(Email.from(_).get)
       .flatMap(db.getUser(_).unsafeRunSync())
     user.foreach(login(_).unsafeRunSync())
     user.orElse(logged)

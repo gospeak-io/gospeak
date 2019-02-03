@@ -26,10 +26,10 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   private val userOrga = User.Id.generate()
 
   private val users = NonEmptyList.of(
-    User(userDemo, "Demo", "User", Email("demo@mail.com"), Instant.now(), Instant.now()),
-    User(userSpeaker, "Speaker", "User", Email("speaker@mail.com"), Instant.now(), Instant.now()),
-    User(userOrga, "Orga", "User", Email("orga@mail.com"), Instant.now(), Instant.now()),
-    User(User.Id.generate(), "Empty", "User", Email("empty@mail.com"), Instant.now(), Instant.now()))
+    User(userDemo, "Demo", "User", Email.from("demo@mail.com").get, Instant.now(), Instant.now()),
+    User(userSpeaker, "Speaker", "User", Email.from("speaker@mail.com").get, Instant.now(), Instant.now()),
+    User(userOrga, "Orga", "User", Email.from("orga@mail.com").get, Instant.now(), Instant.now()),
+    User(User.Id.generate(), "Empty", "User", Email.from("empty@mail.com").get, Instant.now(), Instant.now()))
 
   def createTables(): IO[Int] = IO(flyway.migrate())
 

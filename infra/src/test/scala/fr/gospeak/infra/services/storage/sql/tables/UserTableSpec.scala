@@ -1,15 +1,10 @@
 package fr.gospeak.infra.services.storage.sql.tables
 
-import java.time.Instant
-
-import fr.gospeak.core.domain.User
 import fr.gospeak.infra.services.storage.sql.tables.UserTable._
 import fr.gospeak.infra.services.storage.sql.tables.testingutils.TableSpec
 import fr.gospeak.libs.scalautils.domain.Email
 
 class UserTableSpec extends TableSpec {
-  private val user = User(User.Id.generate(), "John", "Doe", Email("john@mail.com"), Instant.now(), Instant.now())
-
   describe("UserTable") {
     describe("insert") {
       it("should generate the query") {
@@ -20,7 +15,7 @@ class UserTableSpec extends TableSpec {
     }
     describe("selectOne") {
       it("should generate the query") {
-        val q = selectOne(Email("john@mail.com"))
+        val q = selectOne(Email.from("john@mail.com").get)
         q.sql shouldBe "SELECT id, first_name, last_name, email, created, updated FROM users WHERE email=?"
         check(q)
       }

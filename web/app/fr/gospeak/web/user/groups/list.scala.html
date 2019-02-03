@@ -4,22 +4,37 @@
 @import fr.gospeak.web.partials.html.{container, pagination, search}
 @import fr.gospeak.web.user.groups.partials.html.item
 @import fr.gospeak.web.user.groups.routes.GroupCtrl
+@import fr.gospeak.web.utils.Formats._
 
 @(groups: Page[Group])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
 @container("Gospeak", h, Some(b))() {
-    <div>
-        <span class="float-right">
-            <a class="btn btn-primary" href="@GroupCtrl.create()">Create a group</a>
-        </span>
-        <h1>@groups.total.value groups</h1>
-    </div>
+    @if(groups.isEmpty) {
+        <div class="jumbotron">
+            <h1>You have no group <i class="far fa-sad-tear"></i></h1>
+            <p class="lead">Organizing conferences or meetups? Let Gospeak help you</p>
+            <hr class="my-4">
+            <p>Create events, receive talk proposal with a CFP, manages sponsors, slack & meetup integration</p>
+            <p class="text-center">
+                <a href="TODO" class="btn btn-lg btn-success">Join an existing group</a>
+                or
+                <a href="@GroupCtrl.create()" class="btn btn-lg btn-success">Create your own group</a>
+            </p>
+        </div>
+    } else {
+        <div>
+            <span class="float-right">
+                <a class="btn btn-primary" href="@GroupCtrl.create()">Create a group</a>
+            </span>
+            <h1>@plural(groups.total.value, "group")</h1>
+        </div>
 
-    <div class="float-right">@pagination(groups, GroupCtrl.list)</div>
-    @search(groups, GroupCtrl.list())
+        <div class="float-right">@pagination(groups, GroupCtrl.list)</div>
+        @search(groups, GroupCtrl.list())
 
-    <ul class="list-unstyled">
-    @groups.items.map { g => @item(g) }
-    </ul>
+        <div class="list-group mt-3 mb-3">
+        @groups.items.map { g => @item(g) }
+        </div>
 
-    <div class="float-right">@pagination(groups, GroupCtrl.list)</div>
+        <div class="float-right">@pagination(groups, GroupCtrl.list)</div>
+    }
 }()

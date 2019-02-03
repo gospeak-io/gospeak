@@ -9,7 +9,7 @@ import doobie.util.update.Update
 import doobie.util.{Meta, Write}
 import fr.gospeak.core.domain._
 import fr.gospeak.infra.services.storage.sql.{DbSqlConf, H2, PostgreSQL}
-import fr.gospeak.libs.scalautils.domain.{Markdown, Page}
+import fr.gospeak.libs.scalautils.domain.{Email, Markdown, Page}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -79,6 +79,7 @@ object DoobieUtils {
 
   object Mappings {
     implicit val finiteDurationMeta: Meta[FiniteDuration] = Meta[Long].timap(Duration.fromNanos)(_.toNanos)
+    implicit val emailMeta: Meta[Email] = Meta[String].timap(Email.from(_).get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
 
     implicit val userIdMeta: Meta[User.Id] = Meta[String].timap(User.Id.from(_).get)(_.value)

@@ -4,20 +4,31 @@
 @import fr.gospeak.web.partials.html.{container, pagination, search}
 @import fr.gospeak.web.user.talks.proposals.partials.html.item
 @import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.user.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.utils.Formats._
 
 @(talk: Talk, proposals: Page[(Cfp, Proposal)])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
 @container("Gospeak", h, Some(b))() {
-    <div>
-        <h1>@plural(proposals.total.value, "proposal") for @talk.title.value</h1>
-    </div>
+    @if(proposals.isEmpty) {
+        <div class="jumbotron">
+            <h1>Still no proposal for @talk.title.value <i class="far fa-sad-tear"></i></h1>
+            <p class="lead">Find some CFP and propose it</p>
+            <p class="text-center">
+                <a href="@CfpCtrl.list(talk.slug)" class="btn btn-lg btn-success">Find a CFP to propose your talk</a>
+            </p>
+        </div>
+    } else {
+        <div>
+            <h1>@plural(proposals.total.value, "proposal") for @talk.title.value</h1>
+        </div>
 
-    <div class="float-right">@pagination(proposals, ProposalCtrl.list(talk.slug, _))</div>
-    @search(proposals, ProposalCtrl.list(talk.slug))
+        <div class="float-right">@pagination(proposals, ProposalCtrl.list(talk.slug, _))</div>
+        @search(proposals, ProposalCtrl.list(talk.slug))
 
-    <div class="list-group mt-3 mb-3">
-    @proposals.items.map { case (c, p) => @item(talk, c, p) }
-    </div>
+        <div class="list-group mt-3 mb-3">
+        @proposals.items.map { case (c, p) => @item(talk, c, p) }
+        </div>
 
-    <div class="float-right">@pagination(proposals, ProposalCtrl.list(talk.slug, _))</div>
+        <div class="float-right">@pagination(proposals, ProposalCtrl.list(talk.slug, _))</div>
+    }
 }()

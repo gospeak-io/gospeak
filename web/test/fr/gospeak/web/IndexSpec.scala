@@ -1,7 +1,6 @@
 package fr.gospeak.web
 
 import fr.gospeak.web.testingutils.TwirlSpec
-import fr.gospeak.web.testingutils.Values._
 
 class IndexSpec extends TwirlSpec {
   describe("index.scala.html") {

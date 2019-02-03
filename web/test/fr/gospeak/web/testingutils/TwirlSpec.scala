@@ -1,13 +1,18 @@
 package fr.gospeak.web.testingutils
 
+import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import fr.gospeak.core.domain.User
+import fr.gospeak.core.testingutils.Generators._
+import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
+import fr.gospeak.web.routes
 import org.scalatest.{FunSpec, Matchers}
 import play.api.i18n.{Lang, Messages}
 import play.api.mvc.{AnyContentAsEmpty, Flash}
 import play.api.test.FakeRequest
 
-trait TwirlSpec extends FunSpec with Matchers {
-  protected implicit val user: Option[User] = None
+trait TwirlSpec extends FunSpec with Matchers with RandomDataGenerator {
+  protected implicit val user: User = random[User]
+  protected implicit val userOpt: Option[User] = Some(user)
   protected implicit val req: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
   protected implicit val flash: Flash = req.flash
   implicit val messages: Messages = new Messages {
@@ -21,4 +26,6 @@ trait TwirlSpec extends FunSpec with Matchers {
 
     override def isDefinedAt(key: String): Boolean = ???
   }
+  protected val h = HeaderInfo(NavLink("Gospeak", routes.HomeCtrl.index()), Seq(), Seq())
+  protected val b = Breadcrumb(Seq())
 }

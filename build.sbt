@@ -56,8 +56,8 @@ val scalaCheck = Seq(
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.0",
   "com.danielasfregola" %% "random-data-generator" % "2.6").map(_ % Test)
 
-val scalautilsDependencies = cats ++ scalaTest
-val coreDependencies = cats ++ scalaTest
+val scalautilsDependencies = cats ++ scalaTest ++ scalaCheck
+val coreDependencies = cats ++ scalaTest ++ scalaCheck
 val infraDependencies = circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
 val webDependencies = play ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest
 
@@ -81,7 +81,7 @@ val core = (project in file("core"))
   )
 
 val infra = (project in file("infra"))
-  .dependsOn(core)
+  .dependsOn(core % "compile->compile;test->test")
   .settings(
     name := "infra",
     libraryDependencies ++= infraDependencies,
@@ -90,7 +90,7 @@ val infra = (project in file("infra"))
 
 val web = (project in file("web"))
   .enablePlugins(PlayScala)
-  .dependsOn(core, infra)
+  .dependsOn(core % "compile->compile;test->test", infra)
   .settings(
     name := "web",
     libraryDependencies ++= webDependencies,

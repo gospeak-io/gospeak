@@ -79,7 +79,7 @@ object Mappings {
   val duration: Mapping[FiniteDuration] = longMapping(Duration.apply(_, MINUTES), _.toMinutes)
 
   val markdown: Mapping[Markdown] = stringMapping(Markdown, _.value, required)
-  val mail: Mapping[Email] = stringMapping(Email, _.value, required)
+  val mail: Mapping[Email] = stringTryMapping(Email.from, _.value, required)
   val secret: Mapping[Secret] = stringMapping(Secret, _.decode, required)
 
   val groupSlug: Mapping[Group.Slug] = stringTryMapping(Group.Slug.from, _.value, required, pattern(SlugBuilder.pattern))

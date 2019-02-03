@@ -8,19 +8,31 @@
 
 @(talks: Page[Talk])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
 @container("Gospeak", h, Some(b))() {
-    <div>
-        <span class="float-right">
-            <a class="btn btn-primary" href="@TalkCtrl.create()">Create talk</a>
-        </span>
-        <h1>@plural(talks.total.value, "talk")</h1>
-    </div>
+    @if(talks.isEmpty) {
+        <div class="jumbotron">
+            <h1>You have no talk <i class="far fa-sad-tear"></i></h1>
+            <p class="lead">Create a talk and propose it to meetups and conferences!</p>
+            <hr class="my-4">
+            <p>Create your talks, find groups to submit them, allow organizers to contact you to speak, show them publicly</p>
+            <p class="text-center">
+                <a href="@TalkCtrl.create()" class="btn btn-lg btn-success">Create your first talk</a>
+            </p>
+        </div>
+    } else {
+        <div>
+            <span class="float-right">
+                <a class="btn btn-primary" href="@TalkCtrl.create()">Create talk</a>
+            </span>
+            <h1>@plural(talks.total.value, "talk")</h1>
+        </div>
 
-    <div class="float-right">@pagination(talks, TalkCtrl.list)</div>
-    @search(talks, TalkCtrl.list())
+        <div class="float-right">@pagination(talks, TalkCtrl.list)</div>
+        @search(talks, TalkCtrl.list())
 
-    <div class="list-group mt-3 mb-3">
-    @talks.items.map { t => @item(t) }
-    </div>
+        <div class="list-group mt-3 mb-3">
+        @talks.items.map { t => @item(t) }
+        </div>
 
-    <div class="float-right">@pagination(talks, TalkCtrl.list)</div>
+        <div class="float-right">@pagination(talks, TalkCtrl.list)</div>
+    }
 }()
