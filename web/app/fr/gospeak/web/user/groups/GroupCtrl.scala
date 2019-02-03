@@ -50,7 +50,7 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
     implicit val user: User = auth.authed()
     (for {
       groupElt <- OptionT(db.getGroup(user.id, group))
-      events <- OptionT.liftF(db.getEvents(groupElt.id, Page.Params.defaults))
+      events <- OptionT.liftF(db.getIncomingEvents(groupElt.id, Page.Params.defaults.orderBy("start")))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name)
     } yield Ok(html.detail(groupElt, events)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()

@@ -18,6 +18,9 @@
         @fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the event (in urls for example)")) { (field, args) =>
             @inputText(field, Seq("placeholder" -> "Event slug", "slug-for" -> form("name").id) ++ args)
         }
+        @fieldHorizontal(form("start"), Seq("label" -> "Date", "help" -> "Date and time when the event will start")) { (field, args) =>
+            @inputDatetime(field, Seq("placeholder" -> "ex: 2019-02-21T19:30:00.000Z") ++ args)
+        }
         @actionsHorizontal() {
             @btnCancel(EventCtrl.list(group.slug))
             @btnSubmit("Create")

@@ -1,5 +1,7 @@
 package fr.gospeak.web.utils
 
+import java.time.{Instant, LocalDateTime, ZoneOffset}
+
 import fr.gospeak.libs.scalautils.CustomException
 import fr.gospeak.web.utils.Mappings._
 import org.scalatest.{FunSpec, Matchers}
@@ -65,6 +67,20 @@ class MappingsSpec extends FunSpec with Matchers {
       }
       it("should return required error") {
         f.bind("key", Map()) shouldBe Left(List(FormError("key", List(requiredError))))
+      }
+    }
+    describe("instantFormatter") {
+      it("should bind & unbind value") {
+        val value = "2019-05-24T19:00"
+        val parsed = Instant.parse(value + ":00Z")
+        instantFormatter.bind("key", Map("key" -> value)) shouldBe Right(parsed)
+        instantFormatter.unbind("key", parsed) shouldBe Map("key" -> value)
+      }
+      it("should return format error") {
+        instantFormatter.bind("key", Map("key" -> "aa")) shouldBe Left(List(FormError("key", List(datetimeError), "Text 'aa' could not be parsed at index 0")))
+      }
+      it("should return required error") {
+        instantFormatter.bind("key", Map()) shouldBe Left(List(FormError("key", List(requiredError))))
       }
     }
     describe("stringTryFormatter") {

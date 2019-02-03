@@ -1,5 +1,7 @@
 package fr.gospeak.web.utils
 
+import java.time.{Instant, LocalDateTime, ZoneOffset}
+
 import fr.gospeak.core.domain.{Cfp, Event, Group, Talk}
 import fr.gospeak.libs.scalautils.domain.{Email, Markdown, Secret, SlugBuilder}
 import play.api.data.Forms._
@@ -55,6 +57,19 @@ object Mappings {
       Map(key -> to(value).toString)
   }
 
+  val datetimeError = "error.datetime"
+
+  private[utils] val instantFormatter = new Formatter[Instant] {
+    // FIXME: get user ZoneOffset, more generally better managed dates and timezones!!!
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Instant] =
+      data.get(key)
+        .map(s => Try(LocalDateTime.parse(s).toInstant(ZoneOffset.UTC)).toEither.left.map(t => Seq(FormError(key, datetimeError, t.getMessage))))
+        .getOrElse(Left(Seq(FormError(key, requiredError))))
+
+    override def unbind(key: String, value: Instant): Map[String, String] =
+      Map(key -> value.atZone(ZoneOffset.UTC).toLocalDateTime.toString)
+  }
+
   val formatError = "error.format"
 
   private[utils] def stringTryFormatter[A](from: String => Try[A], to: A => String): Formatter[A] = new Formatter[A] {
@@ -76,6 +91,7 @@ object Mappings {
   private def longMapping[A](from: Long => A, to: A => Long, cs: ((A => Long) => Constraint[A])*): Mapping[A] =
     of(longFormatter(from, to)).verifying(cs.map(_ (to)): _*)
 
+  val instant: Mapping[Instant] = of(instantFormatter)
   val duration: Mapping[FiniteDuration] = longMapping(Duration.apply(_, MINUTES), _.toMinutes)
 
   val markdown: Mapping[Markdown] = stringMapping(Markdown, _.value, required)

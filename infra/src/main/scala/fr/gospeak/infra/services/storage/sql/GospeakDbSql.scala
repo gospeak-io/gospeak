@@ -1,6 +1,7 @@
 package fr.gospeak.infra.services.storage.sql
 
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -48,6 +49,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     val event2 = Event.Id.generate()
     val event3 = Event.Id.generate()
     val event4 = Event.Id.generate()
+    val event5 = Event.Id.generate()
     val talk1 = Talk.Id.generate()
     val talk2 = Talk.Id.generate()
     val talk3 = Talk.Id.generate()
@@ -70,10 +72,11 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       Cfp(cfp2, Cfp.Slug.from("paris-js").get, Cfp.Name("Paris.Js"), Markdown("Submit your talk to exchange with the Paris JS community"), group2, Info(userOrga)),
       Cfp(cfp3, Cfp.Slug.from("data-gov").get, Cfp.Name("Data governance"), Markdown("Everything about Data governance"), group3, Info(userDemo)))
     val events = NonEmptyList.of(
-      Event(group1, event1, Event.Slug.from("2019-03").get, Event.Name("HumanTalks Paris Mars 2019"), Some("desc"), Some("Zeenea"), Seq(), Info(userDemo)),
-      Event(group1, event2, Event.Slug.from("2019-04").get, Event.Name("HumanTalks Paris Avril 2019"), None, None, Seq(), Info(userOrga)),
-      Event(group2, event3, Event.Slug.from("2019-03").get, Event.Name("Paris.Js Avril"), None, None, Seq(), Info(userOrga)),
-      Event(group3, event4, Event.Slug.from("2019-03").get, Event.Name("Nouveaux modeles de gouvenance"), None, None, Seq(), Info(userDemo)))
+      Event(group1, event1, Event.Slug.from("2019-01").get, Event.Name("HumanTalks Paris Janvier 2019"), Instant.parse("2019-01-08T19:00:00.000Z"), Some("desc"), Some("ManoMano"), Seq(), Info(userDemo)),
+      Event(group1, event2, Event.Slug.from("2019-02").get, Event.Name("HumanTalks Paris Février 2019"), Instant.parse("2019-02-12T19:00:00.000Z"), None, None, Seq(), Info(userOrga)),
+      Event(group1, event3, Event.Slug.from("2019-03").get, Event.Name("HumanTalks Paris Mars 2019"), Instant.parse("2019-03-12T19:00:00.000Z"), Some("desc"), Some("Zeenea"), Seq(), Info(userDemo)),
+      Event(group2, event4, Event.Slug.from("2019-04").get, Event.Name("Paris.Js Avril"), Instant.parse("2019-04-01T19:00:00.000Z"), None, None, Seq(), Info(userOrga)),
+      Event(group3, event5, Event.Slug.from("2019-03").get, Event.Name("Nouveaux modeles de gouvenance"), Instant.parse("2019-03-12T19:00:00.000Z"), None, None, Seq(), Info(userDemo)))
     val talks = NonEmptyList.of(
       Talk(talk1, Talk.Slug.from("why-fp").get, Talk.Title("Why FP"), Duration.apply(10, MINUTES), Talk.Status.Private, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userDemo), Info(userDemo)),
       Talk(talk2, Talk.Slug.from("scala-best-practices").get, Talk.Title("Scala Best Practices"), Duration.apply(10, MINUTES), Talk.Status.Public, Markdown("Cras sit amet nibh libero, in gravida nulla.."), NonEmptyList.of(userDemo, userSpeaker), Info(userDemo)),
@@ -93,7 +96,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       val cfpId = Cfp.Id.generate()
       val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga), Info(userOrga))
       val c = Cfp(cfpId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), Markdown("Only your best talks !"), groupId, Info(userOrga))
-      val e = Event(group4, Event.Id.generate(), Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), None, None, Seq(), Info(userOrga))
+      val e = Event(group4, Event.Id.generate(), Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), Instant.parse("2019-03-12T19:00:00.000Z"), None, None, Seq(), Info(userOrga))
       val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Title(s"Z Talk $i"), Duration.apply(10, MINUTES), Talk.Status.Draft, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker), Info(userSpeaker))
       val p = Proposal(Proposal.Id.generate(), talk7, cfpId, None, Talk.Title(s"Z Proposal $i"), Proposal.Status.Pending, Markdown("temporary description"), Info(userSpeaker))
       (g, c, e, t, p)
@@ -122,12 +125,15 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(GroupTable.selectPage(user, _), params))
 
-  override def createEvent(group: Group.Id, slug: Event.Slug, name: Event.Name, by: User.Id): IO[Event] =
-    run(EventTable.insert, Event(group, Event.Id.generate(), slug, name, None, None, Seq(), Info(by)))
+  override def createEvent(group: Group.Id, slug: Event.Slug, name: Event.Name, start: Instant, by: User.Id): IO[Event] =
+    run(EventTable.insert, Event(group, Event.Id.generate(), slug, name, start, None, None, Seq(), Info(by)))
 
   override def getEvent(group: Group.Id, event: Event.Slug): IO[Option[Event]] = run(EventTable.selectOne(group, event).option)
 
   override def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(Queries.selectPage(EventTable.selectPage(group, _), params))
+
+  override def getIncomingEvents(group: Group.Id, params: Page.Params): IO[Page[Event]] =
+    run(Queries.selectPage(EventTable.selectAllAfter(group, Instant.now().truncatedTo(ChronoUnit.DAYS), _), params))
 
   override def createCfp(slug: Cfp.Slug, name: Cfp.Name, description: Markdown, group: Group.Id, by: User.Id): IO[Cfp] =
     run(CfpTable.insert, Cfp(Cfp.Id.generate(), slug, name, description, group, Info(by)))
@@ -151,7 +157,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(TalkTable.selectPage(user, _), params))
 
   override def updateTalk(user: User.Id, slug: Talk.Slug)(data: Talk.Data): IO[Done] = {
-    if(data.slug != slug) {
+    if (data.slug != slug) {
       // FIXME: should also check for other speakers !!!
       getTalk(user, data.slug).flatMap {
         case None => run(TalkTable.updateAll(user, slug)(data, Instant.now()))

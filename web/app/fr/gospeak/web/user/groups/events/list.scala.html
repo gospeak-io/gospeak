@@ -17,9 +17,9 @@
     <div class="float-right">@pagination(events, EventCtrl.list(group.slug, _))</div>
     @search(events, EventCtrl.list(group.slug))
 
-    <ul class="list-unstyled">
+    <div class="list-group mt-3 mb-3">
     @events.items.map { e => @item(group, e) }
-    </ul>
+    </div>
 
     <div class="float-right">@pagination(events, EventCtrl.list(group.slug, _))</div>
 }()

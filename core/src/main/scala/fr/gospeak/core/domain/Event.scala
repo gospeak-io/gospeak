@@ -1,5 +1,7 @@
 package fr.gospeak.core.domain
 
+import java.time.Instant
+
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.libs.scalautils.domain.{DataClass, SlugBuilder, UuidIdBuilder}
 
@@ -7,7 +9,7 @@ final case class Event(group: Group.Id,
                        id: Event.Id,
                        slug: Event.Slug,
                        name: Event.Name,
-                       // start: datetime
+                       start: Instant,
                        // duration: Option[Duration]
                        description: Option[String],
                        venue: Option[String],

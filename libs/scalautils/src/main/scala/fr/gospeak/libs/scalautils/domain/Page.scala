@@ -99,6 +99,8 @@ object Page {
                           orderBy: Option[OrderBy] = Params.defaults.orderBy) {
     val offsetStart: Int = (page.value - 1) * pageSize.value
     val offsetEnd: Int = page.value * pageSize.value
+
+    def orderBy(field: String): Params = copy(orderBy = Some(OrderBy(field)))
   }
 
   object Params {

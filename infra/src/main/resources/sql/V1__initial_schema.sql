@@ -38,6 +38,7 @@ CREATE TABLE events (
   id          CHAR(36)      NOT NULL PRIMARY KEY,
   slug        VARCHAR(30)   NOT NULL,
   name        VARCHAR(100)  NOT NULL,
+  start       TIMESTAMP     NOT NULL,
   description VARCHAR(2048),
   venue       VARCHAR(2048),
   talks       VARCHAR(184)  NOT NULL,

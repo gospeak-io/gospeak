@@ -11,7 +11,7 @@ class FormatsSpec extends FunSpec with Matchers {
     describe("time") {
       it("should format instant depending on locale") {
         val i = Instant.ofEpochMilli(1549115209899L)
-        Formats.time(i) shouldBe "02 Feb 2019 at 13:46:49.899 (UTC)"
+        Formats.datetime(i) shouldBe "02 Feb 2019 at 13:46:49.899 (UTC)"
       }
     }
     describe("timeAgo") {

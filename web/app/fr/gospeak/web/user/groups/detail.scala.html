@@ -4,6 +4,7 @@
 @import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.user.groups.events.partials.html.{item => eventItem}
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
+@import fr.gospeak.web.utils.Formats._
 
 @(group: Group, events: Page[Event])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
 @container("Gospeak", h, Some(b))() {
@@ -11,12 +12,16 @@
         <h1>@group.name.value</h1>
     </div>
 
-    <h2>Incoming events</h2>
+    @if(events.isEmpty) {
+        <h2>No incoming events</h2>
+    } else {
+        <h2>@plural(events.total.value, "incoming event")</h2>
 
-    <ul class="list-unstyled">
-        @events.items.map { e => @eventItem(group, e) }
-        @if(!events.isLast) {
-            <a href="@EventCtrl.list(group.slug)">More...</a>
-        }
-    </ul>
+        <div class="list-group mt-3 mb-3">
+            @events.items.map { e => @eventItem(group, e) }
+            @if(!events.isLast) {
+                <a href="@EventCtrl.list(group.slug)" class="list-group-item list-group-item-action">More...</a>
+            }
+        </div>
+    }
 }()

@@ -1,5 +1,7 @@
 package fr.gospeak.infra.services.storage.sql.tables
 
+import java.time.Instant
+
 import fr.gospeak.infra.services.storage.sql.tables.EventTable._
 import fr.gospeak.infra.services.storage.sql.tables.testingutils.TableSpec
 
@@ -8,22 +10,31 @@ class EventTableSpec extends TableSpec {
     describe("insert") {
       it("should generate the query") {
         val q = insert(event)
-        q.sql shouldBe "INSERT INTO events (group_id, id, slug, name, description, venue, talks, created, created_by, updated, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe "INSERT INTO events (group_id, id, slug, name, start, description, venue, talks, created, created_by, updated, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
     }
     describe("selectOne") {
       it("should generate the query") {
         val q = selectOne(group.id, event.slug)
-        q.sql shouldBe "SELECT group_id, id, slug, name, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE group_id=? AND slug=?"
+        q.sql shouldBe "SELECT group_id, id, slug, name, start, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE group_id=? AND slug=?"
         check(q)
       }
     }
     describe("selectPage") {
       it("should generate the query") {
         val (s, c) = selectPage(group.id, params)
-        s.sql shouldBe "SELECT group_id, id, slug, name, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE group_id=? ORDER BY name OFFSET 0 LIMIT 20"
+        s.sql shouldBe "SELECT group_id, id, slug, name, start, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE group_id=? ORDER BY start DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM events WHERE group_id=? "
+        check(s)
+        check(c)
+      }
+    }
+    describe("selectAllAfter") {
+      it("should generate the query") {
+        val (s, c) = selectAllAfter(group.id, Instant.now(), params)
+        s.sql shouldBe "SELECT group_id, id, slug, name, start, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE group_id=? AND start > ? ORDER BY start DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM events WHERE group_id=? AND start > ? "
         check(s)
         check(c)
       }

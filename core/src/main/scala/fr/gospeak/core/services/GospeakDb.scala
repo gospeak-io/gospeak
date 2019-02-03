@@ -1,5 +1,7 @@
 package fr.gospeak.core.services
 
+import java.time.Instant
+
 import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
@@ -18,11 +20,13 @@ trait GospeakDb {
 
   def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]]
 
-  def createEvent(group: Group.Id, slug: Event.Slug, name: Event.Name, by: User.Id): IO[Event]
+  def createEvent(group: Group.Id, slug: Event.Slug, name: Event.Name, start: Instant, by: User.Id): IO[Event]
 
   def getEvent(group: Group.Id, event: Event.Slug): IO[Option[Event]]
 
   def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]]
+
+  def getIncomingEvents(group: Group.Id, params: Page.Params): IO[Page[Event]]
 
   def createCfp(slug: Cfp.Slug, name: Cfp.Name, description: Markdown, group: Group.Id, by: User.Id): IO[Cfp]
 

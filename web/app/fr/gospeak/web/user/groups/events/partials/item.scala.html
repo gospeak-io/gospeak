@@ -1,15 +1,15 @@
+@import java.time.Instant
+
 @import fr.gospeak.core.domain.{Event, Group}
+@import fr.gospeak.web.partials.display.html.date
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 
 @(group: Group, event: Event)
-<li class="media card my-2 event-item">
-    <div class="media-body">
-        <h5 class="mt-0 mb-1">
-            <a href="@EventCtrl.detail(group.slug, event.slug)">@event.name.value</a>
-        </h5>
-        @event.venue.map { v => @v, }.getOrElse {
-            <b class="text-danger">Missing venue</b>,
-        }
-        @event.talks.length planned talks
-    </div>
-</li>
+<a href="@EventCtrl.detail(group.slug, event.slug)" class="list-group-item list-group-item-action @if(event.start.isAfter(Instant.now())) {list-group-item-secondary}">
+    <h5 class="mb-1">@event.name.value</h5>
+    @date(event.start),
+    @event.venue.map { v => @v, }.getOrElse {
+        <b class="text-danger">Missing venue</b>,
+    }
+    @event.talks.length planned talks
+</a>

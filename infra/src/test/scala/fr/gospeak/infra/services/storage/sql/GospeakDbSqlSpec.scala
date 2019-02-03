@@ -1,5 +1,7 @@
 package fr.gospeak.infra.services.storage.sql
 
+import java.time.Instant
+
 import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.infra.testingutils.Values
@@ -61,18 +63,18 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach {
         val (user, group) = createEltsForEvents().unsafeRunSync()
         db.getEvents(group.id, page).unsafeRunSync().items shouldBe Seq()
         db.getEvent(group.id, slug).unsafeRunSync() shouldBe None
-        val event = db.createEvent(group.id, slug, Event.Name("name"), user.id).unsafeRunSync()
+        val event = db.createEvent(group.id, slug, Event.Name("name"), Instant.now(), user.id).unsafeRunSync()
         db.getEvents(group.id, page).unsafeRunSync().items shouldBe Seq(event)
         db.getEvent(group.id, slug).unsafeRunSync() shouldBe Some(event)
       }
       it("should fail to create an event when the group does not exists") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
-        an[Exception] should be thrownBy db.createEvent(Group.Id.generate(), slug, Event.Name("name"), user.id).unsafeRunSync()
+        an[Exception] should be thrownBy db.createEvent(Group.Id.generate(), slug, Event.Name("name"), Instant.now(), user.id).unsafeRunSync()
       }
       it("should fail on duplicate slug for the same group") {
         val (user, group) = createEltsForEvents().unsafeRunSync()
-        db.createEvent(group.id, slug, Event.Name("name"), user.id).unsafeRunSync()
-        an[Exception] should be thrownBy db.createEvent(group.id, slug, Event.Name("name"), user.id).unsafeRunSync()
+        db.createEvent(group.id, slug, Event.Name("name"), Instant.now(), user.id).unsafeRunSync()
+        an[Exception] should be thrownBy db.createEvent(group.id, slug, Event.Name("name"), Instant.now(), user.id).unsafeRunSync()
       }
 
       def createEltsForEvents(): IO[(User, Group)] = {
