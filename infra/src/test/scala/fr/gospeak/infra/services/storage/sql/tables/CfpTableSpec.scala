@@ -4,10 +4,11 @@ import fr.gospeak.core.domain.Cfp
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.infra.services.storage.sql.tables.CfpTable._
 import fr.gospeak.infra.services.storage.sql.tables.testingutils.TableSpec
+import fr.gospeak.libs.scalautils.domain.Markdown
 
 class CfpTableSpec extends TableSpec {
   private val slug = Cfp.Slug.from("slug").get
-  private val cfp = Cfp(cfpId, slug, Cfp.Name("Name"), "desc", groupId, Info(userId))
+  private val cfp = Cfp(cfpId, slug, Cfp.Name("Name"), Markdown("desc"), groupId, Info(userId))
 
   describe("CfpTable") {
     describe("insert") {
@@ -36,9 +37,9 @@ class CfpTableSpec extends TableSpec {
     }
     describe("selectPage") {
       it("should generate the query") {
-        val (s, c) = selectPage(params)
-        s.sql shouldBe "SELECT id, slug, name, description, group_id, created, created_by, updated, updated_by FROM cfps ORDER BY name OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM cfps "
+        val (s, c) = selectPage(talkId, params)
+        s.sql shouldBe "SELECT id, slug, name, description, group_id, created, created_by, updated, updated_by FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id = ?) ORDER BY name OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id = ?) "
         check(s)
         check(c)
       }

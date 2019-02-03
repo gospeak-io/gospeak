@@ -47,4 +47,14 @@ object Formats {
     else if (math.abs(d.toHours) < 24) Duration(d.toHours, HOURS)
     else Duration(d.toDays, DAYS)
   }
+
+  def plural(n: Long, word: String, plural: String = ""): String = {
+    if (n == 1) {
+      s"$n $word"
+    } else if (plural.isEmpty) {
+      s"$n ${word}s"
+    } else {
+      s"$n $plural"
+    }
+  }
 }

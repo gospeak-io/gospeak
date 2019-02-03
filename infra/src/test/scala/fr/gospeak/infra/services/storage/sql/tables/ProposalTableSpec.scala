@@ -18,9 +18,14 @@ class ProposalTableSpec extends TableSpec {
       }
     }
     describe("selectOne") {
-      it("should generate the query") {
+      it("should generate query for proposal id") {
         val q = selectOne(proposalId)
         q.sql shouldBe "SELECT id, talk_id, cfp_id, title, description, created, created_by, updated, updated_by FROM proposals WHERE id=?"
+        check(q)
+      }
+      it("should generate query for talk and cfp ids") {
+        val q = selectOne(talkId, cfpId)
+        q.sql shouldBe "SELECT id, talk_id, cfp_id, title, description, created, created_by, updated, updated_by FROM proposals WHERE talk_id=? AND cfp_id=?"
         check(q)
       }
     }

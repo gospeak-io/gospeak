@@ -60,7 +60,7 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
 
   def edit(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
-    editForm(TalkForms.create, talk, isEmpty = true).unsafeToFuture()
+    editForm(TalkForms.create, talk).unsafeToFuture()
   }
 
   def doEdit(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -76,12 +76,12 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
     ).unsafeToFuture()
   }
 
-  private def editForm(form: Form[Talk.Data], slug: Talk.Slug, isEmpty: Boolean = false)(implicit req: Request[AnyContent], user: User): IO[Result] = {
+  private def editForm(form: Form[Talk.Data], slug: Talk.Slug)(implicit req: Request[AnyContent], user: User): IO[Result] = {
     db.getTalk(user.id, slug).map {
       case Some(talk) =>
         val h = header(talk.slug)
         val b = breadcrumb(user.name, talk.slug -> talk.title).add("Edit" -> routes.TalkCtrl.edit(talk.slug))
-        val filledForm = if(isEmpty) form.fill(talk.data) else form
+        val filledForm = if(form.hasErrors) form else form.fill(talk.data)
         Ok(html.edit(filledForm, talk)(h, b))
       case None =>
         talkNotFound(slug)

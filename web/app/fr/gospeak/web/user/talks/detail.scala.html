@@ -103,7 +103,7 @@
             }
             </ul>
             @if(!proposals.isLast) {
-                <a href="@ProposalCtrl.list(talk.slug)" class="list-group-item list-group-item-action">More...</a>
+                <div class="card-footer"><a href="@ProposalCtrl.list(talk.slug)">More...</a></div>
             }
         </div>
     }

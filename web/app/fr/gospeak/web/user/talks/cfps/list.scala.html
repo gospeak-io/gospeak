@@ -11,12 +11,16 @@
         <h1>Submit proposal for @talk.title.value</h1>
     </div>
 
-    <div class="float-right">@pagination(cfps, CfpCtrl.list(talk.slug, _))</div>
-    @search(cfps, CfpCtrl.list(talk.slug))
+    @if(cfps.isEmpty) {
+        <h3>No available CFP to propose this talk</h3>
+    } else {
+        <div class="float-right">@pagination(cfps, CfpCtrl.list(talk.slug, _))</div>
+        @search(cfps, CfpCtrl.list(talk.slug))
 
-    <ul class="list-unstyled">
-    @cfps.items.map { c => @item(talk, c) }
-    </ul>
+        <div class="list-group mt-3 mb-3">
+        @cfps.items.map { c => @item(talk, c) }
+        </div>
 
-    <div class="float-right">@pagination(cfps, CfpCtrl.list(talk.slug, _))</div>
+        <div class="float-right">@pagination(cfps, CfpCtrl.list(talk.slug, _))</div>
+    }
 }()

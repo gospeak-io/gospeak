@@ -11,7 +11,7 @@ object ProposalTable {
   private val _ = proposalIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = "proposals"
   private val fields = Seq("id", "talk_id", "cfp_id", "title", "description", "created", "created_by", "updated", "updated_by")
-  private val tableFr: Fragment = Fragment.const0(table)
+  private[tables] val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "title", "description")
   private val defaultSort = Page.OrderBy("-created")
@@ -23,6 +23,9 @@ object ProposalTable {
 
   def selectOne(id: Proposal.Id): doobie.Query0[Proposal] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[Proposal]
+
+  def selectOne(talk: Talk.Id, cfp: Cfp.Id): doobie.Query0[Proposal] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE talk_id=$talk AND cfp_id=$cfp").query[Proposal]
 
   def selectPage(cfp: Cfp.Id, params: Page.Params): (doobie.Query0[Proposal], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE cfp_id=$cfp"))

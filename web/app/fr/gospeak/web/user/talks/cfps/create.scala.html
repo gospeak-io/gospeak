@@ -1,6 +1,7 @@
 @import fr.gospeak.core.domain.{Cfp, Talk, User}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.form.html._
+@import fr.gospeak.web.partials.display.html._
 @import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.user.talks.cfps.CfpForms
 @import fr.gospeak.web.user.talks.cfps.routes.CfpCtrl
@@ -13,16 +14,16 @@
 
     @formElt(CfpCtrl.doCreate(talk.slug, cfp.slug)) {
         <blockquote class="blockquote">
-            <p class="mb-0">TODO: proposal advices for group</p>
+            @markdown(cfp.description)
         </blockquote>
         @fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title for your proposal (you can adapt your talk title)")) { (field, args) =>
             @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
         }
         @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Give a abstract of your talk, you should make orga and people listen at you")) { (field, args) =>
-            @inputText(field, args)
+            @inputMarkdown(field, args)
         }
         @actionsHorizontal() {
-            @btnCancel(CfpCtrl.detail(talk.slug, cfp.slug))
+            @btnCancel(CfpCtrl.list(talk.slug))
             @btnSubmit("Propose your talk")
         }
     }

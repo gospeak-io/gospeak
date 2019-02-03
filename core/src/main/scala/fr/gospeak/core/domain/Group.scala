@@ -2,12 +2,12 @@ package fr.gospeak.core.domain
 
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.libs.scalautils.domain.{DataClass, SlugBuilder, UuidIdBuilder}
+import fr.gospeak.libs.scalautils.domain.{DataClass, Markdown, SlugBuilder, UuidIdBuilder}
 
 final case class Group(id: Group.Id,
                        slug: Group.Slug,
                        name: Group.Name,
-                       description: String,
+                       description: Markdown,
                        owners: NonEmptyList[User.Id],
                        info: Info)
 

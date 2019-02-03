@@ -19,20 +19,10 @@ class CfpCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extend
     implicit val user: User = auth.authed()
     (for {
       talkElt <- OptionT(db.getTalk(user.id, talk))
-      cfps <- OptionT.liftF(db.getCfps(params))
+      cfps <- OptionT.liftF(db.getCfpAvailables(talkElt.id, params))
       h = TalkCtrl.header(talkElt.slug)
       b = listBreadcrumb(user.name, talk -> talkElt.title)
     } yield Ok(html.list(talkElt, cfps)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
-  }
-
-  def detail(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = auth.authed()
-    (for {
-      talkElt <- OptionT(db.getTalk(user.id, talk))
-      cfpElt <- OptionT(db.getCfp(cfp))
-      h = TalkCtrl.header(talkElt.slug)
-      b = breadcrumb(user.name, talk -> talkElt.title, cfp -> cfpElt.name)
-    } yield Ok(html.detail(talkElt, cfpElt)(h, b))).value.map(_.getOrElse(cfpNotFound(talk, cfp))).unsafeToFuture()
   }
 
   def create(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -58,10 +48,13 @@ class CfpCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extend
     (for {
       talkElt <- OptionT(db.getTalk(user.id, talk))
       cfpElt <- OptionT(db.getCfp(cfp))
+      proposalOpt <- OptionT.liftF(db.getProposal(talkElt.id, cfpElt.id))
       filledForm = if (form.hasErrors) form else form.fill(CfpForms.Create(talkElt.title, talkElt.description))
       h = TalkCtrl.header(talkElt.slug)
-      b = breadcrumb(user.name, talk -> talkElt.title, cfp -> cfpElt.name).add("New" -> routes.CfpCtrl.create(talk, cfp))
-    } yield Ok(html.create(filledForm, talkElt, cfpElt)(h, b))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
+      b = breadcrumb(user.name, talk -> talkElt.title, cfp -> cfpElt.name)
+    } yield proposalOpt
+      .map(proposal => Redirect(ProposalCtrl.detail(talk, proposal.id)))
+      .getOrElse(Ok(html.create(filledForm, talkElt, cfpElt)(h, b)))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
   }
 }
 
@@ -74,6 +67,6 @@ object CfpCtrl {
   def breadcrumb(user: User.Name, talk: (Talk.Slug, Talk.Title), cfp: (Cfp.Slug, Cfp.Name)): Breadcrumb =
     (talk, cfp) match {
       case ((talkSlug, _), (cfpSlug, cfpName)) =>
-        listBreadcrumb(user, talk).add(cfpName.value -> routes.CfpCtrl.detail(talkSlug, cfpSlug))
+        listBreadcrumb(user, talk).add(cfpName.value -> routes.CfpCtrl.create(talkSlug, cfpSlug))
     }
 }

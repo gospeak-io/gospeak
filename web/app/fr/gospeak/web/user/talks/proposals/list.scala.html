@@ -4,19 +4,20 @@
 @import fr.gospeak.web.partials.html.{container, pagination, search}
 @import fr.gospeak.web.user.talks.proposals.partials.html.item
 @import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.utils.Formats._
 
 @(talk: Talk, proposals: Page[(Cfp, Proposal)])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
 @container("Gospeak", h, Some(b))() {
     <div>
-        <h1>@proposals.total.value proposals</h1>
+        <h1>@plural(proposals.total.value, "proposal") for @talk.title.value</h1>
     </div>
 
     <div class="float-right">@pagination(proposals, ProposalCtrl.list(talk.slug, _))</div>
     @search(proposals, ProposalCtrl.list(talk.slug))
 
-    <ul class="list-unstyled">
+    <div class="list-group mt-3 mb-3">
     @proposals.items.map { case (c, p) => @item(talk, c, p) }
-    </ul>
+    </div>
 
     <div class="float-right">@pagination(proposals, ProposalCtrl.list(talk.slug, _))</div>
 }()

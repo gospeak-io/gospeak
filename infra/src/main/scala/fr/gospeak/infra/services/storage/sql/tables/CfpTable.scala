@@ -2,7 +2,7 @@ package fr.gospeak.infra.services.storage.sql.tables
 
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.{Cfp, Group}
+import fr.gospeak.core.domain.{Cfp, Group, Talk}
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.libs.scalautils.domain.Page
@@ -30,8 +30,10 @@ object CfpTable {
   def selectOne(id: Group.Id): doobie.Query0[Cfp] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE group_id=$id").query[Cfp]
 
-  def selectPage(params: Page.Params): (doobie.Query0[Cfp], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort)
+  def selectPage(talk: Talk.Id, params: Page.Params): (doobie.Query0[Cfp], doobie.Query0[Long]) = {
+    val talkCfps = buildSelect(ProposalTable.tableFr, fr0"cfp_id", fr0"WHERE talk_id = $talk")
+    val where = fr0"WHERE id NOT IN (" ++ talkCfps ++ fr0")"
+    val page = paginate(params, searchFields, defaultSort, Some(where))
     (buildSelect(tableFr, fieldsFr, page.all).query[Cfp], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 }

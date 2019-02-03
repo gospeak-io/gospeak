@@ -30,9 +30,8 @@ GET         /u/talks/:talk/edit                         fr.gospeak.web.user.talk
 POST        /u/talks/:talk/edit                         fr.gospeak.web.user.talks.TalkCtrl.doEdit(talk: Talk.Slug)
 POST        /u/talks/:talk/status/:status               fr.gospeak.web.user.talks.TalkCtrl.changeStatus(talk: Talk.Slug, status: Talk.Status)
 GET         /u/talks/:talk/cfps                         fr.gospeak.web.user.talks.cfps.CfpCtrl.list(talk: Talk.Slug, params: Page.Params ?= Page.Params.defaults)
-GET         /u/talks/:talk/cfps/:cfp                    fr.gospeak.web.user.talks.cfps.CfpCtrl.detail(talk: Talk.Slug, cfp: Cfp.Slug)
-GET         /u/talks/:talk/cfps/:cfp/create             fr.gospeak.web.user.talks.cfps.CfpCtrl.create(talk: Talk.Slug, cfp: Cfp.Slug)
-POST        /u/talks/:talk/cfps/:cfp/create             fr.gospeak.web.user.talks.cfps.CfpCtrl.doCreate(talk: Talk.Slug, cfp: Cfp.Slug)
+GET         /u/talks/:talk/cfps/:cfp                    fr.gospeak.web.user.talks.cfps.CfpCtrl.create(talk: Talk.Slug, cfp: Cfp.Slug)
+POST        /u/talks/:talk/cfps/:cfp                    fr.gospeak.web.user.talks.cfps.CfpCtrl.doCreate(talk: Talk.Slug, cfp: Cfp.Slug)
 GET         /u/talks/:talk/proposals                    fr.gospeak.web.user.talks.proposals.ProposalCtrl.list(talk: Talk.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/talks/:talk/proposals/:proposal          fr.gospeak.web.user.talks.proposals.ProposalCtrl.detail(talk: Talk.Slug, proposal: Proposal.Id)
 

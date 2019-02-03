@@ -1,11 +1,9 @@
 @import fr.gospeak.core.domain.{Cfp, Proposal, Talk}
+@import fr.gospeak.web.partials.display.html._
 @import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
 
 @(talk: Talk, cfp: Cfp, proposal: Proposal)
-<li class="media card my-2 proposal-item">
-    <div class="media-body">
-        <h5 class="mt-0 mb-1">
-            <a href="@ProposalCtrl.detail(talk.slug, proposal.id)">@cfp.name.value (@proposal.title.value)</a>
-        </h5>
-    </div>
-</li>
+<a href="@ProposalCtrl.detail(talk.slug, proposal.id)" class="list-group-item list-group-item-action">
+    <h5 class="mb-1">@cfp.name.value (@proposal.title.value)</h5>
+    <span class="badge badge-primary">TODO: proposal status</span> <small>@timeAgo(proposal.info.created)</small>
+</a>

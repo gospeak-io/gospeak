@@ -2,11 +2,6 @@
 @import fr.gospeak.web.user.talks.cfps.routes.CfpCtrl
 
 @(talk: Talk, cfp: Cfp)
-<li class="media card my-2 proposal-item">
-    <div class="media-body">
-        <h5 class="mt-0 mb-1">
-            <a href="@CfpCtrl.create(talk.slug, cfp.slug)" class="btn btn-primary">Propose</a>
-            <a href="@CfpCtrl.detail(talk.slug, cfp.slug)">@cfp.name.value</a>
-        </h5>
-    </div>
-</li>
+<a href="@CfpCtrl.create(talk.slug, cfp.slug)" class="list-group-item list-group-item-action">
+    <h5 class="mb-1">@cfp.name.value</h5>
+</a>

@@ -47,9 +47,7 @@
                 @groups.items.map { g => @cardItem(GroupCtrl.detail(g.slug), g.name.value, g.owners.length, "Number of organizers") }
                 </ul>
                 @if(!groups.isLast) {
-                    <div class="card-footer">
-                        <a href="@GroupCtrl.list()" class="float-right">View all...</a>
-                    </div>
+                    <div class="card-footer"><a href="@GroupCtrl.list()">More...</a></div>
                 }
             </div>
         }
@@ -78,9 +76,7 @@
                 @talks.items.map { t => @cardItem(TalkCtrl.detail(t.slug), t.title.value, t.speakers.length, "Number of speakers") }
                 </div>
                 @if(!talks.isLast) {
-                    <div class="card-footer">
-                        <a href="@TalkCtrl.list()" class="float-right">View all...</a>
-                    </div>
+                    <div class="card-footer"><a href="@TalkCtrl.list()">More...</a></div>
                 }
             </div>
         }
