@@ -19,7 +19,7 @@
             @inputText(field, Seq("placeholder" -> "Event slug", "slug-for" -> form("name").id) ++ args)
         }
         @fieldHorizontal(form("start"), Seq("label" -> "Date", "help" -> "Date and time when the event will start")) { (field, args) =>
-            @inputDatetime(field, Seq("placeholder" -> "ex: 2019-02-21T19:30:00.000Z") ++ args)
+            @inputDatetime(field, args)
         }
         @actionsHorizontal() {
             @btnCancel(EventCtrl.list(group.slug))

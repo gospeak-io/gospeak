@@ -7,10 +7,16 @@ import org.scalatest.{FunSpec, Matchers}
 import scala.concurrent.duration._
 
 class FormatsSpec extends FunSpec with Matchers {
+  private val i = Instant.ofEpochMilli(1549115209899L)
+
   describe("Formats") {
-    describe("time") {
+    describe("date") {
       it("should format instant depending on locale") {
-        val i = Instant.ofEpochMilli(1549115209899L)
+        Formats.date(i) shouldBe "02 Feb 2019"
+      }
+    }
+    describe("datetime") {
+      it("should format instant depending on locale") {
         Formats.datetime(i) shouldBe "02 Feb 2019 at 13:46:49.899 (UTC)"
       }
     }
