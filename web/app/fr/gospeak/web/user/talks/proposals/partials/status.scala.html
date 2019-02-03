@@ -1,0 +1,13 @@
+@import fr.gospeak.core.domain.Proposal
+@(s: Proposal.Status)
+@s match {
+    case Proposal.Status.Pending => {
+        <span class="badge badge-primary">@s.toString</span>
+    }
+    case Proposal.Status.Accepted => {
+        <span class="badge badge-success">@s.toString</span>
+    }
+    case Proposal.Status.Rejected => {
+        <span class="badge badge-danger">@s.toString</span>
+    }
+}

@@ -5,9 +5,11 @@
 @import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.partials.display.html._
 @import fr.gospeak.web.partials.form.html.formBtn
+@import fr.gospeak.web.user.talks.proposals.partials.html.status
 @import fr.gospeak.web.user.talks.routes.TalkCtrl
 @import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.user.talks.cfps.routes.CfpCtrl
+@import fr.gospeak.web.utils.Formats
 
 @(talk: Talk, speakers: Seq[User], proposals: Page[(Cfp, Proposal)])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
 @container("Gospeak", h, Some(b))() {
@@ -86,7 +88,7 @@
                 <span class="float-right">
                     <a class="btn btn-primary btn-sm" href="@CfpCtrl.list(talk.slug)">Find a CFP to propose your talk</a>
                 </span>
-                You proposed your talk to @proposals.total.value CFPs:
+                You proposed your talk to @Formats.plural(proposals.total.value, "CFP"):
             </h5>
             <ul class="list-group list-group-flush">
             @proposals.items.map { case (cfp, proposal) =>
@@ -96,8 +98,9 @@
                     <p class="mb-1">Title: @proposal.title.value</p>
                 </div>
                 <div class="text-right">
-                    <small>@timeAgo(proposal.info.created)</small><br>
-                <span class="badge badge-primary">TODO: proposal status</span>
+                    <small>@timeAgo(proposal.info.created)</small>
+                    <br>
+                    @status(proposal.status)
             </div>
             </a>
             }

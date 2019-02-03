@@ -5,5 +5,5 @@
 @(talk: Talk, cfp: Cfp, proposal: Proposal)
 <a href="@ProposalCtrl.detail(talk.slug, proposal.id)" class="list-group-item list-group-item-action">
     <h5 class="mb-1">@cfp.name.value (@proposal.title.value)</h5>
-    <span class="badge badge-primary">TODO: proposal status</span> <small>@timeAgo(proposal.info.created)</small>
+    @status(proposal.status) <small>@timeAgo(proposal.info.created)</small>
 </a>
