@@ -1,11 +1,11 @@
-@import fr.gospeak.core.domain.{Event, Group, User}
+@import fr.gospeak.core.domain.{Event, Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.html.{container, pagination, search}
 @import fr.gospeak.web.user.groups.events.partials.html.item
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 
-@(group: Group, events: Page[Event])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
+@(group: Group, events: Page[Event], proposals: Seq[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
 @container("Gospeak", h, Some(b))() {
     <div>
         <span class="float-right">
@@ -18,7 +18,7 @@
     @search(events, EventCtrl.list(group.slug))
 
     <div class="list-group mt-3 mb-3">
-    @events.items.map { e => @item(group, e) }
+    @events.items.map { e => @item(group, e, proposals, speakers) }
     </div>
 
     <div class="float-right">@pagination(events, EventCtrl.list(group.slug, _))</div>

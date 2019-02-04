@@ -10,14 +10,14 @@ import fr.gospeak.libs.scalautils.domain.Page
 object ProposalTable {
   private val _ = proposalIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = "proposals"
-  private val fields = Seq("id", "talk_id", "cfp_id", "event_id", "title", "status", "description", "created", "created_by", "updated", "updated_by")
+  private val fields = Seq("id", "talk_id", "cfp_id", "event_id", "title", "status", "description", "speakers", "created", "created_by", "updated", "updated_by")
   private[tables] val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "title", "status", "description")
   private val defaultSort = Page.OrderBy("-created")
 
   private def values(e: Proposal): Fragment =
-    fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.title}, ${e.status}, ${e.description}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.title}, ${e.status}, ${e.description}, ${e.speakers}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   def insert(elt: Proposal): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
@@ -38,4 +38,7 @@ object ProposalTable {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.talk_id=$talk"), Some("p"))
     (buildSelect(selectedTables, selectedFields, page.all).query[(Cfp, Proposal)], buildSelect(selectedTables, fr0"count(*)", page.where).query[Long])
   }
+
+  def selectAll(ids: Seq[Proposal.Id]): doobie.Query0[Proposal] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE id IN ($ids)").query[Proposal]
 }

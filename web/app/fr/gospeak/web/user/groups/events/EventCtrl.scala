@@ -20,9 +20,11 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
     (for {
       groupElt <- OptionT(db.getGroup(user.id, group))
       events <- OptionT.liftF(db.getEvents(groupElt.id, params))
+      proposals <- OptionT.liftF(db.getProposals(events.items.flatMap(_.talks)))
+      speakers <- OptionT.liftF(db.getUsers(proposals.flatMap(_.speakers.toList)))
       h = listHeader(group)
       b = listBreadcrumb(user.name, group -> groupElt.name)
-    } yield Ok(html.list(groupElt, events)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+    } yield Ok(html.list(groupElt, events, proposals, speakers)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
   def create(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>

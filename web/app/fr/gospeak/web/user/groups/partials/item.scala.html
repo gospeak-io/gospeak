@@ -8,5 +8,7 @@
         <h5 class="mb-1">@group.name.value</h5>
         @markdown(group.description)
     </div>
-    <span class="badge badge-primary badge-pill" title="Number of organizers" data-toggle="tooltip" data-placement="left">@group.owners.length</span>
+    @if(group.owners.length > 1) {
+        <span class="badge badge-primary badge-pill" title="Number of organizers" data-toggle="tooltip" data-placement="left">@group.owners.length</span>
+    }
 </a>

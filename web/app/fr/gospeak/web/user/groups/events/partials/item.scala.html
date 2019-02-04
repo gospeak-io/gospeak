@@ -1,15 +1,31 @@
 @import java.time.Instant
 
-@import fr.gospeak.core.domain.{Event, Group}
+@import fr.gospeak.core.domain.{Event, Group, Proposal, User}
 @import fr.gospeak.web.partials.display.html.date
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
+@import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.user.groups.proposals.speakers.routes.SpeakerCtrl
 
-@(group: Group, event: Event)
-<a href="@EventCtrl.detail(group.slug, event.slug)" class="list-group-item list-group-item-action @if(event.start.isAfter(Instant.now())) {list-group-item-secondary}">
-    <h5 class="mb-1">@event.name.value</h5>
+@(group: Group, event: Event, proposals: Seq[Proposal], speakers: Seq[User])
+<div class="list-group-item list-group-item-action @if(event.start.isAfter(Instant.now())) {list-group-item-secondary}">
+    <h5 class="mb-1"><a href="@EventCtrl.detail(group.slug, event.slug)">@event.name.value</a></h5>
     @date(event.start),
-    @event.venue.map { v => @v, }.getOrElse {
-        <b class="text-danger">Missing venue</b>,
-    }
+    @event.venue.map { v => @v, }.getOrElse { <b class="text-danger">Missing venue</b>, }
     @event.talks.length planned talks
-</a>
+    @if(event.talks.nonEmpty) {
+        <ol>
+        @event.talks.map { pId =>
+            <li>
+                @proposals.find(_.id == pId).map { p =>
+                    <a href="@ProposalCtrl.detail(group.slug, p.id)">@p.title.value</a>
+                    by @p.speakers.toList.map { uId =>
+                        @speakers.find(_.id == uId).map { u =>
+                            <a href="@SpeakerCtrl.detail(group.slug, p.id, u.id)">@u.name.value</a>
+                        }.getOrElse { Unknown (@uId.value) }
+                    }
+                }.getOrElse { Unknown (@pId.value) }
+            </li>
+        }
+        </ol>
+    }
+</div>

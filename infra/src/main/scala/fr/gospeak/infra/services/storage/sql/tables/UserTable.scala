@@ -1,6 +1,5 @@
 package fr.gospeak.infra.services.storage.sql.tables
 
-import cats.data.NonEmptyList
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.User
@@ -23,6 +22,9 @@ object UserTable {
   def selectOne(email: Email): doobie.Query0[User] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE email=$email").query[User]
 
-  def selectAll(ids: NonEmptyList[User.Id]): doobie.Query0[User] =
+  def selectOne(id: User.Id): doobie.Query0[User] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[User]
+
+  def selectAll(ids: Seq[User.Id]): doobie.Query0[User] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE id IN ($ids)").query[User]
 }

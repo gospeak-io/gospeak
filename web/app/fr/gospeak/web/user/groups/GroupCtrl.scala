@@ -51,9 +51,11 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
     (for {
       groupElt <- OptionT(db.getGroup(user.id, group))
       events <- OptionT.liftF(db.getIncomingEvents(groupElt.id, Page.Params.defaults.orderBy("start")))
+      proposals <- OptionT.liftF(db.getProposals(events.items.flatMap(_.talks)))
+      speakers <- OptionT.liftF(db.getUsers(proposals.flatMap(_.speakers.toList)))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name)
-    } yield Ok(html.detail(groupElt, events)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, events, proposals, speakers)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 }
 

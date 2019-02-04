@@ -9,6 +9,10 @@
     margin-bottom: -3px;
 }
 
+.list-group-item ul, .list-group-item ol {
+    margin-bottom: 0;
+}
+
 .form-row.is-invalid ~ .invalid-feedback {
     display: block;
 }

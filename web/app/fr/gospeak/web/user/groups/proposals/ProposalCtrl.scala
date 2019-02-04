@@ -42,9 +42,7 @@ object ProposalCtrl {
       .activeFor(routes.ProposalCtrl.list(group))
 
   def listBreadcrumb(user: User.Name, group: (Group.Slug, Group.Name)): Breadcrumb =
-    group match {
-      case (groupSlug, _) => GroupCtrl.breadcrumb(user, group).add("Proposals" -> routes.ProposalCtrl.list(groupSlug))
-    }
+    GroupCtrl.breadcrumb(user, group).add("Proposals" -> routes.ProposalCtrl.list(group._1))
 
   def header(group: Group.Slug): HeaderInfo =
     listHeader(group)

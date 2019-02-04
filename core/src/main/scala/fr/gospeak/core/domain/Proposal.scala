@@ -1,5 +1,6 @@
 package fr.gospeak.core.domain
 
+import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.libs.scalautils.domain.{DataClass, EnumBuilder, Markdown, UuidIdBuilder}
 
@@ -10,6 +11,7 @@ final case class Proposal(id: Proposal.Id,
                           title: Talk.Title,
                           status: Proposal.Status,
                           description: Markdown,
+                          speakers: NonEmptyList[User.Id],
                           info: Info)
 
 object Proposal {

@@ -51,4 +51,13 @@ object PathBindables {
     override def unbind(key: String, id: Proposal.Id): String =
       id.value
   }
+
+  // TODO: replace User.Id by User.Slug
+  implicit def userIdPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[User.Id] = new PathBindable[User.Id] {
+    override def bind(key: String, value: String): Either[String, User.Id] =
+      stringBinder.bind(key, value).flatMap(User.Id.from(_).toEither.swap.map(_.getMessage).swap)
+
+    override def unbind(key: String, id: User.Id): String =
+      id.value
+  }
 }

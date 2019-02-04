@@ -69,6 +69,7 @@ CREATE TABLE proposals (
   title       VARCHAR(100)  NOT NULL,
   status      VARCHAR(10)   NOT NULL,
   description VARCHAR(2048) NOT NULL,
+  speakers    VARCHAR(184)  NOT NULL,
   created     TIMESTAMP     NOT NULL,
   created_by  CHAR(36)      NOT NULL REFERENCES users(id),
   updated     TIMESTAMP     NOT NULL,

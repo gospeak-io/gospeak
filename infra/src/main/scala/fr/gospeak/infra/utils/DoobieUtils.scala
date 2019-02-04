@@ -82,6 +82,10 @@ object DoobieUtils {
     implicit val emailMeta: Meta[Email] = Meta[String].timap(Email.from(_).get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
 
+    // TODO build Meta[Seq[A]] and Meta[NonEmptyList[A]]
+    // implicit def seqMeta[A](implicit m: Meta[A]): Meta[Seq[A]] = ???
+    // implicit def nelMeta[A](implicit m: Meta[A]): Meta[NonEmptyList[A]] = ???
+
     implicit val userIdMeta: Meta[User.Id] = Meta[String].timap(User.Id.from(_).get)(_.value)
     implicit val talkIdMeta: Meta[Talk.Id] = Meta[String].timap(Talk.Id.from(_).get)(_.value)
     implicit val talkSlugMeta: Meta[Talk.Slug] = Meta[String].timap(Talk.Slug.from(_).get)(_.value)
@@ -101,6 +105,12 @@ object DoobieUtils {
     implicit val userIdNelMeta: Meta[NonEmptyList[User.Id]] = Meta[String].timap(
       s => NonEmptyList.fromListUnsafe(s.split(",").filter(_.nonEmpty).map(User.Id.from(_).get).toList))(
       _.map(_.value).toList.mkString(","))
+    implicit val userIdSeqMeta: Meta[Seq[User.Id]] = Meta[String].timap(
+      _.split(",").filter(_.nonEmpty).map(User.Id.from(_).get).toSeq)(
+      _.map(_.value).toList.mkString(","))
+    implicit val talkIdSeqMeta: Meta[Seq[Talk.Id]] = Meta[String].timap(
+      _.split(",").filter(_.nonEmpty).map(Talk.Id.from(_).get).toSeq)(
+      _.map(_.value).mkString(","))
     implicit val poposalIdSeqMeta: Meta[Seq[Proposal.Id]] = Meta[String].timap(
       _.split(",").filter(_.nonEmpty).map(Proposal.Id.from(_).get).toSeq)(
       _.map(_.value).mkString(","))

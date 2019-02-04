@@ -73,7 +73,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       Cfp(cfp3, Cfp.Slug.from("data-gov").get, Cfp.Name("Data governance"), Markdown("Everything about Data governance"), group3, Info(userDemo)))
     val events = NonEmptyList.of(
       Event(group1, event1, Event.Slug.from("2019-01").get, Event.Name("HumanTalks Paris Janvier 2019"), Instant.parse("2019-01-08T19:00:00.000Z"), Some("desc"), Some("ManoMano"), Seq(), Info(userDemo)),
-      Event(group1, event2, Event.Slug.from("2019-02").get, Event.Name("HumanTalks Paris Fevrier 2019"), Instant.parse("2019-02-12T19:00:00.000Z"), None, None, Seq(), Info(userOrga)),
+      Event(group1, event2, Event.Slug.from("2019-02").get, Event.Name("HumanTalks Paris Fevrier 2019"), Instant.parse("2019-02-12T19:00:00.000Z"), None, None, Seq(proposal1), Info(userOrga)),
       Event(group1, event3, Event.Slug.from("2019-03").get, Event.Name("HumanTalks Paris Mars 2019"), Instant.parse("2019-03-12T19:00:00.000Z"), Some("desc"), Some("Zeenea"), Seq(), Info(userDemo)),
       Event(group2, event4, Event.Slug.from("2019-04").get, Event.Name("Paris.Js Avril"), Instant.parse("2019-04-01T19:00:00.000Z"), None, None, Seq(), Info(userOrga)),
       Event(group3, event5, Event.Slug.from("2019-03").get, Event.Name("Nouveaux modeles de gouvenance"), Instant.parse("2019-03-12T19:00:00.000Z"), None, None, Seq(), Info(userDemo)))
@@ -86,11 +86,11 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       Talk(talk6, Talk.Slug.from("demarrer-avec-spark").get, Talk.Title("7 conseils pour demarrer avec Spark"), Duration.apply(45, MINUTES), Talk.Status.Public, Markdown("Cras sit amet nibh libero, in gravida nulla.."), NonEmptyList.of(userSpeaker), Info(userSpeaker)),
       Talk(talk7, Talk.Slug.from("big-talk").get, Talk.Title("Big Talk"), Duration.apply(10, MINUTES), Talk.Status.Public, Markdown("Cras sit amet nibh libero, in gravida nulla.."), NonEmptyList.of(userSpeaker), Info(userSpeaker)))
     val proposals = NonEmptyList.of(
-      Proposal(proposal1, talk1, cfp1, None, Talk.Title("Why FP"), Proposal.Status.Pending, Markdown("temporary description"), Info(userDemo)),
-      Proposal(proposal2, talk2, cfp1, None, Talk.Title("Scala Best Practices"), Proposal.Status.Pending, Markdown("temporary description"), Info(userDemo)),
-      Proposal(proposal3, talk2, cfp2, None, Talk.Title("Scala Best Practices"), Proposal.Status.Accepted, Markdown("temporary description"), Info(userDemo)),
-      Proposal(proposal4, talk2, cfp3, None, Talk.Title("Scala Best Practices"), Proposal.Status.Rejected, Markdown("temporary description"), Info(userDemo)),
-      Proposal(proposal5, talk3, cfp1, None, Talk.Title("NodeJs news"), Proposal.Status.Pending, Markdown("temporary description"), Info(userDemo)))
+      Proposal(proposal1, talk1, cfp1, None, Talk.Title("Why FP"), Proposal.Status.Pending, Markdown("temporary description"), NonEmptyList.of(userDemo), Info(userDemo)),
+      Proposal(proposal2, talk2, cfp1, None, Talk.Title("Scala Best Practices"), Proposal.Status.Pending, Markdown("temporary description"), NonEmptyList.of(userDemo, userSpeaker), Info(userDemo)),
+      Proposal(proposal3, talk2, cfp2, None, Talk.Title("Scala Best Practices"), Proposal.Status.Accepted, Markdown("temporary description"), NonEmptyList.of(userDemo, userSpeaker), Info(userDemo)),
+      Proposal(proposal4, talk2, cfp3, None, Talk.Title("Scala Best Practices"), Proposal.Status.Rejected, Markdown("temporary description"), NonEmptyList.of(userDemo, userSpeaker), Info(userDemo)),
+      Proposal(proposal5, talk3, cfp1, None, Talk.Title("NodeJs news"), Proposal.Status.Pending, Markdown("temporary description"), NonEmptyList.of(userDemo), Info(userDemo)))
     val generated = (1 to 25).toList.map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
@@ -98,7 +98,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       val c = Cfp(cfpId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), Markdown("Only your best talks !"), groupId, Info(userOrga))
       val e = Event(group4, Event.Id.generate(), Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), Instant.parse("2019-03-12T19:00:00.000Z"), None, None, Seq(), Info(userOrga))
       val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Title(s"Z Talk $i"), Duration.apply(10, MINUTES), Talk.Status.Draft, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker), Info(userSpeaker))
-      val p = Proposal(Proposal.Id.generate(), talk7, cfpId, None, Talk.Title(s"Z Proposal $i"), Proposal.Status.Pending, Markdown("temporary description"), Info(userSpeaker))
+      val p = Proposal(Proposal.Id.generate(), talk7, cfpId, None, Talk.Title(s"Z Proposal $i"), Proposal.Status.Pending, Markdown("temporary description"), NonEmptyList.of(userSpeaker), Info(userSpeaker))
       (g, c, e, t, p)
     }
     for {
@@ -116,7 +116,9 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getUser(email: Email): IO[Option[User]] = run(UserTable.selectOne(email).option)
 
-  override def getUsers(ids: NonEmptyList[User.Id]): IO[Seq[User]] = run(UserTable.selectAll(ids).to[List])
+  override def getUser(id: User.Id): IO[Option[User]] = run(UserTable.selectOne(id).option)
+
+  override def getUsers(ids: Seq[User.Id]): IO[Seq[User]] = run(UserTable.selectAll(ids).to[List])
 
   override def createGroup(slug: Group.Slug, name: Group.Name, description: Markdown, by: User.Id): IO[Group] =
     run(GroupTable.insert, Group(Group.Id.generate(), slug, name, description, NonEmptyList.of(by), Info(by)))
@@ -156,22 +158,24 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(TalkTable.selectPage(user, _), params))
 
+  override def getTalks(ids: Seq[Talk.Id]): IO[Seq[Talk]] = run(TalkTable.selectAll(ids).to[List])
+
   override def updateTalk(user: User.Id, slug: Talk.Slug)(data: Talk.Data): IO[Done] = {
     if (data.slug != slug) {
       // FIXME: should also check for other speakers !!!
       getTalk(user, data.slug).flatMap {
-        case None => run(TalkTable.updateAll(user, slug)(data, Instant.now()))
+        case None => run(TalkTable.update(user, slug)(data, Instant.now()))
         case _ => IO.raiseError(CustomException(s"You already have a talk with slug ${data.slug}"))
       }
     } else {
-      run(TalkTable.updateAll(user, slug)(data, Instant.now()))
+      run(TalkTable.update(user, slug)(data, Instant.now()))
     }
   }
 
   override def updateTalkStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done] = run(TalkTable.updateStatus(user, slug)(status))
 
-  override def createProposal(talk: Talk.Id, cfp: Cfp.Id, title: Talk.Title, description: Markdown, by: User.Id): IO[Proposal] =
-    run(ProposalTable.insert, Proposal(Proposal.Id.generate(), talk, cfp, None, title, Proposal.Status.Pending, description, Info(by)))
+  override def createProposal(talk: Talk.Id, cfp: Cfp.Id, title: Talk.Title, description: Markdown, speakers: NonEmptyList[User.Id], by: User.Id): IO[Proposal] =
+    run(ProposalTable.insert, Proposal(Proposal.Id.generate(), talk, cfp, None, title, Proposal.Status.Pending, description, speakers, Info(by)))
 
   override def getProposal(id: Proposal.Id): IO[Option[Proposal]] = run(ProposalTable.selectOne(id).option)
 
@@ -180,6 +184,8 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def getProposals(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal]] = run(Queries.selectPage(ProposalTable.selectPage(cfp, _), params))
 
   override def getProposals(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]] = run(Queries.selectPage(ProposalTable.selectPage(talk, _), params))
+
+  override def getProposals(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = run(ProposalTable.selectAll(ids).to[List])
 
   private def run[A](i: A => doobie.Update0, v: A): IO[A] =
     i(v).run.transact(xa).flatMap {

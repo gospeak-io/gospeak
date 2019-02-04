@@ -2,6 +2,7 @@ package fr.gospeak.infra.services.storage.sql
 
 import java.time.Instant
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import fr.gospeak.core.domain._
@@ -20,6 +21,7 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach wit
   private val eventSlug = random[Event.Slug]
   private val cfpSlug = random[Cfp.Slug]
   private val Seq(talkData, talkData2) = random[Talk.Data](2)
+  private val speakers = NonEmptyList.fromListUnsafe(random[User.Id](3).toList)
   private val page = Page.Params()
 
   override def beforeEach(): Unit = db.createTables().unsafeRunSync()
@@ -158,7 +160,7 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach wit
         val (user, _, cfp, talk) = createUserGroupCfpAndTalk().unsafeRunSync()
         db.getProposals(talk.id, page).unsafeRunSync().items shouldBe Seq()
         db.getProposals(cfp.id, page).unsafeRunSync().items shouldBe Seq()
-        val proposal = db.createProposal(talk.id, cfp.id, Talk.Title("title"), desc, user.id).unsafeRunSync()
+        val proposal = db.createProposal(talk.id, cfp.id, Talk.Title("title"), desc, speakers, user.id).unsafeRunSync()
         db.getProposals(talk.id, page).unsafeRunSync().items shouldBe Seq(cfp -> proposal)
         db.getProposals(cfp.id, page).unsafeRunSync().items shouldBe Seq(proposal)
         db.getProposal(proposal.id).unsafeRunSync() shouldBe Some(proposal)
@@ -167,17 +169,17 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach wit
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         val group = db.createGroup(groupSlug, Group.Name("name"), desc, user.id).unsafeRunSync()
         val cfp = db.createCfp(cfpSlug, Cfp.Name("name"), desc, group.id, user.id).unsafeRunSync()
-        an[Exception] should be thrownBy db.createProposal(Talk.Id.generate(), cfp.id, Talk.Title("title"), desc, user.id).unsafeRunSync()
+        an[Exception] should be thrownBy db.createProposal(Talk.Id.generate(), cfp.id, Talk.Title("title"), desc, speakers, user.id).unsafeRunSync()
       }
       it("should fail to create a proposal when cfp does not exists") {
         val user = db.createUser(firstName, lastName, email).unsafeRunSync()
         val talk = db.createTalk(talkData, user.id).unsafeRunSync()
-        an[Exception] should be thrownBy db.createProposal(talk.id, Cfp.Id.generate(), Talk.Title("title"), desc, user.id).unsafeRunSync()
+        an[Exception] should be thrownBy db.createProposal(talk.id, Cfp.Id.generate(), Talk.Title("title"), desc, speakers, user.id).unsafeRunSync()
       }
       it("should fail on duplicate cfp and talk") {
         val (user, _, cfp, talk) = createUserGroupCfpAndTalk().unsafeRunSync()
-        db.createProposal(talk.id, cfp.id, Talk.Title("title"), desc, user.id).unsafeRunSync()
-        an[Exception] should be thrownBy db.createProposal(talk.id, cfp.id, Talk.Title("title"), desc, user.id).unsafeRunSync()
+        db.createProposal(talk.id, cfp.id, Talk.Title("title"), desc, speakers, user.id).unsafeRunSync()
+        an[Exception] should be thrownBy db.createProposal(talk.id, cfp.id, Talk.Title("title"), desc, speakers, user.id).unsafeRunSync()
       }
 
     }

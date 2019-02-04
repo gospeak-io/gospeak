@@ -1,0 +1,8 @@
+@import fr.gospeak.core.domain.User
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.partials.html.container
+
+@(speaker: User)(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
+@container("Gospeak", h, Some(b))() {
+    TODO @speaker.name.value
+}()

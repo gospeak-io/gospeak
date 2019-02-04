@@ -14,8 +14,8 @@ class TalkCtrlSpec extends FunSpec with Matchers with BeforeAndAfterEach with Ra
   private val params = Page.Params()
   private val db = Values.db
   private val auth = new AuthService(db)
-  private val firstName = random[String].take(100)
-  private val lastName = random[String].take(100)
+  private val firstName = random[String].take(30)
+  private val lastName = random[String].take(30)
   private val email = random[Email]
   private val ctrl = new TalkCtrl(Values.cc, db, auth)
 

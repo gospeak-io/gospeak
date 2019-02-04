@@ -31,7 +31,10 @@ object TalkTable {
     (buildSelect(tableFr, fieldsFr, page.all).query[Talk], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 
-  def updateAll(user: User.Id, slug: Talk.Slug)(data: Talk.Data, now: Instant): doobie.Update0 = {
+  def selectAll(ids: Seq[Talk.Id]): doobie.Query0[Talk] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE id IN ($ids)").query[Talk]
+
+  def update(user: User.Id, slug: Talk.Slug)(data: Talk.Data, now: Instant): doobie.Update0 = {
     val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, updated=$now, updated_by=$user"
     buildUpdate(tableFr, fields, where(user, slug)).update
   }

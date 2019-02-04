@@ -38,7 +38,7 @@ class CfpCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extend
         (for {
           talkElt <- OptionT(db.getTalk(user.id, talk))
           cfpElt <- OptionT(db.getCfp(cfp))
-          proposal <- OptionT.liftF(db.createProposal(talkElt.id, cfpElt.id, data.title, data.description, user.id))
+          proposal <- OptionT.liftF(db.createProposal(talkElt.id, cfpElt.id, data.title, data.description, talkElt.speakers, user.id))
         } yield Redirect(ProposalCtrl.detail(talk, proposal.id))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }
     ).unsafeToFuture()

@@ -31,9 +31,16 @@ class TalkTableSpec extends TableSpec {
         check(c)
       }
     }
-    describe("updateAll") {
+    describe("selectAll") {
       it("should generate the query") {
-        val q = updateAll(user.id, talk.slug)(talk.data, Instant.now())
+        val q = selectAll(Seq(talk.id))
+        q.sql shouldBe "SELECT id, slug, title, duration, status, description, speakers, created, created_by, updated, updated_by FROM talks WHERE id IN (?)"
+        check(q)
+      }
+    }
+    describe("update") {
+      it("should generate the query") {
+        val q = update(user.id, talk.slug)(talk.data, Instant.now())
         q.sql shouldBe "UPDATE talks SET slug=?, title=?, duration=?, description=?, updated=?, updated_by=? WHERE speakers LIKE ? AND slug=?"
         check(q)
       }

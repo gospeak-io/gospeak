@@ -15,7 +15,7 @@ object Generators {
 
   implicit val aInstant: Arbitrary[Instant] = Arbitrary(Gen.calendar.map(c => Instant.ofEpochMilli(c.getTimeInMillis)))
   implicit val aMarkdown: Arbitrary[Markdown] = Arbitrary(stringGen.map(str => Markdown(str)))
-  implicit val aEmail: Arbitrary[Email] = Arbitrary(slugGen.map(str => Email.from(str + "@mail.com").get)) // TODO improve
+  implicit val aEmail: Arbitrary[Email] = Arbitrary(slugGen.map(str => Email.from(str.take(90) + "@mail.com").get)) // TODO improve
 
   implicit val aUserId: Arbitrary[User.Id] = Arbitrary(Gen.uuid.map(id => User.Id.from(id.toString).get))
   implicit val aTalkId: Arbitrary[Talk.Id] = Arbitrary(Gen.uuid.map(id => Talk.Id.from(id.toString).get))

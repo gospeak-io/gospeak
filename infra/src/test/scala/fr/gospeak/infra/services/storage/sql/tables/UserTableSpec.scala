@@ -14,9 +14,21 @@ class UserTableSpec extends TableSpec {
       }
     }
     describe("selectOne") {
-      it("should generate the query") {
-        val q = selectOne(Email.from("john@mail.com").get)
+      it("should generate query for Email") {
+        val q = selectOne(user.email)
         q.sql shouldBe "SELECT id, first_name, last_name, email, created, updated FROM users WHERE email=?"
+        check(q)
+      }
+      it("should generate the query for Id") {
+        val q = selectOne(user.id)
+        q.sql shouldBe "SELECT id, first_name, last_name, email, created, updated FROM users WHERE id=?"
+        check(q)
+      }
+    }
+    describe("selectAll") {
+      it("should generate the query") {
+        val q = selectAll(Seq(user.id))
+        q.sql shouldBe "SELECT id, first_name, last_name, email, created, updated FROM users WHERE id IN (?)"
         check(q)
       }
     }
