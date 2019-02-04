@@ -18,6 +18,7 @@ object Generators {
   implicit val aEmail: Arbitrary[Email] = Arbitrary(slugGen.map(str => Email.from(str.take(90) + "@mail.com").get)) // TODO improve
 
   implicit val aUserId: Arbitrary[User.Id] = Arbitrary(Gen.uuid.map(id => User.Id.from(id.toString).get))
+  implicit val aUserSlug: Arbitrary[User.Slug] = Arbitrary(slugGen.map(slug => User.Slug.from(slug).get))
   implicit val aTalkId: Arbitrary[Talk.Id] = Arbitrary(Gen.uuid.map(id => Talk.Id.from(id.toString).get))
   implicit val aTalkSlug: Arbitrary[Talk.Slug] = Arbitrary(slugGen.map(slug => Talk.Slug.from(slug).get))
   implicit val aTalkTitle: Arbitrary[Talk.Title] = Arbitrary(stringGen.map(str => Talk.Title(str)))

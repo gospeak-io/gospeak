@@ -8,11 +8,11 @@ import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain.{Done, Email, Markdown, Page}
 
 trait GospeakDb {
-  def createUser(firstName: String, lastName: String, email: Email): IO[User]
+  def createUser(slug: User.Slug, firstName: String, lastName: String, email: Email): IO[User]
 
   def getUser(email: Email): IO[Option[User]]
 
-  def getUser(id: User.Id): IO[Option[User]]
+  def getUser(slug: User.Slug): IO[Option[User]]
 
   def getUsers(ids: Seq[User.Id]): IO[Seq[User]]
 

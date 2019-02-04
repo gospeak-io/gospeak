@@ -27,10 +27,10 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   private val userOrga = User.Id.generate()
 
   private val users = NonEmptyList.of(
-    User(userDemo, "Demo", "User", Email.from("demo@mail.com").get, Instant.now(), Instant.now()),
-    User(userSpeaker, "Speaker", "User", Email.from("speaker@mail.com").get, Instant.now(), Instant.now()),
-    User(userOrga, "Orga", "User", Email.from("orga@mail.com").get, Instant.now(), Instant.now()),
-    User(User.Id.generate(), "Empty", "User", Email.from("empty@mail.com").get, Instant.now(), Instant.now()))
+    User(userDemo, User.Slug.from("demo").get, "Demo", "User", Email.from("demo@mail.com").get, Instant.now(), Instant.now()),
+    User(userSpeaker, User.Slug.from("speaker").get, "Speaker", "User", Email.from("speaker@mail.com").get, Instant.now(), Instant.now()),
+    User(userOrga, User.Slug.from("orga").get, "Orga", "User", Email.from("orga@mail.com").get, Instant.now(), Instant.now()),
+    User(User.Id.generate(), User.Slug.from("empty").get, "Empty", "User", Email.from("empty@mail.com").get, Instant.now(), Instant.now()))
 
   def createTables(): IO[Int] = IO(flyway.migrate())
 
@@ -111,12 +111,12 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     } yield Done
   }
 
-  override def createUser(firstName: String, lastName: String, email: Email): IO[User] =
-    run(UserTable.insert, User(User.Id.generate(), firstName, lastName, email, Instant.now(), Instant.now()))
+  override def createUser(slug: User.Slug, firstName: String, lastName: String, email: Email): IO[User] =
+    run(UserTable.insert, User(User.Id.generate(), slug, firstName, lastName, email, Instant.now(), Instant.now()))
 
   override def getUser(email: Email): IO[Option[User]] = run(UserTable.selectOne(email).option)
 
-  override def getUser(id: User.Id): IO[Option[User]] = run(UserTable.selectOne(id).option)
+  override def getUser(slug: User.Slug): IO[Option[User]] = run(UserTable.selectOne(slug).option)
 
   override def getUsers(ids: Seq[User.Id]): IO[Seq[User]] = run(UserTable.selectAll(ids).to[List])
 

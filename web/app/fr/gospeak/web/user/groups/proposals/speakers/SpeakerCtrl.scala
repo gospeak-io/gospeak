@@ -12,7 +12,7 @@ import fr.gospeak.web.utils.UICtrl
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Request}
 
 class SpeakerCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extends UICtrl(cc) {
-  def detail(group: Group.Slug, proposal: Proposal.Id, speaker: User.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+  def detail(group: Group.Slug, proposal: Proposal.Id, speaker: User.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
     (for {
       groupElt <- OptionT(db.getGroup(user.id, group))
@@ -34,7 +34,7 @@ object SpeakerCtrl {
   def header(group: Group.Slug): HeaderInfo =
     listHeader(group)
 
-  def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name), proposal: (Proposal.Id, Talk.Title), speaker: (User.Id, User.Name)): Breadcrumb =
+  def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name), proposal: (Proposal.Id, Talk.Title), speaker: (User.Slug, User.Name)): Breadcrumb =
     listBreadcrumb(user, group, proposal).add(speaker._2.value -> routes.SpeakerCtrl.detail(group._1, proposal._1, speaker._1))
 
 }

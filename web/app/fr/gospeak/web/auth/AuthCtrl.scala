@@ -20,7 +20,7 @@ class AuthCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
     AuthForms.signup.bindFromRequest.fold(
       formWithErrors => IO.pure(Ok(html.signup(formWithErrors)(header))),
       data => for {
-        user <- db.createUser(data.firstName, data.lastName, data.email)
+        user <- db.createUser(data.slug, data.firstName, data.lastName, data.email)
         _ <- auth.login(user)
       } yield Redirect(fr.gospeak.web.user.routes.UserCtrl.index())
     ).unsafeToFuture()

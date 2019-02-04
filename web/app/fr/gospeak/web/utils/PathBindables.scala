@@ -40,8 +40,8 @@ object PathBindables {
     override def bind(key: String, value: String): Either[String, Cfp.Slug] =
       stringBinder.bind(key, value).flatMap(Cfp.Slug.from(_).toEither.swap.map(_.getMessage).swap)
 
-    override def unbind(key: String, id: Cfp.Slug): String =
-      id.value
+    override def unbind(key: String, slug: Cfp.Slug): String =
+      slug.value
   }
 
   implicit def proposalIdPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Proposal.Id] = new PathBindable[Proposal.Id] {
@@ -52,12 +52,11 @@ object PathBindables {
       id.value
   }
 
-  // TODO: replace User.Id by User.Slug
-  implicit def userIdPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[User.Id] = new PathBindable[User.Id] {
-    override def bind(key: String, value: String): Either[String, User.Id] =
-      stringBinder.bind(key, value).flatMap(User.Id.from(_).toEither.swap.map(_.getMessage).swap)
+  implicit def userSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[User.Slug] = new PathBindable[User.Slug] {
+    override def bind(key: String, value: String): Either[String, User.Slug] =
+      stringBinder.bind(key, value).flatMap(User.Slug.from(_).toEither.swap.map(_.getMessage).swap)
 
-    override def unbind(key: String, id: User.Id): String =
-      id.value
+    override def unbind(key: String, slug: User.Slug): String =
+      slug.value
   }
 }

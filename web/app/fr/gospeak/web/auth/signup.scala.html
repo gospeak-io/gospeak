@@ -22,6 +22,14 @@
                 <div class="form-group">
                     <div class="input-group">
                         <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1"><i class="fas fa-user-secret"></i></span>
+                        </div>
+                        @inputText(form("slug"), Seq("placeholder" -> "Username"))
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
                             <span class="input-group-text" id="basic-addon1"><i class="fas fa-envelope"></i></span>
                         </div>
                         @inputEmail(form("email"), Seq("placeholder" -> "Email"))

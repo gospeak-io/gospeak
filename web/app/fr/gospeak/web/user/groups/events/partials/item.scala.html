@@ -20,7 +20,7 @@
                     <a href="@ProposalCtrl.detail(group.slug, p.id)">@p.title.value</a>
                     by @p.speakers.toList.map { uId =>
                         @speakers.find(_.id == uId).map { u =>
-                            <a href="@SpeakerCtrl.detail(group.slug, p.id, u.id)">@u.name.value</a>
+                            <a href="@SpeakerCtrl.detail(group.slug, p.id, u.slug)">@u.name.value</a>
                         }.getOrElse { Unknown (@uId.value) }
                     }
                 }.getOrElse { Unknown (@pId.value) }

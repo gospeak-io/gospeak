@@ -1,5 +1,6 @@
 package fr.gospeak.web.auth
 
+import fr.gospeak.core.domain.User
 import fr.gospeak.libs.scalautils.domain.{Email, Secret}
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Form
@@ -7,9 +8,10 @@ import play.api.data.Forms._
 
 object AuthForms {
 
-  final case class Signup(firstName: String, lastName: String, email: Email, password: Secret)
+  final case class Signup(slug: User.Slug, firstName: String, lastName: String, email: Email, password: Secret)
 
   val signup: Form[Signup] = Form(mapping(
+    "slug" -> userSlug,
     "first-name" -> nonEmptyText,
     "last-name" -> nonEmptyText,
     "email" -> mail,

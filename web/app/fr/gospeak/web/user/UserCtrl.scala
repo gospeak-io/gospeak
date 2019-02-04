@@ -33,7 +33,7 @@ object UserCtrl {
     NavLink("Talks", talks.routes.TalkCtrl.list()))
 
   private val leftNav = NavDropdown("Public", HomeCtrl.publicNav) +: userNav
-  val rightNav: Seq[NavMenu] = Seq(NavDropdown("<i class=\"fas fa-user\"></i>", Seq(
+  val rightNav: Seq[NavMenu] = Seq(NavDropdown("<i class=\"fas fa-user-circle\"></i>", Seq(
     NavLink("Profile", routes.UserCtrl.profile()),
     NavLink("logout", fr.gospeak.web.auth.routes.AuthCtrl.logout()))))
 
