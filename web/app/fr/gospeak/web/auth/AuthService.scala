@@ -6,9 +6,11 @@ import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.libs.scalautils.domain.{Done, Email}
 import play.api.mvc.{AnyContent, Request}
 
+import scala.util.Try
+
 // TODO mock auth, to remove
 class AuthService(db: GospeakDb) {
-  private var logged: Option[User] = db.getUser(Email.from("demo@mail.com").get).unsafeRunSync()
+  private var logged: Option[User] = Try(db.getUser(Email.from("demo@mail.com").get).unsafeRunSync()).getOrElse(None)
 
   def login(user: User): IO[Done] = {
     logged = Some(user)
