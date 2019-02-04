@@ -4,14 +4,14 @@ import java.time.Instant
 
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.libs.scalautils.domain.{Email, Markdown}
+import fr.gospeak.libs.scalautils.domain.{Email, Markdown, SlugBuilder}
 import org.scalacheck.ScalacheckShapeless._
 import org.scalacheck.{Arbitrary, Gen}
 
 object Generators {
   private val _ = coproductCogen // to keep the `org.scalacheck.ScalacheckShapeless._` import
   private val stringGen = implicitly[Arbitrary[String]].arbitrary
-  private val slugGen = Gen.nonEmptyListOf(Gen.alphaNumChar).map(_.mkString.toLowerCase)
+  private val slugGen = Gen.nonEmptyListOf(Gen.alphaNumChar).map(_.mkString.take(SlugBuilder.maxLength).toLowerCase)
 
   implicit val aInstant: Arbitrary[Instant] = Arbitrary(Gen.calendar.map(c => Instant.ofEpochMilli(c.getTimeInMillis)))
   implicit val aMarkdown: Arbitrary[Markdown] = Arbitrary(stringGen.map(str => Markdown(str)))

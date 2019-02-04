@@ -1,5 +1,7 @@
 package fr.gospeak.web.testingutils
 
+import java.util.Locale
+
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
@@ -16,15 +18,15 @@ trait TwirlSpec extends FunSpec with Matchers with RandomDataGenerator {
   protected implicit val req: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
   protected implicit val flash: Flash = req.flash
   implicit val messages: Messages = new Messages {
-    override def lang: Lang = ???
+    override def lang: Lang = Lang(Locale.ENGLISH)
 
     override def apply(key: String, args: Any*): String = key
 
-    override def apply(keys: Seq[String], args: Any*): String = ???
+    override def apply(keys: Seq[String], args: Any*): String = keys.headOption.getOrElse("")
 
-    override def translate(key: String, args: Seq[Any]): Option[String] = ???
+    override def translate(key: String, args: Seq[Any]): Option[String] = Some(key)
 
-    override def isDefinedAt(key: String): Boolean = ???
+    override def isDefinedAt(key: String): Boolean = false
   }
   protected val h = HeaderInfo(NavLink("Gospeak", routes.HomeCtrl.index()), Seq(), Seq())
   protected val b = Breadcrumb(Seq())

@@ -47,21 +47,27 @@ abstract class UuidIdBuilder[T](clazz: String, build: String => T) {
 }
 
 abstract class SlugBuilder[T](clazz: String, build: String => T) {
+
+  import SlugBuilder._
+
   def from(in: String): Try[T] = {
     val errs = errors(in)
     if (errs.isEmpty) Success(build(in))
     else Failure(CustomException(s"'$in' is an invalid $clazz: " + errs.mkString(", ")))
   }
 
-  def errors(in: String): Seq[String] = {
-    in match {
-      case SlugBuilder.pattern() => Seq()
-      case _ => Seq(s"do not match pattern ${SlugBuilder.pattern}")
-    }
-  }
+  def errors(in: String): Seq[String] =
+    Seq(
+      if (in.length > maxLength) Some(s"$clazz should not exceed $maxLength chars") else None,
+      in match {
+        case pattern() => None
+        case _ => Some(s"do not match pattern $pattern")
+      }
+    ).flatten
 }
 
 object SlugBuilder {
+  val maxLength = 30
   val pattern: Regex = "[a-z0-9-]+".r
 }
 

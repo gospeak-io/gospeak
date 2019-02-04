@@ -18,13 +18,11 @@ object Mappings {
   val requiredError = "error.required"
 
   private[utils] def required[A](stringify: A => String): Constraint[A] = Constraint[A](requiredConstraint) { o =>
-    if (o == null) Invalid(ValidationError(requiredError))
-    else {
-      stringify(o) match {
-        case null => Invalid(ValidationError(requiredError))
-        case str if str.trim.isEmpty => Invalid(ValidationError(requiredError))
-        case _ => Valid
-      }
+    val str = stringify(o)
+    if (str.trim.isEmpty) {
+      Invalid(ValidationError(requiredError))
+    } else {
+      Valid
     }
   }
 
@@ -46,40 +44,28 @@ object Mappings {
 
   val numberError = "error.number"
 
-  private[utils] def longFormatter[A](from: Long => A, to: A => Long): Formatter[A] = new Formatter[A] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], A] =
-      data.get(key)
-        .map(s => Try(s.toLong).toEither.left.map(t => Seq(FormError(key, numberError, t.getMessage))))
-        .map(_.right.map(from))
-        .getOrElse(Left(Seq(FormError(key, requiredError))))
-
-    override def unbind(key: String, value: A): Map[String, String] =
-      Map(key -> to(value).toString)
-  }
+  private[utils] def longFormatter[A](from: Long => A, to: A => Long): Formatter[A] =
+    genericFormatter(to(_).toString, s => Try(s.toLong).map(from), numberError)
 
   val datetimeError = "error.datetime"
 
-  private[utils] val instantFormatter = new Formatter[Instant] {
-    // FIXME: get user ZoneOffset, more generally better managed dates and timezones!!!
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Instant] =
-      data.get(key)
-        .map(s => Try(LocalDateTime.parse(s).toInstant(ZoneOffset.UTC)).toEither.left.map(t => Seq(FormError(key, datetimeError, t.getMessage))))
-        .getOrElse(Left(Seq(FormError(key, requiredError))))
-
-    override def unbind(key: String, value: Instant): Map[String, String] =
-      Map(key -> value.atZone(ZoneOffset.UTC).toLocalDateTime.toString)
-  }
+  // FIXME: get user ZoneOffset, more generally better managed dates and timezones!!!
+  private[utils] val instantFormatter =
+    genericFormatter[Instant](_.atZone(ZoneOffset.UTC).toLocalDateTime.toString, s => Try(LocalDateTime.parse(s).toInstant(ZoneOffset.UTC)), datetimeError)
 
   val formatError = "error.format"
 
-  private[utils] def stringTryFormatter[A](from: String => Try[A], to: A => String): Formatter[A] = new Formatter[A] {
+  private[utils] def stringTryFormatter[A](from: String => Try[A], to: A => String): Formatter[A] =
+    genericFormatter(to, from, formatError)
+
+  private def genericFormatter[A](serialize: A => String, parse: String => Try[A], err: String): Formatter[A] = new Formatter[A] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], A] =
       data.get(key)
-        .map(from(_).toEither.left.map(t => Seq(FormError(key, formatError, t.getMessage))))
+        .map(parse(_).toEither.left.map(t => Seq(FormError(key, err, t.getMessage))))
         .getOrElse(Left(Seq(FormError(key, requiredError))))
 
     override def unbind(key: String, value: A): Map[String, String] =
-      Map(key -> to(value))
+      Map(key -> serialize(value))
   }
 
   private def stringMapping[A](from: String => A, to: A => String, cs: ((A => String) => Constraint[A])*): Mapping[A] =

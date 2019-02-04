@@ -73,7 +73,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       Cfp(cfp3, Cfp.Slug.from("data-gov").get, Cfp.Name("Data governance"), Markdown("Everything about Data governance"), group3, Info(userDemo)))
     val events = NonEmptyList.of(
       Event(group1, event1, Event.Slug.from("2019-01").get, Event.Name("HumanTalks Paris Janvier 2019"), Instant.parse("2019-01-08T19:00:00.000Z"), Some("desc"), Some("ManoMano"), Seq(), Info(userDemo)),
-      Event(group1, event2, Event.Slug.from("2019-02").get, Event.Name("HumanTalks Paris Février 2019"), Instant.parse("2019-02-12T19:00:00.000Z"), None, None, Seq(), Info(userOrga)),
+      Event(group1, event2, Event.Slug.from("2019-02").get, Event.Name("HumanTalks Paris Fevrier 2019"), Instant.parse("2019-02-12T19:00:00.000Z"), None, None, Seq(), Info(userOrga)),
       Event(group1, event3, Event.Slug.from("2019-03").get, Event.Name("HumanTalks Paris Mars 2019"), Instant.parse("2019-03-12T19:00:00.000Z"), Some("desc"), Some("Zeenea"), Seq(), Info(userDemo)),
       Event(group2, event4, Event.Slug.from("2019-04").get, Event.Name("Paris.Js Avril"), Instant.parse("2019-04-01T19:00:00.000Z"), None, None, Seq(), Info(userOrga)),
       Event(group3, event5, Event.Slug.from("2019-03").get, Event.Name("Nouveaux modeles de gouvenance"), Instant.parse("2019-03-12T19:00:00.000Z"), None, None, Seq(), Info(userDemo)))
