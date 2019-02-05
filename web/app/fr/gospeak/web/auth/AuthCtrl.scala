@@ -1,5 +1,7 @@
 package fr.gospeak.web.auth
 
+import java.time.Instant
+
 import cats.effect.IO
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.HomeCtrl
@@ -17,10 +19,11 @@ class AuthCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
   }
 
   def doSignup(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    val now = Instant.now()
     AuthForms.signup.bindFromRequest.fold(
       formWithErrors => IO.pure(Ok(html.signup(formWithErrors)(header))),
       data => for {
-        user <- db.createUser(data.slug, data.firstName, data.lastName, data.email)
+        user <- db.createUser(data.slug, data.firstName, data.lastName, data.email, now)
         _ <- auth.login(user)
       } yield Redirect(fr.gospeak.web.user.routes.UserCtrl.index())
     ).unsafeToFuture()

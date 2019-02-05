@@ -41,7 +41,6 @@ class FormatsSpec extends FunSpec with Matchers {
         Formats.timeAgo(Duration(2, SECONDS)) shouldBe "in 2 seconds"
       }
       it("should manage java Instant") {
-        val i = Instant.now()
         Formats.timeAgo(i, i.plusSeconds(5)) shouldBe Formats.timeAgo(Duration(-5, SECONDS))
       }
     }

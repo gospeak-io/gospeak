@@ -7,7 +7,7 @@
 @container("Gospeak", h, Some(b))() {
     <div>
         <span class="float-right">
-            <a class="btn btn-outline-secondary" href="@EventCtrl.create(group.slug)" title="edit" aria-hidden="true">
+            <a class="btn btn-outline-secondary" href="@EventCtrl.edit(group.slug, event.slug)" title="edit" aria-hidden="true">
                 <i class="fas fa-edit"></i>
             </a>
             <a class="btn btn-danger" href="@EventCtrl.list(group.slug)" title="delete" aria-hidden="true">

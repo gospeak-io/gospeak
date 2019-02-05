@@ -1,5 +1,7 @@
 package fr.gospeak.web.user.talks.cfps
 
+import java.time.Instant
+
 import cats.data.OptionT
 import cats.effect.IO
 import fr.gospeak.core.domain.{Cfp, Talk, User}
@@ -32,13 +34,14 @@ class CfpCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extend
 
   def doCreate(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
+    val now = Instant.now()
     CfpForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors, talk, cfp),
       data => {
         (for {
           talkElt <- OptionT(db.getTalk(user.id, talk))
           cfpElt <- OptionT(db.getCfp(cfp))
-          proposal <- OptionT.liftF(db.createProposal(talkElt.id, cfpElt.id, data.title, data.description, talkElt.speakers, user.id))
+          proposal <- OptionT.liftF(db.createProposal(talkElt.id, cfpElt.id, data.title, data.description, talkElt.speakers, user.id, now))
         } yield Redirect(ProposalCtrl.detail(talk, proposal.id))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }
     ).unsafeToFuture()

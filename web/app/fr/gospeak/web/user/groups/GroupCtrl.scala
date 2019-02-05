@@ -1,5 +1,7 @@
 package fr.gospeak.web.user.groups
 
+import java.time.Instant
+
 import cats.data.OptionT
 import cats.effect.IO
 import fr.gospeak.core.domain.{Group, User}
@@ -31,11 +33,12 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
 
   def doCreate(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
+    val now = Instant.now()
     GroupForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
       data => for {
         // TODO check if slug not already exist
-        _ <- db.createGroup(data.slug, data.name, data.description, user.id)
+        _ <- db.createGroup(data.slug, data.name, data.description, user.id, now)
       } yield Redirect(routes.GroupCtrl.detail(data.slug))
     ).unsafeToFuture()
   }
@@ -48,9 +51,10 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
 
   def detail(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
+    val now = Instant.now()
     (for {
       groupElt <- OptionT(db.getGroup(user.id, group))
-      events <- OptionT.liftF(db.getIncomingEvents(groupElt.id, Page.Params.defaults.orderBy("start")))
+      events <- OptionT.liftF(db.getEventsAfter(groupElt.id, now, Page.Params.defaults.orderBy("start")))
       proposals <- OptionT.liftF(db.getProposals(events.items.flatMap(_.talks)))
       speakers <- OptionT.liftF(db.getUsers(proposals.flatMap(_.speakers.toList)))
       h = header(group)

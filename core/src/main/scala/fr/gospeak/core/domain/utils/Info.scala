@@ -10,6 +10,6 @@ final case class Info(created: Instant,
                       updatedBy: User.Id)
 
 object Info {
-  def apply(by: User.Id, now: Instant = Instant.now()): Info =
+  def apply(by: User.Id, now: Instant): Info =
     new Info(now, by, now, by)
 }

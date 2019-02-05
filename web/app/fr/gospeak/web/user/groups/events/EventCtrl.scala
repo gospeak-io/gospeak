@@ -1,5 +1,7 @@
 package fr.gospeak.web.user.groups.events
 
+import java.time.Instant
+
 import cats.data.OptionT
 import cats.effect.IO
 import fr.gospeak.core.domain.{Event, Group, User}
@@ -34,19 +36,20 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
 
   def doCreate(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
+    val now = Instant.now()
     EventForms.create.bindFromRequest.fold(
       formWithErrors => createForm(group, formWithErrors),
       data => {
         (for {
           groupElt <- OptionT(db.getGroup(user.id, group))
           // TODO check if slug not already exist
-          _ <- OptionT.liftF(db.createEvent(groupElt.id, data.slug, data.name, data.start, user.id))
+          _ <- OptionT.liftF(db.createEvent(groupElt.id, data.slug, data.name, data.start, user.id, now))
         } yield Redirect(routes.EventCtrl.detail(group, data.slug))).value.map(_.getOrElse(groupNotFound(group)))
       }
     ).unsafeToFuture()
   }
 
-  private def createForm(group: Group.Slug, form: Form[EventForms.Create])(implicit req: Request[AnyContent], user: User): IO[Result] = {
+  private def createForm(group: Group.Slug, form: Form[Event.Data])(implicit req: Request[AnyContent], user: User): IO[Result] = {
     (for {
       groupElt <- OptionT(db.getGroup(user.id, group))
       h = header(group)
@@ -62,6 +65,39 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name, event -> eventElt.name)
     } yield Ok(html.detail(groupElt, eventElt)(h, b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+  }
+
+  def edit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = auth.authed()
+    editForm(group, event, EventForms.create).unsafeToFuture()
+  }
+
+  def doEdit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = auth.authed()
+    val now = Instant.now()
+    EventForms.create.bindFromRequest.fold(
+      formWithErrors => editForm(group, event, formWithErrors),
+      data => (for {
+        groupElt <- OptionT(db.getGroup(user.id, group))
+        eventOpt <- OptionT.liftF(db.getEvent(groupElt.id, data.slug))
+        res <- OptionT.liftF(eventOpt match {
+          case Some(duplicate) if data.slug != event =>
+            editForm(group, event, EventForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by event: ${duplicate.name.value}"))
+          case _ =>
+            db.updateEvent(groupElt.id, event)(data, user.id, now).map { _ => Redirect(routes.EventCtrl.detail(group, data.slug)) }
+        })
+      } yield res).value.map(_.getOrElse(groupNotFound(group)))
+    ).unsafeToFuture()
+  }
+
+  private def editForm(group: Group.Slug, event: Event.Slug, form: Form[Event.Data])(implicit req: Request[AnyContent], user: User): IO[Result] = {
+    (for {
+      groupElt <- OptionT(db.getGroup(user.id, group))
+      eventElt <- OptionT(db.getEvent(groupElt.id, event))
+      h = header(group)
+      b = breadcrumb(user.name, group -> groupElt.name, event -> eventElt.name).add("Edit" -> routes.EventCtrl.edit(group, event))
+      filledForm = if (form.hasErrors) form else form.fill(eventElt.data)
+    } yield Ok(html.edit(groupElt, eventElt, filledForm)(h, b))).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 }
 

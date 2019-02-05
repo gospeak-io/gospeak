@@ -32,11 +32,18 @@ class EventTableSpec extends TableSpec {
     }
     describe("selectAllAfter") {
       it("should generate the query") {
-        val (s, c) = selectAllAfter(group.id, Instant.now(), params)
+        val (s, c) = selectAllAfter(group.id, now, params)
         s.sql shouldBe "SELECT group_id, id, slug, name, start, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE group_id=? AND start > ? ORDER BY start DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM events WHERE group_id=? AND start > ? "
         check(s)
         check(c)
+      }
+    }
+    describe("update") {
+      it("should generate the query") {
+        val q = update(group.id, event.slug)(event.data, user.id, now)
+        q.sql shouldBe "UPDATE events SET slug=?, name=?, start=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
+        check(q)
       }
     }
   }

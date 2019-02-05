@@ -11,7 +11,7 @@
         <h1>Create a talk</h1>
     </div>
 
-    @formElt(GroupCtrl.doCreate()) {
+    @formElt(form, GroupCtrl.doCreate()) {
         @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the group")) { (field, args) =>
             @inputText(field, Seq("placeholder" -> "ex: Scala coding talks", "autofocus" -> "true") ++ args)
         }

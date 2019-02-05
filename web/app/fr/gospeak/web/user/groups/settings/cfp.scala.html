@@ -13,7 +13,7 @@
         <h1>CFP settings</h1>
     </div>
 
-    @formElt(SettingsCtrl.cfpCreate(group.slug)) {
+    @formElt(form, SettingsCtrl.cfpCreate(group.slug)) {
         @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of your CFP (publicly visible), can be the same as your group name")) { (field, args) =>
             @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
         }

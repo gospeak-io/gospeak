@@ -1,5 +1,7 @@
 package fr.gospeak.infra.services.storage.sql.tables.testingutils
 
+import java.time.Instant
+
 import cats.effect.IO
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import doobie.scalatest.IOChecker
@@ -13,6 +15,7 @@ import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
 trait TableSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterAll with RandomDataGenerator {
   protected val db: GospeakDbSql = Values.db
   val transactor: doobie.Transactor[IO] = db.xa
+  protected val now: Instant = random[Instant]
   protected val user: User = random[User]
   protected val group: Group = random[Group]
   protected val event: Event = random[Event]

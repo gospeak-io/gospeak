@@ -4,12 +4,12 @@
 @import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.partials.form.html._
 
-@(form: Form[Login])(h: HeaderInfo)(implicit req: Request[AnyContent], flash: Flash)
+@(form: Form[Login])(h: HeaderInfo)(implicit req: Request[AnyContent], messages: Messages, flash: Flash)
 @container("Gospeak", h)() {
     <div class="login">
         <div class="card bg-light shadow">
             <div class="card-body">
-            @formElt(AuthCtrl.doLogin()) {
+            @formElt(form, AuthCtrl.doLogin()) {
                 <div class="form-group">
                     <div class="input-group">
                         <div class="input-group-prepend">

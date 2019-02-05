@@ -5,14 +5,13 @@
 @import fr.gospeak.web.user.talks.partials.html.fields
 @import fr.gospeak.web.user.talks.routes.TalkCtrl
 
-@(form: Form[Talk.Data], talk: Talk)(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
+@(talk: Talk, form: Form[Talk.Data])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
 @container("Gospeak", h, Some(b))() {
     <div class="page-header">
         <h1>Edit @talk.title.value</h1>
     </div>
 
-    @formElt(TalkCtrl.doEdit(talk.slug)) {
-        @displayGlobalErrors(form)
+    @formElt(form, TalkCtrl.doEdit(talk.slug)) {
         @fields(form)
         @actionsHorizontal() {
             @btnCancel(TalkCtrl.list())

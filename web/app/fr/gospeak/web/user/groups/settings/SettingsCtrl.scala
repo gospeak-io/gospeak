@@ -1,5 +1,7 @@
 package fr.gospeak.web.user.groups.settings
 
+import java.time.Instant
+
 import cats.data.OptionT
 import cats.effect.IO
 import fr.gospeak.core.domain.{Group, User}
@@ -31,12 +33,13 @@ class SettingsCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) e
 
   def cfpCreate(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
+    val now = Instant.now()
     SettingsForms.cfpCreate.bindFromRequest.fold(
       formWithErrors => cfpForm(group, formWithErrors),
       data => {
         (for {
           groupElt <- OptionT(db.getGroup(user.id, group))
-          _ <- OptionT.liftF(db.createCfp(data.slug, data.name, data.description, groupElt.id, user.id))
+          _ <- OptionT.liftF(db.createCfp(data.slug, data.name, data.description, groupElt.id, user.id, now))
         } yield Redirect(GroupRoutes.detail(group))).value.map(_.getOrElse(groupNotFound(group)))
       }
     ).unsafeToFuture()

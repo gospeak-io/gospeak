@@ -14,7 +14,9 @@ final case class Event(group: Group.Id,
                        description: Option[String],
                        venue: Option[String],
                        talks: Seq[Proposal.Id],
-                       info: Info)
+                       info: Info) {
+  def data: Event.Data = Event.Data(slug, name, start)
+}
 
 object Event {
 
@@ -27,5 +29,7 @@ object Event {
   object Slug extends SlugBuilder[Slug]("Event.Slug", new Slug(_))
 
   final case class Name(value: String) extends AnyVal
+
+  final case class Data(slug: Event.Slug, name: Event.Name, start: Instant)
 
 }

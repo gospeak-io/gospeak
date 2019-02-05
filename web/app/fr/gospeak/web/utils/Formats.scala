@@ -14,7 +14,7 @@ object Formats {
 
   def datetime(i: Instant): String = dtf.format(i)
 
-  def timeAgo(i: Instant, now: Instant = Instant.now()): String = {
+  def timeAgo(i: Instant, now: Instant): String = {
     val diffMilli = i.toEpochMilli - now.toEpochMilli
     timeAgo(Duration.fromNanos(1000000 * diffMilli))
   }

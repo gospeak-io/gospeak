@@ -1,5 +1,7 @@
 package fr.gospeak.web.user.talks
 
+import java.time.Instant
+
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
@@ -15,6 +17,7 @@ class TalkCtrlSpec extends FunSpec with Matchers with BeforeAndAfterEach with Ra
   private val params = Page.Params()
   private val db = Values.db
   private val auth = new AuthService(db)
+  private val now = random[Instant]
   private val userSlug = random[User.Slug]
   private val firstName = random[String].take(30)
   private val lastName = random[String].take(30)
@@ -23,7 +26,7 @@ class TalkCtrlSpec extends FunSpec with Matchers with BeforeAndAfterEach with Ra
 
   override def beforeEach(): Unit = {
     db.createTables().unsafeRunSync()
-    val u = db.createUser(userSlug, firstName, lastName, email).unsafeRunSync()
+    val u = db.createUser(userSlug, firstName, lastName, email, now).unsafeRunSync()
     auth.login(u).unsafeRunSync()
   }
 

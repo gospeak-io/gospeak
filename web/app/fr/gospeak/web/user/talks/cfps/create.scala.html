@@ -12,7 +12,7 @@
         <h1>Propose @talk.title.value to @cfp.name.value</h1>
     </div>
 
-    @formElt(CfpCtrl.doCreate(talk.slug, cfp.slug)) {
+    @formElt(form, CfpCtrl.doCreate(talk.slug, cfp.slug)) {
         <blockquote class="blockquote">
             @markdown(cfp.description)
         </blockquote>

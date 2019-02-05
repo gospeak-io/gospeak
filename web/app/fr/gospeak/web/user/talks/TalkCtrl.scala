@@ -1,5 +1,7 @@
 package fr.gospeak.web.user.talks
 
+import java.time.Instant
+
 import cats.data.OptionT
 import cats.effect.IO
 import fr.gospeak.core.domain.{Talk, User}
@@ -30,13 +32,14 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
 
   def doCreate(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
+    val now = Instant.now()
     TalkForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
       data => db.getTalk(user.id, data.slug).flatMap {
         case Some(duplicate) =>
           createForm(TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
         case None =>
-          db.createTalk(data, user.id).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+          db.createTalk(data, user.id, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
     ).unsafeToFuture()
   }
@@ -60,31 +63,32 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
 
   def edit(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
-    editForm(TalkForms.create, talk).unsafeToFuture()
+    editForm(talk, TalkForms.create).unsafeToFuture()
   }
 
   def doEdit(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
+    val now = Instant.now()
     TalkForms.create.bindFromRequest.fold(
-      formWithErrors => editForm(formWithErrors, talk),
+      formWithErrors => editForm(talk, formWithErrors),
       data => db.getTalk(user.id, data.slug).flatMap {
         case Some(duplicate) if data.slug != talk =>
-          editForm(TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"), talk)
+          editForm(talk, TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
         case _ =>
-          db.updateTalk(user.id, talk)(data).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+          db.updateTalk(user.id, talk)(data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
     ).unsafeToFuture()
   }
 
-  private def editForm(form: Form[Talk.Data], slug: Talk.Slug)(implicit req: Request[AnyContent], user: User): IO[Result] = {
-    db.getTalk(user.id, slug).map {
-      case Some(talk) =>
-        val h = header(talk.slug)
-        val b = breadcrumb(user.name, talk.slug -> talk.title).add("Edit" -> routes.TalkCtrl.edit(talk.slug))
-        val filledForm = if(form.hasErrors) form else form.fill(talk.data)
-        Ok(html.edit(filledForm, talk)(h, b))
+  private def editForm(talk: Talk.Slug, form: Form[Talk.Data])(implicit req: Request[AnyContent], user: User): IO[Result] = {
+    db.getTalk(user.id, talk).map {
+      case Some(talkElt) =>
+        val h = header(talkElt.slug)
+        val b = breadcrumb(user.name, talkElt.slug -> talkElt.title).add("Edit" -> routes.TalkCtrl.edit(talk))
+        val filledForm = if(form.hasErrors) form else form.fill(talkElt.data)
+        Ok(html.edit(talkElt, filledForm)(h, b))
       case None =>
-        talkNotFound(slug)
+        talkNotFound(talk)
     }
   }
 

@@ -11,8 +11,7 @@
         <h1>Create a talk</h1>
     </div>
 
-    @formElt(TalkCtrl.doCreate()) {
-        @displayGlobalErrors(form)
+    @formElt(form, TalkCtrl.doCreate()) {
         @fields(form)
         @actionsHorizontal() {
             @btnCancel(TalkCtrl.list())
