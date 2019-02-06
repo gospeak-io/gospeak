@@ -8,7 +8,9 @@ final case class Cfp(id: Cfp.Id,
                      name: Cfp.Name,
                      description: Markdown,
                      group: Group.Id,
-                     info: Info)
+                     info: Info) {
+  def data: Cfp.Data = Cfp.Data(slug, name, description)
+}
 
 object Cfp {
 
@@ -21,5 +23,7 @@ object Cfp {
   object Slug extends SlugBuilder[Slug]("Cfp.Slug", new Slug(_))
 
   final case class Name(value: String) extends AnyVal
+
+  final case class Data(slug: Cfp.Slug, name: Cfp.Name, description: Markdown)
 
 }

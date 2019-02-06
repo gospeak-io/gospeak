@@ -9,7 +9,9 @@ final case class Group(id: Group.Id,
                        name: Group.Name,
                        description: Markdown,
                        owners: NonEmptyList[User.Id],
-                       info: Info)
+                       info: Info) {
+  def data: Group.Data = Group.Data(slug, name, description)
+}
 
 object Group {
 
@@ -22,5 +24,7 @@ object Group {
   object Slug extends SlugBuilder[Slug]("Group.Slug", new Slug(_))
 
   final case class Name(value: String) extends AnyVal
+
+  final case class Data(slug: Group.Slug, name: Group.Name, description: Markdown)
 
 }

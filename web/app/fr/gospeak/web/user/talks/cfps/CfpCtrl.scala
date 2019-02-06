@@ -4,7 +4,7 @@ import java.time.Instant
 
 import cats.data.OptionT
 import cats.effect.IO
-import fr.gospeak.core.domain.{Cfp, Talk, User}
+import fr.gospeak.core.domain.{Cfp, Proposal, Talk, User}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.AuthService
@@ -41,18 +41,18 @@ class CfpCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extend
         (for {
           talkElt <- OptionT(db.getTalk(user.id, talk))
           cfpElt <- OptionT(db.getCfp(cfp))
-          proposal <- OptionT.liftF(db.createProposal(talkElt.id, cfpElt.id, data.title, data.description, talkElt.speakers, user.id, now))
+          proposal <- OptionT.liftF(db.createProposal(talkElt.id, cfpElt.id, data, talkElt.speakers, user.id, now))
         } yield Redirect(ProposalCtrl.detail(talk, proposal.id))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }
     ).unsafeToFuture()
   }
 
-  private def createForm(form: Form[CfpForms.Create], talk: Talk.Slug, cfp: Cfp.Slug)(implicit req: Request[AnyContent], user: User): IO[Result] = {
+  private def createForm(form: Form[Proposal.Data], talk: Talk.Slug, cfp: Cfp.Slug)(implicit req: Request[AnyContent], user: User): IO[Result] = {
     (for {
       talkElt <- OptionT(db.getTalk(user.id, talk))
       cfpElt <- OptionT(db.getCfp(cfp))
       proposalOpt <- OptionT.liftF(db.getProposal(talkElt.id, cfpElt.id))
-      filledForm = if (form.hasErrors) form else form.fill(CfpForms.Create(talkElt.title, talkElt.description))
+      filledForm = if (form.hasErrors) form else form.fill(Proposal.Data(talkElt.title, talkElt.description))
       h = TalkCtrl.header(talkElt.slug)
       b = breadcrumb(user.name, talk -> talkElt.title, cfp -> cfpElt.name)
     } yield proposalOpt

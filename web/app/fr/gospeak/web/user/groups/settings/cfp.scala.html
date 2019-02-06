@@ -1,13 +1,11 @@
 @import fr.gospeak.core.domain.{Cfp, Group, User}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.partials.form.html._
-@import fr.gospeak.web.user.groups.events.partials.html.{item => eventItem}
-@import fr.gospeak.web.user.groups.settings.routes.SettingsCtrl
+@import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.user.groups.routes.GroupCtrl
-@import fr.gospeak.web.user.groups.settings.SettingsForms
+@import fr.gospeak.web.user.groups.settings.routes.SettingsCtrl
 
-@(form: Form[SettingsForms.CfpCreate], group: Group, cfpOpt: Option[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
+@(form: Form[Cfp.Data], group: Group, cfpOpt: Option[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
 @container("Gospeak", h, Some(b))() {
     <div>
         <h1>CFP settings</h1>

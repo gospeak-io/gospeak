@@ -16,7 +16,7 @@ trait GospeakDb {
 
   def getUsers(ids: Seq[User.Id]): IO[Seq[User]]
 
-  def createGroup(slug: Group.Slug, name: Group.Name, description: Markdown, by: User.Id, now: Instant): IO[Group]
+  def createGroup(data: Group.Data, by: User.Id, now: Instant): IO[Group]
 
   def getGroup(user: User.Id, slug: Group.Slug): IO[Option[Group]]
 
@@ -32,7 +32,7 @@ trait GospeakDb {
 
   def getEventsAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]]
 
-  def createCfp(slug: Cfp.Slug, name: Cfp.Name, description: Markdown, group: Group.Id, by: User.Id, now: Instant): IO[Cfp]
+  def createCfp(data: Cfp.Data, group: Group.Id, by: User.Id, now: Instant): IO[Cfp]
 
   def getCfp(slug: Cfp.Slug): IO[Option[Cfp]]
 
@@ -54,7 +54,7 @@ trait GospeakDb {
 
   def updateTalkStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done]
 
-  def createProposal(talk: Talk.Id, cfp: Cfp.Id, title: Talk.Title, description: Markdown, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal]
+  def createProposal(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal]
 
   def getProposal(id: Proposal.Id): IO[Option[Proposal]]
 

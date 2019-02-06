@@ -121,8 +121,8 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getUsers(ids: Seq[User.Id]): IO[Seq[User]] = run(UserTable.selectAll(ids).to[List])
 
-  override def createGroup(slug: Group.Slug, name: Group.Name, description: Markdown, by: User.Id, now: Instant): IO[Group] =
-    run(GroupTable.insert, Group(Group.Id.generate(), slug, name, description, NonEmptyList.of(by), Info(by, now)))
+  override def createGroup(data: Group.Data, by: User.Id, now: Instant): IO[Group] =
+    run(GroupTable.insert, Group(Group.Id.generate(), data.slug, data.name, data.description, NonEmptyList.of(by), Info(by, now)))
 
   override def getGroup(user: User.Id, slug: Group.Slug): IO[Option[Group]] = run(GroupTable.selectOne(user, slug).option)
 
@@ -150,8 +150,8 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def getEventsAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]] =
     run(Queries.selectPage(EventTable.selectAllAfter(group, now.truncatedTo(ChronoUnit.DAYS), _), params))
 
-  override def createCfp(slug: Cfp.Slug, name: Cfp.Name, description: Markdown, group: Group.Id, by: User.Id, now: Instant): IO[Cfp] =
-    run(CfpTable.insert, Cfp(Cfp.Id.generate(), slug, name, description, group, Info(by, now)))
+  override def createCfp(data: Cfp.Data, group: Group.Id, by: User.Id, now: Instant): IO[Cfp] =
+    run(CfpTable.insert, Cfp(Cfp.Id.generate(), data.slug, data.name, data.description, group, Info(by, now)))
 
   override def getCfp(slug: Cfp.Slug): IO[Option[Cfp]] = run(CfpTable.selectOne(slug).option)
 
@@ -187,8 +187,8 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def updateTalkStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done] = run(TalkTable.updateStatus(user, slug)(status))
 
-  override def createProposal(talk: Talk.Id, cfp: Cfp.Id, title: Talk.Title, description: Markdown, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal] =
-    run(ProposalTable.insert, Proposal(Proposal.Id.generate(), talk, cfp, None, title, Proposal.Status.Pending, description, speakers, Info(by, now)))
+  override def createProposal(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal] =
+    run(ProposalTable.insert, Proposal(Proposal.Id.generate(), talk, cfp, None, data.title, Proposal.Status.Pending, data.description, speakers, Info(by, now)))
 
   override def getProposal(id: Proposal.Id): IO[Option[Proposal]] = run(ProposalTable.selectOne(id).option)
 

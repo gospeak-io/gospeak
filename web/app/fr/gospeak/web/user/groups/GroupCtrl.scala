@@ -38,12 +38,12 @@ class GroupCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
       formWithErrors => createForm(formWithErrors),
       data => for {
         // TODO check if slug not already exist
-        _ <- db.createGroup(data.slug, data.name, data.description, user.id, now)
+        _ <- db.createGroup(data, user.id, now)
       } yield Redirect(routes.GroupCtrl.detail(data.slug))
     ).unsafeToFuture()
   }
 
-  private def createForm(form: Form[GroupForms.Create])(implicit req: Request[AnyContent], user: User): IO[Result] = {
+  private def createForm(form: Form[Group.Data])(implicit req: Request[AnyContent], user: User): IO[Result] = {
     val h = listHeader
     val b = listBreadcrumb(user.name).add("New" -> routes.GroupCtrl.create())
     IO.pure(Ok(html.create(form)(h, b)))

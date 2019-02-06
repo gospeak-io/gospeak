@@ -1,17 +1,13 @@
 package fr.gospeak.web.user.talks.cfps
 
-import fr.gospeak.core.domain.Talk
-import fr.gospeak.libs.scalautils.domain.Markdown
+import fr.gospeak.core.domain.Proposal
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
 
 object CfpForms {
-
-  final case class Create(title: Talk.Title, description: Markdown)
-
-  val create: Form[Create] = Form(mapping(
+  val create: Form[Proposal.Data] = Form(mapping(
     "title" -> talkTitle,
     "description" -> markdown
-  )(Create.apply)(Create.unapply))
+  )(Proposal.Data.apply)(Proposal.Data.unapply))
 }

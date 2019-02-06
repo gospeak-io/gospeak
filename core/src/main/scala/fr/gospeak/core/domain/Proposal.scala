@@ -12,7 +12,9 @@ final case class Proposal(id: Proposal.Id,
                           status: Proposal.Status,
                           description: Markdown,
                           speakers: NonEmptyList[User.Id],
-                          info: Info)
+                          info: Info) {
+  def data: Proposal.Data = Proposal.Data(title, description)
+}
 
 object Proposal {
 
@@ -32,5 +34,7 @@ object Proposal {
 
     val all: Seq[Status] = Seq(Pending, Accepted, Rejected)
   }
+
+  final case class Data(title: Talk.Title, description: Markdown)
 
 }

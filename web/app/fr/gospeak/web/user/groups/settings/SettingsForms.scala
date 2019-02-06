@@ -7,12 +7,9 @@ import play.api.data.Form
 import play.api.data.Forms._
 
 object SettingsForms {
-
-  final case class CfpCreate(slug: Cfp.Slug, name: Cfp.Name, description: Markdown)
-
-  val cfpCreate: Form[CfpCreate] = Form(mapping(
+  val cfpCreate: Form[Cfp.Data] = Form(mapping(
     "slug" -> cfpSlug,
     "name" -> cfpName,
     "description" -> markdown
-  )(CfpCreate.apply)(CfpCreate.unapply))
+  )(Cfp.Data.apply)(Cfp.Data.unapply))
 }

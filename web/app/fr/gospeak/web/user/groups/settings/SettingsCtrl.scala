@@ -4,7 +4,7 @@ import java.time.Instant
 
 import cats.data.OptionT
 import cats.effect.IO
-import fr.gospeak.core.domain.{Group, User}
+import fr.gospeak.core.domain.{Cfp, Group, User}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.auth.AuthService
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
@@ -39,13 +39,13 @@ class SettingsCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) e
       data => {
         (for {
           groupElt <- OptionT(db.getGroup(user.id, group))
-          _ <- OptionT.liftF(db.createCfp(data.slug, data.name, data.description, groupElt.id, user.id, now))
+          _ <- OptionT.liftF(db.createCfp(data, groupElt.id, user.id, now))
         } yield Redirect(GroupRoutes.detail(group))).value.map(_.getOrElse(groupNotFound(group)))
       }
     ).unsafeToFuture()
   }
 
-  private def cfpForm(group: Group.Slug, form: Form[SettingsForms.CfpCreate])(implicit req: Request[AnyContent], user: User): IO[Result] = {
+  private def cfpForm(group: Group.Slug, form: Form[Cfp.Data])(implicit req: Request[AnyContent], user: User): IO[Result] = {
     (for {
       groupElt <- OptionT(db.getGroup(user.id, group))
       cfpOpt <- OptionT.liftF(db.getCfp(groupElt.id))
