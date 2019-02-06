@@ -128,8 +128,8 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(GroupTable.selectPage(user, _), params))
 
-  override def createEvent(group: Group.Id, slug: Event.Slug, name: Event.Name, start: Instant, by: User.Id, now: Instant): IO[Event] =
-    run(EventTable.insert, Event(group, Event.Id.generate(), slug, name, start, None, None, Seq(), Info(by, now)))
+  override def createEvent(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event] =
+    run(EventTable.insert, Event(group, Event.Id.generate(), data.slug, data.name, data.start, None, None, Seq(), Info(by, now)))
 
   override def getEvent(group: Group.Id, event: Event.Slug): IO[Option[Event]] = run(EventTable.selectOne(group, event).option)
 

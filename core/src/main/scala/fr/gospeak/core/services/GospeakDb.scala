@@ -22,7 +22,7 @@ trait GospeakDb {
 
   def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]]
 
-  def createEvent(group: Group.Id, slug: Event.Slug, name: Event.Name, start: Instant, by: User.Id, now: Instant): IO[Event]
+  def createEvent(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event]
 
   def getEvent(group: Group.Id, event: Event.Slug): IO[Option[Event]]
 

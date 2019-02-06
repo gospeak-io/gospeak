@@ -20,7 +20,7 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach wit
   private val Seq(email, email2) = random[Email](2)
   private val desc = Markdown("desc")
   private val Seq(groupSlug, groupSlug2) = random[Group.Slug](2)
-  private val eventSlug = random[Event.Slug]
+  private val eventData = random[Event.Data]
   private val cfpSlug = random[Cfp.Slug]
   private val Seq(talkData, talkData2) = random[Talk.Data](2)
   private val speakers = NonEmptyList.fromListUnsafe(random[User.Id](3).toList)
@@ -72,19 +72,19 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach wit
       it("should create and retrieve an event for a group") {
         val (user, group) = createUserAndGroup().unsafeRunSync()
         db.getEvents(group.id, page).unsafeRunSync().items shouldBe Seq()
-        db.getEvent(group.id, eventSlug).unsafeRunSync() shouldBe None
-        val event = db.createEvent(group.id, eventSlug, Event.Name("name"), now, user.id, now).unsafeRunSync()
+        db.getEvent(group.id, eventData.slug).unsafeRunSync() shouldBe None
+        val event = db.createEvent(group.id, eventData, user.id, now).unsafeRunSync()
         db.getEvents(group.id, page).unsafeRunSync().items shouldBe Seq(event)
-        db.getEvent(group.id, eventSlug).unsafeRunSync() shouldBe Some(event)
+        db.getEvent(group.id, eventData.slug).unsafeRunSync() shouldBe Some(event)
       }
       it("should fail to create an event when the group does not exists") {
         val user = db.createUser(userSlug, firstName, lastName, email, now).unsafeRunSync()
-        an[Exception] should be thrownBy db.createEvent(Group.Id.generate(), eventSlug, Event.Name("name"), now, user.id, now).unsafeRunSync()
+        an[Exception] should be thrownBy db.createEvent(Group.Id.generate(), eventData, user.id, now).unsafeRunSync()
       }
       it("should fail on duplicate slug for the same group") {
         val (user, group) = createUserAndGroup().unsafeRunSync()
-        db.createEvent(group.id, eventSlug, Event.Name("name"), now, user.id, now).unsafeRunSync()
-        an[Exception] should be thrownBy db.createEvent(group.id, eventSlug, Event.Name("name"), now, user.id, now).unsafeRunSync()
+        db.createEvent(group.id, eventData, user.id, now).unsafeRunSync()
+        an[Exception] should be thrownBy db.createEvent(group.id, eventData, user.id, now).unsafeRunSync()
       }
     }
     describe("Cfp") {
