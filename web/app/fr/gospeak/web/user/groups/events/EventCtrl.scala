@@ -62,9 +62,11 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
     (for {
       groupElt <- OptionT(db.getGroup(user.id, group))
       eventElt <- OptionT(db.getEvent(groupElt.id, event))
+      proposals <- OptionT.liftF(db.getProposals(eventElt.talks))
+      speakers <- OptionT.liftF(db.getUsers(proposals.flatMap(_.speakers.toList)))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name, event -> eventElt.name)
-    } yield Ok(html.detail(groupElt, eventElt)(h, b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, eventElt, proposals, speakers)(h, b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>

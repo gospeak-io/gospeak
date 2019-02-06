@@ -1,25 +1,47 @@
-@import fr.gospeak.core.domain.{Event, Group, User}
+@import fr.gospeak.core.domain.{Event, Group, Proposal, User}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.partials.display.html.date
 @import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
+@import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.user.groups.proposals.speakers.routes.SpeakerCtrl
 
-@(group: Group, event: Event)(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
+@(group: Group, event: Event, proposals: Seq[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
 @container("Gospeak", h, Some(b))() {
     <div>
         <span class="float-right">
             <a class="btn btn-outline-secondary" href="@EventCtrl.edit(group.slug, event.slug)" title="edit" aria-hidden="true">
                 <i class="fas fa-edit"></i>
             </a>
-            <a class="btn btn-danger" href="@EventCtrl.list(group.slug)" title="delete" aria-hidden="true">
-                <i class="fas fa-trash"></i>
-            </a>
         </span>
         <h1>@event.name.value</h1>
+        <p>
+            @date(event.start),
+            @event.venue.map { v => @v, }.getOrElse{ <b class="text-danger">Missing venue</b>, }
+            @event.talks.length planned talks
+        </p>
     </div>
 
-    <h2>Planned talks</h2>
-
-    TODO
+    @if(event.talks.nonEmpty) {
+        <h2>@Formats.plural(event.talks.length, "planned talk")</h2>
+        <ol>
+        @event.talks.map { pId =>
+            <li>
+                @proposals.find(_.id == pId).map { p =>
+                    <a href="@ProposalCtrl.detail(group.slug, p.id)">@p.title.value</a>
+                    by @p.speakers.toList.map { uId =>
+                        @speakers.find(_.id == uId).map { u =>
+                            <a href="@SpeakerCtrl.detail(group.slug, p.id, u.slug)">@u.name.value</a>
+                        }.getOrElse { Unknown (@uId.value) }
+                    }
+                }.getOrElse { Unknown (@pId.value) }
+            </li>
+        }
+        </ol>
+    } else {
+        <h2>No planned talks</h2>
+    }
 
     <h2>Submitted talks</h2>
 
