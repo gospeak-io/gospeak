@@ -30,7 +30,7 @@ class ProposalTableSpec extends TableSpec {
       it("should generate query for a talk") {
         val (s, c) = selectPage(talk.id, params)
         s.sql shouldBe
-          "SELECT c.id, c.slug, c.name, c.description, c.group_id, c.created, c.created_by, c.updated, c.updated_by, " +
+          "SELECT c.id, c.group_id, c.slug, c.name, c.description, c.created, c.created_by, c.updated, c.updated_by, " +
             "p.id, p.talk_id, p.cfp_id, p.event_id, p.title, p.status, p.description, p.speakers, p.created, p.created_by, p.updated, p.updated_by " +
             "FROM cfps c INNER JOIN proposals p ON p.cfp_id=c.id WHERE p.talk_id=? ORDER BY p.created DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM cfps c INNER JOIN proposals p ON p.cfp_id=c.id WHERE p.talk_id=? "

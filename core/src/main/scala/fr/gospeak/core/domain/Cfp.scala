@@ -4,10 +4,10 @@ import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.libs.scalautils.domain.{DataClass, Markdown, SlugBuilder, UuidIdBuilder}
 
 final case class Cfp(id: Cfp.Id,
+                     group: Group.Id,
                      slug: Cfp.Slug,
                      name: Cfp.Name,
                      description: Markdown,
-                     group: Group.Id,
                      info: Info) {
   def data: Cfp.Data = Cfp.Data(slug, name, description)
 }

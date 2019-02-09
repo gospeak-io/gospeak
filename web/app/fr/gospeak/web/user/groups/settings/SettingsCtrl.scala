@@ -39,7 +39,7 @@ class SettingsCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) e
       data => {
         (for {
           groupElt <- OptionT(db.getGroup(user.id, group))
-          _ <- OptionT.liftF(db.createCfp(data, groupElt.id, user.id, now))
+          _ <- OptionT.liftF(db.createCfp(groupElt.id, data, user.id, now))
         } yield Redirect(GroupRoutes.detail(group))).value.map(_.getOrElse(groupNotFound(group)))
       }
     ).unsafeToFuture()

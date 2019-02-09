@@ -39,7 +39,7 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
         case Some(duplicate) =>
           createForm(TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
         case None =>
-          db.createTalk(data, user.id, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+          db.createTalk(user.id, data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
     ).unsafeToFuture()
   }

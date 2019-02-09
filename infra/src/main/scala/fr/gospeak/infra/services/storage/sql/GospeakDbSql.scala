@@ -22,16 +22,6 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   private val flyway = FlywayUtils.build(conf)
   private[sql] val xa = DoobieUtils.transactor(conf)
 
-  private val userDemo = User.Id.generate()
-  private val userSpeaker = User.Id.generate()
-  private val userOrga = User.Id.generate()
-
-  private val users = NonEmptyList.of(
-    User(userDemo, User.Slug.from("demo").get, "Demo", "User", Email.from("demo@mail.com").get, Instant.now(), Instant.now()),
-    User(userSpeaker, User.Slug.from("speaker").get, "Speaker", "User", Email.from("speaker@mail.com").get, Instant.now(), Instant.now()),
-    User(userOrga, User.Slug.from("orga").get, "Orga", "User", Email.from("orga@mail.com").get, Instant.now(), Instant.now()),
-    User(User.Id.generate(), User.Slug.from("empty").get, "Empty", "User", Email.from("empty@mail.com").get, Instant.now(), Instant.now()))
-
   def createTables(): IO[Int] = IO(flyway.migrate())
 
   def dropTables(): IO[Done] = IO(flyway.clean()).map(_ => Done)
@@ -39,72 +29,74 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   def insertMockData(): IO[Done] = {
     val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
     val now = Instant.now()
-    val group1 = Group.Id.generate()
-    val group2 = Group.Id.generate()
-    val group3 = Group.Id.generate()
-    val group4 = Group.Id.generate()
-    val cfp1 = Cfp.Id.generate()
-    val cfp2 = Cfp.Id.generate()
-    val event1 = Event.Id.generate()
-    val event2 = Event.Id.generate()
-    val event3 = Event.Id.generate()
-    val event4 = Event.Id.generate()
-    val event5 = Event.Id.generate()
-    val talk1 = Talk.Id.generate()
-    val talk2 = Talk.Id.generate()
-    val talk3 = Talk.Id.generate()
-    val talk4 = Talk.Id.generate()
-    val talk5 = Talk.Id.generate()
-    val talk6 = Talk.Id.generate()
-    val talk7 = Talk.Id.generate()
-    val proposal1 = Proposal.Id.generate()
-    val proposal2 = Proposal.Id.generate()
-    val proposal3 = Proposal.Id.generate()
-    val proposal5 = Proposal.Id.generate()
-    val groups = NonEmptyList.of(
-      Group(group1, Group.Slug.from("ht-paris").get, Group.Name("HumanTalks Paris"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userDemo, userOrga), Info(userDemo, now)),
-      Group(group2, Group.Slug.from("paris-js").get, Group.Name("Paris.Js"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga), Info(userOrga, now)),
-      Group(group3, Group.Slug.from("data-gov").get, Group.Name("Data governance"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userDemo), Info(userDemo, now)),
-      Group(group4, Group.Slug.from("big-group").get, Group.Name("Big Group"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga), Info(userOrga, now)))
-    val cfps = NonEmptyList.of(
-      Cfp(cfp1, Cfp.Slug.from("ht-paris").get, Cfp.Name("HumanTalks Paris"), Markdown("Les HumanTalks Paris c'est 4 talks de 10 min..."), group1, Info(userDemo, now)),
-      Cfp(cfp2, Cfp.Slug.from("paris-js").get, Cfp.Name("Paris.Js"), Markdown("Submit your talk to exchange with the Paris JS community"), group2, Info(userOrga, now)))
-    val events = NonEmptyList.of(
-      Event(group1, event1, Event.Slug.from("2019-01").get, Event.Name("HumanTalks Paris Janvier 2019"), Instant.parse("2019-01-08T19:00:00.000Z"), Some("desc"), Some("ManoMano"), Seq(), Info(userDemo, now)),
-      Event(group1, event2, Event.Slug.from("2019-02").get, Event.Name("HumanTalks Paris Fevrier 2019"), Instant.parse("2019-02-12T19:00:00.000Z"), None, None, Seq(proposal1), Info(userOrga, now)),
-      Event(group1, event3, Event.Slug.from("2019-03").get, Event.Name("HumanTalks Paris Mars 2019"), Instant.parse("2019-03-12T19:00:00.000Z"), Some("desc"), Some("Zeenea"), Seq(), Info(userDemo, now)),
-      Event(group2, event4, Event.Slug.from("2019-04").get, Event.Name("Paris.Js Avril"), Instant.parse("2019-04-01T19:00:00.000Z"), None, None, Seq(proposal3), Info(userOrga, now)),
-      Event(group3, event5, Event.Slug.from("2019-03").get, Event.Name("Nouveaux modeles de gouvenance"), Instant.parse("2019-03-12T19:00:00.000Z"), None, None, Seq(), Info(userDemo, now)))
-    val talks = NonEmptyList.of(
-      Talk(talk1, Talk.Slug.from("why-fp").get, Talk.Title("Why FP"), Duration.apply(10, MINUTES), Talk.Status.Private, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userDemo), Info(userDemo, now)),
-      Talk(talk2, Talk.Slug.from("scala-best-practices").get, Talk.Title("Scala Best Practices"), Duration.apply(10, MINUTES), Talk.Status.Public, Markdown("Cras sit amet nibh libero, in gravida nulla.."), NonEmptyList.of(userDemo, userSpeaker), Info(userDemo, now)),
-      Talk(talk3, Talk.Slug.from("nodejs-news").get, Talk.Title("NodeJs news"), Duration.apply(10, MINUTES), Talk.Status.Draft, Markdown("Cras sit amet nibh libero, in gravida nulla.."), NonEmptyList.of(userDemo), Info(userDemo, now)),
-      Talk(talk4, Talk.Slug.from("scalajs-react").get, Talk.Title("ScalaJS + React = <3"), Duration.apply(50, MINUTES), Talk.Status.Archived, Markdown("Cras sit amet nibh libero, in gravida nulla.."), NonEmptyList.of(userSpeaker, userDemo), Info(userSpeaker, now)),
-      Talk(talk5, Talk.Slug.from("gagner-1-million").get, Talk.Title("Gagner 1 Million au BlackJack avec Akka"), Duration.apply(15, MINUTES), Talk.Status.Private, Markdown("Cras sit amet nibh libero, in gravida nulla.."), NonEmptyList.of(userSpeaker), Info(userSpeaker, now)),
-      Talk(talk6, Talk.Slug.from("demarrer-avec-spark").get, Talk.Title("7 conseils pour demarrer avec Spark"), Duration.apply(45, MINUTES), Talk.Status.Public, Markdown("Cras sit amet nibh libero, in gravida nulla.."), NonEmptyList.of(userSpeaker), Info(userSpeaker, now)),
-      Talk(talk7, Talk.Slug.from("big-talk").get, Talk.Title("Big Talk"), Duration.apply(10, MINUTES), Talk.Status.Public, Markdown("Cras sit amet nibh libero, in gravida nulla.."), NonEmptyList.of(userSpeaker), Info(userSpeaker, now)))
-    val proposals = NonEmptyList.of(
-      Proposal(proposal1, talk1, cfp1, None, Talk.Title("Why FP"), Proposal.Status.Accepted, Markdown("temporary description"), NonEmptyList.of(userDemo), Info(userDemo, now)),
-      Proposal(proposal2, talk2, cfp1, None, Talk.Title("Scala Best Practices"), Proposal.Status.Pending, Markdown("temporary description"), NonEmptyList.of(userDemo, userSpeaker), Info(userDemo, now)),
-      Proposal(proposal3, talk2, cfp2, None, Talk.Title("Scala Best Practices"), Proposal.Status.Accepted, Markdown("temporary description"), NonEmptyList.of(userDemo, userSpeaker), Info(userDemo, now)),
-      Proposal(proposal5, talk3, cfp1, None, Talk.Title("NodeJs news"), Proposal.Status.Rejected, Markdown("temporary description"), NonEmptyList.of(userDemo), Info(userDemo, now)))
+
+    def user(slug: String, email: String, firstName: String, lastName: String): User =
+      User(User.Id.generate(), User.Slug.from(slug).get, firstName, lastName, Email.from(email).get, now, now)
+
+    def group(slug: String, name: String, by: User, owners: Seq[User] = Seq()): Group =
+      Group(Group.Id.generate(), Group.Slug.from(slug).get, Group.Name(name), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(by.id) ++ owners.map(_.id).toList, Info(by.id, now))
+
+    def cfp(group: Group, slug: String, name: String, description: String, by: User): Cfp =
+      Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).get, Cfp.Name(name), Markdown(description), Info(by.id, now))
+
+    def talk(by: User, slug: String, title: String, status: Talk.Status = Talk.Status.Public, speakers: Seq[User] = Seq(), duration: Int = 10, description: String = "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."): Talk =
+      Talk(Talk.Id.generate(), Talk.Slug.from(slug).get, Talk.Title(title), Duration(duration, MINUTES), status, Markdown(description), NonEmptyList.of(by.id) ++ speakers.map(_.id).toList, Info(by.id, now))
+
+    def proposal(talk: Talk, cfp: Cfp, status: Proposal.Status = Proposal.Status.Pending): Proposal =
+      Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, talk.title, status, talk.description, talk.speakers, talk.info)
+
+    def event(group: Group, slug: String, name: String, date: String, by: User, talks: Seq[Proposal] = Seq(), venue: Option[String] = None, description: Option[String] = None): Event =
+      Event(Event.Id.generate(), group.id, Event.Slug.from(slug).get, Event.Name(name), Instant.parse(s"${date}T19:00:00.000Z"), description.map(Markdown), venue, talks.map(_.id), Info(by.id, now))
+
+    val userDemo = user("demo", "demo@mail.com", "Demo", "User")
+    val userSpeaker = user("speaker", "speaker@mail.com", "Speaker", "User")
+    val userOrga = user("orga", "orga@mail.com", "Orga", "User")
+    val userEmpty = user("empty", "empty@mail.com", "Empty", "User")
+
+    val group1 = group("ht-paris", "HumanTalks Paris", userDemo, Seq(userOrga))
+    val group2 = group("paris-js", "Paris.Js", userOrga)
+    val group3 = group("data-gov", "Data governance", userDemo)
+    val group4 = group("big-group", "Big Group", userOrga)
+
+    val cfp1 = cfp(group1, "ht-paris", "HumanTalks Paris", "Les HumanTalks Paris c'est 4 talks de 10 min...", userDemo)
+    val cfp2 = cfp(group2, "paris-js", "Paris.Js", "Submit your talk to exchange with the Paris JS community", userOrga)
+
+    val talk1 = talk(userDemo, "why-fp", "Why FP", status = Talk.Status.Private)
+    val talk2 = talk(userDemo, "scala-best-practices", "Scala Best Practices", speakers = Seq(userSpeaker))
+    val talk3 = talk(userDemo, "nodejs-news", "NodeJs news", status = Talk.Status.Draft)
+    val talk4 = talk(userSpeaker, "scalajs-react", "ScalaJS + React = <3", status = Talk.Status.Draft, speakers = Seq(userDemo), duration = 50)
+    val talk5 = talk(userSpeaker, "gagner-1-million", "Gagner 1 Million au BlackJack avec Akka", status = Talk.Status.Private, duration = 15)
+    val talk6 = talk(userSpeaker, "demarrer-avec-spark", "7 conseils pour demarrer avec Spark", duration = 45)
+    val talk7 = talk(userSpeaker, "big-talk", "Big Talk")
+
+    val proposal1 = proposal(talk1, cfp1, status = Proposal.Status.Accepted)
+    val proposal2 = proposal(talk2, cfp1)
+    val proposal3 = proposal(talk2, cfp2, status = Proposal.Status.Accepted)
+    val proposal4 = proposal(talk3, cfp1, status = Proposal.Status.Rejected)
+
+    val event1 = event(group1, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, venue = Some("ManoMano"), description = Some("desc"))
+    val event2 = event(group1, "2019-02", "HumanTalks Paris Fevrier 2019", "2019-02-12", userOrga, talks = Seq(proposal1))
+    val event3 = event(group1, "2019-03", "HumanTalks Paris Mars 2019", "2019-03-12", userDemo, venue = Some("Zeenea"), description = Some("desc"))
+    val event4 = event(group2, "2019-04", "Paris.Js Avril", "2019-04-01", userOrga, talks = Seq(proposal3))
+    val event5 = event(group3, "2019-03", "Nouveaux modeles de gouvenance", "2019-03-15", userDemo)
+
     val generated = (1 to 25).toList.map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
-      val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga), Info(userOrga, now))
-      val c = Cfp(cfpId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), Markdown("Only your best talks !"), groupId, Info(userOrga, now))
-      val e = Event(group4, Event.Id.generate(), Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), Instant.parse("2019-03-12T19:00:00.000Z"), None, None, Seq(), Info(userOrga, now))
-      val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Title(s"Z Talk $i"), Duration.apply(10, MINUTES), Talk.Status.Draft, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker), Info(userSpeaker, now))
-      val p = Proposal(Proposal.Id.generate(), talk7, cfpId, None, Talk.Title(s"Z Proposal $i"), Proposal.Status.Pending, Markdown("temporary description"), NonEmptyList.of(userSpeaker), Info(userSpeaker, now))
+      val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga.id), Info(userOrga.id, now))
+      val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), Markdown("Only your best talks !"), Info(userOrga.id, now))
+      val e = Event(Event.Id.generate(), group4.id, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), Instant.parse("2019-03-12T19:00:00.000Z"), None, None, Seq(), Info(userOrga.id, now))
+      val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Talk.Status.Draft, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker.id), Info(userSpeaker.id, now))
+      val p = Proposal(Proposal.Id.generate(), talk7.id, cfpId, None, Talk.Title(s"Z Proposal $i"), Proposal.Status.Pending, Markdown("temporary description"), NonEmptyList.of(userSpeaker.id), Info(userSpeaker.id, now))
       (g, c, e, t, p)
     }
     for {
-      _ <- run(Queries.insertMany(UserTable.insert)(users))
-      _ <- run(Queries.insertMany(GroupTable.insert)(groups ++ generated.map(_._1)))
-      _ <- run(Queries.insertMany(CfpTable.insert)(cfps ++ generated.map(_._2)))
-      _ <- run(Queries.insertMany(EventTable.insert)(events ++ generated.map(_._3)))
-      _ <- run(Queries.insertMany(TalkTable.insert)(talks ++ generated.map(_._4)))
-      _ <- run(Queries.insertMany(ProposalTable.insert)(proposals ++ generated.map(_._5)))
+      _ <- run(Queries.insertMany(UserTable.insert)(NonEmptyList.of(userDemo, userSpeaker, userOrga, userEmpty)))
+      _ <- run(Queries.insertMany(GroupTable.insert)(NonEmptyList.of(group1, group2, group3, group4) ++ generated.map(_._1)))
+      _ <- run(Queries.insertMany(CfpTable.insert)(NonEmptyList.of(cfp1, cfp2) ++ generated.map(_._2)))
+      _ <- run(Queries.insertMany(TalkTable.insert)(NonEmptyList.of(talk1, talk2, talk3, talk4, talk5, talk6, talk7) ++ generated.map(_._4)))
+      _ <- run(Queries.insertMany(ProposalTable.insert)(NonEmptyList.of(proposal1, proposal2, proposal3, proposal4) ++ generated.map(_._5)))
+      _ <- run(Queries.insertMany(EventTable.insert)(NonEmptyList.of(event1, event2, event3, event4, event5) ++ generated.map(_._3)))
     } yield Done
   }
 
@@ -125,12 +117,11 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(GroupTable.selectPage(user, _), params))
 
   override def createEvent(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event] =
-    run(EventTable.insert, Event(group, Event.Id.generate(), data.slug, data.name, data.start, None, None, Seq(), Info(by, now)))
+    run(EventTable.insert, Event(Event.Id.generate(), group, data.slug, data.name, data.start, None, None, Seq(), Info(by, now)))
 
   override def getEvent(group: Group.Id, event: Event.Slug): IO[Option[Event]] = run(EventTable.selectOne(group, event).option)
 
   override def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(Queries.selectPage(EventTable.selectPage(group, _), params))
-
 
   override def updateEvent(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): IO[Done] = {
     if (data.slug != event) {
@@ -146,8 +137,8 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def getEventsAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]] =
     run(Queries.selectPage(EventTable.selectAllAfter(group, now.truncatedTo(ChronoUnit.DAYS), _), params))
 
-  override def createCfp(data: Cfp.Data, group: Group.Id, by: User.Id, now: Instant): IO[Cfp] =
-    run(CfpTable.insert, Cfp(Cfp.Id.generate(), data.slug, data.name, data.description, group, Info(by, now)))
+  override def createCfp(group: Group.Id, data: Cfp.Data, by: User.Id, now: Instant): IO[Cfp] =
+    run(CfpTable.insert, Cfp(Cfp.Id.generate(), group, data.slug, data.name, data.description, Info(by, now)))
 
   override def getCfp(slug: Cfp.Slug): IO[Option[Cfp]] = run(CfpTable.selectOne(slug).option)
 
@@ -157,9 +148,9 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getCfpAvailables(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(CfpTable.selectPage(talk, _), params))
 
-  override def createTalk(data: Talk.Data, by: User.Id, now: Instant): IO[Talk] =
-    getTalk(by, data.slug).flatMap {
-      case None => run(TalkTable.insert, Talk(Talk.Id.generate(), data.slug, data.title, data.duration, Talk.Status.Draft, data.description, NonEmptyList.one(by), Info(by, now)))
+  override def createTalk(user: User.Id, data: Talk.Data, now: Instant): IO[Talk] =
+    getTalk(user, data.slug).flatMap {
+      case None => run(TalkTable.insert, Talk(Talk.Id.generate(), data.slug, data.title, data.duration, Talk.Status.Draft, data.description, NonEmptyList.one(user), Info(user, now)))
       case _ => IO.raiseError(CustomException(s"You already have a talk with slug ${data.slug}"))
     }
 

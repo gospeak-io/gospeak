@@ -100,7 +100,7 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach wit
         db.getCfpAvailables(talkId, page).unsafeRunSync().items shouldBe Seq()
         db.getCfp(cfpData.slug).unsafeRunSync() shouldBe None
         db.getCfp(group.id).unsafeRunSync() shouldBe None
-        val cfp = db.createCfp(cfpData, group.id, user.id, now).unsafeRunSync()
+        val cfp = db.createCfp(group.id, cfpData, user.id, now).unsafeRunSync()
         db.getCfpAvailables(talkId, page).unsafeRunSync().items shouldBe Seq(cfp)
         db.getCfp(cfpData.slug).unsafeRunSync() shouldBe Some(cfp)
         db.getCfp(cfp.id).unsafeRunSync() shouldBe Some(cfp)
@@ -108,18 +108,18 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach wit
       }
       it("should fail to create a cfp when the group does not exists") {
         val user = db.createUser(userSlug, firstName, lastName, email, now).unsafeRunSync()
-        an[Exception] should be thrownBy db.createCfp(cfpData, Group.Id.generate(), user.id, now).unsafeRunSync()
+        an[Exception] should be thrownBy db.createCfp(Group.Id.generate(), cfpData, user.id, now).unsafeRunSync()
       }
       it("should fail to create two cfp for a group") {
         val (user, group) = createUserAndGroup().unsafeRunSync()
-        db.createCfp(cfpData, group.id, user.id, now).unsafeRunSync()
-        an[Exception] should be thrownBy db.createCfp(cfpData, group.id, user.id, now).unsafeRunSync()
+        db.createCfp(group.id, cfpData, user.id, now).unsafeRunSync()
+        an[Exception] should be thrownBy db.createCfp(group.id, cfpData, user.id, now).unsafeRunSync()
       }
       it("should fail on duplicate slug") {
         val (user, group1) = createUserAndGroup().unsafeRunSync()
         val group2 = db.createGroup(groupData2, user.id, now).unsafeRunSync()
-        db.createCfp(cfpData, group1.id, user.id, now).unsafeRunSync()
-        an[Exception] should be thrownBy db.createCfp(cfpData, group2.id, user.id, now).unsafeRunSync()
+        db.createCfp(group1.id, cfpData, user.id, now).unsafeRunSync()
+        an[Exception] should be thrownBy db.createCfp(group2.id, cfpData, user.id, now).unsafeRunSync()
       }
     }
     describe("Talk") {
@@ -127,27 +127,27 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach wit
         val user = db.createUser(userSlug, firstName, lastName, email, now).unsafeRunSync()
         db.getTalks(user.id, page).unsafeRunSync().items shouldBe Seq()
         db.getTalk(user.id, talkData.slug).unsafeRunSync() shouldBe None
-        val talk = db.createTalk(talkData, user.id, now).unsafeRunSync()
+        val talk = db.createTalk(user.id, talkData, now).unsafeRunSync()
         db.getTalks(user.id, page).unsafeRunSync().items shouldBe Seq(talk)
         db.getTalk(user.id, talkData.slug).unsafeRunSync() shouldBe Some(talk)
       }
       it("should not retrieve not owned talks") {
         val user = db.createUser(userSlug, firstName, lastName, email, now).unsafeRunSync()
         val user2 = db.createUser(userSlug2, firstName, lastName, email2, now).unsafeRunSync()
-        val talk = db.createTalk(talkData, user2.id, now).unsafeRunSync()
+        val talk = db.createTalk(user2.id, talkData, now).unsafeRunSync()
         db.getTalks(user.id, page).unsafeRunSync().items shouldBe Seq()
         db.getTalk(user.id, talkData.slug).unsafeRunSync() shouldBe None
       }
       it("should fail on duplicate slug on same user") {
         val user = db.createUser(userSlug, firstName, lastName, email, now).unsafeRunSync()
         val user2 = db.createUser(userSlug2, firstName, lastName, email2, now).unsafeRunSync()
-        db.createTalk(talkData, user.id, now).unsafeRunSync()
-        db.createTalk(talkData, user2.id, now).unsafeRunSync()
-        an[Exception] should be thrownBy db.createTalk(talkData, user.id, now).unsafeRunSync()
+        db.createTalk(user.id, talkData, now).unsafeRunSync()
+        db.createTalk(user2.id, talkData, now).unsafeRunSync()
+        an[Exception] should be thrownBy db.createTalk(user.id, talkData, now).unsafeRunSync()
       }
       it("should update talk data") {
         val user = db.createUser(userSlug, firstName, lastName, email, now).unsafeRunSync()
-        db.createTalk(talkData, user.id, now).unsafeRunSync()
+        db.createTalk(user.id, talkData, now).unsafeRunSync()
         db.getTalk(user.id, talkData.slug).unsafeRunSync().map(_.data) shouldBe Some(talkData)
         db.updateTalk(user.id, talkData.slug)(talkData2, now).unsafeRunSync()
         db.getTalk(user.id, talkData.slug).unsafeRunSync() shouldBe None
@@ -155,13 +155,13 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach wit
       }
       it("should fail to change slug for an existing one") {
         val user = db.createUser(userSlug, firstName, lastName, email, now).unsafeRunSync()
-        db.createTalk(talkData, user.id, now).unsafeRunSync()
-        db.createTalk(talkData2, user.id, now).unsafeRunSync()
+        db.createTalk(user.id, talkData, now).unsafeRunSync()
+        db.createTalk(user.id, talkData2, now).unsafeRunSync()
         an[Exception] should be thrownBy db.updateTalk(user.id, talkData.slug)(talkData.copy(slug = talkData2.slug), now).unsafeRunSync()
       }
       it("should update the status") {
         val user = db.createUser(userSlug, firstName, lastName, email, now).unsafeRunSync()
-        db.createTalk(talkData, user.id, now).unsafeRunSync()
+        db.createTalk(user.id, talkData, now).unsafeRunSync()
         db.getTalk(user.id, talkData.slug).unsafeRunSync().map(_.status) shouldBe Some(Talk.Status.Draft)
         db.updateTalkStatus(user.id, talkData.slug)(Talk.Status.Public).unsafeRunSync()
         db.getTalk(user.id, talkData.slug).unsafeRunSync().map(_.status) shouldBe Some(Talk.Status.Public)
@@ -180,12 +180,12 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach wit
       it("should fail to create a proposal when talk does not exists") {
         val user = db.createUser(userSlug, firstName, lastName, email, now).unsafeRunSync()
         val group = db.createGroup(groupData, user.id, now).unsafeRunSync()
-        val cfp = db.createCfp(cfpData, group.id, user.id, now).unsafeRunSync()
+        val cfp = db.createCfp(group.id, cfpData, user.id, now).unsafeRunSync()
         an[Exception] should be thrownBy db.createProposal(Talk.Id.generate(), cfp.id, proposalData, speakers, user.id, now).unsafeRunSync()
       }
       it("should fail to create a proposal when cfp does not exists") {
         val user = db.createUser(userSlug, firstName, lastName, email, now).unsafeRunSync()
-        val talk = db.createTalk(talkData, user.id, now).unsafeRunSync()
+        val talk = db.createTalk(user.id, talkData, now).unsafeRunSync()
         an[Exception] should be thrownBy db.createProposal(talk.id, Cfp.Id.generate(), proposalData, speakers, user.id, now).unsafeRunSync()
       }
       it("should fail on duplicate cfp and talk") {
@@ -209,7 +209,7 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach wit
 
   def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk)] = for {
     (user, group) <- createUserAndGroup()
-    cfp <- db.createCfp(cfpData, group.id, user.id, now)
-    talk <- db.createTalk(talkData, user.id, now)
+    cfp <- db.createCfp(group.id, cfpData, user.id, now)
+    talk <- db.createTalk(user.id, talkData, now)
   } yield (user, group, cfp, talk)
 }

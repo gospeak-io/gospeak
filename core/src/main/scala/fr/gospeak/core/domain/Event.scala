@@ -3,15 +3,15 @@ package fr.gospeak.core.domain
 import java.time.Instant
 
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.libs.scalautils.domain.{DataClass, SlugBuilder, UuidIdBuilder}
+import fr.gospeak.libs.scalautils.domain.{DataClass, Markdown, SlugBuilder, UuidIdBuilder}
 
-final case class Event(group: Group.Id,
-                       id: Event.Id,
+final case class Event(id: Event.Id,
+                       group: Group.Id,
                        slug: Event.Slug,
                        name: Event.Name,
                        start: Instant,
                        // duration: Option[Duration]
-                       description: Option[String],
+                       description: Option[Markdown],
                        venue: Option[String],
                        talks: Seq[Proposal.Id],
                        info: Info) {

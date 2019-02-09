@@ -32,7 +32,7 @@ trait GospeakDb {
 
   def getEventsAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]]
 
-  def createCfp(data: Cfp.Data, group: Group.Id, by: User.Id, now: Instant): IO[Cfp]
+  def createCfp(group: Group.Id, data: Cfp.Data, by: User.Id, now: Instant): IO[Cfp]
 
   def getCfp(slug: Cfp.Slug): IO[Option[Cfp]]
 
@@ -42,7 +42,7 @@ trait GospeakDb {
 
   def getCfpAvailables(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]]
 
-  def createTalk(data: Talk.Data, by: User.Id, now: Instant): IO[Talk]
+  def createTalk(user: User.Id, data: Talk.Data, now: Instant): IO[Talk]
 
   def getTalk(user: User.Id, slug: Talk.Slug): IO[Option[Talk]]
 
