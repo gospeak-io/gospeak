@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
-import fr.gospeak.libs.scalautils.domain.{Done, Email, Markdown, Page}
+import fr.gospeak.libs.scalautils.domain.{Done, Email, Page}
 
 trait GospeakDb {
   def createUser(slug: User.Slug, firstName: String, lastName: String, email: Email, now: Instant): IO[User]
@@ -60,9 +60,11 @@ trait GospeakDb {
 
   def getProposal(talk: Talk.Id, cfp: Cfp.Id): IO[Option[Proposal]]
 
+  def getProposals(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
+
   def getProposals(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal]]
 
-  def getProposals(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
+  def getProposals(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal]]
 
   def getProposals(ids: Seq[Proposal.Id]): IO[Seq[Proposal]]
 }

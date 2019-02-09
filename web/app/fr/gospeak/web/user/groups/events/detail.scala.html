@@ -1,13 +1,15 @@
-@import fr.gospeak.core.domain.{Event, Group, Proposal, User}
+@import fr.gospeak.core.domain.{Event, Group, Proposal, User, Cfp}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.partials.display.html.date
-@import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.partials.html.{container, pagination}
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 @import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.user.groups.proposals.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.user.groups.settings.routes.SettingsCtrl
+@import fr.gospeak.libs.scalautils.domain.Page
 
-@(group: Group, event: Event, proposals: Seq[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
+@(group: Group, event: Event, talks: Seq[Proposal], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
 @container("Gospeak", h, Some(b))() {
     <div>
         <span class="float-right">
@@ -26,24 +28,46 @@
     @if(event.talks.nonEmpty) {
         <h2>@Formats.plural(event.talks.length, "planned talk")</h2>
         <ol>
-        @event.talks.map { pId =>
+        @event.talks.map { tId =>
             <li>
-                @proposals.find(_.id == pId).map { p =>
-                    <a href="@ProposalCtrl.detail(group.slug, p.id)">@p.title.value</a>
-                    by @p.speakers.toList.map { uId =>
-                        @speakers.find(_.id == uId).map { u =>
-                            <a href="@SpeakerCtrl.detail(group.slug, p.id, u.slug)">@u.name.value</a>
-                        }.getOrElse { Unknown (@uId.value) }
+                @talks.find(_.id == tId).map { talk =>
+                    <a href="@ProposalCtrl.detail(group.slug, talk.id)">@talk.title.value</a>
+                    by @talk.speakers.toList.map { sId =>
+                        @speakers.find(_.id == sId).map { speaker =>
+                            <a href="@SpeakerCtrl.detail(group.slug, talk.id, speaker.slug)">@speaker.name.value</a>
+                        }.getOrElse { Unknown (@sId.value) }
                     }
-                }.getOrElse { Unknown (@pId.value) }
+                }.getOrElse { Unknown (@tId.value) }
             </li>
         }
         </ol>
     } else {
-        <h2>No planned talks</h2>
+        <h2>No planned talks for this event</h2>
     }
 
-    <h2>Submitted talks</h2>
-
-    TODO
+    @if(cfpOpt.isEmpty) {
+        <h2>CFP not activated for @group.name.value</h2>
+        <p><a class="btn btn-primary" href="@SettingsCtrl.cfp(group.slug)">Enable your CFP</a> to receive talk proposals.</p>
+    } else {
+        @if(proposals.isEmpty) {
+            <h2>No proposal for the CFP</h2>
+        } else {
+            <h2>@Formats.plural(proposals.total.value, "proposed talk")</h2>
+            @pagination(proposals, EventCtrl.detail(group.slug, event.slug, _))
+            <ul>
+                @proposals.items.map { proposal =>
+                    <li>
+                        (since @date(proposal.info.created))
+                        <a href="@ProposalCtrl.detail(group.slug, proposal.id)">@proposal.title.value</a>
+                        by @proposal.speakers.toList.map { sId =>
+                            @speakers.find(_.id == sId).map { speaker =>
+                            <a href="@SpeakerCtrl.detail(group.slug, proposal.id, speaker.slug)">@speaker.name.value</a>
+                            }.getOrElse { Unknown (@sId.value) }
+                        }
+                    </li>
+                }
+            </ul>
+            @pagination(proposals, EventCtrl.detail(group.slug, event.slug, _))
+        }
+    }
 }()

@@ -1,8 +1,8 @@
 package fr.gospeak.infra.services.storage.sql.tables
 
+import cats.data.NonEmptyList
 import fr.gospeak.infra.services.storage.sql.tables.UserTable._
 import fr.gospeak.infra.services.storage.sql.tables.testingutils.TableSpec
-import fr.gospeak.libs.scalautils.domain.Email
 
 class UserTableSpec extends TableSpec {
   describe("UserTable") {
@@ -27,8 +27,8 @@ class UserTableSpec extends TableSpec {
     }
     describe("selectAll") {
       it("should generate the query") {
-        val q = selectAll(Seq(user.id))
-        q.sql shouldBe "SELECT id, slug, first_name, last_name, email, created, updated FROM users WHERE id IN (?)"
+        val q = selectAll(NonEmptyList.of(user.id, user.id))
+        q.sql shouldBe "SELECT id, slug, first_name, last_name, email, created, updated FROM users WHERE id IN (?, ?) "
         check(q)
       }
     }

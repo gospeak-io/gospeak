@@ -14,10 +14,10 @@ import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
 class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach with RandomDataGenerator {
   private val db = Values.db
   private val now = random[Instant]
-  private val Seq(userSlug, userSlug2) = random[User.Slug](2)
+  private val Seq(userSlug, userSlug2, userSlug3) = random[User.Slug](3)
+  private val Seq(email, email2, email3) = random[Email](3)
   private val firstName = "John"
   private val lastName = "Doe"
-  private val Seq(email, email2) = random[Email](2)
   private val Seq(groupData, groupData2) = random[Group.Data](2)
   private val eventData = random[Event.Data]
   private val cfpData = random[Cfp.Data]
@@ -44,6 +44,12 @@ class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach wit
       it("should fail on duplicate email") {
         db.createUser(userSlug, firstName, lastName, email, now).unsafeRunSync()
         an[Exception] should be thrownBy db.createUser(userSlug2, firstName, lastName, email, now).unsafeRunSync()
+      }
+      it("should select users by ids") {
+        val user1 = db.createUser(userSlug, firstName, lastName, email, now).unsafeRunSync()
+        val user2 = db.createUser(userSlug2, firstName, lastName, email2, now).unsafeRunSync()
+        db.createUser(userSlug3, firstName, lastName, email3, now).unsafeRunSync()
+        db.getUsers(Seq(user1.id, user2.id)).unsafeRunSync() should contain theSameElementsAs Seq(user1, user2)
       }
     }
     describe("Group") {

@@ -1,6 +1,7 @@
 @import fr.gospeak.core.domain.{Cfp, Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.partials.html.{container, pagination, search}
 @import fr.gospeak.web.user.groups.proposals.partials.html.item
 @import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
@@ -10,7 +11,7 @@
 @container("Gospeak", h, Some(b))() {
     @cfpOpt.map { cfp =>
         <div>
-            <h1>@proposals.total.value proposals</h1>
+            <h1>@Formats.plural(proposals.total.value, "proposal")</h1>
         </div>
 
         <div class="float-right">@pagination(proposals, ProposalCtrl.list(group.slug, _))</div>

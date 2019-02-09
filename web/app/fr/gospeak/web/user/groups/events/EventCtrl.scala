@@ -4,7 +4,7 @@ import java.time.Instant
 
 import cats.data.OptionT
 import cats.effect.IO
-import fr.gospeak.core.domain.{Event, Group, User}
+import fr.gospeak.core.domain.{Event, Group, Proposal, User}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.AuthService
@@ -57,16 +57,18 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
     } yield Ok(html.create(groupElt, form)(h, b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
-  def detail(group: Group.Slug, event: Event.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+  def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
     (for {
       groupElt <- OptionT(db.getGroup(user.id, group))
       eventElt <- OptionT(db.getEvent(groupElt.id, event))
-      proposals <- OptionT.liftF(db.getProposals(eventElt.talks))
-      speakers <- OptionT.liftF(db.getUsers(proposals.flatMap(_.speakers.toList)))
+      talks <- OptionT.liftF(db.getProposals(eventElt.talks))
+      cfpOpt <- OptionT.liftF(db.getCfp(groupElt.id))
+      proposals <- OptionT.liftF(cfpOpt.map(cfp => db.getProposals(cfp.id, Proposal.Status.Pending, params)).getOrElse(IO.pure(Page.empty[Proposal])))
+      speakers <- OptionT.liftF(db.getUsers((proposals.items ++ talks).flatMap(_.speakers.toList).distinct))
       h = header(group)
       b = breadcrumb(user.name, group -> groupElt.name, event -> eventElt.name)
-    } yield Ok(html.detail(groupElt, eventElt, proposals, speakers)(h, b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, eventElt, talks, cfpOpt, proposals, speakers)(h, b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>

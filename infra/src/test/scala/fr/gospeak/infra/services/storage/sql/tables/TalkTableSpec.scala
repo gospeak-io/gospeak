@@ -1,7 +1,6 @@
 package fr.gospeak.infra.services.storage.sql.tables
 
-import java.time.Instant
-
+import cats.data.NonEmptyList
 import fr.gospeak.core.domain.Talk
 import fr.gospeak.infra.services.storage.sql.tables.TalkTable._
 import fr.gospeak.infra.services.storage.sql.tables.testingutils.TableSpec
@@ -33,8 +32,8 @@ class TalkTableSpec extends TableSpec {
     }
     describe("selectAll") {
       it("should generate the query") {
-        val q = selectAll(Seq(talk.id))
-        q.sql shouldBe "SELECT id, slug, title, duration, status, description, speakers, created, created_by, updated, updated_by FROM talks WHERE id IN (?)"
+        val q = selectAll(NonEmptyList.of(talk.id))
+        q.sql shouldBe "SELECT id, slug, title, duration, status, description, speakers, created, created_by, updated, updated_by FROM talks WHERE id IN (?) "
         check(q)
       }
     }

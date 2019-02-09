@@ -1,5 +1,7 @@
 package fr.gospeak.infra.services.storage.sql.tables
 
+import cats.data.NonEmptyList
+import fr.gospeak.core.domain.Proposal
 import fr.gospeak.infra.services.storage.sql.tables.ProposalTable._
 import fr.gospeak.infra.services.storage.sql.tables.testingutils.TableSpec
 
@@ -24,17 +26,8 @@ class ProposalTableSpec extends TableSpec {
         check(q)
       }
     }
-    describe("selectPage for group") {
-      it("should generate the query") {
-        val (s, c) = selectPage(cfp.id, params)
-        s.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, status, description, speakers, created, created_by, updated, updated_by FROM proposals WHERE cfp_id=? ORDER BY created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM proposals WHERE cfp_id=? "
-        check(s)
-        check(c)
-      }
-    }
-    describe("selectPage for talk") {
-      it("should generate the query") {
+    describe("selectPage") {
+      it("should generate query for a talk") {
         val (s, c) = selectPage(talk.id, params)
         s.sql shouldBe
           "SELECT c.id, c.slug, c.name, c.description, c.group_id, c.created, c.created_by, c.updated, c.updated_by, " +
@@ -44,11 +37,25 @@ class ProposalTableSpec extends TableSpec {
         check(s)
         check(c)
       }
+      it("should generate query for a cfp") {
+        val (s, c) = selectPage(cfp.id, params)
+        s.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, status, description, speakers, created, created_by, updated, updated_by FROM proposals WHERE cfp_id=? ORDER BY created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM proposals WHERE cfp_id=? "
+        check(s)
+        check(c)
+      }
+      it("should generate query for a cfp and status") {
+        val (s, c) = selectPage(cfp.id, Proposal.Status.Pending, params)
+        s.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, status, description, speakers, created, created_by, updated, updated_by FROM proposals WHERE cfp_id=? AND status=? ORDER BY created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM proposals WHERE cfp_id=? AND status=? "
+        check(s)
+        check(c)
+      }
     }
     describe("selectAll") {
       it("should generate the query") {
-        val q = selectAll(Seq(proposal.id))
-        q.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, status, description, speakers, created, created_by, updated, updated_by FROM proposals WHERE id IN (?)"
+        val q = selectAll(NonEmptyList.of(proposal.id))
+        q.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, status, description, speakers, created, created_by, updated, updated_by FROM proposals WHERE id IN (?) "
         check(q)
       }
     }

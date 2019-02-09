@@ -106,13 +106,7 @@ object DoobieUtils {
     implicit val userIdNelMeta: Meta[NonEmptyList[User.Id]] = Meta[String].timap(
       s => NonEmptyList.fromListUnsafe(s.split(",").filter(_.nonEmpty).map(User.Id.from(_).get).toList))(
       _.map(_.value).toList.mkString(","))
-    implicit val userIdSeqMeta: Meta[Seq[User.Id]] = Meta[String].timap(
-      _.split(",").filter(_.nonEmpty).map(User.Id.from(_).get).toSeq)(
-      _.map(_.value).toList.mkString(","))
-    implicit val talkIdSeqMeta: Meta[Seq[Talk.Id]] = Meta[String].timap(
-      _.split(",").filter(_.nonEmpty).map(Talk.Id.from(_).get).toSeq)(
-      _.map(_.value).mkString(","))
-    implicit val poposalIdSeqMeta: Meta[Seq[Proposal.Id]] = Meta[String].timap(
+    implicit val proposalIdSeqMeta: Meta[Seq[Proposal.Id]] = Meta[String].timap(
       _.split(",").filter(_.nonEmpty).map(Proposal.Id.from(_).get).toSeq)(
       _.map(_.value).mkString(","))
   }

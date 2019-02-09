@@ -42,7 +42,7 @@ GET         /u/groups/:group                                              fr.gos
 GET         /u/groups/:group/events                                       fr.gospeak.web.user.groups.events.EventCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/events/create                                fr.gospeak.web.user.groups.events.EventCtrl.create(group: Group.Slug)
 POST        /u/groups/:group/events/create                                fr.gospeak.web.user.groups.events.EventCtrl.doCreate(group: Group.Slug)
-GET         /u/groups/:group/events/:event                                fr.gospeak.web.user.groups.events.EventCtrl.detail(group: Group.Slug, event: Event.Slug)
+GET         /u/groups/:group/events/:event                                fr.gospeak.web.user.groups.events.EventCtrl.detail(group: Group.Slug, event: Event.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/events/:event/edit                           fr.gospeak.web.user.groups.events.EventCtrl.edit(group: Group.Slug, event: Event.Slug)
 POST        /u/groups/:group/events/:event/edit                           fr.gospeak.web.user.groups.events.EventCtrl.doEdit(group: Group.Slug, event: Event.Slug)
 GET         /u/groups/:group/proposals                                    fr.gospeak.web.user.groups.proposals.ProposalCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
