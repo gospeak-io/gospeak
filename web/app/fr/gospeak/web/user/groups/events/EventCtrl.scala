@@ -125,6 +125,16 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
       _ <- OptionT.liftF(db.updateProposalStatus(talk)(Proposal.Status.Pending, None, user.id, now))
     } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
+
+  def moveTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, up: Boolean): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = auth.authed()
+    val now = Instant.now()
+    (for {
+      groupElt <- OptionT(db.getGroup(user.id, group))
+      eventElt <- OptionT(db.getEvent(groupElt.id, event))
+      _ <- OptionT.liftF(db.updateEventTalks(groupElt.id, event)(eventElt.move(talk, up).talks, user.id, now))
+    } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+  }
 }
 
 object EventCtrl {

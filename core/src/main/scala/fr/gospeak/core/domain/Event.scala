@@ -3,6 +3,7 @@ package fr.gospeak.core.domain
 import java.time.Instant
 
 import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{DataClass, Markdown, SlugBuilder, UuidIdBuilder}
 
 final case class Event(id: Event.Id,
@@ -20,6 +21,8 @@ final case class Event(id: Event.Id,
   def add(talk: Proposal.Id): Event = copy(talks = talks :+ talk)
 
   def remove(talk: Proposal.Id): Event = copy(talks = talks.filter(_ != talk))
+
+  def move(talk: Proposal.Id, up: Boolean): Event = copy(talks = talks.swap(talk, up))
 }
 
 object Event {

@@ -1,10 +1,10 @@
 @import fr.gospeak.web.partials.form.Utils
 @import fr.gospeak.web.utils.FormUtils
 
-@(call: Call, name: String, args: Seq[(String, String)] = Seq())(implicit req: Request[AnyContent], messages: Messages)
+@(call: Call, args: Seq[(String, String)] = Seq())(content: Html)(implicit req: Request[AnyContent], messages: Messages)
 @formElt(FormUtils.empty[Int], call, Seq("class" -> "btn-form")) {
     <button
         type="@Utils.getArg(args, "type", "submit")"
         class="btn @Utils.getArg(args, "class")"
-        @Utils.attributes(args, Seq("type", "class"))>@name</button>
+        @Utils.attributes(args, Seq("type", "class"))>@content</button>
 }

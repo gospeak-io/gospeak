@@ -32,7 +32,9 @@
         @event.talks.map { tId =>
             <li>
                 @talks.find(_.id == tId).map { talk =>
-                    @formBtn(EventCtrl.removeTalk(group.slug, event.slug, talk.id), "remove")
+                    @formBtn(EventCtrl.removeTalk(group.slug, event.slug, talk.id), Seq("class" -> "btn-link btn-sm", "title" -> "Remove this talk from the event")){<i class="fas fa-minus"></i>}
+                    @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, true), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk up")){<i class="fas fa-arrow-up"></i>}
+                    @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, false), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk down")){<i class="fas fa-arrow-down"></i>}
                     <a href="@ProposalCtrl.detail(group.slug, talk.id)">@talk.title.value</a>
                     by @talk.speakers.toList.map { sId =>
                         @speakers.find(_.id == sId).map { speaker =>
@@ -59,7 +61,7 @@
             <ul>
                 @proposals.items.map { proposal =>
                     <li>
-                        @formBtn(EventCtrl.addTalk(group.slug, event.slug, proposal.id), "add")
+                        @formBtn(EventCtrl.addTalk(group.slug, event.slug, proposal.id), Seq("class" -> "btn-link btn-sm", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
                         (since @date(proposal.info.created))
                         <a href="@ProposalCtrl.detail(group.slug, proposal.id)">@proposal.title.value</a>
                         by @proposal.speakers.toList.map { sId =>

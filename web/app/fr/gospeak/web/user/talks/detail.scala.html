@@ -16,16 +16,16 @@
     @if(talk.status == Talk.Status.Draft) {
         <div class="alert alert-info" role="alert">
             <div class="mb-0 float-right">
-                @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Private), "Make it private", Seq(
+                @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Private), Seq(
                     "class" -> "btn-sm btn-secondary",
                     "title" -> Talk.Status.Private.description,
                     "data-toggle" -> "tooltip",
-                    "data-placement" -> "bottom"))
-                @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Public), "Make it public", Seq(
+                    "data-placement" -> "bottom")){Make it private}
+                @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Public), Seq(
                     "class" -> "btn-sm btn-primary",
                     "title" -> Talk.Status.Public.description,
                     "data-toggle" -> "tooltip",
-                    "data-placement" -> "bottom"))
+                    "data-placement" -> "bottom")){Make it public}
             </div>
             <h4 class="alert-heading">Well done!</h4>
             <p class="mb-0">You created a talk, now decide if you want it to be <b>Public</b> or <b>Private</b></p>
@@ -40,25 +40,25 @@
                 <div class="dropdown-menu dropdown-menu-right">
                     <a class="dropdown-item" href="@TalkCtrl.edit(talk.slug)">Edit</a>
                     @if(talk.status != Talk.Status.Public) {
-                        @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Public), "Make it public", Seq(
+                        @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Public), Seq(
                             "class" -> "dropdown-item",
                             "title" -> Talk.Status.Public.description,
                             "data-toggle" -> "tooltip",
-                            "data-placement" -> "left"))
+                            "data-placement" -> "left")){Make it public}
                     }
                     @if(talk.status != Talk.Status.Private) {
-                        @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Private), "Make it private", Seq(
+                        @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Private), Seq(
                             "class" -> "dropdown-item",
                             "title" -> Talk.Status.Private.description,
                             "data-toggle" -> "tooltip",
-                            "data-placement" -> "left"))
+                            "data-placement" -> "left")){Make it private}
                     }
                     @if(talk.status != Talk.Status.Archived) {
-                        @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Archived), "Archive it", Seq(
+                        @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Archived), Seq(
                             "class" -> "dropdown-item",
                             "title" -> Talk.Status.Archived.description,
                             "data-toggle" -> "tooltip",
-                            "data-placement" -> "left"))
+                            "data-placement" -> "left")){Archive it}
                     }
                 </div>
             </div>
