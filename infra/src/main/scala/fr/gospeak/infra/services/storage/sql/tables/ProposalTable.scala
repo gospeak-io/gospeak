@@ -1,10 +1,12 @@
 package fr.gospeak.infra.services.storage.sql.tables
 
+import java.time.Instant
+
 import cats.data.NonEmptyList
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.{Cfp, Proposal, Talk}
+import fr.gospeak.core.domain._
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.libs.scalautils.domain.Page
@@ -23,8 +25,13 @@ object ProposalTable {
 
   def insert(elt: Proposal): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
+  def updateStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id], by: User.Id, now: Instant): doobie.Update0 = {
+    val fields = fr0"status=$status, event_id=$event, updated=$now, updated_by=$by"
+    buildUpdate(tableFr, fields, where(id)).update
+  }
+
   def selectOne(id: Proposal.Id): doobie.Query0[Proposal] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[Proposal]
+    buildSelect(tableFr, fieldsFr, where(id)).query[Proposal]
 
   def selectOne(talk: Talk.Id, cfp: Cfp.Id): doobie.Query0[Proposal] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE talk_id=$talk AND cfp_id=$cfp").query[Proposal]
@@ -48,4 +55,7 @@ object ProposalTable {
 
   def selectAll(ids: NonEmptyList[Proposal.Id]): doobie.Query0[Proposal] =
     buildSelect(tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids)).query[Proposal]
+
+  private def where(id: Proposal.Id): Fragment =
+    fr0"WHERE id=$id"
 }

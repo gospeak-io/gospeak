@@ -16,6 +16,10 @@ final case class Event(id: Event.Id,
                        talks: Seq[Proposal.Id],
                        info: Info) {
   def data: Event.Data = Event.Data(slug, name, start)
+
+  def add(talk: Proposal.Id): Event = copy(talks = talks :+ talk)
+
+  def remove(talk: Proposal.Id): Event = copy(talks = talks.filter(_ != talk))
 }
 
 object Event {

@@ -14,6 +14,13 @@ class ProposalTableSpec extends TableSpec {
         check(q)
       }
     }
+    describe("updateStatus") {
+      it("should generate the query") {
+        val q = updateStatus(proposal.id)(proposal.status, None, user.id, now)
+        q.sql shouldBe "UPDATE proposals SET status=?, event_id=?, updated=?, updated_by=? WHERE id=?"
+        check(q)
+      }
+    }
     describe("selectOne") {
       it("should generate query for proposal id") {
         val q = selectOne(proposal.id)

@@ -12,6 +12,20 @@ class EventTableSpec extends TableSpec {
         check(q)
       }
     }
+    describe("update") {
+      it("should generate the query") {
+        val q = update(group.id, event.slug)(event.data, user.id, now)
+        q.sql shouldBe "UPDATE events SET slug=?, name=?, start=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
+        check(q)
+      }
+    }
+    describe("updateTalks") {
+      it("should generate the query") {
+        val q = updateTalks(group.id, event.slug)(Seq(), user.id, now)
+        q.sql shouldBe "UPDATE events SET talks=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
+        check(q)
+      }
+    }
     describe("selectOne") {
       it("should generate the query") {
         val q = selectOne(group.id, event.slug)
@@ -35,13 +49,6 @@ class EventTableSpec extends TableSpec {
         c.sql shouldBe "SELECT count(*) FROM events WHERE group_id=? AND start > ? "
         check(s)
         check(c)
-      }
-    }
-    describe("update") {
-      it("should generate the query") {
-        val q = update(group.id, event.slug)(event.data, user.id, now)
-        q.sql shouldBe "UPDATE events SET slug=?, name=?, start=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
-        check(q)
       }
     }
   }

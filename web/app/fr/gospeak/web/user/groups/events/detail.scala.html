@@ -2,6 +2,7 @@
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.partials.display.html.date
+@import fr.gospeak.web.partials.form.html.formBtn
 @import fr.gospeak.web.partials.html.{container, pagination}
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 @import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
@@ -9,7 +10,7 @@
 @import fr.gospeak.web.user.groups.settings.routes.SettingsCtrl
 @import fr.gospeak.libs.scalautils.domain.Page
 
-@(group: Group, event: Event, talks: Seq[Proposal], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
+@(group: Group, event: Event, talks: Seq[Proposal], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
 @container("Gospeak", h, Some(b))() {
     <div>
         <span class="float-right">
@@ -31,6 +32,7 @@
         @event.talks.map { tId =>
             <li>
                 @talks.find(_.id == tId).map { talk =>
+                    @formBtn(EventCtrl.removeTalk(group.slug, event.slug, talk.id), "remove")
                     <a href="@ProposalCtrl.detail(group.slug, talk.id)">@talk.title.value</a>
                     by @talk.speakers.toList.map { sId =>
                         @speakers.find(_.id == sId).map { speaker =>
@@ -57,6 +59,7 @@
             <ul>
                 @proposals.items.map { proposal =>
                     <li>
+                        @formBtn(EventCtrl.addTalk(group.slug, event.slug, proposal.id), "add")
                         (since @date(proposal.info.created))
                         <a href="@ProposalCtrl.detail(group.slug, proposal.id)">@proposal.title.value</a>
                         by @proposal.speakers.toList.map { sId =>

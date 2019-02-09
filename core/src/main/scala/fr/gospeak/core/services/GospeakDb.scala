@@ -24,11 +24,13 @@ trait GospeakDb {
 
   def createEvent(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event]
 
+  def updateEvent(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): IO[Done]
+
+  def updateEventTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): IO[Done]
+
   def getEvent(group: Group.Id, event: Event.Slug): IO[Option[Event]]
 
   def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]]
-
-  def updateEvent(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): IO[Done]
 
   def getEventsAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]]
 
@@ -55,6 +57,8 @@ trait GospeakDb {
   def updateTalkStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done]
 
   def createProposal(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal]
+
+  def updateProposalStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id], by: User.Id, now: Instant): IO[Done]
 
   def getProposal(id: Proposal.Id): IO[Option[Proposal]]
 

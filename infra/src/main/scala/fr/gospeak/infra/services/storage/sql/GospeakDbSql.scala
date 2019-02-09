@@ -119,10 +119,6 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def createEvent(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event] =
     run(EventTable.insert, Event(Event.Id.generate(), group, data.slug, data.name, data.start, None, None, Seq(), Info(by, now)))
 
-  override def getEvent(group: Group.Id, event: Event.Slug): IO[Option[Event]] = run(EventTable.selectOne(group, event).option)
-
-  override def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(Queries.selectPage(EventTable.selectPage(group, _), params))
-
   override def updateEvent(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): IO[Done] = {
     if (data.slug != event) {
       getEvent(group, data.slug).flatMap {
@@ -133,6 +129,13 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       run(EventTable.update(group, event)(data, by, now))
     }
   }
+
+  override def updateEventTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): IO[Done] =
+    run(EventTable.updateTalks(group, event)(talks, by, now))
+
+  override def getEvent(group: Group.Id, event: Event.Slug): IO[Option[Event]] = run(EventTable.selectOne(group, event).option)
+
+  override def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(Queries.selectPage(EventTable.selectPage(group, _), params))
 
   override def getEventsAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]] =
     run(Queries.selectPage(EventTable.selectAllAfter(group, now.truncatedTo(ChronoUnit.DAYS), _), params))
@@ -176,6 +179,9 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def createProposal(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal] =
     run(ProposalTable.insert, Proposal(Proposal.Id.generate(), talk, cfp, None, data.title, Proposal.Status.Pending, data.description, speakers, Info(by, now)))
+
+  override def updateProposalStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id], by: User.Id, now: Instant): IO[Done] =
+    run(ProposalTable.updateStatus(id)(status, event, by, now))
 
   override def getProposal(id: Proposal.Id): IO[Option[Proposal]] = run(ProposalTable.selectOne(id).option)
 

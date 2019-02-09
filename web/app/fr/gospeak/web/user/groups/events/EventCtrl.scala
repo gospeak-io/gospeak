@@ -103,6 +103,28 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
       filledForm = if (form.hasErrors) form else form.fill(eventElt.data)
     } yield Ok(html.edit(groupElt, eventElt, filledForm)(h, b))).value.map(_.getOrElse(eventNotFound(group, event)))
   }
+
+  def addTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = auth.authed()
+    val now = Instant.now()
+    (for {
+      groupElt <- OptionT(db.getGroup(user.id, group))
+      eventElt <- OptionT(db.getEvent(groupElt.id, event))
+      _ <- OptionT.liftF(db.updateEventTalks(groupElt.id, event)(eventElt.add(talk).talks, user.id, now))
+      _ <- OptionT.liftF(db.updateProposalStatus(talk)(Proposal.Status.Accepted, Some(eventElt.id), user.id, now))
+    } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+  }
+
+  def removeTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = auth.authed()
+    val now = Instant.now()
+    (for {
+      groupElt <- OptionT(db.getGroup(user.id, group))
+      eventElt <- OptionT(db.getEvent(groupElt.id, event))
+      _ <- OptionT.liftF(db.updateEventTalks(groupElt.id, event)(eventElt.remove(talk).talks, user.id, now))
+      _ <- OptionT.liftF(db.updateProposalStatus(talk)(Proposal.Status.Pending, None, user.id, now))
+    } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+  }
 }
 
 object EventCtrl {
