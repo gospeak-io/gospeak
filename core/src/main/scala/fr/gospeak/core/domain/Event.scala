@@ -1,6 +1,6 @@
 package fr.gospeak.core.domain
 
-import java.time.Instant
+import java.time.LocalDateTime
 
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.libs.scalautils.Extensions._
@@ -10,7 +10,7 @@ final case class Event(id: Event.Id,
                        group: Group.Id,
                        slug: Event.Slug,
                        name: Event.Name,
-                       start: Instant,
+                       start: LocalDateTime,
                        // duration: Option[Duration]
                        description: Option[Markdown],
                        venue: Option[String],
@@ -37,6 +37,6 @@ object Event {
 
   final case class Name(value: String) extends AnyVal
 
-  final case class Data(slug: Event.Slug, name: Event.Name, start: Instant)
+  final case class Data(slug: Event.Slug, name: Event.Name, start: LocalDateTime)
 
 }

@@ -8,6 +8,6 @@
 @fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the event (in urls for example)")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "Event slug", "slug-for" -> form("name").id) ++ args)
 }
-@fieldHorizontal(form("start"), Seq("label" -> "Date", "help" -> "Date and time when the event will start")) { (field, args) =>
+@fieldHorizontal(form("start"), Seq("label" -> "Date", "help" -> "Local date and time when the event will start")) { (field, args) =>
     @inputDatetime(field, args)
 }

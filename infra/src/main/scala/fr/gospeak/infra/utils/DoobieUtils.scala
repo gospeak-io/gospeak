@@ -1,5 +1,7 @@
 package fr.gospeak.infra.utils
 
+import java.time.{Instant, LocalDateTime, ZoneOffset}
+
 import cats.data.NonEmptyList
 import cats.effect.{ContextShift, IO}
 import doobie.Transactor
@@ -79,6 +81,7 @@ object DoobieUtils {
 
   object Mappings {
     implicit val finiteDurationMeta: Meta[FiniteDuration] = Meta[Long].timap(Duration.fromNanos)(_.toNanos)
+    implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Instant].timap(LocalDateTime.ofInstant(_, ZoneOffset.UTC))(_.toInstant(ZoneOffset.UTC))
     implicit val emailMeta: Meta[Email] = Meta[String].timap(Email.from(_).get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
 

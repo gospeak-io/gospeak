@@ -1,7 +1,6 @@
 @import fr.gospeak.core.domain.{Event, Group, Proposal, User, Cfp}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.partials.display.html.date
 @import fr.gospeak.web.partials.form.html.formBtn
 @import fr.gospeak.web.partials.html.{container, pagination}
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
@@ -20,7 +19,7 @@
         </span>
         <h1>@event.name.value</h1>
         <p>
-            @date(event.start),
+            @Formats.datetime(event.start),
             @event.venue.map { v => @v, }.getOrElse{ <b class="text-danger">Missing venue</b>, }
             @event.talks.length planned talks
         </p>
@@ -62,7 +61,7 @@
                 @proposals.items.map { proposal =>
                     <li>
                         @formBtn(EventCtrl.addTalk(group.slug, event.slug, proposal.id), Seq("class" -> "btn-link btn-sm", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
-                        (since @date(proposal.info.created))
+                        (since @Formats.date(proposal.info.created))
                         <a href="@ProposalCtrl.detail(group.slug, proposal.id)">@proposal.title.value</a>
                         by @proposal.speakers.toList.map { sId =>
                             @speakers.find(_.id == sId).map { speaker =>

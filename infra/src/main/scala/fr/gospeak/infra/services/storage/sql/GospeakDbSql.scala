@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services.storage.sql
 
-import java.time.Instant
+import java.time.{Instant, LocalDateTime}
 import java.time.temporal.ChronoUnit
 
 import cats.data.NonEmptyList
@@ -46,7 +46,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, talk.title, status, talk.description, talk.speakers, talk.info)
 
     def event(group: Group, slug: String, name: String, date: String, by: User, talks: Seq[Proposal] = Seq(), venue: Option[String] = None, description: Option[String] = None): Event =
-      Event(Event.Id.generate(), group.id, Event.Slug.from(slug).get, Event.Name(name), Instant.parse(s"${date}T19:00:00.000Z"), description.map(Markdown), venue, talks.map(_.id), Info(by.id, now))
+      Event(Event.Id.generate(), group.id, Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), description.map(Markdown), venue, talks.map(_.id), Info(by.id, now))
 
     val userDemo = user("demo", "demo@mail.com", "Demo", "User")
     val userSpeaker = user("speaker", "speaker@mail.com", "Speaker", "User")
@@ -85,7 +85,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
       val cfpId = Cfp.Id.generate()
       val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga.id), Info(userOrga.id, now))
       val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), Markdown("Only your best talks !"), Info(userOrga.id, now))
-      val e = Event(Event.Id.generate(), group4.id, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), Instant.parse("2019-03-12T19:00:00.000Z"), None, None, Seq(), Info(userOrga.id, now))
+      val e = Event(Event.Id.generate(), group4.id, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), None, None, Seq(), Info(userOrga.id, now))
       val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Talk.Status.Draft, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker.id), Info(userSpeaker.id, now))
       val p = Proposal(Proposal.Id.generate(), talk7.id, cfpId, None, Talk.Title(s"Z Proposal $i"), Proposal.Status.Pending, Markdown("temporary description"), NonEmptyList.of(userSpeaker.id), Info(userSpeaker.id, now))
       (g, c, e, t, p)

@@ -1,6 +1,6 @@
 package fr.gospeak.core.testingutils
 
-import java.time.Instant
+import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
@@ -13,7 +13,8 @@ object Generators {
   private val stringGen = implicitly[Arbitrary[String]].arbitrary
   private val slugGen = Gen.nonEmptyListOf(Gen.alphaNumChar).map(_.mkString.take(SlugBuilder.maxLength).toLowerCase)
 
-  implicit val aInstant: Arbitrary[Instant] = Arbitrary(Gen.calendar.map(c => Instant.ofEpochMilli(c.getTimeInMillis)))
+  implicit val aInstant: Arbitrary[Instant] = Arbitrary(Gen.calendar.map(_.toInstant))
+  implicit val aLocalDateTime: Arbitrary[LocalDateTime] = Arbitrary(Gen.calendar.map(c => LocalDateTime.ofInstant(c.toInstant, ZoneOffset.UTC)))
   implicit val aMarkdown: Arbitrary[Markdown] = Arbitrary(stringGen.map(str => Markdown(str)))
   implicit val aEmail: Arbitrary[Email] = Arbitrary(slugGen.map(str => Email.from(str.take(90) + "@mail.com").get)) // TODO improve
 

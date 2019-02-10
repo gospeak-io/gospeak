@@ -1,7 +1,7 @@
 package fr.gospeak.web.utils
 
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, ZoneOffset}
+import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.Locale
 
 import scala.concurrent.duration._
@@ -9,10 +9,15 @@ import scala.concurrent.duration._
 object Formats {
   private val df = DateTimeFormatter.ofPattern("dd MMM YYYY").withZone(ZoneOffset.UTC.normalized()).withLocale(Locale.ENGLISH)
   private val dtf = DateTimeFormatter.ofPattern("dd MMM YYYY 'at' HH:mm:ss.SSS '(UTC)'").withZone(ZoneOffset.UTC.normalized()).withLocale(Locale.ENGLISH)
+  private val ldtf = DateTimeFormatter.ofPattern("dd MMM YYYY 'at' HH:mm:ss").withLocale(Locale.ENGLISH)
 
   def date(i: Instant): String = df.format(i)
 
+  def date(d: LocalDateTime): String = df.format(d)
+
   def datetime(i: Instant): String = dtf.format(i)
+
+  def datetime(d: LocalDateTime): String = ldtf.format(d)
 
   def timeAgo(i: Instant, now: Instant): String = {
     val diffMilli = i.toEpochMilli - now.toEpochMilli
