@@ -10,6 +10,8 @@ import doobie.util.fragment.Fragment
 import doobie.util.update.Update
 import doobie.util.{Meta, Write}
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.GMapPlace
+import fr.gospeak.infra.formats.JsonFormats
 import fr.gospeak.infra.services.storage.sql.{DbSqlConf, H2, PostgreSQL}
 import fr.gospeak.libs.scalautils.domain.{Email, Markdown, Page}
 
@@ -80,10 +82,14 @@ object DoobieUtils {
   }
 
   object Mappings {
+
+    import JsonFormats._
+
     implicit val finiteDurationMeta: Meta[FiniteDuration] = Meta[Long].timap(Duration.fromNanos)(_.toNanos)
     implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Instant].timap(LocalDateTime.ofInstant(_, ZoneOffset.UTC))(_.toInstant(ZoneOffset.UTC))
     implicit val emailMeta: Meta[Email] = Meta[String].timap(Email.from(_).get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
+    implicit val gMapPlaceMeta: Meta[GMapPlace] = Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
 
     // TODO build Meta[Seq[A]] and Meta[NonEmptyList[A]]
     // implicit def seqMeta[A](implicit m: Meta[A]): Meta[Seq[A]] = ???

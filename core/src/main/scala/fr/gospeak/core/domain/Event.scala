@@ -2,7 +2,7 @@ package fr.gospeak.core.domain
 
 import java.time.LocalDateTime
 
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.{GMapPlace, Info}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{DataClass, Markdown, SlugBuilder, UuidIdBuilder}
 
@@ -13,10 +13,10 @@ final case class Event(id: Event.Id,
                        start: LocalDateTime,
                        // duration: Option[Duration]
                        description: Option[Markdown],
-                       venue: Option[String],
+                       venue: Option[GMapPlace],
                        talks: Seq[Proposal.Id],
                        info: Info) {
-  def data: Event.Data = Event.Data(slug, name, start)
+  def data: Event.Data = Event.Data(slug, name, start, venue)
 
   def add(talk: Proposal.Id): Event = copy(talks = talks :+ talk)
 
@@ -37,6 +37,6 @@ object Event {
 
   final case class Name(value: String) extends AnyVal
 
-  final case class Data(slug: Event.Slug, name: Event.Name, start: LocalDateTime)
+  final case class Data(slug: Event.Slug, name: Event.Name, start: LocalDateTime, venue: Option[GMapPlace])
 
 }

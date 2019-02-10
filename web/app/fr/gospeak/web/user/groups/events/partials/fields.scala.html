@@ -11,3 +11,6 @@
 @fieldHorizontal(form("start"), Seq("label" -> "Date", "help" -> "Local date and time when the event will start")) { (field, args) =>
     @inputDatetime(field, args)
 }
+@fieldHorizontal(form("venue"), Seq("label" -> "Venue")) { (field, args) =>
+    @inputGMapPlace(field, args)
+}

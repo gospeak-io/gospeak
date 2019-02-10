@@ -13,14 +13,14 @@
 @container("Gospeak", h, Some(b))() {
     <div>
         <span class="float-right">
-            <a class="btn btn-outline-secondary" href="@EventCtrl.edit(group.slug, event.slug)" title="edit" aria-hidden="true">
+            <a class="btn btn-outline-secondary" href="@EventCtrl.edit(group.slug, event.slug)" title="edit">
                 <i class="fas fa-edit"></i>
             </a>
         </span>
         <h1>@event.name.value</h1>
         <p>
             @Formats.datetime(event.start),
-            @event.venue.map { v => @v, }.getOrElse{ <b class="text-danger">Missing venue</b>, }
+            @event.venue.map { v => @v.format, }.getOrElse{ <b class="text-danger">Missing venue</b>, }
             @event.talks.length planned talks
         </p>
     </div>

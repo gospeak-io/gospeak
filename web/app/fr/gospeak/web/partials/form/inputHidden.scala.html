@@ -1,0 +1,9 @@
+@import fr.gospeak.web.partials.form.Utils
+
+@(field: Field, args: Seq[(String, String)] = Seq())
+<input
+    type="hidden"
+    class="@Utils.getArg(args, "class")"
+    id="@Utils.id(args, field)"
+    name="@Utils.getArg(args, "name", field.name)"
+    value="@Utils.getArg(args, "value", field.value.getOrElse(""))">

@@ -1,0 +1,15 @@
+@(field: Field, args: Seq[(String, String)] = Seq())(implicit messages: Messages)
+@hiddenFields = @{Seq("id", "name", "streetNo", "street", "postalCode", "locality", "country", "formatted", "lat", "lng", "url", "website", "phone")}
+@errors = @{("input" +: hiddenFields).flatMap(f => field(f).errors)}
+<div class="input-gmapplace @if(errors.nonEmpty){is-invalid}">
+    @inputText(field("input"), args)
+    @hiddenFields.map { f =>
+        @inputHidden(field(f), Seq("class" -> s"gmapplace-$f"))
+    }
+    @if(errors.nonEmpty) {
+        <div class="invalid-feedback">
+            @errors.map(_.format).mkString(", ")
+        </div>
+    }
+    <div class="map" style="height: 300px; display: none;"></div>
+</div>

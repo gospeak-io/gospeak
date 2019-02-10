@@ -10,7 +10,7 @@
 <div class="list-group-item list-group-item-action @if(event.start.isAfter(LocalDateTime.now())) {list-group-item-secondary}">
     <h5 class="mb-1"><a href="@EventCtrl.detail(group.slug, event.slug)">@event.name.value</a></h5>
     @Formats.date(event.start),
-    @event.venue.map { v => @v, }.getOrElse { <b class="text-danger">Missing venue</b>, }
+    @event.venue.map { v => @v.format, }.getOrElse { <b class="text-danger">Missing venue</b>, }
     @event.talks.length planned talks
     @if(event.talks.nonEmpty) {
         <ol>

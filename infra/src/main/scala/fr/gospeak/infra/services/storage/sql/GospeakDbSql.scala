@@ -1,13 +1,13 @@
 package fr.gospeak.infra.services.storage.sql
 
-import java.time.{Instant, LocalDateTime}
 import java.time.temporal.ChronoUnit
+import java.time.{Instant, LocalDateTime}
 
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.{GMapPlace, Info}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.infra.services.storage.sql.tables._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
@@ -45,7 +45,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     def proposal(talk: Talk, cfp: Cfp, status: Proposal.Status = Proposal.Status.Pending): Proposal =
       Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, talk.title, status, talk.description, talk.speakers, talk.info)
 
-    def event(group: Group, slug: String, name: String, date: String, by: User, talks: Seq[Proposal] = Seq(), venue: Option[String] = None, description: Option[String] = None): Event =
+    def event(group: Group, slug: String, name: String, date: String, by: User, talks: Seq[Proposal] = Seq(), venue: Option[GMapPlace] = None, description: Option[String] = None): Event =
       Event(Event.Id.generate(), group.id, Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), description.map(Markdown), venue, talks.map(_.id), Info(by.id, now))
 
     val userDemo = user("demo", "demo@mail.com", "Demo", "User")
@@ -74,9 +74,9 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     val proposal3 = proposal(talk2, cfp2, status = Proposal.Status.Accepted)
     val proposal4 = proposal(talk3, cfp1, status = Proposal.Status.Rejected)
 
-    val event1 = event(group1, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, venue = Some("ManoMano"), description = Some("desc"))
+    val event1 = event(group1, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, venue = None, description = Some("desc"))
     val event2 = event(group1, "2019-02", "HumanTalks Paris Fevrier 2019", "2019-02-12", userOrga, talks = Seq(proposal1))
-    val event3 = event(group1, "2019-03", "HumanTalks Paris Mars 2019", "2019-03-12", userDemo, venue = Some("Zeenea"), description = Some("desc"))
+    val event3 = event(group1, "2019-03", "HumanTalks Paris Mars 2019", "2019-03-12", userDemo, venue = None, description = Some("desc"))
     val event4 = event(group2, "2019-04", "Paris.Js Avril", "2019-04-01", userOrga, talks = Seq(proposal3))
     val event5 = event(group3, "2019-03", "Nouveaux modeles de gouvenance", "2019-03-15", userDemo)
 
@@ -117,7 +117,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(GroupTable.selectPage(user, _), params))
 
   override def createEvent(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event] =
-    run(EventTable.insert, Event(Event.Id.generate(), group, data.slug, data.name, data.start, None, None, Seq(), Info(by, now)))
+    run(EventTable.insert, Event(Event.Id.generate(), group, data.slug, data.name, data.start, None, data.venue, Seq(), Info(by, now)))
 
   override def updateEvent(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): IO[Done] = {
     if (data.slug != event) {

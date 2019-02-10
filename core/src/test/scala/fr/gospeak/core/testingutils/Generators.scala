@@ -3,7 +3,7 @@ package fr.gospeak.core.testingutils
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.{GMapPlace, Info}
 import fr.gospeak.libs.scalautils.domain.{Email, Markdown, SlugBuilder}
 import org.scalacheck.ScalacheckShapeless._
 import org.scalacheck.{Arbitrary, Gen}
@@ -38,6 +38,7 @@ object Generators {
 
   // do not write explicit type, it will throw a NullPointerException
   implicit val aInfo = implicitly[Arbitrary[Info]]
+  implicit val aGMapPlace = implicitly[Arbitrary[GMapPlace]]
   implicit val aUser = implicitly[Arbitrary[User]]
   implicit val aTalk = implicitly[Arbitrary[Talk]]
   implicit val aGroup = implicitly[Arbitrary[Group]]

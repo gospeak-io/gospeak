@@ -9,6 +9,7 @@ object EventForms {
   val create: Form[Event.Data] = Form(mapping(
     "slug" -> eventSlug,
     "name" -> eventName,
-    "start" -> localDateTime
+    "start" -> localDateTime,
+    "venue" -> optional(gMapPlace)
   )(Event.Data.apply)(Event.Data.unapply))
 }

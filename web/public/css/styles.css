@@ -13,7 +13,7 @@
     margin-bottom: 0;
 }
 
-.form-row.is-invalid ~ .invalid-feedback {
+.form-row.is-invalid ~ .invalid-feedback, .is-invalid .invalid-feedback {
     display: block;
 }
 
