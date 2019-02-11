@@ -60,34 +60,6 @@ function slugify(str) {
 
 // GMapPlace picker (https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete?hl=fr)
 var GMapPlacePicker = (function () {
-    return {
-        init: function () {
-            $('.input-gmapplace').each(function () {
-                var $elt = $(this);
-                var $input = $elt.find('input[type="text"]');
-                var $map = $elt.find('.map');
-                var mapData = initMap($map);
-                updateField($elt, mapData, readForm($elt)); // run on page load
-                var autocomplete = new google.maps.places.Autocomplete($input.get(0));
-                autocomplete.addListener('place_changed', function () {
-                    var place = autocomplete.getPlace(); // cf https://developers.google.com/maps/documentation/javascript/3.exp/reference?hl=fr#PlaceResult
-                    updateField($elt, mapData, toLocation(place));
-                });
-                // prevent form submit on enter
-                $input.on('keydown', function (e) {
-                    if (e && e.keyCode == 13) {
-                        e.preventDefault();
-                    }
-                });
-                $input.on('change', function () {
-                    if ($input.val() === '') {
-                        updateField($elt, mapData, null);
-                    }
-                });
-            });
-        }
-    };
-
     function initMap($map) {
         var map = new google.maps.Map($map.get(0), {
             center: {lat: -33.8688, lng: 151.2195},
@@ -106,17 +78,16 @@ var GMapPlacePicker = (function () {
         };
     }
 
-    function updateField($elt, mapData, location) {
-        writeForm($elt, location);
-        if (location && location.lat) {
+    function toggleMap(mapData, location) {
+        if (location && location.lat && location.lng) {
             showMap(mapData, location);
         } else {
             hideMap(mapData);
         }
     }
 
-    function showMap(mapData, formattedPlace) {
-        var point = {lat: formattedPlace.lat, lng: formattedPlace.lng};
+    function showMap(mapData, location) {
+        var point = {lat: parseFloat(location.lat), lng: parseFloat(location.lng)};
         mapData.$map.show();
         google.maps.event.trigger(mapData.map, 'resize');
         mapData.infowindow.close();
@@ -126,9 +97,9 @@ var GMapPlacePicker = (function () {
         mapData.marker.setPosition(point);
         mapData.marker.setVisible(true);
         mapData.infowindow.setContent(
-            '<strong>' + formattedPlace.name + '</strong><br>' +
-            formattedPlace.streetNo + ' ' + formattedPlace.street + '<br>' +
-            formattedPlace.postalCode + ' ' + formattedPlace.locality + ', ' + formattedPlace.country
+            '<strong>' + location.name + '</strong><br>' +
+            location.streetNo + ' ' + location.street + '<br>' +
+            location.postalCode + ' ' + location.locality + ', ' + location.country
         );
         mapData.infowindow.open(mapData.map, mapData.marker);
     }
@@ -137,94 +108,115 @@ var GMapPlacePicker = (function () {
         mapData.$map.hide();
     }
 
-    function writeForm($elt, formattedPlace) {
-        $elt.find('input.gmapplace-id').val(formattedPlace ? formattedPlace.id : '');
-        $elt.find('input.gmapplace-name').val(formattedPlace ? formattedPlace.name : '');
-        $elt.find('input.gmapplace-streetNo').val(formattedPlace ? formattedPlace.streetNo : '');
-        $elt.find('input.gmapplace-street').val(formattedPlace ? formattedPlace.street : '');
-        $elt.find('input.gmapplace-postalCode').val(formattedPlace ? formattedPlace.postalCode : '');
-        $elt.find('input.gmapplace-locality').val(formattedPlace ? formattedPlace.locality : '');
-        $elt.find('input.gmapplace-country').val(formattedPlace ? formattedPlace.country : '');
-        $elt.find('input.gmapplace-formatted').val(formattedPlace ? formattedPlace.formatted : '');
-        $elt.find('input.gmapplace-lat').val(formattedPlace ? formattedPlace.lat : '');
-        $elt.find('input.gmapplace-lng').val(formattedPlace ? formattedPlace.lng : '');
-        $elt.find('input.gmapplace-url').val(formattedPlace ? formattedPlace.url : '');
-        $elt.find('input.gmapplace-website').val(formattedPlace ? formattedPlace.website : '');
-        $elt.find('input.gmapplace-phone').val(formattedPlace ? formattedPlace.phone : '');
+    var fields = ['id', 'name', 'streetNo', 'street', 'postalCode', 'locality', 'country', 'formatted', 'lat', 'lng', 'url', 'website', 'phone', 'utcOffset'];
+
+    function writeForm($elt, location) {
+        fields.forEach(function (field) {
+            $elt.find('input.gmapplace-' + field).val(location ? location[field] : '');
+        });
     }
 
     function readForm($elt) {
-        return {
-            id: $elt.find('input.gmapplace-id').val(),
-            name: $elt.find('input.gmapplace-name').val(),
-            streetNo: $elt.find('input.gmapplace-streetNo').val(),
-            street: $elt.find('input.gmapplace-street').val(),
-            postalCode: $elt.find('input.gmapplace-postalCode').val(),
-            locality: $elt.find('input.gmapplace-locality').val(),
-            country: $elt.find('input.gmapplace-country').val(),
-            formatted: $elt.find('input.gmapplace-formatted').val(),
-            lat: parseFloat($elt.find('input.gmapplace-lat').val()) || '',
-            lng: parseFloat($elt.find('input.gmapplace-lng').val()) || '',
-            url: $elt.find('input.gmapplace-url').val(),
-            website: $elt.find('input.gmapplace-website').val(),
-            phone: $elt.find('input.gmapplace-phone').val()
-        };
+        var location = {};
+        fields.forEach(function (field) {
+            location[field] = $elt.find('input.gmapplace-' + field).val();
+        });
+        return location;
     }
 
     function toLocation(place) {
-        function of(elt, field) {
+        function getSafe(elt, field) {
             return elt && elt[field] ? elt[field] : '';
         }
 
-        function formatAddressComponents(components) {
-            function findByType(components, type) {
+        function toAddress(components) {
+            function getByType(components, type) {
                 var c = components.find(function (e) {
                     return e.types.indexOf(type) >= 0;
                 });
-                return c ? c.long_name : undefined;
+                return c && c.long_name;
             }
 
             return {
-                street_number: findByType(components, "street_number"), // ex: "119"
-                route: findByType(components, "route"), // ex: "Boulevard Voltaire"
-                postal_code: findByType(components, "postal_code"), // ex: "75011"
-                locality: findByType(components, "locality"), // ex: "Paris"
-                country: findByType(components, "country"), // ex: "France"
-                administrative_area: {
-                    level_1: findByType(components, "administrative_area_level_1"), // ex: "Île-de-France"
-                    level_2: findByType(components, "administrative_area_level_2"), // ex: "Paris"
-                    level_3: findByType(components, "administrative_area_level_3"),
-                    level_4: findByType(components, "administrative_area_level_4"),
-                    level_5: findByType(components, "administrative_area_level_5")
+                streetNumber: getByType(components, 'street_number'),
+                route: getByType(components, 'route'),
+                postalCode: getByType(components, 'postal_code'),
+                locality: getByType(components, 'locality'),
+                country: getByType(components, 'country'),
+                administrativeArea: {
+                    level1: getByType(components, 'administrative_area_level_1'),
+                    level2: getByType(components, 'administrative_area_level_2'),
+                    level3: getByType(components, 'administrative_area_level_3'),
+                    level4: getByType(components, 'administrative_area_level_4'),
+                    level5: getByType(components, 'administrative_area_level_5')
                 },
                 sublocality: {
-                    level_1: findByType(components, "sublocality_level_1"),
-                    level_2: findByType(components, "sublocality_level_2"),
-                    level_3: findByType(components, "sublocality_level_3"),
-                    level_4: findByType(components, "sublocality_level_4"),
-                    level_5: findByType(components, "sublocality_level_5")
+                    level1: getByType(components, 'sublocality_level_1'),
+                    level2: getByType(components, 'sublocality_level_2'),
+                    level3: getByType(components, 'sublocality_level_3'),
+                    level4: getByType(components, 'sublocality_level_4'),
+                    level5: getByType(components, 'sublocality_level_5')
                 }
             };
         }
 
-        var components = formatAddressComponents(place.address_components);
-        var loc = place && place.geometry ? place.geometry.location : undefined;
+        var address = toAddress(place.address_components);
+        var loc = place && place.geometry && place.geometry.location;
         return {
-            id: of(place, 'place_id'),
-            name: of(place, 'name'),
-            streetNo: of(components, 'street_number'),
-            street: of(components, 'route'),
-            postalCode: of(components, 'postal_code'),
-            locality: of(components, 'locality'),
-            country: of(components, 'country'),
-            formatted: of(place, 'formatted_address'),
-            lat: loc ? loc.lat() : '',
-            lng: loc ? loc.lng() : '',
-            url: of(place, 'url'),
-            website: of(place, 'website'),
-            phone: of(place, 'international_phone_number')
+            id: getSafe(place, 'place_id'),
+            name: getSafe(place, 'name'),
+            streetNo: getSafe(address, 'streetNumber'),
+            street: getSafe(address, 'route'),
+            postalCode: getSafe(address, 'postalCode'),
+            locality: getSafe(address, 'locality'),
+            country: getSafe(address, 'country'),
+            formatted: getSafe(place, 'formatted_address'),
+            lat: loc ? loc.lat().toString() : '',
+            lng: loc ? loc.lng().toString() : '',
+            url: getSafe(place, 'url'),
+            website: getSafe(place, 'website'),
+            phone: getSafe(place, 'international_phone_number'),
+            utcOffset: getSafe(place, 'utc_offset').toString()
         };
     }
+
+    function initAutocomplete($elt, $input, mapData) {
+        var autocomplete = new google.maps.places.Autocomplete($input.get(0));
+        autocomplete.addListener('place_changed', function () {
+            var place = autocomplete.getPlace(); // cf https://developers.google.com/maps/documentation/javascript/reference/places-service?hl=fr#PlaceResult
+            var location = toLocation(place);
+            writeForm($elt, location);
+            toggleMap(mapData, location);
+        });
+    }
+
+    return {
+        init: function () {
+            $('.input-gmapplace').each(function () {
+                var $elt = $(this);
+                var $input = $elt.find('input[type="text"]');
+                var $map = $elt.find('.map');
+                var mapData = initMap($map);
+                var location = readForm($elt);
+                toggleMap(mapData, location);
+                initAutocomplete($elt, $input, mapData);
+                // prevent form submit on enter
+                $input.on('keydown', function (e) {
+                    if (e && e.keyCode === 13) {
+                        e.preventDefault();
+                    }
+                });
+                // clear form when input is cleared
+                $input.on('change', function () {
+                    if ($input.val() === '') {
+                        var location = null;
+                        writeForm($elt, location);
+                        toggleMap(mapData, location);
+                    }
+                });
+            });
+        }
+    };
 })();
 
 function googleMapsInit() {

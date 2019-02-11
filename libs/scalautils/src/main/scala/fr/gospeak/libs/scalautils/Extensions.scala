@@ -6,6 +6,16 @@ import scala.util.{Failure, Success, Try}
 
 object Extensions {
 
+  implicit class StringExtension(val v: String) extends AnyVal {
+    def tryInt: Try[Int] = Try(v.toInt)
+
+    def tryLong: Try[Long] = Try(v.toLong)
+
+    def tryFloat: Try[Float] = Try(v.toFloat)
+
+    def tryDouble: Try[Double] = Try(v.toDouble)
+  }
+
   implicit class TraversableOnceExtension[A, M[X] <: TraversableOnce[X]](val v: M[A]) extends AnyVal {
     def swap(elt: A, before: Boolean = true)(implicit cbf: CanBuildFrom[M[A], A, M[A]]): M[A] = {
       val coll = cbf(v)

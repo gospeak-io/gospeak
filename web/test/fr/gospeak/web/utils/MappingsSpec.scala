@@ -5,6 +5,7 @@ import java.time.Instant
 import fr.gospeak.core.domain.utils.GMapPlace
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.libs.scalautils.CustomException
+import fr.gospeak.web.utils.Mappings.Utils._
 import fr.gospeak.web.utils.Mappings._
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{FunSpec, Matchers}
@@ -36,7 +37,6 @@ class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
       }
     }
     describe("Utils") {
-      import Utils._
       describe("required") {
         val c = required[Value](_.value)
         it("should validate value") {

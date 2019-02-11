@@ -1,18 +1,36 @@
 package fr.gospeak.core.domain.utils
 
-case class GMapPlace(id: String, // ChIJ0wnrwMdv5kcRuOvv_dXYoy4
-                     name: String, // Zeenea Data Catalog
-                     streetNo: Option[String], // 48
-                     street: Option[String], // Rue de Ponthieu
-                     postalCode: Option[String], // 75008
-                     locality: Option[String], // Paris
-                     country: String, // France
-                     formatted: String, // 48 Rue de Ponthieu, 75008 Paris, France
-                     input: String, // Zeenea Data Catalog, Rue de Ponthieu, Paris, France
-                     lat: Double, // 48.8716827
-                     lng: Double, // 2.3070390000000316
-                     url: String, // https://maps.google.com/?cid=3360768160548514744
-                     website: Option[String], // http://www.zeenea.com/
-                     phone: Option[String]) { // +33 1 40 40 22 90
+case class GMapPlace(id: String,
+                     name: String,
+                     streetNo: Option[String],
+                     street: Option[String],
+                     postalCode: Option[String],
+                     locality: Option[String],
+                     country: String,
+                     formatted: String,
+                     input: String,
+                     lat: Double,
+                     lng: Double,
+                     url: String,
+                     website: Option[String],
+                     phone: Option[String],
+                     utcOffset: Int) {
   def format: String = formatted
+
+  def trim: GMapPlace = GMapPlace(
+    id = id.trim,
+    name = name.trim,
+    streetNo = streetNo.map(_.trim).filter(_.nonEmpty),
+    street = street.map(_.trim).filter(_.nonEmpty),
+    postalCode = postalCode.map(_.trim).filter(_.nonEmpty),
+    locality = locality.map(_.trim).filter(_.nonEmpty),
+    country = country.trim,
+    formatted = formatted.trim,
+    input = input.trim,
+    lat = lat,
+    lng = lng,
+    url = url.trim,
+    website = website.map(_.trim).filter(_.nonEmpty),
+    phone = phone.map(_.trim).filter(_.nonEmpty),
+    utcOffset = utcOffset)
 }

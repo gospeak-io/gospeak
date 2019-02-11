@@ -39,13 +39,11 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
     val now = Instant.now()
     EventForms.create.bindFromRequest.fold(
       formWithErrors => createForm(group, formWithErrors),
-      data => {
-        (for {
-          groupElt <- OptionT(db.getGroup(user.id, group))
-          // TODO check if slug not already exist
-          _ <- OptionT.liftF(db.createEvent(groupElt.id, data, user.id, now))
-        } yield Redirect(routes.EventCtrl.detail(group, data.slug))).value.map(_.getOrElse(groupNotFound(group)))
-      }
+      data => (for {
+        groupElt <- OptionT(db.getGroup(user.id, group))
+        // TODO check if slug not already exist
+        _ <- OptionT.liftF(db.createEvent(groupElt.id, data.copy(venue = data.venue.map(_.trim)), user.id, now))
+      } yield Redirect(routes.EventCtrl.detail(group, data.slug))).value.map(_.getOrElse(groupNotFound(group)))
     ).unsafeToFuture()
   }
 

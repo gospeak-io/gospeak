@@ -7,10 +7,12 @@ import cats.implicits._
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.GMapPlace
 import fr.gospeak.libs.scalautils.domain.{Email, Markdown, Secret, SlugBuilder}
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.utils.Extensions._
+import fr.gospeak.web.utils.Mappings.Utils._
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.validation._
+import play.api.data.validation.{Constraint, ValidationError, Invalid => PlayInvalid, Valid => PlayValid}
 import play.api.data.{FormError, Mapping}
 
 import scala.concurrent.duration._
@@ -18,9 +20,6 @@ import scala.util.Try
 import scala.util.matching.Regex
 
 object Mappings {
-
-  import Utils._
-
   val requiredConstraint = "constraint.required"
   val requiredError = "error.required"
   val patternConstraint = "constraint.pattern"
@@ -46,11 +45,12 @@ object Mappings {
       data.eitherGet(s"$key.country").toValidatedNec,
       data.eitherGet(s"$key.formatted").toValidatedNec,
       data.eitherGet(s"$key.input").toValidatedNec,
-      data.eitherGetAndParse(s"$key.lat", l => Try(l.toDouble), numberError).toValidatedNec,
-      data.eitherGetAndParse(s"$key.lng", l => Try(l.toDouble), numberError).toValidatedNec,
+      data.eitherGetAndParse(s"$key.lat", _.tryDouble, numberError).toValidatedNec,
+      data.eitherGetAndParse(s"$key.lng", _.tryDouble, numberError).toValidatedNec,
       data.eitherGet(s"$key.url").toValidatedNec,
       data.get(s"$key.website").validNec[FormError],
-      data.get(s"$key.phone").validNec[FormError]
+      data.get(s"$key.phone").validNec[FormError],
+      data.eitherGetAndParse(s"$key.utcOffset", _.tryInt, numberError).toValidatedNec
     ).mapN(GMapPlace.apply).toEither.left.map(_.toList)
 
     override def unbind(key: String, value: GMapPlace): Map[String, String] =
@@ -68,7 +68,8 @@ object Mappings {
         s"$key.lng" -> Some(value.lng.toString),
         s"$key.url" -> Some(value.url),
         s"$key.website" -> value.website,
-        s"$key.phone" -> value.phone
+        s"$key.phone" -> value.phone,
+        s"$key.utcOffset" -> Some(value.utcOffset.toString)
       ).collect { case (k, Some(v)) => (k, v) }.toMap
   })
 
@@ -83,21 +84,18 @@ object Mappings {
   val talkTitle: Mapping[Talk.Title] = stringMapping(Talk.Title, _.value, required)
 
   private[utils] object Utils {
-
-    import play.api.data.validation.{Invalid, Valid}
-
     def required[A](stringify: A => String): Constraint[A] = Constraint[A](requiredConstraint) { o =>
       val str = stringify(o)
       if (str.trim.isEmpty) {
-        Invalid(ValidationError(requiredError))
+        PlayInvalid(ValidationError(requiredError))
       } else {
-        Valid
+        PlayValid
       }
     }
 
     def pattern[A](regex: Regex)(stringify: A => String): Constraint[A] = Constraint[A](patternConstraint, regex) { o =>
-      if (o == null) Invalid(ValidationError(patternError, regex))
-      else regex.unapplySeq(stringify(o)).map(_ => Valid).getOrElse(Invalid(ValidationError(patternError, regex)))
+      if (o == null) PlayInvalid(ValidationError(patternError, regex))
+      else regex.unapplySeq(stringify(o)).map(_ => PlayValid).getOrElse(PlayInvalid(ValidationError(patternError, regex)))
     }
 
     def stringFormatter[A](from: String => A, to: A => String): Formatter[A] = new Formatter[A] {
@@ -109,7 +107,7 @@ object Mappings {
     }
 
     def longFormatter[A](from: Long => A, to: A => Long): Formatter[A] =
-      genericFormatter(to(_).toString, s => Try(s.toLong).map(from), numberError)
+      genericFormatter(to(_).toString, _.tryLong.map(from), numberError)
 
     // FIXME: get user ZoneOffset, more generally better managed dates and timezones!!!
     val instantFormatter: Formatter[Instant] =
