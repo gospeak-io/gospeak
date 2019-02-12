@@ -10,6 +10,6 @@
         <div>@proposalStatus(proposal.status)</div>
     </div>
     <span title="Proposed date">@Formats.date(proposal.info.created)</span>
-    @proposal.speakers.toList.map { id => <span class="badge badge-primary">@speakers.find(_.id == id).map { u => @u.name.value}.getOrElse{Unknown (@id.value)}</span>}
-    @proposal.event.map { id => @events.find(_.id == id).map { e => @e.name.value }.getOrElse{Unknown (@id.value)} }
+    @proposal.speakers.toList.map { id => @speaker(speakers, id) }
+    @proposal.event.map { id => @event(events, id) }
 </a>

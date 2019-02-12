@@ -1,6 +1,7 @@
 @import fr.gospeak.core.domain.{Event, Group, Proposal, User, Cfp}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.partials.display.html._
 @import fr.gospeak.web.partials.form.html.formBtn
 @import fr.gospeak.web.partials.html.{container, pagination}
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
@@ -35,11 +36,7 @@
                     @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, true), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk up")){<i class="fas fa-arrow-up"></i>}
                     @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, false), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk down")){<i class="fas fa-arrow-down"></i>}
                     <a href="@ProposalCtrl.detail(group.slug, talk.id)">@talk.title.value</a>
-                    by @talk.speakers.toList.map { sId =>
-                        @speakers.find(_.id == sId).map { speaker =>
-                            <a href="@SpeakerCtrl.detail(group.slug, talk.id, speaker.slug)">@speaker.name.value</a>
-                        }.getOrElse { Unknown (@sId.value) }
-                    }
+                    by @talk.speakers.toList.map { sId => @speaker(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, talk.id, u.slug))) }
                 }.getOrElse { Unknown (@tId.value) }
             </li>
         }
@@ -63,11 +60,7 @@
                         @formBtn(EventCtrl.addTalk(group.slug, event.slug, proposal.id), Seq("class" -> "btn-link btn-sm", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
                         (since @Formats.date(proposal.info.created))
                         <a href="@ProposalCtrl.detail(group.slug, proposal.id)">@proposal.title.value</a>
-                        by @proposal.speakers.toList.map { sId =>
-                            @speakers.find(_.id == sId).map { speaker =>
-                            <a href="@SpeakerCtrl.detail(group.slug, proposal.id, speaker.slug)">@speaker.name.value</a>
-                            }.getOrElse { Unknown (@sId.value) }
-                        }
+                        by @proposal.speakers.toList.map { sId => @speaker(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, proposal.id, u.slug))) }
                     </li>
                 }
             </ul>

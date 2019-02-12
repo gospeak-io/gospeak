@@ -2,6 +2,7 @@
 
 @import fr.gospeak.core.domain.{Event, Group, Proposal, User}
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.partials.display.html._
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 @import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.user.groups.proposals.speakers.routes.SpeakerCtrl
@@ -18,11 +19,7 @@
             <li>
                 @proposals.find(_.id == pId).map { p =>
                     <a href="@ProposalCtrl.detail(group.slug, p.id)">@p.title.value</a>
-                    by @p.speakers.toList.map { uId =>
-                        @speakers.find(_.id == uId).map { u =>
-                            <a href="@SpeakerCtrl.detail(group.slug, p.id, u.slug)">@u.name.value</a>
-                        }.getOrElse { Unknown (@uId.value) }
-                    }
+                    by @p.speakers.toList.map { uId => @speaker(speakers, uId, Some(u => SpeakerCtrl.detail(group.slug, p.id, u.slug))) }
                 }.getOrElse { Unknown (@pId.value) }
             </li>
         }

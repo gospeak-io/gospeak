@@ -63,12 +63,12 @@
             </div>
         </div>
         <h1>@talk.title.value</h1>
-        @partials.html.status(talk.status) @partials.html.duration(talk.duration)
+        @talkStatus(talk.status) @partials.html.duration(talk.duration)
     </div>
 
     <p>@markdown(talk.description)</p>
 
-    <p>Speakers: @talk.speakers.toList.map { id => @partials.html.speaker(speakers, id) }</p>
+    <p>Speakers: @talk.speakers.toList.map { id => @speaker(speakers, id) }</p>
 
     @if(proposals.isEmpty) {
         <div class="card">

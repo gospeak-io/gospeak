@@ -1,7 +1,0 @@
-@import fr.gospeak.core.domain.User
-@(speakers: Seq[User], id: User.Id)
-@speakers.find(_.id == id).map { u =>
-<span class="badge badge-pill badge-primary">@u.name.value</span>
-}.getOrElse {
-    <span class="badge badge-pill badge-primary">Unknown (@id.value)</span>
-}
