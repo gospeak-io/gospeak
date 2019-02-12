@@ -137,6 +137,8 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(Queries.selectPage(EventTable.selectPage(group, _), params))
 
+  def getEvents(group: Group.Id, ids: Seq[Event.Id]): IO[Seq[Event]] = runIn[Event.Id, Event](EventTable.selectAll(group, _))(ids)
+
   override def getEventsAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]] =
     run(Queries.selectPage(EventTable.selectAllAfter(group, now.truncatedTo(ChronoUnit.DAYS), _), params))
 

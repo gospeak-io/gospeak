@@ -5,7 +5,6 @@
 @import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.partials.display.html._
 @import fr.gospeak.web.partials.form.html.formBtn
-@import fr.gospeak.web.user.talks.proposals.partials.html.status
 @import fr.gospeak.web.user.talks.routes.TalkCtrl
 @import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.user.talks.cfps.routes.CfpCtrl
@@ -100,7 +99,7 @@
                 <div class="text-right">
                     <small>@timeAgo(proposal.info.created)</small>
                     <br>
-                    @status(proposal.status)
+                    @proposalStatus(proposal.status)
             </div>
             </a>
             }

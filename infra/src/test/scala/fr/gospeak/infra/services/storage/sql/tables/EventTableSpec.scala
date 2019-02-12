@@ -1,5 +1,6 @@
 package fr.gospeak.infra.services.storage.sql.tables
 
+import cats.data.NonEmptyList
 import fr.gospeak.infra.services.storage.sql.tables.EventTable._
 import fr.gospeak.infra.services.storage.sql.tables.testingutils.TableSpec
 
@@ -40,6 +41,13 @@ class EventTableSpec extends TableSpec {
         c.sql shouldBe "SELECT count(*) FROM events WHERE group_id=? "
         check(s)
         check(c)
+      }
+    }
+    describe("selectAll") {
+      it("should generate the query") {
+        val q = selectAll(group.id, NonEmptyList.of(event.id))
+        q.sql shouldBe "SELECT id, group_id, slug, name, start, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE group_id=? AND id IN (?) "
+        check(q)
       }
     }
     describe("selectAllAfter") {

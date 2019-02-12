@@ -2,13 +2,12 @@
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.display.html._
 @import fr.gospeak.web.partials.html.container
-@import fr.gospeak.web.user.talks.proposals.partials.html.status
 
 @(cfp: Cfp, proposal: Proposal)(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
 @container("Gospeak", h, Some(b))() {
     <div>
         <h1>@proposal.title.value proposal to @cfp.name.value</h1>
-        @status(proposal.status) <small>@timeAgo(proposal.info.created)</small>
+        @proposalStatus(proposal.status) <small>@timeAgo(proposal.info.created)</small>
     </div>
 
     @markdown(proposal.description)

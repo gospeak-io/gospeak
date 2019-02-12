@@ -1,11 +1,15 @@
-@import fr.gospeak.core.domain.{Group, Proposal}
+@import fr.gospeak.core.domain.{Group, Proposal, User, Event}
+@import fr.gospeak.web.partials.display.html._
+@import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
 
-@(group: Group, proposal: Proposal)
-<li class="media card my-2 proposal-item">
-    <div class="media-body">
-        <h5 class="mt-0 mb-1">
-            <a href="@ProposalCtrl.detail(group.slug, proposal.id)">@proposal.title.value</a>
-        </h5>
+@(group: Group, proposal: Proposal, speakers: Seq[User], events: Seq[Event])
+<a class="list-group-item list-group-item-action" href="@ProposalCtrl.detail(group.slug, proposal.id)">
+    <div class="d-flex w-100 justify-content-between">
+        <h5 class="mb-1">@proposal.title.value</h5>
+        <div>@proposalStatus(proposal.status)</div>
     </div>
-</li>
+    <span title="Proposed date">@Formats.date(proposal.info.created)</span>
+    @proposal.speakers.toList.map { id => <span class="badge badge-primary">@speakers.find(_.id == id).map { u => @u.name.value}.getOrElse{Unknown (@id.value)}</span>}
+    @proposal.event.map { id => @events.find(_.id == id).map { e => @e.name.value }.getOrElse{Unknown (@id.value)} }
+</a>

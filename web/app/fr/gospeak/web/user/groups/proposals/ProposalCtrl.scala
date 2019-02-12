@@ -19,9 +19,11 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) e
       groupElt <- OptionT(db.getGroup(user.id, group))
       cfpOpt <- OptionT.liftF(db.getCfp(groupElt.id))
       proposals <- cfpOpt.map(cfpElt => OptionT.liftF(db.getProposals(cfpElt.id, params))).getOrElse(OptionT.pure[IO](Page.empty[Proposal](params)))
+      speakers <- OptionT.liftF(db.getUsers(proposals.items.flatMap(_.speakers.toList)))
+      events <- OptionT.liftF(db.getEvents(groupElt.id, proposals.items.flatMap(_.event)))
       h = listHeader(group)
       b = listBreadcrumb(user.name, group -> groupElt.name)
-    } yield Ok(html.list(groupElt, cfpOpt, proposals)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+    } yield Ok(html.list(groupElt, cfpOpt, proposals, speakers, events)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
   def detail(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>

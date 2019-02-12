@@ -2,6 +2,8 @@ package fr.gospeak.infra.services.storage.sql.tables
 
 import java.time.Instant
 
+import cats.data.NonEmptyList
+import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.{Event, Group, Proposal, User}
@@ -40,6 +42,9 @@ object EventTable {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Event], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
+
+  def selectAll(group: Group.Id, ids: NonEmptyList[Event.Id]): doobie.Query0[Event] =
+    buildSelect(tableFr, fieldsFr, fr"WHERE group_id=$group AND" ++ Fragments.in(fr"id", ids)).query[Event]
 
   def selectAllAfter(group: Group.Id, now: Instant, params: Page.Params): (doobie.Query0[Event], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group AND start > $now"))
