@@ -32,7 +32,7 @@ trait GospeakDb {
 
   def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]]
 
-  def getEvents(group: Group.Id, ids: Seq[Event.Id]): IO[Seq[Event]]
+  def getEvents(ids: Seq[Event.Id]): IO[Seq[Event]]
 
   def getEventsAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]]
 

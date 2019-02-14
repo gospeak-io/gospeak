@@ -52,7 +52,7 @@ class CfpCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extend
       talkElt <- OptionT(db.getTalk(user.id, talk))
       cfpElt <- OptionT(db.getCfp(cfp))
       proposalOpt <- OptionT.liftF(db.getProposal(talkElt.id, cfpElt.id))
-      filledForm = if (form.hasErrors) form else form.fill(Proposal.Data(talkElt.title, talkElt.description))
+      filledForm = if (form.hasErrors) form else form.fill(Proposal.Data(talkElt.title, talkElt.duration, talkElt.description))
       h = TalkCtrl.header(talkElt.slug)
       b = breadcrumb(user.name, talk -> talkElt.title, cfp -> cfpElt.name)
     } yield proposalOpt

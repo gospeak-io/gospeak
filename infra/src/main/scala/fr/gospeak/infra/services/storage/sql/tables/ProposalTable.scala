@@ -14,14 +14,14 @@ import fr.gospeak.libs.scalautils.domain.Page
 object ProposalTable {
   private val _ = proposalIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = "proposals"
-  private val fields = Seq("id", "talk_id", "cfp_id", "event_id", "title", "status", "description", "speakers", "created", "created_by", "updated", "updated_by")
+  private val fields = Seq("id", "talk_id", "cfp_id", "event_id", "title", "duration", "status", "description", "speakers", "created", "created_by", "updated", "updated_by")
   private[tables] val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "title", "status", "description")
   private val defaultSort = Page.OrderBy("-created")
 
   private def values(e: Proposal): Fragment =
-    fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.title}, ${e.status}, ${e.description}, ${e.speakers}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.title}, ${e.duration}, ${e.status}, ${e.description}, ${e.speakers}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   def insert(elt: Proposal): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 

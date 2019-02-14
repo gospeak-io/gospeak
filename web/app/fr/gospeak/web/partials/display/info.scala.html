@@ -1,0 +1,27 @@
+@import fr.gospeak.core.domain.utils.Info
+@import fr.gospeak.core.domain.User
+@import fr.gospeak.web.utils.Formats
+
+@(info: Info, users: Seq[User], call: Option[User => Call] = None)
+@username(id: User.Id) = @{
+    users.find(_.id == id).map(_.name.value).getOrElse(s"Unknown (${id.value})")
+}
+@userlink(id: User.Id) = {
+@users.find(_.id == id).map { u =>
+    @call match {
+        case Some(url) => {
+            <a href="@url(u)">@u.name.value</a>
+        }
+        case None => {
+            @u.name.value
+        }
+    }
+}.getOrElse {Unknown (@id.value)}
+}
+<span>
+    <span @if(info.updated != info.created) {
+        title="Updated by @username(info.updatedBy) on @Formats.date(info.updated)"}>
+        Created by @userlink(info.createdBy)
+    </span>
+    @timeAgo(info.created)
+</span>

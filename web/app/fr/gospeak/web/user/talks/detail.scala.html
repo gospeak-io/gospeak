@@ -1,4 +1,4 @@
-@import fr.gospeak.core.domain.{Cfp, Proposal, Talk, User}
+@import fr.gospeak.core.domain.{Cfp, Event, Proposal, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.user.talks.partials
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
@@ -7,11 +7,12 @@
 @import fr.gospeak.web.partials.form.html.formBtn
 @import fr.gospeak.web.user.talks.routes.TalkCtrl
 @import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.user.talks.proposals.partials.html.{item => proposalItem}
 @import fr.gospeak.web.user.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(talk: Talk, speakers: Seq[User], proposals: Page[(Cfp, Proposal)])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
-@container("Gospeak", h, Some(b))() {
+@(talk: Talk, speakers: Seq[User], proposals: Page[(Cfp, Proposal)], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
+@container(talk.title.value + " - Gospeak", h, Some(b))() {
     @if(talk.status == Talk.Status.Draft) {
         <div class="alert alert-info" role="alert">
             <div class="mb-0 float-right">
@@ -19,12 +20,12 @@
                     "class" -> "btn-sm btn-secondary",
                     "title" -> Talk.Status.Private.description,
                     "data-toggle" -> "tooltip",
-                    "data-placement" -> "bottom")){Make it private}
+                    "data-placement" -> "bottom")) {Make it private}
                 @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Public), Seq(
                     "class" -> "btn-sm btn-primary",
                     "title" -> Talk.Status.Public.description,
                     "data-toggle" -> "tooltip",
-                    "data-placement" -> "bottom")){Make it public}
+                    "data-placement" -> "bottom")) {Make it public}
             </div>
             <h4 class="alert-heading">Well done!</h4>
             <p class="mb-0">You created a talk, now decide if you want it to be <b>Public</b> or <b>Private</b></p>
@@ -43,27 +44,27 @@
                             "class" -> "dropdown-item",
                             "title" -> Talk.Status.Public.description,
                             "data-toggle" -> "tooltip",
-                            "data-placement" -> "left")){Make it public}
+                            "data-placement" -> "left")) {Make it public}
                     }
                     @if(talk.status != Talk.Status.Private) {
                         @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Private), Seq(
                             "class" -> "dropdown-item",
                             "title" -> Talk.Status.Private.description,
                             "data-toggle" -> "tooltip",
-                            "data-placement" -> "left")){Make it private}
+                            "data-placement" -> "left")) {Make it private}
                     }
                     @if(talk.status != Talk.Status.Archived) {
                         @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Archived), Seq(
                             "class" -> "dropdown-item",
                             "title" -> Talk.Status.Archived.description,
                             "data-toggle" -> "tooltip",
-                            "data-placement" -> "left")){Archive it}
+                            "data-placement" -> "left")) {Archive it}
                     }
                 </div>
             </div>
         </div>
         <h1>@talk.title.value</h1>
-        @talkStatus(talk.status) @partials.html.duration(talk.duration)
+        @duration(talk.duration) @talkStatus(talk.status)
     </div>
 
     <p>@markdown(talk.description)</p>
@@ -90,19 +91,7 @@
                 You proposed your talk to @Formats.plural(proposals.total.value, "CFP"):
             </h5>
             <ul class="list-group list-group-flush">
-            @proposals.items.map { case (cfp, proposal) =>
-            <a href="@ProposalCtrl.detail(talk.slug, proposal.id)" class="list-group-item list-group-item-action d-flex w-100 justify-content-between">
-                <div>
-                    <h5 class="mb-1">@cfp.name.value</h5>
-                    <p class="mb-1">Title: @proposal.title.value</p>
-                </div>
-                <div class="text-right">
-                    <small>@timeAgo(proposal.info.created)</small>
-                    <br>
-                    @proposalStatus(proposal.status)
-            </div>
-            </a>
-            }
+            @proposals.items.map { case (cfp, proposal) => @proposalItem(talk, cfp, proposal, events) }
             </ul>
             @if(!proposals.isLast) {
                 <div class="card-footer"><a href="@ProposalCtrl.list(talk.slug)">More...</a></div>

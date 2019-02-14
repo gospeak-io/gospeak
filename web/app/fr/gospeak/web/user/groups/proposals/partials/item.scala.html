@@ -9,7 +9,12 @@
         <h5 class="mb-1">@proposal.title.value</h5>
         <div>@proposalStatus(proposal.status)</div>
     </div>
-    <span title="Proposed date">@Formats.date(proposal.info.created)</span>
-    @proposal.speakers.toList.map { id => @speaker(speakers, id) }
-    @proposal.event.map { id => @event(events, id) }
+    <div class="d-flex w-100 justify-content-between">
+        <span>
+            @duration(proposal.duration)
+            @proposal.speakers.toList.map { id => @speaker(speakers, id) }
+            @proposal.event.map { id => @event(events, id) }
+        </span>
+        <small title="Proposal date">@Formats.date(proposal.info.created)</small>
+    </div>
 </a>

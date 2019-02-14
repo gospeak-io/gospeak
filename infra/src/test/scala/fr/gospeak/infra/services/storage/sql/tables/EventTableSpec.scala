@@ -45,8 +45,8 @@ class EventTableSpec extends TableSpec {
     }
     describe("selectAll") {
       it("should generate the query") {
-        val q = selectAll(group.id, NonEmptyList.of(event.id))
-        q.sql shouldBe "SELECT id, group_id, slug, name, start, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE group_id=? AND id IN (?) "
+        val q = selectAll(NonEmptyList.of(event.id))
+        q.sql shouldBe "SELECT id, group_id, slug, name, start, description, venue, talks, created, created_by, updated, updated_by FROM events WHERE id IN (?) "
         check(q)
       }
     }

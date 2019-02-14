@@ -11,7 +11,7 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 
 @(group: Group, event: Event, talks: Seq[Proposal], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
-@container("Gospeak", h, Some(b))() {
+@container(event.name.value + " - Gospeak", h, Some(b))() {
     <div>
         <span class="float-right">
             <a class="btn btn-outline-secondary" href="@EventCtrl.edit(group.slug, event.slug)" title="edit">
@@ -36,6 +36,7 @@
                     @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, true), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk up")){<i class="fas fa-arrow-up"></i>}
                     @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, false), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk down")){<i class="fas fa-arrow-down"></i>}
                     <a href="@ProposalCtrl.detail(group.slug, talk.id)">@talk.title.value</a>
+                    @duration(talk.duration)
                     by @talk.speakers.toList.map { sId => @speaker(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, talk.id, u.slug))) }
                 }.getOrElse { Unknown (@tId.value) }
             </li>
@@ -58,8 +59,9 @@
                 @proposals.items.map { proposal =>
                     <li>
                         @formBtn(EventCtrl.addTalk(group.slug, event.slug, proposal.id), Seq("class" -> "btn-link btn-sm", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
-                        (since @Formats.date(proposal.info.created))
+                        <small title="Proposal date">(@Formats.date(proposal.info.created))</small>
                         <a href="@ProposalCtrl.detail(group.slug, proposal.id)">@proposal.title.value</a>
+                        @duration(proposal.duration)
                         by @proposal.speakers.toList.map { sId => @speaker(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, proposal.id, u.slug))) }
                     </li>
                 }

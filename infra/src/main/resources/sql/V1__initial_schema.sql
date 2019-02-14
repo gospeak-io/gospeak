@@ -68,6 +68,7 @@ CREATE TABLE proposals (
   cfp_id      CHAR(36)      NOT NULL REFERENCES cfps(id),
   event_id    CHAR(36)               REFERENCES events(id),
   title       VARCHAR(100)  NOT NULL,
+  duration    BIGINT        NOT NULL,
   status      VARCHAR(10)   NOT NULL,
   description VARCHAR(2048) NOT NULL,
   speakers    VARCHAR(184)  NOT NULL,

@@ -18,6 +18,9 @@
         @fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title for your proposal (you can adapt your talk title)")) { (field, args) =>
             @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
         }
+        @fieldHorizontal(form("duration"), Seq("label" -> "Duration", "help" -> "Duration of your talk")) { (field, args) =>
+            @inputDuration(field, args)
+        }
         @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Give a abstract of your talk, you should make orga and people listen at you")) { (field, args) =>
             @inputMarkdown(field, args)
         }

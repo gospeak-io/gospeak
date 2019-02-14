@@ -4,16 +4,19 @@ import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.libs.scalautils.domain.{DataClass, EnumBuilder, Markdown, UuidIdBuilder}
 
+import scala.concurrent.duration.FiniteDuration
+
 final case class Proposal(id: Proposal.Id,
                           talk: Talk.Id,
                           cfp: Cfp.Id,
                           event: Option[Event.Id],
                           title: Talk.Title,
+                          duration: FiniteDuration,
                           status: Proposal.Status,
                           description: Markdown,
                           speakers: NonEmptyList[User.Id],
                           info: Info) {
-  def data: Proposal.Data = Proposal.Data(title, description)
+  def data: Proposal.Data = Proposal.Data(title, duration, description)
 }
 
 object Proposal {
@@ -35,6 +38,6 @@ object Proposal {
     val all: Seq[Status] = Seq(Pending, Accepted, Rejected)
   }
 
-  final case class Data(title: Talk.Title, description: Markdown)
+  final case class Data(title: Talk.Title, duration: FiniteDuration, description: Markdown)
 
 }

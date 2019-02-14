@@ -17,9 +17,10 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) e
     (for {
       talkElt <- OptionT(db.getTalk(user.id, talk))
       proposals <- OptionT.liftF(db.getProposals(talkElt.id, params))
+      events <- OptionT.liftF(db.getEvents(proposals.items.flatMap(_._2.event)))
       h = TalkCtrl.header(talkElt.slug)
       b = listBreadcrumb(user.name, talk -> talkElt.title)
-    } yield Ok(html.list(talkElt, proposals)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
+    } yield Ok(html.list(talkElt, proposals, events)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 
   def detail(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -28,9 +29,11 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) e
       talkElt <- OptionT(db.getTalk(user.id, talk))
       proposalElt <- OptionT(db.getProposal(proposal))
       cfpElt <- OptionT(db.getCfp(proposalElt.cfp))
+      speakers <- OptionT.liftF(db.getUsers(proposalElt.speakers.toList))
+      events <- OptionT.liftF(db.getEvents(proposalElt.event.toSeq))
       h = TalkCtrl.header(talkElt.slug)
       b = breadcrumb(user.name, talk -> talkElt.title, proposal -> cfpElt.name)
-    } yield Ok(html.detail(cfpElt, proposalElt)(h, b))).value.map(_.getOrElse(proposalNotFound(talk, proposal))).unsafeToFuture()
+    } yield Ok(html.detail(cfpElt, proposalElt, speakers, events)(h, b))).value.map(_.getOrElse(proposalNotFound(talk, proposal))).unsafeToFuture()
   }
 }
 

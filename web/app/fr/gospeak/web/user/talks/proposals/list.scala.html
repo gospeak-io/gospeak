@@ -1,4 +1,4 @@
-@import fr.gospeak.core.domain.{Cfp, Proposal, Talk, User}
+@import fr.gospeak.core.domain.{Cfp, Event, Proposal, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.html.{container, pagination, search}
@@ -7,8 +7,8 @@
 @import fr.gospeak.web.user.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.utils.Formats._
 
-@(talk: Talk, proposals: Page[(Cfp, Proposal)])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
-@container("Gospeak", h, Some(b))() {
+@(talk: Talk, proposals: Page[(Cfp, Proposal)], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
+@container(talk.title.value + " - Gospeak", h, Some(b))() {
     @if(proposals.isEmpty) {
         <div class="jumbotron">
             <h1>Still no proposal for @talk.title.value <i class="far fa-sad-tear"></i></h1>
@@ -26,7 +26,7 @@
         @search(proposals, ProposalCtrl.list(talk.slug))
 
         <div class="list-group mt-3 mb-3">
-        @proposals.items.map { case (c, p) => @item(talk, c, p) }
+        @proposals.items.map { case (c, p) => @item(talk, c, p, events) }
         </div>
 
         <div class="float-right">@pagination(proposals, ProposalCtrl.list(talk.slug, _))</div>

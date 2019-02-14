@@ -1,14 +1,22 @@
-@import fr.gospeak.core.domain.{Cfp, Proposal, User}
+@import fr.gospeak.core.domain.{Cfp, Event, Proposal, User}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.display.html._
 @import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.utils.Formats
 
-@(cfp: Cfp, proposal: Proposal)(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
-@container("Gospeak", h, Some(b))() {
+@(cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
+@eventinfo(id: Event.Id) = {
+    @events.find(_.id == id).map { e => @e.name.value - @Formats.date(e.start) }.getOrElse { Unknown event @id.value }
+}
+@container(cfp.name.value + " - Gospeak", h, Some(b))() {
     <div>
         <h1>@proposal.title.value proposal to @cfp.name.value</h1>
-        @proposalStatus(proposal.status) <small>@timeAgo(proposal.info.created)</small>
+        @duration(proposal.duration) @proposalStatus(proposal.status) @proposal.event.map { id => @eventinfo(id) }
     </div>
 
-    @markdown(proposal.description)
+    <p>@markdown(proposal.description)</p>
+
+    <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id) }</p>
+
+    <p>@info(proposal.info, speakers)</p>
 }()

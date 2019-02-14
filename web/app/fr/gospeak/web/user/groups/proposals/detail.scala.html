@@ -1,10 +1,22 @@
-@import fr.gospeak.core.domain.{Proposal, User}
+@import fr.gospeak.core.domain.{Event, Group, Proposal, User}
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.partials.display.html._
 @import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.user.groups.proposals.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.user.groups.events.routes.EventCtrl
 
-@(proposal: Proposal)(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
-@container("Gospeak", h, Some(b))() {
+@(group: Group, proposal: Proposal, speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
+@container(proposal.title.value + " - Gospeak", h, Some(b))() {
     <div>
         <h1>@proposal.title.value</h1>
+        @duration(proposal.duration)
+        @proposalStatus(proposal.status)
+        @proposal.event.map { id => @event(events, id, Some(e => EventCtrl.detail(group.slug, e.slug))) }
     </div>
+
+    <p>@markdown(proposal.description)</p>
+
+    <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id, Some(u => SpeakerCtrl.detail(group.slug, proposal.id, u.slug))) }</p>
+
+    <p>@info(proposal.info, speakers, Some(u => SpeakerCtrl.detail(group.slug, proposal.id, u.slug)))</p>
 }()

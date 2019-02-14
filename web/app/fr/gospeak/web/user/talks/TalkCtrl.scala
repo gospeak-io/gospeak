@@ -56,9 +56,10 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
       talkElt <- OptionT(db.getTalk(user.id, talk))
       speakers <- OptionT.liftF(db.getUsers(talkElt.speakers.toList))
       proposals <- OptionT.liftF(db.getProposals(talkElt.id, Page.Params.defaults))
+      events <- OptionT.liftF(db.getEvents(proposals.items.flatMap(_._2.event)))
       h = header(talk)
       b = breadcrumb(user.name, talk -> talkElt.title)
-    } yield Ok(html.detail(talkElt, speakers, proposals)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
+    } yield Ok(html.detail(talkElt, speakers, proposals, events)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 
   def edit(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
