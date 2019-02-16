@@ -14,21 +14,34 @@ function slugify(str) {
 })();
 
 // build slug from an other field
-// TODO: do it from multiple other fiels (signup form)
 (function () {
     $('input[slug-for]').each(function () {
         var slugInput = $(this);
-        var srcInput = $('#' + slugInput.attr('slug-for'));
-        srcInput.change(function () {
-            var src = srcInput.val();
-            var prevSrc = srcInput.data('prev');
-            var oldSlug = slugInput.val();
-            if (oldSlug === '' || oldSlug === slugify(prevSrc)) {
-                slugInput.val(slugify(src));
-            }
-            srcInput.data('prev', src);
+        var srcInputs = slugInput.attr('slug-for').split(',').map(function (id) {
+            return $('#' + id)
+        });
+        srcInputs.forEach(function (srcInput) {
+            srcInput.change(function () {
+                var newSlug = buildSlug(srcInputs);
+                var oldSlug = buildSlug(srcInputs, srcInput.attr('id'));
+                srcInput.data('prev', srcInput.val());
+                var curSlug = slugInput.val();
+                if (curSlug === '' || curSlug === oldSlug) {
+                    slugInput.val(newSlug);
+                }
+            });
         });
     });
+
+    function buildSlug(inputs, prev /* ?string */) {
+        return inputs.map(function (input) {
+            return prev && input.attr('id') === prev ? input.data('prev') : input.val();
+        }).filter(function (value) {
+            return !!value;
+        }).map(function (value) {
+            return slugify(value);
+        }).join('-');
+    }
 })();
 
 // http://www.malot.fr/bootstrap-datetimepicker/
