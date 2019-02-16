@@ -62,7 +62,13 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     val cfp2 = cfp(group2, "paris-js", "Paris.Js", "Submit your talk to exchange with the Paris JS community", userOrga)
 
     val talk1 = talk(userDemo, "why-fp", "Why FP", status = Talk.Status.Private)
-    val talk2 = talk(userDemo, "scala-best-practices", "Scala Best Practices", speakers = Seq(userSpeaker))
+    val talk2 = talk(userDemo, "scala-best-practices", "Scala Best Practices", speakers = Seq(userSpeaker), description =
+      """I have seen a lot of people struggleing with Scala because they were lost in all the feature and did not know which one to use and *not to use*.
+        |This talk is for everyone to discuss about **best practices**:
+        |- do not throw
+        |- never use null
+        |- go functional
+      """.stripMargin.trim)
     val talk3 = talk(userDemo, "nodejs-news", "NodeJs news", status = Talk.Status.Draft)
     val talk4 = talk(userSpeaker, "scalajs-react", "ScalaJS + React = <3", status = Talk.Status.Draft, speakers = Seq(userDemo), duration = 50)
     val talk5 = talk(userSpeaker, "gagner-1-million", "Gagner 1 Million au BlackJack avec Akka", status = Talk.Status.Private, duration = 15)

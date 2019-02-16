@@ -45,6 +45,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val userTalkCtrl = wire[user.talks.TalkCtrl]
   lazy val userTalkCfpCtrl = wire[user.talks.cfps.CfpCtrl]
   lazy val userTalkProposalCtrl = wire[user.talks.proposals.ProposalCtrl]
+  lazy val apiUiUtilsCtrl = wire[api.ui.UtilsCtrl]
 
   override lazy val router: Router = {
     val prefix = "/"

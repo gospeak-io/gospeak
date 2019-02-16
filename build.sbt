@@ -42,9 +42,12 @@ val play = Seq(
   "com.softwaremill.macwire" %% "macrosakka" % macwireVersion % Provided)
 val playTest = Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2").map(_ % Test)
+val flexmark = Seq(
+  "com.vladsch.flexmark" % "flexmark-all" %"0.40.16")
 val webjars = Seq(
   "org.webjars.npm" % "jquery" % "3.3.1",
-  "org.webjars.npm" % "bootstrap" % "4.1.3")
+  "org.webjars.npm" % "bootstrap" % "4.3.1",
+  "org.webjars.npm" % "autosize" % "4.0.2")
 //"org.webjars.npm" % "@fortawesome/fontawesome-free" % "5.6.3")
 val logback = Seq(
   "org.slf4j" % "slf4j-api" % "1.7.25",
@@ -59,7 +62,7 @@ val scalaCheck = Seq(
 val scalautilsDependencies = cats ++ scalaTest ++ scalaCheck
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
 val infraDependencies = circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
-val webDependencies = play ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest
+val webDependencies = play ++ flexmark ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest
 
 
 /**

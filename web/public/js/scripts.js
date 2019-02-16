@@ -7,12 +7,14 @@ function slugify(str) {
         .normalize('NFD').replace(/[^a-z0-9-]/g, '');
 }
 
-// enable bootstrap features
+// enable global features
 (function () {
     $('[data-toggle="tooltip"]').tooltip();
+    autosize($('textarea'));
 })();
 
 // build slug from an other field
+// TODO: do it from multiple other fiels (signup form)
 (function () {
     $('input[slug-for]').each(function () {
         var slugInput = $(this);
@@ -56,6 +58,31 @@ function slugify(str) {
             defaultViewDate: $(this).attr('startDate')
         }));
     });
+})();
+
+// markdown input
+(function () {
+    $('.markdown-editor').each(function () {
+        var previewTab = $(this).find('a[data-toggle="tab"].preview');
+        var textarea = $(this).find('textarea');
+        var previewPane = $(this).find('.tab-pane.preview');
+        var loadingHtml = previewPane.html();
+        previewTab.on('show.bs.tab', function () {
+            var md = textarea.val();
+            fetchHtml(md).then(function (html) {
+                previewPane.html(html);
+            });
+        });
+        previewTab.on('hidden.bs.tab', function () {
+            previewPane.html(loadingHtml);
+        });
+    });
+
+    function fetchHtml(md) {
+        return fetch('/ui/utils/markdown-to-html', {method: 'POST', body: md}).then(function (res) {
+            return res.text();
+        });
+    }
 })();
 
 // GMapPlace picker (https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete?hl=fr)

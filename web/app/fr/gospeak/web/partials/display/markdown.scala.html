@@ -1,4 +1,5 @@
 @import fr.gospeak.libs.scalautils.domain.Markdown
+@import fr.gospeak.web.utils.MarkdownUtils
 
 @(text: Markdown)
-<pre class="markdown">@text.value</pre>
+@Html(MarkdownUtils.render(text).value)

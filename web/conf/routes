@@ -55,4 +55,7 @@ GET         /u/groups/:group/settings                                     fr.gos
 GET         /u/groups/:group/settings/cfp                                 fr.gospeak.web.user.groups.settings.SettingsCtrl.cfp(group: Group.Slug)
 POST        /u/groups/:group/settings/cfp                                 fr.gospeak.web.user.groups.settings.SettingsCtrl.cfpCreate(group: Group.Slug)
 
++ nocsrf
+POST        /ui/utils/markdown-to-html                                    fr.gospeak.web.api.ui.UtilsCtrl.markdownToHtml
+
 GET         /assets/*file                                                 controllers.Assets.versioned(path="/public", file: Asset)
