@@ -15,10 +15,20 @@ function slugify(str) {
 
 // build slug from an other field
 (function () {
+    function buildSlug(inputs, prev /* ?string */) {
+        return inputs.map(function (input) {
+            return prev && input.attr('id') === prev ? input.data('prev') : input.val();
+        }).filter(function (value) {
+            return !!value;
+        }).map(function (value) {
+            return slugify(value);
+        }).join('-');
+    }
+
     $('input[slug-for]').each(function () {
         var slugInput = $(this);
         var srcInputs = slugInput.attr('slug-for').split(',').map(function (id) {
-            return $('#' + id)
+            return $('#' + id);
         });
         srcInputs.forEach(function (srcInput) {
             srcInput.change(function () {
@@ -32,16 +42,6 @@ function slugify(str) {
             });
         });
     });
-
-    function buildSlug(inputs, prev /* ?string */) {
-        return inputs.map(function (input) {
-            return prev && input.attr('id') === prev ? input.data('prev') : input.val();
-        }).filter(function (value) {
-            return !!value;
-        }).map(function (value) {
-            return slugify(value);
-        }).join('-');
-    }
 })();
 
 // http://www.malot.fr/bootstrap-datetimepicker/
@@ -75,6 +75,12 @@ function slugify(str) {
 
 // markdown input
 (function () {
+    function fetchHtml(md) {
+        return fetch('/ui/utils/markdown-to-html', {method: 'POST', body: md}).then(function (res) {
+            return res.text();
+        });
+    }
+
     $('.markdown-editor').each(function () {
         var previewTab = $(this).find('a[data-toggle="tab"].preview');
         var textarea = $(this).find('textarea');
@@ -90,12 +96,6 @@ function slugify(str) {
             previewPane.html(loadingHtml);
         });
     });
-
-    function fetchHtml(md) {
-        return fetch('/ui/utils/markdown-to-html', {method: 'POST', body: md}).then(function (res) {
-            return res.text();
-        });
-    }
 })();
 
 // GMapPlace picker (https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete?hl=fr)

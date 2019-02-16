@@ -36,7 +36,7 @@ trait TwirlSpec extends FunSpec with Matchers with RandomDataGenerator {
 
     override def isDefinedAt(key: String): Boolean = true
 
-    override def asJava: JavaMessages = ???
+    override def asJava: JavaMessages = null
   }
   protected val h = HeaderInfo(NavLink("Gospeak", routes.HomeCtrl.index()), Seq(), Seq())
   protected val b = Breadcrumb(Seq())
