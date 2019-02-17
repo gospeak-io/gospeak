@@ -10,10 +10,9 @@ import doobie.util.fragment.Fragment
 import doobie.util.update.Update
 import doobie.util.{Meta, Write}
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.GMapPlace
 import fr.gospeak.infra.formats.JsonFormats._
 import fr.gospeak.infra.services.storage.sql.{DbSqlConf, H2, PostgreSQL}
-import fr.gospeak.libs.scalautils.domain.{Email, Markdown, Page}
+import fr.gospeak.libs.scalautils.domain._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -84,7 +83,9 @@ object DoobieUtils {
   object Mappings {
     implicit val finiteDurationMeta: Meta[FiniteDuration] = Meta[Long].timap(Duration.fromNanos)(_.toNanos)
     implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Instant].timap(LocalDateTime.ofInstant(_, ZoneOffset.UTC))(_.toInstant(ZoneOffset.UTC))
-    implicit val emailMeta: Meta[Email] = Meta[String].timap(Email.from(_).get)(_.value)
+    implicit val emailMeta: Meta[Email] = Meta[String].timap(Email.from(_).right.get)(_.value)
+    implicit val slidesMeta: Meta[Slides] = Meta[String].timap(Slides.from(_).right.get)(_.value)
+    implicit val videoMeta: Meta[Video] = Meta[String].timap(Video.from(_).right.get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
     implicit val gMapPlaceMeta: Meta[GMapPlace] = Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
 
@@ -92,28 +93,28 @@ object DoobieUtils {
     // implicit def seqMeta[A](implicit m: Meta[A]): Meta[Seq[A]] = ???
     // implicit def nelMeta[A](implicit m: Meta[A]): Meta[NonEmptyList[A]] = ???
 
-    implicit val userIdMeta: Meta[User.Id] = Meta[String].timap(User.Id.from(_).get)(_.value)
-    implicit val userSlugMeta: Meta[User.Slug] = Meta[String].timap(User.Slug.from(_).get)(_.value)
-    implicit val talkIdMeta: Meta[Talk.Id] = Meta[String].timap(Talk.Id.from(_).get)(_.value)
-    implicit val talkSlugMeta: Meta[Talk.Slug] = Meta[String].timap(Talk.Slug.from(_).get)(_.value)
+    implicit val userIdMeta: Meta[User.Id] = Meta[String].timap(User.Id.from(_).right.get)(_.value)
+    implicit val userSlugMeta: Meta[User.Slug] = Meta[String].timap(User.Slug.from(_).right.get)(_.value)
+    implicit val talkIdMeta: Meta[Talk.Id] = Meta[String].timap(Talk.Id.from(_).right.get)(_.value)
+    implicit val talkSlugMeta: Meta[Talk.Slug] = Meta[String].timap(Talk.Slug.from(_).right.get)(_.value)
     implicit val talkTitleMeta: Meta[Talk.Title] = Meta[String].timap(Talk.Title)(_.value)
-    implicit val talkStatusMeta: Meta[Talk.Status] = Meta[String].timap(Talk.Status.from(_).get)(_.toString)
-    implicit val groupIdMeta: Meta[Group.Id] = Meta[String].timap(Group.Id.from(_).get)(_.value)
-    implicit val groupSlugMeta: Meta[Group.Slug] = Meta[String].timap(Group.Slug.from(_).get)(_.value)
+    implicit val talkStatusMeta: Meta[Talk.Status] = Meta[String].timap(Talk.Status.from(_).right.get)(_.toString)
+    implicit val groupIdMeta: Meta[Group.Id] = Meta[String].timap(Group.Id.from(_).right.get)(_.value)
+    implicit val groupSlugMeta: Meta[Group.Slug] = Meta[String].timap(Group.Slug.from(_).right.get)(_.value)
     implicit val groupNameMeta: Meta[Group.Name] = Meta[String].timap(Group.Name)(_.value)
-    implicit val eventIdMeta: Meta[Event.Id] = Meta[String].timap(Event.Id.from(_).get)(_.value)
-    implicit val eventSlugMeta: Meta[Event.Slug] = Meta[String].timap(Event.Slug.from(_).get)(_.value)
+    implicit val eventIdMeta: Meta[Event.Id] = Meta[String].timap(Event.Id.from(_).right.get)(_.value)
+    implicit val eventSlugMeta: Meta[Event.Slug] = Meta[String].timap(Event.Slug.from(_).right.get)(_.value)
     implicit val eventNameMeta: Meta[Event.Name] = Meta[String].timap(Event.Name)(_.value)
-    implicit val cfpIdMeta: Meta[Cfp.Id] = Meta[String].timap(Cfp.Id.from(_).get)(_.value)
-    implicit val cfpSlugMeta: Meta[Cfp.Slug] = Meta[String].timap(Cfp.Slug.from(_).get)(_.value)
+    implicit val cfpIdMeta: Meta[Cfp.Id] = Meta[String].timap(Cfp.Id.from(_).right.get)(_.value)
+    implicit val cfpSlugMeta: Meta[Cfp.Slug] = Meta[String].timap(Cfp.Slug.from(_).right.get)(_.value)
     implicit val cfpNameMeta: Meta[Cfp.Name] = Meta[String].timap(Cfp.Name)(_.value)
-    implicit val proposalIdMeta: Meta[Proposal.Id] = Meta[String].timap(Proposal.Id.from(_).get)(_.value)
-    implicit val proposalStatusMeta: Meta[Proposal.Status] = Meta[String].timap(Proposal.Status.from(_).get)(_.toString)
+    implicit val proposalIdMeta: Meta[Proposal.Id] = Meta[String].timap(Proposal.Id.from(_).right.get)(_.value)
+    implicit val proposalStatusMeta: Meta[Proposal.Status] = Meta[String].timap(Proposal.Status.from(_).right.get)(_.toString)
     implicit val userIdNelMeta: Meta[NonEmptyList[User.Id]] = Meta[String].timap(
-      s => NonEmptyList.fromListUnsafe(s.split(",").filter(_.nonEmpty).map(User.Id.from(_).get).toList))(
+      s => NonEmptyList.fromListUnsafe(s.split(",").filter(_.nonEmpty).map(User.Id.from(_).right.get).toList))(
       _.map(_.value).toList.mkString(","))
     implicit val proposalIdSeqMeta: Meta[Seq[Proposal.Id]] = Meta[String].timap(
-      _.split(",").filter(_.nonEmpty).map(Proposal.Id.from(_).get).toSeq)(
+      _.split(",").filter(_.nonEmpty).map(Proposal.Id.from(_).right.get).toSeq)(
       _.map(_.value).mkString(","))
   }
 

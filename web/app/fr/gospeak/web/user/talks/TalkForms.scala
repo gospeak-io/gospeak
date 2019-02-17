@@ -10,6 +10,8 @@ object TalkForms {
     "slug" -> talkSlug,
     "title" -> talkTitle,
     "duration" -> duration,
-    "description" -> markdown
+    "description" -> markdown,
+    "slides" -> optional(slides),
+    "video" -> optional(video)
   )(Talk.Data.apply)(Talk.Data.unapply))
 }

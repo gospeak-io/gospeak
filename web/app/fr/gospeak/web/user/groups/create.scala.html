@@ -18,7 +18,7 @@
             @inputText(field, Seq("placeholder" -> "Group slug", "slug-for" -> form("name").id) ++ args)
         }
         @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Describe your group, you should make people want to participate")) { (field, args) =>
-            @inputText(field, args)
+            @inputMarkdown(field, args)
         }
         @actionsHorizontal() {
             @btnCancel(GroupCtrl.list())

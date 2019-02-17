@@ -9,6 +9,8 @@ object CfpForms {
   val create: Form[Proposal.Data] = Form(mapping(
     "title" -> talkTitle,
     "duration" -> duration,
-    "description" -> markdown
+    "description" -> markdown,
+    "slides" -> optional(slides),
+    "video" -> optional(video)
   )(Proposal.Data.apply)(Proposal.Data.unapply))
 }

@@ -14,14 +14,14 @@ import fr.gospeak.libs.scalautils.domain.Page
 object TalkTable {
   private val _ = talkIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = "talks"
-  private val fields = Seq("id", "slug", "title", "duration", "status", "description", "speakers", "created", "created_by", "updated", "updated_by")
+  private val fields = Seq("id", "slug", "title", "duration", "status", "description", "speakers", "slides", "video", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "slug", "title", "description")
   private val defaultSort = Page.OrderBy("title")
 
   private def values(e: Talk): Fragment =
-    fr0"${e.id}, ${e.slug}, ${e.title}, ${e.duration}, ${e.status}, ${e.description}, ${e.speakers}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.slug}, ${e.title}, ${e.duration}, ${e.status}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   def insert(elt: Talk): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
@@ -37,7 +37,7 @@ object TalkTable {
     buildSelect(tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids)).query[Talk]
 
   def update(user: User.Id, slug: Talk.Slug)(data: Talk.Data, now: Instant): doobie.Update0 = {
-    val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, updated=$now, updated_by=$user"
+    val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, updated=$now, updated_by=$user"
     buildUpdate(tableFr, fields, where(user, slug)).update
   }
 

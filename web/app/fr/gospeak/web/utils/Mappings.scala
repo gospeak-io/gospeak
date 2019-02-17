@@ -5,8 +5,7 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 import cats.data.Validated._
 import cats.implicits._
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.GMapPlace
-import fr.gospeak.libs.scalautils.domain.{Email, Markdown, Secret, SlugBuilder}
+import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.utils.Extensions._
 import fr.gospeak.web.utils.Mappings.Utils._
@@ -31,7 +30,9 @@ object Mappings {
   lazy val instant: Mapping[Instant] = of(instantFormatter) // lazy is needed because Utils object is created after which leads to NullPointerException :(
   val duration: Mapping[FiniteDuration] = longMapping(Duration.apply(_, MINUTES), _.toMinutes)
 
-  val mail: Mapping[Email] = stringTryMapping(Email.from, _.value, required)
+  val mail: Mapping[Email] = stringEitherMapping(Email.from, _.value, required)
+  val slides: Mapping[Slides] = stringEitherMapping(Slides.from, _.value)
+  val video: Mapping[Video] = stringEitherMapping(Video.from, _.value)
   val secret: Mapping[Secret] = stringMapping(Secret, _.decode, required)
   val markdown: Mapping[Markdown] = stringMapping(Markdown, _.value, required)
   val gMapPlace: Mapping[GMapPlace] = of(new Formatter[GMapPlace] {
@@ -73,14 +74,14 @@ object Mappings {
       ).collect { case (k, Some(v)) => (k, v) }.toMap
   })
 
-  val userSlug: Mapping[User.Slug] = stringTryMapping(User.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
-  val groupSlug: Mapping[Group.Slug] = stringTryMapping(Group.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
+  val userSlug: Mapping[User.Slug] = stringEitherMapping(User.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
+  val groupSlug: Mapping[Group.Slug] = stringEitherMapping(Group.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
   val groupName: Mapping[Group.Name] = stringMapping(Group.Name, _.value, required)
-  val eventSlug: Mapping[Event.Slug] = stringTryMapping(Event.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
+  val eventSlug: Mapping[Event.Slug] = stringEitherMapping(Event.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
   val eventName: Mapping[Event.Name] = stringMapping(Event.Name, _.value, required)
-  val cfpSlug: Mapping[Cfp.Slug] = stringTryMapping(Cfp.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
+  val cfpSlug: Mapping[Cfp.Slug] = stringEitherMapping(Cfp.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
   val cfpName: Mapping[Cfp.Name] = stringMapping(Cfp.Name, _.value, required)
-  val talkSlug: Mapping[Talk.Slug] = stringTryMapping(Talk.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
+  val talkSlug: Mapping[Talk.Slug] = stringEitherMapping(Talk.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
   val talkTitle: Mapping[Talk.Title] = stringMapping(Talk.Title, _.value, required)
 
   private[utils] object Utils {
@@ -116,6 +117,9 @@ object Mappings {
     def stringTryFormatter[A](from: String => Try[A], to: A => String): Formatter[A] =
       genericFormatter(to, from, formatError)
 
+    def stringEitherFormatter[A, E](from: String => Either[E, A], to: A => String)(implicit ev: E <:< Throwable): Formatter[A] =
+      genericFormatter(to, from(_).toTry, formatError)
+
     private def genericFormatter[A](serialize: A => String, parse: String => Try[A], err: String): Formatter[A] = new Formatter[A] {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], A] =
         data.get(key)
@@ -131,6 +135,9 @@ object Mappings {
 
     def stringTryMapping[A](from: String => Try[A], to: A => String, cs: ((A => String) => Constraint[A])*): Mapping[A] =
       of(stringTryFormatter(from, to)).verifying(cs.map(_ (to)): _*)
+
+    def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, cs: ((A => String) => Constraint[A])*)(implicit ev: E <:< Throwable): Mapping[A] =
+      of(stringEitherFormatter(from, to)).verifying(cs.map(_ (to)): _*)
 
     def longMapping[A](from: Long => A, to: A => Long, cs: ((A => Long) => Constraint[A])*): Mapping[A] =
       of(longFormatter(from, to)).verifying(cs.map(_ (to)): _*)

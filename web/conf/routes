@@ -57,5 +57,6 @@ POST        /u/groups/:group/settings/cfp                                 fr.gos
 
 + nocsrf
 POST        /ui/utils/markdown-to-html                                    fr.gospeak.web.api.ui.UtilsCtrl.markdownToHtml
+GET         /ui/utils/embed                                               fr.gospeak.web.api.ui.UtilsCtrl.embed(url: Url)
 
 GET         /assets/*file                                                 controllers.Assets.versioned(path="/public", file: Asset)

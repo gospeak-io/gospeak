@@ -10,7 +10,7 @@ import scala.util.Try
 
 // TODO mock auth, to remove
 class AuthService(db: GospeakDb) {
-  private var logged: Option[User] = Try(db.getUser(Email.from("demo@mail.com").get).unsafeRunSync()).getOrElse(None)
+  private var logged: Option[User] = Try(db.getUser(Email.from("demo@mail.com").right.get).unsafeRunSync()).getOrElse(None)
 
   def login(user: User): IO[Done] = {
     logged = Some(user)
@@ -26,7 +26,7 @@ class AuthService(db: GospeakDb) {
     val user = req.queryString.get("user")
       .flatMap(_.headOption)
       .map { u => if (u.contains("@")) u else u + "@mail.com" }
-      .map(Email.from(_).get)
+      .map(Email.from(_).right.get)
       .flatMap(db.getUser(_).unsafeRunSync())
     user.foreach(login(_).unsafeRunSync())
     user.orElse(logged)

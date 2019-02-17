@@ -1,6 +1,6 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.libs.scalautils.domain.{Page, Url}
 import play.api.mvc.QueryStringBindable
 
 object QueryStringBindables {
@@ -21,5 +21,14 @@ object QueryStringBindables {
           params.search.filter(_.nonEmpty).map(p => stringBinder.unbind(p.key, p.value)),
           params.orderBy.filter(_.nonEmpty).map(p => stringBinder.unbind(p.key, p.value))
         ).flatten.mkString("&")
+    }
+
+  implicit def urlParamsQueryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[Url] =
+    new QueryStringBindable[Url] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Url]] =
+        stringBinder.bind(key, params).map(_.flatMap(u => Url.from(u).left.map(_.getMessage)))
+
+      override def unbind(key: String, url: Url): String =
+        stringBinder.unbind(key, url.value)
     }
 }

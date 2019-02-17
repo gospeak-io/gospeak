@@ -71,6 +71,11 @@
 
     <p>Speakers: @talk.speakers.toList.map { id => @speaker(speakers, id) }</p>
 
+    <div class="row">
+        @talk.slides.map { s => <div class="col">@embed(s.value)</div> }
+        @talk.video.map { v => <div class="col">@embed(v.value)</div> }
+    </div>
+
     @if(proposals.isEmpty) {
         <div class="card">
             <h5 class="card-header">Your talk was not proposed to any CFP</h5>

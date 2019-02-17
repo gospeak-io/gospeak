@@ -37,8 +37,8 @@ class DataClassSpec extends FunSpec with Matchers {
       builder.generate().value.length shouldBe 36
     }
     it("should build an Id from a String") {
-      builder.from("toto") shouldBe a[Failure[_]]
-      builder.from("792886f8-d92a-4066-ad17-f92a0a93a42c") shouldBe a[Success[_]]
+      builder.from("toto") shouldBe a[Left[_, _]]
+      builder.from("792886f8-d92a-4066-ad17-f92a0a93a42c") shouldBe a[Right[_, _]]
     }
     it("should check for correctness") {
       builder.errors("toto") should not be empty
@@ -49,8 +49,8 @@ class DataClassSpec extends FunSpec with Matchers {
     val builder = new SlugBuilder[Id]("Id", new Id(_)) {}
 
     it("should build a Slug from String") {
-      builder.from("wrong slug") shouldBe a[Failure[_]]
-      builder.from("my-slug-2") shouldBe a[Success[_]]
+      builder.from("wrong slug") shouldBe a[Left[_, _]]
+      builder.from("my-slug-2") shouldBe a[Right[_, _]]
     }
     it("should check for correctness") {
       builder.errors("wrong slug") should not be empty
@@ -65,12 +65,12 @@ class DataClassSpec extends FunSpec with Matchers {
       builder.all.foreach { status =>
         val str = status.toString
         val parsed = builder.from(str)
-        parsed shouldBe Success(status)
+        parsed shouldBe Right(status)
       }
     }
     it("should fail on unknown status") {
-      builder.from("") shouldBe a[Failure[_]]
-      builder.from("fake") shouldBe a[Failure[_]]
+      builder.from("") shouldBe a[Left[_, _]]
+      builder.from("fake") shouldBe a[Left[_, _]]
     }
   }
 }

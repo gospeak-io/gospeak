@@ -24,6 +24,12 @@
         @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Give a abstract of your talk, you should make orga and people listen at you")) { (field, args) =>
             @inputMarkdown(field, args)
         }
+        @fieldHorizontal(form("slides"), Seq("label" -> "Slides", "help" -> "Slides for your talk")) { (field, args) =>
+            @inputEmbed(field, args)
+        }
+        @fieldHorizontal(form("video"), Seq("label" -> "Video", "help" -> "Video of your talk")) { (field, args) =>
+            @inputEmbed(field, args)
+        }
         @actionsHorizontal() {
             @btnCancel(CfpCtrl.list(talk.slug))
             @btnSubmit("Propose your talk")

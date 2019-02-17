@@ -1,6 +1,7 @@
 package fr.gospeak.libs.scalautils
 
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.domain.CustomException
 import org.scalatest.{FunSpec, Matchers}
 
 import scala.util.{Failure, Success}

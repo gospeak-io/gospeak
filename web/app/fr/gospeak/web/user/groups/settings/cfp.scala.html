@@ -19,7 +19,7 @@
             @inputText(field, Seq("placeholder" -> "ex: awesome-fp-the-practical-way", "slug-for" -> form("name").id) ++ args)
         }
         @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Describe your group, and what you are expecting from proposed talks")) { (field, args) =>
-            @inputText(field, args)
+            @inputMarkdown(field, args)
         }
         @actionsHorizontal() {
             @btnCancel(GroupCtrl.detail(group.slug))

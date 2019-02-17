@@ -13,8 +13,10 @@ final case class Talk(id: Talk.Id,
                       status: Talk.Status,
                       description: Markdown,
                       speakers: NonEmptyList[User.Id],
+                      slides: Option[Slides],
+                      video: Option[Video],
                       info: Info) {
-  def data: Talk.Data = Talk.Data(slug, title, duration, description)
+  def data: Talk.Data = Talk.Data(this)
 }
 
 object Talk {
@@ -50,6 +52,15 @@ object Talk {
     val all: Seq[Status] = Seq(Draft, Private, Public, Archived)
   }
 
-  final case class Data(slug: Talk.Slug, title: Talk.Title, duration: FiniteDuration, description: Markdown)
+  final case class Data(slug: Talk.Slug,
+                        title: Talk.Title,
+                        duration: FiniteDuration,
+                        description: Markdown,
+                        slides: Option[Slides],
+                        video: Option[Video])
+
+  object Data {
+    def apply(talk: Talk): Data = Data(talk.slug, talk.title, talk.duration, talk.description, talk.slides, talk.video)
+  }
 
 }

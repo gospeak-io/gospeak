@@ -2,9 +2,9 @@ package fr.gospeak.core.domain
 
 import java.time.LocalDateTime
 
-import fr.gospeak.core.domain.utils.{GMapPlace, Info}
+import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{DataClass, Markdown, SlugBuilder, UuidIdBuilder}
+import fr.gospeak.libs.scalautils.domain._
 
 final case class Event(id: Event.Id,
                        group: Group.Id,

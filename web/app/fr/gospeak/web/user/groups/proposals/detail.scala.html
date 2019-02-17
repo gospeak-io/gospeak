@@ -18,5 +18,10 @@
 
     <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id, Some(u => SpeakerCtrl.detail(group.slug, proposal.id, u.slug))) }</p>
 
+    <div class="row">
+        @proposal.slides.map { s => <div class="col">@embed(s.value)</div> }
+        @proposal.video.map { v => <div class="col">@embed(v.value)</div> }
+    </div>
+
     <p>@info(proposal.info, speakers, Some(u => SpeakerCtrl.detail(group.slug, proposal.id, u.slug)))</p>
 }()

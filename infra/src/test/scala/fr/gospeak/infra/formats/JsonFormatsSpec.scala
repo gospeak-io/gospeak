@@ -1,8 +1,8 @@
 package fr.gospeak.infra.formats
 
-import fr.gospeak.core.domain.utils.GMapPlace
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.formats.JsonFormats._
+import fr.gospeak.libs.scalautils.domain.GMapPlace
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{FunSpec, Matchers}
 

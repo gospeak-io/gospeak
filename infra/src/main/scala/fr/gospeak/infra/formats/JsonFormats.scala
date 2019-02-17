@@ -1,6 +1,6 @@
 package fr.gospeak.infra.formats
 
-import fr.gospeak.core.domain.utils.GMapPlace
+import fr.gospeak.libs.scalautils.domain.GMapPlace
 import io.circe._
 import io.circe.generic.semiauto._
 import io.circe.parser._

@@ -8,21 +8,21 @@ class PathBindablesSpec extends FunSpec with Matchers {
   describe("PathBindables") {
     describe("groupSlugPathBinder") {
       it("should bind & unbind") {
-        val slug = Group.Slug.from("value").get
+        val slug = Group.Slug.from("value").right.get
         groupSlugPathBinder.bind("key", "value") shouldBe Right(slug)
         groupSlugPathBinder.unbind("key", slug) shouldBe "value"
       }
     }
     describe("eventSlugPathBinder") {
       it("should bind & unbind") {
-        val slug = Event.Slug.from("value").get
+        val slug = Event.Slug.from("value").right.get
         eventSlugPathBinder.bind("key", "value") shouldBe Right(slug)
         eventSlugPathBinder.unbind("key", slug) shouldBe "value"
       }
     }
     describe("talkSlugPathBinder") {
       it("should bind & unbind") {
-        val slug = Talk.Slug.from("value").get
+        val slug = Talk.Slug.from("value").right.get
         talkSlugPathBinder.bind("key", "value") shouldBe Right(slug)
         talkSlugPathBinder.unbind("key", slug) shouldBe "value"
       }
@@ -37,7 +37,7 @@ class PathBindablesSpec extends FunSpec with Matchers {
     }
     describe("cfpSlugPathBinder") {
       it("should bind & unbind") {
-        val slug = Cfp.Slug.from("value").get
+        val slug = Cfp.Slug.from("value").right.get
         cfpSlugPathBinder.bind("key", "value") shouldBe Right(slug)
         cfpSlugPathBinder.unbind("key", slug) shouldBe "value"
       }

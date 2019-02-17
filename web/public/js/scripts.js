@@ -98,6 +98,41 @@ function slugify(str) {
     });
 })();
 
+// embed input & display
+(function () {
+    function fetchEmbedCode(url) {
+        return fetch('/ui/utils/embed?url=' + url).then(function (res) {
+            return res.text();
+        });
+    }
+
+    $('.embed-editor').each(function () {
+        var input = $(this).find('input');
+        var embed = $(this).find('.embed');
+        input.change(function () {
+            var url = input.val();
+            embed.html('<div class="d-flex justify-content-center m-5"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>');
+            fetchEmbedCode(url).then(function (html) {
+                // verify that input value haven't changed since the start of the query
+                if (input.val() === url) {
+                    embed.html(html);
+                }
+            }, function () {
+                if (input.val() === url) {
+                    embed.html('');
+                }
+            });
+        });
+    });
+    $('.embed-display').each(function () {
+        var embed = $(this);
+        var url = embed.attr('data-url');
+        fetchEmbedCode(url).then(function (html) {
+            embed.html(html);
+        });
+    });
+})();
+
 // GMapPlace picker (https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete?hl=fr)
 var GMapPlacePicker = (function () {
     function initMap($map) {

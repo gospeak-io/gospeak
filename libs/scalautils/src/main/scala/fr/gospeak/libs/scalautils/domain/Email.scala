@@ -1,21 +1,17 @@
 package fr.gospeak.libs.scalautils.domain
 
-import fr.gospeak.libs.scalautils.CustomException
-
-import scala.util.{Failure, Success, Try}
-
 final class Email private(value: String) extends DataClass(value)
 
 object Email {
-  def from(in: String): Try[Email] = {
+  def from(in: String): Either[CustomException, Email] = {
     val errs = errors(in)
-    if (errs.isEmpty) Success(new Email(in))
-    else Failure(CustomException(s"'$in' is an invalid Email: " + errs.mkString(", ")))
+    if (errs.isEmpty) Right(new Email(in))
+    else Left(CustomException(s"'$in' is an invalid Email", errs))
   }
 
   // FIXME: improve
-  def errors(in: String): Seq[String] =
+  private def errors(in: String): Seq[CustomError] =
     Seq(
       if (in.contains("@")) None else Some("Missing @")
-    ).flatten
+    ).flatten.map(CustomError)
 }

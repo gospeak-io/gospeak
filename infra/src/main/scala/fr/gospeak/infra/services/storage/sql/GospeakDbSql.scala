@@ -7,14 +7,13 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{GMapPlace, Info}
+import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.infra.services.storage.sql.tables._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.infra.utils.{DoobieUtils, FlywayUtils}
-import fr.gospeak.libs.scalautils.CustomException
-import fr.gospeak.libs.scalautils.domain.{Done, Email, Markdown, Page}
+import fr.gospeak.libs.scalautils.domain._
 
 import scala.concurrent.duration._
 
@@ -31,22 +30,22 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     val now = Instant.now()
 
     def user(slug: String, email: String, firstName: String, lastName: String): User =
-      User(User.Id.generate(), User.Slug.from(slug).get, firstName, lastName, Email.from(email).get, now, now)
+      User(User.Id.generate(), User.Slug.from(slug).right.get, firstName, lastName, Email.from(email).right.get, now, now)
 
     def group(slug: String, name: String, by: User, owners: Seq[User] = Seq()): Group =
-      Group(Group.Id.generate(), Group.Slug.from(slug).get, Group.Name(name), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(by.id) ++ owners.map(_.id).toList, Info(by.id, now))
+      Group(Group.Id.generate(), Group.Slug.from(slug).right.get, Group.Name(name), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(by.id) ++ owners.map(_.id).toList, Info(by.id, now))
 
     def cfp(group: Group, slug: String, name: String, description: String, by: User): Cfp =
-      Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).get, Cfp.Name(name), Markdown(description), Info(by.id, now))
+      Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).right.get, Cfp.Name(name), Markdown(description), Info(by.id, now))
 
-    def talk(by: User, slug: String, title: String, status: Talk.Status = Talk.Status.Public, speakers: Seq[User] = Seq(), duration: Int = 10, description: String = "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."): Talk =
-      Talk(Talk.Id.generate(), Talk.Slug.from(slug).get, Talk.Title(title), Duration(duration, MINUTES), status, Markdown(description), NonEmptyList.of(by.id) ++ speakers.map(_.id).toList, Info(by.id, now))
+    def talk(by: User, slug: String, title: String, status: Talk.Status = Talk.Status.Public, speakers: Seq[User] = Seq(), duration: Int = 10, slides: Option[Slides] = None, video: Option[Video] = None, description: String = "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."): Talk =
+      Talk(Talk.Id.generate(), Talk.Slug.from(slug).right.get, Talk.Title(title), Duration(duration, MINUTES), status, Markdown(description), NonEmptyList.of(by.id) ++ speakers.map(_.id).toList, slides, video, Info(by.id, now))
 
     def proposal(talk: Talk, cfp: Cfp, status: Proposal.Status = Proposal.Status.Pending): Proposal =
-      Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, talk.title, talk.duration, status, talk.description, talk.speakers, talk.info)
+      Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, talk.title, talk.duration, status, talk.description, talk.speakers, talk.slides, talk.video, talk.info)
 
     def event(group: Group, slug: String, name: String, date: String, by: User, talks: Seq[Proposal] = Seq(), venue: Option[GMapPlace] = None, description: Option[String] = None): Event =
-      Event(Event.Id.generate(), group.id, Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), description.map(Markdown), venue, talks.map(_.id), Info(by.id, now))
+      Event(Event.Id.generate(), group.id, Event.Slug.from(slug).right.get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), description.map(Markdown), venue, talks.map(_.id), Info(by.id, now))
 
     val userDemo = user("demo", "demo@mail.com", "Demo", "User")
     val userSpeaker = user("speaker", "speaker@mail.com", "Speaker", "User")
@@ -89,11 +88,11 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     val generated = (1 to 25).toList.map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
-      val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga.id), Info(userOrga.id, now))
-      val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), Markdown("Only your best talks !"), Info(userOrga.id, now))
-      val e = Event(Event.Id.generate(), group4.id, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), None, None, Seq(), Info(userOrga.id, now))
-      val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Talk.Status.Draft, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker.id), Info(userSpeaker.id, now))
-      val p = Proposal(Proposal.Id.generate(), talk7.id, cfpId, None, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Proposal.Status.Pending, Markdown("temporary description"), NonEmptyList.of(userSpeaker.id), Info(userSpeaker.id, now))
+      val g = Group(groupId, Group.Slug.from(s"z-group-$i").right.get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga.id), Info(userOrga.id, now))
+      val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").right.get, Cfp.Name(s"Z CFP $i"), Markdown("Only your best talks !"), Info(userOrga.id, now))
+      val e = Event(Event.Id.generate(), group4.id, Event.Slug.from(s"z-event-$i").right.get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), None, None, Seq(), Info(userOrga.id, now))
+      val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").right.get, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Talk.Status.Draft, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker.id), None, None, Info(userSpeaker.id, now))
+      val p = Proposal(Proposal.Id.generate(), talk7.id, cfpId, None, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Proposal.Status.Pending, Markdown("temporary description"), NonEmptyList.of(userSpeaker.id), None, None, Info(userSpeaker.id, now))
       (g, c, e, t, p)
     }
     for {
@@ -161,7 +160,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def createTalk(user: User.Id, data: Talk.Data, now: Instant): IO[Talk] =
     getTalk(user, data.slug).flatMap {
-      case None => run(TalkTable.insert, Talk(Talk.Id.generate(), data.slug, data.title, data.duration, Talk.Status.Draft, data.description, NonEmptyList.one(user), Info(user, now)))
+      case None => run(TalkTable.insert, Talk(Talk.Id.generate(), data.slug, data.title, data.duration, Talk.Status.Draft, data.description, NonEmptyList.one(user), data.slides, data.video, Info(user, now)))
       case _ => IO.raiseError(CustomException(s"You already have a talk with slug ${data.slug}"))
     }
 
@@ -186,7 +185,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def updateTalkStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done] = run(TalkTable.updateStatus(user, slug)(status))
 
   override def createProposal(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal] =
-    run(ProposalTable.insert, Proposal(Proposal.Id.generate(), talk, cfp, None, data.title, data.duration, Proposal.Status.Pending, data.description, speakers, Info(by, now)))
+    run(ProposalTable.insert, Proposal(Proposal.Id.generate(), talk, cfp, None, data.title, data.duration, Proposal.Status.Pending, data.description, speakers, data.slides, data.video, Info(by, now)))
 
   override def updateProposalStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id], by: User.Id, now: Instant): IO[Done] =
     run(ProposalTable.updateStatus(id)(status, event, by, now))

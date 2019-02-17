@@ -1,4 +1,4 @@
-package fr.gospeak.core.domain.utils
+package fr.gospeak.libs.scalautils.domain
 
 case class GMapPlace(id: String,
                      name: String,

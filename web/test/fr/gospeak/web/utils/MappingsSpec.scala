@@ -2,9 +2,8 @@ package fr.gospeak.web.utils
 
 import java.time.Instant
 
-import fr.gospeak.core.domain.utils.GMapPlace
 import fr.gospeak.core.testingutils.Generators._
-import fr.gospeak.libs.scalautils.CustomException
+import fr.gospeak.libs.scalautils.domain.{CustomException, GMapPlace}
 import fr.gospeak.web.utils.Mappings.Utils._
 import fr.gospeak.web.utils.Mappings._
 import org.scalatest.prop.PropertyChecks
@@ -12,16 +11,14 @@ import org.scalatest.{FunSpec, Matchers}
 import play.api.data.FormError
 import play.api.data.validation.{Invalid, Valid, ValidationError}
 
-import scala.util.{Failure, Success, Try}
-
 class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
 
   case class Value(value: String)
 
   object Value {
-    def from(in: String): Try[Value] = {
-      if (in.nonEmpty && in.length < 4) Success(Value(in))
-      else Failure(CustomException("Wrong format"))
+    def from(in: String): Either[CustomException, Value] = {
+      if (in.nonEmpty && in.length < 4) Right(Value(in))
+      else Left(CustomException("Wrong format"))
     }
   }
 
@@ -96,8 +93,8 @@ class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
           instantFormatter.bind("key", Map()) shouldBe Left(List(FormError("key", List(requiredError))))
         }
       }
-      describe("stringTryFormatter") {
-        val f = stringTryFormatter[Value](Value.from, _.value)
+      describe("stringEitherFormatter") {
+        val f = stringEitherFormatter[Value, CustomException](Value.from, _.value)
         it("should bind & unbind value") {
           val value = Value("aaa")
           f.bind("key", Map("key" -> value.value)) shouldBe Right(value)

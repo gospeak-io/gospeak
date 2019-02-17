@@ -34,6 +34,10 @@ val doobie = Seq(
   "org.tpolecat" %% "doobie-hikari").map(_ % doobieVersion)
 val doobieTest = Seq(
   "org.tpolecat" %% "doobie-scalatest" % doobieVersion).map(_ % Test)
+val hammock = Seq(
+  "com.pepegar" %% "hammock-core",
+  "com.pepegar" %% "hammock-circe",
+  "com.pepegar" %% "hammock-apache-http").map(_ % "0.9.0")
 val flyway = Seq(
   "org.flywaydb" % "flyway-core" % "5.1.4")
 val macwireVersion = "2.3.1"
@@ -61,7 +65,7 @@ val scalaCheck = Seq(
 
 val scalautilsDependencies = cats ++ scalaTest ++ scalaCheck
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
-val infraDependencies = circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
+val infraDependencies = hammock ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
 val webDependencies = play ++ flexmark ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest
 
 
@@ -99,7 +103,7 @@ val web = (project in file("web"))
     libraryDependencies ++= webDependencies,
     routesImport ++= Seq(
       "fr.gospeak.core.domain._",
-      "fr.gospeak.libs.scalautils.domain.Page",
+      "fr.gospeak.libs.scalautils.domain._",
       "fr.gospeak.web.utils.PathBindables._",
       "fr.gospeak.web.utils.QueryStringBindables._"),
     commonSettings
