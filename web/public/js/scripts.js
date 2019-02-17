@@ -106,22 +106,31 @@ function slugify(str) {
         });
     }
 
-    $('.embed-editor').each(function () {
-        var input = $(this).find('input');
-        var embed = $(this).find('.embed');
-        input.change(function () {
-            var url = input.val();
-            embed.html('<div class="d-flex justify-content-center m-5"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>');
+    function inputFetchEmbedCode(input, target) {
+        var url = input.val();
+        if(!!url) {
+            target.html('<div class="d-flex justify-content-center m-5"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>');
             fetchEmbedCode(url).then(function (html) {
                 // verify that input value haven't changed since the start of the query
                 if (input.val() === url) {
-                    embed.html(html);
+                    target.html(html);
                 }
             }, function () {
                 if (input.val() === url) {
-                    embed.html('');
+                    target.html('');
                 }
             });
+        } else {
+            target.html('');
+        }
+    }
+
+    $('.embed-editor').each(function () {
+        var input = $(this).find('input');
+        var embed = $(this).find('.embed');
+        inputFetchEmbedCode(input, embed);
+        input.change(function () {
+            inputFetchEmbedCode(input, embed);
         });
     });
     $('.embed-display').each(function () {
