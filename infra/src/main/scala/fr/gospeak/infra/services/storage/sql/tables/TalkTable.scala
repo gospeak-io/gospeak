@@ -9,7 +9,7 @@ import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.{Talk, User}
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 
 object TalkTable {
   private val _ = talkIdMeta // for intellij not remove DoobieUtils.Mappings import
@@ -25,6 +25,20 @@ object TalkTable {
 
   def insert(elt: Talk): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
+  def update(user: User.Id, slug: Talk.Slug)(data: Talk.Data, now: Instant): doobie.Update0 = {
+    val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, updated=$now, updated_by=$user"
+    buildUpdate(tableFr, fields, where(user, slug)).update
+  }
+
+  def updateStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): doobie.Update0 =
+    buildUpdate(tableFr, fr0"status=$status", where(user, slug)).update
+
+  def updateSlides(user: User.Id, slug: Talk.Slug)(slides: Slides, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$user", where(user, slug)).update
+
+  def updateVideo(user: User.Id, slug: Talk.Slug)(video: Video, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$user", where(user, slug)).update
+
   def selectOne(user: User.Id, slug: Talk.Slug): doobie.Query0[Talk] =
     buildSelect(tableFr, fieldsFr, where(user, slug)).query[Talk]
 
@@ -35,14 +49,6 @@ object TalkTable {
 
   def selectAll(ids: NonEmptyList[Talk.Id]): doobie.Query0[Talk] =
     buildSelect(tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids)).query[Talk]
-
-  def update(user: User.Id, slug: Talk.Slug)(data: Talk.Data, now: Instant): doobie.Update0 = {
-    val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, updated=$now, updated_by=$user"
-    buildUpdate(tableFr, fields, where(user, slug)).update
-  }
-
-  def updateStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): doobie.Update0 =
-    buildUpdate(tableFr, fr0"status=$status", where(user, slug)).update
 
   private def where(user: User.Id, slug: Talk.Slug): Fragment =
     fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND slug=$slug"

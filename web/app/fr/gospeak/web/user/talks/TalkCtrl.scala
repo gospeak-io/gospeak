@@ -6,7 +6,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import fr.gospeak.core.domain.{Talk, User}
 import fr.gospeak.core.services.GospeakDb
-import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 import fr.gospeak.web.auth.AuthService
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.UserCtrl
@@ -59,7 +59,33 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
       events <- OptionT.liftF(db.getEvents(proposals.items.flatMap(_._2.event)))
       h = header(talk)
       b = breadcrumb(user.name, talk -> talkElt.title)
-    } yield Ok(html.detail(talkElt, speakers, proposals, events)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
+    } yield Ok(html.detail(talkElt, speakers, proposals, events, TalkForms.embed)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
+  }
+
+  def doAddSlides(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = auth.authed()
+    val now = Instant.now()
+    val next = Redirect(routes.TalkCtrl.detail(talk))
+    TalkForms.embed.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      data => Slides.from(data) match {
+        case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
+        case Right(slides) => db.updateTalkSlides(user.id, talk)(slides, now).map(_ => next)
+      }
+    ).unsafeToFuture()
+  }
+
+  def doAddVideo(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = auth.authed()
+    val now = Instant.now()
+    val next = Redirect(routes.TalkCtrl.detail(talk))
+    TalkForms.embed.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      data => Video.from(data) match {
+        case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
+        case Right(video) => db.updateTalkVideo(user.id, talk)(video, now).map(_ => next)
+      }
+    ).unsafeToFuture()
   }
 
   def edit(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
@@ -86,7 +112,7 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
       case Some(talkElt) =>
         val h = header(talkElt.slug)
         val b = breadcrumb(user.name, talkElt.slug -> talkElt.title).add("Edit" -> routes.TalkCtrl.edit(talk))
-        val filledForm = if(form.hasErrors) form else form.fill(talkElt.data)
+        val filledForm = if (form.hasErrors) form else form.fill(talkElt.data)
         Ok(html.edit(talkElt, filledForm)(h, b))
       case None =>
         talkNotFound(talk)

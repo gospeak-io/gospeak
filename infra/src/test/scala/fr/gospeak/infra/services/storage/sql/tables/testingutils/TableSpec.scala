@@ -9,7 +9,7 @@ import fr.gospeak.core.domain._
 import fr.gospeak.infra.services.storage.sql.GospeakDbSql
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.testingutils.Values
-import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
 
 trait TableSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterAll with RandomDataGenerator {
@@ -23,6 +23,8 @@ trait TableSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfter
   protected val talk: Talk = random[Talk]
   protected val proposal: Proposal = random[Proposal]
   protected val params = Page.Params()
+  protected val slides: Slides = random[Slides]
+  protected val video: Video = random[Video]
 
   override def beforeAll(): Unit = db.createTables().unsafeRunSync()
 

@@ -26,6 +26,8 @@ GET         /u/talks                                                      fr.gos
 GET         /u/talks/create                                               fr.gospeak.web.user.talks.TalkCtrl.create
 POST        /u/talks/create                                               fr.gospeak.web.user.talks.TalkCtrl.doCreate
 GET         /u/talks/:talk                                                fr.gospeak.web.user.talks.TalkCtrl.detail(talk: Talk.Slug)
+POST        /u/talks/:talk/slides                                         fr.gospeak.web.user.talks.TalkCtrl.doAddSlides(talk: Talk.Slug)
+POST        /u/talks/:talk/video                                          fr.gospeak.web.user.talks.TalkCtrl.doAddVideo(talk: Talk.Slug)
 GET         /u/talks/:talk/edit                                           fr.gospeak.web.user.talks.TalkCtrl.edit(talk: Talk.Slug)
 POST        /u/talks/:talk/edit                                           fr.gospeak.web.user.talks.TalkCtrl.doEdit(talk: Talk.Slug)
 POST        /u/talks/:talk/status/:status                                 fr.gospeak.web.user.talks.TalkCtrl.changeStatus(talk: Talk.Slug, status: Talk.Status)

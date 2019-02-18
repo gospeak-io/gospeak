@@ -4,11 +4,13 @@ final class Slides private(value: Url) extends DataClass(value.value)
 
 object Slides {
   def from(in: String): Either[CustomException, Slides] =
-    Url.from(in).flatMap { url =>
-      val errs = errors(url)
-      if (errs.isEmpty) Right(new Slides(url))
-      else Left(CustomException("", errs))
-    }.left.map(_.copy(message = s"'$in' is an invalid Slides"))
+    Url.from(in).flatMap(from).left.map(_.copy(message = s"'$in' is an invalid Slides"))
+
+  def from(in: Url): Either[CustomException, Slides] = {
+    val errs = errors(in)
+    if (errs.isEmpty) Right(new Slides(in))
+    else Left(CustomException(s"'$in' is an invalid Slides", errs))
+  }
 
   // FIXME: improve
   private def errors(in: Url): Seq[CustomError] =

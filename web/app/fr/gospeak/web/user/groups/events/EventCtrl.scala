@@ -109,7 +109,7 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
       groupElt <- OptionT(db.getGroup(user.id, group))
       eventElt <- OptionT(db.getEvent(groupElt.id, event))
       _ <- OptionT.liftF(db.updateEventTalks(groupElt.id, event)(eventElt.add(talk).talks, user.id, now))
-      _ <- OptionT.liftF(db.updateProposalStatus(talk)(Proposal.Status.Accepted, Some(eventElt.id), user.id, now))
+      _ <- OptionT.liftF(db.updateProposalStatus(talk)(Proposal.Status.Accepted, Some(eventElt.id)))
     } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
@@ -120,7 +120,7 @@ class EventCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exte
       groupElt <- OptionT(db.getGroup(user.id, group))
       eventElt <- OptionT(db.getEvent(groupElt.id, event))
       _ <- OptionT.liftF(db.updateEventTalks(groupElt.id, event)(eventElt.remove(talk).talks, user.id, now))
-      _ <- OptionT.liftF(db.updateProposalStatus(talk)(Proposal.Status.Pending, None, user.id, now))
+      _ <- OptionT.liftF(db.updateProposalStatus(talk)(Proposal.Status.Pending, None))
     } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 

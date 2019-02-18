@@ -108,6 +108,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     } yield Done
   }
 
+
   override def createUser(slug: User.Slug, firstName: String, lastName: String, email: Email, now: Instant): IO[User] =
     run(UserTable.insert, User(User.Id.generate(), slug, firstName, lastName, email, now, now))
 
@@ -117,12 +118,14 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getUsers(ids: Seq[User.Id]): IO[Seq[User]] = runIn(UserTable.selectAll)(ids)
 
+
   override def createGroup(data: Group.Data, by: User.Id, now: Instant): IO[Group] =
     run(GroupTable.insert, Group(Group.Id.generate(), data.slug, data.name, data.description, NonEmptyList.of(by), Info(by, now)))
 
   override def getGroup(user: User.Id, slug: Group.Slug): IO[Option[Group]] = run(GroupTable.selectOne(user, slug).option)
 
   override def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(GroupTable.selectPage(user, _), params))
+
 
   override def createEvent(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event] =
     run(EventTable.insert, Event(Event.Id.generate(), group, data.slug, data.name, data.start, None, data.venue, Seq(), Info(by, now)))
@@ -150,6 +153,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def getEventsAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]] =
     run(Queries.selectPage(EventTable.selectAllAfter(group, now.truncatedTo(ChronoUnit.DAYS), _), params))
 
+
   override def createCfp(group: Group.Id, data: Cfp.Data, by: User.Id, now: Instant): IO[Cfp] =
     run(CfpTable.insert, Cfp(Cfp.Id.generate(), group, data.slug, data.name, data.description, Info(by, now)))
 
@@ -161,17 +165,12 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getCfpAvailables(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(CfpTable.selectPage(talk, _), params))
 
+
   override def createTalk(user: User.Id, data: Talk.Data, now: Instant): IO[Talk] =
     getTalk(user, data.slug).flatMap {
       case None => run(TalkTable.insert, Talk(Talk.Id.generate(), data.slug, data.title, data.duration, Talk.Status.Draft, data.description, NonEmptyList.one(user), data.slides, data.video, Info(user, now)))
       case _ => IO.raiseError(CustomException(s"You already have a talk with slug ${data.slug}"))
     }
-
-  override def getTalk(user: User.Id, slug: Talk.Slug): IO[Option[Talk]] = run(TalkTable.selectOne(user, slug).option)
-
-  override def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(TalkTable.selectPage(user, _), params))
-
-  override def getTalks(ids: Seq[Talk.Id]): IO[Seq[Talk]] = runIn(TalkTable.selectAll)(ids)
 
   override def updateTalk(user: User.Id, slug: Talk.Slug)(data: Talk.Data, now: Instant): IO[Done] = {
     if (data.slug != slug) {
@@ -187,11 +186,26 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def updateTalkStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done] = run(TalkTable.updateStatus(user, slug)(status))
 
+  override def updateTalkSlides(user: User.Id, slug: Talk.Slug)(slides: Slides, now: Instant): IO[Done] = run(TalkTable.updateSlides(user, slug)(slides, now))
+
+  override def updateTalkVideo(user: User.Id, slug: Talk.Slug)(video: Video, now: Instant): IO[Done] = run(TalkTable.updateVideo(user, slug)(video, now))
+
+  override def getTalk(user: User.Id, slug: Talk.Slug): IO[Option[Talk]] = run(TalkTable.selectOne(user, slug).option)
+
+  override def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(TalkTable.selectPage(user, _), params))
+
+  override def getTalks(ids: Seq[Talk.Id]): IO[Seq[Talk]] = runIn(TalkTable.selectAll)(ids)
+
+
   override def createProposal(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal] =
     run(ProposalTable.insert, Proposal(Proposal.Id.generate(), talk, cfp, None, data.title, data.duration, Proposal.Status.Pending, data.description, speakers, data.slides, data.video, Info(by, now)))
 
-  override def updateProposalStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id], by: User.Id, now: Instant): IO[Done] =
-    run(ProposalTable.updateStatus(id)(status, event, by, now))
+  override def updateProposalStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): IO[Done] =
+    run(ProposalTable.updateStatus(id)(status, event))
+
+  override def updateProposalSlides(id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): IO[Done] = run(ProposalTable.updateSlides(id)(slides, now, user))
+
+  override def updateProposalVideo(id: Proposal.Id)(video: Video, now: Instant, user: User.Id): IO[Done] = run(ProposalTable.updateVideo(id)(video, now, user))
 
   override def getProposal(id: Proposal.Id): IO[Option[Proposal]] = run(ProposalTable.selectOne(id).option)
 
@@ -204,6 +218,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def getProposals(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal]] = run(Queries.selectPage(ProposalTable.selectPage(cfp, status, _), params))
 
   override def getProposals(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = runIn(ProposalTable.selectAll)(ids)
+
 
   private def run[A](i: A => doobie.Update0, v: A): IO[A] =
     i(v).run.transact(xa).flatMap {

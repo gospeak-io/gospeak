@@ -31,6 +31,7 @@ object Mappings {
   val duration: Mapping[FiniteDuration] = longMapping(Duration.apply(_, MINUTES), _.toMinutes)
 
   val mail: Mapping[Email] = stringEitherMapping(Email.from, _.value, required)
+  val url: Mapping[Url] = stringEitherMapping(Url.from, _.value)
   val slides: Mapping[Slides] = stringEitherMapping(Slides.from, _.value)
   val video: Mapping[Video] = stringEitherMapping(Video.from, _.value)
   val secret: Mapping[Secret] = stringMapping(Secret, _.decode, required)

@@ -16,8 +16,22 @@ class ProposalTableSpec extends TableSpec {
     }
     describe("updateStatus") {
       it("should generate the query") {
-        val q = updateStatus(proposal.id)(proposal.status, None, user.id, now)
-        q.sql shouldBe "UPDATE proposals SET status=?, event_id=?, updated=?, updated_by=? WHERE id=?"
+        val q = updateStatus(proposal.id)(proposal.status, None)
+        q.sql shouldBe "UPDATE proposals SET status=?, event_id=? WHERE id=?"
+        check(q)
+      }
+    }
+    describe("updateSlides") {
+      it("should generate the query") {
+        val q = updateSlides(proposal.id)(slides, now, user.id)
+        q.sql shouldBe "UPDATE proposals SET slides=?, updated=?, updated_by=? WHERE id=?"
+        check(q)
+      }
+    }
+    describe("updateVideo") {
+      it("should generate the query") {
+        val q = updateVideo(proposal.id)(video, now, user.id)
+        q.sql shouldBe "UPDATE proposals SET video=?, updated=?, updated_by=? WHERE id=?"
         check(q)
       }
     }

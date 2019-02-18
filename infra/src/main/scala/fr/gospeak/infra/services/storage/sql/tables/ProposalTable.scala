@@ -9,7 +9,7 @@ import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 
 object ProposalTable {
   private val _ = proposalIdMeta // for intellij not remove DoobieUtils.Mappings import
@@ -25,10 +25,16 @@ object ProposalTable {
 
   def insert(elt: Proposal): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
-  def updateStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id], by: User.Id, now: Instant): doobie.Update0 = {
-    val fields = fr0"status=$status, event_id=$event, updated=$now, updated_by=$by"
+  def updateStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): doobie.Update0 = {
+    val fields = fr0"status=$status, event_id=$event"
     buildUpdate(tableFr, fields, where(id)).update
   }
+
+  def updateSlides(id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): doobie.Update0 =
+    buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$user", where(id)).update
+
+  def updateVideo(id: Proposal.Id)(video: Video, now: Instant, user: User.Id): doobie.Update0 =
+    buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$user", where(id)).update
 
   def selectOne(id: Proposal.Id): doobie.Query0[Proposal] =
     buildSelect(tableFr, fieldsFr, where(id)).query[Proposal]
