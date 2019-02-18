@@ -11,7 +11,7 @@ import fr.gospeak.web.auth.AuthService
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.user.talks.TalkCtrl._
-import fr.gospeak.web.utils.UICtrl
+import fr.gospeak.web.utils.{GenericForm, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -59,14 +59,14 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
       events <- OptionT.liftF(db.getEvents(proposals.items.flatMap(_._2.event)))
       h = header(talk)
       b = breadcrumb(user.name, talk -> talkElt.title)
-    } yield Ok(html.detail(talkElt, speakers, proposals, events, TalkForms.embed)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
+    } yield Ok(html.detail(talkElt, speakers, proposals, events, GenericForm.embed)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 
   def doAddSlides(talk: Talk.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
     val now = Instant.now()
     val next = Redirect(routes.TalkCtrl.detail(talk))
-    TalkForms.embed.bindFromRequest.fold(
+    GenericForm.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
@@ -79,7 +79,7 @@ class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) exten
     implicit val user: User = auth.authed()
     val now = Instant.now()
     val next = Redirect(routes.TalkCtrl.detail(talk))
-    TalkForms.embed.bindFromRequest.fold(
+    GenericForm.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))

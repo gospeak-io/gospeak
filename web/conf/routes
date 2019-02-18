@@ -36,6 +36,8 @@ GET         /u/talks/:talk/cfps/:cfp                                      fr.gos
 POST        /u/talks/:talk/cfps/:cfp                                      fr.gospeak.web.user.talks.cfps.CfpCtrl.doCreate(talk: Talk.Slug, cfp: Cfp.Slug)
 GET         /u/talks/:talk/proposals                                      fr.gospeak.web.user.talks.proposals.ProposalCtrl.list(talk: Talk.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/talks/:talk/proposals/:proposal                            fr.gospeak.web.user.talks.proposals.ProposalCtrl.detail(talk: Talk.Slug, proposal: Proposal.Id)
+POST        /u/talks/:talk/proposals/:proposal/slides                     fr.gospeak.web.user.talks.proposals.ProposalCtrl.doAddSlides(talk: Talk.Slug, proposal: Proposal.Id)
+POST        /u/talks/:talk/proposals/:proposal/video                      fr.gospeak.web.user.talks.proposals.ProposalCtrl.doAddVideo(talk: Talk.Slug, proposal: Proposal.Id)
 
 GET         /u/groups                                                     fr.gospeak.web.user.groups.GroupCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/create                                              fr.gospeak.web.user.groups.GroupCtrl.create
@@ -52,6 +54,8 @@ POST        /u/groups/:group/events/:event/rm-talk/:talk                  fr.gos
 POST        /u/groups/:group/events/:event/move-talk/:talk                fr.gospeak.web.user.groups.events.EventCtrl.moveTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, up: Boolean ?= true)
 GET         /u/groups/:group/proposals                                    fr.gospeak.web.user.groups.proposals.ProposalCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/proposals/:proposal                          fr.gospeak.web.user.groups.proposals.ProposalCtrl.detail(group: Group.Slug, proposal: Proposal.Id)
+POST        /u/groups/:group/proposals/:proposal/slides                   fr.gospeak.web.user.groups.proposals.ProposalCtrl.doAddSlides(group: Group.Slug, proposal: Proposal.Id)
+POST        /u/groups/:group/proposals/:proposal/video                    fr.gospeak.web.user.groups.proposals.ProposalCtrl.doAddVideo(group: Group.Slug, proposal: Proposal.Id)
 GET         /u/groups/:group/proposals/:proposal/speakers/:speaker        fr.gospeak.web.user.groups.proposals.speakers.SpeakerCtrl.detail(group: Group.Slug, proposal: Proposal.Id, speaker: User.Slug)
 GET         /u/groups/:group/settings                                     fr.gospeak.web.user.groups.settings.SettingsCtrl.list(group: Group.Slug)
 GET         /u/groups/:group/settings/cfp                                 fr.gospeak.web.user.groups.settings.SettingsCtrl.cfp(group: Group.Slug)

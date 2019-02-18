@@ -1,11 +1,14 @@
 @import fr.gospeak.core.domain.{Event, Group, Proposal, User}
+@import fr.gospeak.libs.scalautils.domain.Url
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.display.html._
+@import fr.gospeak.web.partials.form.html._
 @import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.user.groups.proposals.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 
-@(group: Group, proposal: Proposal, speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
+@(group: Group, proposal: Proposal, speakers: Seq[User], events: Seq[Event], embedForm: Form[Url])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
 @container(proposal.title.value + " - Gospeak", h, Some(b))() {
     <div>
         <h1>@proposal.title.value</h1>
@@ -18,8 +21,26 @@
 
     <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id, Some(u => SpeakerCtrl.detail(group.slug, proposal.id, u.slug))) }</p>
 
-    @proposal.slides.map { s => @embed(s.value) }
-    @proposal.video.map { v => @embed(v.value) }
+    @proposal.slides.map { s => @embed(s.value) }.getOrElse {
+        @formElt(embedForm, ProposalCtrl.doAddSlides(group.slug, proposal.id), Seq("class" -> "mb-2")) {
+            @fieldHorizontal(embedForm("url"), Seq("label" -> "Slides")) { (field, _) =>
+                @inputEmbed(field, Seq("placeholder" -> "Url of the slides"))
+            }
+            @actionsHorizontal() {
+                @btnSubmit("Add slides", "btn btn-secondary")
+            }
+        }
+    }
+    @proposal.video.map { v => @embed(v.value) }.getOrElse {
+        @formElt(embedForm, ProposalCtrl.doAddVideo(group.slug, proposal.id), Seq("class" -> "mb-2")) {
+            @fieldHorizontal(embedForm("url"), Seq("label" -> "Video")) { (field, _) =>
+                @inputEmbed(field, Seq("placeholder" -> "Url of the video"))
+            }
+            @actionsHorizontal() {
+                @btnSubmit("Add video", "btn btn-secondary")
+            }
+        }
+    }
 
     <p>@info(proposal.info, speakers, Some(u => SpeakerCtrl.detail(group.slug, proposal.id, u.slug)))</p>
 }()

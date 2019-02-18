@@ -1,14 +1,17 @@
 package fr.gospeak.web.user.talks.proposals
 
+import java.time.Instant
+
 import cats.data.OptionT
+import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.GospeakDb
-import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 import fr.gospeak.web.auth.AuthService
 import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.user.talks.TalkCtrl
+import fr.gospeak.web.user.talks.{TalkCtrl, TalkForms}
 import fr.gospeak.web.user.talks.proposals.ProposalCtrl._
-import fr.gospeak.web.utils.UICtrl
+import fr.gospeak.web.utils.{GenericForm, UICtrl}
 import play.api.mvc._
 
 class ProposalCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extends UICtrl(cc) {
@@ -33,7 +36,33 @@ class ProposalCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) e
       events <- OptionT.liftF(db.getEvents(proposalElt.event.toSeq))
       h = TalkCtrl.header(talkElt.slug)
       b = breadcrumb(user.name, talk -> talkElt.title, proposal -> cfpElt.name)
-    } yield Ok(html.detail(cfpElt, proposalElt, speakers, events)(h, b))).value.map(_.getOrElse(proposalNotFound(talk, proposal))).unsafeToFuture()
+    } yield Ok(html.detail(talkElt, cfpElt, proposalElt, speakers, events, GenericForm.embed)(h, b))).value.map(_.getOrElse(proposalNotFound(talk, proposal))).unsafeToFuture()
+  }
+
+  def doAddSlides(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = auth.authed()
+    val now = Instant.now()
+    val next = Redirect(routes.ProposalCtrl.detail(talk, proposal))
+    GenericForm.embed.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      data => Slides.from(data) match {
+        case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
+        case Right(slides) => db.updateProposalSlides(proposal)(slides, now, user.id).map(_ => next)
+      }
+    ).unsafeToFuture()
+  }
+
+  def doAddVideo(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+    implicit val user: User = auth.authed()
+    val now = Instant.now()
+    val next = Redirect(routes.ProposalCtrl.detail(talk, proposal))
+    GenericForm.embed.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      data => Video.from(data) match {
+        case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
+        case Right(video) => db.updateProposalVideo(proposal)(video, now, user.id).map(_ => next)
+      }
+    ).unsafeToFuture()
   }
 }
 
