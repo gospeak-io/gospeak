@@ -1,6 +1,7 @@
 package fr.gospeak.web
 
 import com.softwaremill.macwire.wire
+import fr.gospeak.infra.services.{ConsoleEmailSrv, EmailSrv}
 import fr.gospeak.infra.services.storage.sql.{DbSqlConf, GospeakDbSql, H2}
 import fr.gospeak.web.auth.{AuthCtrl, AuthService}
 import fr.gospeak.web.cfps.CfpCtrl
@@ -27,6 +28,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
     with _root_.controllers.AssetsComponents {
 
   lazy val dbConf: DbSqlConf = H2("org.h2.Driver", "jdbc:h2:mem:gospeak_db;MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1")
+  lazy val emailSrv: EmailSrv = new ConsoleEmailSrv()
   lazy val db = wire[GospeakDbSql]
 
   lazy val auth = wire[AuthService]

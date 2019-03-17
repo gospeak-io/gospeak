@@ -48,6 +48,8 @@ val playTest = Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2").map(_ % Test)
 val flexmark = Seq(
   "com.vladsch.flexmark" % "flexmark-all" %"0.40.16")
+val sendgrid = Seq(
+  "com.sendgrid" % "sendgrid-java" % "4.3.0")
 val webjars = Seq(
   "org.webjars.npm" % "jquery" % "3.3.1",
   "org.webjars.npm" % "bootstrap" % "4.3.1",
@@ -65,7 +67,7 @@ val scalaCheck = Seq(
 
 val scalautilsDependencies = cats ++ scalaTest ++ scalaCheck
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
-val infraDependencies = hammock ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
+val infraDependencies = hammock ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
 val webDependencies = play ++ flexmark ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest
 
 
