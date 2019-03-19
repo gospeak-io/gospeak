@@ -20,10 +20,10 @@ trait TwirlSpec extends FunSpec with Matchers with RandomDataGenerator {
   protected implicit val req: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
   protected implicit val flash: Flash = req.flash
 
-  private val env = Environment.simple()
-  private val context = ApplicationLoader.Context.create(env)
-  private val loader = new GospeakApplicationLoader()
-  private val application = loader.load(context)
+  // private val env = Environment.simple()
+  // private val context = ApplicationLoader.Context.create(env)
+  // private val loader = new GospeakApplicationLoader()
+  // private val application = loader.load(context)
 
   implicit val messages: Messages = new Messages {
     override def lang: Lang = Lang(Locale.ENGLISH)
@@ -36,7 +36,7 @@ trait TwirlSpec extends FunSpec with Matchers with RandomDataGenerator {
 
     override def isDefinedAt(key: String): Boolean = true
 
-    override def asJava: JavaMessages = null
+    // override def asJava: JavaMessages = null
   }
   protected val h = HeaderInfo(NavLink("Gospeak", routes.HomeCtrl.index()), Seq(), Seq())
   protected val b = Breadcrumb(Seq())
