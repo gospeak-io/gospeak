@@ -13,7 +13,7 @@
     </div>
 
     @if(events.isEmpty) {
-        <h2>No incoming events</h2>
+        <h2>No incoming events <a class="btn btn-primary" href="@EventCtrl.create(group.slug)">Create an event</a></h2>
     } else {
         <h2>@plural(events.total.value, "incoming event")</h2>
 
