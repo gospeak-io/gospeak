@@ -8,6 +8,22 @@ CREATE TABLE users (
   updated    TIMESTAMP    NOT NULL
 );
 
+CREATE TABLE passwordInfos (
+  provider_id  VARCHAR(30)  NOT NULL,
+  provider_key VARCHAR(100) NOT NULL,
+  hasher       VARCHAR(100) NOT NULL,
+  password     VARCHAR(100) NOT NULL,
+  salt         VARCHAR(100),
+  PRIMARY KEY (provider_id, provider_key)
+);
+
+CREATE TABLE loginInfos (
+  provider_id  VARCHAR(30)  NOT NULL,
+  provider_key VARCHAR(100) NOT NULL,
+  user_id      CHAR(36)     NOT NULL REFERENCES users(id),
+  PRIMARY KEY (provider_id, provider_key)
+);
+
 CREATE TABLE talks (
   id          CHAR(36)      NOT NULL PRIMARY KEY,
   slug        VARCHAR(30)   NOT NULL,

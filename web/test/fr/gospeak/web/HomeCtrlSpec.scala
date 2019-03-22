@@ -1,6 +1,6 @@
 package fr.gospeak.web
 
-import fr.gospeak.web.auth.AuthService
+import fr.gospeak.web.auth.services.AuthRepo
 import fr.gospeak.web.testingutils.Values
 import org.scalatest.{FunSpec, Matchers}
 import play.api.http.Status
@@ -10,7 +10,7 @@ import play.api.test.Helpers._
 class HomeCtrlSpec extends FunSpec with Matchers {
   private val db = Values.db
   db.createTables().unsafeRunSync()
-  private val ctrl = new HomeCtrl(Values.cc, db, new AuthService(db))
+  private val ctrl = new HomeCtrl(Values.cc, db, new AuthRepo(db))
 
   describe("HomeCtrl") {
     it("should return 200") {

@@ -6,7 +6,7 @@ import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.libs.scalautils.domain.{Email, Page}
-import fr.gospeak.web.auth.AuthService
+import fr.gospeak.web.auth.services.AuthRepo
 import fr.gospeak.web.testingutils.Values
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
 import play.api.http.Status
@@ -16,7 +16,7 @@ import play.api.test.Helpers._
 class TalkCtrlSpec extends FunSpec with Matchers with BeforeAndAfterEach with RandomDataGenerator {
   private val params = Page.Params()
   private val db = Values.db
-  private val auth = new AuthService(db)
+  private val auth = new AuthRepo(db)
   private val now = random[Instant]
   private val userSlug = random[User.Slug]
   private val firstName = random[String].take(30)

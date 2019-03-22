@@ -15,3 +15,4 @@
 - [cfp.exchange](https://cfp.exchange/)
 - [cfpland.com](https://www.cfpland.com/)
 - [confs.tech](https://confs.tech/)
+- [awesome-cfp](https://github.com/lauthieb/awesome-cfp)

@@ -7,14 +7,14 @@ import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
-import fr.gospeak.web.auth.AuthService
+import fr.gospeak.web.auth.services.AuthRepo
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.groups.GroupCtrl
 import fr.gospeak.web.user.groups.proposals.ProposalCtrl._
 import fr.gospeak.web.utils.{GenericForm, UICtrl}
 import play.api.mvc._
 
-class ProposalCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extends UICtrl(cc) {
+class ProposalCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthRepo) extends UICtrl(cc) {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
     (for {

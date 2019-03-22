@@ -10,6 +10,18 @@ import fr.gospeak.libs.scalautils.domain._
 trait GospeakDb {
   def createUser(slug: User.Slug, firstName: String, lastName: String, email: Email, now: Instant): IO[User]
 
+  def createLoginRef(login: User.Login, user: User.Id): IO[Unit]
+
+  def createCredentials(credentials: User.Credentials): IO[User.Credentials]
+
+  def updateCredentials(login: User.Login)(pass: User.Password): IO[Done]
+
+  def deleteCredentials(login: User.Login): IO[Done]
+
+  def getCredentials(login: User.Login): IO[Option[User.Credentials]]
+
+  def getUser(login: User.Login): IO[Option[User]]
+
   def getUser(email: Email): IO[Option[User]]
 
   def getUser(slug: User.Slug): IO[Option[User]]

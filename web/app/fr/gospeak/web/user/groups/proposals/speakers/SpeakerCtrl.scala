@@ -3,7 +3,7 @@ package fr.gospeak.web.user.groups.proposals.speakers
 import cats.data.OptionT
 import fr.gospeak.core.domain.{Group, Proposal, Talk, User}
 import fr.gospeak.core.services.GospeakDb
-import fr.gospeak.web.auth.AuthService
+import fr.gospeak.web.auth.services.AuthRepo
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 import fr.gospeak.web.user.groups.proposals.ProposalCtrl
 import fr.gospeak.web.user.groups.proposals.routes.{ProposalCtrl => ProposalRoutes}
@@ -11,7 +11,7 @@ import fr.gospeak.web.user.groups.proposals.speakers.SpeakerCtrl._
 import fr.gospeak.web.utils.UICtrl
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Request}
 
-class SpeakerCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extends UICtrl(cc) {
+class SpeakerCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthRepo) extends UICtrl(cc) {
   def detail(group: Group.Slug, proposal: Proposal.Id, speaker: User.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
     (for {

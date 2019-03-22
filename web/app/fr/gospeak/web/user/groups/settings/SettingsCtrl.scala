@@ -6,7 +6,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import fr.gospeak.core.domain.{Cfp, Group, User}
 import fr.gospeak.core.services.GospeakDb
-import fr.gospeak.web.auth.AuthService
+import fr.gospeak.web.auth.services.AuthRepo
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.groups.GroupCtrl
 import fr.gospeak.web.user.groups.routes.{GroupCtrl => GroupRoutes}
@@ -15,7 +15,7 @@ import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
 
-class SettingsCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extends UICtrl(cc) {
+class SettingsCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthRepo) extends UICtrl(cc) {
   def list(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
     (for {

@@ -1,10 +1,10 @@
-@import fr.gospeak.web.auth.AuthForms.Signup
+@import fr.gospeak.web.auth.AuthForms.SignupData
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.domain.HeaderInfo
 @import fr.gospeak.web.partials.form.html._
 @import fr.gospeak.web.partials.html.container
 
-@(form: Form[Signup])(h: HeaderInfo)(implicit req: Request[AnyContent], messages: Messages, flash: Flash)
+@(form: Form[SignupData])(h: HeaderInfo)(implicit req: Request[AnyContent], messages: Messages, flash: Flash)
 @container("Gospeak", h)() {
     <div class="login">
         <div class="card bg-light shadow">

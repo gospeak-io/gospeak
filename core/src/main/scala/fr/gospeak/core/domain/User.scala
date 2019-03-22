@@ -30,4 +30,22 @@ object User {
     def apply(firstName: String, lastName: String): Name = new Name(s"$firstName $lastName")
   }
 
+  final case class ProviderId(value: String) extends AnyVal
+
+  final case class ProviderKey(value: String) extends AnyVal
+
+  final case class Hasher(value: String) extends AnyVal
+
+  final case class PasswordValue(value: String) extends AnyVal
+
+  final case class Salt(value: String) extends AnyVal
+
+  final case class Login(providerId: ProviderId, providerKey: ProviderKey)
+
+  final case class Password(hasher: Hasher, password: PasswordValue, salt: Option[Salt])
+
+  final case class LoginRef(login: Login, user: User.Id)
+
+  final case class Credentials(login: Login, pass: Password)
+
 }

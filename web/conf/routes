@@ -17,9 +17,12 @@ GET         /login                                                        fr.gos
 POST        /login                                                        fr.gospeak.web.auth.AuthCtrl.doLogin
 GET         /passwordReset                                                fr.gospeak.web.auth.AuthCtrl.passwordReset
 POST        /passwordReset                                                fr.gospeak.web.auth.AuthCtrl.doPasswordReset
-GET         /logout                                                       fr.gospeak.web.auth.AuthCtrl.logout
+GET         /logout                                                       fr.gospeak.web.auth.AuthCtrl.doLogout
 
 GET         /u                                                            fr.gospeak.web.user.UserCtrl.index
+GET         /u/unsecure                                                   fr.gospeak.web.user.UserCtrl.unsecure
+GET         /u/userAware                                                  fr.gospeak.web.user.UserCtrl.userAware
+GET         /u/secure                                                     fr.gospeak.web.user.UserCtrl.secure
 GET         /u/profile                                                    fr.gospeak.web.user.UserCtrl.profile
 
 GET         /u/talks                                                      fr.gospeak.web.user.talks.TalkCtrl.list(params: Page.Params ?= Page.Params.defaults)

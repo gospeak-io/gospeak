@@ -112,6 +112,23 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def createUser(slug: User.Slug, firstName: String, lastName: String, email: Email, now: Instant): IO[User] =
     run(UserTable.insert, User(User.Id.generate(), slug, firstName, lastName, email, now, now))
 
+  override def createLoginRef(login: User.Login, user: User.Id): IO[Unit] =
+    run(UserTable.insertLoginRef, User.LoginRef(login, user)).map(_ => ())
+
+  override def createCredentials(credentials: User.Credentials): IO[User.Credentials] =
+    run(UserTable.insertCredentials, credentials)
+
+  override def updateCredentials(login: User.Login)(pass: User.Password): IO[Done] =
+    run(UserTable.updateCredentials(login)(pass))
+
+  override def deleteCredentials(login: User.Login): IO[Done] =
+    run(UserTable.deleteCredentials(login))
+
+  override def getCredentials(login: User.Login): IO[Option[User.Credentials]] =
+    run(UserTable.selectCredentials(login).option)
+
+  override def getUser(login: User.Login): IO[Option[User]] = run(UserTable.selectOne(login).option)
+
   override def getUser(email: Email): IO[Option[User]] = run(UserTable.selectOne(email).option)
 
   override def getUser(slug: User.Slug): IO[Option[User]] = run(UserTable.selectOne(slug).option)

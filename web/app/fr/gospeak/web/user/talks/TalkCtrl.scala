@@ -7,7 +7,7 @@ import cats.effect.IO
 import fr.gospeak.core.domain.{Talk, User}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
-import fr.gospeak.web.auth.AuthService
+import fr.gospeak.web.auth.services.AuthRepo
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.user.talks.TalkCtrl._
@@ -15,7 +15,7 @@ import fr.gospeak.web.utils.{GenericForm, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
 
-class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthService) extends UICtrl(cc) {
+class TalkCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthRepo) extends UICtrl(cc) {
   def list(params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
     implicit val user: User = auth.authed()
     (for {
