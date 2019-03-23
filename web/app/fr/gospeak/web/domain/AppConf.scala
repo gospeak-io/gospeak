@@ -18,7 +18,7 @@ object AppConf {
   def load(conf: Config): Try[AppConf] = {
     import pureconfig.generic.auto._
     implicit val sameSiteReader: ConfigReader[SameSite] = ConfigReader.fromString[SameSite](str => SameSite.parse(str).toEither(CannotConvert(str, "SameSite", s"possible values: '${SameSite.Strict.value}' or '${SameSite.Lax.value}'")))
-    val _ = exportReader[CookieAuthenticatorSettings] // to prevent IntelliJ from removing import
+    val _ = exportReader[CookieAuthenticatorSettings] // to help scala compiler & prevent IntelliJ from removing import
     pureconfig.loadConfig[AppConf](conf) match {
       case Right(appConf) => Success(appConf)
       case Left(failures) => Failure(new IllegalArgumentException("Unable to load AppConf:\n" + failures.toList.map(format).mkString("\n")))

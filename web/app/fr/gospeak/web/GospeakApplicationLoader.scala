@@ -5,7 +5,7 @@ import com.mohiva.play.silhouette.api.actions._
 import com.mohiva.play.silhouette.api.crypto.{Base64AuthenticatorEncoder, Crypter, CrypterAuthenticatorEncoder, Signer}
 import com.mohiva.play.silhouette.api.services.AuthenticatorService
 import com.mohiva.play.silhouette.api.util.{Clock, FingerprintGenerator, PasswordHasher, PasswordHasherRegistry}
-import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaCrypterSettings, JcaSigner, JcaSignerSettings}
+import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaSigner}
 import com.mohiva.play.silhouette.impl.authenticators._
 import com.mohiva.play.silhouette.impl.providers.{CredentialsProvider, SocialProviderRegistry}
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
@@ -22,13 +22,10 @@ import fr.gospeak.web.domain.{AppConf, AuthCookieConf}
 import fr.gospeak.web.groups.GroupCtrl
 import fr.gospeak.web.speakers.SpeakerCtrl
 import fr.gospeak.web.user.UserCtrl
-import play.api.mvc.Cookie.SameSite
 import play.api.mvc.{BodyParsers, CookieHeaderEncoding, DefaultCookieHeaderEncoding}
 import play.api.routing.Router
 import play.api.{Environment => _, _}
 import play.filters.HttpFiltersComponents
-import pureconfig.ConfigReader
-import pureconfig.error.CannotConvert
 import router.Routes
 
 import scala.concurrent.duration.{Duration, FiniteDuration}

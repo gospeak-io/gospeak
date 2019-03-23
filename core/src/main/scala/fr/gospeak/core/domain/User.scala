@@ -46,6 +46,16 @@ object User {
 
   final case class LoginRef(login: Login, user: User.Id)
 
+  object LoginRef {
+    def apply(providerId: String, providerKey: String, user: Id): LoginRef =
+      new LoginRef(Login(ProviderId(providerId), ProviderKey(providerKey)), user)
+  }
+
   final case class Credentials(login: Login, pass: Password)
+
+  object Credentials {
+    def apply(providerId: String, providerKey: String, hasher: String, password: String, salt: Option[String]): Credentials =
+      new Credentials(Login(ProviderId(providerId), ProviderKey(providerKey)), Password(Hasher(hasher), PasswordValue(password), salt.map(Salt)))
+  }
 
 }

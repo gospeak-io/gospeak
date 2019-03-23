@@ -100,6 +100,8 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     }
     for {
       _ <- run(Queries.insertMany(UserTable.insert)(NonEmptyList.of(userDemo, userSpeaker, userOrga, userEmpty)))
+      _ <- run(UserTable.insertCredentials(User.Credentials("credentials", "demo@mail.com", "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
+      _ <- run(UserTable.insertLoginRef(User.LoginRef("credentials", "demo@mail.com", userDemo.id)))
       _ <- run(Queries.insertMany(GroupTable.insert)(NonEmptyList.of(group1, group2, group3, group4) ++ generated.map(_._1)))
       _ <- run(Queries.insertMany(CfpTable.insert)(NonEmptyList.of(cfp1, cfp2) ++ generated.map(_._2)))
       _ <- run(Queries.insertMany(TalkTable.insert)(NonEmptyList.of(talk1, talk2, talk3, talk4, talk5, talk6, talk7) ++ generated.map(_._4)))
@@ -111,6 +113,9 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def createUser(slug: User.Slug, firstName: String, lastName: String, email: Email, now: Instant): IO[User] =
     run(UserTable.insert, User(User.Id.generate(), slug, firstName, lastName, email, now, now))
+
+  override def updateUser(user: User, now: Instant): IO[User] =
+    run(UserTable.update(user.copy(updated = now))).map(_ => user)
 
   override def createLoginRef(login: User.Login, user: User.Id): IO[Unit] =
     run(UserTable.insertLoginRef, User.LoginRef(login, user)).map(_ => ())

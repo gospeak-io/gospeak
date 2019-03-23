@@ -12,32 +12,32 @@ class UserTableSpec extends TableSpec {
   private val credentials = Credentials(login, pass)
 
   describe("UserTable") {
-    describe("loginInfos") {
+    describe("logins") {
       it("should build insertLoginRef query") {
         val q = insertLoginRef(loginRef)
-        q.sql shouldBe "INSERT INTO loginInfos (provider_id, provider_key, user_id) VALUES (?, ?, ?)"
+        q.sql shouldBe "INSERT INTO logins (provider_id, provider_key, user_id) VALUES (?, ?, ?)"
         check(q)
       }
     }
-    describe("passwordInfos") {
+    describe("credentials") {
       it("should build insertCredentials query") {
         val q = insertCredentials(credentials)
-        q.sql shouldBe "INSERT INTO passwordInfos (provider_id, provider_key, hasher, password, salt) VALUES (?, ?, ?, ?, ?)"
+        q.sql shouldBe "INSERT INTO credentials (provider_id, provider_key, hasher, password, salt) VALUES (?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build updateCredentials query") {
         val q = updateCredentials(login)(pass)
-        q.sql shouldBe "UPDATE passwordInfos SET hasher=?, password=?, salt=? WHERE provider_id=? AND provider_key=?"
+        q.sql shouldBe "UPDATE credentials SET hasher=?, password=?, salt=? WHERE provider_id=? AND provider_key=?"
         check(q)
       }
       it("should build deleteCredentials query") {
         val q = deleteCredentials(login)
-        q.sql shouldBe "DELETE FROM passwordInfos WHERE provider_id=? AND provider_key=?"
+        q.sql shouldBe "DELETE FROM credentials WHERE provider_id=? AND provider_key=?"
         check(q)
       }
       it("should build selectCredentials query") {
         val q = selectCredentials(login)
-        q.sql shouldBe "SELECT provider_id, provider_key, hasher, password, salt FROM passwordInfos WHERE provider_id=? AND provider_key=?"
+        q.sql shouldBe "SELECT provider_id, provider_key, hasher, password, salt FROM credentials WHERE provider_id=? AND provider_key=?"
         check(q)
       }
     }
@@ -46,9 +46,14 @@ class UserTableSpec extends TableSpec {
       q.sql shouldBe "INSERT INTO users (id, slug, first_name, last_name, email, created, updated) VALUES (?, ?, ?, ?, ?, ?, ?)"
       check(q)
     }
+    it("should build update query") {
+      val q = update(user)
+      q.sql shouldBe "UPDATE users SET slug=?, first_name=?, last_name=?, email=?, updated=? WHERE id=?"
+      check(q)
+    }
     it("should build selectOne with login query") {
       val q = selectOne(login)
-      q.sql shouldBe "SELECT u.id, u.slug, u.first_name, u.last_name, u.email, u.created, u.updated FROM users u INNER JOIN loginInfos l ON u.id=l.user_id WHERE l.provider_id=? AND l.provider_key=?"
+      q.sql shouldBe "SELECT u.id, u.slug, u.first_name, u.last_name, u.email, u.created, u.updated FROM users u INNER JOIN logins l ON u.id=l.user_id WHERE l.provider_id=? AND l.provider_key=?"
       check(q)
     }
     it("should build selectOne with email query") {

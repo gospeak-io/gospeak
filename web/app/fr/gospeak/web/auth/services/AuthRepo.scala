@@ -15,19 +15,18 @@ import fr.gospeak.web.auth.domain.AuthUser
 import play.api.mvc.{AnyContent, Request}
 
 import scala.concurrent.Future
-import scala.util.Try
 
 class AuthRepo(db: GospeakDb) extends DelegableAuthInfoDAO[PasswordInfo] with IdentityService[AuthUser] {
-  private var logged: Option[User] = Try(db.getUser(Email.from("demo@mail.com").right.get).unsafeRunSync()).getOrElse(None)
+  private var logged: Option[User] = None
 
   override def retrieve(loginInfo: LoginInfo): Future[Option[AuthUser]] = {
-    println(s"AuthSrv.retrieve($loginInfo)")
+    println(s"AuthRepo.retrieve($loginInfo)")
     db.getUser(toDomain(loginInfo))
       .map(_.map(u => AuthUser(loginInfo, u))).unsafeToFuture()
   }
 
   def createUser(loginInfo: LoginInfo, slug: User.Slug, firstName: String, lastName: String, email: Email, now: Instant): Future[AuthUser] = {
-    println(s"AuthSrv.createUser($loginInfo, $slug, $firstName, $lastName, $email, $now)")
+    println(s"AuthRepo.createUser($loginInfo, $slug, $firstName, $lastName, $email, $now)")
     (for {
       user <- db.createUser(slug, firstName, lastName, email, now)
       _ <- db.createLoginRef(toDomain(loginInfo), user.id)
@@ -35,26 +34,26 @@ class AuthRepo(db: GospeakDb) extends DelegableAuthInfoDAO[PasswordInfo] with Id
   }
 
   override def find(loginInfo: LoginInfo): Future[Option[PasswordInfo]] = {
-    println(s"AuthSrv.find($loginInfo)")
+    println(s"AuthRepo.find($loginInfo)")
     db.getCredentials(toDomain(loginInfo))
       .map(_.map(toSilhouette)).unsafeToFuture()
   }
 
   override def add(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] = {
-    println(s"AuthSrv.add($loginInfo, $authInfo)")
+    println(s"AuthRepo.add($loginInfo, $authInfo)")
     db.createCredentials(toDomain(loginInfo, authInfo))
       .map(toSilhouette).unsafeToFuture()
   }
 
   override def update(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] = {
-    println(s"AuthSrv.update($loginInfo, $authInfo)")
+    println(s"AuthRepo.update($loginInfo, $authInfo)")
     db.updateCredentials(toDomain(loginInfo))(toDomain(authInfo))
       .map(_ => authInfo).unsafeToFuture()
   }
 
   // add or update
   override def save(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] = {
-    println(s"AuthSrv.save($loginInfo, $authInfo)")
+    println(s"AuthRepo.save($loginInfo, $authInfo)")
     db.getCredentials(toDomain(loginInfo)).flatMap { opt =>
       opt.map(_ => db.updateCredentials(toDomain(loginInfo))(toDomain(authInfo)))
         .getOrElse(db.createCredentials(toDomain(loginInfo, authInfo)).map(_ => Done))
@@ -62,7 +61,7 @@ class AuthRepo(db: GospeakDb) extends DelegableAuthInfoDAO[PasswordInfo] with Id
   }
 
   override def remove(loginInfo: LoginInfo): Future[Unit] = {
-    println(s"AuthSrv.remove($loginInfo)")
+    println(s"AuthRepo.remove($loginInfo)")
     db.deleteCredentials(toDomain(loginInfo))
       .map(_ => ()).unsafeToFuture()
   }

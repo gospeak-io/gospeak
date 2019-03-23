@@ -1,6 +1,7 @@
 package fr.gospeak.libs.scalautils
 
 import cats.data.NonEmptyList
+import cats.effect.IO
 import fr.gospeak.libs.scalautils.domain.MultiException
 
 import scala.collection.generic.CanBuildFrom
@@ -13,9 +14,15 @@ import scala.util.{Failure, Success, Try}
 object Extensions {
 
   implicit class BooleanExtension(val in: Boolean) extends AnyVal {
-    def cond[A](a: => A): Option[A] = if (in) Some(a) else None
+    def reverse: Boolean = !in
 
-    def cond: Option[Unit] = cond(())
+    def toOption[A](a: => A): Option[A] = if (in) Some(a) else None
+
+    def toOption: Option[Unit] = toOption(())
+
+    def toIO[A](a: => A, e: => Throwable): IO[A] = if (in) IO.pure(a) else IO.raiseError(e)
+
+    def toIO(e: => Throwable): IO[Unit] = toIO((), e)
   }
 
   implicit class StringExtension(val in: String) extends AnyVal {
@@ -92,6 +99,11 @@ object Extensions {
     def toEither[E](e: => E): Either[E, A] = in match {
       case Some(v) => Right(v)
       case None => Left(e)
+    }
+
+    def toIO(e: => Throwable): IO[A] = in match {
+      case Some(v) => IO.pure(v)
+      case None => IO.raiseError(e)
     }
 
     def swap: Option[Unit] = in match {

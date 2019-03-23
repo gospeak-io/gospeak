@@ -8,7 +8,7 @@ CREATE TABLE users (
   updated    TIMESTAMP    NOT NULL
 );
 
-CREATE TABLE passwordInfos (
+CREATE TABLE credentials (
   provider_id  VARCHAR(30)  NOT NULL,
   provider_key VARCHAR(100) NOT NULL,
   hasher       VARCHAR(100) NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE passwordInfos (
   PRIMARY KEY (provider_id, provider_key)
 );
 
-CREATE TABLE loginInfos (
+CREATE TABLE logins (
   provider_id  VARCHAR(30)  NOT NULL,
   provider_key VARCHAR(100) NOT NULL,
   user_id      CHAR(36)     NOT NULL REFERENCES users(id),
