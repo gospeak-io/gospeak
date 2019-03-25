@@ -5,7 +5,8 @@ import java.time.Instant
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.services.AuthenticatorResult
 import com.mohiva.play.silhouette.api.util.{Clock, Credentials, PasswordHasherRegistry, PasswordInfo}
-import com.mohiva.play.silhouette.api.{LoginEvent, LoginInfo, SignUpEvent, Silhouette}
+import com.mohiva.play.silhouette.api._
+import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import com.mohiva.play.silhouette.impl.exceptions.IdentityNotFoundException
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import fr.gospeak.core.domain.User
@@ -70,7 +71,14 @@ class AuthSrv(authRepo: AuthRepo,
       cookie <- silhouette.env.authenticatorService.init(authenticator)
       result <- silhouette.env.authenticatorService.embed(cookie, redirect)
       _ = silhouette.env.eventBus.publish(LoginEvent(user, req))
+      _ <- authRepo.login(user.user).unsafeToFuture() // TODO remove
     } yield result
+  }
+
+  def logout(redirect: Result)(implicit req: SecuredRequest[CookieEnv, AnyContent]): Future[AuthenticatorResult] = {
+    authRepo.logout().unsafeRunSync() // TODO remove
+    silhouette.env.eventBus.publish(LogoutEvent(req.identity, req))
+    silhouette.env.authenticatorService.discard(req.authenticator, redirect)
   }
 
   private def toDomain(loginInfo: LoginInfo): User.Login = User.Login(ProviderId(loginInfo.providerID), ProviderKey(loginInfo.providerKey))

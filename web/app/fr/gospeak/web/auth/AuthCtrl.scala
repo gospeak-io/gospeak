@@ -5,7 +5,6 @@ import java.time.Instant
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api._
-import com.mohiva.play.silhouette.api.util.{Clock, PasswordHasherRegistry}
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import fr.gospeak.core.domain.UserRequest
@@ -16,8 +15,8 @@ import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.auth.AuthCtrl._
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.exceptions.{DuplicateIdentityException, DuplicateSlugException}
-import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv}
-import fr.gospeak.web.domain.{AuthCookieConf, HeaderInfo}
+import fr.gospeak.web.auth.services.AuthSrv
+import fr.gospeak.web.domain.HeaderInfo
 import fr.gospeak.web.utils.UICtrl
 import play.api.i18n.Messages
 import play.api.mvc._
@@ -29,25 +28,21 @@ import scala.util.control.NonFatal
 // TODO Add rememberMe feature
 class AuthCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
-               authCookieConf: AuthCookieConf,
-               credentialsProvider: CredentialsProvider,
-               passwordHasherRegistry: PasswordHasherRegistry,
-               authRepo: AuthRepo,
                authSrv: AuthSrv,
-               clock: Clock,
                db: GospeakDb,
                emailSrv: EmailSrv) extends UICtrl(cc) {
   private val loginRedirect = Redirect(fr.gospeak.web.user.routes.UserCtrl.index())
   private val logoutRedirect = Redirect(fr.gospeak.web.routes.HomeCtrl.index())
 
-  def signup(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    authRepo.userAware() match {
-      case Some(_) => loginRedirect
-      case None => Ok(html.signup(AuthForms.signup)(header))
-    }
+  import silhouette._
+
+  def signup(): Action[AnyContent] = UserAwareAction { implicit req =>
+    req.identity
+      .map(_ => loginRedirect)
+      .getOrElse(Ok(html.signup(AuthForms.signup)(header)))
   }
 
-  def doSignup(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+  def doSignup(): Action[AnyContent] = UnsecuredAction.async { implicit req =>
     println("doSignup")
     val now = Instant.now()
     AuthForms.signup.bindFromRequest.fold(
@@ -59,7 +54,6 @@ class AuthCtrl(cc: ControllerComponents,
           emailValidation <- db.createEmailValidationRequest(user.user.email, user.user.id, now).unsafeToFuture()
           _ <- sendSignupEmail(user, emailValidation).unsafeToFuture()
           result <- authSrv.login(user, loginRedirect)
-          _ <- authRepo.login(user.user).unsafeToFuture() // TODO remove
         } yield result).recover {
           case _: DuplicateIdentityException => Ok(html.signup(AuthForms.signup.fill(data))(header)(req, implicitly[Messages], Flash(Map("error" -> s"User already exists"))))
           case e: DuplicateSlugException => Ok(html.signup(AuthForms.signup.fill(data))(header)(req, implicitly[Messages], Flash(Map("error" -> s"Username ${e.slug.value} is already taken"))))
@@ -80,21 +74,19 @@ class AuthCtrl(cc: ControllerComponents,
     emailSrv.send(email)
   }
 
-  def login(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    authRepo.userAware() match {
-      case Some(_) => loginRedirect
-      case None => Ok(html.login(AuthForms.login)(header))
-    }
+  def login(): Action[AnyContent] = UserAwareAction { implicit req =>
+    req.identity
+      .map(_ => loginRedirect)
+      .getOrElse(Ok(html.login(AuthForms.login)(header)))
   }
 
-  def doLogin(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
+  def doLogin(): Action[AnyContent] = UnsecuredAction.async { implicit req =>
     println("doLogin")
     AuthForms.login.bindFromRequest.fold(
       formWithErrors => Future.successful(BadRequest(html.login(formWithErrors)(header))),
       data => (for {
         user <- authSrv.getIdentity(data)
         result <- authSrv.login(user, loginRedirect)
-        _ <- authRepo.login(user.user).unsafeToFuture() // TODO remove
       } yield result).recover {
         case _: IdentityNotFoundException => Ok(html.login(AuthForms.login.fill(data))(header)(req, implicitly[Messages], Flash(Map("error" -> "Wrong login or password"))))
         case _: InvalidPasswordException => Ok(html.login(AuthForms.login.fill(data))(header)(req, implicitly[Messages], Flash(Map("error" -> "Wrong login or password"))))
@@ -103,17 +95,9 @@ class AuthCtrl(cc: ControllerComponents,
     )
   }
 
-  def doLogout(): Action[AnyContent] = Action.async { implicit req =>
-    authRepo.logout().unsafeToFuture()
-      .map { _ => logoutRedirect }
+  def doLogout(): Action[AnyContent] = SecuredAction.async { implicit req =>
+    authSrv.logout(logoutRedirect)
   }
-
-  /* def doLogout(): Action[AnyContent] = silhouette.SecuredAction.async { implicit req =>
-    authSrv.logout().unsafeToFuture().flatMap { _ =>
-      silhouette.env.eventBus.publish(LogoutEvent(req.identity, req))
-      silhouette.env.authenticatorService.discard(req.authenticator, logoutRedirect)
-    }
-  } */
 
   // TODO add a message in every logged page to validate email if not already done
   // TODO create a containerSecured & containerUserAware
@@ -122,17 +106,17 @@ class AuthCtrl(cc: ControllerComponents,
     (for {
       validation <- OptionT(db.getPendingEmailValidationRequest(id, now))
       _ <- OptionT.liftF(db.validateEmail(id, validation.user, now))
-    } yield Redirect(routes.AuthCtrl.login())).value.map(_.getOrElse(notFound())).unsafeToFuture()
+    } yield Redirect(routes.AuthCtrl.login()).flashing("success" -> "Email validated")).value.map(_.getOrElse(notFound())).unsafeToFuture()
   }
 
-  def passwordReset(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    authRepo.userAware() match {
-      case Some(_) => loginRedirect
-      case None => Ok(html.passwordReset(AuthForms.passwordReset)(header))
-    }
+  def passwordReset(): Action[AnyContent] = UserAwareAction { implicit req =>
+    req.identity
+      .map(_ => loginRedirect)
+      .getOrElse(Ok(html.passwordReset(AuthForms.passwordReset)(header)))
   }
 
   def doPasswordReset(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
+    // TODO
     Redirect(routes.AuthCtrl.login())
   }
 }

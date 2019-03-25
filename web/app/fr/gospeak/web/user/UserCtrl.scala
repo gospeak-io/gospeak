@@ -6,7 +6,7 @@ import fr.gospeak.core.domain.User
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.HomeCtrl
-import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
+import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.AuthRepo
 import fr.gospeak.web.domain._
 import fr.gospeak.web.user.UserCtrl._
@@ -19,16 +19,16 @@ class UserCtrl(cc: ControllerComponents, db: GospeakDb, silhouette: Silhouette[C
 
   import silhouette._
 
-  def unsecure: Action[AnyContent] = UnsecuredAction.async { implicit request: Request[AnyContent] =>
+  def unsecure: Action[AnyContent] = UnsecuredAction.async { implicit req: Request[AnyContent] =>
     Future.successful(Ok("UnsecuredAction"))
   }
 
-  def userAware: Action[AnyContent] = UserAwareAction.async { implicit request: UserAwareRequest[CookieEnv, AnyContent] =>
-    Future.successful(Ok("UserAwareAction: " + request.identity))
+  def userAware: Action[AnyContent] = UserAwareAction.async { implicit req: UserAwareRequest[CookieEnv, AnyContent] =>
+    Future.successful(Ok("UserAwareAction: " + req.identity))
   }
 
-  def secure: Action[AnyContent] = SecuredAction.async { implicit request: SecuredRequest[CookieEnv, AnyContent] =>
-    Future.successful(Ok("SecuredAction: " + request.identity))
+  def secure: Action[AnyContent] = SecuredAction.async { implicit req: SecuredRequest[CookieEnv, AnyContent] =>
+    Future.successful(Ok("SecuredAction: " + req.identity))
   }
 
   def index(): Action[AnyContent] = SecuredAction.async { implicit req: SecuredRequest[CookieEnv, AnyContent] =>
