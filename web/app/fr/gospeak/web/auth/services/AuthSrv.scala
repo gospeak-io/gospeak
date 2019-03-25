@@ -3,20 +3,32 @@ package fr.gospeak.web.auth.services
 import java.time.Instant
 
 import cats.effect.IO
-import com.mohiva.play.silhouette.api.LoginInfo
-import com.mohiva.play.silhouette.api.util.{PasswordHasherRegistry, PasswordInfo}
+import com.mohiva.play.silhouette.api.services.AuthenticatorResult
+import com.mohiva.play.silhouette.api.util.{Clock, Credentials, PasswordHasherRegistry, PasswordInfo}
+import com.mohiva.play.silhouette.api.{LoginEvent, LoginInfo, SignUpEvent, Silhouette}
+import com.mohiva.play.silhouette.impl.exceptions.IdentityNotFoundException
+import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.domain.User._
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.web.auth.AuthForms.SignupData
-import fr.gospeak.web.auth.domain.AuthUser
+import fr.gospeak.web.auth.AuthForms.{LoginData, SignupData}
+import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.exceptions.{DuplicateIdentityException, DuplicateSlugException}
+import fr.gospeak.web.domain.AuthCookieConf
+import play.api.mvc.{AnyContent, Request, Result}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class AuthSrv(authRepo: AuthRepo,
               db: GospeakDb,
+              silhouette: Silhouette[CookieEnv],
+              clock: Clock,
+              authCookieConf: AuthCookieConf,
+              credentialsProvider: CredentialsProvider,
               passwordHasherRegistry: PasswordHasherRegistry) {
-  def createIdentity(loginInfo: LoginInfo, data: SignupData, now: Instant): IO[AuthUser] = {
+  def createIdentity(loginInfo: LoginInfo, data: SignupData, now: Instant)(implicit req: Request[AnyContent]): IO[AuthUser] = {
     val login = toDomain(loginInfo)
     val password = toDomain(passwordHasherRegistry.current.hash(data.password.decode))
     val credentials = User.Credentials(login, password)
@@ -33,7 +45,32 @@ class AuthSrv(authRepo: AuthRepo,
       }
       _ <- db.createLoginRef(login, user.id)
       _ <- db.createCredentials(credentials)
-    } yield AuthUser(loginInfo, user)
+      authUser = AuthUser(loginInfo, user)
+      _ = silhouette.env.eventBus.publish(SignUpEvent(authUser, req))
+    } yield authUser
+  }
+
+  def getIdentity(data: LoginData): Future[AuthUser] = {
+    for {
+      loginInfo <- credentialsProvider.authenticate(Credentials(data.email.value, data.password.decode))
+      userOpt <- authRepo.retrieve(loginInfo)
+      user <- userOpt.toFuture(new IdentityNotFoundException(s"User could not be found with info $loginInfo"))
+    } yield user
+  }
+
+  def login(user: AuthUser, redirect: Result)(implicit req: Request[AnyContent]): Future[AuthenticatorResult] = {
+    for {
+      authenticator <- silhouette.env.authenticatorService.create(user.loginInfo).map {
+        case auth if /* data.rememberMe */ true => auth.copy(
+          expirationDateTime = clock.now.plus(authCookieConf.rememberMe.authenticatorExpiry.toMillis),
+          idleTimeout = Some(authCookieConf.rememberMe.authenticatorIdleTimeout),
+          cookieMaxAge = Some(authCookieConf.rememberMe.cookieMaxAge))
+        case auth => auth
+      }
+      cookie <- silhouette.env.authenticatorService.init(authenticator)
+      result <- silhouette.env.authenticatorService.embed(cookie, redirect)
+      _ = silhouette.env.eventBus.publish(LoginEvent(user, req))
+    } yield result
   }
 
   private def toDomain(loginInfo: LoginInfo): User.Login = User.Login(ProviderId(loginInfo.providerID), ProviderKey(loginInfo.providerKey))

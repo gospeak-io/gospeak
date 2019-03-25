@@ -18,12 +18,12 @@ object UserTable {
   private val loginTable = "logins"
   private val loginFields = Seq("provider_id", "provider_key", "user_id")
   private val table = "users"
-  private val fields = Seq("id", "slug", "first_name", "last_name", "email", "created", "updated")
+  private val fields = Seq("id", "slug", "first_name", "last_name", "email", "email_validated", "created", "updated")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
 
   private def values(e: User): Fragment =
-    fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.created}, ${e.updated}"
+    fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.created}, ${e.updated}"
 
   def insert(elt: User): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
@@ -32,6 +32,9 @@ object UserTable {
     val where = fr0"WHERE id=${elt.id}"
     buildUpdate(tableFr, fields, where).update
   }
+
+  def validateEmail(id: User.Id, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"email_validated=$now", fr0"WHERE id=$id").update
 
   def insertLoginRef(i: User.LoginRef): doobie.Update0 =
     buildInsert(Fragment.const0(loginTable), Fragment.const0(loginFields.mkString(", ")), fr0"${i.login.providerId}, ${i.login.providerKey}, ${i.user}").update

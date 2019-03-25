@@ -130,6 +130,11 @@ object Extensions {
       in.map(Success(_)).recover { case NonFatal(e) => Failure(e) }
   }
 
+  implicit class IOExtension[A](val in: IO[A]) extends AnyVal {
+    def filter(p: A => Boolean): IO[A] =
+      in.flatMap(v => if (p(v)) IO.pure(v) else IO.raiseError(new NoSuchElementException("Predicate does not hold for " + v)))
+  }
+
   private def sequenceResult[A, M[X] <: TraversableOnce[X]](in: (mutable.Builder[A, M[A]], Seq[Throwable])): Try[M[A]] = {
     val (results, errors) = in
     NonEmptyList.fromList(errors.reverse.toList)

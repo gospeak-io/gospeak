@@ -98,6 +98,7 @@ object DoobieUtils {
 
     implicit val userIdMeta: Meta[User.Id] = Meta[String].timap(User.Id.from(_).right.get)(_.value)
     implicit val userSlugMeta: Meta[User.Slug] = Meta[String].timap(User.Slug.from(_).right.get)(_.value)
+    implicit val userRequestIdMeta: Meta[UserRequest.Id] = Meta[String].timap(UserRequest.Id.from(_).right.get)(_.value)
     implicit val talkIdMeta: Meta[Talk.Id] = Meta[String].timap(Talk.Id.from(_).right.get)(_.value)
     implicit val talkSlugMeta: Meta[Talk.Slug] = Meta[String].timap(Talk.Slug.from(_).right.get)(_.value)
     implicit val talkTitleMeta: Meta[Talk.Title] = Meta[String].timap(Talk.Title)(_.value)

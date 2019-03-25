@@ -3,7 +3,7 @@ package fr.gospeak.web.utils
 import fr.gospeak.core.domain._
 import fr.gospeak.web.user
 import play.api.i18n.I18nSupport
-import play.api.mvc.{AbstractController, ControllerComponents, Result}
+import play.api.mvc._
 
 abstract class UICtrl(cc: ControllerComponents) extends AbstractController(cc) with I18nSupport {
   protected def talkNotFound(talk: Talk.Slug): Result =
@@ -23,4 +23,7 @@ abstract class UICtrl(cc: ControllerComponents) extends AbstractController(cc) w
 
   protected def proposalNotFound(group: Group.Slug, proposal: Proposal.Id): Result =
     Redirect(user.groups.proposals.routes.ProposalCtrl.list(group)).flashing("warning" -> s"Unable to find proposal with id '${proposal.value}'")
+
+  protected def notFound()(implicit req: Request[AnyContent]): Result =
+    NotFound("Not found :(")
 }

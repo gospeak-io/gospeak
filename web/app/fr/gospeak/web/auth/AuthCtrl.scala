@@ -2,16 +2,19 @@ package fr.gospeak.web.auth
 
 import java.time.Instant
 
+import cats.data.OptionT
+import cats.effect.IO
 import com.mohiva.play.silhouette.api._
-import com.mohiva.play.silhouette.api.util.{Clock, Credentials, PasswordHasherRegistry}
+import com.mohiva.play.silhouette.api.util.{Clock, PasswordHasherRegistry}
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
+import fr.gospeak.core.domain.UserRequest
+import fr.gospeak.core.domain.UserRequest.EmailValidationRequest
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.infra.services.EmailSrv
-import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.auth.AuthCtrl._
-import fr.gospeak.web.auth.domain.CookieEnv
+import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.exceptions.{DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv}
 import fr.gospeak.web.domain.{AuthCookieConf, HeaderInfo}
@@ -23,6 +26,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
+// TODO Add rememberMe feature
 class AuthCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
                authCookieConf: AuthCookieConf,
@@ -49,15 +53,12 @@ class AuthCtrl(cc: ControllerComponents,
     AuthForms.signup.bindFromRequest.fold(
       formWithErrors => Future.successful(BadRequest(html.signup(formWithErrors)(header))),
       data => {
-        // TODO redirect to signup page with a success message and send a validation email to accept email validation
         val loginInfo = new LoginInfo(CredentialsProvider.ID, data.email.value)
         (for {
           user <- authSrv.createIdentity(loginInfo, data, now).unsafeToFuture()
-          authenticator <- silhouette.env.authenticatorService.create(loginInfo)
-          _ = silhouette.env.eventBus.publish(SignUpEvent(user, req))
-          _ = silhouette.env.eventBus.publish(LoginEvent(user, req))
-          cookie <- silhouette.env.authenticatorService.init(authenticator)
-          result <- silhouette.env.authenticatorService.embed(cookie, loginRedirect)
+          emailValidation <- db.createEmailValidationRequest(user.user.email, user.user.id, now).unsafeToFuture()
+          _ <- sendSignupEmail(user, emailValidation).unsafeToFuture()
+          result <- authSrv.login(user, loginRedirect)
           _ <- authRepo.login(user.user).unsafeToFuture() // TODO remove
         } yield result).recover {
           case _: DuplicateIdentityException => Ok(html.signup(AuthForms.signup.fill(data))(header)(req, implicitly[Messages], Flash(Map("error" -> s"User already exists"))))
@@ -66,6 +67,17 @@ class AuthCtrl(cc: ControllerComponents,
         }
       }
     )
+  }
+
+  private def sendSignupEmail(user: AuthUser, emailValidation: EmailValidationRequest)(implicit req: Request[AnyContent]): IO[Unit] = {
+    import EmailSrv._
+    val email = Email(
+      from = Contact("noreply@gospeak.fr", None),
+      to = Seq(Contact(user.user.email.value, Some(user.user.name.value))),
+      subject = "Welcome to gospeak!",
+      content = HtmlContent(emails.html.signup(user, emailValidation).body)
+    )
+    emailSrv.send(email)
   }
 
   def login(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
@@ -80,19 +92,8 @@ class AuthCtrl(cc: ControllerComponents,
     AuthForms.login.bindFromRequest.fold(
       formWithErrors => Future.successful(BadRequest(html.login(formWithErrors)(header))),
       data => (for {
-        loginInfo <- credentialsProvider.authenticate(Credentials(data.email.value, data.password.decode))
-        userOpt <- authRepo.retrieve(loginInfo)
-        user <- userOpt.toFuture(new IdentityNotFoundException(s"User could not be found with info $loginInfo"))
-        authenticator <- silhouette.env.authenticatorService.create(loginInfo).map {
-          case auth if /* data.rememberMe */ true => auth.copy(
-            expirationDateTime = clock.now.plus(authCookieConf.rememberMe.authenticatorExpiry.toMillis),
-            idleTimeout = Some(authCookieConf.rememberMe.authenticatorIdleTimeout),
-            cookieMaxAge = Some(authCookieConf.rememberMe.cookieMaxAge))
-          case auth => auth
-        }
-        _ = silhouette.env.eventBus.publish(LoginEvent(user, req))
-        cookie <- silhouette.env.authenticatorService.init(authenticator)
-        result <- silhouette.env.authenticatorService.embed(cookie, loginRedirect)
+        user <- authSrv.getIdentity(data)
+        result <- authSrv.login(user, loginRedirect)
         _ <- authRepo.login(user.user).unsafeToFuture() // TODO remove
       } yield result).recover {
         case _: IdentityNotFoundException => Ok(html.login(AuthForms.login.fill(data))(header)(req, implicitly[Messages], Flash(Map("error" -> "Wrong login or password"))))
@@ -100,17 +101,6 @@ class AuthCtrl(cc: ControllerComponents,
         case NonFatal(e) => Ok(html.login(AuthForms.login.fill(data))(header)(req, implicitly[Messages], Flash(Map("error" -> s"${e.getClass.getSimpleName}: ${e.getMessage}"))))
       }
     )
-  }
-
-  def passwordReset(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    authRepo.userAware() match {
-      case Some(_) => loginRedirect
-      case None => Ok(html.passwordReset(AuthForms.passwordReset)(header))
-    }
-  }
-
-  def doPasswordReset(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    Redirect(routes.AuthCtrl.login())
   }
 
   def doLogout(): Action[AnyContent] = Action.async { implicit req =>
@@ -124,6 +114,27 @@ class AuthCtrl(cc: ControllerComponents,
       silhouette.env.authenticatorService.discard(req.authenticator, logoutRedirect)
     }
   } */
+
+  // TODO add a message in every logged page to validate email if not already done
+  // TODO create a containerSecured & containerUserAware
+  def doValidateEmail(id: UserRequest.Id): Action[AnyContent] = Action.async { implicit req =>
+    val now = Instant.now()
+    (for {
+      validation <- OptionT(db.getPendingEmailValidationRequest(id, now))
+      _ <- OptionT.liftF(db.validateEmail(id, validation.user, now))
+    } yield Redirect(routes.AuthCtrl.login())).value.map(_.getOrElse(notFound())).unsafeToFuture()
+  }
+
+  def passwordReset(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
+    authRepo.userAware() match {
+      case Some(_) => loginRedirect
+      case None => Ok(html.passwordReset(AuthForms.passwordReset)(header))
+    }
+  }
+
+  def doPasswordReset(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
+    Redirect(routes.AuthCtrl.login())
+  }
 }
 
 object AuthCtrl {

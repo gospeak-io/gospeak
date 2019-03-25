@@ -43,7 +43,7 @@ class UserTableSpec extends TableSpec {
     }
     it("should build insert query") {
       val q = insert(user)
-      q.sql shouldBe "INSERT INTO users (id, slug, first_name, last_name, email, created, updated) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      q.sql shouldBe "INSERT INTO users (id, slug, first_name, last_name, email, email_validated, created, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
       check(q)
     }
     it("should build update query") {
@@ -51,24 +51,29 @@ class UserTableSpec extends TableSpec {
       q.sql shouldBe "UPDATE users SET slug=?, first_name=?, last_name=?, email=?, updated=? WHERE id=?"
       check(q)
     }
+    it("should build validateEmail query") {
+      val q = validateEmail(user.id, now)
+      q.sql shouldBe "UPDATE users SET email_validated=? WHERE id=?"
+      check(q)
+    }
     it("should build selectOne with login query") {
       val q = selectOne(login)
-      q.sql shouldBe "SELECT u.id, u.slug, u.first_name, u.last_name, u.email, u.created, u.updated FROM users u INNER JOIN logins l ON u.id=l.user_id WHERE l.provider_id=? AND l.provider_key=?"
+      q.sql shouldBe "SELECT u.id, u.slug, u.first_name, u.last_name, u.email, u.email_validated, u.created, u.updated FROM users u INNER JOIN logins l ON u.id=l.user_id WHERE l.provider_id=? AND l.provider_key=?"
       check(q)
     }
     it("should build selectOne with email query") {
       val q = selectOne(user.email)
-      q.sql shouldBe "SELECT id, slug, first_name, last_name, email, created, updated FROM users WHERE email=?"
+      q.sql shouldBe "SELECT id, slug, first_name, last_name, email, email_validated, created, updated FROM users WHERE email=?"
       check(q)
     }
     it("should build selectOne with slug query") {
       val q = selectOne(user.slug)
-      q.sql shouldBe "SELECT id, slug, first_name, last_name, email, created, updated FROM users WHERE slug=?"
+      q.sql shouldBe "SELECT id, slug, first_name, last_name, email, email_validated, created, updated FROM users WHERE slug=?"
       check(q)
     }
     it("should build selectAll query") {
       val q = selectAll(NonEmptyList.of(user.id, user.id))
-      q.sql shouldBe "SELECT id, slug, first_name, last_name, email, created, updated FROM users WHERE id IN (?, ?) "
+      q.sql shouldBe "SELECT id, slug, first_name, last_name, email, email_validated, created, updated FROM users WHERE id IN (?, ?) "
       check(q)
     }
   }

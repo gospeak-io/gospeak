@@ -6,6 +6,7 @@ import java.time.{Instant, LocalDateTime}
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
+import fr.gospeak.core.domain.UserRequest.EmailValidationRequest
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.GospeakDb
@@ -30,7 +31,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     val now = Instant.now()
 
     def user(slug: String, email: String, firstName: String, lastName: String): User =
-      User(User.Id.generate(), User.Slug.from(slug).right.get, firstName, lastName, Email.from(email).right.get, now, now)
+      User(User.Id.generate(), User.Slug.from(slug).right.get, firstName, lastName, Email.from(email).right.get, None, now, now)
 
     def group(slug: String, name: String, by: User, owners: Seq[User] = Seq()): Group =
       Group(Group.Id.generate(), Group.Slug.from(slug).right.get, Group.Name(name), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(by.id) ++ owners.map(_.id).toList, Info(by.id, now))
@@ -112,13 +113,13 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
 
   override def createUser(slug: User.Slug, firstName: String, lastName: String, email: Email, now: Instant): IO[User] =
-    run(UserTable.insert, User(User.Id.generate(), slug, firstName, lastName, email, now, now))
+    run(UserTable.insert, User(User.Id.generate(), slug, firstName, lastName, email, None, now, now))
 
   override def updateUser(user: User, now: Instant): IO[User] =
     run(UserTable.update(user.copy(updated = now))).map(_ => user)
 
-  override def createLoginRef(login: User.Login, user: User.Id): IO[Unit] =
-    run(UserTable.insertLoginRef, User.LoginRef(login, user)).map(_ => ())
+  override def createLoginRef(login: User.Login, user: User.Id): IO[Done] =
+    run(UserTable.insertLoginRef, User.LoginRef(login, user)).map(_ => Done)
 
   override def createCredentials(credentials: User.Credentials): IO[User.Credentials] =
     run(UserTable.insertCredentials, credentials)
@@ -139,6 +140,18 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def getUser(slug: User.Slug): IO[Option[User]] = run(UserTable.selectOne(slug).option)
 
   override def getUsers(ids: Seq[User.Id]): IO[Seq[User]] = runIn(UserTable.selectAll)(ids)
+
+
+  override def createEmailValidationRequest(email: Email, user: User.Id, now: Instant): IO[EmailValidationRequest] =
+    run(UserRequestTable.EmailValidation.insert, EmailValidationRequest(email, user, now))
+
+  override def getPendingEmailValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[EmailValidationRequest]] =
+    run(UserRequestTable.EmailValidation.selectPendingEmailValidation(id, now).option)
+
+  override def validateEmail(id: UserRequest.Id, user: User.Id, now: Instant): IO[Done] = for {
+    _ <- run(UserTable.validateEmail(user, now))
+    _ <- run(UserRequestTable.EmailValidation.validateEmail(id, now))
+  } yield Done
 
 
   override def createGroup(data: Group.Data, by: User.Id, now: Instant): IO[Group] =

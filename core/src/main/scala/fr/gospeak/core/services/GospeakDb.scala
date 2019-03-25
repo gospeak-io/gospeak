@@ -4,6 +4,7 @@ import java.time.Instant
 
 import cats.data.NonEmptyList
 import cats.effect.IO
+import fr.gospeak.core.domain.UserRequest.EmailValidationRequest
 import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain._
 
@@ -12,7 +13,7 @@ trait GospeakDb {
 
   def updateUser(user: User, now: Instant): IO[User]
 
-  def createLoginRef(login: User.Login, user: User.Id): IO[Unit]
+  def createLoginRef(login: User.Login, user: User.Id): IO[Done]
 
   def createCredentials(credentials: User.Credentials): IO[User.Credentials]
 
@@ -29,6 +30,13 @@ trait GospeakDb {
   def getUser(slug: User.Slug): IO[Option[User]]
 
   def getUsers(ids: Seq[User.Id]): IO[Seq[User]]
+
+
+  def createEmailValidationRequest(email: Email, user: User.Id, now: Instant): IO[EmailValidationRequest]
+
+  def getPendingEmailValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[EmailValidationRequest]]
+
+  def validateEmail(id: UserRequest.Id, user: User.Id, now: Instant): IO[Done]
 
 
   def createGroup(data: Group.Data, by: User.Id, now: Instant): IO[Group]

@@ -1,5 +1,6 @@
 package fr.gospeak.web.utils
 
+import fr.gospeak.core.domain.UserRequest
 import fr.gospeak.libs.scalautils.domain.{Page, Url}
 import play.api.mvc.QueryStringBindable
 
@@ -23,12 +24,21 @@ object QueryStringBindables {
         ).flatten.mkString("&")
     }
 
-  implicit def urlParamsQueryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[Url] =
+  implicit def urlQueryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[Url] =
     new QueryStringBindable[Url] {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Url]] =
         stringBinder.bind(key, params).map(_.flatMap(u => Url.from(u).left.map(_.getMessage)))
 
       override def unbind(key: String, url: Url): String =
         stringBinder.unbind(key, url.value)
+    }
+
+  implicit def userRequestIdQueryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[UserRequest.Id] =
+    new QueryStringBindable[UserRequest.Id] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, UserRequest.Id]] =
+        stringBinder.bind(key, params).map(_.flatMap(u => UserRequest.Id.from(u).left.map(_.getMessage)))
+
+      override def unbind(key: String, id: UserRequest.Id): String =
+        stringBinder.unbind(key, id.value)
     }
 }

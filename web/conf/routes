@@ -15,9 +15,10 @@ GET         /signup                                                       fr.gos
 POST        /signup                                                       fr.gospeak.web.auth.AuthCtrl.doSignup
 GET         /login                                                        fr.gospeak.web.auth.AuthCtrl.login
 POST        /login                                                        fr.gospeak.web.auth.AuthCtrl.doLogin
+GET         /logout                                                       fr.gospeak.web.auth.AuthCtrl.doLogout
+GET         /validate-email                                               fr.gospeak.web.auth.AuthCtrl.doValidateEmail(id: UserRequest.Id)
 GET         /passwordReset                                                fr.gospeak.web.auth.AuthCtrl.passwordReset
 POST        /passwordReset                                                fr.gospeak.web.auth.AuthCtrl.doPasswordReset
-GET         /logout                                                       fr.gospeak.web.auth.AuthCtrl.doLogout
 
 GET         /u                                                            fr.gospeak.web.user.UserCtrl.index
 GET         /u/unsecure                                                   fr.gospeak.web.user.UserCtrl.unsecure

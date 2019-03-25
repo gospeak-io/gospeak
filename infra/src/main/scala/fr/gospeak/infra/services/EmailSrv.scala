@@ -1,12 +1,12 @@
 package fr.gospeak.infra.services
 
+import cats.effect.IO
 import fr.gospeak.infra.services.EmailSrv._
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Secret
 
-import scala.util.{Success, Try}
-
 trait EmailSrv {
-  def send(email: Email): Try[Unit]
+  def send(email: Email): IO[Unit]
 }
 
 object EmailSrv {
@@ -24,8 +24,8 @@ object EmailSrv {
 }
 
 class ConsoleEmailSrv extends EmailSrv {
-  override def send(email: Email): Try[Unit] =
-    Success(println(s"EmailSrv.send(from: ${email.from.mail}, to: ${email.to.map(_.mail).mkString(",")}, subject: ${email.subject}, content: ${email.content})"))
+  override def send(email: Email): IO[Unit] =
+    IO(println(s"EmailSrv.send(from: ${email.from.mail}, to: ${email.to.map(_.mail).mkString(",")}, subject: ${email.subject}, content: ${email.content})"))
 }
 
 object ConsoleEmailSrv {
@@ -36,16 +36,16 @@ class SendGridEmailSrv private(client: com.sendgrid.SendGrid) extends EmailSrv {
 
   import com.{sendgrid => sg}
 
-  override def send(email: Email): Try[Unit] = {
+  override def send(email: Email): IO[Unit] = {
     // https://github.com/sendgrid/sendgrid-java/blob/master/examples/helpers/mail/Example.java#L30
     val mail = buildMail(email)
     val request = new sg.Request()
     request.setMethod(sg.Method.POST)
     request.setEndpoint("mail/send")
     for {
-      body <- Try(mail.build)
+      body <- IO(mail.build)
       _ = request.setBody(body)
-      _ <- Try(client.api(request)).filter(_.getStatusCode == 202)
+      _ <- IO(client.api(request)).filter(_.getStatusCode == 202)
     } yield ()
   }
 

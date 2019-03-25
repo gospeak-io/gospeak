@@ -1,0 +1,8 @@
+@import fr.gospeak.core.domain.UserRequest.EmailValidationRequest
+@import fr.gospeak.web.auth.domain.AuthUser
+@import fr.gospeak.web.auth.routes.AuthCtrl
+
+@(user: AuthUser, emailValidation: EmailValidationRequest)(implicit req: Request[AnyContent])
+Hello @user.user.name.value
+
+@AuthCtrl.doValidateEmail(emailValidation.id).absoluteURL()
