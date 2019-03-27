@@ -7,7 +7,6 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
-import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import fr.gospeak.core.domain.UserRequest
 import fr.gospeak.core.domain.UserRequest.EmailValidationRequest
 import fr.gospeak.core.services.GospeakDb
@@ -31,6 +30,7 @@ import scala.util.control.NonFatal
 // TODO Password recovery
 // TODO Signup email
 // TODO Display signup/login errors
+// TODO JWT Auth for API
 class AuthCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
                db: GospeakDb,
@@ -52,18 +52,15 @@ class AuthCtrl(cc: ControllerComponents,
     val now = Instant.now()
     AuthForms.signup.bindFromRequest.fold(
       formWithErrors => Future.successful(BadRequest(html.signup(formWithErrors)(header))),
-      data => {
-        val loginInfo = new LoginInfo(CredentialsProvider.ID, data.email.value)
-        (for {
-          user <- authSrv.createIdentity(loginInfo, data, now).unsafeToFuture()
-          emailValidation <- db.createEmailValidationRequest(user.user.email, user.user.id, now).unsafeToFuture()
-          _ <- sendSignupEmail(user, emailValidation).unsafeToFuture()
-          result <- authSrv.login(user, loginRedirect)
-        } yield result).recover {
-          case _: DuplicateIdentityException => Ok(html.signup(AuthForms.signup.fill(data))(header)) // TODO add error: s"User already exists"
-          case e: DuplicateSlugException => Ok(html.signup(AuthForms.signup.fill(data))(header)) // TODO add error: s"Username ${e.slug.value} is already taken"
-          case NonFatal(e) => Ok(html.signup(AuthForms.signup.fill(data))(header)) // TODO add error: s"${e.getClass.getSimpleName}: ${e.getMessage}"
-        }
+      data => (for {
+        user <- authSrv.createIdentity(data, now).unsafeToFuture()
+        emailValidation <- db.createEmailValidationRequest(user.user.email, user.user.id, now).unsafeToFuture()
+        _ <- sendSignupEmail(user, emailValidation).unsafeToFuture()
+        result <- authSrv.login(user, loginRedirect)
+      } yield result).recover {
+        case _: DuplicateIdentityException => Ok(html.signup(AuthForms.signup.fill(data))(header)) // TODO add error: s"User already exists"
+        case e: DuplicateSlugException => Ok(html.signup(AuthForms.signup.fill(data))(header)) // TODO add error: s"Username ${e.slug.value} is already taken"
+        case NonFatal(e) => Ok(html.signup(AuthForms.signup.fill(data))(header)) // TODO add error: s"${e.getClass.getSimpleName}: ${e.getMessage}"
       }
     )
   }

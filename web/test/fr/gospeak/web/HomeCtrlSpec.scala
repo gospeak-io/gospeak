@@ -1,11 +1,11 @@
 package fr.gospeak.web
 
-import fr.gospeak.web.testingutils.{CtrlSpec, Values}
+import fr.gospeak.web.testingutils.CtrlSpec
 import play.api.http.Status
 import play.api.test.Helpers._
 
 class HomeCtrlSpec extends CtrlSpec {
-  private val ctrl = new HomeCtrl(Values.cc, silhouette)
+  private val ctrl = new HomeCtrl(cc, silhouette)
 
   describe("HomeCtrl") {
     it("should return 200") {

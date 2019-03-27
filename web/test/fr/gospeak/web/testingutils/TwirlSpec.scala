@@ -6,11 +6,11 @@ import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import com.mohiva.play.silhouette.api.{LoginInfo, Environment => SilhouetteEnvironment}
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
-import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import com.mohiva.play.silhouette.test._
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
+import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.{GospeakApplicationLoader, routes}
 import org.scalatest.{FunSpec, Matchers}
@@ -24,7 +24,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 trait TwirlSpec extends FunSpec with Matchers with RandomDataGenerator {
   private val user: User = random[User]
-  private val loginInfo: LoginInfo = LoginInfo(CredentialsProvider.ID, user.email.value)
+  private val loginInfo: LoginInfo = AuthSrv.loginInfo(user.email)
   private val identity: AuthUser = AuthUser(loginInfo, user)
 
   private val env: SilhouetteEnvironment[CookieEnv] = FakeEnvironment[CookieEnv](Seq(identity.loginInfo -> identity))

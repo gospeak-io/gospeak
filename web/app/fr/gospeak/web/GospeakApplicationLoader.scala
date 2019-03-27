@@ -4,13 +4,10 @@ import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions._
 import com.mohiva.play.silhouette.api.crypto.{Base64AuthenticatorEncoder, Crypter, CrypterAuthenticatorEncoder, Signer}
 import com.mohiva.play.silhouette.api.services.AuthenticatorService
-import com.mohiva.play.silhouette.api.util.{Clock, FingerprintGenerator, PasswordHasher, PasswordHasherRegistry}
+import com.mohiva.play.silhouette.api.util.{Clock, FingerprintGenerator}
 import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaSigner}
 import com.mohiva.play.silhouette.impl.authenticators._
-import com.mohiva.play.silhouette.impl.providers.{CredentialsProvider, SocialProviderRegistry}
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
-import com.mohiva.play.silhouette.password.BCryptPasswordHasher
-import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
 import com.softwaremill.macwire.wire
 import fr.gospeak.infra.services.storage.sql.{DbSqlConf, GospeakDbSql, H2}
 import fr.gospeak.infra.services.{ConsoleEmailSrv, EmailSrv}
@@ -75,11 +72,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
     new CookieAuthenticatorService(conf.auth.cookie.authenticator, None, signer, cookieHeaderEncoding, authenticatorEncoder, fingerprintGenerator, idGenerator, clock)
   }
 
-  lazy val authInfoRepository = new DelegableAuthInfoRepository(authRepo)
-  lazy val bCryptPasswordHasher: PasswordHasher = new BCryptPasswordHasher
-  lazy val passwordHasherRegistry: PasswordHasherRegistry = PasswordHasherRegistry(bCryptPasswordHasher)
-  lazy val credentialsProvider = new CredentialsProvider(authInfoRepository, passwordHasherRegistry)
-  lazy val socialProviderRegistry = SocialProviderRegistry(List())
+  // lazy val socialProviderRegistry = SocialProviderRegistry(List())
 
   lazy val eventBus: EventBus = new EventBus()
   lazy val bodyParsers: BodyParsers.Default = new BodyParsers.Default(playBodyParsers)
@@ -103,7 +96,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
   // end:Silhouette conf
 
-  lazy val authSrv: AuthSrv = wire[AuthSrv]
+  lazy val authSrv: AuthSrv = AuthSrv(cookieConf, silhouette, db, authRepo, clock)
 
   lazy val homeCtrl = wire[HomeCtrl]
   lazy val cfpCtrl = wire[CfpCtrl]

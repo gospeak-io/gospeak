@@ -3,16 +3,18 @@ package fr.gospeak.web.auth.services
 import java.time.Instant
 
 import cats.effect.IO
-import com.mohiva.play.silhouette.api.services.AuthenticatorResult
-import com.mohiva.play.silhouette.api.util.{Clock, Credentials, PasswordHasherRegistry, PasswordInfo}
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
+import com.mohiva.play.silhouette.api.services.AuthenticatorResult
+import com.mohiva.play.silhouette.api.util._
 import com.mohiva.play.silhouette.impl.exceptions.IdentityNotFoundException
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
+import com.mohiva.play.silhouette.password.BCryptPasswordHasher
+import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
 import fr.gospeak.core.domain.User
-import fr.gospeak.core.domain.User._
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.domain.Email
 import fr.gospeak.web.auth.AuthForms.{LoginData, SignupData}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.exceptions.{DuplicateIdentityException, DuplicateSlugException}
@@ -27,9 +29,10 @@ class AuthSrv(authRepo: AuthRepo,
               silhouette: Silhouette[CookieEnv],
               clock: Clock,
               authCookieConf: AuthCookieConf,
-              credentialsProvider: CredentialsProvider,
-              passwordHasherRegistry: PasswordHasherRegistry) {
-  def createIdentity(loginInfo: LoginInfo, data: SignupData, now: Instant)(implicit req: Request[AnyContent]): IO[AuthUser] = {
+              passwordHasherRegistry: PasswordHasherRegistry,
+              credentialsProvider: CredentialsProvider) {
+  def createIdentity(data: SignupData, now: Instant)(implicit req: Request[AnyContent]): IO[AuthUser] = {
+    val loginInfo = AuthSrv.loginInfo(data.email)
     val login = toDomain(loginInfo)
     val password = toDomain(passwordHasherRegistry.current.hash(data.password.decode))
     val credentials = User.Credentials(login, password)
@@ -81,7 +84,19 @@ class AuthSrv(authRepo: AuthRepo,
     silhouette.env.authenticatorService.discard(req.authenticator, redirect)
   }
 
-  private def toDomain(loginInfo: LoginInfo): User.Login = User.Login(ProviderId(loginInfo.providerID), ProviderKey(loginInfo.providerKey))
+  private def toDomain(loginInfo: LoginInfo): User.Login = User.Login(User.ProviderId(loginInfo.providerID), User.ProviderKey(loginInfo.providerKey))
 
-  private def toDomain(authInfo: PasswordInfo): User.Password = User.Password(Hasher(authInfo.hasher), PasswordValue(authInfo.password), authInfo.salt.map(Salt))
+  private def toDomain(authInfo: PasswordInfo): User.Password = User.Password(User.Hasher(authInfo.hasher), User.PasswordValue(authInfo.password), authInfo.salt.map(User.Salt))
+}
+
+object AuthSrv {
+  def apply(authCookieConf: AuthCookieConf, silhouette: Silhouette[CookieEnv], db: GospeakDb, authRepo: AuthRepo, clock: Clock): AuthSrv = {
+    val authInfoRepository = new DelegableAuthInfoRepository(authRepo)
+    val bCryptPasswordHasher: PasswordHasher = new BCryptPasswordHasher
+    val passwordHasherRegistry: PasswordHasherRegistry = PasswordHasherRegistry(bCryptPasswordHasher)
+    val credentialsProvider = new CredentialsProvider(authInfoRepository, passwordHasherRegistry)
+    new AuthSrv(authRepo, db, silhouette, clock, authCookieConf, passwordHasherRegistry, credentialsProvider)
+  }
+
+  def loginInfo(email: Email): LoginInfo = new LoginInfo(CredentialsProvider.ID, email.value)
 }
