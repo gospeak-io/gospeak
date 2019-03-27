@@ -39,6 +39,7 @@ class GospeakApplicationLoader extends ApplicationLoader {
   }
 }
 
+// use wire[] only for application classes (be explicit with others as they will not change)
 class GospeakComponents(context: ApplicationLoader.Context)
   extends BuiltInComponentsFromContext(context)
     with HttpFiltersComponents
@@ -47,19 +48,16 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val cookieConf: AuthCookieConf = conf.auth.cookie
 
   lazy val dbConf: DbSqlConf = H2("org.h2.Driver", "jdbc:h2:mem:gospeak_db;MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1")
-  lazy val emailSrv: EmailSrv = new ConsoleEmailSrv()
   lazy val db: GospeakDbSql = wire[GospeakDbSql]
+  lazy val authRepo: AuthRepo = wire[AuthRepo]
+  lazy val emailSrv: EmailSrv = wire[ConsoleEmailSrv]
 
   // start:Silhouette conf
-  lazy val authRepo: AuthRepo = wire[AuthRepo]
-  lazy val bodyParsers: BodyParsers.Default = wire[BodyParsers.Default]
-
-  lazy val clock: Clock = wire[Clock]
-  lazy val authenticatorDecoder: Base64AuthenticatorEncoder = wire[Base64AuthenticatorEncoder]
-  lazy val idGenerator = new SecureRandomIDGenerator()
-  lazy val eventBus: EventBus = wire[EventBus]
+  lazy val clock: Clock = Clock()
+  lazy val idGenerator: SecureRandomIDGenerator = new SecureRandomIDGenerator()
 
   lazy val jwtAuth: AuthenticatorService[JWTAuthenticator] = {
+    lazy val authenticatorDecoder: Base64AuthenticatorEncoder = new Base64AuthenticatorEncoder()
     val duration = configuration.underlying.getString("silhouette.jwt.authenticator.authenticatorExpiry")
     val expiration = Duration.apply(duration).asInstanceOf[FiniteDuration]
     val config = JWTAuthenticatorSettings(fieldName = configuration.underlying.getString("silhouette.jwt.authenticator.headerName"),
@@ -77,31 +75,35 @@ class GospeakComponents(context: ApplicationLoader.Context)
     new CookieAuthenticatorService(conf.auth.cookie.authenticator, None, signer, cookieHeaderEncoding, authenticatorEncoder, fingerprintGenerator, idGenerator, clock)
   }
 
-  private lazy val env: Environment[CookieEnv] = Environment[CookieEnv](authRepo, cookieAuth, List(), eventBus)
-
-  lazy val securedErrorHandler: SecuredErrorHandler = wire[DefaultSecuredErrorHandler]
-  lazy val unSecuredErrorHandler: UnsecuredErrorHandler = wire[DefaultUnsecuredErrorHandler]
-
-  lazy val securedRequestHandler: SecuredRequestHandler = wire[DefaultSecuredRequestHandler]
-  lazy val unsecuredRequestHandler: UnsecuredRequestHandler = wire[DefaultUnsecuredRequestHandler]
-  lazy val userAwareRequestHandler: UserAwareRequestHandler = wire[DefaultUserAwareRequestHandler]
-
-  lazy val securedAction: SecuredAction = wire[DefaultSecuredAction]
-  lazy val unsecuredAction: UnsecuredAction = wire[DefaultUnsecuredAction]
-  lazy val userAwareAction: UserAwareAction = wire[DefaultUserAwareAction]
-
   lazy val authInfoRepository = new DelegableAuthInfoRepository(authRepo)
   lazy val bCryptPasswordHasher: PasswordHasher = new BCryptPasswordHasher
   lazy val passwordHasherRegistry: PasswordHasherRegistry = PasswordHasherRegistry(bCryptPasswordHasher)
-
   lazy val credentialsProvider = new CredentialsProvider(authInfoRepository, passwordHasherRegistry)
-
   lazy val socialProviderRegistry = SocialProviderRegistry(List())
 
+  lazy val eventBus: EventBus = new EventBus()
+  lazy val bodyParsers: BodyParsers.Default = new BodyParsers.Default(playBodyParsers)
+
   // lazy val silhouette: Silhouette[JwtEnv] = wire[SilhouetteProvider[JwtEnv]]
-  lazy val silhouette: Silhouette[CookieEnv] = wire[SilhouetteProvider[CookieEnv]]
-  lazy val authSrv: AuthSrv = wire[AuthSrv]
+  lazy val silhouette: Silhouette[CookieEnv] = {
+    val env: Environment[CookieEnv] = Environment[CookieEnv](authRepo, cookieAuth, List(), eventBus)
+
+    val securedErrorHandler: SecuredErrorHandler = new DefaultSecuredErrorHandler(messagesApi)
+    val unsecuredErrorHandler: UnsecuredErrorHandler = new DefaultUnsecuredErrorHandler(messagesApi)
+
+    val securedRequestHandler: SecuredRequestHandler = new DefaultSecuredRequestHandler(securedErrorHandler)
+    val unsecuredRequestHandler: UnsecuredRequestHandler = new DefaultUnsecuredRequestHandler(unsecuredErrorHandler)
+    val userAwareRequestHandler: UserAwareRequestHandler = new DefaultUserAwareRequestHandler()
+
+    val securedAction: SecuredAction = new DefaultSecuredAction(securedRequestHandler, bodyParsers)
+    val unsecuredAction: UnsecuredAction = new DefaultUnsecuredAction(unsecuredRequestHandler, bodyParsers)
+    val userAwareAction: UserAwareAction = new DefaultUserAwareAction(userAwareRequestHandler, bodyParsers)
+
+    new SilhouetteProvider[CookieEnv](env, securedAction, unsecuredAction, userAwareAction)
+  }
   // end:Silhouette conf
+
+  lazy val authSrv: AuthSrv = wire[AuthSrv]
 
   lazy val homeCtrl = wire[HomeCtrl]
   lazy val cfpCtrl = wire[CfpCtrl]

@@ -1,14 +1,16 @@
-@import fr.gospeak.core.domain.{Cfp, Event, Proposal, Talk, User}
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Cfp, Event, Proposal, Talk}
 @import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.{container, pagination, search}
+@import fr.gospeak.web.partials.html.{pagination, search, securedContainer}
+@import fr.gospeak.web.user.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.user.talks.proposals.partials.html.item
 @import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.user.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.utils.Formats._
 
-@(talk: Talk, proposals: Page[(Cfp, Proposal)], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
-@container(talk.title.value + " - Gospeak", h, Some(b))() {
+@(talk: Talk, proposals: Page[(Cfp, Proposal)], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer(talk.title.value + " - Gospeak", h, Some(b))() {
     @if(proposals.isEmpty) {
         <div class="jumbotron">
             <h1>Still no proposal for @talk.title.value <i class="far fa-sad-tear"></i></h1>

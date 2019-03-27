@@ -1,11 +1,13 @@
 package fr.gospeak.web.utils
 
+import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain._
+import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.user
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 
-abstract class UICtrl(cc: ControllerComponents) extends AbstractController(cc) with I18nSupport {
+abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv]) extends AbstractController(cc) with I18nSupport {
   protected def talkNotFound(talk: Talk.Slug): Result =
     Redirect(user.talks.routes.TalkCtrl.list()).flashing("warning" -> s"Unable to find talk with slug '${talk.value}'")
 

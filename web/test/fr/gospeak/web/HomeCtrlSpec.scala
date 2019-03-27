@@ -1,20 +1,15 @@
 package fr.gospeak.web
 
-import fr.gospeak.web.auth.services.AuthRepo
-import fr.gospeak.web.testingutils.Values
-import org.scalatest.{FunSpec, Matchers}
+import fr.gospeak.web.testingutils.{CtrlSpec, Values}
 import play.api.http.Status
-import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-class HomeCtrlSpec extends FunSpec with Matchers {
-  private val db = Values.db
-  db.createTables().unsafeRunSync()
-  private val ctrl = new HomeCtrl(Values.cc, db, new AuthRepo(db))
+class HomeCtrlSpec extends CtrlSpec {
+  private val ctrl = new HomeCtrl(Values.cc, silhouette)
 
   describe("HomeCtrl") {
     it("should return 200") {
-      val res = ctrl.index().apply(FakeRequest())
+      val res = ctrl.index().apply(unsecuredReq)
       status(res) shouldBe Status.OK
       contentAsString(res) should include("""<h1 class="home-title">Gospeak</h1>""")
     }

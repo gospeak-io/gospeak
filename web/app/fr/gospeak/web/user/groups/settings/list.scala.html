@@ -1,12 +1,12 @@
-@import fr.gospeak.core.domain.{Cfp, Event, Group, User}
-@import fr.gospeak.libs.scalautils.domain.Page
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Cfp, Group}
+@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.{container, pagination, search}
-@import fr.gospeak.web.user.groups.events.partials.html.item
+@import fr.gospeak.web.partials.html.securedContainer
 @import fr.gospeak.web.user.groups.settings.routes.SettingsCtrl
 
-@(group: Group, cfpOpt: Option[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
-@container("Gospeak", h, Some(b))() {
+@(group: Group, cfpOpt: Option[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer("Gospeak", h, Some(b))() {
     <div>
         <h1>Settings</h1>
     </div>

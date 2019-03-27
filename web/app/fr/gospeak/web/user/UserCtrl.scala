@@ -1,37 +1,23 @@
 package fr.gospeak.web.user
 
 import com.mohiva.play.silhouette.api.Silhouette
-import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.auth.services.AuthRepo
 import fr.gospeak.web.domain._
 import fr.gospeak.web.user.UserCtrl._
 import fr.gospeak.web.utils.UICtrl
 import play.api.mvc._
 
-import scala.concurrent.Future
-
-class UserCtrl(cc: ControllerComponents, db: GospeakDb, silhouette: Silhouette[CookieEnv], auth: AuthRepo) extends UICtrl(cc) {
+class UserCtrl(cc: ControllerComponents,
+               silhouette: Silhouette[CookieEnv],
+               db: GospeakDb) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
-  def unsecure: Action[AnyContent] = UnsecuredAction.async { implicit req: Request[AnyContent] =>
-    Future.successful(Ok("UnsecuredAction"))
-  }
-
-  def userAware: Action[AnyContent] = UserAwareAction.async { implicit req: UserAwareRequest[CookieEnv, AnyContent] =>
-    Future.successful(Ok("UserAwareAction: " + req.identity))
-  }
-
-  def secure: Action[AnyContent] = SecuredAction.async { implicit req: SecuredRequest[CookieEnv, AnyContent] =>
-    Future.successful(Ok("SecuredAction: " + req.identity))
-  }
-
-  def index(): Action[AnyContent] = SecuredAction.async { implicit req: SecuredRequest[CookieEnv, AnyContent] =>
+  def index(): Action[AnyContent] = SecuredAction.async { implicit req =>
     implicit val user: User = req.identity.user
     (for {
       groups <- db.getGroups(user.id, Page.Params.defaults)
@@ -39,10 +25,9 @@ class UserCtrl(cc: ControllerComponents, db: GospeakDb, silhouette: Silhouette[C
     } yield Ok(html.index(groups, talks)(indexHeader, breadcrumb(user.name)))).unsafeToFuture()
   }
 
-  def profile(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    implicit val user: User = auth.authed()
+  def profile(): Action[AnyContent] = SecuredAction { implicit req =>
     val h = header.activeFor(routes.UserCtrl.profile())
-    val b = breadcrumb(user.name).add("Profile" -> routes.UserCtrl.profile())
+    val b = breadcrumb(req.identity.user.name).add("Profile" -> routes.UserCtrl.profile())
     Ok(html.profile()(h, b))
   }
 }

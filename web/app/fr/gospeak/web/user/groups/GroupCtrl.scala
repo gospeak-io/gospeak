@@ -4,11 +4,13 @@ import java.time.Instant
 
 import cats.data.OptionT
 import cats.effect.IO
+import com.mohiva.play.silhouette.api.Silhouette
+import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.HomeCtrl
-import fr.gospeak.web.auth.services.AuthRepo
+import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain._
 import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.user.groups.GroupCtrl._
@@ -16,49 +18,50 @@ import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
 
-class GroupCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthRepo) extends UICtrl(cc) {
-  def list(params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = auth.authed()
+class GroupCtrl(cc: ControllerComponents,
+                silhouette: Silhouette[CookieEnv],
+                db: GospeakDb) extends UICtrl(cc, silhouette) {
+
+  import silhouette._
+
+  def list(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groups <- db.getGroups(user.id, params)
+      groups <- db.getGroups(req.identity.user.id, params)
       h = listHeader
-      b = listBreadcrumb(user.name)
+      b = listBreadcrumb(req.identity.user.name)
     } yield Ok(html.list(groups)(h, b))).unsafeToFuture()
   }
 
-  def create(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = auth.authed()
+  def create(): Action[AnyContent] = SecuredAction.async { implicit req =>
     createForm(GroupForms.create).unsafeToFuture()
   }
 
-  def doCreate(): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = auth.authed()
+  def doCreate(): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     GroupForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
       data => for {
         // TODO check if slug not already exist
-        _ <- db.createGroup(data, user.id, now)
+        _ <- db.createGroup(data, req.identity.user.id, now)
       } yield Redirect(routes.GroupCtrl.detail(data.slug))
     ).unsafeToFuture()
   }
 
-  private def createForm(form: Form[Group.Data])(implicit req: Request[AnyContent], user: User): IO[Result] = {
+  private def createForm(form: Form[Group.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     val h = listHeader
-    val b = listBreadcrumb(user.name).add("New" -> routes.GroupCtrl.create())
+    val b = listBreadcrumb(req.identity.user.name).add("New" -> routes.GroupCtrl.create())
     IO.pure(Ok(html.create(form)(h, b)))
   }
 
-  def detail(group: Group.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = auth.authed()
+  def detail(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
-      groupElt <- OptionT(db.getGroup(user.id, group))
+      groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
       events <- OptionT.liftF(db.getEventsAfter(groupElt.id, now, Page.Params.defaults.orderBy("start")))
       proposals <- OptionT.liftF(db.getProposals(events.items.flatMap(_.talks)))
       speakers <- OptionT.liftF(db.getUsers(proposals.flatMap(_.speakers.toList)))
       h = header(group)
-      b = breadcrumb(user.name, group -> groupElt.name)
+      b = breadcrumb(req.identity.user.name, group -> groupElt.name)
     } yield Ok(html.detail(groupElt, events, proposals, speakers)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 }

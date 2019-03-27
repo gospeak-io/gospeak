@@ -1,9 +1,10 @@
-@import fr.gospeak.core.domain.User
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.partials.html.securedContainer
 
-@()(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
-@container("Gospeak", h, Some(b))() {
+@()(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer("Gospeak", h, Some(b))() {
     <div>
         <h1>Profile (TODO)</h1>
     </div>

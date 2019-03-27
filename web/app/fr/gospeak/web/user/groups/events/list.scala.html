@@ -1,12 +1,14 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Event, Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.{container, pagination, search}
+@import fr.gospeak.web.partials.html.{pagination, search, securedContainer}
 @import fr.gospeak.web.user.groups.events.partials.html.item
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 
-@(group: Group, events: Page[Event], proposals: Seq[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
-@container("Gospeak", h, Some(b))() {
+@(group: Group, events: Page[Event], proposals: Seq[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer("Gospeak", h, Some(b))() {
     <div>
         <span class="float-right">
             <a class="btn btn-primary" href="@EventCtrl.create(group.slug)">Create an event</a>

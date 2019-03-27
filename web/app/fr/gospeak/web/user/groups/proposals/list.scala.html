@@ -1,14 +1,16 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.{container, pagination, search}
+@import fr.gospeak.web.partials.html.{pagination, search, securedContainer}
 @import fr.gospeak.web.user.groups.proposals.partials.html.item
 @import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.user.groups.settings.routes.SettingsCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
-@container(group.name.value + " - Gospeak", h, Some(b))() {
+@(group: Group, cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer(group.name.value + " - Gospeak", h, Some(b))() {
     @cfpOpt.map { cfp =>
     <div>
         <h1>@Formats.plural(proposals.total.value, "proposal")</h1>

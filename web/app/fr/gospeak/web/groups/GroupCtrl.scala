@@ -1,17 +1,19 @@
 package fr.gospeak.web.groups
 
-import fr.gospeak.core.domain.User
-import fr.gospeak.core.services.GospeakDb
+import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.web.HomeCtrl
-import fr.gospeak.web.auth.services.AuthRepo
+import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.HeaderInfo
 import fr.gospeak.web.groups.GroupCtrl._
 import fr.gospeak.web.utils.UICtrl
 import play.api.mvc._
 
-class GroupCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthRepo) extends UICtrl(cc) {
-  def list(): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    implicit val user: Option[User] = auth.userAware()
+class GroupCtrl(cc: ControllerComponents,
+                silhouette: Silhouette[CookieEnv]) extends UICtrl(cc, silhouette) {
+
+  import silhouette._
+
+  def list(): Action[AnyContent] = UserAwareAction { implicit req =>
     Ok(html.list()(header))
   }
 }

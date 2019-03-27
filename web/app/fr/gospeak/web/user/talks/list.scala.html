@@ -1,13 +1,15 @@
-@import fr.gospeak.core.domain.{Talk, User}
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.Talk
 @import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.{container, pagination, search}
+@import fr.gospeak.web.partials.html.{pagination, search, securedContainer}
 @import fr.gospeak.web.user.talks.partials.html.item
 @import fr.gospeak.web.user.talks.routes.TalkCtrl
 @import fr.gospeak.web.utils.Formats._
 
-@(talks: Page[Talk])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, flash: Flash)
-@container("Gospeak", h, Some(b))() {
+@(talks: Page[Talk])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer("Gospeak", h, Some(b))() {
     @if(talks.isEmpty) {
         <div class="jumbotron">
             <h1>You have no talk <i class="far fa-sad-tear"></i></h1>

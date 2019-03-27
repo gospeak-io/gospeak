@@ -1,18 +1,19 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Cfp, Event, Proposal, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.{Page, Url}
-@import fr.gospeak.web.user.talks.partials
+@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.partials.display.html._
 @import fr.gospeak.web.partials.form.html._
-@import fr.gospeak.web.user.talks.routes.TalkCtrl
-@import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.user.talks.proposals.partials.html.{item => proposalItem}
+@import fr.gospeak.web.partials.html.securedContainer
 @import fr.gospeak.web.user.talks.cfps.routes.CfpCtrl
+@import fr.gospeak.web.user.talks.proposals.partials.html.{item => proposalItem}
+@import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.user.talks.routes.TalkCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(talk: Talk, speakers: Seq[User], proposals: Page[(Cfp, Proposal)], events: Seq[Event], embedForm: Form[Url])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
-@container(talk.title.value + " - Gospeak", h, Some(b))() {
+@(talk: Talk, speakers: Seq[User], proposals: Page[(Cfp, Proposal)], events: Seq[Event], embedForm: Form[Url])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer(talk.title.value + " - Gospeak", h, Some(b))() {
     @if(talk.status == Talk.Status.Draft) {
         <div class="alert alert-info" role="alert">
             <div class="mb-0 float-right">

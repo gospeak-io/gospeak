@@ -1,9 +1,10 @@
-@import fr.gospeak.core.domain.User
+@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
+@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.HeaderInfo
-@import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.partials.html.userAwareContainer
 
-@()(h: HeaderInfo)(implicit user: Option[User], flash: Flash)
-@container("Gospeak", h)() {
+@()(h: HeaderInfo)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@userAwareContainer("Gospeak", h)() {
     <div>
         <h1>CFPs (TODO)</h1>
     </div>

@@ -4,10 +4,12 @@ import java.time.Instant
 
 import cats.data.OptionT
 import cats.effect.IO
+import com.mohiva.play.silhouette.api.Silhouette
+import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Cfp, Proposal, Talk, User}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.libs.scalautils.domain.Page
-import fr.gospeak.web.auth.services.AuthRepo
+import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.user.talks.TalkCtrl
 import fr.gospeak.web.user.talks.cfps.CfpCtrl._
@@ -16,45 +18,47 @@ import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
 
-class CfpCtrl(cc: ControllerComponents, db: GospeakDb, auth: AuthRepo) extends UICtrl(cc) {
-  def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = auth.authed()
+class CfpCtrl(cc: ControllerComponents,
+              silhouette: Silhouette[CookieEnv],
+              db: GospeakDb) extends UICtrl(cc, silhouette) {
+
+  import silhouette._
+
+  def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      talkElt <- OptionT(db.getTalk(user.id, talk))
+      talkElt <- OptionT(db.getTalk(req.identity.user.id, talk))
       cfps <- OptionT.liftF(db.getCfpAvailables(talkElt.id, params))
       h = TalkCtrl.header(talkElt.slug)
-      b = listBreadcrumb(user.name, talk -> talkElt.title)
+      b = listBreadcrumb(req.identity.user.name, talk -> talkElt.title)
     } yield Ok(html.list(talkElt, cfps)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 
-  def create(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = auth.authed()
+  def create(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     createForm(CfpForms.create, talk, cfp).unsafeToFuture()
   }
 
-  def doCreate(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = Action.async { implicit req: Request[AnyContent] =>
-    implicit val user: User = auth.authed()
+  def doCreate(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     CfpForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors, talk, cfp),
       data => {
         (for {
-          talkElt <- OptionT(db.getTalk(user.id, talk))
+          talkElt <- OptionT(db.getTalk(req.identity.user.id, talk))
           cfpElt <- OptionT(db.getCfp(cfp))
-          proposal <- OptionT.liftF(db.createProposal(talkElt.id, cfpElt.id, data, talkElt.speakers, user.id, now))
+          proposal <- OptionT.liftF(db.createProposal(talkElt.id, cfpElt.id, data, talkElt.speakers, req.identity.user.id, now))
         } yield Redirect(ProposalCtrl.detail(talk, proposal.id))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }
     ).unsafeToFuture()
   }
 
-  private def createForm(form: Form[Proposal.Data], talk: Talk.Slug, cfp: Cfp.Slug)(implicit req: Request[AnyContent], user: User): IO[Result] = {
+  private def createForm(form: Form[Proposal.Data], talk: Talk.Slug, cfp: Cfp.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      talkElt <- OptionT(db.getTalk(user.id, talk))
+      talkElt <- OptionT(db.getTalk(req.identity.user.id, talk))
       cfpElt <- OptionT(db.getCfp(cfp))
       proposalOpt <- OptionT.liftF(db.getProposal(talkElt.id, cfpElt.id))
       filledForm = if (form.hasErrors) form else form.fill(Proposal.Data(talkElt))
       h = TalkCtrl.header(talkElt.slug)
-      b = breadcrumb(user.name, talk -> talkElt.title, cfp -> cfpElt.name)
+      b = breadcrumb(req.identity.user.name, talk -> talkElt.title, cfp -> cfpElt.name)
     } yield proposalOpt
       .map(proposal => Redirect(ProposalCtrl.detail(talk, proposal.id)))
       .getOrElse(Ok(html.create(filledForm, talkElt, cfpElt)(h, b)))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))

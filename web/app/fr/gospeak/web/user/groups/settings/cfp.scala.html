@@ -1,12 +1,14 @@
-@import fr.gospeak.core.domain.{Cfp, Group, User}
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Cfp, Group}
+@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.form.html._
-@import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.partials.html.securedContainer
 @import fr.gospeak.web.user.groups.routes.GroupCtrl
 @import fr.gospeak.web.user.groups.settings.routes.SettingsCtrl
 
-@(form: Form[Cfp.Data], group: Group, cfpOpt: Option[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
-@container("Gospeak", h, Some(b))() {
+@(form: Form[Cfp.Data], group: Group, cfpOpt: Option[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer("Gospeak", h, Some(b))() {
     <div>
         <h1>CFP settings</h1>
     </div>

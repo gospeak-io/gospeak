@@ -1,11 +1,13 @@
+@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 @import fr.gospeak.web.auth.AuthForms.LoginData
+@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.domain.HeaderInfo
-@import fr.gospeak.web.partials.html.container
 @import fr.gospeak.web.partials.form.html._
+@import fr.gospeak.web.partials.html.userAwareContainer
 
-@(form: Form[LoginData])(h: HeaderInfo)(implicit req: Request[AnyContent], messages: Messages, flash: Flash)
-@container("Gospeak", h)() {
+@(form: Form[LoginData])(h: HeaderInfo)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@userAwareContainer("Gospeak", h)() {
     <div class="login">
         <div class="card bg-light shadow">
             <div class="card-body">

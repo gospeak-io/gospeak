@@ -1,17 +1,19 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Cfp, Event, Proposal, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.Url
+@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.display.html._
 @import fr.gospeak.web.partials.form.html._
-@import fr.gospeak.web.partials.html.container
+@import fr.gospeak.web.partials.html.securedContainer
 @import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(talk: Talk, cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event], embedForm: Form[Url])(h: HeaderInfo, b: Breadcrumb)(implicit user: User, req: Request[AnyContent], messages: Messages, flash: Flash)
+@(talk: Talk, cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event], embedForm: Form[Url])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @eventinfo(id: Event.Id) = {
     @events.find(_.id == id).map { e => @e.name.value - @Formats.date(e.start) }.getOrElse { Unknown event @id.value }
 }
-@container(cfp.name.value + " - Gospeak", h, Some(b))() {
+@securedContainer(cfp.name.value + " - Gospeak", h, Some(b))() {
     <div>
         <h1>@proposal.title.value proposal to @cfp.name.value</h1>
         @duration(proposal.duration) @proposalStatus(proposal.status) @proposal.event.map { id => @eventinfo(id) }
