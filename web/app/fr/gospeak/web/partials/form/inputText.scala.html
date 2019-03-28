@@ -9,7 +9,7 @@
     value="@Utils.getArg(args, "value", field.value.getOrElse(""))"
     @Utils.getArg(args, "placeholder").map { v => placeholder="@v" }
     @Utils.isRequired(field).map { _ => required="" }
-    @Utils.hasPattern(field).map { c => pattern="@{c._2.head.toString}" }
+    @Utils.pattern(field).map { p => pattern="@p" }
     @Utils.getArg(args, "autofocus").map { _ => autofocus="" }
     @Utils.getArg(args, "help").map { v => aria-describedby="@v" }
     @Utils.attributes(args, Seq("type", "class", "id", "name", "value", "placeholder", "required", "pattern", "autofocus", "help"))>

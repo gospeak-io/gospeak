@@ -130,6 +130,15 @@ object Extensions {
       in.map(Success(_)).recover { case NonFatal(e) => Failure(e) }
   }
 
+  // conflicts with some cats implicits :(
+  /* implicit class EitherExtension[E, A](val in: Either[E, A]) extends AnyVal {
+    def get: A = in match {
+      case Right(v) => v
+      case Left(e: Throwable) => throw e
+      case Left(e) => throw new NoSuchElementException(s"Left($e).get")
+    }
+  } */
+
   implicit class IOExtension[A](val in: IO[A]) extends AnyVal {
     def filter(p: A => Boolean): IO[A] =
       in.flatMap(v => if (p(v)) IO.pure(v) else IO.raiseError(new NoSuchElementException("Predicate does not hold for " + v)))

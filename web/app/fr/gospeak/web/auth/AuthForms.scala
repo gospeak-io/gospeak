@@ -12,8 +12,8 @@ object AuthForms {
 
   val signup: Form[SignupData] = Form(mapping(
     "slug" -> userSlug,
-    "first-name" -> nonEmptyText,
-    "last-name" -> nonEmptyText,
+    "first-name" -> text(1, 30),
+    "last-name" -> text(1, 30),
     "email" -> mail,
     "password" -> secret
   )(SignupData.apply)(SignupData.unapply))

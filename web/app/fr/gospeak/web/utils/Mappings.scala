@@ -2,7 +2,6 @@ package fr.gospeak.web.utils
 
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 
-import cats.data.Validated._
 import cats.implicits._
 import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain._
@@ -11,8 +10,8 @@ import fr.gospeak.web.utils.Extensions._
 import fr.gospeak.web.utils.Mappings.Utils._
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.validation.{Constraint, ValidationError, Invalid => PlayInvalid, Valid => PlayValid}
-import play.api.data.{FormError, Mapping}
+import play.api.data.validation.{Constraint, Constraints, ValidationError, Invalid => PlayInvalid, Valid => PlayValid}
+import play.api.data.{FormError, Mapping, WrappedMapping}
 
 import scala.concurrent.duration._
 import scala.util.Try
@@ -30,7 +29,7 @@ object Mappings {
   lazy val instant: Mapping[Instant] = of(instantFormatter) // lazy is needed because Utils object is created after which leads to NullPointerException :(
   val duration: Mapping[FiniteDuration] = longMapping(Duration.apply(_, MINUTES), _.toMinutes)
 
-  val mail: Mapping[Email] = stringEitherMapping(Email.from, _.value, required)
+  val mail: Mapping[Email] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(100)), (s: String) => Email.from(s).right.get, _.value)
   val url: Mapping[Url] = stringEitherMapping(Url.from, _.value)
   val slides: Mapping[Slides] = stringEitherMapping(Slides.from, _.value)
   val video: Mapping[Video] = stringEitherMapping(Video.from, _.value)
@@ -75,7 +74,7 @@ object Mappings {
       ).collect { case (k, Some(v)) => (k, v) }.toMap
   })
 
-  val userSlug: Mapping[User.Slug] = stringEitherMapping(User.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
+  val userSlug: Mapping[User.Slug] = WrappedMapping(text.verifying(Constraints.nonEmpty(), Constraints.pattern(SlugBuilder.pattern), Constraints.maxLength(30)), (s: String) => User.Slug.from(s).right.get, _.value)
   val groupSlug: Mapping[Group.Slug] = stringEitherMapping(Group.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
   val groupName: Mapping[Group.Name] = stringMapping(Group.Name, _.value, required)
   val eventSlug: Mapping[Event.Slug] = stringEitherMapping(Event.Slug.from, _.value, required, pattern(SlugBuilder.pattern))

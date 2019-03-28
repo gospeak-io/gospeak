@@ -29,7 +29,6 @@ import scala.util.control.NonFatal
 // TODO Add rememberMe feature
 // TODO Password recovery
 // TODO Signup email
-// TODO Display signup/login errors
 // TODO JWT Auth for API
 class AuthCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
@@ -58,9 +57,9 @@ class AuthCtrl(cc: ControllerComponents,
         _ <- sendSignupEmail(user, emailValidation).unsafeToFuture()
         result <- authSrv.login(user, loginRedirect)
       } yield result).recover {
-        case _: DuplicateIdentityException => Ok(html.signup(AuthForms.signup.fill(data))(header)) // TODO add error: s"User already exists"
-        case e: DuplicateSlugException => Ok(html.signup(AuthForms.signup.fill(data))(header)) // TODO add error: s"Username ${e.slug.value} is already taken"
-        case NonFatal(e) => Ok(html.signup(AuthForms.signup.fill(data))(header)) // TODO add error: s"${e.getClass.getSimpleName}: ${e.getMessage}"
+        case _: DuplicateIdentityException => BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError("User already exists"))(header))
+        case e: DuplicateSlugException => BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError(s"Username ${e.slug.value} is already taken"))(header))
+        case NonFatal(e) => BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"))(header))
       }
     )
   }
@@ -90,9 +89,9 @@ class AuthCtrl(cc: ControllerComponents,
         user <- authSrv.getIdentity(data)
         result <- authSrv.login(user, loginRedirect)
       } yield result).recover {
-        case _: IdentityNotFoundException => Ok(html.login(AuthForms.login.fill(data))(header)) // TODO add error: "Wrong login or password"
-        case _: InvalidPasswordException => Ok(html.login(AuthForms.login.fill(data))(header)) // TODO add error: "Wrong login or password"
-        case NonFatal(e) => Ok(html.login(AuthForms.login.fill(data))(header)) // TODO add error: s"${e.getClass.getSimpleName}: ${e.getMessage}"
+        case _: IdentityNotFoundException => Ok(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"))(header))
+        case _: InvalidPasswordException => Ok(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"))(header))
+        case NonFatal(e) => Ok(html.login(AuthForms.login.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"))(header))
       }
     )
   }

@@ -5,6 +5,8 @@ import play.api.data.Field
 import play.api.i18n.Messages
 import play.twirl.api.Html
 
+import scala.util.matching.Regex
+
 object Utils {
   type Args = Seq[(String, String)]
   type Constraint = (String, Seq[Any])
@@ -29,6 +31,13 @@ object Utils {
 
   def hasPattern(field: Field): Option[Constraint] =
     field.constraints.find { case (k, _) => k == Mappings.patternConstraint }
+
+  def pattern(field: Field): Option[String] =
+    hasPattern(field).map(_._2.head).flatMap {
+      case r: Regex => Some(r.toString())
+      case f: (() => Regex) => Some(f().toString())
+      case _ => None
+    }
 
   def format(c: Constraint)(implicit messages: Messages): String =
     c match {
