@@ -19,13 +19,11 @@ object HttpUtils {
 
   // return Referer if present except if it's the same than Request-URI, or else it returns the provided Call
   def cancelUrl(req: Request[AnyContent], call: => Call): String = {
-    getReferer(req)
-      .filter { ref =>
-        val refPath = getUrlPath(ref)
-        val reqPath = getRequestUri(req).map(getUriPath).getOrElse("")
-        refPath != reqPath
-      }
-      .getOrElse(call.toString)
+    getReferer(req).filter { ref =>
+      val refPath = getUrlPath(ref)
+      val reqPath = getRequestUri(req).map(getUriPath).getOrElse("")
+      refPath != reqPath
+    }.getOrElse(call.toString)
   }
 
   private[utils] def getUrlPath(url: String): String = Try(new URL(url).getPath).getOrElse(url)

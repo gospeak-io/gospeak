@@ -74,12 +74,10 @@ class AuthSrv(authRepo: AuthRepo,
       cookie <- silhouette.env.authenticatorService.init(authenticator)
       result <- silhouette.env.authenticatorService.embed(cookie, redirect)
       _ = silhouette.env.eventBus.publish(LoginEvent(user, req))
-      _ <- authRepo.login(user.user).unsafeToFuture() // TODO remove
     } yield result
   }
 
   def logout(redirect: Result)(implicit req: SecuredRequest[CookieEnv, AnyContent]): Future[AuthenticatorResult] = {
-    authRepo.logout().unsafeRunSync() // TODO remove
     silhouette.env.eventBus.publish(LogoutEvent(req.identity, req))
     silhouette.env.authenticatorService.discard(req.authenticator, redirect)
   }

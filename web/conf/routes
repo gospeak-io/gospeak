@@ -11,14 +11,14 @@ GET         /groups                                                       fr.gos
 GET         /speakers                                                     fr.gospeak.web.speakers.SpeakerCtrl.list
 #GET         /speakers/:speaker                                            fr.gospeak.web.??? # speaker page
 
-GET         /signup                                                       fr.gospeak.web.auth.AuthCtrl.signup
-POST        /signup                                                       fr.gospeak.web.auth.AuthCtrl.doSignup
-GET         /login                                                        fr.gospeak.web.auth.AuthCtrl.login
-POST        /login                                                        fr.gospeak.web.auth.AuthCtrl.doLogin
+GET         /signup                                                       fr.gospeak.web.auth.AuthCtrl.signup(redirect: Option[String] ?= None)
+POST        /signup                                                       fr.gospeak.web.auth.AuthCtrl.doSignup(redirect: Option[String] ?= None)
+GET         /login                                                        fr.gospeak.web.auth.AuthCtrl.login(redirect: Option[String] ?= None)
+POST        /login                                                        fr.gospeak.web.auth.AuthCtrl.doLogin(redirect: Option[String] ?= None)
 GET         /logout                                                       fr.gospeak.web.auth.AuthCtrl.doLogout
 GET         /validate-email                                               fr.gospeak.web.auth.AuthCtrl.doValidateEmail(id: UserRequest.Id)
-GET         /passwordReset                                                fr.gospeak.web.auth.AuthCtrl.passwordReset
-POST        /passwordReset                                                fr.gospeak.web.auth.AuthCtrl.doPasswordReset
+GET         /passwordReset                                                fr.gospeak.web.auth.AuthCtrl.passwordReset(redirect: Option[String] ?= None)
+POST        /passwordReset                                                fr.gospeak.web.auth.AuthCtrl.doPasswordReset(redirect: Option[String] ?= None)
 
 GET         /u                                                            fr.gospeak.web.user.UserCtrl.index
 GET         /u/profile                                                    fr.gospeak.web.user.UserCtrl.profile

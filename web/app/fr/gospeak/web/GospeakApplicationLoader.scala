@@ -13,7 +13,7 @@ import fr.gospeak.infra.services.storage.sql.{DbSqlConf, GospeakDbSql, H2}
 import fr.gospeak.infra.services.{ConsoleEmailSrv, EmailSrv}
 import fr.gospeak.web.auth.AuthCtrl
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv}
+import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
 import fr.gospeak.web.cfps.CfpCtrl
 import fr.gospeak.web.domain.{AppConf, AuthCookieConf}
 import fr.gospeak.web.groups.GroupCtrl
@@ -81,8 +81,8 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val silhouette: Silhouette[CookieEnv] = {
     val env: Environment[CookieEnv] = Environment[CookieEnv](authRepo, cookieAuth, List(), eventBus)
 
-    val securedErrorHandler: SecuredErrorHandler = new DefaultSecuredErrorHandler(messagesApi)
-    val unsecuredErrorHandler: UnsecuredErrorHandler = new DefaultUnsecuredErrorHandler(messagesApi)
+    val securedErrorHandler: SecuredErrorHandler = new CustomSecuredErrorHandler(messagesApi)
+    val unsecuredErrorHandler: UnsecuredErrorHandler = new CustomUnsecuredErrorHandler(messagesApi)
 
     val securedRequestHandler: SecuredRequestHandler = new DefaultSecuredRequestHandler(securedErrorHandler)
     val unsecuredRequestHandler: UnsecuredRequestHandler = new DefaultUnsecuredRequestHandler(unsecuredErrorHandler)

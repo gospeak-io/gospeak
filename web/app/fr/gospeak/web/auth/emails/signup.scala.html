@@ -3,7 +3,7 @@
 @import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 @import fr.gospeak.web.auth.routes.AuthCtrl
 
-@(user: AuthUser, emailValidation: EmailValidationRequest)(implicit req: UserAwareRequest[CookieEnv, AnyContent])
+@(user: AuthUser, emailValidation: EmailValidationRequest)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 Hello @user.user.name.value
 
 @AuthCtrl.doValidateEmail(emailValidation.id).absoluteURL()

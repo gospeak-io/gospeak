@@ -6,12 +6,12 @@
 @import fr.gospeak.web.partials.form.html._
 @import fr.gospeak.web.partials.html.userAwareContainer
 
-@(form: Form[LoginData])(h: HeaderInfo)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(form: Form[LoginData], redirect: Option[String])(h: HeaderInfo)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @userAwareContainer("Gospeak", h)() {
     <div class="login">
         <div class="card bg-light shadow">
             <div class="card-body">
-            @formElt(form, AuthCtrl.doLogin()) {
+            @formElt(form, AuthCtrl.doLogin(redirect)) {
                 <div class="form-group">
                     <div class="input-group">
                         <div class="input-group-prepend">
@@ -33,8 +33,8 @@
             </div>
         </div>
         <div class="mt-2">
-            <a href="@AuthCtrl.signup()" class="text-muted float-right">Create new account</a>
-            <a href="@AuthCtrl.passwordReset()" class="text-muted">Forgot password ?</a>
+            <a href="@AuthCtrl.signup(redirect)" class="text-muted float-right">Create new account</a>
+            <a href="@AuthCtrl.passwordReset(redirect)" class="text-muted">Forgot password ?</a>
         </div>
     </div>
 }()
