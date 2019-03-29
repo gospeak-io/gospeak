@@ -12,6 +12,7 @@ class AuthCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
   private val authRepo = new AuthRepo(db)
   private val authSrv = AuthSrv(conf.auth.cookie, silhouette, db, authRepo, clock)
   private val ctrl = new AuthCtrl(cc, silhouette, db, authSrv, new ConsoleEmailSrv())
+  private val redirect: Option[String] = None
 
   override def beforeEach(): Unit = db.createTables().unsafeRunSync()
 
@@ -20,15 +21,15 @@ class AuthCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
   describe("AuthCtrl") {
     describe("signup") {
       it("should return form when not authenticated") {
-        val res = ctrl.signup().apply(unsecuredReq)
+        val res = ctrl.signup(redirect).apply(unsecuredReq)
         status(res) shouldBe Status.OK
       }
       it("should redirect to user home when authenticated") {
-        val res = ctrl.signup().apply(securedReq)
+        val res = ctrl.signup(redirect).apply(securedReq)
         status(res) shouldBe Status.SEE_OTHER
       }
       it("should create a user and credentials then login") {
-        val res = ctrl.doSignup().apply(unsecuredReq.withBody(AnyContentAsFormUrlEncoded(Map(
+        val res = ctrl.doSignup(redirect).apply(unsecuredReq.withBody(AnyContentAsFormUrlEncoded(Map(
           "slug" -> Seq("slug"),
           "first-name" -> Seq("first"),
           "last-name" -> Seq("last"),
@@ -48,21 +49,21 @@ class AuthCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
     }
     describe("login") {
       it("should return form when not authenticated") {
-        val res = ctrl.login().apply(unsecuredReq)
+        val res = ctrl.login(redirect).apply(unsecuredReq)
         status(res) shouldBe Status.OK
       }
       it("should redirect to user home when authenticated") {
-        val res = ctrl.login().apply(securedReq)
+        val res = ctrl.login(redirect).apply(securedReq)
         status(res) shouldBe Status.SEE_OTHER
       }
     }
     describe("passwordReset") {
       it("should return form when not authenticated") {
-        val res = ctrl.passwordReset().apply(unsecuredReq)
+        val res = ctrl.passwordReset(redirect).apply(unsecuredReq)
         status(res) shouldBe Status.OK
       }
       it("should redirect to user home when authenticated") {
-        val res = ctrl.passwordReset().apply(securedReq)
+        val res = ctrl.passwordReset(redirect).apply(securedReq)
         status(res) shouldBe Status.SEE_OTHER
       }
     }
