@@ -2,8 +2,6 @@ package fr.gospeak.libs.scalautils.domain
 
 import org.scalatest.{FunSpec, Matchers}
 
-import scala.util.{Failure, Success}
-
 class DataClassSpec extends FunSpec with Matchers {
 
   class Id(value: String) extends DataClass(value)
@@ -46,7 +44,7 @@ class DataClassSpec extends FunSpec with Matchers {
     }
   }
   describe("SlugBuilder") {
-    val builder = new SlugBuilder[Id]("Id", new Id(_)) {}
+    val builder = new SlugBuilder[Id with ISlug]("Id", new Id(_) with ISlug) {}
 
     it("should build a Slug from String") {
       builder.from("wrong slug") shouldBe a[Left[_, _]]

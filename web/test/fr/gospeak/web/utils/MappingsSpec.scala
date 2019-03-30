@@ -2,110 +2,144 @@ package fr.gospeak.web.utils
 
 import java.time.Instant
 
+import fr.gospeak.core.domain._
 import fr.gospeak.core.testingutils.Generators._
-import fr.gospeak.libs.scalautils.domain.{CustomException, GMapPlace}
-import fr.gospeak.web.utils.Mappings.Utils._
+import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.utils.Mappings._
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{FunSpec, Matchers}
 import play.api.data.FormError
-import play.api.data.validation.{Invalid, Valid, ValidationError}
+
+import scala.concurrent.duration.FiniteDuration
 
 class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
-
-  case class Value(value: String)
-
-  object Value {
-    def from(in: String): Either[CustomException, Value] = {
-      if (in.nonEmpty && in.length < 4) Right(Value(in))
-      else Left(CustomException("Wrong format"))
-    }
-  }
-
-  case class LongValue(value: Long)
-
   describe("Mappings") {
-    describe("gMapPlace") {
-      it("should bind & unbind a GMapPlace") {
-        forAll { p: GMapPlace =>
-          val data = gMapPlace.unbind(p)
-          gMapPlace.bind(data) shouldBe Right(p)
-        }
+    it("should bind & unbind a Instant") {
+      forAll { v: Instant =>
+        val data = instant.unbind(v)
+        instant.bind(data) shouldBe Right(v)
+      }
+      instant.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
+      instant.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.datetime"), Seq())))
+      instant.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.datetime"), Seq())))
+    }
+    it("should bind & unbind a FiniteDuration") {
+      forAll { v: FiniteDuration =>
+        val data = duration.unbind(v)
+        duration.bind(data).map(_.toMinutes) shouldBe Right(v.toMinutes)
+      }
+      duration.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
+      duration.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.number"), Seq())))
+      duration.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.number"), Seq())))
+    }
+    it("should bind & unbind a Email") {
+      forAll { v: Email =>
+        val data = mail.unbind(v)
+        mail.bind(data) shouldBe Right(v)
+      }
+      mail.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
+      mail.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.email"), Seq())))
+      mail.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.email"), Seq())))
+    }
+    it("should bind & unbind a Url") {
+      forAll { v: Url =>
+        val data = url.unbind(v)
+        url.bind(data) shouldBe Right(v)
+      }
+      url.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
+      url.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
+      url.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
+    }
+    it("should bind & unbind a Slides") {
+      forAll { v: Slides =>
+        val data = slides.unbind(v)
+        slides.bind(data) shouldBe Right(v)
+      }
+      slides.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
+      slides.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
+      slides.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
+    }
+    it("should bind & unbind a Video") {
+      forAll { v: Video =>
+        val data = video.unbind(v)
+        video.bind(data) shouldBe Right(v)
+      }
+      video.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
+      video.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
+      video.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
+    }
+    it("should bind & unbind a Secret") {
+      forAll { v: Secret =>
+        val data = secret.unbind(v)
+        secret.bind(data) shouldBe Right(v)
+      }
+      secret.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
+    }
+    it("should bind & unbind a Markdown") {
+      forAll { v: Markdown =>
+        val data = markdown.unbind(v)
+        markdown.bind(data) shouldBe Right(v)
+      }
+      markdown.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
+    }
+    it("should bind & unbind a GMapPlace") {
+      forAll { v: GMapPlace =>
+        val data = gMapPlace.unbind(v)
+        gMapPlace.bind(data) shouldBe Right(v)
       }
     }
-    describe("Utils") {
-      describe("required") {
-        val c = required[Value](_.value)
-        it("should validate value") {
-          c.name shouldBe Some("constraint.required")
-          c(Value("aaa")) shouldBe Valid
-          c(Value(" ")) shouldBe Invalid(List(ValidationError(requiredError)))
-          c(Value("")) shouldBe Invalid(List(ValidationError(requiredError)))
-        }
+    it("should bind & unbind a User.Slug") {
+      forAll { v: User.Slug =>
+        val data = userSlug.unbind(v)
+        userSlug.bind(data) shouldBe Right(v)
       }
-      describe("pattern") {
-        val regex = "a+".r
-        val c = pattern[Value](regex)(_.value)
-        it("should validate value") {
-          c.name shouldBe Some("constraint.pattern")
-          c(Value("aaa")) shouldBe Valid
-          c(Value("bb")) shouldBe Invalid(List(ValidationError(patternError, regex)))
-          c(Value(" ")) shouldBe Invalid(List(ValidationError(patternError, regex)))
-          c(Value("")) shouldBe Invalid(List(ValidationError(patternError, regex)))
-        }
+    }
+    it("should bind & unbind a Group.Slug") {
+      forAll { v: Group.Slug =>
+        val data = groupSlug.unbind(v)
+        groupSlug.bind(data) shouldBe Right(v)
       }
-      describe("stringFormatter") {
-        val f = stringFormatter[Value](Value(_), _.value)
-        it("should bind & unbind value") {
-          val value = Value("aaa")
-          f.bind("key", Map("key" -> value.value)) shouldBe Right(value)
-          f.unbind("key", value) shouldBe Map("key" -> value.value)
-        }
-        it("should return required error") {
-          f.bind("key", Map()) shouldBe Left(List(FormError("key", List(requiredError))))
-        }
+    }
+    it("should bind & unbind a Group.Name") {
+      forAll { v: Group.Name =>
+        val data = groupName.unbind(v)
+        groupName.bind(data) shouldBe Right(v)
       }
-      describe("longFormatter") {
-        val f = longFormatter[LongValue](LongValue, _.value)
-        it("should bind & unbind value") {
-          val value = LongValue(12)
-          f.bind("key", Map("key" -> value.value.toString)) shouldBe Right(value)
-          f.unbind("key", value) shouldBe Map("key" -> value.value.toString)
-        }
-        it("should return format error") {
-          f.bind("key", Map("key" -> "aa")) shouldBe Left(List(FormError("key", List(numberError), "For input string: \"aa\"")))
-        }
-        it("should return required error") {
-          f.bind("key", Map()) shouldBe Left(List(FormError("key", List(requiredError))))
-        }
+    }
+    it("should bind & unbind a Event.Slug") {
+      forAll { v: Event.Slug =>
+        val data = eventSlug.unbind(v)
+        eventSlug.bind(data) shouldBe Right(v)
       }
-      describe("instantFormatter") {
-        it("should bind & unbind value") {
-          val value = "2019-05-24T19:00"
-          val parsed = Instant.parse(value + ":00Z")
-          instantFormatter.bind("key", Map("key" -> value)) shouldBe Right(parsed)
-          instantFormatter.unbind("key", parsed) shouldBe Map("key" -> value)
-        }
-        it("should return format error") {
-          instantFormatter.bind("key", Map("key" -> "aa")) shouldBe Left(List(FormError("key", List(datetimeError), "Text 'aa' could not be parsed at index 0")))
-        }
-        it("should return required error") {
-          instantFormatter.bind("key", Map()) shouldBe Left(List(FormError("key", List(requiredError))))
-        }
+    }
+    it("should bind & unbind a Event.Name") {
+      forAll { v: Event.Name =>
+        val data = eventName.unbind(v)
+        eventName.bind(data) shouldBe Right(v)
       }
-      describe("stringEitherFormatter") {
-        val f = stringEitherFormatter[Value, CustomException](Value.from, _.value)
-        it("should bind & unbind value") {
-          val value = Value("aaa")
-          f.bind("key", Map("key" -> value.value)) shouldBe Right(value)
-          f.unbind("key", value) shouldBe Map("key" -> value.value)
-        }
-        it("should return format error") {
-          f.bind("key", Map("key" -> "")) shouldBe Left(List(FormError("key", List(formatError), "Wrong format")))
-        }
-        it("should return required error") {
-          f.bind("key", Map()) shouldBe Left(List(FormError("key", List(requiredError))))
-        }
+    }
+    it("should bind & unbind a Cfp.Slug") {
+      forAll { v: Cfp.Slug =>
+        val data = cfpSlug.unbind(v)
+        cfpSlug.bind(data) shouldBe Right(v)
+      }
+    }
+    it("should bind & unbind a Cfp.Name") {
+      forAll { v: Cfp.Name =>
+        val data = cfpName.unbind(v)
+        cfpName.bind(data) shouldBe Right(v)
+      }
+    }
+    it("should bind & unbind a Talk.Slug") {
+      forAll { v: Talk.Slug =>
+        val data = talkSlug.unbind(v)
+        talkSlug.bind(data) shouldBe Right(v)
+      }
+    }
+    it("should bind & unbind a Talk.Title") {
+      forAll { v: Talk.Title =>
+        val data = talkTitle.unbind(v)
+        talkTitle.bind(data) shouldBe Right(v)
       }
     }
   }

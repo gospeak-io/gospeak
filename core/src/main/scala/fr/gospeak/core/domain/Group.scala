@@ -2,7 +2,7 @@ package fr.gospeak.core.domain
 
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.libs.scalautils.domain.{DataClass, Markdown, SlugBuilder, UuidIdBuilder}
+import fr.gospeak.libs.scalautils.domain._
 
 final case class Group(id: Group.Id,
                        slug: Group.Slug,
@@ -19,7 +19,7 @@ object Group {
 
   object Id extends UuidIdBuilder[Id]("Group.Id", new Id(_))
 
-  final class Slug private(value: String) extends DataClass(value)
+  final class Slug private(value: String) extends DataClass(value) with ISlug
 
   object Slug extends SlugBuilder[Slug]("Group.Slug", new Slug(_))
 

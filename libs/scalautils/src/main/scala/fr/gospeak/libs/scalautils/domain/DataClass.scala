@@ -28,10 +28,10 @@ abstract class DataClass(val value: String) {
   override def toString: String = value
 }
 
-abstract class UuidIdBuilder[T](clazz: String, build: String => T) {
-  def generate(): T = build(UUID.randomUUID().toString)
+abstract class UuidIdBuilder[A](clazz: String, build: String => A) {
+  def generate(): A = build(UUID.randomUUID().toString)
 
-  def from(in: String): Either[CustomException, T] = {
+  def from(in: String): Either[CustomException, A] = {
     val errs = errors(in)
     if (errs.isEmpty) Right(build(in))
     else Left(CustomException(s"'$in' is an invalid $clazz", errs))
@@ -45,11 +45,15 @@ abstract class UuidIdBuilder[T](clazz: String, build: String => T) {
   }
 }
 
-abstract class SlugBuilder[T](clazz: String, build: String => T) {
+trait ISlug {
+  val value: String
+}
+
+abstract class SlugBuilder[A <: ISlug](clazz: String, build: String => A) {
 
   import SlugBuilder._
 
-  def from(in: String): Either[CustomException, T] = {
+  def from(in: String): Either[CustomException, A] = {
     val errs = errors(in)
     if (errs.isEmpty) Right(build(in))
     else Left(CustomException(s"'$in' is an invalid $clazz", errs))
@@ -70,9 +74,9 @@ object SlugBuilder {
   val pattern: Regex = "[a-z0-9-]+".r
 }
 
-abstract class EnumBuilder[T](clazz: String) {
-  val all: Seq[T]
+abstract class EnumBuilder[A](clazz: String) {
+  val all: Seq[A]
 
-  def from(str: String): Either[CustomException, T] =
+  def from(str: String): Either[CustomException, A] =
     all.find(_.toString == str).toEither(CustomException(s"$str in an invalid $clazz"))
 }

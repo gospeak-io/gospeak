@@ -25,7 +25,7 @@ object Talk {
 
   object Id extends UuidIdBuilder[Id]("Talk.Id", new Id(_))
 
-  final class Slug private(value: String) extends DataClass(value)
+  final class Slug private(value: String) extends DataClass(value) with ISlug
 
   object Slug extends SlugBuilder[Slug]("Talk.Slug", new Slug(_))
 

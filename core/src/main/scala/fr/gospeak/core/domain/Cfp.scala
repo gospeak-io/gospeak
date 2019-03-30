@@ -1,7 +1,7 @@
 package fr.gospeak.core.domain
 
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.libs.scalautils.domain.{DataClass, Markdown, SlugBuilder, UuidIdBuilder}
+import fr.gospeak.libs.scalautils.domain._
 
 final case class Cfp(id: Cfp.Id,
                      group: Group.Id,
@@ -18,7 +18,7 @@ object Cfp {
 
   object Id extends UuidIdBuilder[Id]("Cfp.Id", new Id(_))
 
-  final class Slug private(value: String) extends DataClass(value)
+  final class Slug private(value: String) extends DataClass(value) with ISlug
 
   object Slug extends SlugBuilder[Slug]("Cfp.Slug", new Slug(_))
 

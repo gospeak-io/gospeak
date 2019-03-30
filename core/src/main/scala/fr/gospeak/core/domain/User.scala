@@ -2,7 +2,7 @@ package fr.gospeak.core.domain
 
 import java.time.Instant
 
-import fr.gospeak.libs.scalautils.domain.{DataClass, Email, SlugBuilder, UuidIdBuilder}
+import fr.gospeak.libs.scalautils.domain._
 
 final case class User(id: User.Id,
                       slug: User.Slug,
@@ -21,7 +21,7 @@ object User {
 
   object Id extends UuidIdBuilder[Id]("User.Id", new Id(_))
 
-  final class Slug private(value: String) extends DataClass(value)
+  final class Slug private(value: String) extends DataClass(value) with ISlug
 
   object Slug extends SlugBuilder[Slug]("User.Slug", new Slug(_))
 

@@ -31,7 +31,7 @@ object Event {
 
   object Id extends UuidIdBuilder[Id]("Event.Id", new Id(_))
 
-  final class Slug private(value: String) extends DataClass(value)
+  final class Slug private(value: String) extends DataClass(value) with ISlug
 
   object Slug extends SlugBuilder[Slug]("Event.Slug", new Slug(_))
 

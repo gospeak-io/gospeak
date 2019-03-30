@@ -4,8 +4,8 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import cats.implicits._
 import fr.gospeak.core.domain._
-import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.utils.Extensions._
 import fr.gospeak.web.utils.Mappings.Utils._
 import play.api.data.Forms._
@@ -15,26 +15,25 @@ import play.api.data.{FormError, Mapping, WrappedMapping}
 
 import scala.concurrent.duration._
 import scala.util.Try
-import scala.util.matching.Regex
 
 object Mappings {
   val requiredConstraint = "constraint.required"
   val requiredError = "error.required"
   val patternConstraint = "constraint.pattern"
-  val patternError = "error.pattern"
   val numberError = "error.number"
   val datetimeError = "error.datetime"
   val formatError = "error.format"
+  val formatConstraint = "constraint.format"
 
-  lazy val instant: Mapping[Instant] = of(instantFormatter) // lazy is needed because Utils object is created after which leads to NullPointerException :(
-  val duration: Mapping[FiniteDuration] = longMapping(Duration.apply(_, MINUTES), _.toMinutes)
+  val instant: Mapping[Instant] = stringEitherMapping(s => Try(LocalDateTime.parse(s).toInstant(ZoneOffset.UTC)).toEither, _.atZone(ZoneOffset.UTC).toLocalDateTime.toString, datetimeError) // FIXME manage timezone
+  val duration: Mapping[FiniteDuration] = WrappedMapping(longNumber, (l: Long) => Duration.apply(l, MINUTES), _.toMinutes)
 
   val mail: Mapping[Email] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(100)), (s: String) => Email.from(s).right.get, _.value)
   val url: Mapping[Url] = stringEitherMapping(Url.from, _.value)
   val slides: Mapping[Slides] = stringEitherMapping(Slides.from, _.value)
   val video: Mapping[Video] = stringEitherMapping(Video.from, _.value)
-  val secret: Mapping[Secret] = stringMapping(Secret, _.decode, required)
-  val markdown: Mapping[Markdown] = stringMapping(Markdown, _.value, required)
+  val secret: Mapping[Secret] = stringMapping(Secret, _.decode)
+  val markdown: Mapping[Markdown] = stringMapping(Markdown, _.value)
   val gMapPlace: Mapping[GMapPlace] = of(new Formatter[GMapPlace] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], GMapPlace] = (
       data.eitherGet(s"$key.id").toValidatedNec,
@@ -74,73 +73,32 @@ object Mappings {
       ).collect { case (k, Some(v)) => (k, v) }.toMap
   })
 
-  val userSlug: Mapping[User.Slug] = WrappedMapping(text.verifying(Constraints.nonEmpty(), Constraints.pattern(SlugBuilder.pattern), Constraints.maxLength(30)), (s: String) => User.Slug.from(s).right.get, _.value)
-  val groupSlug: Mapping[Group.Slug] = stringEitherMapping(Group.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
-  val groupName: Mapping[Group.Name] = stringMapping(Group.Name, _.value, required)
-  val eventSlug: Mapping[Event.Slug] = stringEitherMapping(Event.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
-  val eventName: Mapping[Event.Name] = stringMapping(Event.Name, _.value, required)
-  val cfpSlug: Mapping[Cfp.Slug] = stringEitherMapping(Cfp.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
-  val cfpName: Mapping[Cfp.Name] = stringMapping(Cfp.Name, _.value, required)
-  val talkSlug: Mapping[Talk.Slug] = stringEitherMapping(Talk.Slug.from, _.value, required, pattern(SlugBuilder.pattern))
-  val talkTitle: Mapping[Talk.Title] = stringMapping(Talk.Title, _.value, required)
+  val userSlug: Mapping[User.Slug] = slugMapping(User.Slug)
+  val groupSlug: Mapping[Group.Slug] = slugMapping(Group.Slug)
+  val groupName: Mapping[Group.Name] = stringMapping(Group.Name, _.value)
+  val eventSlug: Mapping[Event.Slug] = slugMapping(Event.Slug)
+  val eventName: Mapping[Event.Name] = stringMapping(Event.Name, _.value)
+  val cfpSlug: Mapping[Cfp.Slug] = slugMapping(Cfp.Slug)
+  val cfpName: Mapping[Cfp.Name] = stringMapping(Cfp.Name, _.value)
+  val talkSlug: Mapping[Talk.Slug] = slugMapping(Talk.Slug)
+  val talkTitle: Mapping[Talk.Title] = stringMapping(Talk.Title, _.value)
 
   private[utils] object Utils {
-    def required[A](stringify: A => String): Constraint[A] = Constraint[A](requiredConstraint) { o =>
-      val str = stringify(o)
-      if (str.trim.isEmpty) {
-        PlayInvalid(ValidationError(requiredError))
-      } else {
-        PlayValid
+    def stringMapping[A](from: String => A, to: A => String) =
+      WrappedMapping(text, from, to)
+
+    def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, errorMessage: String = formatError): Mapping[A] =
+      WrappedMapping(text.verifying(format(from, errorMessage)), (s: String) => from(s).right.get, to)
+
+    def slugMapping[A <: ISlug](builder: SlugBuilder[A]): Mapping[A] =
+      WrappedMapping(text.verifying(Constraints.nonEmpty(), Constraints.pattern(SlugBuilder.pattern), Constraints.maxLength(SlugBuilder.maxLength)), (s: String) => builder.from(s).right.get, _.value)
+
+    private def format[E, A](parse: String => Either[E, A], errorMessage: String = formatError): Constraint[String] =
+      Constraint[String](formatConstraint) { o =>
+        if (o == null) PlayInvalid(ValidationError(errorMessage))
+        else if (parse(o.trim).isLeft) PlayInvalid(ValidationError(errorMessage))
+        else PlayValid
       }
-    }
-
-    def pattern[A](regex: Regex)(stringify: A => String): Constraint[A] = Constraint[A](patternConstraint, regex) { o =>
-      if (o == null) PlayInvalid(ValidationError(patternError, regex))
-      else regex.unapplySeq(stringify(o)).map(_ => PlayValid).getOrElse(PlayInvalid(ValidationError(patternError, regex)))
-    }
-
-    def stringFormatter[A](from: String => A, to: A => String): Formatter[A] = new Formatter[A] {
-      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], A] =
-        data.get(key).map(from).toRight(Seq(FormError(key, requiredError)))
-
-      override def unbind(key: String, value: A): Map[String, String] =
-        Map(key -> to(value))
-    }
-
-    def longFormatter[A](from: Long => A, to: A => Long): Formatter[A] =
-      genericFormatter(to(_).toString, _.tryLong.map(from), numberError)
-
-    // FIXME: get user ZoneOffset, more generally better managed dates and timezones!!!
-    val instantFormatter: Formatter[Instant] =
-      genericFormatter[Instant](_.atZone(ZoneOffset.UTC).toLocalDateTime.toString, s => Try(LocalDateTime.parse(s).toInstant(ZoneOffset.UTC)), datetimeError)
-
-    def stringTryFormatter[A](from: String => Try[A], to: A => String): Formatter[A] =
-      genericFormatter(to, from, formatError)
-
-    def stringEitherFormatter[A, E](from: String => Either[E, A], to: A => String)(implicit ev: E <:< Throwable): Formatter[A] =
-      genericFormatter(to, from(_).toTry, formatError)
-
-    private def genericFormatter[A](serialize: A => String, parse: String => Try[A], err: String): Formatter[A] = new Formatter[A] {
-      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], A] =
-        data.get(key)
-          .map(parse(_).toEither.left.map(t => Seq(FormError(key, err, t.getMessage))))
-          .getOrElse(Left(Seq(FormError(key, requiredError))))
-
-      override def unbind(key: String, value: A): Map[String, String] =
-        Map(key -> serialize(value))
-    }
-
-    def stringMapping[A](from: String => A, to: A => String, cs: ((A => String) => Constraint[A])*): Mapping[A] =
-      of(stringFormatter(from, to)).verifying(cs.map(_ (to)): _*)
-
-    def stringTryMapping[A](from: String => Try[A], to: A => String, cs: ((A => String) => Constraint[A])*): Mapping[A] =
-      of(stringTryFormatter(from, to)).verifying(cs.map(_ (to)): _*)
-
-    def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, cs: ((A => String) => Constraint[A])*)(implicit ev: E <:< Throwable): Mapping[A] =
-      of(stringEitherFormatter(from, to)).verifying(cs.map(_ (to)): _*)
-
-    def longMapping[A](from: Long => A, to: A => Long, cs: ((A => Long) => Constraint[A])*): Mapping[A] =
-      of(longFormatter(from, to)).verifying(cs.map(_ (to)): _*)
   }
 
 }

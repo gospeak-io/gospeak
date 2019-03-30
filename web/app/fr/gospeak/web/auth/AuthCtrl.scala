@@ -24,8 +24,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-// TODO Signup email template
-// TODO Password recovery
+// TODO Password recovery: forgot password / reset password
+// TODO Email template: signup, email validation, password recovery...
 // TODO Test this controller
 // TODO JWT Auth for API
 class AuthCtrl(cc: ControllerComponents,
