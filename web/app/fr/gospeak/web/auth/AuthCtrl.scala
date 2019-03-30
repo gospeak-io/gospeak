@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api._
-import com.mohiva.play.silhouette.api.actions.UserAwareRequest
+import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
 import fr.gospeak.core.domain.UserRequest
 import fr.gospeak.core.domain.UserRequest.EmailValidationRequest
@@ -17,14 +17,13 @@ import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.exceptions.{DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.domain.HeaderInfo
-import fr.gospeak.web.utils.UICtrl
+import fr.gospeak.web.utils.{HttpUtils, UICtrl}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-// TODO Add endpoint to send email validation
 // TODO Signup email template
 // TODO Password recovery
 // TODO Test this controller
@@ -34,7 +33,10 @@ class AuthCtrl(cc: ControllerComponents,
                db: GospeakDb,
                authSrv: AuthSrv,
                emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
-  private def loginRedirect(redirect: Option[String]): Result = Redirect(redirect.getOrElse(fr.gospeak.web.user.routes.UserCtrl.index().path()))
+  private val userHome = fr.gospeak.web.user.routes.UserCtrl.index()
+
+  private def loginRedirect(redirect: Option[String]): Result = Redirect(redirect.getOrElse(userHome.path()))
+
   private val logoutRedirect = Redirect(fr.gospeak.web.routes.HomeCtrl.index())
 
   import silhouette._
@@ -63,17 +65,6 @@ class AuthCtrl(cc: ControllerComponents,
     )
   }
 
-  private def sendSignupEmail(user: AuthUser, emailValidation: EmailValidationRequest)(implicit req: UserAwareRequest[CookieEnv, AnyContent]): IO[Unit] = {
-    import EmailSrv._
-    val email = Email(
-      from = Contact("noreply@gospeak.fr", Some("Gospeak")),
-      to = Seq(Contact(user.user.email.value, Some(user.user.name.value))),
-      subject = "Welcome to gospeak!",
-      content = HtmlContent(emails.html.signup(user, emailValidation).body)
-    )
-    emailSrv.send(email)
-  }
-
   def login(redirect: Option[String]): Action[AnyContent] = UserAwareAction { implicit req =>
     req.identity
       .map(_ => loginRedirect(redirect).flashing(req.flash))
@@ -99,6 +90,15 @@ class AuthCtrl(cc: ControllerComponents,
     authSrv.logout(logoutRedirect)
   }
 
+  def sendValidationEmail(): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    (for {
+      existingValidationOpt <- db.getPendingEmailValidationRequest(req.identity.user.id, now)
+      emailValidation <- existingValidationOpt.map(IO.pure).getOrElse(db.createEmailValidationRequest(req.identity.user.email, req.identity.user.id, now))
+      _ <- sendValidationEmail(req.identity, emailValidation)
+    } yield loginRedirect(HttpUtils.getReferer(req)).flashing("success" -> "Email validation sent!")).unsafeToFuture()
+  }
+
   def doValidateEmail(id: UserRequest.Id): Action[AnyContent] = UserAwareAction.async { implicit req =>
     println("doValidateEmail")
     val now = Instant.now()
@@ -117,6 +117,28 @@ class AuthCtrl(cc: ControllerComponents,
   def doPasswordReset(redirect: Option[String]): Action[AnyContent] = UnsecuredAction { implicit req =>
     // TODO
     Redirect(routes.AuthCtrl.login())
+  }
+
+  private def sendSignupEmail(user: AuthUser, emailValidation: EmailValidationRequest)(implicit req: UserAwareRequest[CookieEnv, AnyContent]): IO[Unit] = {
+    import EmailSrv._
+    val email = Email(
+      from = Contact("noreply@gospeak.fr", Some("Gospeak")),
+      to = Seq(Contact(user.user.email.value, Some(user.user.name.value))),
+      subject = "Welcome to gospeak!",
+      content = HtmlContent(emails.html.signup(user, emailValidation).body)
+    )
+    emailSrv.send(email)
+  }
+
+  private def sendValidationEmail(user: AuthUser, emailValidation: EmailValidationRequest)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Unit] = {
+    import EmailSrv._
+    val email = Email(
+      from = Contact("noreply@gospeak.fr", Some("Gospeak")),
+      to = Seq(Contact(user.user.email.value, Some(user.user.name.value))),
+      subject = "Validate your email!",
+      content = HtmlContent(emails.html.emailValidation(user, emailValidation).body)
+    )
+    emailSrv.send(email)
   }
 }
 

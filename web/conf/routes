@@ -16,6 +16,7 @@ POST        /signup                                                       fr.gos
 GET         /login                                                        fr.gospeak.web.auth.AuthCtrl.login(redirect: Option[String] ?= None)
 POST        /login                                                        fr.gospeak.web.auth.AuthCtrl.doLogin(redirect: Option[String] ?= None)
 GET         /logout                                                       fr.gospeak.web.auth.AuthCtrl.doLogout
+POST        /email-validation                                             fr.gospeak.web.auth.AuthCtrl.sendValidationEmail
 GET         /validate-email                                               fr.gospeak.web.auth.AuthCtrl.doValidateEmail(id: UserRequest.Id)
 GET         /passwordReset                                                fr.gospeak.web.auth.AuthCtrl.passwordReset(redirect: Option[String] ?= None)
 POST        /passwordReset                                                fr.gospeak.web.auth.AuthCtrl.doPasswordReset(redirect: Option[String] ?= None)

@@ -148,6 +148,9 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def getPendingEmailValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[EmailValidationRequest]] =
     run(UserRequestTable.EmailValidation.selectPendingEmailValidation(id, now).option)
 
+  override def getPendingEmailValidationRequest(id: User.Id, now: Instant): IO[Option[EmailValidationRequest]] =
+    run(UserRequestTable.EmailValidation.selectPendingEmailValidation(id, now).option)
+
   override def validateEmail(id: UserRequest.Id, user: User.Id, now: Instant): IO[Done] = for {
     _ <- run(UserTable.validateEmail(user, now))
     _ <- run(UserRequestTable.EmailValidation.validateEmail(id, now))

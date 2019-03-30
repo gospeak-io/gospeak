@@ -36,6 +36,8 @@ trait GospeakDb {
 
   def getPendingEmailValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[EmailValidationRequest]]
 
+  def getPendingEmailValidationRequest(id: User.Id, now: Instant): IO[Option[EmailValidationRequest]]
+
   def validateEmail(id: UserRequest.Id, user: User.Id, now: Instant): IO[Done]
 
 

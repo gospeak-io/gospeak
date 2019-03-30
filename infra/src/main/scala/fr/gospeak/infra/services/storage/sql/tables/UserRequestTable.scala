@@ -4,7 +4,7 @@ import java.time.Instant
 
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.UserRequest
+import fr.gospeak.core.domain.{User, UserRequest}
 import fr.gospeak.core.domain.UserRequest.EmailValidationRequest
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
@@ -29,8 +29,12 @@ object UserRequestTable {
     def selectPendingEmailValidation(id: UserRequest.Id, now: Instant): doobie.Query0[EmailValidationRequest] =
       buildSelect(tableFr, Fragment.const0(fields.filter(_ != "kind").mkString(", ")), where(id, now)).query[EmailValidationRequest]
 
-    private def where(id: UserRequest.Id, now: Instant): Fragment =
-      fr0"WHERE id=$id AND kind=$kind AND deadline > $now AND accepted IS NULL"
+    def selectPendingEmailValidation(id: User.Id, now: Instant): doobie.Query0[EmailValidationRequest] =
+      buildSelect(tableFr, Fragment.const0(fields.filter(_ != "kind").mkString(", ")), where(id, now)).query[EmailValidationRequest]
+
+    private def where(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE id=$id AND kind=$kind AND deadline > $now AND accepted IS NULL"
+
+    private def where(id: User.Id, now: Instant): Fragment = fr0"WHERE user_id=$id AND kind=$kind AND deadline > $now AND accepted IS NULL"
   }
 
 }
