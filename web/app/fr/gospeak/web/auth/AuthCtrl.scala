@@ -18,14 +18,12 @@ import fr.gospeak.web.auth.exceptions.{DuplicateIdentityException, DuplicateSlug
 import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.domain.HeaderInfo
 import fr.gospeak.web.utils.UICtrl
-import play.api.i18n.Messages
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-// TODO Add rememberMe feature
 // TODO Add endpoint to send email validation
 // TODO Signup email template
 // TODO Password recovery
@@ -56,7 +54,7 @@ class AuthCtrl(cc: ControllerComponents,
         user <- authSrv.createIdentity(data, now).unsafeToFuture()
         emailValidation <- db.createEmailValidationRequest(user.user.email, user.user.id, now).unsafeToFuture()
         _ <- sendSignupEmail(user, emailValidation).unsafeToFuture()
-        result <- authSrv.login(user, loginRedirect(redirect))
+        result <- authSrv.login(user, data.rememberMe, loginRedirect(redirect))
       } yield result).recover {
         case _: DuplicateIdentityException => BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError("User already exists"), redirect)(header))
         case e: DuplicateSlugException => BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError(s"Username ${e.slug.value} is already taken"), redirect)(header))
@@ -88,7 +86,7 @@ class AuthCtrl(cc: ControllerComponents,
       formWithErrors => Future.successful(BadRequest(html.login(formWithErrors, redirect)(header))),
       data => (for {
         user <- authSrv.getIdentity(data)
-        result <- authSrv.login(user, loginRedirect(redirect))
+        result <- authSrv.login(user, data.rememberMe, loginRedirect(redirect))
       } yield result).recover {
         case _: IdentityNotFoundException => Ok(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), redirect)(header))
         case _: InvalidPasswordException => Ok(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), redirect)(header))

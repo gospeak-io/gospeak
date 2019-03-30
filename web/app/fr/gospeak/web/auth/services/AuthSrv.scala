@@ -62,10 +62,10 @@ class AuthSrv(authRepo: AuthRepo,
     } yield user
   }
 
-  def login(user: AuthUser, redirect: Result)(implicit req: Request[AnyContent]): Future[AuthenticatorResult] = {
+  def login(user: AuthUser, rememberMe: Boolean, redirect: Result)(implicit req: Request[AnyContent]): Future[AuthenticatorResult] = {
     for {
       authenticator <- silhouette.env.authenticatorService.create(user.loginInfo).map {
-        case auth if /* data.rememberMe */ true => auth.copy(
+        case auth if rememberMe => auth.copy(
           expirationDateTime = clock.now.plus(authCookieConf.rememberMe.authenticatorExpiry.toMillis),
           idleTimeout = Some(authCookieConf.rememberMe.authenticatorIdleTimeout),
           cookieMaxAge = Some(authCookieConf.rememberMe.cookieMaxAge))

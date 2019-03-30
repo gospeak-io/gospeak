@@ -1,0 +1,10 @@
+@import fr.gospeak.web.partials.form.Utils
+
+@(field: Field, args: Seq[(String, String)] = Seq())
+<input
+    type="checkbox"
+    class="form-check-input @Utils.getArg(args, "class") @if(field.hasErrors) {is-invalid}"
+    id="@Utils.id(args, field)"
+    name="@Utils.getArg(args, "name", field.name)"
+    value="@Utils.getArg(args, "value", field.value.getOrElse("true"))"/>
+<label class="form-check-label" for="@Utils.id(args, field)">@Utils.getArg(args, "label", field.name)</label>
