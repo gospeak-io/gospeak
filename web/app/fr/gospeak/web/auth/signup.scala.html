@@ -15,7 +15,7 @@
                 <div class="form-group @if(form("first-name").errors.nonEmpty || form("last-name").errors.nonEmpty){is-invalid}">
                     <div class="input-group">
                         <div class="input-group-prepend">
-                            <span class="input-group-text" id="basic-addon1"><i class="fas fa-user"></i></span>
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
                         </div>
                         @inputText(form("first-name"), Seq("placeholder" -> "First Name", "autofocus" -> "true"))
                         @inputText(form("last-name"), Seq("placeholder" -> "Last Name"))
@@ -29,7 +29,7 @@
                 <div class="form-group @if(form("slug").errors.nonEmpty){is-invalid}">
                     <div class="input-group">
                         <div class="input-group-prepend">
-                            <span class="input-group-text" id="basic-addon1"><i class="fas fa-user-secret"></i></span>
+                            <span class="input-group-text"><i class="fas fa-user-secret"></i></span>
                         </div>
                         @inputText(form("slug"), Seq("placeholder" -> "Username", "slug-for" -> Seq(form("first-name"), form("last-name")).map(_.id).mkString(",")))
                     </div>
@@ -39,7 +39,7 @@
                 <div class="form-group @if(form("email").errors.nonEmpty){is-invalid}">
                     <div class="input-group">
                         <div class="input-group-prepend">
-                            <span class="input-group-text" id="basic-addon1"><i class="fas fa-envelope"></i></span>
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                         </div>
                         @inputEmail(form("email"), Seq("placeholder" -> "Email"))
                     </div>
@@ -49,7 +49,7 @@
                 <div class="form-group @if(form("password").errors.nonEmpty){is-invalid}">
                     <div class="input-group">
                         <div class="input-group-prepend">
-                            <span class="input-group-text" id="basic-addon1"><i class="fas fa-key"></i></span>
+                            <span class="input-group-text"><i class="fas fa-key"></i></span>
                         </div>
                         @inputPassword(form("password"), Seq("placeholder" -> "Password"))
                     </div>
@@ -61,7 +61,7 @@
                     <div class="invalid-feedback">@form("rememberMe").errors.map(_.format).mkString(", ")</div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-lg btn-block mt-4">Sign Up</button>
+                <button type="submit" class="btn btn-primary btn-lg btn-block">Sign Up</button>
             }
             </div>
         </div>

@@ -6,7 +6,7 @@ import java.time.{Instant, LocalDateTime}
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
-import fr.gospeak.core.domain.UserRequest.EmailValidationRequest
+import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest}
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.GospeakDb
@@ -135,6 +135,8 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getUser(login: User.Login): IO[Option[User]] = run(UserTable.selectOne(login).option)
 
+  override def getUser(credentials: User.Credentials): IO[Option[User]] = run(UserTable.selectOne(credentials.login).option)
+
   override def getUser(email: Email): IO[Option[User]] = run(UserTable.selectOne(email).option)
 
   override def getUser(slug: User.Slug): IO[Option[User]] = run(UserTable.selectOne(slug).option)
@@ -142,18 +144,32 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   override def getUsers(ids: Seq[User.Id]): IO[Seq[User]] = runIn(UserTable.selectAll)(ids)
 
 
-  override def createEmailValidationRequest(email: Email, user: User.Id, now: Instant): IO[EmailValidationRequest] =
-    run(UserRequestTable.EmailValidation.insert, EmailValidationRequest(email, user, now))
+  override def createAccountValidationRequest(email: Email, user: User.Id, now: Instant): IO[AccountValidationRequest] =
+    run(UserRequestTable.AccountValidation.insert, AccountValidationRequest(email, user, now))
 
-  override def getPendingEmailValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[EmailValidationRequest]] =
-    run(UserRequestTable.EmailValidation.selectPendingEmailValidation(id, now).option)
+  override def getPendingAccountValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[AccountValidationRequest]] =
+    run(UserRequestTable.AccountValidation.selectPending(id, now).option)
 
-  override def getPendingEmailValidationRequest(id: User.Id, now: Instant): IO[Option[EmailValidationRequest]] =
-    run(UserRequestTable.EmailValidation.selectPendingEmailValidation(id, now).option)
+  override def getPendingAccountValidationRequest(id: User.Id, now: Instant): IO[Option[AccountValidationRequest]] =
+    run(UserRequestTable.AccountValidation.selectPending(id, now).option)
 
-  override def validateEmail(id: UserRequest.Id, user: User.Id, now: Instant): IO[Done] = for {
+  override def validateAccount(id: UserRequest.Id, user: User.Id, now: Instant): IO[Done] = for {
     _ <- run(UserTable.validateEmail(user, now))
-    _ <- run(UserRequestTable.EmailValidation.validateEmail(id, now))
+    _ <- run(UserRequestTable.AccountValidation.validate(id, now))
+  } yield Done
+
+  override def createPasswordResetRequest(email: Email, now: Instant): IO[PasswordResetRequest] =
+    run(UserRequestTable.ResetPassword.insert, PasswordResetRequest(email, now))
+
+  override def getPendingPasswordResetRequest(id: UserRequest.Id, now: Instant): IO[Option[PasswordResetRequest]] =
+    run(UserRequestTable.ResetPassword.selectPending(id, now).option)
+
+  override def getPendingPasswordResetRequest(email: Email, now: Instant): IO[Option[PasswordResetRequest]] =
+    run(UserRequestTable.ResetPassword.selectPending(email, now).option)
+
+  override def resetPassword(passwordReset: PasswordResetRequest, credentials: User.Credentials, now: Instant): IO[Done] = for {
+    _ <- run(UserRequestTable.ResetPassword.accept(passwordReset.id, now))
+    _ <- run(UserTable.updateCredentials(credentials.login)(credentials.pass))
   } yield Done
 
 

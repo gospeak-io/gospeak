@@ -27,9 +27,16 @@ object AuthForms {
     "rememberMe" -> boolean
   )(LoginData.apply)(LoginData.unapply))
 
-  final case class PasswordResetData(email: Email)
+  final case class ForgotPasswordData(email: Email)
 
-  val passwordReset: Form[PasswordResetData] = Form(mapping(
+  val forgotPassword: Form[ForgotPasswordData] = Form(mapping(
     "email" -> mail
-  )(PasswordResetData.apply)(PasswordResetData.unapply))
+  )(ForgotPasswordData.apply)(ForgotPasswordData.unapply))
+
+  final case class ResetPasswordData(password: Secret, rememberMe: Boolean)
+
+  val resetPassword: Form[ResetPasswordData] = Form(mapping(
+    "password" -> secret,
+    "rememberMe" -> boolean
+  )(ResetPasswordData.apply)(ResetPasswordData.unapply))
 }

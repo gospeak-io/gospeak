@@ -20,7 +20,7 @@
         @if(req.identity.user.emailValidated.isEmpty) {
             @alert("warning", "d-flex justify-content-between") {
                 <span class="align-self-center">Your email is not validated, please click on the validation link in the signup email</span>
-                @formBtn(AuthCtrl.sendValidationEmail(), Seq("class" -> "btn-sm btn-secondary")) {Resend validation email}
+                @formBtn(AuthCtrl.accountValidation(), Seq("class" -> "btn-sm btn-secondary")) {Resend validation email}
             }
         }
         @req.flash.get("success").map { msg => @alert("success")(Html(msg)) }

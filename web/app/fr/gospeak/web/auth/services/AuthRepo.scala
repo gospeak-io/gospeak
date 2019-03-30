@@ -13,43 +13,27 @@ import fr.gospeak.web.auth.domain.AuthUser
 import scala.concurrent.Future
 
 class AuthRepo(db: GospeakDb) extends DelegableAuthInfoDAO[PasswordInfo] with IdentityService[AuthUser] {
-  override def retrieve(loginInfo: LoginInfo): Future[Option[AuthUser]] = {
-    db.getUser(toDomain(loginInfo))
-      .map(_.map(u => AuthUser(loginInfo, u))).unsafeToFuture()
-  }
+  override def retrieve(loginInfo: LoginInfo): Future[Option[AuthUser]] =
+    db.getUser(toDomain(loginInfo)).map(_.map(u => AuthUser(loginInfo, u))).unsafeToFuture()
 
-  override def find(loginInfo: LoginInfo): Future[Option[PasswordInfo]] = {
-    println(s"AuthRepo.find($loginInfo)")
-    db.getCredentials(toDomain(loginInfo))
-      .map(_.map(toSilhouette)).unsafeToFuture()
-  }
+  override def find(loginInfo: LoginInfo): Future[Option[PasswordInfo]] =
+    db.getCredentials(toDomain(loginInfo)).map(_.map(toSilhouette)).unsafeToFuture()
 
-  override def add(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] = {
-    println(s"AuthRepo.add($loginInfo, $authInfo)")
-    db.createCredentials(toDomain(loginInfo, authInfo))
-      .map(toSilhouette).unsafeToFuture()
-  }
+  override def add(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] =
+    db.createCredentials(toDomain(loginInfo, authInfo)).map(toSilhouette).unsafeToFuture()
 
-  override def update(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] = {
-    println(s"AuthRepo.update($loginInfo, $authInfo)")
-    db.updateCredentials(toDomain(loginInfo))(toDomain(authInfo))
-      .map(_ => authInfo).unsafeToFuture()
-  }
+  override def update(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] =
+    db.updateCredentials(toDomain(loginInfo))(toDomain(authInfo)).map(_ => authInfo).unsafeToFuture()
 
   // add or update
-  override def save(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] = {
-    println(s"AuthRepo.save($loginInfo, $authInfo)")
+  override def save(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] =
     db.getCredentials(toDomain(loginInfo)).flatMap { opt =>
       opt.map(_ => db.updateCredentials(toDomain(loginInfo))(toDomain(authInfo)))
         .getOrElse(db.createCredentials(toDomain(loginInfo, authInfo)).map(_ => Done))
     }.map(_ => authInfo).unsafeToFuture()
-  }
 
-  override def remove(loginInfo: LoginInfo): Future[Unit] = {
-    println(s"AuthRepo.remove($loginInfo)")
-    db.deleteCredentials(toDomain(loginInfo))
-      .map(_ => ()).unsafeToFuture()
-  }
+  override def remove(loginInfo: LoginInfo): Future[Unit] =
+    db.deleteCredentials(toDomain(loginInfo)).map(_ => ()).unsafeToFuture()
 
   private def toDomain(loginInfo: LoginInfo): User.Login = User.Login(ProviderId(loginInfo.providerID), ProviderKey(loginInfo.providerKey))
 

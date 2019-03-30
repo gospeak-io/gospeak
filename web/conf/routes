@@ -16,10 +16,12 @@ POST        /signup                                                       fr.gos
 GET         /login                                                        fr.gospeak.web.auth.AuthCtrl.login(redirect: Option[String] ?= None)
 POST        /login                                                        fr.gospeak.web.auth.AuthCtrl.doLogin(redirect: Option[String] ?= None)
 GET         /logout                                                       fr.gospeak.web.auth.AuthCtrl.doLogout
-POST        /email-validation                                             fr.gospeak.web.auth.AuthCtrl.sendValidationEmail
-GET         /validate-email                                               fr.gospeak.web.auth.AuthCtrl.doValidateEmail(id: UserRequest.Id)
-GET         /passwordReset                                                fr.gospeak.web.auth.AuthCtrl.passwordReset(redirect: Option[String] ?= None)
-POST        /passwordReset                                                fr.gospeak.web.auth.AuthCtrl.doPasswordReset(redirect: Option[String] ?= None)
+POST        /account-validation                                           fr.gospeak.web.auth.AuthCtrl.accountValidation
+GET         /validate-email                                               fr.gospeak.web.auth.AuthCtrl.doValidateAccount(id: UserRequest.Id)
+GET         /forgot-password                                              fr.gospeak.web.auth.AuthCtrl.forgotPassword(redirect: Option[String] ?= None)
+POST        /forgot-password                                              fr.gospeak.web.auth.AuthCtrl.doForgotPassword(redirect: Option[String] ?= None)
+GET         /reset-password                                               fr.gospeak.web.auth.AuthCtrl.resetPassword(id: UserRequest.Id)
+POST        /reset-password                                               fr.gospeak.web.auth.AuthCtrl.doResetPassword(id: UserRequest.Id)
 
 GET         /u                                                            fr.gospeak.web.user.UserCtrl.index
 GET         /u/profile                                                    fr.gospeak.web.user.UserCtrl.profile

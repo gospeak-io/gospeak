@@ -12,10 +12,12 @@ import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import com.mohiva.play.silhouette.password.BCryptPasswordHasher
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
 import fr.gospeak.core.domain.User
+import fr.gospeak.core.domain.User.{ProviderId, ProviderKey}
+import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Email
-import fr.gospeak.web.auth.AuthForms.{LoginData, SignupData}
+import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.exceptions.{DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.domain.AuthCookieConf
@@ -82,6 +84,18 @@ class AuthSrv(authRepo: AuthRepo,
     silhouette.env.authenticatorService.discard(req.authenticator, redirect)
   }
 
+  def updateIdentity(data: ResetPasswordData, passwordReset: PasswordResetRequest, now: Instant)(implicit req: Request[AnyContent]): IO[AuthUser] = {
+    val loginInfo = AuthSrv.loginInfo(passwordReset.email)
+    val login = toDomain(loginInfo)
+    val password = toDomain(passwordHasherRegistry.current.hash(data.password.decode))
+    val credentials = User.Credentials(login, password)
+    for {
+      user <- db.getUser(login).flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user for ${login.providerId}")))
+      _ <- db.resetPassword(passwordReset, credentials, now)
+      authUser = AuthUser(loginInfo, user)
+    } yield authUser
+  }
+
   private def toDomain(loginInfo: LoginInfo): User.Login = User.Login(User.ProviderId(loginInfo.providerID), User.ProviderKey(loginInfo.providerKey))
 
   private def toDomain(authInfo: PasswordInfo): User.Password = User.Password(User.Hasher(authInfo.hasher), User.PasswordValue(authInfo.password), authInfo.salt.map(User.Salt))
@@ -95,6 +109,8 @@ object AuthSrv {
     val credentialsProvider = new CredentialsProvider(authInfoRepository, passwordHasherRegistry)
     new AuthSrv(authRepo, db, silhouette, clock, authCookieConf, passwordHasherRegistry, credentialsProvider)
   }
+
+  def login(email: Email): User.Login = User.Login(ProviderId(CredentialsProvider.ID), ProviderKey(email.value))
 
   def loginInfo(email: Email): LoginInfo = new LoginInfo(CredentialsProvider.ID, email.value)
 }

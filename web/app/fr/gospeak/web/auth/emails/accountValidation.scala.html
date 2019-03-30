@@ -1,0 +1,9 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.UserRequest.AccountValidationRequest
+@import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
+@import fr.gospeak.web.auth.routes.AuthCtrl
+
+@(user: AuthUser, emailValidation: AccountValidationRequest)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+Hello @user.user.name.value
+
+Validate your email: @AuthCtrl.doValidateAccount(emailValidation.id).absoluteURL()
