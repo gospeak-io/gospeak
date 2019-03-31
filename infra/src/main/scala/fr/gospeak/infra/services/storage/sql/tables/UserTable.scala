@@ -18,12 +18,12 @@ object UserTable {
   private val loginTable = "logins"
   private val loginFields = Seq("provider_id", "provider_key", "user_id")
   private val table = "users"
-  private val fields = Seq("id", "slug", "first_name", "last_name", "email", "email_validated", "created", "updated")
+  private val fields = Seq("id", "slug", "first_name", "last_name", "email", "email_validated", "avatar", "avatar_source", "created", "updated")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
 
   private def values(e: User): Fragment =
-    fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.created}, ${e.updated}"
+    fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.created}, ${e.updated}"
 
   def insert(elt: User): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 

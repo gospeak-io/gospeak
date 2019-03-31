@@ -10,6 +10,7 @@ final case class User(id: User.Id,
                       lastName: String,
                       email: EmailAddress,
                       emailValidated: Option[Instant],
+                      avatar: Avatar,
                       created: Instant,
                       updated: Instant) {
   def name: User.Name = User.Name(firstName, lastName)

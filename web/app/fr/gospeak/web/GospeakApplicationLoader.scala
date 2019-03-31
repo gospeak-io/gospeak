@@ -10,7 +10,7 @@ import com.mohiva.play.silhouette.impl.authenticators._
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.softwaremill.macwire.wire
 import fr.gospeak.infra.services.storage.sql.{DbSqlConf, GospeakDbSql, H2}
-import fr.gospeak.infra.services.{ConsoleEmailSrv, EmailSrv}
+import fr.gospeak.infra.services.{ConsoleEmailSrv, EmailSrv, GravatarSrv}
 import fr.gospeak.web.auth.AuthCtrl
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
@@ -19,6 +19,7 @@ import fr.gospeak.web.domain.{AppConf, AuthCookieConf}
 import fr.gospeak.web.groups.GroupCtrl
 import fr.gospeak.web.speakers.SpeakerCtrl
 import fr.gospeak.web.user.UserCtrl
+import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.{BodyParsers, CookieHeaderEncoding, DefaultCookieHeaderEncoding}
 import play.api.routing.Router
 import play.api.{Environment => _, _}
@@ -39,6 +40,7 @@ class GospeakApplicationLoader extends ApplicationLoader {
 // use wire[] only for application classes (be explicit with others as they will not change)
 class GospeakComponents(context: ApplicationLoader.Context)
   extends BuiltInComponentsFromContext(context)
+    with AhcWSComponents
     with HttpFiltersComponents
     with _root_.controllers.AssetsComponents {
   lazy val conf: AppConf = AppConf.load(configuration).get
@@ -48,6 +50,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val db: GospeakDbSql = wire[GospeakDbSql]
   lazy val authRepo: AuthRepo = wire[AuthRepo]
   lazy val emailSrv: EmailSrv = wire[ConsoleEmailSrv]
+  lazy val gravatarSrv: GravatarSrv = wire[GravatarSrv]
 
   // start:Silhouette conf
   lazy val clock: Clock = Clock()
@@ -96,7 +99,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
   // end:Silhouette conf
 
-  lazy val authSrv: AuthSrv = AuthSrv(cookieConf, silhouette, db, authRepo, clock)
+  lazy val authSrv: AuthSrv = AuthSrv(cookieConf, silhouette, db, authRepo, clock, gravatarSrv)
 
   lazy val homeCtrl = wire[HomeCtrl]
   lazy val cfpCtrl = wire[CfpCtrl]

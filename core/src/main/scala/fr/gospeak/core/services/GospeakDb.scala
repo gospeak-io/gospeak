@@ -9,7 +9,7 @@ import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain._
 
 trait GospeakDb {
-  def createUser(slug: User.Slug, firstName: String, lastName: String, email: EmailAddress, now: Instant): IO[User]
+  def createUser(slug: User.Slug, firstName: String, lastName: String, email: EmailAddress, avatar: Avatar, now: Instant): IO[User]
 
   def updateUser(user: User, now: Instant): IO[User]
 

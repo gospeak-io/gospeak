@@ -1,7 +1,9 @@
 package fr.gospeak.web.auth
 
+import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
-import fr.gospeak.infra.services.InMemoryEmailSrv
+import fr.gospeak.infra.services.{GravatarSrv, InMemoryEmailSrv}
+import fr.gospeak.libs.scalautils.domain.{EmailAddress, Secret}
 import fr.gospeak.web.auth.AuthForms.SignupData
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv}
 import fr.gospeak.web.testingutils.CtrlSpec
@@ -15,11 +17,12 @@ import scala.concurrent.Future
 class AuthCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
   private val _ = aEmailAddress // to keep the `fr.gospeak.core.testingutils.Generators._` import
   private val authRepo = new AuthRepo(db)
-  private val authSrv = AuthSrv(conf.auth.cookie, silhouette, db, authRepo, clock)
+  private val authSrv = AuthSrv(conf.auth.cookie, silhouette, db, authRepo, clock, new GravatarSrv())
   private val emailSrv = new InMemoryEmailSrv()
   private val ctrl = new AuthCtrl(cc, silhouette, db, authSrv, emailSrv)
   private val redirect: Option[String] = None
-  private val signupData = random[SignupData]
+  // private val signupData = random[SignupData] // TODO add generators constraints: firstName&lastName should not be empty, password should have 8 char at least
+  private val signupData = SignupData(User.Slug.from("slug").right.get, "first", "last", EmailAddress.from("first@mail.com").right.get, Secret("passpass"), rememberMe = true)
 
   override def beforeEach(): Unit = {
     db.createTables().unsafeRunSync()
@@ -40,9 +43,9 @@ class AuthCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
       }
       it("should create a user and credentials then login") {
         val res = AuthCtrlSpec.doSignup(signupData)(unsecuredReq)(ctrl)
-        status(res) shouldBe Status.SEE_OTHER
-        headers(res) should contain key "Location"
         contentAsString(res) shouldBe ""
+        headers(res) should contain key "Location"
+        status(res) shouldBe Status.SEE_OTHER
         emailSrv.sentEmails should have length 1
       }
       it("should find the user, create credentials then login") {

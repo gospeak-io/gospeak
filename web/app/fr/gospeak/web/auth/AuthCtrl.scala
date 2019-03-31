@@ -27,7 +27,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-// TODO Avatar srv
 // TODO Test this controller
 // TODO Social auth
 // TODO JWT Auth for API

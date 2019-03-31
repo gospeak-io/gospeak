@@ -15,6 +15,7 @@ import fr.gospeak.core.domain.User
 import fr.gospeak.core.domain.User.{ProviderId, ProviderKey}
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
 import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.EmailAddress
 import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
@@ -32,7 +33,8 @@ class AuthSrv(authRepo: AuthRepo,
               clock: Clock,
               authCookieConf: AuthCookieConf,
               passwordHasherRegistry: PasswordHasherRegistry,
-              credentialsProvider: CredentialsProvider) {
+              credentialsProvider: CredentialsProvider,
+              gravatarSrv: GravatarSrv) {
   def createIdentity(data: SignupData, now: Instant)(implicit req: Request[AnyContent]): IO[AuthUser] = {
     val loginInfo = AuthSrv.loginInfo(data.email)
     val login = toDomain(loginInfo)
@@ -44,10 +46,11 @@ class AuthSrv(authRepo: AuthRepo,
       emailOpt <- db.getUser(data.email)
       slugOpt <- db.getUser(data.slug)
       _ <- slugOpt.forall(s => emailOpt.exists(_.id == s.id)).toIO(DuplicateSlugException(data.slug)) // fail if slug exists for a different user from email
+      avatar = gravatarSrv.getAvatar(data.email)
       user <- emailOpt.map { user =>
-        db.updateUser(user.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email), now)
+        db.updateUser(user.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), now)
       }.getOrElse {
-        db.createUser(data.slug, data.firstName, data.lastName, data.email, now)
+        db.createUser(data.slug, data.firstName, data.lastName, data.email, avatar, now)
       }
       _ <- db.createLoginRef(login, user.id)
       _ <- db.createCredentials(credentials)
@@ -102,12 +105,12 @@ class AuthSrv(authRepo: AuthRepo,
 }
 
 object AuthSrv {
-  def apply(authCookieConf: AuthCookieConf, silhouette: Silhouette[CookieEnv], db: GospeakDb, authRepo: AuthRepo, clock: Clock): AuthSrv = {
+  def apply(authCookieConf: AuthCookieConf, silhouette: Silhouette[CookieEnv], db: GospeakDb, authRepo: AuthRepo, clock: Clock, gravatarSrv: GravatarSrv): AuthSrv = {
     val authInfoRepository = new DelegableAuthInfoRepository(authRepo)
     val bCryptPasswordHasher: PasswordHasher = new BCryptPasswordHasher
     val passwordHasherRegistry: PasswordHasherRegistry = PasswordHasherRegistry(bCryptPasswordHasher)
     val credentialsProvider = new CredentialsProvider(authInfoRepository, passwordHasherRegistry)
-    new AuthSrv(authRepo, db, silhouette, clock, authCookieConf, passwordHasherRegistry, credentialsProvider)
+    new AuthSrv(authRepo, db, silhouette, clock, authCookieConf, passwordHasherRegistry, credentialsProvider, gravatarSrv)
   }
 
   def login(email: EmailAddress): User.Login = User.Login(ProviderId(CredentialsProvider.ID), ProviderKey(email.value))

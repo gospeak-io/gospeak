@@ -122,7 +122,7 @@ val web = (project in file("web"))
   .dependsOn(core % "compile->compile;test->test", infra)
   .settings(
     name := "web",
-    libraryDependencies ++= webDependencies,
+    libraryDependencies ++= webDependencies ++ Seq(ws),
     routesImport ++= Seq(
       "fr.gospeak.core.domain._",
       "fr.gospeak.libs.scalautils.domain._",

@@ -87,10 +87,12 @@ object DoobieUtils {
     implicit val finiteDurationMeta: Meta[FiniteDuration] = Meta[Long].timap(Duration.fromNanos)(_.toNanos)
     implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Instant].timap(LocalDateTime.ofInstant(_, ZoneOffset.UTC))(_.toInstant(ZoneOffset.UTC))
     implicit val emailAddressMeta: Meta[EmailAddress] = Meta[String].timap(EmailAddress.from(_).right.get)(_.value)
+    implicit val urlMeta: Meta[Url] = Meta[String].timap(Url.from(_).right.get)(_.value)
     implicit val slidesMeta: Meta[Slides] = Meta[String].timap(Slides.from(_).right.get)(_.value)
     implicit val videoMeta: Meta[Video] = Meta[String].timap(Video.from(_).right.get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
     implicit val gMapPlaceMeta: Meta[GMapPlace] = Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
+    implicit val avatarSourceMeta: Meta[Avatar.Source] = Meta[String].timap(Avatar.Source.from(_).right.get)(_.toString)
 
     // TODO build Meta[Seq[A]] and Meta[NonEmptyList[A]]
     // implicit def seqMeta[A](implicit m: Meta[A]): Meta[Seq[A]] = ???

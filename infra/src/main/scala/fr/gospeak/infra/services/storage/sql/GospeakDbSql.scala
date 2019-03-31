@@ -10,6 +10,7 @@ import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordRes
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.infra.services.storage.sql.tables._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.utils.DoobieUtils.Queries
@@ -29,9 +30,13 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   def insertMockData(): IO[Done] = {
     val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
     val now = Instant.now()
+    val gravatarSrv = new GravatarSrv()
 
-    def user(slug: String, email: String, firstName: String, lastName: String): User =
-      User(User.Id.generate(), User.Slug.from(slug).right.get, firstName, lastName, EmailAddress.from(email).right.get, None, now, now)
+    def user(slug: String, email: String, firstName: String, lastName: String): User = {
+      val emailAddr = EmailAddress.from(email).right.get
+      val avatar = gravatarSrv.getAvatar(emailAddr)
+      User(User.Id.generate(), User.Slug.from(slug).right.get, firstName, lastName, emailAddr, None, avatar, now, now)
+    }
 
     def group(slug: String, name: String, by: User, owners: Seq[User] = Seq()): Group =
       Group(Group.Id.generate(), Group.Slug.from(slug).right.get, Group.Name(name), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(by.id) ++ owners.map(_.id).toList, Info(by.id, now))
@@ -112,8 +117,8 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   }
 
 
-  override def createUser(slug: User.Slug, firstName: String, lastName: String, email: EmailAddress, now: Instant): IO[User] =
-    run(UserTable.insert, User(User.Id.generate(), slug, firstName, lastName, email, None, now, now))
+  override def createUser(slug: User.Slug, firstName: String, lastName: String, email: EmailAddress, avatar: Avatar, now: Instant): IO[User] =
+    run(UserTable.insert, User(User.Id.generate(), slug, firstName, lastName, email, None, avatar, now, now))
 
   override def updateUser(user: User, now: Instant): IO[User] =
     run(UserTable.update(user.copy(updated = now))).map(_ => user)

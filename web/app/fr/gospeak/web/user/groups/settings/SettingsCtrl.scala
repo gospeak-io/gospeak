@@ -60,7 +60,7 @@ class SettingsCtrl(cc: ControllerComponents,
 }
 
 object SettingsCtrl {
-  def listHeader(group: Group.Slug): HeaderInfo =
+  def listHeader(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     GroupCtrl.header(group)
       .copy(brand = NavLink("Gospeak", fr.gospeak.web.user.groups.routes.GroupCtrl.detail(group)))
       .activeFor(routes.SettingsCtrl.list(group))
@@ -70,7 +70,7 @@ object SettingsCtrl {
       case (groupSlug, _) => GroupCtrl.breadcrumb(user, group).add("Settings" -> routes.SettingsCtrl.list(groupSlug))
     }
 
-  def header(group: Group.Slug): HeaderInfo =
+  def header(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     listHeader(group)
 
   def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name), setting: (String, Call)): Breadcrumb =

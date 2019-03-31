@@ -134,7 +134,7 @@ class EventCtrl(cc: ControllerComponents,
 }
 
 object EventCtrl {
-  def listHeader(group: Group.Slug): HeaderInfo =
+  def listHeader(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     GroupCtrl.header(group)
       .copy(brand = NavLink("Gospeak", GroupRoutes.detail(group)))
       .activeFor(routes.EventCtrl.list(group))
@@ -144,7 +144,7 @@ object EventCtrl {
       case (groupSlug, _) => GroupCtrl.breadcrumb(user, group).add("Events" -> routes.EventCtrl.list(groupSlug))
     }
 
-  def header(group: Group.Slug): HeaderInfo =
+  def header(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     listHeader(group)
 
   def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name), event: (Event.Slug, Event.Name)): Breadcrumb =

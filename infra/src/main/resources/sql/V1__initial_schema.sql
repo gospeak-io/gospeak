@@ -6,6 +6,8 @@ CREATE TABLE users
   last_name       VARCHAR(30)  NOT NULL,
   email           VARCHAR(100) NOT NULL UNIQUE,
   email_validated TIMESTAMP,
+  avatar          VARCHAR(150) NOT NULL,
+  avatar_source   VARCHAR(20)  NOT NULL,
   created         TIMESTAMP    NOT NULL,
   updated         TIMESTAMP    NOT NULL
 );

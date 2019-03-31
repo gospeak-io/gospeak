@@ -27,7 +27,7 @@ class GroupCtrl(cc: ControllerComponents,
   def list(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groups <- db.getGroups(req.identity.user.id, params)
-      h = listHeader
+      h = listHeader()
       b = listBreadcrumb(req.identity.user.name)
     } yield Ok(html.list(groups)(h, b))).unsafeToFuture()
   }
@@ -48,7 +48,7 @@ class GroupCtrl(cc: ControllerComponents,
   }
 
   private def createForm(form: Form[Group.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
-    val h = listHeader
+    val h = listHeader()
     val b = listBreadcrumb(req.identity.user.name).add("New" -> routes.GroupCtrl.create())
     IO.pure(Ok(html.create(form)(h, b)))
   }
@@ -72,16 +72,16 @@ object GroupCtrl {
     NavLink("Proposals", proposals.routes.ProposalCtrl.list(group)),
     NavLink("Settings", settings.routes.SettingsCtrl.list(group)))
 
-  def listHeader: HeaderInfo =
-    UserCtrl.header.activeFor(routes.GroupCtrl.list())
+  def listHeader()(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
+    UserCtrl.header().activeFor(routes.GroupCtrl.list())
 
   def listBreadcrumb(user: User.Name): Breadcrumb =
     UserCtrl.breadcrumb(user).add("Groups" -> routes.GroupCtrl.list())
 
-  def header(group: Group.Slug): HeaderInfo = HeaderInfo(
+  def header(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo = HeaderInfo(
     brand = NavLink("Gospeak", fr.gospeak.web.user.routes.UserCtrl.index()),
     links = NavDropdown("Public", HomeCtrl.publicNav) +: NavDropdown("User", UserCtrl.userNav) +: groupNav(group),
-    rightLinks = UserCtrl.rightNav)
+    rightLinks = UserCtrl.rightNav())
     .activeFor(routes.GroupCtrl.list())
 
   def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name)): Breadcrumb =

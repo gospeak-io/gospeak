@@ -5,6 +5,7 @@ import java.time.Instant
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
@@ -70,7 +71,7 @@ class ProposalCtrl(cc: ControllerComponents,
 }
 
 object ProposalCtrl {
-  def listHeader(group: Group.Slug): HeaderInfo =
+  def listHeader(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     GroupCtrl.header(group)
       .copy(brand = NavLink("Gospeak", fr.gospeak.web.user.groups.routes.GroupCtrl.detail(group)))
       .activeFor(routes.ProposalCtrl.list(group))
@@ -78,7 +79,7 @@ object ProposalCtrl {
   def listBreadcrumb(user: User.Name, group: (Group.Slug, Group.Name)): Breadcrumb =
     GroupCtrl.breadcrumb(user, group).add("Proposals" -> routes.ProposalCtrl.list(group._1))
 
-  def header(group: Group.Slug): HeaderInfo =
+  def header(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     listHeader(group)
 
   def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name), proposal: (Proposal.Id, Talk.Title)): Breadcrumb =

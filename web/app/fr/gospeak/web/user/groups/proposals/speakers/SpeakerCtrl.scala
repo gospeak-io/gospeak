@@ -2,6 +2,7 @@ package fr.gospeak.web.user.groups.proposals.speakers
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
+import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, Proposal, Talk, User}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -30,13 +31,13 @@ class SpeakerCtrl(cc: ControllerComponents,
 }
 
 object SpeakerCtrl {
-  def listHeader(group: Group.Slug): HeaderInfo =
+  def listHeader(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     ProposalCtrl.header(group)
 
   def listBreadcrumb(user: User.Name, group: (Group.Slug, Group.Name), proposal: (Proposal.Id, Talk.Title)): Breadcrumb =
     ProposalCtrl.breadcrumb(user, group, proposal).add("Speakers" -> ProposalRoutes.detail(group._1, proposal._1))
 
-  def header(group: Group.Slug): HeaderInfo =
+  def header(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     listHeader(group)
 
   def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name), proposal: (Proposal.Id, Talk.Title), speaker: (User.Slug, User.Name)): Breadcrumb =

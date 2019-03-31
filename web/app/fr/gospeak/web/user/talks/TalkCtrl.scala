@@ -26,7 +26,7 @@ class TalkCtrl(cc: ControllerComponents,
   def list(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       talks <- db.getTalks(req.identity.user.id, params)
-      h = listHeader
+      h = listHeader()
       b = listBreadcrumb(req.identity.user.name)
     } yield Ok(html.list(talks)(h, b))).unsafeToFuture()
   }
@@ -49,7 +49,7 @@ class TalkCtrl(cc: ControllerComponents,
   }
 
   private def createForm(form: Form[Talk.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
-    val h = listHeader
+    val h = listHeader()
     val b = listBreadcrumb(req.identity.user.name).add("New" -> routes.TalkCtrl.create())
     IO.pure(Ok(html.create(form)(h, b)))
   }
@@ -126,14 +126,14 @@ class TalkCtrl(cc: ControllerComponents,
 }
 
 object TalkCtrl {
-  def listHeader: HeaderInfo =
-    UserCtrl.header.activeFor(routes.TalkCtrl.list())
+  def listHeader()(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
+    UserCtrl.header().activeFor(routes.TalkCtrl.list())
 
   def listBreadcrumb(user: User.Name): Breadcrumb =
     UserCtrl.breadcrumb(user).add("Talks" -> routes.TalkCtrl.list())
 
-  def header(talk: Talk.Slug): HeaderInfo =
-    UserCtrl.header
+  def header(talk: Talk.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
+    UserCtrl.header()
       .copy(brand = NavLink("Gospeak", fr.gospeak.web.user.routes.UserCtrl.index()))
       .activeFor(routes.TalkCtrl.list())
 
