@@ -4,6 +4,9 @@
 @import fr.gospeak.web.auth.routes.AuthCtrl
 
 @(user: AuthUser, emailValidation: AccountValidationRequest)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
-Hello @user.user.name.value
-
-@AuthCtrl.doValidateAccount(emailValidation.id).absoluteURL()
+<p>Hello @user.user.firstName,</p>
+<p>Welcome to gospeak, you can create talks and propose them to meetups or conferences in an easy to use interface.</p>
+<p>If you are an organizer you can create your group, launch a CFP and organise proposals. You can even look for talks that speaker made public and suggest them to do a proposal to the CFP.</p>
+<p>But for now, can you just click on the <a href="@AuthCtrl.doValidateAccount(emailValidation.id).absoluteURL()">account validation link</a>, to validate your email?</p>
+<p>Thanks a lot, we hope you will enjoy gospeak and make amazing talks or events \o/</p>
+<p>Gospeak team</p>

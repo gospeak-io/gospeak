@@ -6,16 +6,16 @@ import cats.data.OptionT
 import cats.effect.IO
 import cats.implicits._
 import com.mohiva.play.silhouette.api._
-import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
+import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
-import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest}
-import fr.gospeak.core.domain.{User, UserRequest}
+import fr.gospeak.core.domain.UserRequest
+import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.infra.services.EmailSrv
-import fr.gospeak.libs.scalautils.domain.EmailAddress
 import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.auth.AuthCtrl._
-import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
+import fr.gospeak.web.auth.domain.CookieEnv
+import fr.gospeak.web.auth.emails.Emails
 import fr.gospeak.web.auth.exceptions.{DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.domain.HeaderInfo
@@ -27,8 +27,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-// TODO better password rules for users
-// TODO Email template: signup, email validation, password recovery...
 // TODO Avatar srv
 // TODO Test this controller
 // TODO Social auth
@@ -59,7 +57,7 @@ class AuthCtrl(cc: ControllerComponents,
       data => (for {
         user <- authSrv.createIdentity(data, now).unsafeToFuture()
         emailValidation <- db.createAccountValidationRequest(user.user.email, user.user.id, now).unsafeToFuture()
-        _ <- sendSignupEmail(user, emailValidation).unsafeToFuture()
+        _ <- emailSrv.send(Emails.signup(user, emailValidation)).unsafeToFuture()
         result <- authSrv.login(user, data.rememberMe, loginRedirect(redirect))
       } yield result).recover {
         case _: DuplicateIdentityException => BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError("User already exists"), redirect)(header))
@@ -98,7 +96,7 @@ class AuthCtrl(cc: ControllerComponents,
     (for {
       existingValidationOpt <- db.getPendingAccountValidationRequest(req.identity.user.id, now)
       emailValidation <- existingValidationOpt.map(IO.pure).getOrElse(db.createAccountValidationRequest(req.identity.user.email, req.identity.user.id, now))
-      _ <- sendAccountValidationEmail(req.identity, emailValidation)
+      _ <- emailSrv.send(Emails.accountValidation(req.identity, emailValidation))
     } yield loginRedirect(HttpUtils.getReferer(req)).flashing("success" -> "Email validation sent!")).unsafeToFuture()
   }
 
@@ -125,7 +123,7 @@ class AuthCtrl(cc: ControllerComponents,
         user <- OptionT(db.getUser(credentials))
         existingPasswordResetOpt <- OptionT.liftF(db.getPendingPasswordResetRequest(data.email, now))
         passwordReset <- existingPasswordResetOpt.map(OptionT.pure(_): OptionT[IO, PasswordResetRequest]).getOrElse(OptionT.liftF(db.createPasswordResetRequest(data.email, now)))
-        _ <- OptionT.liftF(sendForgotPasswordEmail(user, passwordReset))
+        _ <- OptionT.liftF(emailSrv.send(Emails.forgotPassword(user, passwordReset)))
       } yield Redirect(routes.AuthCtrl.login()).flashing("success" -> "Reset password email sent!")).value
         .map(_.getOrElse(Redirect(routes.AuthCtrl.forgotPassword(redirect)).flashing("error" -> s"Email not found"))).unsafeToFuture()
     )
@@ -158,40 +156,6 @@ class AuthCtrl(cc: ControllerComponents,
         Redirect(routes.AuthCtrl.login()).flashing("error" -> "Reset password request expired, create it again.")
       }
     }.unsafeToFuture()
-  }
-
-  // TODO move email functions elsewhere
-  private def sendSignupEmail(user: AuthUser, emailValidation: AccountValidationRequest)(implicit req: UserAwareRequest[CookieEnv, AnyContent]): IO[Unit] = {
-    import EmailSrv._
-    val email = Email(
-      from = Contact(EmailAddress.from("noreply@gospeak.fr").right.get, Some("Gospeak")),
-      to = Seq(Contact(user.user.email, Some(user.user.name.value))),
-      subject = "Welcome to gospeak!",
-      content = HtmlContent(emails.html.signup(user, emailValidation).body)
-    )
-    emailSrv.send(email)
-  }
-
-  private def sendAccountValidationEmail(user: AuthUser, accountValidation: AccountValidationRequest)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Unit] = {
-    import EmailSrv._
-    val email = Email(
-      from = Contact(EmailAddress.from("noreply@gospeak.fr").right.get, Some("Gospeak")),
-      to = Seq(Contact(user.user.email, Some(user.user.name.value))),
-      subject = "Validate your email!",
-      content = HtmlContent(emails.html.accountValidation(user, accountValidation).body)
-    )
-    emailSrv.send(email)
-  }
-
-  private def sendForgotPasswordEmail(user: User, passwordReset: PasswordResetRequest)(implicit req: UserAwareRequest[CookieEnv, AnyContent]): IO[Unit] = {
-    import EmailSrv._
-    val email = Email(
-      from = Contact(EmailAddress.from("noreply@gospeak.fr").right.get, Some("Gospeak")),
-      to = Seq(Contact(passwordReset.email, None)),
-      subject = "Reset your password!",
-      content = HtmlContent(emails.html.forgotPassword(user, passwordReset).body)
-    )
-    emailSrv.send(email)
   }
 }
 

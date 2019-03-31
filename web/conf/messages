@@ -1,1 +1,2 @@
 error.format=Wrong format: {0}
+error.password=Your password should contain at least 8 characters

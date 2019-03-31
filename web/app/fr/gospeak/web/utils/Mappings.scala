@@ -24,6 +24,8 @@ object Mappings {
   val datetimeError = "error.datetime"
   val formatError = "error.format"
   val formatConstraint = "constraint.format"
+  val passwordConstraint = "constraint.password"
+  val passwordError = "error.password"
 
   val instant: Mapping[Instant] = stringEitherMapping(s => Try(LocalDateTime.parse(s).toInstant(ZoneOffset.UTC)).toEither, _.atZone(ZoneOffset.UTC).toLocalDateTime.toString, datetimeError) // FIXME manage timezone
   val duration: Mapping[FiniteDuration] = WrappedMapping(longNumber, (l: Long) => Duration.apply(l, MINUTES), _.toMinutes)
@@ -33,6 +35,10 @@ object Mappings {
   val slides: Mapping[Slides] = stringEitherMapping(Slides.from, _.value)
   val video: Mapping[Video] = stringEitherMapping(Video.from, _.value)
   val secret: Mapping[Secret] = stringMapping(Secret, _.decode)
+  val password: Mapping[Secret] = secret.verifying(Constraint[Secret](passwordConstraint) { o =>
+    if (o.decode.length >= 8) PlayValid
+    else PlayInvalid(ValidationError(passwordError))
+  })
   val markdown: Mapping[Markdown] = stringMapping(Markdown, _.value)
   val gMapPlace: Mapping[GMapPlace] = of(new Formatter[GMapPlace] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], GMapPlace] = (
