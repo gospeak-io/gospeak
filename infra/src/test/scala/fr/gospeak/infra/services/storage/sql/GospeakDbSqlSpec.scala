@@ -8,14 +8,14 @@ import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import fr.gospeak.core.domain._
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.testingutils.Values
-import fr.gospeak.libs.scalautils.domain.{Done, Email, Page}
+import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
 
 class GospeakDbSqlSpec extends FunSpec with Matchers with BeforeAndAfterEach with RandomDataGenerator {
   private val db = Values.db
   private val now = random[Instant]
   private val Seq(userSlug, userSlug2, userSlug3) = random[User.Slug](3)
-  private val Seq(email, email2, email3) = random[Email](3)
+  private val Seq(email, email2, email3) = random[EmailAddress](3)
   private val firstName = "John"
   private val lastName = "Doe"
   private val Seq(groupData, groupData2) = random[Group.Data](2)

@@ -3,7 +3,10 @@ package fr.gospeak.infra.services
 import cats.effect.IO
 import fr.gospeak.infra.services.EmailSrv._
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.Secret
+import fr.gospeak.libs.scalautils.domain.{EmailAddress, Secret}
+
+import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 trait EmailSrv {
   def send(email: Email): IO[Unit]
@@ -13,23 +16,41 @@ object EmailSrv {
 
   final case class Email(from: Contact, to: Seq[Contact], subject: String, content: Content)
 
-  final case class Contact(mail: String, name: Option[String])
+  final case class Contact(address: EmailAddress, name: Option[String]) {
+    def format: String = name.map(n => s"$n<${address.value}>").getOrElse(address.value)
+  }
 
-  sealed trait Content
+  sealed trait Content {
+    def value: String
+  }
 
-  final case class TextContent(text: String) extends Content
+  final case class TextContent(text: String) extends Content {
+    override def value: String = text
+  }
 
-  final case class HtmlContent(html: String) extends Content
+  final case class HtmlContent(html: String) extends Content {
+    override def value: String = html
+  }
 
 }
 
+// useful for dev
 class ConsoleEmailSrv extends EmailSrv {
-  override def send(email: Email): IO[Unit] =
-    IO(println(s"EmailSrv.send(from: ${email.from.mail}, to: ${email.to.map(_.mail).mkString(",")}, subject: ${email.subject}, content: ${email.content})"))
+  override def send(email: Email): IO[Unit] = IO(println(
+    s"""EmailSrv.send(
+       |  from: ${email.from.format},
+       |  to: ${email.to.map(_.format).mkString(", ")},
+       |  subject: ${email.subject},
+       |  content:
+       |${email.content.value}
+       |)""".stripMargin))
 }
 
-object ConsoleEmailSrv {
-  def apply(): ConsoleEmailSrv = new ConsoleEmailSrv()
+// useful for tests
+class InMemoryEmailSrv extends EmailSrv {
+  val sentEmails: ArrayBuffer[Email] = mutable.ArrayBuffer[Email]()
+
+  override def send(email: Email): IO[Unit] = IO(sentEmails.prepend(email))
 }
 
 class SendGridEmailSrv private(client: com.sendgrid.SendGrid) extends EmailSrv {
@@ -64,7 +85,7 @@ class SendGridEmailSrv private(client: com.sendgrid.SendGrid) extends EmailSrv {
   }
 
   private def buildEmail(contact: Contact): sg.Email =
-    new sg.Email(contact.mail)
+    new sg.Email(contact.address.value)
 }
 
 object SendGridEmailSrv {

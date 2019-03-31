@@ -8,7 +8,7 @@ final case class User(id: User.Id,
                       slug: User.Slug,
                       firstName: String,
                       lastName: String,
-                      email: Email,
+                      email: EmailAddress,
                       emailValidated: Option[Instant],
                       created: Instant,
                       updated: Instant) {

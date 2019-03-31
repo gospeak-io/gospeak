@@ -12,6 +12,7 @@ import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordRes
 import fr.gospeak.core.domain.{User, UserRequest}
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.infra.services.EmailSrv
+import fr.gospeak.libs.scalautils.domain.EmailAddress
 import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.auth.AuthCtrl._
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
@@ -28,8 +29,9 @@ import scala.util.control.NonFatal
 
 // TODO better password rules for users
 // TODO Email template: signup, email validation, password recovery...
-// TODO Social auth
+// TODO Avatar srv
 // TODO Test this controller
+// TODO Social auth
 // TODO JWT Auth for API
 class AuthCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
@@ -158,11 +160,12 @@ class AuthCtrl(cc: ControllerComponents,
     }.unsafeToFuture()
   }
 
+  // TODO move email functions elsewhere
   private def sendSignupEmail(user: AuthUser, emailValidation: AccountValidationRequest)(implicit req: UserAwareRequest[CookieEnv, AnyContent]): IO[Unit] = {
     import EmailSrv._
     val email = Email(
-      from = Contact("noreply@gospeak.fr", Some("Gospeak")),
-      to = Seq(Contact(user.user.email.value, Some(user.user.name.value))),
+      from = Contact(EmailAddress.from("noreply@gospeak.fr").right.get, Some("Gospeak")),
+      to = Seq(Contact(user.user.email, Some(user.user.name.value))),
       subject = "Welcome to gospeak!",
       content = HtmlContent(emails.html.signup(user, emailValidation).body)
     )
@@ -172,8 +175,8 @@ class AuthCtrl(cc: ControllerComponents,
   private def sendAccountValidationEmail(user: AuthUser, accountValidation: AccountValidationRequest)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Unit] = {
     import EmailSrv._
     val email = Email(
-      from = Contact("noreply@gospeak.fr", Some("Gospeak")),
-      to = Seq(Contact(user.user.email.value, Some(user.user.name.value))),
+      from = Contact(EmailAddress.from("noreply@gospeak.fr").right.get, Some("Gospeak")),
+      to = Seq(Contact(user.user.email, Some(user.user.name.value))),
       subject = "Validate your email!",
       content = HtmlContent(emails.html.accountValidation(user, accountValidation).body)
     )
@@ -183,8 +186,8 @@ class AuthCtrl(cc: ControllerComponents,
   private def sendForgotPasswordEmail(user: User, passwordReset: PasswordResetRequest)(implicit req: UserAwareRequest[CookieEnv, AnyContent]): IO[Unit] = {
     import EmailSrv._
     val email = Email(
-      from = Contact("noreply@gospeak.fr", Some("Gospeak")),
-      to = Seq(Contact(passwordReset.email.value, None)),
+      from = Contact(EmailAddress.from("noreply@gospeak.fr").right.get, Some("Gospeak")),
+      to = Seq(Contact(passwordReset.email, None)),
       subject = "Reset your password!",
       content = HtmlContent(emails.html.forgotPassword(user, passwordReset).body)
     )

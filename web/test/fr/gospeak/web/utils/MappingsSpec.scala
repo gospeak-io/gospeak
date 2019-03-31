@@ -32,14 +32,14 @@ class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
       duration.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.number"), Seq())))
       duration.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.number"), Seq())))
     }
-    it("should bind & unbind a Email") {
-      forAll { v: Email =>
-        val data = mail.unbind(v)
-        mail.bind(data) shouldBe Right(v)
+    it("should bind & unbind a EmailAddress") {
+      forAll { v: EmailAddress =>
+        val data = emailAddress.unbind(v)
+        emailAddress.bind(data) shouldBe Right(v)
       }
-      mail.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
-      mail.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.email"), Seq())))
-      mail.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.email"), Seq())))
+      emailAddress.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
+      emailAddress.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.email"), Seq())))
+      emailAddress.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.email"), Seq())))
     }
     it("should bind & unbind a Url") {
       forAll { v: Url =>

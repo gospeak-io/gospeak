@@ -51,8 +51,8 @@ class UserTableSpec extends TableSpec {
       q.sql shouldBe "UPDATE users SET slug=?, first_name=?, last_name=?, email=?, updated=? WHERE id=?"
       check(q)
     }
-    it("should build validateEmail query") {
-      val q = validateEmail(user.id, now)
+    it("should build validateAccount query") {
+      val q = validateAccount(user.id, now)
       q.sql shouldBe "UPDATE users SET email_validated=? WHERE id=?"
       check(q)
     }

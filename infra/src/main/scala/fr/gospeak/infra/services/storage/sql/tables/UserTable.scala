@@ -9,7 +9,7 @@ import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.User
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.libs.scalautils.domain.Email
+import fr.gospeak.libs.scalautils.domain.EmailAddress
 
 object UserTable {
   private val _ = userIdMeta // for intellij not remove DoobieUtils.Mappings import
@@ -33,7 +33,7 @@ object UserTable {
     buildUpdate(tableFr, fields, where).update
   }
 
-  def validateEmail(id: User.Id, now: Instant): doobie.Update0 =
+  def validateAccount(id: User.Id, now: Instant): doobie.Update0 =
     buildUpdate(tableFr, fr0"email_validated=$now", fr0"WHERE id=$id").update
 
   def insertLoginRef(i: User.LoginRef): doobie.Update0 =
@@ -62,7 +62,7 @@ object UserTable {
     buildSelect(selectTables, selectedFields, fr0"WHERE l.provider_id=${login.providerId} AND l.provider_key=${login.providerKey}").query[User]
   }
 
-  def selectOne(email: Email): doobie.Query0[User] =
+  def selectOne(email: EmailAddress): doobie.Query0[User] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE email=$email").query[User]
 
   def selectOne(slug: User.Slug): doobie.Query0[User] =

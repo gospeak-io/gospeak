@@ -31,7 +31,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     val now = Instant.now()
 
     def user(slug: String, email: String, firstName: String, lastName: String): User =
-      User(User.Id.generate(), User.Slug.from(slug).right.get, firstName, lastName, Email.from(email).right.get, None, now, now)
+      User(User.Id.generate(), User.Slug.from(slug).right.get, firstName, lastName, EmailAddress.from(email).right.get, None, now, now)
 
     def group(slug: String, name: String, by: User, owners: Seq[User] = Seq()): Group =
       Group(Group.Id.generate(), Group.Slug.from(slug).right.get, Group.Name(name), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(by.id) ++ owners.map(_.id).toList, Info(by.id, now))
@@ -112,7 +112,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   }
 
 
-  override def createUser(slug: User.Slug, firstName: String, lastName: String, email: Email, now: Instant): IO[User] =
+  override def createUser(slug: User.Slug, firstName: String, lastName: String, email: EmailAddress, now: Instant): IO[User] =
     run(UserTable.insert, User(User.Id.generate(), slug, firstName, lastName, email, None, now, now))
 
   override def updateUser(user: User, now: Instant): IO[User] =
@@ -137,14 +137,14 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   override def getUser(credentials: User.Credentials): IO[Option[User]] = run(UserTable.selectOne(credentials.login).option)
 
-  override def getUser(email: Email): IO[Option[User]] = run(UserTable.selectOne(email).option)
+  override def getUser(email: EmailAddress): IO[Option[User]] = run(UserTable.selectOne(email).option)
 
   override def getUser(slug: User.Slug): IO[Option[User]] = run(UserTable.selectOne(slug).option)
 
   override def getUsers(ids: Seq[User.Id]): IO[Seq[User]] = runIn(UserTable.selectAll)(ids)
 
 
-  override def createAccountValidationRequest(email: Email, user: User.Id, now: Instant): IO[AccountValidationRequest] =
+  override def createAccountValidationRequest(email: EmailAddress, user: User.Id, now: Instant): IO[AccountValidationRequest] =
     run(UserRequestTable.AccountValidation.insert, AccountValidationRequest(email, user, now))
 
   override def getPendingAccountValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[AccountValidationRequest]] =
@@ -154,17 +154,17 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     run(UserRequestTable.AccountValidation.selectPending(id, now).option)
 
   override def validateAccount(id: UserRequest.Id, user: User.Id, now: Instant): IO[Done] = for {
-    _ <- run(UserTable.validateEmail(user, now))
-    _ <- run(UserRequestTable.AccountValidation.validate(id, now))
+    _ <- run(UserRequestTable.AccountValidation.accept(id, now))
+    _ <- run(UserTable.validateAccount(user, now))
   } yield Done
 
-  override def createPasswordResetRequest(email: Email, now: Instant): IO[PasswordResetRequest] =
+  override def createPasswordResetRequest(email: EmailAddress, now: Instant): IO[PasswordResetRequest] =
     run(UserRequestTable.ResetPassword.insert, PasswordResetRequest(email, now))
 
   override def getPendingPasswordResetRequest(id: UserRequest.Id, now: Instant): IO[Option[PasswordResetRequest]] =
     run(UserRequestTable.ResetPassword.selectPending(id, now).option)
 
-  override def getPendingPasswordResetRequest(email: Email, now: Instant): IO[Option[PasswordResetRequest]] =
+  override def getPendingPasswordResetRequest(email: EmailAddress, now: Instant): IO[Option[PasswordResetRequest]] =
     run(UserRequestTable.ResetPassword.selectPending(email, now).option)
 
   override def resetPassword(passwordReset: PasswordResetRequest, credentials: User.Credentials, now: Instant): IO[Done] = for {

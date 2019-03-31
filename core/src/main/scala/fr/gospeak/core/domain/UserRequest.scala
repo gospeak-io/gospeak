@@ -2,7 +2,7 @@ package fr.gospeak.core.domain
 
 import java.time.Instant
 
-import fr.gospeak.libs.scalautils.domain.{DataClass, Email, UuidIdBuilder}
+import fr.gospeak.libs.scalautils.domain.{DataClass, EmailAddress, UuidIdBuilder}
 
 import scala.concurrent.duration._
 
@@ -19,25 +19,25 @@ object UserRequest {
   object Id extends UuidIdBuilder[Id]("UserRequest.Id", new Id(_))
 
   final case class AccountValidationRequest(id: Id,
-                                            email: Email,
+                                            email: EmailAddress,
                                             user: User.Id,
                                             created: Instant,
                                             deadline: Instant,
                                             accepted: Option[Instant]) extends UserRequest
 
   object AccountValidationRequest {
-    def apply(email: Email, user: User.Id, now: Instant): AccountValidationRequest =
+    def apply(email: EmailAddress, user: User.Id, now: Instant): AccountValidationRequest =
       new AccountValidationRequest(Id.generate(), email, user, now, now.plusMillis(1.day.toMillis), None)
   }
 
   final case class PasswordResetRequest(id: Id,
-                                        email: Email,
+                                        email: EmailAddress,
                                         created: Instant,
                                         deadline: Instant,
                                         accepted: Option[Instant]) extends UserRequest
 
   object PasswordResetRequest {
-    def apply(email: Email, now: Instant): PasswordResetRequest =
+    def apply(email: EmailAddress, now: Instant): PasswordResetRequest =
       new PasswordResetRequest(Id.generate(), email, now, now.plusMillis(1.hour.toMillis), None)
   }
 

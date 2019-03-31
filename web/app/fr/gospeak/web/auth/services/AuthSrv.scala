@@ -16,7 +16,7 @@ import fr.gospeak.core.domain.User.{ProviderId, ProviderKey}
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.Email
+import fr.gospeak.libs.scalautils.domain.EmailAddress
 import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.exceptions.{DuplicateIdentityException, DuplicateSlugException}
@@ -110,7 +110,7 @@ object AuthSrv {
     new AuthSrv(authRepo, db, silhouette, clock, authCookieConf, passwordHasherRegistry, credentialsProvider)
   }
 
-  def login(email: Email): User.Login = User.Login(ProviderId(CredentialsProvider.ID), ProviderKey(email.value))
+  def login(email: EmailAddress): User.Login = User.Login(ProviderId(CredentialsProvider.ID), ProviderKey(email.value))
 
-  def loginInfo(email: Email): LoginInfo = new LoginInfo(CredentialsProvider.ID, email.value)
+  def loginInfo(email: EmailAddress): LoginInfo = new LoginInfo(CredentialsProvider.ID, email.value)
 }

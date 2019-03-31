@@ -28,7 +28,7 @@ object Mappings {
   val instant: Mapping[Instant] = stringEitherMapping(s => Try(LocalDateTime.parse(s).toInstant(ZoneOffset.UTC)).toEither, _.atZone(ZoneOffset.UTC).toLocalDateTime.toString, datetimeError) // FIXME manage timezone
   val duration: Mapping[FiniteDuration] = WrappedMapping(longNumber, (l: Long) => Duration.apply(l, MINUTES), _.toMinutes)
 
-  val mail: Mapping[Email] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(100)), (s: String) => Email.from(s).right.get, _.value)
+  val emailAddress: Mapping[EmailAddress] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(100)), (s: String) => EmailAddress.from(s).right.get, _.value)
   val url: Mapping[Url] = stringEitherMapping(Url.from, _.value)
   val slides: Mapping[Slides] = stringEitherMapping(Slides.from, _.value)
   val video: Mapping[Video] = stringEitherMapping(Video.from, _.value)

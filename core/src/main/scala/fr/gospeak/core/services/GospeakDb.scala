@@ -9,7 +9,7 @@ import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain._
 
 trait GospeakDb {
-  def createUser(slug: User.Slug, firstName: String, lastName: String, email: Email, now: Instant): IO[User]
+  def createUser(slug: User.Slug, firstName: String, lastName: String, email: EmailAddress, now: Instant): IO[User]
 
   def updateUser(user: User, now: Instant): IO[User]
 
@@ -27,14 +27,14 @@ trait GospeakDb {
 
   def getUser(credentials: User.Credentials): IO[Option[User]]
 
-  def getUser(email: Email): IO[Option[User]]
+  def getUser(email: EmailAddress): IO[Option[User]]
 
   def getUser(slug: User.Slug): IO[Option[User]]
 
   def getUsers(ids: Seq[User.Id]): IO[Seq[User]]
 
 
-  def createAccountValidationRequest(email: Email, user: User.Id, now: Instant): IO[AccountValidationRequest]
+  def createAccountValidationRequest(email: EmailAddress, user: User.Id, now: Instant): IO[AccountValidationRequest]
 
   def getPendingAccountValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[AccountValidationRequest]]
 
@@ -42,11 +42,11 @@ trait GospeakDb {
 
   def validateAccount(id: UserRequest.Id, user: User.Id, now: Instant): IO[Done]
 
-  def createPasswordResetRequest(email: Email, now: Instant): IO[PasswordResetRequest]
+  def createPasswordResetRequest(email: EmailAddress, now: Instant): IO[PasswordResetRequest]
 
   def getPendingPasswordResetRequest(id: UserRequest.Id, now: Instant): IO[Option[PasswordResetRequest]]
 
-  def getPendingPasswordResetRequest(email: Email, now: Instant): IO[Option[PasswordResetRequest]]
+  def getPendingPasswordResetRequest(email: EmailAddress, now: Instant): IO[Option[PasswordResetRequest]]
 
   def resetPassword(passwordReset: PasswordResetRequest, credentials: User.Credentials, now: Instant): IO[Done]
 

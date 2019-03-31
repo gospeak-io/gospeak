@@ -86,7 +86,7 @@ object DoobieUtils {
   object Mappings {
     implicit val finiteDurationMeta: Meta[FiniteDuration] = Meta[Long].timap(Duration.fromNanos)(_.toNanos)
     implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Instant].timap(LocalDateTime.ofInstant(_, ZoneOffset.UTC))(_.toInstant(ZoneOffset.UTC))
-    implicit val emailMeta: Meta[Email] = Meta[String].timap(Email.from(_).right.get)(_.value)
+    implicit val emailAddressMeta: Meta[EmailAddress] = Meta[String].timap(EmailAddress.from(_).right.get)(_.value)
     implicit val slidesMeta: Meta[Slides] = Meta[String].timap(Slides.from(_).right.get)(_.value)
     implicit val videoMeta: Meta[Video] = Meta[String].timap(Video.from(_).right.get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
