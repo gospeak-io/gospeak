@@ -21,9 +21,9 @@ class SpeakerCtrl(cc: ControllerComponents,
 
   def detail(group: Group.Slug, proposal: Proposal.Id, speaker: User.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
-      proposalElt <- OptionT(db.getProposal(proposal))
-      speakerElt <- OptionT(db.getUser(speaker))
+      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
+      proposalElt <- OptionT(db.proposal.find(proposal))
+      speakerElt <- OptionT(db.user.find(speaker))
       h = header(group)
       b = breadcrumb(req.identity.user.name, group -> groupElt.name, proposal -> proposalElt.title, speaker -> speakerElt.name)
     } yield Ok(html.detail(speakerElt)(h, b))).value.map(_.getOrElse(proposalNotFound(group, proposal))).unsafeToFuture()

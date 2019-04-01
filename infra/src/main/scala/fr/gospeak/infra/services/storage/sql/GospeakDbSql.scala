@@ -1,12 +1,10 @@
 package fr.gospeak.infra.services.storage.sql
 
-import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDateTime}
 
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
-import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest}
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.GospeakDb
@@ -21,7 +19,7 @@ import scala.concurrent.duration._
 
 class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   private val flyway = FlywayUtils.build(conf)
-  private[sql] val xa = DoobieUtils.transactor(conf)
+  private[sql] val xa: doobie.Transactor[IO] = DoobieUtils.transactor(conf)
 
   def createTables(): IO[Int] = IO(flyway.migrate())
 
@@ -90,7 +88,7 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
     val event1 = event(group1, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, venue = None, description = Some("desc"))
     val event2 = event(group1, "2019-02", "HumanTalks Paris Fevrier 2019", "2019-02-12", userOrga, talks = Seq(proposal1))
-    val event3 = event(group1, "2019-03", "HumanTalks Paris Mars 2019", "2019-03-12", userDemo, venue = None, description = Some("desc"))
+    val event3 = event(group1, "2019-06", "HumanTalks Paris Juin 2019", "2019-06-12", userDemo, venue = None, description = Some("desc"))
     val event4 = event(group2, "2019-04", "Paris.Js Avril", "2019-04-01", userOrga, talks = Seq(proposal3))
     val event5 = event(group3, "2019-03", "Nouveaux modeles de gouvenance", "2019-03-15", userDemo)
 
@@ -116,174 +114,13 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
     } yield Done
   }
 
-
-  override def createUser(slug: User.Slug, firstName: String, lastName: String, email: EmailAddress, avatar: Avatar, now: Instant): IO[User] =
-    run(UserTable.insert, User(User.Id.generate(), slug, firstName, lastName, email, None, avatar, now, now))
-
-  override def updateUser(user: User, now: Instant): IO[User] =
-    run(UserTable.update(user.copy(updated = now))).map(_ => user)
-
-  override def createLoginRef(login: User.Login, user: User.Id): IO[Done] =
-    run(UserTable.insertLoginRef, User.LoginRef(login, user)).map(_ => Done)
-
-  override def createCredentials(credentials: User.Credentials): IO[User.Credentials] =
-    run(UserTable.insertCredentials, credentials)
-
-  override def updateCredentials(login: User.Login)(pass: User.Password): IO[Done] =
-    run(UserTable.updateCredentials(login)(pass))
-
-  override def deleteCredentials(login: User.Login): IO[Done] =
-    run(UserTable.deleteCredentials(login))
-
-  override def getCredentials(login: User.Login): IO[Option[User.Credentials]] =
-    run(UserTable.selectCredentials(login).option)
-
-  override def getUser(login: User.Login): IO[Option[User]] = run(UserTable.selectOne(login).option)
-
-  override def getUser(credentials: User.Credentials): IO[Option[User]] = run(UserTable.selectOne(credentials.login).option)
-
-  override def getUser(email: EmailAddress): IO[Option[User]] = run(UserTable.selectOne(email).option)
-
-  override def getUser(slug: User.Slug): IO[Option[User]] = run(UserTable.selectOne(slug).option)
-
-  override def getUsers(ids: Seq[User.Id]): IO[Seq[User]] = runIn(UserTable.selectAll)(ids)
-
-
-  override def createAccountValidationRequest(email: EmailAddress, user: User.Id, now: Instant): IO[AccountValidationRequest] =
-    run(UserRequestTable.AccountValidation.insert, AccountValidationRequest(email, user, now))
-
-  override def getPendingAccountValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[AccountValidationRequest]] =
-    run(UserRequestTable.AccountValidation.selectPending(id, now).option)
-
-  override def getPendingAccountValidationRequest(id: User.Id, now: Instant): IO[Option[AccountValidationRequest]] =
-    run(UserRequestTable.AccountValidation.selectPending(id, now).option)
-
-  override def validateAccount(id: UserRequest.Id, user: User.Id, now: Instant): IO[Done] = for {
-    _ <- run(UserRequestTable.AccountValidation.accept(id, now))
-    _ <- run(UserTable.validateAccount(user, now))
-  } yield Done
-
-  override def createPasswordResetRequest(email: EmailAddress, now: Instant): IO[PasswordResetRequest] =
-    run(UserRequestTable.ResetPassword.insert, PasswordResetRequest(email, now))
-
-  override def getPendingPasswordResetRequest(id: UserRequest.Id, now: Instant): IO[Option[PasswordResetRequest]] =
-    run(UserRequestTable.ResetPassword.selectPending(id, now).option)
-
-  override def getPendingPasswordResetRequest(email: EmailAddress, now: Instant): IO[Option[PasswordResetRequest]] =
-    run(UserRequestTable.ResetPassword.selectPending(email, now).option)
-
-  override def resetPassword(passwordReset: PasswordResetRequest, credentials: User.Credentials, now: Instant): IO[Done] = for {
-    _ <- run(UserRequestTable.ResetPassword.accept(passwordReset.id, now))
-    _ <- run(UserTable.updateCredentials(credentials.login)(credentials.pass))
-  } yield Done
-
-
-  override def createGroup(data: Group.Data, by: User.Id, now: Instant): IO[Group] =
-    run(GroupTable.insert, Group(Group.Id.generate(), data.slug, data.name, data.description, NonEmptyList.of(by), Info(by, now)))
-
-  override def getGroup(user: User.Id, slug: Group.Slug): IO[Option[Group]] = run(GroupTable.selectOne(user, slug).option)
-
-  override def getGroups(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(GroupTable.selectPage(user, _), params))
-
-
-  override def createEvent(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event] =
-    run(EventTable.insert, Event(Event.Id.generate(), group, data.slug, data.name, data.start, None, data.venue, Seq(), Info(by, now)))
-
-  override def updateEvent(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): IO[Done] = {
-    if (data.slug != event) {
-      getEvent(group, data.slug).flatMap {
-        case None => run(EventTable.update(group, event)(data, by, now))
-        case _ => IO.raiseError(CustomException(s"You already have an event with slug ${data.slug}"))
-      }
-    } else {
-      run(EventTable.update(group, event)(data, by, now))
-    }
-  }
-
-  override def updateEventTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): IO[Done] =
-    run(EventTable.updateTalks(group, event)(talks, by, now))
-
-  override def getEvent(group: Group.Id, event: Event.Slug): IO[Option[Event]] = run(EventTable.selectOne(group, event).option)
-
-  override def getEvents(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(Queries.selectPage(EventTable.selectPage(group, _), params))
-
-  override def getEvents(ids: Seq[Event.Id]): IO[Seq[Event]] = runIn[Event.Id, Event](EventTable.selectAll)(ids)
-
-  override def getEventsAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]] =
-    run(Queries.selectPage(EventTable.selectAllAfter(group, now.truncatedTo(ChronoUnit.DAYS), _), params))
-
-
-  override def createCfp(group: Group.Id, data: Cfp.Data, by: User.Id, now: Instant): IO[Cfp] =
-    run(CfpTable.insert, Cfp(Cfp.Id.generate(), group, data.slug, data.name, data.description, Info(by, now)))
-
-  override def getCfp(slug: Cfp.Slug): IO[Option[Cfp]] = run(CfpTable.selectOne(slug).option)
-
-  override def getCfp(id: Cfp.Id): IO[Option[Cfp]] = run(CfpTable.selectOne(id).option)
-
-  override def getCfp(id: Group.Id): IO[Option[Cfp]] = run(CfpTable.selectOne(id).option)
-
-  override def getCfpAvailables(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(CfpTable.selectPage(talk, _), params))
-
-
-  override def createTalk(user: User.Id, data: Talk.Data, now: Instant): IO[Talk] =
-    getTalk(user, data.slug).flatMap {
-      case None => run(TalkTable.insert, Talk(Talk.Id.generate(), data.slug, data.title, data.duration, Talk.Status.Draft, data.description, NonEmptyList.one(user), data.slides, data.video, Info(user, now)))
-      case _ => IO.raiseError(CustomException(s"You already have a talk with slug ${data.slug}"))
-    }
-
-  override def updateTalk(user: User.Id, slug: Talk.Slug)(data: Talk.Data, now: Instant): IO[Done] = {
-    if (data.slug != slug) {
-      // FIXME: should also check for other speakers !!!
-      getTalk(user, data.slug).flatMap {
-        case None => run(TalkTable.update(user, slug)(data, now))
-        case _ => IO.raiseError(CustomException(s"You already have a talk with slug ${data.slug}"))
-      }
-    } else {
-      run(TalkTable.update(user, slug)(data, now))
-    }
-  }
-
-  override def updateTalkStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done] = run(TalkTable.updateStatus(user, slug)(status))
-
-  override def updateTalkSlides(user: User.Id, slug: Talk.Slug)(slides: Slides, now: Instant): IO[Done] = run(TalkTable.updateSlides(user, slug)(slides, now))
-
-  override def updateTalkVideo(user: User.Id, slug: Talk.Slug)(video: Video, now: Instant): IO[Done] = run(TalkTable.updateVideo(user, slug)(video, now))
-
-  override def getTalk(user: User.Id, slug: Talk.Slug): IO[Option[Talk]] = run(TalkTable.selectOne(user, slug).option)
-
-  override def getTalks(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(TalkTable.selectPage(user, _), params))
-
-  override def getTalks(ids: Seq[Talk.Id]): IO[Seq[Talk]] = runIn(TalkTable.selectAll)(ids)
-
-
-  override def createProposal(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal] =
-    run(ProposalTable.insert, Proposal(Proposal.Id.generate(), talk, cfp, None, data.title, data.duration, Proposal.Status.Pending, data.description, speakers, data.slides, data.video, Info(by, now)))
-
-  override def updateProposalStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): IO[Done] =
-    run(ProposalTable.updateStatus(id)(status, event))
-
-  override def updateProposalSlides(id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): IO[Done] = run(ProposalTable.updateSlides(id)(slides, now, user))
-
-  override def updateProposalVideo(id: Proposal.Id)(video: Video, now: Instant, user: User.Id): IO[Done] = run(ProposalTable.updateVideo(id)(video, now, user))
-
-  override def getProposal(id: Proposal.Id): IO[Option[Proposal]] = run(ProposalTable.selectOne(id).option)
-
-  override def getProposal(talk: Talk.Id, cfp: Cfp.Id): IO[Option[Proposal]] = run(ProposalTable.selectOne(talk, cfp).option)
-
-  override def getProposals(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]] = run(Queries.selectPage(ProposalTable.selectPage(talk, _), params))
-
-  override def getProposals(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal]] = run(Queries.selectPage(ProposalTable.selectPage(cfp, _), params))
-
-  override def getProposals(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal]] = run(Queries.selectPage(ProposalTable.selectPage(cfp, status, _), params))
-
-  override def getProposals(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = runIn(ProposalTable.selectAll)(ids)
-
-
-  private def run[A](i: A => doobie.Update0, v: A): IO[A] =
-    i(v).run.transact(xa).flatMap {
-      case 1 => IO.pure(v)
-      case code => IO.raiseError(CustomException(s"Failed to insert $v (code: $code)"))
-    }
+  val user = new UserRepoSql(xa)
+  val userRequest = new UserRequestRepoSql(xa)
+  val group = new GroupRepoSql(xa)
+  val event = new EventRepoSql(xa)
+  val cfp = new CfpRepoSql(xa)
+  val talk = new TalkRepoSql(xa)
+  val proposal = new ProposalRepoSql(xa)
 
   private def run(i: => doobie.Update0): IO[Done] =
     i.run.transact(xa).flatMap {
@@ -293,9 +130,4 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
 
   private def run[A](v: doobie.ConnectionIO[A]): IO[A] =
     v.transact(xa)
-
-  private def runIn[Id, A](selectAll: NonEmptyList[Id] => doobie.Query0[A])(ids: Seq[Id]): IO[Seq[A]] =
-    NonEmptyList.fromList(ids.toList)
-      .map(nel => run(selectAll(nel).to[List]))
-      .getOrElse(IO.pure(Seq()))
 }

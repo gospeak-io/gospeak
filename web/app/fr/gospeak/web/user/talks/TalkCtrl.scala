@@ -25,7 +25,7 @@ class TalkCtrl(cc: ControllerComponents,
 
   def list(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      talks <- db.getTalks(req.identity.user.id, params)
+      talks <- db.talk.list(req.identity.user.id, params)
       h = listHeader()
       b = listBreadcrumb(req.identity.user.name)
     } yield Ok(html.list(talks)(h, b))).unsafeToFuture()
@@ -39,11 +39,11 @@ class TalkCtrl(cc: ControllerComponents,
     val now = Instant.now()
     TalkForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
-      data => db.getTalk(req.identity.user.id, data.slug).flatMap {
+      data => db.talk.find(req.identity.user.id, data.slug).flatMap {
         case Some(duplicate) =>
           createForm(TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
         case None =>
-          db.createTalk(req.identity.user.id, data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+          db.talk.create(req.identity.user.id, data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
     ).unsafeToFuture()
   }
@@ -56,10 +56,10 @@ class TalkCtrl(cc: ControllerComponents,
 
   def detail(talk: Talk.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      talkElt <- OptionT(db.getTalk(req.identity.user.id, talk))
-      speakers <- OptionT.liftF(db.getUsers(talkElt.speakers.toList))
-      proposals <- OptionT.liftF(db.getProposals(talkElt.id, Page.Params.defaults))
-      events <- OptionT.liftF(db.getEvents(proposals.items.flatMap(_._2.event)))
+      talkElt <- OptionT(db.talk.find(req.identity.user.id, talk))
+      speakers <- OptionT.liftF(db.user.list(talkElt.speakers.toList))
+      proposals <- OptionT.liftF(db.proposal.list(talkElt.id, Page.Params.defaults))
+      events <- OptionT.liftF(db.event.list(proposals.items.flatMap(_._2.event)))
       h = header(talk)
       b = breadcrumb(req.identity.user.name, talk -> talkElt.title)
     } yield Ok(html.detail(talkElt, speakers, proposals, events, GenericForm.embed)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
@@ -72,7 +72,7 @@ class TalkCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(slides) => db.updateTalkSlides(req.identity.user.id, talk)(slides, now).map(_ => next)
+        case Right(slides) => db.talk.updateSlides(req.identity.user.id, talk)(slides, now).map(_ => next)
       }
     ).unsafeToFuture()
   }
@@ -84,7 +84,7 @@ class TalkCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(video) => db.updateTalkVideo(req.identity.user.id, talk)(video, now).map(_ => next)
+        case Right(video) => db.talk.updateVideo(req.identity.user.id, talk)(video, now).map(_ => next)
       }
     ).unsafeToFuture()
   }
@@ -97,17 +97,17 @@ class TalkCtrl(cc: ControllerComponents,
     val now = Instant.now()
     TalkForms.create.bindFromRequest.fold(
       formWithErrors => editForm(talk, formWithErrors),
-      data => db.getTalk(req.identity.user.id, data.slug).flatMap {
+      data => db.talk.find(req.identity.user.id, data.slug).flatMap {
         case Some(duplicate) if data.slug != talk =>
           editForm(talk, TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
         case _ =>
-          db.updateTalk(req.identity.user.id, talk)(data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+          db.talk.update(req.identity.user.id, talk)(data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
     ).unsafeToFuture()
   }
 
   private def editForm(talk: Talk.Slug, form: Form[Talk.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
-    db.getTalk(req.identity.user.id, talk).map {
+    db.talk.find(req.identity.user.id, talk).map {
       case Some(talkElt) =>
         val h = header(talkElt.slug)
         val b = breadcrumb(req.identity.user.name, talkElt.slug -> talkElt.title).add("Edit" -> routes.TalkCtrl.edit(talk))
@@ -119,7 +119,7 @@ class TalkCtrl(cc: ControllerComponents,
   }
 
   def changeStatus(talk: Talk.Slug, status: Talk.Status): Action[AnyContent] = SecuredAction.async { implicit req =>
-    db.updateTalkStatus(req.identity.user.id, talk)(status)
+    db.talk.updateStatus(req.identity.user.id, talk)(status)
       .map(_ => Redirect(routes.TalkCtrl.detail(talk)))
       .unsafeToFuture()
   }

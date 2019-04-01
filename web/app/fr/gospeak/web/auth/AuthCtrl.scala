@@ -27,6 +27,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
+// TODO add conf for db, emailsrv...
+
 // TODO Test this controller
 // TODO Social auth
 // TODO JWT Auth for API
@@ -35,10 +37,7 @@ class AuthCtrl(cc: ControllerComponents,
                db: GospeakDb,
                authSrv: AuthSrv,
                emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
-  private val userHome = fr.gospeak.web.user.routes.UserCtrl.index()
-
-  private def loginRedirect(redirect: Option[String]): Result = Redirect(redirect.getOrElse(userHome.path()))
-
+  private val loginRedirect = (redirect: Option[String]) => Redirect(redirect.getOrElse(fr.gospeak.web.user.routes.UserCtrl.index().path()))
   private val logoutRedirect = Redirect(fr.gospeak.web.routes.HomeCtrl.index())
 
   import silhouette._
@@ -55,7 +54,7 @@ class AuthCtrl(cc: ControllerComponents,
       formWithErrors => Future.successful(BadRequest(html.signup(formWithErrors, redirect)(header))),
       data => (for {
         user <- authSrv.createIdentity(data, now).unsafeToFuture()
-        emailValidation <- db.createAccountValidationRequest(user.user.email, user.user.id, now).unsafeToFuture()
+        emailValidation <- db.userRequest.createAccountValidationRequest(user.user.email, user.user.id, now).unsafeToFuture()
         _ <- emailSrv.send(Emails.signup(user, emailValidation)).unsafeToFuture()
         result <- authSrv.login(user, data.rememberMe, loginRedirect(redirect))
       } yield result).recover {
@@ -93,8 +92,8 @@ class AuthCtrl(cc: ControllerComponents,
   def accountValidation(): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
-      existingValidationOpt <- db.getPendingAccountValidationRequest(req.identity.user.id, now)
-      emailValidation <- existingValidationOpt.map(IO.pure).getOrElse(db.createAccountValidationRequest(req.identity.user.email, req.identity.user.id, now))
+      existingValidationOpt <- db.userRequest.findPendingAccountValidationRequest(req.identity.user.id, now)
+      emailValidation <- existingValidationOpt.map(IO.pure).getOrElse(db.userRequest.createAccountValidationRequest(req.identity.user.email, req.identity.user.id, now))
       _ <- emailSrv.send(Emails.accountValidation(req.identity, emailValidation))
     } yield loginRedirect(HttpUtils.getReferer(req)).flashing("success" -> "Email validation sent!")).unsafeToFuture()
   }
@@ -102,8 +101,8 @@ class AuthCtrl(cc: ControllerComponents,
   def doValidateAccount(id: UserRequest.Id): Action[AnyContent] = UserAwareAction.async { implicit req =>
     val now = Instant.now()
     (for {
-      validation <- OptionT(db.getPendingAccountValidationRequest(id, now))
-      _ <- OptionT.liftF(db.validateAccount(id, validation.user, now))
+      validation <- OptionT(db.userRequest.findPendingAccountValidationRequest(id, now))
+      _ <- OptionT.liftF(db.userRequest.validateAccount(id, validation.user, now))
     } yield Redirect(routes.AuthCtrl.login()).flashing("success" -> s"Well done! You validated your email.")).value.map(_.getOrElse(notFound())).unsafeToFuture()
   }
 
@@ -118,10 +117,10 @@ class AuthCtrl(cc: ControllerComponents,
     AuthForms.forgotPassword.bindFromRequest.fold(
       formWithErrors => Future.successful(BadRequest(html.forgotPassword(formWithErrors, redirect)(header))),
       data => (for {
-        credentials <- OptionT(db.getCredentials(AuthSrv.login(data.email)))
-        user <- OptionT(db.getUser(credentials))
-        existingPasswordResetOpt <- OptionT.liftF(db.getPendingPasswordResetRequest(data.email, now))
-        passwordReset <- existingPasswordResetOpt.map(OptionT.pure(_): OptionT[IO, PasswordResetRequest]).getOrElse(OptionT.liftF(db.createPasswordResetRequest(data.email, now)))
+        credentials <- OptionT(db.user.findCredentials(AuthSrv.login(data.email)))
+        user <- OptionT(db.user.find(credentials))
+        existingPasswordResetOpt <- OptionT.liftF(db.userRequest.findPendingPasswordResetRequest(data.email, now))
+        passwordReset <- existingPasswordResetOpt.map(OptionT.pure(_): OptionT[IO, PasswordResetRequest]).getOrElse(OptionT.liftF(db.userRequest.createPasswordResetRequest(data.email, now)))
         _ <- OptionT.liftF(emailSrv.send(Emails.forgotPassword(user, passwordReset)))
       } yield Redirect(routes.AuthCtrl.login()).flashing("success" -> "Reset password email sent!")).value
         .map(_.getOrElse(Redirect(routes.AuthCtrl.forgotPassword(redirect)).flashing("error" -> s"Email not found"))).unsafeToFuture()
@@ -139,7 +138,7 @@ class AuthCtrl(cc: ControllerComponents,
     AuthForms.resetPassword.bindFromRequest.fold(
       formWithErrors => resetPasswordForm(id, formWithErrors),
       data => (for {
-        passwordReset <- OptionT(db.getPendingPasswordResetRequest(id, now).unsafeToFuture())
+        passwordReset <- OptionT(db.userRequest.findPendingPasswordResetRequest(id, now).unsafeToFuture())
         user <- OptionT.liftF(authSrv.updateIdentity(data, passwordReset, now).unsafeToFuture())
         result <- OptionT.liftF(authSrv.login(user, data.rememberMe, loginRedirect(None)))
       } yield result).value.map(_.getOrElse(notFound()))
@@ -148,7 +147,7 @@ class AuthCtrl(cc: ControllerComponents,
 
   private def resetPasswordForm(id: UserRequest.Id, form: Form[AuthForms.ResetPasswordData])(implicit req: UserAwareRequest[CookieEnv, AnyContent]): Future[Result] = {
     val now = Instant.now()
-    db.getPendingPasswordResetRequest(id, now).map { passwordResetOpt =>
+    db.userRequest.findPendingPasswordResetRequest(id, now).map { passwordResetOpt =>
       passwordResetOpt.map { passwordReset =>
         Ok(html.resetPassword(passwordReset, form)(header))
       }.getOrElse {

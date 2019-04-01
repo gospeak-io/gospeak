@@ -25,8 +25,8 @@ class SettingsCtrl(cc: ControllerComponents,
 
   def list(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
-      cfpOpt <- OptionT.liftF(db.getCfp(groupElt.id))
+      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
+      cfpOpt <- OptionT.liftF(db.cfp.find(groupElt.id))
       h = listHeader(group)
       b = listBreadcrumb(req.identity.user.name, group -> groupElt.name)
     } yield Ok(html.list(groupElt, cfpOpt)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
@@ -42,8 +42,8 @@ class SettingsCtrl(cc: ControllerComponents,
       formWithErrors => cfpForm(group, formWithErrors),
       data => {
         (for {
-          groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
-          _ <- OptionT.liftF(db.createCfp(groupElt.id, data, req.identity.user.id, now))
+          groupElt <- OptionT(db.group.find(req.identity.user.id, group))
+          _ <- OptionT.liftF(db.cfp.create(groupElt.id, data, req.identity.user.id, now))
         } yield Redirect(GroupRoutes.detail(group))).value.map(_.getOrElse(groupNotFound(group)))
       }
     ).unsafeToFuture()
@@ -51,8 +51,8 @@ class SettingsCtrl(cc: ControllerComponents,
 
   private def cfpForm(group: Group.Slug, form: Form[Cfp.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
-      cfpOpt <- OptionT.liftF(db.getCfp(groupElt.id))
+      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
+      cfpOpt <- OptionT.liftF(db.cfp.find(groupElt.id))
       h = header(group)
       b = breadcrumb(req.identity.user.name, group -> groupElt.name, "CFP" -> routes.SettingsCtrl.cfp(group))
     } yield Ok(html.cfp(form, groupElt, cfpOpt)(h, b))).value.map(_.getOrElse(groupNotFound(group)))

@@ -26,10 +26,10 @@ class EventCtrl(cc: ControllerComponents,
 
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
-      events <- OptionT.liftF(db.getEvents(groupElt.id, params))
-      proposals <- OptionT.liftF(db.getProposals(events.items.flatMap(_.talks)))
-      speakers <- OptionT.liftF(db.getUsers(proposals.flatMap(_.speakers.toList)))
+      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
+      events <- OptionT.liftF(db.event.list(groupElt.id, params))
+      proposals <- OptionT.liftF(db.proposal.list(events.items.flatMap(_.talks)))
+      speakers <- OptionT.liftF(db.user.list(proposals.flatMap(_.speakers.toList)))
       h = listHeader(group)
       b = listBreadcrumb(req.identity.user.name, group -> groupElt.name)
     } yield Ok(html.list(groupElt, events, proposals, speakers)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
@@ -44,16 +44,16 @@ class EventCtrl(cc: ControllerComponents,
     EventForms.create.bindFromRequest.fold(
       formWithErrors => createForm(group, formWithErrors),
       data => (for {
-        groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
+        groupElt <- OptionT(db.group.find(req.identity.user.id, group))
         // TODO check if slug not already exist
-        _ <- OptionT.liftF(db.createEvent(groupElt.id, data.copy(venue = data.venue.map(_.trim)), req.identity.user.id, now))
+        _ <- OptionT.liftF(db.event.create(groupElt.id, data.copy(venue = data.venue.map(_.trim)), req.identity.user.id, now))
       } yield Redirect(routes.EventCtrl.detail(group, data.slug))).value.map(_.getOrElse(groupNotFound(group)))
     ).unsafeToFuture()
   }
 
   private def createForm(group: Group.Slug, form: Form[Event.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
+      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
       h = header(group)
       b = listBreadcrumb(req.identity.user.name, group -> groupElt.name).add("New" -> routes.EventCtrl.create(group))
     } yield Ok(html.create(groupElt, form)(h, b))).value.map(_.getOrElse(groupNotFound(group)))
@@ -61,12 +61,12 @@ class EventCtrl(cc: ControllerComponents,
 
   def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
-      eventElt <- OptionT(db.getEvent(groupElt.id, event))
-      talks <- OptionT.liftF(db.getProposals(eventElt.talks))
-      cfpOpt <- OptionT.liftF(db.getCfp(groupElt.id))
-      proposals <- OptionT.liftF(cfpOpt.map(cfp => db.getProposals(cfp.id, Proposal.Status.Pending, params)).getOrElse(IO.pure(Page.empty[Proposal])))
-      speakers <- OptionT.liftF(db.getUsers((proposals.items ++ talks).flatMap(_.speakers.toList).distinct))
+      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
+      eventElt <- OptionT(db.event.find(groupElt.id, event))
+      talks <- OptionT.liftF(db.proposal.list(eventElt.talks))
+      cfpOpt <- OptionT.liftF(db.cfp.find(groupElt.id))
+      proposals <- OptionT.liftF(cfpOpt.map(cfp => db.proposal.list(cfp.id, Proposal.Status.Pending, params)).getOrElse(IO.pure(Page.empty[Proposal])))
+      speakers <- OptionT.liftF(db.user.list((proposals.items ++ talks).flatMap(_.speakers.toList).distinct))
       h = header(group)
       b = breadcrumb(req.identity.user.name, group -> groupElt.name, event -> eventElt.name)
     } yield Ok(html.detail(groupElt, eventElt, talks, cfpOpt, proposals, speakers)(h, b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
@@ -81,13 +81,13 @@ class EventCtrl(cc: ControllerComponents,
     EventForms.create.bindFromRequest.fold(
       formWithErrors => editForm(group, event, formWithErrors),
       data => (for {
-        groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
-        eventOpt <- OptionT.liftF(db.getEvent(groupElt.id, data.slug))
+        groupElt <- OptionT(db.group.find(req.identity.user.id, group))
+        eventOpt <- OptionT.liftF(db.event.find(groupElt.id, data.slug))
         res <- OptionT.liftF(eventOpt match {
           case Some(duplicate) if data.slug != event =>
             editForm(group, event, EventForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by event: ${duplicate.name.value}"))
           case _ =>
-            db.updateEvent(groupElt.id, event)(data, req.identity.user.id, now).map { _ => Redirect(routes.EventCtrl.detail(group, data.slug)) }
+            db.event.update(groupElt.id, event)(data, req.identity.user.id, now).map { _ => Redirect(routes.EventCtrl.detail(group, data.slug)) }
         })
       } yield res).value.map(_.getOrElse(groupNotFound(group)))
     ).unsafeToFuture()
@@ -95,8 +95,8 @@ class EventCtrl(cc: ControllerComponents,
 
   private def editForm(group: Group.Slug, event: Event.Slug, form: Form[Event.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
-      eventElt <- OptionT(db.getEvent(groupElt.id, event))
+      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
+      eventElt <- OptionT(db.event.find(groupElt.id, event))
       h = header(group)
       b = breadcrumb(req.identity.user.name, group -> groupElt.name, event -> eventElt.name).add("Edit" -> routes.EventCtrl.edit(group, event))
       filledForm = if (form.hasErrors) form else form.fill(eventElt.data)
@@ -106,29 +106,29 @@ class EventCtrl(cc: ControllerComponents,
   def addTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
-      groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
-      eventElt <- OptionT(db.getEvent(groupElt.id, event))
-      _ <- OptionT.liftF(db.updateEventTalks(groupElt.id, event)(eventElt.add(talk).talks, req.identity.user.id, now))
-      _ <- OptionT.liftF(db.updateProposalStatus(talk)(Proposal.Status.Accepted, Some(eventElt.id)))
+      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
+      eventElt <- OptionT(db.event.find(groupElt.id, event))
+      _ <- OptionT.liftF(db.event.updateTalks(groupElt.id, event)(eventElt.add(talk).talks, req.identity.user.id, now))
+      _ <- OptionT.liftF(db.proposal.updateStatus(talk)(Proposal.Status.Accepted, Some(eventElt.id)))
     } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
   def removeTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
-      groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
-      eventElt <- OptionT(db.getEvent(groupElt.id, event))
-      _ <- OptionT.liftF(db.updateEventTalks(groupElt.id, event)(eventElt.remove(talk).talks, req.identity.user.id, now))
-      _ <- OptionT.liftF(db.updateProposalStatus(talk)(Proposal.Status.Pending, None))
+      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
+      eventElt <- OptionT(db.event.find(groupElt.id, event))
+      _ <- OptionT.liftF(db.event.updateTalks(groupElt.id, event)(eventElt.remove(talk).talks, req.identity.user.id, now))
+      _ <- OptionT.liftF(db.proposal.updateStatus(talk)(Proposal.Status.Pending, None))
     } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
   def moveTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, up: Boolean): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
-      groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
-      eventElt <- OptionT(db.getEvent(groupElt.id, event))
-      _ <- OptionT.liftF(db.updateEventTalks(groupElt.id, event)(eventElt.move(talk, up).talks, req.identity.user.id, now))
+      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
+      eventElt <- OptionT(db.event.find(groupElt.id, event))
+      _ <- OptionT.liftF(db.event.updateTalks(groupElt.id, event)(eventElt.move(talk, up).talks, req.identity.user.id, now))
     } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 }

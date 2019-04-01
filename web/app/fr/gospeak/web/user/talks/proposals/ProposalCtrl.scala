@@ -23,9 +23,9 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      talkElt <- OptionT(db.getTalk(req.identity.user.id, talk))
-      proposals <- OptionT.liftF(db.getProposals(talkElt.id, params))
-      events <- OptionT.liftF(db.getEvents(proposals.items.flatMap(_._2.event)))
+      talkElt <- OptionT(db.talk.find(req.identity.user.id, talk))
+      proposals <- OptionT.liftF(db.proposal.list(talkElt.id, params))
+      events <- OptionT.liftF(db.event.list(proposals.items.flatMap(_._2.event)))
       h = TalkCtrl.header(talkElt.slug)
       b = listBreadcrumb(req.identity.user.name, talk -> talkElt.title)
     } yield Ok(html.list(talkElt, proposals, events)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
@@ -33,11 +33,11 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def detail(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      talkElt <- OptionT(db.getTalk(req.identity.user.id, talk))
-      proposalElt <- OptionT(db.getProposal(proposal))
-      cfpElt <- OptionT(db.getCfp(proposalElt.cfp))
-      speakers <- OptionT.liftF(db.getUsers(proposalElt.speakers.toList))
-      events <- OptionT.liftF(db.getEvents(proposalElt.event.toSeq))
+      talkElt <- OptionT(db.talk.find(req.identity.user.id, talk))
+      proposalElt <- OptionT(db.proposal.find(proposal))
+      cfpElt <- OptionT(db.cfp.find(proposalElt.cfp))
+      speakers <- OptionT.liftF(db.user.list(proposalElt.speakers.toList))
+      events <- OptionT.liftF(db.event.list(proposalElt.event.toSeq))
       h = TalkCtrl.header(talkElt.slug)
       b = breadcrumb(req.identity.user.name, talk -> talkElt.title, proposal -> cfpElt.name)
     } yield Ok(html.detail(talkElt, cfpElt, proposalElt, speakers, events, GenericForm.embed)(h, b))).value.map(_.getOrElse(proposalNotFound(talk, proposal))).unsafeToFuture()
@@ -50,7 +50,7 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(slides) => db.updateProposalSlides(proposal)(slides, now, req.identity.user.id).map(_ => next)
+        case Right(slides) => db.proposal.updateSlides(proposal)(slides, now, req.identity.user.id).map(_ => next)
       }
     ).unsafeToFuture()
   }
@@ -62,7 +62,7 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(video) => db.updateProposalVideo(proposal)(video, now, req.identity.user.id).map(_ => next)
+        case Right(video) => db.proposal.updateVideo(proposal)(video, now, req.identity.user.id).map(_ => next)
       }
     ).unsafeToFuture()
   }

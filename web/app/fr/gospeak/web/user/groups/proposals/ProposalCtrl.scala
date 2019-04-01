@@ -24,11 +24,11 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
-      cfpOpt <- OptionT.liftF(db.getCfp(groupElt.id))
-      proposals <- cfpOpt.map(cfpElt => OptionT.liftF(db.getProposals(cfpElt.id, params))).getOrElse(OptionT.pure[IO](Page.empty[Proposal](params)))
-      speakers <- OptionT.liftF(db.getUsers(proposals.items.flatMap(_.speakers.toList)))
-      events <- OptionT.liftF(db.getEvents(proposals.items.flatMap(_.event)))
+      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
+      cfpOpt <- OptionT.liftF(db.cfp.find(groupElt.id))
+      proposals <- cfpOpt.map(cfpElt => OptionT.liftF(db.proposal.list(cfpElt.id, params))).getOrElse(OptionT.pure[IO](Page.empty[Proposal](params)))
+      speakers <- OptionT.liftF(db.user.list(proposals.items.flatMap(_.speakers.toList)))
+      events <- OptionT.liftF(db.event.list(proposals.items.flatMap(_.event)))
       h = listHeader(group)
       b = listBreadcrumb(req.identity.user.name, group -> groupElt.name)
     } yield Ok(html.list(groupElt, cfpOpt, proposals, speakers, events)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
@@ -36,10 +36,10 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def detail(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(db.getGroup(req.identity.user.id, group))
-      proposalElt <- OptionT(db.getProposal(proposal))
-      speakers <- OptionT.liftF(db.getUsers(proposalElt.speakers.toList))
-      events <- OptionT.liftF(db.getEvents(proposalElt.event.toSeq))
+      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
+      proposalElt <- OptionT(db.proposal.find(proposal))
+      speakers <- OptionT.liftF(db.user.list(proposalElt.speakers.toList))
+      events <- OptionT.liftF(db.event.list(proposalElt.event.toSeq))
       h = header(group)
       b = breadcrumb(req.identity.user.name, group -> groupElt.name, proposal -> proposalElt.title)
     } yield Ok(html.detail(groupElt, proposalElt, speakers, events, GenericForm.embed)(h, b))).value.map(_.getOrElse(proposalNotFound(group, proposal))).unsafeToFuture()
@@ -52,7 +52,7 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(slides) => db.updateProposalSlides(proposal)(slides, now, req.identity.user.id).map(_ => next)
+        case Right(slides) => db.proposal.updateSlides(proposal)(slides, now, req.identity.user.id).map(_ => next)
       }
     ).unsafeToFuture()
   }
@@ -64,7 +64,7 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(video) => db.updateProposalVideo(proposal)(video, now, req.identity.user.id).map(_ => next)
+        case Right(video) => db.proposal.updateVideo(proposal)(video, now, req.identity.user.id).map(_ => next)
       }
     ).unsafeToFuture()
   }

@@ -26,8 +26,8 @@ class CfpCtrl(cc: ControllerComponents,
 
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      talkElt <- OptionT(db.getTalk(req.identity.user.id, talk))
-      cfps <- OptionT.liftF(db.getCfpAvailables(talkElt.id, params))
+      talkElt <- OptionT(db.talk.find(req.identity.user.id, talk))
+      cfps <- OptionT.liftF(db.cfp.listAvailables(talkElt.id, params))
       h = TalkCtrl.header(talkElt.slug)
       b = listBreadcrumb(req.identity.user.name, talk -> talkElt.title)
     } yield Ok(html.list(talkElt, cfps)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
@@ -43,9 +43,9 @@ class CfpCtrl(cc: ControllerComponents,
       formWithErrors => createForm(formWithErrors, talk, cfp),
       data => {
         (for {
-          talkElt <- OptionT(db.getTalk(req.identity.user.id, talk))
-          cfpElt <- OptionT(db.getCfp(cfp))
-          proposal <- OptionT.liftF(db.createProposal(talkElt.id, cfpElt.id, data, talkElt.speakers, req.identity.user.id, now))
+          talkElt <- OptionT(db.talk.find(req.identity.user.id, talk))
+          cfpElt <- OptionT(db.cfp.find(cfp))
+          proposal <- OptionT.liftF(db.proposal.create(talkElt.id, cfpElt.id, data, talkElt.speakers, req.identity.user.id, now))
         } yield Redirect(ProposalCtrl.detail(talk, proposal.id))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }
     ).unsafeToFuture()
@@ -53,9 +53,9 @@ class CfpCtrl(cc: ControllerComponents,
 
   private def createForm(form: Form[Proposal.Data], talk: Talk.Slug, cfp: Cfp.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      talkElt <- OptionT(db.getTalk(req.identity.user.id, talk))
-      cfpElt <- OptionT(db.getCfp(cfp))
-      proposalOpt <- OptionT.liftF(db.getProposal(talkElt.id, cfpElt.id))
+      talkElt <- OptionT(db.talk.find(req.identity.user.id, talk))
+      cfpElt <- OptionT(db.cfp.find(cfp))
+      proposalOpt <- OptionT.liftF(db.proposal.find(talkElt.id, cfpElt.id))
       filledForm = if (form.hasErrors) form else form.fill(Proposal.Data(talkElt))
       h = TalkCtrl.header(talkElt.slug)
       b = breadcrumb(req.identity.user.name, talk -> talkElt.title, cfp -> cfpElt.name)

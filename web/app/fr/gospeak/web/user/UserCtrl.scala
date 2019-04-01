@@ -21,8 +21,8 @@ class UserCtrl(cc: ControllerComponents,
   def index(): Action[AnyContent] = SecuredAction.async { implicit req =>
     implicit val user: User = req.identity.user
     (for {
-      groups <- db.getGroups(user.id, Page.Params.defaults)
-      talks <- db.getTalks(user.id, Page.Params.defaults)
+      groups <- db.group.list(user.id, Page.Params.defaults)
+      talks <- db.talk.list(user.id, Page.Params.defaults)
     } yield Ok(html.index(groups, talks)(indexHeader(), breadcrumb(user.name)))).unsafeToFuture()
   }
 

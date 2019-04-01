@@ -41,19 +41,19 @@ class AuthSrv(authRepo: AuthRepo,
     val password = toDomain(passwordHasherRegistry.current.hash(data.password.decode))
     val credentials = User.Credentials(login, password)
     for {
-      loginOpt <- db.getUser(login)
+      loginOpt <- db.user.find(login)
       _ <- loginOpt.swap.toIO(DuplicateIdentityException(loginInfo)) // fail if login already exist
-      emailOpt <- db.getUser(data.email)
-      slugOpt <- db.getUser(data.slug)
+      emailOpt <- db.user.find(data.email)
+      slugOpt <- db.user.find(data.slug)
       _ <- slugOpt.forall(s => emailOpt.exists(_.id == s.id)).toIO(DuplicateSlugException(data.slug)) // fail if slug exists for a different user from email
       avatar = gravatarSrv.getAvatar(data.email)
       user <- emailOpt.map { user =>
-        db.updateUser(user.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), now)
+        db.user.update(user.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), now)
       }.getOrElse {
-        db.createUser(data.slug, data.firstName, data.lastName, data.email, avatar, now)
+        db.user.create(data.slug, data.firstName, data.lastName, data.email, avatar, now)
       }
-      _ <- db.createLoginRef(login, user.id)
-      _ <- db.createCredentials(credentials)
+      _ <- db.user.createLoginRef(login, user.id)
+      _ <- db.user.createCredentials(credentials)
       authUser = AuthUser(loginInfo, user)
       _ = silhouette.env.eventBus.publish(SignUpEvent(authUser, req))
     } yield authUser
@@ -93,8 +93,8 @@ class AuthSrv(authRepo: AuthRepo,
     val password = toDomain(passwordHasherRegistry.current.hash(data.password.decode))
     val credentials = User.Credentials(login, password)
     for {
-      user <- db.getUser(login).flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user for ${login.providerId}")))
-      _ <- db.resetPassword(passwordReset, credentials, now)
+      user <- db.user.find(login).flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user for ${login.providerId}")))
+      _ <- db.userRequest.resetPassword(passwordReset, credentials, now)
       authUser = AuthUser(loginInfo, user)
     } yield authUser
   }

@@ -14,26 +14,26 @@ import scala.concurrent.Future
 
 class AuthRepo(db: GospeakDb) extends DelegableAuthInfoDAO[PasswordInfo] with IdentityService[AuthUser] {
   override def retrieve(loginInfo: LoginInfo): Future[Option[AuthUser]] =
-    db.getUser(toDomain(loginInfo)).map(_.map(u => AuthUser(loginInfo, u))).unsafeToFuture()
+    db.user.find(toDomain(loginInfo)).map(_.map(u => AuthUser(loginInfo, u))).unsafeToFuture()
 
   override def find(loginInfo: LoginInfo): Future[Option[PasswordInfo]] =
-    db.getCredentials(toDomain(loginInfo)).map(_.map(toSilhouette)).unsafeToFuture()
+    db.user.findCredentials(toDomain(loginInfo)).map(_.map(toSilhouette)).unsafeToFuture()
 
   override def add(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] =
-    db.createCredentials(toDomain(loginInfo, authInfo)).map(toSilhouette).unsafeToFuture()
+    db.user.createCredentials(toDomain(loginInfo, authInfo)).map(toSilhouette).unsafeToFuture()
 
   override def update(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] =
-    db.updateCredentials(toDomain(loginInfo))(toDomain(authInfo)).map(_ => authInfo).unsafeToFuture()
+    db.user.updateCredentials(toDomain(loginInfo))(toDomain(authInfo)).map(_ => authInfo).unsafeToFuture()
 
   // add or update
   override def save(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] =
-    db.getCredentials(toDomain(loginInfo)).flatMap { opt =>
-      opt.map(_ => db.updateCredentials(toDomain(loginInfo))(toDomain(authInfo)))
-        .getOrElse(db.createCredentials(toDomain(loginInfo, authInfo)).map(_ => Done))
+    db.user.findCredentials(toDomain(loginInfo)).flatMap { opt =>
+      opt.map(_ => db.user.updateCredentials(toDomain(loginInfo))(toDomain(authInfo)))
+        .getOrElse(db.user.createCredentials(toDomain(loginInfo, authInfo)).map(_ => Done))
     }.map(_ => authInfo).unsafeToFuture()
 
   override def remove(loginInfo: LoginInfo): Future[Unit] =
-    db.deleteCredentials(toDomain(loginInfo)).map(_ => ()).unsafeToFuture()
+    db.user.deleteCredentials(toDomain(loginInfo)).map(_ => ()).unsafeToFuture()
 
   private def toDomain(loginInfo: LoginInfo): User.Login = User.Login(ProviderId(loginInfo.providerID), ProviderKey(loginInfo.providerKey))
 
