@@ -9,7 +9,8 @@ import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaSigner}
 import com.mohiva.play.silhouette.impl.authenticators._
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.softwaremill.macwire.wire
-import fr.gospeak.infra.services.storage.sql.{DbSqlConf, GospeakDbSql, H2}
+import fr.gospeak.core.services._
+import fr.gospeak.infra.services.storage.sql._
 import fr.gospeak.infra.services.{ConsoleEmailSrv, EmailSrv, GravatarSrv}
 import fr.gospeak.web.auth.AuthCtrl
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -48,6 +49,13 @@ class GospeakComponents(context: ApplicationLoader.Context)
 
   lazy val dbConf: DbSqlConf = H2("org.h2.Driver", "jdbc:h2:mem:gospeak_db;MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1")
   lazy val db: GospeakDbSql = wire[GospeakDbSql]
+  lazy val userRepo: UserRepo = db.user
+  lazy val userRequestRepo: UserRequestRepo = db.userRequest
+  lazy val groupRepo: GroupRepo = db.group
+  lazy val eventRepo: EventRepo = db.event
+  lazy val cfpRepo: CfpRepo = db.cfp
+  lazy val talkRepo: TalkRepo = db.talk
+  lazy val proposalRepo: ProposalRepo = db.proposal
   lazy val authRepo: AuthRepo = wire[AuthRepo]
   lazy val emailSrv: EmailSrv = wire[ConsoleEmailSrv]
   lazy val gravatarSrv: GravatarSrv = wire[GravatarSrv]
@@ -99,7 +107,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
   // end:Silhouette conf
 
-  lazy val authSrv: AuthSrv = AuthSrv(cookieConf, silhouette, db, authRepo, clock, gravatarSrv)
+  lazy val authSrv: AuthSrv = AuthSrv(cookieConf, silhouette, userRepo, userRequestRepo, authRepo, clock, gravatarSrv)
 
   lazy val homeCtrl = wire[HomeCtrl]
   lazy val cfpCtrl = wire[CfpCtrl]

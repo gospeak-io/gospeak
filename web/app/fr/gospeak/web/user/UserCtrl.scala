@@ -3,7 +3,7 @@ package fr.gospeak.web.user
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.User
-import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.core.services.{GroupRepo, TalkRepo}
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -14,15 +14,16 @@ import play.api.mvc._
 
 class UserCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
-               db: GospeakDb) extends UICtrl(cc, silhouette) {
+               groupRepo: GroupRepo,
+               talkRepo: TalkRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
   def index(): Action[AnyContent] = SecuredAction.async { implicit req =>
     implicit val user: User = req.identity.user
     (for {
-      groups <- db.group.list(user.id, Page.Params.defaults)
-      talks <- db.talk.list(user.id, Page.Params.defaults)
+      groups <- groupRepo.list(user.id, Page.Params.defaults)
+      talks <- talkRepo.list(user.id, Page.Params.defaults)
     } yield Ok(html.index(groups, talks)(indexHeader(), breadcrumb(user.name)))).unsafeToFuture()
   }
 
@@ -41,9 +42,10 @@ object UserCtrl {
   private val leftNav = NavDropdown("Public", HomeCtrl.publicNav) +: userNav
 
   def rightNav()(implicit req: SecuredRequest[CookieEnv, AnyContent]): Seq[NavMenu] =
-    Seq(NavDropdown(s"""<img src="${req.identity.user.avatar.url.value}" class="avatar">""", Seq(
-      NavLink("Profile", routes.UserCtrl.profile()),
-      NavLink("logout", fr.gospeak.web.auth.routes.AuthCtrl.doLogout()))))
+    Seq(NavDropdown(
+      s"""<img src="${req.identity.user.avatar.url.value}" class="avatar">""", Seq(
+        NavLink("Profile", routes.UserCtrl.profile()),
+        NavLink("logout", fr.gospeak.web.auth.routes.AuthCtrl.doLogout()))))
 
   def indexHeader()(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo = HeaderInfo(
     brand = NavLink("Gospeak", fr.gospeak.web.routes.HomeCtrl.index()),

@@ -6,34 +6,34 @@ import com.mohiva.play.silhouette.api.util.PasswordInfo
 import com.mohiva.play.silhouette.persistence.daos.DelegableAuthInfoDAO
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.domain.User._
-import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.core.services.UserRepo
 import fr.gospeak.libs.scalautils.domain.Done
 import fr.gospeak.web.auth.domain.AuthUser
 
 import scala.concurrent.Future
 
-class AuthRepo(db: GospeakDb) extends DelegableAuthInfoDAO[PasswordInfo] with IdentityService[AuthUser] {
+class AuthRepo(userRepo: UserRepo) extends DelegableAuthInfoDAO[PasswordInfo] with IdentityService[AuthUser] {
   override def retrieve(loginInfo: LoginInfo): Future[Option[AuthUser]] =
-    db.user.find(toDomain(loginInfo)).map(_.map(u => AuthUser(loginInfo, u))).unsafeToFuture()
+    userRepo.find(toDomain(loginInfo)).map(_.map(u => AuthUser(loginInfo, u))).unsafeToFuture()
 
   override def find(loginInfo: LoginInfo): Future[Option[PasswordInfo]] =
-    db.user.findCredentials(toDomain(loginInfo)).map(_.map(toSilhouette)).unsafeToFuture()
+    userRepo.findCredentials(toDomain(loginInfo)).map(_.map(toSilhouette)).unsafeToFuture()
 
   override def add(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] =
-    db.user.createCredentials(toDomain(loginInfo, authInfo)).map(toSilhouette).unsafeToFuture()
+    userRepo.createCredentials(toDomain(loginInfo, authInfo)).map(toSilhouette).unsafeToFuture()
 
   override def update(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] =
-    db.user.updateCredentials(toDomain(loginInfo))(toDomain(authInfo)).map(_ => authInfo).unsafeToFuture()
+    userRepo.updateCredentials(toDomain(loginInfo))(toDomain(authInfo)).map(_ => authInfo).unsafeToFuture()
 
   // add or update
   override def save(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] =
-    db.user.findCredentials(toDomain(loginInfo)).flatMap { opt =>
-      opt.map(_ => db.user.updateCredentials(toDomain(loginInfo))(toDomain(authInfo)))
-        .getOrElse(db.user.createCredentials(toDomain(loginInfo, authInfo)).map(_ => Done))
+    userRepo.findCredentials(toDomain(loginInfo)).flatMap { opt =>
+      opt.map(_ => userRepo.updateCredentials(toDomain(loginInfo))(toDomain(authInfo)))
+        .getOrElse(userRepo.createCredentials(toDomain(loginInfo, authInfo)).map(_ => Done))
     }.map(_ => authInfo).unsafeToFuture()
 
   override def remove(loginInfo: LoginInfo): Future[Unit] =
-    db.user.deleteCredentials(toDomain(loginInfo)).map(_ => ()).unsafeToFuture()
+    userRepo.deleteCredentials(toDomain(loginInfo)).map(_ => ()).unsafeToFuture()
 
   private def toDomain(loginInfo: LoginInfo): User.Login = User.Login(ProviderId(loginInfo.providerID), ProviderKey(loginInfo.providerKey))
 

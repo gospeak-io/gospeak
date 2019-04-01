@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Talk, User}
-import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
@@ -19,13 +19,16 @@ import play.api.mvc._
 
 class TalkCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
-               db: GospeakDb) extends UICtrl(cc, silhouette) {
+               userRepo: UserRepo,
+               talkRepo: TalkRepo,
+               eventRepo: EventRepo,
+               proposalRepo: ProposalRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
   def list(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      talks <- db.talk.list(req.identity.user.id, params)
+      talks <- talkRepo.list(req.identity.user.id, params)
       h = listHeader()
       b = listBreadcrumb(req.identity.user.name)
     } yield Ok(html.list(talks)(h, b))).unsafeToFuture()
@@ -39,11 +42,11 @@ class TalkCtrl(cc: ControllerComponents,
     val now = Instant.now()
     TalkForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
-      data => db.talk.find(req.identity.user.id, data.slug).flatMap {
+      data => talkRepo.find(req.identity.user.id, data.slug).flatMap {
         case Some(duplicate) =>
           createForm(TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
         case None =>
-          db.talk.create(req.identity.user.id, data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+          talkRepo.create(req.identity.user.id, data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
     ).unsafeToFuture()
   }
@@ -56,10 +59,10 @@ class TalkCtrl(cc: ControllerComponents,
 
   def detail(talk: Talk.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      talkElt <- OptionT(db.talk.find(req.identity.user.id, talk))
-      speakers <- OptionT.liftF(db.user.list(talkElt.speakers.toList))
-      proposals <- OptionT.liftF(db.proposal.list(talkElt.id, Page.Params.defaults))
-      events <- OptionT.liftF(db.event.list(proposals.items.flatMap(_._2.event)))
+      talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
+      speakers <- OptionT.liftF(userRepo.list(talkElt.speakers.toList))
+      proposals <- OptionT.liftF(proposalRepo.list(talkElt.id, Page.Params.defaults))
+      events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_._2.event)))
       h = header(talk)
       b = breadcrumb(req.identity.user.name, talk -> talkElt.title)
     } yield Ok(html.detail(talkElt, speakers, proposals, events, GenericForm.embed)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
@@ -72,7 +75,7 @@ class TalkCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(slides) => db.talk.updateSlides(req.identity.user.id, talk)(slides, now).map(_ => next)
+        case Right(slides) => talkRepo.updateSlides(req.identity.user.id, talk)(slides, now).map(_ => next)
       }
     ).unsafeToFuture()
   }
@@ -84,7 +87,7 @@ class TalkCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(video) => db.talk.updateVideo(req.identity.user.id, talk)(video, now).map(_ => next)
+        case Right(video) => talkRepo.updateVideo(req.identity.user.id, talk)(video, now).map(_ => next)
       }
     ).unsafeToFuture()
   }
@@ -97,17 +100,17 @@ class TalkCtrl(cc: ControllerComponents,
     val now = Instant.now()
     TalkForms.create.bindFromRequest.fold(
       formWithErrors => editForm(talk, formWithErrors),
-      data => db.talk.find(req.identity.user.id, data.slug).flatMap {
+      data => talkRepo.find(req.identity.user.id, data.slug).flatMap {
         case Some(duplicate) if data.slug != talk =>
           editForm(talk, TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
         case _ =>
-          db.talk.update(req.identity.user.id, talk)(data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+          talkRepo.update(req.identity.user.id, talk)(data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
     ).unsafeToFuture()
   }
 
   private def editForm(talk: Talk.Slug, form: Form[Talk.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
-    db.talk.find(req.identity.user.id, talk).map {
+    talkRepo.find(req.identity.user.id, talk).map {
       case Some(talkElt) =>
         val h = header(talkElt.slug)
         val b = breadcrumb(req.identity.user.name, talkElt.slug -> talkElt.title).add("Edit" -> routes.TalkCtrl.edit(talk))
@@ -119,7 +122,7 @@ class TalkCtrl(cc: ControllerComponents,
   }
 
   def changeStatus(talk: Talk.Slug, status: Talk.Status): Action[AnyContent] = SecuredAction.async { implicit req =>
-    db.talk.updateStatus(req.identity.user.id, talk)(status)
+    talkRepo.updateStatus(req.identity.user.id, talk)(status)
       .map(_ => Redirect(routes.TalkCtrl.detail(talk)))
       .unsafeToFuture()
   }

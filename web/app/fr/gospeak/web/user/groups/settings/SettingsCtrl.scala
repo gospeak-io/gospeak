@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Cfp, Group, User}
-import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.core.services.{CfpRepo, GroupRepo}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.groups.GroupCtrl
@@ -19,14 +19,15 @@ import play.api.mvc._
 
 class SettingsCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
-                   db: GospeakDb) extends UICtrl(cc, silhouette) {
+                   groupRepo: GroupRepo,
+                   cfpRepo: CfpRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
   def list(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
-      cfpOpt <- OptionT.liftF(db.cfp.find(groupElt.id))
+      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      cfpOpt <- OptionT.liftF(cfpRepo.find(groupElt.id))
       h = listHeader(group)
       b = listBreadcrumb(req.identity.user.name, group -> groupElt.name)
     } yield Ok(html.list(groupElt, cfpOpt)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
@@ -42,8 +43,8 @@ class SettingsCtrl(cc: ControllerComponents,
       formWithErrors => cfpForm(group, formWithErrors),
       data => {
         (for {
-          groupElt <- OptionT(db.group.find(req.identity.user.id, group))
-          _ <- OptionT.liftF(db.cfp.create(groupElt.id, data, req.identity.user.id, now))
+          groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+          _ <- OptionT.liftF(cfpRepo.create(groupElt.id, data, req.identity.user.id, now))
         } yield Redirect(GroupRoutes.detail(group))).value.map(_.getOrElse(groupNotFound(group)))
       }
     ).unsafeToFuture()
@@ -51,8 +52,8 @@ class SettingsCtrl(cc: ControllerComponents,
 
   private def cfpForm(group: Group.Slug, form: Form[Cfp.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
-      cfpOpt <- OptionT.liftF(db.cfp.find(groupElt.id))
+      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      cfpOpt <- OptionT.liftF(cfpRepo.find(groupElt.id))
       h = header(group)
       b = breadcrumb(req.identity.user.name, group -> groupElt.name, "CFP" -> routes.SettingsCtrl.cfp(group))
     } yield Ok(html.cfp(form, groupElt, cfpOpt)(h, b))).value.map(_.getOrElse(groupNotFound(group)))

@@ -117,8 +117,8 @@ class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
   val user = new UserRepoSql(xa)
   val userRequest = new UserRequestRepoSql(xa)
   val group = new GroupRepoSql(xa)
-  val event = new EventRepoSql(xa)
   val cfp = new CfpRepoSql(xa)
+  val event = new EventRepoSql(xa)
   val talk = new TalkRepoSql(xa)
   val proposal = new ProposalRepoSql(xa)
 

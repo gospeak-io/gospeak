@@ -8,7 +8,7 @@ import play.api.test.Helpers._
 
 class TalkCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
   private val params = Page.Params()
-  private val ctrl = new TalkCtrl(cc, silhouette, db)
+  private val ctrl = new TalkCtrl(cc, silhouette, db.user, db.talk, db.event, db.proposal)
 
   override def beforeEach(): Unit = db.createTables().unsafeRunSync()
 

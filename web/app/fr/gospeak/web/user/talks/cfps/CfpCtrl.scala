@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Cfp, Proposal, Talk, User}
-import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
@@ -20,14 +20,16 @@ import play.api.mvc._
 
 class CfpCtrl(cc: ControllerComponents,
               silhouette: Silhouette[CookieEnv],
-              db: GospeakDb) extends UICtrl(cc, silhouette) {
+              cfpRepo: CfpRepo,
+              talkRepo: TalkRepo,
+              proposalRepo: ProposalRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      talkElt <- OptionT(db.talk.find(req.identity.user.id, talk))
-      cfps <- OptionT.liftF(db.cfp.listAvailables(talkElt.id, params))
+      talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
+      cfps <- OptionT.liftF(cfpRepo.listAvailables(talkElt.id, params))
       h = TalkCtrl.header(talkElt.slug)
       b = listBreadcrumb(req.identity.user.name, talk -> talkElt.title)
     } yield Ok(html.list(talkElt, cfps)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
@@ -43,9 +45,9 @@ class CfpCtrl(cc: ControllerComponents,
       formWithErrors => createForm(formWithErrors, talk, cfp),
       data => {
         (for {
-          talkElt <- OptionT(db.talk.find(req.identity.user.id, talk))
-          cfpElt <- OptionT(db.cfp.find(cfp))
-          proposal <- OptionT.liftF(db.proposal.create(talkElt.id, cfpElt.id, data, talkElt.speakers, req.identity.user.id, now))
+          talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
+          cfpElt <- OptionT(cfpRepo.find(cfp))
+          proposal <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data, talkElt.speakers, req.identity.user.id, now))
         } yield Redirect(ProposalCtrl.detail(talk, proposal.id))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }
     ).unsafeToFuture()
@@ -53,9 +55,9 @@ class CfpCtrl(cc: ControllerComponents,
 
   private def createForm(form: Form[Proposal.Data], talk: Talk.Slug, cfp: Cfp.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      talkElt <- OptionT(db.talk.find(req.identity.user.id, talk))
-      cfpElt <- OptionT(db.cfp.find(cfp))
-      proposalOpt <- OptionT.liftF(db.proposal.find(talkElt.id, cfpElt.id))
+      talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
+      cfpElt <- OptionT(cfpRepo.find(cfp))
+      proposalOpt <- OptionT.liftF(proposalRepo.find(talkElt.id, cfpElt.id))
       filledForm = if (form.hasErrors) form else form.fill(Proposal.Data(talkElt))
       h = TalkCtrl.header(talkElt.slug)
       b = breadcrumb(req.identity.user.name, talk -> talkElt.title, cfp -> cfpElt.name)

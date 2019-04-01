@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, User}
-import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -20,13 +20,16 @@ import play.api.mvc._
 
 class GroupCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
-                db: GospeakDb) extends UICtrl(cc, silhouette) {
+                userRepo: UserRepo,
+                groupRepo: GroupRepo,
+                eventRepo: EventRepo,
+                proposalRepo: ProposalRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
   def list(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groups <- db.group.list(req.identity.user.id, params)
+      groups <- groupRepo.list(req.identity.user.id, params)
       h = listHeader()
       b = listBreadcrumb(req.identity.user.name)
     } yield Ok(html.list(groups)(h, b))).unsafeToFuture()
@@ -42,7 +45,7 @@ class GroupCtrl(cc: ControllerComponents,
       formWithErrors => createForm(formWithErrors),
       data => for {
         // TODO check if slug not already exist
-        _ <- db.group.create(data, req.identity.user.id, now)
+        _ <- groupRepo.create(data, req.identity.user.id, now)
       } yield Redirect(routes.GroupCtrl.detail(data.slug))
     ).unsafeToFuture()
   }
@@ -56,10 +59,10 @@ class GroupCtrl(cc: ControllerComponents,
   def detail(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
-      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
-      events <- OptionT.liftF(db.event.listAfter(groupElt.id, now, Page.Params.defaults.orderBy("start")))
-      proposals <- OptionT.liftF(db.proposal.list(events.items.flatMap(_.talks)))
-      speakers <- OptionT.liftF(db.user.list(proposals.flatMap(_.speakers.toList)))
+      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      events <- OptionT.liftF(eventRepo.listAfter(groupElt.id, now, Page.Params.defaults.orderBy("start")))
+      proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
+      speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.speakers.toList)))
       h = header(group)
       b = breadcrumb(req.identity.user.name, group -> groupElt.name)
     } yield Ok(html.detail(groupElt, events, proposals, speakers)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()

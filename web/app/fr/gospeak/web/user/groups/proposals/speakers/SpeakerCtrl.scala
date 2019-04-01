@@ -4,7 +4,7 @@ import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, Proposal, Talk, User}
-import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.core.services.{GroupRepo, ProposalRepo, UserRepo}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 import fr.gospeak.web.user.groups.proposals.ProposalCtrl
@@ -15,15 +15,17 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class SpeakerCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
-                  db: GospeakDb) extends UICtrl(cc, silhouette) {
+                  userRepo: UserRepo,
+                  groupRepo: GroupRepo,
+                  proposalRepo: ProposalRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
   def detail(group: Group.Slug, proposal: Proposal.Id, speaker: User.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
-      proposalElt <- OptionT(db.proposal.find(proposal))
-      speakerElt <- OptionT(db.user.find(speaker))
+      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      proposalElt <- OptionT(proposalRepo.find(proposal))
+      speakerElt <- OptionT(userRepo.find(speaker))
       h = header(group)
       b = breadcrumb(req.identity.user.name, group -> groupElt.name, proposal -> proposalElt.title, speaker -> speakerElt.name)
     } yield Ok(html.detail(speakerElt)(h, b))).value.map(_.getOrElse(proposalNotFound(group, proposal))).unsafeToFuture()

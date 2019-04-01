@@ -14,7 +14,7 @@ import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepo
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.domain.User.{ProviderId, ProviderKey}
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
-import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.core.services.{UserRepo, UserRequestRepo}
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.EmailAddress
@@ -28,7 +28,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AuthSrv(authRepo: AuthRepo,
-              db: GospeakDb,
+              userRepo: UserRepo,
+              userRequestRepo: UserRequestRepo,
               silhouette: Silhouette[CookieEnv],
               clock: Clock,
               authCookieConf: AuthCookieConf,
@@ -41,19 +42,19 @@ class AuthSrv(authRepo: AuthRepo,
     val password = toDomain(passwordHasherRegistry.current.hash(data.password.decode))
     val credentials = User.Credentials(login, password)
     for {
-      loginOpt <- db.user.find(login)
+      loginOpt <- userRepo.find(login)
       _ <- loginOpt.swap.toIO(DuplicateIdentityException(loginInfo)) // fail if login already exist
-      emailOpt <- db.user.find(data.email)
-      slugOpt <- db.user.find(data.slug)
+      emailOpt <- userRepo.find(data.email)
+      slugOpt <- userRepo.find(data.slug)
       _ <- slugOpt.forall(s => emailOpt.exists(_.id == s.id)).toIO(DuplicateSlugException(data.slug)) // fail if slug exists for a different user from email
       avatar = gravatarSrv.getAvatar(data.email)
       user <- emailOpt.map { user =>
-        db.user.update(user.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), now)
+        userRepo.update(user.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), now)
       }.getOrElse {
-        db.user.create(data.slug, data.firstName, data.lastName, data.email, avatar, now)
+        userRepo.create(data.slug, data.firstName, data.lastName, data.email, avatar, now)
       }
-      _ <- db.user.createLoginRef(login, user.id)
-      _ <- db.user.createCredentials(credentials)
+      _ <- userRepo.createLoginRef(login, user.id)
+      _ <- userRepo.createCredentials(credentials)
       authUser = AuthUser(loginInfo, user)
       _ = silhouette.env.eventBus.publish(SignUpEvent(authUser, req))
     } yield authUser
@@ -93,8 +94,8 @@ class AuthSrv(authRepo: AuthRepo,
     val password = toDomain(passwordHasherRegistry.current.hash(data.password.decode))
     val credentials = User.Credentials(login, password)
     for {
-      user <- db.user.find(login).flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user for ${login.providerId}")))
-      _ <- db.userRequest.resetPassword(passwordReset, credentials, now)
+      user <- userRepo.find(login).flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user for ${login.providerId}")))
+      _ <- userRequestRepo.resetPassword(passwordReset, credentials, now)
       authUser = AuthUser(loginInfo, user)
     } yield authUser
   }
@@ -105,12 +106,12 @@ class AuthSrv(authRepo: AuthRepo,
 }
 
 object AuthSrv {
-  def apply(authCookieConf: AuthCookieConf, silhouette: Silhouette[CookieEnv], db: GospeakDb, authRepo: AuthRepo, clock: Clock, gravatarSrv: GravatarSrv): AuthSrv = {
+  def apply(authCookieConf: AuthCookieConf, silhouette: Silhouette[CookieEnv], userRepo: UserRepo, userRequestRepo: UserRequestRepo, authRepo: AuthRepo, clock: Clock, gravatarSrv: GravatarSrv): AuthSrv = {
     val authInfoRepository = new DelegableAuthInfoRepository(authRepo)
     val bCryptPasswordHasher: PasswordHasher = new BCryptPasswordHasher
     val passwordHasherRegistry: PasswordHasherRegistry = PasswordHasherRegistry(bCryptPasswordHasher)
     val credentialsProvider = new CredentialsProvider(authInfoRepository, passwordHasherRegistry)
-    new AuthSrv(authRepo, db, silhouette, clock, authCookieConf, passwordHasherRegistry, credentialsProvider, gravatarSrv)
+    new AuthSrv(authRepo, userRepo, userRequestRepo, silhouette, clock, authCookieConf, passwordHasherRegistry, credentialsProvider, gravatarSrv)
   }
 
   def login(email: EmailAddress): User.Login = User.Login(ProviderId(CredentialsProvider.ID), ProviderKey(email.value))

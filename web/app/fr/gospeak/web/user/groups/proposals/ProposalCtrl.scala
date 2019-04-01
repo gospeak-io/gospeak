@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain._
-import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
@@ -18,17 +18,21 @@ import play.api.mvc._
 
 class ProposalCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
-                   db: GospeakDb) extends UICtrl(cc, silhouette) {
+                   userRepo: UserRepo,
+                   groupRepo: GroupRepo,
+                   cfpRepo: CfpRepo,
+                   eventRepo: EventRepo,
+                   proposalRepo: ProposalRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
-      cfpOpt <- OptionT.liftF(db.cfp.find(groupElt.id))
-      proposals <- cfpOpt.map(cfpElt => OptionT.liftF(db.proposal.list(cfpElt.id, params))).getOrElse(OptionT.pure[IO](Page.empty[Proposal](params)))
-      speakers <- OptionT.liftF(db.user.list(proposals.items.flatMap(_.speakers.toList)))
-      events <- OptionT.liftF(db.event.list(proposals.items.flatMap(_.event)))
+      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      cfpOpt <- OptionT.liftF(cfpRepo.find(groupElt.id))
+      proposals <- cfpOpt.map(cfpElt => OptionT.liftF(proposalRepo.list(cfpElt.id, params))).getOrElse(OptionT.pure[IO](Page.empty[Proposal](params)))
+      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.speakers.toList)))
+      events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_.event)))
       h = listHeader(group)
       b = listBreadcrumb(req.identity.user.name, group -> groupElt.name)
     } yield Ok(html.list(groupElt, cfpOpt, proposals, speakers, events)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
@@ -36,10 +40,10 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def detail(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(db.group.find(req.identity.user.id, group))
-      proposalElt <- OptionT(db.proposal.find(proposal))
-      speakers <- OptionT.liftF(db.user.list(proposalElt.speakers.toList))
-      events <- OptionT.liftF(db.event.list(proposalElt.event.toSeq))
+      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      proposalElt <- OptionT(proposalRepo.find(proposal))
+      speakers <- OptionT.liftF(userRepo.list(proposalElt.speakers.toList))
+      events <- OptionT.liftF(eventRepo.list(proposalElt.event.toSeq))
       h = header(group)
       b = breadcrumb(req.identity.user.name, group -> groupElt.name, proposal -> proposalElt.title)
     } yield Ok(html.detail(groupElt, proposalElt, speakers, events, GenericForm.embed)(h, b))).value.map(_.getOrElse(proposalNotFound(group, proposal))).unsafeToFuture()
@@ -52,7 +56,7 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(slides) => db.proposal.updateSlides(proposal)(slides, now, req.identity.user.id).map(_ => next)
+        case Right(slides) => proposalRepo.updateSlides(proposal)(slides, now, req.identity.user.id).map(_ => next)
       }
     ).unsafeToFuture()
   }
@@ -64,7 +68,7 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(video) => db.proposal.updateVideo(proposal)(video, now, req.identity.user.id).map(_ => next)
+        case Right(video) => proposalRepo.updateVideo(proposal)(video, now, req.identity.user.id).map(_ => next)
       }
     ).unsafeToFuture()
   }
