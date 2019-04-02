@@ -17,7 +17,7 @@ import scala.concurrent.Future
 class AuthCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
   private val _ = aEmailAddress // to keep the `fr.gospeak.core.testingutils.Generators._` import
   private val authRepo = new AuthRepo(db.user)
-  private val authSrv = AuthSrv(conf.auth.cookie, silhouette, db.user, db.userRequest, authRepo, clock, new GravatarSrv())
+  private val authSrv = AuthSrv(conf.auth, silhouette, db.user, db.userRequest, authRepo, clock, new GravatarSrv())
   private val emailSrv = new InMemoryEmailSrv()
   private val ctrl = new AuthCtrl(cc, silhouette, db.user, db.userRequest, authSrv, emailSrv)
   private val redirect: Option[String] = None

@@ -32,6 +32,24 @@ object EmailSrv {
     override def value: String = html
   }
 
+  sealed trait Conf
+
+  object Conf {
+
+    final case object Console extends Conf
+
+    final case object InMemery extends Conf
+
+    final case class SendGrid(apiKey: Secret) extends Conf
+
+  }
+
+  def from(conf: Conf): EmailSrv = conf match {
+    case Conf.Console => new ConsoleEmailSrv()
+    case Conf.InMemery => new InMemoryEmailSrv()
+    case conf: Conf.SendGrid => SendGridEmailSrv(conf)
+  }
+
 }
 
 // useful for dev
@@ -89,9 +107,6 @@ class SendGridEmailSrv private(client: com.sendgrid.SendGrid) extends EmailSrv {
 }
 
 object SendGridEmailSrv {
-
-  final case class APiKeyConf(key: Secret)
-
-  def apply(conf: APiKeyConf): SendGridEmailSrv =
-    new SendGridEmailSrv(new com.sendgrid.SendGrid(conf.key.decode))
+  def apply(conf: Conf.SendGrid): SendGridEmailSrv =
+    new SendGridEmailSrv(new com.sendgrid.SendGrid(conf.apiKey.decode))
 }

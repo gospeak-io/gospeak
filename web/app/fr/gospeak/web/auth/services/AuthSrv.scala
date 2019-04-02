@@ -18,10 +18,10 @@ import fr.gospeak.core.services.{UserRepo, UserRequestRepo}
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.EmailAddress
+import fr.gospeak.web.auth.AuthConf
 import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.exceptions.{DuplicateIdentityException, DuplicateSlugException}
-import fr.gospeak.web.domain.AuthCookieConf
 import play.api.mvc.{AnyContent, Request, Result}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -32,7 +32,7 @@ class AuthSrv(authRepo: AuthRepo,
               userRequestRepo: UserRequestRepo,
               silhouette: Silhouette[CookieEnv],
               clock: Clock,
-              authCookieConf: AuthCookieConf,
+              authConf: AuthConf,
               passwordHasherRegistry: PasswordHasherRegistry,
               credentialsProvider: CredentialsProvider,
               gravatarSrv: GravatarSrv) {
@@ -72,9 +72,9 @@ class AuthSrv(authRepo: AuthRepo,
     for {
       authenticator <- silhouette.env.authenticatorService.create(user.loginInfo).map {
         case auth if rememberMe => auth.copy(
-          expirationDateTime = clock.now.plus(authCookieConf.rememberMe.authenticatorExpiry.toMillis),
-          idleTimeout = Some(authCookieConf.rememberMe.authenticatorIdleTimeout),
-          cookieMaxAge = Some(authCookieConf.rememberMe.cookieMaxAge))
+          expirationDateTime = clock.now.plus(authConf.cookie.rememberMe.authenticatorExpiry.toMillis),
+          idleTimeout = Some(authConf.cookie.rememberMe.authenticatorIdleTimeout),
+          cookieMaxAge = Some(authConf.cookie.rememberMe.cookieMaxAge))
         case auth => auth
       }
       cookie <- silhouette.env.authenticatorService.init(authenticator)
@@ -106,12 +106,12 @@ class AuthSrv(authRepo: AuthRepo,
 }
 
 object AuthSrv {
-  def apply(authCookieConf: AuthCookieConf, silhouette: Silhouette[CookieEnv], userRepo: UserRepo, userRequestRepo: UserRequestRepo, authRepo: AuthRepo, clock: Clock, gravatarSrv: GravatarSrv): AuthSrv = {
+  def apply(authConf: AuthConf, silhouette: Silhouette[CookieEnv], userRepo: UserRepo, userRequestRepo: UserRequestRepo, authRepo: AuthRepo, clock: Clock, gravatarSrv: GravatarSrv): AuthSrv = {
     val authInfoRepository = new DelegableAuthInfoRepository(authRepo)
     val bCryptPasswordHasher: PasswordHasher = new BCryptPasswordHasher
     val passwordHasherRegistry: PasswordHasherRegistry = PasswordHasherRegistry(bCryptPasswordHasher)
     val credentialsProvider = new CredentialsProvider(authInfoRepository, passwordHasherRegistry)
-    new AuthSrv(authRepo, userRepo, userRequestRepo, silhouette, clock, authCookieConf, passwordHasherRegistry, credentialsProvider, gravatarSrv)
+    new AuthSrv(authRepo, userRepo, userRequestRepo, silhouette, clock, authConf, passwordHasherRegistry, credentialsProvider, gravatarSrv)
   }
 
   def login(email: EmailAddress): User.Login = User.Login(ProviderId(CredentialsProvider.ID), ProviderKey(email.value))

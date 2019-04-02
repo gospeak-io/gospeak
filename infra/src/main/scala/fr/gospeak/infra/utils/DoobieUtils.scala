@@ -11,7 +11,7 @@ import doobie.util.update.Update
 import doobie.util.{Meta, Write}
 import fr.gospeak.core.domain._
 import fr.gospeak.infra.formats.JsonFormats._
-import fr.gospeak.infra.services.storage.sql.{DbSqlConf, H2, PostgreSQL}
+import fr.gospeak.infra.services.storage.sql.DatabaseConf
 import fr.gospeak.libs.scalautils.domain._
 
 import scala.concurrent.ExecutionContext
@@ -20,9 +20,9 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
 object DoobieUtils {
   private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 
-  def transactor(conf: DbSqlConf): doobie.Transactor[IO] = conf match {
-    case c: H2 => Transactor.fromDriverManager[IO](c.driver, c.url, "", "")
-    case c: PostgreSQL => Transactor.fromDriverManager[IO]("org.postgresql.Driver", c.url, c.user, c.pass.decode)
+  def transactor(conf: DatabaseConf): doobie.Transactor[IO] = conf match {
+    case c: DatabaseConf.H2 => Transactor.fromDriverManager[IO]("org.h2.Driver", c.url, "", "")
+    case c: DatabaseConf.PostgreSQL => Transactor.fromDriverManager[IO]("org.postgresql.Driver", c.url, c.user, c.pass.decode)
   }
 
   object Fragments {

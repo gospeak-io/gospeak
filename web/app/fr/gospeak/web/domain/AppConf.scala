@@ -1,22 +1,28 @@
 package fr.gospeak.web.domain
 
-import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticatorSettings
 import com.typesafe.config.{Config, ConfigFactory}
+import fr.gospeak.infra.services.EmailSrv
+import fr.gospeak.infra.services.storage.sql.DatabaseConf
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.web.auth.AuthConf
 import play.api.Configuration
 import play.api.mvc.Cookie.SameSite
 import pureconfig.ConfigReader
 import pureconfig.error.{CannotConvert, ConfigReaderFailure}
+import pureconfig.generic.EnumCoproductHint
 
-import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success, Try}
 
-final case class AppConf(auth: AuthConf)
+final case class AppConf(application: ApplicationConf,
+                         auth: AuthConf,
+                         database: DatabaseConf,
+                         emailService: EmailSrv.Conf)
 
 object AppConf {
   def load(conf: Config): Try[AppConf] = {
     import pureconfig.generic.auto._
+    implicit val envHint: EnumCoproductHint[ApplicationConf.Env] = new EnumCoproductHint[ApplicationConf.Env]
     implicit val sameSiteReader: ConfigReader[SameSite] = ConfigReader.fromString[SameSite](str => SameSite.parse(str).toEither(CannotConvert(str, "SameSite", s"possible values: '${SameSite.Strict.value}' or '${SameSite.Lax.value}'")))
     val _ = exportReader[CookieAuthenticatorSettings] // to help scala compiler & prevent IntelliJ from removing import
     pureconfig.loadConfig[AppConf](conf) match {
@@ -35,13 +41,16 @@ object AppConf {
     "  - " + f.description + f.location.map(" " + _.description).getOrElse("")
 }
 
-final case class AuthConf(cookie: AuthCookieConf)
+final case class ApplicationConf(env: ApplicationConf.Env)
 
-final case class AuthCookieConf(authenticator: CookieAuthenticatorSettings,
-                                signer: JcaSignerSettings,
-                                crypter: JcaCrypterSettings,
-                                rememberMe: RememberMe)
+object ApplicationConf {
 
-final case class RememberMe(cookieMaxAge: FiniteDuration,
-                            authenticatorIdleTimeout: FiniteDuration,
-                            authenticatorExpiry: FiniteDuration)
+  sealed trait Env
+
+  final case object Local extends Env
+
+  final case object Dev extends Env
+
+  final case object Prod extends Env
+
+}

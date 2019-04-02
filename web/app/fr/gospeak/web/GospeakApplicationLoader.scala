@@ -12,14 +12,15 @@ import com.softwaremill.macwire.wire
 import fr.gospeak.core.services._
 import fr.gospeak.infra.services.storage.sql._
 import fr.gospeak.infra.services.{ConsoleEmailSrv, EmailSrv, GravatarSrv}
-import fr.gospeak.web.auth.AuthCtrl
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
+import fr.gospeak.web.auth.{AuthConf, AuthCtrl}
 import fr.gospeak.web.cfps.CfpCtrl
-import fr.gospeak.web.domain.{AppConf, AuthCookieConf}
+import fr.gospeak.web.domain.AppConf
 import fr.gospeak.web.groups.GroupCtrl
 import fr.gospeak.web.speakers.SpeakerCtrl
 import fr.gospeak.web.user.UserCtrl
+import org.slf4j.LoggerFactory
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.{BodyParsers, CookieHeaderEncoding, DefaultCookieHeaderEncoding}
 import play.api.routing.Router
@@ -44,10 +45,13 @@ class GospeakComponents(context: ApplicationLoader.Context)
     with AhcWSComponents
     with HttpFiltersComponents
     with _root_.controllers.AssetsComponents {
+  private val logger = LoggerFactory.getLogger(this.getClass)
+  logger.info("Start application")
   lazy val conf: AppConf = AppConf.load(configuration).get
-  lazy val cookieConf: AuthCookieConf = conf.auth.cookie
+  logger.info(s"Configuration loaded: $conf")
+  lazy val authConf: AuthConf = conf.auth
+  lazy val dbConf: DatabaseConf = conf.database
 
-  lazy val dbConf: DbSqlConf = H2("org.h2.Driver", "jdbc:h2:mem:gospeak_db;MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1")
   lazy val db: GospeakDbSql = wire[GospeakDbSql]
   lazy val userRepo: UserRepo = db.user
   lazy val userRequestRepo: UserRequestRepo = db.userRequest
@@ -107,7 +111,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
   // end:Silhouette conf
 
-  lazy val authSrv: AuthSrv = AuthSrv(cookieConf, silhouette, userRepo, userRequestRepo, authRepo, clock, gravatarSrv)
+  lazy val authSrv: AuthSrv = AuthSrv(authConf, silhouette, userRepo, userRequestRepo, authRepo, clock, gravatarSrv)
 
   lazy val homeCtrl = wire[HomeCtrl]
   lazy val cfpCtrl = wire[CfpCtrl]
@@ -131,10 +135,10 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
 
   def onStart(): Unit = {
-    println("Starting application")
     db.dropTables().unsafeRunSync()
     db.createTables().unsafeRunSync()
     db.insertMockData().unsafeRunSync()
+    logger.info("Application initialized")
   }
 
   onStart()

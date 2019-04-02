@@ -17,7 +17,7 @@ import fr.gospeak.libs.scalautils.domain._
 
 import scala.concurrent.duration._
 
-class GospeakDbSql(conf: DbSqlConf) extends GospeakDb {
+class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
   private val flyway = FlywayUtils.build(conf)
   private[sql] val xa: doobie.Transactor[IO] = DoobieUtils.transactor(conf)
 

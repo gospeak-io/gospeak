@@ -11,7 +11,7 @@ import com.mohiva.play.silhouette.test._
 import com.typesafe.config.ConfigFactory
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
-import fr.gospeak.infra.services.storage.sql.{GospeakDbSql, H2}
+import fr.gospeak.infra.services.storage.sql.{DatabaseConf, GospeakDbSql}
 import fr.gospeak.web.GospeakComponents
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.services.AuthSrv
@@ -50,5 +50,5 @@ trait CtrlSpec extends FunSpec with Matchers with RandomDataGenerator with OneAp
 
   // app
   protected val conf: AppConf = AppConf.load(ConfigFactory.load()).get
-  protected val db: GospeakDbSql = new GospeakDbSql(H2("org.h2.Driver", s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"))
+  protected val db: GospeakDbSql = new GospeakDbSql(DatabaseConf.H2(s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"))
 }
