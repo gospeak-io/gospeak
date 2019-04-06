@@ -84,7 +84,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
     val authenticatorEncoder = new CrypterAuthenticatorEncoder(crypter)
     val cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding()
     val fingerprintGenerator: FingerprintGenerator = new DefaultFingerprintGenerator(false)
-    new CookieAuthenticatorService(conf.auth.cookie.authenticator, None, signer, cookieHeaderEncoding, authenticatorEncoder, fingerprintGenerator, idGenerator, clock)
+    new CookieAuthenticatorService(conf.auth.cookie.authenticator.toConf, None, signer, cookieHeaderEncoding, authenticatorEncoder, fingerprintGenerator, idGenerator, clock)
   }
 
   // lazy val socialProviderRegistry = SocialProviderRegistry(List())
