@@ -33,13 +33,16 @@ class SpeakerCtrl(cc: ControllerComponents,
     } yield Ok(html.list(groupElt, speakers)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
-  def detail(group: Group.Slug, speaker: User.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def detail(group: Group.Slug, speaker: User.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       speakerElt <- OptionT(userRepo.find(speaker))
+      proposals <- OptionT.liftF(proposalRepo.list(groupElt.id, speakerElt.id, params))
+      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_._2.speakers.toList)))
+      events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_._2.event)))
       h = header(group)
       b = breadcrumb(req.identity.user.name, groupElt, speakerElt)
-    } yield Ok(html.detail(groupElt, speakerElt)(h, b))).value.map(_.getOrElse(speakerNotFound(group, speaker))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, speakerElt, proposals, speakers, events)(h, b))).value.map(_.getOrElse(speakerNotFound(group, speaker))).unsafeToFuture()
   }
 
 }

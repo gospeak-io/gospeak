@@ -24,6 +24,14 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
 
   def dropTables(): IO[Done] = IO(flyway.clean()).map(_ => Done)
 
+  val user = new UserRepoSql(xa)
+  val userRequest = new UserRequestRepoSql(xa)
+  val group = new GroupRepoSql(xa)
+  val cfp = new CfpRepoSql(xa)
+  val event = new EventRepoSql(xa)
+  val talk = new TalkRepoSql(xa)
+  val proposal = new ProposalRepoSql(xa)
+
   def insertMockData(): IO[Done] = {
     val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
     val now = Instant.now()
@@ -47,8 +55,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     def proposal(talk: Talk, cfp: Cfp, status: Proposal.Status = Proposal.Status.Pending): Proposal =
       Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, talk.title, talk.duration, status, talk.description, talk.speakers, talk.slides, talk.video, talk.info)
 
-    def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, talks: Seq[Proposal] = Seq(), venue: Option[GMapPlace] = None, description: Option[String] = None): Event =
-      Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).right.get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), description.map(Markdown), venue, talks.map(_.id), Info(by.id, now))
+    def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, venue: Option[GMapPlace] = None, description: Option[String] = None): Event =
+      Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).right.get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), description.map(Markdown), venue, Seq(), Info(by.id, now))
 
     val userDemo = user("demo", "demo@mail.com", "Demo", "User")
     val userSpeaker = user("speaker", "speaker@mail.com", "Speaker", "User")
@@ -86,19 +94,23 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val talk7 = talk(userSpeaker, "big-talk", "Big Talk")
     val talks = NonEmptyList.of(talk1, talk2, talk3, talk4, talk5, talk6, talk7)
 
-    val proposal1 = proposal(talk1, cfp1, status = Proposal.Status.Accepted)
+    val proposal1 = proposal(talk1, cfp1)
     val proposal2 = proposal(talk2, cfp1)
-    val proposal3 = proposal(talk2, cfp4, status = Proposal.Status.Accepted)
+    val proposal3 = proposal(talk2, cfp4)
     val proposal4 = proposal(talk3, cfp1, status = Proposal.Status.Rejected)
     val proposals = NonEmptyList.of(proposal1, proposal2, proposal3, proposal4)
 
     val event1 = event(group1, Some(cfp2), "2018-06", "HumanTalks Day #1", "2018-06-01", userDemo, venue = None, description = Some("desc"))
     val event2 = event(group1, None, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, venue = None, description = Some("desc"))
-    val event3 = event(group1, Some(cfp1), "2019-02", "HumanTalks Paris Fevrier 2019", "2019-02-12", userOrga, talks = Seq(proposal1))
+    val event3 = event(group1, Some(cfp1), "2019-02", "HumanTalks Paris Fevrier 2019", "2019-02-12", userOrga)
     val event4 = event(group1, Some(cfp1), "2019-06", "HumanTalks Paris Juin 2019", "2019-06-12", userDemo, venue = None, description = Some("desc"))
-    val event5 = event(group2, None, "2019-04", "Paris.Js Avril", "2019-04-01", userOrga, talks = Seq(proposal3))
+    val event5 = event(group2, None, "2019-04", "Paris.Js Avril", "2019-04-01", userOrga)
     val event6 = event(group3, None, "2019-03", "Nouveaux modeles de gouvenance", "2019-03-15", userDemo)
     val events = NonEmptyList.of(event1, event2, event3, event4, event5, event6)
+
+    val eventTalks = NonEmptyList.of(
+      (event3, Seq(proposal1), group1.owners.head),
+      (event5, Seq(proposal3), group2.owners.head))
 
     val generated = (1 to 25).toList.map { i =>
       val groupId = Group.Id.generate()
@@ -110,6 +122,12 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       val p = Proposal(Proposal.Id.generate(), talk7.id, cfpId, None, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Proposal.Status.Pending, Markdown("temporary description"), NonEmptyList.of(userSpeaker.id), None, None, Info(userSpeaker.id, now))
       (g, c, e, t, p)
     }
+
+    def addTalk(event: Event, proposals: Seq[Proposal], by: User.Id) = for {
+      _ <- run(EventRepoSql.updateTalks(event.group, event.slug)(proposals.map(_.id), by, now))
+      _ <- IO(proposals.map(p => run(ProposalRepoSql.updateStatus(p.id)(Proposal.Status.Accepted, Some(event.id)))).map(_.unsafeRunSync()))
+    } yield Done
+
     for {
       _ <- run(Queries.insertMany(UserRepoSql.insert)(users))
       _ <- run(UserRepoSql.insertCredentials(User.Credentials("credentials", "demo@mail.com", "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
@@ -119,16 +137,9 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       _ <- run(Queries.insertMany(TalkRepoSql.insert)(talks ++ generated.map(_._4)))
       _ <- run(Queries.insertMany(ProposalRepoSql.insert)(proposals ++ generated.map(_._5)))
       _ <- run(Queries.insertMany(EventRepoSql.insert)(events ++ generated.map(_._3)))
+      _ <- IO(eventTalks.map { case (e, p, u) => addTalk(e, p, u) }.map(_.unsafeRunSync()))
     } yield Done
   }
-
-  val user = new UserRepoSql(xa)
-  val userRequest = new UserRequestRepoSql(xa)
-  val group = new GroupRepoSql(xa)
-  val cfp = new CfpRepoSql(xa)
-  val event = new EventRepoSql(xa)
-  val talk = new TalkRepoSql(xa)
-  val proposal = new ProposalRepoSql(xa)
 
   private def run(i: => doobie.Update0): IO[Done] =
     i.run.transact(xa).flatMap {

@@ -68,7 +68,7 @@ POST        /u/groups/:group/cfps/:cfp/proposals/:proposal/slides         fr.gos
 POST        /u/groups/:group/cfps/:cfp/proposals/:proposal/video          fr.gospeak.web.user.groups.cfps.proposals.ProposalCtrl.doAddVideo(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)
 GET         /u/groups/:group/proposals                                    fr.gospeak.web.user.groups.proposals.ProposalCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/speakers                                     fr.gospeak.web.user.groups.speakers.SpeakerCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
-GET         /u/groups/:group/speakers/:speaker                            fr.gospeak.web.user.groups.speakers.SpeakerCtrl.detail(group: Group.Slug, speaker: User.Slug)
+GET         /u/groups/:group/speakers/:speaker                            fr.gospeak.web.user.groups.speakers.SpeakerCtrl.detail(group: Group.Slug, speaker: User.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/settings                                     fr.gospeak.web.user.groups.settings.SettingsCtrl.list(group: Group.Slug)
 
 + nocsrf

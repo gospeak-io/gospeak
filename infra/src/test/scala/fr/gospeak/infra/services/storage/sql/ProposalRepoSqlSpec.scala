@@ -82,6 +82,16 @@ class ProposalRepoSqlSpec extends RepoSpec {
         check(s)
         check(c)
       }
+      it("should build selectPage for a group and speaker") {
+        val (s, c) = selectPage(group.id, user.id, params)
+        s.sql shouldBe
+          "SELECT c.id, c.group_id, c.slug, c.name, c.start, c.end, c.description, c.created, c.created_by, c.updated, c.updated_by, " +
+            "p.id, p.talk_id, p.cfp_id, p.event_id, p.title, p.duration, p.status, p.description, p.speakers, p.slides, p.video, p.created, p.created_by, p.updated, p.updated_by " +
+            "FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? AND p.speakers LIKE ? ORDER BY p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? AND p.speakers LIKE ? "
+        check(s)
+        check(c)
+      }
       it("should build selectPage for a cfp") {
         val (s, c) = selectPage(cfp.id, params)
         s.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE cfp_id=? ORDER BY created DESC OFFSET 0 LIMIT 20"

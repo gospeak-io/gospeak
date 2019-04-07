@@ -1,15 +1,31 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Group, User}
+@import fr.gospeak.core.domain.{Group, Proposal, User, Event, Cfp}
+@import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.securedContainer
+@import fr.gospeak.web.partials.html.{pagination, search, securedContainer}
+@import fr.gospeak.web.user.groups.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.user.groups.proposals.partials.html.item
+@import fr.gospeak.web.utils.Formats._
 
-@(group: Group, speaker: User)(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, speaker: User, proposals: Page[(Cfp, Proposal)], speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer(speaker.name.value + " - Gospeak", h, Some(b))() {
-    <div>
-        <h1>@speaker.name.value</h1>
+    <div class="media">
+        <img src="@speaker.avatar.url.value" class="align-self-start mr-3">
+        <div class="media-body">
+            <h1 class="mt-0">@speaker.name.value</h1>
+            <p><a href="mailto:@speaker.email.value">@speaker.email.value</a></p>
+        </div>
     </div>
-    <p><a href="mailto:@speaker.email.value">@speaker.email.value</a></p>
-    createdAt, avatar, bio, social links
-    proposals
+
+    <h2 class="text-capitalize">@plural(proposals.total.value, "proposal")</h2>
+
+    <div class="float-right">@pagination(proposals, SpeakerCtrl.detail(group.slug, speaker.slug, _))</div>
+    @search(proposals, SpeakerCtrl.detail(group.slug, speaker.slug))
+
+    <div class="list-group mt-3 mb-3">
+    @proposals.items.map { case (cfp, p) => @item(group, cfp, p, speakers, events) }
+    </div>
+
+    <div class="float-right">@pagination(proposals, SpeakerCtrl.detail(group.slug, speaker.slug, _))</div>
 }()

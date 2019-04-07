@@ -55,15 +55,11 @@ object Formats {
     else Duration(d.toDays, DAYS)
   }
 
-  def plural(n: Long, word: String, plural: String = ""): String = {
-    if (n == 0) {
-      s"no $word"
-    } else if (n == 1) {
-      s"$n $word"
-    } else if (plural.isEmpty) {
-      s"$n ${word}s"
-    } else {
-      s"$n $plural"
+  def plural(n: Long, word: String, plural: String = ""): String =
+    n match {
+      case 0 => s"no $word"
+      case 1 => s"$n $word"
+      case _ if plural.isEmpty => s"$n ${word}s"
+      case _ => s"$n $plural"
     }
-  }
 }
