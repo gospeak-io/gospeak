@@ -1,20 +1,24 @@
-@import fr.gospeak.core.domain.{Group, Proposal, User, Event}
-@import fr.gospeak.web.partials.display.html._
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
+@import fr.gospeak.core.domain.{Cfp, Group, Proposal, Event, User}
+@import fr.gospeak.web.user.groups.cfps.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.user.groups.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.user.groups.events.routes.EventCtrl
+@import fr.gospeak.web.utils.Formats._
+@import fr.gospeak.web.partials.display.html.{proposalStatusIcon, duration, speakerAvatar, videoIcon, slidesIcon}
 
-@(group: Group, proposal: Proposal, speakers: Seq[User], events: Seq[Event])
-<a class="list-group-item list-group-item-action" href="@ProposalCtrl.detail(group.slug, proposal.id)">
-    <div class="d-flex w-100 justify-content-between">
-        <h5 class="mb-1">@proposal.title.value</h5>
-        <div>@proposalStatus(proposal.status)</div>
-    </div>
-    <div class="d-flex w-100 justify-content-between">
+@(group: Group, cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event])
+<div class="list-group-item d-flex justify-content-between align-items-center">
+    <div>
+        <h5 class="mb-1">
+            <span>@proposalStatusIcon(proposal.status)</span>
+            <a href="@ProposalCtrl.detail(group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
+            <small>@duration(proposal.duration)</small>
+        </h5>
         <span>
-            @duration(proposal.duration)
-            @proposal.speakers.toList.map { id => @speaker(speakers, id) }
-            @proposal.event.map { id => @event(events, id) }
+            Proposed @date(proposal.info.created)
+            @proposal.event.flatMap(id => events.find(_.id == id)).map { event => Planned for <a href="@EventCtrl.detail(group.slug, event.slug)" title="on @date(event.start)">@event.name.value</a> }
+            @proposal.video.map { video => @videoIcon(Some(video)) }
+            @proposal.slides.map { slides => @slidesIcon(Some(slides)) }
         </span>
-        <small title="Proposal date">@Formats.date(proposal.info.created)</small>
     </div>
-</a>
+    <div>@proposal.speakers.toList.map { id => @speakerAvatar(speakers, id, Some(s => SpeakerCtrl.detail(group.slug, s.slug))) }</div>
+</div>

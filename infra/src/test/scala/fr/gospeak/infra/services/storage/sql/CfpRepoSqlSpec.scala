@@ -2,6 +2,7 @@ package fr.gospeak.infra.services.storage.sql
 
 import fr.gospeak.core.domain.{Group, Talk}
 import CfpRepoSql._
+import cats.data.NonEmptyList
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class CfpRepoSqlSpec extends RepoSpec {
@@ -81,6 +82,11 @@ class CfpRepoSqlSpec extends RepoSpec {
       it("should build selectAll for group id") {
         val q = selectAll(group.id)
         q.sql shouldBe "SELECT id, group_id, slug, name, start, end, description, created, created_by, updated, updated_by FROM cfps WHERE group_id=?"
+        check(q)
+      }
+      it("should build selectAll for cfp ids") {
+        val q = selectAll(NonEmptyList.of(cfp.id, cfp.id, cfp.id))
+        q.sql shouldBe "SELECT id, group_id, slug, name, start, end, description, created, created_by, updated, updated_by FROM cfps WHERE id IN (?, ?, ?) "
         check(q)
       }
     }

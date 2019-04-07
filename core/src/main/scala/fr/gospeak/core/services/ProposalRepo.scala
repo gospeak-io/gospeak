@@ -22,6 +22,8 @@ trait ProposalRepo {
 
   def list(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
 
+  def list(group: Group.Id, params: Page.Params): IO[Page[Proposal]]
+
   def list(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal]]
 
   def list(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal]]

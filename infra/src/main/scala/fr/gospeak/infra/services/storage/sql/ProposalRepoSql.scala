@@ -34,6 +34,8 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def list(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]] = run(Queries.selectPage(selectPage(talk, _), params))
 
+  override def list(group: Group.Id, params: Page.Params): IO[Page[Proposal]] = run(Queries.selectPage(selectPage(group, _), params))
+
   override def list(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal]] = run(Queries.selectPage(selectPage(cfp, _), params))
 
   override def list(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal]] = run(Queries.selectPage(selectPage(cfp, status, _), params))
@@ -73,10 +75,17 @@ object ProposalRepoSql {
     buildSelect(tableFr, fieldsFr, fr0"WHERE talk_id=$talk AND cfp_id=$cfp").query[Proposal]
 
   private[sql] def selectPage(talk: Talk.Id, params: Page.Params): (doobie.Query0[(Cfp, Proposal)], doobie.Query0[Long]) = {
-    val selectedTables = Fragment.const0(s"${CfpRepoSql.table} c INNER JOIN $table p ON p.cfp_id=c.id")
+    val selectedTables = Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id")
     val selectedFields = Fragment.const0((CfpRepoSql.fields.map("c." + _) ++ fields.map("p." + _)).mkString(", "))
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.talk_id=$talk"), Some("p"))
     (buildSelect(selectedTables, selectedFields, page.all).query[(Cfp, Proposal)], buildSelect(selectedTables, fr0"count(*)", page.where).query[Long])
+  }
+
+  private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[Proposal], doobie.Query0[Long]) = {
+    val selectedTables = Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id")
+    val selectedFields = Fragment.const0(fields.map("p." + _).mkString(", "))
+    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE c.group_id=$group"), Some("p"))
+    (buildSelect(selectedTables, selectedFields, page.all).query[Proposal], buildSelect(selectedTables, fr0"count(*)", page.where).query[Long])
   }
 
   private[sql] def selectPage(cfp: Cfp.Id, params: Page.Params): (doobie.Query0[Proposal], doobie.Query0[Long]) = {

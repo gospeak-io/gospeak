@@ -1,17 +1,20 @@
 package fr.gospeak.web.user.groups.cfps.proposals
 
+import java.time.Instant
+
 import cats.data.OptionT
+import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Cfp, Group, Proposal, User}
 import fr.gospeak.core.services._
-import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.groups.cfps.CfpCtrl
 import fr.gospeak.web.user.groups.cfps.proposals.ProposalCtrl._
 import fr.gospeak.web.user.groups.cfps.routes.{CfpCtrl => CfpRoutes}
-import fr.gospeak.web.utils.UICtrl
+import fr.gospeak.web.utils.{GenericForm, UICtrl}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class ProposalCtrl(cc: ControllerComponents,
@@ -45,9 +48,32 @@ class ProposalCtrl(cc: ControllerComponents,
       events <- OptionT.liftF(eventRepo.list(proposalElt.event.toList))
       h = header(group, cfp)
       b = breadcrumb(req.identity.user.name, groupElt, cfpElt, proposalElt)
-    } yield Ok(html.detail(groupElt, cfpElt, proposalElt, speakers, events)(h, b))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, cfpElt, proposalElt, speakers, events, GenericForm.embed)(h, b))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal))).unsafeToFuture()
   }
 
+  def doAddSlides(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
+    GenericForm.embed.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      data => Slides.from(data) match {
+        case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
+        case Right(slides) => proposalRepo.editSlides(proposal)(slides, now, req.identity.user.id).map(_ => next)
+      }
+    ).unsafeToFuture()
+  }
+
+  def doAddVideo(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
+    GenericForm.embed.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      data => Video.from(data) match {
+        case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
+        case Right(video) => proposalRepo.editVideo(proposal)(video, now, req.identity.user.id).map(_ => next)
+      }
+    ).unsafeToFuture()
+  }
 }
 
 object ProposalCtrl {

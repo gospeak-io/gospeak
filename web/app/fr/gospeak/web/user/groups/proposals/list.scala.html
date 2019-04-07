@@ -1,5 +1,5 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Event, Group, Proposal, User}
+@import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
@@ -8,7 +8,7 @@
 @import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, proposals: Page[Proposal], speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, proposals: Page[Proposal], cfps: Seq[Cfp], speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer(group.name.value + " - Gospeak", h, Some(b))() {
     <div>
         <h1>@Formats.plural(proposals.total.value, "proposal")</h1>
@@ -18,7 +18,7 @@
     @search(proposals, ProposalCtrl.list(group.slug))
 
     <div class="list-group mt-3 mb-3">
-    @proposals.items.map { p => @item(group, p, speakers, events) }
+    @proposals.items.map { p => @cfps.find(_.id == p.cfp).map { cfp => @item(group, cfp, p, speakers, events) } }
     </div>
 
     <div class="float-right">@pagination(proposals, ProposalCtrl.list(group.slug, _))</div>

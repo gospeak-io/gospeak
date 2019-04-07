@@ -2,11 +2,13 @@ package fr.gospeak.infra.services.storage.sql
 
 import java.time.Instant
 
+import cats.data.NonEmptyList
 import cats.effect.IO
+import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.CfpRepo
 import fr.gospeak.infra.services.storage.sql.CfpRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
@@ -39,6 +41,8 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
   override def find(id: Event.Id): IO[Option[Cfp]] = run(selectOne(id).option)
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(selectPage(group, _), params))
+
+  override def list(ids: Seq[Cfp.Id]): IO[Seq[Cfp]] = runIn(selectAll)(ids)
 
   override def listAvailable(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(selectPage(talk, _), params))
 
@@ -93,6 +97,9 @@ object CfpRepoSql {
 
   private[sql] def selectAll(group: Group.Id): doobie.Query0[Cfp] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE group_id=$group").query[Cfp]
+
+  private[sql] def selectAll(ids: NonEmptyList[Cfp.Id]): doobie.Query0[Cfp] =
+    buildSelect(tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids)).query[Cfp]
 
   private def where(group: Group.Id, slug: Cfp.Slug): Fragment =
     fr0"WHERE group_id=$group AND slug=$slug"

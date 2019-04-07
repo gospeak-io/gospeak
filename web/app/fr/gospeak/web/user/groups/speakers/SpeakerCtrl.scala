@@ -3,17 +3,16 @@ package fr.gospeak.web.user.groups.speakers
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import fr.gospeak.core.domain.{Cfp, Group, Proposal, User}
+import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.user.groups.GroupCtrl
-import fr.gospeak.web.user.groups.cfps.CfpCtrl
+import fr.gospeak.web.user.groups.routes.{GroupCtrl => GroupRoutes}
 import fr.gospeak.web.user.groups.speakers.SpeakerCtrl._
 import fr.gospeak.web.utils.UICtrl
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import fr.gospeak.web.user.groups.routes.{GroupCtrl => GroupRoutes}
 
 class SpeakerCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
@@ -52,7 +51,7 @@ object SpeakerCtrl {
       .activeFor(routes.SpeakerCtrl.list(group))
 
   def listBreadcrumb(user: User.Name, group: Group): Breadcrumb =
-    GroupCtrl.breadcrumb(user, group).add("CFPs" -> routes.SpeakerCtrl.list(group.slug))
+    GroupCtrl.breadcrumb(user, group).add("Speakers" -> routes.SpeakerCtrl.list(group.slug))
 
   def header(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     listHeader(group)

@@ -21,6 +21,8 @@ trait CfpRepo {
 
   def list(group: Group.Id, params: Page.Params): IO[Page[Cfp]]
 
+  def list(ids: Seq[Cfp.Id]): IO[Seq[Cfp]]
+
   def listAll(group: Group.Id): IO[Seq[Cfp]]
 
   def listAvailable(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]]

@@ -68,8 +68,17 @@ class ProposalRepoSqlSpec extends RepoSpec {
         s.sql shouldBe
           "SELECT c.id, c.group_id, c.slug, c.name, c.start, c.end, c.description, c.created, c.created_by, c.updated, c.updated_by, " +
             "p.id, p.talk_id, p.cfp_id, p.event_id, p.title, p.duration, p.status, p.description, p.speakers, p.slides, p.video, p.created, p.created_by, p.updated, p.updated_by " +
-            "FROM cfps c INNER JOIN proposals p ON p.cfp_id=c.id WHERE p.talk_id=? ORDER BY p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM cfps c INNER JOIN proposals p ON p.cfp_id=c.id WHERE p.talk_id=? "
+            "FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.talk_id=? ORDER BY p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.talk_id=? "
+        check(s)
+        check(c)
+      }
+      it("should build selectPage for a group") {
+        val (s, c) = selectPage(group.id, params)
+        s.sql shouldBe
+          "SELECT p.id, p.talk_id, p.cfp_id, p.event_id, p.title, p.duration, p.status, p.description, p.speakers, p.slides, p.video, p.created, p.created_by, p.updated, p.updated_by " +
+            "FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? ORDER BY p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? "
         check(s)
         check(c)
       }
