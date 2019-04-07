@@ -1,15 +1,12 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Cfp, Group}
+@import fr.gospeak.core.domain.Group
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.html.securedContainer
-@import fr.gospeak.web.user.groups.settings.routes.SettingsCtrl
 
-@(group: Group, cfpOpt: Option[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group)(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer("Gospeak", h, Some(b))() {
     <div>
         <h1>Settings</h1>
     </div>
-
-    <a class="btn btn-primary" href="@SettingsCtrl.cfp(group.slug)">@cfpOpt.map { _ => Update your CFP }.getOrElse {Enable your CFP}</a>
 }()

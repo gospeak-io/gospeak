@@ -70,8 +70,6 @@ POST        /u/groups/:group/proposals/:proposal/slides                   fr.gos
 POST        /u/groups/:group/proposals/:proposal/video                    fr.gospeak.web.user.groups.proposals.ProposalCtrl.doAddVideo(group: Group.Slug, proposal: Proposal.Id)
 GET         /u/groups/:group/proposals/:proposal/speakers/:speaker        fr.gospeak.web.user.groups.proposals.speakers.SpeakerCtrl.detail(group: Group.Slug, proposal: Proposal.Id, speaker: User.Slug)
 GET         /u/groups/:group/settings                                     fr.gospeak.web.user.groups.settings.SettingsCtrl.list(group: Group.Slug)
-GET         /u/groups/:group/settings/cfp                                 fr.gospeak.web.user.groups.settings.SettingsCtrl.cfp(group: Group.Slug)
-POST        /u/groups/:group/settings/cfp                                 fr.gospeak.web.user.groups.settings.SettingsCtrl.cfpCreate(group: Group.Slug)
 
 + nocsrf
 POST        /ui/utils/markdown-to-html                                    fr.gospeak.web.api.ui.UtilsCtrl.markdownToHtml

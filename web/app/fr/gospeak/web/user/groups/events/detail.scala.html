@@ -5,11 +5,10 @@
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.partials.display.html._
 @import fr.gospeak.web.partials.form.html.formBtn
-@import fr.gospeak.web.partials.html.{securedContainer, pagination}
+@import fr.gospeak.web.partials.html.{securedContainer, pagination, search}
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 @import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.user.groups.proposals.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.user.groups.settings.routes.SettingsCtrl
 @import fr.gospeak.libs.scalautils.domain.Page
 
 @(group: Group, event: Event, talks: Seq[Proposal], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
@@ -48,27 +47,30 @@
         <h2>No planned talks for this event</h2>
     }
 
-    @if(cfpOpt.isEmpty) {
-        <h2>CFP not activated for @group.name.value</h2>
-        <p><a class="btn btn-primary" href="@SettingsCtrl.cfp(group.slug)">Enable your CFP</a> to receive talk proposals.</p>
-    } else {
+    @cfpOpt.map { cfp =>
         @if(proposals.isEmpty) {
-            <h2>No proposal for the CFP</h2>
+            <h2>No proposal for <b>@cfp.name.value</b> CFP</h2>
         } else {
-            <h2>@Formats.plural(proposals.total.value, "proposed talk")</h2>
-            @pagination(proposals, EventCtrl.detail(group.slug, event.slug, _))
+            <h2>@Formats.plural(proposals.total.value, "pending talk") at <b>@cfp.name.value</b> CFP</h2>
+
+            <div class="float-right">@pagination(proposals, EventCtrl.detail(group.slug, event.slug, _))</div>
+            @search(proposals, EventCtrl.detail(group.slug, event.slug))
+
             <ul>
-                @proposals.items.map { proposal =>
-                    <li>
-                        @formBtn(EventCtrl.addTalk(group.slug, event.slug, proposal.id), Seq("class" -> "btn-link btn-sm", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
-                        <small title="Proposal date">(@Formats.date(proposal.info.created))</small>
-                        <a href="@ProposalCtrl.detail(group.slug, proposal.id)">@proposal.title.value</a>
-                        @duration(proposal.duration)
-                        by @proposal.speakers.toList.map { sId => @speaker(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, proposal.id, u.slug))) }
-                    </li>
-                }
+            @proposals.items.map { proposal =>
+                <li>
+                    @formBtn(EventCtrl.addTalk(group.slug, event.slug, proposal.id), Seq("class" -> "btn-link btn-sm", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
+                <small title="Proposal date">(@Formats.date(proposal.info.created))</small>
+                <a href="@ProposalCtrl.detail(group.slug, proposal.id)">@proposal.title.value</a>
+                    @duration(proposal.duration)
+                    by @proposal.speakers.toList.map { sId => @speaker(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, proposal.id, u.slug))) }
+                </li>
+            }
             </ul>
-            @pagination(proposals, EventCtrl.detail(group.slug, event.slug, _))
+
+            <div class="float-right">@pagination(proposals, EventCtrl.detail(group.slug, event.slug, _))</div>
         }
+    }.getOrElse {
+        <h2>No CFP assigned to this event</h2>
     }
 }()

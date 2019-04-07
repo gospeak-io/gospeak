@@ -29,13 +29,12 @@ class ProposalCtrl(cc: ControllerComponents,
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
-      cfpOpt <- OptionT.liftF(cfpRepo.find(groupElt.id))
-      proposals <- cfpOpt.map(cfpElt => OptionT.liftF(proposalRepo.list(cfpElt.id, params))).getOrElse(OptionT.pure[IO](Page.empty[Proposal](params)))
+      proposals = Page.empty[Proposal] // TODO <- OptionT.liftF(proposalRepo.list(groupElt.id, params))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.speakers.toList)))
       events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_.event)))
       h = listHeader(group)
       b = listBreadcrumb(req.identity.user.name, group -> groupElt.name)
-    } yield Ok(html.list(groupElt, cfpOpt, proposals, speakers, events)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+    } yield Ok(html.list(groupElt, proposals, speakers, events)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
   def detail(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
