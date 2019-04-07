@@ -6,7 +6,7 @@ import cats.effect.IO
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.core.domain.{Cfp, Group, Talk, User}
+import fr.gospeak.core.domain._
 import fr.gospeak.core.services.CfpRepo
 import fr.gospeak.infra.services.storage.sql.CfpRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
@@ -30,11 +30,13 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
     }
   }
 
-  override def find(group: Group.Id, slug: Cfp.Slug): IO[Option[Cfp]] = run(selectOne(slug).option)
+  override def find(id: Cfp.Id): IO[Option[Cfp]] = run(selectOne(id).option)
 
   override def find(slug: Cfp.Slug): IO[Option[Cfp]] = run(selectOne(slug).option)
 
-  override def find(id: Cfp.Id): IO[Option[Cfp]] = run(selectOne(id).option)
+  override def find(group: Group.Id, slug: Cfp.Slug): IO[Option[Cfp]] = run(selectOne(slug).option)
+
+  override def find(id: Event.Id): IO[Option[Cfp]] = run(selectOne(id).option)
 
   override def find(id: Group.Id): IO[Option[Cfp]] = run(selectOne(id).option)
 
@@ -62,14 +64,20 @@ object CfpRepoSql {
     buildUpdate(tableFr, fields, where(group, slug)).update
   }
 
-  private[sql] def selectOne(group: Group.Id, slug: Cfp.Slug): doobie.Query0[Cfp] =
-    buildSelect(tableFr, fieldsFr, where(group, slug)).query[Cfp]
+  private[sql] def selectOne(id: Cfp.Id): doobie.Query0[Cfp] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[Cfp]
 
   private[sql] def selectOne(slug: Cfp.Slug): doobie.Query0[Cfp] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE slug=$slug").query[Cfp]
 
-  private[sql] def selectOne(id: Cfp.Id): doobie.Query0[Cfp] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[Cfp]
+  private[sql] def selectOne(group: Group.Id, slug: Cfp.Slug): doobie.Query0[Cfp] =
+    buildSelect(tableFr, fieldsFr, where(group, slug)).query[Cfp]
+
+  private[sql] def selectOne(id: Event.Id): doobie.Query0[Cfp] = {
+    val selectedTables = Fragment.const0(s"$table c INNER JOIN ${EventRepoSql.table} e ON e.cfp_id=c.id")
+    val selectedFields = Fragment.const0(fields.map("c." + _).mkString(", "))
+    buildSelect(selectedTables, selectedFields, fr0"WHERE e.id=$id").query[Cfp]
+  }
 
   private[sql] def selectOne(id: Group.Id): doobie.Query0[Cfp] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE group_id=$id").query[Cfp]

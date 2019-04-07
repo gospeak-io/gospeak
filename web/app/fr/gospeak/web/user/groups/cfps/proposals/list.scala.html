@@ -1,0 +1,25 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Cfp, Group, Proposal, User, Event}
+@import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.partials.html.{pagination, search, securedContainer}
+@import fr.gospeak.web.user.groups.cfps.proposals.partials.html.item
+@import fr.gospeak.web.user.groups.cfps.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.utils.Formats._
+
+@(group: Group, cfp: Cfp, proposals: Page[Proposal], speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer("Gospeak", h, Some(b))() {
+    <div>
+        <h1>@plural(proposals.total.value, "proposal")</h1>
+    </div>
+
+    <div class="float-right">@pagination(proposals, ProposalCtrl.list(group.slug, cfp.slug, _))</div>
+    @search(proposals, ProposalCtrl.list(group.slug, cfp.slug))
+
+    <div class="list-group mt-3 mb-3">
+    @proposals.items.map { e => @item(group, cfp, e, speakers, events) }
+    </div>
+
+    <div class="float-right">@pagination(proposals, ProposalCtrl.list(group.slug, cfp.slug, _))</div>
+}()

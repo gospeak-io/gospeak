@@ -1,14 +1,15 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Cfp, Group, Proposal, User}
+@import fr.gospeak.core.domain.{Cfp, Group, Proposal, User, Event}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.html.{pagination, search, securedContainer}
 @import fr.gospeak.web.user.groups.cfps.partials.html.dates
+@import fr.gospeak.web.user.groups.cfps.proposals.partials.html.item
 @import fr.gospeak.web.user.groups.cfps.routes.CfpCtrl
 @import fr.gospeak.web.utils.Formats._
 
-@(group: Group, cfp: Cfp, proposals: Page[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, cfp: Cfp, proposals: Page[Proposal], speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer(cfp.name.value + " - Gospeak", h, Some(b))() {
     <div>
         <span class="float-right">
@@ -24,7 +25,7 @@
     @search(proposals, CfpCtrl.detail(group.slug, cfp.slug))
 
     <div class="list-group mt-3 mb-3">
-    @proposals.items.map { p => <div class="list-group-item">@p.title.value</div> }
+    @proposals.items.map { p => @item(group, cfp, p, speakers, events) }
     </div>
 
     <div class="float-right">@pagination(proposals, CfpCtrl.detail(group.slug, cfp.slug, _))</div>

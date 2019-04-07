@@ -3,7 +3,7 @@ package fr.gospeak.core.services
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.{Cfp, Group, Talk, User}
+import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
 trait CfpRepo {
@@ -11,13 +11,15 @@ trait CfpRepo {
 
   def edit(group: Group.Id, cfp: Cfp.Slug)(data: Cfp.Data, by: User.Id, now: Instant): IO[Done]
 
-  def find(group: Group.Id, slug: Cfp.Slug): IO[Option[Cfp]]
+  def find(id: Cfp.Id): IO[Option[Cfp]]
 
   def find(slug: Cfp.Slug): IO[Option[Cfp]]
 
-  def find(id: Cfp.Id): IO[Option[Cfp]]
+  def find(group: Group.Id, slug: Cfp.Slug): IO[Option[Cfp]]
 
-  def find(id: Group.Id): IO[Option[Cfp]]
+  def find(id: Event.Id): IO[Option[Cfp]]
+
+  def find(id: Group.Id): IO[Option[Cfp]] // TODO remove, and use list(group: Group.Id, params: Page.Params) instead
 
   def list(group: Group.Id, params: Page.Params): IO[Page[Cfp]]
 

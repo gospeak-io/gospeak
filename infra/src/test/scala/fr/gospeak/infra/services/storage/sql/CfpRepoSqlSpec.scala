@@ -9,14 +9,14 @@ class CfpRepoSqlSpec extends RepoSpec {
     it("should create and retrieve a cfp for a group") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
       val talkId = Talk.Id.generate()
-      cfpRepo.listAvailable(talkId, page).unsafeRunSync().items shouldBe Seq()
       cfpRepo.find(cfpData.slug).unsafeRunSync() shouldBe None
-      cfpRepo.find(group.id).unsafeRunSync() shouldBe None
+      cfpRepo.list(group.id, page).unsafeRunSync().items shouldBe Seq()
+      cfpRepo.listAvailable(talkId, page).unsafeRunSync().items shouldBe Seq()
       val cfp = cfpRepo.create(group.id, cfpData, user.id, now).unsafeRunSync()
-      cfpRepo.listAvailable(talkId, page).unsafeRunSync().items shouldBe Seq(cfp)
-      cfpRepo.find(cfpData.slug).unsafeRunSync() shouldBe Some(cfp)
       cfpRepo.find(cfp.id).unsafeRunSync() shouldBe Some(cfp)
-      cfpRepo.find(group.id).unsafeRunSync() shouldBe Some(cfp)
+      cfpRepo.find(cfpData.slug).unsafeRunSync() shouldBe Some(cfp)
+      cfpRepo.list(group.id, page).unsafeRunSync().items shouldBe Seq(cfp)
+      cfpRepo.listAvailable(talkId, page).unsafeRunSync().items shouldBe Seq(cfp)
     }
     it("should fail to create a cfp when the group does not exists") {
       val user = userRepo.create(userSlug, firstName, lastName, email, avatar, now).unsafeRunSync()
@@ -44,9 +44,9 @@ class CfpRepoSqlSpec extends RepoSpec {
         q.sql shouldBe "UPDATE cfps SET slug=?, name=?, start=?, end=?, description=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
         check(q)
       }
-      it("should build selectOne for group id and cfp slug") {
-        val q = selectOne(group.id, cfp.slug)
-        q.sql shouldBe "SELECT id, group_id, slug, name, start, end, description, created, created_by, updated, updated_by FROM cfps WHERE group_id=? AND slug=?"
+      it("should build selectOne for cfp id") {
+        val q = selectOne(cfp.id)
+        q.sql shouldBe "SELECT id, group_id, slug, name, start, end, description, created, created_by, updated, updated_by FROM cfps WHERE id=?"
         check(q)
       }
       it("should build selectOne for cfp slug") {
@@ -54,9 +54,14 @@ class CfpRepoSqlSpec extends RepoSpec {
         q.sql shouldBe "SELECT id, group_id, slug, name, start, end, description, created, created_by, updated, updated_by FROM cfps WHERE slug=?"
         check(q)
       }
-      it("should build selectOne for cfp id") {
-        val q = selectOne(cfp.id)
-        q.sql shouldBe "SELECT id, group_id, slug, name, start, end, description, created, created_by, updated, updated_by FROM cfps WHERE id=?"
+      it("should build selectOne for group id and cfp slug") {
+        val q = selectOne(group.id, cfp.slug)
+        q.sql shouldBe "SELECT id, group_id, slug, name, start, end, description, created, created_by, updated, updated_by FROM cfps WHERE group_id=? AND slug=?"
+        check(q)
+      }
+      it("should build selectOne for event id") {
+        val q = selectOne(event.id)
+        q.sql shouldBe "SELECT c.id, c.group_id, c.slug, c.name, c.start, c.end, c.description, c.created, c.created_by, c.updated, c.updated_by FROM cfps c INNER JOIN events e ON e.cfp_id=c.id WHERE e.id=?"
         check(q)
       }
       it("should build selectOne for group id") {

@@ -37,6 +37,7 @@
 
 .avatar {
     border-radius: .25em;
+    height: 28px;
 }
 
 .dropdown .avatar {

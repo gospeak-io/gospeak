@@ -6,7 +6,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import fr.gospeak.core.domain.{Event, Group, Proposal, User}
+import fr.gospeak.core.domain._
 import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -68,7 +68,7 @@ class EventCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
       talks <- OptionT.liftF(proposalRepo.list(eventElt.talks))
-      cfpOpt <- OptionT.liftF(cfpRepo.find(groupElt.id))
+      cfpOpt <- OptionT.liftF(cfpRepo.find(eventElt.id))
       proposals <- OptionT.liftF(cfpOpt.map(cfp => proposalRepo.list(cfp.id, Proposal.Status.Pending, params)).getOrElse(IO.pure(Page.empty[Proposal])))
       speakers <- OptionT.liftF(userRepo.list((proposals.items ++ talks).flatMap(_.speakers.toList).distinct))
       h = header(group)

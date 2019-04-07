@@ -1,0 +1,30 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Cfp, Group, Proposal, User, Event}
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.partials.html.securedContainer
+@import fr.gospeak.web.utils.Formats._
+@import fr.gospeak.web.partials.display.html.{proposalStatusIcon, duration, speaker, markdown, videoIcon, slidesIcon, event}
+@import fr.gospeak.web.user.groups.events.routes.EventCtrl
+
+@(group: Group, cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer(proposal.title.value + " - Gospeak", h, Some(b))() {
+    <div>
+        <h1>@proposalStatusIcon(proposal.status) @proposal.title.value</h1>
+    </div>
+
+    <div>
+        @proposal.event.map { id => <h2>Added to @event(events, id, Some(e => EventCtrl.detail(group.slug, e.slug)))</h2> }
+        <p>
+            @duration(proposal.duration)
+            @proposal.video.map { video => @videoIcon(Some(video)) }
+            @proposal.slides.map { slides => @slidesIcon(Some(slides)) }
+            Proposed <span>@date(proposal.info.created)</span>@if(proposal.info.updated.isAfter(proposal.info.created)) {, updated <span>@date(proposal.info.updated)</span>}
+        </p>
+        <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id, None) }</p>
+    </div>
+
+    <div>
+    @markdown(proposal.description)
+    </div>
+}()
