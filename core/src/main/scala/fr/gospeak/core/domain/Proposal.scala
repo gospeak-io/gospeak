@@ -22,6 +22,14 @@ final case class Proposal(id: Proposal.Id,
 }
 
 object Proposal {
+  def apply(talk: Talk.Id,
+            cfp: Cfp.Id,
+            event: Option[Event.Id],
+            data: Data,
+            status: Status,
+            speakers: NonEmptyList[User.Id],
+            info: Info): Proposal =
+    new Proposal(Id.generate(), talk, cfp, event, data.title, data.duration, status, data.description, speakers, data.slides, data.video, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 

@@ -7,17 +7,18 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.User
+import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.UserRepo
 import fr.gospeak.infra.services.storage.sql.UserRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.libs.scalautils.domain.{Avatar, Done, EmailAddress}
+import fr.gospeak.infra.utils.DoobieUtils.Queries
+import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRepo {
-  override def create(slug: User.Slug, firstName: String, lastName: String, email: EmailAddress, avatar: Avatar, now: Instant): IO[User] =
-    run(insert, User(User.Id.generate(), slug, firstName, lastName, email, None, avatar, now, now))
+  override def create(data: User.Data, now: Instant): IO[User] =
+    run(insert, User(data, now))
 
   override def edit(user: User, now: Instant): IO[User] =
     run(update(user.copy(updated = now))).map(_ => user)
@@ -45,6 +46,15 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def find(slug: User.Slug): IO[Option[User]] = run(selectOne(slug).option)
 
+  // FIXME should be done in only one query: joining on speakers array or splitting speakers string
+  override def list(group: Group.Id, params: Page.Params): IO[Page[User]] = {
+    val speakerIdsQuery = fr0"SELECT p.speakers FROM proposals p INNER JOIN cfps c ON c.id=p.cfp_id WHERE c.group_id=$group".query[NonEmptyList[User.Id]]
+    for {
+        speakerIds <- run(speakerIdsQuery.to[List]).map(_.flatMap(_.toList).distinct)
+        res <- NonEmptyList.fromList(speakerIds).map(ids => run(Queries.selectPage(selectPage(ids, _), params))).getOrElse(IO.pure(Page.empty[User]))
+    } yield res
+  }
+
   override def list(ids: Seq[User.Id]): IO[Seq[User]] = runIn(selectAll)(ids)
 }
 
@@ -58,6 +68,8 @@ object UserRepoSql {
   private val fields = Seq("id", "slug", "first_name", "last_name", "email", "email_validated", "avatar", "avatar_source", "created", "updated")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
+  private val searchFields = Seq("id", "slug", "first_name", "last_name", "email")
+  private val defaultSort = Page.OrderBy("first_name")
 
   private def values(e: User): Fragment =
     fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.created}, ${e.updated}"
@@ -104,6 +116,18 @@ object UserRepoSql {
 
   private[sql] def selectOne(slug: User.Slug): doobie.Query0[User] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE slug=$slug").query[User]
+
+  // should replace def selectPage(ids: NonEmptyList[User.Id], params: Page.Params) when split or array works...
+  /* private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[User], doobie.Query0[Long]) = {
+    val speakerIds = fr0"SELECT p.speakers FROM proposals p INNER JOIN cfps c ON c.id=p.cfp_id WHERE c.group_id=$group"
+    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE id IN (" ++ speakerIds ++ fr0")"))
+    (buildSelect(tableFr, fieldsFr, page.all).query[User], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+  } */
+
+  private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params): (doobie.Query0[User], doobie.Query0[Long]) = {
+    val page = paginate(params, searchFields, defaultSort, Some(fr"WHERE" ++ Fragments.in(fr"id", ids)))
+    (buildSelect(tableFr, fieldsFr, page.all).query[User], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+  }
 
   private[sql] def selectAll(ids: NonEmptyList[User.Id]): doobie.Query0[User] =
     buildSelect(tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids)).query[User]

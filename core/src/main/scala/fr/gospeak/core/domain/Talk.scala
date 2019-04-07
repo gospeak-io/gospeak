@@ -20,6 +20,11 @@ final case class Talk(id: Talk.Id,
 }
 
 object Talk {
+  def apply(data: Data,
+            status: Status,
+            speakers: NonEmptyList[User.Id],
+            info: Info): Talk =
+    new Talk(Id.generate(), data.slug, data.title, data.duration, status, data.description, speakers, data.slides, data.video, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 

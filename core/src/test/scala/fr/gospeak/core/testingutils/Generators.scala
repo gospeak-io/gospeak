@@ -22,6 +22,7 @@ object Generators {
   implicit val aVideo: Arbitrary[Video] = Arbitrary(slugGen.map(slug => Video.from(s"http://youtu.be/$slug").right.get))
   implicit val aEmailAddress: Arbitrary[EmailAddress] = Arbitrary(slugGen.map(slug => EmailAddress.from(slug.take(90) + "@mail.com").right.get)) // TODO improve
   implicit val aUrl: Arbitrary[Url] = Arbitrary(stringGen.map(_ => Url.from("https://www.youtube.com/watch").right.get)) // TODO improve
+  implicit val aAvatar: Arbitrary[Avatar] = Arbitrary(stringGen.map(_ => Avatar(Url.from("https://secure.gravatar.com/avatar/f755e6e8914df5cbaa74d30dd7de1ae2?size=100&default=wavatar").right.get, Avatar.Source.Gravatar))) // TODO improve
 
   implicit val aUserId: Arbitrary[User.Id] = Arbitrary(Gen.uuid.map(id => User.Id.from(id.toString).right.get))
   implicit val aUserSlug: Arbitrary[User.Slug] = Arbitrary(slugGen.map(slug => User.Slug.from(slug).right.get))

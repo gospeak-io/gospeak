@@ -13,10 +13,14 @@ final case class User(id: User.Id,
                       avatar: Avatar,
                       created: Instant,
                       updated: Instant) {
+  def data: User.Data = User.Data(this)
+
   def name: User.Name = User.Name(firstName, lastName)
 }
 
 object User {
+  def apply(data: Data, now: Instant): User =
+    new User(Id.generate(), data.slug, data.firstName, data.lastName, data.email, None, data.avatar, now, now)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -30,6 +34,16 @@ object User {
 
   object Name {
     def apply(firstName: String, lastName: String): Name = new Name(s"$firstName $lastName")
+  }
+
+  final case class Data(slug: User.Slug,
+                        firstName: String,
+                        lastName: String,
+                        email: EmailAddress,
+                        avatar: Avatar)
+
+  object Data {
+    def apply(user: User): Data = new Data(user.slug, user.firstName, user.lastName, user.email, user.avatar)
   }
 
   final case class ProviderId(value: String) extends AnyVal

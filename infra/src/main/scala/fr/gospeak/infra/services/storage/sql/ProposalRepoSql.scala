@@ -19,7 +19,7 @@ import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Video}
 
 class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ProposalRepo {
   override def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal] =
-    run(insert, Proposal(Proposal.Id.generate(), talk, cfp, None, data.title, data.duration, Proposal.Status.Pending, data.description, speakers, data.slides, data.video, Info(by, now)))
+    run(insert, Proposal(talk, cfp, None, data, Proposal.Status.Pending, speakers, Info(by, now)))
 
   override def editStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): IO[Done] =
     run(updateStatus(id)(status, event))

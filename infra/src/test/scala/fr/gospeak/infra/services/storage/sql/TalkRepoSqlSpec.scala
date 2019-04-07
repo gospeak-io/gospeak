@@ -8,47 +8,47 @@ import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 class TalkRepoSqlSpec extends RepoSpec {
   describe("TalkRepoSql") {
     it("should create and retrieve") {
-      val user = userRepo.create(userSlug, firstName, lastName, email, avatar, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now).unsafeRunSync()
       talkRepo.list(user.id, page).unsafeRunSync().items shouldBe Seq()
-      talkRepo.find(user.id, talkData.slug).unsafeRunSync() shouldBe None
-      val talk = talkRepo.create(user.id, talkData, now).unsafeRunSync()
+      talkRepo.find(user.id, talkData1.slug).unsafeRunSync() shouldBe None
+      val talk = talkRepo.create(user.id, talkData1, now).unsafeRunSync()
       talkRepo.list(user.id, page).unsafeRunSync().items shouldBe Seq(talk)
-      talkRepo.find(user.id, talkData.slug).unsafeRunSync() shouldBe Some(talk)
+      talkRepo.find(user.id, talkData1.slug).unsafeRunSync() shouldBe Some(talk)
     }
     it("should not retrieve not owned talks") {
-      val user = userRepo.create(userSlug, firstName, lastName, email, avatar, now).unsafeRunSync()
-      val user2 = userRepo.create(userSlug2, firstName, lastName, email2, avatar, now).unsafeRunSync()
-      val talk = talkRepo.create(user2.id, talkData, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now).unsafeRunSync()
+      val user2 = userRepo.create(userData2, now).unsafeRunSync()
+      val talk = talkRepo.create(user2.id, talkData1, now).unsafeRunSync()
       talkRepo.list(user.id, page).unsafeRunSync().items shouldBe Seq()
-      talkRepo.find(user.id, talkData.slug).unsafeRunSync() shouldBe None
+      talkRepo.find(user.id, talkData1.slug).unsafeRunSync() shouldBe None
     }
     it("should fail on duplicate slug on same user") {
-      val user = userRepo.create(userSlug, firstName, lastName, email, avatar, now).unsafeRunSync()
-      val user2 = userRepo.create(userSlug2, firstName, lastName, email2, avatar, now).unsafeRunSync()
-      talkRepo.create(user.id, talkData, now).unsafeRunSync()
-      talkRepo.create(user2.id, talkData, now).unsafeRunSync()
-      an[Exception] should be thrownBy talkRepo.create(user.id, talkData, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now).unsafeRunSync()
+      val user2 = userRepo.create(userData2, now).unsafeRunSync()
+      talkRepo.create(user.id, talkData1, now).unsafeRunSync()
+      talkRepo.create(user2.id, talkData1, now).unsafeRunSync()
+      an[Exception] should be thrownBy talkRepo.create(user.id, talkData1, now).unsafeRunSync()
     }
     it("should update talk data") {
-      val user = userRepo.create(userSlug, firstName, lastName, email, avatar, now).unsafeRunSync()
-      talkRepo.create(user.id, talkData, now).unsafeRunSync()
-      talkRepo.find(user.id, talkData.slug).unsafeRunSync().map(_.data) shouldBe Some(talkData)
-      talkRepo.edit(user.id, talkData.slug)(talkData2, now).unsafeRunSync()
-      talkRepo.find(user.id, talkData.slug).unsafeRunSync() shouldBe None
+      val user = userRepo.create(userData1, now).unsafeRunSync()
+      talkRepo.create(user.id, talkData1, now).unsafeRunSync()
+      talkRepo.find(user.id, talkData1.slug).unsafeRunSync().map(_.data) shouldBe Some(talkData1)
+      talkRepo.edit(user.id, talkData1.slug)(talkData2, now).unsafeRunSync()
+      talkRepo.find(user.id, talkData1.slug).unsafeRunSync() shouldBe None
       talkRepo.find(user.id, talkData2.slug).unsafeRunSync().map(_.data) shouldBe Some(talkData2)
     }
     it("should fail to change slug for an existing one") {
-      val user = userRepo.create(userSlug, firstName, lastName, email, avatar, now).unsafeRunSync()
-      talkRepo.create(user.id, talkData, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now).unsafeRunSync()
+      talkRepo.create(user.id, talkData1, now).unsafeRunSync()
       talkRepo.create(user.id, talkData2, now).unsafeRunSync()
-      an[Exception] should be thrownBy talkRepo.edit(user.id, talkData.slug)(talkData.copy(slug = talkData2.slug), now).unsafeRunSync()
+      an[Exception] should be thrownBy talkRepo.edit(user.id, talkData1.slug)(talkData1.copy(slug = talkData2.slug), now).unsafeRunSync()
     }
     it("should update the status") {
-      val user = userRepo.create(userSlug, firstName, lastName, email, avatar, now).unsafeRunSync()
-      talkRepo.create(user.id, talkData, now).unsafeRunSync()
-      talkRepo.find(user.id, talkData.slug).unsafeRunSync().map(_.status) shouldBe Some(Talk.Status.Draft)
-      talkRepo.editStatus(user.id, talkData.slug)(Talk.Status.Public).unsafeRunSync()
-      talkRepo.find(user.id, talkData.slug).unsafeRunSync().map(_.status) shouldBe Some(Talk.Status.Public)
+      val user = userRepo.create(userData1, now).unsafeRunSync()
+      talkRepo.create(user.id, talkData1, now).unsafeRunSync()
+      talkRepo.find(user.id, talkData1.slug).unsafeRunSync().map(_.status) shouldBe Some(Talk.Status.Draft)
+      talkRepo.editStatus(user.id, talkData1.slug)(Talk.Status.Public).unsafeRunSync()
+      talkRepo.find(user.id, talkData1.slug).unsafeRunSync().map(_.status) shouldBe Some(Talk.Status.Public)
     }
     describe("Queries") {
       it("should build insert") {
@@ -57,7 +57,7 @@ class TalkRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build update") {
-        val q = update(user.id, talk.slug)(talk.data, now)
+        val q = update(user.id, talk.slug)(talkData1, now)
         q.sql shouldBe "UPDATE talks SET slug=?, title=?, duration=?, description=?, slides=?, video=?, updated=?, updated_by=? WHERE speakers LIKE ? AND slug=?"
         check(q)
       }

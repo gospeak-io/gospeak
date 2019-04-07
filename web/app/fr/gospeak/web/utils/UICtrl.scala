@@ -32,6 +32,9 @@ abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv
   protected def proposalNotFound(group: Group.Slug, proposal: Proposal.Id): Result =
     Redirect(user.groups.proposals.routes.ProposalCtrl.list(group)).flashing("warning" -> s"Unable to find proposal with id '${proposal.value}'")
 
+  protected def speakerNotFound(group: Group.Slug, speaker: User.Slug): Result =
+    Redirect(user.groups.speakers.routes.SpeakerCtrl.list(group)).flashing("warning" -> s"Unable to find speaker with slug '${speaker.value}'")
+
   protected def notFound()(implicit req: Request[AnyContent]): Result =
     NotFound("Not found :(")
 }

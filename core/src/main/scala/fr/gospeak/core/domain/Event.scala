@@ -17,7 +17,7 @@ final case class Event(id: Event.Id,
                        venue: Option[GMapPlace],
                        talks: Seq[Proposal.Id],
                        info: Info) {
-  def data: Event.Data = Event.Data(cfp, slug, name, start, venue)
+  def data: Event.Data = Event.Data(this)
 
   def add(talk: Proposal.Id): Event = copy(talks = talks :+ talk)
 
@@ -41,5 +41,9 @@ object Event {
   final case class Name(value: String) extends AnyVal
 
   final case class Data(cfp: Option[Cfp.Id], slug: Event.Slug, name: Event.Name, start: LocalDateTime, venue: Option[GMapPlace])
+
+  object Data {
+    def apply(event: Event): Data = new Data(event.cfp, event.slug, event.name, event.start, event.venue)
+  }
 
 }

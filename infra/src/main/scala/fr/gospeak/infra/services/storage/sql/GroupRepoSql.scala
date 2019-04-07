@@ -18,7 +18,7 @@ import fr.gospeak.libs.scalautils.domain.Page
 
 class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with GroupRepo {
   override def create(data: Group.Data, by: User.Id, now: Instant): IO[Group] =
-    run(insert, Group(Group.Id.generate(), data.slug, data.name, data.description, NonEmptyList.of(by), Info(by, now)))
+    run(insert, Group(data, NonEmptyList.of(by), Info(by, now)))
 
   override def find(user: User.Id, slug: Group.Slug): IO[Option[Group]] = run(selectOne(user, slug).option)
 

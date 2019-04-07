@@ -57,11 +57,11 @@ object ProposalCtrl {
       .activeFor(routes.ProposalCtrl.list(group, cfp))
 
   def listBreadcrumb(user: User.Name, group: Group, cfp: Cfp): Breadcrumb =
-    CfpCtrl.breadcrumb(user, group.slug -> group.name, cfp.slug -> cfp.name).add("Proposals" -> routes.ProposalCtrl.list(group.slug, cfp.slug))
+    CfpCtrl.breadcrumb(user, group, cfp).add("Proposals" -> routes.ProposalCtrl.list(group.slug, cfp.slug))
 
   def header(group: Group.Slug, cfp: Cfp.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     listHeader(group, cfp)
 
   def breadcrumb(user: User.Name, group: Group, cfp: Cfp, proposal: Proposal): Breadcrumb =
-    listBreadcrumb(user, group, cfp).add(cfp.name.value -> routes.ProposalCtrl.detail(group.slug, cfp.slug, proposal.id))
+    listBreadcrumb(user, group, cfp).add(proposal.title.value -> routes.ProposalCtrl.detail(group.slug, cfp.slug, proposal.id))
 }

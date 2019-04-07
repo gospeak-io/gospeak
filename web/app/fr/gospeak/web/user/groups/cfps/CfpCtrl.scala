@@ -33,7 +33,7 @@ class CfpCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       cfps <- OptionT.liftF(cfpRepo.list(groupElt.id, params)) // TODO listWithProposalCount
       h = listHeader(group)
-      b = listBreadcrumb(req.identity.user.name, group -> groupElt.name)
+      b = listBreadcrumb(req.identity.user.name, groupElt)
     } yield Ok(html.list(groupElt, cfps)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
@@ -57,7 +57,7 @@ class CfpCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       h = header(group)
-      b = listBreadcrumb(req.identity.user.name, group -> groupElt.name).add("New" -> routes.CfpCtrl.create(group))
+      b = listBreadcrumb(req.identity.user.name, groupElt).add("New" -> routes.CfpCtrl.create(group))
     } yield Ok(html.create(groupElt, form)(h, b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
@@ -69,7 +69,7 @@ class CfpCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.speakers.toList).distinct))
       events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_.event.toList).distinct))
       h = header(group)
-      b = breadcrumb(req.identity.user.name, group -> groupElt.name, cfp -> cfpElt.name)
+      b = breadcrumb(req.identity.user.name, groupElt, cfpElt)
     } yield Ok(html.detail(groupElt, cfpElt, proposals, speakers, events)(h, b))).value.map(_.getOrElse(cfpNotFound(group, cfp))).unsafeToFuture()
   }
 
@@ -99,7 +99,7 @@ class CfpCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
       h = header(group)
-      b = breadcrumb(req.identity.user.name, group -> groupElt.name, cfp -> cfpElt.name).add("Edit" -> routes.CfpCtrl.edit(group, cfp))
+      b = breadcrumb(req.identity.user.name, groupElt, cfpElt).add("Edit" -> routes.CfpCtrl.edit(group, cfp))
       filledForm = if (form.hasErrors) form else form.fill(cfpElt.data)
     } yield Ok(html.edit(groupElt, cfpElt, filledForm)(h, b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
   }
@@ -111,17 +111,12 @@ object CfpCtrl {
       .copy(brand = NavLink("Gospeak", GroupRoutes.detail(group)))
       .activeFor(routes.CfpCtrl.list(group))
 
-  def listBreadcrumb(user: User.Name, group: (Group.Slug, Group.Name)): Breadcrumb =
-    group match {
-      case (groupSlug, _) => GroupCtrl.breadcrumb(user, group).add("CFPs" -> routes.CfpCtrl.list(groupSlug))
-    }
+  def listBreadcrumb(user: User.Name, group: Group): Breadcrumb =
+    GroupCtrl.breadcrumb(user, group).add("CFPs" -> routes.CfpCtrl.list(group.slug))
 
   def header(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     listHeader(group)
 
-  def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name), cfp: (Cfp.Slug, Cfp.Name)): Breadcrumb =
-    (group, cfp) match {
-      case ((groupSlug, _), (cfpSlug, cfpName)) =>
-        listBreadcrumb(user, group).add(cfpName.value -> routes.CfpCtrl.detail(groupSlug, cfpSlug))
-    }
+  def breadcrumb(user: User.Name, group: Group, cfp: Cfp): Breadcrumb =
+    listBreadcrumb(user, group).add(cfp.name.value -> routes.CfpCtrl.detail(group.slug, cfp.slug))
 }

@@ -35,16 +35,12 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val slides: Slides = random[Slides]
   protected val video: Video = random[Video]
 
-  protected val Seq(userSlug, userSlug2, userSlug3) = random[User.Slug](3)
-  protected val Seq(email, email2, email3) = random[EmailAddress](3)
-  protected val firstName = "John"
-  protected val lastName = "Doe"
-  protected val avatar = Avatar(Url.from("https://secure.gravatar.com/avatar/f755e6e8914df5cbaa74d30dd7de1ae2?size=100&default=wavatar").right.get, Avatar.Source.Gravatar)
-  protected val Seq(groupData, groupData2) = random[Group.Data](2)
-  protected val eventData: Event.Data = random[Event.Data].copy(cfp = None)
-  protected val cfpData: Cfp.Data = random[Cfp.Data]
-  protected val Seq(talkData, talkData2) = random[Talk.Data](2)
-  protected val proposalData: Proposal.Data = random[Proposal.Data]
+  protected val Seq(userData1, userData2, userData3) = random[User.Data](3)
+  protected val Seq(groupData1, groupData2) = random[Group.Data](2)
+  protected val cfpData1: Cfp.Data = random[Cfp.Data]
+  protected val eventData1: Event.Data = random[Event.Data].copy(cfp = None)
+  protected val Seq(talkData1, talkData2) = random[Talk.Data](2)
+  protected val proposalData1: Proposal.Data = random[Proposal.Data]
   protected val speakers: NonEmptyList[User.Id] = NonEmptyList.fromListUnsafe(random[User.Id](3).toList)
   protected val page = Page.Params()
 
@@ -53,13 +49,13 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   override def afterEach(): Unit = db.dropTables().unsafeRunSync()
 
   protected def createUserAndGroup(): IO[(User, Group)] = for {
-    user <- userRepo.create(userSlug, firstName, lastName, email, avatar, now)
-    group <- groupRepo.create(groupData, user.id, now)
+    user <- userRepo.create(userData1, now)
+    group <- groupRepo.create(groupData1, user.id, now)
   } yield (user, group)
 
   protected def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk)] = for {
     (user, group) <- createUserAndGroup()
-    cfp <- cfpRepo.create(group.id, cfpData, user.id, now)
-    talk <- talkRepo.create(user.id, talkData, now)
+    cfp <- cfpRepo.create(group.id, cfpData1, user.id, now)
+    talk <- talkRepo.create(user.id, talkData1, now)
   } yield (user, group, cfp, talk)
 }

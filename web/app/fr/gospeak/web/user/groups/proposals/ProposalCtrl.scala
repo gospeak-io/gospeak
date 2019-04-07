@@ -33,7 +33,7 @@ class ProposalCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.speakers.toList)))
       events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_.event)))
       h = listHeader(group)
-      b = listBreadcrumb(req.identity.user.name, group -> groupElt.name)
+      b = listBreadcrumb(req.identity.user.name, groupElt)
     } yield Ok(html.list(groupElt, proposals, speakers, events)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
@@ -44,7 +44,7 @@ class ProposalCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(proposalElt.speakers.toList))
       events <- OptionT.liftF(eventRepo.list(proposalElt.event.toSeq))
       h = header(group)
-      b = breadcrumb(req.identity.user.name, group -> groupElt.name, proposal -> proposalElt.title)
+      b = breadcrumb(req.identity.user.name, groupElt, proposalElt)
     } yield Ok(html.detail(groupElt, proposalElt, speakers, events, GenericForm.embed)(h, b))).value.map(_.getOrElse(proposalNotFound(group, proposal))).unsafeToFuture()
   }
 
@@ -79,15 +79,12 @@ object ProposalCtrl {
       .copy(brand = NavLink("Gospeak", fr.gospeak.web.user.groups.routes.GroupCtrl.detail(group)))
       .activeFor(routes.ProposalCtrl.list(group))
 
-  def listBreadcrumb(user: User.Name, group: (Group.Slug, Group.Name)): Breadcrumb =
-    GroupCtrl.breadcrumb(user, group).add("Proposals" -> routes.ProposalCtrl.list(group._1))
+  def listBreadcrumb(user: User.Name, group: Group): Breadcrumb =
+    GroupCtrl.breadcrumb(user, group).add("Proposals" -> routes.ProposalCtrl.list(group.slug))
 
   def header(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     listHeader(group)
 
-  def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name), proposal: (Proposal.Id, Talk.Title)): Breadcrumb =
-    (group, proposal) match {
-      case ((groupSlug, _), (proposalId, proposalTitle)) =>
-        listBreadcrumb(user, group).add(proposalTitle.value -> routes.ProposalCtrl.detail(groupSlug, proposalId))
-    }
+  def breadcrumb(user: User.Name, group: Group, proposal: Proposal): Breadcrumb =
+    listBreadcrumb(user, group).add(proposal.title.value -> routes.ProposalCtrl.detail(group.slug, proposal.id))
 }

@@ -1,0 +1,20 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Event, Group, Proposal, User}
+@import fr.gospeak.libs.scalautils.domain.Url
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.partials.display.html._
+@import fr.gospeak.web.partials.form.html._
+@import fr.gospeak.web.partials.html.securedContainer
+@import fr.gospeak.web.user.groups.events.routes.EventCtrl
+@import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.user.groups.proposals.speakers.routes.SpeakerCtrl
+
+@(group: Group, speaker: User)(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer(speaker.name.value + " - Gospeak", h, Some(b))() {
+    <div>
+        <h1>@speaker.name.value</h1>
+    </div>
+    createdAt, avatar, bio, social links
+    proposals
+}()

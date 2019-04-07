@@ -64,7 +64,7 @@ class GroupCtrl(cc: ControllerComponents,
       proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.speakers.toList)))
       h = header(group)
-      b = breadcrumb(req.identity.user.name, group -> groupElt.name)
+      b = breadcrumb(req.identity.user.name, groupElt)
     } yield Ok(html.detail(groupElt, events, proposals, speakers)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 }
@@ -74,6 +74,7 @@ object GroupCtrl {
     NavLink("Events", events.routes.EventCtrl.list(group)),
     NavLink("CFPs", cfps.routes.CfpCtrl.list(group)),
     NavLink("Proposals", proposals.routes.ProposalCtrl.list(group)),
+    NavLink("Speakers", speakers.routes.SpeakerCtrl.list(group)),
     NavLink("Settings", settings.routes.SettingsCtrl.list(group)))
 
   def listHeader()(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
@@ -88,6 +89,6 @@ object GroupCtrl {
     rightLinks = UserCtrl.rightNav())
     .activeFor(routes.GroupCtrl.list())
 
-  def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name)): Breadcrumb =
-    listBreadcrumb(user).add(group._2.value -> routes.GroupCtrl.detail(group._1))
+  def breadcrumb(user: User.Name, group: Group): Breadcrumb =
+    listBreadcrumb(user).add(group.name.value -> routes.GroupCtrl.detail(group.slug))
 }

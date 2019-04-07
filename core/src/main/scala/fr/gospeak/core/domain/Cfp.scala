@@ -13,7 +13,7 @@ final case class Cfp(id: Cfp.Id,
                      end: Option[LocalDateTime],
                      description: Markdown,
                      info: Info) {
-  def data: Cfp.Data = Cfp.Data(slug, name, start, end, description)
+  def data: Cfp.Data = Cfp.Data(this)
 
   def isActive(now: LocalDateTime): Boolean = start.forall(_.isBefore(now)) && end.forall(_.isAfter(now))
 }
@@ -33,5 +33,9 @@ object Cfp {
   final case class Name(value: String) extends AnyVal
 
   final case class Data(slug: Cfp.Slug, name: Cfp.Name, start: Option[LocalDateTime], end: Option[LocalDateTime], description: Markdown)
+
+  object Data {
+    def apply(cfp: Cfp): Data = new Data(cfp.slug, cfp.name, cfp.start, cfp.end, cfp.description)
+  }
 
 }

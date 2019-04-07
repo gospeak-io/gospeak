@@ -9,29 +9,29 @@ class CfpRepoSqlSpec extends RepoSpec {
     it("should create and retrieve a cfp for a group") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
       val talkId = Talk.Id.generate()
-      cfpRepo.find(cfpData.slug).unsafeRunSync() shouldBe None
+      cfpRepo.find(cfpData1.slug).unsafeRunSync() shouldBe None
       cfpRepo.list(group.id, page).unsafeRunSync().items shouldBe Seq()
       cfpRepo.listAvailable(talkId, page).unsafeRunSync().items shouldBe Seq()
-      val cfp = cfpRepo.create(group.id, cfpData, user.id, now).unsafeRunSync()
+      val cfp = cfpRepo.create(group.id, cfpData1, user.id, now).unsafeRunSync()
       cfpRepo.find(cfp.id).unsafeRunSync() shouldBe Some(cfp)
-      cfpRepo.find(cfpData.slug).unsafeRunSync() shouldBe Some(cfp)
+      cfpRepo.find(cfpData1.slug).unsafeRunSync() shouldBe Some(cfp)
       cfpRepo.list(group.id, page).unsafeRunSync().items shouldBe Seq(cfp)
       cfpRepo.listAvailable(talkId, page).unsafeRunSync().items shouldBe Seq(cfp)
     }
     it("should fail to create a cfp when the group does not exists") {
-      val user = userRepo.create(userSlug, firstName, lastName, email, avatar, now).unsafeRunSync()
-      an[Exception] should be thrownBy cfpRepo.create(Group.Id.generate(), cfpData, user.id, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now).unsafeRunSync()
+      an[Exception] should be thrownBy cfpRepo.create(Group.Id.generate(), cfpData1, user.id, now).unsafeRunSync()
     }
     it("should fail to create two cfp for a group") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
-      cfpRepo.create(group.id, cfpData, user.id, now).unsafeRunSync()
-      an[Exception] should be thrownBy cfpRepo.create(group.id, cfpData, user.id, now).unsafeRunSync()
+      cfpRepo.create(group.id, cfpData1, user.id, now).unsafeRunSync()
+      an[Exception] should be thrownBy cfpRepo.create(group.id, cfpData1, user.id, now).unsafeRunSync()
     }
     it("should fail on duplicate slug") {
       val (user, group1) = createUserAndGroup().unsafeRunSync()
       val group2 = groupRepo.create(groupData2, user.id, now).unsafeRunSync()
-      cfpRepo.create(group1.id, cfpData, user.id, now).unsafeRunSync()
-      an[Exception] should be thrownBy cfpRepo.create(group2.id, cfpData, user.id, now).unsafeRunSync()
+      cfpRepo.create(group1.id, cfpData1, user.id, now).unsafeRunSync()
+      an[Exception] should be thrownBy cfpRepo.create(group2.id, cfpData1, user.id, now).unsafeRunSync()
     }
     describe("Queries") {
       it("should build insert") {
@@ -40,7 +40,7 @@ class CfpRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build update") {
-        val q = update(group.id, cfp.slug)(cfp.data, user.id, now)
+        val q = update(group.id, cfp.slug)(cfpData1, user.id, now)
         q.sql shouldBe "UPDATE cfps SET slug=?, name=?, start=?, end=?, description=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
         check(q)
       }

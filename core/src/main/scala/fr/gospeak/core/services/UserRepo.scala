@@ -3,11 +3,11 @@ package fr.gospeak.core.services
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.User
-import fr.gospeak.libs.scalautils.domain.{Avatar, Done, EmailAddress}
+import fr.gospeak.core.domain.{Group, User}
+import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 trait UserRepo {
-  def create(slug: User.Slug, firstName: String, lastName: String, email: EmailAddress, avatar: Avatar, now: Instant): IO[User]
+  def create(data: User.Data, now: Instant): IO[User]
 
   def edit(user: User, now: Instant): IO[User]
 
@@ -28,6 +28,8 @@ trait UserRepo {
   def find(email: EmailAddress): IO[Option[User]]
 
   def find(slug: User.Slug): IO[Option[User]]
+
+  def list(group: Group.Id, params: Page.Params): IO[Page[User]]
 
   def list(ids: Seq[User.Id]): IO[Seq[User]]
 }

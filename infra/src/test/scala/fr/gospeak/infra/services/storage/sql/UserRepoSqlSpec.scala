@@ -1,6 +1,7 @@
 package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
+import fr.gospeak.core.domain.User
 import fr.gospeak.core.domain.User._
 import fr.gospeak.infra.services.storage.sql.UserRepoSql._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
@@ -13,23 +14,35 @@ class UserRepoSqlSpec extends RepoSpec {
 
   describe("UserRepoSql") {
     it("should create and retrieve a user") {
-      userRepo.find(email).unsafeRunSync() shouldBe None
-      userRepo.create(userSlug, firstName, lastName, email, avatar, now).unsafeRunSync()
-      userRepo.find(email).unsafeRunSync().map(_.email) shouldBe Some(email)
+      userRepo.find(userData1.email).unsafeRunSync() shouldBe None
+      userRepo.create(userData1, now).unsafeRunSync()
+      userRepo.find(userData1.email).unsafeRunSync().map(_.email) shouldBe Some(userData1.email)
     }
     it("should fail on duplicate slug") {
-      userRepo.create(userSlug, firstName, lastName, email, avatar, now).unsafeRunSync()
-      an[Exception] should be thrownBy userRepo.create(userSlug, firstName, lastName, email2, avatar, now).unsafeRunSync()
+      userRepo.create(userData1, now).unsafeRunSync()
+      an[Exception] should be thrownBy userRepo.create(userData2.copy(slug = userData1.slug), now).unsafeRunSync()
     }
     it("should fail on duplicate email") {
-      userRepo.create(userSlug, firstName, lastName, email, avatar, now).unsafeRunSync()
-      an[Exception] should be thrownBy userRepo.create(userSlug2, firstName, lastName, email, avatar, now).unsafeRunSync()
+      userRepo.create(userData1, now).unsafeRunSync()
+      an[Exception] should be thrownBy userRepo.create(userData2.copy(email = userData1.email), now).unsafeRunSync()
     }
     it("should select users by ids") {
-      val user1 = userRepo.create(userSlug, firstName, lastName, email, avatar, now).unsafeRunSync()
-      val user2 = userRepo.create(userSlug2, firstName, lastName, email2, avatar, now).unsafeRunSync()
-      userRepo.create(userSlug3, firstName, lastName, email3, avatar, now).unsafeRunSync()
+      val user1 = userRepo.create(userData1, now).unsafeRunSync()
+      val user2 = userRepo.create(userData2, now).unsafeRunSync()
+      userRepo.create(userData3, now).unsafeRunSync()
       userRepo.list(Seq(user1.id, user2.id)).unsafeRunSync() should contain theSameElementsAs Seq(user1, user2)
+    }
+    it("should select all speakers for a group") {
+      userRepo.list(group.id, page).unsafeRunSync().items shouldBe Seq()
+
+      val user1 = userRepo.create(userData1, now).unsafeRunSync()
+      val user2 = userRepo.create(userData2, now).unsafeRunSync()
+      val talk1 = talkRepo.create(user1.id, talkData1, now).unsafeRunSync()
+      val group1 = groupRepo.create(groupData1, user1.id, now).unsafeRunSync()
+      val cfp1 = cfpRepo.create(group1.id, cfpData1, user1.id, now).unsafeRunSync()
+      val prop1 = proposalRepo.create(talk1.id, cfp1.id, proposalData1, NonEmptyList.of(user1.id, user2.id), user1.id, now).unsafeRunSync()
+
+      userRepo.list(group1.id, page).unsafeRunSync().items.map(_.id) should contain theSameElementsAs prop1.speakers.toList
     }
     describe("Queries") {
       describe("logins") {

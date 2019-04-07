@@ -51,7 +51,7 @@ class AuthSrv(authRepo: AuthRepo,
       user <- emailOpt.map { user =>
         userRepo.edit(user.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), now)
       }.getOrElse {
-        userRepo.create(data.slug, data.firstName, data.lastName, data.email, avatar, now)
+        userRepo.create(data.data(avatar), now)
       }
       _ <- userRepo.createLoginRef(login, user.id)
       _ <- userRepo.createCredentials(credentials)

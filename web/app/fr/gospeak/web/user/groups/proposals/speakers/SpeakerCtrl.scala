@@ -3,7 +3,7 @@ package fr.gospeak.web.user.groups.proposals.speakers
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import fr.gospeak.core.domain.{Group, Proposal, Talk, User}
+import fr.gospeak.core.domain.{Group, Proposal, User}
 import fr.gospeak.core.services.{GroupRepo, ProposalRepo, UserRepo}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
@@ -27,7 +27,7 @@ class SpeakerCtrl(cc: ControllerComponents,
       proposalElt <- OptionT(proposalRepo.find(proposal))
       speakerElt <- OptionT(userRepo.find(speaker))
       h = header(group)
-      b = breadcrumb(req.identity.user.name, group -> groupElt.name, proposal -> proposalElt.title, speaker -> speakerElt.name)
+      b = breadcrumb(req.identity.user.name, groupElt, proposalElt, speakerElt)
     } yield Ok(html.detail(speakerElt)(h, b))).value.map(_.getOrElse(proposalNotFound(group, proposal))).unsafeToFuture()
   }
 }
@@ -36,13 +36,13 @@ object SpeakerCtrl {
   def listHeader(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     ProposalCtrl.header(group)
 
-  def listBreadcrumb(user: User.Name, group: (Group.Slug, Group.Name), proposal: (Proposal.Id, Talk.Title)): Breadcrumb =
-    ProposalCtrl.breadcrumb(user, group, proposal).add("Speakers" -> ProposalRoutes.detail(group._1, proposal._1))
+  def listBreadcrumb(user: User.Name, group: Group, proposal: Proposal): Breadcrumb =
+    ProposalCtrl.breadcrumb(user, group, proposal).add("Speakers" -> ProposalRoutes.detail(group.slug, proposal.id))
 
   def header(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     listHeader(group)
 
-  def breadcrumb(user: User.Name, group: (Group.Slug, Group.Name), proposal: (Proposal.Id, Talk.Title), speaker: (User.Slug, User.Name)): Breadcrumb =
-    listBreadcrumb(user, group, proposal).add(speaker._2.value -> routes.SpeakerCtrl.detail(group._1, proposal._1, speaker._1))
+  def breadcrumb(user: User.Name, group: Group, proposal: Proposal, speaker: User): Breadcrumb =
+    listBreadcrumb(user, group, proposal).add(speaker.name.value -> routes.SpeakerCtrl.detail(group.slug, proposal.id, speaker.slug))
 
 }

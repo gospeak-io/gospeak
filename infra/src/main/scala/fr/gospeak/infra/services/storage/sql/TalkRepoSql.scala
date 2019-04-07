@@ -20,7 +20,7 @@ import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video, _}
 class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with TalkRepo {
   override def create(user: User.Id, data: Talk.Data, now: Instant): IO[Talk] =
     find(user, data.slug).flatMap {
-      case None => run(insert, Talk(Talk.Id.generate(), data.slug, data.title, data.duration, Talk.Status.Draft, data.description, NonEmptyList.one(user), data.slides, data.video, Info(user, now)))
+      case None => run(insert, Talk(data, Talk.Status.Draft, NonEmptyList.one(user), Info(user, now)))
       case _ => IO.raiseError(CustomException(s"You already have a talk with slug ${data.slug}"))
     }
 

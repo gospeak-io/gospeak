@@ -10,19 +10,19 @@ class EventRepoSqlSpec extends RepoSpec {
     it("should create and retrieve an event for a group") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
       eventRepo.list(group.id, page).unsafeRunSync().items shouldBe Seq()
-      eventRepo.find(group.id, eventData.slug).unsafeRunSync() shouldBe None
-      val event = eventRepo.create(group.id, eventData, user.id, now).unsafeRunSync()
+      eventRepo.find(group.id, eventData1.slug).unsafeRunSync() shouldBe None
+      val event = eventRepo.create(group.id, eventData1, user.id, now).unsafeRunSync()
       eventRepo.list(group.id, page).unsafeRunSync().items shouldBe Seq(event)
-      eventRepo.find(group.id, eventData.slug).unsafeRunSync() shouldBe Some(event)
+      eventRepo.find(group.id, eventData1.slug).unsafeRunSync() shouldBe Some(event)
     }
     it("should fail to create an event when the group does not exists") {
-      val user = userRepo.create(userSlug, firstName, lastName, email, avatar, now).unsafeRunSync()
-      an[Exception] should be thrownBy eventRepo.create(Group.Id.generate(), eventData, user.id, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now).unsafeRunSync()
+      an[Exception] should be thrownBy eventRepo.create(Group.Id.generate(), eventData1, user.id, now).unsafeRunSync()
     }
     it("should fail on duplicate slug for the same group") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
-      eventRepo.create(group.id, eventData, user.id, now).unsafeRunSync()
-      an[Exception] should be thrownBy eventRepo.create(group.id, eventData, user.id, now).unsafeRunSync()
+      eventRepo.create(group.id, eventData1, user.id, now).unsafeRunSync()
+      an[Exception] should be thrownBy eventRepo.create(group.id, eventData1, user.id, now).unsafeRunSync()
     }
     describe("Queries") {
       it("should build insert") {
@@ -31,7 +31,7 @@ class EventRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build update") {
-        val q = update(group.id, event.slug)(event.data, user.id, now)
+        val q = update(group.id, event.slug)(eventData1, user.id, now)
         q.sql shouldBe "UPDATE events SET cfp_id=?, slug=?, name=?, start=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
         check(q)
       }
