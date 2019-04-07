@@ -21,7 +21,7 @@ final case class Talk(id: Talk.Id,
 
 object Talk {
 
-  final class Id private(value: String) extends DataClass(value)
+  final class Id private(value: String) extends DataClass(value) with IId
 
   object Id extends UuidIdBuilder[Id]("Talk.Id", new Id(_))
 

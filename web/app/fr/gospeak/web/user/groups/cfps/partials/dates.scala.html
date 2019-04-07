@@ -1,0 +1,13 @@
+@import java.time.LocalDateTime
+@import fr.gospeak.core.domain.Cfp
+@import fr.gospeak.web.utils.Formats
+
+@(cfp: Cfp, now: LocalDateTime = LocalDateTime.now())
+@(cfp.start, cfp.end) match {
+    case (Some(start), Some(end)) => {From @Formats.date(start) to @Formats.date(end)}
+    case (Some(start), None) if start.isAfter(now) => {Starting @Formats.date(start)}
+    case (Some(start), None) => {Started @Formats.date(start)}
+    case (None, Some(end)) if end.isAfter(now) => {Closing @Formats.date(end)}
+    case (None, Some(end)) => {Closed @Formats.date(end)}
+    case (None, None) => {Always open}
+}

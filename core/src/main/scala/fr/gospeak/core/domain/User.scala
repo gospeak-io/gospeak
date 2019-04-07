@@ -18,7 +18,7 @@ final case class User(id: User.Id,
 
 object User {
 
-  final class Id private(value: String) extends DataClass(value)
+  final class Id private(value: String) extends DataClass(value) with IId
 
   object Id extends UuidIdBuilder[Id]("User.Id", new Id(_))
 

@@ -1,12 +1,12 @@
-package fr.gospeak.web.user.groups.settings
+package fr.gospeak.web.user.groups.cfps
 
 import fr.gospeak.core.domain.Cfp
 import fr.gospeak.web.utils.Mappings._
-import play.api.data.Form
 import play.api.data.Forms._
+import play.api.data._
 
-object SettingsForms {
-  val cfpCreate: Form[Cfp.Data] = Form(mapping(
+object CfpForms {
+  val create: Form[Cfp.Data] = Form(mapping(
     "slug" -> cfpSlug,
     "name" -> cfpName,
     "start" -> optional(localDateTime),

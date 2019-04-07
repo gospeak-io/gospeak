@@ -72,10 +72,26 @@ CREATE TABLE groups
   updated_by  CHAR(36)      NOT NULL REFERENCES users (id)
 );
 
+CREATE TABLE cfps
+(
+  id          CHAR(36)      NOT NULL PRIMARY KEY,
+  group_id    CHAR(36)      NOT NULL REFERENCES groups (id),
+  slug        VARCHAR(30)   NOT NULL UNIQUE,
+  name        VARCHAR(100)  NOT NULL,
+  start       TIMESTAMP,
+  "end"       TIMESTAMP,
+  description VARCHAR(2048) NOT NULL,
+  created     TIMESTAMP     NOT NULL,
+  created_by  CHAR(36)      NOT NULL REFERENCES users (id),
+  updated     TIMESTAMP     NOT NULL,
+  updated_by  CHAR(36)      NOT NULL REFERENCES users (id)
+);
+
 CREATE TABLE events
 (
-  group_id    CHAR(36)     NOT NULL REFERENCES groups (id),
   id          CHAR(36)     NOT NULL PRIMARY KEY,
+  group_id    CHAR(36)     NOT NULL REFERENCES groups (id),
+  cfp_id      CHAR(36) REFERENCES cfps (id),
   slug        VARCHAR(30)  NOT NULL,
   name        VARCHAR(100) NOT NULL,
   start       TIMESTAMP    NOT NULL,
@@ -87,19 +103,6 @@ CREATE TABLE events
   updated     TIMESTAMP    NOT NULL,
   updated_by  CHAR(36)     NOT NULL REFERENCES users (id),
   UNIQUE (group_id, slug)
-);
-
-CREATE TABLE cfps
-(
-  id          CHAR(36)      NOT NULL PRIMARY KEY,
-  slug        VARCHAR(30)   NOT NULL UNIQUE,
-  name        VARCHAR(100)  NOT NULL,
-  description VARCHAR(2048) NOT NULL,
-  group_id    CHAR(36)      NOT NULL UNIQUE REFERENCES groups (id),
-  created     TIMESTAMP     NOT NULL,
-  created_by  CHAR(36)      NOT NULL REFERENCES users (id),
-  updated     TIMESTAMP     NOT NULL,
-  updated_by  CHAR(36)      NOT NULL REFERENCES users (id)
 );
 
 CREATE TABLE proposals

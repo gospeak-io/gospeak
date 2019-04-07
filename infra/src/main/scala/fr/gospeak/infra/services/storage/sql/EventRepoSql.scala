@@ -14,7 +14,7 @@ import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page}
 
 class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with EventRepo {
   override def create(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event] =
-    run(EventTable.insert, Event(Event.Id.generate(), group, data.slug, data.name, data.start, None, data.venue, Seq(), Info(by, now)))
+    run(EventTable.insert, Event(group, data, Info(by, now)))
 
   override def update(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): IO[Done] = {
     if (data.slug != event) {

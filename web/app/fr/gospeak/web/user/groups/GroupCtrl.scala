@@ -72,6 +72,7 @@ class GroupCtrl(cc: ControllerComponents,
 object GroupCtrl {
   def groupNav(group: Group.Slug): Seq[NavLink] = Seq(
     NavLink("Events", events.routes.EventCtrl.list(group)),
+    NavLink("CFPs", cfps.routes.CfpCtrl.list(group)),
     NavLink("Proposals", proposals.routes.ProposalCtrl.list(group)),
     NavLink("Settings", settings.routes.SettingsCtrl.list(group)))
 

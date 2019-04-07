@@ -2,7 +2,7 @@ package fr.gospeak.core.domain
 
 import java.time.Instant
 
-import fr.gospeak.libs.scalautils.domain.{DataClass, EmailAddress, UuidIdBuilder}
+import fr.gospeak.libs.scalautils.domain.{DataClass, EmailAddress, IId, UuidIdBuilder}
 
 import scala.concurrent.duration._
 
@@ -14,7 +14,7 @@ sealed trait UserRequest {
 
 object UserRequest {
 
-  final class Id private(value: String) extends DataClass(value)
+  final class Id private(value: String) extends DataClass(value) with IId
 
   object Id extends UuidIdBuilder[Id]("UserRequest.Id", new Id(_))
 

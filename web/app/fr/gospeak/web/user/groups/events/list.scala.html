@@ -6,6 +6,7 @@
 @import fr.gospeak.web.partials.html.{pagination, search, securedContainer}
 @import fr.gospeak.web.user.groups.events.partials.html.item
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
+@import fr.gospeak.web.utils.Formats._
 
 @(group: Group, events: Page[Event], proposals: Seq[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer("Gospeak", h, Some(b))() {
@@ -13,7 +14,7 @@
         <span class="float-right">
             <a class="btn btn-primary" href="@EventCtrl.create(group.slug)">Create an event</a>
         </span>
-        <h1>@events.total.value events</h1>
+        <h1>@plural(events.total.value, "event")</h1>
     </div>
 
     <div class="float-right">@pagination(events, EventCtrl.list(group.slug, _))</div>

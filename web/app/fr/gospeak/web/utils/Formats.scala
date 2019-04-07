@@ -56,7 +56,9 @@ object Formats {
   }
 
   def plural(n: Long, word: String, plural: String = ""): String = {
-    if (n == 1) {
+    if (n == 0) {
+      s"no $word"
+    } else if (n == 1) {
       s"$n $word"
     } else if (plural.isEmpty) {
       s"$n ${word}s"

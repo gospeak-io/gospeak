@@ -28,7 +28,11 @@ abstract class DataClass(val value: String) {
   override def toString: String = value
 }
 
-abstract class UuidIdBuilder[A](clazz: String, build: String => A) {
+trait IId {
+  val value: String
+}
+
+abstract class UuidIdBuilder[A <: IId](clazz: String, build: String => A) {
   def generate(): A = build(UUID.randomUUID().toString)
 
   def from(in: String): Either[CustomException, A] = {

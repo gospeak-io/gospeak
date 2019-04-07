@@ -4,7 +4,7 @@ import org.scalatest.{FunSpec, Matchers}
 
 class DataClassSpec extends FunSpec with Matchers {
 
-  class Id(value: String) extends DataClass(value)
+  class Id(value: String) extends DataClass(value) with IId
 
   sealed trait Status extends Product with Serializable
 

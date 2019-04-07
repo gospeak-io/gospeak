@@ -84,6 +84,7 @@ object Mappings {
   val groupName: Mapping[Group.Name] = stringMapping(Group.Name, _.value)
   val eventSlug: Mapping[Event.Slug] = slugMapping(Event.Slug)
   val eventName: Mapping[Event.Name] = stringMapping(Event.Name, _.value)
+  val cfpId: Mapping[Cfp.Id] = idMapping(Cfp.Id)
   val cfpSlug: Mapping[Cfp.Slug] = slugMapping(Cfp.Slug)
   val cfpName: Mapping[Cfp.Name] = stringMapping(Cfp.Name, _.value)
   val talkSlug: Mapping[Talk.Slug] = slugMapping(Talk.Slug)
@@ -95,6 +96,9 @@ object Mappings {
 
     def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, errorMessage: String = formatError): Mapping[A] =
       WrappedMapping(text.verifying(format(from, errorMessage)), (s: String) => from(s).right.get, to)
+
+    def idMapping[A <: IId](builder: UuidIdBuilder[A]): Mapping[A] =
+      WrappedMapping(text.verifying(Constraints.nonEmpty()), (s: String) => builder.from(s).right.get, _.value)
 
     def slugMapping[A <: ISlug](builder: SlugBuilder[A]): Mapping[A] =
       WrappedMapping(text.verifying(Constraints.nonEmpty(), Constraints.pattern(SlugBuilder.pattern), Constraints.maxLength(SlugBuilder.maxLength)), (s: String) => builder.from(s).right.get, _.value)

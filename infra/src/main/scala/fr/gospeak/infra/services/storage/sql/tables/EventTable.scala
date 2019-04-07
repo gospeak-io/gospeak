@@ -14,19 +14,19 @@ import fr.gospeak.libs.scalautils.domain.Page
 object EventTable {
   private val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = "events"
-  private val fields = Seq("id", "group_id", "slug", "name", "start", "description", "venue", "talks", "created", "created_by", "updated", "updated_by")
+  private val fields = Seq("id", "group_id", "cfp_id", "slug", "name", "start", "description", "venue", "talks", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "slug", "name", "description")
   private val defaultSort = Page.OrderBy("-start")
 
   private def values(e: Event): Fragment =
-    fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.start}, ${e.description}, ${e.venue}, ${e.talks}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.group}, ${e.cfp}, ${e.slug}, ${e.name}, ${e.start}, ${e.description}, ${e.venue}, ${e.talks}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   def insert(elt: Event): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
   def update(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): doobie.Update0 = {
-    val fields = fr0"slug=${data.slug}, name=${data.name}, start=${data.start}, updated=$now, updated_by=$by"
+    val fields = fr0"cfp_id=${data.cfp}, slug=${data.slug}, name=${data.name}, start=${data.start}, updated=$now, updated_by=$by"
     buildUpdate(tableFr, fields, where(group, event)).update
   }
 

@@ -7,6 +7,7 @@ import play.api.data._
 
 object EventForms {
   val create: Form[Event.Data] = Form(mapping(
+    "cfp" -> optional(cfpId),
     "slug" -> eventSlug,
     "name" -> eventName,
     "start" -> localDateTime,

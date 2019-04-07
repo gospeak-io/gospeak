@@ -1,0 +1,20 @@
+@import java.time.LocalDateTime
+@import fr.gospeak.core.domain.{Cfp, Group, Proposal, User}
+@import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.partials.display.html._
+@import fr.gospeak.web.user.groups.cfps.routes.CfpCtrl
+@import fr.gospeak.web.user.groups.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.user.groups.proposals.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.utils.Formats
+
+@(group: Group, cfp: Cfp)
+<div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center @if(!cfp.isActive(LocalDateTime.now())) {inactive}">
+    <div>
+        <h5 class="mb-1">
+            <a href="@CfpCtrl.detail(group.slug, cfp.slug)">@cfp.name.value</a>
+            -
+            <small>@dates(cfp)</small>
+        </h5>
+    </div>
+    <span class="badge badge-primary badge-pill">??? proposals</span>
+</div>

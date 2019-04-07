@@ -1,5 +1,13 @@
 /* Bootstrap overrides/extensions */
 
+.text-capitalize {
+    text-transform: none !important;
+}
+
+.text-capitalize::first-letter {
+    text-transform: uppercase;
+}
+
 .breadcrumb-container {
     background-color: #e9ecef;
 }
@@ -11,6 +19,10 @@
 
 .list-group-item ul, .list-group-item ol {
     margin-bottom: 0;
+}
+
+.list-group-item.inactive a {
+    color: #6c757d;
 }
 
 .form-row.is-invalid ~ .invalid-feedback, .is-invalid .invalid-feedback {

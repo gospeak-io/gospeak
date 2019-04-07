@@ -12,7 +12,10 @@ abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv
     Redirect(user.talks.routes.TalkCtrl.list()).flashing("warning" -> s"Unable to find talk with slug '${talk.value}'")
 
   protected def cfpNotFound(talk: Talk.Slug, cfp: Cfp.Slug): Result =
-    Redirect(user.talks.cfps.routes.CfpCtrl.list(talk)).flashing("warning" -> s"Unable to find cfp with slug '${cfp.value}'")
+    Redirect(user.talks.cfps.routes.CfpCtrl.list(talk)).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")
+
+  protected def cfpNotFound(group: Group.Slug, cfp: Cfp.Slug): Result =
+    Redirect(user.groups.cfps.routes.CfpCtrl.list(group)).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")
 
   protected def proposalNotFound(talk: Talk.Slug, proposal: Proposal.Id): Result =
     Redirect(user.talks.proposals.routes.ProposalCtrl.list(talk)).flashing("warning" -> s"Unable to find proposal with id '${proposal.value}'")

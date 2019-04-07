@@ -1,14 +1,16 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 
 @(page: Page[_], action: Call)
-<form method="@action.method" action="@action" class="form-inline">
-    @page.params.orderBy.filter(_.nonEmpty).map { p => <input type="hidden" name="@p.key" value="@p.value"> }
-    @Some(page.params.pageSize).filter(_.nonEmpty).map { p => <input type="hidden" name="@p.key" value="@p.value"> }
-    <label class="sr-only" for="@Page.Search.key">Search</label>
-    <div class="input-group">
-        <input type="text" class="form-control" id="@Page.Search.key" name="@Page.Search.key" value="@page.params.search.map(_.value)" placeholder="Search...">
-        <div class="input-group-append">
-            <button type="submit" class="btn btn-secondary">Search</button>
+@if(page.hasManyPages) {
+    <form method="@action.method" action="@action" class="form-inline">
+        @page.params.orderBy.filter(_.nonEmpty).map { p => <input type="hidden" name="@p.key" value="@p.value"> }
+        @Some(page.params.pageSize).filter(_.nonEmpty).map { p => <input type="hidden" name="@p.key" value="@p.value"> }
+        <label class="sr-only" for="@Page.Search.key">Search</label>
+        <div class="input-group">
+            <input type="text" class="form-control" id="@Page.Search.key" name="@Page.Search.key" value="@page.params.search.map(_.value)" placeholder="Search...">
+            <div class="input-group-append">
+                <button type="submit" class="btn btn-secondary">Search</button>
+            </div>
         </div>
-    </div>
-</form>
+    </form>
+}
