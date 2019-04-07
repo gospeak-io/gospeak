@@ -58,9 +58,10 @@ class EventCtrl(cc: ControllerComponents,
   private def createForm(group: Group.Slug, form: Form[Event.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      cfps <- OptionT.liftF(cfpRepo.listAll(groupElt.id))
       h = header(group)
       b = listBreadcrumb(req.identity.user.name, group -> groupElt.name).add("New" -> routes.EventCtrl.create(group))
-    } yield Ok(html.create(groupElt, form)(h, b))).value.map(_.getOrElse(groupNotFound(group)))
+    } yield Ok(html.create(groupElt, form, cfps)(h, b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
   def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -101,10 +102,11 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
+      cfps <- OptionT.liftF(cfpRepo.listAll(groupElt.id))
       h = header(group)
       b = breadcrumb(req.identity.user.name, group -> groupElt.name, event -> eventElt.name).add("Edit" -> routes.EventCtrl.edit(group, event))
       filledForm = if (form.hasErrors) form else form.fill(eventElt.data)
-    } yield Ok(html.edit(groupElt, eventElt, filledForm)(h, b))).value.map(_.getOrElse(eventNotFound(group, event)))
+    } yield Ok(html.edit(groupElt, eventElt, filledForm, cfps)(h, b))).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
   def addTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>

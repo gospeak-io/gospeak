@@ -64,11 +64,6 @@ class CfpRepoSqlSpec extends RepoSpec {
         q.sql shouldBe "SELECT c.id, c.group_id, c.slug, c.name, c.start, c.end, c.description, c.created, c.created_by, c.updated, c.updated_by FROM cfps c INNER JOIN events e ON e.cfp_id=c.id WHERE e.id=?"
         check(q)
       }
-      it("should build selectOne for group id") {
-        val q = selectOne(group.id)
-        q.sql shouldBe "SELECT id, group_id, slug, name, start, end, description, created, created_by, updated, updated_by FROM cfps WHERE group_id=?"
-        check(q)
-      }
       it("should build selectPage for a group") {
         val (s, c) = selectPage(group.id, params)
         s.sql shouldBe "SELECT id, group_id, slug, name, start, end, description, created, created_by, updated, updated_by FROM cfps WHERE group_id=? ORDER BY name OFFSET 0 LIMIT 20"
@@ -82,6 +77,11 @@ class CfpRepoSqlSpec extends RepoSpec {
         c.sql shouldBe "SELECT count(*) FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id = ?) "
         check(s)
         check(c)
+      }
+      it("should build selectAll for group id") {
+        val q = selectAll(group.id)
+        q.sql shouldBe "SELECT id, group_id, slug, name, start, end, description, created, created_by, updated, updated_by FROM cfps WHERE group_id=?"
+        check(q)
       }
     }
   }

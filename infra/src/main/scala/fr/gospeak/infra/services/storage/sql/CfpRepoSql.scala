@@ -38,11 +38,11 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
 
   override def find(id: Event.Id): IO[Option[Cfp]] = run(selectOne(id).option)
 
-  override def find(id: Group.Id): IO[Option[Cfp]] = run(selectOne(id).option)
-
   override def list(group: Group.Id, params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(selectPage(group, _), params))
 
   override def listAvailable(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(selectPage(talk, _), params))
+
+  override def listAll(group: Group.Id): IO[Seq[Cfp]] = run(selectAll(group).to[List])
 }
 
 object CfpRepoSql {
@@ -79,9 +79,6 @@ object CfpRepoSql {
     buildSelect(selectedTables, selectedFields, fr0"WHERE e.id=$id").query[Cfp]
   }
 
-  private[sql] def selectOne(id: Group.Id): doobie.Query0[Cfp] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE group_id=$id").query[Cfp]
-
   private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[Cfp], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Cfp], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
@@ -93,6 +90,9 @@ object CfpRepoSql {
     val page = paginate(params, searchFields, defaultSort, Some(where))
     (buildSelect(tableFr, fieldsFr, page.all).query[Cfp], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
+
+  private[sql] def selectAll(group: Group.Id): doobie.Query0[Cfp] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE group_id=$group").query[Cfp]
 
   private def where(group: Group.Id, slug: Cfp.Slug): Fragment =
     fr0"WHERE group_id=$group AND slug=$slug"

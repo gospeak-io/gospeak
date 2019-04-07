@@ -1,7 +1,7 @@
-@import fr.gospeak.core.domain.Event
+@import fr.gospeak.core.domain.{Cfp, Event}
 @import fr.gospeak.web.partials.form.html._
 
-@(form: Form[Event.Data])(implicit messages: Messages)
+@(form: Form[Event.Data], cfps: Seq[Cfp])(implicit messages: Messages)
 @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "Event name", "autofocus" -> "true") ++ args)
 }
@@ -13,4 +13,7 @@
 }
 @fieldHorizontal(form("venue"), Seq("label" -> "Venue")) { (field, args) =>
     @inputGMapPlace(field, args)
+}
+@fieldHorizontal(form("cfp"), Seq("label" -> "CFP")) { (field, args) =>
+    @inputSelect(field, cfps.map(c => c.id.value -> c.name.value), args ++ Seq("emptyOption" -> "-- Attach a CFP to this event", "optional" -> ""))
 }

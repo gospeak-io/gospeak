@@ -26,8 +26,8 @@ object Utils {
   def attributes(args: Args, ignoring: Seq[String]): Seq[Html] =
     args.collect { case (key, value) if !ignoring.contains(key) => Html(s""" $key="$value"""") }
 
-  def isRequired(field: Field): Option[Constraint] =
-    field.constraints.find { case (k, _) => k == Mappings.requiredConstraint }
+  def isRequired(field: Field, args: Args): Option[Constraint] =
+    field.constraints.find { case (k, _) => k == Mappings.requiredConstraint }.filter(_ => !args.exists(_._1 == "optional"))
 
   def hasPattern(field: Field): Option[Constraint] =
     field.constraints.find { case (k, _) => k == Mappings.patternConstraint }

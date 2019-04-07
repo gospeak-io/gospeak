@@ -1,5 +1,5 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Event, Group}
+@import fr.gospeak.core.domain.{Event, Group, Cfp}
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.form.html._
@@ -7,14 +7,14 @@
 @import fr.gospeak.web.user.groups.events.partials.html.fields
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
 
-@(group: Group, form: Form[Event.Data])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, form: Form[Event.Data], cfps: Seq[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer("Gospeak", h, Some(b))() {
     <div class="page-header">
         <h1>Create an event</h1>
     </div>
 
     @formElt(form, EventCtrl.doCreate(group.slug)) {
-        @fields(form)
+        @fields(form, cfps)
         @actionsHorizontal() {
             @btnCancel(EventCtrl.list(group.slug))
             @btnSubmit("Create")

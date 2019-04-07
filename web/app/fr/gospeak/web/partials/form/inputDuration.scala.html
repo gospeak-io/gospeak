@@ -10,7 +10,7 @@
             name="@Utils.getArg(args, "name", field.name)"
             value="@Utils.getArg(args, "value", field.value.getOrElse(""))"
             @Utils.getArg(args, "placeholder").map { v => placeholder="@v" }
-            @Utils.isRequired(field).map { _ => required="" }
+            @Utils.isRequired(field, args).map { _ => required="" }
             @Utils.pattern(field).map { p => pattern="@p" }
             @Utils.getArg(args, "autofocus").map { _ => autofocus="" }
             @Utils.getArg(args, "help").map { v => aria-describedby="@v" }

@@ -19,9 +19,9 @@ trait CfpRepo {
 
   def find(id: Event.Id): IO[Option[Cfp]]
 
-  def find(id: Group.Id): IO[Option[Cfp]] // TODO remove, and use list(group: Group.Id, params: Page.Params) instead
-
   def list(group: Group.Id, params: Page.Params): IO[Page[Cfp]]
+
+  def listAll(group: Group.Id): IO[Seq[Cfp]]
 
   def listAvailable(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]]
 }
