@@ -9,7 +9,7 @@ import fr.gospeak.libs.scalautils.domain.{Done, Page}
 trait CfpRepo {
   def create(group: Group.Id, data: Cfp.Data, by: User.Id, now: Instant): IO[Cfp]
 
-  def update(group: Group.Id, cfp: Cfp.Slug)(data: Cfp.Data, by: User.Id, now: Instant): IO[Done]
+  def edit(group: Group.Id, cfp: Cfp.Slug)(data: Cfp.Data, by: User.Id, now: Instant): IO[Done]
 
   def find(group: Group.Id, slug: Cfp.Slug): IO[Option[Cfp]]
 
@@ -21,5 +21,5 @@ trait CfpRepo {
 
   def list(group: Group.Id, params: Page.Params): IO[Page[Cfp]]
 
-  def listAvailables(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]]
+  def listAvailable(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]]
 }

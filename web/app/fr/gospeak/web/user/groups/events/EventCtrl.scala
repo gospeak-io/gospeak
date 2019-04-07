@@ -91,7 +91,7 @@ class EventCtrl(cc: ControllerComponents,
           case Some(duplicate) if data.slug != event =>
             editForm(group, event, EventForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by event: ${duplicate.name.value}"))
           case _ =>
-            eventRepo.update(groupElt.id, event)(data, req.identity.user.id, now).map { _ => Redirect(routes.EventCtrl.detail(group, data.slug)) }
+            eventRepo.edit(groupElt.id, event)(data, req.identity.user.id, now).map { _ => Redirect(routes.EventCtrl.detail(group, data.slug)) }
         })
       } yield res).value.map(_.getOrElse(groupNotFound(group)))
     ).unsafeToFuture()
@@ -112,8 +112,8 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
-      _ <- OptionT.liftF(eventRepo.updateTalks(groupElt.id, event)(eventElt.add(talk).talks, req.identity.user.id, now))
-      _ <- OptionT.liftF(proposalRepo.updateStatus(talk)(Proposal.Status.Accepted, Some(eventElt.id)))
+      _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.add(talk).talks, req.identity.user.id, now))
+      _ <- OptionT.liftF(proposalRepo.editStatus(talk)(Proposal.Status.Accepted, Some(eventElt.id)))
     } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
@@ -122,8 +122,8 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
-      _ <- OptionT.liftF(eventRepo.updateTalks(groupElt.id, event)(eventElt.remove(talk).talks, req.identity.user.id, now))
-      _ <- OptionT.liftF(proposalRepo.updateStatus(talk)(Proposal.Status.Pending, None))
+      _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.remove(talk).talks, req.identity.user.id, now))
+      _ <- OptionT.liftF(proposalRepo.editStatus(talk)(Proposal.Status.Pending, None))
     } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
@@ -132,7 +132,7 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
-      _ <- OptionT.liftF(eventRepo.updateTalks(groupElt.id, event)(eventElt.move(talk, up).talks, req.identity.user.id, now))
+      _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.move(talk, up).talks, req.identity.user.id, now))
     } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 }

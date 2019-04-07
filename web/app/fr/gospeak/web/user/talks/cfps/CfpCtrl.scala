@@ -29,7 +29,7 @@ class CfpCtrl(cc: ControllerComponents,
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
-      cfps <- OptionT.liftF(cfpRepo.listAvailables(talkElt.id, params))
+      cfps <- OptionT.liftF(cfpRepo.listAvailable(talkElt.id, params))
       h = TalkCtrl.header(talkElt.slug)
       b = listBreadcrumb(req.identity.user.name, talk -> talkElt.title)
     } yield Ok(html.list(talkElt, cfps)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()

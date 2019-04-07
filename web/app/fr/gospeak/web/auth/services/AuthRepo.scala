@@ -23,17 +23,17 @@ class AuthRepo(userRepo: UserRepo) extends DelegableAuthInfoDAO[PasswordInfo] wi
     userRepo.createCredentials(toDomain(loginInfo, authInfo)).map(toSilhouette).unsafeToFuture()
 
   override def update(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] =
-    userRepo.updateCredentials(toDomain(loginInfo))(toDomain(authInfo)).map(_ => authInfo).unsafeToFuture()
+    userRepo.editCredentials(toDomain(loginInfo))(toDomain(authInfo)).map(_ => authInfo).unsafeToFuture()
 
   // add or update
   override def save(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] =
     userRepo.findCredentials(toDomain(loginInfo)).flatMap { opt =>
-      opt.map(_ => userRepo.updateCredentials(toDomain(loginInfo))(toDomain(authInfo)))
+      opt.map(_ => userRepo.editCredentials(toDomain(loginInfo))(toDomain(authInfo)))
         .getOrElse(userRepo.createCredentials(toDomain(loginInfo, authInfo)).map(_ => Done))
     }.map(_ => authInfo).unsafeToFuture()
 
   override def remove(loginInfo: LoginInfo): Future[Unit] =
-    userRepo.deleteCredentials(toDomain(loginInfo)).map(_ => ()).unsafeToFuture()
+    userRepo.removeCredentials(toDomain(loginInfo)).map(_ => ()).unsafeToFuture()
 
   private def toDomain(loginInfo: LoginInfo): User.Login = User.Login(ProviderId(loginInfo.providerID), ProviderKey(loginInfo.providerKey))
 

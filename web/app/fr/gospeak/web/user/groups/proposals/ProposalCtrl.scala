@@ -56,7 +56,7 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(slides) => proposalRepo.updateSlides(proposal)(slides, now, req.identity.user.id).map(_ => next)
+        case Right(slides) => proposalRepo.editSlides(proposal)(slides, now, req.identity.user.id).map(_ => next)
       }
     ).unsafeToFuture()
   }
@@ -68,7 +68,7 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(video) => proposalRepo.updateVideo(proposal)(video, now, req.identity.user.id).map(_ => next)
+        case Right(video) => proposalRepo.editVideo(proposal)(video, now, req.identity.user.id).map(_ => next)
       }
     ).unsafeToFuture()
   }

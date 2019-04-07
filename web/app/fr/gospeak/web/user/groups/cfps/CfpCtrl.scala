@@ -87,7 +87,7 @@ class CfpCtrl(cc: ControllerComponents,
           case Some(duplicate) if data.slug != cfp =>
             editForm(group, cfp, CfpForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by cfp: ${duplicate.name.value}"))
           case _ =>
-            cfpRepo.update(groupElt.id, cfp)(data, req.identity.user.id, now).map { _ => Redirect(routes.CfpCtrl.detail(group, data.slug)) }
+            cfpRepo.edit(groupElt.id, cfp)(data, req.identity.user.id, now).map { _ => Redirect(routes.CfpCtrl.detail(group, data.slug)) }
         })
       } yield res).value.map(_.getOrElse(groupNotFound(group)))
     ).unsafeToFuture()

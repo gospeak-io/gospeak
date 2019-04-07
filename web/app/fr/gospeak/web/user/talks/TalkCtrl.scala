@@ -75,7 +75,7 @@ class TalkCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(slides) => talkRepo.updateSlides(req.identity.user.id, talk)(slides, now).map(_ => next)
+        case Right(slides) => talkRepo.editSlides(req.identity.user.id, talk)(slides, now).map(_ => next)
       }
     ).unsafeToFuture()
   }
@@ -87,7 +87,7 @@ class TalkCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(video) => talkRepo.updateVideo(req.identity.user.id, talk)(video, now).map(_ => next)
+        case Right(video) => talkRepo.editVideo(req.identity.user.id, talk)(video, now).map(_ => next)
       }
     ).unsafeToFuture()
   }
@@ -104,7 +104,7 @@ class TalkCtrl(cc: ControllerComponents,
         case Some(duplicate) if data.slug != talk =>
           editForm(talk, TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
         case _ =>
-          talkRepo.update(req.identity.user.id, talk)(data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+          talkRepo.edit(req.identity.user.id, talk)(data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
     ).unsafeToFuture()
   }
@@ -122,7 +122,7 @@ class TalkCtrl(cc: ControllerComponents,
   }
 
   def changeStatus(talk: Talk.Slug, status: Talk.Status): Action[AnyContent] = SecuredAction.async { implicit req =>
-    talkRepo.updateStatus(req.identity.user.id, talk)(status)
+    talkRepo.editStatus(req.identity.user.id, talk)(status)
       .map(_ => Redirect(routes.TalkCtrl.detail(talk)))
       .unsafeToFuture()
   }

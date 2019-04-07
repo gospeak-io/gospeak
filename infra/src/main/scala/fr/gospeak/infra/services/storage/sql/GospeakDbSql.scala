@@ -9,7 +9,6 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.GospeakDb
 import fr.gospeak.infra.services.GravatarSrv
-import fr.gospeak.infra.services.storage.sql.tables._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.infra.utils.{DoobieUtils, FlywayUtils}
@@ -111,14 +110,14 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       (g, c, e, t, p)
     }
     for {
-      _ <- run(Queries.insertMany(UserTable.insert)(users))
-      _ <- run(UserTable.insertCredentials(User.Credentials("credentials", "demo@mail.com", "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
-      _ <- run(UserTable.insertLoginRef(User.LoginRef("credentials", "demo@mail.com", userDemo.id)))
-      _ <- run(Queries.insertMany(GroupTable.insert)(groups ++ generated.map(_._1)))
-      _ <- run(Queries.insertMany(CfpTable.insert)(cfps ++ generated.map(_._2)))
-      _ <- run(Queries.insertMany(TalkTable.insert)(talks ++ generated.map(_._4)))
-      _ <- run(Queries.insertMany(ProposalTable.insert)(proposals ++ generated.map(_._5)))
-      _ <- run(Queries.insertMany(EventTable.insert)(events ++ generated.map(_._3)))
+      _ <- run(Queries.insertMany(UserRepoSql.insert)(users))
+      _ <- run(UserRepoSql.insertCredentials(User.Credentials("credentials", "demo@mail.com", "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
+      _ <- run(UserRepoSql.insertLoginRef(User.LoginRef("credentials", "demo@mail.com", userDemo.id)))
+      _ <- run(Queries.insertMany(GroupRepoSql.insert)(groups ++ generated.map(_._1)))
+      _ <- run(Queries.insertMany(CfpRepoSql.insert)(cfps ++ generated.map(_._2)))
+      _ <- run(Queries.insertMany(TalkRepoSql.insert)(talks ++ generated.map(_._4)))
+      _ <- run(Queries.insertMany(ProposalRepoSql.insert)(proposals ++ generated.map(_._5)))
+      _ <- run(Queries.insertMany(EventRepoSql.insert)(events ++ generated.map(_._3)))
     } yield Done
   }
 

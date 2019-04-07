@@ -40,7 +40,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
         val p = Page.Params(Page.No(3), Page.Size(20), Some(Page.Search("q")), Some(Page.OrderBy("name")))
         it("should build pagination sql") {
           paginate(p, searchFields, defaultSort).all.toString() shouldBe Paginate(
-            where = fr0"WHERE name LIKE '%?%' OR description LIKE '%?%' ",
+            where = fr0"WHERE name LIKE ? OR description LIKE ? ",
             orderBy = fr0"ORDER BY name ",
             limit = fr0"OFFSET 40 LIMIT 20").all.toString()
         }
@@ -52,7 +52,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
         }
         it("should include default order when not present") {
           paginate(p.copy(orderBy = None), searchFields, defaultSort).all.toString() shouldBe Paginate(
-            where = fr0"WHERE name LIKE '%?%' OR description LIKE '%?%' ",
+            where = fr0"WHERE name LIKE ? OR description LIKE ? ",
             orderBy = fr0"ORDER BY id ",
             limit = fr0"OFFSET 40 LIMIT 20").all.toString()
         }
@@ -64,7 +64,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
         }
         it("should include where clause") {
           paginate(p, searchFields, defaultSort, whereOpt).all.toString() shouldBe Paginate(
-            where = fr0"WHERE id=? AND (name LIKE '%?%' OR description LIKE '%?%' ) ",
+            where = fr0"WHERE id=? AND (name LIKE ? OR description LIKE ? ) ",
             orderBy = fr0"ORDER BY name ",
             limit = fr0"OFFSET 40 LIMIT 20").all.toString()
         }

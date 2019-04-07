@@ -49,7 +49,7 @@ class AuthSrv(authRepo: AuthRepo,
       _ <- slugOpt.forall(s => emailOpt.exists(_.id == s.id)).toIO(DuplicateSlugException(data.slug)) // fail if slug exists for a different user from email
       avatar = gravatarSrv.getAvatar(data.email)
       user <- emailOpt.map { user =>
-        userRepo.update(user.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), now)
+        userRepo.edit(user.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), now)
       }.getOrElse {
         userRepo.create(data.slug, data.firstName, data.lastName, data.email, avatar, now)
       }

@@ -1,7 +1,9 @@
 package fr.gospeak.infra.services.storage.sql
 
-import fr.gospeak.core.domain.{Cfp, Talk}
-import fr.gospeak.infra.testingutils.RepoSpec
+import cats.data.NonEmptyList
+import fr.gospeak.core.domain.{Cfp, Proposal, Talk}
+import fr.gospeak.infra.services.storage.sql.ProposalRepoSql._
+import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class ProposalRepoSqlSpec extends RepoSpec {
   describe("ProposalRepoSql") {
@@ -29,6 +31,67 @@ class ProposalRepoSqlSpec extends RepoSpec {
       val (user, _, cfp, talk) = createUserGroupCfpAndTalk().unsafeRunSync()
       proposalRepo.create(talk.id, cfp.id, proposalData, speakers, user.id, now).unsafeRunSync()
       an[Exception] should be thrownBy proposalRepo.create(talk.id, cfp.id, proposalData, speakers, user.id, now).unsafeRunSync()
+    }
+    describe("Queries") {
+      it("should build insert") {
+        val q = insert(proposal)
+        q.sql shouldBe "INSERT INTO proposals (id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        check(q)
+      }
+      it("should build updateStatus") {
+        val q = updateStatus(proposal.id)(proposal.status, None)
+        q.sql shouldBe "UPDATE proposals SET status=?, event_id=? WHERE id=?"
+        check(q)
+      }
+      it("should build updateSlides") {
+        val q = updateSlides(proposal.id)(slides, now, user.id)
+        q.sql shouldBe "UPDATE proposals SET slides=?, updated=?, updated_by=? WHERE id=?"
+        check(q)
+      }
+      it("should build updateVideo") {
+        val q = updateVideo(proposal.id)(video, now, user.id)
+        q.sql shouldBe "UPDATE proposals SET video=?, updated=?, updated_by=? WHERE id=?"
+        check(q)
+      }
+      it("should build selectOne for proposal id") {
+        val q = selectOne(proposal.id)
+        q.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE id=?"
+        check(q)
+      }
+      it("should build selectOne for talk and cfp id") {
+        val q = selectOne(talk.id, cfp.id)
+        q.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE talk_id=? AND cfp_id=?"
+        check(q)
+      }
+      it("should build selectPage for a talk") {
+        val (s, c) = selectPage(talk.id, params)
+        s.sql shouldBe
+          "SELECT c.id, c.group_id, c.slug, c.name, c.start, c.end, c.description, c.created, c.created_by, c.updated, c.updated_by, " +
+            "p.id, p.talk_id, p.cfp_id, p.event_id, p.title, p.duration, p.status, p.description, p.speakers, p.slides, p.video, p.created, p.created_by, p.updated, p.updated_by " +
+            "FROM cfps c INNER JOIN proposals p ON p.cfp_id=c.id WHERE p.talk_id=? ORDER BY p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM cfps c INNER JOIN proposals p ON p.cfp_id=c.id WHERE p.talk_id=? "
+        check(s)
+        check(c)
+      }
+      it("should build selectPage for a cfp") {
+        val (s, c) = selectPage(cfp.id, params)
+        s.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE cfp_id=? ORDER BY created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM proposals WHERE cfp_id=? "
+        check(s)
+        check(c)
+      }
+      it("should build selectPage for a cfp and status") {
+        val (s, c) = selectPage(cfp.id, Proposal.Status.Pending, params)
+        s.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE cfp_id=? AND status=? ORDER BY created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM proposals WHERE cfp_id=? AND status=? "
+        check(s)
+        check(c)
+      }
+      it("should build selectAll") {
+        val q = selectAll(NonEmptyList.of(proposal.id))
+        q.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE id IN (?) "
+        check(q)
+      }
     }
   }
 }

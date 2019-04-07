@@ -9,15 +9,15 @@ import fr.gospeak.libs.scalautils.domain.{Avatar, Done, EmailAddress}
 trait UserRepo {
   def create(slug: User.Slug, firstName: String, lastName: String, email: EmailAddress, avatar: Avatar, now: Instant): IO[User]
 
-  def update(user: User, now: Instant): IO[User]
+  def edit(user: User, now: Instant): IO[User]
 
   def createLoginRef(login: User.Login, user: User.Id): IO[Done]
 
   def createCredentials(credentials: User.Credentials): IO[User.Credentials]
 
-  def updateCredentials(login: User.Login)(pass: User.Password): IO[Done]
+  def editCredentials(login: User.Login)(pass: User.Password): IO[Done]
 
-  def deleteCredentials(login: User.Login): IO[Done]
+  def removeCredentials(login: User.Login): IO[Done]
 
   def findCredentials(login: User.Login): IO[Option[User.Credentials]]
 

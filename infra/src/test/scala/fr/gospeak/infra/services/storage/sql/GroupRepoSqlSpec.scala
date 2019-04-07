@@ -1,6 +1,7 @@
 package fr.gospeak.infra.services.storage.sql
 
-import fr.gospeak.infra.testingutils.RepoSpec
+import fr.gospeak.infra.services.storage.sql.GroupRepoSql._
+import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class GroupRepoSqlSpec extends RepoSpec {
   describe("GroupRepoSql") {
@@ -23,6 +24,25 @@ class GroupRepoSqlSpec extends RepoSpec {
       val user = userRepo.create(userSlug, firstName, lastName, email, avatar, now).unsafeRunSync()
       groupRepo.create(groupData, user.id, now).unsafeRunSync()
       an[Exception] should be thrownBy groupRepo.create(groupData, user.id, now).unsafeRunSync()
+    }
+    describe("Queries") {
+      it("should build insert") {
+        val q = insert(group)
+        q.sql shouldBe "INSERT INTO groups (id, slug, name, description, owners, created, created_by, updated, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        check(q)
+      }
+      it("should build selectOne") {
+        val q = selectOne(user.id, group.slug)
+        q.sql shouldBe "SELECT id, slug, name, description, owners, created, created_by, updated, updated_by FROM groups WHERE owners LIKE ? AND slug=?"
+        check(q)
+      }
+      it("should build selectPage") {
+        val (s, c) = selectPage(user.id, params)
+        s.sql shouldBe "SELECT id, slug, name, description, owners, created, created_by, updated, updated_by FROM groups WHERE owners LIKE ? ORDER BY name OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM groups WHERE owners LIKE ? "
+        check(s)
+        check(c)
+      }
     }
   }
 }

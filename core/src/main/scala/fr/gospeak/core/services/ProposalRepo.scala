@@ -10,11 +10,11 @@ import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Video}
 trait ProposalRepo {
   def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal]
 
-  def updateStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): IO[Done]
+  def editStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): IO[Done]
 
-  def updateSlides(id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): IO[Done]
+  def editSlides(id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): IO[Done]
 
-  def updateVideo(id: Proposal.Id)(video: Video, now: Instant, user: User.Id): IO[Done]
+  def editVideo(id: Proposal.Id)(video: Video, now: Instant, user: User.Id): IO[Done]
 
   def find(id: Proposal.Id): IO[Option[Proposal]]
 
