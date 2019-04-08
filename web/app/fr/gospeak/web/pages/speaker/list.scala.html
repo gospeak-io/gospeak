@@ -1,0 +1,32 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.Talk
+@import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.partials.html.securedContainer
+@import fr.gospeak.web.pages.speaker.partials.html.item
+@import fr.gospeak.web.pages.speaker.routes.TalkCtrl
+@import fr.gospeak.web.utils.Formats
+
+@(talks: Page[Talk])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer("Gospeak", h, Some(b))() {
+    @if(talks.isEmpty) {
+        <div class="jumbotron">
+            <h1>You have no talk <i class="far fa-sad-tear"></i></h1>
+            <p class="lead">Create a talk and propose it to meetups and conferences!</p>
+            <hr class="my-4">
+            <p>Create your talks, find groups to submit them, allow organizers to contact you to speak, show them publicly</p>
+            <p class="text-center">
+                <a href="@TalkCtrl.create()" class="btn btn-lg btn-success">Create your first talk</a>
+            </p>
+        </div>
+    } else {
+        <div>
+            <div class="float-right">
+                <a class="btn btn-primary" href="@TalkCtrl.create()">Create talk</a>
+            </div>
+            <h1 class="text-capitalize">@Formats.plural(talks.total.value, "talk")</h1>
+        </div>
+        @Formats.paginated[Talk](talks, TalkCtrl.list, item(_))
+    }
+}()

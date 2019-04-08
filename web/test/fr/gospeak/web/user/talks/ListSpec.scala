@@ -1,4 +1,4 @@
-package fr.gospeak.web.user.talks
+package fr.gospeak.web.pages.speaker
 
 import fr.gospeak.core.domain._
 import fr.gospeak.core.testingutils.Generators._

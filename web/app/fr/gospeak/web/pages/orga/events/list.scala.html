@@ -1,0 +1,20 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Event, Group, Proposal, User}
+@import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.partials.html.securedContainer
+@import fr.gospeak.web.pages.orga.events.partials.html.item
+@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
+@import fr.gospeak.web.utils.Formats
+
+@(group: Group, events: Page[Event], proposals: Seq[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer("Gospeak", h, Some(b))() {
+    <div>
+        <div class="float-right">
+            <a class="btn btn-primary" href="@EventCtrl.create(group.slug)">Create an event</a>
+        </div>
+        <h1 class="text-capitalize">@Formats.plural(events.total.value, "event")</h1>
+    </div>
+    @Formats.paginated[Event](events, EventCtrl.list(group.slug, _), item(group, _, proposals, speakers))
+}()

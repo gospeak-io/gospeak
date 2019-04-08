@@ -1,4 +1,4 @@
-package fr.gospeak.web.user.talks
+package fr.gospeak.web.pages.speaker
 
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.testingutils.CtrlSpec

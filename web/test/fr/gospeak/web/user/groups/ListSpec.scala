@@ -1,4 +1,4 @@
-package fr.gospeak.web.user.groups
+package fr.gospeak.web.pages.orga
 
 import fr.gospeak.core.domain.Group
 import fr.gospeak.core.testingutils.Generators._

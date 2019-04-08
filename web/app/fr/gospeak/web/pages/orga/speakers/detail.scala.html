@@ -1,0 +1,26 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
+@import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.partials.html.securedContainer
+@import fr.gospeak.web.pages.orga.proposals.partials.html.item
+@import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.utils.Formats
+
+@(group: Group, speaker: User, proposals: Page[(Cfp, Proposal)], speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer(speaker.name.value + " - Gospeak", h, Some(b))() {
+    <div class="media">
+        <img src="@speaker.avatar.url.value" class="align-self-start mr-3" alt="avatar">
+        <div class="media-body">
+            <h1 class="mt-0">@speaker.name.value</h1>
+            <p><a href="mailto:@speaker.email.value">@speaker.email.value</a></p>
+        </div>
+    </div>
+
+    <h2 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h2>
+    @Formats.paginated[(Cfp, Proposal)](
+        page = proposals,
+        link = SpeakerCtrl.detail(group.slug, speaker.slug, _),
+        item = a => item(group, a._1, a._2, speakers, events))
+}()

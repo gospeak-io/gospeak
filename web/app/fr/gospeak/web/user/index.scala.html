@@ -4,8 +4,8 @@
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.partials.html.securedContainer
-@import fr.gospeak.web.user.groups.routes.GroupCtrl
-@import fr.gospeak.web.user.talks.routes.TalkCtrl
+@import fr.gospeak.web.pages.orga.routes.GroupCtrl
+@import fr.gospeak.web.pages.speaker.routes.TalkCtrl
 
 @(groups: Page[Group], talks: Page[Talk])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @cardItem(url: Call, text: String, badge: Int, badgeTooltip: String) = {

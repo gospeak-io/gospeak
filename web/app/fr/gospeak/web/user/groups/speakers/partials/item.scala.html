@@ -1,9 +1,0 @@
-@import fr.gospeak.core.domain.{Group, Proposal, User, Event}
-@import fr.gospeak.web.partials.display.html._
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.user.groups.speakers.routes.SpeakerCtrl
-
-@(group: Group, speaker: User)
-<a class="list-group-item list-group-item-action" href="@SpeakerCtrl.detail(group.slug, speaker.slug)">
-    <h5 class="mb-1">@speaker.name.value</h5>
-</a>

@@ -1,5 +1,6 @@
 package fr.gospeak.web.user
 
+import fr.gospeak.web.pages
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.User
@@ -36,8 +37,8 @@ class UserCtrl(cc: ControllerComponents,
 
 object UserCtrl {
   val userNav: Seq[NavLink] = Seq(
-    NavLink("Groups", groups.routes.GroupCtrl.list()),
-    NavLink("Talks", talks.routes.TalkCtrl.list()))
+    NavLink("Groups", pages.orga.routes.GroupCtrl.list()),
+    NavLink("Talks", pages.speaker.routes.TalkCtrl.list()))
 
   private val leftNav = NavDropdown("Public", HomeCtrl.publicNav) +: userNav
 

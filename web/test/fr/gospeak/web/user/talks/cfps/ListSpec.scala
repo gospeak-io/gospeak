@@ -1,4 +1,4 @@
-package fr.gospeak.web.user.talks.cfps
+package fr.gospeak.web.pages.speaker.cfps
 
 import fr.gospeak.core.domain.{Cfp, Talk}
 import fr.gospeak.core.testingutils.Generators._

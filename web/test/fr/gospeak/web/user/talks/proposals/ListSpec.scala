@@ -1,4 +1,4 @@
-package fr.gospeak.web.user.talks.proposals
+package fr.gospeak.web.pages.speaker.proposals
 
 import fr.gospeak.core.domain.{Cfp, Proposal, Talk}
 import fr.gospeak.core.testingutils.Generators._

@@ -1,0 +1,76 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.core.domain.{Event, Group, Proposal, User, Cfp}
+@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.partials.display.html._
+@import fr.gospeak.web.partials.form.html.formBtn
+@import fr.gospeak.web.partials.html.{securedContainer, pagination, search}
+@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
+@import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+@import fr.gospeak.libs.scalautils.domain.Page
+
+@(group: Group, event: Event, talks: Seq[Proposal], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@securedContainer(event.name.value + " - Gospeak", h, Some(b))() {
+    <div>
+        <div class="float-right">
+            <a class="btn btn-outline-secondary" href="@EventCtrl.edit(group.slug, event.slug)" title="edit">
+                <i class="fas fa-edit"></i>
+            </a>
+        </div>
+        <h1>@event.name.value</h1>
+        <p>
+            @Formats.datetime(event.start),
+            @event.venue.map { v => @v.format, }.getOrElse{ <b class="text-danger">Missing venue</b>, }
+            @event.talks.length planned talks
+        </p>
+    </div>
+
+    @if(event.talks.nonEmpty) {
+        <h2 class="text-capitalize">@Formats.plural(event.talks.length, "planned talk")</h2>
+        <ol>
+        @event.talks.map { tId =>
+            <li>
+                @talks.find(_.id == tId).map { talk =>
+                    @formBtn(EventCtrl.removeTalk(group.slug, event.slug, talk.id), Seq("class" -> "btn-link btn-sm", "title" -> "Remove this talk from the event")){<i class="fas fa-minus"></i>}
+                    @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, true), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk up")){<i class="fas fa-arrow-up"></i>}
+                    @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, false), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk down")){<i class="fas fa-arrow-down"></i>}
+                    @cfpOpt.map { cfp => <a href="@ProposalCtrl.detail(group.slug, cfp.slug, talk.id)">@talk.title.value</a> }.getOrElse{ <span>@talk.title.value</span> }
+                    @duration(talk.duration)
+                    @talk.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }
+                }.getOrElse { Unknown (@tId.value) }
+            </li>
+        }
+        </ol>
+    } else {
+        <h2>No planned talks for this event</h2>
+    }
+
+    @cfpOpt.map { cfp =>
+        @if(proposals.isEmpty) {
+            <h2 class="text-capitalize">No proposal for <b>@cfp.name.value</b> CFP</h2>
+        } else {
+            <h2 class="text-capitalize">@Formats.plural(proposals.total.value, "pending talk") at <b>@cfp.name.value</b> CFP</h2>
+
+            <div class="float-right">@pagination(proposals, EventCtrl.detail(group.slug, event.slug, _))</div>
+            @search(proposals, EventCtrl.detail(group.slug, event.slug))
+
+            <ul>
+            @proposals.items.map { proposal =>
+                <li>
+                    @formBtn(EventCtrl.addTalk(group.slug, event.slug, proposal.id), Seq("class" -> "btn-link btn-sm", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
+                <small title="Proposal date">(@Formats.date(proposal.info.created))</small>
+                <a href="@ProposalCtrl.detail(group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
+                    @duration(proposal.duration)
+                    @proposal.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }
+                </li>
+            }
+            </ul>
+
+            <div class="float-right">@pagination(proposals, EventCtrl.detail(group.slug, event.slug, _))</div>
+        }
+    }.getOrElse {
+        <h2>No CFP assigned to this event</h2>
+    }
+}()
