@@ -2,8 +2,8 @@
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.core.domain.Group
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.form.html._
-@import fr.gospeak.web.partials.html.securedContainer
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.partials.html.securedContainer
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 
 @(form: Form[Group.Data])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)

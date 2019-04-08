@@ -3,13 +3,13 @@
 @import fr.gospeak.libs.scalautils.domain.Url
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.securedContainer
+@import fr.gospeak.web.pages.partials.html.securedContainer
 @import fr.gospeak.web.utils.Formats._
-@import fr.gospeak.web.partials.display.html._
+@import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.partials.form.html._
+@import fr.gospeak.web.pages.partials.form.html._
 
 @(group: Group, cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event], embedForm: Form[Url])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer(proposal.title.value + " - Gospeak", h, Some(b))() {

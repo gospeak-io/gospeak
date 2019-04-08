@@ -1,7 +1,7 @@
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.HeaderInfo
-@import fr.gospeak.web.partials.html.userAwareContainer
+@import fr.gospeak.web.pages.partials.html.userAwareContainer
 
 @()(h: HeaderInfo)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @userAwareContainer("Gospeak", h)() {

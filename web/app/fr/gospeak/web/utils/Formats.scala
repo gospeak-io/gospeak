@@ -5,7 +5,7 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.Locale
 
 import fr.gospeak.libs.scalautils.domain.Page
-import fr.gospeak.web.partials.html.{pagination, search}
+import fr.gospeak.web.pages.partials.html.{pagination, search}
 import play.api.mvc.Call
 import play.twirl.api.Html
 

@@ -1,5 +1,5 @@
 @import fr.gospeak.core.domain.Talk
-@import fr.gospeak.web.partials.form.html._
+@import fr.gospeak.web.pages.partials.form.html._
 
 @(form: Form[Talk.Data])(implicit messages: Messages)
 @fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title of your talk")) { (field, args) =>
