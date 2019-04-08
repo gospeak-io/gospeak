@@ -3,10 +3,10 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.{pagination, search, securedContainer}
+@import fr.gospeak.web.partials.html.securedContainer
 @import fr.gospeak.web.user.groups.partials.html.item
 @import fr.gospeak.web.user.groups.routes.GroupCtrl
-@import fr.gospeak.web.utils.Formats._
+@import fr.gospeak.web.utils.Formats
 
 @(groups: Page[Group])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer("Gospeak", h, Some(b))() {
@@ -24,19 +24,11 @@
         </div>
     } else {
         <div>
-            <span class="float-right">
+            <div class="float-right">
                 <a class="btn btn-primary" href="@GroupCtrl.create()">Create a group</a>
-            </span>
-            <h1>@plural(groups.total.value, "group")</h1>
+            </div>
+            <h1 class="text-capitalize">@Formats.plural(groups.total.value, "group")</h1>
         </div>
-
-        <div class="float-right">@pagination(groups, GroupCtrl.list)</div>
-        @search(groups, GroupCtrl.list())
-
-        <div class="list-group mt-3 mb-3">
-        @groups.items.map { g => @item(g) }
-        </div>
-
-        <div class="float-right">@pagination(groups, GroupCtrl.list)</div>
+        @Formats.paginated[Group](groups, GroupCtrl.list, item(_))
     }
 }()

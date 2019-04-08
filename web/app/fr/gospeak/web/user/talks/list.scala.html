@@ -3,10 +3,10 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.{pagination, search, securedContainer}
+@import fr.gospeak.web.partials.html.securedContainer
 @import fr.gospeak.web.user.talks.partials.html.item
 @import fr.gospeak.web.user.talks.routes.TalkCtrl
-@import fr.gospeak.web.utils.Formats._
+@import fr.gospeak.web.utils.Formats
 
 @(talks: Page[Talk])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer("Gospeak", h, Some(b))() {
@@ -22,19 +22,11 @@
         </div>
     } else {
         <div>
-            <span class="float-right">
+            <div class="float-right">
                 <a class="btn btn-primary" href="@TalkCtrl.create()">Create talk</a>
-            </span>
-            <h1>@plural(talks.total.value, "talk")</h1>
+            </div>
+            <h1 class="text-capitalize">@Formats.plural(talks.total.value, "talk")</h1>
         </div>
-
-        <div class="float-right">@pagination(talks, TalkCtrl.list)</div>
-        @search(talks, TalkCtrl.list())
-
-        <div class="list-group mt-3 mb-3">
-        @talks.items.map { t => @item(t) }
-        </div>
-
-        <div class="float-right">@pagination(talks, TalkCtrl.list)</div>
+        @Formats.paginated[Talk](talks, TalkCtrl.list, item(_))
     }
 }()

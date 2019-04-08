@@ -14,11 +14,11 @@
 @(group: Group, event: Event, talks: Seq[Proposal], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer(event.name.value + " - Gospeak", h, Some(b))() {
     <div>
-        <span class="float-right">
+        <div class="float-right">
             <a class="btn btn-outline-secondary" href="@EventCtrl.edit(group.slug, event.slug)" title="edit">
                 <i class="fas fa-edit"></i>
             </a>
-        </span>
+        </div>
         <h1>@event.name.value</h1>
         <p>
             @Formats.datetime(event.start),
@@ -28,7 +28,7 @@
     </div>
 
     @if(event.talks.nonEmpty) {
-        <h2>@Formats.plural(event.talks.length, "planned talk")</h2>
+        <h2 class="text-capitalize">@Formats.plural(event.talks.length, "planned talk")</h2>
         <ol>
         @event.talks.map { tId =>
             <li>
@@ -49,9 +49,9 @@
 
     @cfpOpt.map { cfp =>
         @if(proposals.isEmpty) {
-            <h2>No proposal for <b>@cfp.name.value</b> CFP</h2>
+            <h2 class="text-capitalize">No proposal for <b>@cfp.name.value</b> CFP</h2>
         } else {
-            <h2>@Formats.plural(proposals.total.value, "pending talk") at <b>@cfp.name.value</b> CFP</h2>
+            <h2 class="text-capitalize">@Formats.plural(proposals.total.value, "pending talk") at <b>@cfp.name.value</b> CFP</h2>
 
             <div class="float-right">@pagination(proposals, EventCtrl.detail(group.slug, event.slug, _))</div>
             @search(proposals, EventCtrl.detail(group.slug, event.slug))

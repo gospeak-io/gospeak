@@ -3,26 +3,18 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.{pagination, search, securedContainer}
+@import fr.gospeak.web.partials.html.securedContainer
 @import fr.gospeak.web.user.groups.cfps.partials.html.item
 @import fr.gospeak.web.user.groups.cfps.routes.CfpCtrl
-@import fr.gospeak.web.utils.Formats._
+@import fr.gospeak.web.utils.Formats
 
 @(group: Group, cfps: Page[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer("Gospeak", h, Some(b))() {
     <div>
-        <span class="float-right">
+        <div class="float-right">
             <a class="btn btn-primary" href="@CfpCtrl.create(group.slug)">Create a CFP</a>
-        </span>
-        <h1>@plural(cfps.total.value, "CFP")</h1>
+        </div>
+        <h1 class="text-capitalize">@Formats.plural(cfps.total.value, "CFP")</h1>
     </div>
-
-    <div class="float-right">@pagination(cfps, CfpCtrl.list(group.slug, _))</div>
-    @search(cfps, CfpCtrl.list(group.slug))
-
-    <div class="list-group mt-3 mb-3">
-    @cfps.items.map { e => @item(group, e) }
-    </div>
-
-    <div class="float-right">@pagination(cfps, CfpCtrl.list(group.slug, _))</div>
+    @Formats.paginated[Cfp](cfps, CfpCtrl.list(group.slug, _), item(group, _))
 }()

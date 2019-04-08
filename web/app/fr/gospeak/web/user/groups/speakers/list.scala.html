@@ -3,23 +3,13 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.{pagination, search, securedContainer}
+@import fr.gospeak.web.partials.html.securedContainer
 @import fr.gospeak.web.user.groups.speakers.partials.html.item
 @import fr.gospeak.web.user.groups.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats
 
 @(group: Group, speakers: Page[User])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer(group.name.value + " - Gospeak", h, Some(b))() {
-    <div>
-        <h1>@Formats.plural(speakers.total.value, "speaker")</h1>
-    </div>
-
-    <div class="float-right">@pagination(speakers, SpeakerCtrl.list(group.slug, _))</div>
-    @search(speakers, SpeakerCtrl.list(group.slug))
-
-    <div class="list-group mt-3 mb-3">
-    @speakers.items.map { s => @item(group, s) }
-    </div>
-
-    <div class="float-right">@pagination(speakers, SpeakerCtrl.list(group.slug, _))</div>
+    <h1 class="text-capitalize">@Formats.plural(speakers.total.value, "speaker")</h1>
+    @Formats.paginated[User](speakers, SpeakerCtrl.list(group.slug, _), item(group, _))
 }()

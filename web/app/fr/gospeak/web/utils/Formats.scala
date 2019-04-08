@@ -4,6 +4,11 @@ import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.Locale
 
+import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.web.partials.html.{pagination, search}
+import play.api.mvc.Call
+import play.twirl.api.Html
+
 import scala.concurrent.duration._
 
 object Formats {
@@ -62,4 +67,17 @@ object Formats {
       case _ if plural.isEmpty => s"$n ${word}s"
       case _ => s"$n $plural"
     }
+
+  def paginated[A](page: Page[A],
+                   link: Page.Params => Call,
+                   item: A => Html): Html = Html(
+    s"""<div class="float-right">${pagination(page, link)}</div>
+       |${search(page, link(Page.Params.defaults))}
+       |
+       |<div class="list-group mt-3 mb-3">
+       |${page.items.map(item).mkString("\n")}
+       |</div>
+       |
+       |<div class="float-right">${pagination(page, link)}</div>
+     """.stripMargin)
 }

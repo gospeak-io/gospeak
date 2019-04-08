@@ -3,11 +3,11 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.partials.html.{pagination, search, securedContainer}
+@import fr.gospeak.web.partials.html.securedContainer
 @import fr.gospeak.web.user.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.user.talks.proposals.partials.html.item
 @import fr.gospeak.web.user.talks.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.utils.Formats._
+@import fr.gospeak.web.utils.Formats
 
 @(talk: Talk, proposals: Page[(Cfp, Proposal)], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer(talk.title.value + " - Gospeak", h, Some(b))() {
@@ -20,17 +20,10 @@
             </p>
         </div>
     } else {
-        <div>
-            <h1>@plural(proposals.total.value, "proposal") for @talk.title.value</h1>
-        </div>
-
-        <div class="float-right">@pagination(proposals, ProposalCtrl.list(talk.slug, _))</div>
-        @search(proposals, ProposalCtrl.list(talk.slug))
-
-        <div class="list-group mt-3 mb-3">
-        @proposals.items.map { case (c, p) => @item(talk, c, p, events) }
-        </div>
-
-        <div class="float-right">@pagination(proposals, ProposalCtrl.list(talk.slug, _))</div>
+        <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") for @talk.title.value</h1>
+        @Formats.paginated[(Cfp, Proposal)](
+            page = proposals,
+            link = ProposalCtrl.list(talk.slug, _),
+            item = a => item(talk, a._1, a._2, events))
     }
 }()

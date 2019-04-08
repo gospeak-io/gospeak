@@ -6,7 +6,7 @@
 @import fr.gospeak.web.partials.html.securedContainer
 @import fr.gospeak.web.user.groups.events.partials.html.{item => eventItem}
 @import fr.gospeak.web.user.groups.events.routes.EventCtrl
-@import fr.gospeak.web.utils.Formats._
+@import fr.gospeak.web.utils.Formats
 
 @(group: Group, events: Page[Event], proposals: Seq[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer("Gospeak", h, Some(b))() {
@@ -17,7 +17,7 @@
     @if(events.isEmpty) {
         <h2>No incoming events <a class="btn btn-primary" href="@EventCtrl.create(group.slug)">Create an event</a></h2>
     } else {
-        <h2>@plural(events.total.value, "incoming event")</h2>
+        <h2 class="text-capitalize">@Formats.plural(events.total.value, "incoming event")</h2>
 
         <div class="list-group mt-3 mb-3">
             @events.items.map { e => @eventItem(group, e, proposals, speakers) }
