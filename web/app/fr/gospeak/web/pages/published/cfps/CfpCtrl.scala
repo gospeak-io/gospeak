@@ -1,10 +1,10 @@
-package fr.gospeak.web.cfps
+package fr.gospeak.web.pages.published.cfps
 
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.cfps.CfpCtrl._
 import fr.gospeak.web.domain.HeaderInfo
+import fr.gospeak.web.pages.published.HomeCtrl
+import fr.gospeak.web.pages.published.cfps.CfpCtrl._
 import fr.gospeak.web.utils.UICtrl
 import play.api.mvc._
 

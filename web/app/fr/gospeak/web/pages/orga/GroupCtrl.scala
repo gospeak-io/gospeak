@@ -9,11 +9,11 @@ import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.Page
-import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain._
-import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.pages.orga.GroupCtrl._
+import fr.gospeak.web.pages.published.HomeCtrl
+import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
@@ -84,7 +84,7 @@ object GroupCtrl {
     UserCtrl.breadcrumb(user).add("Groups" -> routes.GroupCtrl.list())
 
   def header(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo = HeaderInfo(
-    brand = NavLink("Gospeak", fr.gospeak.web.user.routes.UserCtrl.index()),
+    brand = NavLink("Gospeak", fr.gospeak.web.pages.user.routes.UserCtrl.index()),
     links = NavDropdown("Public", HomeCtrl.publicNav) +: NavDropdown("User", UserCtrl.userNav) +: groupNav(group),
     rightLinks = UserCtrl.rightNav())
     .activeFor(routes.GroupCtrl.list())

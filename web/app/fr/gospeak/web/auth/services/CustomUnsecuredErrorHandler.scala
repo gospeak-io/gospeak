@@ -1,7 +1,7 @@
 package fr.gospeak.web.auth.services
 
 import com.mohiva.play.silhouette.api.actions.UnsecuredErrorHandler
-import fr.gospeak.web.user.routes.UserCtrl
+import fr.gospeak.web.pages.user.routes.UserCtrl
 import fr.gospeak.web.utils.HttpUtils
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Results.Redirect

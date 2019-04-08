@@ -15,11 +15,9 @@ import fr.gospeak.infra.services.{ConsoleEmailSrv, EmailSrv, GravatarSrv}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
 import fr.gospeak.web.auth.{AuthConf, AuthCtrl}
-import fr.gospeak.web.cfps.CfpCtrl
-import fr.gospeak.web.domain.AppConf
-import fr.gospeak.web.groups.GroupCtrl
-import fr.gospeak.web.speakers.SpeakerCtrl
-import fr.gospeak.web.user.UserCtrl
+import fr.gospeak.web.pages._
+import fr.gospeak.web.pages.published.HomeCtrl
+import fr.gospeak.web.pages.user.UserCtrl
 import org.slf4j.LoggerFactory
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.{BodyParsers, CookieHeaderEncoding, DefaultCookieHeaderEncoding}
@@ -114,21 +112,21 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val authSrv: AuthSrv = AuthSrv(authConf, silhouette, userRepo, userRequestRepo, authRepo, clock, gravatarSrv)
 
   lazy val homeCtrl = wire[HomeCtrl]
-  lazy val cfpCtrl = wire[CfpCtrl]
-  lazy val groupCtrl = wire[GroupCtrl]
-  lazy val speakerCtrl = wire[SpeakerCtrl]
+  lazy val cfpCtrl = wire[published.cfps.CfpCtrl]
+  lazy val groupCtrl = wire[published.groups.GroupCtrl]
+  lazy val speakerCtrl = wire[published.speakers.SpeakerCtrl]
   lazy val authCtrl = wire[AuthCtrl]
   lazy val userCtrl = wire[UserCtrl]
-  lazy val userGroupCtrl = wire[pages.orga.GroupCtrl]
-  lazy val userGroupEventCtrl = wire[pages.orga.events.EventCtrl]
-  lazy val userGroupCfpCtrl = wire[pages.orga.cfps.CfpCtrl]
-  lazy val userGroupCfpProposalCtrl = wire[pages.orga.cfps.proposals.ProposalCtrl]
-  lazy val userGroupProposalCtrl = wire[pages.orga.proposals.ProposalCtrl]
-  lazy val userGroupSpeakerCtrl = wire[pages.orga.speakers.SpeakerCtrl]
-  lazy val userGroupSettingsCtrl = wire[pages.orga.settings.SettingsCtrl]
-  lazy val userTalkCtrl = wire[pages.speaker.TalkCtrl]
-  lazy val userTalkCfpCtrl = wire[pages.speaker.cfps.CfpCtrl]
-  lazy val userTalkProposalCtrl = wire[pages.speaker.proposals.ProposalCtrl]
+  lazy val userGroupCtrl = wire[orga.GroupCtrl]
+  lazy val userGroupEventCtrl = wire[orga.events.EventCtrl]
+  lazy val userGroupCfpCtrl = wire[orga.cfps.CfpCtrl]
+  lazy val userGroupCfpProposalCtrl = wire[orga.cfps.proposals.ProposalCtrl]
+  lazy val userGroupProposalCtrl = wire[orga.proposals.ProposalCtrl]
+  lazy val userGroupSpeakerCtrl = wire[orga.speakers.SpeakerCtrl]
+  lazy val userGroupSettingsCtrl = wire[orga.settings.SettingsCtrl]
+  lazy val userTalkCtrl = wire[speaker.TalkCtrl]
+  lazy val userTalkCfpCtrl = wire[speaker.cfps.CfpCtrl]
+  lazy val userTalkProposalCtrl = wire[speaker.proposals.ProposalCtrl]
   lazy val apiUiUtilsCtrl = wire[api.ui.UtilsCtrl]
 
   override lazy val router: Router = {

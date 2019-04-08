@@ -1,9 +1,10 @@
-package fr.gospeak.web
+package fr.gospeak.web.pages.published
 
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.web.HomeCtrl._
+import fr.gospeak.web.auth
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{HeaderInfo, NavLink}
+import fr.gospeak.web.pages.published.HomeCtrl._
 import fr.gospeak.web.utils.UICtrl
 import play.api.mvc._
 

@@ -1,15 +1,15 @@
-package fr.gospeak.web.user
+package fr.gospeak.web.pages.user
 
-import fr.gospeak.web.pages
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.services.{GroupRepo, TalkRepo}
 import fr.gospeak.libs.scalautils.domain.Page
-import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain._
-import fr.gospeak.web.user.UserCtrl._
+import fr.gospeak.web.pages
+import fr.gospeak.web.pages.published.HomeCtrl
+import fr.gospeak.web.pages.user.UserCtrl._
 import fr.gospeak.web.utils.UICtrl
 import play.api.mvc._
 
@@ -49,7 +49,7 @@ object UserCtrl {
         NavLink("logout", fr.gospeak.web.auth.routes.AuthCtrl.doLogout()))))
 
   def indexHeader()(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo = HeaderInfo(
-    brand = NavLink("Gospeak", fr.gospeak.web.routes.HomeCtrl.index()),
+    brand = NavLink("Gospeak", fr.gospeak.web.pages.published.routes.HomeCtrl.index()),
     links = leftNav,
     rightLinks = rightNav())
 
@@ -57,6 +57,6 @@ object UserCtrl {
     indexHeader().copy(brand = NavLink("Gospeak", routes.UserCtrl.index()))
 
   def breadcrumb(user: User.Name) = Breadcrumb(Seq(
-    BreadcrumbLink("Public", fr.gospeak.web.routes.HomeCtrl.index()),
+    BreadcrumbLink("Public", fr.gospeak.web.pages.published.routes.HomeCtrl.index()),
     BreadcrumbLink(user.value, routes.UserCtrl.index())))
 }

@@ -12,10 +12,9 @@ import com.typesafe.config.ConfigFactory
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.services.storage.sql.{DatabaseConf, GospeakDbSql}
-import fr.gospeak.web.GospeakComponents
+import fr.gospeak.web.{AppConf, GospeakComponents}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.services.AuthSrv
-import fr.gospeak.web.domain.AppConf
 import org.scalatest.{FunSpec, Matchers}
 import org.scalatestplus.play.components.OneAppPerSuiteWithComponents
 import play.api.BuiltInComponents

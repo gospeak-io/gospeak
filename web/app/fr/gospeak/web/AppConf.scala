@@ -1,4 +1,4 @@
-package fr.gospeak.web.domain
+package fr.gospeak.web
 
 import com.typesafe.config.{Config, ConfigFactory}
 import fr.gospeak.infra.services.EmailSrv

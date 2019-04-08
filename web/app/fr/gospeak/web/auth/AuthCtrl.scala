@@ -12,13 +12,14 @@ import fr.gospeak.core.domain.UserRequest
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
 import fr.gospeak.core.services.{UserRepo, UserRequestRepo}
 import fr.gospeak.infra.services.EmailSrv
-import fr.gospeak.web.HomeCtrl
 import fr.gospeak.web.auth.AuthCtrl._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.emails.Emails
 import fr.gospeak.web.auth.exceptions.{DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.domain.HeaderInfo
+import fr.gospeak.web.pages._
+import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.utils.{HttpUtils, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
@@ -38,8 +39,8 @@ class AuthCtrl(cc: ControllerComponents,
                userRequestRepo: UserRequestRepo,
                authSrv: AuthSrv,
                emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
-  private val loginRedirect = (redirect: Option[String]) => Redirect(redirect.getOrElse(fr.gospeak.web.user.routes.UserCtrl.index().path()))
-  private val logoutRedirect = Redirect(fr.gospeak.web.routes.HomeCtrl.index())
+  private val loginRedirect = (redirect: Option[String]) => Redirect(redirect.getOrElse(user.routes.UserCtrl.index().path()))
+  private val logoutRedirect = Redirect(published.routes.HomeCtrl.index())
 
   import silhouette._
 

@@ -11,8 +11,8 @@ import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
-import fr.gospeak.web.user.UserCtrl
 import fr.gospeak.web.pages.speaker.TalkCtrl._
+import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.utils.{GenericForm, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
@@ -137,7 +137,7 @@ object TalkCtrl {
 
   def header(talk: Talk.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
     UserCtrl.header()
-      .copy(brand = NavLink("Gospeak", fr.gospeak.web.user.routes.UserCtrl.index()))
+      .copy(brand = NavLink("Gospeak", fr.gospeak.web.pages.user.routes.UserCtrl.index()))
       .activeFor(routes.TalkCtrl.list())
 
   def breadcrumb(user: User.Name, talk: (Talk.Slug, Talk.Title)): Breadcrumb =
