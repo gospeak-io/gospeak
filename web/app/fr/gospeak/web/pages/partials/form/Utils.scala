@@ -41,6 +41,10 @@ object Utils {
 
   def format(c: Constraint)(implicit messages: Messages): String =
     c match {
-      case (message, args) => messages(message, args: _*)
+      case (message, args) => messages(message, args.map {
+        case r: Regex => r.toString()
+        case f: (() => Regex) => f().toString()
+        case arg => arg.toString
+      }: _*)
     }
 }

@@ -4,8 +4,7 @@
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.partials.html.securedContainer
+@import fr.gospeak.web.pages.partials.html.{securedContainer, slidesFields, videoFields}
 @import fr.gospeak.web.pages.speaker.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 
@@ -23,26 +22,8 @@
 
     <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id) }</p>
 
-    @proposal.slides.map { s => @embed(s.value) }.getOrElse {
-        @formElt(embedForm, ProposalCtrl.doAddSlides(talk.slug, proposal.id), Seq("class" -> "mb-2")) {
-            @fieldHorizontal(embedForm("url"), Seq("label" -> "Slides")) { (field, _) =>
-                @inputEmbed(field, Seq("placeholder" -> "Url of the slides"))
-            }
-            @actionsHorizontal() {
-                @btnSubmit("Add slides", "btn btn-secondary")
-            }
-        }
-    }
-    @proposal.video.map { v => @embed(v.value) }.getOrElse {
-        @formElt(embedForm, ProposalCtrl.doAddVideo(talk.slug, proposal.id), Seq("class" -> "mb-2")) {
-            @fieldHorizontal(embedForm("url"), Seq("label" -> "Video")) { (field, _) =>
-                @inputEmbed(field, Seq("placeholder" -> "Url of the video"))
-            }
-            @actionsHorizontal() {
-                @btnSubmit("Add video", "btn btn-secondary")
-            }
-        }
-    }
+    @proposal.slides.map { s => @embed(s.value) }.getOrElse { @slidesFields(embedForm, ProposalCtrl.doAddSlides(talk.slug, proposal.id)) }
+    @proposal.video.map { v => @embed(v.value) }.getOrElse { @videoFields(embedForm, ProposalCtrl.doAddVideo(talk.slug, proposal.id)) }
 
     <p>@info(proposal.info, speakers)</p>
 }()

@@ -1,0 +1,13 @@
+@import fr.gospeak.core.domain.Group
+@import fr.gospeak.web.pages.partials.form.html._
+
+@(form: Form[Group.Data])(implicit messages: Messages)
+@fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the group")) { (field, args) =>
+    @inputText(field, Seq("placeholder" -> "ex: Scala coding talks", "autofocus" -> "true") ++ args)
+}
+@fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference for your group (in urls for example)")) { (field, args) =>
+    @inputText(field, Seq("placeholder" -> "Group slug", "slug-for" -> form("name").id) ++ args)
+}
+@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Describe your group, you should make people want to participate")) { (field, args) =>
+    @inputMarkdown(field, args)
+}

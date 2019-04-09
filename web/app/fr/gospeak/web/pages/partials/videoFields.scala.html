@@ -1,0 +1,14 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.libs.scalautils.domain.Url
+@import fr.gospeak.web.pages.partials.form.html._
+
+@(form: Form[Url], url: Call)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@formElt(form, url, Seq("class" -> "mb-2")) {
+    @fieldHorizontal(form("url"), Seq("label" -> "Video")) { (field, _) =>
+        @inputEmbed(field, Seq("placeholder" -> "Url of the video"))
+    }
+    @actionsHorizontal() {
+        @btnSubmit("Add video", "btn btn-secondary")
+    }
+}

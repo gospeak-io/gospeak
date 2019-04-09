@@ -4,24 +4,17 @@
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.html.securedContainer
+@import fr.gospeak.web.pages.orga.partials.html.groupFields
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 
 @(form: Form[Group.Data])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer("Gospeak", h, Some(b))() {
     <div class="page-header">
-        <h1>Create a talk</h1>
+        <h1>Create your group</h1>
     </div>
 
     @formElt(form, GroupCtrl.doCreate()) {
-        @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the group")) { (field, args) =>
-            @inputText(field, Seq("placeholder" -> "ex: Scala coding talks", "autofocus" -> "true") ++ args)
-        }
-        @fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference for your group (in urls for example)")) { (field, args) =>
-            @inputText(field, Seq("placeholder" -> "Group slug", "slug-for" -> form("name").id) ++ args)
-        }
-        @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Describe your group, you should make people want to participate")) { (field, args) =>
-            @inputMarkdown(field, args)
-        }
+        @groupFields(form)
         @actionsHorizontal() {
             @btnCancel(GroupCtrl.list())
             @btnSubmit("Create")

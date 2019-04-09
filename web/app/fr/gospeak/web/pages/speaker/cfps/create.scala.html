@@ -4,6 +4,7 @@
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.speaker.partials.html.cfpFields
 @import fr.gospeak.web.pages.partials.html.securedContainer
 @import fr.gospeak.web.pages.speaker.cfps.routes.CfpCtrl
 
@@ -17,21 +18,7 @@
         <blockquote class="blockquote">
             @markdown(cfp.description)
         </blockquote>
-        @fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title for your proposal (you can adapt your talk title)")) { (field, args) =>
-            @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
-        }
-        @fieldHorizontal(form("duration"), Seq("label" -> "Duration", "help" -> "Duration of your talk")) { (field, args) =>
-            @inputDuration(field, args)
-        }
-        @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Give a abstract of your talk, you should make orga and people listen at you")) { (field, args) =>
-            @inputMarkdown(field, args)
-        }
-        @fieldHorizontal(form("slides"), Seq("label" -> "Slides", "help" -> "Slides for your talk")) { (field, args) =>
-            @inputEmbed(field, args)
-        }
-        @fieldHorizontal(form("video"), Seq("label" -> "Video", "help" -> "Video of your talk")) { (field, args) =>
-            @inputEmbed(field, args)
-        }
+        @cfpFields(form)
         @actionsHorizontal() {
             @btnCancel(CfpCtrl.list(talk.slug))
             @btnSubmit("Propose your talk")

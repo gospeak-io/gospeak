@@ -1,15 +1,14 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Cfp, Group, Proposal, User, Event}
+@import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Url
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.pages.partials.html.securedContainer
-@import fr.gospeak.web.utils.Formats._
-@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.partials.html.{securedContainer, slidesFields, videoFields}
+@import fr.gospeak.web.utils.Formats._
 
 @(group: Group, cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event], embedForm: Form[Url])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer(proposal.title.value + " - Gospeak", h, Some(b))() {
@@ -30,26 +29,8 @@
 
     <div>@markdown(proposal.description)</div>
 
-    @if(proposal.slides.isEmpty) {
-        @formElt(embedForm, ProposalCtrl.doAddSlides(group.slug, cfp.slug, proposal.id), Seq("class" -> "mb-2")) {
-            @fieldHorizontal(embedForm("url"), Seq("label" -> "Slides")) { (field, _) =>
-                @inputEmbed(field, Seq("placeholder" -> "Url of the slides"))
-            }
-            @actionsHorizontal() {
-                @btnSubmit("Add slides", "btn btn-secondary")
-            }
-        }
-    }
-    @if(proposal.video.isEmpty) {
-        @formElt(embedForm, ProposalCtrl.doAddVideo(group.slug, cfp.slug, proposal.id), Seq("class" -> "mb-2")) {
-            @fieldHorizontal(embedForm("url"), Seq("label" -> "Video")) { (field, _) =>
-                @inputEmbed(field, Seq("placeholder" -> "Url of the video"))
-            }
-            @actionsHorizontal() {
-                @btnSubmit("Add video", "btn btn-secondary")
-            }
-        }
-    }
+    @if(proposal.slides.isEmpty) { @slidesFields(embedForm, ProposalCtrl.doAddSlides(group.slug, cfp.slug, proposal.id)) }
+    @if(proposal.video.isEmpty) { @videoFields(embedForm, ProposalCtrl.doAddVideo(group.slug, cfp.slug, proposal.id)) }
 
     <p>@info(proposal.info, speakers, Some(u => SpeakerCtrl.detail(group.slug, u.slug)))</p>
 }()
