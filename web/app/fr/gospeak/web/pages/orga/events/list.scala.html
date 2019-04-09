@@ -4,7 +4,7 @@
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.pages.partials.html.securedContainer
-@import fr.gospeak.web.pages.orga.events.partials.html.item
+@import fr.gospeak.web.pages.orga.partials.html.eventItem
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.utils.Formats
 
@@ -16,5 +16,5 @@
         </div>
         <h1 class="text-capitalize">@Formats.plural(events.total.value, "event")</h1>
     </div>
-    @Formats.paginated[Event](events, EventCtrl.list(group.slug, _), item(group, _, proposals, speakers))
+    @Formats.paginated[Event](events, EventCtrl.list(group.slug, _), eventItem(group, _, proposals, speakers))
 }()

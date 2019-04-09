@@ -5,11 +5,11 @@
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.pages.partials.html.securedContainer
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.pages.orga.proposals.partials.html.item
+@import fr.gospeak.web.pages.orga.partials.html.proposalItem
 @import fr.gospeak.web.utils.Formats
 
 @(group: Group, cfp: Cfp, proposals: Page[Proposal], speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer("Gospeak", h, Some(b))() {
     <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h1>
-    @Formats.paginated[Proposal](proposals, ProposalCtrl.list(group.slug, cfp.slug, _), item(group, cfp, _, speakers, events))
+    @Formats.paginated[Proposal](proposals, ProposalCtrl.list(group.slug, cfp.slug, _), proposalItem(group, cfp, _, speakers, events))
 }()

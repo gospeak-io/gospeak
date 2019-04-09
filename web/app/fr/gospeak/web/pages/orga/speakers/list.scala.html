@@ -4,12 +4,12 @@
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.pages.partials.html.securedContainer
-@import fr.gospeak.web.pages.orga.speakers.partials.html.item
+@import fr.gospeak.web.pages.orga.partials.html.speakerItem
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats
 
 @(group: Group, speakers: Page[User])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer(group.name.value + " - Gospeak", h, Some(b))() {
     <h1 class="text-capitalize">@Formats.plural(speakers.total.value, "speaker")</h1>
-    @Formats.paginated[User](speakers, SpeakerCtrl.list(group.slug, _), item(group, _))
+    @Formats.paginated[User](speakers, SpeakerCtrl.list(group.slug, _), speakerItem(group, _))
 }()

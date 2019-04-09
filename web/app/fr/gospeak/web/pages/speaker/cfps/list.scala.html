@@ -4,7 +4,7 @@
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
 @import fr.gospeak.web.pages.partials.html.securedContainer
-@import fr.gospeak.web.pages.speaker.cfps.partials.html.item
+@import fr.gospeak.web.pages.speaker.partials.html.cfpItem
 @import fr.gospeak.web.pages.speaker.cfps.routes.CfpCtrl
 @import fr.gospeak.web.utils.Formats
 
@@ -16,6 +16,6 @@
         </div>
     } else {
         <h1 class="text-capitalize">Submit proposal for @talk.title.value</h1>
-        @Formats.paginated[Cfp](cfps, CfpCtrl.list(talk.slug, _), item(talk, _))
+        @Formats.paginated[Cfp](cfps, CfpCtrl.list(talk.slug, _), cfpItem(talk, _))
     }
 }()
