@@ -6,7 +6,11 @@ import cats.effect.IO
 import fr.gospeak.core.domain.{Talk, User}
 import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Video}
 
-trait TalkRepo {
+trait TalkRepo extends OrgaTalkRepo with SpeakerTalkRepo with UserTalkRepo with AuthTalkRepo
+
+trait OrgaTalkRepo
+
+trait SpeakerTalkRepo {
   def create(user: User.Id, data: Talk.Data, now: Instant): IO[Talk]
 
   def edit(user: User.Id, slug: Talk.Slug)(data: Talk.Data, now: Instant): IO[Done]
@@ -17,9 +21,13 @@ trait TalkRepo {
 
   def editVideo(user: User.Id, slug: Talk.Slug)(video: Video, now: Instant): IO[Done]
 
-  def find(user: User.Id, slug: Talk.Slug): IO[Option[Talk]]
-
   def list(user: User.Id, params: Page.Params): IO[Page[Talk]]
 
-  def list(ids: Seq[Talk.Id]): IO[Seq[Talk]]
+  def find(user: User.Id, slug: Talk.Slug): IO[Option[Talk]]
 }
+
+trait UserTalkRepo {
+  def list(user: User.Id, params: Page.Params): IO[Page[Talk]]
+}
+
+trait AuthTalkRepo

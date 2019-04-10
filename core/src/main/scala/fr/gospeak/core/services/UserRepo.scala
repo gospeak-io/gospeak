@@ -6,7 +6,23 @@ import cats.effect.IO
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
-trait UserRepo {
+trait UserRepo extends OrgaUserRepo with SpeakerUserRepo with UserUserRepo with AuthUserRepo
+
+trait OrgaUserRepo {
+  def find(slug: User.Slug): IO[Option[User]]
+
+  def speakers(group: Group.Id, params: Page.Params): IO[Page[User]]
+
+  def list(ids: Seq[User.Id]): IO[Seq[User]]
+}
+
+trait SpeakerUserRepo {
+  def list(ids: Seq[User.Id]): IO[Seq[User]]
+}
+
+trait UserUserRepo
+
+trait AuthUserRepo {
   def create(data: User.Data, now: Instant): IO[User]
 
   def edit(user: User, now: Instant): IO[User]
@@ -28,8 +44,4 @@ trait UserRepo {
   def find(email: EmailAddress): IO[Option[User]]
 
   def find(slug: User.Slug): IO[Option[User]]
-
-  def list(group: Group.Id, params: Page.Params): IO[Page[User]]
-
-  def list(ids: Seq[User.Id]): IO[Seq[User]]
 }

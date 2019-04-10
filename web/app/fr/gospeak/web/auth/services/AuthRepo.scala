@@ -6,13 +6,14 @@ import com.mohiva.play.silhouette.api.util.PasswordInfo
 import com.mohiva.play.silhouette.persistence.daos.DelegableAuthInfoDAO
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.domain.User._
-import fr.gospeak.core.services.UserRepo
+import fr.gospeak.core.services.AuthUserRepo
 import fr.gospeak.libs.scalautils.domain.Done
 import fr.gospeak.web.auth.domain.AuthUser
 
 import scala.concurrent.Future
 
-class AuthRepo(userRepo: UserRepo) extends DelegableAuthInfoDAO[PasswordInfo] with IdentityService[AuthUser] {
+// TODO merge it with AuthSrv
+class AuthRepo(userRepo: AuthUserRepo) extends DelegableAuthInfoDAO[PasswordInfo] with IdentityService[AuthUser] {
   override def retrieve(loginInfo: LoginInfo): Future[Option[AuthUser]] =
     userRepo.find(toDomain(loginInfo)).map(_.map(u => AuthUser(loginInfo, u))).unsafeToFuture()
 

@@ -20,16 +20,16 @@ import play.api.mvc._
 
 class CfpCtrl(cc: ControllerComponents,
               silhouette: Silhouette[CookieEnv],
-              cfpRepo: CfpRepo,
-              talkRepo: TalkRepo,
-              proposalRepo: ProposalRepo) extends UICtrl(cc, silhouette) {
+              cfpRepo: SpeakerCfpRepo,
+              talkRepo: SpeakerTalkRepo,
+              proposalRepo: SpeakerProposalRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
-      cfps <- OptionT.liftF(cfpRepo.listAvailable(talkElt.id, params))
+      cfps <- OptionT.liftF(cfpRepo.availableFor(talkElt.id, params))
       h = TalkCtrl.header(talkElt.slug)
       b = listBreadcrumb(req.identity.user.name, talk -> talkElt.title)
     } yield Ok(html.list(talkElt, cfps)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()

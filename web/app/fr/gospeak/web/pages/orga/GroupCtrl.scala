@@ -20,10 +20,10 @@ import play.api.mvc._
 
 class GroupCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
-                userRepo: UserRepo,
-                groupRepo: GroupRepo,
-                eventRepo: EventRepo,
-                proposalRepo: ProposalRepo) extends UICtrl(cc, silhouette) {
+                userRepo: OrgaUserRepo,
+                groupRepo: OrgaGroupRepo,
+                eventRepo: OrgaEventRepo,
+                proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 

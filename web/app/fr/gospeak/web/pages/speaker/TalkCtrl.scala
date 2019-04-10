@@ -19,10 +19,10 @@ import play.api.mvc._
 
 class TalkCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
-               userRepo: UserRepo,
-               talkRepo: TalkRepo,
-               eventRepo: EventRepo,
-               proposalRepo: ProposalRepo) extends UICtrl(cc, silhouette) {
+               userRepo: SpeakerUserRepo,
+               eventRepo: SpeakerEventRepo,
+               talkRepo: SpeakerTalkRepo,
+               proposalRepo: SpeakerProposalRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 

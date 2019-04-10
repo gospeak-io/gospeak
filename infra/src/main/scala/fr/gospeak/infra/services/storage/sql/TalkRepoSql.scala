@@ -45,8 +45,6 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
   override def find(user: User.Id, slug: Talk.Slug): IO[Option[Talk]] = run(selectOne(user, slug).option)
 
   override def list(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(selectPage(user, _), params))
-
-  override def list(ids: Seq[Talk.Id]): IO[Seq[Talk]] = runIn(selectAll)(ids)
 }
 
 object TalkRepoSql {
@@ -84,9 +82,6 @@ object TalkRepoSql {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE speakers LIKE ${"%" + user.value + "%"}"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Talk], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
-
-  private[sql] def selectAll(ids: NonEmptyList[Talk.Id]): doobie.Query0[Talk] =
-    buildSelect(tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids)).query[Talk]
 
   private def where(user: User.Id, slug: Talk.Slug): Fragment =
     fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND slug=$slug"

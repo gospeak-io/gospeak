@@ -88,11 +88,6 @@ class TalkRepoSqlSpec extends RepoSpec {
         check(s)
         check(c)
       }
-      it("should build selectAll") {
-        val q = selectAll(NonEmptyList.of(talk.id))
-        q.sql shouldBe "SELECT id, slug, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM talks WHERE id IN (?) "
-        check(q)
-      }
     }
   }
 }

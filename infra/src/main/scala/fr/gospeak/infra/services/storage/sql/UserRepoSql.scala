@@ -47,7 +47,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
   override def find(slug: User.Slug): IO[Option[User]] = run(selectOne(slug).option)
 
   // FIXME should be done in only one query: joining on speakers array or splitting speakers string
-  override def list(group: Group.Id, params: Page.Params): IO[Page[User]] = {
+  override def speakers(group: Group.Id, params: Page.Params): IO[Page[User]] = {
     val speakerIdsQuery = fr0"SELECT p.speakers FROM proposals p INNER JOIN cfps c ON c.id=p.cfp_id WHERE c.group_id=$group".query[NonEmptyList[User.Id]]
     for {
         speakerIds <- run(speakerIdsQuery.to[List]).map(_.flatMap(_.toList).distinct)

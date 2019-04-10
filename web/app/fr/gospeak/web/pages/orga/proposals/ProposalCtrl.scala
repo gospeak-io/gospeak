@@ -15,11 +15,11 @@ import play.api.mvc._
 
 class ProposalCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
-                   userRepo: UserRepo,
-                   groupRepo: GroupRepo,
-                   cfpRepo: CfpRepo,
-                   eventRepo: EventRepo,
-                   proposalRepo: ProposalRepo) extends UICtrl(cc, silhouette) {
+                   userRepo: OrgaUserRepo,
+                   groupRepo: OrgaGroupRepo,
+                   cfpRepo: OrgaCfpRepo,
+                   eventRepo: OrgaEventRepo,
+                   proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 

@@ -44,9 +44,9 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
 
   override def list(ids: Seq[Cfp.Id]): IO[Seq[Cfp]] = runIn(selectAll)(ids)
 
-  override def listAvailable(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(selectPage(talk, _), params))
+  override def availableFor(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(selectPage(talk, _), params))
 
-  override def listAll(group: Group.Id): IO[Seq[Cfp]] = run(selectAll(group).to[List])
+  override def list(group: Group.Id): IO[Seq[Cfp]] = run(selectAll(group).to[List])
 }
 
 object CfpRepoSql {

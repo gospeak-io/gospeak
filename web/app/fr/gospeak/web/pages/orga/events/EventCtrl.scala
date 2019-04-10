@@ -20,11 +20,11 @@ import play.api.mvc._
 
 class EventCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
-                userRepo: UserRepo,
-                groupRepo: GroupRepo,
-                cfpRepo: CfpRepo,
-                eventRepo: EventRepo,
-                proposalRepo: ProposalRepo) extends UICtrl(cc, silhouette) {
+                userRepo: OrgaUserRepo,
+                groupRepo: OrgaGroupRepo,
+                cfpRepo: OrgaCfpRepo,
+                eventRepo: OrgaEventRepo,
+                proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
@@ -58,7 +58,7 @@ class EventCtrl(cc: ControllerComponents,
   private def createForm(group: Group.Slug, form: Form[Event.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
-      cfps <- OptionT.liftF(cfpRepo.listAll(groupElt.id))
+      cfps <- OptionT.liftF(cfpRepo.list(groupElt.id))
       h = header(group)
       b = listBreadcrumb(req.identity.user.name, groupElt).add("New" -> routes.EventCtrl.create(group))
     } yield Ok(html.create(groupElt, form, cfps)(h, b))).value.map(_.getOrElse(groupNotFound(group)))
@@ -102,7 +102,7 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
-      cfps <- OptionT.liftF(cfpRepo.listAll(groupElt.id))
+      cfps <- OptionT.liftF(cfpRepo.list(groupElt.id))
       h = header(group)
       b = breadcrumb(req.identity.user.name, groupElt, eventElt).add("Edit" -> routes.EventCtrl.edit(group, event))
       filledForm = if (form.hasErrors) form else form.fill(eventElt.data)

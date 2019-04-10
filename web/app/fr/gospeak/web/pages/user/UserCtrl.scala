@@ -3,7 +3,7 @@ package fr.gospeak.web.pages.user
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.User
-import fr.gospeak.core.services.{GroupRepo, TalkRepo}
+import fr.gospeak.core.services.{UserGroupRepo, UserTalkRepo}
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain._
@@ -15,8 +15,8 @@ import play.api.mvc._
 
 class UserCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
-               groupRepo: GroupRepo,
-               talkRepo: TalkRepo) extends UICtrl(cc, silhouette) {
+               groupRepo: UserGroupRepo,
+               talkRepo: UserTalkRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 

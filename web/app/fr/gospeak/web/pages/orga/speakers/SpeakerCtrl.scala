@@ -16,18 +16,17 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class SpeakerCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
-                  userRepo: UserRepo,
-                  groupRepo: GroupRepo,
-                  cfpRepo: CfpRepo,
-                  eventRepo: EventRepo,
-                  proposalRepo: ProposalRepo) extends UICtrl(cc, silhouette) {
+                  userRepo: OrgaUserRepo,
+                  groupRepo: OrgaGroupRepo,
+                  eventRepo: OrgaEventRepo,
+                  proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
-      speakers <- OptionT.liftF(userRepo.list(groupElt.id, params))
+      speakers <- OptionT.liftF(userRepo.speakers(groupElt.id, params))
       h = listHeader(group)
       b = listBreadcrumb(req.identity.user.name, groupElt)
     } yield Ok(html.list(groupElt, speakers)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()

@@ -4,7 +4,7 @@ import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, User}
-import fr.gospeak.core.services.{CfpRepo, GroupRepo}
+import fr.gospeak.core.services.OrgaGroupRepo
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.pages.orga.GroupCtrl
@@ -14,8 +14,7 @@ import play.api.mvc._
 
 class SettingsCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
-                   groupRepo: GroupRepo,
-                   cfpRepo: CfpRepo) extends UICtrl(cc, silhouette) {
+                   groupRepo: OrgaGroupRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 

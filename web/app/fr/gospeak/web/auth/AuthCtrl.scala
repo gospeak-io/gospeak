@@ -10,7 +10,7 @@ import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
 import fr.gospeak.core.domain.UserRequest
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
-import fr.gospeak.core.services.{UserRepo, UserRequestRepo}
+import fr.gospeak.core.services.{AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.web.auth.AuthCtrl._
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -35,8 +35,8 @@ import scala.util.control.NonFatal
 // TODO JWT Auth for API
 class AuthCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
-               userRepo: UserRepo,
-               userRequestRepo: UserRequestRepo,
+               userRepo: AuthUserRepo,
+               userRequestRepo: AuthUserRequestRepo,
                authSrv: AuthSrv,
                emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
   private val loginRedirect = (redirect: Option[String]) => Redirect(redirect.getOrElse(user.routes.UserCtrl.index().path()))

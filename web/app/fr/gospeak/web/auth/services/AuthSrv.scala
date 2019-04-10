@@ -14,7 +14,7 @@ import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepo
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.domain.User.{ProviderId, ProviderKey}
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
-import fr.gospeak.core.services.{UserRepo, UserRequestRepo}
+import fr.gospeak.core.services.{AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.EmailAddress
@@ -28,8 +28,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AuthSrv(authRepo: AuthRepo,
-              userRepo: UserRepo,
-              userRequestRepo: UserRequestRepo,
+              userRepo: AuthUserRepo,
+              userRequestRepo: AuthUserRequestRepo,
               silhouette: Silhouette[CookieEnv],
               clock: Clock,
               authConf: AuthConf,
@@ -106,7 +106,7 @@ class AuthSrv(authRepo: AuthRepo,
 }
 
 object AuthSrv {
-  def apply(authConf: AuthConf, silhouette: Silhouette[CookieEnv], userRepo: UserRepo, userRequestRepo: UserRequestRepo, authRepo: AuthRepo, clock: Clock, gravatarSrv: GravatarSrv): AuthSrv = {
+  def apply(authConf: AuthConf, silhouette: Silhouette[CookieEnv], userRepo: AuthUserRepo, userRequestRepo: AuthUserRequestRepo, authRepo: AuthRepo, clock: Clock, gravatarSrv: GravatarSrv): AuthSrv = {
     val authInfoRepository = new DelegableAuthInfoRepository(authRepo)
     val bCryptPasswordHasher: PasswordHasher = new BCryptPasswordHasher
     val passwordHasherRegistry: PasswordHasherRegistry = PasswordHasherRegistry(bCryptPasswordHasher)
