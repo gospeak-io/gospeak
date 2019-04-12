@@ -31,9 +31,9 @@
         @event.talks.map { tId =>
             <li>
                 @talks.find(_.id == tId).map { talk =>
-                    @formBtn(EventCtrl.removeTalk(group.slug, event.slug, talk.id), Seq("class" -> "btn-link btn-sm", "title" -> "Remove this talk from the event")){<i class="fas fa-minus"></i>}
-                    @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, true), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk up")){<i class="fas fa-arrow-up"></i>}
-                    @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, false), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk down")){<i class="fas fa-arrow-down"></i>}
+                    @formBtn(EventCtrl.removeTalk(group.slug, event.slug, talk.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Remove this talk from the event")){<i class="fas fa-minus"></i>}
+                    @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, true, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk up")){<i class="fas fa-arrow-up"></i>}
+                    @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, false, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk down")){<i class="fas fa-arrow-down"></i>}
                     @cfpOpt.map { cfp => <a href="@ProposalCtrl.detail(group.slug, cfp.slug, talk.id)">@talk.title.value</a> }.getOrElse{ <span>@talk.title.value</span> }
                     @duration(talk.duration)
                     @talk.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }
@@ -61,7 +61,7 @@
                 @proposals.items.map { proposal =>
                     <div class="list-group-item p-1 d-flex justify-content-between">
                         <div>
-                            @formBtn(EventCtrl.addTalk(group.slug, event.slug, proposal.id), Seq("class" -> "btn-link btn-sm", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
+                            @formBtn(EventCtrl.addTalk(group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
                             <small title="Proposal date">(@Formats.date(proposal.info.created))</small>
                             <a href="@ProposalCtrl.detail(group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
                             @duration(proposal.duration)

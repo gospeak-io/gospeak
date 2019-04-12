@@ -122,33 +122,33 @@ class EventCtrl(cc: ControllerComponents,
     ).unsafeToFuture()
   }
 
-  def addTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def addTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
       _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.add(talk).talks, req.identity.user.id, now))
       _ <- OptionT.liftF(proposalRepo.editStatus(talk)(Proposal.Status.Accepted, Some(eventElt.id)))
-    } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+    } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
-  def removeTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def removeTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
       _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.remove(talk).talks, req.identity.user.id, now))
       _ <- OptionT.liftF(proposalRepo.editStatus(talk)(Proposal.Status.Pending, None))
-    } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+    } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
-  def moveTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, up: Boolean): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def moveTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, up: Boolean, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
       _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.move(talk, up).talks, req.identity.user.id, now))
-    } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+    } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 }
 
