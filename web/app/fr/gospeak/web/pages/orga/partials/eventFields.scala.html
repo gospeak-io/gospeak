@@ -1,5 +1,6 @@
 @import fr.gospeak.core.domain.{Cfp, Event}
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.utils.Formats
 
 @(form: Form[Event.Data], cfps: Seq[Cfp])(implicit messages: Messages)
 @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
@@ -15,5 +16,5 @@
     @inputGMapPlace(field, args)
 }
 @fieldHorizontal(form("cfp"), Seq("label" -> "CFP")) { (field, args) =>
-    @inputSelect(field, cfps.map(c => c.id.value -> c.name.value), args ++ Seq("emptyOption" -> "-- Attach a CFP to this event", "optional" -> ""))
+    @inputSelect(field, cfps.map(c => c.id.value -> (c.name.value + " - " + Formats.cfpDates(c))), args ++ Seq("emptyOption" -> "-- Attach a CFP to this event", "optional" -> ""))
 }

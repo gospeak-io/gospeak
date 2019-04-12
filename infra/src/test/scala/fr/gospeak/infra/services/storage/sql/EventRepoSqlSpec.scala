@@ -35,6 +35,11 @@ class EventRepoSqlSpec extends RepoSpec {
         q.sql shouldBe "UPDATE events SET cfp_id=?, slug=?, name=?, start=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
         check(q)
       }
+      it("should build updateCfp") {
+        val q = updateCfp(group.id, event.slug)(cfp.id, user.id, now)
+        q.sql shouldBe "UPDATE events SET cfp_id=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
+        check(q)
+      }
       it("should build updateTalks") {
         val q = updateTalks(group.id, event.slug)(Seq(), user.id, now)
         q.sql shouldBe "UPDATE events SET talks=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"

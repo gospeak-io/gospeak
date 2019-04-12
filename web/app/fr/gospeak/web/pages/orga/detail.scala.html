@@ -17,7 +17,12 @@
     @if(events.isEmpty) {
         <h2>No incoming events <a class="btn btn-primary" href="@EventCtrl.create(group.slug)">Create an event</a></h2>
     } else {
-        <h2 class="text-capitalize">@Formats.plural(events.total.value, "incoming event")</h2>
+        <div>
+            <div class="float-right">
+                <a class="btn btn-primary" href="@EventCtrl.create(group.slug)">Create an event</a>
+            </div>
+            <h2 class="text-capitalize">@Formats.plural(events.total.value, "incoming event")</h2>
+        </div>
 
         <div class="list-group mt-3 mb-3">
             @events.items.map { e => @eventItem(group, e, proposals, speakers) }
@@ -26,4 +31,7 @@
             }
         </div>
     }
+
+    <h2>Sponsors</h2>
+    <p>TODO</p>
 }()

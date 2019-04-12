@@ -70,11 +70,12 @@ class EventCtrl(cc: ControllerComponents,
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
       talks <- OptionT.liftF(proposalRepo.list(eventElt.talks))
       cfpOpt <- OptionT.liftF(cfpRepo.find(eventElt.id))
+      groupCfps <- OptionT.liftF(cfpOpt.map(_ => IO.pure(Seq.empty[Cfp])).getOrElse(cfpRepo.list(groupElt.id)))
       proposals <- OptionT.liftF(cfpOpt.map(cfp => proposalRepo.list(cfp.id, Proposal.Status.Pending, params)).getOrElse(IO.pure(Page.empty[Proposal])))
       speakers <- OptionT.liftF(userRepo.list((proposals.items ++ talks).flatMap(_.speakers.toList).distinct))
       h = header(group)
       b = breadcrumb(req.identity.user.name, groupElt, eventElt)
-    } yield Ok(html.detail(groupElt, eventElt, talks, cfpOpt, proposals, speakers)(h, b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, eventElt, talks, cfpOpt, proposals, speakers, EventForms.attachCfp, groupCfps)(h, b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -107,6 +108,18 @@ class EventCtrl(cc: ControllerComponents,
       b = breadcrumb(req.identity.user.name, groupElt, eventElt).add("Edit" -> routes.EventCtrl.edit(group, event))
       filledForm = if (form.hasErrors) form else form.fill(eventElt.data)
     } yield Ok(html.edit(groupElt, eventElt, filledForm, cfps)(h, b))).value.map(_.getOrElse(eventNotFound(group, event)))
+  }
+
+  def attachCfp(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    EventForms.attachCfp.bindFromRequest.fold(
+      formWithErrors => IO.pure(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Unable to attach CFP: ${formWithErrors.errors.map(_.format).mkString(", ")}")),
+      cfp => (for {
+        groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+        cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
+        _ <- OptionT.liftF(eventRepo.attachCfp(groupElt.id, event)(cfpElt.id, req.identity.user.id, now))
+      } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(cfpNotFound(group, event, cfp)))
+    ).unsafeToFuture()
   }
 
   def addTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>

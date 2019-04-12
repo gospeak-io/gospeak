@@ -9,7 +9,7 @@ import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.core.domain.{Event, Group, Proposal, User}
+import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
 import fr.gospeak.core.services.EventRepo
 import fr.gospeak.infra.services.storage.sql.EventRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
@@ -32,6 +32,9 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
       run(update(group, event)(data, by, now))
     }
   }
+
+  override def attachCfp(group: Group.Id, event: Event.Slug)(cfp: Cfp.Id, by: User.Id, now: Instant): IO[Done] =
+    run(updateCfp(group, event)(cfp, by, now))
 
   override def editTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): IO[Done] =
     run(updateTalks(group, event)(talks, by, now))
@@ -62,6 +65,11 @@ object EventRepoSql {
 
   private[sql] def update(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): doobie.Update0 = {
     val fields = fr0"cfp_id=${data.cfp}, slug=${data.slug}, name=${data.name}, start=${data.start}, updated=$now, updated_by=$by"
+    buildUpdate(tableFr, fields, where(group, event)).update
+  }
+
+  private[sql] def updateCfp(group: Group.Id, event: Event.Slug)(cfp: Cfp.Id, by: User.Id, now: Instant): doobie.Update0 = {
+    val fields = fr0"cfp_id=$cfp, updated=$now, updated_by=$by"
     buildUpdate(tableFr, fields, where(group, event)).update
   }
 

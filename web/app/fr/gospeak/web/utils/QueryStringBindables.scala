@@ -1,6 +1,6 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.core.domain.UserRequest
+import fr.gospeak.core.domain.{Event, UserRequest}
 import fr.gospeak.libs.scalautils.domain.{Page, Url}
 import play.api.mvc.QueryStringBindable
 
@@ -40,5 +40,14 @@ object QueryStringBindables {
 
       override def unbind(key: String, id: UserRequest.Id): String =
         stringBinder.unbind(key, id.value)
+    }
+
+  implicit def eventSlugQueryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[Event.Slug] =
+    new QueryStringBindable[Event.Slug] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Event.Slug]] =
+        stringBinder.bind(key, params).map(_.flatMap(u => Event.Slug.from(u).left.map(_.getMessage)))
+
+      override def unbind(key: String, slug: Event.Slug): String =
+        stringBinder.unbind(key, slug.value)
     }
 }

@@ -4,6 +4,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.Locale
 
+import fr.gospeak.core.domain.Cfp
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.pages.partials.html.{pagination, search}
 import play.api.mvc.Call
@@ -67,6 +68,15 @@ object Formats {
       case _ if plural.isEmpty => s"$n ${word}s"
       case _ => s"$n $plural"
     }
+
+  def cfpDates(cfp: Cfp, now: LocalDateTime = LocalDateTime.now()): String = (cfp.start, cfp.end) match {
+    case (Some(start), Some(end)) => s"from ${date(start)} to ${date(end)}"
+    case (Some(start), None) if start.isAfter(now) => s"starting ${date(start)}"
+    case (Some(start), None) => s"started ${date(start)}"
+    case (None, Some(end)) if end.isAfter(now) => s"closing ${date(end)}"
+    case (None, Some(end)) => s"closed ${date(end)}"
+    case (None, None) => "always open"
+  }
 
   def paginated[A](page: Page[A],
                    link: Page.Params => Call,

@@ -34,7 +34,7 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
 
   override def find(id: Cfp.Id): IO[Option[Cfp]] = run(selectOne(id).option)
 
-  override def find(slug: Cfp.Slug): IO[Option[Cfp]] = run(selectOne(slug).option)
+  override def find(slug: Cfp.Slug): IO[Option[Cfp]] = run(selectOne(slug).option) // TODO remove this
 
   override def find(group: Group.Id, slug: Cfp.Slug): IO[Option[Cfp]] = run(selectOne(slug).option)
 

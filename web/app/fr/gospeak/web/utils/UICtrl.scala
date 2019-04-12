@@ -8,20 +8,14 @@ import play.api.i18n.I18nSupport
 import play.api.mvc._
 
 abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv]) extends AbstractController(cc) with I18nSupport {
-  protected def talkNotFound(talk: Talk.Slug): Result =
-    Redirect(pages.speaker.routes.TalkCtrl.list()).flashing("warning" -> s"Unable to find talk with slug '${talk.value}'")
-
-  protected def cfpNotFound(talk: Talk.Slug, cfp: Cfp.Slug): Result =
-    Redirect(pages.speaker.cfps.routes.CfpCtrl.list(talk)).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")
-
   protected def cfpNotFound(group: Group.Slug, cfp: Cfp.Slug): Result =
     Redirect(pages.orga.cfps.routes.CfpCtrl.list(group)).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")
 
+  protected def cfpNotFound(group: Group.Slug, event: Event.Slug, cfp: Cfp.Slug): Result =
+    Redirect(pages.orga.events.routes.EventCtrl.detail(group, event)).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")
+
   protected def proposalNotFound(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Result =
     Redirect(pages.orga.cfps.proposals.routes.ProposalCtrl.list(group, cfp)).flashing("warning" -> s"Unable to find proposal with id '${proposal.value}'")
-
-  protected def proposalNotFound(talk: Talk.Slug, proposal: Proposal.Id): Result =
-    Redirect(pages.speaker.proposals.routes.ProposalCtrl.list(talk)).flashing("warning" -> s"Unable to find proposal with id '${proposal.value}'")
 
   protected def groupNotFound(group: Group.Slug): Result =
     Redirect(pages.orga.routes.GroupCtrl.list()).flashing("warning" -> s"Unable to find group with slug '${group.value}'")
@@ -34,6 +28,15 @@ abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv
 
   protected def speakerNotFound(group: Group.Slug, speaker: User.Slug): Result =
     Redirect(pages.orga.speakers.routes.SpeakerCtrl.list(group)).flashing("warning" -> s"Unable to find speaker with slug '${speaker.value}'")
+
+  protected def talkNotFound(talk: Talk.Slug): Result =
+    Redirect(pages.speaker.routes.TalkCtrl.list()).flashing("warning" -> s"Unable to find talk with slug '${talk.value}'")
+
+  protected def cfpNotFound(talk: Talk.Slug, cfp: Cfp.Slug): Result =
+    Redirect(pages.speaker.cfps.routes.CfpCtrl.list(talk)).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")
+
+  protected def proposalNotFound(talk: Talk.Slug, proposal: Proposal.Id): Result =
+    Redirect(pages.speaker.proposals.routes.ProposalCtrl.list(talk)).flashing("warning" -> s"Unable to find proposal with id '${proposal.value}'")
 
   protected def notFound()(implicit req: Request[AnyContent]): Result =
     NotFound("Not found :(")

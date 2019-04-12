@@ -16,6 +16,10 @@
     margin-top: -7px;
     margin-bottom: -3px;
 }
+.card-header .input-group-sm {
+    margin-top: -3px;
+    margin-bottom: -4px;
+}
 
 .list-group-item ul, .list-group-item ol {
     margin-bottom: 0;
@@ -37,7 +41,7 @@
 
 .avatar {
     border-radius: .25em;
-    height: 28px;
+    height: 31px;
 }
 
 .dropdown .avatar {

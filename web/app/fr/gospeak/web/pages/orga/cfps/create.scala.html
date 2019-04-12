@@ -1,19 +1,19 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Cfp, Group}
+@import fr.gospeak.core.domain.{Cfp, Event, Group}
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.orga.partials.html.cfpFields
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.html.securedContainer
-@import fr.gospeak.web.pages.orga.partials.html.cfpFields
-@import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
 
-@(group: Group, form: Form[Cfp.Data])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, form: Form[Cfp.Data], event: Option[Event.Slug])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer("Gospeak", h, Some(b))() {
     <div class="page-header">
         <h1>Create a CFP</h1>
     </div>
 
-    @formElt(form, CfpCtrl.doCreate(group.slug)) {
+    @formElt(form, CfpCtrl.doCreate(group.slug, event)) {
         @cfpFields(form)
         @actionsHorizontal() {
             @btnCancel(CfpCtrl.list(group.slug))

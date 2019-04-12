@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.orga.events
 
-import fr.gospeak.core.domain.Event
+import fr.gospeak.core.domain.{Cfp, Event}
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Forms._
 import play.api.data._
@@ -13,4 +13,6 @@ object EventForms {
     "start" -> localDateTime,
     "venue" -> optional(gMapPlace)
   )(Event.Data.apply)(Event.Data.unapply))
+
+  val attachCfp: Form[Cfp.Slug] = Form(single("cfp" -> cfpSlug))
 }

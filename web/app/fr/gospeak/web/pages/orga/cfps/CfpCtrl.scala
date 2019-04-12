@@ -6,7 +6,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import fr.gospeak.core.domain.{Cfp, Group, User}
+import fr.gospeak.core.domain.{Cfp, Event, Group, User}
 import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -14,6 +14,7 @@ import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.cfps.CfpCtrl._
 import fr.gospeak.web.pages.orga.routes.{GroupCtrl => GroupRoutes}
+import fr.gospeak.web.pages.orga.events.routes.{EventCtrl => EventRoutes}
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -37,28 +38,35 @@ class CfpCtrl(cc: ControllerComponents,
     } yield Ok(html.list(groupElt, cfps)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
-  def create(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    createForm(group, CfpForms.create).unsafeToFuture()
+  def create(group: Group.Slug, event: Option[Event.Slug]): Action[AnyContent] = SecuredAction.async { implicit req =>
+    createForm(group, CfpForms.create, event).unsafeToFuture()
   }
 
-  def doCreate(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def doCreate(group: Group.Slug, event: Option[Event.Slug]): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     CfpForms.create.bindFromRequest.fold(
-      formWithErrors => createForm(group, formWithErrors),
+      formWithErrors => createForm(group, formWithErrors, event),
       data => (for {
         groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
         // TODO check if slug not already exist
-        _ <- OptionT.liftF(cfpRepo.create(groupElt.id, data, req.identity.user.id, now))
-      } yield Redirect(routes.CfpCtrl.detail(group, data.slug))).value.map(_.getOrElse(groupNotFound(group)))
+        cfpElt <- OptionT.liftF(cfpRepo.create(groupElt.id, data, req.identity.user.id, now))
+        redirect <- OptionT.liftF(event.map { e =>
+          eventRepo.attachCfp(groupElt.id, e)(cfpElt.id, req.identity.user.id, now)
+            .map(_ => Redirect(EventRoutes.detail(group, e)))
+          // TODO recover and redirect to cfp detail
+        }.getOrElse {
+          IO.pure(Redirect(routes.CfpCtrl.detail(group, data.slug)))
+        })
+      } yield redirect).value.map(_.getOrElse(groupNotFound(group)))
     ).unsafeToFuture()
   }
 
-  private def createForm(group: Group.Slug, form: Form[Cfp.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+  private def createForm(group: Group.Slug, form: Form[Cfp.Data], event: Option[Event.Slug])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       h = header(group)
       b = listBreadcrumb(req.identity.user.name, groupElt).add("New" -> routes.CfpCtrl.create(group))
-    } yield Ok(html.create(groupElt, form)(h, b))).value.map(_.getOrElse(groupNotFound(group)))
+    } yield Ok(html.create(groupElt, form, event)(h, b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
   def detail(group: Group.Slug, cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>

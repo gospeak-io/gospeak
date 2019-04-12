@@ -51,7 +51,7 @@ object DoobieUtils {
     // TODO improve tests & extract some methods
     def paginate(params: Page.Params, searchFields: Seq[String], defaultSort: Page.OrderBy, whereOpt: Option[Fragment] = None, prefix: Option[String] = None): Paginate = {
       val search = params.search.filter(_ => searchFields.nonEmpty)
-        .map { search => searchFields.map(s => Fragment.const(prefix.map(_ + ".").getOrElse("") + s) ++ fr"LIKE ${"%" + search.value + "%"}").reduce(_ ++ fr"OR" ++ _) }
+        .map { search => searchFields.map(s => Fragment.const(prefix.map(_ + ".").getOrElse("") + s) ++ fr"ILIKE ${"%" + search.value + "%"}").reduce(_ ++ fr"OR" ++ _) }
         .map { search => whereOpt.map(_ ++ fr" AND" ++ fr0"(" ++ search ++ fr")").getOrElse(fr"WHERE" ++ search) }
         .orElse(whereOpt.map(_ ++ space))
         .getOrElse(empty)
