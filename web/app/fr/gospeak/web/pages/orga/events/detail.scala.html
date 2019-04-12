@@ -14,19 +14,16 @@
 
 @(group: Group, event: Event, talks: Seq[Proposal], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], attachCfp: Form[Cfp.Slug], groupCfps: Seq[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer(event.name.value + " - Gospeak", h, Some(b))() {
-    <div>
-        <div class="float-right">
-            <a class="btn btn-outline-secondary" href="@EventCtrl.edit(group.slug, event.slug)" title="edit">
-                <i class="fas fa-edit"></i>
-            </a>
-        </div>
-        <h1>@event.name.value</h1>
-        <p>
-            @Formats.datetime(event.start),
-            @event.venue.map { v => @v.format, }.getOrElse{ <b class="text-danger">Missing venue</b>, }
-            @event.talks.length planned talks
-        </p>
-    </div>
+    <h1 class="d-flex justify-content-between align-items-center">
+        <span>@event.name.value</span>
+        <a class="btn btn-outline-secondary" href="@EventCtrl.edit(group.slug, event.slug)" title="edit"><i class="fas fa-edit"></i></a>
+    </h1>
+
+    <p>
+        @Formats.datetime(event.start),
+        @event.venue.map { v => @v.format, }.getOrElse{ <b class="text-danger">Missing venue</b>, }
+        @event.talks.length planned talks
+    </p>
 
     @if(event.talks.nonEmpty) {
         <h2 class="text-capitalize">@Formats.plural(event.talks.length, "planned talk")</h2>

@@ -21,12 +21,10 @@
             </p>
         </div>
     } else {
-        <div>
-            <div class="float-right">
-                <a class="btn btn-primary" href="@TalkCtrl.create()">Create talk</a>
-            </div>
-            <h1 class="text-capitalize">@Formats.plural(talks.total.value, "talk")</h1>
-        </div>
+        <h1 class="d-flex justify-content-between align-items-center">
+            <span class="text-capitalize">@Formats.plural(talks.total.value, "talk")</span>
+            <a class="btn btn-primary" href="@TalkCtrl.create()">Create talk</a>
+        </h1>
         @Formats.paginated[Talk](talks, TalkCtrl.list, talkItem(_))
     }
 }()

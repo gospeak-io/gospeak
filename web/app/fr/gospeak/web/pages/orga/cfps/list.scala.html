@@ -10,11 +10,9 @@
 
 @(group: Group, cfps: Page[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer("Gospeak", h, Some(b))() {
-    <div>
-        <div class="float-right">
-            <a class="btn btn-primary" href="@CfpCtrl.create(group.slug)">Create a CFP</a>
-        </div>
-        <h1 class="text-capitalize">@Formats.plural(cfps.total.value, "CFP")</h1>
-    </div>
+    <h1 class="d-flex justify-content-between align-items-center">
+        <span class="text-capitalize">@Formats.plural(cfps.total.value, "CFP")</span>
+        <a class="btn btn-primary" href="@CfpCtrl.create(group.slug)">Create a CFP</a>
+    </h1>
     @Formats.paginated[Cfp](cfps, CfpCtrl.list(group.slug, _), cfpItem(group, _))
 }()

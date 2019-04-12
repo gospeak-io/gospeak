@@ -23,12 +23,10 @@
             </p>
         </div>
     } else {
-        <div>
-            <div class="float-right">
-                <a class="btn btn-primary" href="@GroupCtrl.create()">Create a group</a>
-            </div>
-            <h1 class="text-capitalize">@Formats.plural(groups.total.value, "group")</h1>
-        </div>
+        <h1 class="d-flex justify-content-between align-items-center">
+            <span class="text-capitalize">@Formats.plural(groups.total.value, "group")</span>
+            <a class="btn btn-primary" href="@GroupCtrl.create()">Create a group</a>
+        </h1>
         @Formats.paginated[Group](groups, GroupCtrl.list, groupItem(_))
     }
 }()

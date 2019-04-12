@@ -12,10 +12,7 @@
     background-color: #e9ecef;
 }
 
-.card-header .btn-sm {
-    margin-top: -7px;
-    margin-bottom: -3px;
-}
+.card-header .btn-sm,
 .card-header .input-group-sm {
     margin-top: -3px;
     margin-bottom: -4px;
@@ -31,6 +28,10 @@
 
 .form-row.is-invalid ~ .invalid-feedback, .is-invalid .invalid-feedback {
     display: block;
+}
+
+.pagination {
+    margin-bottom: 0;
 }
 
 /* My styles */

@@ -81,13 +81,15 @@ object Formats {
   def paginated[A](page: Page[A],
                    link: Page.Params => Call,
                    item: A => Html): Html = Html(
-    s"""<div class="float-right">${pagination(page, link)}</div>
-       |${search(page, link(Page.Params.defaults))}
+    s"""<div class="d-flex justify-content-between">
+       |  ${search(page, link(Page.Params.defaults))}
+       |  ${pagination(page, link)}
+       |</div>
        |
        |<div class="list-group mt-3 mb-3">
        |${page.items.map(item).mkString("\n")}
        |</div>
        |
-       |<div class="float-right">${pagination(page, link)}</div>
+       |<div class="d-flex justify-content-end">${pagination(page, link)}</div>
      """.stripMargin)
 }

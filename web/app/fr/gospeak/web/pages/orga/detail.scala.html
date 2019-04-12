@@ -10,19 +10,18 @@
 
 @(group: Group, events: Page[Event], proposals: Seq[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @securedContainer("Gospeak", h, Some(b))() {
-    <div>
-        <h1>@group.name.value</h1>
-    </div>
+    <h1>@group.name.value</h1>
 
     @if(events.isEmpty) {
-        <h2>No incoming events <a class="btn btn-primary" href="@EventCtrl.create(group.slug)">Create an event</a></h2>
+        <h2 class="d-flex justify-content-between align-items-center">
+            <span class="text-capitalize">No incoming events</span>
+            <a class="btn btn-primary" href="@EventCtrl.create(group.slug)">Create an event</a>
+        </h2>
     } else {
-        <div>
-            <div class="float-right">
-                <a class="btn btn-primary" href="@EventCtrl.create(group.slug)">Create an event</a>
-            </div>
-            <h2 class="text-capitalize">@Formats.plural(events.total.value, "incoming event")</h2>
-        </div>
+        <h2 class="d-flex justify-content-between align-items-center">
+            <span class="text-capitalize">@Formats.plural(events.total.value, "incoming event")</span>
+            <a class="btn btn-primary" href="@EventCtrl.create(group.slug)">Create an event</a>
+        </h2>
 
         <div class="list-group mt-3 mb-3">
             @events.items.map { e => @eventItem(group, e, proposals, speakers) }

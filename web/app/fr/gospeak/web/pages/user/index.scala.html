@@ -36,12 +36,12 @@
             </div>
         } else {
             <div class="card">
-                <h5 class="card-header">
-                    <div class="float-right">
+                <h5 class="card-header d-flex justify-content-between align-items-center">
+                    <span>Your groups</span>
+                    <span>
                         <a class="btn btn-primary btn-sm" href="#">Join a group</a>
                         <a class="btn btn-primary btn-sm" href="@GroupCtrl.create()">Create a group</a>
-                    </div>
-                    Your groups
+                    </span>
                 </h5>
                 <ul class="list-group list-group-flush">
                 @groups.items.map { g => @cardItem(GroupCtrl.detail(g.slug), g.name.value, g.owners.length, "Number of organizers") }
@@ -66,11 +66,9 @@
             </div>
         } else {
             <div class="card">
-                <h5 class="card-header">
-                    <div class="float-right">
-                        <a class="btn btn-primary btn-sm" href="@TalkCtrl.create()">Create a talk</a>
-                    </div>
-                    Your talks
+                <h5 class="card-header d-flex justify-content-between align-items-center">
+                    <span>Your talks</span>
+                    <a class="btn btn-primary btn-sm" href="@TalkCtrl.create()">Create a talk</a>
                 </h5>
                 <div class="list-group list-group-flush">
                 @talks.items.map { t => @cardItem(TalkCtrl.detail(t.slug), t.title.value, t.speakers.length, "Number of speakers") }
