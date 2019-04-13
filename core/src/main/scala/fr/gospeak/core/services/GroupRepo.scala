@@ -22,4 +22,6 @@ trait UserGroupRepo {
   def list(user: User.Id, params: Page.Params): IO[Page[Group]]
 }
 
-trait AuthGroupRepo
+trait AuthGroupRepo {
+  def list(user: User.Id): IO[Seq[Group]]
+}

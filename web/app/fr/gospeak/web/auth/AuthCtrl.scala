@@ -10,7 +10,7 @@ import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
 import fr.gospeak.core.domain.UserRequest
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
-import fr.gospeak.core.services.{AuthUserRepo, AuthUserRequestRepo}
+import fr.gospeak.core.services.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.web.auth.AuthCtrl._
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -37,6 +37,7 @@ class AuthCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
                userRepo: AuthUserRepo,
                userRequestRepo: AuthUserRequestRepo,
+               groupRepo: AuthGroupRepo,
                authSrv: AuthSrv,
                emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
   private val loginRedirect = (redirect: Option[String]) => Redirect(redirect.getOrElse(user.routes.UserCtrl.index().path()))
@@ -108,8 +109,9 @@ class AuthCtrl(cc: ControllerComponents,
       validation <- OptionT(userRequestRepo.findPendingAccountValidationRequest(id, now).unsafeToFuture())
       _ <- OptionT.liftF(userRequestRepo.validateAccount(id, validation.email, now).unsafeToFuture())
       user <- OptionT(userRepo.find(validation.email).unsafeToFuture())
+      groups <- OptionT.liftF(groupRepo.list(user.id).unsafeToFuture())
       redirect = Redirect(routes.AuthCtrl.login()).flashing("success" -> s"Well done! You validated your email.")
-      result <- OptionT.liftF(authSrv.login(AuthSrv.authUser(user), rememberMe = false, redirect))
+      result <- OptionT.liftF(authSrv.login(AuthSrv.authUser(user, groups), rememberMe = false, redirect))
     } yield result).value.map(_.getOrElse(notFound()))
   }
 

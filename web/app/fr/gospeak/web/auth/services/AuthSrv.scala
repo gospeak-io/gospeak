@@ -11,10 +11,10 @@ import com.mohiva.play.silhouette.impl.exceptions.IdentityNotFoundException
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import com.mohiva.play.silhouette.password.BCryptPasswordHasher
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
-import fr.gospeak.core.domain.User
+import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.domain.User.{ProviderId, ProviderKey}
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
-import fr.gospeak.core.services.{AuthUserRepo, AuthUserRequestRepo}
+import fr.gospeak.core.services.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.EmailAddress
@@ -27,9 +27,10 @@ import play.api.mvc.{AnyContent, Request, Result}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AuthSrv(authRepo: AuthRepo,
-              userRepo: AuthUserRepo,
+class AuthSrv(userRepo: AuthUserRepo,
               userRequestRepo: AuthUserRequestRepo,
+              groupRepo: AuthGroupRepo,
+              authRepo: AuthRepo,
               silhouette: Silhouette[CookieEnv],
               clock: Clock,
               authConf: AuthConf,
@@ -55,7 +56,8 @@ class AuthSrv(authRepo: AuthRepo,
       }
       _ <- userRepo.createLoginRef(login, user.id)
       _ <- userRepo.createCredentials(credentials)
-      authUser = AuthUser(loginInfo, user)
+      groups <- groupRepo.list(user.id)
+      authUser = AuthUser(loginInfo, user, groups)
       _ = silhouette.env.eventBus.publish(SignUpEvent(authUser, req))
     } yield authUser
   }
@@ -103,7 +105,8 @@ class AuthSrv(authRepo: AuthRepo,
       _ <- userRepo.find(login).flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user for ${login.providerId}")))
       _ <- userRequestRepo.resetPassword(passwordReset, credentials, now)
       updatedUser <- userRepo.find(login).flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user for ${login.providerId}")))
-      authUser = AuthUser(loginInfo, updatedUser)
+      groups <- groupRepo.list(updatedUser.id)
+      authUser = AuthUser(loginInfo, updatedUser, groups)
     } yield authUser
   }
 
@@ -113,17 +116,17 @@ class AuthSrv(authRepo: AuthRepo,
 }
 
 object AuthSrv {
-  def apply(authConf: AuthConf, silhouette: Silhouette[CookieEnv], userRepo: AuthUserRepo, userRequestRepo: AuthUserRequestRepo, authRepo: AuthRepo, clock: Clock, gravatarSrv: GravatarSrv): AuthSrv = {
+  def apply(authConf: AuthConf, silhouette: Silhouette[CookieEnv], userRepo: AuthUserRepo, userRequestRepo: AuthUserRequestRepo, groupRepo: AuthGroupRepo, authRepo: AuthRepo, clock: Clock, gravatarSrv: GravatarSrv): AuthSrv = {
     val authInfoRepository = new DelegableAuthInfoRepository(authRepo)
     val bCryptPasswordHasher: PasswordHasher = new BCryptPasswordHasher
     val passwordHasherRegistry: PasswordHasherRegistry = PasswordHasherRegistry(bCryptPasswordHasher)
     val credentialsProvider = new CredentialsProvider(authInfoRepository, passwordHasherRegistry)
-    new AuthSrv(authRepo, userRepo, userRequestRepo, silhouette, clock, authConf, passwordHasherRegistry, credentialsProvider, gravatarSrv)
+    new AuthSrv(userRepo, userRequestRepo, groupRepo, authRepo, silhouette, clock, authConf, passwordHasherRegistry, credentialsProvider, gravatarSrv)
   }
 
   def login(email: EmailAddress): User.Login = User.Login(ProviderId(CredentialsProvider.ID), ProviderKey(email.value))
 
   def loginInfo(email: EmailAddress): LoginInfo = new LoginInfo(CredentialsProvider.ID, email.value)
 
-  def authUser(user: User): AuthUser = AuthUser(loginInfo(user.email), user)
+  def authUser(user: User, groups: Seq[Group]): AuthUser = AuthUser(loginInfo(user.email), user, groups)
 }

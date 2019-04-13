@@ -20,9 +20,11 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def create(data: Group.Data, by: User.Id, now: Instant): IO[Group] =
     run(insert, Group(data, NonEmptyList.of(by), Info(by, now)))
 
-  override def find(user: User.Id, slug: Group.Slug): IO[Option[Group]] = run(selectOne(user, slug).option)
-
   override def list(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPage(user, _), params))
+
+  override def list(user: User.Id): IO[Seq[Group]] = run(selectAll(user).to[List])
+
+  override def find(user: User.Id, slug: Group.Slug): IO[Option[Group]] = run(selectOne(user, slug).option)
 }
 
 object GroupRepoSql {
@@ -39,11 +41,14 @@ object GroupRepoSql {
 
   private[sql] def insert(elt: Group): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
-  private[sql] def selectOne(user: User.Id, slug: Group.Slug): doobie.Query0[Group] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE owners LIKE ${"%" + user.value + "%"} AND slug=$slug").query[Group]
-
   private[sql] def selectPage(user: User.Id, params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE owners LIKE ${"%" + user.value + "%"}"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Group], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
+
+  private[sql] def selectAll(user: User.Id): doobie.Query0[Group] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE owners LIKE ${"%" + user.value + "%"}").query[Group]
+
+  private[sql] def selectOne(user: User.Id, slug: Group.Slug): doobie.Query0[Group] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE owners LIKE ${"%" + user.value + "%"} AND slug=$slug").query[Group]
 }

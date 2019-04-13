@@ -2,14 +2,14 @@
 @import fr.gospeak.core.domain.{Event, Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.html.securedContainer
-@import fr.gospeak.web.pages.orga.partials.html.eventItem
+@import fr.gospeak.web.pages.orga.partials.html.{eventItem, container}
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, events: Page[Event], proposals: Seq[Proposal], speakers: Seq[User])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@securedContainer("Gospeak", h, Some(b))() {
+@(group: Group, events: Page[Event], proposals: Seq[Proposal], speakers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", group, b)() {
     <h1>@group.name.value</h1>
 
     @if(events.isEmpty) {

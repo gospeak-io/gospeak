@@ -1,21 +1,24 @@
 package fr.gospeak.web.auth.services
 
+import cats.data.OptionT
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.api.services.IdentityService
 import com.mohiva.play.silhouette.api.util.PasswordInfo
 import com.mohiva.play.silhouette.persistence.daos.DelegableAuthInfoDAO
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.domain.User._
-import fr.gospeak.core.services.AuthUserRepo
+import fr.gospeak.core.services.{AuthGroupRepo, AuthUserRepo}
 import fr.gospeak.libs.scalautils.domain.Done
 import fr.gospeak.web.auth.domain.AuthUser
 
 import scala.concurrent.Future
 
 // TODO merge it with AuthSrv
-class AuthRepo(userRepo: AuthUserRepo) extends DelegableAuthInfoDAO[PasswordInfo] with IdentityService[AuthUser] {
-  override def retrieve(loginInfo: LoginInfo): Future[Option[AuthUser]] =
-    userRepo.find(toDomain(loginInfo)).map(_.map(u => AuthUser(loginInfo, u))).unsafeToFuture()
+class AuthRepo(userRepo: AuthUserRepo, groupRepo: AuthGroupRepo) extends DelegableAuthInfoDAO[PasswordInfo] with IdentityService[AuthUser] {
+  override def retrieve(loginInfo: LoginInfo): Future[Option[AuthUser]] = (for {
+    user <- OptionT(userRepo.find(toDomain(loginInfo)))
+    groups <- OptionT.liftF(groupRepo.list(user.id))
+  } yield AuthUser(loginInfo, user, groups)).value.unsafeToFuture()
 
   override def find(loginInfo: LoginInfo): Future[Option[PasswordInfo]] =
     userRepo.findCredentials(toDomain(loginInfo)).map(_.map(toSilhouette)).unsafeToFuture()

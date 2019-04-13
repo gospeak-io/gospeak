@@ -109,7 +109,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
   // end:Silhouette conf
 
-  lazy val authSrv: AuthSrv = AuthSrv(authConf, silhouette, userRepo, userRequestRepo, authRepo, clock, gravatarSrv)
+  lazy val authSrv: AuthSrv = AuthSrv(authConf, silhouette, userRepo, userRequestRepo, groupRepo, authRepo, clock, gravatarSrv)
 
   lazy val homeCtrl = wire[HomeCtrl]
   lazy val cfpCtrl = wire[published.cfps.CfpCtrl]

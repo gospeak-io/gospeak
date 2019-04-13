@@ -27,6 +27,7 @@ class GroupCtrl(cc: ControllerComponents,
 
   import silhouette._
 
+  // TODO move to user package
   def list(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groups <- groupRepo.list(req.identity.user.id, params)
@@ -63,9 +64,8 @@ class GroupCtrl(cc: ControllerComponents,
       events <- OptionT.liftF(eventRepo.listAfter(groupElt.id, now, Page.Params.defaults.orderBy("start")))
       proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.speakers.toList)))
-      h = header(group)
       b = breadcrumb(req.identity.user.name, groupElt)
-    } yield Ok(html.detail(groupElt, events, proposals, speakers)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, events, proposals, speakers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 }
 
@@ -90,5 +90,5 @@ object GroupCtrl {
     .activeFor(routes.GroupCtrl.list())
 
   def breadcrumb(user: User.Name, group: Group): Breadcrumb =
-    listBreadcrumb(user).add(group.name.value -> routes.GroupCtrl.detail(group.slug))
+    Breadcrumb(group.name.value -> routes.GroupCtrl.detail(group.slug))
 }
