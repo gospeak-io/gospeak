@@ -84,8 +84,8 @@ class UserRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build validateAccount") {
-        val q = validateAccount(user.id, now)
-        q.sql shouldBe "UPDATE users SET email_validated=? WHERE id=?"
+        val q = validateAccount(user.email, now)
+        q.sql shouldBe "UPDATE users SET email_validated=? WHERE email=?"
         check(q)
       }
       it("should build selectOne with login") {

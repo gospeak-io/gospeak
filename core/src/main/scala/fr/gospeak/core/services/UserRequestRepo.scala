@@ -18,7 +18,7 @@ trait UserUserRequestRepo
 trait AuthUserRequestRepo {
   def createAccountValidationRequest(email: EmailAddress, user: User.Id, now: Instant): IO[AccountValidationRequest]
 
-  def validateAccount(id: UserRequest.Id, user: User.Id, now: Instant): IO[Done]
+  def validateAccount(id: UserRequest.Id, email: EmailAddress, now: Instant): IO[Done]
 
   def findPendingAccountValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[AccountValidationRequest]]
 

@@ -4,7 +4,7 @@ import java.time.Instant
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api._
-import com.mohiva.play.silhouette.api.actions.SecuredRequest
+import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import com.mohiva.play.silhouette.api.services.AuthenticatorResult
 import com.mohiva.play.silhouette.api.util._
 import com.mohiva.play.silhouette.impl.exceptions.IdentityNotFoundException
@@ -21,7 +21,7 @@ import fr.gospeak.libs.scalautils.domain.EmailAddress
 import fr.gospeak.web.auth.AuthConf
 import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
-import fr.gospeak.web.auth.exceptions.{DuplicateIdentityException, DuplicateSlugException}
+import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import play.api.mvc.{AnyContent, Request, Result}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -70,6 +70,7 @@ class AuthSrv(authRepo: AuthRepo,
 
   def login(user: AuthUser, rememberMe: Boolean, redirect: Result)(implicit req: Request[AnyContent]): Future[AuthenticatorResult] = {
     for {
+      _ <- if (user.user.emailValidated.isEmpty && user.user.created != user.user.updated) Future.failed(AccountValidationRequiredException(user)) else Future.successful(())
       authenticator <- silhouette.env.authenticatorService.create(user.loginInfo).map {
         case auth if rememberMe => auth.copy(
           expirationDateTime = clock.now.plus(authConf.cookie.rememberMe.authenticatorExpiry.toMillis),
@@ -88,15 +89,21 @@ class AuthSrv(authRepo: AuthRepo,
     silhouette.env.authenticatorService.discard(req.authenticator, redirect)
   }
 
+  def logout(identity: AuthUser, redirect: Result)(implicit req: UserAwareRequest[CookieEnv, AnyContent]): Future[Result] = {
+    silhouette.env.eventBus.publish(LogoutEvent(identity, req))
+    req.authenticator.map(silhouette.env.authenticatorService.discard(_, redirect)).getOrElse(Future.successful(redirect))
+  }
+
   def updateIdentity(data: ResetPasswordData, passwordReset: PasswordResetRequest, now: Instant)(implicit req: Request[AnyContent]): IO[AuthUser] = {
     val loginInfo = AuthSrv.loginInfo(passwordReset.email)
     val login = toDomain(loginInfo)
     val password = toDomain(passwordHasherRegistry.current.hash(data.password.decode))
     val credentials = User.Credentials(login, password)
     for {
-      user <- userRepo.find(login).flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user for ${login.providerId}")))
+      _ <- userRepo.find(login).flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user for ${login.providerId}")))
       _ <- userRequestRepo.resetPassword(passwordReset, credentials, now)
-      authUser = AuthUser(loginInfo, user)
+      updatedUser <- userRepo.find(login).flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user for ${login.providerId}")))
+      authUser = AuthUser(loginInfo, updatedUser)
     } yield authUser
   }
 
@@ -117,4 +124,6 @@ object AuthSrv {
   def login(email: EmailAddress): User.Login = User.Login(ProviderId(CredentialsProvider.ID), ProviderKey(email.value))
 
   def loginInfo(email: EmailAddress): LoginInfo = new LoginInfo(CredentialsProvider.ID, email.value)
+
+  def authUser(user: User): AuthUser = AuthUser(loginInfo(user.email), user)
 }

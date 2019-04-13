@@ -21,7 +21,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
     run(insert, User(data, now))
 
   override def edit(user: User, now: Instant): IO[User] =
-    run(update(user.copy(updated = now))).map(_ => user)
+    run(update(user.copy(updated = now))).map(_ => user.copy(updated = now))
 
   override def createLoginRef(login: User.Login, user: User.Id): IO[Done] =
     run(insertLoginRef, User.LoginRef(login, user)).map(_ => Done)
@@ -82,8 +82,8 @@ object UserRepoSql {
     buildUpdate(tableFr, fields, where).update
   }
 
-  private[sql] def validateAccount(id: User.Id, now: Instant): doobie.Update0 =
-    buildUpdate(tableFr, fr0"email_validated=$now", fr0"WHERE id=$id").update
+  private[sql] def validateAccount(email: EmailAddress, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"email_validated=$now", fr0"WHERE email=$email").update
 
   private[sql] def insertLoginRef(i: User.LoginRef): doobie.Update0 =
     buildInsert(Fragment.const0(loginTable), Fragment.const0(loginFields.mkString(", ")), fr0"${i.login.providerId}, ${i.login.providerKey}, ${i.user}").update

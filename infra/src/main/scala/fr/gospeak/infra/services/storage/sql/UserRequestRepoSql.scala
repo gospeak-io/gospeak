@@ -18,31 +18,32 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
   override def createAccountValidationRequest(email: EmailAddress, user: User.Id, now: Instant): IO[AccountValidationRequest] =
     run(AccountValidation.insert, AccountValidationRequest(email, user, now))
 
+  override def validateAccount(id: UserRequest.Id, email: EmailAddress, now: Instant): IO[Done] = for {
+    _ <- run(AccountValidation.accept(id, now))
+    _ <- run(UserRepoSql.validateAccount(email, now))
+  } yield Done
+
   override def findPendingAccountValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[AccountValidationRequest]] =
     run(AccountValidation.selectPending(id, now).option)
 
   override def findPendingAccountValidationRequest(id: User.Id, now: Instant): IO[Option[AccountValidationRequest]] =
     run(AccountValidation.selectPending(id, now).option)
 
-  override def validateAccount(id: UserRequest.Id, user: User.Id, now: Instant): IO[Done] = for {
-    _ <- run(AccountValidation.accept(id, now))
-    _ <- run(UserRepoSql.validateAccount(user, now))
-  } yield Done
-
 
   override def createPasswordResetRequest(email: EmailAddress, now: Instant): IO[PasswordResetRequest] =
     run(ResetPassword.insert, PasswordResetRequest(email, now))
+
+  override def resetPassword(passwordReset: PasswordResetRequest, credentials: User.Credentials, now: Instant): IO[Done] = for {
+    _ <- run(ResetPassword.accept(passwordReset.id, now))
+    _ <- run(UserRepoSql.updateCredentials(credentials.login)(credentials.pass))
+    _ <- run(UserRepoSql.validateAccount(passwordReset.email, now))
+  } yield Done
 
   override def findPendingPasswordResetRequest(id: UserRequest.Id, now: Instant): IO[Option[PasswordResetRequest]] =
     run(ResetPassword.selectPending(id, now).option)
 
   override def findPendingPasswordResetRequest(email: EmailAddress, now: Instant): IO[Option[PasswordResetRequest]] =
     run(ResetPassword.selectPending(email, now).option)
-
-  override def resetPassword(passwordReset: PasswordResetRequest, credentials: User.Credentials, now: Instant): IO[Done] = for {
-    _ <- run(ResetPassword.accept(passwordReset.id, now))
-    _ <- run(UserRepoSql.updateCredentials(credentials.login)(credentials.pass))
-  } yield Done
 }
 
 object UserRequestRepoSql {
