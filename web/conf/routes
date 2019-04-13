@@ -43,9 +43,9 @@ GET         /u/talks/:talk/proposals/:proposal                           fr.gosp
 POST        /u/talks/:talk/proposals/:proposal/slides                    fr.gospeak.web.pages.speaker.proposals.ProposalCtrl.doAddSlides(talk: Talk.Slug, proposal: Proposal.Id)
 POST        /u/talks/:talk/proposals/:proposal/video                     fr.gospeak.web.pages.speaker.proposals.ProposalCtrl.doAddVideo(talk: Talk.Slug, proposal: Proposal.Id)
 
-GET         /u/groups                                                    fr.gospeak.web.pages.orga.GroupCtrl.list(params: Page.Params ?= Page.Params.defaults)
-GET         /u/groups/create                                             fr.gospeak.web.pages.orga.GroupCtrl.create
-POST        /u/groups/create                                             fr.gospeak.web.pages.orga.GroupCtrl.doCreate
+GET         /u/groups                                                    fr.gospeak.web.pages.user.UserCtrl.listGroup(params: Page.Params ?= Page.Params.defaults)
+GET         /u/groups/create                                             fr.gospeak.web.pages.user.UserCtrl.createGroup
+POST        /u/groups/create                                             fr.gospeak.web.pages.user.UserCtrl.doCreateGroup
 GET         /u/groups/:group                                             fr.gospeak.web.pages.orga.GroupCtrl.detail(group: Group.Slug)
 GET         /u/groups/:group/events                                      fr.gospeak.web.pages.orga.events.EventCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/events/create                               fr.gospeak.web.pages.orga.events.EventCtrl.create(group: Group.Slug)

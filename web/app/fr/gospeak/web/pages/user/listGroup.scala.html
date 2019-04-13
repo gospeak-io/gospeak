@@ -3,9 +3,9 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.pages.partials.html.securedContainer
 @import fr.gospeak.web.pages.orga.partials.html.groupItem
-@import fr.gospeak.web.pages.orga.routes.GroupCtrl
+@import fr.gospeak.web.pages.partials.html.securedContainer
+@import fr.gospeak.web.pages.user.routes.UserCtrl
 @import fr.gospeak.web.utils.Formats
 
 @(groups: Page[Group])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
@@ -19,14 +19,14 @@
             <p class="text-center">
                 <a href="TODO" class="btn btn-lg btn-success">Join an existing group</a>
                 or
-                <a href="@GroupCtrl.create()" class="btn btn-lg btn-success">Create your own group</a>
+                <a href="@UserCtrl.createGroup()" class="btn btn-lg btn-success">Create your own group</a>
             </p>
         </div>
     } else {
         <h1 class="d-flex justify-content-between align-items-center">
             <span class="text-capitalize">@Formats.plural(groups.total.value, "group")</span>
-            <a class="btn btn-primary" href="@GroupCtrl.create()">Create a group</a>
+            <a class="btn btn-primary" href="@UserCtrl.createGroup()">Create a group</a>
         </h1>
-        @Formats.paginated[Group](groups, GroupCtrl.list, groupItem(_))
+        @Formats.paginated[Group](groups, UserCtrl.listGroup, groupItem(_))
     }
 }()

@@ -18,7 +18,7 @@ abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv
     Redirect(pages.orga.cfps.proposals.routes.ProposalCtrl.list(group, cfp)).flashing("warning" -> s"Unable to find proposal with id '${proposal.value}'")
 
   protected def groupNotFound(group: Group.Slug): Result =
-    Redirect(pages.orga.routes.GroupCtrl.list()).flashing("warning" -> s"Unable to find group with slug '${group.value}'")
+    Redirect(pages.user.routes.UserCtrl.listGroup()).flashing("warning" -> s"Unable to find group with slug '${group.value}'")
 
   protected def eventNotFound(group: Group.Slug, event: Event.Slug): Result =
     Redirect(pages.orga.events.routes.EventCtrl.list(group)).flashing("warning" -> s"Unable to find event with slug '${event.value}'")

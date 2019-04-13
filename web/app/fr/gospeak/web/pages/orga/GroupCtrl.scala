@@ -3,7 +3,6 @@ package fr.gospeak.web.pages.orga
 import java.time.Instant
 
 import cats.data.OptionT
-import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, User}
@@ -15,7 +14,6 @@ import fr.gospeak.web.pages.orga.GroupCtrl._
 import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.utils.UICtrl
-import play.api.data.Form
 import play.api.mvc._
 
 class GroupCtrl(cc: ControllerComponents,
@@ -26,36 +24,6 @@ class GroupCtrl(cc: ControllerComponents,
                 proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
-
-  // TODO move to user package
-  def list(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
-    (for {
-      groups <- groupRepo.list(req.identity.user.id, params)
-      h = listHeader()
-      b = listBreadcrumb(req.identity.user.name)
-    } yield Ok(html.list(groups)(h, b))).unsafeToFuture()
-  }
-
-  def create(): Action[AnyContent] = SecuredAction.async { implicit req =>
-    createForm(GroupForms.create).unsafeToFuture()
-  }
-
-  def doCreate(): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
-    GroupForms.create.bindFromRequest.fold(
-      formWithErrors => createForm(formWithErrors),
-      data => for {
-        // TODO check if slug not already exist
-        _ <- groupRepo.create(data, req.identity.user.id, now)
-      } yield Redirect(routes.GroupCtrl.detail(data.slug))
-    ).unsafeToFuture()
-  }
-
-  private def createForm(form: Form[Group.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
-    val h = listHeader()
-    val b = listBreadcrumb(req.identity.user.name).add("New" -> routes.GroupCtrl.create())
-    IO.pure(Ok(html.create(form)(h, b)))
-  }
 
   def detail(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
@@ -78,16 +46,15 @@ object GroupCtrl {
     NavLink("Settings", settings.routes.SettingsCtrl.list(group)))
 
   def listHeader()(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
-    UserCtrl.header().activeFor(routes.GroupCtrl.list())
+    UserCtrl.header()
 
   def listBreadcrumb(user: User.Name): Breadcrumb =
-    UserCtrl.breadcrumb(user).add("Groups" -> routes.GroupCtrl.list())
+    UserCtrl.breadcrumb(user)
 
   def header(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo = HeaderInfo(
     brand = NavLink("Gospeak", fr.gospeak.web.pages.user.routes.UserCtrl.index()),
     links = NavDropdown("Public", HomeCtrl.publicNav) +: NavDropdown("User", UserCtrl.userNav) +: groupNav(group),
     rightLinks = UserCtrl.rightNav())
-    .activeFor(routes.GroupCtrl.list())
 
   def breadcrumb(user: User.Name, group: Group): Breadcrumb =
     Breadcrumb(group.name.value -> routes.GroupCtrl.detail(group.slug))
