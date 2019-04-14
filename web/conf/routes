@@ -72,6 +72,8 @@ GET         /u/groups/:group/speakers                                    fr.gosp
 GET         /u/groups/:group/speakers/:speaker                           fr.gospeak.web.pages.orga.speakers.SpeakerCtrl.detail(group: Group.Slug, speaker: User.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/settings                                    fr.gospeak.web.pages.orga.settings.SettingsCtrl.list(group: Group.Slug)
 
+GET         /status                                                      fr.gospeak.web.api.StatusCtrl.getStatus
+
 + nocsrf
 POST        /ui/utils/markdown-to-html                                   fr.gospeak.web.api.ui.UtilsCtrl.markdownToHtml
 GET         /ui/utils/embed                                              fr.gospeak.web.api.ui.UtilsCtrl.embed(url: Url)

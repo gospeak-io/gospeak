@@ -2,20 +2,6 @@ ThisBuild / version := "0.1-SNAPSHOT"
 ThisBuild / scalaVersion := "2.12.8"
 ThisBuild / organization := "fr.gospeak"
 
-/*
-  https://www.silhouette.rocks/docs/releases
-  https://www.silhouette.rocks/v5.0/docs
-  http://api.play.silhouette.rocks/5.0.7/
-
-  http://discourse.silhouette.rocks
-
-  Silhouette examples:
-    - https://github.com/mohiva/play-silhouette-seed                   (silhouette 5.0.7,     Play 2.6.21, Runtime DI)
-    - https://github.com/epot/play-silhouette-angular-typescript.g8    (silhouette 5.0.3,     Play 2.6.12, Runtime DI)
-    - https://github.com/thomasmatecki/play-silhouette-simple-slick    (silhouette 5.0.0-RC2, Play 2.6.2,  Runtime DI, slick)
-    - https://github.com/holandajunior/play-silhouette-macwire-mongodb (silhouette 4.0.0,     Play 2.5.10, Compile DI)
-*/
-
 /**
   * Global settings
   */
@@ -118,7 +104,7 @@ val infra = (project in file("infra"))
   )
 
 val web = (project in file("web"))
-  .enablePlugins(PlayScala)
+  .enablePlugins(PlayScala, BuildInfoPlugin)
   .dependsOn(core % "compile->compile;test->test", infra)
   .settings(
     name := "web",
@@ -128,9 +114,31 @@ val web = (project in file("web"))
       "fr.gospeak.libs.scalautils.domain._",
       "fr.gospeak.web.utils.PathBindables._",
       "fr.gospeak.web.utils.QueryStringBindables._"),
-    // TwirlKeys.templateImports := Seq(), // TODO add later
+    buildInfoKeys := Seq[BuildInfoKey](
+      name, version, scalaVersion, sbtVersion, buildInfoBuildNumber,
+      // see https://www.git-scm.com/docs/git-log#_pretty_formats
+      "gitBranch" -> execOutput("git rev-parse --abbrev-ref HEAD"),
+      "gitHash" -> execOutput("git log -1 --format=%h"),
+      "gitAuthorName"-> execOutput("git log -1 --format=%an"),
+      "gitAuthorEmail"-> execOutput("git log -1 --format=%ae"),
+      "gitAuthorDate"-> execOutput("git log -1 --format=%at"),
+      "gitCommitterName"-> execOutput("git log -1 --format=%cn"),
+      "gitCommitterEmail"-> execOutput("git log -1 --format=%ce"),
+      "gitCommitterDate"-> execOutput("git log -1 --format=%ct"),
+      "gitSubject" -> execOutput("git log -1 --format=%s")),
+    buildInfoPackage := "generated",
+    buildInfoOptions ++= Seq(BuildInfoOption.BuildTime),
     commonSettings
   )
+
+def execOutput(command: String): String = {
+  try {
+    val extracted = new java.io.InputStreamReader(java.lang.Runtime.getRuntime.exec(command).getInputStream)
+    new java.io.BufferedReader(extracted).readLine()
+  } catch {
+    case t: Throwable => s"'$command' failed: ${t.getMessage}"
+  }
+}
 
 val global = (project in file("."))
   .enablePlugins(PlayScala)
