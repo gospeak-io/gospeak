@@ -11,7 +11,7 @@ import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, Secure
 import com.softwaremill.macwire.wire
 import fr.gospeak.core.services._
 import fr.gospeak.infra.services.storage.sql._
-import fr.gospeak.infra.services.{ConsoleEmailSrv, EmailSrv, GravatarSrv}
+import fr.gospeak.infra.services.{EmailSrv, GravatarSrv}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
 import fr.gospeak.web.auth.{AuthConf, AuthCtrl}
@@ -60,8 +60,8 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val talkRepo: TalkRepo = db.talk
   lazy val proposalRepo: ProposalRepo = db.proposal
   lazy val authRepo: AuthRepo = wire[AuthRepo]
-  lazy val emailSrv: EmailSrv = wire[ConsoleEmailSrv]
   lazy val gravatarSrv: GravatarSrv = wire[GravatarSrv]
+  lazy val emailSrv: EmailSrv = EmailSrv.from(conf.emailService)
 
   // start:Silhouette conf
   lazy val clock: Clock = Clock()
