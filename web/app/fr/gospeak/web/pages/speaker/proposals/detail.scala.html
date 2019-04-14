@@ -2,24 +2,22 @@
 @import fr.gospeak.core.domain.{Cfp, Event, Proposal, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.Url
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.partials.html.{securedContainer, slidesFields, videoFields}
+@import fr.gospeak.web.pages.partials.html.{slidesFields, videoFields}
+@import fr.gospeak.web.pages.speaker.partials.html.container
 @import fr.gospeak.web.pages.speaker.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(talk: Talk, cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event], embedForm: Form[Url])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(talk: Talk, cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event], embedForm: Form[Url])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @eventinfo(id: Event.Id) = {
     @events.find(_.id == id).map { e => @e.name.value - @Formats.date(e.start) }.getOrElse { Unknown event @id.value }
 }
-@securedContainer(cfp.name.value + " - Gospeak", h, Some(b))() {
-    <div>
-        <h1>@proposal.title.value proposal to @cfp.name.value</h1>
-        @duration(proposal.duration) @proposalStatus(proposal.status) @proposal.event.map { id => @eventinfo(id) }
-    </div>
+@container(cfp.name.value + " - Gospeak", b)() {
+    <h1>@proposal.title.value proposal to @cfp.name.value</h1>
 
+    <p>@duration(proposal.duration) @proposalStatus(proposal.status) @proposal.event.map { id => @eventinfo(id) }</p>
     <p>@markdown(proposal.description)</p>
-
     <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id) }</p>
 
     @proposal.slides.map { s => @embed(s.value) }.getOrElse { @slidesFields(embedForm, ProposalCtrl.doAddSlides(talk.slug, proposal.id)) }

@@ -24,7 +24,7 @@ GET         /reset-password                                              fr.gosp
 POST        /reset-password                                              fr.gospeak.web.auth.AuthCtrl.doResetPassword(id: UserRequest.Id)
 
 GET         /u                                                           fr.gospeak.web.pages.user.UserCtrl.index
-GET         /u/profile                                                   fr.gospeak.web.pages.user.UserCtrl.profile
+GET         /u/profile                                                   fr.gospeak.web.pages.speaker.SpeakerCtrl.profile
 
 GET         /u/talks                                                     fr.gospeak.web.pages.speaker.TalkCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /u/talks/create                                              fr.gospeak.web.pages.speaker.TalkCtrl.create

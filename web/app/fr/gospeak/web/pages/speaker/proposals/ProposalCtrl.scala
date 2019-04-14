@@ -30,9 +30,8 @@ class ProposalCtrl(cc: ControllerComponents,
       talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
       proposals <- OptionT.liftF(proposalRepo.list(talkElt.id, params))
       events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_._2.event)))
-      h = TalkCtrl.header(talkElt.slug)
-      b = listBreadcrumb(req.identity.user.name, talk -> talkElt.title)
-    } yield Ok(html.list(talkElt, proposals, events)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
+      b = listBreadcrumb(req.identity.user, talkElt)
+    } yield Ok(html.list(talkElt, proposals, events)(b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 
   def detail(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -42,9 +41,8 @@ class ProposalCtrl(cc: ControllerComponents,
       cfpElt <- OptionT(cfpRepo.find(proposalElt.cfp))
       speakers <- OptionT.liftF(userRepo.list(proposalElt.speakers.toList))
       events <- OptionT.liftF(eventRepo.list(proposalElt.event.toSeq))
-      h = TalkCtrl.header(talkElt.slug)
-      b = breadcrumb(req.identity.user.name, talk -> talkElt.title, proposal -> cfpElt.name)
-    } yield Ok(html.detail(talkElt, cfpElt, proposalElt, speakers, events, GenericForm.embed)(h, b))).value.map(_.getOrElse(proposalNotFound(talk, proposal))).unsafeToFuture()
+      b = breadcrumb(req.identity.user, talkElt, proposal -> cfpElt.name)
+    } yield Ok(html.detail(talkElt, cfpElt, proposalElt, speakers, events, GenericForm.embed)(b))).value.map(_.getOrElse(proposalNotFound(talk, proposal))).unsafeToFuture()
   }
 
   def doAddSlides(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -73,14 +71,9 @@ class ProposalCtrl(cc: ControllerComponents,
 }
 
 object ProposalCtrl {
-  def listBreadcrumb(user: User.Name, talk: (Talk.Slug, Talk.Title)): Breadcrumb =
-    talk match {
-      case (talkSlug, _) => TalkCtrl.breadcrumb(user, talk).add("Proposals" -> routes.ProposalCtrl.list(talkSlug))
-    }
+  def listBreadcrumb(user: User, talk: Talk): Breadcrumb =
+    TalkCtrl.breadcrumb(user, talk).add("Proposals" -> routes.ProposalCtrl.list(talk.slug))
 
-  def breadcrumb(user: User.Name, talk: (Talk.Slug, Talk.Title), proposal: (Proposal.Id, Cfp.Name)): Breadcrumb =
-    (talk, proposal) match {
-      case ((talkSlug, _), (proposalId, cfpName)) =>
-        listBreadcrumb(user, talk).add(cfpName.value -> routes.ProposalCtrl.detail(talkSlug, proposalId))
-    }
+  def breadcrumb(user: User, talk: Talk, proposal: (Proposal.Id, Cfp.Name)): Breadcrumb =
+    listBreadcrumb(user, talk).add(proposal._2.value -> routes.ProposalCtrl.detail(talk.slug, proposal._1))
 }

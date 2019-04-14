@@ -1,17 +1,14 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.Talk
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.partials.html.securedContainer
-@import fr.gospeak.web.pages.speaker.partials.html.talkFields
+@import fr.gospeak.web.pages.speaker.partials.html.{container, talkFields}
 @import fr.gospeak.web.pages.speaker.routes.TalkCtrl
 
-@(talk: Talk, form: Form[Talk.Data])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@securedContainer("Gospeak", h, Some(b))() {
-    <div class="page-header">
-        <h1>Edit @talk.title.value</h1>
-    </div>
+@(talk: Talk, form: Form[Talk.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", b)() {
+    <h1 class="page-header">Edit @talk.title.value</h1>
 
     @formElt(form, TalkCtrl.doEdit(talk.slug)) {
         @talkFields(form)

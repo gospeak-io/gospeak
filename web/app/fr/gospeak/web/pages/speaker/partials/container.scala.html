@@ -1,38 +1,30 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.Group
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
-@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.pages.orga.routes.GroupCtrl
-@import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
-@import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.partials.container.html.{alert, breadcrumb, userDropdown}
 @import fr.gospeak.web.pages.partials.form.html.formBtn
 @import fr.gospeak.web.pages.partials.html.main
+@import fr.gospeak.web.pages.speaker.routes.{SpeakerCtrl, TalkCtrl}
+@import fr.gospeak.web.pages.user.routes.UserCtrl
 
-@(title: String, group: Group, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @main(title, style, script) {
     <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
         <div class="container">
-            <a class="navbar-brand" href="@GroupCtrl.detail(group.slug)">@group.name.value</a>
+            <a class="navbar-brand" href="@UserCtrl.index()">Gospeak</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
             aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav">
-                    <a class="nav-item nav-link" href="@EventCtrl.list(group.slug)">Events</a>
-                    <a class="nav-item nav-link" href="@CfpCtrl.list(group.slug)">CFPs</a>
-                    <a class="nav-item nav-link" href="@ProposalCtrl.list(group.slug)">Proposals</a>
-                    <a class="nav-item nav-link" href="@SpeakerCtrl.list(group.slug)">Speakers</a>
-                    <a class="nav-item nav-link" href="@SettingsCtrl.list(group.slug)">Settings</a>
+                    <a class="nav-item nav-link" href="@TalkCtrl.list()">Talks</a>
+                    <a class="nav-item nav-link" href="@SpeakerCtrl.profile()">Profile</a>
                 </div>
             </div>
             <div class="navbar-nav">
-                @userDropdown(Some(group))
+                @userDropdown()
             </div>
         </div>
     </nav>

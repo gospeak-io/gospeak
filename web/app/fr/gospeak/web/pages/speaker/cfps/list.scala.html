@@ -2,14 +2,13 @@
 @import fr.gospeak.core.domain.{Cfp, Talk}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.pages.partials.html.securedContainer
-@import fr.gospeak.web.pages.speaker.partials.html.cfpItem
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.speaker.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.speaker.partials.html.{cfpItem, container}
 @import fr.gospeak.web.utils.Formats
 
-@(talk: Talk, cfps: Page[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@securedContainer("Gospeak", h, Some(b))() {
+@(talk: Talk, cfps: Page[Cfp])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", b)() {
     @if(cfps.isEmpty) {
         <div class="jumbotron">
             <h1>No available CFP to propose @talk.title.value <i class="far fa-sad-tear"></i></h1>

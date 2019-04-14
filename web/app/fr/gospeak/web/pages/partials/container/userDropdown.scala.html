@@ -1,0 +1,19 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.speaker.routes.TalkCtrl
+@import fr.gospeak.web.pages.orga.routes.GroupCtrl
+@import fr.gospeak.web.auth.routes.AuthCtrl
+@import fr.gospeak.core.domain.Group
+@(group: Option[Group] = None)(implicit req: SecuredRequest[CookieEnv, AnyContent])
+<div class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="dropdown-user" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <img src="@req.identity.user.avatar.url.value" class="avatar" alt="avatar"/>
+    </a>
+    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-user">
+        <a class="dropdown-item" href="@TalkCtrl.list()">My talks</a>
+        @req.identity.groups.map { g =>
+            <a class="dropdown-item @if(group.exists(_.id == g.id)) {active}" href="@GroupCtrl.detail(g.slug)">@g.name.value</a>
+        }
+        <a class="dropdown-item" href="@AuthCtrl.doLogout()">Logout</a>
+    </div>
+</div>

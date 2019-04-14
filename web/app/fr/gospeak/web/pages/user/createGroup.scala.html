@@ -1,14 +1,14 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.Group
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.groupFields
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.partials.html.securedContainer
+@import fr.gospeak.web.pages.speaker.partials.html.container
 @import fr.gospeak.web.pages.user.routes.UserCtrl
 
-@(form: Form[Group.Data])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@securedContainer("Gospeak", h, Some(b))() {
+@(form: Form[Group.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", b)() {
     <div class="page-header">
         <h1>Create your group</h1>
     </div>

@@ -2,17 +2,10 @@
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.pages.partials.container.html.{alert, breadcrumb}
 @import fr.gospeak.web.pages.partials.form.html._
 
 @(title: String, h: HeaderInfo, b: Option[Breadcrumb] = None)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@alert(kind: String, classes: String = "")(msg: Html) = {
-    <div class="alert alert-@kind alert-dismissible fade show @classes" role="alert">
-        @msg
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-}
 @main(title, style, script) {
     @header(h)
     @b.map { b => @breadcrumb(b) }

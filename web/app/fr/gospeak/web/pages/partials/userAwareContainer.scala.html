@@ -1,24 +1,17 @@
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.pages.partials.container.html.{alert, breadcrumb}
 
 @(title: String, h: HeaderInfo, b: Option[Breadcrumb] = None)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
-@alert(kind: String, msg: String) = {
-    <div class="alert alert-@kind alert-dismissible fade show" role="alert">
-        @msg
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-}
 @main(title, style, script) {
     @header(h)
     @b.map { b => @breadcrumb(b) }
     <div class="container">
-        @req.flash.get("success").map { msg => @alert("success", msg) }
-        @req.flash.get("info").map { msg => @alert("info", msg) }
-        @req.flash.get("warning").map { msg => @alert("warning", msg) }
-        @req.flash.get("error").map { msg => @alert("danger", msg) }
+        @req.flash.get("success").map { msg => @alert("success")(Html(msg)) }
+        @req.flash.get("info").map { msg => @alert("info")(Html(msg)) }
+        @req.flash.get("warning").map { msg => @alert("warning")(Html(msg)) }
+        @req.flash.get("error").map { msg => @alert("danger")(Html(msg)) }
         @content
     </div>
 }

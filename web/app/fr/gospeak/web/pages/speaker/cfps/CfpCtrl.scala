@@ -30,9 +30,8 @@ class CfpCtrl(cc: ControllerComponents,
     (for {
       talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
       cfps <- OptionT.liftF(cfpRepo.availableFor(talkElt.id, params))
-      h = TalkCtrl.header(talkElt.slug)
-      b = listBreadcrumb(req.identity.user.name, talk -> talkElt.title)
-    } yield Ok(html.list(talkElt, cfps)(h, b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
+      b = listBreadcrumb(req.identity.user, talkElt)
+    } yield Ok(html.list(talkElt, cfps)(b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 
   def create(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -59,23 +58,17 @@ class CfpCtrl(cc: ControllerComponents,
       cfpElt <- OptionT(cfpRepo.find(cfp))
       proposalOpt <- OptionT.liftF(proposalRepo.find(talkElt.id, cfpElt.id))
       filledForm = if (form.hasErrors) form else form.fill(Proposal.Data(talkElt))
-      h = TalkCtrl.header(talkElt.slug)
-      b = breadcrumb(req.identity.user.name, talk -> talkElt.title, cfp -> cfpElt.name)
+      b = breadcrumb(req.identity.user, talkElt, cfpElt)
     } yield proposalOpt
       .map(proposal => Redirect(ProposalCtrl.detail(talk, proposal.id)))
-      .getOrElse(Ok(html.create(filledForm, talkElt, cfpElt)(h, b)))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
+      .getOrElse(Ok(html.create(filledForm, talkElt, cfpElt)(b)))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
   }
 }
 
 object CfpCtrl {
-  def listBreadcrumb(user: User.Name, talk: (Talk.Slug, Talk.Title)): Breadcrumb =
-    talk match {
-      case (talkSlug, _) => TalkCtrl.breadcrumb(user, talk).add("Proposing" -> routes.CfpCtrl.list(talkSlug))
-    }
+  def listBreadcrumb(user: User, talk: Talk): Breadcrumb =
+    TalkCtrl.breadcrumb(user, talk).add("Proposing" -> routes.CfpCtrl.list(talk.slug))
 
-  def breadcrumb(user: User.Name, talk: (Talk.Slug, Talk.Title), cfp: (Cfp.Slug, Cfp.Name)): Breadcrumb =
-    (talk, cfp) match {
-      case ((talkSlug, _), (cfpSlug, cfpName)) =>
-        listBreadcrumb(user, talk).add(cfpName.value -> routes.CfpCtrl.create(talkSlug, cfpSlug))
-    }
+  def breadcrumb(user: User, talk: Talk, cfp: Cfp): Breadcrumb =
+    listBreadcrumb(user, talk).add(cfp.name.value -> routes.CfpCtrl.create(talk.slug, cfp.slug))
 }

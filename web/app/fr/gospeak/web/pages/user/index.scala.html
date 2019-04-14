@@ -2,13 +2,13 @@
 @import fr.gospeak.core.domain.{Group, Talk}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
-@import fr.gospeak.web.pages.partials.html.securedContainer
+@import fr.gospeak.web.pages.speaker.partials.html.container
 @import fr.gospeak.web.pages.speaker.routes.TalkCtrl
 @import fr.gospeak.web.pages.user.routes.UserCtrl
 
-@(groups: Page[Group], talks: Page[Talk])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(groups: Page[Group], talks: Page[Talk])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @cardItem(url: Call, text: String, badge: Int, badgeTooltip: String) = {
 @if(badge > 1) {
     <a href="@url" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
@@ -19,7 +19,7 @@
     <a href="@url" class="list-group-item list-group-item-action">@text</a>
 }
 }
-@securedContainer("Gospeak", h, Some(b))() {
+@container("Gospeak", b)() {
     <div class="row">
         <div class="col-6">
         @if(groups.isEmpty) {
