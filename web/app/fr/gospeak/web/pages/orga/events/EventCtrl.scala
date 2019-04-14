@@ -10,10 +10,9 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
+import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.events.EventCtrl._
-import fr.gospeak.web.pages.orga.routes.{GroupCtrl => GroupRoutes}
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
@@ -34,9 +33,8 @@ class EventCtrl(cc: ControllerComponents,
       events <- OptionT.liftF(eventRepo.list(groupElt.id, params))
       proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.speakers.toList)))
-      h = listHeader(group)
-      b = listBreadcrumb(req.identity.user.name, groupElt)
-    } yield Ok(html.list(groupElt, events, proposals, speakers)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+      b = listBreadcrumb(groupElt)
+    } yield Ok(html.list(groupElt, events, proposals, speakers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
   def create(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -59,9 +57,8 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       cfps <- OptionT.liftF(cfpRepo.list(groupElt.id))
-      h = header(group)
-      b = listBreadcrumb(req.identity.user.name, groupElt).add("New" -> routes.EventCtrl.create(group))
-    } yield Ok(html.create(groupElt, form, cfps)(h, b))).value.map(_.getOrElse(groupNotFound(group)))
+      b = listBreadcrumb(groupElt).add("New" -> routes.EventCtrl.create(group))
+    } yield Ok(html.create(groupElt, form, cfps)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
   def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -73,9 +70,8 @@ class EventCtrl(cc: ControllerComponents,
       groupCfps <- OptionT.liftF(cfpOpt.map(_ => IO.pure(Seq.empty[Cfp])).getOrElse(cfpRepo.list(groupElt.id)))
       proposals <- OptionT.liftF(cfpOpt.map(cfp => proposalRepo.list(cfp.id, Proposal.Status.Pending, params)).getOrElse(IO.pure(Page.empty[Proposal])))
       speakers <- OptionT.liftF(userRepo.list((proposals.items ++ talks).flatMap(_.speakers.toList).distinct))
-      h = header(group)
-      b = breadcrumb(req.identity.user.name, groupElt, eventElt)
-    } yield Ok(html.detail(groupElt, eventElt, talks, cfpOpt, proposals, speakers, EventForms.attachCfp, groupCfps)(h, b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+      b = breadcrumb(groupElt, eventElt)
+    } yield Ok(html.detail(groupElt, eventElt, talks, cfpOpt, proposals, speakers, EventForms.attachCfp, groupCfps)(b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -104,10 +100,9 @@ class EventCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
       cfps <- OptionT.liftF(cfpRepo.list(groupElt.id))
-      h = header(group)
-      b = breadcrumb(req.identity.user.name, groupElt, eventElt).add("Edit" -> routes.EventCtrl.edit(group, event))
+      b = breadcrumb(groupElt, eventElt).add("Edit" -> routes.EventCtrl.edit(group, event))
       filledForm = if (form.hasErrors) form else form.fill(eventElt.data)
-    } yield Ok(html.edit(groupElt, eventElt, filledForm, cfps)(h, b))).value.map(_.getOrElse(eventNotFound(group, event)))
+    } yield Ok(html.edit(groupElt, eventElt, filledForm, cfps)(b))).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
   def attachCfp(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -153,17 +148,9 @@ class EventCtrl(cc: ControllerComponents,
 }
 
 object EventCtrl {
-  def listHeader(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
-    GroupCtrl.header(group)
-      .copy(brand = NavLink("Gospeak", GroupRoutes.detail(group)))
-      .activeFor(routes.EventCtrl.list(group))
+  def listBreadcrumb(group: Group): Breadcrumb =
+    GroupCtrl.breadcrumb(group).add("Events" -> routes.EventCtrl.list(group.slug))
 
-  def listBreadcrumb(user: User.Name, group: Group): Breadcrumb =
-    GroupCtrl.breadcrumb(user, group).add("Events" -> routes.EventCtrl.list(group.slug))
-
-  def header(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
-    listHeader(group)
-
-  def breadcrumb(user: User.Name, group: Group, event: Event): Breadcrumb =
-    listBreadcrumb(user, group).add(event.name.value -> routes.EventCtrl.detail(group.slug, event.slug))
+  def breadcrumb(group: Group, event: Event): Breadcrumb =
+    listBreadcrumb(group).add(event.name.value -> routes.EventCtrl.detail(group.slug, event.slug))
 }

@@ -2,14 +2,13 @@
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.pages.partials.html.securedContainer
-@import fr.gospeak.web.pages.orga.partials.html.proposalItem
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.orga.partials.html.{container, proposalItem}
 @import fr.gospeak.web.pages.orga.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, proposals: Page[Proposal], cfps: Seq[Cfp], speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@securedContainer(group.name.value + " - Gospeak", h, Some(b))() {
+@(group: Group, proposals: Page[Proposal], cfps: Seq[Cfp], speakers: Seq[User], events: Seq[Event])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container(group.name.value + " - Gospeak", group, b)() {
     <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h1>
     @Formats.paginated[Proposal](
         page = proposals,

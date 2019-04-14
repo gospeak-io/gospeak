@@ -2,14 +2,13 @@
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.pages.partials.html.securedContainer
-@import fr.gospeak.web.pages.orga.partials.html.proposalItem
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.orga.partials.html.{container, proposalItem}
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, speaker: User, proposals: Page[(Cfp, Proposal)], speakers: Seq[User], events: Seq[Event])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@securedContainer(speaker.name.value + " - Gospeak", h, Some(b))() {
+@(group: Group, speaker: User, proposals: Page[(Cfp, Proposal)], speakers: Seq[User], events: Seq[Event])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container(speaker.name.value + " - Gospeak", group, b)() {
     <div class="media">
         <img src="@speaker.avatar.url.value" class="align-self-start mr-3" alt="avatar">
         <div class="media-body">

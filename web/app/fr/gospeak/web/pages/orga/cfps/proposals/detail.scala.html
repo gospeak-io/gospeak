@@ -2,16 +2,17 @@
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Url
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
+@import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.partials.html.{securedContainer, slidesFields, videoFields}
+@import fr.gospeak.web.pages.partials.html.{slidesFields, videoFields}
 @import fr.gospeak.web.utils.Formats._
 
-@(group: Group, cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event], embedForm: Form[Url])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@securedContainer(proposal.title.value + " - Gospeak", h, Some(b))() {
+@(group: Group, cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event], embedForm: Form[Url])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container(proposal.title.value + " - Gospeak", group, b)() {
     <div>
         <h1>@proposalStatusIcon(proposal.status) @proposal.title.value</h1>
     </div>

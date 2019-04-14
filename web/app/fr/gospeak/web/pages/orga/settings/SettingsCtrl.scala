@@ -2,11 +2,10 @@ package fr.gospeak.web.pages.orga.settings
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
-import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import fr.gospeak.core.domain.{Group, User}
+import fr.gospeak.core.domain.Group
 import fr.gospeak.core.services.OrgaGroupRepo
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
+import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.settings.SettingsCtrl._
 import fr.gospeak.web.utils.UICtrl
@@ -21,26 +20,15 @@ class SettingsCtrl(cc: ControllerComponents,
   def list(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
-      h = listHeader(group)
-      b = listBreadcrumb(req.identity.user.name, groupElt)
-    } yield Ok(html.list(groupElt)(h, b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+      b = listBreadcrumb(groupElt)
+    } yield Ok(html.list(groupElt)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 }
 
 object SettingsCtrl {
-  def listHeader(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
-    GroupCtrl.header(group)
-      .copy(brand = NavLink("Gospeak", fr.gospeak.web.pages.orga.routes.GroupCtrl.detail(group)))
-      .activeFor(routes.SettingsCtrl.list(group))
+  def listBreadcrumb(group: Group): Breadcrumb =
+    GroupCtrl.breadcrumb(group).add("Settings" -> routes.SettingsCtrl.list(group.slug))
 
-  def listBreadcrumb(user: User.Name, group: Group): Breadcrumb =
-      GroupCtrl.breadcrumb(user, group).add("Settings" -> routes.SettingsCtrl.list(group.slug))
-
-  def header(group: Group.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): HeaderInfo =
-    listHeader(group)
-
-  def breadcrumb(user: User.Name, group: Group, setting: (String, Call)): Breadcrumb =
-    setting match {
-      case (settingName, settingUrl) => listBreadcrumb(user, group).add(settingName -> settingUrl)
-    }
+  def breadcrumb(group: Group, setting: (String, Call)): Breadcrumb =
+    listBreadcrumb(group).add(setting._1 -> setting._2)
 }

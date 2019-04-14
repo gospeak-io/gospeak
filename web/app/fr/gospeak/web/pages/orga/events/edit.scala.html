@@ -1,17 +1,14 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Event, Group, Cfp}
+@import fr.gospeak.core.domain.{Cfp, Event, Group}
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.partials.html.securedContainer
-@import fr.gospeak.web.pages.orga.partials.html.eventFields
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
+@import fr.gospeak.web.pages.orga.partials.html.{container, eventFields}
+@import fr.gospeak.web.pages.partials.form.html._
 
-@(group: Group, event: Event, form: Form[Event.Data], cfps: Seq[Cfp])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@securedContainer("Gospeak", h, Some(b))() {
-    <div class="page-header">
-        <h1>Edit @event.name.value</h1>
-    </div>
+@(group: Group, event: Event, form: Form[Event.Data], cfps: Seq[Cfp])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", group, b)() {
+    <h1 class="page-header">Edit @event.name.value</h1>
 
     @formElt(form, EventCtrl.doEdit(group.slug, event.slug)) {
         @eventFields(form, cfps)

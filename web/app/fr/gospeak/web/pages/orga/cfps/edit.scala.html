@@ -1,17 +1,14 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Cfp, Group}
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo}
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.partials.html.securedContainer
-@import fr.gospeak.web.pages.orga.partials.html.cfpFields
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.orga.partials.html.{cfpFields, container}
+@import fr.gospeak.web.pages.partials.form.html._
 
-@(group: Group, cfp: Cfp, form: Form[Cfp.Data])(h: HeaderInfo, b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@securedContainer("Gospeak", h, Some(b))() {
-    <div class="page-header">
-        <h1>Edit @cfp.name.value</h1>
-    </div>
+@(group: Group, cfp: Cfp, form: Form[Cfp.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", group, b)() {
+    <h1 class="page-header">Edit @cfp.name.value</h1>
 
     @formElt(form, CfpCtrl.doEdit(group.slug, cfp.slug)) {
         @cfpFields(form)
