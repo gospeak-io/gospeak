@@ -1,6 +1,5 @@
-package fr.gospeak.web
+package fr.gospeak.web.pages.published
 
-import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.testingutils.CtrlSpec
 import play.api.http.Status
 import play.api.test.Helpers._

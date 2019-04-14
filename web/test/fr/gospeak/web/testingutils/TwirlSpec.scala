@@ -3,8 +3,8 @@ package fr.gospeak.web.testingutils
 import java.util.Locale
 
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
-import com.mohiva.play.silhouette.api.{LoginInfo, Environment => SilhouetteEnvironment}
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
+import com.mohiva.play.silhouette.api.{LoginInfo, Environment => SilhouetteEnvironment}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import com.mohiva.play.silhouette.test._
 import fr.gospeak.core.domain.User
@@ -12,20 +12,18 @@ import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
-import fr.gospeak.web.{GospeakApplicationLoader, routes}
+import fr.gospeak.web.pages.published.routes.HomeCtrl
 import org.scalatest.{FunSpec, Matchers}
 import play.api.i18n.{Lang, Messages}
 import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
-import play.api.{ApplicationLoader, Environment}
-import play.i18n.{Messages => JavaMessages}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 trait TwirlSpec extends FunSpec with Matchers with RandomDataGenerator {
   private val user: User = random[User]
   private val loginInfo: LoginInfo = AuthSrv.loginInfo(user.email)
-  private val identity: AuthUser = AuthUser(loginInfo, user)
+  private val identity: AuthUser = AuthUser(loginInfo, user, Seq())
 
   private val env: SilhouetteEnvironment[CookieEnv] = FakeEnvironment[CookieEnv](Seq(identity.loginInfo -> identity))
   private val req: FakeRequest[AnyContent] = FakeRequest().withAuthenticator(identity.loginInfo)(env)
@@ -51,6 +49,6 @@ trait TwirlSpec extends FunSpec with Matchers with RandomDataGenerator {
 
     // override def asJava: JavaMessages = null
   }
-  protected val h = HeaderInfo(NavLink("Gospeak", routes.HomeCtrl.index()), Seq(), Seq())
+  protected val h = HeaderInfo(NavLink("Gospeak", HomeCtrl.index()), Seq(), Seq())
   protected val b = Breadcrumb(Seq())
 }

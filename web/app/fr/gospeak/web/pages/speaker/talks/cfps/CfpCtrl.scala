@@ -1,4 +1,4 @@
-package fr.gospeak.web.pages.speaker.cfps
+package fr.gospeak.web.pages.speaker.talks.cfps
 
 import java.time.Instant
 
@@ -11,9 +11,9 @@ import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.pages.speaker.TalkCtrl
-import fr.gospeak.web.pages.speaker.cfps.CfpCtrl._
-import fr.gospeak.web.pages.speaker.proposals.routes.ProposalCtrl
+import fr.gospeak.web.pages.speaker.talks.cfps.CfpCtrl._
+import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
+import fr.gospeak.web.pages.speaker.talks.TalkCtrl
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._

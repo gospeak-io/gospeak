@@ -6,10 +6,10 @@
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.html.{slidesFields, videoFields}
-@import fr.gospeak.web.pages.speaker.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.speaker.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.speaker.partials.html.{container, proposalItem}
-@import fr.gospeak.web.pages.speaker.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.pages.speaker.routes.TalkCtrl
+@import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
 @import fr.gospeak.web.utils.Formats
 
 @(talk: Talk, speakers: Seq[User], proposals: Page[(Cfp, Proposal)], events: Seq[Event], embedForm: Form[Url])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)

@@ -30,13 +30,13 @@ abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv
     Redirect(pages.orga.speakers.routes.SpeakerCtrl.list(group)).flashing("warning" -> s"Unable to find speaker with slug '${speaker.value}'")
 
   protected def talkNotFound(talk: Talk.Slug): Result =
-    Redirect(pages.speaker.routes.TalkCtrl.list()).flashing("warning" -> s"Unable to find talk with slug '${talk.value}'")
+    Redirect(pages.speaker.talks.routes.TalkCtrl.list()).flashing("warning" -> s"Unable to find talk with slug '${talk.value}'")
 
   protected def cfpNotFound(talk: Talk.Slug, cfp: Cfp.Slug): Result =
-    Redirect(pages.speaker.cfps.routes.CfpCtrl.list(talk)).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")
+    Redirect(pages.speaker.talks.cfps.routes.CfpCtrl.list(talk)).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")
 
   protected def proposalNotFound(talk: Talk.Slug, proposal: Proposal.Id): Result =
-    Redirect(pages.speaker.proposals.routes.ProposalCtrl.list(talk)).flashing("warning" -> s"Unable to find proposal with id '${proposal.value}'")
+    Redirect(pages.speaker.talks.proposals.routes.ProposalCtrl.list(talk)).flashing("warning" -> s"Unable to find proposal with id '${proposal.value}'")
 
   protected def notFound()(implicit req: Request[AnyContent]): Result =
     NotFound("Not found :(")

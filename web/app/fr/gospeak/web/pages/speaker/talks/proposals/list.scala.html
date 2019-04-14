@@ -3,9 +3,9 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.speaker.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.speaker.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.speaker.partials.html.{container, proposalItem}
-@import fr.gospeak.web.pages.speaker.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 
 @(talk: Talk, proposals: Page[(Cfp, Proposal)], events: Seq[Event])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)

@@ -1,4 +1,4 @@
-package fr.gospeak.web
+package fr.gospeak.web.pages.published
 
 import fr.gospeak.web.testingutils.TwirlSpec
 

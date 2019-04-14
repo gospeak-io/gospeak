@@ -17,6 +17,7 @@ import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandle
 import fr.gospeak.web.auth.{AuthConf, AuthCtrl}
 import fr.gospeak.web.pages._
 import fr.gospeak.web.pages.published.HomeCtrl
+import fr.gospeak.web.pages.speaker.talks.TalkCtrl
 import fr.gospeak.web.pages.user.UserCtrl
 import org.slf4j.LoggerFactory
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -125,9 +126,9 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val userGroupSpeakerCtrl = wire[orga.speakers.SpeakerCtrl]
   lazy val userGroupSettingsCtrl = wire[orga.settings.SettingsCtrl]
   lazy val userSpeakerCtrl = wire[speaker.SpeakerCtrl]
-  lazy val userTalkCtrl = wire[speaker.TalkCtrl]
-  lazy val userTalkCfpCtrl = wire[speaker.cfps.CfpCtrl]
-  lazy val userTalkProposalCtrl = wire[speaker.proposals.ProposalCtrl]
+  lazy val userTalkCtrl = wire[TalkCtrl]
+  lazy val userTalkCfpCtrl = wire[fr.gospeak.web.pages.speaker.talks.cfps.CfpCtrl]
+  lazy val userTalkProposalCtrl = wire[fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl]
   lazy val apiUiUtilsCtrl = wire[api.ui.UtilsCtrl]
 
   override lazy val router: Router = {

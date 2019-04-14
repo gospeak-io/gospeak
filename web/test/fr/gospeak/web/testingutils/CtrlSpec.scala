@@ -36,7 +36,7 @@ trait CtrlSpec extends FunSpec with Matchers with RandomDataGenerator with OneAp
   // silhouette
   private val user: User = random[User]
   private val loginInfo: LoginInfo = AuthSrv.loginInfo(user.email)
-  private val identity: AuthUser = AuthUser(loginInfo, user)
+  private val identity: AuthUser = AuthUser(loginInfo, user, Seq())
   protected val clock = Clock()
   private val env: Environment[CookieEnv] = FakeEnvironment[CookieEnv](Seq(identity.loginInfo -> identity))
   private val securedAction: SecuredAction = new DefaultSecuredAction(new DefaultSecuredRequestHandler(new DefaultSecuredErrorHandler(messagesApi)), bodyParsers)

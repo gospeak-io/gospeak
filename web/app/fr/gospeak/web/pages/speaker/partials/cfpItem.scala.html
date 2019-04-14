@@ -1,5 +1,5 @@
 @import fr.gospeak.core.domain.{Cfp, Proposal, Talk}
-@import fr.gospeak.web.pages.speaker.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.speaker.talks.cfps.routes.CfpCtrl
 
 @(talk: Talk, cfp: Cfp)
 <a href="@CfpCtrl.create(talk.slug, cfp.slug)" class="list-group-item list-group-item-action">

@@ -1,4 +1,4 @@
-package fr.gospeak.web.pages.speaker
+package fr.gospeak.web.pages.speaker.talks
 
 import java.time.Instant
 
@@ -11,7 +11,7 @@ import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.pages.speaker.TalkCtrl._
+import fr.gospeak.web.pages.speaker.talks.TalkCtrl._
 import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.utils.{GenericForm, UICtrl}
 import play.api.data.Form

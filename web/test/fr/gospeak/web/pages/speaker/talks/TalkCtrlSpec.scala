@@ -1,4 +1,4 @@
-package fr.gospeak.web.pages.speaker
+package fr.gospeak.web.pages.speaker.talks
 
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.testingutils.CtrlSpec
@@ -8,7 +8,7 @@ import play.api.test.Helpers._
 
 class TalkCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
   private val params = Page.Params()
-  private val ctrl = new TalkCtrl(cc, silhouette, db.user, db.talk, db.event, db.proposal)
+  private val ctrl = new TalkCtrl(cc, silhouette, db.user, db.event, db.talk, db.proposal)
 
   override def beforeEach(): Unit = db.createTables().unsafeRunSync()
 

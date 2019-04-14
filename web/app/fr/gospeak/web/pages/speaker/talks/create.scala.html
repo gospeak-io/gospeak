@@ -4,17 +4,17 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.speaker.partials.html.{container, talkFields}
-@import fr.gospeak.web.pages.speaker.routes.TalkCtrl
+@import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
 
-@(talk: Talk, form: Form[Talk.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(form: Form[Talk.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", b)() {
-    <h1 class="page-header">Edit @talk.title.value</h1>
+    <h1 class="page-header">Create a talk</h1>
 
-    @formElt(form, TalkCtrl.doEdit(talk.slug)) {
+    @formElt(form, TalkCtrl.doCreate()) {
         @talkFields(form)
         @actionsHorizontal() {
             @btnCancel(TalkCtrl.list())
-            @btnSubmit("Edit")
+            @btnSubmit("Create")
         }
     }
 }()
