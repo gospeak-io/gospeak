@@ -9,9 +9,8 @@
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.partials.container.html.{alert, breadcrumb, userDropdown}
+@import fr.gospeak.web.pages.partials.container.html._
 @import fr.gospeak.web.pages.partials.form.html.formBtn
-@import fr.gospeak.web.pages.partials.html.main
 
 @(title: String, group: Group, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @main(title, style, script) {
@@ -24,11 +23,11 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav">
-                    <a class="nav-item nav-link" href="@EventCtrl.list(group.slug)">Events</a>
-                    <a class="nav-item nav-link" href="@CfpCtrl.list(group.slug)">CFPs</a>
-                    <a class="nav-item nav-link" href="@ProposalCtrl.list(group.slug)">Proposals</a>
-                    <a class="nav-item nav-link" href="@SpeakerCtrl.list(group.slug)">Speakers</a>
-                    <a class="nav-item nav-link" href="@SettingsCtrl.list(group.slug)">Settings</a>
+                    @navbarLink(EventCtrl.list(group.slug), "Events")
+                    @navbarLink(CfpCtrl.list(group.slug), "CFPs")
+                    @navbarLink(ProposalCtrl.list(group.slug), "Proposals")
+                    @navbarLink(SpeakerCtrl.list(group.slug), "Speakers")
+                    @navbarLink(SettingsCtrl.list(group.slug), "Settings")
                 </div>
             </div>
             <div class="navbar-nav">
@@ -45,10 +44,7 @@
                 @formBtn(AuthCtrl.accountValidation(), Seq("class" -> "btn-sm btn-secondary")) {Resend validation email}
             }
         }
-        @req.flash.get("success").map { msg => @alert("success")(Html(msg)) }
-        @req.flash.get("info").map { msg => @alert("info")(Html(msg)) }
-        @req.flash.get("warning").map { msg => @alert("warning")(Html(msg)) }
-        @req.flash.get("error").map { msg => @alert("danger")(Html(msg)) }
+        @flash(req.flash)
         @content
     </div>
 }

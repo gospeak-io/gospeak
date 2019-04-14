@@ -11,8 +11,7 @@ import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.services.AuthSrv
-import fr.gospeak.web.domain.{Breadcrumb, HeaderInfo, NavLink}
-import fr.gospeak.web.pages.published.routes.HomeCtrl
+import fr.gospeak.web.domain.Breadcrumb
 import org.scalatest.{FunSpec, Matchers}
 import play.api.i18n.{Lang, Messages}
 import play.api.mvc.AnyContent
@@ -49,6 +48,5 @@ trait TwirlSpec extends FunSpec with Matchers with RandomDataGenerator {
 
     // override def asJava: JavaMessages = null
   }
-  protected val h = HeaderInfo(NavLink("Gospeak", HomeCtrl.index()), Seq(), Seq())
   protected val b = Breadcrumb(Seq())
 }

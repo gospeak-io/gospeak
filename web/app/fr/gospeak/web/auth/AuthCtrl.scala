@@ -12,14 +12,11 @@ import fr.gospeak.core.domain.UserRequest
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
 import fr.gospeak.core.services.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.EmailSrv
-import fr.gospeak.web.auth.AuthCtrl._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.emails.Emails
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
-import fr.gospeak.web.domain.HeaderInfo
 import fr.gospeak.web.pages._
-import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.utils.{HttpUtils, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
@@ -48,13 +45,13 @@ class AuthCtrl(cc: ControllerComponents,
   def signup(redirect: Option[String]): Action[AnyContent] = UserAwareAction { implicit req =>
     req.identity
       .map(_ => loginRedirect(redirect).flashing(req.flash))
-      .getOrElse(Ok(html.signup(AuthForms.signup, redirect)(header)))
+      .getOrElse(Ok(html.signup(AuthForms.signup, redirect)))
   }
 
   def doSignup(redirect: Option[String]): Action[AnyContent] = UserAwareAction.async { implicit req =>
     val now = Instant.now()
     AuthForms.signup.bindFromRequest.fold(
-      formWithErrors => Future.successful(BadRequest(html.signup(formWithErrors, redirect)(header))),
+      formWithErrors => Future.successful(BadRequest(html.signup(formWithErrors, redirect))),
       data => (for {
         user <- authSrv.createIdentity(data, now).unsafeToFuture()
         emailValidation <- userRequestRepo.createAccountValidationRequest(user.user.email, user.user.id, now).unsafeToFuture()
@@ -62,9 +59,9 @@ class AuthCtrl(cc: ControllerComponents,
         result <- authSrv.login(user, data.rememberMe, loginRedirect(redirect))
       } yield result).recoverWith {
         case e: AccountValidationRequiredException => authSrv.logout(e.identity, Redirect(routes.AuthCtrl.login(redirect)).flashing("warning" -> "Account created, you need to validate it by clicking on the email validation link"))
-        case _: DuplicateIdentityException => Future.successful(BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError("User already exists"), redirect)(header)))
-        case e: DuplicateSlugException => Future.successful(BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError(s"Username ${e.slug.value} is already taken"), redirect)(header)))
-        case NonFatal(e) => Future.successful(BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), redirect)(header)))
+        case _: DuplicateIdentityException => Future.successful(BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError("User already exists"), redirect)))
+        case e: DuplicateSlugException => Future.successful(BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError(s"Username ${e.slug.value} is already taken"), redirect)))
+        case NonFatal(e) => Future.successful(BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), redirect)))
       }
     )
   }
@@ -72,20 +69,20 @@ class AuthCtrl(cc: ControllerComponents,
   def login(redirect: Option[String]): Action[AnyContent] = UserAwareAction { implicit req =>
     req.identity
       .map(_ => loginRedirect(redirect).flashing(req.flash))
-      .getOrElse(Ok(html.login(AuthForms.login, redirect)(header)))
+      .getOrElse(Ok(html.login(AuthForms.login, redirect)))
   }
 
   def doLogin(redirect: Option[String]): Action[AnyContent] = UserAwareAction.async { implicit req =>
     AuthForms.login.bindFromRequest.fold(
-      formWithErrors => Future.successful(BadRequest(html.login(formWithErrors, redirect)(header))),
+      formWithErrors => Future.successful(BadRequest(html.login(formWithErrors, redirect))),
       data => (for {
         user <- authSrv.getIdentity(data)
         result <- authSrv.login(user, data.rememberMe, loginRedirect(redirect))
       } yield result).recover {
-        case _: AccountValidationRequiredException => Ok(html.login(AuthForms.login.fill(data).withGlobalError("You need to validate your account by clicking on the email validation link"), redirect)(header))
-        case _: IdentityNotFoundException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), redirect)(header))
-        case _: InvalidPasswordException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), redirect)(header))
-        case NonFatal(e) => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), redirect)(header))
+        case _: AccountValidationRequiredException => Ok(html.login(AuthForms.login.fill(data).withGlobalError("You need to validate your account by clicking on the email validation link"), redirect))
+        case _: IdentityNotFoundException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), redirect))
+        case _: InvalidPasswordException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), redirect))
+        case NonFatal(e) => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), redirect))
       }
     )
   }
@@ -118,13 +115,13 @@ class AuthCtrl(cc: ControllerComponents,
   def forgotPassword(redirect: Option[String]): Action[AnyContent] = UserAwareAction { implicit req =>
     req.identity
       .map(_ => loginRedirect(redirect).flashing(req.flash))
-      .getOrElse(Ok(html.forgotPassword(AuthForms.forgotPassword, redirect)(header)))
+      .getOrElse(Ok(html.forgotPassword(AuthForms.forgotPassword, redirect)))
   }
 
   def doForgotPassword(redirect: Option[String]): Action[AnyContent] = UserAwareAction.async { implicit req =>
     val now = Instant.now()
     AuthForms.forgotPassword.bindFromRequest.fold(
-      formWithErrors => Future.successful(BadRequest(html.forgotPassword(formWithErrors, redirect)(header))),
+      formWithErrors => Future.successful(BadRequest(html.forgotPassword(formWithErrors, redirect))),
       data => (for {
         credentials <- OptionT(userRepo.findCredentials(AuthSrv.login(data.email)))
         user <- OptionT(userRepo.find(credentials))
@@ -158,15 +155,10 @@ class AuthCtrl(cc: ControllerComponents,
     val now = Instant.now()
     userRequestRepo.findPendingPasswordResetRequest(id, now).map { passwordResetOpt =>
       passwordResetOpt.map { passwordReset =>
-        Ok(html.resetPassword(passwordReset, form)(header))
+        Ok(html.resetPassword(passwordReset, form))
       }.getOrElse {
         Redirect(routes.AuthCtrl.login()).flashing("error" -> "Reset password request expired, create it again.")
       }
     }.unsafeToFuture()
   }
-}
-
-object AuthCtrl {
-  val header: HeaderInfo =
-    HomeCtrl.header.activeFor(routes.AuthCtrl.login())
 }

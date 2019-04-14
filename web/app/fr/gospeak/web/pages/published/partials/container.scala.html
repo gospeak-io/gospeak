@@ -1,0 +1,35 @@
+@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.auth.routes.AuthCtrl
+@import fr.gospeak.web.pages.partials.container.html.{flash, main, navbarLink}
+@import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
+@import fr.gospeak.web.pages.published.routes.HomeCtrl
+@import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+
+@(title: String)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@main(title, style, script) {
+    <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="@HomeCtrl.index()">Gospeak</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav">
+                    @navbarLink(CfpCtrl.list(), "CFPs")
+                    @navbarLink(GroupCtrl.list(), "Groups")
+                    @navbarLink(SpeakerCtrl.list(), "Speakers")
+                </div>
+            </div>
+            <div class="navbar-nav">
+                <a class="nav-item nav-link" href="@AuthCtrl.login()">Login</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        @flash(req.flash)
+        @content
+    </div>
+}
