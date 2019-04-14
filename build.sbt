@@ -119,12 +119,12 @@ val web = (project in file("web"))
       // see https://www.git-scm.com/docs/git-log#_pretty_formats
       "gitBranch" -> execOutput("git rev-parse --abbrev-ref HEAD"),
       "gitHash" -> execOutput("git log -1 --format=%h"),
-      "gitAuthorName"-> execOutput("git log -1 --format=%an"),
-      "gitAuthorEmail"-> execOutput("git log -1 --format=%ae"),
-      "gitAuthorDate"-> execOutput("git log -1 --format=%at"),
-      "gitCommitterName"-> execOutput("git log -1 --format=%cn"),
-      "gitCommitterEmail"-> execOutput("git log -1 --format=%ce"),
-      "gitCommitterDate"-> execOutput("git log -1 --format=%ct"),
+      "gitAuthorName" -> execOutput("git log -1 --format=%an"),
+      "gitAuthorEmail" -> execOutput("git log -1 --format=%ae"),
+      "gitAuthorDate" -> execOutput("git log -1 --format=%at"),
+      "gitCommitterName" -> execOutput("git log -1 --format=%cn"),
+      "gitCommitterEmail" -> execOutput("git log -1 --format=%ce"),
+      "gitCommitterDate" -> execOutput("git log -1 --format=%ct"),
       "gitSubject" -> execOutput("git log -1 --format=%s")),
     buildInfoPackage := "generated",
     buildInfoOptions ++= Seq(BuildInfoOption.BuildTime),
@@ -134,7 +134,7 @@ val web = (project in file("web"))
 def execOutput(command: String): String = {
   try {
     val extracted = new java.io.InputStreamReader(java.lang.Runtime.getRuntime.exec(command).getInputStream)
-    new java.io.BufferedReader(extracted).readLine()
+    Option(new java.io.BufferedReader(extracted).readLine()).getOrElse(s"No result for '$command'")
   } catch {
     case t: Throwable => s"'$command' failed: ${t.getMessage}"
   }
