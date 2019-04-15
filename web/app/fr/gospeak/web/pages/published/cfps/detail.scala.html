@@ -1,0 +1,9 @@
+@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
+@import fr.gospeak.core.domain.Cfp
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.published.partials.html.container
+
+@(cfp: Cfp)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak")() {
+    <h1>@cfp.name.value</h1>
+}()

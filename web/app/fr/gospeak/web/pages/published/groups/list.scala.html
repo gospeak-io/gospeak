@@ -1,8 +1,13 @@
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
+@import fr.gospeak.core.domain.Group
+@import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.pages.published.partials.html.container
+@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
+@import fr.gospeak.web.pages.published.partials.html.{container, groupItem}
+@import fr.gospeak.web.utils.Formats
 
-@()(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(groups: Page[Group])(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak - groups")() {
     <h1>Groups (TODO)</h1>
+    @Formats.paginated[Group](groups, GroupCtrl.list, groupItem(_))
 }()

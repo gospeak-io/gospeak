@@ -9,13 +9,14 @@ final case class Group(id: Group.Id,
                        name: Group.Name,
                        description: Markdown,
                        owners: NonEmptyList[User.Id],
+                       public: Boolean,
                        info: Info) {
   def data: Group.Data = Group.Data(this)
 }
 
 object Group {
   def apply(data: Data, owners: NonEmptyList[User.Id], info: Info): Group =
-    new Group(Id.generate(), data.slug, data.name, data.description, owners, info)
+    new Group(Id.generate(), data.slug, data.name, data.description, owners, true, info) // FIXME
 
   final class Id private(value: String) extends DataClass(value) with IId
 

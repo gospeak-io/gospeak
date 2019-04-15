@@ -34,7 +34,7 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
 
   override def find(id: Cfp.Id): IO[Option[Cfp]] = run(selectOne(id).option)
 
-  override def find(slug: Cfp.Slug): IO[Option[Cfp]] = run(selectOne(slug).option) // TODO remove this
+  override def find(slug: Cfp.Slug): IO[Option[Cfp]] = run(selectOne(slug).option)
 
   override def find(group: Group.Id, slug: Cfp.Slug): IO[Option[Cfp]] = run(selectOne(slug).option)
 
@@ -47,6 +47,8 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
   override def availableFor(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(selectPage(talk, _), params))
 
   override def list(group: Group.Id): IO[Seq[Cfp]] = run(selectAll(group).to[List])
+
+  override def listOpen(now: Instant, params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(selectPage(now, _), params))
 }
 
 object CfpRepoSql {
@@ -92,6 +94,11 @@ object CfpRepoSql {
     val talkCfps = buildSelect(ProposalRepoSql.tableFr, fr0"cfp_id", fr0"WHERE talk_id = $talk")
     val where = fr0"WHERE id NOT IN (" ++ talkCfps ++ fr0")"
     val page = paginate(params, searchFields, defaultSort, Some(where))
+    (buildSelect(tableFr, fieldsFr, page.all).query[Cfp], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+  }
+
+  private[sql] def selectPage(now: Instant, params: Page.Params): (doobie.Query0[Cfp], doobie.Query0[Long]) = {
+    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE (start IS NULL OR start < $now) AND (end IS NULL OR end > $now)"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Cfp], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 

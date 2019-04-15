@@ -1,0 +1,9 @@
+@import fr.gospeak.core.domain.User
+@import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+
+@(speaker: User)
+<div class="list-group-item">
+    <h5 class="mb-1">
+        <a href="@SpeakerCtrl.detail(speaker.slug)">@speaker.name.value</a>
+    </h5>
+</div>

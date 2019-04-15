@@ -11,6 +11,7 @@ final case class User(id: User.Id,
                       email: EmailAddress,
                       emailValidated: Option[Instant],
                       avatar: Avatar,
+                      public: Boolean,
                       created: Instant,
                       updated: Instant) {
   def data: User.Data = User.Data(this)
@@ -20,7 +21,7 @@ final case class User(id: User.Id,
 
 object User {
   def apply(data: Data, now: Instant): User =
-    new User(Id.generate(), data.slug, data.firstName, data.lastName, data.email, None, data.avatar, now, now)
+    new User(Id.generate(), data.slug, data.firstName, data.lastName, data.email, None, data.avatar, true, now, now) // FIXME
 
   final class Id private(value: String) extends DataClass(value) with IId
 

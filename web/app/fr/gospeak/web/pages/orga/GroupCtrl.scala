@@ -4,7 +4,6 @@ import java.time.Instant
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
-import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.Group
 import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.Page
@@ -23,7 +22,7 @@ class GroupCtrl(cc: ControllerComponents,
 
   import silhouette._
 
-  def detail(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req: SecuredRequest[CookieEnv, AnyContent] =>
+  def detail(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))

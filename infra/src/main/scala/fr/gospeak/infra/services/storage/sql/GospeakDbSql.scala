@@ -40,11 +40,11 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     def user(slug: String, email: String, firstName: String, lastName: String): User = {
       val emailAddr = EmailAddress.from(email).right.get
       val avatar = gravatarSrv.getAvatar(emailAddr)
-      User(User.Id.generate(), User.Slug.from(slug).right.get, firstName, lastName, emailAddr, None, avatar, now, now)
+      User(User.Id.generate(), User.Slug.from(slug).right.get, firstName, lastName, emailAddr, None, avatar, public = true, now, now)
     }
 
     def group(slug: String, name: String, by: User, owners: Seq[User] = Seq()): Group =
-      Group(Group.Id.generate(), Group.Slug.from(slug).right.get, Group.Name(name), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(by.id) ++ owners.map(_.id).toList, Info(by.id, now))
+      Group(Group.Id.generate(), Group.Slug.from(slug).right.get, Group.Name(name), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(by.id) ++ owners.map(_.id).toList, public = true, Info(by.id, now))
 
     def cfp(group: Group, slug: String, name: String, start: Option[String], end: Option[String], description: String, by: User): Cfp =
       Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).right.get, Cfp.Name(name), start.map(d => LocalDateTime.parse(d + "T00:00:00")), end.map(d => LocalDateTime.parse(d + "T00:00:00")), Markdown(description), Info(by.id, now))
@@ -115,7 +115,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val generated = (1 to 25).toList.map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
-      val g = Group(groupId, Group.Slug.from(s"z-group-$i").right.get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga.id), Info(userOrga.id, now))
+      val g = Group(groupId, Group.Slug.from(s"z-group-$i").right.get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga.id), public = true, Info(userOrga.id, now))
       val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").right.get, Cfp.Name(s"Z CFP $i"), None, None, Markdown("Only your best talks !"), Info(userOrga.id, now))
       val e = Event(Event.Id.generate(), group4.id, None, Event.Slug.from(s"z-event-$i").right.get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), None, None, Seq(), Info(userOrga.id, now))
       val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").right.get, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Talk.Status.Draft, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker.id), None, None, Info(userSpeaker.id, now))

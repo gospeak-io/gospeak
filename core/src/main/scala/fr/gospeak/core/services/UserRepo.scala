@@ -6,7 +6,7 @@ import cats.effect.IO
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
-trait UserRepo extends OrgaUserRepo with SpeakerUserRepo with UserUserRepo with AuthUserRepo
+trait UserRepo extends OrgaUserRepo with SpeakerUserRepo with UserUserRepo with AuthUserRepo with PublicUserRepo
 
 trait OrgaUserRepo {
   def find(slug: User.Slug): IO[Option[User]]
@@ -44,4 +44,10 @@ trait AuthUserRepo {
   def find(email: EmailAddress): IO[Option[User]]
 
   def find(slug: User.Slug): IO[Option[User]]
+}
+
+trait PublicUserRepo {
+  def listPublic(params: Page.Params): IO[Page[User]]
+
+  def findPublic(user: User.Slug): IO[Option[User]]
 }

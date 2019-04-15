@@ -6,7 +6,7 @@ import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
-trait CfpRepo extends OrgaCfpRepo with SpeakerCfpRepo with UserCfpRepo with AuthCfpRepo
+trait CfpRepo extends OrgaCfpRepo with SpeakerCfpRepo with UserCfpRepo with AuthCfpRepo with PublicCfpRepo
 
 trait OrgaCfpRepo {
   def create(group: Group.Id, data: Cfp.Data, by: User.Id, now: Instant): IO[Cfp]
@@ -35,3 +35,9 @@ trait SpeakerCfpRepo {
 trait UserCfpRepo
 
 trait AuthCfpRepo
+
+trait PublicCfpRepo {
+  def listOpen(now: Instant, params: Page.Params): IO[Page[Cfp]]
+
+  def find(cfp: Cfp.Slug): IO[Option[Cfp]]
+}

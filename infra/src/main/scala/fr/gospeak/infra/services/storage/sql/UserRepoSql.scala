@@ -46,6 +46,8 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def find(slug: User.Slug): IO[Option[User]] = run(selectOne(slug).option)
 
+  override def findPublic(slug: User.Slug): IO[Option[User]] = run(selectOnePublic(slug).option)
+
   // FIXME should be done in only one query: joining on speakers array or splitting speakers string
   override def speakers(group: Group.Id, params: Page.Params): IO[Page[User]] = {
     val speakerIdsQuery = fr0"SELECT p.speakers FROM proposals p INNER JOIN cfps c ON c.id=p.cfp_id WHERE c.group_id=$group".query[NonEmptyList[User.Id]]
@@ -54,6 +56,8 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
         res <- NonEmptyList.fromList(speakerIds).map(ids => run(Queries.selectPage(selectPage(ids, _), params))).getOrElse(IO.pure(Page.empty[User]))
     } yield res
   }
+
+  override def listPublic(params: Page.Params): IO[Page[User]] = run(Queries.selectPage(selectPagePublic, params))
 
   override def list(ids: Seq[User.Id]): IO[Seq[User]] = runIn(selectAll)(ids)
 }
@@ -65,14 +69,14 @@ object UserRepoSql {
   private val loginTable = "logins"
   private val loginFields = Seq("provider_id", "provider_key", "user_id")
   private val table = "users"
-  private val fields = Seq("id", "slug", "first_name", "last_name", "email", "email_validated", "avatar", "avatar_source", "created", "updated")
+  private val fields = Seq("id", "slug", "first_name", "last_name", "email", "email_validated", "avatar", "avatar_source", "public", "created", "updated")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "slug", "first_name", "last_name", "email")
   private val defaultSort = Page.OrderBy("first_name")
 
   private def values(e: User): Fragment =
-    fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.created}, ${e.updated}"
+    fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.public}, ${e.created}, ${e.updated}"
 
   private[sql] def insert(elt: User): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
@@ -117,12 +121,20 @@ object UserRepoSql {
   private[sql] def selectOne(slug: User.Slug): doobie.Query0[User] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE slug=$slug").query[User]
 
+  private[sql] def selectOnePublic(slug: User.Slug): doobie.Query0[User] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE public = true AND slug=$slug").query[User]
+
   // should replace def selectPage(ids: NonEmptyList[User.Id], params: Page.Params) when split or array works...
   /* private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[User], doobie.Query0[Long]) = {
     val speakerIds = fr0"SELECT p.speakers FROM proposals p INNER JOIN cfps c ON c.id=p.cfp_id WHERE c.group_id=$group"
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE id IN (" ++ speakerIds ++ fr0")"))
     (buildSelect(tableFr, fieldsFr, page.all).query[User], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   } */
+
+  private[sql] def selectPagePublic(params: Page.Params): (doobie.Query0[User], doobie.Query0[Long]) = {
+    val page = paginate(params, searchFields, defaultSort, Some(fr"WHERE public = true"))
+    (buildSelect(tableFr, fieldsFr, page.all).query[User], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+  }
 
   private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params): (doobie.Query0[User], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr"WHERE" ++ Fragments.in(fr"id", ids)))
