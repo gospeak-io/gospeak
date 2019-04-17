@@ -1,6 +1,5 @@
 package fr.gospeak.infra.services.storage.sql
 
-import cats.data.NonEmptyList
 import fr.gospeak.core.domain.Talk
 import fr.gospeak.infra.services.storage.sql.TalkRepoSql._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
@@ -22,12 +21,11 @@ class TalkRepoSqlSpec extends RepoSpec {
       talkRepo.list(user.id, page).unsafeRunSync().items shouldBe Seq()
       talkRepo.find(user.id, talkData1.slug).unsafeRunSync() shouldBe None
     }
-    it("should fail on duplicate slug on same user") {
+    it("should fail on duplicate slug") {
       val user = userRepo.create(userData1, now).unsafeRunSync()
       val user2 = userRepo.create(userData2, now).unsafeRunSync()
       talkRepo.create(user.id, talkData1, now).unsafeRunSync()
-      talkRepo.create(user2.id, talkData1, now).unsafeRunSync()
-      an[Exception] should be thrownBy talkRepo.create(user.id, talkData1, now).unsafeRunSync()
+      an[Exception] should be thrownBy talkRepo.create(user2.id, talkData1, now).unsafeRunSync()
     }
     it("should update talk data") {
       val user = userRepo.create(userData1, now).unsafeRunSync()
@@ -76,7 +74,12 @@ class TalkRepoSqlSpec extends RepoSpec {
         q.sql shouldBe "UPDATE talks SET video=?, updated=?, updated_by=? WHERE speakers LIKE ? AND slug=?"
         check(q)
       }
-      it("should build selectOne") {
+      it("should build selectOne by slug") {
+        val q = selectOne(talk.slug)
+        q.sql shouldBe "SELECT id, slug, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM talks WHERE slug=?"
+        check(q)
+      }
+      it("should build selectOne by user and slug") {
         val q = selectOne(user.id, talk.slug)
         q.sql shouldBe "SELECT id, slug, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM talks WHERE speakers LIKE ? AND slug=?"
         check(q)

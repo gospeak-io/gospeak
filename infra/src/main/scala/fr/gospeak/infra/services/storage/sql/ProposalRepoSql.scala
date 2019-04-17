@@ -24,14 +24,14 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def edit(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): IO[Done] =
     run(update(speaker, talk, cfp)(data, now))
 
-  override def editSlides(id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): IO[Done] =
-    run(updateSlides(id)(slides, now, user))
+  override def editSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): IO[Done] =
+    run(updateSlides(cfp, id)(slides, now, user))
 
   override def editSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, now: Instant, user: User.Id): IO[Done] =
     run(updateSlides(speaker, talk, cfp)(slides, now, user))
 
-  override def editVideo(id: Proposal.Id)(video: Video, now: Instant, user: User.Id): IO[Done] =
-    run(updateVideo(id)(video, now, user))
+  override def editVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, now: Instant, user: User.Id): IO[Done] =
+    run(updateVideo(cfp, id)(video, now, user))
 
   override def editVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, now: Instant, user: User.Id): IO[Done] =
     run(updateVideo(speaker, talk, cfp)(video, now, user))
@@ -39,7 +39,7 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def editStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): IO[Done] =
     run(updateStatus(id)(status, event))
 
-  override def find(id: Proposal.Id): IO[Option[Proposal]] = run(selectOne(id).option)
+  override def find(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal]] = run(selectOne(cfp, id).option)
 
   override def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]] = run(selectOne(speaker, talk, cfp).option)
 
@@ -80,20 +80,23 @@ object ProposalRepoSql {
     buildUpdate(tableFr, fields, where(id)).update
   }
 
-  private[sql] def updateSlides(id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): doobie.Update0 =
-    buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$user", where(id)).update
+  private[sql] def updateSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): doobie.Update0 =
+    buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$user", where(cfp, id)).update
 
   private[sql] def updateSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, now: Instant, user: User.Id): doobie.Update0 =
     buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$user", where(speaker, talk, cfp)).update
 
-  private[sql] def updateVideo(id: Proposal.Id)(video: Video, now: Instant, user: User.Id): doobie.Update0 =
-    buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$user", where(id)).update
+  private[sql] def updateVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, now: Instant, user: User.Id): doobie.Update0 =
+    buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$user", where(cfp, id)).update
 
   private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, now: Instant, user: User.Id): doobie.Update0 =
     buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$user", where(speaker, talk, cfp)).update
 
   private[sql] def selectOne(id: Proposal.Id): doobie.Query0[Proposal] =
     buildSelect(tableFr, fieldsFr, where(id)).query[Proposal]
+
+  private[sql] def selectOne(cfp: Cfp.Slug, id: Proposal.Id): doobie.Query0[Proposal] =
+    buildSelect(tableFr, fieldsFr, where(cfp, id)).query[Proposal]
 
   private[sql] def selectOne(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): doobie.Query0[Proposal] =
     buildSelect(tableFr, fieldsFr, where(speaker, talk, cfp)).query[Proposal]
@@ -134,6 +137,11 @@ object ProposalRepoSql {
 
   private def where(id: Proposal.Id): Fragment =
     fr0"WHERE id=$id"
+
+  private def where(cfp: Cfp.Slug, id: Proposal.Id): Fragment =
+    fr0"WHERE id=(SELECT p.id FROM " ++
+      Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id ") ++
+      fr0"WHERE p.id=$id AND c.slug=$cfp" ++ fr0")"
 
   private def where(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Fragment =
     fr0"WHERE id=(SELECT p.id FROM " ++

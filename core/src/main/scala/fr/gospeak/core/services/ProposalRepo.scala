@@ -12,9 +12,9 @@ trait ProposalRepo extends OrgaProposalRepo with SpeakerProposalRepo with UserPr
 trait OrgaProposalRepo {
   def editStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): IO[Done]
 
-  def editSlides(id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): IO[Done]
+  def editSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): IO[Done]
 
-  def editVideo(id: Proposal.Id)(video: Video, now: Instant, user: User.Id): IO[Done]
+  def editVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, now: Instant, user: User.Id): IO[Done]
 
   def list(group: Group.Id, params: Page.Params): IO[Page[Proposal]]
 
@@ -26,7 +26,7 @@ trait OrgaProposalRepo {
 
   def list(ids: Seq[Proposal.Id]): IO[Seq[Proposal]]
 
-  def find(id: Proposal.Id): IO[Option[Proposal]]
+  def find(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal]]
 }
 
 trait SpeakerProposalRepo {
@@ -39,8 +39,6 @@ trait SpeakerProposalRepo {
   def editVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, now: Instant, user: User.Id): IO[Done]
 
   def list(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
-
-  def find(id: Proposal.Id): IO[Option[Proposal]]
 
   def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]]
 }

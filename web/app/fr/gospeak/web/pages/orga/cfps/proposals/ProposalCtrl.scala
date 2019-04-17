@@ -40,7 +40,7 @@ class ProposalCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
-      proposalElt <- OptionT(proposalRepo.find(proposal))
+      proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       speakers <- OptionT.liftF(userRepo.list(proposalElt.speakers.toList))
       events <- OptionT.liftF(eventRepo.list(proposalElt.event.toList))
       b = breadcrumb(groupElt, cfpElt, proposalElt)
@@ -57,7 +57,7 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(slides) => proposalRepo.editSlides(proposal)(slides, now, req.identity.user.id).map(_ => next)
+        case Right(slides) => proposalRepo.editSlides(cfp, proposal)(slides, now, req.identity.user.id).map(_ => next)
       }
     ).unsafeToFuture()
   }
@@ -69,7 +69,7 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(video) => proposalRepo.editVideo(proposal)(video, now, req.identity.user.id).map(_ => next)
+        case Right(video) => proposalRepo.editVideo(cfp, proposal)(video, now, req.identity.user.id).map(_ => next)
       }
     ).unsafeToFuture()
   }
