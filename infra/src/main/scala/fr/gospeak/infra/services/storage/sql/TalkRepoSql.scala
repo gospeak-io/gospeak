@@ -49,7 +49,7 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
 object TalkRepoSql {
   private val _ = talkIdMeta // for intellij not remove DoobieUtils.Mappings import
-  private val table = "talks"
+  private[sql] val table = "talks"
   private val fields = Seq("id", "slug", "title", "duration", "status", "description", "speakers", "slides", "video", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))

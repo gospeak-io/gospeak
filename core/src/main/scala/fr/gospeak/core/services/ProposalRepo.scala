@@ -32,17 +32,17 @@ trait OrgaProposalRepo {
 trait SpeakerProposalRepo {
   def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal]
 
-  def edit(user: User.Id, id: Proposal.Id)(data: Proposal.Data, now: Instant): IO[Done]
+  def edit(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): IO[Done]
 
-  def editSlides(id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): IO[Done]
+  def editSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, now: Instant, user: User.Id): IO[Done]
 
-  def editVideo(id: Proposal.Id)(video: Video, now: Instant, user: User.Id): IO[Done]
+  def editVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, now: Instant, user: User.Id): IO[Done]
 
   def list(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
 
   def find(id: Proposal.Id): IO[Option[Proposal]]
 
-  def find(talk: Talk.Id, cfp: Cfp.Id): IO[Option[Proposal]]
+  def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]]
 }
 
 trait UserProposalRepo

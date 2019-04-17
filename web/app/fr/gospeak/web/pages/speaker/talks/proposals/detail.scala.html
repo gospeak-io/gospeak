@@ -21,7 +21,7 @@
                 <i class="fas fa-cog"></i>
             </button>
             <span class="dropdown-menu dropdown-menu-right">
-                <a class="dropdown-item" href="@ProposalCtrl.edit(talk.slug, proposal.id)">Edit</a>
+                <a class="dropdown-item" href="@ProposalCtrl.edit(talk.slug, cfp.slug)">Edit</a>
             </span>
         </span>
     </h1>
@@ -35,8 +35,8 @@
     <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id) }</p>
     <p>@markdown(proposal.description)</p>
 
-    @if(proposal.slides.isEmpty) { @slidesFields(embedForm, ProposalCtrl.doAddSlides(talk.slug, proposal.id)) }
-    @if(proposal.video.isEmpty) { @videoFields(embedForm, ProposalCtrl.doAddVideo(talk.slug, proposal.id)) }
+    @if(proposal.slides.isEmpty) { @slidesFields(embedForm, ProposalCtrl.doAddSlides(talk.slug, cfp.slug)) }
+    @if(proposal.video.isEmpty) { @videoFields(embedForm, ProposalCtrl.doAddVideo(talk.slug, cfp.slug)) }
 
     <p>@info(proposal.info, speakers)</p>
 }()

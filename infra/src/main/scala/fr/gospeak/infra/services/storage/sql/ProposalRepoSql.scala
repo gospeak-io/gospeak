@@ -21,19 +21,27 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal] =
     run(insert, Proposal(talk, cfp, None, data, Proposal.Status.Pending, speakers, Info(by, now)))
 
-  override def edit(user: User.Id, id: Proposal.Id)(data: Proposal.Data, now: Instant): IO[Done] =
-    run(update(user, id)(data, now))
+  override def edit(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): IO[Done] =
+    run(update(speaker, talk, cfp)(data, now))
+
+  override def editSlides(id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): IO[Done] =
+    run(updateSlides(id)(slides, now, user))
+
+  override def editSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, now: Instant, user: User.Id): IO[Done] =
+    run(updateSlides(speaker, talk, cfp)(slides, now, user))
+
+  override def editVideo(id: Proposal.Id)(video: Video, now: Instant, user: User.Id): IO[Done] =
+    run(updateVideo(id)(video, now, user))
+
+  override def editVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, now: Instant, user: User.Id): IO[Done] =
+    run(updateVideo(speaker, talk, cfp)(video, now, user))
 
   override def editStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): IO[Done] =
     run(updateStatus(id)(status, event))
 
-  override def editSlides(id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): IO[Done] = run(updateSlides(id)(slides, now, user))
-
-  override def editVideo(id: Proposal.Id)(video: Video, now: Instant, user: User.Id): IO[Done] = run(updateVideo(id)(video, now, user))
-
   override def find(id: Proposal.Id): IO[Option[Proposal]] = run(selectOne(id).option)
 
-  override def find(talk: Talk.Id, cfp: Cfp.Id): IO[Option[Proposal]] = run(selectOne(talk, cfp).option)
+  override def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]] = run(selectOne(speaker, talk, cfp).option)
 
   override def list(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]] = run(Queries.selectPage(selectPage(talk, _), params))
 
@@ -62,9 +70,9 @@ object ProposalRepoSql {
 
   private[sql] def insert(elt: Proposal): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
-  private[sql] def update(user: User.Id, id: Proposal.Id)(data: Proposal.Data, now: Instant): doobie.Update0 = {
-    val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, updated=$now, updated_by=$user"
-    buildUpdate(tableFr, fields, where(id)).update
+  private[sql] def update(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): doobie.Update0 = {
+    val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, updated=$now, updated_by=$speaker"
+    buildUpdate(tableFr, fields, where(speaker, talk, cfp)).update
   }
 
   private[sql] def updateStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): doobie.Update0 = {
@@ -75,14 +83,20 @@ object ProposalRepoSql {
   private[sql] def updateSlides(id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): doobie.Update0 =
     buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$user", where(id)).update
 
+  private[sql] def updateSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, now: Instant, user: User.Id): doobie.Update0 =
+    buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$user", where(speaker, talk, cfp)).update
+
   private[sql] def updateVideo(id: Proposal.Id)(video: Video, now: Instant, user: User.Id): doobie.Update0 =
     buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$user", where(id)).update
+
+  private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, now: Instant, user: User.Id): doobie.Update0 =
+    buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$user", where(speaker, talk, cfp)).update
 
   private[sql] def selectOne(id: Proposal.Id): doobie.Query0[Proposal] =
     buildSelect(tableFr, fieldsFr, where(id)).query[Proposal]
 
-  private[sql] def selectOne(talk: Talk.Id, cfp: Cfp.Id): doobie.Query0[Proposal] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE talk_id=$talk AND cfp_id=$cfp").query[Proposal]
+  private[sql] def selectOne(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): doobie.Query0[Proposal] =
+    buildSelect(tableFr, fieldsFr, where(speaker, talk, cfp)).query[Proposal]
 
   private[sql] def selectPage(talk: Talk.Id, params: Page.Params): (doobie.Query0[(Cfp, Proposal)], doobie.Query0[Long]) = {
     val selectedTables = Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id")
@@ -120,4 +134,9 @@ object ProposalRepoSql {
 
   private def where(id: Proposal.Id): Fragment =
     fr0"WHERE id=$id"
+
+  private def where(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Fragment =
+    fr0"WHERE id=(SELECT p.id FROM " ++
+      Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id INNER JOIN ${TalkRepoSql.table} t ON p.talk_id=t.id ") ++
+      fr0"WHERE c.slug=$cfp AND t.slug=$talk AND t.speakers LIKE ${"%" + speaker.value + "%"}" ++ fr0")"
 }

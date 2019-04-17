@@ -39,8 +39,8 @@ class ProposalRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build update") {
-        val q = update(user.id, proposal.id)(proposal.data, now)
-        q.sql shouldBe "UPDATE proposals SET title=?, duration=?, description=?, slides=?, video=?, updated=?, updated_by=? WHERE id=?"
+        val q = update(user.id, talk.slug, cfp.slug)(proposal.data, now)
+        q.sql shouldBe "UPDATE proposals SET title=?, duration=?, description=?, slides=?, video=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND t.speakers LIKE ?)"
         check(q)
       }
       it("should build updateStatus") {
@@ -48,14 +48,24 @@ class ProposalRepoSqlSpec extends RepoSpec {
         q.sql shouldBe "UPDATE proposals SET status=?, event_id=? WHERE id=?"
         check(q)
       }
-      it("should build updateSlides") {
+      it("should build updateSlides by id") {
         val q = updateSlides(proposal.id)(slides, now, user.id)
         q.sql shouldBe "UPDATE proposals SET slides=?, updated=?, updated_by=? WHERE id=?"
         check(q)
       }
-      it("should build updateVideo") {
+      it("should build updateSlides by speaker, talk and cfp") {
+        val q = updateSlides(user.id, talk.slug, cfp.slug)(slides, now, user.id)
+        q.sql shouldBe "UPDATE proposals SET slides=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND t.speakers LIKE ?)"
+        check(q)
+      }
+      it("should build updateVideo by id") {
         val q = updateVideo(proposal.id)(video, now, user.id)
         q.sql shouldBe "UPDATE proposals SET video=?, updated=?, updated_by=? WHERE id=?"
+        check(q)
+      }
+      it("should build updateVideo by speaker, talk and cfp") {
+        val q = updateVideo(user.id, talk.slug, cfp.slug)(video, now, user.id)
+        q.sql shouldBe "UPDATE proposals SET video=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND t.speakers LIKE ?)"
         check(q)
       }
       it("should build selectOne for proposal id") {
@@ -63,9 +73,9 @@ class ProposalRepoSqlSpec extends RepoSpec {
         q.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE id=?"
         check(q)
       }
-      it("should build selectOne for talk and cfp id") {
-        val q = selectOne(talk.id, cfp.id)
-        q.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE talk_id=? AND cfp_id=?"
+      it("should build selectOne for speaker, talk and cfp") {
+        val q = selectOne(user.id, talk.slug, cfp.slug)
+        q.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND t.speakers LIKE ?)"
         check(q)
       }
       it("should build selectPage for a talk") {
