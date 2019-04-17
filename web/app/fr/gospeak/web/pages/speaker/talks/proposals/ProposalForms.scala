@@ -1,11 +1,11 @@
-package fr.gospeak.web.pages.speaker.talks.cfps
+package fr.gospeak.web.pages.speaker.talks.proposals
 
 import fr.gospeak.core.domain.Proposal
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Form
-import play.api.data.Forms._
+import play.api.data.Forms.{mapping, optional}
 
-object CfpForms {
+object ProposalForms {
   val create: Form[Proposal.Data] = Form(mapping(
     "title" -> talkTitle,
     "duration" -> duration,

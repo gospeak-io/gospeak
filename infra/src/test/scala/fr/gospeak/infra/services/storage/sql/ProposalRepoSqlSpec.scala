@@ -38,6 +38,11 @@ class ProposalRepoSqlSpec extends RepoSpec {
         q.sql shouldBe "INSERT INTO proposals (id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
+      it("should build update") {
+        val q = update(user.id, proposal.id)(proposal.data, now)
+        q.sql shouldBe "UPDATE proposals SET title=?, duration=?, description=?, slides=?, video=?, updated=?, updated_by=? WHERE id=?"
+        check(q)
+      }
       it("should build updateStatus") {
         val q = updateStatus(proposal.id)(proposal.status, None)
         q.sql shouldBe "UPDATE proposals SET status=?, event_id=? WHERE id=?"

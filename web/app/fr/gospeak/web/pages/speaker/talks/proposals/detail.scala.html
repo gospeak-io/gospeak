@@ -11,17 +11,32 @@
 
 @(talk: Talk, cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event], embedForm: Form[Url])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @eventinfo(id: Event.Id) = {
-    @events.find(_.id == id).map { e => @e.name.value - @Formats.date(e.start) }.getOrElse { Unknown event @id.value }
+    @events.find(_.id == id).map { e => <b>@e.name.value - @Formats.date(e.start)</b> }.getOrElse { <b>Unknown event @id.value</b> }
 }
 @container(cfp.name.value + " - Gospeak", b)() {
-    <h1>@proposal.title.value proposal to @cfp.name.value</h1>
+    <h1 class="d-flex justify-content-between align-items-center">
+        <span>@proposalStatusIcon(proposal.status) @proposal.title.value proposal to @cfp.name.value</span>
+        <span class="btn-group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-cog"></i>
+            </button>
+            <span class="dropdown-menu dropdown-menu-right">
+                <a class="dropdown-item" href="@ProposalCtrl.edit(talk.slug, proposal.id)">Edit</a>
+            </span>
+        </span>
+    </h1>
 
-    <p>@duration(proposal.duration) @proposalStatus(proposal.status) @proposal.event.map { id => @eventinfo(id) }</p>
-    <p>@markdown(proposal.description)</p>
+    <p>
+        @duration(proposal.duration)
+        @proposal.video.map { video => @videoIcon(Some(video)) }
+        @proposal.slides.map { slides => @slidesIcon(Some(slides)) }
+        @proposal.event.map { id => @eventinfo(id) }
+    </p>
     <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id) }</p>
+    <p>@markdown(proposal.description)</p>
 
-    @proposal.slides.map { s => @embed(s.value) }.getOrElse { @slidesFields(embedForm, ProposalCtrl.doAddSlides(talk.slug, proposal.id)) }
-    @proposal.video.map { v => @embed(v.value) }.getOrElse { @videoFields(embedForm, ProposalCtrl.doAddVideo(talk.slug, proposal.id)) }
+    @if(proposal.slides.isEmpty) { @slidesFields(embedForm, ProposalCtrl.doAddSlides(talk.slug, proposal.id)) }
+    @if(proposal.video.isEmpty) { @videoFields(embedForm, ProposalCtrl.doAddVideo(talk.slug, proposal.id)) }
 
     <p>@info(proposal.info, speakers)</p>
 }()

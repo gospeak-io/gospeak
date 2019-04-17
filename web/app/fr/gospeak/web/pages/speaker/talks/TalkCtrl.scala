@@ -65,30 +65,6 @@ class TalkCtrl(cc: ControllerComponents,
     } yield Ok(html.detail(talkElt, speakers, proposals, events, GenericForm.embed)(b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 
-  def doAddSlides(talk: Talk.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
-    val next = Redirect(routes.TalkCtrl.detail(talk))
-    GenericForm.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
-      data => Slides.from(data) match {
-        case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(slides) => talkRepo.editSlides(req.identity.user.id, talk)(slides, now).map(_ => next)
-      }
-    ).unsafeToFuture()
-  }
-
-  def doAddVideo(talk: Talk.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
-    val next = Redirect(routes.TalkCtrl.detail(talk))
-    GenericForm.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
-      data => Video.from(data) match {
-        case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(video) => talkRepo.editVideo(req.identity.user.id, talk)(video, now).map(_ => next)
-      }
-    ).unsafeToFuture()
-  }
-
   def edit(talk: Talk.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     editForm(talk, TalkForms.create).unsafeToFuture()
   }
@@ -115,6 +91,30 @@ class TalkCtrl(cc: ControllerComponents,
       case None =>
         talkNotFound(talk)
     }
+  }
+
+  def doAddSlides(talk: Talk.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    val next = Redirect(routes.TalkCtrl.detail(talk))
+    GenericForm.embed.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      data => Slides.from(data) match {
+        case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
+        case Right(slides) => talkRepo.editSlides(req.identity.user.id, talk)(slides, now).map(_ => next)
+      }
+    ).unsafeToFuture()
+  }
+
+  def doAddVideo(talk: Talk.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    val next = Redirect(routes.TalkCtrl.detail(talk))
+    GenericForm.embed.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      data => Video.from(data) match {
+        case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
+        case Right(video) => talkRepo.editVideo(req.identity.user.id, talk)(video, now).map(_ => next)
+      }
+    ).unsafeToFuture()
   }
 
   def changeStatus(talk: Talk.Slug, status: Talk.Status): Action[AnyContent] = SecuredAction.async { implicit req =>

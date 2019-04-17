@@ -47,6 +47,9 @@ class ProposalCtrl(cc: ControllerComponents,
     } yield Ok(html.detail(groupElt, cfpElt, proposalElt, speakers, events, GenericForm.embed)(b))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal))).unsafeToFuture()
   }
 
+  // TODO edit
+  // TODO doEdit
+
   def doAddSlides(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))

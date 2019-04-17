@@ -1,0 +1,24 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Cfp, Proposal, Talk}
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.pages.speaker.partials.html.{cfpFields, container}
+
+@(form: Form[Proposal.Data], talk: Talk, cfp: Cfp, proposal: Proposal)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", b)() {
+    <h1 class="page-header">Update @proposal.title.value at @cfp.name.value</h1>
+
+    @formElt(form, ProposalCtrl.doEdit(talk.slug, proposal.id)) {
+        <blockquote class="blockquote">
+            @markdown(cfp.description)
+        </blockquote>
+        @cfpFields(form)
+        @actionsHorizontal() {
+            @btnCancel(ProposalCtrl.detail(talk.slug, proposal.id))
+            @btnSubmit("Propose your talk")
+        }
+    }
+}()

@@ -21,6 +21,9 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal] =
     run(insert, Proposal(talk, cfp, None, data, Proposal.Status.Pending, speakers, Info(by, now)))
 
+  override def edit(user: User.Id, id: Proposal.Id)(data: Proposal.Data, now: Instant): IO[Done] =
+    run(update(user, id)(data, now))
+
   override def editStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): IO[Done] =
     run(updateStatus(id)(status, event))
 
@@ -58,6 +61,11 @@ object ProposalRepoSql {
     fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.title}, ${e.duration}, ${e.status}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   private[sql] def insert(elt: Proposal): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
+
+  private[sql] def update(user: User.Id, id: Proposal.Id)(data: Proposal.Data, now: Instant): doobie.Update0 = {
+    val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, updated=$now, updated_by=$user"
+    buildUpdate(tableFr, fields, where(id)).update
+  }
 
   private[sql] def updateStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): doobie.Update0 = {
     val fields = fr0"status=$status, event_id=$event"

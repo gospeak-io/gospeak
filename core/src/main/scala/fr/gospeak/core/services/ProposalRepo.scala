@@ -32,6 +32,8 @@ trait OrgaProposalRepo {
 trait SpeakerProposalRepo {
   def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal]
 
+  def edit(user: User.Id, id: Proposal.Id)(data: Proposal.Data, now: Instant): IO[Done]
+
   def editSlides(id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): IO[Done]
 
   def editVideo(id: Proposal.Id)(video: Video, now: Instant, user: User.Id): IO[Done]

@@ -14,6 +14,7 @@ import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.speaker.talks.cfps.CfpCtrl._
 import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 import fr.gospeak.web.pages.speaker.talks.TalkCtrl
+import fr.gospeak.web.pages.speaker.talks.proposals.ProposalForms
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
@@ -35,12 +36,12 @@ class CfpCtrl(cc: ControllerComponents,
   }
 
   def create(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    createForm(CfpForms.create, talk, cfp).unsafeToFuture()
+    createForm(ProposalForms.create, talk, cfp).unsafeToFuture()
   }
 
   def doCreate(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
-    CfpForms.create.bindFromRequest.fold(
+    ProposalForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors, talk, cfp),
       data => {
         (for {

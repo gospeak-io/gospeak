@@ -5,6 +5,7 @@ import java.time.Instant
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
@@ -13,6 +14,7 @@ import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl._
 import fr.gospeak.web.pages.speaker.talks.TalkCtrl
 import fr.gospeak.web.utils.{GenericForm, UICtrl}
+import play.api.data.Form
 import play.api.mvc._
 
 class ProposalCtrl(cc: ControllerComponents,
@@ -34,6 +36,10 @@ class ProposalCtrl(cc: ControllerComponents,
     } yield Ok(html.list(talkElt, proposals, events)(b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 
+  // TODO create
+  // TODO doCreate
+
+  // TODO replace proposalId by cfpSlug
   def detail(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
@@ -43,6 +49,28 @@ class ProposalCtrl(cc: ControllerComponents,
       events <- OptionT.liftF(eventRepo.list(proposalElt.event.toSeq))
       b = breadcrumb(req.identity.user, talkElt, proposal -> cfpElt.name)
     } yield Ok(html.detail(talkElt, cfpElt, proposalElt, speakers, events, GenericForm.embed)(b))).value.map(_.getOrElse(proposalNotFound(talk, proposal))).unsafeToFuture()
+  }
+
+  def edit(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    editForm(talk, proposal, ProposalForms.create).unsafeToFuture()
+  }
+
+  def doEdit(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    ProposalForms.create.bindFromRequest.fold(
+      formWithErrors => editForm(talk, proposal, formWithErrors),
+      data => proposalRepo.edit(req.identity.user.id, proposal)(data, now).map { _ => Redirect(routes.ProposalCtrl.detail(talk, proposal)) }
+    ).unsafeToFuture()
+  }
+
+  private def editForm(talk: Talk.Slug, proposal: Proposal.Id, form: Form[Proposal.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+    (for {
+      talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
+      proposalElt <- OptionT(proposalRepo.find(proposal))
+      cfpElt <- OptionT(cfpRepo.find(proposalElt.cfp))
+      b = breadcrumb(req.identity.user, talkElt, proposal -> cfpElt.name).add("Edit" -> routes.ProposalCtrl.edit(talk, proposal))
+      filledForm = if (form.hasErrors) form else form.fill(proposalElt.data)
+    } yield Ok(html.edit(filledForm, talkElt, cfpElt, proposalElt)(b))).value.map(_.getOrElse(talkNotFound(talk)))
   }
 
   def doAddSlides(talk: Talk.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
