@@ -10,6 +10,8 @@ import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Video}
 trait ProposalRepo extends OrgaProposalRepo with SpeakerProposalRepo with UserProposalRepo with AuthProposalRepo
 
 trait OrgaProposalRepo {
+  def edit(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.Data, now: Instant): IO[Done]
+
   def editStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): IO[Done]
 
   def editSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): IO[Done]

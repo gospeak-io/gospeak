@@ -21,6 +21,9 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal] =
     run(insert, Proposal(talk, cfp, None, data, Proposal.Status.Pending, speakers, Info(by, now)))
 
+  override def edit(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.Data, now: Instant): IO[Done] =
+    run(update(orga, group, cfp, proposal)(data, now))
+
   override def edit(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): IO[Done] =
     run(update(speaker, talk, cfp)(data, now))
 
@@ -69,6 +72,11 @@ object ProposalRepoSql {
     fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.title}, ${e.duration}, ${e.status}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   private[sql] def insert(elt: Proposal): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
+
+  private[sql] def update(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.Data, now: Instant): doobie.Update0 = {
+    val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, updated=$now, updated_by=$orga"
+    buildUpdate(tableFr, fields, where(orga, group, cfp, proposal)).update
+  }
 
   private[sql] def update(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): doobie.Update0 = {
     val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, updated=$now, updated_by=$speaker"
@@ -142,6 +150,11 @@ object ProposalRepoSql {
     fr0"WHERE id=(SELECT p.id FROM " ++
       Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id ") ++
       fr0"WHERE p.id=$id AND c.slug=$cfp" ++ fr0")"
+
+  private def where(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Fragment =
+    fr0"WHERE id=(SELECT p.id FROM " ++
+      Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id INNER JOIN ${GroupRepoSql.table} g ON c.group_id=g.id ") ++
+      fr0"WHERE p.id=$proposal AND c.slug=$cfp AND g.slug=$group AND g.owners LIKE ${"%" + orga.value + "%"}" ++ fr0")"
 
   private def where(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Fragment =
     fr0"WHERE id=(SELECT p.id FROM " ++

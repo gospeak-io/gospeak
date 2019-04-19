@@ -5,6 +5,7 @@ import java.time.Instant
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Cfp, Group, Proposal}
 import fr.gospeak.core.services._
 import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
@@ -12,8 +13,10 @@ import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.cfps.CfpCtrl
 import fr.gospeak.web.pages.orga.cfps.proposals.ProposalCtrl._
+import fr.gospeak.web.pages.speaker.talks.proposals.ProposalForms
 import fr.gospeak.web.utils.{GenericForm, UICtrl}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.data.Form
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
 class ProposalCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
@@ -47,8 +50,27 @@ class ProposalCtrl(cc: ControllerComponents,
     } yield Ok(html.detail(groupElt, cfpElt, proposalElt, speakers, events, GenericForm.embed)(b))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal))).unsafeToFuture()
   }
 
-  // TODO edit
-  // TODO doEdit
+  def edit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    editForm(group, cfp, proposal, ProposalForms.create).unsafeToFuture()
+  }
+
+  def doEdit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    ProposalForms.create.bindFromRequest.fold(
+      formWithErrors => editForm(group, cfp, proposal, formWithErrors),
+      data => proposalRepo.edit(req.identity.user.id, group, cfp, proposal)(data, now).map { _ => Redirect(routes.ProposalCtrl.detail(group, cfp, proposal)) }
+    ).unsafeToFuture()
+  }
+
+  private def editForm(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, form: Form[Proposal.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+    (for {
+      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
+      proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
+      b = breadcrumb(groupElt, cfpElt, proposalElt).add("Edit" -> routes.ProposalCtrl.edit(group, cfp, proposal))
+      filledForm = if (form.hasErrors) form else form.fill(proposalElt.data)
+    } yield Ok(html.edit(groupElt, cfpElt, proposalElt, filledForm)(b))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
+  }
 
   def doAddSlides(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()

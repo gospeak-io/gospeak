@@ -38,7 +38,12 @@ class ProposalRepoSqlSpec extends RepoSpec {
         q.sql shouldBe "INSERT INTO proposals (id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
-      it("should build update") {
+      it("should build update for orga") {
+        val q = update(user.id, group.slug, cfp.slug, proposal.id)(proposal.data, now)
+        q.sql shouldBe "UPDATE proposals SET title=?, duration=?, description=?, slides=?, video=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN groups g ON c.group_id=g.id WHERE p.id=? AND c.slug=? AND g.slug=? AND g.owners LIKE ?)"
+        check(q)
+      }
+      it("should build update for speaker") {
         val q = update(user.id, talk.slug, cfp.slug)(proposal.data, now)
         q.sql shouldBe "UPDATE proposals SET title=?, duration=?, description=?, slides=?, video=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND t.speakers LIKE ?)"
         check(q)
