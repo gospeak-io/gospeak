@@ -12,7 +12,9 @@ import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.infra.utils.{DoobieUtils, FlywayUtils}
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
+import fr.gospeak.migration.MongoRepo
 
 import scala.concurrent.duration._
 
@@ -20,7 +22,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
   private val flyway = FlywayUtils.build(conf)
   private[sql] val xa: doobie.Transactor[IO] = DoobieUtils.transactor(conf)
 
-  def createTables(): IO[Int] = IO(flyway.migrate())
+  def migrate(): IO[Int] = IO(flyway.migrate())
 
   def dropTables(): IO[Done] = IO(flyway.clean()).map(_ => Done)
 
@@ -31,6 +33,54 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
   val event = new EventRepoSql(xa)
   val talk = new TalkRepoSql(xa)
   val proposal = new ProposalRepoSql(xa)
+
+  def insertHTData(mongoUri: String): IO[Done] = {
+    val dbName = mongoUri.split('?').head.split('/').last
+    IO.fromFuture(IO(MongoRepo.create(mongoUri, dbName).toFuture)).bracket { mongo =>
+      for {
+        htUsers <- IO.fromFuture(IO(mongo.loadPersons()))
+        htTalks <- IO.fromFuture(IO(mongo.loadTalks()))
+        htEvents <- IO.fromFuture(IO(mongo.loadEvents()))
+        htPartners <- IO.fromFuture(IO(mongo.loadPartners()))
+
+        initDate = Instant.ofEpochMilli(htUsers.map(_.meta.created).min)
+        users = htUsers.map(_.toUser)
+        lkn = users.find(_.email.value == "loicknuchel@gmail.com").get
+        orga = htUsers.filter(_.auth.exists(a => a.role == "Organizer" || a.role == "Admin")).map(_.toUser)
+        group = Group(Group.Id.generate(), Group.Slug.from("humantalks-paris").right.get, Group.Name("HumanTalks Paris"), Markdown(
+          """Description des HumanTalks
+            |TODO
+          """.stripMargin.trim), NonEmptyList.fromListUnsafe(orga.map(_.id)), public = true, Info(lkn.id, initDate))
+        cfp = Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from("humantalks-paris").right.get, Cfp.Name("HumanTalks Paris"), None, None, Markdown(
+          """Les HumanTalks sont des événements pour les développeurs de tous horizons et qui ont lieu partout en France.
+            |Le principe est simple: 4 talks de 10 minutes tous les 2ème mardi du mois pour partager autour du développement logiciel au sens large: code bien sûr, mais aussi design, organisation, agilité...
+            |Nous acceuillons très volontiers des speakers débutant qui voudraient partager.
+          """.stripMargin.trim), Info(lkn.id, initDate))
+        talks = htTalks.map(_.toTalk).map(t => t.copy(info = t.info.copy(
+          createdBy = users.find(_.id == t.info.createdBy).map(_.id).getOrElse(t.speakers.head),
+          updatedBy = users.find(_.id == t.info.updatedBy).map(_.id).getOrElse(t.speakers.head)
+        )))
+        proposals = htTalks.map(_.toProposal.copy(cfp = cfp.id)).map(p => p.copy(info = p.info.copy(
+          createdBy = users.find(_.id == p.info.createdBy).map(_.id).getOrElse(p.speakers.head),
+          updatedBy = users.find(_.id == p.info.updatedBy).map(_.id).getOrElse(p.speakers.head)
+        )))
+        events = htEvents.map(e => e.toEvent.copy(group = group.id, cfp = Some(cfp.id), talks = e.data.talks.map(t => htTalks.find(_.id == t).get.toProposal.id))).map(p => p.copy(info = p.info.copy(
+          createdBy = users.find(_.id == p.info.createdBy).map(_.id).getOrElse(lkn.id),
+          updatedBy = users.find(_.id == p.info.updatedBy).map(_.id).getOrElse(lkn.id)
+        )))
+
+        _ <- run(Queries.insertMany(UserRepoSql.insert)(NonEmptyList.fromListUnsafe(users)))
+        _ <- run(UserRepoSql.insertCredentials(User.Credentials("credentials", lkn.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
+        _ <- run(UserRepoSql.insertLoginRef(User.LoginRef("credentials", lkn.email.value, lkn.id)))
+        _ <- run(GroupRepoSql.insert(group))
+        _ <- run(CfpRepoSql.insert(cfp))
+        _ <- run(Queries.insertMany(TalkRepoSql.insert)(NonEmptyList.fromListUnsafe(talks)))
+        _ <- run(Queries.insertMany(ProposalRepoSql.insert)(NonEmptyList.fromListUnsafe(proposals)))
+        _ <- run(Queries.insertMany(EventRepoSql.insert)(NonEmptyList.fromListUnsafe(events)))
+        _ <- IO(events.map(e => addTalk(e, proposals.filter(p => e.talks.contains(p.id)), e.info.createdBy, e.info.updated)).map(_.unsafeRunSync()))
+      } yield Done
+    } { mongo => IO(mongo.close()) }
+  }
 
   def insertMockData(): IO[Done] = {
     val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
@@ -123,11 +173,6 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       (g, c, e, t, p)
     }
 
-    def addTalk(event: Event, proposals: Seq[Proposal], by: User.Id) = for {
-      _ <- run(EventRepoSql.updateTalks(event.group, event.slug)(proposals.map(_.id), by, now))
-      _ <- IO(proposals.map(p => run(ProposalRepoSql.updateStatus(p.id)(Proposal.Status.Accepted, Some(event.id)))).map(_.unsafeRunSync()))
-    } yield Done
-
     for {
       _ <- run(Queries.insertMany(UserRepoSql.insert)(users))
       _ <- run(UserRepoSql.insertCredentials(User.Credentials("credentials", "demo@mail.com", "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
@@ -137,9 +182,14 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       _ <- run(Queries.insertMany(TalkRepoSql.insert)(talks ++ generated.map(_._4)))
       _ <- run(Queries.insertMany(ProposalRepoSql.insert)(proposals ++ generated.map(_._5)))
       _ <- run(Queries.insertMany(EventRepoSql.insert)(events ++ generated.map(_._3)))
-      _ <- IO(eventTalks.map { case (e, p, u) => addTalk(e, p, u) }.map(_.unsafeRunSync()))
+      _ <- IO(eventTalks.map { case (e, p, u) => addTalk(e, p, u, now) }.map(_.unsafeRunSync()))
     } yield Done
   }
+
+  private def addTalk(event: Event, proposals: Seq[Proposal], by: User.Id, now: Instant): IO[Done] = for {
+    _ <- run(EventRepoSql.updateTalks(event.group, event.slug)(proposals.map(_.id), by, now))
+    _ <- IO(proposals.map(p => run(ProposalRepoSql.updateStatus(p.id)(Proposal.Status.Accepted, Some(event.id)))).map(_.unsafeRunSync()))
+  } yield Done
 
   private def run(i: => doobie.Update0): IO[Done] =
     i.run.transact(xa).flatMap {

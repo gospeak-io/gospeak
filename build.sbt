@@ -34,6 +34,7 @@ val doobie = Seq(
   "org.tpolecat" %% "doobie-hikari").map(_ % doobieVersion)
 val doobieTest = Seq(
   "org.tpolecat" %% "doobie-scalatest" % doobieVersion).map(_ % Test)
+val mongo = Seq("org.reactivemongo" %% "reactivemongo" % "0.16.5")
 val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.10.2")
 val hammock = Seq(
   "com.pepegar" %% "hammock-core",
@@ -74,6 +75,7 @@ val scalaCheck = Seq(
 val scalautilsDependencies = cats ++ scalaTest ++ scalaCheck
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
 val infraDependencies = hammock ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
+val migrationDependencies = mongo ++ logback ++ scalaTest ++ scalaCheck
 val webDependencies = play ++ silhouette ++ flexmark ++ pureconfig ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
 
 
@@ -95,8 +97,16 @@ val core = (project in file("core"))
     commonSettings
   )
 
-val infra = (project in file("infra"))
+val migration = (project in file("migration"))
   .dependsOn(core % "compile->compile;test->test")
+  .settings(
+    name := "migration",
+    libraryDependencies ++= migrationDependencies,
+    commonSettings
+  )
+
+val infra = (project in file("infra"))
+  .dependsOn(core % "compile->compile;test->test", migration)
   .settings(
     name := "infra",
     libraryDependencies ++= infraDependencies,

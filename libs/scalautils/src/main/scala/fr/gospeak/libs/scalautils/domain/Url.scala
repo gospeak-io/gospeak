@@ -1,5 +1,9 @@
 package fr.gospeak.libs.scalautils.domain
 
+import java.net.URL
+
+import scala.util.Try
+
 final class Url private(value: String) extends DataClass(value)
 
 object Url {
@@ -12,6 +16,7 @@ object Url {
   // FIXME: improve
   private def errors(in: String): Seq[CustomError] =
     Seq(
-      if (in.startsWith("http")) None else Some("Do not starts with 'http'")
+      if (in.startsWith("http")) None else Some("Do not starts with 'http'"),
+      Try(new URL(in)).failed.map(_.getMessage).toOption
     ).flatten.map(CustomError)
 }

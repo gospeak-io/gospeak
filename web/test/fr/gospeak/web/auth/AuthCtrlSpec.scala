@@ -25,7 +25,7 @@ class AuthCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
   private val signupData = SignupData(User.Slug.from("slug").right.get, "first", "last", EmailAddress.from("first@mail.com").right.get, Secret("passpass"), rememberMe = true)
 
   override def beforeEach(): Unit = {
-    db.createTables().unsafeRunSync()
+    db.migrate().unsafeRunSync()
     emailSrv.sentEmails.clear()
   }
 

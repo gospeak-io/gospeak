@@ -41,7 +41,7 @@ object Proposal {
 
     case object Pending extends Status
 
-    case object Accepted extends Status
+    case object Accepted extends Status // TODO: rename this to Planified ?
 
     case object Rejected extends Status
 

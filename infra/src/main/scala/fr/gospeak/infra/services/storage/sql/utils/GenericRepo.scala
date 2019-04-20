@@ -3,13 +3,14 @@ package fr.gospeak.infra.services.storage.sql.utils
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done}
 
 trait GenericRepo {
   protected[sql] val xa: doobie.Transactor[IO]
 
   protected def run[A](i: A => doobie.Update0, v: A): IO[A] =
-    i(v).run.transact(xa).flatMap {
+    i(v).run.transact(xa).mapFailure(e => new Exception(s"Unable to insert $v", e)).flatMap {
       case 1 => IO.pure(v)
       case code => IO.raiseError(CustomException(s"Failed to insert $v (code: $code)"))
     }

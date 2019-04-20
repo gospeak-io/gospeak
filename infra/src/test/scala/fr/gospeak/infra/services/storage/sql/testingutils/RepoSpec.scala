@@ -44,7 +44,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val speakers: NonEmptyList[User.Id] = NonEmptyList.fromListUnsafe(random[User.Id](3).toList)
   protected val page = Page.Params()
 
-  override def beforeEach(): Unit = db.createTables().unsafeRunSync()
+  override def beforeEach(): Unit = db.migrate().unsafeRunSync()
 
   override def afterEach(): Unit = db.dropTables().unsafeRunSync()
 

@@ -116,10 +116,7 @@ object Extensions {
     def mapFailure(f: Throwable => Throwable): Try[A] =
       in.recoverWith { case NonFatal(e) => Failure(f(e)) }
 
-    def toFuture: Future[A] = in match {
-      case Success(a) => Future.successful(a)
-      case Failure(e) => Future.failed(e)
-    }
+    def toFuture: Future[A] = Future.fromTry(in)
   }
 
   implicit class FutureExtension[A](val in: Future[A]) extends AnyVal {
@@ -131,17 +128,22 @@ object Extensions {
   }
 
   // conflicts with some cats implicits :(
-  /* implicit class EitherExtension[E, A](val in: Either[E, A]) extends AnyVal {
+  implicit class EitherExtension[E, A](val in: Either[E, A]) extends AnyVal {
     def get: A = in match {
       case Right(v) => v
       case Left(e: Throwable) => throw e
       case Left(e) => throw new NoSuchElementException(s"Left($e).get")
     }
-  } */
+  }
 
   implicit class IOExtension[A](val in: IO[A]) extends AnyVal {
     def filter(p: A => Boolean): IO[A] =
       in.flatMap(v => if (p(v)) IO.pure(v) else IO.raiseError(new NoSuchElementException("Predicate does not hold for " + v)))
+
+    def mapFailure(f: Throwable => Throwable): IO[A] = {
+      import cats.implicits._
+      in.recoverWith { case NonFatal(e) => IO.raiseError(f(e)) }
+    }
   }
 
   private def sequenceResult[A, M[X] <: TraversableOnce[X]](in: (mutable.Builder[A, M[A]], Seq[Throwable])): Try[M[A]] = {
