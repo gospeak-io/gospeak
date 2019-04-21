@@ -102,6 +102,8 @@ object Page {
 
     def defaultSize(size: Int): Params = if (pageSize == Params.defaults.pageSize) copy(pageSize = Size(size)) else this
 
+    def defaultOrderBy(field: String): Params = if (orderBy == Params.defaults.orderBy) copy(orderBy = Some(OrderBy(field))) else this
+
     def orderBy(field: String): Params = copy(orderBy = Some(OrderBy(field)))
   }
 

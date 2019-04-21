@@ -39,7 +39,7 @@ class UserRepoSqlSpec extends RepoSpec {
       val talk1 = talkRepo.create(user1.id, talkData1, now).unsafeRunSync()
       val group1 = groupRepo.create(groupData1, user1.id, now).unsafeRunSync()
       val cfp1 = cfpRepo.create(group1.id, cfpData1, user1.id, now).unsafeRunSync()
-      val prop1 = proposalRepo.create(talk1.id, cfp1.id, proposalData1, NonEmptyList.of(user1.id, user2.id), user1.id, now).unsafeRunSync()
+      val prop1 = proposalRepo.create(talk1.id, cfp1.id, proposalData1, NonEmptyList.of(user1.id, user2.id), now, user1.id).unsafeRunSync()
 
       userRepo.speakers(group1.id, page).unsafeRunSync().items.map(_.id) should contain theSameElementsAs prop1.speakers.toList
     }

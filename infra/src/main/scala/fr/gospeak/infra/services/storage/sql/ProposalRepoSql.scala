@@ -24,23 +24,32 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def edit(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.Data, now: Instant): IO[Done] =
     run(update(orga, group, cfp, proposal)(data, now))
 
-  override def edit(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): IO[Done] =
-    run(update(speaker, talk, cfp)(data, now))
+  override def edit(talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, by: User.Id, now: Instant): IO[Done] =
+    run(update(by, talk, cfp)(data, now))
 
-  override def editSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): IO[Done] =
-    run(updateSlides(cfp, id)(slides, now, user))
+  override def editSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Slides, by: User.Id, now: Instant): IO[Done] =
+    run(updateSlides(cfp, id)(slides, by, now))
 
-  override def editSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, now: Instant, user: User.Id): IO[Done] =
-    run(updateSlides(speaker, talk, cfp)(slides, now, user))
+  override def editSlides(talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, by: User.Id, now: Instant): IO[Done] =
+    run(updateSlides(by, talk, cfp)(slides, by, now))
 
-  override def editVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, now: Instant, user: User.Id): IO[Done] =
-    run(updateVideo(cfp, id)(video, now, user))
+  override def editVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, by: User.Id, now: Instant): IO[Done] =
+    run(updateVideo(cfp, id)(video, by, now))
 
-  override def editVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, now: Instant, user: User.Id): IO[Done] =
-    run(updateVideo(speaker, talk, cfp)(video, now, user))
+  override def editVideo(talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, by: User.Id, now: Instant): IO[Done] =
+    run(updateVideo(by, talk, cfp)(video, by, now))
 
-  override def editStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): IO[Done] =
-    run(updateStatus(id)(status, event))
+  override def accept(cfp: Cfp.Slug, id: Proposal.Id, event: Event.Id, by: User.Id, now: Instant): IO[Done] =
+    run(updateStatus(cfp, id)(Proposal.Status.Accepted, Some(event))) // FIXME track user & date
+
+  override def cancel(cfp: Cfp.Slug, id: Proposal.Id, event: Event.Id, by: User.Id, now: Instant): IO[Done] =
+    run(updateStatus(cfp, id)(Proposal.Status.Pending, None)) // FIXME track user & date + check event id was set
+
+  override def reject(cfp: Cfp.Slug, id: Proposal.Id, by: User.Id, now: Instant): IO[Done] =
+    run(updateStatus(cfp, id)(Proposal.Status.Rejected, None)) // FIXME track user & date
+
+  override def cancelReject(cfp: Cfp.Slug, id: Proposal.Id, by: User.Id, now: Instant): IO[Done] =
+    run(updateStatus(cfp, id)(Proposal.Status.Pending, None)) // FIXME track user & date
 
   override def find(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal]] = run(selectOne(cfp, id).option)
 
@@ -83,22 +92,22 @@ object ProposalRepoSql {
     buildUpdate(tableFr, fields, where(speaker, talk, cfp)).update
   }
 
-  private[sql] def updateStatus(id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): doobie.Update0 = {
+  private[sql] def updateStatus(cfp: Cfp.Slug, id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): doobie.Update0 = {
     val fields = fr0"status=$status, event_id=$event"
-    buildUpdate(tableFr, fields, where(id)).update
+    buildUpdate(tableFr, fields, where(cfp, id)).update
   }
 
-  private[sql] def updateSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Slides, now: Instant, user: User.Id): doobie.Update0 =
-    buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$user", where(cfp, id)).update
+  private[sql] def updateSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Slides, by: User.Id, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$by", where(cfp, id)).update
 
-  private[sql] def updateSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, now: Instant, user: User.Id): doobie.Update0 =
-    buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$user", where(speaker, talk, cfp)).update
+  private[sql] def updateSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, by: User.Id, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$by", where(speaker, talk, cfp)).update
 
-  private[sql] def updateVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, now: Instant, user: User.Id): doobie.Update0 =
-    buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$user", where(cfp, id)).update
+  private[sql] def updateVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, by: User.Id, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$by", where(cfp, id)).update
 
-  private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, now: Instant, user: User.Id): doobie.Update0 =
-    buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$user", where(speaker, talk, cfp)).update
+  private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, by: User.Id, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$by", where(speaker, talk, cfp)).update
 
   private[sql] def selectOne(id: Proposal.Id): doobie.Query0[Proposal] =
     buildSelect(tableFr, fieldsFr, where(id)).query[Proposal]

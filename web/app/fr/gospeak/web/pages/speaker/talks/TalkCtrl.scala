@@ -28,7 +28,7 @@ class TalkCtrl(cc: ControllerComponents,
 
   def list(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      talks <- talkRepo.list(req.identity.user.id, params)
+      talks <- talkRepo.list(user, params)
       b = listBreadcrumb(req.identity.user)
     } yield Ok(html.list(talks)(b))).unsafeToFuture()
   }
@@ -41,11 +41,11 @@ class TalkCtrl(cc: ControllerComponents,
     val now = Instant.now()
     TalkForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
-      data => talkRepo.find(req.identity.user.id, data.slug).flatMap {
+      data => talkRepo.find(user, data.slug).flatMap {
         case Some(duplicate) =>
           createForm(TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
         case None =>
-          talkRepo.create(req.identity.user.id, data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+          talkRepo.create(data, by, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
     ).unsafeToFuture()
   }
@@ -57,7 +57,7 @@ class TalkCtrl(cc: ControllerComponents,
 
   def detail(talk: Talk.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
+      talkElt <- OptionT(talkRepo.find(user, talk))
       speakers <- OptionT.liftF(userRepo.list(talkElt.users))
       proposals <- OptionT.liftF(proposalRepo.list(talkElt.id, Page.Params.defaults))
       events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_._2.event)))
@@ -73,17 +73,17 @@ class TalkCtrl(cc: ControllerComponents,
     val now = Instant.now()
     TalkForms.create.bindFromRequest.fold(
       formWithErrors => editForm(talk, formWithErrors),
-      data => talkRepo.find(req.identity.user.id, data.slug).flatMap {
+      data => talkRepo.find(user, data.slug).flatMap {
         case Some(duplicate) if data.slug != talk =>
           editForm(talk, TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
         case _ =>
-          talkRepo.edit(req.identity.user.id, talk)(data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+          talkRepo.edit(user, talk)(data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
     ).unsafeToFuture()
   }
 
   private def editForm(talk: Talk.Slug, form: Form[Talk.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
-    talkRepo.find(req.identity.user.id, talk).map {
+    talkRepo.find(user, talk).map {
       case Some(talkElt) =>
         val b = breadcrumb(req.identity.user, talkElt).add("Edit" -> routes.TalkCtrl.edit(talk))
         val filledForm = if (form.hasErrors) form else form.fill(talkElt.data)
@@ -100,7 +100,7 @@ class TalkCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(slides) => talkRepo.editSlides(req.identity.user.id, talk)(slides, now).map(_ => next)
+        case Right(slides) => talkRepo.editSlides(user, talk)(slides, now).map(_ => next)
       }
     ).unsafeToFuture()
   }
@@ -112,13 +112,13 @@ class TalkCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(video) => talkRepo.editVideo(req.identity.user.id, talk)(video, now).map(_ => next)
+        case Right(video) => talkRepo.editVideo(user, talk)(video, now).map(_ => next)
       }
     ).unsafeToFuture()
   }
 
   def changeStatus(talk: Talk.Slug, status: Talk.Status): Action[AnyContent] = SecuredAction.async { implicit req =>
-    talkRepo.editStatus(req.identity.user.id, talk)(status)
+    talkRepo.editStatus(user, talk)(status)
       .map(_ => Redirect(routes.TalkCtrl.detail(talk)))
       .unsafeToFuture()
   }

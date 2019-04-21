@@ -30,7 +30,7 @@ class CfpCtrl(cc: ControllerComponents,
 
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       cfps <- OptionT.liftF(cfpRepo.list(groupElt.id, params)) // TODO listWithProposalCount
       b = listBreadcrumb(groupElt)
     } yield Ok(html.list(groupElt, cfps)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
@@ -45,11 +45,11 @@ class CfpCtrl(cc: ControllerComponents,
     CfpForms.create.bindFromRequest.fold(
       formWithErrors => createForm(group, formWithErrors, event),
       data => (for {
-        groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+        groupElt <- OptionT(groupRepo.find(user, group))
         // TODO check if slug not already exist
-        cfpElt <- OptionT.liftF(cfpRepo.create(groupElt.id, data, req.identity.user.id, now))
+        cfpElt <- OptionT.liftF(cfpRepo.create(groupElt.id, data, by, now))
         redirect <- OptionT.liftF(event.map { e =>
-          eventRepo.attachCfp(groupElt.id, e)(cfpElt.id, req.identity.user.id, now)
+          eventRepo.attachCfp(groupElt.id, e)(cfpElt.id, by, now)
             .map(_ => Redirect(EventRoutes.detail(group, e)))
           // TODO recover and redirect to cfp detail
         }.getOrElse {
@@ -61,14 +61,14 @@ class CfpCtrl(cc: ControllerComponents,
 
   private def createForm(group: Group.Slug, form: Form[Cfp.Data], event: Option[Event.Slug])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       b = listBreadcrumb(groupElt).add("New" -> routes.CfpCtrl.create(group))
     } yield Ok(html.create(groupElt, form, event)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
   def detail(group: Group.Slug, cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
       proposals <- OptionT.liftF(proposalRepo.list(cfpElt.id, params))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
@@ -86,13 +86,13 @@ class CfpCtrl(cc: ControllerComponents,
     CfpForms.create.bindFromRequest.fold(
       formWithErrors => editForm(group, cfp, formWithErrors),
       data => (for {
-        groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+        groupElt <- OptionT(groupRepo.find(user, group))
         cfpOpt <- OptionT.liftF(cfpRepo.find(groupElt.id, data.slug))
         res <- OptionT.liftF(cfpOpt match {
           case Some(duplicate) if data.slug != cfp =>
             editForm(group, cfp, CfpForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by cfp: ${duplicate.name.value}"))
           case _ =>
-            cfpRepo.edit(groupElt.id, cfp)(data, req.identity.user.id, now).map { _ => Redirect(routes.CfpCtrl.detail(group, data.slug)) }
+            cfpRepo.edit(groupElt.id, cfp)(data, by, now).map { _ => Redirect(routes.CfpCtrl.detail(group, data.slug)) }
         })
       } yield res).value.map(_.getOrElse(groupNotFound(group)))
     ).unsafeToFuture()
@@ -100,7 +100,7 @@ class CfpCtrl(cc: ControllerComponents,
 
   private def editForm(group: Group.Slug, cfp: Cfp.Slug, form: Form[Cfp.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
       b = breadcrumb(groupElt, cfpElt).add("Edit" -> routes.CfpCtrl.edit(group, cfp))
       filledForm = if (form.hasErrors) form else form.fill(cfpElt.data)

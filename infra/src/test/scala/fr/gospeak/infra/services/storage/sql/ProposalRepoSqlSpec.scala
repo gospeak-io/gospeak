@@ -24,7 +24,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
     }
     it("should fail to create a proposal when cfp does not exists") {
       val user = userRepo.create(userData1, now).unsafeRunSync()
-      val talk = talkRepo.create(user.id, talkData1, now).unsafeRunSync()
+      val talk = talkRepo.create(talkData1, user.id, now).unsafeRunSync()
       an[Exception] should be thrownBy proposalRepo.create(talk.id, Cfp.Id.generate(), proposalData1, speakers, user.id, now).unsafeRunSync()
     }
     it("should fail on duplicate cfp and talk") {
@@ -49,27 +49,27 @@ class ProposalRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build updateStatus") {
-        val q = updateStatus(proposal.id)(proposal.status, None)
+        val q = updateStatus(cfp.slug, proposal.id)(proposal.status, None)
         q.sql shouldBe "UPDATE proposals SET status=?, event_id=? WHERE id=?"
         check(q)
       }
       it("should build updateSlides by cfp and talk") {
-        val q = updateSlides(cfp.slug, proposal.id)(slides, now, user.id)
+        val q = updateSlides(cfp.slug, proposal.id)(slides, user.id, now)
         q.sql shouldBe "UPDATE proposals SET slides=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.id=? AND c.slug=?)"
         check(q)
       }
       it("should build updateSlides by speaker, talk and cfp") {
-        val q = updateSlides(user.id, talk.slug, cfp.slug)(slides, now, user.id)
+        val q = updateSlides(user.id, talk.slug, cfp.slug)(slides, user.id, now)
         q.sql shouldBe "UPDATE proposals SET slides=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND t.speakers LIKE ?)"
         check(q)
       }
       it("should build updateVideo by cfp and talk") {
-        val q = updateVideo(cfp.slug, proposal.id)(video, now, user.id)
+        val q = updateVideo(cfp.slug, proposal.id)(video, user.id, now)
         q.sql shouldBe "UPDATE proposals SET video=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.id=? AND c.slug=?)"
         check(q)
       }
       it("should build updateVideo by speaker, talk and cfp") {
-        val q = updateVideo(user.id, talk.slug, cfp.slug)(video, now, user.id)
+        val q = updateVideo(user.id, talk.slug, cfp.slug)(video, user.id, now)
         q.sql shouldBe "UPDATE proposals SET video=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND t.speakers LIKE ?)"
         check(q)
       }

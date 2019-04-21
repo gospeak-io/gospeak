@@ -13,6 +13,16 @@ function slugify(str) {
     autosize($('textarea'));
 })();
 
+// confirm actions
+(function(){
+    $('[confirm]').click( function(e){
+        var text = $(this).attr('confirm') || $(this).attr('title') || 'Confirm?';
+        if(!confirm(text)) {
+            e.preventDefault();
+        }
+    });
+})();
+
 // build slug from an other field
 (function () {
     function buildSlug(inputs, prev /* ?string */) {

@@ -19,7 +19,7 @@ class SettingsCtrl(cc: ControllerComponents,
 
   def list(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       b = listBreadcrumb(groupElt)
     } yield Ok(html.list(groupElt)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }

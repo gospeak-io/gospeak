@@ -67,18 +67,14 @@
         </span>
     </h1>
 
-    <p>
-        @talkStatus(talk.status)
-        @duration(talk.duration)
-        @talk.video.map { video => @videoIcon(Some(video)) }
-        @talk.slides.map { slides => @slidesIcon(Some(slides)) }
-        Created <span>@Formats.date(talk.info.created)</span>@if(talk.info.updated.isAfter(talk.info.created)) {, updated <span>@Formats.date(talk.info.updated)</span>}
-    </p>
+    <p>@talkStatus(talk.status) @duration(talk.duration) @slidesIcon(talk.slides) @videoIcon(talk.video)</p>
     <p>Speakers: @talk.speakers.toList.map { id => @speaker(speakers, id) }</p>
     <p>@markdown(talk.description)</p>
 
     @if(talk.slides.isEmpty) { @slidesFields(embedForm, TalkCtrl.doAddSlides(talk.slug)) }
     @if(talk.video.isEmpty) { @videoFields(embedForm, TalkCtrl.doAddVideo(talk.slug)) }
+
+    <p>@info(talk.info, speakers)</p>
 
     @if(proposals.isEmpty) {
         <div class="card">

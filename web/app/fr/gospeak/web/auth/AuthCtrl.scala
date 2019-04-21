@@ -16,7 +16,7 @@ import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.emails.Emails
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
-import fr.gospeak.web.pages._
+import fr.gospeak.web.pages
 import fr.gospeak.web.utils.{HttpUtils, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
@@ -37,8 +37,8 @@ class AuthCtrl(cc: ControllerComponents,
                groupRepo: AuthGroupRepo,
                authSrv: AuthSrv,
                emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
-  private val loginRedirect = (redirect: Option[String]) => Redirect(redirect.getOrElse(user.routes.UserCtrl.index().path()))
-  private val logoutRedirect = Redirect(published.routes.HomeCtrl.index())
+  private val loginRedirect = (redirect: Option[String]) => Redirect(redirect.getOrElse(pages.user.routes.UserCtrl.index().path()))
+  private val logoutRedirect = Redirect(pages.published.routes.HomeCtrl.index())
 
   import silhouette._
 
@@ -94,8 +94,8 @@ class AuthCtrl(cc: ControllerComponents,
   def accountValidation(): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
-      existingValidationOpt <- userRequestRepo.findPendingAccountValidationRequest(req.identity.user.id, now)
-      emailValidation <- existingValidationOpt.map(IO.pure).getOrElse(userRequestRepo.createAccountValidationRequest(req.identity.user.email, req.identity.user.id, now))
+      existingValidationOpt <- userRequestRepo.findPendingAccountValidationRequest(user, now)
+      emailValidation <- existingValidationOpt.map(IO.pure).getOrElse(userRequestRepo.createAccountValidationRequest(req.identity.user.email, by, now))
       _ <- emailSrv.send(Emails.accountValidation(req.identity, emailValidation))
     } yield loginRedirect(HttpUtils.getReferer(req)).flashing("success" -> "Email validation sent!")).unsafeToFuture()
   }

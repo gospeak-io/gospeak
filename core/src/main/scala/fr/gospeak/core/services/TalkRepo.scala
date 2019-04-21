@@ -11,7 +11,7 @@ trait TalkRepo extends OrgaTalkRepo with SpeakerTalkRepo with UserTalkRepo with 
 trait OrgaTalkRepo
 
 trait SpeakerTalkRepo {
-  def create(user: User.Id, data: Talk.Data, now: Instant): IO[Talk]
+  def create(data: Talk.Data, by: User.Id, now: Instant): IO[Talk]
 
   def edit(user: User.Id, slug: Talk.Slug)(data: Talk.Data, now: Instant): IO[Done]
 

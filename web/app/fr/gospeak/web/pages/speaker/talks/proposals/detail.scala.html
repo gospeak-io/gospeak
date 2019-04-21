@@ -10,9 +10,6 @@
 @import fr.gospeak.web.utils.Formats
 
 @(talk: Talk, cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event], embedForm: Form[Url])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@eventinfo(id: Event.Id) = {
-    @events.find(_.id == id).map { e => <b>@e.name.value - @Formats.date(e.start)</b> }.getOrElse { <b>Unknown event @id.value</b> }
-}
 @container(cfp.name.value + " - Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@proposalStatusIcon(proposal.status) @proposal.title.value proposal to @cfp.name.value</span>
@@ -26,12 +23,8 @@
         </span>
     </h1>
 
-    <p>
-        @duration(proposal.duration)
-        @proposal.video.map { video => @videoIcon(Some(video)) }
-        @proposal.slides.map { slides => @slidesIcon(Some(slides)) }
-        @proposal.event.map { id => @eventinfo(id) }
-    </p>
+    <p>@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video)</p>
+    @proposal.event.map { id => <p>Given at @events.find(_.id == id).map { e => <b>@e.name.value</b> on @Formats.date(e.start) }.getOrElse { <b>Unknown event @id.value</b> }</p> }
     <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id) }</p>
     <p>@markdown(proposal.description)</p>
 

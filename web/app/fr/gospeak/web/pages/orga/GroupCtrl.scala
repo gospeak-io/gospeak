@@ -25,7 +25,7 @@ class GroupCtrl(cc: ControllerComponents,
   def detail(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       events <- OptionT.liftF(eventRepo.listAfter(groupElt.id, now, Page.Params.defaults.orderBy("start")))
       proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.users)))

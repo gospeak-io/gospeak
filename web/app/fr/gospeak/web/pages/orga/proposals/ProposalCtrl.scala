@@ -23,9 +23,10 @@ class ProposalCtrl(cc: ControllerComponents,
   import silhouette._
 
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val customParams = params.defaultOrderBy(proposalRepo.fields.title)
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
-      proposals <- OptionT.liftF(proposalRepo.list(groupElt.id, params))
+      groupElt <- OptionT(groupRepo.find(user, group))
+      proposals <- OptionT.liftF(proposalRepo.list(groupElt.id, customParams))
       cfps <- OptionT.liftF(cfpRepo.list(proposals.items.map(_.cfp)))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users)))
       events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_.event)))

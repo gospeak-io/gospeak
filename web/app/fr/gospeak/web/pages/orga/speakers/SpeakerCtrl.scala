@@ -23,7 +23,7 @@ class SpeakerCtrl(cc: ControllerComponents,
 
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       speakers <- OptionT.liftF(userRepo.speakers(groupElt.id, params))
       b = listBreadcrumb(groupElt)
     } yield Ok(html.list(groupElt, speakers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
@@ -31,7 +31,7 @@ class SpeakerCtrl(cc: ControllerComponents,
 
   def detail(group: Group.Slug, speaker: User.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       speakerElt <- OptionT(userRepo.find(speaker))
       proposals <- OptionT.liftF(proposalRepo.list(groupElt.id, speakerElt.id, params))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_._2.users)))

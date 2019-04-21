@@ -11,14 +11,14 @@
         <h5 class="mb-1">
             <span>@proposalStatusIcon(proposal.status)</span>
             <a href="@ProposalCtrl.detail(group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
-            <small>@duration(proposal.duration)</small>
+            @proposal.event.flatMap(id => events.find(_.id == id)).map { event => <small>given at <a href="@EventCtrl.detail(group.slug, event.slug)" title="on @date(event.start)">@event.name.value</a></small> }
         </h5>
         <span>
-            Proposed @date(proposal.info.created)
-            @proposal.event.flatMap(id => events.find(_.id == id)).map { event => Planned for <a href="@EventCtrl.detail(group.slug, event.slug)" title="on @date(event.start)">@event.name.value</a> }
-            @proposal.video.map { video => @videoIcon(Some(video)) }
-            @proposal.slides.map { slides => @slidesIcon(Some(slides)) }
+            @duration(proposal.duration)
+            @slidesIcon(proposal.slides)
+            @videoIcon(proposal.video)
+            <small>Proposed on @date(proposal.info.created)</small>
         </span>
     </div>
-    <div>@proposal.speakers.toList.map { id => @speakerAvatar(speakers, id, Some(s => SpeakerCtrl.detail(group.slug, s.slug))) }</div>
+    <div style="white-space: nowrap">@proposal.speakers.toList.map { id => @speakerAvatar(speakers, id, Some(s => SpeakerCtrl.detail(group.slug, s.slug))) }</div>
 </div>

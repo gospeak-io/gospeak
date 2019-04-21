@@ -1,6 +1,7 @@
 package fr.gospeak.web.utils
 
 import com.mohiva.play.silhouette.api.Silhouette
+import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.pages
@@ -8,6 +9,11 @@ import play.api.i18n.I18nSupport
 import play.api.mvc._
 
 abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv]) extends AbstractController(cc) with I18nSupport {
+  protected def user(implicit req: SecuredRequest[CookieEnv, AnyContent]): User.Id = req.identity.user.id
+
+  // same as user method by with different semantic name
+  protected def by(implicit req: SecuredRequest[CookieEnv, AnyContent]): User.Id = req.identity.user.id
+
   // orga redirects
   protected def groupNotFound(group: Group.Slug): Result =
     Redirect(pages.user.routes.UserCtrl.listGroup()).flashing("warning" -> s"Unable to find group with slug '${group.value}'")

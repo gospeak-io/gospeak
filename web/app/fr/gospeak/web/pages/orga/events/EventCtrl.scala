@@ -29,7 +29,7 @@ class EventCtrl(cc: ControllerComponents,
 
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       events <- OptionT.liftF(eventRepo.list(groupElt.id, params))
       proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.users)))
@@ -46,25 +46,25 @@ class EventCtrl(cc: ControllerComponents,
     EventForms.create.bindFromRequest.fold(
       formWithErrors => createForm(group, formWithErrors),
       data => (for {
-        groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+        groupElt <- OptionT(groupRepo.find(user, group))
         // TODO check if slug not already exist
-        _ <- OptionT.liftF(eventRepo.create(groupElt.id, data.copy(venue = data.venue.map(_.trim)), req.identity.user.id, now))
+        _ <- OptionT.liftF(eventRepo.create(groupElt.id, data.copy(venue = data.venue.map(_.trim)), by, now))
       } yield Redirect(routes.EventCtrl.detail(group, data.slug))).value.map(_.getOrElse(groupNotFound(group)))
     ).unsafeToFuture()
   }
 
   private def createForm(group: Group.Slug, form: Form[Event.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       cfps <- OptionT.liftF(cfpRepo.list(groupElt.id))
       b = listBreadcrumb(groupElt).add("New" -> routes.EventCtrl.create(group))
     } yield Ok(html.create(groupElt, form, cfps)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
   def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val customParams = params.defaultSize(40).orderBy("created")
+    val customParams = params.defaultSize(40).defaultOrderBy(proposalRepo.fields.created)
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
       talks <- OptionT.liftF(proposalRepo.list(eventElt.talks))
       cfpOpt <- OptionT.liftF(cfpRepo.find(eventElt.id))
@@ -84,13 +84,13 @@ class EventCtrl(cc: ControllerComponents,
     EventForms.create.bindFromRequest.fold(
       formWithErrors => editForm(group, event, formWithErrors),
       data => (for {
-        groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+        groupElt <- OptionT(groupRepo.find(user, group))
         eventOpt <- OptionT.liftF(eventRepo.find(groupElt.id, data.slug))
         res <- OptionT.liftF(eventOpt match {
           case Some(duplicate) if data.slug != event =>
             editForm(group, event, EventForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by event: ${duplicate.name.value}"))
           case _ =>
-            eventRepo.edit(groupElt.id, event)(data, req.identity.user.id, now).map { _ => Redirect(routes.EventCtrl.detail(group, data.slug)) }
+            eventRepo.edit(groupElt.id, event)(data, by, now).map { _ => Redirect(routes.EventCtrl.detail(group, data.slug)) }
         })
       } yield res).value.map(_.getOrElse(groupNotFound(group)))
     ).unsafeToFuture()
@@ -98,7 +98,7 @@ class EventCtrl(cc: ControllerComponents,
 
   private def editForm(group: Group.Slug, event: Event.Slug, form: Form[Event.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
       cfps <- OptionT.liftF(cfpRepo.list(groupElt.id))
       b = breadcrumb(groupElt, eventElt).add("Edit" -> routes.EventCtrl.edit(group, event))
@@ -111,39 +111,51 @@ class EventCtrl(cc: ControllerComponents,
     EventForms.attachCfp.bindFromRequest.fold(
       formWithErrors => IO.pure(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Unable to attach CFP: ${formWithErrors.errors.map(_.format).mkString(", ")}")),
       cfp => (for {
-        groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+        groupElt <- OptionT(groupRepo.find(user, group))
         cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
-        _ <- OptionT.liftF(eventRepo.attachCfp(groupElt.id, event)(cfpElt.id, req.identity.user.id, now))
+        _ <- OptionT.liftF(eventRepo.attachCfp(groupElt.id, event)(cfpElt.id, by, now))
       } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(cfpNotFound(group, event, cfp)))
     ).unsafeToFuture()
   }
 
-  def addTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def addToTalks(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
-      _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.add(talk).talks, req.identity.user.id, now))
-      _ <- OptionT.liftF(proposalRepo.editStatus(talk)(Proposal.Status.Accepted, Some(eventElt.id)))
+      cfpElt <- OptionT(cfpRepo.find(eventElt.id))
+      _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.add(talk).talks, by, now))
+      _ <- OptionT.liftF(proposalRepo.accept(cfpElt.slug, talk, eventElt.id, by, now))
     } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
-  def removeTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def cancelTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
-      _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.remove(talk).talks, req.identity.user.id, now))
-      _ <- OptionT.liftF(proposalRepo.editStatus(talk)(Proposal.Status.Pending, None))
+      cfpElt <- OptionT(cfpRepo.find(eventElt.id))
+      _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.remove(talk).talks, by, now))
+      _ <- OptionT.liftF(proposalRepo.cancel(cfpElt.slug, talk, eventElt.id, by, now))
     } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
   def moveTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, up: Boolean, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      groupElt <- OptionT(groupRepo.find(user, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
-      _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.move(talk, up).talks, req.identity.user.id, now))
+      _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.move(talk, up).talks, by, now))
+    } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+  }
+
+  def rejectProposal(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      eventElt <- OptionT(eventRepo.find(groupElt.id, event))
+      cfpElt <- OptionT(cfpRepo.find(eventElt.id))
+      _ <- OptionT.liftF(proposalRepo.reject(cfpElt.slug, talk, by, now))
     } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 }

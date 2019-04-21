@@ -80,7 +80,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
         _ <- run(Queries.insertMany(TalkRepoSql.insert)(NonEmptyList.fromListUnsafe(talks)))
         _ <- run(Queries.insertMany(ProposalRepoSql.insert)(NonEmptyList.fromListUnsafe(proposals)))
         _ <- run(Queries.insertMany(EventRepoSql.insert)(NonEmptyList.fromListUnsafe(events)))
-        _ <- IO(events.map(e => addTalk(e, proposals.filter(p => e.talks.contains(p.id)), e.info.createdBy, e.info.updated)).map(_.unsafeRunSync()))
+        _ <- IO(events.map(e => addTalk(cfp, e, proposals.filter(p => e.talks.contains(p.id)), e.info.createdBy, e.info.updated)).map(_.unsafeRunSync()))
       } yield Done
     } { mongo => IO(mongo.close()) }
   }
@@ -157,13 +157,13 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val event2 = event(group1, None, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, venue = None, description = Some("desc"))
     val event3 = event(group1, Some(cfp1), "2019-02", "HumanTalks Paris Fevrier 2019", "2019-02-12", userOrga)
     val event4 = event(group1, Some(cfp1), "2019-06", "HumanTalks Paris Juin 2019", "2019-06-12", userDemo, venue = None, description = Some("desc"))
-    val event5 = event(group2, None, "2019-04", "Paris.Js Avril", "2019-04-01", userOrga)
+    val event5 = event(group2, Some(cfp4), "2019-04", "Paris.Js Avril", "2019-04-01", userOrga)
     val event6 = event(group3, None, "2019-03", "Nouveaux modeles de gouvenance", "2019-03-15", userDemo)
     val events = NonEmptyList.of(event1, event2, event3, event4, event5, event6)
 
     val eventTalks = NonEmptyList.of(
-      (event3, Seq(proposal1), group1.owners.head),
-      (event5, Seq(proposal3), group2.owners.head))
+      (cfp1, event3, Seq(proposal1), group1.owners.head),
+      (cfp4, event5, Seq(proposal3), group2.owners.head))
 
     val generated = (1 to 25).toList.map { i =>
       val groupId = Group.Id.generate()
@@ -185,13 +185,13 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       _ <- run(Queries.insertMany(TalkRepoSql.insert)(talks ++ generated.map(_._4)))
       _ <- run(Queries.insertMany(ProposalRepoSql.insert)(proposals ++ generated.map(_._5)))
       _ <- run(Queries.insertMany(EventRepoSql.insert)(events ++ generated.map(_._3)))
-      _ <- IO(eventTalks.map { case (e, p, u) => addTalk(e, p, u, now) }.map(_.unsafeRunSync()))
+      _ <- IO(eventTalks.map { case (c, e, p, u) => addTalk(c, e, p, u, now) }.map(_.unsafeRunSync()))
     } yield Done
   }
 
-  private def addTalk(event: Event, proposals: Seq[Proposal], by: User.Id, now: Instant): IO[Done] = for {
+  private def addTalk(cfp: Cfp, event: Event, proposals: Seq[Proposal], by: User.Id, now: Instant): IO[Done] = for {
     _ <- run(EventRepoSql.updateTalks(event.group, event.slug)(proposals.map(_.id), by, now))
-    _ <- IO(proposals.map(p => run(ProposalRepoSql.updateStatus(p.id)(Proposal.Status.Accepted, Some(event.id)))).map(_.unsafeRunSync()))
+    _ <- IO(proposals.map(p => run(ProposalRepoSql.updateStatus(cfp.slug, p.id)(Proposal.Status.Accepted, Some(event.id)))).map(_.unsafeRunSync()))
   } yield Done
 
   private def run(i: => doobie.Update0): IO[Done] =

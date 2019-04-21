@@ -6,6 +6,7 @@
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partials.html.container
+@import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.html.{slidesFields, videoFields}
@@ -21,20 +22,22 @@
             </button>
             <span class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" href="@ProposalCtrl.edit(group.slug, cfp.slug, proposal.id)">Edit</a>
+                @if(proposal.status != Proposal.Status.Rejected) {
+                    @formBtn(ProposalCtrl.reject(group.slug, cfp.slug, proposal.id), Seq(
+                        "class" -> "dropdown-item",
+                        "title" -> Proposal.Status.Rejected.description,
+                        "data-toggle" -> "tooltip",
+                        "data-placement" -> "left")) {Reject this proposal}
+                } else {
+                    @formBtn(ProposalCtrl.cancelRejection(group.slug, cfp.slug, proposal.id), Seq("class" -> "dropdown-item")) {Cancel proposal rejection}
+                }
             </span>
         </span>
     </h1>
 
-    <div>
-        @proposal.event.map { id => <h2>Added to @event(events, id, Some(e => EventCtrl.detail(group.slug, e.slug)))</h2> }
-        <p>
-            @duration(proposal.duration)
-            @videoIcon(proposal.video)
-            @slidesIcon(proposal.slides)
-            Proposed <span>@Formats.date(proposal.info.created)</span>@if(proposal.info.updated.isAfter(proposal.info.created)) {, updated <span>@Formats.date(proposal.info.updated)</span>}
-        </p>
-        <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }</p>
-    </div>
+    @proposal.event.map { id => <h2>Added to @event(events, id, Some(e => EventCtrl.detail(group.slug, e.slug)))</h2> }
+    <p>@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video)</p>
+    <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }</p>
 
     <div>@markdown(proposal.description)</div>
 

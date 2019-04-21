@@ -26,15 +26,15 @@ class UserCtrl(cc: ControllerComponents,
 
   def index(): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groups <- groupRepo.list(req.identity.user.id, Page.Params.defaults)
-      talks <- talkRepo.list(req.identity.user.id, Page.Params.defaults)
+      groups <- groupRepo.list(user, Page.Params.defaults)
+      talks <- talkRepo.list(user, Page.Params.defaults)
       b = breadcrumb(req.identity.user)
     } yield Ok(html.index(groups, talks)(b))).unsafeToFuture()
   }
 
   def listGroup(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groups <- groupRepo.list(req.identity.user.id, params)
+      groups <- groupRepo.list(user, params)
       b = groupBreadcrumb(req.identity.user)
     } yield Ok(html.listGroup(groups)(b))).unsafeToFuture()
   }
@@ -49,7 +49,7 @@ class UserCtrl(cc: ControllerComponents,
       formWithErrors => createGroupForm(formWithErrors),
       data => for {
         // TODO check if slug not already exist
-        _ <- groupRepo.create(data, req.identity.user.id, now)
+        _ <- groupRepo.create(data, by, now)
       } yield Redirect(GroupRoutes.detail(data.slug))
     ).unsafeToFuture()
   }

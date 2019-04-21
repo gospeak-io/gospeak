@@ -31,7 +31,7 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
+      talkElt <- OptionT(talkRepo.find(user, talk))
       proposals <- OptionT.liftF(proposalRepo.list(talkElt.id, params))
       events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_._2.event)))
       b = listBreadcrumb(req.identity.user, talkElt)
@@ -48,9 +48,9 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => createForm(formWithErrors, talk, cfp),
       data => {
         (for {
-          talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
+          talkElt <- OptionT(talkRepo.find(user, talk))
           cfpElt <- OptionT(cfpRepo.find(cfp))
-          _ <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data, talkElt.speakers, req.identity.user.id, now))
+          _ <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data, talkElt.speakers, by, now))
         } yield Redirect(routes.ProposalCtrl.detail(talk, cfp))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }
     ).unsafeToFuture()
@@ -58,9 +58,9 @@ class ProposalCtrl(cc: ControllerComponents,
 
   private def createForm(form: Form[Proposal.Data], talk: Talk.Slug, cfp: Cfp.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
+      talkElt <- OptionT(talkRepo.find(user, talk))
       cfpElt <- OptionT(cfpRepo.find(cfp))
-      proposalOpt <- OptionT.liftF(proposalRepo.find(req.identity.user.id, talk, cfp))
+      proposalOpt <- OptionT.liftF(proposalRepo.find(user, talk, cfp))
       filledForm = if (form.hasErrors) form else form.fill(Proposal.Data(talkElt))
       b = CfpCtrl.listBreadcrumb(req.identity.user, talkElt).add(cfpElt.name.value -> CfpRoutes.list(talkElt.slug))
     } yield proposalOpt
@@ -70,9 +70,9 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def detail(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
+      talkElt <- OptionT(talkRepo.find(user, talk))
       cfpElt <- OptionT(cfpRepo.find(cfp))
-      proposalElt <- OptionT(proposalRepo.find(req.identity.user.id, talk, cfp))
+      proposalElt <- OptionT(proposalRepo.find(user, talk, cfp))
       speakers <- OptionT.liftF(userRepo.list(proposalElt.users))
       events <- OptionT.liftF(eventRepo.list(proposalElt.event.toSeq))
       b = breadcrumb(req.identity.user, talkElt, cfpElt)
@@ -87,15 +87,15 @@ class ProposalCtrl(cc: ControllerComponents,
     val now = Instant.now()
     ProposalForms.create.bindFromRequest.fold(
       formWithErrors => editForm(talk, cfp, formWithErrors),
-      data => proposalRepo.edit(req.identity.user.id, talk, cfp)(data, now).map { _ => Redirect(routes.ProposalCtrl.detail(talk, cfp)) }
+      data => proposalRepo.edit(talk, cfp)(data, by, now).map { _ => Redirect(routes.ProposalCtrl.detail(talk, cfp)) }
     ).unsafeToFuture()
   }
 
   private def editForm(talk: Talk.Slug, cfp: Cfp.Slug, form: Form[Proposal.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
+      talkElt <- OptionT(talkRepo.find(user, talk))
       cfpElt <- OptionT(cfpRepo.find(cfp))
-      proposalElt <- OptionT(proposalRepo.find(req.identity.user.id, talk, cfp))
+      proposalElt <- OptionT(proposalRepo.find(user, talk, cfp))
       b = breadcrumb(req.identity.user, talkElt, cfpElt).add("Edit" -> routes.ProposalCtrl.edit(talk, cfp))
       filledForm = if (form.hasErrors) form else form.fill(proposalElt.data)
     } yield Ok(html.edit(filledForm, talkElt, cfpElt, proposalElt)(b))).value.map(_.getOrElse(talkNotFound(talk)))
@@ -108,7 +108,7 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(slides) => proposalRepo.editSlides(req.identity.user.id, talk, cfp)(slides, now, req.identity.user.id).map(_ => next)
+        case Right(slides) => proposalRepo.editSlides(talk, cfp)(slides, by, now).map(_ => next)
       }
     ).unsafeToFuture()
   }
@@ -120,7 +120,7 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(video) => proposalRepo.editVideo(req.identity.user.id, talk, cfp)(video, now, req.identity.user.id).map(_ => next)
+        case Right(video) => proposalRepo.editVideo(talk, cfp)(video, by, now).map(_ => next)
       }
     ).unsafeToFuture()
   }
