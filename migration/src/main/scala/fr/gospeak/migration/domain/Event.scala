@@ -1,7 +1,7 @@
 package fr.gospeak.migration.domain
 
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDateTime, ZoneId}
+import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import fr.gospeak.core.domain.{Event => NewEvent}
 import fr.gospeak.libs.scalautils.Extensions._
@@ -16,13 +16,13 @@ case class Event(id: String, // Event.Id
                  data: EventData,
                  meta: Meta) {
   lazy val toEvent: NewEvent = {
-    val date = LocalDateTime.ofInstant(Instant.ofEpochMilli(data.date), ZoneId.of("Europe/Paris"))
+    val date = LocalDateTime.ofInstant(Instant.ofEpochMilli(data.date), ZoneOffset.UTC)
     // TODO [migration] missing fields: venue, roti, personCount & sponsor apero
     Try(NewEvent(
-      id = NewEvent.Id.from(id).right.get,
+      id = NewEvent.Id.from(id).get,
       group = null, // should be set later
       cfp = None, // should be set later
-      slug = NewEvent.Slug.from(formatter.format(date)).right.get,
+      slug = NewEvent.Slug.from(formatter.format(date)).get,
       name = NewEvent.Name(data.title),
       start = date,
       description = data.description.map(Markdown),

@@ -73,7 +73,7 @@ class ProposalCtrl(cc: ControllerComponents,
       talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
       cfpElt <- OptionT(cfpRepo.find(cfp))
       proposalElt <- OptionT(proposalRepo.find(req.identity.user.id, talk, cfp))
-      speakers <- OptionT.liftF(userRepo.list(proposalElt.speakers.toList))
+      speakers <- OptionT.liftF(userRepo.list(proposalElt.users))
       events <- OptionT.liftF(eventRepo.list(proposalElt.event.toSeq))
       b = breadcrumb(req.identity.user, talkElt, cfpElt)
     } yield Ok(html.detail(talkElt, cfpElt, proposalElt, speakers, events, GenericForm.embed)(b))).value.map(_.getOrElse(proposalNotFound(talk, cfp))).unsafeToFuture()

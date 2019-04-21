@@ -21,27 +21,34 @@
     </h1>
 
     <p>
-        @Formats.datetime(event.start),
-        @event.venue.map { v => @v.format, }.getOrElse{ <b class="text-danger">Missing venue</b>, }
-        @event.talks.length planned talks
+        @event.venue.map { v => <b>@v.format</b>, }.getOrElse{ <b class="text-danger">Missing venue</b>, }
+        @Formats.datetime(event.start)
     </p>
 
     @if(event.talks.nonEmpty) {
-        <h2 class="text-capitalize">@Formats.plural(event.talks.length, "planned talk")</h2>
-        <ol>
-        @event.talks.map { tId =>
-            <li>
-                @talks.find(_.id == tId).map { talk =>
-                    @formBtn(EventCtrl.removeTalk(group.slug, event.slug, talk.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Remove this talk from the event")){<i class="fas fa-minus"></i>}
-                    @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, true, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk up")){<i class="fas fa-arrow-up"></i>}
-                    @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, false, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk down")){<i class="fas fa-arrow-down"></i>}
-                    @cfpOpt.map { cfp => <a href="@ProposalCtrl.detail(group.slug, cfp.slug, talk.id)">@talk.title.value</a> }.getOrElse{ <span>@talk.title.value</span> }
-                    @duration(talk.duration)
-                    @talk.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }
-                }.getOrElse { Unknown (@tId.value) }
-            </li>
-        }
-        </ol>
+        <div class="card mb-3">
+            <h5 class="card-header d-flex justify-content-between">
+                <span class="text-capitalize">@Formats.plural(event.talks.length, "planned talk")</span>
+            </h5>
+            <div class="list-group list-group-flush">
+            @event.talks.map { tId =>
+                <div class="list-group-item p-1 d-flex justify-content-between">
+                    @talks.find(_.id == tId).map { talk =>
+                        <div>
+                            @formBtn(EventCtrl.removeTalk(group.slug, event.slug, talk.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Remove this talk from the event")) { <i class="fas fa-minus"></i> }
+                            @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, true, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk up")) { <i class="fas fa-arrow-up"></i> }
+                            @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, false, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk down")) { <i class="fas fa-arrow-down"></i> }
+                            @duration(talk.duration)
+                            @slidesIcon(talk.slides)
+                            @videoIcon(talk.video)
+                            @cfpOpt.map { cfp => <a href="@ProposalCtrl.detail(group.slug, cfp.slug, talk.id)">@talk.title.value</a> }.getOrElse { <span>@talk.title.value</span> }
+                        </div>
+                        <div>@talk.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }</div>
+                    }.getOrElse { Unknown (@tId.value) }
+                </div>
+            }
+            </div>
+        </div>
     }
 
     @cfpOpt.map { cfp =>
@@ -63,9 +70,11 @@
                     <div class="list-group-item p-1 d-flex justify-content-between">
                         <div>
                             @formBtn(EventCtrl.addTalk(group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
-                            <small title="Proposal date">(@Formats.date(proposal.info.created))</small>
-                            <a href="@ProposalCtrl.detail(group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
                             @duration(proposal.duration)
+                            @slidesIcon(proposal.slides)
+                            @videoIcon(proposal.video)
+                            <a href="@ProposalCtrl.detail(group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
+                            <small title="Proposal date">(since @Formats.date(proposal.info.created))</small>
                         </div>
                         <div>
                             @proposal.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }

@@ -17,6 +17,8 @@ final case class Talk(id: Talk.Id,
                       video: Option[Video],
                       info: Info) {
   def data: Talk.Data = Talk.Data(this)
+
+  def users: Seq[User.Id] = (info.createdBy :: info.updatedBy :: speakers.toList).distinct
 }
 
 object Talk {

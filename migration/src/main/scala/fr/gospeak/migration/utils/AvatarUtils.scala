@@ -49,10 +49,4 @@ object AvatarUtils {
       source.map(_.close())
     }
   }
-
-  def main(args: Array[String]): Unit = {
-    println(getStatusCode("https://pbs.twimg.com/profile_images/659757712897650688/JybnZ2P3_400x400.jpg")) // OK
-    println(getStatusCode("https://pbs.twimg.com/profile_images/759529744689991680/weu_vkVs_400x400.jpg")) // KO
-    println(getStatusCode("https://pbs.twimg.com/profile_images/780667822267588609/dB657o4L_400x400.jpg")) // KO
-  }
 }

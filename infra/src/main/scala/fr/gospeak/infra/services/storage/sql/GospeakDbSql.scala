@@ -44,7 +44,10 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
         htPartners <- IO.fromFuture(IO(mongo.loadPartners()))
 
         initDate = Instant.ofEpochMilli(htUsers.map(_.meta.created).min)
-        users = htUsers.map(_.toUser)
+        users = htUsers.filter { u =>
+          htTalks.exists(t => t.data.speakers.contains(u.id) || t.meta.createdBy == u.id || t.meta.updatedBy == u.id) ||
+            u.auth.exists(a => a.role == "Organizer" || a.role == "Admin")
+        }.map(_.toUser)
         lkn = users.find(_.email.value == "loicknuchel@gmail.com").get
         orga = htUsers.filter(_.auth.exists(a => a.role == "Organizer" || a.role == "Admin")).map(_.toUser)
         group = Group(Group.Id.generate(), Group.Slug.from("humantalks-paris").right.get, Group.Name("HumanTalks Paris"), Markdown(
@@ -64,9 +67,9 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
           createdBy = users.find(_.id == p.info.createdBy).map(_.id).getOrElse(p.speakers.head),
           updatedBy = users.find(_.id == p.info.updatedBy).map(_.id).getOrElse(p.speakers.head)
         )))
-        events = htEvents.map(e => e.toEvent.copy(group = group.id, cfp = Some(cfp.id), talks = e.data.talks.map(t => htTalks.find(_.id == t).get.toProposal.id))).map(p => p.copy(info = p.info.copy(
-          createdBy = users.find(_.id == p.info.createdBy).map(_.id).getOrElse(lkn.id),
-          updatedBy = users.find(_.id == p.info.updatedBy).map(_.id).getOrElse(lkn.id)
+        events = htEvents.map(e => e.toEvent.copy(group = group.id, cfp = Some(cfp.id), talks = e.data.talks.map(t => htTalks.find(_.id == t).get.toProposal.id))).map(e => e.copy(info = e.info.copy(
+          createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
+          updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
         )))
 
         _ <- run(Queries.insertMany(UserRepoSql.insert)(NonEmptyList.fromListUnsafe(users)))

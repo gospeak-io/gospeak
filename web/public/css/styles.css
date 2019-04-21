@@ -41,8 +41,12 @@
 }
 
 .avatar {
-    border-radius: .25em;
     height: 31px;
+    border-radius: .25em;
+}
+
+.media .avatar {
+    height: 100px;
 }
 
 .dropdown .avatar {

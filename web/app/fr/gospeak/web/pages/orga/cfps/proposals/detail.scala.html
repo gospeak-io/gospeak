@@ -29,8 +29,8 @@
         @proposal.event.map { id => <h2>Added to @event(events, id, Some(e => EventCtrl.detail(group.slug, e.slug)))</h2> }
         <p>
             @duration(proposal.duration)
-            @proposal.video.map { video => @videoIcon(Some(video)) }
-            @proposal.slides.map { slides => @slidesIcon(Some(slides)) }
+            @videoIcon(proposal.video)
+            @slidesIcon(proposal.slides)
             Proposed <span>@Formats.date(proposal.info.created)</span>@if(proposal.info.updated.isAfter(proposal.info.created)) {, updated <span>@Formats.date(proposal.info.updated)</span>}
         </p>
         <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }</p>

@@ -28,7 +28,7 @@ class GroupCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       events <- OptionT.liftF(eventRepo.listAfter(groupElt.id, now, Page.Params.defaults.orderBy("start")))
       proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
-      speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.speakers.toList)))
+      speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.users)))
       b = breadcrumb(groupElt)
     } yield Ok(html.detail(groupElt, events, proposals, speakers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }

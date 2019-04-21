@@ -10,7 +10,7 @@
 @(group: Group, speaker: User, proposals: Page[(Cfp, Proposal)], speakers: Seq[User], events: Seq[Event])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(speaker.name.value + " - Gospeak", group, b)() {
     <div class="media">
-        <img src="@speaker.avatar.url.value" class="align-self-start mr-3" alt="avatar">
+        <img src="@speaker.avatar.url.value" class="avatar align-self-start mr-3" alt="avatar">
         <div class="media-body">
             <h1 class="mt-0">@speaker.name.value</h1>
             <p><a href="mailto:@speaker.email.value">@speaker.email.value</a></p>

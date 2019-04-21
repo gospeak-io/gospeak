@@ -71,7 +71,7 @@ class CfpCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
       proposals <- OptionT.liftF(proposalRepo.list(cfpElt.id, params))
-      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.speakers.toList).distinct))
+      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
       events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_.event.toList).distinct))
       b = breadcrumb(groupElt, cfpElt)
     } yield Ok(html.detail(groupElt, cfpElt, proposals, speakers, events)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp))).unsafeToFuture()

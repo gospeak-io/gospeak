@@ -1,7 +1,7 @@
 @import fr.gospeak.core.domain.User
 @(speakers: Seq[User], id: User.Id, call: Option[User => Call] = None)
 @(speakers.find(_.id == id), call) match {
-    case (Some(user), Some(url)) => {<a href="@url(user)" title="@user.name.value"><img class="avatar" src="@user.avatar.url.value"></a>}
-    case (Some(user), None) => {<span title="@user.name.value"><img class="avatar" src="@user.avatar.url.value"></span>}
-    case (None, _) => {<span title="Unknown (@id.value)"><img class="avatar" src="https://secure.gravatar.com/avatar/unknown?size=100&default=mp"></span>}
+    case (Some(user), Some(url)) => {<a href="@url(user)" title="@user.name.value" data-toggle="tooltip" data-placement="top"><img src="@user.avatar.url.value" class="avatar" alt="avatar"></a>}
+    case (Some(user), None) => {<span title="@user.name.value" data-toggle="tooltip" data-placement="top"><img src="@user.avatar.url.value" class="avatar" alt="avatar"></span>}
+    case (None, _) => {<span title="Unknown (@id.value)" data-toggle="tooltip" data-placement="top"><img src="https://secure.gravatar.com/avatar/unknown?size=100&default=mp" class="avatar" alt="avatar"></span>}
 }

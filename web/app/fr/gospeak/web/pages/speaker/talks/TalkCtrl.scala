@@ -58,7 +58,7 @@ class TalkCtrl(cc: ControllerComponents,
   def detail(talk: Talk.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(req.identity.user.id, talk))
-      speakers <- OptionT.liftF(userRepo.list(talkElt.speakers.toList))
+      speakers <- OptionT.liftF(userRepo.list(talkElt.users))
       proposals <- OptionT.liftF(proposalRepo.list(talkElt.id, Page.Params.defaults))
       events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_._2.event)))
       b = breadcrumb(req.identity.user, talkElt)
