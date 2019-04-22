@@ -57,6 +57,7 @@ object Talk {
     }
 
     val all: Seq[Status] = Seq(Draft, Private, Public, Archived)
+    val active: NonEmptyList[Status] = NonEmptyList.of(Draft, Private, Public)
   }
 
   final case class Data(slug: Talk.Slug,

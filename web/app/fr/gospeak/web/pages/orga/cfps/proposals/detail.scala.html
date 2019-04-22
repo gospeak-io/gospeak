@@ -38,8 +38,7 @@
     @proposal.event.map { id => <h2>Added to @event(events, id, Some(e => EventCtrl.detail(group.slug, e.slug)))</h2> }
     <p>@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video)</p>
     <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }</p>
-
-    <div>@markdown(proposal.description)</div>
+    <p>@markdown(proposal.description)</p>
 
     @if(proposal.slides.isEmpty) { @slidesFields(embedForm, ProposalCtrl.doAddSlides(group.slug, cfp.slug, proposal.id)) }
     @if(proposal.video.isEmpty) { @videoFields(embedForm, ProposalCtrl.doAddVideo(group.slug, cfp.slug, proposal.id)) }

@@ -25,14 +25,14 @@
                 </div>
             </div>
             <div class="navbar-nav">
-                @userDropdown()
+                @userDropdown(req.identity)
             </div>
         </div>
     </nav>
     @breadcrumb(b)
     <div class="container">
         @if(req.identity.user.emailValidated.isEmpty) {
-            @alert("warning", "d-flex justify-content-between") {
+            @alert("warning", "d-flex justify-content-between align-items-center") {
                 <span class="align-self-center">
                     Your email is not validated, please click on the validation link in the signup email</span>
                 @formBtn(AuthCtrl.accountValidation(), Seq("class" -> "btn-sm btn-secondary")) {Resend validation email}

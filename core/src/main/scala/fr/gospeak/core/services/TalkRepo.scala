@@ -3,7 +3,7 @@ package fr.gospeak.core.services
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.{Talk, User}
+import fr.gospeak.core.domain.{Cfp, Talk, User}
 import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Video}
 
 trait TalkRepo extends OrgaTalkRepo with SpeakerTalkRepo with UserTalkRepo with AuthTalkRepo
@@ -23,7 +23,11 @@ trait SpeakerTalkRepo {
 
   def list(user: User.Id, params: Page.Params): IO[Page[Talk]]
 
+  def listActive(user: User.Id, cfp: Cfp.Id, params: Page.Params): IO[Page[Talk]]
+
   def find(user: User.Id, slug: Talk.Slug): IO[Option[Talk]]
+
+  def exists(slug: Talk.Slug): IO[Boolean]
 }
 
 trait UserTalkRepo {

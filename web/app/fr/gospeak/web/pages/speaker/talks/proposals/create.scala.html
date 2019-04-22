@@ -11,10 +11,9 @@
 @(form: Form[Proposal.Data], talk: Talk, cfp: Cfp)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", b)() {
     <h1 class="page-header">Propose @talk.title.value to @cfp.name.value</h1>
+    <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
 
     @formElt(form, ProposalCtrl.doCreate(talk.slug, cfp.slug)) {
-        <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
-
         @cfpFields(form)
         @actionsHorizontal() {
             @btnCancel(CfpCtrl.list(talk.slug))

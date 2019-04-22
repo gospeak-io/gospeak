@@ -56,6 +56,6 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk)] = for {
     (user, group) <- createUserAndGroup()
     cfp <- cfpRepo.create(group.id, cfpData1, user.id, now)
-    talk <- talkRepo.create(user.id, talkData1, now)
+    talk <- talkRepo.create(talkData1, user.id, now)
   } yield (user, group, cfp, talk)
 }

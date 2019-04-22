@@ -141,8 +141,8 @@ class GospeakComponents(context: ApplicationLoader.Context)
   def onStart(): Unit = {
     db.dropTables().unsafeRunSync() // TODO remove it for prod
     db.migrate().unsafeRunSync()
-    // db.insertMockData().unsafeRunSync() // TODO remove it for prod
-    db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync() // TODO remove it for prod
+    db.insertMockData().unsafeRunSync() // TODO remove it for prod
+    // db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync() // TODO remove it for prod
     logger.info("Application initialized")
   }
 

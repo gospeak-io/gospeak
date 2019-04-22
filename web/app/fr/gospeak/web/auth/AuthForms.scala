@@ -3,8 +3,8 @@ package fr.gospeak.web.auth
 import fr.gospeak.core.domain.User
 import fr.gospeak.libs.scalautils.domain.{Avatar, EmailAddress, Secret}
 import fr.gospeak.web.utils.Mappings._
-import play.api.data.Form
 import play.api.data.Forms._
+import play.api.data.{Form, Mapping}
 
 object AuthForms {
 
@@ -12,22 +12,24 @@ object AuthForms {
     def data(avatar: Avatar): User.Data = User.Data(slug, firstName, lastName, email, avatar)
   }
 
-  val signup: Form[SignupData] = Form(mapping(
+  val signupMapping: Mapping[SignupData] = mapping(
     "slug" -> userSlug,
     "first-name" -> text(1, 30),
     "last-name" -> text(1, 30),
     "email" -> emailAddress,
     "password" -> password,
     "rememberMe" -> boolean
-  )(SignupData.apply)(SignupData.unapply))
+  )(SignupData.apply)(SignupData.unapply)
+  val signup: Form[SignupData] = Form(signupMapping)
 
   final case class LoginData(email: EmailAddress, password: Secret, rememberMe: Boolean)
 
-  val login: Form[LoginData] = Form(mapping(
+  val loginMapping: Mapping[LoginData] = mapping(
     "email" -> emailAddress,
     "password" -> secret,
     "rememberMe" -> boolean
-  )(LoginData.apply)(LoginData.unapply))
+  )(LoginData.apply)(LoginData.unapply)
+  val login: Form[LoginData] = Form(loginMapping)
 
   final case class ForgotPasswordData(email: EmailAddress)
 

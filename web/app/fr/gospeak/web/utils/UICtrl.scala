@@ -1,7 +1,7 @@
 package fr.gospeak.web.utils
 
 import com.mohiva.play.silhouette.api.Silhouette
-import com.mohiva.play.silhouette.api.actions.SecuredRequest
+import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import fr.gospeak.core.domain._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.pages
@@ -9,6 +9,8 @@ import play.api.i18n.I18nSupport
 import play.api.mvc._
 
 abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv]) extends AbstractController(cc) with I18nSupport {
+  protected def userOpt(implicit req: UserAwareRequest[CookieEnv, AnyContent]): Option[User.Id] = req.identity.map(_.user.id)
+
   protected def user(implicit req: SecuredRequest[CookieEnv, AnyContent]): User.Id = req.identity.user.id
 
   // same as user method by with different semantic name
@@ -49,6 +51,9 @@ abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv
 
   protected def publicGroupNotFound(group: Group.Slug): Result =
     Redirect(pages.published.groups.routes.GroupCtrl.list()).flashing("warning" -> s"Unable to find group with slug '${group.value}'")
+
+  protected def publicCfpNotFound(group: Group.Slug, cfp: Cfp.Slug): Result =
+    Redirect(pages.published.groups.routes.GroupCtrl.detail(group)).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")
 
   protected def publicUserNotFound(user: User.Slug): Result =
     Redirect(pages.published.speakers.routes.SpeakerCtrl.list()).flashing("warning" -> s"Unable to find speaker with slug '${user.value}'")

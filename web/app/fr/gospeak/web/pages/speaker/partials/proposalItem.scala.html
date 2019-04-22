@@ -8,11 +8,11 @@
     @events.find(_.id == id).map { e => (@e.name.value - @Formats.date(e.start)) }.getOrElse { Unknown event @id.value }
 }
 <a href="@ProposalCtrl.detail(talk.slug, cfp.slug)" class="list-group-item list-group-item-action">
-    <div class="d-flex w-100 justify-content-between">
+    <div class="d-flex w-100 justify-content-between align-items-center">
         <h5 class="mb-1">@cfp.name.value @proposal.event.map { id => @eventinfo(id) }</h5>
         <div>@proposalStatus(proposal.status)</div>
     </div>
-    <div class="d-flex w-100 justify-content-between">
+    <div class="d-flex w-100 justify-content-between align-items-center">
         <p class="mb-1">
             Title: @proposal.title.value
             @if(proposal.duration != talk.duration) {

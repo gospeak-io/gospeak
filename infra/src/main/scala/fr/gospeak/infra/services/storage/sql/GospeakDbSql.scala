@@ -52,11 +52,14 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
         orga = htUsers.filter(_.auth.exists(a => a.role == "Organizer" || a.role == "Admin")).map(_.toUser)
         group = Group(Group.Id.generate(), Group.Slug.from("humantalks-paris").right.get, Group.Name("HumanTalks Paris"), Markdown(
           """Description des HumanTalks
+            |
             |TODO
           """.stripMargin.trim), NonEmptyList.fromListUnsafe(orga.map(_.id)), public = true, Info(lkn.id, initDate))
         cfp = Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from("humantalks-paris").right.get, Cfp.Name("HumanTalks Paris"), None, None, Markdown(
           """Les HumanTalks sont des événements pour les développeurs de tous horizons et qui ont lieu partout en France.
+            |
             |Le principe est simple: 4 talks de 10 minutes tous les 2ème mardi du mois pour partager autour du développement logiciel au sens large: code bien sûr, mais aussi design, organisation, agilité...
+            |
             |Nous acceuillons très volontiers des speakers débutant qui voudraient partager.
           """.stripMargin.trim), Info(lkn.id, initDate))
         talks = htTalks.map(_.toTalk).map(t => t.copy(info = t.info.copy(

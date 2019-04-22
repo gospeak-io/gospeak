@@ -1,5 +1,5 @@
 @import fr.gospeak.web.auth.AuthForms.SignupData
-@import fr.gospeak.web.auth.partials.html.container
+@import fr.gospeak.web.auth.partials.html._
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 
@@ -9,55 +9,7 @@
         <div class="card bg-light shadow">
             <div class="card-body">
             @formElt(form, AuthCtrl.doSignup(redirect)) {
-                <div class="form-group @if(form("first-name").errors.nonEmpty || form("last-name").errors.nonEmpty){is-invalid}">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text"><i class="fas fa-user"></i></span>
-                        </div>
-                        @inputText(form("first-name"), Seq("placeholder" -> "First Name", "autofocus" -> "true"))
-                        @inputText(form("last-name"), Seq("placeholder" -> "Last Name"))
-                    </div>
-                    <div class="row">
-                        <div class="col invalid-feedback">@form("first-name").errors.map(_.format).mkString(", ")</div>
-                        <div class="col invalid-feedback">@form("last-name").errors.map(_.format).mkString(", ")</div>
-                    </div>
-                </div>
-
-                <div class="form-group @if(form("slug").errors.nonEmpty){is-invalid}">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text"><i class="fas fa-user-secret"></i></span>
-                        </div>
-                        @inputText(form("slug"), Seq("placeholder" -> "Username", "slug-for" -> Seq(form("first-name"), form("last-name")).map(_.id).mkString(",")))
-                    </div>
-                    <div class="invalid-feedback">@form("slug").errors.map(_.format).mkString(", ")</div>
-                </div>
-
-                <div class="form-group @if(form("email").errors.nonEmpty){is-invalid}">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                        </div>
-                        @inputEmail(form("email"), Seq("placeholder" -> "Email"))
-                    </div>
-                    <div class="invalid-feedback">@form("email").errors.map(_.format).mkString(", ")</div>
-                </div>
-
-                <div class="form-group @if(form("password").errors.nonEmpty){is-invalid}">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text"><i class="fas fa-key"></i></span>
-                        </div>
-                        @inputPassword(form("password"), Seq("placeholder" -> "Password"))
-                    </div>
-                    <div class="invalid-feedback">@form("password").errors.map(_.format).mkString(", ")</div>
-                </div>
-
-                <div class="form-group form-check @if(form("rememberMe").errors.nonEmpty){is-invalid}">
-                    @inputCheckbox(form("rememberMe"), Seq("label" -> "Remember me"))
-                    <div class="invalid-feedback">@form("rememberMe").errors.map(_.format).mkString(", ")</div>
-                </div>
-
+                @signupFields(form(""))
                 <button type="submit" class="btn btn-primary btn-lg btn-block">Sign Up</button>
             }
             </div>

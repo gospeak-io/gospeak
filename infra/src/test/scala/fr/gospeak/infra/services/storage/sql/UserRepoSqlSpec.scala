@@ -10,6 +10,7 @@ class UserRepoSqlSpec extends RepoSpec {
   private val pass = Password(Hasher("hasher"), PasswordValue("password"), Some(Salt("salt")))
   private val loginRef = LoginRef(login, user.id)
   private val credentials = Credentials(login, pass)
+  private val fields = "id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, public, created, updated"
 
   describe("UserRepoSql") {
     it("should create and retrieve a user") {
@@ -36,10 +37,10 @@ class UserRepoSqlSpec extends RepoSpec {
 
       val user1 = userRepo.create(userData1, now).unsafeRunSync()
       val user2 = userRepo.create(userData2, now).unsafeRunSync()
-      val talk1 = talkRepo.create(user1.id, talkData1, now).unsafeRunSync()
+      val talk1 = talkRepo.create(talkData1, user1.id, now).unsafeRunSync()
       val group1 = groupRepo.create(groupData1, user1.id, now).unsafeRunSync()
       val cfp1 = cfpRepo.create(group1.id, cfpData1, user1.id, now).unsafeRunSync()
-      val prop1 = proposalRepo.create(talk1.id, cfp1.id, proposalData1, NonEmptyList.of(user1.id, user2.id), now, user1.id).unsafeRunSync()
+      val prop1 = proposalRepo.create(talk1.id, cfp1.id, proposalData1, NonEmptyList.of(user1.id, user2.id), user1.id, now).unsafeRunSync()
 
       userRepo.speakers(group1.id, page).unsafeRunSync().items.map(_.id) should contain theSameElementsAs prop1.speakers.toList
     }
@@ -75,7 +76,7 @@ class UserRepoSqlSpec extends RepoSpec {
       }
       it("should build insert") {
         val q = insert(user)
-        q.sql shouldBe "INSERT INTO users (id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, created, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO users ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update") {
@@ -90,22 +91,22 @@ class UserRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne with login") {
         val q = selectOne(login)
-        q.sql shouldBe "SELECT u.id, u.slug, u.first_name, u.last_name, u.email, u.email_validated, u.avatar, u.avatar_source, u.created, u.updated FROM users u INNER JOIN logins l ON u.id=l.user_id WHERE l.provider_id=? AND l.provider_key=?"
+        q.sql shouldBe s"SELECT ${fields.split(", ").map("u." + _).mkString(", ")} FROM users u INNER JOIN logins l ON u.id=l.user_id WHERE l.provider_id=? AND l.provider_key=?"
         check(q)
       }
       it("should build selectOne with email") {
         val q = selectOne(user.email)
-        q.sql shouldBe "SELECT id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, created, updated FROM users WHERE email=?"
+        q.sql shouldBe s"SELECT $fields FROM users WHERE email=?"
         check(q)
       }
       it("should build selectOne with slug") {
         val q = selectOne(user.slug)
-        q.sql shouldBe "SELECT id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, created, updated FROM users WHERE slug=?"
+        q.sql shouldBe s"SELECT $fields FROM users WHERE slug=?"
         check(q)
       }
       it("should build selectAll with ids") {
         val q = selectAll(NonEmptyList.of(user.id, user.id))
-        q.sql shouldBe "SELECT id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, created, updated FROM users WHERE id IN (?, ?) "
+        q.sql shouldBe s"SELECT $fields FROM users WHERE id IN (?, ?) "
         check(q)
       }
     }

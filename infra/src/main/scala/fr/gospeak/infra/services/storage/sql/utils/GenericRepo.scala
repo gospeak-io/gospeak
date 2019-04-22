@@ -10,7 +10,7 @@ trait GenericRepo {
   protected[sql] val xa: doobie.Transactor[IO]
 
   protected def run[A](i: A => doobie.Update0, v: A): IO[A] =
-    i(v).run.transact(xa).mapFailure(e => new Exception(s"Unable to insert $v", e)).flatMap {
+    i(v).run.transact(xa).flatMap {
       case 1 => IO.pure(v)
       case code => IO.raiseError(CustomException(s"Failed to insert $v (code: $code)"))
     }

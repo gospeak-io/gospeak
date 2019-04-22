@@ -34,12 +34,12 @@ object Mappings {
   val url: Mapping[Url] = stringEitherMapping(Url.from, _.value)
   val slides: Mapping[Slides] = stringEitherMapping(Slides.from, _.value)
   val video: Mapping[Video] = stringEitherMapping(Video.from, _.value)
-  val secret: Mapping[Secret] = stringMapping(Secret, _.decode)
+  val secret: Mapping[Secret] = textMapping(Secret, _.decode)
   val password: Mapping[Secret] = secret.verifying(Constraint[Secret](passwordConstraint) { o =>
     if (o.decode.length >= 8) PlayValid
     else PlayInvalid(ValidationError(passwordError))
   })
-  val markdown: Mapping[Markdown] = stringMapping(Markdown, _.value)
+  val markdown: Mapping[Markdown] = textMapping(Markdown, _.value)
   val gMapPlace: Mapping[GMapPlace] = of(new Formatter[GMapPlace] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], GMapPlace] = (
       data.eitherGet(s"$key.id").toValidatedNec,
@@ -81,18 +81,21 @@ object Mappings {
 
   val userSlug: Mapping[User.Slug] = slugMapping(User.Slug)
   val groupSlug: Mapping[Group.Slug] = slugMapping(Group.Slug)
-  val groupName: Mapping[Group.Name] = stringMapping(Group.Name, _.value)
+  val groupName: Mapping[Group.Name] = nonEmptyTextMapping(Group.Name, _.value)
   val eventSlug: Mapping[Event.Slug] = slugMapping(Event.Slug)
-  val eventName: Mapping[Event.Name] = stringMapping(Event.Name, _.value)
+  val eventName: Mapping[Event.Name] = nonEmptyTextMapping(Event.Name, _.value)
   val cfpId: Mapping[Cfp.Id] = idMapping(Cfp.Id)
   val cfpSlug: Mapping[Cfp.Slug] = slugMapping(Cfp.Slug)
-  val cfpName: Mapping[Cfp.Name] = stringMapping(Cfp.Name, _.value)
+  val cfpName: Mapping[Cfp.Name] = nonEmptyTextMapping(Cfp.Name, _.value)
   val talkSlug: Mapping[Talk.Slug] = slugMapping(Talk.Slug)
-  val talkTitle: Mapping[Talk.Title] = stringMapping(Talk.Title, _.value)
+  val talkTitle: Mapping[Talk.Title] = nonEmptyTextMapping(Talk.Title, _.value)
 
   private[utils] object Utils {
-    def stringMapping[A](from: String => A, to: A => String) =
+    def textMapping[A](from: String => A, to: A => String) =
       WrappedMapping(text, from, to)
+
+    def nonEmptyTextMapping[A](from: String => A, to: A => String) =
+      WrappedMapping(nonEmptyText, from, to)
 
     def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, errorMessage: String = formatError): Mapping[A] =
       WrappedMapping(text.verifying(format(from, errorMessage)), (s: String) => from(s).right.get, to)

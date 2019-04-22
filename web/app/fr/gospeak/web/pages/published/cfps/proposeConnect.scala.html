@@ -1,0 +1,69 @@
+@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
+@import fr.gospeak.core.domain.Cfp
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.auth.partials.html._
+@import fr.gospeak.web.pages.partials.display.html.markdown
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.published.cfps.CfpForms.{ProposalLoginData, ProposalSignupData}
+@import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.published.partials.html.container
+@import fr.gospeak.libs.scalautils.domain.Markdown
+
+@(cfp: Cfp, signupForm: Form[ProposalSignupData], loginForm: Form[ProposalLoginData])(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@displayField(key: String, label: String)(display: String => Html) = {
+    @loginForm(key).value.filter(_.nonEmpty).map { value =>
+        <div class="row">
+            <div class="col-2">@label</div>
+            <div class="col-10">@display(value)</div>
+        </div>
+    }
+}
+@container(cfp.name.value + " - Talk proposal - Gospeak")() {
+    <h1>Connect to gospeak to finish to propose your talk</h1>
+    <h3>Your proposed talk to <b>@cfp.name.value</b>:</h3>
+    <div class="mb-3">
+        @displayField("talk.slug", "Slug") { value => @value }
+        @displayField("talk.title", "Title") { value => @value }
+        @displayField("talk.description", "Description") { value => @markdown(Markdown(value)) }
+        @displayField("talk.duration", "Duration") { value => @value minutes }
+        @displayField("talk.slides", "Slides") { value => <a href="@value" target="_blank">@value</a> }
+        @displayField("talk.video", "Video") { value => <a href="@value" target="_blank">@value</a> }
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <h5 class="card-header">Login</h5>
+                <div class="card-body">
+                @formElt(loginForm, CfpCtrl.doProposeLogin(cfp.slug)) {
+                    @inputHidden(loginForm("talk.title"))
+                    @inputHidden(loginForm("talk.description"))
+                    @inputHidden(loginForm("talk.duration"))
+                    @inputHidden(loginForm("talk.slides"))
+                    @inputHidden(loginForm("talk.video"))
+                    @inputHidden(loginForm("talk.slug"))
+                    @loginFields(loginForm("user"))
+                    <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                }
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card">
+                <h5 class="card-header">Signup</h5>
+                <div class="card-body">
+                @formElt(signupForm, CfpCtrl.doProposeSignup(cfp.slug)) {
+                    @inputHidden(signupForm("talk.title"))
+                    @inputHidden(signupForm("talk.description"))
+                    @inputHidden(signupForm("talk.duration"))
+                    @inputHidden(signupForm("talk.slides"))
+                    @inputHidden(signupForm("talk.video"))
+                    @inputHidden(signupForm("talk.slug"))
+                    @signupFields(signupForm("user"))
+                    <button type="submit" class="btn btn-primary btn-lg">Signup</button>
+                }
+                </div>
+            </div>
+        </div>
+    </div>
+}()

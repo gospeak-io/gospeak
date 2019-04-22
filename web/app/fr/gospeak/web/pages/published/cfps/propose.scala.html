@@ -1,0 +1,78 @@
+@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
+@import fr.gospeak.core.domain.{Cfp, Talk}
+@import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.auth.routes.AuthCtrl
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.published.cfps.CfpForms.Create
+@import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.published.partials.html.container
+@import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.utils.Formats
+
+@(cfp: Cfp, talks: Page[Talk], form: Form[Create])(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@talkItem(talk: Talk) = {
+    <a href="@ProposalCtrl.create(talk.slug, cfp.slug)" class="list-group-item list-group-item-action">
+        <h5 class="mb-0">@talk.title.value</h5>
+        <span>@talkStatus(talk.status) @duration(talk.duration) @slidesIcon(talk.slides) @videoIcon(talk.video)</span>
+    </a>
+}
+@container(cfp.name.value + " - Talk proposal - Gospeak")() {
+    <h1>Propose a talk to @cfp.name.value</h1>
+    <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
+
+    @req.identity.map { identity =>
+        @if(talks.nonEmpty) {
+            <h3>Choose an existing one</h3>
+
+            @Formats.paginated[Talk](talks, CfpCtrl.propose(cfp.slug, _), talkItem)
+
+            <h3>Or create a new one</h3>
+        }
+    }
+    @formElt(form, CfpCtrl.doPropose(cfp.slug)) {
+        @fieldHorizontal(form("talk.title"), Seq("label" -> "Title", "help" -> "Title for your proposal (you can adapt your talk title)")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
+        }
+        @fieldHorizontal(form("talk.description"), Seq("label" -> "Description", "help" -> "Give a abstract of your talk, you should make orga and people listen at you")) { (field, args) =>
+            @inputMarkdown(field, args)
+        }
+        @fieldHorizontal(form("talk.duration"), Seq("label" -> "Duration", "help" -> "Duration of your talk")) { (field, args) =>
+            @inputDuration(field, args)
+        }
+        @fieldHorizontal(form("talk.slides"), Seq("label" -> "Slides", "help" -> "Slides for your talk")) { (field, args) =>
+            @inputEmbed(field, args)
+        }
+        @fieldHorizontal(form("talk.video"), Seq("label" -> "Video", "help" -> "Video of your talk")) { (field, args) =>
+            @inputEmbed(field, args)
+        }
+        @fieldHorizontal(form("talk.slug"), Seq("label" -> "Slug", "help" -> "Reference for your talk (in urls for example)")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "Talk slug", "slug-for" -> form("talk.title").id) ++ args)
+        }
+        @actionsHorizontal() {
+            @req.identity.map { identity =>
+                <h4>Logged as:</h4>
+                <div class="card mb-3" style="max-width: 300px">
+                    <div class="row no-gutters">
+                        <div class="col-md-4">
+                            <img src="@identity.user.avatar.url" class="card-img" alt="avatar" style="border-radius: 0">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h5 class="card-title" style="margin-bottom: 0">@identity.user.name.value</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            @btnCancel(CfpCtrl.detail(cfp.slug))
+            @btnSubmit("Propose your talk")
+            @if(req.identity.isEmpty) {
+                or
+                <a class="btn btn-primary" href="@AuthCtrl.login(Some(CfpCtrl.propose(cfp.slug).toString))">
+                    Login to choose an existing one</a>
+            }
+        }
+    }
+}()

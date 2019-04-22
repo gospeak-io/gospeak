@@ -39,5 +39,9 @@ trait AuthCfpRepo
 trait PublicCfpRepo {
   def listOpen(now: Instant, params: Page.Params): IO[Page[Cfp]]
 
+  def listAllOpen(group: Group.Id, now: Instant): IO[Seq[Cfp]]
+
   def find(cfp: Cfp.Slug): IO[Option[Cfp]]
+
+  def findOpen(cfp: Cfp.Slug, now: Instant): IO[Option[Cfp]]
 }

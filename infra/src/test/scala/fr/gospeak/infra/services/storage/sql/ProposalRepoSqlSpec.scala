@@ -6,6 +6,8 @@ import fr.gospeak.infra.services.storage.sql.ProposalRepoSql._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class ProposalRepoSqlSpec extends RepoSpec {
+  private val fields = "id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by"
+
   describe("ProposalRepoSql") {
     it("should create and retrieve a proposal for a group and talk") {
       val (user, _, cfp, talk) = createUserGroupCfpAndTalk().unsafeRunSync()
@@ -35,7 +37,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = insert(proposal)
-        q.sql shouldBe "INSERT INTO proposals (id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO proposals ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update for orga") {
@@ -50,7 +52,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build updateStatus") {
         val q = updateStatus(cfp.slug, proposal.id)(proposal.status, None)
-        q.sql shouldBe "UPDATE proposals SET status=?, event_id=? WHERE id=?"
+        q.sql shouldBe "UPDATE proposals SET status=?, event_id=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.id=? AND c.slug=?)"
         check(q)
       }
       it("should build updateSlides by cfp and talk") {
@@ -75,17 +77,17 @@ class ProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne for proposal id") {
         val q = selectOne(proposal.id)
-        q.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE id=?"
+        q.sql shouldBe s"SELECT $fields FROM proposals WHERE id=?"
         check(q)
       }
       it("should build selectOne for cfp and proposal id") {
         val q = selectOne(cfp.slug, proposal.id)
-        q.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.id=? AND c.slug=?)"
+        q.sql shouldBe s"SELECT $fields FROM proposals WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.id=? AND c.slug=?)"
         check(q)
       }
       it("should build selectOne for speaker, talk and cfp") {
         val q = selectOne(user.id, talk.slug, cfp.slug)
-        q.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND t.speakers LIKE ?)"
+        q.sql shouldBe s"SELECT $fields FROM proposals WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND t.speakers LIKE ?)"
         check(q)
       }
       it("should build selectPage for a talk") {
@@ -119,21 +121,21 @@ class ProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage for a cfp") {
         val (s, c) = selectPage(cfp.id, params)
-        s.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE cfp_id=? ORDER BY created DESC OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM proposals WHERE cfp_id=? ORDER BY created DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM proposals WHERE cfp_id=? "
         check(s)
         check(c)
       }
       it("should build selectPage for a cfp and status") {
         val (s, c) = selectPage(cfp.id, Proposal.Status.Pending, params)
-        s.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE cfp_id=? AND status=? ORDER BY created DESC OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM proposals WHERE cfp_id=? AND status=? ORDER BY created DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM proposals WHERE cfp_id=? AND status=? "
         check(s)
         check(c)
       }
       it("should build selectAll") {
         val q = selectAll(NonEmptyList.of(proposal.id))
-        q.sql shouldBe "SELECT id, talk_id, cfp_id, event_id, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by FROM proposals WHERE id IN (?) "
+        q.sql shouldBe s"SELECT $fields FROM proposals WHERE id IN (?) "
         check(q)
       }
     }

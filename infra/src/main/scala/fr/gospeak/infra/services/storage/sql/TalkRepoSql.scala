@@ -5,9 +5,10 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
+import doobie.Fragments
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.core.domain.{Talk, User}
+import fr.gospeak.core.domain.{Cfp, Talk, User}
 import fr.gospeak.core.services.TalkRepo
 import fr.gospeak.infra.services.storage.sql.TalkRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
@@ -40,11 +41,15 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def editVideo(user: User.Id, slug: Talk.Slug)(video: Video, now: Instant): IO[Done] = run(updateVideo(user, slug)(video, now))
 
+  override def list(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(selectPage(user, _), params))
+
+  override def listActive(user: User.Id, cfp: Cfp.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(selectPage(user, cfp, Talk.Status.active, _), params))
+
   private def find(slug: Talk.Slug): IO[Option[Talk]] = run(selectOne(slug).option)
 
   override def find(user: User.Id, slug: Talk.Slug): IO[Option[Talk]] = run(selectOne(user, slug).option)
 
-  override def list(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(selectPage(user, _), params))
+  override def exists(slug: Talk.Slug): IO[Boolean] = run(selectOne(slug).option.map(_.isDefined))
 }
 
 object TalkRepoSql {
@@ -83,6 +88,13 @@ object TalkRepoSql {
 
   private[sql] def selectPage(user: User.Id, params: Page.Params): (doobie.Query0[Talk], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE speakers LIKE ${"%" + user.value + "%"}"))
+    (buildSelect(tableFr, fieldsFr, page.all).query[Talk], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+  }
+
+  private[sql] def selectPage(user: User.Id, cfp: Cfp.Id, status: NonEmptyList[Talk.Status], params: Page.Params): (doobie.Query0[Talk], doobie.Query0[Long]) = {
+    val cfpTalks = buildSelect(ProposalRepoSql.tableFr, fr0"talk_id", fr0"WHERE cfp_id=$cfp")
+    val where = fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND id NOT IN (" ++ cfpTalks ++ fr0") AND " ++ Fragments.in(fr"status", status)
+    val page = paginate(params, searchFields, defaultSort, Some(where))
     (buildSelect(tableFr, fieldsFr, page.all).query[Talk], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 

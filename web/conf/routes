@@ -2,6 +2,10 @@ GET         /                                                                   
 
 GET         /cfps                                                               fr.gospeak.web.pages.published.cfps.CfpCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /cfps/:cfp                                                          fr.gospeak.web.pages.published.cfps.CfpCtrl.detail(cfp: Cfp.Slug)
+GET         /cfps/:cfp/propose                                                  fr.gospeak.web.pages.published.cfps.CfpCtrl.propose(cfp: Cfp.Slug, params: Page.Params ?= Page.Params.defaults)
+POST        /cfps/:cfp/propose                                                  fr.gospeak.web.pages.published.cfps.CfpCtrl.doPropose(cfp: Cfp.Slug, params: Page.Params ?= Page.Params.defaults)
+POST        /cfps/:cfp/propose/signup                                           fr.gospeak.web.pages.published.cfps.CfpCtrl.doProposeSignup(cfp: Cfp.Slug)
+POST        /cfps/:cfp/propose/login                                            fr.gospeak.web.pages.published.cfps.CfpCtrl.doProposeLogin(cfp: Cfp.Slug)
 
 GET         /groups                                                             fr.gospeak.web.pages.published.groups.GroupCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /groups/:group                                                      fr.gospeak.web.pages.published.groups.GroupCtrl.detail(group: Group.Slug)
