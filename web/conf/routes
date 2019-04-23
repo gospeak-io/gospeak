@@ -84,6 +84,7 @@ POST        /u/talks/:talk/proposals/:cfp/edit                                  
 POST        /u/talks/:talk/proposals/:cfp/slides                                fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.doAddSlides(talk: Talk.Slug, cfp: Cfp.Slug)
 POST        /u/talks/:talk/proposals/:cfp/video                                 fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.doAddVideo(talk: Talk.Slug, cfp: Cfp.Slug)
 
+GET         /styleguide                                                         fr.gospeak.web.pages.published.HomeCtrl.styleguide(params: Page.Params ?= Page.Params.defaults)
 GET         /status                                                             fr.gospeak.web.api.StatusCtrl.getStatus
 
 + nocsrf

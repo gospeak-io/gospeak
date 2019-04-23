@@ -1,0 +1,122 @@
+@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.published.partials.html.container
+@import fr.gospeak.web.pages.partials.container.html.{flash, main, navbarLink, userDropdown}
+@import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.pages.published.routes.HomeCtrl
+@import fr.gospeak.web.utils.GenericForm
+@import fr.gospeak.web.pages.partials.html._
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.partials.container.html._
+@import fr.gospeak.web.pages.published.partials.html._
+@import fr.gospeak.web.pages.speaker.partials.html._
+@import fr.gospeak.web.pages.orga.partials.html._
+
+@(params: Page.Params)(implicit secured: SecuredRequest[CookieEnv, AnyContent], userAware: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@section(id: String, title: String, localization: String)(display: String => Html) = {
+    <div id="@id" class="section">
+        <h2>@title</h2>
+        <p>Available in <code>@localization</code></p>
+        @display(id)
+    </div>
+}
+@component(name: String)(display: String => Html) = {
+@display(name)
+}
+@example(label: String)(display: String => Html) = {
+    <div class="row mb-1 d-flex justify-content-between align-items-center">
+        <div class="col-2">@label</div>
+        <div class="col-10">@display(label)</div>
+    </div>
+}
+@main("Gospeak styleguide", Html(
+    """<style>
+      |.section {
+      |  padding-top: 56px;
+      |  margin-top: -56px;
+      |}
+      |</style>
+    """.stripMargin), Html(
+    """<script>
+      |  $('body').scrollspy({ target: '#menu' })
+      |</script>
+    """.stripMargin)) {
+    <nav id="menu" class="navbar sticky-top navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Gospeak styleguide</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item"><a class="nav-link" href="#global">Global</a></li>
+                <li class="nav-item"><a class="nav-link" href="#published">Published</a></li>
+                <li class="nav-item"><a class="nav-link" href="#speaker">Speaker</a></li>
+                <li class="nav-item"><a class="nav-link" href="#orga">Orga</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div data-spy="scroll" data-target="#menu" data-offset="0" class="container-fluid">
+        <h1>Gospeak styleguide</h1>
+        <p>
+            This page showcase the available compoments in Gospeak to see them all in one time.
+            Most of the components are not showcased as they come from <a href="https://getbootstrap.com/docs/4.3/getting-started/introduction/" target="_blank">
+            Bootstrap</a>.
+        </p>
+        @section("global", "Global components", "@import fr.gospeak.web.pages.partials.html._") { _ =>
+            @component("Pagination") { name =>
+                @example(s"$name with no element") { _ => @pagination(Page(Seq.empty[Int], params, Page.Total(0)), HomeCtrl.styleguide) }
+                @example(s"$name with 5 elements") { _ => @pagination(Page(1 to params.pageSize.value, params, Page.Total(5)), HomeCtrl.styleguide) }
+                @example(s"$name with 15 elements") { _ => @pagination(Page(1 to params.pageSize.value, params, Page.Total(15)), HomeCtrl.styleguide) }
+                @example(s"$name with 30 elements") { _ => @pagination(Page(1 to params.pageSize.value, params, Page.Total(30)), HomeCtrl.styleguide) }
+                @example(s"$name with 100 elements") { _ => @pagination(Page(1 to params.pageSize.value, params, Page.Total(100)), HomeCtrl.styleguide) }
+                @example(s"$name with 200 elements") { _ => @pagination(Page(1 to params.pageSize.value, params, Page.Total(200)), HomeCtrl.styleguide) }
+                @example(s"$name with 1000 elements") { _ => @pagination(Page(1 to params.pageSize.value, params, Page.Total(1000)), HomeCtrl.styleguide) }
+                @example("") { _ =>
+                    Try to change page size:
+                    <a href="@HomeCtrl.styleguide(params.copy(pageSize = Page.Size(10)))">set page-size to 10</a>,
+                    <a href="@HomeCtrl.styleguide(params.copy(pageSize = Page.Size(100)))">set page-size to 100</a>
+                }
+            }
+            @component("Search") { name =>
+                @example(name) { _ => @search(Page(1 to params.pageSize.value, params, Page.Total(200)), HomeCtrl.styleguide(params)) }
+            }
+            @component("Add slides form") { name =>
+                @example(name) { _ => @slidesFields(GenericForm.embed, HomeCtrl.styleguide(params)) }
+            }
+            @component("Add video form") { name =>
+                @example(name) { _ => @videoFields(GenericForm.embed, HomeCtrl.styleguide(params)) }
+            }
+        }
+
+        @section("global-display", "Global display components", "@import fr.gospeak.web.pages.partials.display.html._") { _ =>
+            @component("Alert") { name =>
+                @example(s"$name with 'primary'") { _ => @alert("primary") {This is an <b>HTML</b> text!} }
+                @example(s"$name with 'secondary'") { _ => @alert("secondary") {This is an <b>HTML</b> text!} }
+                @example(s"$name with 'success'") { _ => @alert("success") {This is an <b>HTML</b> text!} }
+                @example(s"$name with 'warning'") { _ => @alert("warning") {This is an <b>HTML</b> text!} }
+                @example(s"$name with 'danger'") { _ => @alert("danger") {This is an <b>HTML</b> text!} }
+                @example(s"$name with 'info'") { _ => @alert("info") {This is an <b>HTML</b> text!} }
+                @example(s"$name with 'dark'") { _ => @alert("dark") {This is an <b>HTML</b> text!} }
+                @example(s"$name with 'light'") { _ => @alert("light") {This is an <b>HTML</b> text!} }
+            }
+        }
+
+        @section("global-form", "Global form components", "@import fr.gospeak.web.pages.partials.form.html._") { _ =>
+        }
+
+        @section("global-container", "Global container components", "@import fr.gospeak.web.pages.partials.container.html._") { _ =>
+        }
+
+        @section("published", "Published components", "@import fr.gospeak.web.pages.published.partials.html._") { _ =>
+        }
+
+        @section("speaker", "Speaker components", "@import fr.gospeak.web.pages.speaker.partials.html._") { _ =>
+        }
+
+        @section("orga", "Orga components", "@import fr.gospeak.web.pages.orga.partials.html._") { _ =>
+        }
+    </div>
+}
