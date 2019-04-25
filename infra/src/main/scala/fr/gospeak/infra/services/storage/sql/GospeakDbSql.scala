@@ -50,12 +50,12 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
         }.map(_.toUser)
         lkn = users.find(_.email.value == "loicknuchel@gmail.com").get
         orga = htUsers.filter(_.auth.exists(a => a.role == "Organizer" || a.role == "Admin")).map(_.toUser)
-        group = Group(Group.Id.generate(), Group.Slug.from("humantalks-paris").right.get, Group.Name("HumanTalks Paris"), Markdown(
+        group = Group(Group.Id.generate(), Group.Slug.from("humantalks-paris").get, Group.Name("HumanTalks Paris"), Markdown(
           """Description des HumanTalks
             |
             |TODO
           """.stripMargin.trim), NonEmptyList.fromListUnsafe(orga.map(_.id)), public = true, Info(lkn.id, initDate))
-        cfp = Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from("humantalks-paris").right.get, Cfp.Name("HumanTalks Paris"), None, None, Markdown(
+        cfp = Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from("humantalks-paris").get, Cfp.Name("HumanTalks Paris"), None, None, Markdown(
           """Les HumanTalks sont des événements pour les développeurs de tous horizons et qui ont lieu partout en France.
             |
             |Le principe est simple: 4 talks de 10 minutes tous les 2ème mardi du mois pour partager autour du développement logiciel au sens large: code bien sûr, mais aussi design, organisation, agilité...
@@ -94,25 +94,25 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val gravatarSrv = new GravatarSrv()
 
     def user(slug: String, email: String, firstName: String, lastName: String): User = {
-      val emailAddr = EmailAddress.from(email).right.get
+      val emailAddr = EmailAddress.from(email).get
       val avatar = gravatarSrv.getAvatar(emailAddr)
-      User(User.Id.generate(), User.Slug.from(slug).right.get, firstName, lastName, emailAddr, None, avatar, public = true, now, now)
+      User(User.Id.generate(), User.Slug.from(slug).get, firstName, lastName, emailAddr, None, avatar, public = true, now, now)
     }
 
     def group(slug: String, name: String, by: User, owners: Seq[User] = Seq()): Group =
-      Group(Group.Id.generate(), Group.Slug.from(slug).right.get, Group.Name(name), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(by.id) ++ owners.map(_.id).toList, public = true, Info(by.id, now))
+      Group(Group.Id.generate(), Group.Slug.from(slug).get, Group.Name(name), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(by.id) ++ owners.map(_.id).toList, public = true, Info(by.id, now))
 
     def cfp(group: Group, slug: String, name: String, start: Option[String], end: Option[String], description: String, by: User): Cfp =
-      Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).right.get, Cfp.Name(name), start.map(d => LocalDateTime.parse(d + "T00:00:00")), end.map(d => LocalDateTime.parse(d + "T00:00:00")), Markdown(description), Info(by.id, now))
+      Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).get, Cfp.Name(name), start.map(d => LocalDateTime.parse(d + "T00:00:00")), end.map(d => LocalDateTime.parse(d + "T00:00:00")), Markdown(description), Info(by.id, now))
 
     def talk(by: User, slug: String, title: String, status: Talk.Status = Talk.Status.Public, speakers: Seq[User] = Seq(), duration: Int = 10, slides: Option[Slides] = None, video: Option[Video] = None, description: String = "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."): Talk =
-      Talk(Talk.Id.generate(), Talk.Slug.from(slug).right.get, Talk.Title(title), Duration(duration, MINUTES), status, Markdown(description), NonEmptyList.of(by.id) ++ speakers.map(_.id).toList, slides, video, Info(by.id, now))
+      Talk(Talk.Id.generate(), Talk.Slug.from(slug).get, status, Talk.Title(title), Duration(duration, MINUTES), Markdown(description), NonEmptyList.of(by.id) ++ speakers.map(_.id).toList, slides, video, Info(by.id, now))
 
     def proposal(talk: Talk, cfp: Cfp, status: Proposal.Status = Proposal.Status.Pending): Proposal =
-      Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, talk.title, talk.duration, status, talk.description, talk.speakers, talk.slides, talk.video, talk.info)
+      Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, status, talk.title, talk.duration, talk.description, talk.speakers, talk.slides, talk.video, talk.info)
 
     def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, venue: Option[GMapPlace] = None, description: Option[String] = None): Event =
-      Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).right.get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), description.map(Markdown), venue, Seq(), Info(by.id, now))
+      Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), description.map(Markdown), venue, Seq(), Info(by.id, now))
 
     val userDemo = user("demo", "demo@mail.com", "Demo", "User")
     val userSpeaker = user("speaker", "speaker@mail.com", "Speaker", "User")
@@ -134,8 +134,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
 
     val talk1 = talk(userDemo, "why-fp", "Why FP", status = Talk.Status.Private)
     val talk2 = talk(userDemo, "scala-best-practices", "Scala Best Practices", speakers = Seq(userSpeaker),
-      slides = Some(Slides.from("https://docs.google.com/presentation/d/1wWRKbxz81AzhBJJqc505yUkileRPn5b-bNH1Th852f4").right.get),
-      video = Some(Video.from("https://www.youtube.com/watch?v=Tm-qyMukBq4").right.get),
+      slides = Some(Slides.from("https://docs.google.com/presentation/d/1wWRKbxz81AzhBJJqc505yUkileRPn5b-bNH1Th852f4").get),
+      video = Some(Video.from("https://www.youtube.com/watch?v=Tm-qyMukBq4").get),
       description =
         """I have seen a lot of people struggleing with Scala because they were lost in all the feature and did not know which one to use and *not to use*.
           |This talk is for everyone to discuss about **best practices**:
@@ -171,11 +171,11 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val generated = (1 to 25).toList.map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
-      val g = Group(groupId, Group.Slug.from(s"z-group-$i").right.get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga.id), public = true, Info(userOrga.id, now))
-      val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").right.get, Cfp.Name(s"Z CFP $i"), None, None, Markdown("Only your best talks !"), Info(userOrga.id, now))
-      val e = Event(Event.Id.generate(), group4.id, None, Event.Slug.from(s"z-event-$i").right.get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), None, None, Seq(), Info(userOrga.id, now))
-      val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").right.get, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Talk.Status.Draft, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker.id), None, None, Info(userSpeaker.id, now))
-      val p = Proposal(Proposal.Id.generate(), talk7.id, cfpId, None, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Proposal.Status.Pending, Markdown("temporary description"), NonEmptyList.of(userSpeaker.id), None, None, Info(userSpeaker.id, now))
+      val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga.id), public = true, Info(userOrga.id, now))
+      val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), None, None, Markdown("Only your best talks !"), Info(userOrga.id, now))
+      val e = Event(Event.Id.generate(), group4.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), None, None, Seq(), Info(userOrga.id, now))
+      val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Status.Draft, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker.id), None, None, Info(userSpeaker.id, now))
+      val p = Proposal(Proposal.Id.generate(), talk7.id, cfpId, None, Proposal.Status.Pending, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Markdown("temporary description"), NonEmptyList.of(userSpeaker.id), None, None, Info(userSpeaker.id, now))
       (g, c, e, t, p)
     }
 

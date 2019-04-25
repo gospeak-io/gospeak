@@ -71,14 +71,14 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 object ProposalRepoSql {
   private val _ = proposalIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = "proposals"
-  private val fields = Seq("id", "talk_id", "cfp_id", "event_id", "title", "duration", "status", "description", "speakers", "slides", "video", "created", "created_by", "updated", "updated_by")
+  private val fields = Seq("id", "talk_id", "cfp_id", "event_id", "status", "title", "duration", "description", "speakers", "slides", "video", "created", "created_by", "updated", "updated_by")
   private[sql] val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "title", "status", "description")
   private val defaultSort = Page.OrderBy("-created")
 
   private def values(e: Proposal): Fragment =
-    fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.title}, ${e.duration}, ${e.status}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   private[sql] def insert(elt: Proposal): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 

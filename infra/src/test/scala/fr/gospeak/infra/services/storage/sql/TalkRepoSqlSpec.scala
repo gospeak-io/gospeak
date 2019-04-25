@@ -5,7 +5,7 @@ import fr.gospeak.infra.services.storage.sql.TalkRepoSql._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class TalkRepoSqlSpec extends RepoSpec {
-  private val fields = "id, slug, title, duration, status, description, speakers, slides, video, created, created_by, updated, updated_by"
+  private val fields = "id, slug, status, title, duration, description, speakers, slides, video, created, created_by, updated, updated_by"
 
   describe("TalkRepoSql") {
     it("should create and retrieve") {

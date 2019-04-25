@@ -8,9 +8,9 @@ import scala.concurrent.duration.FiniteDuration
 
 final case class Talk(id: Talk.Id,
                       slug: Talk.Slug,
+                      status: Talk.Status,
                       title: Talk.Title,
                       duration: FiniteDuration,
-                      status: Talk.Status,
                       description: Markdown,
                       speakers: NonEmptyList[User.Id],
                       slides: Option[Slides],
@@ -26,7 +26,7 @@ object Talk {
             status: Status,
             speakers: NonEmptyList[User.Id],
             info: Info): Talk =
-    new Talk(Id.generate(), data.slug, data.title, data.duration, status, data.description, speakers, data.slides, data.video, info)
+    new Talk(Id.generate(), data.slug, status, data.title, data.duration, data.description, speakers, data.slides, data.video, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 

@@ -1,18 +1,22 @@
 package fr.gospeak.web.pages.published
 
-import java.time.Instant
+import java.time.{Instant, LocalDateTime}
 
+import cats.data.NonEmptyList
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import com.mohiva.play.silhouette.api.{LoginInfo, Silhouette}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
-import fr.gospeak.core.domain.User
+import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain._
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{EmailAddress, Page}
+import fr.gospeak.libs.scalautils.domain.{EmailAddress, Markdown, Page}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.utils.UICtrl
 import org.joda.time.DateTime
 import play.api.mvc._
+
+import scala.concurrent.duration._
 
 class HomeCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv]) extends UICtrl(cc, silhouette) {
@@ -23,29 +27,97 @@ class HomeCtrl(cc: ControllerComponents,
     Ok(html.index())
   }
 
+  private val now = Instant.now()
+  private val dt = new DateTime()
+  private val ldt = LocalDateTime.now()
+  private val email = EmailAddress.from("john.doe@mail.com").get
+  private val user = User(
+    id = User.Id.generate(),
+    slug = User.Slug.from("john-doe").get,
+    firstName = "John",
+    lastName = "Doe",
+    email = email,
+    emailValidated = None,
+    avatar = GravatarSrv.getAvatar(email),
+    public = true,
+    created = now,
+    updated = now)
+  private val identity = AuthUser(
+    loginInfo = LoginInfo(providerID = "credentials", providerKey = email.value),
+    user = user,
+    groups = Seq())
+  private val authenticator = CookieAuthenticator("cookie", identity.loginInfo, dt, dt.plusMinutes(1), None, None, None)
+  private val group = Group(
+    id = Group.Id.generate(),
+    slug = Group.Slug.from("group-slug").get,
+    name = Group.Name("A group"),
+    description = Markdown(
+      """This is an **awesome** group, you should come and see us.
+        |
+        |We do:
+        |- beer
+        |- pizzas ^^
+      """.stripMargin),
+    owners = NonEmptyList.of(user.id),
+    public = true,
+    info = Info(user.id, now))
+  private val cfp = Cfp(
+    id = Cfp.Id.generate(),
+    group = group.id,
+    slug = Cfp.Slug.from("cfp-slug").get,
+    name = Cfp.Name("CFP 2019!!!"),
+    start = None,
+    end = None,
+    description = Markdown(
+      """Submit your best talk to amaze our attendees ;)
+        |
+        |We choose talks every week so don't wait
+      """.stripMargin),
+    info = Info(user.id, now))
+  private val event = Event(
+    id = Event.Id.generate(),
+    group = group.id,
+    cfp = Some(cfp.id),
+    slug = Event.Slug.from("event-slug").get,
+    name = Event.Name("Best Event in April \\o/"),
+    start = ldt,
+    description = None,
+    venue = None,
+    talks = Seq(),
+    info = Info(user.id, now))
+  private val talk = Talk(
+    id = Talk.Id.generate(),
+    slug = Talk.Slug.from("talk-slug").get,
+    title = Talk.Title("FP for the win!"),
+    duration = 10.minutes,
+    status = Talk.Status.Public,
+    description = Markdown(
+      """Have you heard about FP?
+        |
+        |It's the next/actual big thing in tech :D
+      """.stripMargin),
+    speakers = NonEmptyList.of(user.id),
+    slides = None,
+    video = None,
+    info = Info(user.id, now))
+  private val proposal = Proposal(
+    id = Proposal.Id.generate(),
+    talk = talk.id,
+    cfp = cfp.id,
+    event = None,
+    title = talk.title,
+    duration = talk.duration,
+    status = Proposal.Status.Pending,
+    description = talk.description,
+    speakers = talk.speakers,
+    slides = talk.slides,
+    video = talk.video,
+    info = Info(user.id, now))
+
   def styleguide(params: Page.Params): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    val dt = new DateTime()
-    val now = Instant.now()
-    val email = EmailAddress.from("john.doe@mail.com").get
-    val user = User(
-      id = User.Id.generate(),
-      slug = User.Slug.from("john-doe").get,
-      firstName = "John",
-      lastName = "Doe",
-      email = email,
-      emailValidated = None,
-      avatar = GravatarSrv.getAvatar(email),
-      public = true,
-      created = now,
-      updated = now)
-    val identity = AuthUser(
-      loginInfo = LoginInfo(providerID = "credentials", providerKey = email.value),
-      user = user,
-      groups = Seq())
-    val authenticator = CookieAuthenticator("cookie", identity.loginInfo, dt, dt.plusMinutes(1), None, None, None)
     implicit val secured = SecuredRequest[CookieEnv, AnyContent](identity, authenticator, req)
     implicit val userAware = UserAwareRequest[CookieEnv, AnyContent](Some(identity), Some(authenticator), req)
     implicit val messages = req.messages
-    Ok(html.styleguide(params))
+    Ok(html.styleguide(user, group, cfp, event, talk, proposal, params))
   }
 }

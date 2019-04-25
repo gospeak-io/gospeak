@@ -10,9 +10,9 @@ final case class Proposal(id: Proposal.Id,
                           talk: Talk.Id,
                           cfp: Cfp.Id,
                           event: Option[Event.Id],
+                          status: Proposal.Status,
                           title: Talk.Title,
                           duration: FiniteDuration,
-                          status: Proposal.Status,
                           description: Markdown,
                           speakers: NonEmptyList[User.Id],
                           slides: Option[Slides],
@@ -31,7 +31,7 @@ object Proposal {
             status: Status,
             speakers: NonEmptyList[User.Id],
             info: Info): Proposal =
-    new Proposal(Id.generate(), talk, cfp, event, data.title, data.duration, status, data.description, speakers, data.slides, data.video, info)
+    new Proposal(Id.generate(), talk, cfp, event, status, data.title, data.duration, data.description, speakers, data.slides, data.video, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 

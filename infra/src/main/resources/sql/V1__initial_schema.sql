@@ -47,9 +47,9 @@ CREATE TABLE talks
 (
     id          CHAR(36)      NOT NULL PRIMARY KEY,
     slug        VARCHAR(120)  NOT NULL UNIQUE,
+    status      VARCHAR(10)   NOT NULL,
     title       VARCHAR(120)  NOT NULL,
     duration    BIGINT        NOT NULL,
-    status      VARCHAR(10)   NOT NULL,
     description VARCHAR(4096) NOT NULL,
     speakers    VARCHAR(184)  NOT NULL, -- 5 speakers max
     slides      VARCHAR(1024),
@@ -113,9 +113,9 @@ CREATE TABLE proposals
     talk_id     CHAR(36)      NOT NULL REFERENCES talks (id),
     cfp_id      CHAR(36)      NOT NULL REFERENCES cfps (id),
     event_id    CHAR(36) REFERENCES events (id),
+    status      VARCHAR(10)   NOT NULL,
     title       VARCHAR(120)  NOT NULL,
     duration    BIGINT        NOT NULL,
-    status      VARCHAR(10)   NOT NULL,
     description VARCHAR(4096) NOT NULL,
     speakers    VARCHAR(184)  NOT NULL, -- 5 speakers max
     slides      VARCHAR(1024),
