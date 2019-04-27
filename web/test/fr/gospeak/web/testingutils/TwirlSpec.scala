@@ -14,8 +14,8 @@ import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.domain.Breadcrumb
 import org.scalatest.{FunSpec, Matchers}
 import play.api.i18n.{Lang, Messages}
-import play.api.mvc.AnyContent
-import play.api.test.FakeRequest
+import play.api.mvc.{AnyContent, Request}
+import play.api.test.{CSRFTokenHelper, FakeRequest}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -25,7 +25,7 @@ trait TwirlSpec extends FunSpec with Matchers with RandomDataGenerator {
   private val identity: AuthUser = AuthUser(loginInfo, user, Seq())
 
   private val env: SilhouetteEnvironment[CookieEnv] = FakeEnvironment[CookieEnv](Seq(identity.loginInfo -> identity))
-  private val req: FakeRequest[AnyContent] = FakeRequest().withAuthenticator(identity.loginInfo)(env)
+  private val req: Request[AnyContent] = CSRFTokenHelper.addCSRFToken(FakeRequest().withAuthenticator(identity.loginInfo)(env))
   private val authenticator: CookieAuthenticator = FakeAuthenticator(loginInfo)(env, req)
   protected implicit val userAwareReq: UserAwareRequest[CookieEnv, AnyContent] = UserAwareRequest[CookieEnv, AnyContent](Some(identity), Some(authenticator), req)
   protected implicit val securedReq: SecuredRequest[CookieEnv, AnyContent] = SecuredRequest[CookieEnv, AnyContent](identity, authenticator, req)

@@ -9,7 +9,7 @@ class ListSpec extends TwirlSpec {
   private val talk = random[Talk]
   private val cfps = random[Cfp](10)
 
-  describe("list.scala.html") {
+  describe("speaker.talks.cfps.list.scala.html") {
     it("should display a jumbotron on empty page") {
       html.list(talk, Page.empty[Cfp])(b).toString should include("""<div class="jumbotron">""")
     }

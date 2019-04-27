@@ -8,7 +8,7 @@ import fr.gospeak.web.testingutils.TwirlSpec
 class ListSpec extends TwirlSpec {
   private val talks = random[Talk](10)
 
-  describe("list.scala.html") {
+  describe("speaker.talks.list.scala.html") {
     it("should display a jumbotron on empty page") {
       html.list(Page.empty[Talk])(b).toString should include("""<div class="jumbotron">""")
     }

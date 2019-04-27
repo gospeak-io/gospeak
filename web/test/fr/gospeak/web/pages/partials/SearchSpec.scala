@@ -7,7 +7,7 @@ import org.scalatest.{FunSpec, Matchers}
 class SearchSpec extends FunSpec with Matchers {
   private val call = fr.gospeak.web.pages.published.routes.HomeCtrl.index()
 
-  describe("search.scala.html") {
+  describe("partials.search.scala.html") {
     it("should display order-by input when present") {
       html.search(buildPage(), call).body should not include s"""<input type="hidden" name="${OrderBy.key}""""
       html.search(buildPage(orderBy = Some("title")), call).body should include(s"""<input type="hidden" name="${OrderBy.key}" value="title">""")

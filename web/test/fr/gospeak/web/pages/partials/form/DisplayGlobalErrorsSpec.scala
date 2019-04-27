@@ -9,7 +9,7 @@ class DisplayGlobalErrorsSpec extends TwirlSpec {
     "text" -> text
   )(identity)(Some(_)))
 
-  describe("displayGlobalErrors.scala.html") {
+  describe("partials.form.displayGlobalErrors.scala.html") {
     it("should display nothing when no errors") {
       val res = html.displayGlobalErrors(form).body.trim
       res shouldBe ""

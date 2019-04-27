@@ -8,7 +8,7 @@ import fr.gospeak.web.testingutils.TwirlSpec
 class ListGroupSpec extends TwirlSpec {
   private val groups = random[Group](10)
 
-  describe("list.scala.html") {
+  describe("user.list.scala.html") {
     it("should display a jumbotron on empty page") {
       html.listGroup(Page.empty[Group])(b).toString should include("""<div class="jumbotron">""")
     }
