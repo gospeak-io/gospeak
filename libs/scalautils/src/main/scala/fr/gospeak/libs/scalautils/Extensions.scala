@@ -59,6 +59,19 @@ object Extensions {
       }
       coll.result()
     }
+
+    def distinctBy[B](f: A => B)(implicit cbf: CanBuildFrom[M[A], A, M[A]]): M[A] = {
+      val values = mutable.Map[B, A]()
+      in.foldLeft(cbf(in)) { (acc, cur) =>
+        val key = f(cur)
+        if (values.contains(key)) {
+          acc
+        } else {
+          values.put(key, cur)
+          acc += cur
+        }
+      }.result()
+    }
   }
 
   implicit class TraversableOnceTryExtension[A, M[X] <: TraversableOnce[X]](val in: M[Try[A]]) extends AnyVal {
