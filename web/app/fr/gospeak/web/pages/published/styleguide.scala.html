@@ -1,19 +1,19 @@
-@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
-@import fr.gospeak.core.domain.{Group, Cfp, User, Event, Talk, Proposal}
-@import fr.gospeak.web.pages.published.routes.HomeCtrl
-@import fr.gospeak.web.utils.GenericForm
-@import fr.gospeak.web.pages.partials.{html => global}
-@import fr.gospeak.web.pages.partials.display.{html => display}
-@import fr.gospeak.web.pages.partials.form.{html => form}
-@import fr.gospeak.web.pages.partials.container.{html => container}
-@import fr.gospeak.web.pages.published.partials.{html => published}
-@import fr.gospeak.web.pages.speaker.partials.{html => speaker}
-@import fr.gospeak.web.pages.orga.partials.{html => orga}
+@import java.time.Instant
 
-@(user: User, group: Group, cfp: Cfp, event: Event, talk: Talk, proposal: Proposal, params: Page.Params)(implicit secured: SecuredRequest[CookieEnv, AnyContent], userAware: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
+@import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, Talk, User}
+@import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.orga.partials.{html => orga}
+@import fr.gospeak.web.pages.partials.container.{html => container}
+@import fr.gospeak.web.pages.partials.display.{html => display}
+@import fr.gospeak.web.pages.partials.{html => global}
+@import fr.gospeak.web.pages.published.partials.{html => published}
+@import fr.gospeak.web.pages.published.routes.HomeCtrl
+@import fr.gospeak.web.pages.speaker.partials.{html => speaker}
+@import fr.gospeak.web.utils.GenericForm
+
+@(user: User, group: Group, cfp: Cfp, event: Event, talk: Talk, proposal: Proposal, now: Instant, params: Page.Params)(implicit secured: SecuredRequest[CookieEnv, AnyContent], userAware: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @section(id: String, title: String, localization: String)(display: String => Html) = {
     <div id="@id" class="section">
         <h2>@title</h2>
@@ -171,7 +171,7 @@
                 @example(s"$name") { _ => @published.groupItem(group) }
             }
             @component("cfpItem", "@cfpItem(cfp)") { name =>
-                @example(s"$name") { _ => @published.cfpItem(cfp) }
+                @example(s"$name") { _ => @published.cfpItem(cfp, now) }
             }
             @component("speakerItem", "@speakerItem(speaker)") { name =>
                 @example(s"$name") { _ => @published.speakerItem(user) }

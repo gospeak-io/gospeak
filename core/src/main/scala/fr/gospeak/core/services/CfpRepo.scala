@@ -37,6 +37,8 @@ trait UserCfpRepo
 trait AuthCfpRepo
 
 trait PublicCfpRepo {
+  val fields: CfpFields.type = CfpFields
+
   def listOpen(now: Instant, params: Page.Params): IO[Page[Cfp]]
 
   def listAllOpen(group: Group.Id, now: Instant): IO[Seq[Cfp]]
@@ -44,4 +46,9 @@ trait PublicCfpRepo {
   def find(cfp: Cfp.Slug): IO[Option[Cfp]]
 
   def findOpen(cfp: Cfp.Slug, now: Instant): IO[Option[Cfp]]
+}
+
+object CfpFields {
+  val name = "name"
+  val end = "end"
 }

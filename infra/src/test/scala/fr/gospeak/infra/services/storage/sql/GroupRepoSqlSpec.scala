@@ -40,7 +40,7 @@ class GroupRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage") {
         val (s, c) = selectPage(user.id, params)
-        s.sql shouldBe s"SELECT $fields FROM groups WHERE owners LIKE ? ORDER BY name OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM groups WHERE owners LIKE ? ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM groups WHERE owners LIKE ? "
         check(s)
         check(c)

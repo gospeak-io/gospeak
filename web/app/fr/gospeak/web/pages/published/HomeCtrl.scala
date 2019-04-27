@@ -6,8 +6,8 @@ import cats.data.NonEmptyList
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import com.mohiva.play.silhouette.api.{LoginInfo, Silhouette}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
-import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{EmailAddress, Markdown, Page}
@@ -118,6 +118,6 @@ class HomeCtrl(cc: ControllerComponents,
     implicit val secured = SecuredRequest[CookieEnv, AnyContent](identity, authenticator, req)
     implicit val userAware = UserAwareRequest[CookieEnv, AnyContent](Some(identity), Some(authenticator), req)
     implicit val messages = req.messages
-    Ok(html.styleguide(user, group, cfp, event, talk, proposal, params))
+    Ok(html.styleguide(user, group, cfp, event, talk, proposal, Instant.now(), params))
   }
 }

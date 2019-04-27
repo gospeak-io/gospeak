@@ -88,14 +88,14 @@ class TalkRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage for user") {
         val (s, c) = selectPage(user.id, params)
-        s.sql shouldBe s"SELECT $fields FROM talks WHERE speakers LIKE ? ORDER BY title OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM talks WHERE speakers LIKE ? ORDER BY title IS NULL, title OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM talks WHERE speakers LIKE ? "
         check(s)
         check(c)
       }
       it("should build selectPage for user, cfp and status") {
         val (s, c) = selectPage(user.id, cfp.id, Talk.Status.active, params)
-        s.sql shouldBe s"SELECT $fields FROM talks WHERE speakers LIKE ? AND id NOT IN (SELECT talk_id FROM proposals WHERE cfp_id=?) AND status IN (?, ?, ?)  ORDER BY title OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM talks WHERE speakers LIKE ? AND id NOT IN (SELECT talk_id FROM proposals WHERE cfp_id=?) AND status IN (?, ?, ?)  ORDER BY title IS NULL, title OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM talks WHERE speakers LIKE ? AND id NOT IN (SELECT talk_id FROM proposals WHERE cfp_id=?) AND status IN (?, ?, ?)  "
         check(s)
         check(c)

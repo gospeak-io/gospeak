@@ -55,14 +55,23 @@ object Page {
     val key = "q"
   }
 
-  final case class OrderBy(value: String) extends AnyVal {
+  final case class OrderBy(values: Seq[String]) extends AnyVal {
     def key: String = OrderBy.key
 
-    def nonEmpty: Boolean = value.nonEmpty
+    def nonEmpty: Boolean = values.nonEmpty
+
+    def value: String = values.mkString(",")
   }
 
   object OrderBy {
     val key = "sort"
+
+    def apply(value: String): OrderBy = new OrderBy(Seq(value))
+
+    def parse(value: String): Option[OrderBy] = {
+      val values = value.split(',').map(_.trim).filter(_.nonEmpty)
+      values.headOption.map(_ => OrderBy(values))
+    }
   }
 
   // should be at least 1
@@ -102,9 +111,9 @@ object Page {
 
     def defaultSize(size: Int): Params = if (pageSize == Params.defaults.pageSize) copy(pageSize = Size(size)) else this
 
-    def defaultOrderBy(field: String): Params = if (orderBy == Params.defaults.orderBy) copy(orderBy = Some(OrderBy(field))) else this
+    def defaultOrderBy(field: String*): Params = if (orderBy == Params.defaults.orderBy) copy(orderBy = Some(OrderBy(field))) else this
 
-    def orderBy(field: String): Params = copy(orderBy = Some(OrderBy(field)))
+    def orderBy(field: String*): Params = copy(orderBy = Some(OrderBy(field)))
   }
 
   object Params {

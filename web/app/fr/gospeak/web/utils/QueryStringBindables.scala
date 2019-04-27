@@ -12,7 +12,7 @@ object QueryStringBindables {
           page <- intBinder.bind(Page.No.key, params).map(_.map(p => Page.No(p))).getOrElse(Right(Page.Params.defaults.page))
           pageSize <- intBinder.bind(Page.Size.key, params).map(_.map(p => Page.Size(p))).getOrElse(Right(Page.Params.defaults.pageSize))
           search <- stringBinder.bind(Page.Search.key, params).map(_.map(s => Some(Page.Search(s)))).getOrElse(Right(Page.Params.defaults.search))
-          orderBy <- stringBinder.bind(Page.OrderBy.key, params).map(_.map(s => Some(Page.OrderBy(s)))).getOrElse(Right(Page.Params.defaults.orderBy))
+          orderBy <- stringBinder.bind(Page.OrderBy.key, params).map(_.map(Page.OrderBy.parse)).getOrElse(Right(Page.Params.defaults.orderBy))
         } yield Page.Params(page, pageSize, search, orderBy))
 
       override def unbind(key: String, params: Page.Params): String =

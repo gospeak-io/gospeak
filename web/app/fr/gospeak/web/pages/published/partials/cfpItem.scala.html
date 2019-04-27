@@ -1,9 +1,27 @@
 @import fr.gospeak.core.domain.Cfp
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import fr.gospeak.web.utils.Formats
+@import java.time.temporal.ChronoUnit
+@import java.time.{Instant, ZoneOffset}
 
-@(cfp: Cfp)
-<div class="list-group-item">
-    <h5 class="mb-1">
-        <a href="@CfpCtrl.detail(cfp.slug)">@cfp.name.value</a>
-    </h5>
-</div>
+@(cfp: Cfp, now: Instant)
+<a class="list-group-item list-group-item-action" href="@CfpCtrl.detail(cfp.slug)">
+    <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">@cfp.name.value</h5>
+        @cfp.end match {
+            case Some(d) if now.plus(10, ChronoUnit.DAYS).isAfter(d.toInstant(ZoneOffset.UTC)) => {
+                <span class="badge badge-danger">Closes @Formats.date(d)</span>
+            }
+            case Some(d) if now.plus(30, ChronoUnit.DAYS).isAfter(d.toInstant(ZoneOffset.UTC)) => {
+                <span class="badge badge-warning">Closes @Formats.date(d)</span>
+            }
+            case Some(d) => {
+                <span class="badge badge-primary">Closes @Formats.date(d)</span>
+            }
+            case None => {
+                <span class="badge badge-primary">Always open</span>
+            }
+        }
+    </div>
+    @* TODO event location, event date (if available), tags + isBeginnedFriendly *@
+</a>

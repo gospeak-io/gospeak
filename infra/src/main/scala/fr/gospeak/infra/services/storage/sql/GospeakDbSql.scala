@@ -127,9 +127,9 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val groups = NonEmptyList.of(group1, group2, group3, group4)
 
     val cfp1 = cfp(group1, "ht-paris", "HumanTalks Paris", None, None, "Les HumanTalks Paris c'est 4 talks de 10 min...", userDemo)
-    val cfp2 = cfp(group1, "ht-paris-day-1", "HumanTalks Paris Day - Edition 1", None, Some("2018-05-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", userDemo)
-    val cfp3 = cfp(group1, "ht-paris-day-2", "HumanTalks Paris Day - Edition 2", Some("2019-03-01"), Some("2019-05-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", userDemo)
-    val cfp4 = cfp(group2, "paris-js", "Paris.Js", None, None, "Submit your talk to exchange with the Paris JS community", userOrga)
+    val cfp2 = cfp(group1, "ht-paris-day-1", "HumanTalks Paris Day - Edition 1", None, Some("2018-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", userDemo)
+    val cfp3 = cfp(group1, "ht-paris-day-2", "HumanTalks Paris Day - Edition 2", Some("2019-03-01"), Some("2019-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", userDemo)
+    val cfp4 = cfp(group2, "paris-js", "Paris.Js", None, Some("2019-05-21"), "Submit your talk to exchange with the Paris JS community", userOrga)
     val cfps = NonEmptyList.of(cfp1, cfp2, cfp3, cfp4)
 
     val talk1 = talk(userDemo, "why-fp", "Why FP", status = Talk.Status.Private)

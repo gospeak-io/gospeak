@@ -62,9 +62,19 @@ object DoobieUtils {
         limitFragment(params.offsetStart, params.pageSize))
     }
 
-    private def orderByFragment(orderBy: Page.OrderBy, prefix: Option[String]): Fragment =
-      if (orderBy.value.startsWith("-")) fr"ORDER BY" ++ Fragment.const(prefix.map(_ + ".").getOrElse("") + orderBy.value.stripPrefix("-") + " DESC")
-      else fr"ORDER BY" ++ Fragment.const(prefix.map(_ + ".").getOrElse("") + orderBy.value)
+    private def orderByFragment(orderBy: Page.OrderBy, prefix: Option[String]): Fragment = {
+      if (orderBy.nonEmpty) {
+        val fields = orderBy.values.map { v =>
+          val p = prefix.map(_ + ".").getOrElse("")
+          val f = p + v.stripPrefix("-")
+          s"$f IS NULL, " + // to order nulls at the end
+            (if (v.startsWith("-")) f + " DESC" else v)
+        }
+        fr"ORDER BY" ++ Fragment.const(fields.mkString(", "))
+      } else {
+        fr0""
+      }
+    }
 
     private def limitFragment(start: Int, size: Page.Size): Fragment =
       fr"OFFSET" ++ Fragment.const(start.toString) ++ fr"LIMIT" ++ Fragment.const0(size.value.toString)

@@ -1,13 +1,20 @@
+@import java.time.Instant
+
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 @import fr.gospeak.core.domain.Cfp
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.pages.published.partials.html.{container, cfpItem}
-@import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.published.partials.html.{cfpItem, container}
+@import fr.gospeak.web.utils.Formats
 
-@(cfps: Page[Cfp])(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(cfps: Page[Cfp], now: Instant)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak - CFPs")() {
-    <h1>CFPs (TODO)</h1>
-    @Formats.paginated[Cfp](cfps, CfpCtrl.list, cfpItem(_))
+    <h1>Open Call For Proposals</h1>
+    <p>
+        Have something interesting to share? Find a corresponding CFP and propose a talk!<br>
+        Afraid of speaking? Take a look at theses <a href="@CfpCtrl.gettingStarted()">
+        getting started and helpful articles and testimonials</a>.
+    </p>
+    @Formats.paginated[Cfp](cfps, CfpCtrl.list, cfpItem(_, now))
 }()

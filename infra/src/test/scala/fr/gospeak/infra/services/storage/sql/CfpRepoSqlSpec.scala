@@ -74,21 +74,21 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage for a group") {
         val (s, c) = selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fields FROM cfps WHERE group_id=? ORDER BY name OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM cfps WHERE group_id=? ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM cfps WHERE group_id=? "
         check(s)
         check(c)
       }
       it("should build selectPage for a talk") {
         val (s, c) = selectPage(talk.id, params)
-        s.sql shouldBe s"SELECT $fields FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) ORDER BY name OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) "
         check(s)
         check(c)
       }
       it("should build selectPage for a date") {
         val (s, c) = selectPage(now, params)
-        s.sql shouldBe s"SELECT $fields FROM cfps WHERE (start IS NULL OR start < ?) AND (end IS NULL OR end > ?) ORDER BY name OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM cfps WHERE (start IS NULL OR start < ?) AND (end IS NULL OR end > ?) ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM cfps WHERE (start IS NULL OR start < ?) AND (end IS NULL OR end > ?) "
         check(s)
         check(c)

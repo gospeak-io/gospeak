@@ -7,6 +7,7 @@ import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class EventRepoSqlSpec extends RepoSpec {
   private val fields = "id, group_id, cfp_id, slug, name, start, description, venue, talks, created, created_by, updated, updated_by"
+
   describe("EventRepoSql") {
     it("should create and retrieve an event for a group") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
@@ -53,7 +54,7 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage") {
         val (s, c) = selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fields FROM events WHERE group_id=? ORDER BY start DESC OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM events WHERE group_id=? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM events WHERE group_id=? "
         check(s)
         check(c)
@@ -65,7 +66,7 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build selectAllAfter") {
         val (s, c) = selectAllAfter(group.id, now, params)
-        s.sql shouldBe s"SELECT $fields FROM events WHERE group_id=? AND start > ? ORDER BY start DESC OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM events WHERE group_id=? AND start > ? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM events WHERE group_id=? AND start > ? "
         check(s)
         check(c)
