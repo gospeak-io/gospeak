@@ -58,17 +58,21 @@ object DoobieUtils {
 
       Paginate(
         search,
-        orderByFragment(params.orderBy.getOrElse(defaultSort), prefix),
+        orderByFragment(params.orderBy.getOrElse(defaultSort), prefix, params.nullsFirst),
         limitFragment(params.offsetStart, params.pageSize))
     }
 
-    private def orderByFragment(orderBy: Page.OrderBy, prefix: Option[String]): Fragment = {
+    private def orderByFragment(orderBy: Page.OrderBy, prefix: Option[String], nullsFirst: Boolean): Fragment = {
       if (orderBy.nonEmpty) {
         val fields = orderBy.values.map { v =>
           val p = prefix.map(_ + ".").getOrElse("")
           val f = p + v.stripPrefix("-")
-          s"$f IS NULL, " + // to order nulls at the end
-            (if (v.startsWith("-")) f + " DESC" else v)
+          if (nullsFirst) {
+            s"$f IS NOT NULL, $f" + (if (v.startsWith("-")) " DESC" else "")
+
+          } else {
+            s"$f IS NULL, $f" + (if (v.startsWith("-")) " DESC" else "")
+          }
         }
         fr"ORDER BY" ++ Fragment.const(fields.mkString(", "))
       } else {
@@ -103,6 +107,7 @@ object DoobieUtils {
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
     implicit val gMapPlaceMeta: Meta[GMapPlace] = Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
     implicit val avatarSourceMeta: Meta[Avatar.Source] = Meta[String].timap(Avatar.Source.from(_).right.get)(_.toString)
+    implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))
 
     // TODO build Meta[Seq[A]] and Meta[NonEmptyList[A]]
     // implicit def seqMeta[A](implicit m: Meta[A]): Meta[Seq[A]] = ???

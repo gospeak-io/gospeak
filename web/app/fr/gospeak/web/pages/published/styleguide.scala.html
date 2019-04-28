@@ -94,6 +94,9 @@
         }
 
         @section("global-display", "Global display components", "@import fr.gospeak.web.pages.partials.display.html._") { _ =>
+            @component("tags", "@tags(cfp.tags)") { name =>
+                @example(s"$name") { _ => @display.tags(cfp.tags) }
+            }
             @component("duration", "@duration(talk.duration)") { name =>
                 @example(s"$name") { _ => @display.duration(talk.duration) }
                 @example(s"$name with title") { _ => @display.duration(talk.duration, Some("Talk duration")) }

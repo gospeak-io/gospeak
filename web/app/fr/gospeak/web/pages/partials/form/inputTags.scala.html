@@ -1,0 +1,15 @@
+@import fr.gospeak.web.pages.partials.form.Utils
+
+@(field: Field, args: Seq[(String, String)] = Seq())
+@defining(field.indexes.flatMap(i => field(s"[$i]").value)) { values: Seq[String] =>
+    <select
+        @Utils.idAttr(field, args)
+        @Utils.nameAttr(field, args, multi = true)
+        @Utils.classAttr(field, args, "form-control tags")
+        @Utils.requiredAttr(field, args)
+        @Utils.autofocusAttr(args)
+        @Utils.multipleAttr()
+        @Utils.otherAttrs(args)>
+        @values.map { value => <option value="@value" selected="selected">@value</option> }
+    </select>
+}

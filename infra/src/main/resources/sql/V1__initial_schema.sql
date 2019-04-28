@@ -83,6 +83,7 @@ CREATE TABLE cfps
     start       TIMESTAMP,
     "end"       TIMESTAMP,
     description VARCHAR(2048) NOT NULL,
+    tags        VARCHAR(100)  NOT NULL, -- 5 tags max
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,

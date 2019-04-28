@@ -14,10 +14,10 @@ function slugify(str) {
 })();
 
 // confirm actions
-(function(){
-    $('[confirm]').click( function(e){
+(function () {
+    $('[confirm]').click(function (e) {
         var text = $(this).attr('confirm') || $(this).attr('title') || 'Confirm?';
-        if(!confirm(text)) {
+        if (!confirm(text)) {
             e.preventDefault();
         }
     });
@@ -51,6 +51,36 @@ function slugify(str) {
                 }
             });
         });
+    });
+})();
+
+// https://select2.org/ & https://github.com/select2/select2-bootstrap-theme
+(function () {
+    var defaultOpts = {
+        theme: 'bootstrap'
+    };
+    $('select.select2').each(function () {
+        $(this).select2(Object.assign({}, defaultOpts));
+    });
+    $('select.tags').each(function () {
+        var $select = $(this);
+        var opts = {
+            tags: true
+        };
+        $select.select2(Object.assign({}, defaultOpts, opts));
+
+        var remote = $select.attr('remote');
+        if (remote) {
+            $.getJSON(remote, function (res) {
+                var values = $select.val();
+                res.map(function (item) {
+                    if (values.indexOf(item.id) === -1) { // do not add item if it already exists
+                        $select.append(new Option(item.text, item.id, false, false));
+                    }
+                });
+                $select.trigger('change');
+            });
+        }
     });
 })();
 
@@ -118,7 +148,7 @@ function slugify(str) {
 
     function inputFetchEmbedCode(input, target) {
         var url = input.val();
-        if(!!url) {
+        if (!!url) {
             target.html('<div class="d-flex justify-content-center m-5"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>');
             fetchEmbedCode(url).then(function (html) {
                 // verify that input value haven't changed since the start of the query

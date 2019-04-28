@@ -4,7 +4,7 @@
 @(call: Call, args: Seq[(String, String)] = Seq())(content: Html)(implicit req: Request[AnyContent], messages: Messages)
 @formElt(FormUtils.empty[Int], call, Seq("class" -> "btn-form")) {
     <button
-        type="@Utils.getArg(args, "type", "submit")"
-        class="btn @Utils.getArg(args, "class")"
-        @Utils.attributes(args, Seq("type", "class"))>@content</button>
+        @Utils.typeAttr(args, "submit")
+        @Utils.classAttr(args, "btn")
+        @Utils.otherAttrs(args)>@content</button>
 }

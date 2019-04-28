@@ -96,7 +96,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       it("should build selectPage for a talk") {
         val (s, c) = selectPage(talk.id, params)
         s.sql shouldBe
-          "SELECT c.id, c.group_id, c.slug, c.name, c.start, c.end, c.description, c.created, c.created_by, c.updated, c.updated_by, " +
+          "SELECT c.id, c.group_id, c.slug, c.name, c.start, c.end, c.description, c.tags, c.created, c.created_by, c.updated, c.updated_by, " +
             s"${fieldsPrefixedBy("p.")} " +
             "FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.talk_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.talk_id=? "
@@ -114,7 +114,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       it("should build selectPage for a group and speaker") {
         val (s, c) = selectPage(group.id, user.id, params)
         s.sql shouldBe
-          "SELECT c.id, c.group_id, c.slug, c.name, c.start, c.end, c.description, c.created, c.created_by, c.updated, c.updated_by, " +
+          "SELECT c.id, c.group_id, c.slug, c.name, c.start, c.end, c.description, c.tags, c.created, c.created_by, c.updated, c.updated_by, " +
             s"${fieldsPrefixedBy("p.")} " +
             "FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? AND p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? AND p.speakers LIKE ? "

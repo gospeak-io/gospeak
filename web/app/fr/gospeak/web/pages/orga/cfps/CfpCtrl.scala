@@ -29,9 +29,10 @@ class CfpCtrl(cc: ControllerComponents,
   import silhouette._
 
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val customParams = params.withNullsFirst
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      cfps <- OptionT.liftF(cfpRepo.list(groupElt.id, params)) // TODO listWithProposalCount
+      cfps <- OptionT.liftF(cfpRepo.list(groupElt.id, customParams)) // TODO listWithProposalCount
       b = listBreadcrumb(groupElt)
     } yield Ok(html.list(groupElt, cfps)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }

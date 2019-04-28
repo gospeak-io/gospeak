@@ -12,7 +12,6 @@ import com.softwaremill.macwire.wire
 import fr.gospeak.core.services._
 import fr.gospeak.infra.services.storage.sql._
 import fr.gospeak.infra.services.{EmailSrv, GravatarSrv}
-import fr.gospeak.migration.MongoRepo
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
 import fr.gospeak.web.auth.{AuthConf, AuthCtrl}
@@ -131,6 +130,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val userTalkCfpCtrl = wire[fr.gospeak.web.pages.speaker.talks.cfps.CfpCtrl]
   lazy val userTalkProposalCtrl = wire[fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl]
   lazy val apiStatusCtrl = wire[api.StatusCtrl]
+  lazy val apiUiSuggestCtrl = wire[api.ui.SuggestCtrl]
   lazy val apiUiUtilsCtrl = wire[api.ui.UtilsCtrl]
 
   override lazy val router: Router = {

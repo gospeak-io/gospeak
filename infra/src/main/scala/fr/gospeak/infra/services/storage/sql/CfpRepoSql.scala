@@ -15,7 +15,7 @@ import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments.{buildInsert, buildSelect, buildUpdate, paginate}
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.utils.DoobieUtils.Queries
-import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page}
+import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
 
 class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with CfpRepo {
   override def create(group: Group.Id, data: Cfp.Data, by: User.Id, now: Instant): IO[Cfp] =
@@ -53,24 +53,26 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
   override def listOpen(now: Instant, params: Page.Params): IO[Page[Cfp]] = run(Queries.selectPage(selectPage(now, _), params))
 
   override def listAllOpen(group: Group.Id, now: Instant): IO[Seq[Cfp]] = run(selectAll(group, now).to[List])
+
+  override def listTags(): IO[Seq[Tag]] = run(selectTags().to[List]).map(_.flatten.distinct)
 }
 
 object CfpRepoSql {
   private val _ = cfpIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table = "cfps"
-  private[sql] val fields = Seq("id", "group_id", "slug", "name", "start", "end", "description", "created", "created_by", "updated", "updated_by")
+  private[sql] val fields = Seq("id", "group_id", "slug", "name", "start", "end", "description", "tags", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-  private val searchFields = Seq("id", "slug", "name", "description")
-  private val defaultSort = Page.OrderBy("name")
+  private val searchFields = Seq("id", "slug", "name", "description", "tags")
+  private val defaultSort = Page.OrderBy(Seq("-end", "name"))
 
   private def values(e: Cfp): Fragment =
-    fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.start}, ${e.end}, ${e.description}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.start}, ${e.end}, ${e.description}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   private[sql] def insert(elt: Cfp): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
   private[sql] def update(group: Group.Id, slug: Cfp.Slug)(data: Cfp.Data, by: User.Id, now: Instant): doobie.Update0 = {
-    val fields = fr0"slug=${data.slug}, name=${data.name}, start=${data.start}, end=${data.end}, description=${data.description}, updated=$now, updated_by=$by"
+    val fields = fr0"slug=${data.slug}, name=${data.name}, start=${data.start}, end=${data.end}, description=${data.description}, tags=${data.tags}, updated=$now, updated_by=$by"
     buildUpdate(tableFr, fields, where(group, slug)).update
   }
 
@@ -117,6 +119,9 @@ object CfpRepoSql {
 
   private[sql] def selectAll(group: Group.Id, now: Instant): doobie.Query0[Cfp] =
     buildSelect(tableFr, fieldsFr, where(group, now)).query[Cfp]
+
+  private[sql] def selectTags(): doobie.Query0[Seq[Tag]] =
+    Fragment.const0(s"SELECT tags FROM $table").query[Seq[Tag]]
 
   private def where(group: Group.Id, slug: Cfp.Slug): Fragment =
     fr0"WHERE group_id=$group AND slug=$slug"

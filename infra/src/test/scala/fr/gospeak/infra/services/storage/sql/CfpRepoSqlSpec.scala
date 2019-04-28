@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class CfpRepoSqlSpec extends RepoSpec {
-  private val fields = "id, group_id, slug, name, start, end, description, created, created_by, updated, updated_by"
+  private val fields = "id, group_id, slug, name, start, end, description, tags, created, created_by, updated, updated_by"
 
   describe("CfpRepoSql") {
     it("should create and retrieve a cfp for a group") {
@@ -16,8 +16,8 @@ class CfpRepoSqlSpec extends RepoSpec {
       cfpRepo.list(group.id, page).unsafeRunSync().items shouldBe Seq()
       cfpRepo.availableFor(talkId, page).unsafeRunSync().items shouldBe Seq()
       val cfp = cfpRepo.create(group.id, cfpData1, user.id, now).unsafeRunSync()
-      cfpRepo.find(cfp.id).unsafeRunSync() shouldBe Some(cfp)
-      cfpRepo.find(cfpData1.slug).unsafeRunSync() shouldBe Some(cfp)
+      cfpRepo.find(cfp.id).unsafeRunSync().get shouldBe cfp
+      cfpRepo.find(cfpData1.slug).unsafeRunSync().get shouldBe cfp
       cfpRepo.list(group.id, page).unsafeRunSync().items shouldBe Seq(cfp)
       cfpRepo.availableFor(talkId, page).unsafeRunSync().items shouldBe Seq(cfp)
     }
@@ -39,12 +39,12 @@ class CfpRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = insert(cfp)
-        q.sql shouldBe s"INSERT INTO cfps ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO cfps ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update") {
         val q = update(group.id, cfp.slug)(cfpData1, user.id, now)
-        q.sql shouldBe "UPDATE cfps SET slug=?, name=?, start=?, end=?, description=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
+        q.sql shouldBe "UPDATE cfps SET slug=?, name=?, start=?, end=?, description=?, tags=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
         check(q)
       }
       it("should build selectOne for cfp id") {
@@ -74,21 +74,21 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage for a group") {
         val (s, c) = selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fields FROM cfps WHERE group_id=? ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM cfps WHERE group_id=? ORDER BY end IS NULL, end DESC, name IS NULL, name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM cfps WHERE group_id=? "
         check(s)
         check(c)
       }
       it("should build selectPage for a talk") {
         val (s, c) = selectPage(talk.id, params)
-        s.sql shouldBe s"SELECT $fields FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) ORDER BY end IS NULL, end DESC, name IS NULL, name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) "
         check(s)
         check(c)
       }
       it("should build selectPage for a date") {
         val (s, c) = selectPage(now, params)
-        s.sql shouldBe s"SELECT $fields FROM cfps WHERE (start IS NULL OR start < ?) AND (end IS NULL OR end > ?) ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM cfps WHERE (start IS NULL OR start < ?) AND (end IS NULL OR end > ?) ORDER BY end IS NULL, end DESC, name IS NULL, name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM cfps WHERE (start IS NULL OR start < ?) AND (end IS NULL OR end > ?) "
         check(s)
         check(c)
@@ -106,6 +106,11 @@ class CfpRepoSqlSpec extends RepoSpec {
       it("should build selectAll for group and date") {
         val q = selectAll(group.id, now)
         q.sql shouldBe s"SELECT $fields FROM cfps WHERE (start IS NULL OR start < ?) AND (end IS NULL OR end > ?) AND group_id=?"
+        check(q)
+      }
+      it("should build selectTags") {
+        val q = selectTags()
+        q.sql shouldBe s"SELECT tags FROM cfps"
         check(q)
       }
     }

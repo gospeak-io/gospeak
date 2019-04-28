@@ -80,16 +80,25 @@ object Formats {
 
   def paginated[A](page: Page[A],
                    link: Page.Params => Call,
-                   item: A => Html): Html = Html(
-    s"""<div class="d-flex justify-content-between">
-       |  ${search(page, link(Page.Params.defaults))}
-       |  ${pagination(page, link)}
-       |</div>
-       |
-       |<div class="list-group mt-3 mb-3">
-       |${page.items.map(item).mkString("\n")}
-       |</div>
-       |
-       |<div class="d-flex justify-content-end">${pagination(page, link)}</div>
-     """.stripMargin)
+                   item: A => Html): Html = {
+    val header =
+      s"""<div class="d-flex justify-content-between">
+         |  ${search(page, link(Page.Params.defaults))}
+         |  ${pagination(page, link)}
+         |</div>
+       """.stripMargin
+    val footer = s"""<div class="d-flex justify-content-end">${pagination(page, link)}</div>"""
+    val body = if (page.isEmpty) {
+      """<div class="jumbotron text-center mt-3">
+        |  <h2>No results <i class="far fa-sad-tear"></i></h2>
+        |</div>
+      """.stripMargin
+    } else {
+      s"""<div class="list-group mt-3 mb-3">
+         |  ${page.items.map(item).mkString("\n")}
+         |</div>
+       """.stripMargin
+    }
+    Html(header + body + footer)
+  }
 }

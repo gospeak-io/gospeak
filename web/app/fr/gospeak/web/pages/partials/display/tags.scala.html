@@ -1,0 +1,3 @@
+@import fr.gospeak.libs.scalautils.domain.Tag
+@(tags: Seq[Tag], color: String = "primary")
+@tags.map { tag => <span class="badge badge-@color">@tag.value</span> }

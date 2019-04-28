@@ -4,9 +4,9 @@ import java.time.Instant
 
 import cats.effect.IO
 import fr.gospeak.core.domain._
-import fr.gospeak.libs.scalautils.domain.{Done, Page}
+import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
 
-trait CfpRepo extends OrgaCfpRepo with SpeakerCfpRepo with UserCfpRepo with AuthCfpRepo with PublicCfpRepo
+trait CfpRepo extends OrgaCfpRepo with SpeakerCfpRepo with UserCfpRepo with AuthCfpRepo with PublicCfpRepo with SuggestCfpRepo
 
 trait OrgaCfpRepo {
   def create(group: Group.Id, data: Cfp.Data, by: User.Id, now: Instant): IO[Cfp]
@@ -46,6 +46,10 @@ trait PublicCfpRepo {
   def find(cfp: Cfp.Slug): IO[Option[Cfp]]
 
   def findOpen(cfp: Cfp.Slug, now: Instant): IO[Option[Cfp]]
+}
+
+trait SuggestCfpRepo {
+  def listTags(): IO[Seq[Tag]]
 }
 
 object CfpFields {

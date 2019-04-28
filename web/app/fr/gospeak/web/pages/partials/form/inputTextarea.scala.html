@@ -2,13 +2,13 @@
 
 @(field: Field, args: Seq[(String, String)] = Seq())
 <textarea
-    class="form-control @Utils.getArg(args, "class") @if(field.hasErrors) {is-invalid}"
-    id="@Utils.id(args, field)"
-    name="@Utils.getArg(args, "name", field.name)"
-    @Utils.getArg(args, "placeholder").map { v => placeholder="@v" }
-    @Utils.isRequired(field, args).map { _ => required="" }
-    @Utils.pattern(field).map { p => pattern="@p" }
-    @Utils.getArg(args, "autofocus").map { _ => autofocus="" }
-    @Utils.getArg(args, "help").map { v => aria-describedby="@v" }
-    @Utils.attributes(args, Seq("type", "class", "id", "name", "value", "placeholder", "required", "pattern", "autofocus", "help"))
-    >@Utils.getArg(args, "value", field.value.getOrElse(""))</textarea>
+    @Utils.idAttr(field, args)
+    @Utils.nameAttr(field, args)
+    @Utils.classAttr(field, args, "form-control")
+    @Utils.placeholderAttr(args)
+    @Utils.requiredAttr(field, args)
+    @Utils.patternAttr(field)
+    @Utils.autofocusAttr(args)
+    @Utils.helpAttr(args)
+    @Utils.otherAttrs(args)
+    >@Utils.value(field, args)</textarea>

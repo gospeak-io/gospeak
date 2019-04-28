@@ -57,11 +57,13 @@ val playTest = Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2").map(_ % Test)
 val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.40.16")
 val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.3.0")
-val webjars = Seq(
+val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
   "org.webjars.npm" % "jquery" % "3.3.1",
   "org.webjars.npm" % "bootstrap" % "4.3.1",
-  "org.webjars.npm" % "autosize" % "4.0.2")
-//"org.webjars.npm" % "@fortawesome/fontawesome-free" % "5.6.3")
+  "org.webjars.npm" % "autosize" % "4.0.2",
+  // "org.webjars.npm" % "@fortawesome/fontawesome-free" % "5.6.3",
+  "org.webjars.npm" % "select2" % "4.0.5",
+  "org.webjars.npm" % "select2-bootstrap-theme" % "0.1.0-beta.10")
 val logback = Seq(
   "org.slf4j" % "slf4j-api" % "1.7.25",
   "ch.qos.logback" % "logback-classic" % "1.2.3")

@@ -5,6 +5,7 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.orga.partials.html.{container, proposalItem}
+@import fr.gospeak.web.pages.partials.display.html.tags
 @import fr.gospeak.web.utils.Formats
 
 @(group: Group, cfp: Cfp, proposals: Page[Proposal], speakers: Seq[User], events: Seq[Event])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
@@ -14,7 +15,7 @@
         <a class="btn btn-outline-secondary" href="@CfpCtrl.edit(group.slug, cfp.slug)" title="edit"><i class="fas fa-edit"></i></a>
     </h1>
 
-    <p>@Formats.cfpDates(cfp).capitalize</p>
+    <p>@Formats.cfpDates(cfp).capitalize @tags(cfp.tags)</p>
 
     <h2 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h2>
     @Formats.paginated[Proposal](proposals, CfpCtrl.detail(group.slug, cfp.slug, _), proposalItem(group, cfp, _, speakers, events))

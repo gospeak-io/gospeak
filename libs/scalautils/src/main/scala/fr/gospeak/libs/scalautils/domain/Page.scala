@@ -105,7 +105,8 @@ object Page {
   final case class Params(page: No = Params.defaults.page,
                           pageSize: Size = Params.defaults.pageSize,
                           search: Option[Search] = Params.defaults.search,
-                          orderBy: Option[OrderBy] = Params.defaults.orderBy) {
+                          orderBy: Option[OrderBy] = Params.defaults.orderBy,
+                          nullsFirst: Boolean = Params.defaults.nullsFirst) {
     val offsetStart: Int = (page.value - 1) * pageSize.value
     val offsetEnd: Int = page.value * pageSize.value
 
@@ -114,10 +115,14 @@ object Page {
     def defaultOrderBy(field: String*): Params = if (orderBy == Params.defaults.orderBy) copy(orderBy = Some(OrderBy(field))) else this
 
     def orderBy(field: String*): Params = copy(orderBy = Some(OrderBy(field)))
+
+    def withNullsFirst: Params = copy(nullsFirst = true)
+
+    def withNullsLast: Params = copy(nullsFirst = false)
   }
 
   object Params {
-    val defaults = Params(No(1), Size(20), None, None)
+    val defaults = Params(No(1), Size(20), None, None, nullsFirst = false)
   }
 
 }

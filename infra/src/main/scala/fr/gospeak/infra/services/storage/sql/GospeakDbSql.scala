@@ -61,7 +61,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
             |Le principe est simple: 4 talks de 10 minutes tous les 2ème mardi du mois pour partager autour du développement logiciel au sens large: code bien sûr, mais aussi design, organisation, agilité...
             |
             |Nous acceuillons très volontiers des speakers débutant qui voudraient partager.
-          """.stripMargin.trim), Info(lkn.id, initDate))
+          """.stripMargin.trim), Seq(), Info(lkn.id, initDate))
         talks = htTalks.map(_.toTalk).map(t => t.copy(info = t.info.copy(
           createdBy = users.find(_.id == t.info.createdBy).map(_.id).getOrElse(t.speakers.head),
           updatedBy = users.find(_.id == t.info.updatedBy).map(_.id).getOrElse(t.speakers.head)
@@ -102,8 +102,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     def group(slug: String, name: String, by: User, owners: Seq[User] = Seq()): Group =
       Group(Group.Id.generate(), Group.Slug.from(slug).get, Group.Name(name), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(by.id) ++ owners.map(_.id).toList, public = true, Info(by.id, now))
 
-    def cfp(group: Group, slug: String, name: String, start: Option[String], end: Option[String], description: String, by: User): Cfp =
-      Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).get, Cfp.Name(name), start.map(d => LocalDateTime.parse(d + "T00:00:00")), end.map(d => LocalDateTime.parse(d + "T00:00:00")), Markdown(description), Info(by.id, now))
+    def cfp(group: Group, slug: String, name: String, start: Option[String], end: Option[String], description: String, tags: Seq[String], by: User): Cfp =
+      Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).get, Cfp.Name(name), start.map(d => LocalDateTime.parse(d + "T00:00:00")), end.map(d => LocalDateTime.parse(d + "T00:00:00")), Markdown(description), tags.map(Tag(_)), Info(by.id, now))
 
     def talk(by: User, slug: String, title: String, status: Talk.Status = Talk.Status.Public, speakers: Seq[User] = Seq(), duration: Int = 10, slides: Option[Slides] = None, video: Option[Video] = None, description: String = "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."): Talk =
       Talk(Talk.Id.generate(), Talk.Slug.from(slug).get, status, Talk.Title(title), Duration(duration, MINUTES), Markdown(description), NonEmptyList.of(by.id) ++ speakers.map(_.id).toList, slides, video, Info(by.id, now))
@@ -126,10 +126,10 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val group4 = group("big-group", "Big Group", userOrga)
     val groups = NonEmptyList.of(group1, group2, group3, group4)
 
-    val cfp1 = cfp(group1, "ht-paris", "HumanTalks Paris", None, None, "Les HumanTalks Paris c'est 4 talks de 10 min...", userDemo)
-    val cfp2 = cfp(group1, "ht-paris-day-1", "HumanTalks Paris Day - Edition 1", None, Some("2018-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", userDemo)
-    val cfp3 = cfp(group1, "ht-paris-day-2", "HumanTalks Paris Day - Edition 2", Some("2019-03-01"), Some("2019-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", userDemo)
-    val cfp4 = cfp(group2, "paris-js", "Paris.Js", None, Some("2019-05-21"), "Submit your talk to exchange with the Paris JS community", userOrga)
+    val cfp1 = cfp(group1, "ht-paris", "HumanTalks Paris", None, None, "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq("tag1", "tag2"), userDemo)
+    val cfp2 = cfp(group1, "ht-paris-day-1", "HumanTalks Paris Day - Edition 1", None, Some("2018-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
+    val cfp3 = cfp(group1, "ht-paris-day-2", "HumanTalks Paris Day - Edition 2", Some("2019-03-01"), Some("2019-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
+    val cfp4 = cfp(group2, "paris-js", "Paris.Js", None, Some("2019-05-21"), "Submit your talk to exchange with the Paris JS community", Seq(), userOrga)
     val cfps = NonEmptyList.of(cfp1, cfp2, cfp3, cfp4)
 
     val talk1 = talk(userDemo, "why-fp", "Why FP", status = Talk.Status.Private)
@@ -172,7 +172,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
       val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga.id), public = true, Info(userOrga.id, now))
-      val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), None, None, Markdown("Only your best talks !"), Info(userOrga.id, now))
+      val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), None, None, Markdown("Only your best talks !"), Seq(), Info(userOrga.id, now))
       val e = Event(Event.Id.generate(), group4.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), None, None, Seq(), Info(userOrga.id, now))
       val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Status.Draft, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker.id), None, None, Info(userSpeaker.id, now))
       val p = Proposal(Proposal.Id.generate(), talk7.id, cfpId, None, Proposal.Status.Pending, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Markdown("temporary description"), NonEmptyList.of(userSpeaker.id), None, None, Info(userSpeaker.id, now))

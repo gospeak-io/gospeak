@@ -78,6 +78,8 @@ object Mappings {
         s"$key.utcOffset" -> Some(value.utcOffset.toString)
       ).collect { case (k, Some(v)) => (k, v) }.toMap
   })
+  private val tag: Mapping[Tag] = WrappedMapping[String, Tag](text(1, Tag.maxSize), s => Tag(s.trim), _.value)
+  val tags: Mapping[Seq[Tag]] = seq(tag).verifying(s"Can't add more than ${Tag.maxNumber} tags", _.length <= Tag.maxNumber)
 
   val userSlug: Mapping[User.Slug] = slugMapping(User.Slug)
   val groupSlug: Mapping[Group.Slug] = slugMapping(Group.Slug)

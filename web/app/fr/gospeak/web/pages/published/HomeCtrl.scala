@@ -10,7 +10,7 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{EmailAddress, Markdown, Page}
+import fr.gospeak.libs.scalautils.domain.{EmailAddress, Markdown, Page, Tag}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.utils.UICtrl
 import org.joda.time.DateTime
@@ -73,6 +73,7 @@ class HomeCtrl(cc: ControllerComponents,
         |
         |We choose talks every week so don't wait
       """.stripMargin),
+    Seq("Scala", "UX").map(Tag(_)),
     info = Info(user.id, now))
   private val event = Event(
     id = Event.Id.generate(),

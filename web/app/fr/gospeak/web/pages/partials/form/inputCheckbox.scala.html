@@ -2,9 +2,9 @@
 
 @(field: Field, args: Seq[(String, String)] = Seq())
 <input
-    type="checkbox"
-    class="form-check-input @Utils.getArg(args, "class") @if(field.hasErrors) {is-invalid}"
-    id="@Utils.id(args, field)"
-    name="@Utils.getArg(args, "name", field.name)"
-    value="@Utils.getArg(args, "value", field.value.getOrElse("true"))"/>
-<label class="form-check-label" for="@Utils.id(args, field)">@Utils.getArg(args, "label", field.name)</label>
+    @Utils.typeAttr("checkbox")
+    @Utils.idAttr(field, args)
+    @Utils.nameAttr(field, args)
+    @Utils.valueAttr(field, args, "true")
+    @Utils.classAttr(field, args, "form-check-input")>
+<label class="form-check-label" for="@Utils.id(field, args)">@Utils.label(field, args)</label>

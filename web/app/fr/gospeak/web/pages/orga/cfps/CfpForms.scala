@@ -11,6 +11,7 @@ object CfpForms {
     "name" -> cfpName,
     "start" -> optional(localDateTime),
     "end" -> optional(localDateTime),
-    "description" -> markdown
+    "description" -> markdown,
+    "tags" -> tags
   )(Cfp.Data.apply)(Cfp.Data.unapply))
 }
