@@ -12,7 +12,8 @@ object TalkForms {
     "duration" -> duration,
     "description" -> markdown,
     "slides" -> optional(slides),
-    "video" -> optional(video)
+    "video" -> optional(video),
+    "tags" -> tags
   )(Talk.Data.apply)(Talk.Data.unapply)
   val create: Form[Talk.Data] = Form(talkMappings)
 }

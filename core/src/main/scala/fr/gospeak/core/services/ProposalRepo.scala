@@ -5,9 +5,9 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
-import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Video}
+import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Tag, Video}
 
-trait ProposalRepo extends OrgaProposalRepo with SpeakerProposalRepo with UserProposalRepo with AuthProposalRepo
+trait ProposalRepo extends OrgaProposalRepo with SpeakerProposalRepo with UserProposalRepo with AuthProposalRepo with SuggestProposalRepo
 
 trait OrgaProposalRepo {
   val fields: ProposalFields.type = ProposalFields
@@ -56,6 +56,10 @@ trait SpeakerProposalRepo {
 trait UserProposalRepo
 
 trait AuthProposalRepo
+
+trait SuggestProposalRepo {
+  def listTags(): IO[Seq[Tag]]
+}
 
 object ProposalFields {
   val title = "title"

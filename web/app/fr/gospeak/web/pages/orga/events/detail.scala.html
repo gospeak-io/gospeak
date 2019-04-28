@@ -23,6 +23,7 @@
     <p>
         @event.venue.map { v => <b>@v.format</b>, }.getOrElse{ <b class="text-danger">Missing venue</b>, }
         @Formats.datetime(event.start)
+        @tags(event.tags)
     </p>
 
     @if(event.talks.nonEmpty) {
@@ -42,6 +43,7 @@
                             @slidesIcon(talk.slides)
                             @videoIcon(talk.video)
                             @cfpOpt.map { cfp => <a href="@ProposalCtrl.detail(group.slug, cfp.slug, talk.id)">@talk.title.value</a> }.getOrElse { <span>@talk.title.value</span> }
+                            @tags(talk.tags)
                         </div>
                         <div>@talk.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }</div>
                     }.getOrElse { Unknown (@tId.value) }
@@ -75,6 +77,7 @@
                             @slidesIcon(proposal.slides)
                             @videoIcon(proposal.video)
                             <a href="@ProposalCtrl.detail(group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
+                            @tags(proposal.tags)
                             <small title="Proposal date">(since @Formats.date(proposal.info.created))</small>
                         </div>
                         <div>
@@ -95,10 +98,10 @@
                     @inputSelect(
                         attachCfp("cfp"),
                         groupCfps.map(c => c.slug.value -> (c.name.value + " - " + Formats.cfpDates(c))),
-                        Seq("emptyOption" -> "-- Attach a CFP to this event", "optional" -> "", "class" -> "mr-2"))
-                    @btnSubmit("Attach a CFP", "btn btn-primary mr-2")
-                    <span class="mr-2">or</span>
-                    <a href="@CfpCtrl.create(group.slug, Some(event.slug))" class="btn btn-success">Create a new CFP</a>
+                        Seq("placeholder" -> "-- Attach a CFP to this event", "optional" -> ""))
+                    @btnSubmit("Attach a CFP", "btn btn-primary ml-2")
+                    <span class="ml-2">or</span>
+                    <a href="@CfpCtrl.create(group.slug, Some(event.slug))" class="btn btn-success ml-2">Create a new CFP</a>
                 }
             </div>
         </div>

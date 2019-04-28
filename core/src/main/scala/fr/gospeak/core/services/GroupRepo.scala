@@ -4,9 +4,9 @@ import java.time.Instant
 
 import cats.effect.IO
 import fr.gospeak.core.domain.{Group, User}
-import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.libs.scalautils.domain.{Page, Tag}
 
-trait GroupRepo extends OrgaGroupRepo with SpeakerGroupRepo with UserGroupRepo with AuthGroupRepo with PublicGroupRepo
+trait GroupRepo extends OrgaGroupRepo with SpeakerGroupRepo with UserGroupRepo with AuthGroupRepo with PublicGroupRepo with SuggestGroupRepo
 
 trait OrgaGroupRepo {
   def find(user: User.Id, slug: Group.Slug): IO[Option[Group]]
@@ -28,4 +28,8 @@ trait PublicGroupRepo {
   def listPublic(params: Page.Params): IO[Page[Group]]
 
   def findPublic(group: Group.Slug): IO[Option[Group]]
+}
+
+trait SuggestGroupRepo {
+  def listTags(): IO[Seq[Tag]]
 }

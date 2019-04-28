@@ -54,6 +54,7 @@ CREATE TABLE talks
     speakers    VARCHAR(184)  NOT NULL, -- 5 speakers max
     slides      VARCHAR(1024),
     video       VARCHAR(1024),
+    tags        VARCHAR(100)  NOT NULL, -- 5 tags max
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,
@@ -68,6 +69,7 @@ CREATE TABLE groups
     description VARCHAR(2048) NOT NULL,
     owners      VARCHAR(369)  NOT NULL, -- 10 owners max
     public      BOOLEAN       NOT NULL,
+    tags        VARCHAR(100)  NOT NULL, -- 5 tags max
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,
@@ -101,6 +103,7 @@ CREATE TABLE events
     description VARCHAR(2048),
     venue       VARCHAR(2048),
     talks       VARCHAR(258) NOT NULL, -- 7 talks max
+    tags        VARCHAR(100) NOT NULL, -- 5 tags max
     created     TIMESTAMP    NOT NULL,
     created_by  CHAR(36)     NOT NULL REFERENCES users (id),
     updated     TIMESTAMP    NOT NULL,
@@ -121,6 +124,7 @@ CREATE TABLE proposals
     speakers    VARCHAR(184)  NOT NULL, -- 5 speakers max
     slides      VARCHAR(1024),
     video       VARCHAR(1024),
+    tags        VARCHAR(100)  NOT NULL, -- 5 tags max
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,

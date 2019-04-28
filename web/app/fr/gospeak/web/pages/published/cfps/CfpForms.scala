@@ -14,7 +14,7 @@ object CfpForms {
 
     def toTalkData: Talk.Data = talk
 
-    def toProposalData: Proposal.Data = Proposal.Data(talk.title, talk.duration, talk.description, talk.slides, talk.video)
+    def toProposalData: Proposal.Data = Proposal.Data(talk)
   }
 
   final case class Create(talk: Talk.Data) extends TalkAndProposalData

@@ -60,6 +60,7 @@ class HomeCtrl(cc: ControllerComponents,
       """.stripMargin),
     owners = NonEmptyList.of(user.id),
     public = true,
+    tags = Seq("tag").map(Tag(_)),
     info = Info(user.id, now))
   private val cfp = Cfp(
     id = Cfp.Id.generate(),
@@ -85,6 +86,7 @@ class HomeCtrl(cc: ControllerComponents,
     description = None,
     venue = None,
     talks = Seq(),
+    tags = Seq("tag").map(Tag(_)),
     info = Info(user.id, now))
   private val talk = Talk(
     id = Talk.Id.generate(),
@@ -100,6 +102,7 @@ class HomeCtrl(cc: ControllerComponents,
     speakers = NonEmptyList.of(user.id),
     slides = None,
     video = None,
+    tags = Seq("tag").map(Tag(_)),
     info = Info(user.id, now))
   private val proposal = Proposal(
     id = Proposal.Id.generate(),
@@ -113,6 +116,7 @@ class HomeCtrl(cc: ControllerComponents,
     speakers = talk.speakers,
     slides = talk.slides,
     video = talk.video,
+    tags = Seq("tag").map(Tag(_)),
     info = Info(user.id, now))
 
   def styleguide(params: Page.Params): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>

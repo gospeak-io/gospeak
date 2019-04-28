@@ -1,4 +1,5 @@
 @import fr.gospeak.core.domain.Group
+@import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 
 @(form: Form[Group.Data])(implicit messages: Messages)
@@ -10,4 +11,7 @@
 }
 @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Describe your group, you should make people want to participate")) { (field, args) =>
     @inputMarkdown(field, args)
+}
+@fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your group")) { (field, args) =>
+    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.tags().toString))
 }

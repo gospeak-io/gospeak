@@ -23,7 +23,7 @@
         </span>
     </h1>
 
-    <p>@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video)</p>
+    <p>@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video) @tags(proposal.tags)</p>
     @proposal.event.map { id => <p>Given at @events.find(_.id == id).map { e => <b>@e.name.value</b> on @Formats.date(e.start) }.getOrElse { <b>Unknown event @id.value</b> }</p> }
     <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id) }</p>
     <p>@markdown(proposal.description)</p>

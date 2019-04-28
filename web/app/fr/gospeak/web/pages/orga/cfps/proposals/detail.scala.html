@@ -36,7 +36,7 @@
     </h1>
 
     @proposal.event.map { id => <h2>Added to @event(events, id, Some(e => EventCtrl.detail(group.slug, e.slug)))</h2> }
-    <p>@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video)</p>
+    <p>@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video) @tags(proposal.tags)</p>
     <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }</p>
     <p>@markdown(proposal.description)</p>
 

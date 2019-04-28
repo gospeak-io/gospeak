@@ -11,7 +11,8 @@ object EventForms {
     "slug" -> eventSlug,
     "name" -> eventName,
     "start" -> localDateTime,
-    "venue" -> optional(gMapPlace)
+    "venue" -> optional(gMapPlace),
+    "tags" -> tags
   )(Event.Data.apply)(Event.Data.unapply))
 
   val attachCfp: Form[Cfp.Slug] = Form(single("cfp" -> cfpSlug))

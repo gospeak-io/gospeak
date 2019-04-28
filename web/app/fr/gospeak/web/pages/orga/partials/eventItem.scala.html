@@ -8,21 +8,22 @@
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 
 @(group: Group, event: Event, proposals: Seq[Proposal], speakers: Seq[User])
-<div class="list-group-item @if(event.start.isAfter(LocalDateTime.now())) {list-group-item-secondary}">
-    <h5 class="mb-1"><a href="@EventCtrl.detail(group.slug, event.slug)">@event.name.value</a></h5>
+<a class="list-group-item list-group-item-action @if(event.start.isAfter(LocalDateTime.now())) {list-group-item-secondary}" href="@EventCtrl.detail(group.slug, event.slug)">
+    <h5 class="mb-1">@event.name.value</h5>
     @Formats.date(event.start),
     @event.venue.map { v => @v.format, }.getOrElse { <b class="text-danger">Missing venue</b>, }
     @event.talks.length planned talks
+    @tags(event.tags)
     @if(event.talks.nonEmpty) {
         <ol>
         @event.talks.map { pId =>
             <li>
                 @proposals.find(_.id == pId).map { p =>
                     <span>@p.title.value</span>
-                    @p.speakers.toList.map { uId => @speakerAvatar(speakers, uId, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }
+                    @p.speakers.toList.map { uId => @speaker(speakers, uId) }
                 }.getOrElse { Unknown (@pId.value) }
             </li>
         }
         </ol>
     }
-</div>
+</a>

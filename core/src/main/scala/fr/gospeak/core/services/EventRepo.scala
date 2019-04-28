@@ -4,11 +4,11 @@ import java.time.Instant
 
 import cats.effect.IO
 import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
-import fr.gospeak.libs.scalautils.domain.{Done, Page}
+import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
 
 // TODO: take full object as parameter instead of Id/slug to guarantee it exists
 // TODO: remove list(Seq[Id]) methods as they are dangerous (right wise) and pack them with previous one (listProposalsWithSpeakers)
-trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo
+trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with SuggestEventRepo
 
 trait OrgaEventRepo {
   def create(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event]
@@ -35,3 +35,7 @@ trait SpeakerEventRepo {
 trait UserEventRepo
 
 trait AuthEventRepo
+
+trait SuggestEventRepo {
+  def listTags(): IO[Seq[Tag]]
+}

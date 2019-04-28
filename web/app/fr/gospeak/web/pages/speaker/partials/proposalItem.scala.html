@@ -18,6 +18,7 @@
             @if(proposal.duration != talk.duration) {
                 @duration(proposal.duration, Some("Proposal duration"))
             }
+            @tags(proposal.tags)
         </p>
         <small title="Proposal date">@Formats.date(proposal.info.created)</small>
     </div>

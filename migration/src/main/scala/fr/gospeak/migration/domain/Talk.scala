@@ -25,6 +25,7 @@ case class Talk(id: String, // Talk.Id
       speakers = NonEmptyList.fromListUnsafe(data.speakers.map(User.Id.from(_).get)),
       slides = data.slides.map(Slides.from(_).get),
       video = data.slides.map(Video.from(_).get),
+      tags = Seq(),
       info = meta.toInfo)).mapFailure(e => new Exception(s"toTalk error for $this", e)).get
   }
   lazy val toProposal: NewProposal = {
@@ -46,6 +47,7 @@ case class Talk(id: String, // Talk.Id
       speakers = NonEmptyList.fromListUnsafe(data.speakers.map(User.Id.from(_).get)),
       slides = data.slides.map(Slides.from(_).get),
       video = data.slides.map(Video.from(_).get),
+      tags = Seq(),
       info = meta.toInfo)).mapFailure(e => new Exception(s"toProposal error for $this", e)).get
   }
 }

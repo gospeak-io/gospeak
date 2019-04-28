@@ -16,6 +16,7 @@ final case class Event(id: Event.Id,
                        description: Option[Markdown],
                        venue: Option[GMapPlace],
                        talks: Seq[Proposal.Id],
+                       tags: Seq[Tag],
                        info: Info) {
   def data: Event.Data = Event.Data(this)
 
@@ -28,7 +29,7 @@ final case class Event(id: Event.Id,
 
 object Event {
   def apply(group: Group.Id, data: Data, info: Info): Event =
-    new Event(Id.generate(), group, data.cfp, data.slug, data.name, data.start, None, data.venue, Seq(), info)
+    new Event(Id.generate(), group, data.cfp, data.slug, data.name, data.start, None, data.venue, Seq(), data.tags, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -40,10 +41,15 @@ object Event {
 
   final case class Name(value: String) extends AnyVal
 
-  final case class Data(cfp: Option[Cfp.Id], slug: Event.Slug, name: Event.Name, start: LocalDateTime, venue: Option[GMapPlace])
+  final case class Data(cfp: Option[Cfp.Id],
+                        slug: Event.Slug,
+                        name: Event.Name,
+                        start: LocalDateTime,
+                        venue: Option[GMapPlace],
+                        tags: Seq[Tag])
 
   object Data {
-    def apply(event: Event): Data = new Data(event.cfp, event.slug, event.name, event.start, event.venue)
+    def apply(event: Event): Data = new Data(event.cfp, event.slug, event.name, event.start, event.venue, event.tags)
   }
 
 }

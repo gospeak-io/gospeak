@@ -50,24 +50,26 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
   override def find(user: User.Id, slug: Talk.Slug): IO[Option[Talk]] = run(selectOne(user, slug).option)
 
   override def exists(slug: Talk.Slug): IO[Boolean] = run(selectOne(slug).option.map(_.isDefined))
+
+  override def listTags(): IO[Seq[Tag]] = run(selectTags().to[List]).map(_.flatten.distinct)
 }
 
 object TalkRepoSql {
   private val _ = talkIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table = "talks"
-  private val fields = Seq("id", "slug", "status", "title", "duration", "description", "speakers", "slides", "video", "created", "created_by", "updated", "updated_by")
+  private val fields = Seq("id", "slug", "status", "title", "duration", "description", "speakers", "slides", "video", "tags", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-  private val searchFields = Seq("id", "slug", "title", "description")
+  private val searchFields = Seq("id", "slug", "title", "description", "tags")
   private val defaultSort = Page.OrderBy("title")
 
   private def values(e: Talk): Fragment =
-    fr0"${e.id}, ${e.slug}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.slug}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   private[sql] def insert(elt: Talk): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
   private[sql] def update(user: User.Id, slug: Talk.Slug)(data: Talk.Data, now: Instant): doobie.Update0 = {
-    val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, updated=$now, updated_by=$user"
+    val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$user"
     buildUpdate(tableFr, fields, where(user, slug)).update
   }
 
@@ -97,6 +99,9 @@ object TalkRepoSql {
     val page = paginate(params, searchFields, defaultSort, Some(where))
     (buildSelect(tableFr, fieldsFr, page.all).query[Talk], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
+
+  private[sql] def selectTags(): doobie.Query0[Seq[Tag]] =
+    Fragment.const0(s"SELECT tags FROM $table").query[Seq[Tag]]
 
   private def where(slug: Talk.Slug): Fragment =
     fr0"WHERE slug=$slug"

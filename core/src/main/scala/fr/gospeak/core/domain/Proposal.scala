@@ -17,6 +17,7 @@ final case class Proposal(id: Proposal.Id,
                           speakers: NonEmptyList[User.Id],
                           slides: Option[Slides],
                           video: Option[Video],
+                          tags: Seq[Tag],
                           info: Info) {
   def data: Proposal.Data = Proposal.Data(this)
 
@@ -31,7 +32,7 @@ object Proposal {
             status: Status,
             speakers: NonEmptyList[User.Id],
             info: Info): Proposal =
-    new Proposal(Id.generate(), talk, cfp, event, status, data.title, data.duration, data.description, speakers, data.slides, data.video, info)
+    new Proposal(Id.generate(), talk, cfp, event, status, data.title, data.duration, data.description, speakers, data.slides, data.video, data.tags, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -56,12 +57,15 @@ object Proposal {
                         duration: FiniteDuration,
                         description: Markdown,
                         slides: Option[Slides],
-                        video: Option[Video])
+                        video: Option[Video],
+                        tags: Seq[Tag])
 
   object Data {
-    def apply(talk: Talk): Data = Data(talk.title, talk.duration, talk.description, talk.slides, talk.video)
+    def apply(talk: Talk): Data = Data(talk.title, talk.duration, talk.description, talk.slides, talk.video, talk.tags)
 
-    def apply(proposal: Proposal): Data = Data(proposal.title, proposal.duration, proposal.description, proposal.slides, proposal.video)
+    def apply(talk: Talk.Data): Proposal.Data = Proposal.Data(talk.title, talk.duration, talk.description, talk.slides, talk.video, talk.tags)
+
+    def apply(proposal: Proposal): Data = Data(proposal.title, proposal.duration, proposal.description, proposal.slides, proposal.video, proposal.tags)
   }
 
 }

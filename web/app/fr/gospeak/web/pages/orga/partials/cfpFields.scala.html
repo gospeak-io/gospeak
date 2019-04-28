@@ -1,6 +1,6 @@
 @import fr.gospeak.core.domain.Cfp
-@import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
+@import fr.gospeak.web.pages.partials.form.html._
 
 @(form: Form[Cfp.Data])(implicit messages: Messages)
 @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the CFP")) { (field, args) =>
@@ -18,6 +18,6 @@
 @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Explain what is the purpose of this CFP to speakers wanting to apply")) { (field, args) =>
     @inputMarkdown(field, args)
 }
-@fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics for your CFP")) { (field, args) =>
-    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.cfpTags().toString))
+@fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your CFP")) { (field, args) =>
+    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.tags().toString))
 }

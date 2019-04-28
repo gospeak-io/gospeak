@@ -1,4 +1,5 @@
 @import fr.gospeak.core.domain.Talk
+@import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 
 @(form: Form[Talk.Data])(implicit messages: Messages)
@@ -11,7 +12,7 @@
 @fieldHorizontal(form("duration"), Seq("label" -> "Duration", "help" -> "Duration of your talk")) { (field, args) =>
     @inputDuration(field, args)
 }
-@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Give a abstract of your talk, you should make orga and people listen at you")) { (field, args) =>
+@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Give a abstract for your talk, you should make orga and people listen at you")) { (field, args) =>
     @inputMarkdown(field, args)
 }
 @fieldHorizontal(form("slides"), Seq("label" -> "Slides", "help" -> "Slides for your talk")) { (field, args) =>
@@ -19,4 +20,7 @@
 }
 @fieldHorizontal(form("video"), Seq("label" -> "Video", "help" -> "Video of your talk")) { (field, args) =>
     @inputEmbed(field, args)
+}
+@fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your talk")) { (field, args) =>
+    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.tags().toString))
 }

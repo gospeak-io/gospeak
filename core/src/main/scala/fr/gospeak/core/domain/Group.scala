@@ -10,13 +10,14 @@ final case class Group(id: Group.Id,
                        description: Markdown,
                        owners: NonEmptyList[User.Id],
                        public: Boolean,
+                       tags: Seq[Tag],
                        info: Info) {
   def data: Group.Data = Group.Data(this)
 }
 
 object Group {
   def apply(data: Data, owners: NonEmptyList[User.Id], info: Info): Group =
-    new Group(Id.generate(), data.slug, data.name, data.description, owners, true, info) // FIXME
+    new Group(Id.generate(), data.slug, data.name, data.description, owners, true, data.tags, info) // FIXME add public in form
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -28,10 +29,13 @@ object Group {
 
   final case class Name(value: String) extends AnyVal
 
-  final case class Data(slug: Group.Slug, name: Group.Name, description: Markdown)
+  final case class Data(slug: Group.Slug,
+                        name: Group.Name,
+                        description: Markdown,
+                        tags: Seq[Tag])
 
   object Data {
-    def apply(group: Group): Data = new Data(group.slug, group.name, group.description)
+    def apply(group: Group): Data = new Data(group.slug, group.name, group.description, group.tags)
   }
 
 }

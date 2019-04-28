@@ -9,6 +9,7 @@ object GroupForms {
   val create: Form[Group.Data] = Form(mapping(
     "slug" -> groupSlug,
     "name" -> groupName,
-    "description" -> markdown
+    "description" -> markdown,
+    "tags" -> tags
   )(Group.Data.apply)(Group.Data.unapply))
 }

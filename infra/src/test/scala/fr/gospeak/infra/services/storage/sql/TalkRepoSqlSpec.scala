@@ -5,7 +5,7 @@ import fr.gospeak.infra.services.storage.sql.TalkRepoSql._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class TalkRepoSqlSpec extends RepoSpec {
-  private val fields = "id, slug, status, title, duration, description, speakers, slides, video, created, created_by, updated, updated_by"
+  private val fields = "id, slug, status, title, duration, description, speakers, slides, video, tags, created, created_by, updated, updated_by"
 
   describe("TalkRepoSql") {
     it("should create and retrieve") {
@@ -53,12 +53,12 @@ class TalkRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = insert(talk)
-        q.sql shouldBe s"INSERT INTO talks ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO talks ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update") {
         val q = update(user.id, talk.slug)(talkData1, now)
-        q.sql shouldBe "UPDATE talks SET slug=?, title=?, duration=?, description=?, slides=?, video=?, updated=?, updated_by=? WHERE speakers LIKE ? AND slug=?"
+        q.sql shouldBe "UPDATE talks SET slug=?, title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE speakers LIKE ? AND slug=?"
         check(q)
       }
       it("should build updateStatus") {

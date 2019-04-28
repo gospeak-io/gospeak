@@ -6,7 +6,7 @@ import fr.gospeak.infra.services.storage.sql.ProposalRepoSql._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class ProposalRepoSqlSpec extends RepoSpec {
-  private val fields = "id, talk_id, cfp_id, event_id, status, title, duration, description, speakers, slides, video, created, created_by, updated, updated_by"
+  private val fields = "id, talk_id, cfp_id, event_id, status, title, duration, description, speakers, slides, video, tags, created, created_by, updated, updated_by"
 
   private def fieldsPrefixedBy(prefix: String): String =
     fields.split(", ").map(prefix + _).mkString(", ")
@@ -40,17 +40,17 @@ class ProposalRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = insert(proposal)
-        q.sql shouldBe s"INSERT INTO proposals ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO proposals ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update for orga") {
         val q = update(user.id, group.slug, cfp.slug, proposal.id)(proposal.data, now)
-        q.sql shouldBe "UPDATE proposals SET title=?, duration=?, description=?, slides=?, video=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN groups g ON c.group_id=g.id WHERE p.id=? AND c.slug=? AND g.slug=? AND g.owners LIKE ?)"
+        q.sql shouldBe "UPDATE proposals SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN groups g ON c.group_id=g.id WHERE p.id=? AND c.slug=? AND g.slug=? AND g.owners LIKE ?)"
         check(q)
       }
       it("should build update for speaker") {
         val q = update(user.id, talk.slug, cfp.slug)(proposal.data, now)
-        q.sql shouldBe "UPDATE proposals SET title=?, duration=?, description=?, slides=?, video=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND t.speakers LIKE ?)"
+        q.sql shouldBe "UPDATE proposals SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND t.speakers LIKE ?)"
         check(q)
       }
       it("should build updateStatus") {

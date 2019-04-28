@@ -4,9 +4,9 @@ import java.time.Instant
 
 import cats.effect.IO
 import fr.gospeak.core.domain.{Cfp, Talk, User}
-import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Video}
+import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Tag, Video}
 
-trait TalkRepo extends OrgaTalkRepo with SpeakerTalkRepo with UserTalkRepo with AuthTalkRepo
+trait TalkRepo extends OrgaTalkRepo with SpeakerTalkRepo with UserTalkRepo with AuthTalkRepo with SuggestTalkRepo
 
 trait OrgaTalkRepo
 
@@ -35,3 +35,7 @@ trait UserTalkRepo {
 }
 
 trait AuthTalkRepo
+
+trait SuggestTalkRepo {
+  def listTags(): IO[Seq[Tag]]
+}

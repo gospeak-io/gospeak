@@ -28,6 +28,7 @@ case class Event(id: String, // Event.Id
       description = data.description.map(Markdown),
       venue = data.location.map(_.toGMapPlace),
       talks = Seq(), // should be set later
+      tags = Seq(),
       info = meta.toInfo)).mapFailure(e => new Exception(s"toEvent error for $this", e)).get
   }
 }

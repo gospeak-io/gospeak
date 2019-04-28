@@ -11,6 +11,7 @@ object ProposalForms {
     "duration" -> duration,
     "description" -> markdown,
     "slides" -> optional(slides),
-    "video" -> optional(video)
+    "video" -> optional(video),
+    "tags" -> tags
   )(Proposal.Data.apply)(Proposal.Data.unapply))
 }

@@ -4,17 +4,18 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.speaker.partials.html.{cfpFields, container}
+@import fr.gospeak.web.pages.speaker.partials.html.{proposalFields, container}
 @import fr.gospeak.web.pages.speaker.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 
 @(form: Form[Proposal.Data], talk: Talk, cfp: Cfp)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", b)() {
     <h1 class="page-header">Propose @talk.title.value to @cfp.name.value</h1>
+    @tags(cfp.tags)
     <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
 
     @formElt(form, ProposalCtrl.doCreate(talk.slug, cfp.slug)) {
-        @cfpFields(form)
+        @proposalFields(form)
         @actionsHorizontal() {
             @btnCancel(CfpCtrl.list(talk.slug))
             @btnSubmit("Propose your talk")

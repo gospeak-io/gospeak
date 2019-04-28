@@ -4,12 +4,13 @@
 <select
     @Utils.idAttr(field, args)
     @Utils.nameAttr(field, args)
-    @Utils.classAttr(field, args, "custom-select")
+    @Utils.classAttr(field, args, "custom-select select2")
+    @Utils.placeholderAttr(args)
     @Utils.requiredAttr(field, args)
     @Utils.autofocusAttr(args)
     @Utils.helpAttr(args)
     @Utils.otherAttrs(args)>
-    @Utils.getArg(args, "emptyOption").map { opt => <option value="" class="blank">@opt</option> }
+    @Utils.getArg(args, "placeholder").map { _ => <option></option> }
     @for((value, label) <- options) {
         <option value="@value" @if(Utils.value(field, args) == value){selected="selected"}>@label</option>
     }

@@ -57,14 +57,20 @@ function slugify(str) {
 // https://select2.org/ & https://github.com/select2/select2-bootstrap-theme
 (function () {
     var defaultOpts = {
-        theme: 'bootstrap'
+        theme: 'bootstrap',
+        allowClear: true
     };
     $('select.select2').each(function () {
-        $(this).select2(Object.assign({}, defaultOpts));
+        var $select = $(this);
+        var opts = {
+            placeholder: $select.attr('placeholder')
+        };
+        $select.select2(Object.assign({}, defaultOpts, opts));
     });
     $('select.tags').each(function () {
         var $select = $(this);
         var opts = {
+            placeholder: $select.attr('placeholder'),
             tags: true
         };
         $select.select2(Object.assign({}, defaultOpts, opts));
