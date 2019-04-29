@@ -5,6 +5,7 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
+@import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.pages.orga.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
@@ -27,6 +28,7 @@
                     @navbarLink(CfpCtrl.list(group.slug), "CFPs")
                     @navbarLink(ProposalCtrl.list(group.slug), "Proposals")
                     @navbarLink(SpeakerCtrl.list(group.slug), "Speakers")
+                    @navbarLink(PartnerCtrl.list(group.slug), "Partners")
                     @navbarLink(SettingsCtrl.list(group.slug), "Settings")
                 </div>
             </div>

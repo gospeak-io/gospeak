@@ -1,0 +1,9 @@
+@import fr.gospeak.core.domain.{Group, Proposal, Partner, Event}
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
+
+@(group: Group, partner: Partner)
+<a class="list-group-item list-group-item-action" href="@PartnerCtrl.detail(group.slug, partner.slug)">
+    <h5 class="mb-1">@partner.name.value</h5>
+</a>

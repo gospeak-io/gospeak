@@ -131,3 +131,80 @@ CREATE TABLE proposals
     updated_by  CHAR(36)      NOT NULL REFERENCES users (id),
     UNIQUE (talk_id, cfp_id)
 );
+
+CREATE TABLE partners
+(
+    id              CHAR(36)      NOT NULL PRIMARY KEY,
+    group_id        CHAR(36)      NOT NULL REFERENCES groups (id),
+    slug            VARCHAR(120)  NOT NULL,
+    name            VARCHAR(120)  NOT NULL,
+    description     VARCHAR(2048) NOT NULL,
+    logo            VARCHAR(200)  NOT NULL,
+    created         TIMESTAMP     NOT NULL,
+    created_by      CHAR(36)      NOT NULL REFERENCES users (id),
+    updated         TIMESTAMP     NOT NULL,
+    updated_by      CHAR(36)      NOT NULL REFERENCES users (id),
+    UNIQUE (group_id, slug)
+);
+
+CREATE TABLE contacts
+(
+    id         CHAR(36)     NOT NULL PRIMARY KEY,
+    partner_id CHAR(36)     NOT NULL REFERENCES partners (id),
+    first_name VARCHAR(30)  NOT NULL,
+    last_name  VARCHAR(30)  NOT NULL,
+    email      VARCHAR(100) NOT NULL,
+    role       VARCHAR(30)  NOT NULL,
+    created    TIMESTAMP    NOT NULL,
+    created_by CHAR(36)     NOT NULL REFERENCES users (id),
+    updated    TIMESTAMP    NOT NULL,
+    updated_by CHAR(36)     NOT NULL REFERENCES users (id)
+);
+
+CREATE TABLE venues
+(
+    id              CHAR(36)  NOT NULL PRIMARY KEY,
+    partner_id      CHAR(36)  NOT NULL REFERENCES partners (id),
+    address         VARCHAR(2048),
+    address_lat     DOUBLE PRECISION,
+    address_lon     DOUBLE PRECISION,
+    address_country VARCHAR(20),
+    description     VARCHAR(2048),
+    room_size       INT,
+    created         TIMESTAMP NOT NULL,
+    created_by      CHAR(36)  NOT NULL REFERENCES users (id),
+    updated         TIMESTAMP NOT NULL,
+    updated_by      CHAR(36)  NOT NULL REFERENCES users (id)
+);
+
+CREATE TABLE sponsor_packs
+(
+    id          CHAR(36)     NOT NULL PRIMARY KEY,
+    group_id    CHAR(36)     NOT NULL REFERENCES groups (id),
+    slug        VARCHAR(120) NOT NULL,
+    name        VARCHAR(120) NOT NULL,
+    description VARCHAR(2048),
+    price       REAL         NOT NULL,
+    active      BOOLEAN      NOT NULL,
+    created     TIMESTAMP    NOT NULL,
+    created_by  CHAR(36)     NOT NULL REFERENCES users (id),
+    updated     TIMESTAMP    NOT NULL,
+    updated_by  CHAR(36)     NOT NULL REFERENCES users (id)
+);
+
+CREATE TABLE sponsors
+(
+    id              CHAR(36)  NOT NULL PRIMARY KEY,
+    group_id        CHAR(36)  NOT NULL REFERENCES groups (id),
+    partner_id      CHAR(36)  NOT NULL REFERENCES partners (id),
+    sponsor_pack_id CHAR(36)  NOT NULL REFERENCES sponsor_packs (id),
+    contact_id      CHAR(36)  NOT NULL REFERENCES contacts (id),
+    start           TIMESTAMP NOT NULL,
+    "end"           TIMESTAMP,
+    paid            TIMESTAMP,
+    paid_amount     REAL,
+    created         TIMESTAMP NOT NULL,
+    created_by      CHAR(36)  NOT NULL REFERENCES users (id),
+    updated         TIMESTAMP NOT NULL,
+    updated_by      CHAR(36)  NOT NULL REFERENCES users (id)
+);

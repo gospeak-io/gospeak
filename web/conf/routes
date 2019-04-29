@@ -63,6 +63,12 @@ POST        /u/groups/:group/cfps/:cfp/proposals/:proposal/cancel-reject        
 GET         /u/groups/:group/proposals                                          fr.gospeak.web.pages.orga.proposals.ProposalCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/speakers                                           fr.gospeak.web.pages.orga.speakers.SpeakerCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/speakers/:speaker                                  fr.gospeak.web.pages.orga.speakers.SpeakerCtrl.detail(group: Group.Slug, speaker: User.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /u/groups/:group/partners                                           fr.gospeak.web.pages.orga.partners.PartnerCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /u/groups/:group/partners/create                                    fr.gospeak.web.pages.orga.partners.PartnerCtrl.create(group: Group.Slug)
+POST        /u/groups/:group/partners/create                                    fr.gospeak.web.pages.orga.partners.PartnerCtrl.doCreate(group: Group.Slug)
+GET         /u/groups/:group/partners/:partner                                  fr.gospeak.web.pages.orga.partners.PartnerCtrl.detail(group: Group.Slug, partner: Partner.Slug)
+GET         /u/groups/:group/partners/:partner/edit                             fr.gospeak.web.pages.orga.partners.PartnerCtrl.edit(group: Group.Slug, partner: Partner.Slug)
+POST        /u/groups/:group/partners/:partner/edit                             fr.gospeak.web.pages.orga.partners.PartnerCtrl.doEdit(group: Group.Slug, partner: Partner.Slug)
 GET         /u/groups/:group/settings                                           fr.gospeak.web.pages.orga.settings.SettingsCtrl.list(group: Group.Slug)
 
 GET         /u/profile                                                          fr.gospeak.web.pages.speaker.SpeakerCtrl.profile

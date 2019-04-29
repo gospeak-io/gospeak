@@ -59,4 +59,12 @@ object PathBindables {
     override def unbind(key: String, slug: User.Slug): String =
       slug.value
   }
+
+  implicit def partnerSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Partner.Slug] = new PathBindable[Partner.Slug] {
+    override def bind(key: String, value: String): Either[String, Partner.Slug] =
+      stringBinder.bind(key, value).flatMap(Partner.Slug.from(_).left.map(_.getMessage))
+
+    override def unbind(key: String, slug: Partner.Slug): String =
+      slug.value
+  }
 }

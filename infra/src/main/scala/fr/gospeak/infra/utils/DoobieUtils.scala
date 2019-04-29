@@ -131,6 +131,9 @@ object DoobieUtils {
     implicit val cfpNameMeta: Meta[Cfp.Name] = Meta[String].timap(Cfp.Name)(_.value)
     implicit val proposalIdMeta: Meta[Proposal.Id] = Meta[String].timap(Proposal.Id.from(_).right.get)(_.value)
     implicit val proposalStatusMeta: Meta[Proposal.Status] = Meta[String].timap(Proposal.Status.from(_).right.get)(_.toString)
+    implicit val partnerIdMeta: Meta[Partner.Id] = Meta[String].timap(Partner.Id.from(_).right.get)(_.value)
+    implicit val partnerSlugMeta: Meta[Partner.Slug] = Meta[String].timap(Partner.Slug.from(_).right.get)(_.value)
+    implicit val partnerNameMeta: Meta[Partner.Name] = Meta[String].timap(Partner.Name)(_.value)
     implicit val userIdNelMeta: Meta[NonEmptyList[User.Id]] = Meta[String].timap(
       s => NonEmptyList.fromListUnsafe(s.split(",").filter(_.nonEmpty).map(User.Id.from(_).right.get).toList))(
       _.map(_.value).toList.mkString(","))

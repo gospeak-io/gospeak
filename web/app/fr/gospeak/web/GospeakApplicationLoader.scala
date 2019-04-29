@@ -59,6 +59,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val cfpRepo: CfpRepo = db.cfp
   lazy val talkRepo: TalkRepo = db.talk
   lazy val proposalRepo: ProposalRepo = db.proposal
+  lazy val partnerRepo: PartnerRepo = db.partner
   lazy val authRepo: AuthRepo = wire[AuthRepo]
   lazy val gravatarSrv: GravatarSrv = wire[GravatarSrv]
   lazy val emailSrv: EmailSrv = EmailSrv.from(conf.emailService)
@@ -124,6 +125,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val userGroupCfpProposalCtrl = wire[orga.cfps.proposals.ProposalCtrl]
   lazy val userGroupProposalCtrl = wire[orga.proposals.ProposalCtrl]
   lazy val userGroupSpeakerCtrl = wire[orga.speakers.SpeakerCtrl]
+  lazy val userGroupPartnerCtrl = wire[orga.partners.PartnerCtrl]
   lazy val userGroupSettingsCtrl = wire[orga.settings.SettingsCtrl]
   lazy val userSpeakerCtrl = wire[speaker.SpeakerCtrl]
   lazy val userTalkCtrl = wire[TalkCtrl]

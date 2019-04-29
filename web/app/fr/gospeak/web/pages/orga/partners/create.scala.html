@@ -1,0 +1,20 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Partner, Event, Group}
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import fr.gospeak.web.pages.orga.partials.html.{partnerFields, container}
+@import fr.gospeak.web.pages.partials.form.html._
+
+@(group: Group, form: Form[Partner.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", group, b)() {
+    <h1 class="page-header">Create a partner</h1>
+
+    @formElt(form, PartnerCtrl.doCreate(group.slug)) {
+        @partnerFields(form)
+        @actionsHorizontal() {
+            @btnCancel(PartnerCtrl.list(group.slug))
+            @btnSubmit("Create")
+        }
+    }
+}()
