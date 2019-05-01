@@ -1,0 +1,14 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Group, Partner, Venue}
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.orga.partials.html.container
+@import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
+
+@(group: Group, partner: Partner, venue: Venue)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container(venue.address.format + " - Gospeak", group, b)() {
+    <h1 class="d-flex justify-content-between align-items-center">
+        <span>@venue.address.format (@partner.name.value)</span>
+        <a class="btn btn-outline-secondary" href="@VenueCtrl.edit(group.slug, venue.id)" title="edit"><i class="fas fa-edit"></i></a>
+    </h1>
+}()

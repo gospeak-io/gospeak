@@ -62,32 +62,36 @@ function slugify(str) {
     };
     $('select.select2').each(function () {
         var $select = $(this);
-        var opts = {
+        $select.select2(Object.assign({}, defaultOpts, {
             placeholder: $select.attr('placeholder')
-        };
-        $select.select2(Object.assign({}, defaultOpts, opts));
+        }));
+        addRemoteOptions($select);
     });
     $('select.tags').each(function () {
         var $select = $(this);
-        var opts = {
+        $select.select2(Object.assign({}, defaultOpts, {
             placeholder: $select.attr('placeholder'),
             tags: true
-        };
-        $select.select2(Object.assign({}, defaultOpts, opts));
+        }));
+        addRemoteOptions($select);
+    });
 
+    function addRemoteOptions($select) {
         var remote = $select.attr('remote');
         if (remote) {
             $.getJSON(remote, function (res) {
-                var values = $select.val();
+                var values = ($select.attr('value') || '').split(',').filter(function (v) {
+                    return v.length > 0;
+                });
                 res.map(function (item) {
-                    if (values.indexOf(item.id) === -1) { // do not add item if it already exists
-                        $select.append(new Option(item.text, item.id, false, false));
+                    if ($select.find('option[value="' + item.id + '"]').length === 0) { // do not add item if it already exists
+                        $select.append(new Option(item.text, item.id, false, values.indexOf(item.id) > -1));
                     }
                 });
                 $select.trigger('change');
             });
         }
-    });
+    }
 })();
 
 // http://www.malot.fr/bootstrap-datetimepicker/
@@ -322,7 +326,7 @@ var GMapPlacePicker = (function () {
 
     return {
         init: function () {
-            $('.input-gmapplace').each(function () {
+            $('.gmapplace-input').each(function () {
                 var $elt = $(this);
                 var $input = $elt.find('input[type="text"]');
                 var $map = $elt.find('.map');

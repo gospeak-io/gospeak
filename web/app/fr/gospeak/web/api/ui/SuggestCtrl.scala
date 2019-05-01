@@ -1,6 +1,10 @@
 package fr.gospeak.web.api.ui
 
+import cats.data.OptionT
+import com.mohiva.play.silhouette.api.Silhouette
+import fr.gospeak.core.domain.Group
 import fr.gospeak.core.services._
+import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -12,11 +16,15 @@ object SuggestedItem {
 }
 
 class SuggestCtrl(cc: ControllerComponents,
+                  silhouette: Silhouette[CookieEnv],
                   groupRepo: SuggestGroupRepo,
                   cfpRepo: SuggestCfpRepo,
                   eventRepo: SuggestEventRepo,
                   talkRepo: SuggestTalkRepo,
-                  proposalRepo: SuggestProposalRepo) extends ApiCtrl(cc) {
+                  proposalRepo: SuggestProposalRepo,
+                  partnerRepo: SuggestPartnerRepo) extends ApiCtrl(cc) {
+
+  import silhouette._
 
   def tags(): Action[AnyContent] = Action.async { implicit req =>
     (for {
@@ -25,9 +33,16 @@ class SuggestCtrl(cc: ControllerComponents,
       eTags <- eventRepo.listTags()
       tTags <- talkRepo.listTags()
       pTags <- proposalRepo.listTags()
-    } yield (gTags ++ cTags ++ eTags ++ tTags ++ pTags).distinct.sortBy(_.value)).map { tags =>
-      Ok(Json.toJson(tags.map(tag => SuggestedItem(tag.value, tag.value))))
-    }.unsafeToFuture()
+      suggestItems = (gTags ++ cTags ++ eTags ++ tTags ++ pTags).distinct.map(tag => SuggestedItem(tag.value, tag.value))
+    } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))).unsafeToFuture()
+  }
+
+  def partners(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      partners <- OptionT.liftF(partnerRepo.list(groupElt.id))
+      suggestItems = partners.map(p => SuggestedItem(p.id.value, p.name.value))
+    } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
   }
 
 }

@@ -69,6 +69,12 @@ POST        /u/groups/:group/partners/create                                    
 GET         /u/groups/:group/partners/:partner                                  fr.gospeak.web.pages.orga.partners.PartnerCtrl.detail(group: Group.Slug, partner: Partner.Slug)
 GET         /u/groups/:group/partners/:partner/edit                             fr.gospeak.web.pages.orga.partners.PartnerCtrl.edit(group: Group.Slug, partner: Partner.Slug)
 POST        /u/groups/:group/partners/:partner/edit                             fr.gospeak.web.pages.orga.partners.PartnerCtrl.doEdit(group: Group.Slug, partner: Partner.Slug)
+GET         /u/groups/:group/venues                                             fr.gospeak.web.pages.orga.venues.VenueCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /u/groups/:group/venues/create                                      fr.gospeak.web.pages.orga.venues.VenueCtrl.create(group: Group.Slug)
+POST        /u/groups/:group/venues/create                                      fr.gospeak.web.pages.orga.venues.VenueCtrl.doCreate(group: Group.Slug)
+GET         /u/groups/:group/venues/:venue                                      fr.gospeak.web.pages.orga.venues.VenueCtrl.detail(group: Group.Slug, venue: Venue.Id)
+GET         /u/groups/:group/venues/:venue/edit                                 fr.gospeak.web.pages.orga.venues.VenueCtrl.edit(group: Group.Slug, venue: Venue.Id)
+POST        /u/groups/:group/venues/:venue/edit                                 fr.gospeak.web.pages.orga.venues.VenueCtrl.doEdit(group: Group.Slug, venue: Venue.Id)
 GET         /u/groups/:group/settings                                           fr.gospeak.web.pages.orga.settings.SettingsCtrl.list(group: Group.Slug)
 
 GET         /u/profile                                                          fr.gospeak.web.pages.speaker.SpeakerCtrl.profile
@@ -98,5 +104,6 @@ GET         /status                                                             
 POST        /ui/utils/markdown-to-html                                          fr.gospeak.web.api.ui.UtilsCtrl.markdownToHtml
 GET         /ui/utils/embed                                                     fr.gospeak.web.api.ui.UtilsCtrl.embed(url: Url)
 GET         /ui/suggest/tags                                                    fr.gospeak.web.api.ui.SuggestCtrl.tags
+GET         /ui/suggest/partners/:group                                         fr.gospeak.web.api.ui.SuggestCtrl.partners(group: Group.Slug)
 
 GET         /assets/*file                                                       controllers.Assets.versioned(path="/public", file: Asset)

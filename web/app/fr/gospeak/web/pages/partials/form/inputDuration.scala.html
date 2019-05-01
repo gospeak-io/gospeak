@@ -3,18 +3,7 @@
 @(field: Field, args: Seq[(String, String)] = Seq())
 <div class="form-row align-items-center @if(field.hasErrors) {is-invalid}">
     <div class="col-2">
-        <input
-            @Utils.typeAttr("number")
-            @Utils.idAttr(field, args)
-            @Utils.nameAttr(field, args)
-            @Utils.valueAttr(field, args)
-            @Utils.classAttr(field, args, "form-control")
-            @Utils.placeholderAttr(args)
-            @Utils.requiredAttr(field, args)
-            @Utils.patternAttr(field)
-            @Utils.autofocusAttr(args)
-            @Utils.helpAttr(args)
-            @Utils.otherAttrs(args)>
+        @inputText(field, Seq("type" -> "number") ++ args)
     </div>
     <div class="col">
         Duration in minutes

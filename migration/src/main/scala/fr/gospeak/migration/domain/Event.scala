@@ -25,7 +25,7 @@ case class Event(id: String, // Event.Id
       slug = NewEvent.Slug.from(formatter.format(date)).get,
       name = NewEvent.Name(data.title),
       start = date,
-      description = data.description.map(Markdown),
+      description = data.description.map(Markdown).getOrElse(Markdown("")),
       venue = data.location.map(_.toGMapPlace),
       talks = Seq(), // should be set later
       tags = Seq(),

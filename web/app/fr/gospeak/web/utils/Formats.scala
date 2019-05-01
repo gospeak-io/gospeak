@@ -78,6 +78,12 @@ object Formats {
     case (None, None) => "always open"
   }
 
+  def mkHtml(list: Seq[Html], sep: Html): Html = list match {
+    case Seq() => Html("")
+    case Seq(head) => head
+    case Seq(head, tail@_*) => Html(tail.foldLeft(new StringBuilder(head.body.trim))((b, html) => b.append(sep.body + html.body.trim)).toString())
+  }
+
   def paginated[A](page: Page[A],
                    link: Page.Params => Call,
                    item: A => Html): Html = {

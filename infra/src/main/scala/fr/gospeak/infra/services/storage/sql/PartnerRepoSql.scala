@@ -19,26 +19,28 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
   override def create(group: Group.Id, data: Partner.Data, by: User.Id, now: Instant): IO[Partner] =
     run(insert, Partner(group, data, Info(by, now)))
 
-  override def edit(group: Group.Id, cfp: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): IO[Done] = {
-    if (data.slug != cfp) {
+  override def edit(group: Group.Id, slug: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): IO[Done] = {
+    if (data.slug != slug) {
       find(group, data.slug).flatMap {
-        case None => run(update(group, cfp)(data, by, now))
-        case _ => IO.raiseError(CustomException(s"You already have a cfp with slug ${data.slug}"))
+        case None => run(update(group, slug)(data, by, now))
+        case _ => IO.raiseError(CustomException(s"You already have a partner with slug ${data.slug}"))
       }
     } else {
-      run(update(group, cfp)(data, by, now))
+      run(update(group, slug)(data, by, now))
     }
   }
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[Partner]] = run(Queries.selectPage(selectPage(group, _), params))
 
-  override def find(group: Group.Id, slug: Partner.Slug): IO[Option[Partner]] = run(selectOne(slug).option)
+  override def list(group: Group.Id): IO[Seq[Partner]] = run(selectAll(group).to[List])
+
+  override def find(group: Group.Id, slug: Partner.Slug): IO[Option[Partner]] = run(selectOne(group, slug).option)
 }
 
 object PartnerRepoSql {
   private val _ = partnerIdMeta // for intellij not remove DoobieUtils.Mappings import
-  private val table = "partners"
-  private val fields = Seq("id", "group_id", "slug", "name", "description", "logo", "created", "created_by", "updated", "updated_by")
+  private[sql] val table = "partners"
+  private[sql] val fields = Seq("id", "group_id", "slug", "name", "description", "logo", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "slug", "name", "description")
@@ -59,8 +61,11 @@ object PartnerRepoSql {
     (buildSelect(tableFr, fieldsFr, page.all).query[Partner], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 
-  private[sql] def selectOne(slug: Partner.Slug): doobie.Query0[Partner] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE slug=$slug").query[Partner]
+  private[sql] def selectAll(group: Group.Id): doobie.Query0[Partner] =
+    buildSelect(tableFr, fieldsFr, fr"WHERE group_id=$group").query[Partner]
+
+  private[sql] def selectOne(group: Group.Id, slug: Partner.Slug): doobie.Query0[Partner] =
+    buildSelect(tableFr, fieldsFr, where(group, slug)).query[Partner]
 
   private def where(group: Group.Id, slug: Partner.Slug): Fragment =
     fr0"WHERE group_id=$group AND slug=$slug"

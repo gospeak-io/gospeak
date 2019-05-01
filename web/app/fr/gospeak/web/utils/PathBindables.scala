@@ -67,4 +67,12 @@ object PathBindables {
     override def unbind(key: String, slug: Partner.Slug): String =
       slug.value
   }
+
+  implicit def venueIdPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Venue.Id] = new PathBindable[Venue.Id] {
+    override def bind(key: String, value: String): Either[String, Venue.Id] =
+      stringBinder.bind(key, value).flatMap(Venue.Id.from(_).left.map(_.getMessage))
+
+    override def unbind(key: String, id: Venue.Id): String =
+      id.value
+  }
 }

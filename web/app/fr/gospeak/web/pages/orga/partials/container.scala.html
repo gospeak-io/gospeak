@@ -10,6 +10,7 @@
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.partials.container.html._
 @import fr.gospeak.web.pages.partials.form.html.formBtn
 
@@ -29,6 +30,7 @@
                     @navbarLink(ProposalCtrl.list(group.slug), "Proposals")
                     @navbarLink(SpeakerCtrl.list(group.slug), "Speakers")
                     @navbarLink(PartnerCtrl.list(group.slug), "Partners")
+                    @navbarLink(VenueCtrl.list(group.slug), "Venues")
                     @navbarLink(SettingsCtrl.list(group.slug), "Settings")
                 </div>
             </div>

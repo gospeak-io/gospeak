@@ -1,0 +1,20 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Group, Venue}
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.orga.partials.html.{container, venueFields}
+@import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
+@import fr.gospeak.web.pages.partials.form.html._
+
+@(group: Group, form: Form[Venue.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", group, b)() {
+    <h1 class="page-header">Create a venue</h1>
+
+    @formElt(form, VenueCtrl.doCreate(group.slug)) {
+        @venueFields(form, group, None)
+        @actionsHorizontal() {
+            @btnCancel(VenueCtrl.list(group.slug))
+            @btnSubmit("Create")
+        }
+    }
+}()

@@ -1,0 +1,7 @@
+@import fr.gospeak.core.domain.{Group, Partner, Venue}
+@import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
+
+@(group: Group, partner: Partner, venue: Venue)
+<a class="list-group-item list-group-item-action" href="@VenueCtrl.detail(group.slug, venue.id)">
+    <h5 class="mb-1">@venue.address.format (@partner.name.value)</h5>
+</a>

@@ -31,5 +31,7 @@ trait PublicGroupRepo {
 }
 
 trait SuggestGroupRepo {
+  def find(user: User.Id, slug: Group.Slug): IO[Option[Group]]
+
   def listTags(): IO[Seq[Tag]]
 }

@@ -1,0 +1,21 @@
+@import fr.gospeak.core.domain.{Group, Partner, Venue}
+@import fr.gospeak.web.api.ui.routes.SuggestCtrl
+@import fr.gospeak.web.pages.partials.form.html._
+
+@(form: Form[Venue.Data], group: Group, partner: Option[Partner])(implicit messages: Messages)
+@partner.map { p =>
+    @inputHidden(form("partner"), Seq("value" -> p.id.value))
+}.getOrElse {
+    @fieldHorizontal(form("partner"), Seq("label" -> "Partner")) { (field, args) =>
+        @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.partners(group.slug).toString) ++ args)
+    }
+}
+@fieldHorizontal(form("address"), Seq("label" -> "Address", "help" -> "Address of the venue")) { (field, args) =>
+    @inputGMapPlace(field, args)
+}
+@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Some details about this partner")) { (field, args) =>
+    @inputMarkdown(field, args)
+}
+@fieldHorizontal(form("roomSize"), Seq("label" -> "Room size")) { (field, args) =>
+    @inputNumber(field, args)
+}

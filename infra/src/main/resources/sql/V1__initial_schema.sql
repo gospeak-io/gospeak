@@ -94,20 +94,20 @@ CREATE TABLE cfps
 
 CREATE TABLE events
 (
-    id          CHAR(36)     NOT NULL PRIMARY KEY,
-    group_id    CHAR(36)     NOT NULL REFERENCES groups (id),
+    id          CHAR(36)      NOT NULL PRIMARY KEY,
+    group_id    CHAR(36)      NOT NULL REFERENCES groups (id),
     cfp_id      CHAR(36) REFERENCES cfps (id),
-    slug        VARCHAR(120) NOT NULL,
-    name        VARCHAR(120) NOT NULL,
-    start       TIMESTAMP    NOT NULL,
-    description VARCHAR(2048),
+    slug        VARCHAR(120)  NOT NULL,
+    name        VARCHAR(120)  NOT NULL,
+    start       TIMESTAMP     NOT NULL,
+    description VARCHAR(2048) NOT NULL,
     venue       VARCHAR(2048),
-    talks       VARCHAR(258) NOT NULL, -- 7 talks max
-    tags        VARCHAR(100) NOT NULL, -- 5 tags max
-    created     TIMESTAMP    NOT NULL,
-    created_by  CHAR(36)     NOT NULL REFERENCES users (id),
-    updated     TIMESTAMP    NOT NULL,
-    updated_by  CHAR(36)     NOT NULL REFERENCES users (id),
+    talks       VARCHAR(258)  NOT NULL, -- 7 talks max
+    tags        VARCHAR(100)  NOT NULL, -- 5 tags max
+    created     TIMESTAMP     NOT NULL,
+    created_by  CHAR(36)      NOT NULL REFERENCES users (id),
+    updated     TIMESTAMP     NOT NULL,
+    updated_by  CHAR(36)      NOT NULL REFERENCES users (id),
     UNIQUE (group_id, slug)
 );
 
@@ -134,16 +134,16 @@ CREATE TABLE proposals
 
 CREATE TABLE partners
 (
-    id              CHAR(36)      NOT NULL PRIMARY KEY,
-    group_id        CHAR(36)      NOT NULL REFERENCES groups (id),
-    slug            VARCHAR(120)  NOT NULL,
-    name            VARCHAR(120)  NOT NULL,
-    description     VARCHAR(2048) NOT NULL,
-    logo            VARCHAR(200)  NOT NULL,
-    created         TIMESTAMP     NOT NULL,
-    created_by      CHAR(36)      NOT NULL REFERENCES users (id),
-    updated         TIMESTAMP     NOT NULL,
-    updated_by      CHAR(36)      NOT NULL REFERENCES users (id),
+    id          CHAR(36)      NOT NULL PRIMARY KEY,
+    group_id    CHAR(36)      NOT NULL REFERENCES groups (id),
+    slug        VARCHAR(120)  NOT NULL,
+    name        VARCHAR(120)  NOT NULL,
+    description VARCHAR(2048) NOT NULL,
+    logo        VARCHAR(200)  NOT NULL,
+    created     TIMESTAMP     NOT NULL,
+    created_by  CHAR(36)      NOT NULL REFERENCES users (id),
+    updated     TIMESTAMP     NOT NULL,
+    updated_by  CHAR(36)      NOT NULL REFERENCES users (id),
     UNIQUE (group_id, slug)
 );
 
@@ -163,33 +163,33 @@ CREATE TABLE contacts
 
 CREATE TABLE venues
 (
-    id              CHAR(36)  NOT NULL PRIMARY KEY,
-    partner_id      CHAR(36)  NOT NULL REFERENCES partners (id),
-    address         VARCHAR(2048),
-    address_lat     DOUBLE PRECISION,
-    address_lon     DOUBLE PRECISION,
-    address_country VARCHAR(20),
-    description     VARCHAR(2048),
+    id              CHAR(36)         NOT NULL PRIMARY KEY,
+    partner_id      CHAR(36)         NOT NULL REFERENCES partners (id),
+    address         VARCHAR(2048)    NOT NULL,
+    address_lat     DOUBLE PRECISION NOT NULL,
+    address_lng     DOUBLE PRECISION NOT NULL,
+    address_country VARCHAR(20)      NOT NULL,
+    description     VARCHAR(2048)    NOT NULL,
     room_size       INT,
-    created         TIMESTAMP NOT NULL,
-    created_by      CHAR(36)  NOT NULL REFERENCES users (id),
-    updated         TIMESTAMP NOT NULL,
-    updated_by      CHAR(36)  NOT NULL REFERENCES users (id)
+    created         TIMESTAMP        NOT NULL,
+    created_by      CHAR(36)         NOT NULL REFERENCES users (id),
+    updated         TIMESTAMP        NOT NULL,
+    updated_by      CHAR(36)         NOT NULL REFERENCES users (id)
 );
 
 CREATE TABLE sponsor_packs
 (
-    id          CHAR(36)     NOT NULL PRIMARY KEY,
-    group_id    CHAR(36)     NOT NULL REFERENCES groups (id),
-    slug        VARCHAR(120) NOT NULL,
-    name        VARCHAR(120) NOT NULL,
-    description VARCHAR(2048),
-    price       REAL         NOT NULL,
-    active      BOOLEAN      NOT NULL,
-    created     TIMESTAMP    NOT NULL,
-    created_by  CHAR(36)     NOT NULL REFERENCES users (id),
-    updated     TIMESTAMP    NOT NULL,
-    updated_by  CHAR(36)     NOT NULL REFERENCES users (id)
+    id          CHAR(36)      NOT NULL PRIMARY KEY,
+    group_id    CHAR(36)      NOT NULL REFERENCES groups (id),
+    slug        VARCHAR(120)  NOT NULL,
+    name        VARCHAR(120)  NOT NULL,
+    description VARCHAR(2048) NOT NULL,
+    price       REAL          NOT NULL,
+    active      BOOLEAN       NOT NULL,
+    created     TIMESTAMP     NOT NULL,
+    created_by  CHAR(36)      NOT NULL REFERENCES users (id),
+    updated     TIMESTAMP     NOT NULL,
+    updated_by  CHAR(36)      NOT NULL REFERENCES users (id)
 );
 
 CREATE TABLE sponsors

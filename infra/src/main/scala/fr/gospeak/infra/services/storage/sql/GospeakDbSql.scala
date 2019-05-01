@@ -14,6 +14,7 @@ import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.infra.utils.{DoobieUtils, FlywayUtils}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
+import fr.gospeak.libs.scalautils.utils.StringUtils
 import fr.gospeak.migration.MongoRepo
 
 import scala.concurrent.duration._
@@ -34,6 +35,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
   val talk = new TalkRepoSql(xa)
   val proposal = new ProposalRepoSql(xa)
   val partner = new PartnerRepoSql(xa)
+  val venue = new VenueRepoSql(xa)
 
   def insertHTData(mongoUri: String): IO[Done] = {
     val dbName = mongoUri.split('?').head.split('/').last
@@ -97,7 +99,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     def user(slug: String, email: String, firstName: String, lastName: String): User = {
       val emailAddr = EmailAddress.from(email).get
       val avatar = gravatarSrv.getAvatar(emailAddr)
-      User(User.Id.generate(), User.Slug.from(slug).get, firstName, lastName, emailAddr, None, avatar, public = true, now, now)
+      User(User.Id.generate(), User.Slug.from(slug).get, firstName, lastName, emailAddr, Some(now), avatar, public = true, now, now)
     }
 
     def group(slug: String, name: String, tags: Seq[String], by: User, owners: Seq[User] = Seq()): Group =
@@ -113,7 +115,10 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, status, talk.title, talk.duration, talk.description, talk.speakers, talk.slides, talk.video, talk.tags, talk.info)
 
     def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, venue: Option[GMapPlace] = None, description: Option[String] = None, tags: Seq[String] = Seq()): Event =
-      Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), description.map(Markdown), venue, Seq(), tags.map(Tag(_)), Info(by.id, now))
+      Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), description.map(Markdown).getOrElse(Markdown("")), venue, Seq(), tags.map(Tag(_)), Info(by.id, now))
+
+    def partner(g: Group, name: String, description: String, logo: Int, by: User): Partner =
+      Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(description), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").get, Info(by.id, now))
 
     val userDemo = user("demo", "demo@mail.com", "Demo", "User")
     val userSpeaker = user("speaker", "speaker@mail.com", "Speaker", "User")
@@ -169,12 +174,18 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       (cfp1, event3, Seq(proposal1), group1.owners.head),
       (cfp4, event5, Seq(proposal3), group2.owners.head))
 
+    val partner1 = partner(group1, "Zeenea", "", 1, userDemo)
+    val partner2 = partner(group1, "Criteo", "", 2, userDemo)
+    val partner3 = partner(group1, "Nexeo", "", 3, userDemo)
+    val partner4 = partner(group1, "Google", "", 4, userDemo)
+    val partners = NonEmptyList.of(partner1, partner2, partner3, partner4)
+
     val generated = (1 to 25).toList.map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
       val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga.id), public = true, Seq(), Info(userOrga.id, now))
       val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), None, None, Markdown("Only your best talks !"), Seq(), Info(userOrga.id, now))
-      val e = Event(Event.Id.generate(), group4.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), None, None, Seq(), Seq(), Info(userOrga.id, now))
+      val e = Event(Event.Id.generate(), group4.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), Markdown(""), None, Seq(), Seq(), Info(userOrga.id, now))
       val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Status.Draft, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Info(userSpeaker.id, now))
       val p = Proposal(Proposal.Id.generate(), talk7.id, cfpId, None, Proposal.Status.Pending, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Markdown("temporary description"), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Info(userSpeaker.id, now))
       (g, c, e, t, p)
@@ -189,6 +200,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       _ <- run(Queries.insertMany(TalkRepoSql.insert)(talks ++ generated.map(_._4)))
       _ <- run(Queries.insertMany(ProposalRepoSql.insert)(proposals ++ generated.map(_._5)))
       _ <- run(Queries.insertMany(EventRepoSql.insert)(events ++ generated.map(_._3)))
+      _ <- run(Queries.insertMany(PartnerRepoSql.insert)(partners))
       _ <- IO(eventTalks.map { case (c, e, p, u) => addTalk(c, e, p, u, now) }.map(_.unsafeRunSync()))
     } yield Done
   }

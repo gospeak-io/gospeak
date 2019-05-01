@@ -91,6 +91,7 @@ object Mappings {
   val cfpName: Mapping[Cfp.Name] = nonEmptyTextMapping(Cfp.Name, _.value)
   val talkSlug: Mapping[Talk.Slug] = slugMapping(Talk.Slug)
   val talkTitle: Mapping[Talk.Title] = nonEmptyTextMapping(Talk.Title, _.value)
+  val partnerId: Mapping[Partner.Id] = idMapping(Partner.Id)
   val partnerSlug: Mapping[Partner.Slug] = slugMapping(Partner.Slug)
   val partnerName: Mapping[Partner.Name] = nonEmptyTextMapping(Partner.Name, _.value)
 

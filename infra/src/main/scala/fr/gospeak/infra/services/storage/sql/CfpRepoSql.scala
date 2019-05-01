@@ -60,7 +60,7 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
 object CfpRepoSql {
   private val _ = cfpIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table = "cfps"
-  private[sql] val fields = Seq("id", "group_id", "slug", "name", "start", "end", "description", "tags", "created", "created_by", "updated", "updated_by")
+  private[sql] val  fields = Seq("id", "group_id", "slug", "name", "start", "end", "description", "tags", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "slug", "name", "description", "tags")

@@ -1,0 +1,32 @@
+package fr.gospeak.core.domain
+
+import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.libs.scalautils.domain._
+
+final case class Venue(id: Venue.Id,
+                       partner: Partner.Id,
+                       address: GMapPlace,
+                       description: Markdown,
+                       roomSize: Option[Int],
+                       info: Info) {
+  def data: Venue.Data = Venue.Data(this)
+}
+
+object Venue {
+  def apply(group: Group.Id, data: Data, info: Info): Venue =
+    new Venue(Id.generate(), data.partner, data.address, data.description, data.roomSize, info)
+
+  final class Id private(value: String) extends DataClass(value) with IId
+
+  object Id extends UuidIdBuilder[Id]("Venue.Id", new Id(_))
+
+  final case class Data(partner: Partner.Id,
+                        address: GMapPlace,
+                        description: Markdown,
+                        roomSize: Option[Int])
+
+  object Data {
+    def apply(venue: Venue): Data = new Data(venue.partner, venue.address, venue.description, venue.roomSize)
+  }
+
+}
