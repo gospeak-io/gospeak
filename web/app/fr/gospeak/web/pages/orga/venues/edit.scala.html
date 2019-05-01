@@ -6,14 +6,14 @@
 @import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 
-@(group: Group, partner: Partner, venue: Venue, form: Form[Venue.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, partner: Partner, venue: Venue, form: Form[Venue.Data], doEdit: Call)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", group, b)() {
     <div class="page-header">
         <h1>Edit @partner.name.value venue</h1>
         <h2>@venue.address.format</h2>
     </div>
 
-    @formElt(form, VenueCtrl.doEdit(group.slug, venue.id)) {
+    @formElt(form, doEdit) {
         @venueFields(form, group, Some(partner))
         @actionsHorizontal() {
             @btnCancel(VenueCtrl.detail(group.slug, venue.id))

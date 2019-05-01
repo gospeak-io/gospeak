@@ -5,19 +5,20 @@
 @import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
+@import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.pages.partials.display.html._
 
-@(group: Group, partner: Partner, venue: Venue, speakers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, partner: Partner, venue: Venue, speakers: Seq[User], edit: Call)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(partner.name.value + " - Gospeak", group, b)() {
     <div class="d-flex justify-content-between align-items-start">
         <div class="media">
             <img src="@partner.logo.value" class="avatar align-self-start mr-3" alt="avatar">
             <div class="media-body">
-                <h1 class="mt-0">@partner.name.value</h1>
+                <h1 class="mt-0"><a href="@PartnerCtrl.detail(group.slug, partner.slug)">@partner.name.value</a></h1>
                 <p>@venue.address.format</p>
             </div>
         </div>
-        <a class="btn btn-outline-secondary" href="@VenueCtrl.edit(group.slug, venue.id)" title="edit"><i class="fas fa-edit"></i></a>
+        <a class="btn btn-outline-secondary" href="@edit" title="edit"><i class="fas fa-edit"></i></a>
     </div>
     <p>@markdown(venue.description)</p>
 

@@ -41,6 +41,9 @@ abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv
   protected def venueNotFound(group: Group.Slug, venue: Venue.Id): Result =
     Redirect(pages.orga.venues.routes.VenueCtrl.list(group)).flashing("warning" -> s"Unable to find venue with id '${venue.value}'")
 
+  protected def venueNotFound(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Result =
+    Redirect(pages.orga.partners.routes.PartnerCtrl.detail(group, partner)).flashing("warning" -> s"Unable to find venue with id '${venue.value}'")
+
   // speaker redirects
   protected def talkNotFound(talk: Talk.Slug): Result =
     Redirect(pages.speaker.talks.routes.TalkCtrl.list()).flashing("warning" -> s"Unable to find talk with slug '${talk.value}'")

@@ -3,15 +3,15 @@
 @import fr.gospeak.web.pages.partials.form.html._
 
 @(form: Form[Venue.Data], group: Group, partner: Option[Partner])(implicit messages: Messages)
+@fieldHorizontal(form("address"), Seq("label" -> "Address", "help" -> "Address of the venue")) { (field, args) =>
+    @inputGMapPlace(field, Seq("autofocus" -> "true") ++ args)
+}
 @partner.map { p =>
     @inputHidden(form("partner"), Seq("value" -> p.id.value))
 }.getOrElse {
     @fieldHorizontal(form("partner"), Seq("label" -> "Partner")) { (field, args) =>
         @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.partners(group.slug).toString) ++ args)
     }
-}
-@fieldHorizontal(form("address"), Seq("label" -> "Address", "help" -> "Address of the venue")) { (field, args) =>
-    @inputGMapPlace(field, args)
 }
 @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Some details about this partner")) { (field, args) =>
     @inputMarkdown(field, args)

@@ -8,6 +8,7 @@ final case class Venue(id: Venue.Id,
                        address: GMapPlace,
                        description: Markdown,
                        roomSize: Option[Int],
+                       // contacts: Seq[Contact.Id],
                        info: Info) {
   def data: Venue.Data = Venue.Data(this)
 

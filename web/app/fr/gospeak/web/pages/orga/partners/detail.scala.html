@@ -1,13 +1,21 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Group, Partner, User}
+@import fr.gospeak.core.domain.{Group, Partner, User, Venue}
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import fr.gospeak.web.pages.orga.partners.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.utils.Formats
 
-@(group: Group, partner: Partner, speakers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, partner: Partner, venues: Seq[Venue], speakers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@venueItem(venue: Venue) = {
+    <a class="list-group-item list-group-item-action" href="@VenueCtrl.detail(group.slug, partner.slug, venue.id)">
+    @venue.address.format
+    </a>
+}
 @container(partner.name.value + " - Gospeak", group, b)() {
     <div class="d-flex justify-content-between align-items-start">
         <div class="media">
@@ -19,6 +27,27 @@
         <a class="btn btn-outline-secondary" href="@PartnerCtrl.edit(group.slug, partner.slug)" title="edit"><i class="fas fa-edit"></i></a>
     </div>
     <p>@markdown(partner.description)</p>
+
+    @if(venues.isEmpty) {
+        <div class="card mb-3">
+            <h5 class="card-header">No venue for @partner.name.value</h5>
+            <div class="card-body text-center">
+                <a href="@VenueCtrl.create(group.slug, partner.slug)" class="btn btn-success">Create a venue</a>
+            </div>
+        </div>
+    } else {
+        <div class="card mb-3">
+            <h5 class="card-header d-flex justify-content-between align-items-center">
+                <span>@Formats.plural(venues.length, "venue") for @partner.name.value</span>
+                <a class="btn btn-primary btn-sm" href="@VenueCtrl.create(group.slug, partner.slug)">Create a venue</a>
+            </h5>
+            <div class="list-group list-group-flush">
+            @venues.map { venue =>
+                <a class="list-group-item list-group-item-action" href="@VenueCtrl.detail(group.slug, partner.slug, venue.id)">@venue.address.format</a>
+            }
+            </div>
+        </div>
+    }
 
     <p>@info(partner.info, speakers, Some(u => SpeakerCtrl.detail(group.slug, u.slug)))</p>
 }()

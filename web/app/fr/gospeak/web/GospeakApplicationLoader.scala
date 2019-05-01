@@ -127,6 +127,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val userGroupProposalCtrl = wire[orga.proposals.ProposalCtrl]
   lazy val userGroupSpeakerCtrl = wire[orga.speakers.SpeakerCtrl]
   lazy val userGroupPartnerCtrl = wire[orga.partners.PartnerCtrl]
+  lazy val userGroupPartnersVenueCtrl = wire[orga.partners.venues.VenueCtrl]
   lazy val userGroupVenueCtrl = wire[orga.venues.VenueCtrl]
   lazy val userGroupSettingsCtrl = wire[orga.settings.SettingsCtrl]
   lazy val userSpeakerCtrl = wire[speaker.SpeakerCtrl]

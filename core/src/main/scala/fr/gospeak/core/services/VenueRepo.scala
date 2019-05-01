@@ -15,6 +15,8 @@ trait OrgaVenueRepo {
 
   def list(group: Group.Id, params: Page.Params): IO[Page[(Partner, Venue)]]
 
+  def list(partner: Partner.Id): IO[Seq[Venue]]
+
   def list(group: Group.Id, ids: Seq[Venue.Id]): IO[Seq[(Partner, Venue)]]
 
   def find(group: Group.Id, id: Venue.Id): IO[Option[(Partner, Venue)]]

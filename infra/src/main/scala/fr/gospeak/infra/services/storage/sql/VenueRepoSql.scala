@@ -4,8 +4,8 @@ import java.time.Instant
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import doobie.implicits._
 import doobie.Fragments
+import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain.{Group, Partner, User, Venue}
@@ -26,6 +26,8 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[(Partner, Venue)]] = run(Queries.selectPage(selectPage(group, _), params))
 
+  override def list(partner: Partner.Id): IO[Seq[Venue]] = run(selectAll(partner).to[List])
+
   override def list(group: Group.Id): IO[Seq[(Partner, Venue)]] = run(selectAll(group).to[List])
 
   override def list(group: Group.Id, ids: Seq[Venue.Id]): IO[Seq[(Partner, Venue)]] = runIn[Venue.Id, (Partner, Venue)](selectAll(group, _))(ids)
@@ -43,6 +45,7 @@ object VenueRepoSql {
   private val defaultSort = Page.OrderBy("created")
 
   private val selectFields = fields.filterNot(_.startsWith("address_"))
+  private val selectFieldsFr: Fragment = Fragment.const0(selectFields.mkString(", "))
   private val partnerAndVenueTables = Fragment.const0(s"$table v INNER JOIN ${PartnerRepoSql.table} p ON v.partner_id=p.id")
   private val partnerAndVenueFields = Fragment.const0((PartnerRepoSql.fields.map("p." + _) ++ selectFields.map("v." + _)).mkString(", "))
 
@@ -64,6 +67,9 @@ object VenueRepoSql {
 
   private[sql] def selectAll(group: Group.Id): doobie.Query0[(Partner, Venue)] =
     buildSelect(partnerAndVenueTables, partnerAndVenueFields, fr"WHERE p.group_id=$group").query[(Partner, Venue)]
+
+  private[sql] def selectAll(partner: Partner.Id): doobie.Query0[Venue] =
+    buildSelect(tableFr, selectFieldsFr, fr"WHERE partner_id=$partner").query[Venue]
 
   private[sql] def selectAll(group: Group.Id, ids: NonEmptyList[Venue.Id]): doobie.Query0[(Partner, Venue)] =
     buildSelect(partnerAndVenueTables, partnerAndVenueFields, fr"WHERE p.group_id=$group AND " ++ Fragments.in(fr"v.id", ids)).query[(Partner, Venue)]

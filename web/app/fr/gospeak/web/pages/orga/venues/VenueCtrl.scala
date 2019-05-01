@@ -13,10 +13,8 @@ import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.venues.VenueCtrl._
-import fr.gospeak.web.utils.Mappings._
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
-import play.api.data.Forms._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
 class VenueCtrl(cc: ControllerComponents,
@@ -27,13 +25,6 @@ class VenueCtrl(cc: ControllerComponents,
 
   import silhouette._
 
-  private val createForm: Form[Venue.Data] = Form(mapping(
-    "partner" -> partnerId,
-    "address" -> gMapPlace,
-    "description" -> markdown,
-    "roomSize" -> optional(number)
-  )(Venue.Data.apply)(Venue.Data.unapply))
-
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
@@ -43,12 +34,12 @@ class VenueCtrl(cc: ControllerComponents,
   }
 
   def create(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    createForm(group, createForm).unsafeToFuture()
+    createForm(group, VenueForms.create).unsafeToFuture()
   }
 
   def doCreate(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
-    createForm.bindFromRequest.fold(
+    VenueForms.create.bindFromRequest.fold(
       formWithErrors => createForm(group, formWithErrors),
       data => (for {
         groupElt <- OptionT(groupRepo.find(user, group))
@@ -61,7 +52,8 @@ class VenueCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       b = listBreadcrumb(groupElt).add("New" -> routes.VenueCtrl.create(group))
-    } yield Ok(html.create(groupElt, form)(b))).value.map(_.getOrElse(groupNotFound(group)))
+      call = routes.VenueCtrl.doCreate(group)
+    } yield Ok(html.create(groupElt, None, form, call)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
   def detail(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -70,16 +62,17 @@ class VenueCtrl(cc: ControllerComponents,
       (partnerElt, venueElt) <- OptionT(venueRepo.find(groupElt.id, venue))
       users <- OptionT.liftF(userRepo.list((partnerElt.users ++ venueElt.users).distinct))
       b = breadcrumb(groupElt, venueElt)
-    } yield Ok(html.detail(groupElt, partnerElt, venueElt, users)(b))).value.map(_.getOrElse(venueNotFound(group, venue))).unsafeToFuture()
+      edit = routes.VenueCtrl.edit(group, venue)
+    } yield Ok(html.detail(groupElt, partnerElt, venueElt, users, edit)(b))).value.map(_.getOrElse(venueNotFound(group, venue))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    editForm(group, venue, createForm).unsafeToFuture()
+    editForm(group, venue, VenueForms.create).unsafeToFuture()
   }
 
   def doEdit(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
-    createForm.bindFromRequest.fold(
+    VenueForms.create.bindFromRequest.fold(
       formWithErrors => editForm(group, venue, formWithErrors),
       data => (for {
         groupElt <- OptionT(groupRepo.find(user, group))
@@ -94,7 +87,8 @@ class VenueCtrl(cc: ControllerComponents,
       (partnerElt, venueElt) <- OptionT(venueRepo.find(groupElt.id, venue))
       b = breadcrumb(groupElt, venueElt).add("Edit" -> routes.VenueCtrl.edit(group, venue))
       filledForm = if (form.hasErrors) form else form.fill(venueElt.data)
-    } yield Ok(html.edit(groupElt, partnerElt, venueElt, filledForm)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
+      call = routes.VenueCtrl.doEdit(group, venue)
+    } yield Ok(html.edit(groupElt, partnerElt, venueElt, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
   }
 }
 
