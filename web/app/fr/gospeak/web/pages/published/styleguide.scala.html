@@ -77,9 +77,11 @@
                 @example(s"$name with 200 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(200)), HomeCtrl.styleguide) }
                 @example(s"$name with 1000 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(1000)), HomeCtrl.styleguide) }
                 @example("") { _ =>
-                    Try to change page size:
-                    <a href="@HomeCtrl.styleguide(params.copy(pageSize = Page.Size(10)))">set page-size to 10</a>,
-                    <a href="@HomeCtrl.styleguide(params.copy(pageSize = Page.Size(100)))">set page-size to 100</a>
+                    <div>
+                        Try to change page size:
+                        <a href="@HomeCtrl.styleguide(params.copy(pageSize = Page.Size(10)))">set page-size to 10</a>,
+                        <a href="@HomeCtrl.styleguide(params.copy(pageSize = Page.Size(100)))">set page-size to 100</a>
+                    </div>
                 }
             }
             @component("Search", "@search(page, MyCtrl.list(params))") { name =>
@@ -152,6 +154,7 @@
         }
 
         @section("global-form", "Global form components", "@import fr.gospeak.web.pages.partials.form.html._") { _ =>
+          <div></div>
         }
 
         @section("global-container", "Global container components", "@import fr.gospeak.web.pages.partials.container.html._") { _ =>
@@ -203,9 +206,9 @@
                 @example(s"$name") { _ => @orga.cfpItem(group, cfp) }
             }
             @component("eventItem", "@eventItem(group, event, proposals, speakers)") { name =>
-                @example(s"$name in the future") { _ => @orga.eventItem(group, event.copy(start = event.start.plusDays(3)), Seq(), Seq(user)) }
-                @example(s"$name in the past") { _ => @orga.eventItem(group, event.copy(start = event.start.plusDays(-3)), Seq(), Seq(user)) }
-                @example(s"$name with a talk") { _ => @orga.eventItem(group, event.copy(talks = Seq(proposal.id)), Seq(proposal), Seq(user)) }
+                @example(s"$name in the future") { _ => @orga.eventItem(group, event.copy(start = event.start.plusDays(3)), Seq(), Seq(), Seq(user)) }
+                @example(s"$name in the past") { _ => @orga.eventItem(group, event.copy(start = event.start.plusDays(-3)), Seq(), Seq(), Seq(user)) }
+                @example(s"$name with a talk") { _ => @orga.eventItem(group, event.copy(talks = Seq(proposal.id)), Seq(), Seq(proposal), Seq(user)) }
             }
             @component("proposalItem", "@proposalItem(group, cfp, proposal, speakers, events)") { name =>
                 @example(s"$name pending") { _ => @orga.proposalItem(group, cfp, proposal, Seq(user), Seq()) }

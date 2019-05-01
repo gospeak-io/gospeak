@@ -94,6 +94,7 @@ object Mappings {
   val partnerId: Mapping[Partner.Id] = idMapping(Partner.Id)
   val partnerSlug: Mapping[Partner.Slug] = slugMapping(Partner.Slug)
   val partnerName: Mapping[Partner.Name] = nonEmptyTextMapping(Partner.Name, _.value)
+  val venueId: Mapping[Venue.Id] = idMapping(Venue.Id)
 
   private[utils] object Utils {
     def textMapping[A](from: String => A, to: A => String) =

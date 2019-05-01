@@ -1,19 +1,19 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Cfp, Event, Group, Partner, Proposal, User, Venue}
+@import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.core.domain.{Event, Group, Proposal, User, Cfp}
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
+@import fr.gospeak.web.pages.orga.partials.html.container
+@import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.html.{pagination, search}
-@import fr.gospeak.web.pages.orga.partials.html.container
-@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
-@import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
-@import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.utils.Formats
 
-@(group: Group, event: Event, talks: Seq[Proposal], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], attachCfp: Form[Cfp.Slug], groupCfps: Seq[Cfp])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, event: Event, venues: Seq[(Partner, Venue)], talks: Seq[Proposal], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], attachCfp: Form[Cfp.Slug], groupCfps: Seq[Cfp])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(event.name.value + " - Gospeak", group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@event.name.value</span>
@@ -21,7 +21,7 @@
     </h1>
 
     <p>
-        @event.venue.map { v => <b>@v.format</b>, }.getOrElse{ <b class="text-danger">Missing venue</b>, }
+        @event.venue.map { v => @venue(venues, v), }.getOrElse{ <b class="text-danger">Missing venue</b>, }
         @Formats.datetime(event.start)
         @tags(event.tags)
     </p>

@@ -11,7 +11,7 @@
     <h1 class="page-header">Edit @event.name.value</h1>
 
     @formElt(form, EventCtrl.doEdit(group.slug, event.slug)) {
-        @eventFields(form, cfps)
+        @eventFields(form, group, cfps)
         @actionsHorizontal() {
             @btnCancel(EventCtrl.detail(group.slug, event.slug))
             @btnSubmit("Edit")

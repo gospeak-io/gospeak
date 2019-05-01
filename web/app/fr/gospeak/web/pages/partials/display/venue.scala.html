@@ -1,0 +1,7 @@
+@import fr.gospeak.core.domain.{Venue, Partner}
+@(venues: Seq[(Partner, Venue)], id: Venue.Id, call: Option[Venue => Call] = None)
+@(venues.find(_._2.id == id), call) match {
+    case (Some((partner, venue)), Some(url)) => {<a class="badge badge-pill badge-primary" href="@url(venue)" title="@venue.address.format" data-toggle="tooltip">@partner.name.value</a>}
+    case (Some((partner, venue)), None) => {<span class="badge badge-pill badge-primary" title="@venue.address.format" data-toggle="tooltip">@partner.name.value</span>}
+    case (None, _) => {<span class="badge badge-pill badge-primary">Unknown venue (@id.value)</span>}
+}

@@ -11,7 +11,7 @@ object EventForms {
     "slug" -> eventSlug,
     "name" -> eventName,
     "start" -> localDateTime,
-    "venue" -> optional(gMapPlace),
+    "venue" -> optional(venueId),
     "tags" -> tags
   )(Event.Data.apply)(Event.Data.unapply))
 

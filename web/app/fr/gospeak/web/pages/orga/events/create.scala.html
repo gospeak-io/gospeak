@@ -11,7 +11,7 @@
     <h1 class="page-header">Create an event</h1>
 
     @formElt(form, EventCtrl.doCreate(group.slug)) {
-        @eventFields(form, cfps)
+        @eventFields(form, group, cfps)
         @actionsHorizontal() {
             @btnCancel(EventCtrl.list(group.slug))
             @btnSubmit("Create")

@@ -66,7 +66,7 @@ object EventRepoSql {
   private[sql] def insert(elt: Event): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
   private[sql] def update(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): doobie.Update0 = {
-    val fields = fr0"cfp_id=${data.cfp}, slug=${data.slug}, name=${data.name}, start=${data.start}, tags=${data.tags}, updated=$now, updated_by=$by"
+    val fields = fr0"cfp_id=${data.cfp}, slug=${data.slug}, name=${data.name}, start=${data.start}, venue=${data.venue}, tags=${data.tags}, updated=$now, updated_by=$by"
     buildUpdate(tableFr, fields, where(group, event)).update
   }
 

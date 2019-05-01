@@ -22,7 +22,8 @@ class SuggestCtrl(cc: ControllerComponents,
                   eventRepo: SuggestEventRepo,
                   talkRepo: SuggestTalkRepo,
                   proposalRepo: SuggestProposalRepo,
-                  partnerRepo: SuggestPartnerRepo) extends ApiCtrl(cc) {
+                  partnerRepo: SuggestPartnerRepo,
+                  venueRepo: SuggestVenueRepo) extends ApiCtrl(cc) {
 
   import silhouette._
 
@@ -42,6 +43,14 @@ class SuggestCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       partners <- OptionT.liftF(partnerRepo.list(groupElt.id))
       suggestItems = partners.map(p => SuggestedItem(p.id.value, p.name.value))
+    } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
+  }
+
+  def venues(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      venues <- OptionT.liftF(venueRepo.list(groupElt.id))
+      suggestItems = venues.map { case (p, v) => SuggestedItem(v.id.value, p.name.value + " - " + v.address.format) }
     } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
   }
 

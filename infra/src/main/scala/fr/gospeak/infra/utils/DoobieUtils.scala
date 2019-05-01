@@ -85,6 +85,9 @@ object DoobieUtils {
   }
 
   object Queries {
+    def insertOne[A](insert: A => doobie.Update0)(elt: A)(implicit w: Write[A]): doobie.ConnectionIO[Int] =
+      insert(elt).run
+
     def insertMany[A](insert: A => doobie.Update0)(elts: NonEmptyList[A])(implicit w: Write[A]): doobie.ConnectionIO[Int] =
       Update[A](insert(elts.head).sql).updateMany(elts)
 

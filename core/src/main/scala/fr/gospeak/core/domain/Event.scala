@@ -14,7 +14,7 @@ final case class Event(id: Event.Id,
                        start: LocalDateTime,
                        // duration: Option[Duration]
                        description: Markdown,
-                       venue: Option[GMapPlace],
+                       venue: Option[Venue.Id],
                        talks: Seq[Proposal.Id],
                        tags: Seq[Tag],
                        info: Info) {
@@ -45,7 +45,7 @@ object Event {
                         slug: Event.Slug,
                         name: Event.Name,
                         start: LocalDateTime,
-                        venue: Option[GMapPlace],
+                        venue: Option[Venue.Id],
                         tags: Seq[Tag])
 
   object Data {

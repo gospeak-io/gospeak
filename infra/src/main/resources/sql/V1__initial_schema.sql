@@ -1,3 +1,27 @@
+--
+--            user<---login/credentials
+--             ^
+--             |
+--  +----------+-------------+
+--  |          |             |
+--  |          |           group
+--  |          |             ^
+--  |          |             |
+--  |          |      +------+--------------+-----------+
+--  |          |      |      |              |           |
+--  |          +---->cfp     |           partner   sponsor_pack
+--  |          |      ^      |              ^           ^
+--  |          |      |      |              |           |
+--  |          |      |      |      +-------+-----+     |
+--  |          |      |      |      |       |     |     |
+--  |          |      |      |    venue  contact  |     |
+--  |          |      |      |      ^       ^     |     |
+--  |          |      |      |      |       |     |     |
+--  |          |      +------+------+       +-----+-----+
+--  |          |             |                    |
+-- talk <-- proposal <---> event               sponsor
+--
+
 CREATE TABLE users
 (
     id              CHAR(36)     NOT NULL PRIMARY KEY,
@@ -92,6 +116,51 @@ CREATE TABLE cfps
     updated_by  CHAR(36)      NOT NULL REFERENCES users (id)
 );
 
+CREATE TABLE partners
+(
+    id          CHAR(36)      NOT NULL PRIMARY KEY,
+    group_id    CHAR(36)      NOT NULL REFERENCES groups (id),
+    slug        VARCHAR(120)  NOT NULL,
+    name        VARCHAR(120)  NOT NULL,
+    description VARCHAR(2048) NOT NULL,
+    logo        VARCHAR(200)  NOT NULL,
+    created     TIMESTAMP     NOT NULL,
+    created_by  CHAR(36)      NOT NULL REFERENCES users (id),
+    updated     TIMESTAMP     NOT NULL,
+    updated_by  CHAR(36)      NOT NULL REFERENCES users (id),
+    UNIQUE (group_id, slug)
+);
+
+CREATE TABLE venues
+(
+    id              CHAR(36)         NOT NULL PRIMARY KEY,
+    partner_id      CHAR(36)         NOT NULL REFERENCES partners (id),
+    address         VARCHAR(2048)    NOT NULL,
+    address_lat     DOUBLE PRECISION NOT NULL,
+    address_lng     DOUBLE PRECISION NOT NULL,
+    address_country VARCHAR(20)      NOT NULL,
+    description     VARCHAR(2048)    NOT NULL,
+    room_size       INT,
+    created         TIMESTAMP        NOT NULL,
+    created_by      CHAR(36)         NOT NULL REFERENCES users (id),
+    updated         TIMESTAMP        NOT NULL,
+    updated_by      CHAR(36)         NOT NULL REFERENCES users (id)
+);
+
+CREATE TABLE contacts
+(
+    id         CHAR(36)     NOT NULL PRIMARY KEY,
+    partner_id CHAR(36)     NOT NULL REFERENCES partners (id),
+    first_name VARCHAR(30)  NOT NULL,
+    last_name  VARCHAR(30)  NOT NULL,
+    email      VARCHAR(100) NOT NULL,
+    role       VARCHAR(30)  NOT NULL,
+    created    TIMESTAMP    NOT NULL,
+    created_by CHAR(36)     NOT NULL REFERENCES users (id),
+    updated    TIMESTAMP    NOT NULL,
+    updated_by CHAR(36)     NOT NULL REFERENCES users (id)
+);
+
 CREATE TABLE events
 (
     id          CHAR(36)      NOT NULL PRIMARY KEY,
@@ -101,7 +170,7 @@ CREATE TABLE events
     name        VARCHAR(120)  NOT NULL,
     start       TIMESTAMP     NOT NULL,
     description VARCHAR(2048) NOT NULL,
-    venue       VARCHAR(2048),
+    venue       CHAR(36) REFERENCES venues (id),
     talks       VARCHAR(258)  NOT NULL, -- 7 talks max
     tags        VARCHAR(100)  NOT NULL, -- 5 tags max
     created     TIMESTAMP     NOT NULL,
@@ -130,51 +199,6 @@ CREATE TABLE proposals
     updated     TIMESTAMP     NOT NULL,
     updated_by  CHAR(36)      NOT NULL REFERENCES users (id),
     UNIQUE (talk_id, cfp_id)
-);
-
-CREATE TABLE partners
-(
-    id          CHAR(36)      NOT NULL PRIMARY KEY,
-    group_id    CHAR(36)      NOT NULL REFERENCES groups (id),
-    slug        VARCHAR(120)  NOT NULL,
-    name        VARCHAR(120)  NOT NULL,
-    description VARCHAR(2048) NOT NULL,
-    logo        VARCHAR(200)  NOT NULL,
-    created     TIMESTAMP     NOT NULL,
-    created_by  CHAR(36)      NOT NULL REFERENCES users (id),
-    updated     TIMESTAMP     NOT NULL,
-    updated_by  CHAR(36)      NOT NULL REFERENCES users (id),
-    UNIQUE (group_id, slug)
-);
-
-CREATE TABLE contacts
-(
-    id         CHAR(36)     NOT NULL PRIMARY KEY,
-    partner_id CHAR(36)     NOT NULL REFERENCES partners (id),
-    first_name VARCHAR(30)  NOT NULL,
-    last_name  VARCHAR(30)  NOT NULL,
-    email      VARCHAR(100) NOT NULL,
-    role       VARCHAR(30)  NOT NULL,
-    created    TIMESTAMP    NOT NULL,
-    created_by CHAR(36)     NOT NULL REFERENCES users (id),
-    updated    TIMESTAMP    NOT NULL,
-    updated_by CHAR(36)     NOT NULL REFERENCES users (id)
-);
-
-CREATE TABLE venues
-(
-    id              CHAR(36)         NOT NULL PRIMARY KEY,
-    partner_id      CHAR(36)         NOT NULL REFERENCES partners (id),
-    address         VARCHAR(2048)    NOT NULL,
-    address_lat     DOUBLE PRECISION NOT NULL,
-    address_lng     DOUBLE PRECISION NOT NULL,
-    address_country VARCHAR(20)      NOT NULL,
-    description     VARCHAR(2048)    NOT NULL,
-    room_size       INT,
-    created         TIMESTAMP        NOT NULL,
-    created_by      CHAR(36)         NOT NULL REFERENCES users (id),
-    updated         TIMESTAMP        NOT NULL,
-    updated_by      CHAR(36)         NOT NULL REFERENCES users (id)
 );
 
 CREATE TABLE sponsor_packs

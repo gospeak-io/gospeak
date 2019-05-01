@@ -105,5 +105,6 @@ POST        /ui/utils/markdown-to-html                                          
 GET         /ui/utils/embed                                                     fr.gospeak.web.api.ui.UtilsCtrl.embed(url: Url)
 GET         /ui/suggest/tags                                                    fr.gospeak.web.api.ui.SuggestCtrl.tags
 GET         /ui/suggest/partners/:group                                         fr.gospeak.web.api.ui.SuggestCtrl.partners(group: Group.Slug)
+GET         /ui/suggest/venues/:group                                           fr.gospeak.web.api.ui.SuggestCtrl.venues(group: Group.Slug)
 
 GET         /assets/*file                                                       controllers.Assets.versioned(path="/public", file: Asset)

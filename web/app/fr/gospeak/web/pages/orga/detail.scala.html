@@ -1,5 +1,5 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Event, Group, Proposal, User}
+@import fr.gospeak.core.domain.{Event, Group, Proposal, User, Partner, Venue}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
@@ -7,7 +7,7 @@
 @import fr.gospeak.web.pages.orga.partials.html.{container, eventItem}
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, events: Page[Event], proposals: Seq[Proposal], speakers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, events: Page[Event], venues: Seq[(Partner, Venue)], proposals: Seq[Proposal], speakers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", group, b)() {
     <h1>@group.name.value</h1>
 
@@ -23,7 +23,7 @@
         </h2>
 
         <div class="list-group mt-3 mb-3">
-            @events.items.map { e => @eventItem(group, e, proposals, speakers) }
+            @events.items.map { e => @eventItem(group, e, venues, proposals, speakers) }
             @if(!events.isLast) {
                 <a href="@EventCtrl.list(group.slug)" class="list-group-item list-group-item-action">More...</a>
             }

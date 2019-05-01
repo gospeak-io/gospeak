@@ -23,6 +23,7 @@ class EventCtrl(cc: ControllerComponents,
                 groupRepo: OrgaGroupRepo,
                 cfpRepo: OrgaCfpRepo,
                 eventRepo: OrgaEventRepo,
+                venueRepo: OrgaVenueRepo,
                 proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
@@ -31,10 +32,11 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       events <- OptionT.liftF(eventRepo.list(groupElt.id, params))
+      venues <- OptionT.liftF(venueRepo.list(groupElt.id, events.items.flatMap(_.venue)))
       proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.users)))
       b = listBreadcrumb(groupElt)
-    } yield Ok(html.list(groupElt, events, proposals, speakers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+    } yield Ok(html.list(groupElt, events, venues, proposals, speakers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
   def create(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -48,7 +50,7 @@ class EventCtrl(cc: ControllerComponents,
       data => (for {
         groupElt <- OptionT(groupRepo.find(user, group))
         // TODO check if slug not already exist
-        _ <- OptionT.liftF(eventRepo.create(groupElt.id, data.copy(venue = data.venue.map(_.trim)), by, now))
+        _ <- OptionT.liftF(eventRepo.create(groupElt.id, data, by, now))
       } yield Redirect(routes.EventCtrl.detail(group, data.slug))).value.map(_.getOrElse(groupNotFound(group)))
     ).unsafeToFuture()
   }
@@ -66,13 +68,14 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
+      venues <- OptionT.liftF(venueRepo.list(groupElt.id, eventElt.venue.toList))
       talks <- OptionT.liftF(proposalRepo.list(eventElt.talks))
       cfpOpt <- OptionT.liftF(cfpRepo.find(eventElt.id))
       groupCfps <- OptionT.liftF(cfpOpt.map(_ => IO.pure(Seq.empty[Cfp])).getOrElse(cfpRepo.list(groupElt.id)))
       proposals <- OptionT.liftF(cfpOpt.map(cfp => proposalRepo.list(cfp.id, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal])))
       speakers <- OptionT.liftF(userRepo.list((proposals.items ++ talks).flatMap(_.users).distinct))
       b = breadcrumb(groupElt, eventElt)
-    } yield Ok(html.detail(groupElt, eventElt, talks, cfpOpt, proposals, speakers, EventForms.attachCfp, groupCfps)(b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, eventElt, venues, talks, cfpOpt, proposals, speakers, EventForms.attachCfp, groupCfps)(b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>

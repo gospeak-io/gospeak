@@ -1,17 +1,17 @@
 @import java.time.LocalDateTime
 
-@import fr.gospeak.core.domain.{Event, Group, Proposal, User, Cfp}
+@import fr.gospeak.core.domain.{Event, Group, Proposal, User, Cfp, Venue, Partner}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 
-@(group: Group, event: Event, proposals: Seq[Proposal], speakers: Seq[User])
+@(group: Group, event: Event, venues: Seq[(Partner, Venue)], proposals: Seq[Proposal], speakers: Seq[User])
 <a class="list-group-item list-group-item-action @if(event.start.isAfter(LocalDateTime.now())) {list-group-item-secondary}" href="@EventCtrl.detail(group.slug, event.slug)">
     <h5 class="mb-1">@event.name.value</h5>
     @Formats.date(event.start),
-    @event.venue.map { v => @v.format, }.getOrElse { <b class="text-danger">Missing venue</b>, }
+    @event.venue.map { v => @venue(venues, v), }.getOrElse { <b class="text-danger">Missing venue</b>, }
     @event.talks.length planned talks
     @tags(event.tags)
     @if(event.talks.nonEmpty) {

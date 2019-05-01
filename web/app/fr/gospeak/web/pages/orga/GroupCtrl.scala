@@ -18,6 +18,7 @@ class GroupCtrl(cc: ControllerComponents,
                 userRepo: OrgaUserRepo,
                 groupRepo: OrgaGroupRepo,
                 eventRepo: OrgaEventRepo,
+                venueRepo: OrgaVenueRepo,
                 proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
@@ -27,10 +28,11 @@ class GroupCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       events <- OptionT.liftF(eventRepo.listAfter(groupElt.id, now, Page.Params.defaults.orderBy("start")))
+      venues <- OptionT.liftF(venueRepo.list(groupElt.id, events.items.flatMap(_.venue)))
       proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.users)))
       b = breadcrumb(groupElt)
-    } yield Ok(html.detail(groupElt, events, proposals, speakers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, events, venues, proposals, speakers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 }
 
