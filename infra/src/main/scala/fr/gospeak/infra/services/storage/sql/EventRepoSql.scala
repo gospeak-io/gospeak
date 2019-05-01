@@ -3,13 +3,14 @@ package fr.gospeak.infra.services.storage.sql
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, ValidatedNec}
 import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
+import fr.gospeak.core.domain._
+import fr.gospeak.core.dto.EventFull
 import fr.gospeak.core.services.EventRepo
 import fr.gospeak.infra.services.storage.sql.EventRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
@@ -39,8 +40,6 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def editTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): IO[Done] =
     run(updateTalks(group, event)(talks, by, now))
 
-  override def find(group: Group.Id, event: Event.Slug): IO[Option[Event]] = run(selectOne(group, event).option)
-
   override def list(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(Queries.selectPage(selectPage(group, _), params))
 
   override def list(ids: Seq[Event.Id]): IO[Seq[Event]] = runIn[Event.Id, Event](selectAll)(ids)
@@ -49,6 +48,15 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
     run(Queries.selectPage(selectAllAfter(group, now.truncatedTo(ChronoUnit.DAYS), _), params))
 
   override def listTags(): IO[Seq[Tag]] = run(selectTags().to[List]).map(_.flatten.distinct)
+
+  override def find(group: Group.Id, event: Event.Slug): IO[Option[Event]] = run(selectOne(group, event).option)
+
+  override def findFull(user: User.Id, group: Group.Slug, event: Event.Slug): IO[Option[ValidatedNec[String, EventFull]]] =
+    (for {
+      res <- run(selectOne(user, group, event).option)
+      talks <- res.flatMap(a => NonEmptyList.fromList(a._2.talks.toList)).map(ids => run(ProposalRepoSql.selectAll(ids).to[List])).getOrElse(IO.pure(Seq.empty[Proposal]))
+      speakers <- NonEmptyList.fromList(talks.toList.flatMap(_.speakers.toList).distinct).map(ids => run(UserRepoSql.selectAll(ids).to[List])).getOrElse(IO.pure(Seq.empty[User]))
+    } yield res.map(r => (r, talks, speakers))).map(_.map { case ((g, e, c, v), t, s) => EventFull.from(g, e, c, v, t, s) })
 }
 
 object EventRepoSql {
@@ -80,9 +88,6 @@ object EventRepoSql {
     buildUpdate(tableFr, fields, where(group, event)).update
   }
 
-  private[sql] def selectOne(group: Group.Id, event: Event.Slug): doobie.Query0[Event] =
-    buildSelect(tableFr, fieldsFr, where(group, event)).query[Event]
-
   private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[Event], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Event], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
@@ -98,6 +103,24 @@ object EventRepoSql {
 
   private[sql] def selectTags(): doobie.Query0[Seq[Tag]] =
     Fragment.const0(s"SELECT tags FROM $table").query[Seq[Tag]]
+
+  private[sql] def selectOne(group: Group.Id, event: Event.Slug): doobie.Query0[Event] =
+    buildSelect(tableFr, fieldsFr, where(group, event)).query[Event]
+
+  private[sql] def selectOne(user: User.Id, group: Group.Slug, event: Event.Slug): doobie.Query0[(Group, Event, Option[Cfp], Option[(Venue, Partner)])] = {
+    val selectedTables = Fragment.const0(s"${GroupRepoSql.table} g " +
+      s"INNER JOIN $table e ON e.group_id=g.id " +
+      s"LEFT JOIN ${CfpRepoSql.table} c ON c.id=e.cfp_id " +
+      s"LEFT JOIN ${VenueRepoSql.table} v ON v.id=e.venue " +
+      s"LEFT JOIN ${PartnerRepoSql.table} p ON p.id=v.partner_id ")
+    val selectedFields = Fragment.const0((GroupRepoSql.fields.map("g." + _) ++
+      fields.map("e." + _) ++
+      CfpRepoSql.fields.map("c." + _) ++
+      VenueRepoSql.fields.map("v." + _) ++
+      PartnerRepoSql.fields.map("p." + _)).mkString(", "))
+    val where = fr0"WHERE g.owners LIKE ${"%" + user.value + "%"} AND g.slug=$group AND e.slug=$event"
+    buildSelect(selectedTables, selectedFields, where).query[(Group, Event, Option[Cfp], Option[(Venue, Partner)])]
+  }
 
   private def where(group: Group.Id, event: Event.Slug): Fragment =
     fr0"WHERE group_id=$group AND slug=$event"

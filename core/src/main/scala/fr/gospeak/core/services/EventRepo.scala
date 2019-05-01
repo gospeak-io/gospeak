@@ -2,8 +2,10 @@ package fr.gospeak.core.services
 
 import java.time.Instant
 
+import cats.data.ValidatedNec
 import cats.effect.IO
-import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
+import fr.gospeak.core.domain._
+import fr.gospeak.core.dto.EventFull
 import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
 
 // TODO: take full object as parameter instead of Id/slug to guarantee it exists
@@ -26,6 +28,8 @@ trait OrgaEventRepo {
   def listAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]]
 
   def find(group: Group.Id, event: Event.Slug): IO[Option[Event]]
+
+  def findFull(user: User.Id, group: Group.Slug, event: Event.Slug): IO[Option[ValidatedNec[String, EventFull]]]
 }
 
 trait SpeakerEventRepo {

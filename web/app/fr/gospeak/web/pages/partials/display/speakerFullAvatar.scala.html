@@ -1,0 +1,6 @@
+@import fr.gospeak.core.domain.User
+@(user: User, call: Option[Call] = None)
+@call match {
+    case Some(url) => {<a href="@url" title="@user.name.value" data-toggle="tooltip" data-placement="top"><img src="@user.avatar.url.value" class="avatar" alt="avatar"></a>}
+    case None => {<span title="@user.name.value" data-toggle="tooltip" data-placement="top"><img src="@user.avatar.url.value" class="avatar" alt="avatar"></span>}
+}

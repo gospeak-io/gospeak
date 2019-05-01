@@ -1,5 +1,6 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Partner, Proposal, User, Venue}
+@import fr.gospeak.core.dto.EventFull
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
@@ -14,15 +15,15 @@
 @import fr.gospeak.web.pages.partials.html.{pagination, search}
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, event: Event, venues: Seq[(Partner, Venue)], talks: Seq[Proposal], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], attachCfp: Form[Cfp.Slug])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@container(event.name.value + " - Gospeak", group, b)() {
+@(event: EventFull, proposals: Page[Proposal], speakers: Seq[User], attachCfp: Form[Cfp.Slug])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container(event.name.value + " - Gospeak", event.group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@event.name.value</span>
-        <a class="btn btn-outline-secondary" href="@EventCtrl.edit(group.slug, event.slug)" title="edit"><i class="fas fa-edit"></i></a>
+        <a class="btn btn-outline-secondary" href="@EventCtrl.edit(event.group.slug, event.slug)" title="edit"><i class="fas fa-edit"></i></a>
     </h1>
 
     <p>
-        @event.venue.map { v => @venue(venues, v), }.getOrElse{ <b class="text-danger">Missing venue</b>, }
+        @event.venue.map { v => @venueFull(v), }.getOrElse{ <b class="text-danger">Missing venue</b>, }
         @Formats.datetime(event.start)
         @tags(event.tags)
     </p>
@@ -33,28 +34,26 @@
                 <span class="text-capitalize">@Formats.plural(event.talks.length, "planned talk")</span>
             </h5>
             <div class="list-group list-group-flush">
-            @event.talks.map { tId =>
+            @event.talks.map { talk =>
                 <div class="list-group-item p-1 d-flex justify-content-between align-items-center">
-                    @talks.find(_.id == tId).map { talk =>
-                        <div>
-                            @formBtn(EventCtrl.cancelTalk(group.slug, event.slug, talk.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Remove this talk from the event")) { <i class="fas fa-minus"></i> }
-                            @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, true, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk up")) { <i class="fas fa-arrow-up"></i> }
-                            @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, false, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk down")) { <i class="fas fa-arrow-down"></i> }
-                            @duration(talk.duration)
-                            @slidesIcon(talk.slides)
-                            @videoIcon(talk.video)
-                            @cfpOpt.map { cfp => <a href="@ProposalCtrl.detail(group.slug, cfp.slug, talk.id)">@talk.title.value</a> }.getOrElse { <span>@talk.title.value</span> }
-                            @tags(talk.tags)
-                        </div>
-                        <div>@talk.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }</div>
-                    }.getOrElse { Unknown (@tId.value) }
+                    <div>
+                        @formBtn(EventCtrl.cancelTalk(event.group.slug, event.slug, talk.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Remove this talk from the event")) { <i class="fas fa-minus"></i> }
+                        @formBtn(EventCtrl.moveTalk(event.group.slug, event.slug, talk.id, true, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk up")) { <i class="fas fa-arrow-up"></i> }
+                        @formBtn(EventCtrl.moveTalk(event.group.slug, event.slug, talk.id, false, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk down")) { <i class="fas fa-arrow-down"></i> }
+                        @duration(talk.duration)
+                        @slidesIcon(talk.slides)
+                        @videoIcon(talk.video)
+                        @event.cfp.map { cfp => <a href="@ProposalCtrl.detail(event.group.slug, cfp.slug, talk.id)">@talk.title.value</a> }.getOrElse { <span>@talk.title.value</span> }
+                        @tags(talk.tags)
+                    </div>
+                    <div>@talk.speakers.toList.map { user => @speakerFullAvatar(user, Some(SpeakerCtrl.detail(event.group.slug, user.slug))) }</div>
                 </div>
             }
             </div>
         </div>
     }
 
-    @cfpOpt.map { cfp =>
+    @event.cfp.map { cfp =>
         @if(proposals.isEmpty && proposals.params.search.isEmpty) {
             <div class="card">
                 <h5 class="card-header"><b>@cfp.name.value</b> CFP</h5>
@@ -66,43 +65,43 @@
             <div class="card">
                 <h5 class="card-header d-flex justify-content-between align-items-center">
                     <span><b>@cfp.name.value</b> CFP: @Formats.plural(proposals.total.value, "pending talk")</span>
-                    @search(proposals, EventCtrl.detail(group.slug, event.slug), "input-group-sm")
+                    @search(proposals, EventCtrl.detail(event.group.slug, event.slug), "input-group-sm")
                 </h5>
                 <div class="list-group list-group-flush">
                 @proposals.items.map { proposal =>
                     <div class="list-group-item p-1 d-flex justify-content-between align-items-center">
                         <div>
-                            @formBtn(EventCtrl.addToTalks(group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
-                            @formBtn(EventCtrl.rejectProposal(group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Reject this proposal", "confirm" -> s"Reject proposal: ${proposal.title.value}?")){<i class="far fa-trash-alt"></i>}
+                            @formBtn(EventCtrl.addToTalks(event.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
+                            @formBtn(EventCtrl.rejectProposal(event.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Reject this proposal", "confirm" -> s"Reject proposal: ${proposal.title.value}?")){<i class="far fa-trash-alt"></i>}
                             @duration(proposal.duration)
                             @slidesIcon(proposal.slides)
                             @videoIcon(proposal.video)
-                            <a href="@ProposalCtrl.detail(group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
+                            <a href="@ProposalCtrl.detail(event.group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
                             @tags(proposal.tags)
                             <small title="Proposal date">(since @Formats.date(proposal.info.created))</small>
                         </div>
                         <div>
-                            @proposal.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }
+                            @proposal.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(event.group.slug, u.slug))) }
                         </div>
                     </div>
                 }
                 </div>
             </div>
-            <div class="mt-1 d-flex justify-content-end">@pagination(proposals, EventCtrl.detail(group.slug, event.slug, _))</div>
+            <div class="mt-1 d-flex justify-content-end">@pagination(proposals, EventCtrl.detail(event.group.slug, event.slug, _))</div>
         }
     }.getOrElse {
         <div class="card">
             <h5 class="card-header">No attached CFP</h5>
             <div class="card-body mx-auto text-center">
                 <p class="card-text">Your event has no attached CFP, so you will not be able to add talk proposals</p>
-                @formElt(attachCfp, EventCtrl.attachCfp(group.slug, event.slug), Seq("class" -> "form-inline")) {
+                @formElt(attachCfp, EventCtrl.attachCfp(event.group.slug, event.slug), Seq("class" -> "form-inline")) {
                     @inputSelect(attachCfp("cfp"), Seq(), Seq(
                         "placeholder" -> "-- Attach a CFP to this event",
-                        "remote" -> SuggestCtrl.cfps(group.slug).toString,
+                        "remote" -> SuggestCtrl.cfps(event.group.slug).toString,
                         "optional" -> ""))
                     @btnSubmit("Attach a CFP", "btn btn-primary ml-2")
                     <span class="ml-2">or</span>
-                    <a href="@CfpCtrl.create(group.slug, Some(event.slug))" class="btn btn-success ml-2">Create a new CFP</a>
+                    <a href="@CfpCtrl.create(event.group.slug, Some(event.slug))" class="btn btn-success ml-2">Create a new CFP</a>
                 }
             </div>
         </div>

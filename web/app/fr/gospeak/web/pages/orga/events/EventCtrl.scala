@@ -65,15 +65,11 @@ class EventCtrl(cc: ControllerComponents,
   def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     val customParams = params.defaultSize(40).defaultOrderBy(proposalRepo.fields.created)
     (for {
-      groupElt <- OptionT(groupRepo.find(user, group))
-      eventElt <- OptionT(eventRepo.find(groupElt.id, event))
-      venues <- OptionT.liftF(venueRepo.list(groupElt.id, eventElt.venue.toList))
-      talks <- OptionT.liftF(proposalRepo.list(eventElt.talks))
-      cfpOpt <- OptionT.liftF(cfpRepo.find(eventElt.id))
-      proposals <- OptionT.liftF(cfpOpt.map(cfp => proposalRepo.list(cfp.id, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal])))
-      speakers <- OptionT.liftF(userRepo.list((proposals.items ++ talks).flatMap(_.users).distinct))
-      b = breadcrumb(groupElt, eventElt)
-    } yield Ok(html.detail(groupElt, eventElt, venues, talks, cfpOpt, proposals, speakers, EventForms.attachCfp)(b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+      event <- OptionT(eventRepo.findFull(user, group, event).map(_.flatMap(_.toOption)))
+      proposals <- OptionT.liftF(event.cfp.map(cfp => proposalRepo.list(cfp.id, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal])))
+      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
+      b = breadcrumb(event.group, event.toEvent)
+    } yield Ok(html.detail(event, proposals, speakers, EventForms.attachCfp)(b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
