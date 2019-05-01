@@ -13,7 +13,7 @@
     @inputDatetime(field, args)
 }
 @fieldHorizontal(form("venue"), Seq("label" -> "Venue", "help" -> "Where your event will take place")) { (field, args) =>
-    @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.venues(group.slug).toString) ++ args)
+    @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.venues(group.slug).toString, "optional" -> "") ++ args)
 }
 @fieldHorizontal(form("cfp"), Seq("label" -> "CFP", "help" -> "You will be able to add proposals from the CFP to the event")) { (field, args) =>
     @inputSelect(field, Seq(), Seq("placeholder" -> "-- Attach a CFP to this event", "remote" -> SuggestCtrl.cfps(group.slug).toString, "optional" -> "") ++ args)

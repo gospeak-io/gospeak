@@ -97,5 +97,5 @@ object VenueCtrl {
     GroupCtrl.breadcrumb(group).add("Venues" -> routes.VenueCtrl.list(group.slug))
 
   def breadcrumb(group: Group, venue: Venue): Breadcrumb =
-    listBreadcrumb(group).add(venue.address.format -> routes.VenueCtrl.detail(group.slug, venue.id))
+    listBreadcrumb(group).add(venue.address.value -> routes.VenueCtrl.detail(group.slug, venue.id))
 }

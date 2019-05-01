@@ -15,7 +15,7 @@ case class GMapPlace(id: String,
                      website: Option[String],
                      phone: Option[String],
                      utcOffset: Int) {
-  def format: String = formatted
+  def value: String = formatted
 
   def trim: GMapPlace = GMapPlace(
     id = id.trim,

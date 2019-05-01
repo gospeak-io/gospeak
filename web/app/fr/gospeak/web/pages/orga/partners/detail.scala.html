@@ -13,7 +13,7 @@
 @(group: Group, partner: Partner, venues: Seq[Venue], speakers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @venueItem(venue: Venue) = {
     <a class="list-group-item list-group-item-action" href="@VenueCtrl.detail(group.slug, partner.slug, venue.id)">
-    @venue.address.format
+    @venue.address.value
     </a>
 }
 @container(partner.name.value + " - Gospeak", group, b)() {
@@ -43,7 +43,7 @@
             </h5>
             <div class="list-group list-group-flush">
             @venues.map { venue =>
-                <a class="list-group-item list-group-item-action" href="@VenueCtrl.detail(group.slug, partner.slug, venue.id)">@venue.address.format</a>
+                <a class="list-group-item list-group-item-action" href="@VenueCtrl.detail(group.slug, partner.slug, venue.id)">@venue.address.value</a>
             }
             </div>
         </div>
