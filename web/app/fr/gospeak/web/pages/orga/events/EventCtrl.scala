@@ -70,11 +70,10 @@ class EventCtrl(cc: ControllerComponents,
       venues <- OptionT.liftF(venueRepo.list(groupElt.id, eventElt.venue.toList))
       talks <- OptionT.liftF(proposalRepo.list(eventElt.talks))
       cfpOpt <- OptionT.liftF(cfpRepo.find(eventElt.id))
-      groupCfps <- OptionT.liftF(cfpOpt.map(_ => IO.pure(Seq.empty[Cfp])).getOrElse(cfpRepo.list(groupElt.id)))
       proposals <- OptionT.liftF(cfpOpt.map(cfp => proposalRepo.list(cfp.id, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal])))
       speakers <- OptionT.liftF(userRepo.list((proposals.items ++ talks).flatMap(_.users).distinct))
       b = breadcrumb(groupElt, eventElt)
-    } yield Ok(html.detail(groupElt, eventElt, venues, talks, cfpOpt, proposals, speakers, EventForms.attachCfp, groupCfps)(b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, eventElt, venues, talks, cfpOpt, proposals, speakers, EventForms.attachCfp)(b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>

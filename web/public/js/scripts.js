@@ -61,19 +61,19 @@ function slugify(str) {
         allowClear: true
     };
     $('select.select2').each(function () {
-        var $select = $(this);
-        $select.select2(Object.assign({}, defaultOpts, {
-            placeholder: $select.attr('placeholder')
-        }));
-        addRemoteOptions($select);
+        addRemoteOptions2($(this), function ($select) {
+            $select.select2(Object.assign({}, defaultOpts, {
+                placeholder: $select.attr('placeholder')
+            }));
+        });
     });
     $('select.tags').each(function () {
-        var $select = $(this);
-        $select.select2(Object.assign({}, defaultOpts, {
-            placeholder: $select.attr('placeholder'),
-            tags: true
-        }));
-        addRemoteOptions($select);
+        addRemoteOptions2($(this), function ($select) {
+            $select.select2(Object.assign({}, defaultOpts, {
+                placeholder: $select.attr('placeholder'),
+                tags: true
+            }));
+        });
     });
 
     function addRemoteOptions($select) {
@@ -90,6 +90,29 @@ function slugify(str) {
                 });
                 $select.trigger('change');
             });
+        }
+    }
+
+    function addRemoteOptions2($select, callback) {
+        var remote = $select.attr('remote');
+        if (remote) {
+            $.getJSON(remote, function (res) {
+                var values = ($select.attr('value') || '').split(',').filter(function (v) {
+                    return v.length > 0;
+                });
+                res.map(function (item) {
+                    if ($select.find('option[value="' + item.id + '"]').length === 0) { // do not add item if it already exists
+                        if (values.indexOf(item.id) > -1) {
+                            $select.append('<option value="' + item.id + '" selected>' + item.text + '</option>');
+                        } else {
+                            $select.append('<option value="' + item.id + '">' + item.text + '</option>');
+                        }
+                    }
+                });
+                callback($select);
+            });
+        } else {
+            callback($select);
         }
     }
 })();

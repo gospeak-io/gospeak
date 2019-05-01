@@ -8,12 +8,13 @@
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.html.{pagination, search}
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, event: Event, venues: Seq[(Partner, Venue)], talks: Seq[Proposal], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], attachCfp: Form[Cfp.Slug], groupCfps: Seq[Cfp])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, event: Event, venues: Seq[(Partner, Venue)], talks: Seq[Proposal], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], attachCfp: Form[Cfp.Slug])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(event.name.value + " - Gospeak", group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@event.name.value</span>
@@ -95,10 +96,10 @@
             <div class="card-body mx-auto text-center">
                 <p class="card-text">Your event has no attached CFP, so you will not be able to add talk proposals</p>
                 @formElt(attachCfp, EventCtrl.attachCfp(group.slug, event.slug), Seq("class" -> "form-inline")) {
-                    @inputSelect(
-                        attachCfp("cfp"),
-                        groupCfps.map(c => c.slug.value -> (c.name.value + " - " + Formats.cfpDates(c))),
-                        Seq("placeholder" -> "-- Attach a CFP to this event", "optional" -> ""))
+                    @inputSelect(attachCfp("cfp"), Seq(), Seq(
+                        "placeholder" -> "-- Attach a CFP to this event",
+                        "remote" -> SuggestCtrl.cfps(group.slug).toString,
+                        "optional" -> ""))
                     @btnSubmit("Attach a CFP", "btn btn-primary ml-2")
                     <span class="ml-2">or</span>
                     <a href="@CfpCtrl.create(group.slug, Some(event.slug))" class="btn btn-success ml-2">Create a new CFP</a>
