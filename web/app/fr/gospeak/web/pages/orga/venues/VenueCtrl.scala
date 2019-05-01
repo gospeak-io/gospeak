@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, Venue}
-import fr.gospeak.core.services.{OrgaGroupRepo, OrgaVenueRepo}
+import fr.gospeak.core.services.{OrgaGroupRepo, OrgaUserRepo, OrgaVenueRepo}
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
@@ -21,6 +21,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
 class VenueCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
+                userRepo: OrgaUserRepo,
                 groupRepo: OrgaGroupRepo,
                 venueRepo: OrgaVenueRepo) extends UICtrl(cc, silhouette) {
 
@@ -67,8 +68,9 @@ class VenueCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       (partnerElt, venueElt) <- OptionT(venueRepo.find(groupElt.id, venue))
+      users <- OptionT.liftF(userRepo.list((partnerElt.users ++ venueElt.users).distinct))
       b = breadcrumb(groupElt, venueElt)
-    } yield Ok(html.detail(groupElt, partnerElt, venueElt)(b))).value.map(_.getOrElse(venueNotFound(group, venue))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, partnerElt, venueElt, users)(b))).value.map(_.getOrElse(venueNotFound(group, venue))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -92,7 +94,7 @@ class VenueCtrl(cc: ControllerComponents,
       (partnerElt, venueElt) <- OptionT(venueRepo.find(groupElt.id, venue))
       b = breadcrumb(groupElt, venueElt).add("Edit" -> routes.VenueCtrl.edit(group, venue))
       filledForm = if (form.hasErrors) form else form.fill(venueElt.data)
-    } yield Ok(html.edit(groupElt, venueElt, filledForm)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
+    } yield Ok(html.edit(groupElt, partnerElt, venueElt, filledForm)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
   }
 }
 

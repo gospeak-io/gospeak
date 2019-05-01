@@ -4,6 +4,7 @@
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 
 @(group: Group, partner: Partner)
-<a class="list-group-item list-group-item-action" href="@PartnerCtrl.detail(group.slug, partner.slug)">
+<a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="@PartnerCtrl.detail(group.slug, partner.slug)">
     <h5 class="mb-1">@partner.name.value</h5>
+    <img src="@partner.logo.value" alt="logo" class="avatar avatar-lg">
 </a>

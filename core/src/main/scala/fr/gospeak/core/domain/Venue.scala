@@ -10,6 +10,8 @@ final case class Venue(id: Venue.Id,
                        roomSize: Option[Int],
                        info: Info) {
   def data: Venue.Data = Venue.Data(this)
+
+  def users: Seq[User.Id] = info.users
 }
 
 object Venue {

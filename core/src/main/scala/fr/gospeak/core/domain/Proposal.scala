@@ -21,7 +21,7 @@ final case class Proposal(id: Proposal.Id,
                           info: Info) {
   def data: Proposal.Data = Proposal.Data(this)
 
-  def users: Seq[User.Id] = (info.createdBy :: info.updatedBy :: speakers.toList).distinct
+  def users: Seq[User.Id] = (info.users ++ speakers.toList).distinct
 }
 
 object Proposal {

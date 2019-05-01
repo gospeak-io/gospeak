@@ -6,11 +6,10 @@
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partials.html.container
-@import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.html.{slidesFields, videoFields}
-@import fr.gospeak.web.utils.Formats
 
 @(group: Group, cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event], embedForm: Form[Url])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(proposal.title.value + " - Gospeak", group, b)() {

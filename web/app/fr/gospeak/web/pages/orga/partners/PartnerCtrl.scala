@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, Partner}
-import fr.gospeak.core.services.{OrgaGroupRepo, OrgaPartnerRepo}
+import fr.gospeak.core.services.{OrgaGroupRepo, OrgaPartnerRepo, OrgaUserRepo}
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
@@ -21,6 +21,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
 class PartnerCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
+                  userRepo: OrgaUserRepo,
                   groupRepo: OrgaGroupRepo,
                   partnerRepo: OrgaPartnerRepo) extends UICtrl(cc, silhouette) {
 
@@ -67,8 +68,9 @@ class PartnerCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
+      users <- OptionT.liftF(userRepo.list(partnerElt.users))
       b = breadcrumb(groupElt, partnerElt)
-    } yield Ok(html.detail(groupElt, partnerElt)(b))).value.map(_.getOrElse(partnerNotFound(group, partner))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, partnerElt, users)(b))).value.map(_.getOrElse(partnerNotFound(group, partner))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>

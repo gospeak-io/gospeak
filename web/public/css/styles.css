@@ -45,6 +45,10 @@
     border-radius: .25em;
 }
 
+.avatar.avatar-lg {
+    height: 50px;
+}
+
 .media .avatar {
     height: 100px;
 }
