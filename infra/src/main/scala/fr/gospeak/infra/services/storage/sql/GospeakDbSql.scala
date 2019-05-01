@@ -29,13 +29,13 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
 
   val user = new UserRepoSql(xa)
   val userRequest = new UserRequestRepoSql(xa)
+  val talk = new TalkRepoSql(xa)
   val group = new GroupRepoSql(xa)
   val cfp = new CfpRepoSql(xa)
-  val event = new EventRepoSql(xa)
-  val talk = new TalkRepoSql(xa)
-  val proposal = new ProposalRepoSql(xa)
   val partner = new PartnerRepoSql(xa)
   val venue = new VenueRepoSql(xa)
+  val event = new EventRepoSql(xa)
+  val proposal = new ProposalRepoSql(xa)
 
   def insertHTData(mongoUri: String): IO[Done] = {
     val dbName = mongoUri.split('?').head.split('/').last

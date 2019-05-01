@@ -19,10 +19,12 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   val transactor: doobie.Transactor[IO] = db.xa
   protected val userRepo: UserRepoSql = db.user
   protected val userRequestRepo: UserRequestRepoSql = db.userRequest
+  protected val talkRepo: TalkRepoSql = db.talk
   protected val groupRepo: GroupRepoSql = db.group
   protected val cfpRepo: CfpRepoSql = db.cfp
+  protected val partnerRepo: PartnerRepoSql = db.partner
+  protected val venueRepo: VenueRepoSql = db.venue
   protected val eventRepo: EventRepoSql = db.event
-  protected val talkRepo: TalkRepoSql = db.talk
   protected val proposalRepo: ProposalRepoSql = db.proposal
 
   protected val now: Instant = random[Instant]
@@ -38,6 +40,8 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
 
   protected val Seq(userData1, userData2, userData3) = random[User.Data](10).distinctBy(_.email).take(3)
   protected val Seq(groupData1, groupData2) = random[Group.Data](2)
+  protected val Seq(partnerData1, partnerData2) = random[Partner.Data](2)
+  protected val Seq(venueData1, venueData2) = random[Venue.Data](2)
   protected val cfpData1: Cfp.Data = random[Cfp.Data]
   protected val eventData1: Event.Data = random[Event.Data].copy(cfp = None)
   protected val Seq(talkData1, talkData2) = random[Talk.Data](2)
@@ -53,6 +57,11 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
     user <- userRepo.create(userData1, now)
     group <- groupRepo.create(groupData1, user.id, now)
   } yield (user, group)
+
+  protected def createPartnerAndVenue(user: User, group: Group): IO[(Partner, Venue)] = for {
+    partner <- partnerRepo.create(group.id, partnerData1, user.id, now)
+    venue <- venueRepo.create(group.id, venueData1.copy(partner = partner.id), user.id, now)
+  } yield (partner, venue)
 
   protected def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk)] = for {
     (user, group) <- createUserAndGroup()
