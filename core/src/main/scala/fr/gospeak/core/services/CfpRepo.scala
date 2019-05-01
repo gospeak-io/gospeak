@@ -49,6 +49,8 @@ trait PublicCfpRepo {
 }
 
 trait SuggestCfpRepo {
+  def list(group: Group.Id): IO[Seq[Cfp]]
+
   def listTags(): IO[Seq[Tag]]
 }
 

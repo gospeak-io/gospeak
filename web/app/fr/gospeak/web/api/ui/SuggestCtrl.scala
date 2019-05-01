@@ -5,7 +5,7 @@ import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.Group
 import fr.gospeak.core.services._
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.utils.ApiCtrl
+import fr.gospeak.web.utils.{ApiCtrl, Formats}
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
@@ -36,6 +36,14 @@ class SuggestCtrl(cc: ControllerComponents,
       pTags <- proposalRepo.listTags()
       suggestItems = (gTags ++ cTags ++ eTags ++ tTags ++ pTags).distinct.map(tag => SuggestedItem(tag.value, tag.value))
     } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))).unsafeToFuture()
+  }
+
+  def cfps(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      cfps <- OptionT.liftF(cfpRepo.list(groupElt.id))
+      suggestItems = cfps.map(c => SuggestedItem(c.id.value, c.name.value + " - " + Formats.cfpDates(c)))
+    } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
   }
 
   def partners(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>

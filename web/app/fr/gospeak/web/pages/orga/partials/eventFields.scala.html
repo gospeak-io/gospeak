@@ -1,9 +1,8 @@
-@import fr.gospeak.core.domain.{Cfp, Event, Group}
+@import fr.gospeak.core.domain.{Event, Group}
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.Formats
 
-@(form: Form[Event.Data], group: Group, cfps: Seq[Cfp])(implicit messages: Messages)
+@(form: Form[Event.Data], group: Group)(implicit messages: Messages)
 @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "Event name", "autofocus" -> "true") ++ args)
 }
@@ -17,7 +16,7 @@
     @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.venues(group.slug).toString) ++ args)
 }
 @fieldHorizontal(form("cfp"), Seq("label" -> "CFP", "help" -> "You will be able to add proposals from the CFP to the event")) { (field, args) =>
-    @inputSelect(field, cfps.map(c => c.id.value -> (c.name.value + " - " + Formats.cfpDates(c))), args ++ Seq("placeholder" -> "-- Attach a CFP to this event", "optional" -> ""))
+    @inputSelect(field, Seq(), Seq("placeholder" -> "-- Attach a CFP to this event", "remote" -> SuggestCtrl.cfps(group.slug).toString, "optional" -> "") ++ args)
 }
 @fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of the event")) { (field, args) =>
     @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.tags().toString))

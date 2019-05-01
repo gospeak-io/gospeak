@@ -104,6 +104,7 @@ GET         /status                                                             
 POST        /ui/utils/markdown-to-html                                          fr.gospeak.web.api.ui.UtilsCtrl.markdownToHtml
 GET         /ui/utils/embed                                                     fr.gospeak.web.api.ui.UtilsCtrl.embed(url: Url)
 GET         /ui/suggest/tags                                                    fr.gospeak.web.api.ui.SuggestCtrl.tags
+GET         /ui/suggest/cfps/:group                                             fr.gospeak.web.api.ui.SuggestCtrl.cfps(group: Group.Slug)
 GET         /ui/suggest/partners/:group                                         fr.gospeak.web.api.ui.SuggestCtrl.partners(group: Group.Slug)
 GET         /ui/suggest/venues/:group                                           fr.gospeak.web.api.ui.SuggestCtrl.venues(group: Group.Slug)
 

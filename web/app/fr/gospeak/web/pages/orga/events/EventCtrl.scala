@@ -58,9 +58,8 @@ class EventCtrl(cc: ControllerComponents,
   private def createForm(group: Group.Slug, form: Form[Event.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      cfps <- OptionT.liftF(cfpRepo.list(groupElt.id))
       b = listBreadcrumb(groupElt).add("New" -> routes.EventCtrl.create(group))
-    } yield Ok(html.create(groupElt, form, cfps)(b))).value.map(_.getOrElse(groupNotFound(group)))
+    } yield Ok(html.create(groupElt, form)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
   def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -103,10 +102,9 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
-      cfps <- OptionT.liftF(cfpRepo.list(groupElt.id))
       b = breadcrumb(groupElt, eventElt).add("Edit" -> routes.EventCtrl.edit(group, event))
       filledForm = if (form.hasErrors) form else form.fill(eventElt.data)
-    } yield Ok(html.edit(groupElt, eventElt, filledForm, cfps)(b))).value.map(_.getOrElse(eventNotFound(group, event)))
+    } yield Ok(html.edit(groupElt, eventElt, filledForm)(b))).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
   def attachCfp(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
