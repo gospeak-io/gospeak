@@ -117,17 +117,10 @@ function slugify(str) {
     }
 })();
 
-// http://www.malot.fr/bootstrap-datetimepicker/
+//https://tempusdominus.github.io/bootstrap-4/
 (function () {
-    $('input.input-datetime').each(function () {
-        $(this).datetimepicker({
-            language: 'en',
-            format: 'yyyy-mm-dd hh:ii:ss',
-            todayHighlight: true,
-            autoclose: true,
-            minuteStep: 10,
-            initialDate: $(this).attr('startDate')
-        });
+    $('input.input-datetimeeeee').each(function () {
+        $(this).datetimepicker();
     });
 })();
 
