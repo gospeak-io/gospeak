@@ -1,6 +1,6 @@
-package fr.gospeak.libs.scalautils.utils
+package fr.gospeak.libs.scalautils
 
-import fr.gospeak.libs.scalautils.utils.StringUtils._
+import fr.gospeak.libs.scalautils.StringUtils._
 import org.scalatest.{FunSpec, Matchers}
 
 class StringUtilsSpec extends FunSpec with Matchers {

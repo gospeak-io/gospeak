@@ -1,4 +1,4 @@
-package fr.gospeak.libs.scalautils.utils
+package fr.gospeak.libs.scalautils
 
 import java.security.MessageDigest
 

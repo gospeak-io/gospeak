@@ -7,14 +7,14 @@ import cats.effect.IO
 import doobie.implicits._
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.core.services.GospeakDb
+import fr.gospeak.core.services.storage.GospeakDb
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.infra.utils.{DoobieUtils, FlywayUtils}
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.StringUtils
 import fr.gospeak.libs.scalautils.domain._
-import fr.gospeak.libs.scalautils.utils.StringUtils
 import fr.gospeak.migration.MongoRepo
 
 import scala.concurrent.duration._

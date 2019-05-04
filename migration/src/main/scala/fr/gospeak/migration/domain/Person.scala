@@ -4,8 +4,8 @@ import java.time.Instant
 
 import fr.gospeak.core.domain.User
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.StringUtils
 import fr.gospeak.libs.scalautils.domain.EmailAddress
-import fr.gospeak.libs.scalautils.utils.StringUtils
 import fr.gospeak.migration.domain.utils.Meta
 import fr.gospeak.migration.utils.AvatarUtils
 

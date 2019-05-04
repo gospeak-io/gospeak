@@ -147,6 +147,11 @@ object Extensions {
       case Left(e: Throwable) => throw e
       case Left(e) => throw new NoSuchElementException(s"Left($e).get")
     }
+
+    def toIO(implicit ev: E <:< Throwable): IO[A] = in match {
+      case Right(a) => IO.pure(a)
+      case Left(e) => IO.raiseError(e)
+    }
   }
 
   implicit class IOExtension[A](val in: IO[A]) extends AnyVal {

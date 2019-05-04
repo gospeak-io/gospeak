@@ -10,7 +10,7 @@ import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
 import fr.gospeak.core.domain.UserRequest
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
-import fr.gospeak.core.services.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
+import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.emails.Emails

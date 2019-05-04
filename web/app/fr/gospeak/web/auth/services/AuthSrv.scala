@@ -11,10 +11,10 @@ import com.mohiva.play.silhouette.impl.exceptions.IdentityNotFoundException
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import com.mohiva.play.silhouette.password.BCryptPasswordHasher
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
-import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.domain.User.{ProviderId, ProviderKey}
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
-import fr.gospeak.core.services.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
+import fr.gospeak.core.domain.{Group, User}
+import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.EmailAddress

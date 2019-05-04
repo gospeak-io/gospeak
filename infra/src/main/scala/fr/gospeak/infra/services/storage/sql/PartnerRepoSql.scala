@@ -7,7 +7,7 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain.{Group, Partner, User}
-import fr.gospeak.core.services.PartnerRepo
+import fr.gospeak.core.services.storage.PartnerRepo
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._

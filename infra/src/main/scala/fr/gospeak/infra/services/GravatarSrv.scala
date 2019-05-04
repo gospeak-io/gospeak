@@ -1,8 +1,8 @@
 package fr.gospeak.infra.services
 
 import fr.gospeak.infra.services.GravatarSrv._
+import fr.gospeak.libs.scalautils.Crypto
 import fr.gospeak.libs.scalautils.domain.{Avatar, EmailAddress, Url}
-import fr.gospeak.libs.scalautils.utils.Crypto
 
 // see https://fr.gravatar.com/site/implement/images
 class GravatarSrv {

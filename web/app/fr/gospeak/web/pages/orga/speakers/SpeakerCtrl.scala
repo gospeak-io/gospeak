@@ -3,7 +3,7 @@ package fr.gospeak.web.pages.orga.speakers
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.{Group, User}
-import fr.gospeak.core.services._
+import fr.gospeak.core.services.storage.{OrgaEventRepo, OrgaGroupRepo, OrgaProposalRepo, OrgaUserRepo}
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb

@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "channel": "28XCDPD09",
+  "ts": "1556997489.000300",
+  "message": {
+    "type": "message",
+    "subtype": "bot_message",
+    "text": "A message",
+    "ts": "1556997489.000300",
+    "username": "Gospeak",
+    "icons": {
+      "image_48": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/bot_icons\/2016-11-06\/100927403314_48.png"
+    },
+    "bot_id": "B247FDBAY"
+  }
+}

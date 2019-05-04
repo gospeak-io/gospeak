@@ -2,6 +2,7 @@ package fr.gospeak.core.domain
 
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.services.slack.domain.{SlackAction, SlackUser, SlackToken}
 import fr.gospeak.libs.scalautils.domain._
 
 final case class Group(id: Group.Id,
@@ -37,5 +38,9 @@ object Group {
   object Data {
     def apply(group: Group): Data = new Data(group.slug, group.name, group.description, group.tags)
   }
+
+  final case class SlackSettings(token: SlackToken,
+                                 user: SlackUser,
+                                 onProposalCreated: SlackAction)
 
 }

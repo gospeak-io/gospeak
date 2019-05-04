@@ -9,7 +9,7 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.core.services.CfpRepo
+import fr.gospeak.core.services.storage.CfpRepo
 import fr.gospeak.infra.services.storage.sql.CfpRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments.{buildInsert, buildSelect, buildUpdate, paginate}

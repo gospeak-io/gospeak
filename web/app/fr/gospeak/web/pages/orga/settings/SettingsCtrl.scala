@@ -3,7 +3,7 @@ package fr.gospeak.web.pages.orga.settings
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.Group
-import fr.gospeak.core.services.OrgaGroupRepo
+import fr.gospeak.core.services.storage.OrgaGroupRepo
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.GroupCtrl

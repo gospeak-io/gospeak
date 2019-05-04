@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.Group
-import fr.gospeak.core.services.{PublicCfpRepo, PublicGroupRepo}
+import fr.gospeak.core.services.storage.{PublicCfpRepo, PublicGroupRepo}
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.UICtrl

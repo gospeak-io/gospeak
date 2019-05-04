@@ -1,10 +1,10 @@
-package fr.gospeak.core.services
+package fr.gospeak.core.services.storage
 
 import java.time.Instant
 
 import cats.effect.IO
 import fr.gospeak.core.domain.{Cfp, Talk, User}
-import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Tag, Video}
+import fr.gospeak.libs.scalautils.domain._
 
 trait TalkRepo extends OrgaTalkRepo with SpeakerTalkRepo with UserTalkRepo with AuthTalkRepo with SuggestTalkRepo
 

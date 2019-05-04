@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, Venue}
-import fr.gospeak.core.services.{OrgaGroupRepo, OrgaUserRepo, OrgaVenueRepo}
+import fr.gospeak.core.services.storage.{OrgaGroupRepo, OrgaUserRepo, OrgaVenueRepo}
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb

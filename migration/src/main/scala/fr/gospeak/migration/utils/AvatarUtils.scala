@@ -3,8 +3,8 @@ package fr.gospeak.migration.utils
 import java.io.FileNotFoundException
 import java.net.URL
 
+import fr.gospeak.libs.scalautils.Crypto
 import fr.gospeak.libs.scalautils.domain.{Avatar, EmailAddress, Url}
-import fr.gospeak.libs.scalautils.utils.Crypto
 
 import scala.io.Source
 import scala.util.Try

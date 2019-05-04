@@ -4,8 +4,8 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.libs.scalautils.Crypto
 import fr.gospeak.libs.scalautils.domain._
-import fr.gospeak.libs.scalautils.utils.Crypto
 import org.scalacheck.ScalacheckShapeless._
 import org.scalacheck.{Arbitrary, Gen}
 

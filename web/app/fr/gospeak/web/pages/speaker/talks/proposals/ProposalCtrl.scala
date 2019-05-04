@@ -6,15 +6,17 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
+import fr.gospeak.core.domain.GospeakMessage.ProposalMessage.ProposalCreated
 import fr.gospeak.core.domain._
-import fr.gospeak.core.services._
+import fr.gospeak.core.services.storage._
+import fr.gospeak.libs.scalautils.MessageBus
 import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl._
 import fr.gospeak.web.pages.speaker.talks.TalkCtrl
 import fr.gospeak.web.pages.speaker.talks.cfps.CfpCtrl
 import fr.gospeak.web.pages.speaker.talks.cfps.routes.{CfpCtrl => CfpRoutes}
+import fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl._
 import fr.gospeak.web.utils.{GenericForm, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
@@ -25,7 +27,8 @@ class ProposalCtrl(cc: ControllerComponents,
                    cfpRepo: SpeakerCfpRepo,
                    eventRepo: SpeakerEventRepo,
                    talkRepo: SpeakerTalkRepo,
-                   proposalRepo: SpeakerProposalRepo) extends UICtrl(cc, silhouette) {
+                   proposalRepo: SpeakerProposalRepo,
+                   mb: MessageBus[GospeakMessage]) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
@@ -51,6 +54,7 @@ class ProposalCtrl(cc: ControllerComponents,
           talkElt <- OptionT(talkRepo.find(user, talk))
           cfpElt <- OptionT(cfpRepo.find(cfp))
           proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data, talkElt.speakers, by, now))
+          _ <- OptionT.liftF(mb.publish(ProposalCreated(proposalElt)))
           msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
         } yield Redirect(routes.ProposalCtrl.detail(talk, cfp)).flashing("success" -> msg)).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }

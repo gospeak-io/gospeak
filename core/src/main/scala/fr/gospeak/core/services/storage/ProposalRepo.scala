@@ -1,11 +1,11 @@
-package fr.gospeak.core.services
+package fr.gospeak.core.services.storage
 
 import java.time.Instant
 
 import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
-import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Tag, Video}
+import fr.gospeak.libs.scalautils.domain._
 
 trait ProposalRepo extends OrgaProposalRepo with SpeakerProposalRepo with UserProposalRepo with AuthProposalRepo with SuggestProposalRepo
 

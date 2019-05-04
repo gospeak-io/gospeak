@@ -9,9 +9,13 @@ import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaSigner}
 import com.mohiva.play.silhouette.impl.authenticators._
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.softwaremill.macwire.wire
+import fr.gospeak.core.domain.GospeakMessage
 import fr.gospeak.core.services._
+import fr.gospeak.core.services.storage._
+import fr.gospeak.infra.services.slack.SlackClient
 import fr.gospeak.infra.services.storage.sql._
 import fr.gospeak.infra.services.{EmailSrv, GravatarSrv}
+import fr.gospeak.libs.scalautils.{BasicMessageBus, MessageBus}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
 import fr.gospeak.web.auth.{AuthConf, AuthCtrl}
@@ -64,6 +68,8 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val authRepo: AuthRepo = wire[AuthRepo]
   lazy val gravatarSrv: GravatarSrv = wire[GravatarSrv]
   lazy val emailSrv: EmailSrv = EmailSrv.from(conf.emailService)
+  lazy val messageBus: MessageBus[GospeakMessage] = wire[BasicMessageBus[GospeakMessage]]
+  lazy val messageHandler: MessageHandler = wire[MessageHandler]
 
   // start:Silhouette conf
   lazy val clock: Clock = Clock()
@@ -148,6 +154,9 @@ class GospeakComponents(context: ApplicationLoader.Context)
     db.migrate().unsafeRunSync()
     db.insertMockData().unsafeRunSync() // TODO remove it for prod
     // db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync() // TODO remove it for prod
+
+    messageBus.subscribe(messageHandler.handle)
+
     logger.info("Application initialized")
   }
 

@@ -4,6 +4,7 @@ import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.Group
 import fr.gospeak.core.services._
+import fr.gospeak.core.services.storage.{SuggestCfpRepo, SuggestEventRepo, SuggestGroupRepo, SuggestPartnerRepo, SuggestProposalRepo, SuggestTalkRepo, SuggestVenueRepo}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.{ApiCtrl, Formats}
 import play.api.libs.json.{Json, Writes}

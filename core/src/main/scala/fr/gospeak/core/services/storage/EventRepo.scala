@@ -1,9 +1,9 @@
-package fr.gospeak.core.services
+package fr.gospeak.core.services.storage
 
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
+import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
 
 // TODO: take full object as parameter instead of Id/slug to guarantee it exists

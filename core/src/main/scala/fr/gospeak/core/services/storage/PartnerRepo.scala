@@ -1,4 +1,4 @@
-package fr.gospeak.core.services
+package fr.gospeak.core.services.storage
 
 import java.time.Instant
 
