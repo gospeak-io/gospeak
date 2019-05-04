@@ -122,7 +122,10 @@ function slugify(str) {
     $('input.input-datetime').each(function () {
         $(this).datetimepicker({
             language: 'en',
+            format: 'yyyy-mm-dd hh:ii:ss',
+            todayHighlight: true,
             autoclose: true,
+            minuteStep: 10,
             initialDate: $(this).attr('startDate')
         });
     });
