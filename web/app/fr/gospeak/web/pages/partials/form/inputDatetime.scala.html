@@ -1,3 +1,10 @@
 @import fr.gospeak.web.pages.partials.form.Utils
+
 @(field: Field, args: Seq[(String, String)] = Seq())
-<input type="text" id="@Utils.id(field, args)-datetime" class="form-control datetimepicker-input" data-toggle="datetimepicker" data-target="#@Utils.id(field, args)-datetime"/>
+<input
+    type="text"
+    id="@Utils.id(field, args)-datetime"
+    class="form-control datetimepicker-input"
+    @Utils.helpAttr(args)
+    data-toggle="datetimepicker"
+    data-target="#@Utils.id(field, args)-datetime"/>

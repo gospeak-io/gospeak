@@ -124,7 +124,7 @@ function slugify(str) {
             format: 'YYYY-MM-DD HH:mm:ss',
             icons: {
                 // workaround for incompatibility with fa 5
-                time: "fa fa-clock",
+                time: 'fa fa-clock'
             }
         });
     });
