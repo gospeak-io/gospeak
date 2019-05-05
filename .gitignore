@@ -2,3 +2,4 @@
 *.iml
 target/
 run_coverage.sh
+web/buildinfo.properties
