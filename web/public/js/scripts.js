@@ -119,8 +119,14 @@ function slugify(str) {
 
 //https://tempusdominus.github.io/bootstrap-4/
 (function () {
-    $('input.input-datetimeeeee').each(function () {
-        $(this).datetimepicker();
+    $('input.datetimepicker-input').each(function () {
+        $(this).datetimepicker({
+            format: 'YYYY-MM-DD HH:mm:ss',
+            icons: {
+                // workaround for incompatibility with fa 5
+                time: "fa fa-clock",
+            }
+        });
     });
 })();
 
