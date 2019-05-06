@@ -5,6 +5,7 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
 import cats.implicits._
+import fr.gospeak.core.domain.User.Shirt
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import fr.gospeak.libs.scalautils.Extensions._
@@ -44,6 +45,7 @@ object Mappings {
     "unit" -> timeUnit
   )(new FiniteDuration(_, _))(d => Some(d.length -> d.unit))
   val emailAddress: Mapping[EmailAddress] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(100)), (s: String) => EmailAddress.from(s).right.get, _.value)
+  val shirtSize: Mapping[Shirt.Size] = stringEitherMapping(Shirt.from, _.toString)
   val url: Mapping[Url] = stringEitherMapping(Url.from, _.value)
   val slides: Mapping[Slides] = stringEitherMapping(Slides.from, _.value)
   val video: Mapping[Video] = stringEitherMapping(Video.from, _.value)

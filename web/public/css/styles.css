@@ -73,8 +73,21 @@
 }
 
 .media .avatar {
-    height: 100px;
+    height: 200px;
     min-width: 100px;
+    border-radius: 50%;
+}
+
+.media .container {
+    position: relative;
+    text-align: center;
+    color: white;
+}
+
+.bottom-left {
+    position: absolute;
+    bottom: 8px;
+    left: 16px;
 }
 
 .dropdown .avatar {
@@ -114,6 +127,10 @@
 .home-title {
     text-align: center;
     margin: 50px auto;
+}
+
+a.no-style {
+    color: inherit;
 }
 
 .event-item, .proposal-item {

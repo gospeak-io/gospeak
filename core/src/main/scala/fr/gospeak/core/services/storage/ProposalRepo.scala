@@ -7,7 +7,7 @@ import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain._
 
-trait ProposalRepo extends OrgaProposalRepo with SpeakerProposalRepo with UserProposalRepo with AuthProposalRepo with SuggestProposalRepo
+trait ProposalRepo extends OrgaProposalRepo with SpeakerProposalRepo with UserProposalRepo with AuthProposalRepo with SuggestProposalRepo with PublicProposalRepo
 
 trait OrgaProposalRepo {
   val fields: ProposalFields.type = ProposalFields
@@ -29,6 +29,8 @@ trait OrgaProposalRepo {
   def list(group: Group.Id, params: Page.Params): IO[Page[Proposal]]
 
   def list(group: Group.Id, speaker: User.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
+
+  def list(speaker: User.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
 
   def list(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal]]
 
@@ -56,6 +58,10 @@ trait SpeakerProposalRepo {
 trait UserProposalRepo
 
 trait AuthProposalRepo
+
+trait PublicProposalRepo {
+  def list(speaker: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Cfp, Proposal)]]
+}
 
 trait SuggestProposalRepo {
   def listTags(): IO[Seq[Tag]]

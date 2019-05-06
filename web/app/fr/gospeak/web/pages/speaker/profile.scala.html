@@ -2,8 +2,113 @@
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.speaker.partials.html.container
+@import fr.gospeak.web.pages.partials.form.Utils
 
-@()(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@import fr.gospeak.core.domain.User
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
+@import fr.gospeak.core.domain.User.EditableFields
+
+@(form: Form[EditableFields])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", b)() {
-    <h1>Profile (TODO)</h1>
+    <h1 class="border-bottom mb-3">Public profile</h1>
+    <div class="container">
+    @formElt(form, SpeakerCtrl.profile()) {
+        <div class="row">
+            <div class="col-9">
+                <div class="form-group @if(form("first-name").errors.nonEmpty || form("last-name").errors.nonEmpty) {is-invalid}">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        </div>
+                        @inputText(form("first-name"), Seq("placeholder" -> "First Name", "autofocus" -> "true"))
+                        @inputText(form("last-name"), Seq("placeholder" -> "Last Name"))
+                    </div>
+                    <div class="row">
+                        <div class="col invalid-feedback">@form("first-name").errors.map(_.format).mkString(", ")</div>
+                        <div class="col invalid-feedback">@form("last-name").errors.map(_.format).mkString(", ")</div>
+                    </div>
+                </div>
+                <div class="form-group @if(form("email").errors.nonEmpty) {is-invalid}">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        </div>
+                        @inputEmail(form("email"), Seq("placeholder" -> "Email"))
+                    </div>
+                    <div class="invalid-feedback">@form("email").errors.map(_.format).mkString(", ")</div>
+                </div>
+                <div class="input-group mb-3">
+                @inputTextarea(form("description"), Seq("placeholder" -> "Add a bio", "rows" -> "5"))
+                </div>
+                <div class="form-group">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-sitemap"></i></span>
+                        </div>
+                        @inputText(form("company"), Seq("placeholder" -> "Company"))
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                        </div>
+                        @inputText(form("location"), Seq("placeholder" -> "location"))
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group ">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fab fa-linkedin"></i></span>
+                        </div>
+                        @inputText(form("linkedin"))
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fab fa-twitter"></i></span>
+                        </div>
+                        @inputText(form("twitter"))
+                    </div>
+                    <div class="row">
+                        <div class="col invalid-feedback">@form("linkedin").errors.map(_.format).mkString(", ")</div>
+                        <div class="col invalid-feedback">@form("twitter").errors.map(_.format).mkString(", ")</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-globe"></i></span>
+                        </div>
+                        @inputText(form("webSite"), Seq("placeholder" -> "WebSite"))
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group ">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                        </div>
+                        @inputText(form("phone"))
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-tshirt"></i></span>
+                        </div>
+                        @inputSelect(form("shirt"), User.Shirt.all.map { e => e.toString -> e.toString },
+                            Seq("placeholder" -> "choose your tchirt size", "optional" -> ""))
+                    </div>
+                    <div class="row">
+                        <div class="col invalid-feedback">@form("shirt").errors.map(_.format).mkString(", ")</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-3 media">
+                <div class="container">
+                    <a href="#">
+                        <span class="badge badge-pill" title="Change your avatar" data-toggle="tooltip" data-placement="bottom">
+                            <img src="@req.identity.user.avatar.url.value" class="avatar align-content-center mr-3" alt="avatar">
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        @actionsHorizontal() {
+            @btnCancel(SpeakerCtrl.profile())
+            @btnSubmit("Update Profile")
+        }
+    </div>
+}
+
 }()

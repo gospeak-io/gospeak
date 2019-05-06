@@ -7,7 +7,6 @@ import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class ProposalRepoSqlSpec extends RepoSpec {
   private val fields = "id, talk_id, cfp_id, event_id, status, title, duration, description, speakers, slides, video, tags, created, created_by, updated, updated_by"
-
   describe("ProposalRepoSql") {
     it("should create and retrieve a proposal for a group and talk") {
       val (user, _, cfp, talk) = createUserGroupCfpAndTalk().unsafeRunSync()

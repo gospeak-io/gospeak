@@ -12,6 +12,7 @@ final case class User(id: User.Id,
                       emailValidated: Option[Instant],
                       avatar: Avatar,
                       published: Option[Instant],
+                      profile: User.Profile,
                       created: Instant,
                       updated: Instant) {
   def data: User.Data = User.Data(this)
@@ -19,11 +20,15 @@ final case class User(id: User.Id,
   def name: User.Name = User.Name(firstName, lastName)
 
   def isPublic: Boolean = published.isDefined
+
+  def editable: User.EditableFields = User.EditableFields(firstName, lastName, email, profile)
 }
 
 object User {
-  def apply(data: Data, now: Instant): User =
-    new User(Id.generate(), data.slug, data.firstName, data.lastName, data.email, None, data.avatar, None, now, now)
+  def apply(data: Data, profile: Profile, now: Instant): User =
+    new User(Id.generate(), data.slug, data.firstName, data.lastName, data.email, None, data.avatar, None, profile, now, now)
+
+  val emptyProfile = Profile(None, None, None, None, None, None, None, None)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -75,6 +80,70 @@ object User {
   object Credentials {
     def apply(providerId: String, providerKey: String, hasher: String, password: String, salt: Option[String]): Credentials =
       new Credentials(Login(ProviderId(providerId), ProviderKey(providerKey)), Password(Hasher(hasher), PasswordValue(password), salt.map(Salt)))
+  }
+
+  object Shirt {
+
+    sealed trait Size
+
+    case object XS extends Size
+
+    case object S extends Size
+
+    case object M extends Size
+
+    case object L extends Size
+
+    case object XL extends Size
+
+    case object XXL extends Size
+
+    case object NotAValidSize extends Size
+
+    val all: Seq[Size] = Seq(XS, S, M, L, XL, XXL)
+
+    def from(in: String): Either[CustomException, Size] =
+      all.find(_.toString == in).map(Right(_)).getOrElse(Left(CustomException(s"'$in' is not a valid Shirt.Size")))
+
+
+  }
+
+
+  case class Profile(description: Option[String],
+                     shirt: Option[Shirt.Size],
+                     company: Option[String],
+                     location: Option[String],
+                     twitter: Option[Url],
+                     linkedin: Option[Url],
+                     phone: Option[String],
+                     webSite: Option[Url]
+                    )
+
+  case class EditableFields(firstName: String,
+                            lastName: String,
+                            email: EmailAddress,
+                            // avatar: Avatar, // need to have avatar utils ...
+                            profile: Profile)
+
+  object EditableFields {
+    def apply(firstName: String,
+              lastName: String,
+              email: EmailAddress,
+              // avatar: Option[Url],
+              description: Option[String],
+              shirt: Option[Shirt.Size], //(XS_M, S_F, S_M, M_F, M_M, L_F, L_M, XL_M)
+              company: Option[String],
+              location: Option[String],
+              twitter: Option[Url],
+              linkedin: Option[Url],
+              phone: Option[String],
+              webSite: Option[Url]): EditableFields = EditableFields(firstName, lastName, email,
+      Profile(description, shirt, company, location, twitter, linkedin, phone, webSite))
+
+    def unapply(arg: EditableFields): Option[(String, String, EmailAddress, Option[String], Option[Shirt.Size], Option[String], Option[String], Option[Url], Option[Url], Option[String], Option[Url])] =
+      Some((arg.firstName, arg.lastName, arg.email, arg.profile.description, arg.profile.shirt, arg.profile.company,
+        arg.profile.location, arg.profile.twitter, arg.profile.linkedin, arg.profile.phone, arg.profile.webSite))
+
   }
 
 }

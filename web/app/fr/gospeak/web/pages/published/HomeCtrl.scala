@@ -43,6 +43,7 @@ class HomeCtrl(cc: ControllerComponents,
     emailValidated = None,
     avatar = GravatarSrv.getAvatar(email),
     published = Some(now),
+    profile = User.emptyProfile,
     created = now,
     updated = now)
   private val identity = AuthUser(
