@@ -18,19 +18,12 @@ class MessageHandler(settingsRepo: SettingsRepo,
   }
 
   private def handleCreateProposal(msg: GospeakMessage.ProposalCreated): IO[Int] = for {
-    settings <- settingsRepo.find(msg.group)
+    settings <- settingsRepo.find(msg.cfp.group)
     results <- settings.events.getOrElse(OnProposalCreated, Seq()).map(exec(settings, _, msg)).sequence
   } yield results.length
 
   private def exec(settings: Group.Settings, action: Events.Action, msg: GospeakMessage.ProposalCreated): IO[Unit] = action match {
     case Events.Action.Slack(slack) =>
-      settings.accounts.slack.map(slackSrv.exec(_, slack, templateData(msg))).getOrElse(IO.raiseError(CustomException("No credentials for Slack")))
-  }
-
-  private def templateData(msg: GospeakMessage.ProposalCreated): TemplateData.ProposalCreated = {
-    TemplateData.ProposalCreated(
-      proposal = TemplateData.ProposalCreated.Proposal(
-        title = msg.proposal.title.value,
-        description = msg.proposal.description.value))
+      settings.accounts.slack.map(slackSrv.exec(_, slack, TemplateData.ProposalCreated(msg))).getOrElse(IO.raiseError(CustomException("No credentials for Slack")))
   }
 }

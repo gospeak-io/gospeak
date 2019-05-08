@@ -12,7 +12,11 @@ import fr.gospeak.web.utils.{ApiCtrl, Formats}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
+import scala.util.control.NonFatal
+
 case class SuggestedItem(id: String, text: String)
+
+case class ValidationResult(valid: Boolean, message: String)
 
 class SuggestCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
@@ -63,9 +67,12 @@ class SuggestCtrl(cc: ControllerComponents,
   }
 
   def validateSlackToken(token: String): Action[AnyContent] = SecuredAction.async { implicit req =>
-    slackSrv.getInfos(SlackToken(token)).map { infos =>
-      Ok(Json.toJson(infos))
-    }.unsafeToFuture()
+    import cats.implicits._
+    slackSrv.getInfos(SlackToken(token)).map {
+      case Right(infos) => ValidationResult(infos.ok, s"Token for ${infos.team} team, created by ${infos.user}")
+      case Left(err) => ValidationResult(err.ok, s"Invalid token: ${err.error}")
+    }.recover { case NonFatal(e) => ValidationResult(valid = false, s"Invalid token: ${e.getMessage}") }
+      .map { res => Ok(Json.toJson(res)) }.unsafeToFuture()
   }
 
 }

@@ -82,6 +82,7 @@ GET         /u/groups/:group/venues/:venue/edit                                 
 POST        /u/groups/:group/venues/:venue/edit                                 fr.gospeak.web.pages.orga.venues.VenueCtrl.doEdit(group: Group.Slug, venue: Venue.Id)
 GET         /u/groups/:group/settings                                           fr.gospeak.web.pages.orga.settings.SettingsCtrl.list(group: Group.Slug)
 POST        /u/groups/:group/settings/slack-account                             fr.gospeak.web.pages.orga.settings.SettingsCtrl.updateSlackAccount(group: Group.Slug)
+POST        /u/groups/:group/settings/slack-account/remove                      fr.gospeak.web.pages.orga.settings.SettingsCtrl.removeSlackAccount(group: Group.Slug)
 POST        /u/groups/:group/settings/add-action                                fr.gospeak.web.pages.orga.settings.SettingsCtrl.addEventAction(group: Group.Slug)
 POST        /u/groups/:group/settings/remove-action                             fr.gospeak.web.pages.orga.settings.SettingsCtrl.removeEventAction(group: Group.Slug, event: Group.Settings.Events.Event, index: Int)
 

@@ -3,7 +3,7 @@ package fr.gospeak.infra.services.slack
 import java.time.Instant
 
 import cats.syntax.either._
-import fr.gospeak.core.services.slack.domain.{SlackTokenInfo, SlackUser}
+import fr.gospeak.core.services.slack.domain.{SlackError, SlackTokenInfo, SlackUser}
 import fr.gospeak.infra.services.slack.api.{SlackChannel, SlackMessage}
 import fr.gospeak.infra.utils.CirceUtils._
 import io.circe.Decoder
@@ -15,6 +15,7 @@ object JsonFormats {
     Either.catchNonFatal(Instant.ofEpochSecond(timestampSecs)).leftMap(e => s"Bad Instant: ${e.getMessage}")
   }
 
+  implicit val slackErrorDecoder: Decoder[SlackError] = deriveDecoder[SlackError]
   implicit val slackInfoDecoder: Decoder[SlackTokenInfo] = deriveDecoder[SlackTokenInfo]
 
   private implicit val slackChannelPurposeDecoder: Decoder[SlackChannel.Purpose] = deriveDecoder[SlackChannel.Purpose]

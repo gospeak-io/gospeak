@@ -4,6 +4,8 @@ import fr.gospeak.infra.services.storage.sql.PartnerRepoSql._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class PartnerRepoSqlSpec extends RepoSpec {
+  private val fields = "id, group_id, slug, name, description, logo, created, created_by, updated, updated_by"
+
   describe("PartnerRepoSql") {
     describe("Queries") {
       it("should build insert") {

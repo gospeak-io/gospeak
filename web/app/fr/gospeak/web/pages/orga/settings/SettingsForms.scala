@@ -10,7 +10,7 @@ object SettingsForms {
   val slackAccount: Form[SlackCredentials] = Form(mapping(
     "token" -> slackToken,
     "name" -> nonEmptyText,
-    "avatar" -> optional(nonEmptyText)
+    "avatar" -> optional(url)
   )(SlackCredentials.apply)(SlackCredentials.unapply))
 
   final case class AddAction(event: Events.Event, action: Events.Action)

@@ -1,10 +1,10 @@
 package fr.gospeak.infra.services.slack
 
 import cats.effect.IO
-import fr.gospeak.core.services.slack.domain.{SlackToken, SlackTokenInfo, SlackUser}
+import fr.gospeak.core.services.slack.domain.{SlackError, SlackToken, SlackTokenInfo, SlackUser}
 import fr.gospeak.infra.services.slack.JsonFormats._
-import fr.gospeak.infra.services.slack.api.request.{SlackContent, SlackSender}
 import fr.gospeak.infra.services.slack.api._
+import fr.gospeak.infra.services.slack.api.request.{SlackContent, SlackSender}
 import fr.gospeak.infra.utils.HttpClient
 import fr.gospeak.libs.scalautils.Extensions._
 import io.circe.parser._
@@ -14,9 +14,16 @@ class SlackClient {
   private val baseUrl = "https://slack.com/api"
 
   // cf https://api.slack.com/methods/auth.test
-  def info(token: SlackToken): IO[SlackTokenInfo] =
-    HttpClient.getAsString(s"$baseUrl/auth.test", query = Map("token" -> token.value))
-      .flatMap(decode[SlackTokenInfo](_).toIO)
+  def info(token: SlackToken): IO[Either[SlackError, SlackTokenInfo]] =
+    HttpClient.getAsString(s"$baseUrl/auth.test", query = Map("token" -> token.value)).flatMap { res =>
+      decode[SlackTokenInfo](res) match {
+        case Right(info) => IO.pure(Right(info))
+        case Left(err) => decode[SlackError](res) match {
+          case Right(fail) => IO.pure(Left(fail))
+          case Left(_) => IO.raiseError(err)
+        }
+      }
+    }
 
   // cf https://api.slack.com/methods/channels.create
   def createChannel(token: SlackToken, name: SlackChannel.Name): IO[SlackChannel] =

@@ -55,7 +55,7 @@ class ProposalCtrl(cc: ControllerComponents,
           talkElt <- OptionT(talkRepo.find(user, talk))
           cfpElt <- OptionT(cfpRepo.find(cfp))
           proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data, talkElt.speakers, by, now))
-          _ <- OptionT.liftF(mb.publish(ProposalCreated(cfpElt, proposalElt)))
+          _ <- OptionT.liftF(mb.publish(ProposalCreated(cfpElt, proposalElt, req.identity.user)))
           msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
         } yield Redirect(routes.ProposalCtrl.detail(talk, cfp)).flashing("success" -> msg)).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }

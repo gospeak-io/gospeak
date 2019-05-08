@@ -13,11 +13,13 @@ import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Done, Template}
+import fr.gospeak.libs.scalautils.domain.{Done, Template, Url}
 import io.circe._
 import io.circe.generic.semiauto._
 
 class SettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SettingsRepo {
+  private implicit val urlDecoder: Decoder[Url] = (c: HCursor) => c.as[String].flatMap(s => Url.from(s).leftMap(e => DecodingFailure(e.message, List())))
+  private implicit val urlEncoder: Encoder[Url] = (a: Url) => Json.fromString(a.value)
   private implicit val templateDecoder: Decoder[Template] = deriveDecoder[Template]
   private implicit val templateEncoder: Encoder[Template] = deriveEncoder[Template]
   private implicit val slackTokenDecoder: Decoder[SlackToken] = deriveDecoder[SlackToken]

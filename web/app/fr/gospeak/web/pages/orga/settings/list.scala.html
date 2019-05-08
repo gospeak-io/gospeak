@@ -6,6 +6,7 @@
 @import fr.gospeak.core.services.slack.domain.SlackCredentials
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.AddAction
 @import fr.gospeak.web.pages.orga.settings.partials.html._
 
@@ -24,7 +25,7 @@
                             <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#meetupModal">
                                 Add</a>
                             <div class="modal fade" id="meetupModal" tabindex="-1" role="dialog">
-                                <div class="modal-dialog modal-lg" role="document">
+                                <div class="modal-dialog modal-xl" role="document">
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title" id="meetupIntegrationModal">Meetup integration</h5>
@@ -50,14 +51,13 @@
                         }</span>
                         <div>
                             @settings.accounts.slack.map { slack =>
-                            <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#slackModal">Update</a>
-                            <a href="#" class="btn btn-danger btn-sm" confirm="Remove Slack integration?">Remove</a>
+                                <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#slackModal">Update</a>
+                                @formBtn(SettingsCtrl.removeSlackAccount(group.slug), Seq("class" -> "btn-danger btn-sm", "confirm" -> "Remove Slack integration?")) {Remove}
                             }.getOrElse {
-                                <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#slackModal">
-                                    Add</a>
+                                <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#slackModal">Add</a>
                             }
                             <div class="modal fade" id="slackModal" tabindex="-1" role="dialog">
-                                <div class="modal-dialog modal-lg" role="document">
+                                <div class="modal-dialog modal-xl" role="document">
                                     <div class="modal-content">
                                     @formElt(slackAccount, SettingsCtrl.updateSlackAccount(group.slug)) {
                                         <div class="modal-header">
@@ -67,14 +67,36 @@
                                             </button>
                                         </div>
                                         <div class="modal-body">
-                                            @fieldHorizontal(slackAccount("token"), Seq("label" -> "Token", "help" -> "Your connection token")) { (field, args) =>
-                                                @inputText(field, Seq("autofocus" -> "true") ++ args)
+                                            @fieldHorizontal(slackAccount("token"), Seq("label" -> "Slack OAuth Token")) { (field, args) =>
+                                                @inputText(field, Seq(
+                                                    "autofocus" -> "true",
+                                                    "placeholder" -> "ex: xoxp-19471843520-26025264040-635191736450-732a788fa04094e3aaedf6edb9fa2666",
+                                                    "remote-validate" -> SuggestCtrl.validateSlackToken("{{input}}").toString) ++ args)
+                                                <small class="form-text text-muted">
+                                                    Your app token. <a data-toggle="collapse" href="#createSlackAppCollapse" tabindex="-1">
+                                                    Create one</a> if needed.</small>
+                                                <ul class="collapse" id="createSlackAppCollapse">
+                                                    <li>Open <a href="https://api.slack.com/apps" target="_blank">
+                                                        https://api.slack.com/apps</a>
+                                                        and click <span class="badge badge-success">Create New App</span>
+                                                        button on the top right corner</li>
+                                                    <li>Then add the <span class="badge badge-dark">chat:write:bot</span>
+                                                        permission clicking the
+                                                        "<b>OAuth & Permissions</b>" in the left menu, section "<b>
+                                                            Scopes</b>"</li>
+                                                    <li>Finally, <span class="badge badge-success">
+                                                        Install App to Workspace</span>
+                                                        using the button on the top of the page</li>
+                                                    <li>Well done! Copy the <span class="badge badge-primary">
+                                                        OAuth Access Token</span> here so <b>Gospeak</b>
+                                                        will be able to post messages to your Slack Workspace</li>
+                                                </ul>
                                             }
-                                            @fieldHorizontal(slackAccount("name"), Seq("label" -> "Bot name")) { (field, args) =>
+                                            @fieldHorizontal(slackAccount("name"), Seq("label" -> "Bot name", "help" -> "The name that will be used in Slack")) { (field, args) =>
                                                 @inputText(field, Seq("placeholder" -> "ex: Gospeak bot") ++ args)
                                             }
-                                            @fieldHorizontal(slackAccount("avatar"), Seq("label" -> "Bot avatar")) { (field, args) =>
-                                                @inputText(field, Seq("optional" -> "") ++ args)
+                                            @fieldHorizontal(slackAccount("avatar"), Seq("label" -> "Bot avatar", "help" -> "The bot avatar in Slack")) { (field, args) =>
+                                                @inputImg(field, Seq("placeholder" -> "ex: https://secure.gravatar.com/avatar/fa64969431e3d540ef30d06860d64958?size=100&default=wavatar", "optional" -> "") ++ args)
                                             }
                                         </div>
                                         <div class="modal-footer">

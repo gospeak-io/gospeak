@@ -7,6 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.Group
+import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackCredentials
 import fr.gospeak.core.services.storage.{OrgaGroupRepo, SettingsRepo}
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -20,7 +21,8 @@ import play.api.mvc._
 class SettingsCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
                    groupRepo: OrgaGroupRepo,
-                   settingsRepo: SettingsRepo) extends UICtrl(cc, silhouette) {
+                   settingsRepo: SettingsRepo,
+                   slackSrv: SlackSrv) extends UICtrl(cc, silhouette) {
 
   import SettingsForms._
   import silhouette._
@@ -39,9 +41,23 @@ class SettingsCtrl(cc: ControllerComponents,
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
       res <- OptionT.liftF(slackAccount.bindFromRequest.fold(
         formWithErrors => IO.pure(settingsView(groupElt, settings, slack = Some(formWithErrors))),
-        data => settingsRepo.set(groupElt.id, settings.set(data), user, now)
-          .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Slack account updated"))
+        data => slackSrv.getInfos(data.token).flatMap {
+          case Right(_) => settingsRepo.set(groupElt.id, settings.set(data), user, now)
+            .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Slack account updated"))
+          case Left(_) => IO.pure(Redirect(routes.SettingsCtrl.list(group)).flashing("error" -> "Invalid Slack token"))
+        }
       ))
+    } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+  }
+
+  def removeSlackAccount(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      res <- OptionT.liftF(settingsRepo.set(groupElt.id, settings.copy(accounts = settings.accounts.copy(slack = None)), user, now)
+        .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Slack account removed"))
+      )
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
@@ -64,7 +80,7 @@ class SettingsCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
       res <- OptionT.liftF(settingsRepo.set(groupElt.id, removeActionToSettings(settings, event, index), user, now)
-          .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Action removed"))
+        .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Action removed"))
       )
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }

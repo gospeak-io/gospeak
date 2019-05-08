@@ -38,7 +38,7 @@ function slugify(str) {
     // enable input inside shown tab
     $('a[data-toggle="tab"], a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
         $(e.target.getAttribute('href')).find('input, textarea, select').attr('disabled', false);
-        if(e.relatedTarget) {
+        if (e.relatedTarget) {
             $(e.relatedTarget.getAttribute('href')).find('input, textarea, select').attr('disabled', true);
         }
     });
@@ -73,6 +73,61 @@ function slugify(str) {
             });
         });
     });
+})();
+
+// remote input validation
+(function () {
+    $('input[remote-validate]').each(function () {
+        var $input = $(this);
+        var url = $input.attr('remote-validate');
+        if (url) {
+            update($input, url); // run on page load
+            $input.change(function () {
+                update($input, url);
+            });
+        }
+    });
+
+    function update($input, url) {
+        var value = $input.val();
+        if (value) {
+            $.getJSON(url.replace('%7B%7Binput%7D%7D', value), function (res) {
+                if ($input.val() === value) {
+                    removeFeedback($input);
+                    if (res.valid) {
+                        addValidFeedback($input, res);
+                    } else {
+                        addInvalidFeedback($input, res);
+                    }
+                }
+            });
+        } else {
+            removeFeedback($input);
+        }
+    }
+
+    function removeFeedback($input) {
+        $input.removeClass('is-valid');
+        $input.removeClass('is-invalid');
+        var $next = $input.next();
+        if ($next.hasClass('valid-feedback') || $next.hasClass('invalid-feedback')) {
+            $next.remove();
+        }
+    }
+
+    function addValidFeedback($input, res) {
+        $input.addClass('is-valid');
+        if (res.message) {
+            $input.after('<span class="valid-feedback">' + res.message + '</span>');
+        }
+    }
+
+    function addInvalidFeedback($input, res) {
+        $input.addClass('is-invalid');
+        if (res.message) {
+            $input.after('<span class="invalid-feedback">' + res.message + '</span>');
+        }
+    }
 })();
 
 // https://select2.org/ & https://github.com/select2/select2-bootstrap-theme
@@ -165,6 +220,28 @@ function slugify(str) {
             defaultViewDate: $(this).attr('startDate')
         }));
     });
+})();
+
+// inputImageUrl
+(function () {
+    $('.input-imageurl').each(function () {
+        var $elt = $(this);
+        var $input = $elt.find('input[type="text"]');
+        var $preview = $elt.find('.preview');
+        update($input, $preview); // run on page load
+        $input.change(function () {
+            update($input, $preview);
+        });
+    });
+
+    function update($input, $preview) {
+        if ($input.val() === '') {
+            $preview.hide();
+        } else {
+            $preview.attr('src', $input.val());
+            $preview.show();
+        }
+    }
 })();
 
 // markdown input
