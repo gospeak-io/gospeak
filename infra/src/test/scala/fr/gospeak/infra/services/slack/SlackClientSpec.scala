@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services.slack
 
-import fr.gospeak.infra.services.slack.api.SlackToken
+import fr.gospeak.core.services.slack.domain.SlackToken
 import org.scalatest.{FunSpec, Matchers}
 
 class SlackClientSpec extends FunSpec with Matchers {
@@ -8,6 +8,10 @@ class SlackClientSpec extends FunSpec with Matchers {
   private val client = new SlackClient
 
   ignore("SlackClient") {
+    it("should get info") {
+      val info = client.info(token).unsafeRunSync()
+      println(s"info: $info")
+    }
     it("should list channels") {
       val channels = client.listChannels(token).unsafeRunSync()
       println(s"channels: $channels")

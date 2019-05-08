@@ -1,0 +1,15 @@
+@(tabs: Seq[(Field, String, String, Field => Html)], size: Int = 3)
+<div class="row">
+    <div class="col-@size">
+        <div class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
+        @tabs.map { case (field, id, name, _) => @navTab(id, name) }
+        </div>
+    </div>
+    <div class="col-@{
+        12 - size
+    }">
+        <div class="tab-content">
+        @tabs.map { case (field, id, _, content) => @navPane(id)(content(field)) }
+        </div>
+    </div>
+</div>

@@ -98,6 +98,20 @@ object Extensions {
     }
   }
 
+  implicit class TraversableOnceIOExtension[A, M[X] <: TraversableOnce[X]](val in: M[IO[A]]) extends AnyVal {
+    def sequence(implicit cbf: CanBuildFrom[M[IO[A]], A, M[A]]): IO[M[A]] = IO {
+      val init = IO.pure(cbf(in) -> Seq.empty[Throwable])
+      in.foldLeft(init) { (acc, cur) =>
+        acc.flatMap { case (results, errors) =>
+          Try(cur.unsafeRunSync())
+            .map { result => (results += result, errors) }
+            .recover { case NonFatal(error) => (results, error +: errors) }
+            .toIO
+        }
+      }.flatMap(sequenceResult[A, M](_).toIO).unsafeRunSync()
+    }
+  }
+
   implicit class OptionExtension[A](val in: Option[A]) extends AnyVal {
     def toTry(e: => Throwable): Try[A] = in match {
       case Some(v) => Success(v)
@@ -125,11 +139,24 @@ object Extensions {
     }
   }
 
+  implicit class OptionTryExtension[A](val in: Option[Try[A]]) extends AnyVal {
+    def sequence: Try[Option[A]] = in match {
+      case Some(Success(a)) => Success(Some(a))
+      case Some(Failure(e)) => Failure(e)
+      case None => Success(None)
+    }
+  }
+
   implicit class TryExtension[A](val in: Try[A]) extends AnyVal {
     def mapFailure(f: Throwable => Throwable): Try[A] =
       in.recoverWith { case NonFatal(e) => Failure(f(e)) }
 
     def toFuture: Future[A] = Future.fromTry(in)
+
+    def toIO: IO[A] = in match {
+      case Success(a) => IO.pure(a)
+      case Failure(e) => IO.raiseError(e)
+    }
   }
 
   implicit class FutureExtension[A](val in: Future[A]) extends AnyVal {
@@ -148,9 +175,19 @@ object Extensions {
       case Left(e) => throw new NoSuchElementException(s"Left($e).get")
     }
 
+    def leftMap[F](f: E => F): Either[F, A] = in match {
+      case Right(_) => in.asInstanceOf[Either[F, A]]
+      case Left(e) => Left(f(e))
+    }
+
     def toIO(implicit ev: E <:< Throwable): IO[A] = in match {
       case Right(a) => IO.pure(a)
       case Left(e) => IO.raiseError(e)
+    }
+
+    def toIO(f: E => Throwable): IO[A] = in match {
+      case Right(a) => IO.pure(a)
+      case Left(e) => IO.raiseError(f(e))
     }
   }
 

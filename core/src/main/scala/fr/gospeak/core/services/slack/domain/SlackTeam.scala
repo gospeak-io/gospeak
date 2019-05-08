@@ -1,4 +1,4 @@
-package fr.gospeak.infra.services.slack.api
+package fr.gospeak.core.services.slack.domain
 
 object SlackTeam {
 

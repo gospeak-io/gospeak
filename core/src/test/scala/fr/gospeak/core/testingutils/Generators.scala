@@ -58,4 +58,8 @@ object Generators {
   implicit val aCfp = implicitly[Arbitrary[Cfp]]
   implicit val aEvent = implicitly[Arbitrary[Event]]
   implicit val aProposal = implicitly[Arbitrary[Proposal]]
+
+  implicit val aTemplate = implicitly[Arbitrary[Template]]
+  implicit val aGroupSettingsEvent = implicitly[Arbitrary[Group.Settings.Events.Event]]
+  implicit val aGroupSettingsAction = implicitly[Arbitrary[Group.Settings.Events.Action]]
 }

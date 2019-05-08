@@ -3,7 +3,9 @@ package fr.gospeak.web.utils
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import cats.implicits._
+import fr.gospeak.core.domain.Group.Settings.Events
 import fr.gospeak.core.domain._
+import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.utils.Extensions._
@@ -95,12 +97,53 @@ object Mappings {
   val partnerSlug: Mapping[Partner.Slug] = slugMapping(Partner.Slug)
   val partnerName: Mapping[Partner.Name] = nonEmptyTextMapping(Partner.Name, _.value)
   val venueId: Mapping[Venue.Id] = idMapping(Venue.Id)
+  val slackToken: Mapping[SlackToken] = nonEmptyTextMapping(SlackToken, _.value)
+
+  private val templateFormatter = new Formatter[Template] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Template] =
+      data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
+        case "Mustache" => data.get(s"$key.value").map(v => Right(Template.Mustache(v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
+        case v => Left(Seq(FormError(s"$key.kind", s"Invalid value '$v' for key '$key.kind'")))
+      }
+
+    override def unbind(key: String, value: Template): Map[String, String] = value match {
+      case Template.Mustache(v) => Map(s"$key.kind" -> "Mustache", s"$key.value" -> v)
+    }
+  }
+  val template: Mapping[Template] = of(templateFormatter)
+
+  val groupSettingsEvent: Mapping[Events.Event] = of(new Formatter[Events.Event] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Events.Event] =
+      data.eitherGetAndParse(key, v => Events.Event.all.find(_.toString == v).toTry(CustomException(v)), formatError).left.map(Seq(_))
+
+    override def unbind(key: String, value: Events.Event): Map[String, String] = Map(key -> value.toString)
+  })
+
+  val groupSettingsAction: Mapping[Events.Action] = of(new Formatter[Events.Action] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Events.Action] = {
+      data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
+        case "Slack.PostMessage" => (
+          templateFormatter.bind(s"$key.channel", data),
+          templateFormatter.bind(s"$key.message", data)
+        ).mapN(SlackAction.PostMessage.apply)
+          .map(Events.Action.Slack)
+        case v => Left(Seq(FormError(s"$key.kind", s"action kind '$v' not found")))
+      }
+    }
+
+    override def unbind(key: String, value: Events.Action): Map[String, String] = value match {
+      case Events.Action.Slack(p: SlackAction.PostMessage) =>
+        Map(s"$key.kind" -> "Slack.PostMessage") ++
+          templateFormatter.unbind(s"$key.channel", p.channel) ++
+          templateFormatter.unbind(s"$key.message", p.message)
+    }
+  })
 
   private[utils] object Utils {
-    def textMapping[A](from: String => A, to: A => String) =
+    def textMapping[A](from: String => A, to: A => String): Mapping[A] =
       WrappedMapping(text, from, to)
 
-    def nonEmptyTextMapping[A](from: String => A, to: A => String) =
+    def nonEmptyTextMapping[A](from: String => A, to: A => String): Mapping[A] =
       WrappedMapping(nonEmptyText, from, to)
 
     def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, errorMessage: String = formatError): Mapping[A] =

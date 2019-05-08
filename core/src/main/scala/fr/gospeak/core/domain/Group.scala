@@ -2,7 +2,7 @@ package fr.gospeak.core.domain
 
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.core.services.slack.domain.{SlackAction, SlackUser, SlackToken}
+import fr.gospeak.core.services.slack.domain.{SlackAction, SlackCredentials}
 import fr.gospeak.libs.scalautils.domain._
 
 final case class Group(id: Group.Id,
@@ -39,8 +39,64 @@ object Group {
     def apply(group: Group): Data = new Data(group.slug, group.name, group.description, group.tags)
   }
 
-  final case class SlackSettings(token: SlackToken,
-                                 user: SlackUser,
-                                 onProposalCreated: SlackAction)
+
+  final case class Settings(accounts: Settings.Accounts,
+                            events: Map[Settings.Events.Event, Seq[Settings.Events.Action]]) {
+    def set(slack: SlackCredentials): Settings = copy(accounts = accounts.copy(slack = Some(slack)))
+
+    def verify: Either[Seq[String], Settings] = {
+      val actions = this.events.values.flatten
+      if (accounts.slack.isEmpty && actions.exists { case _: Settings.Events.Action.Slack => true }) {
+        Left(Seq("Some Slack actions are defined but no Slack account"))
+      } else {
+        Right(this)
+      }
+    }
+  }
+
+  object Settings {
+    val default = Settings(
+      accounts = Accounts(
+        slack = None,
+        meetup = None,
+        twitter = None),
+      events = Map())
+
+    final case class Accounts(slack: Option[SlackCredentials],
+                              meetup: Option[String],
+                              twitter: Option[String])
+
+    object Events {
+
+      sealed trait Event
+
+      object Event {
+
+        case object OnEventCreated extends Event
+
+        case object OnEventAddTalk extends Event
+
+        case object OnEventRemoveTalk extends Event
+
+        case object OnEventVenueChange extends Event
+
+        case object OnEventPublish extends Event
+
+        case object OnProposalCreated extends Event
+
+        val all: Seq[Event] = Seq(OnEventCreated, OnEventAddTalk, OnEventRemoveTalk, OnEventVenueChange, OnEventPublish, OnProposalCreated)
+      }
+
+      sealed trait Action
+
+      object Action {
+
+        final case class Slack(value: SlackAction) extends Action
+
+      }
+
+    }
+
+  }
 
 }

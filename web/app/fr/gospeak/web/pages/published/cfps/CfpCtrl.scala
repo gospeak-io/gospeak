@@ -7,8 +7,9 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
-import fr.gospeak.core.domain.GospeakMessage.ProposalMessage.ProposalCreated
-import fr.gospeak.core.domain.{Cfp, GospeakMessage, Talk}
+import fr.gospeak.core.domain.utils.GospeakMessage
+import fr.gospeak.core.domain.utils.GospeakMessage.ProposalCreated
+import fr.gospeak.core.domain.{Cfp, Talk}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.MessageBus
@@ -71,7 +72,7 @@ class CfpCtrl(cc: ControllerComponents,
             cfpElt <- OptionT(cfpRepo.find(cfp))
             talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData, identity.user.id, now))
             proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers, identity.user.id, now))
-            _ <- OptionT.liftF(mb.publish(ProposalCreated(proposalElt)))
+            _ <- OptionT.liftF(mb.publish(ProposalCreated(cfpElt, proposalElt)))
             msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
           } yield Redirect(ProposalCtrl.detail(talkElt.slug, cfp)).flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp)))
         }.getOrElse {
@@ -103,7 +104,7 @@ class CfpCtrl(cc: ControllerComponents,
         result <- OptionT.liftF(authSrv.login(identity, data.user.rememberMe, Redirect(ProposalCtrl.detail(data.talk.slug, cfp))))
         talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData, identity.user.id, now).unsafeToFuture())
         proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers, identity.user.id, now).unsafeToFuture())
-        _ <- OptionT.liftF(mb.publish(ProposalCreated(proposalElt)).unsafeToFuture())
+        _ <- OptionT.liftF(mb.publish(ProposalCreated(cfpElt, proposalElt)).unsafeToFuture())
         msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
       } yield result.flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp))).recoverWith {
         case _: AccountValidationRequiredException => proposeConnectForm(cfp, now, signupData = Some(data), error = "Account created, you need to validate it by clicking on the email validation link").unsafeToFuture()
@@ -125,7 +126,7 @@ class CfpCtrl(cc: ControllerComponents,
         result <- OptionT.liftF(authSrv.login(identity, data.user.rememberMe, Redirect(ProposalCtrl.detail(data.talk.slug, cfp))))
         talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData, identity.user.id, now).unsafeToFuture())
         proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers, identity.user.id, now).unsafeToFuture())
-        _ <- OptionT.liftF(mb.publish(ProposalCreated(proposalElt)).unsafeToFuture())
+        _ <- OptionT.liftF(mb.publish(ProposalCreated(cfpElt, proposalElt)).unsafeToFuture())
         msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
       } yield result.flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp))).recoverWith {
         case _: AccountValidationRequiredException => proposeConnectForm(cfp, now, loginData = Some(data), error = "You need to validate your account by clicking on the email validation link").unsafeToFuture()

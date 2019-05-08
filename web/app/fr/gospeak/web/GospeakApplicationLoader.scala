@@ -9,12 +9,13 @@ import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaSigner}
 import com.mohiva.play.silhouette.impl.authenticators._
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.softwaremill.macwire.wire
-import fr.gospeak.core.domain.GospeakMessage
+import fr.gospeak.core.domain.utils.GospeakMessage
 import fr.gospeak.core.services._
+import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.infra.services.slack.SlackClient
+import fr.gospeak.infra.services.slack.{SlackClient, SlackSrvImpl}
 import fr.gospeak.infra.services.storage.sql._
-import fr.gospeak.infra.services.{EmailSrv, GravatarSrv}
+import fr.gospeak.infra.services.{EmailSrv, GravatarSrv, TemplateSrv}
 import fr.gospeak.libs.scalautils.{BasicMessageBus, MessageBus}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
@@ -65,9 +66,14 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val proposalRepo: ProposalRepo = db.proposal
   lazy val partnerRepo: PartnerRepo = db.partner
   lazy val venueRepo: VenueRepo = db.venue
+  lazy val settingsRepo: SettingsRepo = db.settings
   lazy val authRepo: AuthRepo = wire[AuthRepo]
+
+  lazy val slackClient: SlackClient = wire[SlackClient]
+  lazy val templateSrv: TemplateSrv = wire[TemplateSrv]
   lazy val gravatarSrv: GravatarSrv = wire[GravatarSrv]
   lazy val emailSrv: EmailSrv = EmailSrv.from(conf.emailService)
+  lazy val slackSrv: SlackSrv = wire[SlackSrvImpl]
   lazy val messageBus: MessageBus[GospeakMessage] = wire[BasicMessageBus[GospeakMessage]]
   lazy val messageHandler: MessageHandler = wire[MessageHandler]
 

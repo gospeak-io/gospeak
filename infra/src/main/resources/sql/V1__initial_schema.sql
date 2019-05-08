@@ -21,6 +21,9 @@
 --  |          |             |                    |
 -- talk <-- proposal <---> event               sponsor
 --
+-- others:
+--   - requests
+--   - settings
 
 CREATE TABLE users
 (
@@ -231,4 +234,14 @@ CREATE TABLE sponsors
     created_by      CHAR(36)  NOT NULL REFERENCES users (id),
     updated         TIMESTAMP NOT NULL,
     updated_by      CHAR(36)  NOT NULL REFERENCES users (id)
+);
+
+CREATE TABLE settings
+(
+    target     VARCHAR(30)   NOT NULL, -- enum for the target: group or user
+    target_id  CHAR(36)      NOT NULL, -- id for the target
+    value      VARCHAR(2048) NOT NULL, -- json serialized settings
+    updated    TIMESTAMP     NOT NULL,
+    updated_by CHAR(36)      NOT NULL REFERENCES users (id),
+    UNIQUE (target, target_id)
 );

@@ -34,6 +34,8 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val event: Event = random[Event].copy(cfp = None)
   protected val talk: Talk = random[Talk]
   protected val proposal: Proposal = random[Proposal]
+  protected val partner: Partner = random[Partner]
+  protected val venue: Venue = random[Venue]
   protected val params = Page.Params()
   protected val slides: Slides = random[Slides]
   protected val video: Video = random[Video]
@@ -68,4 +70,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
     cfp <- cfpRepo.create(group.id, cfpData1, user.id, now)
     talk <- talkRepo.create(talkData1, user.id, now)
   } yield (user, group, cfp, talk)
+
+  protected def fieldsPrefixedBy(fields: String, prefix: String): String =
+    fields.split(", ").map(prefix + _).mkString(", ")
 }

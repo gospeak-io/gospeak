@@ -36,6 +36,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
   val venue = new VenueRepoSql(xa)
   val event = new EventRepoSql(xa)
   val proposal = new ProposalRepoSql(xa)
+  val settings = new SettingsRepoSql(xa)
 
   def insertHTData(mongoUri: String): IO[Done] = {
     val dbName = mongoUri.split('?').head.split('/').last

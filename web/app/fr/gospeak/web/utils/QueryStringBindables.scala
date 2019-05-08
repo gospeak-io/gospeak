@@ -1,8 +1,9 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.core.domain.{Event, UserRequest}
+import fr.gospeak.core.domain.{Event, Group, UserRequest}
 import fr.gospeak.libs.scalautils.domain.{Page, Url}
 import play.api.mvc.QueryStringBindable
+import fr.gospeak.libs.scalautils.Extensions._
 
 object QueryStringBindables {
   implicit def pageParamsQueryStringBindable(implicit stringBinder: QueryStringBindable[String], intBinder: QueryStringBindable[Int]): QueryStringBindable[Page.Params] =
@@ -49,5 +50,14 @@ object QueryStringBindables {
 
       override def unbind(key: String, slug: Event.Slug): String =
         stringBinder.unbind(key, slug.value)
+    }
+
+  implicit def groupSettingsEventQueryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[Group.Settings.Events.Event] =
+    new QueryStringBindable[Group.Settings.Events.Event] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Group.Settings.Events.Event]] =
+        stringBinder.bind(key, params).map(_.flatMap(e => Group.Settings.Events.Event.all.find(_.toString == e).toEither(s"Invalid event '$e'")))
+
+      override def unbind(key: String, event: Group.Settings.Events.Event): String =
+        stringBinder.unbind(key, event.toString)
     }
 }

@@ -1,0 +1,5 @@
+@import fr.gospeak.web.pages.partials.form.Utils
+
+@(field: Field, args: Seq[(String, String)] = Seq())
+@inputHidden(field("kind"), Seq("value" -> "Mustache"))
+@inputTextarea(field("value"), args)

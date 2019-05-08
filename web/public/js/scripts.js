@@ -23,6 +23,27 @@ function slugify(str) {
     });
 })();
 
+// autofocus when a modal opens
+(function () {
+    $('.modal').on('shown.bs.modal', function (e) {
+        $(this).find('input[autofocus]').focus();
+    });
+})();
+
+// disable inputs not in visible pane
+(function () {
+    // disable input inside hidden tabs
+    $('.tab-pane:not(.show)').find('input, textarea, select').attr('disabled', true);
+
+    // enable input inside shown tab
+    $('a[data-toggle="tab"], a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+        $(e.target.getAttribute('href')).find('input, textarea, select').attr('disabled', false);
+        if(e.relatedTarget) {
+            $(e.relatedTarget.getAttribute('href')).find('input, textarea, select').attr('disabled', true);
+        }
+    });
+})();
+
 // build slug from an other field
 (function () {
     function buildSlug(inputs, prev /* ?string */) {

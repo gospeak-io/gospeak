@@ -1,2 +1,2 @@
-@(url: Call, name: String)(implicit req: Request[AnyContent])
+@(url: Call)(name: Html)(implicit req: Request[AnyContent])
 <a class="nav-item nav-link @if(req.uri.startsWith(url.toString)) {active}" href="@url">@name</a>

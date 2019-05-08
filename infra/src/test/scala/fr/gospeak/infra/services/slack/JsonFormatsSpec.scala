@@ -1,7 +1,8 @@
 package fr.gospeak.infra.services.slack
 
+import fr.gospeak.core.services.slack.domain.{SlackTokenInfo, SlackUser}
 import fr.gospeak.infra.services.slack.JsonFormats._
-import fr.gospeak.infra.services.slack.api.{SlackChannel, SlackMessage, SlackUser}
+import fr.gospeak.infra.services.slack.api.{SlackChannel, SlackMessage}
 import io.circe.parser.decode
 import org.scalatest.{FunSpec, Matchers}
 
@@ -10,6 +11,9 @@ import scala.io.Source
 class JsonFormatsSpec extends FunSpec with Matchers {
   private val basePath = "infra/src/test/resources/slack"
 
+  it("should parse auth.test response") {
+    decode[SlackTokenInfo](read("auth.test.json")).toTry.get
+  }
   it("should parse channels.create response") {
     decode[SlackChannel.Single](read("channels.create.json")).toTry.get
   }

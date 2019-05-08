@@ -1,6 +1,7 @@
 package fr.gospeak.libs.scalautils
 
 import cats.effect.IO
+import fr.gospeak.libs.scalautils.Extensions._
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -34,14 +35,13 @@ class BasicMessageBus[A] extends MessageBus[A] {
 
   override def publish[B <: A](msg: B): IO[Int] = {
     val classes = getClasses(msg.getClass)
-    val res = eventHandlers
+    eventHandlers
       .collect { case (clazz, handlers) if classes.contains(clazz) => handlers }
       .flatMap(_.map(_.asInstanceOf[B => IO[Unit]](msg)))
-    IO(res.toList.map(_.unsafeRunSync).length)
+      .toSeq.sequence.map(_.length)
   }
 
   override def publishLazy[B <: A : ClassTag](msg: => B): IO[Int] = {
-    import cats.implicits._
     lazy val buildMsg = msg // so msg is evaluated only if it's used by at least one handler
     val classes = getClasses(implicitly[ClassTag[B]].runtimeClass)
     eventHandlers

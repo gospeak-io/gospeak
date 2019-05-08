@@ -1,13 +1,12 @@
 package fr.gospeak.core.services.slack.domain
 
-sealed trait SlackAction {
-  val enabled: Boolean
-}
+import fr.gospeak.libs.scalautils.domain.Template
+
+sealed trait SlackAction
 
 object SlackAction {
 
-  final case class PostMessage(enabled: Boolean,
-                               channel: SlackChannel.Id,
-                               contentTmpl: String) extends SlackAction
+  final case class PostMessage(channel: Template,
+                               message: Template) extends SlackAction
 
 }

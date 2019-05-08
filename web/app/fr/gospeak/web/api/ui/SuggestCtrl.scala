@@ -3,18 +3,16 @@ package fr.gospeak.web.api.ui
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.Group
-import fr.gospeak.core.services._
-import fr.gospeak.core.services.storage.{SuggestCfpRepo, SuggestEventRepo, SuggestGroupRepo, SuggestPartnerRepo, SuggestProposalRepo, SuggestTalkRepo, SuggestVenueRepo}
+import fr.gospeak.core.services.slack.SlackSrv
+import fr.gospeak.core.services.slack.domain.SlackToken
+import fr.gospeak.core.services.storage._
 import fr.gospeak.web.auth.domain.CookieEnv
+import fr.gospeak.web.utils.JsonFormats._
 import fr.gospeak.web.utils.{ApiCtrl, Formats}
-import play.api.libs.json.{Json, Writes}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 case class SuggestedItem(id: String, text: String)
-
-object SuggestedItem {
-  implicit val gitStatusWrites: Writes[SuggestedItem] = Json.writes[SuggestedItem]
-}
 
 class SuggestCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
@@ -24,7 +22,8 @@ class SuggestCtrl(cc: ControllerComponents,
                   talkRepo: SuggestTalkRepo,
                   proposalRepo: SuggestProposalRepo,
                   partnerRepo: SuggestPartnerRepo,
-                  venueRepo: SuggestVenueRepo) extends ApiCtrl(cc) {
+                  venueRepo: SuggestVenueRepo,
+                  slackSrv: SlackSrv) extends ApiCtrl(cc) {
 
   import silhouette._
 
@@ -61,6 +60,12 @@ class SuggestCtrl(cc: ControllerComponents,
       venues <- OptionT.liftF(venueRepo.list(groupElt.id))
       suggestItems = venues.map { case (p, v) => SuggestedItem(v.id.value, p.name.value + " - " + v.address.value) }
     } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
+  }
+
+  def validateSlackToken(token: String): Action[AnyContent] = SecuredAction.async { implicit req =>
+    slackSrv.getInfos(SlackToken(token)).map { infos =>
+      Ok(Json.toJson(infos))
+    }.unsafeToFuture()
   }
 
 }

@@ -34,6 +34,11 @@
     margin-bottom: 0;
 }
 
+.navbar-nav .nav-item i.fas {
+    font-size: 1.3em;
+    vertical-align: middle;
+}
+
 /* My styles */
 
 .btn-form {
