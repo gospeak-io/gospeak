@@ -117,5 +117,8 @@ GET         /ui/suggest/cfps/:group                                             
 GET         /ui/suggest/partners/:group                                         fr.gospeak.web.api.ui.SuggestCtrl.partners(group: Group.Slug)
 GET         /ui/suggest/venues/:group                                           fr.gospeak.web.api.ui.SuggestCtrl.venues(group: Group.Slug)
 GET         /ui/validate/slack-token                                            fr.gospeak.web.api.ui.SuggestCtrl.validateSlackToken(token: String)
+GET         /ui/utils/template-data/:event                                      fr.gospeak.web.api.ui.SuggestCtrl.templateData(event: String)
++ nocsrf
+POST        /ui/utils/render-template                                           fr.gospeak.web.api.ui.SuggestCtrl.renderTemplate
 
 GET         /assets/*file                                                       controllers.Assets.versioned(path="/public", file: Asset)

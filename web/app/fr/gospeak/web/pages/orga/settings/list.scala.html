@@ -51,10 +51,11 @@
                         }</span>
                         <div>
                             @settings.accounts.slack.map { slack =>
-                                <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#slackModal">Update</a>
+                            <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#slackModal">Update</a>
                                 @formBtn(SettingsCtrl.removeSlackAccount(group.slug), Seq("class" -> "btn-danger btn-sm", "confirm" -> "Remove Slack integration?")) {Remove}
                             }.getOrElse {
-                                <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#slackModal">Add</a>
+                                <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#slackModal">
+                                    Add</a>
                             }
                             <div class="modal fade" id="slackModal" tabindex="-1" role="dialog">
                                 <div class="modal-dialog modal-xl" role="document">
@@ -129,7 +130,7 @@
                 <div class="list-group list-group-flush">
                 @settings.events.map { case (event, actions) =>
                 <div class="list-group-item">
-                    <h4 class="mb-0">@event</h4>
+                    <h4 class="mb-0">@event.name</h4>
                     <div>@actions.zipWithIndex.map { case (action, i) => @displayAction(action, settings.accounts, SettingsCtrl.removeEventAction(group.slug, event, i)) }</div>
                 </div>
                 }
@@ -145,15 +146,26 @@
                                 </button>
                             </div>
                             <div class="modal-body">
-                                @fieldHorizontal(slackAccount("event"), Seq("label" -> "Event", "help" -> "Choose the event you want to add an action")) { (field, args) =>
-                                    @inputSelect(field, Group.Settings.Events.Event.all.map(e => (e.toString, e.toString)), Seq("placeholder" -> "") ++ args)
+                                @fieldHorizontal(addAction("event"), Seq("label" -> "Event", "help" -> "Choose the event you want to add an action")) { (field, args) =>
+                                    @inputSelect(field, Group.Settings.Events.Event.all.map(e => (e.toString, e.name)), Seq("placeholder" -> "") ++ args)
                                 }
-                                @defining(slackAccount("action")) { field =>
-                                    @verticalNav(Seq(
-                                        (field, "Slack-PostMessage", "Post Slack message", fieldsSlackPostMessage(_)),
-                                        (field, "other", "Other", _ => Html("..."))
-                                    ))
-                                }
+                                <div class="row">
+                                    <div class="col-7">
+                                    @defining(addAction("action")) { field =>
+                                        @verticalNav(Seq(
+                                            (field, "Slack-PostMessage", "Post Slack message", fieldsSlackPostMessage(_, addAction("event").id)),
+                                            (field, "other", "Other", _ => Html("..."))
+                                        ), 4)
+                                    }
+                                    </div>
+                                    <div class="col-5">
+                                        <div class="template-data" data-event="@addAction("event").id" style="display: none">
+                                            Example of available data for the tempate:
+                                            <pre class="data-preview"></pre>
+                                            @* <input type="text" class="form-control data-ref"/> *@
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

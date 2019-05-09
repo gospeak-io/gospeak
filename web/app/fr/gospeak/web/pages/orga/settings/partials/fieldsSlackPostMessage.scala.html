@@ -1,9 +1,9 @@
 @import fr.gospeak.web.pages.partials.form.html._
-@(field: Field)(implicit messages: Messages)
+@(field: Field, eventId: String)(implicit messages: Messages)
 @inputHidden(field("kind"), Seq("value" -> "Slack.PostMessage"))
 @fieldVertical(field("channel"), Seq("label" -> "Channel", "help" -> "Which channel should be used")) { (field, args) =>
-    @inputTemplate(field)
+    @inputTemplate(field, eventId, multiline = false)
 }
 @fieldVertical(field("message"), Seq("label" -> "Message", "help" -> "What message to send")) { (field, args) =>
-    @inputTemplate(field)
+    @inputTemplate(field, eventId)
 }

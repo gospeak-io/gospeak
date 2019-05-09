@@ -114,7 +114,7 @@ object Mappings {
 
   val groupSettingsEvent: Mapping[Events.Event] = of(new Formatter[Events.Event] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Events.Event] =
-      data.eitherGetAndParse(key, v => Events.Event.all.find(_.toString == v).toTry(CustomException(v)), formatError).left.map(Seq(_))
+      data.eitherGetAndParse(key, v => Events.Event.from(v).toTry(CustomException(v)), formatError).left.map(Seq(_))
 
     override def unbind(key: String, value: Events.Event): Map[String, String] = Map(key -> value.toString)
   })

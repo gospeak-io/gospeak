@@ -34,7 +34,7 @@ class SettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   private implicit val groupSettingsActionSlackEncoder: Encoder[Group.Settings.Events.Action.Slack] = deriveEncoder[Group.Settings.Events.Action.Slack]
   private implicit val groupSettingsActionDecoder: Decoder[Group.Settings.Events.Action] = deriveDecoder[Group.Settings.Events.Action]
   private implicit val groupSettingsActionEncoder: Encoder[Group.Settings.Events.Action] = deriveEncoder[Group.Settings.Events.Action]
-  private implicit val groupSettingsEventDecoder: KeyDecoder[Group.Settings.Events.Event] = (key: String) => Group.Settings.Events.Event.all.find(_.toString == key)
+  private implicit val groupSettingsEventDecoder: KeyDecoder[Group.Settings.Events.Event] = (key: String) => Group.Settings.Events.Event.from(key)
   private implicit val groupSettingsEventEncoder: KeyEncoder[Group.Settings.Events.Event] = (e: Group.Settings.Events.Event) => e.toString
   private implicit val groupSettingsAccountsDecoder: Decoder[Group.Settings.Accounts] = deriveDecoder[Group.Settings.Accounts]
   private implicit val groupSettingsAccountsEncoder: Encoder[Group.Settings.Accounts] = deriveEncoder[Group.Settings.Accounts]

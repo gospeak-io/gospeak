@@ -1,14 +1,34 @@
 package fr.gospeak.infra.services
 
+import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain
 import fr.gospeak.libs.scalautils.domain.Template
+import io.circe.generic.extras.Configuration
+import io.circe.generic.extras.semiauto.deriveEncoder
 import io.circe.{Encoder, Json, JsonNumber, JsonObject}
 
 class TemplateSrv {
-  def render[A](tmpl: Template, data: A)(implicit e: Encoder[A]): Either[String, String] = tmpl match {
+  def asData(data: TemplateData): Json = TemplateSrv.templateDataEncoder.apply(data)
+
+  def render(tmpl: Template, data: TemplateData): Either[String, String] =
+    renderTemplate(tmpl, data)(TemplateSrv.templateDataEncoder)
+
+  def render(tmpl: Template): Either[String, String] =
+    renderTemplate(tmpl, Json.obj())
+
+  private def renderTemplate[A](tmpl: Template, data: A)(implicit e: Encoder[A]): Either[String, String] = tmpl match {
     case t: Template.Mustache => MustacheTemplateSrv.render(t, data)
   }
+}
+
+object TemplateSrv {
+  private implicit val circeConfiguration: Configuration = Configuration.default.withDiscriminator("type")
+  private implicit val templateDataCfpEncoder: Encoder[TemplateData.Cfp] = deriveEncoder[TemplateData.Cfp]
+  private implicit val templateDataProposalEncoder: Encoder[TemplateData.Proposal] = deriveEncoder[TemplateData.Proposal]
+  private implicit val templateDataUserEncoder: Encoder[TemplateData.User] = deriveEncoder[TemplateData.User]
+  private implicit val templateDataProposalCreatedEncoder: Encoder[TemplateData.ProposalCreated] = deriveEncoder[TemplateData.ProposalCreated]
+  private implicit val templateDataEncoder: Encoder[TemplateData] = deriveEncoder[TemplateData]
 }
 
 // cf https://github.com/eikek/yamusca

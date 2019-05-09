@@ -68,23 +68,25 @@ object Group {
 
     object Events {
 
-      sealed trait Event
+      sealed abstract class Event(val name: String)
 
       object Event {
 
-        case object OnEventCreated extends Event
+        case object OnEventCreated extends Event("When an Event is created")
 
-        case object OnEventAddTalk extends Event
+        case object OnEventAddTalk extends Event("When a Talk is added to an Event")
 
-        case object OnEventRemoveTalk extends Event
+        case object OnEventRemoveTalk extends Event("When a Talk is removed from an Event")
 
-        case object OnEventVenueChange extends Event
+        case object OnEventVenueChange extends Event("When the Venue is change in an Event")
 
-        case object OnEventPublish extends Event
+        case object OnEventPublish extends Event("When an Event is published")
 
-        case object OnProposalCreated extends Event
+        case object OnProposalCreated extends Event("When a Proposal is submitted to a CFP")
 
         val all: Seq[Event] = Seq(OnEventCreated, OnEventAddTalk, OnEventRemoveTalk, OnEventVenueChange, OnEventPublish, OnProposalCreated)
+
+        def from(str: String): Option[Event] = all.find(_.toString == str)
       }
 
       sealed trait Action

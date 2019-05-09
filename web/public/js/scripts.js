@@ -33,10 +33,10 @@ function slugify(str) {
 // disable inputs not in visible pane
 (function () {
     // disable input inside hidden tabs
-    $('.tab-pane:not(.show)').find('input, textarea, select').attr('disabled', true);
+    $('.tab-pane.radio:not(.show)').find('input, textarea, select').attr('disabled', true);
 
     // enable input inside shown tab
-    $('a[data-toggle="tab"], a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+    $('a.radio[data-toggle="tab"], a.radio[data-toggle="pill"]').on('shown.bs.tab', function (e) {
         $(e.target.getAttribute('href')).find('input, textarea, select').attr('disabled', false);
         if (e.relatedTarget) {
             $(e.relatedTarget.getAttribute('href')).find('input, textarea, select').attr('disabled', true);
@@ -267,6 +267,91 @@ function slugify(str) {
             previewPane.html(loadingHtml);
         });
     });
+})();
+
+// template data
+(function () {
+    $('.template-data').each(function () {
+        var $elt = $(this);
+        var target = $elt.attr('data-event');
+        if (target) {
+            var $target = $('#' + target);
+            update($elt, $target); // run on page load
+            $target.change(function (e) {
+                update($elt, $target);
+            });
+        }
+    });
+
+    function update($elt, $target) {
+        var value = $target.val();
+        if (value) {
+            fetchData(value).then(function (res) {
+                /* var $input = $elt.find('.data-ref');
+                if (res.refInfo) {
+                    $input.attr('placeholder', res.refInfo);
+                    $input.show();
+                } else {
+                    $input.hide();
+                } */
+                $elt.find('.data-preview').html(JSON.stringify(res.data, null, 2));
+                $elt.show();
+            });
+        } else {
+            $elt.hide();
+        }
+    }
+
+    function fetchData(event) {
+        return fetch('/ui/utils/template-data/' + event).then(function (res) {
+            return res.json();
+        });
+    }
+})();
+
+// template input
+(function () {
+    $('.template-editor').each(function () {
+        var $elt = $(this);
+        var target = $elt.attr('data-event');
+        var previewTab = $elt.find('a[data-toggle="tab"].preview');
+        var $input = $elt.find('textarea,input[type="text"]');
+        var previewPane = $elt.find('.tab-pane.preview');
+        var loadingHtml = previewPane.html();
+        previewTab.on('show.bs.tab', function () {
+            update($input, target, previewPane);
+        });
+        previewTab.on('hidden.bs.tab', function () {
+            previewPane.html(loadingHtml);
+        });
+    });
+
+    function update($input, target, previewPane) {
+        var event = $('#' + target).val();
+        var tmpl = $input.val();
+        fetchTemplate(tmpl, event).then(function (tmpl) {
+            if (tmpl.error) {
+                console.warn('Template error', tmpl.error);
+            }
+            previewPane.html(tmpl.result);
+        });
+    }
+
+    function fetchTemplate(tmpl, event) {
+        return fetch('/ui/utils/render-template', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                template: tmpl,
+                event: event
+            })
+        }).then(function (res) {
+            return res.json();
+        });
+    }
 })();
 
 // embed input & display

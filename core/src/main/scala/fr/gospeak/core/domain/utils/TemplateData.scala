@@ -24,6 +24,8 @@ object TemplateData {
       lastName = u.lastName,
       avatar = u.avatar.url.value,
       email = u.email.value)
+
+    val sample = User("john-doe", "John Doe", "John", "Doe", "https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=wavatar", "john.doe@mail.com")
   }
 
   final case class Cfp(slug: String,
@@ -37,6 +39,8 @@ object TemplateData {
       name = c.name.value,
       description = c.description.value,
       tags = c.tags.map(_.value))
+
+    val sample = Cfp("humantalks-paris", "HumanTalks Paris", "", Seq("tech"))
   }
 
   final case class Proposal(title: String,
@@ -52,6 +56,8 @@ object TemplateData {
       slides = p.slides.map(_.value),
       video = p.video.map(_.value),
       tags = p.tags.map(_.value))
+
+    val sample = Proposal("The Scala revolution", "", None, None, Seq("scala", "fp"))
   }
 
   final case class ProposalCreated(cfp: Cfp,
@@ -63,6 +69,8 @@ object TemplateData {
       cfp = Cfp(msg.cfp),
       proposal = Proposal(msg.proposal),
       user = User(msg.user))
+
+    val sample = ProposalCreated(Cfp.sample, Proposal.sample, User.sample)
   }
 
 }
