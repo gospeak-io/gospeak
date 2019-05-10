@@ -1,0 +1,49 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.Group
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.orga.settings.SettingsForms.AddAction
+@import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import fr.gospeak.web.pages.partials.form.html._
+
+@(id: String, group: Group, addAction: Form[AddAction])(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+<div class="modal fade" id="@id" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            @formElt(addAction, SettingsCtrl.addEventAction(group.slug)) {
+                <div class="modal-header">
+                    <h5 class="modal-title" id="actionIntegrationModal">Add an action</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    @fieldHorizontal(addAction("event"), Seq("label" -> "Event", "help" -> "Choose the event you want to add an action")) { (field, args) =>
+                        @inputSelect(field, Group.Settings.Events.Event.all.map(e => (e.toString, e.name)), Seq("placeholder" -> "") ++ args)
+                    }
+                    <div class="row">
+                        <div class="col-7">
+                        @defining(addAction("action")) { field =>
+                            @navVertical(Seq(
+                                (field, "Email-Send", "Send an email", _ => Html("TODO")),
+                                (field, "Slack-PostMessage", "Post Slack message", fieldsSlackPostMessage(_, addAction("event").id)),
+                                (field, "Twitter-PostMessage", "Post a Twitt", _ => Html("TODO"))
+                            ), 4)
+                        }
+                        </div>
+                        <div class="col-5">
+                            <div class="template-data" data-event="@addAction("event").id" style="display: none">
+                                Example of available data for the tempate:
+                                <pre class="data-preview"></pre>
+                                @* <input type="text" class="form-control data-ref"/> *@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    @btnSubmit("Add Action")
+                </div>
+            }
+        </div>
+    </div>
+</div>

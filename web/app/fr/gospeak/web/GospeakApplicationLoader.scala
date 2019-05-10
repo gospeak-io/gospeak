@@ -13,7 +13,8 @@ import fr.gospeak.core.domain.utils.GospeakMessage
 import fr.gospeak.core.services._
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.infra.services.slack.{SlackClient, SlackSrvImpl}
+import fr.gospeak.infra.libs.slack.SlackClient
+import fr.gospeak.infra.services.slack.SlackSrvImpl
 import fr.gospeak.infra.services.storage.sql._
 import fr.gospeak.infra.services.{EmailSrv, GravatarSrv, TemplateSrv}
 import fr.gospeak.libs.scalautils.{BasicMessageBus, MessageBus}

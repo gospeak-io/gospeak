@@ -17,165 +17,44 @@
     <div class="row">
         <div class="col">
             <div class="card">
-                <div class="card-header">Integrations</div>
+                <div class="card-header">Available integrations</div>
                 <div class="list-group list-group-flush">
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>Meetup</span>
-                        <div>
-                            <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#meetupModal">
-                                Add</a>
-                            <div class="modal fade" id="meetupModal" tabindex="-1" role="dialog">
-                                <div class="modal-dialog modal-xl" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="meetupIntegrationModal">Meetup integration</h5>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            TODO
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                            <button type="button" class="btn btn-primary">Save</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>Slack @if(settings.accounts.slack.isDefined) {
-                            <span class="badge badge-success">Active</span>
-                        }</span>
-                        <div>
-                            @settings.accounts.slack.map { slack =>
-                            <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#slackModal">Update</a>
-                                @formBtn(SettingsCtrl.removeSlackAccount(group.slug), Seq("class" -> "btn-danger btn-sm", "confirm" -> "Remove Slack integration?")) {Remove}
-                            }.getOrElse {
-                                <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#slackModal">
-                                    Add</a>
-                            }
-                            <div class="modal fade" id="slackModal" tabindex="-1" role="dialog">
-                                <div class="modal-dialog modal-xl" role="document">
-                                    <div class="modal-content">
-                                    @formElt(slackAccount, SettingsCtrl.updateSlackAccount(group.slug)) {
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="slackIntegrationModal">Slack integration</h5>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            @fieldHorizontal(slackAccount("token"), Seq("label" -> "Slack OAuth Token")) { (field, args) =>
-                                                @inputText(field, Seq(
-                                                    "autofocus" -> "true",
-                                                    "placeholder" -> "ex: xoxp-19471843520-26025264040-635191736450-732a788fa04094e3aaedf6edb9fa2666",
-                                                    "remote-validate" -> SuggestCtrl.validateSlackToken("{{input}}").toString) ++ args)
-                                                <small class="form-text text-muted">
-                                                    Your app token. <a data-toggle="collapse" href="#createSlackAppCollapse" tabindex="-1">
-                                                    Create one</a> if needed.</small>
-                                                <ul class="collapse" id="createSlackAppCollapse">
-                                                    <li>Open <a href="https://api.slack.com/apps" target="_blank">
-                                                        https://api.slack.com/apps</a>
-                                                        and click <span class="badge badge-success">Create New App</span>
-                                                        button on the top right corner</li>
-                                                    <li>Then add the <span class="badge badge-dark">chat:write:bot</span>
-                                                        permission clicking the
-                                                        "<b>OAuth & Permissions</b>" in the left menu, section "<b>
-                                                            Scopes</b>"</li>
-                                                    <li>Finally, <span class="badge badge-success">
-                                                        Install App to Workspace</span>
-                                                        using the button on the top of the page</li>
-                                                    <li>Well done! Copy the <span class="badge badge-primary">
-                                                        OAuth Access Token</span> here so <b>Gospeak</b>
-                                                        will be able to post messages to your Slack Workspace</li>
-                                                </ul>
-                                            }
-                                            @fieldHorizontal(slackAccount("name"), Seq("label" -> "Bot name", "help" -> "The name that will be used in Slack")) { (field, args) =>
-                                                @inputText(field, Seq("placeholder" -> "ex: Gospeak bot") ++ args)
-                                            }
-                                            @fieldHorizontal(slackAccount("avatar"), Seq("label" -> "Bot avatar", "help" -> "The bot avatar in Slack")) { (field, args) =>
-                                                @inputImg(field, Seq("placeholder" -> "ex: https://secure.gravatar.com/avatar/fa64969431e3d540ef30d06860d64958?size=100&default=wavatar", "optional" -> "") ++ args)
-                                            }
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                            @btnSubmit("Connect Slack")
-                                        </div>
-                                    }
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>Twitter</span>
-                        <div><a href="#" class="btn btn-primary btn-sm">Add</a></div>
-                    </div>
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>YouTube</span>
-                        <div><a href="#" class="btn btn-primary btn-sm">Add</a></div>
-                    </div>
+                    @displayIntegration("Meetup", settings.accounts.meetup, id => modalMeetup(), SettingsCtrl.removeSlackAccount(group.slug))
+                    @displayIntegration("Slack", settings.accounts.slack, id => modalSlack(id, group, slackAccount), SettingsCtrl.removeSlackAccount(group.slug))
+                    @displayIntegration("Twitter", settings.accounts.twitter, id => modalTwitter(), SettingsCtrl.removeSlackAccount(group.slug))
+                    @displayIntegration("YouTube", settings.accounts.youtube, id => modalYoutube(), SettingsCtrl.removeSlackAccount(group.slug))
                 </div>
             </div>
         </div>
         <div class="col">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Events</span>
-                    <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#actionModal">add</a>
-                </div>
-                <div class="list-group list-group-flush">
-                @settings.events.map { case (event, actions) =>
-                <div class="list-group-item">
-                    <h4 class="mb-0">@event.name</h4>
-                    <div>@actions.zipWithIndex.map { case (action, i) => @displayAction(action, settings.accounts, SettingsCtrl.removeEventAction(group.slug, event, i)) }</div>
-                </div>
-                }
-                </div>
-                <div class="modal fade" id="actionModal" role="dialog">
-                    <div class="modal-dialog modal-xl" role="document">
-                        <div class="modal-content">
-                        @formElt(addAction, SettingsCtrl.addEventAction(group.slug)) {
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="actionIntegrationModal">Add an action</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                @fieldHorizontal(addAction("event"), Seq("label" -> "Event", "help" -> "Choose the event you want to add an action")) { (field, args) =>
-                                    @inputSelect(field, Group.Settings.Events.Event.all.map(e => (e.toString, e.name)), Seq("placeholder" -> "") ++ args)
-                                }
-                                <div class="row">
-                                    <div class="col-7">
-                                    @defining(addAction("action")) { field =>
-                                        @verticalNav(Seq(
-                                            (field, "Slack-PostMessage", "Post Slack message", fieldsSlackPostMessage(_, addAction("event").id)),
-                                            (field, "other", "Other", _ => Html("..."))
-                                        ), 4)
-                                    }
-                                    </div>
-                                    <div class="col-5">
-                                        <div class="template-data" data-event="@addAction("event").id" style="display: none">
-                                            Example of available data for the tempate:
-                                            <pre class="data-preview"></pre>
-                                            @* <input type="text" class="form-control data-ref"/> *@
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                @btnSubmit("Add Action")
-                            </div>
-                        }
-                        </div>
+            @if(settings.events.isEmpty) {
+                <div class="card">
+                    <div class="card-header">Actions</div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Want to automate your group?</h5>
+                        <p class="card-text">
+                            Actions are here for you to perform some tasks when something happen using active integrations</p>
+                        <button class="btn btn-success" data-toggle="modal" data-target="#actionModal">
+                            Create your first action</button>
                     </div>
                 </div>
-            </div>
+            } else {
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Actions</span>
+                        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#actionModal">Add</button>
+                    </div>
+                    <div class="list-group list-group-flush">
+                    @settings.events.map { case (event, actions) =>
+                    <div class="list-group-item">
+                        <h4 class="mb-0">@event.name</h4>
+                        <div>@actions.zipWithIndex.map { case (action, i) => @displayAction(action, settings.accounts, SettingsCtrl.removeEventAction(group.slug, event, i)) }</div>
+                    </div>
+                    }
+                    </div>
+                </div>
+            }
+            @modalAction("actionModal", group, addAction)
         </div>
     </div>
 }()

@@ -26,7 +26,7 @@ class MessageBusSpec extends FunSpec with Matchers {
         })
         mb.publish(Event1("a")).unsafeRunSync() shouldBe 1
         tmp shouldBe "a"
-        mb.publish(Message("b")).unsafeRunSync() shouldBe 0
+        mb.publish(Msg("b")).unsafeRunSync() shouldBe 0
         tmp shouldBe "a"
         mb.publish(Event1("c")).unsafeRunSync() shouldBe 1
         tmp shouldBe "c"
@@ -61,7 +61,7 @@ object MessageBusSpec {
 
   case class Event2(count: Int) extends MyEvents
 
-  case class Message(info: String)
+  case class Msg(info: String)
 
   def create[A](): MessageBus[A] = {
     new BasicMessageBus[A]

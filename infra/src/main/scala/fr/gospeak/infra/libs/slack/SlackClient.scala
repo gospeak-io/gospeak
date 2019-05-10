@@ -1,14 +1,13 @@
-package fr.gospeak.infra.services.slack
+package fr.gospeak.infra.libs.slack
 
 import cats.effect.IO
-import fr.gospeak.core.services.slack.domain.{SlackError, SlackToken, SlackTokenInfo, SlackUser}
-import fr.gospeak.infra.services.slack.JsonFormats._
-import fr.gospeak.infra.services.slack.api._
-import fr.gospeak.infra.services.slack.api.request.{SlackContent, SlackSender}
+import fr.gospeak.infra.libs.slack.JsonFormats._
+import fr.gospeak.infra.libs.slack.domain._
 import fr.gospeak.infra.utils.HttpClient
 import fr.gospeak.libs.scalautils.Extensions._
 import io.circe.parser._
 
+// SlackClient should not depend on core module, it's an independent lib
 // scala lib: https://github.com/slack-scala-client/slack-scala-client
 class SlackClient {
   private val baseUrl = "https://slack.com/api"

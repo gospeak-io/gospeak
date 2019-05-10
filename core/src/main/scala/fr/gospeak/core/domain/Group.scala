@@ -59,12 +59,14 @@ object Group {
       accounts = Accounts(
         slack = None,
         meetup = None,
-        twitter = None),
+        twitter = None,
+        youtube = None),
       events = Map())
 
     final case class Accounts(slack: Option[SlackCredentials],
                               meetup: Option[String],
-                              twitter: Option[String])
+                              twitter: Option[String],
+                              youtube: Option[String])
 
     object Events {
 

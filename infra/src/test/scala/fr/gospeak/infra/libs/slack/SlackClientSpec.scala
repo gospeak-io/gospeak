@@ -1,6 +1,6 @@
-package fr.gospeak.infra.services.slack
+package fr.gospeak.infra.libs.slack
 
-import fr.gospeak.core.services.slack.domain.SlackToken
+import fr.gospeak.infra.libs.slack.domain.SlackToken
 import org.scalatest.{FunSpec, Matchers}
 
 class SlackClientSpec extends FunSpec with Matchers {

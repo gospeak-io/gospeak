@@ -80,8 +80,8 @@ class SuggestCtrl(cc: ControllerComponents,
   def validateSlackToken(token: String): Action[AnyContent] = SecuredAction.async { implicit req =>
     import cats.implicits._
     slackSrv.getInfos(SlackToken(token)).map {
-      case Right(infos) => ValidationResult(infos.ok, s"Token for ${infos.team} team, created by ${infos.user}")
-      case Left(err) => ValidationResult(err.ok, s"Invalid token: ${err.error}")
+      case Right(infos) => ValidationResult(valid = true, s"Token for ${infos.teamName} team, created by ${infos.userName}")
+      case Left(err) => ValidationResult(valid = false, s"Invalid token: ${err.error}")
     }.recover { case NonFatal(e) => ValidationResult(valid = false, s"Invalid token: ${e.getMessage}") }
       .map { res => Ok(Json.toJson(res)) }.unsafeToFuture()
   }

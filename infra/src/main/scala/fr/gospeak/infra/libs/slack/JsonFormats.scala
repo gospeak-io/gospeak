@@ -1,11 +1,10 @@
-package fr.gospeak.infra.services.slack
+package fr.gospeak.infra.libs.slack
 
 import java.time.Instant
 
-import cats.syntax.either._
-import fr.gospeak.core.services.slack.domain.{SlackError, SlackTokenInfo, SlackUser}
-import fr.gospeak.infra.services.slack.api.{SlackChannel, SlackMessage}
-import fr.gospeak.infra.utils.CirceUtils._
+import cats.implicits._
+import fr.gospeak.infra.libs.slack.domain._
+import fr.gospeak.infra.utils.CirceUtils.decodeSingleValueClass
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 

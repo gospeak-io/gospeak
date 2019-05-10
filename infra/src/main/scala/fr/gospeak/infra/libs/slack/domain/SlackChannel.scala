@@ -1,8 +1,6 @@
-package fr.gospeak.infra.services.slack.api
+package fr.gospeak.infra.libs.slack.domain
 
 import java.time.Instant
-
-import fr.gospeak.core.services.slack.domain.SlackUser
 
 // cf https://api.slack.com/types/channel
 final case class SlackChannel(id: SlackChannel.Id,

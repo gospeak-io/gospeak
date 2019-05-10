@@ -1,4 +1,4 @@
-package fr.gospeak.infra.services.slack.api
+package fr.gospeak.infra.libs.slack.domain
 
 final case class SlackMessage(`type`: String,
                               subtype: String,

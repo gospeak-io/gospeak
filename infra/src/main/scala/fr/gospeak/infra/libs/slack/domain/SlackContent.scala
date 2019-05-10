@@ -1,4 +1,4 @@
-package fr.gospeak.infra.services.slack.api.request
+package fr.gospeak.infra.libs.slack.domain
 
 sealed trait SlackContent {
   def toOpts: Map[String, String]

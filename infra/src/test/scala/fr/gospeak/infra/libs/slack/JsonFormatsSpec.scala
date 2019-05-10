@@ -1,8 +1,7 @@
-package fr.gospeak.infra.services.slack
+package fr.gospeak.infra.libs.slack
 
-import fr.gospeak.core.services.slack.domain.{SlackTokenInfo, SlackUser}
-import fr.gospeak.infra.services.slack.JsonFormats._
-import fr.gospeak.infra.services.slack.api.{SlackChannel, SlackMessage}
+import fr.gospeak.infra.libs.slack.JsonFormats._
+import fr.gospeak.infra.libs.slack.domain.{SlackChannel, SlackMessage, SlackTokenInfo, SlackUser}
 import io.circe.parser.decode
 import org.scalatest.{FunSpec, Matchers}
 
