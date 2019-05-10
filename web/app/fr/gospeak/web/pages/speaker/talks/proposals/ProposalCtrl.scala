@@ -8,7 +8,6 @@ import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.GospeakMessage
-import fr.gospeak.core.domain.utils.GospeakMessage.ProposalCreated
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.MessageBus
 import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
@@ -55,7 +54,7 @@ class ProposalCtrl(cc: ControllerComponents,
           talkElt <- OptionT(talkRepo.find(user, talk))
           cfpElt <- OptionT(cfpRepo.find(cfp))
           proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data, talkElt.speakers, by, now))
-          _ <- OptionT.liftF(mb.publish(ProposalCreated(cfpElt, proposalElt, req.identity.user)))
+          _ <- OptionT.liftF(mb.publish(GospeakMessage.ProposalCreated(cfpElt, proposalElt, req.identity.user)))
           msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
         } yield Redirect(routes.ProposalCtrl.detail(talk, cfp)).flashing("success" -> msg)).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }

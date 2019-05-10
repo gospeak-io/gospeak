@@ -57,7 +57,7 @@ class SuggestCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       cfps <- OptionT.liftF(cfpRepo.list(groupElt.id))
-      suggestItems = cfps.map(c => SuggestedItem(c.id.value, c.name.value + " - " + Formats.cfpDates(c)))
+      suggestItems = cfps.map(c => SuggestedItem(c.slug.value, c.name.value + " - " + Formats.cfpDates(c)))
     } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
   }
 
@@ -87,35 +87,43 @@ class SuggestCtrl(cc: ControllerComponents,
   }
 
   def templateData(event: String): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val res = Group.Settings.Events.Event.from(event) match {
-      case Some(Group.Settings.Events.Event.OnProposalCreated) =>
-        TemplateDataResponse(Some("Enter a Proposal Id to test with real data"), circeToPlay(templateSrv.asData(TemplateData.ProposalCreated.sample)))
-      case Some(_) =>
-        TemplateDataResponse(None, Json.obj())
-      case None =>
-        TemplateDataResponse(None, Json.obj())
-    }
-    IO.pure(Ok(Json.toJson(res))).unsafeToFuture()
+    import Group.Settings.Events.Event
+    val data = Event.from(event)
+      .map(eventToData)
+      .map(templateSrv.asData)
+      .map(circeToPlay)
+      .getOrElse(Json.obj())
+    IO.pure(Ok(Json.toJson(TemplateDataResponse(None, data)))).unsafeToFuture()
   }
 
   def renderTemplate(): Action[JsValue] = SecuredAction(parse.json).async { implicit req =>
+    import Group.Settings.Events.Event
     req.body.validate[TemplateRequest].fold(
       errors => IO.pure(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
       data => {
-        val res = (data.event.flatMap(Group.Settings.Events.Event.from) match {
-          case Some(Group.Settings.Events.Event.OnProposalCreated) =>
-            templateSrv.render(Template.Mustache(data.template), TemplateData.ProposalCreated.sample)
-          case Some(_) =>
-            templateSrv.render(Template.Mustache(data.template))
-          case None =>
-            templateSrv.render(Template.Mustache(data.template))
-        }) match {
+        val template = data.event
+          .flatMap(Event.from)
+          .map(eventToData)
+          .map(templateSrv.render(Template.Mustache(data.template), _))
+          .getOrElse(templateSrv.render(Template.Mustache(data.template)))
+        val res = template match {
           case Left(err) => TemplateResponse(None, Some(err))
           case Right(tmpl) => TemplateResponse(Some(MarkdownUtils.render(Markdown(tmpl)).value), None)
         }
         IO.pure(Ok(Json.toJson(res)))
       }
     ).unsafeToFuture()
+  }
+
+  private def eventToData(e: Group.Settings.Events.Event): TemplateData = {
+    import Group.Settings.Events.Event
+    e match {
+      case Event.OnEventCreated => TemplateData.Sample.eventCreated
+      case Event.OnEventAddTalk => TemplateData.Sample.talkAdded
+      case Event.OnEventRemoveTalk => TemplateData.Sample.talkRemoved
+      case Event.OnEventPublish => TemplateData.Sample.eventPublished
+      case Event.OnProposalCreated => TemplateData.Sample.proposalCreated
+    }
   }
 
   private def circeToPlay(json: io.circe.Json): JsValue = {

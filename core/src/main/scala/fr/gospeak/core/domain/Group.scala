@@ -80,13 +80,11 @@ object Group {
 
         case object OnEventRemoveTalk extends Event("When a Talk is removed from an Event")
 
-        case object OnEventVenueChange extends Event("When the Venue is change in an Event")
-
         case object OnEventPublish extends Event("When an Event is published")
 
         case object OnProposalCreated extends Event("When a Proposal is submitted to a CFP")
 
-        val all: Seq[Event] = Seq(OnEventCreated, OnEventAddTalk, OnEventRemoveTalk, OnEventVenueChange, OnEventPublish, OnProposalCreated)
+        val all: Seq[Event] = Seq(OnEventCreated, OnEventAddTalk, OnEventRemoveTalk, OnEventPublish, OnProposalCreated)
 
         def from(str: String): Option[Event] = all.find(_.toString == str)
       }
