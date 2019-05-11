@@ -159,9 +159,9 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       Group.Settings.Events.Event.OnEventCreated -> Seq(
         Group.Settings.Events.Action.Slack(SlackAction.PostMessage(
           Template.Mustache("{{event.start.year}}_{{event.start.month}}"),
-          Template.Mustache("Meetup [{{event.name}}]({{event.link}}) créé !")))
-      )
-    ))
+          Template.Mustache("Meetup [{{event.name}}]({{event.link}}) créé !"),
+          createdChannelIfNotExist = true,
+          inviteEverybody = true)))))
 
     val cfp1 = cfp(group1, "ht-paris", "HumanTalks Paris", None, None, "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq("tag1", "tag2"), userDemo)
     val cfp2 = cfp(group1, "ht-paris-day-1", "HumanTalks Paris Day - Edition 1", None, Some("2018-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)

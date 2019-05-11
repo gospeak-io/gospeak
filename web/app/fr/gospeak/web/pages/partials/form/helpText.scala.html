@@ -1,0 +1,9 @@
+@import fr.gospeak.web.pages.partials.form.Utils
+
+@(field: Field, args: Seq[(String, String)], help: String)(implicit messages: Messages)
+<span id="@Utils.helpId(args, field)" class="text-muted">
+@Seq(
+    Some(help),
+    Utils.hasPattern(field).map(Utils.format(_))
+).flatten.mkString(", ")
+</span>

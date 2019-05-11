@@ -18,6 +18,8 @@ import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
 
+import scala.util.control.NonFatal
+
 class SettingsCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
                    groupRepo: OrgaGroupRepo,
@@ -35,17 +37,17 @@ class SettingsCtrl(cc: ControllerComponents,
   }
 
   def updateSlackAccount(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    import cats.implicits._
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
       res <- OptionT.liftF(slackAccount.bindFromRequest.fold(
         formWithErrors => IO.pure(settingsView(groupElt, settings, slack = Some(formWithErrors))),
-        data => slackSrv.getInfos(data.token).flatMap {
-          case Right(_) => settingsRepo.set(groupElt.id, settings.set(data), user, now)
-            .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Slack account updated"))
-          case Left(_) => IO.pure(Redirect(routes.SettingsCtrl.list(group)).flashing("error" -> "Invalid Slack token"))
-        }
+        data => slackSrv.getInfos(data.token)
+          .flatMap(_ => settingsRepo.set(groupElt.id, settings.set(data), user, now))
+          .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Slack account updated"))
+          .recover { case NonFatal(e) => Redirect(routes.SettingsCtrl.list(group)).flashing("error" -> s"Invalid Slack token: ${e.getMessage}") }
       ))
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }

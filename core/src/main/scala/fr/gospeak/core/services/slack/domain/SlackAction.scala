@@ -7,6 +7,8 @@ sealed trait SlackAction
 object SlackAction {
 
   final case class PostMessage(channel: Template,
-                               message: Template) extends SlackAction
+                               message: Template,
+                               createdChannelIfNotExist: Boolean,
+                               inviteEverybody: Boolean) extends SlackAction
 
 }

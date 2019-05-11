@@ -11,6 +11,7 @@ import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.utils.Extensions._
 import fr.gospeak.web.utils.Mappings.Utils._
 import play.api.data.Forms._
+import play.api.data.format.Formats._
 import play.api.data.format.Formatter
 import play.api.data.validation.{Constraint, Constraints, ValidationError, Invalid => PlayInvalid, Valid => PlayValid}
 import play.api.data.{FormError, Mapping, WrappedMapping}
@@ -124,9 +125,10 @@ object Mappings {
       data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
         case "Slack.PostMessage" => (
           templateFormatter.bind(s"$key.channel", data),
-          templateFormatter.bind(s"$key.message", data)
-        ).mapN(SlackAction.PostMessage.apply)
-          .map(Events.Action.Slack)
+          templateFormatter.bind(s"$key.message", data),
+          implicitly[Formatter[Boolean]].bind(s"$key.createdChannelIfNotExist", data),
+          implicitly[Formatter[Boolean]].bind(s"$key.inviteEverybody", data)
+        ).mapN(SlackAction.PostMessage.apply).map(Events.Action.Slack)
         case v => Left(Seq(FormError(s"$key.kind", s"action kind '$v' not found")))
       }
     }
@@ -135,7 +137,9 @@ object Mappings {
       case Events.Action.Slack(p: SlackAction.PostMessage) =>
         Map(s"$key.kind" -> "Slack.PostMessage") ++
           templateFormatter.unbind(s"$key.channel", p.channel) ++
-          templateFormatter.unbind(s"$key.message", p.message)
+          templateFormatter.unbind(s"$key.message", p.message) ++
+          implicitly[Formatter[Boolean]].unbind(s"$key.createdChannelIfNotExist", p.createdChannelIfNotExist) ++
+          implicitly[Formatter[Boolean]].unbind(s"$key.inviteEverybody", p.inviteEverybody)
     }
   })
 

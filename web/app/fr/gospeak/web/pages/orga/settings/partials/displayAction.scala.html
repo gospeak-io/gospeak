@@ -11,9 +11,22 @@
             case Group.Settings.Events.Action.Slack(a: SlackAction.PostMessage) => {
                 <div class="media ml-3 mt-1">
                     <div class="media-body">
-                        <h5 class="mb-0">Post Slack message @if(accounts.slack.isEmpty){<span class="badge badge-warning" title="Enable the Slack integration to enable it">Disabled</span>}</h5>
+                        <h5 class="mb-0">Post Slack message @if(accounts.slack.isEmpty) {
+                            <span class="badge badge-warning" title="Enable the Slack integration to activate it">
+                                Disabled</span>
+                        }</h5>
                         <p class="mb-0 ml-3">Channel: @a.channel.value</p>
                         <p class="mb-0 ml-3">Message: @a.message.value</p>
+                        @if(a.createdChannelIfNotExist || a.inviteEverybody) {
+                            <p class="mb-0 ml-3">
+                                @if(a.createdChannelIfNotExist) {
+                                    <span class="badge badge-primary">Create channel if not exist</span>
+                                }
+                                @if(a.inviteEverybody) {
+                                    <span class="badge badge-primary">Invite everybody in the channel</span>
+                                }
+                            </p>
+                        }
                     </div>
                 </div>
             }
