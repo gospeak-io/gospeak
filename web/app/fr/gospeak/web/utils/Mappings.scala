@@ -3,7 +3,6 @@ package fr.gospeak.web.utils
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import cats.implicits._
-import fr.gospeak.core.domain.Group.Settings.Events
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import fr.gospeak.libs.scalautils.Extensions._
@@ -113,28 +112,28 @@ object Mappings {
   }
   val template: Mapping[Template] = of(templateFormatter)
 
-  val groupSettingsEvent: Mapping[Events.Event] = of(new Formatter[Events.Event] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Events.Event] =
-      data.eitherGetAndParse(key, v => Events.Event.from(v).toTry(CustomException(v)), formatError).left.map(Seq(_))
+  val groupSettingsEvent: Mapping[Group.Settings.Action.Trigger] = of(new Formatter[Group.Settings.Action.Trigger] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action.Trigger] =
+      data.eitherGetAndParse(key, v => Group.Settings.Action.Trigger.from(v).toTry(CustomException(v)), formatError).left.map(Seq(_))
 
-    override def unbind(key: String, value: Events.Event): Map[String, String] = Map(key -> value.toString)
+    override def unbind(key: String, value: Group.Settings.Action.Trigger): Map[String, String] = Map(key -> value.toString)
   })
 
-  val groupSettingsAction: Mapping[Events.Action] = of(new Formatter[Events.Action] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Events.Action] = {
+  val groupSettingsAction: Mapping[Group.Settings.Action] = of(new Formatter[Group.Settings.Action] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action] = {
       data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
         case "Slack.PostMessage" => (
           templateFormatter.bind(s"$key.channel", data),
           templateFormatter.bind(s"$key.message", data),
           implicitly[Formatter[Boolean]].bind(s"$key.createdChannelIfNotExist", data),
           implicitly[Formatter[Boolean]].bind(s"$key.inviteEverybody", data)
-        ).mapN(SlackAction.PostMessage.apply).map(Events.Action.Slack)
+        ).mapN(SlackAction.PostMessage.apply).map(Group.Settings.Action.Slack)
         case v => Left(Seq(FormError(s"$key.kind", s"action kind '$v' not found")))
       }
     }
 
-    override def unbind(key: String, value: Events.Action): Map[String, String] = value match {
-      case Events.Action.Slack(p: SlackAction.PostMessage) =>
+    override def unbind(key: String, value: Group.Settings.Action): Map[String, String] = value match {
+      case Group.Settings.Action.Slack(p: SlackAction.PostMessage) =>
         Map(s"$key.kind" -> "Slack.PostMessage") ++
           templateFormatter.unbind(s"$key.channel", p.channel) ++
           templateFormatter.unbind(s"$key.message", p.message) ++

@@ -155,9 +155,9 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val group4 = group("big-group", "Big Group", Seq("BigData"), userOrga)
     val groups = NonEmptyList.of(group1, group2, group3, group4)
 
-    val group1Settings = Group.Settings.default.copy(events = Map(
-      Group.Settings.Events.Event.OnEventCreated -> Seq(
-        Group.Settings.Events.Action.Slack(SlackAction.PostMessage(
+    val group1Settings = Group.Settings.default.copy(actions = Map(
+      Group.Settings.Action.Trigger.OnEventCreated -> Seq(
+        Group.Settings.Action.Slack(SlackAction.PostMessage(
           Template.Mustache("{{event.start.year}}_{{event.start.month}}"),
           Template.Mustache("Meetup [{{event.name}}]({{event.link}}) créé !"),
           createdChannelIfNotExist = true,

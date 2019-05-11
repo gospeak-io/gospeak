@@ -9,7 +9,7 @@
 <div class="modal fade" id="@id" role="dialog">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
-            @formElt(addAction, SettingsCtrl.addEventAction(group.slug)) {
+            @formElt(addAction, SettingsCtrl.addAction(group.slug)) {
                 <div class="modal-header">
                     <h5 class="modal-title" id="actionIntegrationModal">Add an action</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -17,8 +17,8 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    @fieldHorizontal(addAction("event"), Seq("label" -> "Event", "help" -> "Choose the event you want to add an action")) { (field, args) =>
-                        @inputSelect(field, Group.Settings.Events.Event.all.map(e => (e.toString, e.name)), Seq("placeholder" -> "") ++ args)
+                    @fieldHorizontal(addAction("trigger"), Seq("label" -> "Trigger", "help" -> "Choose the trigger you want for your action")) { (field, args) =>
+                        @inputSelect(field, Group.Settings.Action.Trigger.all.map(t => (t.toString, t.name)), Seq("placeholder" -> "") ++ args)
                     }
                     <div class="row">
                         <div class="col-7">

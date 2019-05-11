@@ -83,8 +83,8 @@ POST        /u/groups/:group/venues/:venue/edit                                 
 GET         /u/groups/:group/settings                                           fr.gospeak.web.pages.orga.settings.SettingsCtrl.list(group: Group.Slug)
 POST        /u/groups/:group/settings/slack-account                             fr.gospeak.web.pages.orga.settings.SettingsCtrl.updateSlackAccount(group: Group.Slug)
 POST        /u/groups/:group/settings/slack-account/remove                      fr.gospeak.web.pages.orga.settings.SettingsCtrl.removeSlackAccount(group: Group.Slug)
-POST        /u/groups/:group/settings/add-action                                fr.gospeak.web.pages.orga.settings.SettingsCtrl.addEventAction(group: Group.Slug)
-POST        /u/groups/:group/settings/remove-action                             fr.gospeak.web.pages.orga.settings.SettingsCtrl.removeEventAction(group: Group.Slug, event: Group.Settings.Events.Event, index: Int)
+POST        /u/groups/:group/settings/add-action                                fr.gospeak.web.pages.orga.settings.SettingsCtrl.addAction(group: Group.Slug)
+POST        /u/groups/:group/settings/remove-action                             fr.gospeak.web.pages.orga.settings.SettingsCtrl.removeAction(group: Group.Slug, trigger: Group.Settings.Action.Trigger, index: Int)
 
 GET         /u/profile                                                          fr.gospeak.web.pages.speaker.SpeakerCtrl.profile
 GET         /u/talks                                                            fr.gospeak.web.pages.speaker.talks.TalkCtrl.list(params: Page.Params ?= Page.Params.defaults)
@@ -117,7 +117,7 @@ GET         /ui/suggest/cfps/:group                                             
 GET         /ui/suggest/partners/:group                                         fr.gospeak.web.api.ui.SuggestCtrl.partners(group: Group.Slug)
 GET         /ui/suggest/venues/:group                                           fr.gospeak.web.api.ui.SuggestCtrl.venues(group: Group.Slug)
 GET         /ui/validate/slack-token                                            fr.gospeak.web.api.ui.SuggestCtrl.validateSlackToken(token: String)
-GET         /ui/utils/template-data/:event                                      fr.gospeak.web.api.ui.SuggestCtrl.templateData(event: String)
+GET         /ui/utils/template-data/:trigger                                    fr.gospeak.web.api.ui.SuggestCtrl.templateData(trigger: String)
 + nocsrf
 POST        /ui/utils/render-template                                           fr.gospeak.web.api.ui.SuggestCtrl.renderTemplate
 

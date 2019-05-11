@@ -26,7 +26,6 @@ class SettingsCtrl(cc: ControllerComponents,
                    settingsRepo: SettingsRepo,
                    slackSrv: SlackSrv) extends UICtrl(cc, silhouette) {
 
-  import SettingsForms._
   import silhouette._
 
   def list(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -42,7 +41,7 @@ class SettingsCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
-      res <- OptionT.liftF(slackAccount.bindFromRequest.fold(
+      res <- OptionT.liftF(SettingsForms.slackAccount.bindFromRequest.fold(
         formWithErrors => IO.pure(settingsView(groupElt, settings, slack = Some(formWithErrors))),
         data => slackSrv.getInfos(data.token)
           .flatMap(_ => settingsRepo.set(groupElt.id, settings.set(data), user, now))
@@ -63,12 +62,12 @@ class SettingsCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
-  def addEventAction(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def addAction(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
-      res <- OptionT.liftF(addAction.bindFromRequest.fold(
+      res <- OptionT.liftF(SettingsForms.addAction.bindFromRequest.fold(
         formWithErrors => IO.pure(settingsView(groupElt, settings, action = Some(formWithErrors))),
         data => settingsRepo.set(groupElt.id, addActionToSettings(settings, data), user, now)
           .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Action added"))
@@ -76,32 +75,32 @@ class SettingsCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
-  def removeEventAction(group: Group.Slug, event: Group.Settings.Events.Event, index: Int): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def removeAction(group: Group.Slug, trigger: Group.Settings.Action.Trigger, index: Int): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
-      res <- OptionT.liftF(settingsRepo.set(groupElt.id, removeActionToSettings(settings, event, index), user, now)
+      res <- OptionT.liftF(settingsRepo.set(groupElt.id, removeActionToSettings(settings, trigger, index), user, now)
         .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Action removed"))
       )
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
-  private def settingsView(groupElt: Group, settings: Group.Settings, slack: Option[Form[SlackCredentials]] = None, action: Option[Form[AddAction]] = None)
+  private def settingsView(groupElt: Group, settings: Group.Settings, slack: Option[Form[SlackCredentials]] = None, action: Option[Form[SettingsForms.AddAction]] = None)
                           (implicit req: SecuredRequest[CookieEnv, AnyContent]): Result = {
     val b = listBreadcrumb(groupElt)
-    val slackForm = settings.accounts.slack.map(s => slackAccount.fill(s)).getOrElse(slackAccount)
-    Ok(html.list(groupElt, settings, slack.getOrElse(slackForm), action.getOrElse(addAction))(b))
+    val slackForm = settings.accounts.slack.map(s => SettingsForms.slackAccount.fill(s)).getOrElse(SettingsForms.slackAccount)
+    Ok(html.list(groupElt, settings, slack.getOrElse(slackForm), action.getOrElse(SettingsForms.addAction))(b))
   }
 
-  private def addActionToSettings(settings: Group.Settings, addAction: AddAction): Group.Settings = {
-    val actions = settings.events.getOrElse(addAction.event, Seq()) :+ addAction.action
-    settings.copy(events = settings.events + (addAction.event -> actions))
+  private def addActionToSettings(settings: Group.Settings, addAction: SettingsForms.AddAction): Group.Settings = {
+    val actions = settings.actions.getOrElse(addAction.trigger, Seq()) :+ addAction.action
+    settings.copy(actions = settings.actions + (addAction.trigger -> actions))
   }
 
-  private def removeActionToSettings(settings: Group.Settings, event: Group.Settings.Events.Event, index: Int): Group.Settings = {
-    val actions = settings.events.getOrElse(event, Seq()).zipWithIndex.filter(_._2 != index).map(_._1)
-    settings.copy(events = (settings.events + (event -> actions)).filter(_._2.nonEmpty))
+  private def removeActionToSettings(settings: Group.Settings, trigger: Group.Settings.Action.Trigger, index: Int): Group.Settings = {
+    val actions = settings.actions.getOrElse(trigger, Seq()).zipWithIndex.filter(_._2 != index).map(_._1)
+    settings.copy(actions = (settings.actions + (trigger -> actions)).filter(_._2.nonEmpty))
   }
 }
 

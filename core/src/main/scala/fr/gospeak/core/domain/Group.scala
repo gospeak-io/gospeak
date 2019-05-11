@@ -41,17 +41,8 @@ object Group {
 
 
   final case class Settings(accounts: Settings.Accounts,
-                            events: Map[Settings.Events.Event, Seq[Settings.Events.Action]]) {
+                            actions: Map[Settings.Action.Trigger, Seq[Settings.Action]]) {
     def set(slack: SlackCredentials): Settings = copy(accounts = accounts.copy(slack = Some(slack)))
-
-    def verify: Either[Seq[String], Settings] = {
-      val actions = this.events.values.flatten
-      if (accounts.slack.isEmpty && actions.exists { case _: Settings.Events.Action.Slack => true }) {
-        Left(Seq("Some Slack actions are defined but no Slack account"))
-      } else {
-        Right(this)
-      }
-    }
   }
 
   object Settings {
@@ -61,41 +52,37 @@ object Group {
         meetup = None,
         twitter = None,
         youtube = None),
-      events = Map())
+      actions = Map())
 
     final case class Accounts(slack: Option[SlackCredentials],
                               meetup: Option[String],
                               twitter: Option[String],
                               youtube: Option[String])
 
-    object Events {
+    sealed trait Action
 
-      sealed abstract class Event(val name: String)
+    object Action {
 
-      object Event {
+      sealed abstract class Trigger(val name: String)
 
-        case object OnEventCreated extends Event("When an Event is created")
+      object Trigger {
 
-        case object OnEventAddTalk extends Event("When a Talk is added to an Event")
+        case object OnEventCreated extends Trigger("When an Event is created")
 
-        case object OnEventRemoveTalk extends Event("When a Talk is removed from an Event")
+        case object OnEventAddTalk extends Trigger("When a Talk is added to an Event")
 
-        case object OnEventPublish extends Event("When an Event is published")
+        case object OnEventRemoveTalk extends Trigger("When a Talk is removed from an Event")
 
-        case object OnProposalCreated extends Event("When a Proposal is submitted to a CFP")
+        case object OnEventPublish extends Trigger("When an Event is published")
 
-        val all: Seq[Event] = Seq(OnEventCreated, OnEventAddTalk, OnEventRemoveTalk, OnEventPublish, OnProposalCreated)
+        case object OnProposalCreated extends Trigger("When a Proposal is submitted to a CFP")
 
-        def from(str: String): Option[Event] = all.find(_.toString == str)
+        val all: Seq[Trigger] = Seq(OnEventCreated, OnEventAddTalk, OnEventRemoveTalk, OnEventPublish, OnProposalCreated)
+
+        def from(str: String): Option[Trigger] = all.find(_.toString == str)
       }
 
-      sealed trait Action
-
-      object Action {
-
-        final case class Slack(value: SlackAction) extends Action
-
-      }
+      final case class Slack(value: SlackAction) extends Action
 
     }
 

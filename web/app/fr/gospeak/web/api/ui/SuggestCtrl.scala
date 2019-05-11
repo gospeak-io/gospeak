@@ -85,9 +85,9 @@ class SuggestCtrl(cc: ControllerComponents,
       .map(res => Ok(Json.toJson(res))).unsafeToFuture()
   }
 
-  def templateData(event: String): Action[AnyContent] = SecuredAction.async { implicit req =>
-    import Group.Settings.Events.Event
-    val data = Event.from(event)
+  def templateData(trigger: String): Action[AnyContent] = SecuredAction.async { implicit req =>
+    import Group.Settings.Action.Trigger
+    val data = Trigger.from(trigger)
       .map(eventToData)
       .map(templateSrv.asData)
       .map(circeToPlay)
@@ -96,12 +96,12 @@ class SuggestCtrl(cc: ControllerComponents,
   }
 
   def renderTemplate(): Action[JsValue] = SecuredAction(parse.json).async { implicit req =>
-    import Group.Settings.Events.Event
+    import Group.Settings.Action.Trigger
     req.body.validate[TemplateRequest].fold(
       errors => IO.pure(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
       data => {
         val template = data.event
-          .flatMap(Event.from)
+          .flatMap(Trigger.from)
           .map(eventToData)
           .map(templateSrv.render(Template.Mustache(data.template), _))
           .getOrElse(templateSrv.render(Template.Mustache(data.template)))
@@ -114,14 +114,14 @@ class SuggestCtrl(cc: ControllerComponents,
     ).unsafeToFuture()
   }
 
-  private def eventToData(e: Group.Settings.Events.Event): TemplateData = {
-    import Group.Settings.Events.Event
-    e match {
-      case Event.OnEventCreated => TemplateData.Sample.eventCreated
-      case Event.OnEventAddTalk => TemplateData.Sample.talkAdded
-      case Event.OnEventRemoveTalk => TemplateData.Sample.talkRemoved
-      case Event.OnEventPublish => TemplateData.Sample.eventPublished
-      case Event.OnProposalCreated => TemplateData.Sample.proposalCreated
+  private def eventToData(trigger: Group.Settings.Action.Trigger): TemplateData = {
+    import Group.Settings.Action.Trigger
+    trigger match {
+      case Trigger.OnEventCreated => TemplateData.Sample.eventCreated
+      case Trigger.OnEventAddTalk => TemplateData.Sample.talkAdded
+      case Trigger.OnEventRemoveTalk => TemplateData.Sample.talkRemoved
+      case Trigger.OnEventPublish => TemplateData.Sample.eventPublished
+      case Trigger.OnProposalCreated => TemplateData.Sample.proposalCreated
     }
   }
 

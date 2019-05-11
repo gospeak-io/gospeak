@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.orga.settings
 
-import fr.gospeak.core.domain.Group.Settings.Events
+import fr.gospeak.core.domain.Group.Settings.Action
 import fr.gospeak.core.services.slack.domain.SlackCredentials
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Form
@@ -13,10 +13,10 @@ object SettingsForms {
     "avatar" -> optional(url)
   )(SlackCredentials.apply)(SlackCredentials.unapply))
 
-  final case class AddAction(event: Events.Event, action: Events.Action)
+  final case class AddAction(trigger: Action.Trigger, action: Action)
 
   val addAction: Form[AddAction] = Form(mapping(
-    "event" -> groupSettingsEvent,
+    "trigger" -> groupSettingsEvent,
     "action" -> groupSettingsAction
   )(AddAction.apply)(AddAction.unapply))
 }

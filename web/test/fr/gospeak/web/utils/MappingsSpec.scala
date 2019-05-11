@@ -149,13 +149,13 @@ class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
       }
     }
     it("should bind & unbind a Group.Settings.Events.Event") {
-      forAll { v: Group.Settings.Events.Event =>
+      forAll { v: Group.Settings.Action.Trigger =>
         val data = groupSettingsEvent.unbind(v)
         groupSettingsEvent.bind(data) shouldBe Right(v)
       }
     }
     it("should bind & unbind a Group.Settings.Events.Action") {
-      forAll { v: Group.Settings.Events.Action =>
+      forAll { v: Group.Settings.Action =>
         val data = groupSettingsAction.unbind(v)
         groupSettingsAction.bind(data) shouldBe Right(v)
       }

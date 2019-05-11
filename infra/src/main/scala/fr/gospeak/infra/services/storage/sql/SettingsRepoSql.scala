@@ -30,12 +30,12 @@ class SettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   private implicit val slackActionPostMessageEncoder: Encoder[SlackAction.PostMessage] = deriveEncoder[SlackAction.PostMessage]
   private implicit val slackActionDecoder: Decoder[SlackAction] = deriveDecoder[SlackAction]
   private implicit val slackActionEncoder: Encoder[SlackAction] = deriveEncoder[SlackAction]
-  private implicit val groupSettingsActionSlackDecoder: Decoder[Group.Settings.Events.Action.Slack] = deriveDecoder[Group.Settings.Events.Action.Slack]
-  private implicit val groupSettingsActionSlackEncoder: Encoder[Group.Settings.Events.Action.Slack] = deriveEncoder[Group.Settings.Events.Action.Slack]
-  private implicit val groupSettingsActionDecoder: Decoder[Group.Settings.Events.Action] = deriveDecoder[Group.Settings.Events.Action]
-  private implicit val groupSettingsActionEncoder: Encoder[Group.Settings.Events.Action] = deriveEncoder[Group.Settings.Events.Action]
-  private implicit val groupSettingsEventDecoder: KeyDecoder[Group.Settings.Events.Event] = (key: String) => Group.Settings.Events.Event.from(key)
-  private implicit val groupSettingsEventEncoder: KeyEncoder[Group.Settings.Events.Event] = (e: Group.Settings.Events.Event) => e.toString
+  private implicit val groupSettingsActionSlackDecoder: Decoder[Group.Settings.Action.Slack] = deriveDecoder[Group.Settings.Action.Slack]
+  private implicit val groupSettingsActionSlackEncoder: Encoder[Group.Settings.Action.Slack] = deriveEncoder[Group.Settings.Action.Slack]
+  private implicit val groupSettingsActionDecoder: Decoder[Group.Settings.Action] = deriveDecoder[Group.Settings.Action]
+  private implicit val groupSettingsActionEncoder: Encoder[Group.Settings.Action] = deriveEncoder[Group.Settings.Action]
+  private implicit val groupSettingsActionTriggerDecoder: KeyDecoder[Group.Settings.Action.Trigger] = (key: String) => Group.Settings.Action.Trigger.from(key)
+  private implicit val groupSettingsActionTriggerEncoder: KeyEncoder[Group.Settings.Action.Trigger] = (e: Group.Settings.Action.Trigger) => e.toString
   private implicit val groupSettingsAccountsDecoder: Decoder[Group.Settings.Accounts] = deriveDecoder[Group.Settings.Accounts]
   private implicit val groupSettingsAccountsEncoder: Encoder[Group.Settings.Accounts] = deriveEncoder[Group.Settings.Accounts]
   private implicit val groupSettingsDecoder: Decoder[Group.Settings] = deriveDecoder[Group.Settings]
