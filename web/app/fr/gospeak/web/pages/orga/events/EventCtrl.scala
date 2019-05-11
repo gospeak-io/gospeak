@@ -7,12 +7,10 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.GospeakMessage
 import fr.gospeak.core.services.storage._
-import fr.gospeak.libs.scalautils.MessageBus
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.Breadcrumb
+import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus}
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.events.EventCtrl._
 import fr.gospeak.web.utils.UICtrl
@@ -27,7 +25,7 @@ class EventCtrl(cc: ControllerComponents,
                 eventRepo: OrgaEventRepo,
                 venueRepo: OrgaVenueRepo,
                 proposalRepo: OrgaProposalRepo,
-                mb: MessageBus[GospeakMessage]) extends UICtrl(cc, silhouette) {
+                mb: GospeakMessageBus) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
@@ -54,7 +52,7 @@ class EventCtrl(cc: ControllerComponents,
         groupElt <- OptionT(groupRepo.find(user, group))
         // TODO check if slug not already exist
         eventElt <- OptionT.liftF(eventRepo.create(groupElt.id, data, by, now))
-        _ <- OptionT.liftF(mb.publish(GospeakMessage.EventCreated(groupElt, eventElt, req.identity.user)))
+        _ <- OptionT.liftF(mb.publishEventCreated(groupElt, eventElt))
       } yield Redirect(routes.EventCtrl.detail(group, data.slug))).value.map(_.getOrElse(groupNotFound(group)))
     ).unsafeToFuture()
   }
@@ -131,7 +129,7 @@ class EventCtrl(cc: ControllerComponents,
       proposalElt <- OptionT(proposalRepo.find(cfpElt.slug, talk))
       _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.add(talk).talks, by, now))
       _ <- OptionT.liftF(proposalRepo.accept(cfpElt.slug, talk, eventElt.id, by, now))
-      _ <- OptionT.liftF(mb.publish(GospeakMessage.TalkAdded(groupElt, eventElt, cfpElt, proposalElt, req.identity.user)))
+      _ <- OptionT.liftF(mb.publishTalkAdded(groupElt, eventElt, cfpElt, proposalElt))
     } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
@@ -144,7 +142,7 @@ class EventCtrl(cc: ControllerComponents,
       proposalElt <- OptionT(proposalRepo.find(cfpElt.slug, talk))
       _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.remove(talk).talks, by, now))
       _ <- OptionT.liftF(proposalRepo.cancel(cfpElt.slug, talk, eventElt.id, by, now))
-      _ <- OptionT.liftF(mb.publish(GospeakMessage.TalkRemoved(groupElt, eventElt, cfpElt, proposalElt, req.identity.user)))
+      _ <- OptionT.liftF(mb.publishTalkRemoved(groupElt, eventElt, cfpElt, proposalElt))
     } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 

@@ -21,6 +21,7 @@ import fr.gospeak.libs.scalautils.{BasicMessageBus, MessageBus}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
 import fr.gospeak.web.auth.{AuthConf, AuthCtrl}
+import fr.gospeak.web.domain.GospeakMessageBus
 import fr.gospeak.web.pages._
 import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.pages.speaker.talks.TalkCtrl
@@ -76,6 +77,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val emailSrv: EmailSrv = EmailSrv.from(conf.emailService)
   lazy val slackSrv: SlackSrv = wire[SlackSrvImpl]
   lazy val messageBus: MessageBus[GospeakMessage] = wire[BasicMessageBus[GospeakMessage]]
+  lazy val orgaMessageBus: GospeakMessageBus = wire[GospeakMessageBus]
   lazy val messageHandler: MessageHandler = wire[MessageHandler]
 
   // start:Silhouette conf

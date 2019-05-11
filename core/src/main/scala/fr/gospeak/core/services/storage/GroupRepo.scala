@@ -12,7 +12,9 @@ trait OrgaGroupRepo {
   def find(user: User.Id, slug: Group.Slug): IO[Option[Group]]
 }
 
-trait SpeakerGroupRepo
+trait SpeakerGroupRepo {
+  def find(group: Group.Id): IO[Option[Group]]
+}
 
 trait UserGroupRepo {
   def create(data: Group.Data, by: User.Id, now: Instant): IO[Group]
@@ -28,6 +30,8 @@ trait PublicGroupRepo {
   def listPublic(params: Page.Params): IO[Page[Group]]
 
   def findPublic(group: Group.Slug): IO[Option[Group]]
+
+  def find(group: Group.Id): IO[Option[Group]]
 }
 
 trait SuggestGroupRepo {

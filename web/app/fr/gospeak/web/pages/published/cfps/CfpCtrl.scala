@@ -7,16 +7,15 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
-import fr.gospeak.core.domain.utils.GospeakMessage
 import fr.gospeak.core.domain.{Cfp, Talk}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
-import fr.gospeak.libs.scalautils.MessageBus
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.emails.Emails
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
+import fr.gospeak.web.domain.GospeakMessageBus
 import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
@@ -34,7 +33,7 @@ class CfpCtrl(cc: ControllerComponents,
               userRequestRepo: AuthUserRequestRepo,
               authSrv: AuthSrv,
               emailSrv: EmailSrv,
-              mb: MessageBus[GospeakMessage]) extends UICtrl(cc, silhouette) {
+              mb: GospeakMessageBus) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
@@ -71,7 +70,8 @@ class CfpCtrl(cc: ControllerComponents,
             cfpElt <- OptionT(cfpRepo.find(cfp))
             talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData, identity.user.id, now))
             proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers, identity.user.id, now))
-            _ <- OptionT.liftF(mb.publish(GospeakMessage.ProposalCreated(cfpElt, proposalElt, identity.user)))
+            groupElt <- OptionT(groupRepo.find(cfpElt.group))
+            _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt, identity))
             msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
           } yield Redirect(ProposalCtrl.detail(talkElt.slug, cfp)).flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp)))
         }.getOrElse {
@@ -103,7 +103,8 @@ class CfpCtrl(cc: ControllerComponents,
         result <- OptionT.liftF(authSrv.login(identity, data.user.rememberMe, Redirect(ProposalCtrl.detail(data.talk.slug, cfp))))
         talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData, identity.user.id, now).unsafeToFuture())
         proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers, identity.user.id, now).unsafeToFuture())
-        _ <- OptionT.liftF(mb.publish(GospeakMessage.ProposalCreated(cfpElt, proposalElt, identity.user)).unsafeToFuture())
+        groupElt <- OptionT(groupRepo.find(cfpElt.group).unsafeToFuture())
+        _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt, identity).unsafeToFuture())
         msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
       } yield result.flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp))).recoverWith {
         case _: AccountValidationRequiredException => proposeConnectForm(cfp, now, signupData = Some(data), error = "Account created, you need to validate it by clicking on the email validation link").unsafeToFuture()
@@ -125,7 +126,8 @@ class CfpCtrl(cc: ControllerComponents,
         result <- OptionT.liftF(authSrv.login(identity, data.user.rememberMe, Redirect(ProposalCtrl.detail(data.talk.slug, cfp))))
         talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData, identity.user.id, now).unsafeToFuture())
         proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers, identity.user.id, now).unsafeToFuture())
-        _ <- OptionT.liftF(mb.publish(GospeakMessage.ProposalCreated(cfpElt, proposalElt, identity.user)).unsafeToFuture())
+        groupElt <- OptionT(groupRepo.find(cfpElt.group).unsafeToFuture())
+        _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt, identity).unsafeToFuture())
         msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
       } yield result.flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp))).recoverWith {
         case _: AccountValidationRequiredException => proposeConnectForm(cfp, now, loginData = Some(data), error = "You need to validate your account by clicking on the email validation link").unsafeToFuture()

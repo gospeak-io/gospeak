@@ -7,6 +7,7 @@ import cats.effect.IO
 import doobie.implicits._
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.core.services.storage.GospeakDb
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
@@ -154,6 +155,14 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val group4 = group("big-group", "Big Group", Seq("BigData"), userOrga)
     val groups = NonEmptyList.of(group1, group2, group3, group4)
 
+    val group1Settings = Group.Settings.default.copy(events = Map(
+      Group.Settings.Events.Event.OnEventCreated -> Seq(
+        Group.Settings.Events.Action.Slack(SlackAction.PostMessage(
+          Template.Mustache("{{event.start.year}}_{{event.start.month}}"),
+          Template.Mustache("Meetup [{{event.name}}]({{event.link}}) créé !")))
+      )
+    ))
+
     val cfp1 = cfp(group1, "ht-paris", "HumanTalks Paris", None, None, "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq("tag1", "tag2"), userDemo)
     val cfp2 = cfp(group1, "ht-paris-day-1", "HumanTalks Paris Day - Edition 1", None, Some("2018-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
     val cfp3 = cfp(group1, "ht-paris-day-2", "HumanTalks Paris Day - Edition 2", Some("2019-03-01"), Some("2019-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
@@ -227,6 +236,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       _ <- IO(venues.toList.map(venue => run(Queries.insertOne(VenueRepoSql.insert)(venue)).unsafeRunSync()))
       _ <- run(Queries.insertMany(EventRepoSql.insert)(events ++ generated.map(_._3)))
       _ <- IO(eventTalks.map { case (c, e, p, u) => addTalk(c, e, p, u, now) }.map(_.unsafeRunSync()))
+      _ <- settings.set(group1.id, group1Settings, userDemo.id, now)
     } yield Done
   }
 

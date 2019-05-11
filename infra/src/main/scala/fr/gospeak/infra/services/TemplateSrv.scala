@@ -24,6 +24,7 @@ class TemplateSrv {
 
 object TemplateSrv {
   private implicit val circeConfiguration: Configuration = Configuration.default.withDiscriminator("type")
+  private implicit val strDateTimeEncoder: Encoder[TemplateData.StrDateTime] = deriveEncoder[TemplateData.StrDateTime]
   private implicit val userEncoder: Encoder[TemplateData.User] = deriveEncoder[TemplateData.User]
   private implicit val groupEncoder: Encoder[TemplateData.Group] = deriveEncoder[TemplateData.Group]
   private implicit val cfpEncoder: Encoder[TemplateData.Cfp] = deriveEncoder[TemplateData.Cfp]

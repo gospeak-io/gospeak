@@ -7,12 +7,10 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.GospeakMessage
 import fr.gospeak.core.services.storage._
-import fr.gospeak.libs.scalautils.MessageBus
 import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.Breadcrumb
+import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus}
 import fr.gospeak.web.pages.speaker.talks.TalkCtrl
 import fr.gospeak.web.pages.speaker.talks.cfps.CfpCtrl
 import fr.gospeak.web.pages.speaker.talks.cfps.routes.{CfpCtrl => CfpRoutes}
@@ -24,11 +22,12 @@ import play.api.mvc._
 class ProposalCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
                    userRepo: SpeakerUserRepo,
+                   groupRepo: SpeakerGroupRepo,
                    cfpRepo: SpeakerCfpRepo,
                    eventRepo: SpeakerEventRepo,
                    talkRepo: SpeakerTalkRepo,
                    proposalRepo: SpeakerProposalRepo,
-                   mb: MessageBus[GospeakMessage]) extends UICtrl(cc, silhouette) {
+                   mb: GospeakMessageBus) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
@@ -54,7 +53,8 @@ class ProposalCtrl(cc: ControllerComponents,
           talkElt <- OptionT(talkRepo.find(user, talk))
           cfpElt <- OptionT(cfpRepo.find(cfp))
           proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data, talkElt.speakers, by, now))
-          _ <- OptionT.liftF(mb.publish(GospeakMessage.ProposalCreated(cfpElt, proposalElt, req.identity.user)))
+          groupElt <- OptionT(groupRepo.find(cfpElt.group))
+          _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt))
           msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
         } yield Redirect(routes.ProposalCtrl.detail(talk, cfp)).flashing("success" -> msg)).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }

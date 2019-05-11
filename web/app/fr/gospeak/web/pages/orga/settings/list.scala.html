@@ -17,7 +17,7 @@
     <div class="row">
         <div class="col">
             <div class="card">
-                <div class="card-header">Available integrations</div>
+                <div class="card-header">Integrations</div>
                 <div class="list-group list-group-flush">
                     @displayIntegration("Meetup", settings.accounts.meetup, id => modalMeetup(), SettingsCtrl.removeSlackAccount(group.slug))
                     @displayIntegration("Slack", settings.accounts.slack, id => modalSlack(id, group, slackAccount), SettingsCtrl.removeSlackAccount(group.slug))

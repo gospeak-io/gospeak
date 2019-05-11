@@ -28,6 +28,8 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def find(user: User.Id, slug: Group.Slug): IO[Option[Group]] = run(selectOne(user, slug).option)
 
+  override def find(group: Group.Id): IO[Option[Group]] = run(selectOne(group).option)
+
   override def findPublic(slug: Group.Slug): IO[Option[Group]] = run(selectOnePublic(slug).option)
 
   override def listTags(): IO[Seq[Tag]] = run(selectTags().to[List]).map(_.flatten.distinct)
@@ -62,6 +64,9 @@ object GroupRepoSql {
 
   private[sql] def selectOne(user: User.Id, slug: Group.Slug): doobie.Query0[Group] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE owners LIKE ${"%" + user.value + "%"} AND slug=$slug").query[Group]
+
+  private[sql] def selectOne(group: Group.Id): doobie.Query0[Group] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$group").query[Group]
 
   private[sql] def selectOnePublic(slug: Group.Slug): doobie.Query0[Group] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE public = true AND slug=$slug").query[Group]
