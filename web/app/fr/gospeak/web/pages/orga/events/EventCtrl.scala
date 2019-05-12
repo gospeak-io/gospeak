@@ -25,6 +25,7 @@ class EventCtrl(cc: ControllerComponents,
                 eventRepo: OrgaEventRepo,
                 venueRepo: OrgaVenueRepo,
                 proposalRepo: OrgaProposalRepo,
+                settingsRepo: SettingsRepo,
                 mb: GospeakMessageBus) extends UICtrl(cc, silhouette) {
 
   import silhouette._
@@ -60,8 +61,10 @@ class EventCtrl(cc: ControllerComponents,
   private def createForm(group: Group.Slug, form: Form[Event.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
+      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
       b = listBreadcrumb(groupElt).add("New" -> routes.EventCtrl.create(group))
-    } yield Ok(html.create(groupElt, form)(b))).value.map(_.getOrElse(groupNotFound(group)))
+      filledForm = if (form.hasErrors) form else form.bind(Map("description.value" -> settings.event.defaultDescription.value)).discardingErrors
+    } yield Ok(html.create(groupElt, filledForm)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
   def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>

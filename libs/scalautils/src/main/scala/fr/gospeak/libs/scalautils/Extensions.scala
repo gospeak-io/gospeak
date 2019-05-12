@@ -1,5 +1,6 @@
 package fr.gospeak.libs.scalautils
 
+import cats.MonadError
 import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.libs.scalautils.domain.MultiException
@@ -196,15 +197,26 @@ object Extensions {
       in.flatMap(v => if (p(v)) IO.pure(v) else IO.raiseError(new NoSuchElementException("Predicate does not hold for " + v)))
 
     def mapFailure(f: Throwable => Throwable): IO[A] = {
-      import cats.implicits._
       in.recoverWith { case NonFatal(e) => IO.raiseError(f(e)) }
+    }
+
+    def recover[B](pf: PartialFunction[Throwable, A]): IO[A] = {
+      implicitly[MonadError[IO, Throwable]].recover(in)(pf)
+    }
+
+    def recoverWith[B](pf: PartialFunction[Throwable, IO[A]]): IO[A] = {
+      implicitly[MonadError[IO, Throwable]].recoverWith(in)(pf)
     }
   }
 
   private def sequenceResult[A, M[X] <: TraversableOnce[X]](in: (mutable.Builder[A, M[A]], Seq[Throwable])): Try[M[A]] = {
     val (results, errors) = in
     NonEmptyList.fromList(errors.reverse.toList)
-      .map(errs => Failure(MultiException(errs)))
+      .map(_.flatMap {
+        case MultiException(errs) => errs
+        case e => NonEmptyList.of(e)
+      })
+      .map(errs => if (errs.length == 1) Failure(errs.head) else Failure(MultiException(errs)))
       .getOrElse(Success(results.result()))
   }
 

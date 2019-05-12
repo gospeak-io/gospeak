@@ -10,7 +10,7 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{EmailAddress, Markdown, Page, Tag}
+import fr.gospeak.libs.scalautils.domain.{EmailAddress, Markdown, MarkdownTemplate, Page, Tag}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.utils.UICtrl
 import org.joda.time.DateTime
@@ -83,7 +83,7 @@ class HomeCtrl(cc: ControllerComponents,
     slug = Event.Slug.from("event-slug").get,
     name = Event.Name("Best Event in April \\o/"),
     start = ldt,
-    description = Markdown(""),
+    description = MarkdownTemplate.Mustache(""),
     venue = None,
     talks = Seq(),
     tags = Seq("tag").map(Tag(_)),

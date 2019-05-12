@@ -10,15 +10,17 @@ import fr.gospeak.core.services.storage.SettingsRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.CustomException
 
+import scala.util.control.NonFatal
+
 class MessageHandler(settingsRepo: SettingsRepo,
                      slackSrv: SlackSrv) {
-  def handle(msg: GospeakMessage): IO[Unit] = msg match {
-    case m: GospeakMessage.EventCreated => handle(m).map(_ => ())
-    case m: GospeakMessage.TalkAdded => handle(m).map(_ => ())
-    case m: GospeakMessage.TalkRemoved => handle(m).map(_ => ())
-    case m: GospeakMessage.EventPublished => handle(m).map(_ => ())
-    case m: GospeakMessage.ProposalCreated => handle(m).map(_ => ())
-  }
+  def handle(msg: GospeakMessage): IO[Unit] = (msg match {
+    case m: GospeakMessage.EventCreated => handle(m)
+    case m: GospeakMessage.TalkAdded => handle(m)
+    case m: GospeakMessage.TalkRemoved => handle(m)
+    case m: GospeakMessage.EventPublished => handle(m)
+    case m: GospeakMessage.ProposalCreated => handle(m)
+  }).map(_ => ()).recover { case NonFatal(_) => () }
 
   private def handle(msg: GospeakMessage.EventCreated): IO[Int] = handleGroupEvent(msg.group.id, Trigger.OnEventCreated, TemplateData.eventCreated(msg))
 

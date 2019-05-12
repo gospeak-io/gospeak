@@ -1,0 +1,22 @@
+@import fr.gospeak.core.domain.utils.TemplateData
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.partials.form.Utils
+
+@(field: Field, ref: TemplateData.Ref, args: Seq[(String, String)] = Seq())(input: (Field, Seq[(String, String)]) => Html)(implicit messages: Messages)
+<div class="row form-group @Utils.getArg(args, "class")">
+    <label class="col-sm-2 col-form-label" for="@Utils.id(field, args)">@Utils.getArg(args, "label", field.name)</label>
+    <div class="col-sm-5">
+        @input(field, Seq(Utils.getArg(args, "help").map(_ => "help" -> Utils.helpId(args, field))).flatten)
+        @if(field.hasErrors && field.errors.nonEmpty) {
+            <div class="invalid-feedback">
+                @Utils.getArg(args, "help").map { help => @helpText(field, args, help) }
+                @field.errors.map(_.format).mkString(", ")
+            </div>
+        } else {
+            @Utils.getArg(args, "help").map { help => <small class="form-text">@helpText(field, args, help)</small> }
+        }
+    </div>
+    <div class="col-sm-5">
+    @displayTemplateData(Some(ref))
+    </div>
+</div>

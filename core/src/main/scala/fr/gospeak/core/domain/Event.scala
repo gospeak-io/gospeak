@@ -13,7 +13,7 @@ final case class Event(id: Event.Id,
                        name: Event.Name,
                        start: LocalDateTime,
                        // duration: Option[Duration]
-                       description: Markdown,
+                       description: MarkdownTemplate,
                        venue: Option[Venue.Id],
                        talks: Seq[Proposal.Id],
                        tags: Seq[Tag],
@@ -29,7 +29,7 @@ final case class Event(id: Event.Id,
 
 object Event {
   def apply(group: Group.Id, data: Data, info: Info): Event =
-    new Event(Id.generate(), group, data.cfp, data.slug, data.name, data.start, Markdown(""), data.venue, Seq(), data.tags, info)
+    new Event(Id.generate(), group, data.cfp, data.slug, data.name, data.start, data.description, data.venue, Seq(), data.tags, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -46,10 +46,11 @@ object Event {
                         name: Event.Name,
                         start: LocalDateTime,
                         venue: Option[Venue.Id],
+                        description: MarkdownTemplate,
                         tags: Seq[Tag])
 
   object Data {
-    def apply(event: Event): Data = new Data(event.cfp, event.slug, event.name, event.start, event.venue, event.tags)
+    def apply(event: Event): Data = new Data(event.cfp, event.slug, event.name, event.start, event.venue, event.description, event.tags)
   }
 
 }
