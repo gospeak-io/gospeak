@@ -13,15 +13,15 @@ import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Done, Template, Url}
+import fr.gospeak.libs.scalautils.domain.{Done, MarkdownTemplate, Url}
 import io.circe._
 import io.circe.generic.semiauto._
 
 class SettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SettingsRepo {
   private implicit val urlDecoder: Decoder[Url] = (c: HCursor) => c.as[String].flatMap(s => Url.from(s).leftMap(e => DecodingFailure(e.message, List())))
   private implicit val urlEncoder: Encoder[Url] = (a: Url) => Json.fromString(a.value)
-  private implicit val templateDecoder: Decoder[Template] = deriveDecoder[Template]
-  private implicit val templateEncoder: Encoder[Template] = deriveEncoder[Template]
+  private implicit val templateDecoder: Decoder[MarkdownTemplate] = deriveDecoder[MarkdownTemplate]
+  private implicit val templateEncoder: Encoder[MarkdownTemplate] = deriveEncoder[MarkdownTemplate]
   private implicit val slackTokenDecoder: Decoder[SlackToken] = deriveDecoder[SlackToken]
   private implicit val slackTokenEncoder: Encoder[SlackToken] = deriveEncoder[SlackToken]
   private implicit val slackCredentialsDecoder: Decoder[SlackCredentials] = deriveDecoder[SlackCredentials]
@@ -38,6 +38,8 @@ class SettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   private implicit val groupSettingsActionTriggerEncoder: KeyEncoder[Group.Settings.Action.Trigger] = (e: Group.Settings.Action.Trigger) => e.toString
   private implicit val groupSettingsAccountsDecoder: Decoder[Group.Settings.Accounts] = deriveDecoder[Group.Settings.Accounts]
   private implicit val groupSettingsAccountsEncoder: Encoder[Group.Settings.Accounts] = deriveEncoder[Group.Settings.Accounts]
+  private implicit val groupSettingsEventDecoder: Decoder[Group.Settings.Event] = deriveDecoder[Group.Settings.Event]
+  private implicit val groupSettingsEventEncoder: Encoder[Group.Settings.Event] = deriveEncoder[Group.Settings.Event]
   private implicit val groupSettingsDecoder: Decoder[Group.Settings] = deriveDecoder[Group.Settings]
   private implicit val groupSettingsEncoder: Encoder[Group.Settings] = deriveEncoder[Group.Settings]
 

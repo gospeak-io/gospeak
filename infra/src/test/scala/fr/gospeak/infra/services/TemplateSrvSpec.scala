@@ -1,7 +1,7 @@
 package fr.gospeak.infra.services
 
 import fr.gospeak.infra.services.TemplateSrvSpec._
-import fr.gospeak.libs.scalautils.domain.Template._
+import fr.gospeak.libs.scalautils.domain.MarkdownTemplate._
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.{Encoder, Json}
 import org.scalatest.{FunSpec, Matchers}
@@ -12,13 +12,13 @@ class TemplateSrvSpec extends FunSpec with Matchers {
       MustacheTemplateSrv.render(
         tmpl = Mustache("Hello {{name}}"),
         data = Json.obj("name" -> Json.fromString("John"))
-      ) shouldBe Right("Hello John")
+      ).right.get.value shouldBe "Hello John"
     }
     it("should render a template with case class") {
       MustacheTemplateSrv.render(
         tmpl = Mustache("Hello {{name}}"),
         data = Data("John")
-      ) shouldBe Right("Hello John")
+      ).right.get.value shouldBe "Hello John"
     }
     it("should render a complex template") {
       val json = Json.obj(
@@ -57,7 +57,7 @@ class TemplateSrvSpec extends FunSpec with Matchers {
            |arrObj: value:aaa value:bbb value:ccc
          """.stripMargin.trim
       val result = MustacheTemplateSrv.render(template, json)
-      result.right.get shouldBe expected
+      result.right.get.value shouldBe expected
     }
   }
 }

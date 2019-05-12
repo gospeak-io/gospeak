@@ -6,12 +6,6 @@ import org.scalatest.{FunSpec, Matchers}
 
 class MessageBusSpec extends FunSpec with Matchers {
   describe("MessageBus") {
-    it("test") {
-      import cats.implicits._
-      val s = Seq(1, 2, 3).map(IO.pure)
-      val r = s.toList.sequence
-      println(s"hello: ${r.unsafeRunSync()}")
-    }
     it("should be specialized for a message type") {
       val mb = create[MyEvents]()
       mb.publish(Event1("a"))

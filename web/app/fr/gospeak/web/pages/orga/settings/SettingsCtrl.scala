@@ -86,11 +86,32 @@ class SettingsCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
-  private def settingsView(groupElt: Group, settings: Group.Settings, slack: Option[Form[SlackCredentials]] = None, action: Option[Form[SettingsForms.AddAction]] = None)
+  def updateEventSettings(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      res <- OptionT.liftF(SettingsForms.eventSettings.bindFromRequest.fold(
+        formWithErrors => IO.pure(settingsView(groupElt, settings, eventSettings = Some(formWithErrors))),
+        data => settingsRepo.set(groupElt.id, settings.copy(event = data), user, now)
+          .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Event settings updated"))
+      ))
+    } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+  }
+
+  private def settingsView(groupElt: Group,
+                           settings: Group.Settings,
+                           slack: Option[Form[SlackCredentials]] = None,
+                           action: Option[Form[SettingsForms.AddAction]] = None,
+                           eventSettings: Option[Form[Group.Settings.Event]] = None)
                           (implicit req: SecuredRequest[CookieEnv, AnyContent]): Result = {
-    val b = listBreadcrumb(groupElt)
-    val slackForm = settings.accounts.slack.map(s => SettingsForms.slackAccount.fill(s)).getOrElse(SettingsForms.slackAccount)
-    Ok(html.list(groupElt, settings, slack.getOrElse(slackForm), action.getOrElse(SettingsForms.addAction))(b))
+    Ok(html.list(
+      groupElt,
+      settings,
+      slack.getOrElse(settings.accounts.slack.map(s => SettingsForms.slackAccount.fill(s)).getOrElse(SettingsForms.slackAccount)),
+      action.getOrElse(SettingsForms.addAction),
+      eventSettings.getOrElse(SettingsForms.eventSettings.fill(settings.event))
+    )(listBreadcrumb(groupElt)))
   }
 
   private def addActionToSettings(settings: Group.Settings, addAction: SettingsForms.AddAction): Group.Settings = {

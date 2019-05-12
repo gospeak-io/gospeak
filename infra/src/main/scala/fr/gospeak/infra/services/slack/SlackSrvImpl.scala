@@ -10,7 +10,7 @@ import fr.gospeak.infra.libs.slack.{SlackClient, domain => api}
 import fr.gospeak.infra.services.TemplateSrv
 import fr.gospeak.infra.services.slack.SlackSrvImpl._
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.CustomException
+import fr.gospeak.libs.scalautils.domain.{CustomException, Markdown}
 
 // SlackSrv should not use Slack classes in the API, it's independent and the implementation should do the needed conversion
 class SlackSrvImpl(client: SlackClient,
@@ -26,8 +26,8 @@ class SlackSrvImpl(client: SlackClient,
     val token = toSlack(creds.token)
     val sender = api.SlackSender.Bot(creds.name, creds.avatar.map(_.value))
     for {
-      channel <- templateSrv.render(action.channel, data).map(api.SlackChannel.Name).toIO(CustomException(_))
-      message <- templateSrv.render(action.message, data).map(api.SlackContent.Markdown).toIO(CustomException(_))
+      channel <- templateSrv.render(action.channel, data).map(toSlackName).toIO(CustomException(_))
+      message <- templateSrv.render(action.message, data).map(toSlack).toIO(CustomException(_))
       attempt1 <- client.postMessage(token, sender, channel, message)
       attempt2 <- attempt1 match {
         case Left(api.SlackError(false, "channel_not_found", _, _)) if action.createdChannelIfNotExist =>
@@ -47,6 +47,12 @@ class SlackSrvImpl(client: SlackClient,
 
   private def toSlack(token: SlackToken): api.SlackToken =
     api.SlackToken(token.value)
+
+  private def toSlack(md: Markdown): api.SlackContent.Markdown =
+    api.SlackContent.Markdown(md.value)
+
+  private def toSlackName(md: Markdown): api.SlackChannel.Name =
+    api.SlackChannel.Name(md.value)
 
   private def toGospeak(id: api.SlackUser.Id): SlackUser.Id =
     SlackUser.Id(id.value)

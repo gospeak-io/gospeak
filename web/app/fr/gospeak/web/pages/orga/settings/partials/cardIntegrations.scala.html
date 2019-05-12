@@ -1,0 +1,16 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.Group
+@import fr.gospeak.core.services.slack.domain.SlackCredentials
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
+
+@(group: Group, accounts: Group.Settings.Accounts, slackAccount: Form[SlackCredentials])(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+<div class="card mb-3">
+    <div class="card-header">Integrations</div>
+    <div class="list-group list-group-flush">
+        @displayIntegration("Meetup", accounts.meetup, id => modalMeetup(), SettingsCtrl.removeSlackAccount(group.slug))
+        @displayIntegration("Slack", accounts.slack, id => modalSlack(id, group, slackAccount), SettingsCtrl.removeSlackAccount(group.slug))
+        @displayIntegration("Twitter", accounts.twitter, id => modalTwitter(), SettingsCtrl.removeSlackAccount(group.slug))
+        @displayIntegration("YouTube", accounts.youtube, id => modalYoutube(), SettingsCtrl.removeSlackAccount(group.slug))
+    </div>
+</div>

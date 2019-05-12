@@ -25,8 +25,10 @@ function slugify(str) {
 
 // autofocus when a modal opens
 (function () {
-    $('.modal').on('shown.bs.modal', function (e) {
-        $(this).find('input[autofocus]').focus();
+    $('.modal').on('shown.bs.modal', function () {
+        var $modal = $(this);
+        $modal.find('input[autofocus], textarea[autofocus]').focus();
+        autosize.update($modal.find('textarea'));
     });
 })();
 
@@ -269,32 +271,49 @@ function slugify(str) {
     });
 })();
 
-// template data
+// template input & data
 (function () {
     $('.template-data').each(function () {
         var $elt = $(this);
-        var target = $elt.attr('data-event');
-        if (target) {
-            var $target = $('#' + target);
-            update($elt, $target); // run on page load
-            $target.change(function (e) {
-                update($elt, $target);
+        var ref = $elt.attr('data-ref');
+        var target = $elt.attr('data-target');
+        var $target = target ? $('#' + target) : undefined;
+        updateData($elt, ref);
+        if($target) {
+            $target.change(function () {
+                updateData($elt, $target.val());
+            });
+        }
+    });
+    $('.template-editor').each(function () {
+        var $elt = $(this);
+        var ref = $elt.attr('data-ref');
+        var target = $elt.attr('data-target');
+        var $target = target ? $('#' + target) : undefined;
+        var previewTab = $elt.find('a[data-toggle="tab"].preview');
+        var $input = $elt.find('textarea,input[type="text"]');
+        var previewPane = $elt.find('.tab-pane.preview');
+        var loadingHtml = previewPane.html();
+        previewTab.on('show.bs.tab', function () {
+            var r = $target ? $target.val() : ref;
+            updateTemplate($input, r, previewPane);
+        });
+        previewTab.on('hidden.bs.tab', function () {
+            previewPane.html(loadingHtml);
+        });
+        if($target) {
+            $target.change(function () {
+                if(previewPane.hasClass('active')) {
+                    updateTemplate($input, $target.val(), previewPane);
+                }
             });
         }
     });
 
-    function update($elt, $target) {
-        var value = $target.val();
-        if (value) {
-            fetchData(value).then(function (res) {
-                /* var $input = $elt.find('.data-ref');
-                if (res.refInfo) {
-                    $input.attr('placeholder', res.refInfo);
-                    $input.show();
-                } else {
-                    $input.hide();
-                } */
-                $elt.find('.data-preview').html(JSON.stringify(res.data, null, 2));
+    function updateData($elt, ref) {
+        if (ref) {
+            fetchData(ref).then(function (res) {
+                $elt.find('.json-viewer').html(JSON.stringify(res.data, null, 2));
                 $elt.show();
             });
         } else {
@@ -302,34 +321,9 @@ function slugify(str) {
         }
     }
 
-    function fetchData(event) {
-        return fetch('/ui/utils/template-data/' + event).then(function (res) {
-            return res.json();
-        });
-    }
-})();
-
-// template input
-(function () {
-    $('.template-editor').each(function () {
-        var $elt = $(this);
-        var target = $elt.attr('data-event');
-        var previewTab = $elt.find('a[data-toggle="tab"].preview');
-        var $input = $elt.find('textarea,input[type="text"]');
-        var previewPane = $elt.find('.tab-pane.preview');
-        var loadingHtml = previewPane.html();
-        previewTab.on('show.bs.tab', function () {
-            update($input, target, previewPane);
-        });
-        previewTab.on('hidden.bs.tab', function () {
-            previewPane.html(loadingHtml);
-        });
-    });
-
-    function update($input, target, previewPane) {
-        var event = $('#' + target).val();
+    function updateTemplate($input, ref, previewPane) {
         var tmpl = $input.val();
-        fetchTemplate(tmpl, event).then(function (tmpl) {
+        fetchTemplate(tmpl, ref).then(function (tmpl) {
             if (tmpl.error) {
                 console.warn('Template error', tmpl.error);
             }
@@ -337,7 +331,13 @@ function slugify(str) {
         });
     }
 
-    function fetchTemplate(tmpl, event) {
+    function fetchData(ref) {
+        return fetch('/ui/utils/template-data/' + ref).then(function (res) {
+            return res.json();
+        });
+    }
+
+    function fetchTemplate(tmpl, ref) {
         return fetch('/ui/utils/render-template', {
             method: 'POST',
             headers: {
@@ -346,7 +346,7 @@ function slugify(str) {
             },
             body: JSON.stringify({
                 template: tmpl,
-                event: event
+                ref: ref
             })
         }).then(function (res) {
             return res.json();

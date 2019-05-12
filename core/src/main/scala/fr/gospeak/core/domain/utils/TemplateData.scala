@@ -4,13 +4,36 @@ import java.time.LocalDateTime
 
 import fr.gospeak.core.domain
 import fr.gospeak.libs.scalautils.StringUtils._
+import fr.gospeak.libs.scalautils.domain.CustomException
 
 /*
   Formatted data for user templates (mustache for example)
  */
-sealed trait TemplateData
+sealed trait TemplateData extends Product with Serializable {
+  val ref: TemplateData.Ref = TemplateData.Ref.from(getClass.getSimpleName).right.get
+}
 
 object TemplateData {
+
+  final class Ref private(val value: String) extends AnyVal
+
+  object Ref {
+    def from(in: String): Either[CustomException, Ref] =
+      if (in.isEmpty) Left(CustomException("TemplateData.Ref should not be empty"))
+      else if (in == classOf[EventCreated].getSimpleName) Right(new Ref(in))
+      else if (in == classOf[TalkAdded].getSimpleName) Right(new Ref(in))
+      else if (in == classOf[TalkRemoved].getSimpleName) Right(new Ref(in))
+      else if (in == classOf[EventPublished].getSimpleName) Right(new Ref(in))
+      else if (in == classOf[ProposalCreated].getSimpleName) Right(new Ref(in))
+      else if (in == classOf[EventInfo].getSimpleName) Right(new Ref(in))
+      else if (in == domain.Group.Settings.Action.Trigger.OnEventCreated.getClassName) Right(new Ref(classOf[EventCreated].getSimpleName))
+      else if (in == domain.Group.Settings.Action.Trigger.OnEventAddTalk.getClassName) Right(new Ref(classOf[TalkAdded].getSimpleName))
+      else if (in == domain.Group.Settings.Action.Trigger.OnEventRemoveTalk.getClassName) Right(new Ref(classOf[TalkRemoved].getSimpleName))
+      else if (in == domain.Group.Settings.Action.Trigger.OnEventPublish.getClassName) Right(new Ref(classOf[EventPublished].getSimpleName))
+      else if (in == domain.Group.Settings.Action.Trigger.OnProposalCreated.getClassName) Right(new Ref(classOf[ProposalCreated].getSimpleName))
+      else Left(CustomException(s"Unknown TemplateData.Ref '$in'"))
+  }
+
 
   final case class StrDateTime(year: String, month: String, monthStr: String, day: String, dayStr: String, hour: String, minute: String, second: String)
 
@@ -35,18 +58,28 @@ object TemplateData {
 
   final case class ProposalCreated(group: Group, cfp: Cfp, proposal: Proposal, user: User) extends TemplateData
 
-  object Sample {
-    private val user = User("john-doe", "John Doe", "John", "Doe", "https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=wavatar", "john.doe@mail.com")
-    private val group = Group("https://gospeak.fr/u/groups/humantalks-paris", "humantalks-paris", "HumanTalks Paris", "", Seq("tech"))
-    private val cfp = Cfp("http://localhost:9000/u/groups/humantalks-paris/cfps/humantalks-paris", "humantalks-paris", "HumanTalks Paris", "", Seq("tech"))
-    private val event = Event("http://localhost:9000/u/groups/humantalks-paris/events/2019-09", "2019-09", "HumanTalks Paris Septembre", "", build(LocalDateTime.of(2019, 9, 10, 19, 0, 0)), Seq("IOT", "UX", "Clean Code"))
-    private val proposal = Proposal("http://localhost:9000/u/groups/humantalks-paris/cfps/humantalks-paris/proposals/28f26543-1ab8-4749-b0ac-786d1bd76888", "The Scala revolution", "", None, None, Seq("scala", "fp"))
+  final case class EventInfo(event: Event) extends TemplateData
 
-    val eventCreated = EventCreated(group = Sample.group, event = Sample.event, user = Sample.user)
-    val talkAdded = TalkAdded(group = Sample.group, event = Sample.event, cfp = Sample.cfp, proposal = Sample.proposal, user = Sample.user)
-    val talkRemoved = TalkRemoved(group = Sample.group, event = Sample.event, cfp = Sample.cfp, proposal = Sample.proposal, user = Sample.user)
-    val eventPublished = EventPublished()
-    val proposalCreated = ProposalCreated(Sample.group, Sample.cfp, Sample.proposal, Sample.user)
+  object Sample {
+    private val host = "https://gospeak.fr"
+    private val dateTime = build(LocalDateTime.of(2019, 9, 10, 19, 0, 0))
+    private val user = User("john-doe", "John Doe", "John", "Doe", "https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=wavatar", "john.doe@mail.com")
+    private val group = Group(s"$host/u/groups/humantalks-paris", "humantalks-paris", "HumanTalks Paris", "", Seq("tech"))
+    private val cfp = Cfp(s"${group.link}/cfps/humantalks-paris", "humantalks-paris", "HumanTalks Paris", "", Seq("tech"))
+    private val event = Event(s"${group.link}/events/2019-09", "2019-09", "HumanTalks Paris Septembre", "", dateTime, Seq("IOT", "UX", "Clean Code"))
+    private val proposal = Proposal(s"${cfp.link}/proposals/28f26543-1ab8-4749-b0ac-786d1bd76888", "The Scala revolution", "", None, None, Seq("scala", "fp"))
+
+    private val eventCreated = EventCreated(group = group, event = event, user = user)
+    private val talkAdded = TalkAdded(group = group, event = event, cfp = cfp, proposal = proposal, user = user)
+    private val talkRemoved = TalkRemoved(group = group, event = event, cfp = cfp, proposal = proposal, user = user)
+    private val eventPublished = EventPublished()
+    private val proposalCreated = ProposalCreated(group, cfp, proposal, user)
+    private val eventInfo = EventInfo(event)
+
+    val all: Seq[TemplateData] = Seq(eventCreated, talkAdded, talkRemoved, eventPublished, proposalCreated, eventInfo)
+    private val map = all.map(d => (d.ref, d)).toMap
+
+    def fromRef(ref: Ref): Option[TemplateData] = map.get(ref)
   }
 
   private def build(u: domain.User): User = User(slug = u.slug.value, name = u.name.value, firstName = u.firstName, lastName = u.lastName, avatar = u.avatar.url.value, email = u.email.value)
@@ -78,4 +111,29 @@ object TemplateData {
   def eventPublished(msg: GospeakMessage.EventPublished): EventPublished = EventPublished()
 
   def proposalCreated(msg: GospeakMessage.ProposalCreated): ProposalCreated = ProposalCreated(build(msg.group, msg.groupLink), build(msg.cfp, msg.cfpLink), build(msg.proposal, msg.proposalLink), build(msg.user))
+
+  object EventCreated {
+    val ref: Ref = Ref.from(classOf[EventCreated].getSimpleName).right.get
+  }
+
+  object TalkAdded {
+    val ref: Ref = Ref.from(classOf[TalkAdded].getSimpleName).right.get
+  }
+
+  object TalkRemoved {
+    val ref: Ref = Ref.from(classOf[TalkRemoved].getSimpleName).right.get
+  }
+
+  object EventPublished {
+    val ref: Ref = Ref.from(classOf[EventPublished].getSimpleName).right.get
+  }
+
+  object ProposalCreated {
+    val ref: Ref = Ref.from(classOf[ProposalCreated].getSimpleName).right.get
+  }
+
+  object EventInfo {
+    val ref: Ref = Ref.from(classOf[EventInfo].getSimpleName).right.get
+  }
+
 }

@@ -1,6 +1,7 @@
 package fr.gospeak.web.utils
 
 import play.api.data.FormError
+import play.api.libs.json.{JsError, JsResult, JsSuccess}
 import play.twirl.api.Html
 
 import scala.language.higherKinds
@@ -14,6 +15,13 @@ object Extensions {
 
     def eitherGetAndParse[A](key: String, parse: V => Try[A], err: => String): Either[FormError, A] =
       eitherGet(key).flatMap(v => parse(v).toEither.left.map(e => FormError(key, err, e.getMessage)))
+  }
+
+  implicit class EitherExtensionsWeb[A, E](val in: Either[E, A]) extends AnyVal {
+    def toJsResult(f: E => String): JsResult[A] = in match {
+      case Right(a) => JsSuccess(a)
+      case Left(e) => JsError(f(e))
+    }
   }
 
   implicit class SeqHtmlExtension(val in: Seq[Html]) extends AnyVal {

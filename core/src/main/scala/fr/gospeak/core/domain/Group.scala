@@ -41,7 +41,8 @@ object Group {
 
 
   final case class Settings(accounts: Settings.Accounts,
-                            actions: Map[Settings.Action.Trigger, Seq[Settings.Action]]) {
+                            actions: Map[Settings.Action.Trigger, Seq[Settings.Action]],
+                            event: Settings.Event) {
     def set(slack: SlackCredentials): Settings = copy(accounts = accounts.copy(slack = Some(slack)))
   }
 
@@ -52,7 +53,24 @@ object Group {
         meetup = None,
         twitter = None,
         youtube = None),
-      actions = Map())
+      actions = Map(),
+      event = Event(MarkdownTemplate.Mustache(
+        """Hi everyone, welcome to {{event.name}}!
+          |
+          |{{#venue}}
+          |This month we are hosted by {{name}}, at {{address}}
+          |
+          |{{logo}}
+          |{{/venue}}
+          |
+          |{{#talks}}
+          |- **{{title}}** by {{#speakers}}*{{name}}*{{/speakers}}
+          |
+          |{{description}}
+          |{{/talks}}
+          |
+          |For the next sessions, propose your talks on [Gospeak]({{cfp.publicLink}})
+        """.stripMargin.trim)))
 
     final case class Accounts(slack: Option[SlackCredentials],
                               meetup: Option[String],
@@ -63,7 +81,9 @@ object Group {
 
     object Action {
 
-      sealed abstract class Trigger(val name: String)
+      sealed abstract class Trigger(val name: String) {
+        def getClassName: String = getClass.getName.split("[.$]").toList.last
+      }
 
       object Trigger {
 
@@ -85,6 +105,8 @@ object Group {
       final case class Slack(value: SlackAction) extends Action
 
     }
+
+    final case class Event(defaultDescription: MarkdownTemplate)
 
   }
 

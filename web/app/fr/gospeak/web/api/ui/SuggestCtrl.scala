@@ -9,11 +9,11 @@ import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackToken
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.TemplateSrv
-import fr.gospeak.libs.scalautils.domain.{Markdown, Template}
+import fr.gospeak.libs.scalautils.domain.{Html, MarkdownTemplate}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.JsonFormats._
 import fr.gospeak.web.utils.{ApiCtrl, Formats, MarkdownUtils}
-import play.api.libs.json.{JsArray, JsBoolean, JsError, JsNull, JsNumber, JsObject, JsString, JsValue, Json}
+import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 import scala.util.control.NonFatal
@@ -22,11 +22,11 @@ case class SuggestedItem(id: String, text: String)
 
 case class ValidationResult(valid: Boolean, message: String)
 
-case class TemplateDataResponse(refInfo: Option[String], data: JsValue)
+case class TemplateDataResponse(data: JsValue)
 
-case class TemplateRequest(template: String, event: Option[String], ref: Option[String])
+case class TemplateRequest(template: MarkdownTemplate, ref: Option[TemplateData.Ref])
 
-case class TemplateResponse(result: Option[String], error: Option[String])
+case class TemplateResponse(result: Option[Html], error: Option[String])
 
 class SuggestCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
@@ -85,44 +85,30 @@ class SuggestCtrl(cc: ControllerComponents,
       .map(res => Ok(Json.toJson(res))).unsafeToFuture()
   }
 
-  def templateData(trigger: String): Action[AnyContent] = SecuredAction.async { implicit req =>
-    import Group.Settings.Action.Trigger
-    val data = Trigger.from(trigger)
-      .map(eventToData)
+  def templateData(ref: TemplateData.Ref): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val data = TemplateData.Sample
+      .fromRef(ref)
       .map(templateSrv.asData)
       .map(circeToPlay)
       .getOrElse(Json.obj())
-    IO.pure(Ok(Json.toJson(TemplateDataResponse(None, data)))).unsafeToFuture()
+    IO.pure(Ok(Json.toJson(TemplateDataResponse(data)))).unsafeToFuture()
   }
 
   def renderTemplate(): Action[JsValue] = SecuredAction(parse.json).async { implicit req =>
-    import Group.Settings.Action.Trigger
     req.body.validate[TemplateRequest].fold(
       errors => IO.pure(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
       data => {
-        val template = data.event
-          .flatMap(Trigger.from)
-          .map(eventToData)
-          .map(templateSrv.render(Template.Mustache(data.template), _))
-          .getOrElse(templateSrv.render(Template.Mustache(data.template)))
+        val template = data.ref
+          .flatMap(TemplateData.Sample.fromRef)
+          .map(templateSrv.render(data.template, _))
+          .getOrElse(templateSrv.render(data.template))
         val res = template match {
           case Left(err) => TemplateResponse(None, Some(err))
-          case Right(tmpl) => TemplateResponse(Some(MarkdownUtils.render(Markdown(tmpl)).value), None)
+          case Right(tmpl) => TemplateResponse(Some(MarkdownUtils.render(tmpl)), None)
         }
         IO.pure(Ok(Json.toJson(res)))
       }
     ).unsafeToFuture()
-  }
-
-  private def eventToData(trigger: Group.Settings.Action.Trigger): TemplateData = {
-    import Group.Settings.Action.Trigger
-    trigger match {
-      case Trigger.OnEventCreated => TemplateData.Sample.eventCreated
-      case Trigger.OnEventAddTalk => TemplateData.Sample.talkAdded
-      case Trigger.OnEventRemoveTalk => TemplateData.Sample.talkRemoved
-      case Trigger.OnEventPublish => TemplateData.Sample.eventPublished
-      case Trigger.OnProposalCreated => TemplateData.Sample.proposalCreated
-    }
   }
 
   private def circeToPlay(json: io.circe.Json): JsValue = {

@@ -10,51 +10,17 @@
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.AddAction
 @import fr.gospeak.web.pages.orga.settings.partials.html._
 
-@(group: Group, settings: Group.Settings, slackAccount: Form[SlackCredentials], addAction: Form[AddAction])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, settings: Group.Settings, slackAccount: Form[SlackCredentials], addAction: Form[AddAction], eventSettings: Form[Group.Settings.Event])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", group, b)() {
     <h1>Settings</h1>
 
     <div class="row">
         <div class="col">
-            <div class="card">
-                <div class="card-header">Integrations</div>
-                <div class="list-group list-group-flush">
-                    @displayIntegration("Meetup", settings.accounts.meetup, id => modalMeetup(), SettingsCtrl.removeSlackAccount(group.slug))
-                    @displayIntegration("Slack", settings.accounts.slack, id => modalSlack(id, group, slackAccount), SettingsCtrl.removeSlackAccount(group.slug))
-                    @displayIntegration("Twitter", settings.accounts.twitter, id => modalTwitter(), SettingsCtrl.removeSlackAccount(group.slug))
-                    @displayIntegration("YouTube", settings.accounts.youtube, id => modalYoutube(), SettingsCtrl.removeSlackAccount(group.slug))
-                </div>
-            </div>
+            @cardIntegrations(group, settings.accounts, slackAccount)
+            @cardEvent(group, settings.event, eventSettings)
         </div>
         <div class="col">
-            @if(settings.actions.isEmpty) {
-                <div class="card">
-                    <div class="card-header">Actions</div>
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Want to automate your group?</h5>
-                        <p class="card-text">
-                            Actions are here for you to perform some tasks when something happen using active integrations</p>
-                        <button class="btn btn-success" data-toggle="modal" data-target="#actionModal">
-                            Create your first action</button>
-                    </div>
-                </div>
-            } else {
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>Actions</span>
-                        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#actionModal">Add</button>
-                    </div>
-                    <div class="list-group list-group-flush">
-                    @settings.actions.map { case (trigger, actions) =>
-                    <div class="list-group-item">
-                        <h4 class="mb-0">@trigger.name</h4>
-                        <div>@actions.zipWithIndex.map { case (action, i) => @displayAction(action, settings.accounts, SettingsCtrl.removeAction(group.slug, trigger, i)) }</div>
-                    </div>
-                    }
-                    </div>
-                </div>
-            }
-            @modalAction("actionModal", group, addAction)
+            @cardActions(group, settings, addAction)
         </div>
     </div>
 }()

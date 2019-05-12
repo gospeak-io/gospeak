@@ -3,7 +3,7 @@ package fr.gospeak.infra.services
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain
-import fr.gospeak.libs.scalautils.domain.Template
+import fr.gospeak.libs.scalautils.domain.{Markdown, MarkdownTemplate}
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto.deriveEncoder
 import io.circe.{Encoder, Json, JsonNumber, JsonObject}
@@ -11,14 +11,14 @@ import io.circe.{Encoder, Json, JsonNumber, JsonObject}
 class TemplateSrv {
   def asData(data: TemplateData): Json = TemplateSrv.templateDataEncoder.apply(data)
 
-  def render(tmpl: Template, data: TemplateData): Either[String, String] =
+  def render(tmpl: MarkdownTemplate, data: TemplateData): Either[String, Markdown] =
     renderTemplate(tmpl, data)(TemplateSrv.templateDataEncoder)
 
-  def render(tmpl: Template): Either[String, String] =
+  def render(tmpl: MarkdownTemplate): Either[String, Markdown] =
     renderTemplate(tmpl, Json.obj())
 
-  private def renderTemplate[A](tmpl: Template, data: A)(implicit e: Encoder[A]): Either[String, String] = tmpl match {
-    case t: Template.Mustache => MustacheTemplateSrv.render(t, data)
+  private def renderTemplate[A](tmpl: MarkdownTemplate, data: A)(implicit e: Encoder[A]): Either[String, Markdown] = tmpl match {
+    case t: MarkdownTemplate.Mustache => MustacheTemplateSrv.render(t, data)
   }
 }
 
@@ -44,9 +44,10 @@ object MustacheTemplateSrv {
   import yamusca.context.Value
   import yamusca.imports._
 
-  def render[A](tmpl: domain.Template.Mustache, data: A)(implicit e: Encoder[A]): Either[String, String] = {
+  def render[A](tmpl: domain.MarkdownTemplate.Mustache, data: A)(implicit e: Encoder[A]): Either[String, Markdown] = {
     mustache.parse(tmpl.value)
       .map(mustache.render(_)(jsonToContext(e.apply(data))))
+      .map(Markdown)
       .leftMap(_._2)
   }
 

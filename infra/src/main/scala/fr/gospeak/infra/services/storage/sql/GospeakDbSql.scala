@@ -158,8 +158,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val group1Settings = Group.Settings.default.copy(actions = Map(
       Group.Settings.Action.Trigger.OnEventCreated -> Seq(
         Group.Settings.Action.Slack(SlackAction.PostMessage(
-          Template.Mustache("{{event.start.year}}_{{event.start.month}}"),
-          Template.Mustache("Meetup [{{event.name}}]({{event.link}}) créé !"),
+          MarkdownTemplate.Mustache("{{event.start.year}}_{{event.start.month}}"),
+          MarkdownTemplate.Mustache("Meetup [{{event.name}}]({{event.link}}) créé !"),
           createdChannelIfNotExist = true,
           inviteEverybody = true)))))
 

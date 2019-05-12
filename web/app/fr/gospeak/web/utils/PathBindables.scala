@@ -1,6 +1,7 @@
 package fr.gospeak.web.utils
 
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.TemplateData
 import play.api.mvc.PathBindable
 
 object PathBindables {
@@ -73,6 +74,14 @@ object PathBindables {
       stringBinder.bind(key, value).flatMap(Venue.Id.from(_).left.map(_.getMessage))
 
     override def unbind(key: String, id: Venue.Id): String =
+      id.value
+  }
+
+  implicit def templateDataRefPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[TemplateData.Ref] = new PathBindable[TemplateData.Ref] {
+    override def bind(key: String, value: String): Either[String, TemplateData.Ref] =
+      stringBinder.bind(key, value).flatMap(TemplateData.Ref.from(_).left.map(_.getMessage))
+
+    override def unbind(key: String, id: TemplateData.Ref): String =
       id.value
   }
 }

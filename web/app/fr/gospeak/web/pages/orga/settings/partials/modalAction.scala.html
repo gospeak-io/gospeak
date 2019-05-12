@@ -4,6 +4,7 @@
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.AddAction
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.partials.display.html._
 
 @(id: String, group: Group, addAction: Form[AddAction])(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 <div class="modal fade" id="@id" role="dialog">
@@ -25,17 +26,13 @@
                         @defining(addAction("action")) { field =>
                             @navVertical(Seq(
                                 (field, "Email-Send", "Send an email", _ => Html("TODO")),
-                                (field, "Slack-PostMessage", "Post Slack message", fieldsSlackPostMessage(_, addAction("event").id)),
+                                (field, "Slack-PostMessage", "Post Slack message", fieldsSlackPostMessage(_, addAction("trigger").id)),
                                 (field, "Twitter-PostMessage", "Post a Twitt", _ => Html("TODO"))
                             ), 4)
                         }
                         </div>
                         <div class="col-5">
-                            <div class="template-data" data-event="@addAction("event").id" style="display: none">
-                                Example of available data for the tempate:
-                                <pre class="data-preview" tabindex="-1" style="max-height: 500px"></pre>
-                                @* <input type="text" class="form-control data-ref"/> *@
-                            </div>
+                            @displayTemplateData(target = Some(addAction("trigger").id))
                         </div>
                     </div>
                 </div>
