@@ -8,6 +8,7 @@ import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, Partner}
 import fr.gospeak.core.services.storage.{OrgaGroupRepo, OrgaPartnerRepo, OrgaSponsorPackRepo, OrgaSponsorRepo, OrgaUserRepo, OrgaVenueRepo}
+import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
@@ -24,6 +25,7 @@ class PartnerCtrl(cc: ControllerComponents,
                   userRepo: OrgaUserRepo,
                   groupRepo: OrgaGroupRepo,
                   partnerRepo: OrgaPartnerRepo,
+                  contactRepo: ContactRepo,
                   venueRepo: OrgaVenueRepo,
                   sponsorPackRepo: OrgaSponsorPackRepo,
                   sponsorRepo: OrgaSponsorRepo) extends UICtrl(cc, silhouette) {
@@ -71,12 +73,13 @@ class PartnerCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
+      contacts <- OptionT.liftF(contactRepo.list(partnerElt.id))
       venues <- OptionT.liftF(venueRepo.list(partnerElt.id))
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       sponsors <- OptionT.liftF(sponsorRepo.listAll(groupElt.id, partnerElt.id))
       users <- OptionT.liftF(userRepo.list((partnerElt.users ++ venues.flatMap(_.users)).distinct))
       b = breadcrumb(groupElt, partnerElt)
-    } yield Ok(html.detail(groupElt, partnerElt, venues, users, sponsors, packs)(b))).value.map(_.getOrElse(partnerNotFound(group, partner))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, partnerElt, venues, contacts, users, sponsors, packs)(b))).value.map(_.getOrElse(partnerNotFound(group, partner))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>

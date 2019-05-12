@@ -3,6 +3,7 @@ package fr.gospeak.web.auth
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.libs.scalautils.domain.{EmailAddress, Secret}
+import fr.gospeak.web.ApplicationConf
 import fr.gospeak.web.auth.AuthForms.SignupData
 import fr.gospeak.web.testingutils.CtrlSpec
 import org.scalatest.BeforeAndAfterEach

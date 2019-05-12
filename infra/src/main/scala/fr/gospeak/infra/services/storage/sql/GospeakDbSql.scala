@@ -42,6 +42,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
   override val sponsor = new SponsorRepoSql(xa)
   override val event = new EventRepoSql(xa)
   override val proposal = new ProposalRepoSql(xa)
+  override val contact = new ContactReposSql(xa)
   override val settings = new SettingsRepoSql(xa)
 
   def insertHTData(mongoUri: String): IO[Done] = {

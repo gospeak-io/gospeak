@@ -1,0 +1,24 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Group, Partner, Contact}
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.orga.partials.html._
+@import fr.gospeak.web.pages.orga.partners.contacts.routes.ContactCtrl
+@import fr.gospeak.web.pages.partials.form.html._
+
+
+@(group: Group, partner: Partner, contact: Contact, form: Form[Contact.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", group, b)() {
+    <div class="page-header">
+        <h1>Edit @partner.name.value contact</h1>
+        <h2>@contact.email.value</h2>
+    </div>
+
+    @formElt(form, ContactCtrl.doEdit(group.slug, partner.slug, contact.id)) {
+        @contactsFields(form, group, partner)
+        @actionsHorizontal() {
+            @btnCancel(ContactCtrl.detail(group.slug, partner.slug, contact.id))
+            @btnSubmit("Edit")
+        }
+    }
+}()

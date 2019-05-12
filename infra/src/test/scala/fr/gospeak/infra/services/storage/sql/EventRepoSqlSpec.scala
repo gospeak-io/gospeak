@@ -13,10 +13,10 @@ class EventRepoSqlSpec extends RepoSpec {
       val (user, group) = createUserAndGroup().unsafeRunSync()
       val (partner, venue) = createPartnerAndVenue(user, group).unsafeRunSync()
       val eventData = eventData1.copy(venue = eventData1.venue.map(_ => venue.id))
-      eventRepo.list(group.id, page).unsafeRunSync().items shouldBe Seq()
+      eventRepo.list(group.id, params).unsafeRunSync().items shouldBe Seq()
       eventRepo.find(group.id, eventData.slug).unsafeRunSync() shouldBe None
       val event = eventRepo.create(group.id, eventData, user.id, now).unsafeRunSync()
-      eventRepo.list(group.id, page).unsafeRunSync().items shouldBe Seq(event)
+      eventRepo.list(group.id, params).unsafeRunSync().items shouldBe Seq(event)
       eventRepo.find(group.id, eventData.slug).unsafeRunSync() shouldBe Some(event)
     }
     it("should fail to create an event when the group does not exists") {

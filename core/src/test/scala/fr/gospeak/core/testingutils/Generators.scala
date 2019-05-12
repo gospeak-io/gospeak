@@ -69,6 +69,9 @@ object Generators {
   implicit val aSponsorPackSlug: Arbitrary[SponsorPack.Slug] = Arbitrary(slugGen.map(slug => SponsorPack.Slug.from(slug).right.get))
   implicit val aSponsorPackName: Arbitrary[SponsorPack.Name] = Arbitrary(nonEmptyStringGen.map(str => SponsorPack.Name(str)))
   implicit val aSponsorId: Arbitrary[Sponsor.Id] = Arbitrary(Gen.uuid.map(id => Sponsor.Id.from(id.toString).right.get))
+  implicit val aContactId: Arbitrary[Contact.Id] = Arbitrary(Gen.uuid.map(id => Contact.Id.from(id.toString).right.get))
+  implicit val aContactFirstName: Arbitrary[Contact.FirstName] = Arbitrary(nonEmptyStringGen.map(f => Contact.FirstName(f)))
+  implicit val aContactLastName: Arbitrary[Contact.LastName] = Arbitrary(nonEmptyStringGen.map(l => Contact.LastName(l)))
 
   // do not write explicit type, it will throw a NullPointerException
   implicit val aInfo = implicitly[Arbitrary[Info]]

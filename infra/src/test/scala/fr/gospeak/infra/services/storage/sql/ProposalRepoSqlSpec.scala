@@ -10,11 +10,11 @@ class ProposalRepoSqlSpec extends RepoSpec {
   describe("ProposalRepoSql") {
     it("should create and retrieve a proposal for a group and talk") {
       val (user, _, cfp, talk) = createUserGroupCfpAndTalk().unsafeRunSync()
-      proposalRepo.list(talk.id, page).unsafeRunSync().items shouldBe Seq()
-      proposalRepo.list(cfp.id, page).unsafeRunSync().items shouldBe Seq()
+      proposalRepo.list(talk.id, params).unsafeRunSync().items shouldBe Seq()
+      proposalRepo.list(cfp.id, params).unsafeRunSync().items shouldBe Seq()
       val proposal = proposalRepo.create(talk.id, cfp.id, proposalData1, speakers, user.id, now).unsafeRunSync()
-      proposalRepo.list(talk.id, page).unsafeRunSync().items shouldBe Seq(cfp -> proposal)
-      proposalRepo.list(cfp.id, page).unsafeRunSync().items shouldBe Seq(proposal)
+      proposalRepo.list(talk.id, params).unsafeRunSync().items shouldBe Seq(cfp -> proposal)
+      proposalRepo.list(cfp.id, params).unsafeRunSync().items shouldBe Seq(proposal)
       proposalRepo.find(cfp.slug, proposal.id).unsafeRunSync() shouldBe Some(proposal)
     }
     it("should fail to create a proposal when talk does not exists") {

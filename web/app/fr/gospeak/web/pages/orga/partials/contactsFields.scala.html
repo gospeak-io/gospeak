@@ -1,0 +1,27 @@
+@import fr.gospeak.core.domain.{Group, Partner, Contact}
+@import fr.gospeak.web.api.ui.routes.SuggestCtrl
+
+@import fr.gospeak.web.pages.partials.form.html.fieldHorizontal
+@import fr.gospeak.web.pages.partials.form.html.inputMarkdown
+@import fr.gospeak.web.pages.partials.form.html.inputHidden
+@import fr.gospeak.web.pages.partials.form.html.inputSelect
+@import fr.gospeak.web.pages.partials.form.html.inputText
+@import fr.gospeak.web.pages.partials.form.html.inputEmail
+@import fr.gospeak.web.pages.partials.form.html.inputTextarea
+
+
+@(form: Form[Contact.Data], group: Group, partner: Partner)(implicit messages: Messages)
+@fieldHorizontal(form("first_name"), Seq("label" -> "First name")) { (field, args) =>
+    @inputText(field, Seq("placeholder" -> "First name", "autofocus" -> "true") ++ args)
+}
+@fieldHorizontal(form("last_name"), Seq("label" -> "Last name")) { (field, args) =>
+    @inputText(field, Seq("placeholder" -> "Last name", "autofocus" -> "true") ++ args)
+}
+@fieldHorizontal(form("email"), Seq("label" -> "Email", "help" -> "Please enter a valid email")) { (field, args) =>
+    @inputEmail(field, Seq("placeholder" -> "Email", "autofocus" -> "true"))
+}
+@fieldHorizontal(form("description"), Seq("label" -> "Description")) { (field, args) =>
+    @inputTextarea(field, args)
+}
+@inputHidden(form("partner"), Seq("value" -> partner.id.value))
+
