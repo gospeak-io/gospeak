@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.published.cfps
 
-import java.time.Instant
+import java.time.{Instant, LocalDateTime}
 
 import cats.data.OptionT
 import cats.effect.IO
@@ -62,6 +62,7 @@ class CfpCtrl(cc: ControllerComponents,
 
   def doPropose(cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
     val now = Instant.now()
+    val nowLDT = LocalDateTime.now()
     CfpForms.create.bindFromRequest.fold(
       formWithErrors => proposeForm(cfp, formWithErrors, now, params),
       data =>
@@ -71,7 +72,7 @@ class CfpCtrl(cc: ControllerComponents,
             talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData, identity.user.id, now))
             proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers, identity.user.id, now))
             groupElt <- OptionT(groupRepo.find(cfpElt.group))
-            _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt, identity))
+            _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt, identity, nowLDT))
             msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
           } yield Redirect(ProposalCtrl.detail(talkElt.slug, cfp)).flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp)))
         }.getOrElse {
@@ -93,6 +94,7 @@ class CfpCtrl(cc: ControllerComponents,
   def doProposeSignup(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction.async { implicit req =>
     import cats.implicits._
     val now = Instant.now()
+    val nowLDT = LocalDateTime.now()
     CfpForms.signup.bindFromRequest.fold(
       formWithErrors => proposeConnectForm(cfp, formWithErrors, CfpForms.login.bindFromRequest, now).unsafeToFuture(),
       data => (for {
@@ -104,7 +106,7 @@ class CfpCtrl(cc: ControllerComponents,
         talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData, identity.user.id, now).unsafeToFuture())
         proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers, identity.user.id, now).unsafeToFuture())
         groupElt <- OptionT(groupRepo.find(cfpElt.group).unsafeToFuture())
-        _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt, identity).unsafeToFuture())
+        _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt, identity, nowLDT).unsafeToFuture())
         msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
       } yield result.flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp))).recoverWith {
         case _: AccountValidationRequiredException => proposeConnectForm(cfp, now, signupData = Some(data), error = "Account created, you need to validate it by clicking on the email validation link").unsafeToFuture()
@@ -118,6 +120,7 @@ class CfpCtrl(cc: ControllerComponents,
   def doProposeLogin(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction.async { implicit req =>
     import cats.implicits._
     val now = Instant.now()
+    val nowLDT = LocalDateTime.now()
     CfpForms.login.bindFromRequest.fold(
       formWithErrors => proposeConnectForm(cfp, CfpForms.signup.bindFromRequest, formWithErrors, now).unsafeToFuture(),
       data => (for {
@@ -127,7 +130,7 @@ class CfpCtrl(cc: ControllerComponents,
         talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData, identity.user.id, now).unsafeToFuture())
         proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers, identity.user.id, now).unsafeToFuture())
         groupElt <- OptionT(groupRepo.find(cfpElt.group).unsafeToFuture())
-        _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt, identity).unsafeToFuture())
+        _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt, identity, nowLDT).unsafeToFuture())
         msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
       } yield result.flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp))).recoverWith {
         case _: AccountValidationRequiredException => proposeConnectForm(cfp, now, loginData = Some(data), error = "You need to validate your account by clicking on the email validation link").unsafeToFuture()

@@ -22,15 +22,15 @@ class MessageHandler(settingsRepo: SettingsRepo,
     case m: GospeakMessage.ProposalCreated => handle(m)
   }).map(_ => ()).recover { case NonFatal(_) => () }
 
-  private def handle(msg: GospeakMessage.EventCreated): IO[Int] = handleGroupEvent(msg.group.id, Trigger.OnEventCreated, TemplateData.eventCreated(msg))
+  private def handle(msg: GospeakMessage.EventCreated): IO[Int] = handleGroupEvent(msg.group.value.id, Trigger.OnEventCreated, TemplateData.eventCreated(msg))
 
-  private def handle(msg: GospeakMessage.TalkAdded): IO[Int] = handleGroupEvent(msg.group.id, Trigger.OnEventAddTalk, TemplateData.talkAdded(msg))
+  private def handle(msg: GospeakMessage.TalkAdded): IO[Int] = handleGroupEvent(msg.group.value.id, Trigger.OnEventAddTalk, TemplateData.talkAdded(msg))
 
-  private def handle(msg: GospeakMessage.TalkRemoved): IO[Int] = handleGroupEvent(msg.group.id, Trigger.OnEventRemoveTalk, TemplateData.talkRemoved(msg))
+  private def handle(msg: GospeakMessage.TalkRemoved): IO[Int] = handleGroupEvent(msg.group.value.id, Trigger.OnEventRemoveTalk, TemplateData.talkRemoved(msg))
 
   private def handle(msg: GospeakMessage.EventPublished): IO[Int] = IO.pure(0)
 
-  private def handle(msg: GospeakMessage.ProposalCreated): IO[Int] = handleGroupEvent(msg.cfp.group, Trigger.OnProposalCreated, TemplateData.proposalCreated(msg))
+  private def handle(msg: GospeakMessage.ProposalCreated): IO[Int] = handleGroupEvent(msg.cfp.value.group, Trigger.OnProposalCreated, TemplateData.proposalCreated(msg))
 
   private def handleGroupEvent(id: Group.Id, e: Trigger, data: TemplateData): IO[Int] = for {
     settings <- settingsRepo.find(id)

@@ -3,6 +3,7 @@ package fr.gospeak.core.domain.utils
 import java.time.LocalDateTime
 
 import fr.gospeak.core.domain
+import fr.gospeak.core.domain.utils.GospeakMessage.Linked
 import fr.gospeak.libs.scalautils.StringUtils._
 import fr.gospeak.libs.scalautils.domain.CustomException
 
@@ -37,15 +38,23 @@ object TemplateData {
 
   final case class StrDateTime(year: String, month: String, monthStr: String, day: String, dayStr: String, hour: String, minute: String, second: String)
 
+  final case class Description(full: String, short1: String, short2: String, short3: String)
+
   final case class User(slug: String, name: String, firstName: String, lastName: String, avatar: String, email: String)
 
-  final case class Group(link: String, slug: String, name: String, description: String, tags: Seq[String])
+  final case class Group(link: String, publicLink: Option[String], slug: String, name: String, description: Description, tags: Seq[String])
 
-  final case class Cfp(link: String, slug: String, name: String, description: String, tags: Seq[String])
+  final case class Cfp(link: String, publicLink: Option[String], slug: String, name: String, description: Description, tags: Seq[String])
 
-  final case class Event(link: String, slug: String, name: String, description: String, start: StrDateTime, tags: Seq[String])
+  final case class Event(link: String, publicLink: Option[String], slug: String, name: String, description: Description, start: StrDateTime, tags: Seq[String])
 
-  final case class Proposal(link: String, title: String, description: String, slides: Option[String], video: Option[String], tags: Seq[String])
+  final case class Proposal(link: String, title: String, description: Description, slides: Option[String], video: Option[String], tags: Seq[String])
+
+  final case class EventVenue(name: String, address: String, logo: String, url: String)
+
+  final case class TalkSpeaker(link: String, publicLink: Option[String], name: String, avatar: String)
+
+  final case class EventTalk(link: String, publicLink: Option[String], title: String, description: Description, speakers: Seq[TalkSpeaker], tags: Seq[String])
 
 
   final case class EventCreated(group: Group, event: Event, user: User) extends TemplateData
@@ -58,23 +67,33 @@ object TemplateData {
 
   final case class ProposalCreated(group: Group, cfp: Cfp, proposal: Proposal, user: User) extends TemplateData
 
-  final case class EventInfo(event: Event) extends TemplateData
+  final case class EventInfo(group: Group, event: Event, venue: Option[EventVenue], cfp: Option[Cfp], talks: Seq[EventTalk]) extends TemplateData
 
   object Sample {
+    private val description = desc(
+      """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor odio vitae venenatis porta. Quisque cursus dolor augue, nec pharetra dolor ullamcorper id.
+        |
+        |Donec sed dignissim ligula, eget aliquam ante.
+        |
+        |Vestibulum nisl mauris, congue eu blandit eget, scelerisque ut eros. In porta ultrices magna non consequat.
+      """.stripMargin)
     private val host = "https://gospeak.fr"
-    private val dateTime = build(LocalDateTime.of(2019, 9, 10, 19, 0, 0))
+    private val dateTime = date(LocalDateTime.of(2019, 9, 10, 19, 0, 0))
     private val user = User("john-doe", "John Doe", "John", "Doe", "https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=wavatar", "john.doe@mail.com")
-    private val group = Group(s"$host/u/groups/humantalks-paris", "humantalks-paris", "HumanTalks Paris", "", Seq("tech"))
-    private val cfp = Cfp(s"${group.link}/cfps/humantalks-paris", "humantalks-paris", "HumanTalks Paris", "", Seq("tech"))
-    private val event = Event(s"${group.link}/events/2019-09", "2019-09", "HumanTalks Paris Septembre", "", dateTime, Seq("IOT", "UX", "Clean Code"))
-    private val proposal = Proposal(s"${cfp.link}/proposals/28f26543-1ab8-4749-b0ac-786d1bd76888", "The Scala revolution", "", None, None, Seq("scala", "fp"))
+    private val group = Group(s"$host/u/groups/humantalks-paris", Some(s"$host/groups/humantalks-paris"), "humantalks-paris", "HumanTalks Paris", description, Seq("tech"))
+    private val cfp = Cfp(s"${group.link}/cfps/humantalks-paris", Some(s"$host/cfps/humantalks-paris"), "humantalks-paris", "HumanTalks Paris", description, Seq("tech"))
+    private val event = Event(s"${group.link}/events/2019-09", Some("TODO"), "2019-09", "HumanTalks Paris Septembre", description, dateTime, Seq("IOT", "UX", "Clean Code"))
+    private val proposal = Proposal(s"${cfp.link}/proposals/28f26543-1ab8-4749-b0ac-786d1bd76888", "The Scala revolution", description, None, None, Seq("scala", "fp"))
+    private val eventVenue = EventVenue("Zeenea", "48 Rue de Ponthieu, 75008 Paris", "https://www.zeenea.com/wp-content/uploads/2019/01/zeenea-logo-424x112-1.png", "https://maps.google.com/?cid=3360768160548514744")
+    private val talkSpeaker = TalkSpeaker(s"${group.link}/speakers/john-doe", Some(s"$host/speakers/empty"), "John Doe", "https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=wavatar")
+    private val eventTalk = EventTalk(s"${cfp.link}/proposals/28f26543-1ab8-4749-b0ac-786d1bd76888", Some("TODO"), "The Scala revolution", proposal.description, Seq(talkSpeaker), Seq("scala", "FP"))
 
     private val eventCreated = EventCreated(group = group, event = event, user = user)
     private val talkAdded = TalkAdded(group = group, event = event, cfp = cfp, proposal = proposal, user = user)
     private val talkRemoved = TalkRemoved(group = group, event = event, cfp = cfp, proposal = proposal, user = user)
     private val eventPublished = EventPublished()
     private val proposalCreated = ProposalCreated(group, cfp, proposal, user)
-    private val eventInfo = EventInfo(event)
+    private val eventInfo = EventInfo(group, event, Some(eventVenue), Some(cfp), Seq(eventTalk))
 
     val all: Seq[TemplateData] = Seq(eventCreated, talkAdded, talkRemoved, eventPublished, proposalCreated, eventInfo)
     private val map = all.map(d => (d.ref, d)).toMap
@@ -82,17 +101,7 @@ object TemplateData {
     def fromRef(ref: Ref): Option[TemplateData] = map.get(ref)
   }
 
-  private def build(u: domain.User): User = User(slug = u.slug.value, name = u.name.value, firstName = u.firstName, lastName = u.lastName, avatar = u.avatar.url.value, email = u.email.value)
-
-  private def build(g: domain.Group, link: String): Group = Group(link = link, slug = g.slug.value, name = g.name.value, description = g.description.value, tags = g.tags.map(_.value))
-
-  private def build(c: domain.Cfp, link: String): Cfp = Cfp(link = link, slug = c.slug.value, name = c.name.value, description = c.description.value, tags = c.tags.map(_.value))
-
-  private def build(e: domain.Event, link: String): Event = Event(link = link, slug = e.slug.value, name = e.name.value, description = e.description.value, start = build(e.start), tags = e.tags.map(_.value))
-
-  private def build(p: domain.Proposal, link: String): Proposal = Proposal(link = link, title = p.title.value, description = p.description.value, slides = p.slides.map(_.value), video = p.video.map(_.value), tags = p.tags.map(_.value))
-
-  private def build(d: LocalDateTime): StrDateTime = StrDateTime(
+  private def date(d: LocalDateTime): StrDateTime = StrDateTime(
     year = leftPad(d.getYear.toString, 4, '0'),
     month = leftPad(d.getMonthValue.toString, 2, '0'),
     monthStr = d.getMonth.name().toLowerCase.capitalize,
@@ -102,15 +111,41 @@ object TemplateData {
     minute = leftPad(d.getMinute.toString, 2, '0'),
     second = leftPad(d.getSecond.toString, 2, '0'))
 
-  def eventCreated(msg: GospeakMessage.EventCreated): EventCreated = EventCreated(build(msg.group, msg.groupLink), build(msg.event, msg.eventLink), build(msg.user))
+  private def desc(d: String): Description = Description(
+    full = d,
+    short1 = d.split("\n").head.take(140),
+    short2 = d.split("\n").head.take(280),
+    short3 = d.take(280))
 
-  def talkAdded(msg: GospeakMessage.TalkAdded): TalkAdded = TalkAdded(build(msg.group, msg.groupLink), build(msg.event, msg.eventLink), build(msg.cfp, msg.cfpLink), build(msg.proposal, msg.proposalLink), build(msg.user))
+  private def user(u: domain.User): User = User(slug = u.slug.value, name = u.name.value, firstName = u.firstName, lastName = u.lastName, avatar = u.avatar.url.value, email = u.email.value)
 
-  def talkRemoved(msg: GospeakMessage.TalkRemoved): TalkRemoved = TalkRemoved(build(msg.group, msg.groupLink), build(msg.event, msg.eventLink), build(msg.cfp, msg.cfpLink), build(msg.proposal, msg.proposalLink), build(msg.user))
+  private def group(g: Linked[domain.Group]): Group = Group(link = g.link, publicLink = g.publicLink, slug = g.value.slug.value, name = g.value.name.value, description = desc(g.value.description.value), tags = g.value.tags.map(_.value))
+
+  private def cfp(c: Linked[domain.Cfp]): Cfp = Cfp(link = c.link, publicLink = c.publicLink, slug = c.value.slug.value, name = c.value.name.value, description = desc(c.value.description.value), tags = c.value.tags.map(_.value))
+
+  private def event(e: Linked[domain.Event]): Event = Event(link = e.link, publicLink = e.publicLink, slug = e.value.slug.value, name = e.value.name.value, description = desc(e.value.description.value), start = date(e.value.start), tags = e.value.tags.map(_.value))
+
+  private def proposal(p: Linked[domain.Proposal]): Proposal = Proposal(link = p.link, title = p.value.title.value, description = desc(p.value.description.value), slides = p.value.slides.map(_.value), video = p.value.video.map(_.value), tags = p.value.tags.map(_.value))
+
+  private def eventVenue(v: (domain.Partner, domain.Venue)): EventVenue = EventVenue(v._1.name.value, v._2.address.value, v._1.logo.value, v._2.address.url)
+
+  private def talkSpeaker(v: Linked[domain.User]): TalkSpeaker = TalkSpeaker(link = v.link, publicLink = v.publicLink, name = v.value.name.value, avatar = v.value.avatar.url.value)
+
+  private def eventTalk(p: Linked[domain.Proposal], s: Seq[Linked[domain.User]]): EventTalk =
+    EventTalk(link = p.link, publicLink = p.publicLink, title = p.value.title.value, description = desc(p.value.description.value), s.map(talkSpeaker), tags = p.value.tags.map(_.value))
+
+  def eventCreated(msg: GospeakMessage.EventCreated): EventCreated = EventCreated(group(msg.group), event(msg.event), user(msg.user))
+
+  def talkAdded(msg: GospeakMessage.TalkAdded): TalkAdded = TalkAdded(group(msg.group), event(msg.event), cfp(msg.cfp), proposal(msg.proposal), user(msg.user))
+
+  def talkRemoved(msg: GospeakMessage.TalkRemoved): TalkRemoved = TalkRemoved(group(msg.group), event(msg.event), cfp(msg.cfp), proposal(msg.proposal), user(msg.user))
 
   def eventPublished(msg: GospeakMessage.EventPublished): EventPublished = EventPublished()
 
-  def proposalCreated(msg: GospeakMessage.ProposalCreated): ProposalCreated = ProposalCreated(build(msg.group, msg.groupLink), build(msg.cfp, msg.cfpLink), build(msg.proposal, msg.proposalLink), build(msg.user))
+  def proposalCreated(msg: GospeakMessage.ProposalCreated): ProposalCreated = ProposalCreated(group(msg.group), cfp(msg.cfp), proposal(msg.proposal), user(msg.user))
+
+  def eventInfo(g: Linked[domain.Group], e: Linked[domain.Event], v: Option[(domain.Partner, domain.Venue)], c: Option[Linked[domain.Cfp]], ts: Seq[Linked[domain.Proposal]], ss: Seq[Linked[domain.User]]): EventInfo =
+    EventInfo(group(g), event(e), v.map(eventVenue), c.map(cfp), ts.map(t => eventTalk(t, t.value.speakers.toList.flatMap(s => ss.find(_.value.id == s)))))
 
   object EventCreated {
     val ref: Ref = Ref.from(classOf[EventCreated].getSimpleName).right.get

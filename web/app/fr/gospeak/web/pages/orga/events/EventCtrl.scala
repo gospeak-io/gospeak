@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.orga.events
 
-import java.time.Instant
+import java.time.{Instant, LocalDateTime}
 
 import cats.data.OptionT
 import cats.effect.IO
@@ -8,9 +8,10 @@ import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage._
+import fr.gospeak.infra.services.TemplateSrv
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus}
+import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus, MessageBuilder}
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.events.EventCtrl._
 import fr.gospeak.web.utils.UICtrl
@@ -26,6 +27,8 @@ class EventCtrl(cc: ControllerComponents,
                 venueRepo: OrgaVenueRepo,
                 proposalRepo: OrgaProposalRepo,
                 settingsRepo: SettingsRepo,
+                templateSrv: TemplateSrv,
+                builder: MessageBuilder,
                 mb: GospeakMessageBus) extends UICtrl(cc, silhouette) {
 
   import silhouette._
@@ -69,16 +72,20 @@ class EventCtrl(cc: ControllerComponents,
 
   def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     val customParams = params.defaultSize(40).defaultOrderBy(proposalRepo.fields.created)
+    val nowLDT = LocalDateTime.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
-      venues <- OptionT.liftF(venueRepo.list(groupElt.id, eventElt.venue.toList))
+      venueOpt <- OptionT.liftF(venueRepo.list(groupElt.id, eventElt.venue.toList).map(_.headOption))
       talks <- OptionT.liftF(proposalRepo.list(eventElt.talks))
       cfpOpt <- OptionT.liftF(cfpRepo.find(eventElt.id))
       proposals <- OptionT.liftF(cfpOpt.map(cfp => proposalRepo.list(cfp.id, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal])))
       speakers <- OptionT.liftF(userRepo.list((proposals.items ++ talks).flatMap(_.users).distinct))
+      data = builder.buildEventInfo(groupElt, eventElt, cfpOpt, venueOpt, talks, speakers, nowLDT)
+      desc = templateSrv.render(eventElt.description, data)
       b = breadcrumb(groupElt, eventElt)
-    } yield Ok(html.detail(groupElt, eventElt, venues, talks, cfpOpt, proposals, speakers, EventForms.attachCfp)(b))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+      res = Ok(html.detail(groupElt, eventElt, venueOpt, talks, desc, cfpOpt, proposals, speakers, EventForms.attachCfp)(b))
+    } yield res).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -125,6 +132,7 @@ class EventCtrl(cc: ControllerComponents,
 
   def addToTalks(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
+    val nowLDT = LocalDateTime.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
@@ -132,12 +140,13 @@ class EventCtrl(cc: ControllerComponents,
       proposalElt <- OptionT(proposalRepo.find(cfpElt.slug, talk))
       _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.add(talk).talks, by, now))
       _ <- OptionT.liftF(proposalRepo.accept(cfpElt.slug, talk, eventElt.id, by, now))
-      _ <- OptionT.liftF(mb.publishTalkAdded(groupElt, eventElt, cfpElt, proposalElt))
+      _ <- OptionT.liftF(mb.publishTalkAdded(groupElt, eventElt, cfpElt, proposalElt, nowLDT))
     } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
   def cancelTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
+    val nowLDT = LocalDateTime.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
@@ -145,7 +154,7 @@ class EventCtrl(cc: ControllerComponents,
       proposalElt <- OptionT(proposalRepo.find(cfpElt.slug, talk))
       _ <- OptionT.liftF(eventRepo.editTalks(groupElt.id, event)(eventElt.remove(talk).talks, by, now))
       _ <- OptionT.liftF(proposalRepo.cancel(cfpElt.slug, talk, eventElt.id, by, now))
-      _ <- OptionT.liftF(mb.publishTalkRemoved(groupElt, eventElt, cfpElt, proposalElt))
+      _ <- OptionT.liftF(mb.publishTalkRemoved(groupElt, eventElt, cfpElt, proposalElt, nowLDT))
     } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 

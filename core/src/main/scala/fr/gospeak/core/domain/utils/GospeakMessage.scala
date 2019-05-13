@@ -15,41 +15,30 @@ object GospeakMessage {
 
   sealed trait ProposalMessage extends GospeakMessage
 
+  final case class Linked[A](value: A, link: String, publicLink: Option[String])
 
-  final case class EventCreated(group: Group,
-                                groupLink: String,
-                                event: Event,
-                                eventLink: String,
+
+  final case class EventCreated(group: Linked[Group],
+                                event: Linked[Event],
                                 user: User) extends EventMessage
 
-  final case class TalkAdded(group: Group,
-                             groupLink: String,
-                             event: Event,
-                             eventLink: String,
-                             cfp: Cfp,
-                             cfpLink: String,
-                             proposal: Proposal,
-                             proposalLink: String,
+  final case class TalkAdded(group: Linked[Group],
+                             event: Linked[Event],
+                             cfp: Linked[Cfp],
+                             proposal: Linked[Proposal],
                              user: User) extends TalkMessage
 
-  final case class TalkRemoved(group: Group,
-                               groupLink: String,
-                               event: Event,
-                               eventLink: String,
-                               cfp: Cfp,
-                               cfpLink: String,
-                               proposal: Proposal,
-                               proposalLink: String,
+  final case class TalkRemoved(group: Linked[Group],
+                               event: Linked[Event],
+                               cfp: Linked[Cfp],
+                               proposal: Linked[Proposal],
                                user: User) extends TalkMessage
 
   final case class EventPublished() extends EventMessage
 
-  final case class ProposalCreated(group: Group,
-                                   groupLink: String,
-                                   cfp: Cfp,
-                                   cfpLink: String,
-                                   proposal: Proposal,
-                                   proposalLink: String,
+  final case class ProposalCreated(group: Linked[Group],
+                                   cfp: Linked[Cfp],
+                                   proposal: Linked[Proposal],
                                    user: User) extends ProposalMessage
 
 }

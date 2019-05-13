@@ -55,19 +55,24 @@ object Group {
         youtube = None),
       actions = Map(),
       event = Event(MarkdownTemplate.Mustache(
-        """Hi everyone, welcome to {{event.name}}!
+        """Hi everyone, welcome to **{{event.name}}**!
+          |
           |
           |{{#venue}}
-          |This month we are hosted by {{name}}, at {{address}}
+          |This month we are hosted by **{{name}}**, at *[{{address}}]({{url}})*
           |
-          |{{logo}}
+          |![{{name}} logo]({{logo}})
           |{{/venue}}
           |
-          |{{#talks}}
-          |- **{{title}}** by {{#speakers}}*{{name}}*{{/speakers}}
           |
-          |{{description}}
+          |{{#talks}}
+          |{{#-first}}For this session we are happy to have the following talks:{{/-first}}
+          |
+          |- **{{title}}** by {{#speakers}}*{{name}}*{{^-last}}, {{/-last}}{{/speakers}}
+          |
+          |{{description.short2}} {{#publicLink}}[see more]({{.}}){{/publicLink}}
           |{{/talks}}
+          |
           |
           |For the next sessions, propose your talks on [Gospeak]({{cfp.publicLink}})
         """.stripMargin.trim)))

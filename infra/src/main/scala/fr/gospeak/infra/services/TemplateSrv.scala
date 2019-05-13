@@ -25,16 +25,23 @@ class TemplateSrv {
 object TemplateSrv {
   private implicit val circeConfiguration: Configuration = Configuration.default.withDiscriminator("type")
   private implicit val strDateTimeEncoder: Encoder[TemplateData.StrDateTime] = deriveEncoder[TemplateData.StrDateTime]
+  private implicit val descriptionEncoder: Encoder[TemplateData.Description] = deriveEncoder[TemplateData.Description]
   private implicit val userEncoder: Encoder[TemplateData.User] = deriveEncoder[TemplateData.User]
   private implicit val groupEncoder: Encoder[TemplateData.Group] = deriveEncoder[TemplateData.Group]
   private implicit val cfpEncoder: Encoder[TemplateData.Cfp] = deriveEncoder[TemplateData.Cfp]
   private implicit val eventEncoder: Encoder[TemplateData.Event] = deriveEncoder[TemplateData.Event]
   private implicit val proposalEncoder: Encoder[TemplateData.Proposal] = deriveEncoder[TemplateData.Proposal]
+  private implicit val eventVenueEncoder: Encoder[TemplateData.EventVenue] = deriveEncoder[TemplateData.EventVenue]
+  private implicit val talkSpeakerEncoder: Encoder[TemplateData.TalkSpeaker] = deriveEncoder[TemplateData.TalkSpeaker]
+  private implicit val eventTalkEncoder: Encoder[TemplateData.EventTalk] = deriveEncoder[TemplateData.EventTalk]
+
   private implicit val eventCreatedEncoder: Encoder[TemplateData.EventCreated] = deriveEncoder[TemplateData.EventCreated]
   private implicit val talkAddedEncoder: Encoder[TemplateData.TalkAdded] = deriveEncoder[TemplateData.TalkAdded]
   private implicit val talkRemovedEncoder: Encoder[TemplateData.TalkRemoved] = deriveEncoder[TemplateData.TalkRemoved]
   private implicit val eventPublishedEncoder: Encoder[TemplateData.EventPublished] = deriveEncoder[TemplateData.EventPublished]
   private implicit val proposalCreatedEncoder: Encoder[TemplateData.ProposalCreated] = deriveEncoder[TemplateData.ProposalCreated]
+  private implicit val eventInfoEncoder: Encoder[TemplateData.EventInfo] = deriveEncoder[TemplateData.EventInfo]
+
   private implicit val templateDataEncoder: Encoder[TemplateData] = deriveEncoder[TemplateData]
 }
 

@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.speaker.talks.proposals
 
-import java.time.Instant
+import java.time.{Instant, LocalDateTime}
 
 import cats.data.OptionT
 import cats.effect.IO
@@ -46,6 +46,7 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def doCreate(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
+    val nowLDT = LocalDateTime.now()
     ProposalForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors, talk, cfp),
       data => {
@@ -54,7 +55,7 @@ class ProposalCtrl(cc: ControllerComponents,
           cfpElt <- OptionT(cfpRepo.find(cfp))
           proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data, talkElt.speakers, by, now))
           groupElt <- OptionT(groupRepo.find(cfpElt.group))
-          _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt))
+          _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt, nowLDT))
           msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
         } yield Redirect(routes.ProposalCtrl.detail(talk, cfp)).flashing("success" -> msg)).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }

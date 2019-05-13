@@ -1,43 +1,33 @@
 package fr.gospeak.web.domain
 
+import java.time.LocalDateTime
+
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import fr.gospeak.core.domain.utils.GospeakMessage
 import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal}
 import fr.gospeak.libs.scalautils.MessageBus
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
-import play.api.mvc.{AnyContent, RequestHeader}
+import play.api.mvc.AnyContent
 
-class GospeakMessageBus(mb: MessageBus[GospeakMessage]) {
+class GospeakMessageBus(bus: MessageBus[GospeakMessage], builder: MessageBuilder) {
   def publishEventCreated(group: Group, event: Event)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Int] = {
-    mb.publish(GospeakMessage.EventCreated(group, link(group), event, link(group, event), req.identity.user))
+    bus.publish(builder.buildEventCreated(group, event))
   }
 
-  def publishTalkAdded(group: Group, event: Event, cfp: Cfp, proposal: Proposal)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Int] = {
-    mb.publish(GospeakMessage.TalkAdded(group, link(group), event, link(group, event), cfp, link(group, cfp), proposal, link(group, cfp, proposal), req.identity.user))
+  def publishTalkAdded(group: Group, event: Event, cfp: Cfp, proposal: Proposal, now: LocalDateTime)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Int] = {
+    bus.publish(builder.buildTalkAdded(group, event, cfp, proposal, now))
   }
 
-  def publishTalkRemoved(group: Group, event: Event, cfp: Cfp, proposal: Proposal)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Int] = {
-    mb.publish(GospeakMessage.TalkRemoved(group, link(group), event, link(group, event), cfp, link(group, cfp), proposal, link(group, cfp, proposal), req.identity.user))
+  def publishTalkRemoved(group: Group, event: Event, cfp: Cfp, proposal: Proposal, now: LocalDateTime)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Int] = {
+    bus.publish(builder.buildTalkRemoved(group, event, cfp, proposal, now))
   }
 
-  def publishProposalCreated(group: Group, cfp: Cfp, proposal: Proposal)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Int] = {
-    mb.publish(GospeakMessage.ProposalCreated(group, link(group), cfp, link(group, cfp), proposal, link(group, cfp, proposal), req.identity.user))
+  def publishProposalCreated(group: Group, cfp: Cfp, proposal: Proposal, now: LocalDateTime)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Int] = {
+    bus.publish(builder.buildProposalCreated(group, cfp, proposal, now))
   }
 
-  def publishProposalCreated(group: Group, cfp: Cfp, proposal: Proposal, identity: AuthUser)(implicit req: UserAwareRequest[CookieEnv, AnyContent]): IO[Int] = {
-    mb.publish(GospeakMessage.ProposalCreated(group, link(group), cfp, link(group, cfp), proposal, link(group, cfp, proposal), identity.user))
+  def publishProposalCreated(group: Group, cfp: Cfp, proposal: Proposal, identity: AuthUser, now: LocalDateTime)(implicit req: UserAwareRequest[CookieEnv, AnyContent]): IO[Int] = {
+    bus.publish(builder.buildProposalCreated(group, cfp, proposal, identity, now))
   }
-
-  private def link(group: Group)(implicit request: RequestHeader): String =
-    fr.gospeak.web.pages.orga.routes.GroupCtrl.detail(group.slug).absoluteURL()
-
-  private def link(group: Group, event: Event)(implicit request: RequestHeader): String =
-    fr.gospeak.web.pages.orga.events.routes.EventCtrl.detail(group.slug, event.slug).absoluteURL()
-
-  private def link(group: Group, cfp: Cfp)(implicit request: RequestHeader): String =
-    fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl.detail(group.slug, cfp.slug).absoluteURL()
-
-  private def link(group: Group, cfp: Cfp, proposal: Proposal)(implicit request: RequestHeader): String =
-    fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl.detail(group.slug, cfp.slug, proposal.id).absoluteURL()
 }

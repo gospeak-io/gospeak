@@ -83,6 +83,15 @@
     margin-top: 5px;
 }
 
+.quote {
+    border-left: 7px;
+    border-left-color: #e9ecef;
+    border-left-style: solid;
+
+    margin-left: 5px;
+    padding-left: 10px;
+}
+
 .login {
     width: 500px;
     margin: auto;

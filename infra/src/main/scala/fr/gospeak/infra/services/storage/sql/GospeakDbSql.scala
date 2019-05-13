@@ -200,10 +200,10 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val venue1 = venue(partner1, zeeneaPlace, userDemo)
     val venues = NonEmptyList.of(venue1)
 
-    val event1 = event(group1, Some(cfp2), "2018-06", "HumanTalks Day #1", "2018-06-01", userDemo, venue = None, description = "desc")
-    val event2 = event(group1, None, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, venue = None, description = "desc")
+    val event1 = event(group1, Some(cfp2), "2018-06", "HumanTalks Day #1", "2018-06-01", userDemo, venue = None, description = Group.Settings.default.event.defaultDescription.value)
+    val event2 = event(group1, None, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, venue = None, description = Group.Settings.default.event.defaultDescription.value)
     val event3 = event(group1, Some(cfp1), "2019-02", "HumanTalks Paris Fevrier 2019", "2019-02-12", userOrga)
-    val event4 = event(group1, Some(cfp1), "2019-06", "HumanTalks Paris Juin 2019", "2019-06-12", userDemo, venue = Some(venue1), description = "desc")
+    val event4 = event(group1, Some(cfp1), "2019-06", "HumanTalks Paris Juin 2019", "2019-06-12", userDemo, venue = Some(venue1), description = Group.Settings.default.event.defaultDescription.value)
     val event5 = event(group2, Some(cfp4), "2019-04", "Paris.Js Avril", "2019-04-01", userOrga)
     val event6 = event(group3, None, "2019-03", "Nouveaux modeles de gouvenance", "2019-03-15", userDemo, tags = Seq("Data Gouv"))
     val events = NonEmptyList.of(event1, event2, event3, event4, event5, event6)

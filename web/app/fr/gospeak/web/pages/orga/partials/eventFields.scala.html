@@ -5,24 +5,31 @@
 @import fr.gospeak.web.pages.partials.display.html._
 
 @(form: Form[Event.Data], group: Group)(implicit messages: Messages)
-@fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
+@fieldVertical(form("name"), Seq("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "Event name", "autofocus" -> "true") ++ args)
 }
-@fieldHorizontal(form("start"), Seq("label" -> "Date", "help" -> "Local date and time when the event will start")) { (field, args) =>
+@fieldVertical(form("start"), Seq("label" -> "Date", "help" -> "Local date and time when the event will start")) { (field, args) =>
     @inputDatetime(field, args)
 }
-@fieldHorizontal(form("venue"), Seq("label" -> "Venue", "help" -> "Where your event will take place")) { (field, args) =>
+@fieldVertical(form("venue"), Seq("label" -> "Venue", "help" -> "Where your event will take place")) { (field, args) =>
     @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.venues(group.slug).toString, "optional" -> "") ++ args)
 }
-@fieldHorizontal(form("cfp"), Seq("label" -> "CFP", "help" -> "You will be able to add proposals from the CFP to the event")) { (field, args) =>
+@fieldVertical(form("cfp"), Seq("label" -> "CFP", "help" -> "You will be able to add proposals from the CFP to the event")) { (field, args) =>
     @inputSelect(field, Seq(), Seq("placeholder" -> "-- Attach a CFP to this event", "remote" -> SuggestCtrl.cfps(group.slug).toString, "optional" -> "") ++ args)
 }
-@fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of the event")) { (field, args) =>
+@fieldVertical(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of the event")) { (field, args) =>
     @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.tags().toString))
 }
-@fieldTemplate(form("description"), TemplateData.EventInfo.ref, Seq("label" -> "Description", "help" -> "Description of your event")) { (field, args) =>
-    @inputTemplate(field, ref = Some(TemplateData.EventInfo.ref), args = Seq("placeholder" -> "Event description") ++ args)
+@fieldVertical(form("description"), Seq("label" -> "Description", "help" -> "Description of your event")) { (field, args) =>
+    <div class="row">
+        <div class="col-6">
+            @inputTemplate(field, ref = Some(TemplateData.EventInfo.ref), args = Seq("placeholder" -> "Event description") ++ args)
+        </div>
+        <div class="col-6">
+            @displayTemplateData(Some(TemplateData.EventInfo.ref))
+        </div>
+    </div>
 }
-@fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the event (in urls for example)")) { (field, args) =>
+@fieldVertical(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the event (in urls for example)")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "Event slug", "slug-for" -> form("name").id) ++ args)
 }

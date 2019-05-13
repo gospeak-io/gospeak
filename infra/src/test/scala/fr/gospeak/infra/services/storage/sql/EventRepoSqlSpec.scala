@@ -38,7 +38,7 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = update(group.id, event.slug)(eventData1, user.id, now)
-        q.sql shouldBe "UPDATE events SET cfp_id=?, slug=?, name=?, start=?, venue=?, tags=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
+        q.sql shouldBe "UPDATE events SET cfp_id=?, slug=?, name=?, start=?, description=?, venue=?, tags=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
         check(q)
       }
       it("should build updateCfp") {
