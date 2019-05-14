@@ -176,6 +176,14 @@ class EventCtrl(cc: ControllerComponents,
       _ <- OptionT.liftF(proposalRepo.reject(cfpElt.slug, talk, by, now))
     } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
+
+  def publish(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      _ <- OptionT.liftF(eventRepo.publish(groupElt.id, event, user, now))
+    } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+  }
 }
 
 object EventCtrl {

@@ -39,6 +39,9 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def editTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): IO[Done] =
     run(updateTalks(group, event)(talks, by, now))
 
+  override def publish(group: Group.Id, event: Event.Slug, by: User.Id, now: Instant): IO[Done] =
+    run(updatePublished(group, event)(by, now))
+
   override def find(group: Group.Id, event: Event.Slug): IO[Option[Event]] = run(selectOne(group, event).option)
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(Queries.selectPage(selectPage(group, _), params))
@@ -77,6 +80,11 @@ object EventRepoSql {
 
   private[sql] def updateTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): doobie.Update0 = {
     val fields = fr0"talks=$talks, updated=$now, updated_by=$by"
+    buildUpdate(tableFr, fields, where(group, event)).update
+  }
+
+  private[sql] def updatePublished(group: Group.Id, event: Event.Slug)(by: User.Id, now: Instant): doobie.Update0 = {
+    val fields = fr0"published=$now, updated=$now, updated_by=$by"
     buildUpdate(tableFr, fields, where(group, event)).update
   }
 

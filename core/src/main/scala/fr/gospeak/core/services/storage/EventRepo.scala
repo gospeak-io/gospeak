@@ -19,6 +19,8 @@ trait OrgaEventRepo {
 
   def editTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): IO[Done]
 
+  def publish(group: Group.Id, event: Event.Slug, by: User.Id, now: Instant): IO[Done]
+
   def list(group: Group.Id, params: Page.Params): IO[Page[Event]]
 
   def list(ids: Seq[Event.Id]): IO[Seq[Event]]
