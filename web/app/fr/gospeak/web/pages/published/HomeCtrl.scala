@@ -39,7 +39,7 @@ class HomeCtrl(cc: ControllerComponents,
     email = email,
     emailValidated = None,
     avatar = GravatarSrv.getAvatar(email),
-    public = true,
+    published = Some(now),
     created = now,
     updated = now)
   private val identity = AuthUser(
@@ -59,7 +59,7 @@ class HomeCtrl(cc: ControllerComponents,
         |- pizzas ^^
       """.stripMargin),
     owners = NonEmptyList.of(user.id),
-    public = true,
+    published = Some(now),
     tags = Seq("tag").map(Tag(_)),
     info = Info(user.id, now))
   private val cfp = Cfp(
@@ -87,6 +87,7 @@ class HomeCtrl(cc: ControllerComponents,
     venue = None,
     talks = Seq(),
     tags = Seq("tag").map(Tag(_)),
+    published = Some(now),
     info = Info(user.id, now))
   private val talk = Talk(
     id = Talk.Id.generate(),

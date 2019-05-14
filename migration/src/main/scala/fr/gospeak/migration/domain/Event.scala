@@ -29,6 +29,7 @@ case class Event(id: String, // Event.Id
       venue = None, // TODO
       talks = Seq(), // should be set later
       tags = Seq(),
+      published = Some(Instant.from(date)),
       info = meta.toInfo)).mapFailure(e => new Exception(s"toEvent error for $this", e)).get
   }
 }

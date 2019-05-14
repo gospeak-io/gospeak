@@ -35,7 +35,7 @@ CREATE TABLE users
     email_validated TIMESTAMP,
     avatar          VARCHAR(200) NOT NULL,
     avatar_source   VARCHAR(20)  NOT NULL,
-    public          BOOLEAN      NOT NULL,
+    published       TIMESTAMP,
     created         TIMESTAMP    NOT NULL,
     updated         TIMESTAMP    NOT NULL
 );
@@ -95,8 +95,8 @@ CREATE TABLE groups
     name        VARCHAR(120)  NOT NULL,
     description VARCHAR(2048) NOT NULL,
     owners      VARCHAR(369)  NOT NULL, -- 10 owners max
-    public      BOOLEAN       NOT NULL,
     tags        VARCHAR(100)  NOT NULL, -- 5 tags max
+    published   TIMESTAMP,
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,
@@ -176,6 +176,7 @@ CREATE TABLE events
     venue       CHAR(36) REFERENCES venues (id),
     talks       VARCHAR(258)  NOT NULL, -- 7 talks max
     tags        VARCHAR(100)  NOT NULL, -- 5 tags max
+    published   TIMESTAMP,
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,

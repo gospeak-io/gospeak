@@ -10,7 +10,7 @@ class UserRepoSqlSpec extends RepoSpec {
   private val pass = Password(Hasher("hasher"), PasswordValue("password"), Some(Salt("salt")))
   private val loginRef = LoginRef(login, user.id)
   private val credentials = Credentials(login, pass)
-  private val fields = "id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, public, created, updated"
+  private val fields = "id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, published, created, updated"
 
   describe("UserRepoSql") {
     it("should create and retrieve a user") {

@@ -12,7 +12,7 @@
 
     @formElt(form, EventCtrl.doEdit(group.slug, event.slug)) {
         @eventFields(form, group)
-        @actionsHorizontal() {
+        @actionsVertical() {
             @btnCancel(EventCtrl.detail(group.slug, event.slug))
             @btnSubmit("Edit")
         }

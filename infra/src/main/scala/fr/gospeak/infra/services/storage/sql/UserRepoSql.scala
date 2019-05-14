@@ -69,14 +69,14 @@ object UserRepoSql {
   private val loginTable = "logins"
   private val loginFields = Seq("provider_id", "provider_key", "user_id")
   private val table = "users"
-  private val fields = Seq("id", "slug", "first_name", "last_name", "email", "email_validated", "avatar", "avatar_source", "public", "created", "updated")
+  private val fields = Seq("id", "slug", "first_name", "last_name", "email", "email_validated", "avatar", "avatar_source", "published", "created", "updated")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "slug", "first_name", "last_name", "email")
   private val defaultSort = Page.OrderBy("first_name")
 
   private def values(e: User): Fragment =
-    fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.public}, ${e.created}, ${e.updated}"
+    fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.published}, ${e.created}, ${e.updated}"
 
   private[sql] def insert(elt: User): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
@@ -122,7 +122,7 @@ object UserRepoSql {
     buildSelect(tableFr, fieldsFr, fr0"WHERE slug=$slug").query[User]
 
   private[sql] def selectOnePublic(slug: User.Slug): doobie.Query0[User] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE public = true AND slug=$slug").query[User]
+    buildSelect(tableFr, fieldsFr, fr0"WHERE published IS NOT NULL AND slug=$slug").query[User]
 
   // should replace def selectPage(ids: NonEmptyList[User.Id], params: Page.Params) when split or array works...
   /* private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[User], doobie.Query0[Long]) = {
@@ -132,7 +132,7 @@ object UserRepoSql {
   } */
 
   private[sql] def selectPagePublic(params: Page.Params): (doobie.Query0[User], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr"WHERE public = true"))
+    val page = paginate(params, searchFields, defaultSort, Some(fr"WHERE published IS NOT NULL"))
     (buildSelect(tableFr, fieldsFr, page.all).query[User], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 

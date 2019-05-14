@@ -32,7 +32,7 @@ case class Person(id: String, // Person.Id,
       email = email,
       emailValidated = validated.map(Instant.ofEpochMilli),
       avatar = avatar,
-      public = false,
+      published = None,
       created = Instant.ofEpochMilli(meta.created),
       updated = Instant.ofEpochMilli(meta.updated))).mapFailure(e => new Exception(s"toUser error for $this", e)).get
   }

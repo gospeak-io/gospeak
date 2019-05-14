@@ -1,6 +1,6 @@
 package fr.gospeak.core.domain
 
-import java.time.LocalDateTime
+import java.time.{Instant, LocalDateTime}
 
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.libs.scalautils.Extensions._
@@ -17,6 +17,7 @@ final case class Event(id: Event.Id,
                        venue: Option[Venue.Id],
                        talks: Seq[Proposal.Id],
                        tags: Seq[Tag],
+                       published: Option[Instant],
                        info: Info) {
   def data: Event.Data = Event.Data(this)
 
@@ -25,11 +26,13 @@ final case class Event(id: Event.Id,
   def remove(talk: Proposal.Id): Event = copy(talks = talks.filter(_ != talk))
 
   def move(talk: Proposal.Id, up: Boolean): Event = copy(talks = talks.swap(talk, up))
+
+  def isPublic: Boolean = published.isDefined
 }
 
 object Event {
   def apply(group: Group.Id, data: Data, info: Info): Event =
-    new Event(Id.generate(), group, data.cfp, data.slug, data.name, data.start, data.description, data.venue, Seq(), data.tags, info)
+    new Event(Id.generate(), group, data.cfp, data.slug, data.name, data.start, data.description, data.venue, Seq(), data.tags, None, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 

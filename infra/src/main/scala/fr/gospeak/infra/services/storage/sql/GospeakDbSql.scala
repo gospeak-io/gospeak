@@ -59,7 +59,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
           """Description des HumanTalks
             |
             |TODO
-          """.stripMargin.trim), NonEmptyList.fromListUnsafe(orga.map(_.id)), public = true, Seq(), Info(lkn.id, initDate))
+          """.stripMargin.trim), NonEmptyList.fromListUnsafe(orga.map(_.id)), Seq(), published = Some(initDate), Info(lkn.id, initDate))
         cfp = Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from("humantalks-paris").get, Cfp.Name("HumanTalks Paris"), None, None, Markdown(
           """Les HumanTalks sont des événements pour les développeurs de tous horizons et qui ont lieu partout en France.
             |
@@ -101,11 +101,11 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     def user(slug: String, email: String, firstName: String, lastName: String): User = {
       val emailAddr = EmailAddress.from(email).get
       val avatar = gravatarSrv.getAvatar(emailAddr)
-      User(User.Id.generate(), User.Slug.from(slug).get, firstName, lastName, emailAddr, Some(now), avatar, public = true, now, now)
+      User(User.Id.generate(), User.Slug.from(slug).get, firstName, lastName, emailAddr, Some(now), avatar, published = Some(now), now, now)
     }
 
     def group(slug: String, name: String, tags: Seq[String], by: User, owners: Seq[User] = Seq()): Group =
-      Group(Group.Id.generate(), Group.Slug.from(slug).get, Group.Name(name), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(by.id) ++ owners.map(_.id).toList, public = true, tags.map(Tag(_)), Info(by.id, now))
+      Group(Group.Id.generate(), Group.Slug.from(slug).get, Group.Name(name), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(by.id) ++ owners.map(_.id).toList, tags.map(Tag(_)), published = Some(now), Info(by.id, now))
 
     def cfp(group: Group, slug: String, name: String, start: Option[String], end: Option[String], description: String, tags: Seq[String], by: User): Cfp =
       Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).get, Cfp.Name(name), start.map(d => LocalDateTime.parse(d + "T00:00:00")), end.map(d => LocalDateTime.parse(d + "T00:00:00")), Markdown(description), tags.map(Tag(_)), Info(by.id, now))
@@ -117,7 +117,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, status, talk.title, talk.duration, talk.description, talk.speakers, talk.slides, talk.video, talk.tags, talk.info)
 
     def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, venue: Option[Venue] = None, description: String = "", tags: Seq[String] = Seq()): Event =
-      Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), MarkdownTemplate.Mustache(description), venue.map(_.id), Seq(), tags.map(Tag(_)), Info(by.id, now))
+      Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), MarkdownTemplate.Mustache(description), venue.map(_.id), Seq(), tags.map(Tag(_)), Some(now).filter(_.isAfter(Instant.parse(date + "T06:06:24.074Z"))), Info(by.id, now))
 
     def partner(g: Group, name: String, description: String, logo: Int, by: User): Partner =
       Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(description), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").get, Info(by.id, now))
@@ -215,9 +215,9 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val generated = (1 to 25).toList.map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
-      val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga.id), public = true, Seq(), Info(userOrga.id, now))
+      val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga.id), Seq(), published = Some(now), Info(userOrga.id, now))
       val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), None, None, Markdown("Only your best talks !"), Seq(), Info(userOrga.id, now))
-      val e = Event(Event.Id.generate(), group4.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), MarkdownTemplate.Mustache(""), None, Seq(), Seq(), Info(userOrga.id, now))
+      val e = Event(Event.Id.generate(), group4.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), MarkdownTemplate.Mustache(""), None, Seq(), Seq(), Some(now), Info(userOrga.id, now))
       val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Status.Draft, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Info(userSpeaker.id, now))
       val p = Proposal(Proposal.Id.generate(), talk7.id, cfpId, None, Proposal.Status.Pending, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Markdown("temporary description"), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Info(userSpeaker.id, now))
       (g, c, e, t, p)
