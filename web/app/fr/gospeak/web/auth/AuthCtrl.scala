@@ -16,7 +16,7 @@ import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.emails.Emails
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
-import fr.gospeak.web.pages
+import fr.gospeak.web.{ApplicationConf, pages}
 import fr.gospeak.web.utils.{HttpUtils, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
@@ -36,7 +36,8 @@ class AuthCtrl(cc: ControllerComponents,
                userRequestRepo: AuthUserRequestRepo,
                groupRepo: AuthGroupRepo,
                authSrv: AuthSrv,
-               emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
+               emailSrv: EmailSrv,
+               envConf: ApplicationConf.Env) extends UICtrl(cc, silhouette) {
   private val loginRedirect = (redirect: Option[String]) => Redirect(redirect.getOrElse(pages.user.routes.UserCtrl.index().path()))
   private val logoutRedirect = Redirect(pages.published.routes.HomeCtrl.index())
 
@@ -69,20 +70,20 @@ class AuthCtrl(cc: ControllerComponents,
   def login(redirect: Option[String]): Action[AnyContent] = UserAwareAction { implicit req =>
     req.identity
       .map(_ => loginRedirect(redirect).flashing(req.flash))
-      .getOrElse(Ok(html.login(AuthForms.login, redirect)))
+      .getOrElse(Ok(html.login(AuthForms.login, envConf, redirect)))
   }
 
   def doLogin(redirect: Option[String]): Action[AnyContent] = UserAwareAction.async { implicit req =>
     AuthForms.login.bindFromRequest.fold(
-      formWithErrors => Future.successful(BadRequest(html.login(formWithErrors, redirect))),
+      formWithErrors => Future.successful(BadRequest(html.login(formWithErrors, envConf, redirect))),
       data => (for {
         user <- authSrv.getIdentity(data)
         result <- authSrv.login(user, data.rememberMe, loginRedirect(redirect))
       } yield result).recover {
-        case _: AccountValidationRequiredException => Ok(html.login(AuthForms.login.fill(data).withGlobalError("You need to validate your account by clicking on the email validation link"), redirect))
-        case _: IdentityNotFoundException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), redirect))
-        case _: InvalidPasswordException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), redirect))
-        case NonFatal(e) => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), redirect))
+        case _: AccountValidationRequiredException => Ok(html.login(AuthForms.login.fill(data).withGlobalError("You need to validate your account by clicking on the email validation link"), envConf, redirect))
+        case _: IdentityNotFoundException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), envConf, redirect))
+        case _: InvalidPasswordException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), envConf, redirect))
+        case NonFatal(e) => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), envConf, redirect))
       }
     )
   }

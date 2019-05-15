@@ -55,6 +55,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   logger.info("Start application")
   lazy val conf: AppConf = AppConf.load(configuration).get
   logger.info(s"Configuration loaded: $conf")
+  lazy val envConf: ApplicationConf.Env = conf.application.env
   lazy val authConf: AuthConf = conf.auth
   lazy val dbConf: DatabaseConf = conf.database
 
@@ -160,10 +161,14 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
 
   def onStart(): Unit = {
-    db.dropTables().unsafeRunSync() // TODO remove it for prod
+    if(!envConf.isProd) {
+      db.dropTables().unsafeRunSync() // TODO remove it for prod
+    }
     db.migrate().unsafeRunSync()
-    db.insertMockData().unsafeRunSync() // TODO remove it for prod
-    // db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync() // TODO remove it for prod
+    if(!envConf.isProd) {
+      db.insertMockData().unsafeRunSync() // TODO remove it for prod
+      // db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync() // TODO remove it for prod
+    }
 
     messageBus.subscribe(messageHandler.handle)
 
