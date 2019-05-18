@@ -60,19 +60,19 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
 object CfpRepoSql {
   private val _ = cfpIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table = "cfps"
-  private[sql] val  fields = Seq("id", "group_id", "slug", "name", "start", "end", "description", "tags", "created", "created_by", "updated", "updated_by")
+  private[sql] val  fields = Seq("id", "group_id", "slug", "name", "begin", "close", "description", "tags", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "slug", "name", "description", "tags")
-  private val defaultSort = Page.OrderBy(Seq("-end", "name"))
+  private val defaultSort = Page.OrderBy(Seq("-close", "name"))
 
   private def values(e: Cfp): Fragment =
-    fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.start}, ${e.end}, ${e.description}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.begin}, ${e.close}, ${e.description}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   private[sql] def insert(elt: Cfp): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
   private[sql] def update(group: Group.Id, slug: Cfp.Slug)(data: Cfp.Data, by: User.Id, now: Instant): doobie.Update0 = {
-    val fields = fr0"slug=${data.slug}, name=${data.name}, start=${data.start}, end=${data.end}, description=${data.description}, tags=${data.tags}, updated=$now, updated_by=$by"
+    val fields = fr0"slug=${data.slug}, name=${data.name}, begin=${data.begin}, close=${data.close}, description=${data.description}, tags=${data.tags}, updated=$now, updated_by=$by"
     buildUpdate(tableFr, fields, where(group, slug)).update
   }
 
@@ -127,7 +127,7 @@ object CfpRepoSql {
     fr0"WHERE group_id=$group AND slug=$slug"
 
   private def where(now: Instant): Fragment =
-    fr0"WHERE (start IS NULL OR start < $now) AND (end IS NULL OR end > $now)"
+    fr0"WHERE (begin IS NULL OR begin < $now) AND (close IS NULL OR close > $now)"
 
   private def where(slug: Cfp.Slug, now: Instant): Fragment =
     where(now) ++ fr0" AND slug=$slug"

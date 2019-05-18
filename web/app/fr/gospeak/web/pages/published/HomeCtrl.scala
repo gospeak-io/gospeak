@@ -67,8 +67,8 @@ class HomeCtrl(cc: ControllerComponents,
     group = group.id,
     slug = Cfp.Slug.from("cfp-slug").get,
     name = Cfp.Name("CFP 2019!!!"),
-    start = None,
-    end = None,
+    begin = None,
+    close = None,
     description = Markdown(
       """Submit your best talk to amaze our attendees ;)
         |

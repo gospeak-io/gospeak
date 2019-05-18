@@ -19,7 +19,7 @@ class AuthCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
   private val authRepo = new AuthRepo(db.user, db.group)
   private val authSrv = AuthSrv(conf.auth, silhouette, db.user, db.userRequest, db.group, authRepo, clock, new GravatarSrv())
   private val emailSrv = new InMemoryEmailSrv()
-  private val ctrl = new AuthCtrl(cc, silhouette, db.user, db.userRequest, db.group, authSrv, emailSrv)
+  private val ctrl = new AuthCtrl(cc, silhouette, db.user, db.userRequest, db.group, authSrv, emailSrv, conf.application.env)
   private val redirect: Option[String] = None
   // private val signupData = random[SignupData] // TODO add generators constraints: firstName&lastName should not be empty, password should have 8 char at least
   private val signupData = SignupData(User.Slug.from("slug").right.get, "first", "last", EmailAddress.from("first@mail.com").right.get, Secret("passpass"), rememberMe = true)

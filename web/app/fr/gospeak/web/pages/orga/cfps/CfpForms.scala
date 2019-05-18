@@ -17,7 +17,7 @@ object CfpForms {
     .verifying("Start of Cfp should be anterior to its end", isStartBeforeEnd _))
 
   def isStartBeforeEnd(data: Cfp.Data): Boolean = {
-    (data.start, data.end) match {
+    (data.begin, data.close) match {
       case (Some(start), Some(end)) if start.isAfter(end) => false
       case _ => true
     }

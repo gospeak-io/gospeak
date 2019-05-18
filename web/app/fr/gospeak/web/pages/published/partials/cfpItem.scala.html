@@ -9,7 +9,7 @@
 <a class="list-group-item list-group-item-action" href="@CfpCtrl.detail(cfp.slug)">
     <div class="d-flex justify-content-between align-items-center">
         <h5 class="mb-0">@cfp.name.value</h5>
-        @cfp.end match {
+        @cfp.close match {
             case Some(d) if now.plus(10, ChronoUnit.DAYS).isAfter(d.toInstant(ZoneOffset.UTC)) => {
                 <span class="badge badge-danger">Closes @Formats.date(d)</span>
             }

@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class CfpRepoSqlSpec extends RepoSpec {
-  private val fields = "id, group_id, slug, name, start, end, description, tags, created, created_by, updated, updated_by"
+  private val fields = "id, group_id, slug, name, begin, close, description, tags, created, created_by, updated, updated_by"
 
   describe("CfpRepoSql") {
     it("should create and retrieve a cfp for a group") {
@@ -44,7 +44,7 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = update(group.id, cfp.slug)(cfpData1, user.id, now)
-        q.sql shouldBe "UPDATE cfps SET slug=?, name=?, start=?, end=?, description=?, tags=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
+        q.sql shouldBe "UPDATE cfps SET slug=?, name=?, begin=?, close=?, description=?, tags=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
         check(q)
       }
       it("should build selectOne for cfp id") {
@@ -69,27 +69,27 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne for cfp slug id and date") {
         val q = selectOne(cfp.slug, now)
-        q.sql shouldBe s"SELECT $fields FROM cfps WHERE (start IS NULL OR start < ?) AND (end IS NULL OR end > ?) AND slug=?"
+        q.sql shouldBe s"SELECT $fields FROM cfps WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) AND slug=?"
         check(q)
       }
       it("should build selectPage for a group") {
         val (s, c) = selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fields FROM cfps WHERE group_id=? ORDER BY end IS NULL, end DESC, name IS NULL, name OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM cfps WHERE group_id=? ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM cfps WHERE group_id=? "
         check(s)
         check(c)
       }
       it("should build selectPage for a talk") {
         val (s, c) = selectPage(talk.id, params)
-        s.sql shouldBe s"SELECT $fields FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) ORDER BY end IS NULL, end DESC, name IS NULL, name OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fields FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) "
         check(s)
         check(c)
       }
       it("should build selectPage for a date") {
         val (s, c) = selectPage(now, params)
-        s.sql shouldBe s"SELECT $fields FROM cfps WHERE (start IS NULL OR start < ?) AND (end IS NULL OR end > ?) ORDER BY end IS NULL, end DESC, name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM cfps WHERE (start IS NULL OR start < ?) AND (end IS NULL OR end > ?) "
+        s.sql shouldBe s"SELECT $fields FROM cfps WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM cfps WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) "
         check(s)
         check(c)
       }
@@ -105,7 +105,7 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
       it("should build selectAll for group and date") {
         val q = selectAll(group.id, now)
-        q.sql shouldBe s"SELECT $fields FROM cfps WHERE (start IS NULL OR start < ?) AND (end IS NULL OR end > ?) AND group_id=?"
+        q.sql shouldBe s"SELECT $fields FROM cfps WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) AND group_id=?"
         check(q)
       }
       it("should build selectTags") {
