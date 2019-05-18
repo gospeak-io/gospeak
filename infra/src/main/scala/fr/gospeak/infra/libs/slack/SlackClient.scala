@@ -1,7 +1,7 @@
 package fr.gospeak.infra.libs.slack
 
 import cats.effect.IO
-import fr.gospeak.infra.libs.slack.JsonFormats._
+import fr.gospeak.infra.libs.slack.SlackJson._
 import fr.gospeak.infra.libs.slack.domain._
 import fr.gospeak.infra.utils.HttpClient
 import io.circe.Decoder

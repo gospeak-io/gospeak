@@ -8,7 +8,7 @@ import fr.gospeak.infra.utils.CirceUtils.decodeSingleValueClass
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 
-object JsonFormats {
+object SlackJson {
   private val _: Decoder[SlackChannel.Id] = decodeSingleValueClass // to keep fr.gospeak.infra.utils.CirceUtils._ import
   private implicit val instantDecoder: Decoder[Instant] = Decoder.decodeLong.emap { timestampSecs =>
     Either.catchNonFatal(Instant.ofEpochSecond(timestampSecs)).leftMap(e => s"Bad Instant: ${e.getMessage}")
