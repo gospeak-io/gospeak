@@ -143,7 +143,7 @@ class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
       }
     }
     it("should bind & unbind a Template") {
-      forAll { v: MarkdownTemplate =>
+      forAll { v: MarkdownTemplate[Any] =>
         val data = template.unbind(v)
         template.bind(data) shouldBe Right(v)
       }

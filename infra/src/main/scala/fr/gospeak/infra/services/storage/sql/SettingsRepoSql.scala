@@ -20,8 +20,8 @@ import io.circe.generic.semiauto._
 class SettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SettingsRepo {
   private implicit val urlDecoder: Decoder[Url] = (c: HCursor) => c.as[String].flatMap(s => Url.from(s).leftMap(e => DecodingFailure(e.message, List())))
   private implicit val urlEncoder: Encoder[Url] = (a: Url) => Json.fromString(a.value)
-  private implicit val templateDecoder: Decoder[MarkdownTemplate] = deriveDecoder[MarkdownTemplate]
-  private implicit val templateEncoder: Encoder[MarkdownTemplate] = deriveEncoder[MarkdownTemplate]
+  private implicit def templateDecoder[A]: Decoder[MarkdownTemplate[A]] = deriveDecoder[MarkdownTemplate[A]]
+  private implicit def templateEncoder[A]: Encoder[MarkdownTemplate[A]] = deriveEncoder[MarkdownTemplate[A]]
   private implicit val slackTokenDecoder: Decoder[SlackToken] = deriveDecoder[SlackToken]
   private implicit val slackTokenEncoder: Encoder[SlackToken] = deriveEncoder[SlackToken]
   private implicit val slackCredentialsDecoder: Decoder[SlackCredentials] = deriveDecoder[SlackCredentials]

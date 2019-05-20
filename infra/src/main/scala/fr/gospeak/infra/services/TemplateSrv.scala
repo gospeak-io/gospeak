@@ -11,14 +11,14 @@ import io.circe.{Encoder, Json, JsonNumber, JsonObject}
 class TemplateSrv {
   def asData(data: TemplateData): Json = TemplateSrv.templateDataEncoder.apply(data)
 
-  def render(tmpl: MarkdownTemplate, data: TemplateData): Either[String, Markdown] =
-    renderTemplate(tmpl, data)(TemplateSrv.templateDataEncoder)
+  def render[A <: TemplateData](tmpl: MarkdownTemplate[A], data: A): Either[String, Markdown] =
+    renderTemplate(tmpl.asInstanceOf[MarkdownTemplate[TemplateData]], data: TemplateData)(TemplateSrv.templateDataEncoder)
 
-  def render(tmpl: MarkdownTemplate): Either[String, Markdown] =
-    renderTemplate(tmpl, Json.obj())
+  def render(tmpl: MarkdownTemplate[Any]): Either[String, Markdown] =
+    renderTemplate(tmpl.asInstanceOf[MarkdownTemplate[Json]], Json.obj())
 
-  private def renderTemplate[A](tmpl: MarkdownTemplate, data: A)(implicit e: Encoder[A]): Either[String, Markdown] = tmpl match {
-    case t: MarkdownTemplate.Mustache => MustacheTemplateSrv.render(t, data)
+  private def renderTemplate[A](tmpl: MarkdownTemplate[A], data: A)(implicit e: Encoder[A]): Either[String, Markdown] = tmpl match {
+    case t: MarkdownTemplate.Mustache[A] => MustacheTemplateSrv.render(t, data)
   }
 }
 
@@ -51,7 +51,7 @@ object MustacheTemplateSrv {
   import yamusca.context.Value
   import yamusca.imports._
 
-  def render[A](tmpl: domain.MarkdownTemplate.Mustache, data: A)(implicit e: Encoder[A]): Either[String, Markdown] = {
+  def render[A](tmpl: domain.MarkdownTemplate.Mustache[A], data: A)(implicit e: Encoder[A]): Either[String, Markdown] = {
     mustache.parse(tmpl.value)
       .map(mustache.render(_)(jsonToContext(e.apply(data))))
       .map(Markdown)

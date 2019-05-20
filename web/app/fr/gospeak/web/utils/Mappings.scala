@@ -99,18 +99,18 @@ object Mappings {
   val venueId: Mapping[Venue.Id] = idMapping(Venue.Id)
   val slackToken: Mapping[SlackToken] = nonEmptyTextMapping(SlackToken, _.value)
 
-  private val templateFormatter = new Formatter[MarkdownTemplate] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], MarkdownTemplate] =
+  private def templateFormatter[A]: Formatter[MarkdownTemplate[A]] = new Formatter[MarkdownTemplate[A]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], MarkdownTemplate[A]] =
       data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
-        case "Mustache" => data.get(s"$key.value").map(v => Right(MarkdownTemplate.Mustache(v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
+        case "Mustache" => data.get(s"$key.value").map(v => Right(MarkdownTemplate.Mustache[A](v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
         case v => Left(Seq(FormError(s"$key.kind", s"Invalid value '$v' for key '$key.kind'")))
       }
 
-    override def unbind(key: String, value: MarkdownTemplate): Map[String, String] = value match {
+    override def unbind(key: String, value: MarkdownTemplate[A]): Map[String, String] = value match {
       case MarkdownTemplate.Mustache(v) => Map(s"$key.kind" -> "Mustache", s"$key.value" -> v)
     }
   }
-  val template: Mapping[MarkdownTemplate] = of(templateFormatter)
+  def template[A]: Mapping[MarkdownTemplate[A]] = of(templateFormatter)
 
   val groupSettingsEvent: Mapping[Group.Settings.Action.Trigger] = of(new Formatter[Group.Settings.Action.Trigger] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action.Trigger] =

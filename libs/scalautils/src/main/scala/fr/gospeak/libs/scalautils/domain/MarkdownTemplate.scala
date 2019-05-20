@@ -1,11 +1,11 @@
 package fr.gospeak.libs.scalautils.domain
 
-sealed trait MarkdownTemplate {
+sealed trait MarkdownTemplate[+A] {
   val value: String
 }
 
 object MarkdownTemplate {
 
-  final case class Mustache(value: String) extends MarkdownTemplate
+  final case class Mustache[A](value: String) extends MarkdownTemplate[A]
 
 }

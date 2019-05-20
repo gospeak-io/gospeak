@@ -12,7 +12,7 @@
         <div class="modal-content">
         @formElt(eventSettings, SettingsCtrl.updateEventSettings(group.slug)) {
             <div class="modal-header">
-                <h5 class="modal-title" id="eventSettingsModal">Event settings</h5>
+                <h5 class="modal-title" id="eventSettingsModal">Default event description</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -31,7 +31,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                @btnSubmit("Update settings")
+                @btnSubmit("Update default event description")
             </div>
         }
         </div>

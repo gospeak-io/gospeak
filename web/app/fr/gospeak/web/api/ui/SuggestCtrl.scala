@@ -24,7 +24,7 @@ case class ValidationResult(valid: Boolean, message: String)
 
 case class TemplateDataResponse(data: JsValue)
 
-case class TemplateRequest(template: MarkdownTemplate, ref: Option[TemplateData.Ref])
+case class TemplateRequest(template: MarkdownTemplate[TemplateData], ref: Option[TemplateData.Ref])
 
 case class TemplateResponse(result: Option[Html], error: Option[String])
 
