@@ -10,7 +10,7 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{EmailAddress, Markdown, Page, Tag}
+import fr.gospeak.libs.scalautils.domain.{EmailAddress, Markdown, MarkdownTemplate, Page, Tag}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.utils.UICtrl
 import org.joda.time.DateTime
@@ -39,7 +39,7 @@ class HomeCtrl(cc: ControllerComponents,
     email = email,
     emailValidated = None,
     avatar = GravatarSrv.getAvatar(email),
-    public = true,
+    published = Some(now),
     created = now,
     updated = now)
   private val identity = AuthUser(
@@ -59,7 +59,7 @@ class HomeCtrl(cc: ControllerComponents,
         |- pizzas ^^
       """.stripMargin),
     owners = NonEmptyList.of(user.id),
-    public = true,
+    published = Some(now),
     tags = Seq("tag").map(Tag(_)),
     info = Info(user.id, now))
   private val cfp = Cfp(
@@ -67,8 +67,8 @@ class HomeCtrl(cc: ControllerComponents,
     group = group.id,
     slug = Cfp.Slug.from("cfp-slug").get,
     name = Cfp.Name("CFP 2019!!!"),
-    start = None,
-    end = None,
+    begin = None,
+    close = None,
     description = Markdown(
       """Submit your best talk to amaze our attendees ;)
         |
@@ -83,10 +83,11 @@ class HomeCtrl(cc: ControllerComponents,
     slug = Event.Slug.from("event-slug").get,
     name = Event.Name("Best Event in April \\o/"),
     start = ldt,
-    description = Markdown(""),
+    description = MarkdownTemplate.Mustache(""),
     venue = None,
     talks = Seq(),
     tags = Seq("tag").map(Tag(_)),
+    published = Some(now),
     info = Info(user.id, now))
   private val talk = Talk(
     id = Talk.Id.generate(),

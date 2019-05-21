@@ -12,6 +12,7 @@ object EventForms {
     "name" -> eventName,
     "start" -> localDateTime,
     "venue" -> optional(venueId),
+    "description" -> template,
     "tags" -> tags
   )(Event.Data.apply)(Event.Data.unapply))
 

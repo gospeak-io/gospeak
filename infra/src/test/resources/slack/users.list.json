@@ -1,0 +1,50 @@
+{
+  "ok": true,
+  "members": [
+    {
+      "id": "UDM0RSAS5",
+      "team_id": "TAWGH30A9",
+      "name": "johndoe",
+      "deleted": false,
+      "color": "3c989f",
+      "real_name": "John Doe",
+      "tz": "Europe\/Brussels",
+      "tz_label": "Central European Summer Time",
+      "tz_offset": 7200,
+      "profile": {
+        "title": "",
+        "phone": "",
+        "skype": "",
+        "real_name": "John Doe",
+        "real_name_normalized": "John Doe",
+        "display_name": "johndoe",
+        "display_name_normalized": "johndoe",
+        "status_text": "",
+        "status_emoji": "",
+        "status_expiration": 0,
+        "avatar_hash": "gf305e6d2914",
+        "email": "john.doe@mail.com",
+        "first_name": "John",
+        "last_name": "Doe",
+        "image_24": "https:\/\/secure.gravatar.com\/avatar\/f755e29a914df5cde974d30dd7de1a03.jpg?s=24&d=https%3A%2F%2Fa.slack-edge.com%2F00b63%2Fimg%2Favatars%2Fava_0025-24.png",
+        "image_32": "https:\/\/secure.gravatar.com\/avatar\/f755e29a914df5cde974d30dd7de1a03.jpg?s=32&d=https%3A%2F%2Fa.slack-edge.com%2F00b63%2Fimg%2Favatars%2Fava_0025-32.png",
+        "image_48": "https:\/\/secure.gravatar.com\/avatar\/f755e29a914df5cde974d30dd7de1a03.jpg?s=48&d=https%3A%2F%2Fa.slack-edge.com%2F00b63%2Fimg%2Favatars%2Fava_0025-48.png",
+        "image_72": "https:\/\/secure.gravatar.com\/avatar\/f755e29a914df5cde974d30dd7de1a03.jpg?s=72&d=https%3A%2F%2Fa.slack-edge.com%2F00b63%2Fimg%2Favatars%2Fava_0025-72.png",
+        "image_192": "https:\/\/secure.gravatar.com\/avatar\/f755e29a914df5cde974d30dd7de1a03.jpg?s=192&d=https%3A%2F%2Fa.slack-edge.com%2F00b63%2Fimg%2Favatars%2Fava_0025-192.png",
+        "image_512": "https:\/\/secure.gravatar.com\/avatar\/f755e29a914df5cde974d30dd7de1a03.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2F00b63%2Fimg%2Favatars%2Fava_0025-512.png",
+        "status_text_canonical": "",
+        "team": "T30GSPAA9"
+      },
+      "is_admin": true,
+      "is_owner": false,
+      "is_primary_owner": false,
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "is_bot": false,
+      "is_app_user": false,
+      "updated": 1536269760,
+      "has_2fa": false
+    }
+  ],
+  "cache_ts": 1556996900
+}

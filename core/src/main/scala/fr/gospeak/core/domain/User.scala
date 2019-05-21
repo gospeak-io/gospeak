@@ -11,17 +11,19 @@ final case class User(id: User.Id,
                       email: EmailAddress,
                       emailValidated: Option[Instant],
                       avatar: Avatar,
-                      public: Boolean,
+                      published: Option[Instant],
                       created: Instant,
                       updated: Instant) {
   def data: User.Data = User.Data(this)
 
   def name: User.Name = User.Name(firstName, lastName)
+
+  def isPublic: Boolean = published.isDefined
 }
 
 object User {
   def apply(data: Data, now: Instant): User =
-    new User(Id.generate(), data.slug, data.firstName, data.lastName, data.email, None, data.avatar, false, now, now)
+    new User(Id.generate(), data.slug, data.firstName, data.lastName, data.email, None, data.avatar, None, now, now)
 
   final class Id private(value: String) extends DataClass(value) with IId
 

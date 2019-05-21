@@ -21,6 +21,9 @@
 --  |          |             |                    |
 -- talk <-- proposal <---> event               sponsor
 --
+-- others:
+--   - requests
+--   - settings
 
 CREATE TABLE users
 (
@@ -32,7 +35,7 @@ CREATE TABLE users
     email_validated TIMESTAMP,
     avatar          VARCHAR(200) NOT NULL,
     avatar_source   VARCHAR(20)  NOT NULL,
-    public          BOOLEAN      NOT NULL,
+    published       TIMESTAMP,
     created         TIMESTAMP    NOT NULL,
     updated         TIMESTAMP    NOT NULL
 );
@@ -92,8 +95,8 @@ CREATE TABLE groups
     name        VARCHAR(120)  NOT NULL,
     description VARCHAR(2048) NOT NULL,
     owners      VARCHAR(369)  NOT NULL, -- 10 owners max
-    public      BOOLEAN       NOT NULL,
     tags        VARCHAR(100)  NOT NULL, -- 5 tags max
+    published   TIMESTAMP,
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,
@@ -106,8 +109,8 @@ CREATE TABLE cfps
     group_id    CHAR(36)      NOT NULL REFERENCES groups (id),
     slug        VARCHAR(120)  NOT NULL UNIQUE,
     name        VARCHAR(120)  NOT NULL,
-    start       TIMESTAMP,
-    "end"       TIMESTAMP,
+    begin       TIMESTAMP,
+    close       TIMESTAMP,
     description VARCHAR(2048) NOT NULL,
     tags        VARCHAR(100)  NOT NULL, -- 5 tags max
     created     TIMESTAMP     NOT NULL,
@@ -173,6 +176,7 @@ CREATE TABLE events
     venue       CHAR(36) REFERENCES venues (id),
     talks       VARCHAR(258)  NOT NULL, -- 7 talks max
     tags        VARCHAR(100)  NOT NULL, -- 5 tags max
+    published   TIMESTAMP,
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,
@@ -224,11 +228,21 @@ CREATE TABLE sponsors
     sponsor_pack_id CHAR(36)  NOT NULL REFERENCES sponsor_packs (id),
     contact_id      CHAR(36)  NOT NULL REFERENCES contacts (id),
     start           TIMESTAMP NOT NULL,
-    "end"           TIMESTAMP,
+    finish          TIMESTAMP,
     paid            TIMESTAMP,
     paid_amount     REAL,
     created         TIMESTAMP NOT NULL,
     created_by      CHAR(36)  NOT NULL REFERENCES users (id),
     updated         TIMESTAMP NOT NULL,
     updated_by      CHAR(36)  NOT NULL REFERENCES users (id)
+);
+
+CREATE TABLE settings
+(
+    target     VARCHAR(30)   NOT NULL, -- enum for the target: group or user
+    target_id  CHAR(36)      NOT NULL, -- id for the target
+    value      VARCHAR(2048) NOT NULL, -- json serialized settings
+    updated    TIMESTAMP     NOT NULL,
+    updated_by CHAR(36)      NOT NULL REFERENCES users (id),
+    UNIQUE (target, target_id)
 );

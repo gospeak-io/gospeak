@@ -7,12 +7,12 @@
 @import fr.gospeak.web.pages.partials.form.html._
 
 @(group: Group, event: Event, form: Form[Event.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@container("Gospeak", group, b)() {
+@container(event.name.value + " - Gospeak", group, b)() {
     <h1 class="page-header">Edit @event.name.value</h1>
 
     @formElt(form, EventCtrl.doEdit(group.slug, event.slug)) {
         @eventFields(form, group)
-        @actionsHorizontal() {
+        @actionsVertical() {
             @btnCancel(EventCtrl.detail(group.slug, event.slug))
             @btnSubmit("Edit")
         }

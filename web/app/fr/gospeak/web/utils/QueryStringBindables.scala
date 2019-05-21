@@ -1,8 +1,9 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.core.domain.{Event, UserRequest}
+import fr.gospeak.core.domain.{Event, Group, UserRequest}
 import fr.gospeak.libs.scalautils.domain.{Page, Url}
 import play.api.mvc.QueryStringBindable
+import fr.gospeak.libs.scalautils.Extensions._
 
 object QueryStringBindables {
   implicit def pageParamsQueryStringBindable(implicit stringBinder: QueryStringBindable[String], intBinder: QueryStringBindable[Int]): QueryStringBindable[Page.Params] =
@@ -15,12 +16,12 @@ object QueryStringBindables {
           orderBy <- stringBinder.bind(Page.OrderBy.key, params).map(_.map(Page.OrderBy.parse)).getOrElse(Right(Page.Params.defaults.orderBy))
         } yield Page.Params(page, pageSize, search, orderBy))
 
-      override def unbind(key: String, params: Page.Params): String =
+      override def unbind(key: String, value: Page.Params): String =
         Seq(
-          Some(params.page).filter(_.nonEmpty).map(p => intBinder.unbind(p.key, p.value)),
-          Some(params.pageSize).filter(_.nonEmpty).map(p => intBinder.unbind(p.key, p.value)),
-          params.search.filter(_.nonEmpty).map(p => stringBinder.unbind(p.key, p.value)),
-          params.orderBy.filter(_.nonEmpty).map(p => stringBinder.unbind(p.key, p.value))
+          Some(value.page).filter(_.nonEmpty).map(p => intBinder.unbind(p.key, p.value)),
+          Some(value.pageSize).filter(_.nonEmpty).map(p => intBinder.unbind(p.key, p.value)),
+          value.search.filter(_.nonEmpty).map(p => stringBinder.unbind(p.key, p.value)),
+          value.orderBy.filter(_.nonEmpty).map(p => stringBinder.unbind(p.key, p.value))
         ).flatten.mkString("&")
     }
 
@@ -29,8 +30,8 @@ object QueryStringBindables {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Url]] =
         stringBinder.bind(key, params).map(_.flatMap(u => Url.from(u).left.map(_.getMessage)))
 
-      override def unbind(key: String, url: Url): String =
-        stringBinder.unbind(key, url.value)
+      override def unbind(key: String, value: Url): String =
+        stringBinder.unbind(key, value.value)
     }
 
   implicit def userRequestIdQueryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[UserRequest.Id] =
@@ -38,8 +39,8 @@ object QueryStringBindables {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, UserRequest.Id]] =
         stringBinder.bind(key, params).map(_.flatMap(u => UserRequest.Id.from(u).left.map(_.getMessage)))
 
-      override def unbind(key: String, id: UserRequest.Id): String =
-        stringBinder.unbind(key, id.value)
+      override def unbind(key: String, value: UserRequest.Id): String =
+        stringBinder.unbind(key, value.value)
     }
 
   implicit def eventSlugQueryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[Event.Slug] =
@@ -47,7 +48,16 @@ object QueryStringBindables {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Event.Slug]] =
         stringBinder.bind(key, params).map(_.flatMap(u => Event.Slug.from(u).left.map(_.getMessage)))
 
-      override def unbind(key: String, slug: Event.Slug): String =
-        stringBinder.unbind(key, slug.value)
+      override def unbind(key: String, value: Event.Slug): String =
+        stringBinder.unbind(key, value.value)
+    }
+
+  implicit def groupSettingsEventQueryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[Group.Settings.Action.Trigger] =
+    new QueryStringBindable[Group.Settings.Action.Trigger] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Group.Settings.Action.Trigger]] =
+        stringBinder.bind(key, params).map(_.flatMap(e => Group.Settings.Action.Trigger.from(e).toEither(s"Invalid event '$e'")))
+
+      override def unbind(key: String, value: Group.Settings.Action.Trigger): String =
+        stringBinder.unbind(key, value.toString)
     }
 }

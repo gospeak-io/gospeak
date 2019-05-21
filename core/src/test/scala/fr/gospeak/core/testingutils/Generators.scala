@@ -4,8 +4,8 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.libs.scalautils.Crypto
 import fr.gospeak.libs.scalautils.domain._
-import fr.gospeak.libs.scalautils.utils.Crypto
 import org.scalacheck.ScalacheckShapeless._
 import org.scalacheck.{Arbitrary, Gen}
 
@@ -58,4 +58,8 @@ object Generators {
   implicit val aCfp = implicitly[Arbitrary[Cfp]]
   implicit val aEvent = implicitly[Arbitrary[Event]]
   implicit val aProposal = implicitly[Arbitrary[Proposal]]
+
+  implicit val aTemplate = implicitly[Arbitrary[MarkdownTemplate]]
+  implicit val aGroupSettingsActionTrigger = implicitly[Arbitrary[Group.Settings.Action.Trigger]]
+  implicit val aGroupSettingsAction = implicitly[Arbitrary[Group.Settings.Action]]
 }

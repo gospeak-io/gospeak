@@ -3,7 +3,7 @@ package fr.gospeak.web.pages.published.speakers
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.User
-import fr.gospeak.core.services.PublicUserRepo
+import fr.gospeak.core.services.storage.PublicUserRepo
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.UICtrl

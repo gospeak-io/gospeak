@@ -23,6 +23,29 @@ function slugify(str) {
     });
 })();
 
+// autofocus when a modal opens
+(function () {
+    $('.modal').on('shown.bs.modal', function () {
+        var $modal = $(this);
+        $modal.find('input[autofocus], textarea[autofocus]').focus();
+        autosize.update($modal.find('textarea'));
+    });
+})();
+
+// disable inputs not in visible pane
+(function () {
+    // disable input inside hidden tabs
+    $('.tab-pane.radio:not(.show)').find('input, textarea, select').attr('disabled', true);
+
+    // enable input inside shown tab
+    $('a.radio[data-toggle="tab"], a.radio[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+        $(e.target.getAttribute('href')).find('input, textarea, select').attr('disabled', false);
+        if (e.relatedTarget) {
+            $(e.relatedTarget.getAttribute('href')).find('input, textarea, select').attr('disabled', true);
+        }
+    });
+})();
+
 // build slug from an other field
 (function () {
     function buildSlug(inputs, prev /* ?string */) {
@@ -52,6 +75,61 @@ function slugify(str) {
             });
         });
     });
+})();
+
+// remote input validation
+(function () {
+    $('input[remote-validate]').each(function () {
+        var $input = $(this);
+        var url = $input.attr('remote-validate');
+        if (url) {
+            update($input, url); // run on page load
+            $input.change(function () {
+                update($input, url);
+            });
+        }
+    });
+
+    function update($input, url) {
+        var value = $input.val();
+        if (value) {
+            $.getJSON(url.replace('%7B%7Binput%7D%7D', value), function (res) {
+                if ($input.val() === value) {
+                    removeFeedback($input);
+                    if (res.valid) {
+                        addValidFeedback($input, res);
+                    } else {
+                        addInvalidFeedback($input, res);
+                    }
+                }
+            });
+        } else {
+            removeFeedback($input);
+        }
+    }
+
+    function removeFeedback($input) {
+        $input.removeClass('is-valid');
+        $input.removeClass('is-invalid');
+        var $next = $input.next();
+        if ($next.hasClass('valid-feedback') || $next.hasClass('invalid-feedback')) {
+            $next.remove();
+        }
+    }
+
+    function addValidFeedback($input, res) {
+        $input.addClass('is-valid');
+        if (res.message) {
+            $input.after('<span class="valid-feedback">' + res.message + '</span>');
+        }
+    }
+
+    function addInvalidFeedback($input, res) {
+        $input.addClass('is-invalid');
+        if (res.message) {
+            $input.after('<span class="invalid-feedback">' + res.message + '</span>');
+        }
+    }
 })();
 
 // https://select2.org/ & https://github.com/select2/select2-bootstrap-theme
@@ -130,6 +208,27 @@ function slugify(str) {
     });
 })();
 
+(function () {
+    $('.input-imageurl').each(function () {
+        var $elt = $(this);
+        var $input = $elt.find('input[type="text"]');
+        var $preview = $elt.find('.preview');
+        update($input, $preview); // run on page load
+        $input.change(function () {
+            update($input, $preview);
+        });
+    });
+
+    function update($input, $preview) {
+        if ($input.val() === '') {
+            $preview.hide();
+        } else {
+            $preview.attr('src', $input.val());
+            $preview.show();
+        }
+    }
+})();
+
 // markdown input
 (function () {
     function fetchHtml(md) {
@@ -153,6 +252,89 @@ function slugify(str) {
             previewPane.html(loadingHtml);
         });
     });
+})();
+
+// template input & data
+(function () {
+    $('.template-data').each(function () {
+        var $elt = $(this);
+        var ref = $elt.attr('data-ref');
+        var target = $elt.attr('data-target');
+        var $target = target ? $('#' + target) : undefined;
+        updateData($elt, ref);
+        if($target) {
+            $target.change(function () {
+                updateData($elt, $target.val());
+            });
+        }
+    });
+    $('.template-editor').each(function () {
+        var $elt = $(this);
+        var ref = $elt.attr('data-ref');
+        var target = $elt.attr('data-target');
+        var $target = target ? $('#' + target) : undefined;
+        var previewTab = $elt.find('a[data-toggle="tab"].preview');
+        var $input = $elt.find('textarea,input[type="text"]');
+        var previewPane = $elt.find('.tab-pane.preview');
+        var loadingHtml = previewPane.html();
+        previewTab.on('show.bs.tab', function () {
+            var r = $target ? $target.val() : ref;
+            updateTemplate($input, r, previewPane);
+        });
+        previewTab.on('hidden.bs.tab', function () {
+            previewPane.html(loadingHtml);
+        });
+        if($target) {
+            $target.change(function () {
+                if(previewPane.hasClass('active')) {
+                    updateTemplate($input, $target.val(), previewPane);
+                }
+            });
+        }
+    });
+
+    function updateData($elt, ref) {
+        if (ref) {
+            fetchData(ref).then(function (res) {
+                $elt.find('.json-viewer').html(JSON.stringify(res.data, null, 2));
+                $elt.show();
+            });
+        } else {
+            $elt.hide();
+        }
+    }
+
+    function updateTemplate($input, ref, previewPane) {
+        var tmpl = $input.val();
+        fetchTemplate(tmpl, ref).then(function (tmpl) {
+            if (tmpl.error) {
+                console.warn('Template error', tmpl.error);
+            }
+            previewPane.html(tmpl.result);
+        });
+    }
+
+    function fetchData(ref) {
+        return fetch('/ui/utils/template-data/' + ref).then(function (res) {
+            return res.json();
+        });
+    }
+
+    function fetchTemplate(tmpl, ref) {
+        return fetch('/ui/utils/render-template', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                template: tmpl,
+                ref: ref
+            })
+        }).then(function (res) {
+            return res.json();
+        });
+    }
 })();
 
 // embed input & display

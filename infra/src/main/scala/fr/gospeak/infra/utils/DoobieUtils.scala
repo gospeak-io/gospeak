@@ -108,6 +108,7 @@ object DoobieUtils {
     implicit val slidesMeta: Meta[Slides] = Meta[String].timap(Slides.from(_).right.get)(_.value)
     implicit val videoMeta: Meta[Video] = Meta[String].timap(Video.from(_).right.get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
+    implicit val markdownTemplateMeta: Meta[MarkdownTemplate] = Meta[String].timap(MarkdownTemplate.Mustache(_): MarkdownTemplate)(_.value)
     implicit val gMapPlaceMeta: Meta[GMapPlace] = Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
     implicit val avatarSourceMeta: Meta[Avatar.Source] = Meta[String].timap(Avatar.Source.from(_).right.get)(_.toString)
     implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))

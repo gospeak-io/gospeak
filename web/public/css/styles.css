@@ -34,7 +34,21 @@
     margin-bottom: 0;
 }
 
+.navbar-nav .nav-item i.fas {
+    font-size: 1.3em;
+    vertical-align: middle;
+}
+
 /* My styles */
+
+.footer {
+    margin-top: 20px;
+    padding: 40px 0;
+    color: #999;
+    text-align: center;
+    background-color: #f9f9f9;
+    border-top: 1px solid #e5e5e5;
+}
 
 .btn-form {
     display: inline;
@@ -67,6 +81,15 @@
 
 .markdown-editor .tab-content {
     margin-top: 5px;
+}
+
+.quote {
+    border-left: 7px;
+    border-left-color: #e9ecef;
+    border-left-style: solid;
+
+    margin-left: 5px;
+    padding-left: 10px;
 }
 
 .login {

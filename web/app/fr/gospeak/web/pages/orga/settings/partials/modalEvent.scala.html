@@ -1,0 +1,39 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.Group
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.core.domain.utils.TemplateData
+
+@(id: String, group: Group, eventSettings: Form[Group.Settings.Event])(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+<div class="modal fade" id="@id" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+        @formElt(eventSettings, SettingsCtrl.updateEventSettings(group.slug)) {
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventSettingsModal">Event settings</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-6">
+                    @fieldVertical(eventSettings("defaultDescription"), Seq("label" -> "Default description")) { (field, args) =>
+                        @inputTemplate(field, Some(TemplateData.EventInfo.ref), args = args ++ Seq("help" -> "The default description for your events", "autofocus" -> "true"))
+                    }
+                    </div>
+                    <div class="col-6">
+                        @displayTemplateData(Some(TemplateData.EventInfo.ref))
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                @btnSubmit("Update settings")
+            </div>
+        }
+        </div>
+    </div>
+</div>

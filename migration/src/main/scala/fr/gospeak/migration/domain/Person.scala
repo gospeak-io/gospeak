@@ -4,8 +4,8 @@ import java.time.Instant
 
 import fr.gospeak.core.domain.User
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.StringUtils
 import fr.gospeak.libs.scalautils.domain.EmailAddress
-import fr.gospeak.libs.scalautils.utils.StringUtils
 import fr.gospeak.migration.domain.utils.Meta
 import fr.gospeak.migration.utils.AvatarUtils
 
@@ -32,7 +32,7 @@ case class Person(id: String, // Person.Id,
       email = email,
       emailValidated = validated.map(Instant.ofEpochMilli),
       avatar = avatar,
-      public = false,
+      published = None,
       created = Instant.ofEpochMilli(meta.created),
       updated = Instant.ofEpochMilli(meta.updated))).mapFailure(e => new Exception(s"toUser error for $this", e)).get
   }

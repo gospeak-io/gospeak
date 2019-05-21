@@ -1,0 +1,20 @@
+@import fr.gospeak.web.pages.partials.form.Utils
+
+@(field: Field, args: Seq[(String, String)] = Seq())(implicit messages: Messages)
+<div class="custom-control custom-checkbox @Utils.getArg(args, "class")">
+    <input
+        @Utils.typeAttr("checkbox")
+        @Utils.idAttr(field, args)
+        @Utils.nameAttr(field, args)
+        @Utils.valueAttr(field, args, "true")
+        @Utils.classAttr(field, args, "custom-control-input")>
+    <label for="@Utils.id(field, args)" class="custom-control-label">@Utils.getArg(args, "label", field.name)</label>
+    @if(field.hasErrors && field.errors.nonEmpty) {
+        <div class="invalid-feedback">
+            @Utils.getArg(args, "help").map { help => @helpText(field, args, help) }
+            @field.errors.map(_.format).mkString(", ")
+        </div>
+    } else {
+        @Utils.getArg(args, "help").map { help => <small class="form-text">@helpText(field, args, help)</small> }
+    }
+</div>

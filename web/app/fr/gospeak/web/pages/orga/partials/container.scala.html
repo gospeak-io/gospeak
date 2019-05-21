@@ -25,16 +25,16 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav">
-                    @navbarLink(EventCtrl.list(group.slug), "Events")
-                    @navbarLink(CfpCtrl.list(group.slug), "CFPs")
-                    @navbarLink(ProposalCtrl.list(group.slug), "Proposals")
-                    @navbarLink(SpeakerCtrl.list(group.slug), "Speakers")
-                    @navbarLink(PartnerCtrl.list(group.slug), "Partners")
-                    @navbarLink(VenueCtrl.list(group.slug), "Venues")
-                    @navbarLink(SettingsCtrl.list(group.slug), "Settings")
+                    @navbarLink(EventCtrl.list(group.slug)) {Events}
+                    @navbarLink(CfpCtrl.list(group.slug)) {CFPs}
+                    @navbarLink(ProposalCtrl.list(group.slug)) {Proposals}
+                    @navbarLink(SpeakerCtrl.list(group.slug)) {Speakers}
+                    @navbarLink(PartnerCtrl.list(group.slug)) {Partners}
+                    @navbarLink(VenueCtrl.list(group.slug)) {Venues}
                 </div>
             </div>
             <div class="navbar-nav">
+                @navbarLink(SettingsCtrl.list(group.slug)) {<i class="fas fa-cog"></i>}
                 @userDropdown(req.identity, Some(group))
             </div>
         </div>
@@ -51,4 +51,5 @@
         @flash(req.flash)
         @content
     </div>
+    @footer()
 }

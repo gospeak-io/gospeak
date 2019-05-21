@@ -9,7 +9,7 @@ import doobie.Fragments
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain.{Cfp, Talk, User}
-import fr.gospeak.core.services.TalkRepo
+import fr.gospeak.core.services.storage.TalkRepo
 import fr.gospeak.infra.services.storage.sql.TalkRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._

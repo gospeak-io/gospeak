@@ -13,12 +13,13 @@ object CfpForms {
     "end" -> optional(localDateTime),
     "description" -> markdown,
     "tags" -> tags
-  )(Cfp.Data.apply)(Cfp.Data.unapply) verifying("Start of Cfp should be anterior to its end", isStartBeforeEnd(_)))
+  )(Cfp.Data.apply)(Cfp.Data.unapply)
+    .verifying("Start of Cfp should be anterior to its end", isStartBeforeEnd _))
 
   def isStartBeforeEnd(data: Cfp.Data): Boolean = {
-    (data.start, data.end) match {
+    (data.begin, data.close) match {
       case (Some(start), Some(end)) if start.isAfter(end) => false
-      case (_, _) => true
+      case _ => true
     }
   }
 }

@@ -8,9 +8,6 @@ import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 class ProposalRepoSqlSpec extends RepoSpec {
   private val fields = "id, talk_id, cfp_id, event_id, status, title, duration, description, speakers, slides, video, tags, created, created_by, updated, updated_by"
 
-  private def fieldsPrefixedBy(prefix: String): String =
-    fields.split(", ").map(prefix + _).mkString(", ")
-
   describe("ProposalRepoSql") {
     it("should create and retrieve a proposal for a group and talk") {
       val (user, _, cfp, talk) = createUserGroupCfpAndTalk().unsafeRunSync()
@@ -97,7 +94,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
         val (s, c) = selectPage(talk.id, params)
         s.sql shouldBe
           "SELECT c.id, c.group_id, c.slug, c.name, c.start, c.end, c.description, c.tags, c.created, c.created_by, c.updated, c.updated_by, " +
-            s"${fieldsPrefixedBy("p.")} " +
+            s"${fieldsPrefixedBy(fields, "p.")} " +
             "FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.talk_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.talk_id=? "
         check(s)
@@ -106,7 +103,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       it("should build selectPage for a group") {
         val (s, c) = selectPage(group.id, params)
         s.sql shouldBe
-          s"SELECT ${fieldsPrefixedBy("p.")} FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+          s"SELECT ${fieldsPrefixedBy(fields, "p.")} FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? "
         check(s)
         check(c)
@@ -115,7 +112,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
         val (s, c) = selectPage(group.id, user.id, params)
         s.sql shouldBe
           "SELECT c.id, c.group_id, c.slug, c.name, c.start, c.end, c.description, c.tags, c.created, c.created_by, c.updated, c.updated_by, " +
-            s"${fieldsPrefixedBy("p.")} " +
+            s"${fieldsPrefixedBy(fields, "p.")} " +
             "FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? AND p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? AND p.speakers LIKE ? "
         check(s)

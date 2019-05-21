@@ -5,7 +5,7 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import fr.gospeak.core.domain.{Event => NewEvent}
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.Markdown
+import fr.gospeak.libs.scalautils.domain.MarkdownTemplate
 import fr.gospeak.migration.domain.Event._
 import fr.gospeak.migration.domain.utils.{GMapPlace, MeetupRef, Meta}
 
@@ -25,10 +25,11 @@ case class Event(id: String, // Event.Id
       slug = NewEvent.Slug.from(formatter.format(date)).get,
       name = NewEvent.Name(data.title),
       start = date,
-      description = data.description.map(Markdown).getOrElse(Markdown("")),
+      description = MarkdownTemplate.Mustache(data.description.getOrElse("")),
       venue = None, // TODO
       talks = Seq(), // should be set later
       tags = Seq(),
+      published = Some(Instant.from(date)),
       info = meta.toInfo)).mapFailure(e => new Exception(s"toEvent error for $this", e)).get
   }
 }

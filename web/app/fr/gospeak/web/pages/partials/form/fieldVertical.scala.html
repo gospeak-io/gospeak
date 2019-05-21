@@ -1,0 +1,15 @@
+@import fr.gospeak.web.pages.partials.form.Utils
+
+@(field: Field, args: Seq[(String, String)] = Seq())(input: (Field, Seq[(String, String)]) => Html)(implicit messages: Messages)
+<div class="form-group @Utils.getArg(args, "class")">
+    <label for="@Utils.id(field, args)">@Utils.getArg(args, "label", field.name)</label>
+    @input(field, Seq(Utils.getArg(args, "help").map(_ => "help" -> Utils.helpId(args, field))).flatten)
+    @if(field.hasErrors && field.errors.nonEmpty) {
+        <div class="invalid-feedback">
+            @Utils.getArg(args, "help").map { help => @helpText(field, args, help) }
+            @field.errors.map(_.format).mkString(", ")
+        </div>
+    } else {
+        @Utils.getArg(args, "help").map { help => <small class="form-text">@helpText(field, args, help)</small> }
+    }
+</div>

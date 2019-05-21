@@ -7,7 +7,7 @@ import com.mohiva.play.silhouette.api.util.PasswordInfo
 import com.mohiva.play.silhouette.persistence.daos.DelegableAuthInfoDAO
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.domain.User._
-import fr.gospeak.core.services.{AuthGroupRepo, AuthUserRepo}
+import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo}
 import fr.gospeak.libs.scalautils.domain.Done
 import fr.gospeak.web.auth.domain.AuthUser
 

@@ -18,17 +18,17 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav">
-                    @navbarLink(CfpCtrl.list(), "Call For Proposals")
-                    @navbarLink(GroupCtrl.list(), "Groups")
-                    @navbarLink(SpeakerCtrl.list(), "Speakers")
+                    @navbarLink(CfpCtrl.list()) {Call For Proposals}
+                    @navbarLink(GroupCtrl.list()) {Groups}
+                    @navbarLink(SpeakerCtrl.list()) {Speakers}
                 </div>
             </div>
             <div class="navbar-nav">
-                @req.identity.map { identity =>
-                    @userDropdown(identity)
-                }.getOrElse {
-                    <a class="nav-item nav-link" href="@AuthCtrl.login()">Login</a>
-                }
+            @req.identity.map { identity =>
+                @userDropdown(identity)
+            }.getOrElse {
+                <a class="nav-item nav-link" href="@AuthCtrl.login()">Login</a>
+            }
             </div>
         </div>
     </nav>

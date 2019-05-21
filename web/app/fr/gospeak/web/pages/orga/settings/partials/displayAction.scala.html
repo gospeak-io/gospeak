@@ -1,0 +1,36 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.Group
+@import fr.gospeak.core.services.slack.domain.SlackAction
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.partials.form.html._
+
+@(action: Group.Settings.Action, accounts: Group.Settings.Accounts, removeCall: Call)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+<div class="d-flex justify-content-between align-items-center">
+    <div>
+        @action match {
+            case Group.Settings.Action.Slack(a: SlackAction.PostMessage) => {
+                <div class="media ml-3 mt-1">
+                    <div class="media-body">
+                        <h5 class="mb-0">Post Slack message @if(accounts.slack.isEmpty) {
+                            <span class="badge badge-warning" title="Enable the Slack integration to activate it">
+                                Disabled</span>
+                        }</h5>
+                        <p class="mb-0 ml-3">Channel: @a.channel.value</p>
+                        <p class="mb-0 ml-3">Message: @a.message.value</p>
+                        @if(a.createdChannelIfNotExist || a.inviteEverybody) {
+                            <p class="mb-0 ml-3">
+                                @if(a.createdChannelIfNotExist) {
+                                    <span class="badge badge-primary">Create channel if not exist</span>
+                                }
+                                @if(a.inviteEverybody) {
+                                    <span class="badge badge-primary">Invite everybody in the channel</span>
+                                }
+                            </p>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+    @formBtn(removeCall, Seq("class" -> "btn-danger btn-sm")) {Remove}
+</div>

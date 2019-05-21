@@ -2,7 +2,7 @@ package fr.gospeak.web.pages.speaker
 
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.User
-import fr.gospeak.core.services.{UserGroupRepo, UserTalkRepo}
+import fr.gospeak.core.services.storage.{UserGroupRepo, UserTalkRepo}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.speaker.SpeakerCtrl._

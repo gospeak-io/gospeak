@@ -1,6 +1,6 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Partner, Proposal, User, Venue}
-@import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.libs.scalautils.domain.{Markdown, Page}
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
@@ -14,15 +14,32 @@
 @import fr.gospeak.web.pages.partials.html.{pagination, search}
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, event: Event, venues: Seq[(Partner, Venue)], talks: Seq[Proposal], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], attachCfp: Form[Cfp.Slug])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, event: Event, venueOpt: Option[(Partner, Venue)], talks: Seq[Proposal], description: Either[String, Markdown], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], attachCfp: Form[Cfp.Slug])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(event.name.value + " - Gospeak", group, b)() {
+    @if(!event.isPublic) {
+        <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading d-flex justify-content-between align-items-center">
+                <span>Not published event</span>
+                <span>@formBtn(EventCtrl.publish(group.slug, event.slug), Seq("class" -> "btn-sm btn-primary")) {Publish event}</span>
+            </h4>
+            <p class="mb-0">This event is not published, so it is not visible outside of this group, publish it to make it public.</p>
+        </div>
+    }
+
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@event.name.value</span>
-        <a class="btn btn-outline-secondary" href="@EventCtrl.edit(group.slug, event.slug)" title="edit"><i class="fas fa-edit"></i></a>
+        <span class="btn-group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-cog"></i>
+            </button>
+            <span class="dropdown-menu dropdown-menu-right">
+                <a class="dropdown-item" href="@EventCtrl.edit(group.slug, event.slug)" title="edit">Edit</a>
+            </span>
+        </span>
     </h1>
 
     <p>
-        @event.venue.map { v => @venue(venues, v), }.getOrElse{ <b class="text-danger">Missing venue</b>, }
+        @event.venue.map { v => @venue(venueOpt.toList, v) }.getOrElse{ <b class="text-danger">Missing venue</b>, }
         @Formats.datetime(event.start)
         @tags(event.tags)
     </p>
@@ -52,6 +69,11 @@
             }
             </div>
         </div>
+    }
+
+    @description match {
+        case Left(err) => {<p class="text-danger">Unable to build description template: @err</p>}
+        case Right(md) => {<div class="quote">@markdown(md)</div>}
     }
 
     @cfpOpt.map { cfp =>

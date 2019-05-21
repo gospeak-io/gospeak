@@ -9,19 +9,19 @@ final case class Cfp(id: Cfp.Id,
                      group: Group.Id,
                      slug: Cfp.Slug,
                      name: Cfp.Name,
-                     start: Option[LocalDateTime],
-                     end: Option[LocalDateTime],
+                     begin: Option[LocalDateTime],
+                     close: Option[LocalDateTime],
                      description: Markdown,
                      tags: Seq[Tag],
                      info: Info) {
   def data: Cfp.Data = Cfp.Data(this)
 
-  def isActive(now: LocalDateTime): Boolean = start.forall(_.isBefore(now)) && end.forall(_.isAfter(now))
+  def isActive(now: LocalDateTime): Boolean = begin.forall(_.isBefore(now)) && close.forall(_.isAfter(now))
 }
 
 object Cfp {
   def apply(group: Group.Id, data: Data, info: Info): Cfp =
-    new Cfp(Id.generate(), group, data.slug, data.name, data.start, data.end, data.description, data.tags, info)
+    new Cfp(Id.generate(), group, data.slug, data.name, data.begin, data.close, data.description, data.tags, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -35,13 +35,13 @@ object Cfp {
 
   final case class Data(slug: Cfp.Slug,
                         name: Cfp.Name,
-                        start: Option[LocalDateTime],
-                        end: Option[LocalDateTime],
+                        begin: Option[LocalDateTime],
+                        close: Option[LocalDateTime],
                         description: Markdown,
                         tags: Seq[Tag])
 
   object Data {
-    def apply(cfp: Cfp): Data = new Data(cfp.slug, cfp.name, cfp.start, cfp.end, cfp.description, cfp.tags)
+    def apply(cfp: Cfp): Data = new Data(cfp.slug, cfp.name, cfp.begin, cfp.close, cfp.description, cfp.tags)
   }
 
 }

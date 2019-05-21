@@ -1,0 +1,64 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.Group
+@import fr.gospeak.core.services.slack.domain.SlackCredentials
+@import fr.gospeak.web.api.ui.routes.SuggestCtrl
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import fr.gospeak.web.pages.partials.form.html._
+
+@(id: String, group: Group, slackAccount: Form[SlackCredentials])(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+<div class="modal fade" id="@id" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+        @formElt(slackAccount, SettingsCtrl.updateSlackAccount(group.slug)) {
+            <div class="modal-header">
+                <h5 class="modal-title" id="slackIntegrationModal">Slack integration</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @fieldHorizontal(slackAccount("token"), Seq("label" -> "Slack OAuth Token")) { (field, args) =>
+                    @inputText(field, Seq(
+                        "autofocus" -> "true",
+                        "placeholder" -> "ex: xoxp-19471843520-26025264040-635191736450-732a788fa04094e3aaedf6edb9fa2666",
+                        "remote-validate" -> SuggestCtrl.validateSlackToken("{{input}}").toString) ++ args)
+                    <small class="form-text text-muted">
+                        Your app token. <a data-toggle="collapse" href="#createSlackAppCollapse" tabindex="-1">
+                        Create one</a> if needed.</small>
+                    <ul class="collapse" id="createSlackAppCollapse">
+                        <li>
+                            Open <a href="https://api.slack.com/apps" target="_blank">https://api.slack.com/apps</a>
+                            and create an app using the <span class="badge badge-success">Create New App</span>
+                            button in the top right corner</li>
+                        <li>
+                            Then click on "<b>OAuth & Permissions</b>" in the left menu
+                            and in the "<b>Scopes</b>" section add required permissions:
+                            <ul>
+                                <li><span class="badge badge-dark">chat:write:bot</span> (Send messages in channels)</li>
+                                <li><span class="badge badge-dark">channels:write</span> (Create a channel)</li>
+                                <li><span class="badge badge-dark">users:read</span> (List users, needed to invite them in new channels)</li>
+                            </ul>
+                        </li>
+                        <li>
+                            Finally, click to <span class="badge badge-success">Install App to Workspace</span>
+                            button on the top of the page</li>
+                        <li><b>Well done!</b> Your app is created!</li>
+                        <li>Now copy the <span class="badge badge-primary">OAuth Access Token</span> here, so <b>Gospeak</b> will be able to interact with your Slack Workspace</li>
+                    </ul>
+                }
+                @fieldHorizontal(slackAccount("name"), Seq("label" -> "Bot name", "help" -> "The name that will be used in Slack")) { (field, args) =>
+                    @inputText(field, Seq("placeholder" -> "ex: Gospeak bot") ++ args)
+                }
+                @fieldHorizontal(slackAccount("avatar"), Seq("label" -> "Bot avatar", "help" -> "The bot avatar in Slack")) { (field, args) =>
+                    @inputImg(field, Seq("placeholder" -> "ex: https://secure.gravatar.com/avatar/fa64969431e3d540ef30d06860d64958?size=100&default=wavatar", "optional" -> "") ++ args)
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                @btnSubmit("Connect Slack")
+            </div>
+        }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,39 @@
+@import fr.gospeak.core.domain.utils.TemplateData
+@import fr.gospeak.web.pages.partials.form.Utils
+@*
+* @param 'ref' Ref of TemplateData to use
+* @param 'target' Id of input to watch to get the TemplateData Ref (or some info that allow to get the TemplateData Ref)
+*@
+@(field: Field, ref: Option[TemplateData.Ref] = None, target: Option[String] = None, multiline: Boolean = true, args: Seq[(String, String)] = Seq())
+<div class="template-editor" @ref.map { r => data-ref="@r.value" }@target.map { t => data-target="@t" }>
+    <ul class="nav nav-tabs" role="tablist" id="@Utils.id(field, args)-tab">
+        <li class="nav-item">
+            <a class="nav-link write active" id="@Utils.id(field, args)-write-tab" data-toggle="tab" href="#@Utils.id(field, args)-write" role="tab" aria-controls="@Utils.id(field, args)-write" aria-selected="true" tabindex="-1">Write</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link preview" id="@Utils.id(field, args)-preview-tab" data-toggle="tab" href="#@Utils.id(field, args)-preview" role="tab" aria-controls="@Utils.id(field, args)-preview" aria-selected="false" tabindex="-1">Preview</a>
+        </li>
+    </ul>
+    <div class="tab-content" id="@Utils.id(field, args)-content">
+        <div class="tab-pane write fade show active" id="@Utils.id(field, args)-write" role="tabpanel" aria-labelledby="@Utils.id(field, args)-write-tab">
+            @inputHidden(field("kind"), Seq("value" -> "Mustache"))
+            @if(multiline) {
+                @inputTextarea(field("value"), args)
+            } else {
+                @inputText(field("value"), args)
+            }
+        </div>
+        <div class="tab-pane preview fade" id="@Utils.id(field, args)-preview" role="tabpanel" aria-labelledby="@Utils.id(field, args)-preview-tab">
+            <div class="d-flex justify-content-center m-5">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <small class="form-text text-muted">
+        You can use <a href="https://mustache.github.io/mustache.5.html" target="_blank" tabindex="-1">mustache</a>
+        templating with <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet" target="_blank" tabindex="-1">markdown</a>
+        formatting.
+    </small>
+</div>

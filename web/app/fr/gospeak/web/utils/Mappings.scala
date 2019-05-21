@@ -4,11 +4,13 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import cats.implicits._
 import fr.gospeak.core.domain._
+import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.utils.Extensions._
 import fr.gospeak.web.utils.Mappings.Utils._
 import play.api.data.Forms._
+import play.api.data.format.Formats._
 import play.api.data.format.Formatter
 import play.api.data.validation.{Constraint, Constraints, ValidationError, Invalid => PlayInvalid, Valid => PlayValid}
 import play.api.data.{FormError, Mapping, WrappedMapping}
@@ -95,12 +97,56 @@ object Mappings {
   val partnerSlug: Mapping[Partner.Slug] = slugMapping(Partner.Slug)
   val partnerName: Mapping[Partner.Name] = nonEmptyTextMapping(Partner.Name, _.value)
   val venueId: Mapping[Venue.Id] = idMapping(Venue.Id)
+  val slackToken: Mapping[SlackToken] = nonEmptyTextMapping(SlackToken, _.value)
+
+  private val templateFormatter = new Formatter[MarkdownTemplate] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], MarkdownTemplate] =
+      data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
+        case "Mustache" => data.get(s"$key.value").map(v => Right(MarkdownTemplate.Mustache(v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
+        case v => Left(Seq(FormError(s"$key.kind", s"Invalid value '$v' for key '$key.kind'")))
+      }
+
+    override def unbind(key: String, value: MarkdownTemplate): Map[String, String] = value match {
+      case MarkdownTemplate.Mustache(v) => Map(s"$key.kind" -> "Mustache", s"$key.value" -> v)
+    }
+  }
+  val template: Mapping[MarkdownTemplate] = of(templateFormatter)
+
+  val groupSettingsEvent: Mapping[Group.Settings.Action.Trigger] = of(new Formatter[Group.Settings.Action.Trigger] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action.Trigger] =
+      data.eitherGetAndParse(key, v => Group.Settings.Action.Trigger.from(v).toTry(CustomException(v)), formatError).left.map(Seq(_))
+
+    override def unbind(key: String, value: Group.Settings.Action.Trigger): Map[String, String] = Map(key -> value.toString)
+  })
+
+  val groupSettingsAction: Mapping[Group.Settings.Action] = of(new Formatter[Group.Settings.Action] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action] = {
+      data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
+        case "Slack.PostMessage" => (
+          templateFormatter.bind(s"$key.channel", data),
+          templateFormatter.bind(s"$key.message", data),
+          implicitly[Formatter[Boolean]].bind(s"$key.createdChannelIfNotExist", data),
+          implicitly[Formatter[Boolean]].bind(s"$key.inviteEverybody", data)
+        ).mapN(SlackAction.PostMessage.apply).map(Group.Settings.Action.Slack)
+        case v => Left(Seq(FormError(s"$key.kind", s"action kind '$v' not found")))
+      }
+    }
+
+    override def unbind(key: String, value: Group.Settings.Action): Map[String, String] = value match {
+      case Group.Settings.Action.Slack(p: SlackAction.PostMessage) =>
+        Map(s"$key.kind" -> "Slack.PostMessage") ++
+          templateFormatter.unbind(s"$key.channel", p.channel) ++
+          templateFormatter.unbind(s"$key.message", p.message) ++
+          implicitly[Formatter[Boolean]].unbind(s"$key.createdChannelIfNotExist", p.createdChannelIfNotExist) ++
+          implicitly[Formatter[Boolean]].unbind(s"$key.inviteEverybody", p.inviteEverybody)
+    }
+  })
 
   private[utils] object Utils {
-    def textMapping[A](from: String => A, to: A => String) =
+    def textMapping[A](from: String => A, to: A => String): Mapping[A] =
       WrappedMapping(text, from, to)
 
-    def nonEmptyTextMapping[A](from: String => A, to: A => String) =
+    def nonEmptyTextMapping[A](from: String => A, to: A => String): Mapping[A] =
       WrappedMapping(nonEmptyText, from, to)
 
     def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, errorMessage: String = formatError): Mapping[A] =

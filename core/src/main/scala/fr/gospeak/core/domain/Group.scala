@@ -1,7 +1,10 @@
 package fr.gospeak.core.domain
 
+import java.time.Instant
+
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.services.slack.domain.{SlackAction, SlackCredentials}
 import fr.gospeak.libs.scalautils.domain._
 
 final case class Group(id: Group.Id,
@@ -9,15 +12,17 @@ final case class Group(id: Group.Id,
                        name: Group.Name,
                        description: Markdown,
                        owners: NonEmptyList[User.Id],
-                       public: Boolean,
                        tags: Seq[Tag],
+                       published: Option[Instant],
                        info: Info) {
   def data: Group.Data = Group.Data(this)
+
+  def isPublic: Boolean = published.isDefined
 }
 
 object Group {
   def apply(data: Data, owners: NonEmptyList[User.Id], info: Info): Group =
-    new Group(Id.generate(), data.slug, data.name, data.description, owners, true, data.tags, info) // FIXME add public in form
+    new Group(Id.generate(), data.slug, data.name, data.description, owners, data.tags, None, info) // FIXME add public in form
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -36,6 +41,82 @@ object Group {
 
   object Data {
     def apply(group: Group): Data = new Data(group.slug, group.name, group.description, group.tags)
+  }
+
+
+  final case class Settings(accounts: Settings.Accounts,
+                            actions: Map[Settings.Action.Trigger, Seq[Settings.Action]],
+                            event: Settings.Event) {
+    def set(slack: SlackCredentials): Settings = copy(accounts = accounts.copy(slack = Some(slack)))
+  }
+
+  object Settings {
+    val default = Settings(
+      accounts = Accounts(
+        slack = None,
+        meetup = None,
+        twitter = None,
+        youtube = None),
+      actions = Map(),
+      event = Event(MarkdownTemplate.Mustache(
+        """Hi everyone, welcome to **{{event.name}}**!
+          |
+          |
+          |{{#venue}}
+          |This month we are hosted by **{{name}}**, at *[{{address}}]({{url}})*
+          |
+          |![{{name}} logo]({{logo}})
+          |{{/venue}}
+          |
+          |
+          |{{#talks}}
+          |{{#-first}}For this session we are happy to have the following talks:{{/-first}}
+          |
+          |- **{{title}}** by {{#speakers}}*{{name}}*{{^-last}}, {{/-last}}{{/speakers}}
+          |
+          |{{description.short2}} {{#publicLink}}[see more]({{.}}){{/publicLink}}
+          |{{/talks}}
+          |
+          |
+          |For the next sessions, propose your talks on [Gospeak]({{cfp.publicLink}})
+        """.stripMargin.trim)))
+
+    final case class Accounts(slack: Option[SlackCredentials],
+                              meetup: Option[String],
+                              twitter: Option[String],
+                              youtube: Option[String])
+
+    sealed trait Action
+
+    object Action {
+
+      sealed abstract class Trigger(val name: String) {
+        def getClassName: String = getClass.getName.split("[.$]").toList.last
+      }
+
+      object Trigger {
+
+        case object OnEventCreated extends Trigger("When an Event is created")
+
+        case object OnEventAddTalk extends Trigger("When a Talk is added to an Event")
+
+        case object OnEventRemoveTalk extends Trigger("When a Talk is removed from an Event")
+
+        case object OnEventPublish extends Trigger("When an Event is published")
+
+        case object OnProposalCreated extends Trigger("When a Proposal is submitted to a CFP")
+
+        val all: Seq[Trigger] = Seq(OnEventCreated, OnEventAddTalk, OnEventRemoveTalk, OnEventPublish, OnProposalCreated)
+
+        def from(str: String): Option[Trigger] = all.find(_.toString == str)
+      }
+
+      final case class Slack(value: SlackAction) extends Action
+
+    }
+
+    final case class Event(defaultDescription: MarkdownTemplate)
+
   }
 
 }

@@ -4,7 +4,7 @@ import fr.gospeak.infra.services.storage.sql.GroupRepoSql._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class GroupRepoSqlSpec extends RepoSpec {
-  private val fields = "id, slug, name, description, owners, public, tags, created, created_by, updated, updated_by"
+  private val fields = "id, slug, name, description, owners, tags, published, created, created_by, updated, updated_by"
 
   describe("GroupRepoSql") {
     it("should create and retrieve a group") {

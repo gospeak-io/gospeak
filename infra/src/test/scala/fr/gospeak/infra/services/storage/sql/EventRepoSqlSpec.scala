@@ -6,7 +6,7 @@ import fr.gospeak.infra.services.storage.sql.EventRepoSql._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class EventRepoSqlSpec extends RepoSpec {
-  private val fields = "id, group_id, cfp_id, slug, name, start, description, venue, talks, tags, created, created_by, updated, updated_by"
+  private val fields = "id, group_id, cfp_id, slug, name, start, description, venue, talks, tags, published, created, created_by, updated, updated_by"
 
   describe("EventRepoSql") {
     it("should create and retrieve an event for a group") {
@@ -33,12 +33,12 @@ class EventRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = insert(event)
-        q.sql shouldBe s"INSERT INTO events ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO events ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update") {
         val q = update(group.id, event.slug)(eventData1, user.id, now)
-        q.sql shouldBe "UPDATE events SET cfp_id=?, slug=?, name=?, start=?, venue=?, tags=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
+        q.sql shouldBe "UPDATE events SET cfp_id=?, slug=?, name=?, start=?, description=?, venue=?, tags=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
         check(q)
       }
       it("should build updateCfp") {

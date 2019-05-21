@@ -6,7 +6,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, User}
-import fr.gospeak.core.services.{UserGroupRepo, UserTalkRepo}
+import fr.gospeak.core.services.storage.{UserGroupRepo, UserTalkRepo}
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain._

@@ -69,7 +69,7 @@ object Formats {
       case _ => s"$n $plural"
     }
 
-  def cfpDates(cfp: Cfp, now: LocalDateTime = LocalDateTime.now()): String = (cfp.start, cfp.end) match {
+  def cfpDates(cfp: Cfp, now: LocalDateTime = LocalDateTime.now()): String = (cfp.begin, cfp.close) match {
     case (Some(start), Some(end)) => s"from ${date(start)} to ${date(end)}"
     case (Some(start), None) if start.isAfter(now) => s"starting ${date(start)}"
     case (Some(start), None) => s"started ${date(start)}"

@@ -18,13 +18,14 @@ val commonSettings: Seq[Setting[_]] = Seq(
   * Dependencies
   */
 val cats = Seq(
-  "org.typelevel" %% "cats-core" % "1.4.0",
-  "org.typelevel" %% "cats-effect" % "0.10.1")
+  "org.typelevel" %% "cats-core" % "1.5.0",
+  "org.typelevel" %% "cats-effect" % "1.1.0")
 val circe = Seq(
   "io.circe" %% "circe-core",
   "io.circe" %% "circe-generic",
   "io.circe" %% "circe-parser",
   "io.circe" %% "circe-literal",
+  "io.circe" %% "circe-generic-extras",
   "io.circe" %% "circe-java8").map(_ % "0.10.1")
 val doobieVersion = "0.6.0"
 val doobie = Seq(
@@ -56,6 +57,7 @@ val play = Seq(
 val playTest = Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2").map(_ % Test)
 val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.40.16")
+val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.5.1")
 val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.3.0")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
   "org.webjars.npm" % "jquery" % "3.3.1",
@@ -78,9 +80,9 @@ val scalaCheck = Seq(
 
 val scalautilsDependencies = cats ++ scalaTest ++ scalaCheck
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
-val infraDependencies = hammock ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
+val infraDependencies = hammock ++ flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
 val migrationDependencies = mongo ++ logback ++ scalaTest ++ scalaCheck
-val webDependencies = play ++ silhouette ++ flexmark ++ pureconfig ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
+val webDependencies = play ++ silhouette ++ pureconfig ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
 
 
 /**

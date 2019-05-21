@@ -3,8 +3,8 @@ package fr.gospeak.migration.domain
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.{User, Proposal => NewProposal, Talk => NewTalk}
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.StringUtils
 import fr.gospeak.libs.scalautils.domain.{Markdown, Slides, Video}
-import fr.gospeak.libs.scalautils.utils.StringUtils
 import fr.gospeak.migration.domain.utils.Meta
 
 import scala.concurrent.duration._
