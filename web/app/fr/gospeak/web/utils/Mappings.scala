@@ -1,6 +1,8 @@
 package fr.gospeak.web.utils
 
+import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDateTime, ZoneOffset}
+import java.util.concurrent.TimeUnit
 
 import cats.implicits._
 import fr.gospeak.core.domain._
@@ -29,9 +31,18 @@ object Mappings {
   val passwordConstraint = "constraint.password"
   val passwordError = "error.password"
 
+  val double: Mapping[Double] = of(doubleFormat)
   val instant: Mapping[Instant] = stringEitherMapping(s => Try(LocalDateTime.parse(s).toInstant(ZoneOffset.UTC)).toEither, _.atZone(ZoneOffset.UTC).toLocalDateTime.toString, datetimeError) // FIXME manage timezone
-  val duration: Mapping[FiniteDuration] = WrappedMapping(longNumber, (l: Long) => Duration.apply(l, MINUTES), _.toMinutes)
-
+  val chronoUnit: Mapping[ChronoUnit] = stringEitherMapping(d => Try(ChronoUnit.valueOf(d)).toEither, _.name())
+  val period: Mapping[TimePeriod] = mapping(
+    "length" -> longNumber,
+    "unit" -> chronoUnit
+  )(TimePeriod.apply)(TimePeriod.unapply)
+  val timeUnit: Mapping[TimeUnit] = stringEitherMapping(d => Try(TimeUnit.valueOf(d)).toEither, _.name())
+  val duration: Mapping[FiniteDuration] = mapping(
+    "length" -> longNumber,
+    "unit" -> timeUnit
+  )(new FiniteDuration(_, _))(d => Some(d.length -> d.unit))
   val emailAddress: Mapping[EmailAddress] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(100)), (s: String) => EmailAddress.from(s).right.get, _.value)
   val url: Mapping[Url] = stringEitherMapping(Url.from, _.value)
   val slides: Mapping[Slides] = stringEitherMapping(Slides.from, _.value)
@@ -42,6 +53,11 @@ object Mappings {
     else PlayInvalid(ValidationError(passwordError))
   })
   val markdown: Mapping[Markdown] = textMapping(Markdown, _.value)
+  val currency: Mapping[Price.Currency] = stringEitherMapping(Price.Currency.from(_).toEither, _.value)
+  val price: Mapping[Price] = mapping(
+    "amount" -> double,
+    "currency" -> currency
+  )(Price.apply)(Price.unapply)
   val gMapPlace: Mapping[GMapPlace] = of(new Formatter[GMapPlace] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], GMapPlace] = (
       data.eitherGet(s"$key.id").toValidatedNec,
@@ -97,6 +113,9 @@ object Mappings {
   val partnerSlug: Mapping[Partner.Slug] = slugMapping(Partner.Slug)
   val partnerName: Mapping[Partner.Name] = nonEmptyTextMapping(Partner.Name, _.value)
   val venueId: Mapping[Venue.Id] = idMapping(Venue.Id)
+  val sponsorPackId: Mapping[SponsorPack.Id] = idMapping(SponsorPack.Id)
+  val sponsorPackSlug: Mapping[SponsorPack.Slug] = slugMapping(SponsorPack.Slug)
+  val sponsorPackName: Mapping[SponsorPack.Name] = nonEmptyTextMapping(SponsorPack.Name, _.value)
   val slackToken: Mapping[SlackToken] = nonEmptyTextMapping(SlackToken, _.value)
 
   private def templateFormatter[A]: Formatter[MarkdownTemplate[A]] = new Formatter[MarkdownTemplate[A]] {
@@ -110,6 +129,7 @@ object Mappings {
       case MarkdownTemplate.Mustache(v) => Map(s"$key.kind" -> "Mustache", s"$key.value" -> v)
     }
   }
+
   def template[A]: Mapping[MarkdownTemplate[A]] = of(templateFormatter)
 
   val groupSettingsEvent: Mapping[Group.Settings.Action.Trigger] = of(new Formatter[Group.Settings.Action.Trigger] {

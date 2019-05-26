@@ -45,8 +45,8 @@ object Event {
   final case class Name(value: String) extends AnyVal
 
   final case class Data(cfp: Option[Cfp.Id],
-                        slug: Event.Slug,
-                        name: Event.Name,
+                        slug: Slug,
+                        name: Name,
                         start: LocalDateTime,
                         venue: Option[Venue.Id],
                         description: MarkdownTemplate[TemplateData.EventInfo],

@@ -1,6 +1,6 @@
 package fr.gospeak.infra.utils
 
-import java.time.{Instant, LocalDateTime, ZoneOffset}
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 
 import cats.data.NonEmptyList
 import cats.effect.{ContextShift, IO}
@@ -103,17 +103,21 @@ object DoobieUtils {
   object Mappings {
     import scala.reflect.runtime.universe._
 
+    implicit val timePeriodMeta: Meta[TimePeriod] = Meta[String].timap(TimePeriod.from(_).get)(_.value)
     implicit val finiteDurationMeta: Meta[FiniteDuration] = Meta[Long].timap(Duration.fromNanos)(_.toNanos)
     implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Instant].timap(LocalDateTime.ofInstant(_, ZoneOffset.UTC))(_.toInstant(ZoneOffset.UTC))
     implicit val emailAddressMeta: Meta[EmailAddress] = Meta[String].timap(EmailAddress.from(_).right.get)(_.value)
     implicit val urlMeta: Meta[Url] = Meta[String].timap(Url.from(_).right.get)(_.value)
     implicit val slidesMeta: Meta[Slides] = Meta[String].timap(Slides.from(_).right.get)(_.value)
     implicit val videoMeta: Meta[Video] = Meta[String].timap(Video.from(_).right.get)(_.value)
+    implicit val currencyMeta: Meta[Price.Currency] = Meta[String].timap(Price.Currency.from(_).get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
     implicit def markdownTemplateMeta[A: TypeTag]: Meta[MarkdownTemplate[A]] = Meta[String].timap(MarkdownTemplate.Mustache[A](_).asInstanceOf[MarkdownTemplate[A]])(_.value)
     implicit val gMapPlaceMeta: Meta[GMapPlace] = Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
     implicit val avatarSourceMeta: Meta[Avatar.Source] = Meta[String].timap(Avatar.Source.from(_).right.get)(_.toString)
     implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))
+
+     val a = implicitly[Meta[LocalDate]]
 
     // TODO build Meta[Seq[A]] and Meta[NonEmptyList[A]]
     // implicit def seqMeta[A](implicit m: Meta[A]): Meta[Seq[A]] = ???
@@ -141,6 +145,10 @@ object DoobieUtils {
     implicit val partnerSlugMeta: Meta[Partner.Slug] = Meta[String].timap(Partner.Slug.from(_).right.get)(_.value)
     implicit val partnerNameMeta: Meta[Partner.Name] = Meta[String].timap(Partner.Name)(_.value)
     implicit val venueIdMeta: Meta[Venue.Id] = Meta[String].timap(Venue.Id.from(_).right.get)(_.value)
+    implicit val sponsorPackIdMeta: Meta[SponsorPack.Id] = Meta[String].timap(SponsorPack.Id.from(_).right.get)(_.value)
+    implicit val sponsorPackSlugMeta: Meta[SponsorPack.Slug] = Meta[String].timap(SponsorPack.Slug.from(_).right.get)(_.value)
+    implicit val sponsorPackNameMeta: Meta[SponsorPack.Name] = Meta[String].timap(SponsorPack.Name)(_.value)
+    implicit val sponsorIdMeta: Meta[Sponsor.Id] = Meta[String].timap(Sponsor.Id.from(_).right.get)(_.value)
     implicit val userIdNelMeta: Meta[NonEmptyList[User.Id]] = Meta[String].timap(
       s => NonEmptyList.fromListUnsafe(s.split(",").filter(_.nonEmpty).map(User.Id.from(_).right.get).toList))(
       _.map(_.value).toList.mkString(","))

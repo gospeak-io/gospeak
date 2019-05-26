@@ -37,6 +37,7 @@ class SuggestCtrl(cc: ControllerComponents,
                   proposalRepo: SuggestProposalRepo,
                   partnerRepo: SuggestPartnerRepo,
                   venueRepo: SuggestVenueRepo,
+                  sponsorPackRepo: SuggestSponsorPackRepo,
                   templateSrv: TemplateSrv,
                   slackSrv: SlackSrv) extends ApiCtrl(cc) {
 
@@ -75,6 +76,14 @@ class SuggestCtrl(cc: ControllerComponents,
       venues <- OptionT.liftF(venueRepo.list(groupElt.id))
       suggestItems = venues.map { case (p, v) => SuggestedItem(v.id.value, p.name.value + " - " + v.address.value) }
     } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
+  }
+
+  def sponsorPacks(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
+      sponsorPacks <- OptionT.liftF(sponsorPackRepo.listAll(groupElt.id))
+      suggestItems = sponsorPacks.sortBy(-_.price.amount).map(sp => SuggestedItem(sp.id.value, sp.name.value + " (" + sp.price.value + ")"))
+    } yield Ok(Json.toJson(suggestItems))).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
   }
 
   def validateSlackToken(token: String): Action[AnyContent] = SecuredAction.async { implicit req =>

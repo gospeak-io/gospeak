@@ -1,6 +1,6 @@
 package fr.gospeak.core.testingutils
 
-import java.time.{Instant, LocalDateTime, ZoneOffset}
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
@@ -9,14 +9,24 @@ import fr.gospeak.libs.scalautils.domain._
 import org.scalacheck.ScalacheckShapeless._
 import org.scalacheck.{Arbitrary, Gen}
 
+import scala.concurrent.duration.{FiniteDuration, TimeUnit}
+import scala.util.Try
+
 object Generators {
   private val _ = coproductCogen // to keep the `org.scalacheck.ScalacheckShapeless._` import
   private val stringGen = implicitly[Arbitrary[String]].arbitrary
   private val nonEmptyStringGen = Gen.nonEmptyListOf(Gen.alphaChar).map(_.mkString)
   private val slugGen = Gen.nonEmptyListOf(Gen.alphaNumChar).map(_.mkString.take(SlugBuilder.maxLength).toLowerCase)
 
+  private def buildDuration(length: Long, unit: TimeUnit): FiniteDuration = Try(new FiniteDuration(length, unit)).getOrElse(buildDuration(length / 2, unit))
+
+  implicit val aFiniteDuration: Arbitrary[FiniteDuration] = Arbitrary(for {
+    length <- implicitly[Arbitrary[Long]].arbitrary
+    unit <- implicitly[Arbitrary[TimeUnit]].arbitrary
+  } yield buildDuration(length, unit))
   implicit val aInstant: Arbitrary[Instant] = Arbitrary(Gen.calendar.map(_.toInstant))
-  implicit val aLocalDateTime: Arbitrary[LocalDateTime] = Arbitrary(Gen.calendar.map(c => LocalDateTime.ofInstant(c.toInstant, ZoneOffset.UTC)))
+  implicit val aLocalDate: Arbitrary[LocalDate] = Arbitrary(Gen.calendar.map(_.toInstant.atZone(ZoneOffset.UTC).toLocalDate))
+  implicit val aLocalDateTime: Arbitrary[LocalDateTime] = Arbitrary(Gen.calendar.map(_.toInstant.atZone(ZoneOffset.UTC).toLocalDateTime))
   implicit val aMarkdown: Arbitrary[Markdown] = Arbitrary(stringGen.map(str => Markdown(str)))
   implicit val aSecret: Arbitrary[Secret] = Arbitrary(stringGen.map(str => Secret(str)))
   implicit val aSlides: Arbitrary[Slides] = Arbitrary(slugGen.map(slug => Slides.from(s"http://docs.google.com/presentation/d/$slug").right.get))
@@ -48,9 +58,14 @@ object Generators {
   implicit val aPartnerSlug: Arbitrary[Partner.Slug] = Arbitrary(slugGen.map(slug => Partner.Slug.from(slug).right.get))
   implicit val aPartnerName: Arbitrary[Partner.Name] = Arbitrary(nonEmptyStringGen.map(str => Partner.Name(str)))
   implicit val aVenueId: Arbitrary[Venue.Id] = Arbitrary(Gen.uuid.map(id => Venue.Id.from(id.toString).right.get))
+  implicit val aSponsorPackId: Arbitrary[SponsorPack.Id] = Arbitrary(Gen.uuid.map(id => SponsorPack.Id.from(id.toString).right.get))
+  implicit val aSponsorPackSlug: Arbitrary[SponsorPack.Slug] = Arbitrary(slugGen.map(slug => SponsorPack.Slug.from(slug).right.get))
+  implicit val aSponsorPackName: Arbitrary[SponsorPack.Name] = Arbitrary(nonEmptyStringGen.map(str => SponsorPack.Name(str)))
+  implicit val aSponsorId: Arbitrary[Sponsor.Id] = Arbitrary(Gen.uuid.map(id => Sponsor.Id.from(id.toString).right.get))
 
   // do not write explicit type, it will throw a NullPointerException
   implicit val aInfo = implicitly[Arbitrary[Info]]
+  implicit val aPrice = implicitly[Arbitrary[Price]]
   implicit val aGMapPlace = implicitly[Arbitrary[GMapPlace]]
   implicit val aUser = implicitly[Arbitrary[User]]
   implicit val aTalk = implicitly[Arbitrary[Talk]]
@@ -58,6 +73,7 @@ object Generators {
   implicit val aCfp = implicitly[Arbitrary[Cfp]]
   implicit val aEvent = implicitly[Arbitrary[Event]]
   implicit val aProposal = implicitly[Arbitrary[Proposal]]
+  implicit val aSponsor = implicitly[Arbitrary[Sponsor]]
 
   implicit val aTemplate = implicitly[Arbitrary[MarkdownTemplate[Any]]]
   implicit val aGroupSettingsActionTrigger = implicitly[Arbitrary[Group.Settings.Action.Trigger]]
