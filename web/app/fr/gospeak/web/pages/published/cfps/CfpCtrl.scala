@@ -43,7 +43,7 @@ class CfpCtrl(cc: ControllerComponents,
 
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
     val now = Instant.now()
-    val customParams = params.defaultOrderBy(cfpRepo.fields.end, cfpRepo.fields.name)
+    val customParams = params.defaultOrderBy(cfpRepo.fields.close, cfpRepo.fields.name)
     (for {
       cfps <- cfpRepo.listOpen(now, customParams)
     } yield Ok(html.list(cfps, now))).unsafeToFuture()
