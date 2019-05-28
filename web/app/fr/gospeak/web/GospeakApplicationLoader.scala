@@ -69,6 +69,8 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val proposalRepo: ProposalRepo = db.proposal
   lazy val partnerRepo: PartnerRepo = db.partner
   lazy val venueRepo: VenueRepo = db.venue
+  lazy val sponsorPackRepo: SponsorPackRepo = db.sponsorPack
+  lazy val sponsorRepo: SponsorRepo = db.sponsor
   lazy val settingsRepo: SettingsRepo = db.settings
   lazy val authRepo: AuthRepo = wire[AuthRepo]
 
@@ -146,6 +148,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val userGroupPartnerCtrl = wire[orga.partners.PartnerCtrl]
   lazy val userGroupPartnersVenueCtrl = wire[orga.partners.venues.VenueCtrl]
   lazy val userGroupVenueCtrl = wire[orga.venues.VenueCtrl]
+  lazy val userGroupSponsorCtrl = wire[orga.sponsors.SponsorCtrl]
   lazy val userGroupSettingsCtrl = wire[orga.settings.SettingsCtrl]
   lazy val userSpeakerCtrl = wire[speaker.SpeakerCtrl]
   lazy val userTalkCtrl = wire[TalkCtrl]

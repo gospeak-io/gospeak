@@ -2,7 +2,7 @@ package fr.gospeak.core.domain
 
 import java.time.{Instant, LocalDateTime}
 
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.{Info, TemplateData}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
 
@@ -13,7 +13,7 @@ final case class Event(id: Event.Id,
                        name: Event.Name,
                        start: LocalDateTime,
                        // duration: Option[Duration]
-                       description: MarkdownTemplate,
+                       description: MarkdownTemplate[TemplateData.EventInfo],
                        venue: Option[Venue.Id],
                        talks: Seq[Proposal.Id],
                        tags: Seq[Tag],
@@ -45,11 +45,11 @@ object Event {
   final case class Name(value: String) extends AnyVal
 
   final case class Data(cfp: Option[Cfp.Id],
-                        slug: Event.Slug,
-                        name: Event.Name,
+                        slug: Slug,
+                        name: Name,
                         start: LocalDateTime,
                         venue: Option[Venue.Id],
-                        description: MarkdownTemplate,
+                        description: MarkdownTemplate[TemplateData.EventInfo],
                         tags: Seq[Tag])
 
   object Data {

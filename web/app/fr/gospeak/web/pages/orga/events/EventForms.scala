@@ -1,5 +1,6 @@
 package fr.gospeak.web.pages.orga.events
 
+import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.domain.{Cfp, Event}
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Forms._
@@ -12,7 +13,7 @@ object EventForms {
     "name" -> eventName,
     "start" -> localDateTime,
     "venue" -> optional(venueId),
-    "description" -> template,
+    "description" -> template[TemplateData.EventInfo],
     "tags" -> tags
   )(Event.Data.apply)(Event.Data.unapply))
 

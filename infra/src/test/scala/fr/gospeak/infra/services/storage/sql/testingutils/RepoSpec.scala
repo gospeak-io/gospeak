@@ -36,6 +36,8 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val proposal: Proposal = random[Proposal]
   protected val partner: Partner = random[Partner]
   protected val venue: Venue = random[Venue]
+  protected val sponsorPack: SponsorPack = random[SponsorPack]
+  protected val sponsor: Sponsor = random[Sponsor]
   protected val params = Page.Params()
   protected val slides: Slides = random[Slides]
   protected val video: Video = random[Video]

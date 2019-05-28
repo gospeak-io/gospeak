@@ -4,13 +4,13 @@
 
 @(group: Group, settings: Group.Settings.Event, eventSettings: Form[Group.Settings.Event])(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 <div class="card mb-3">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span>Event settings</span>
-        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#eventModal">Update</button>
-    </div>
+    <div class="card-header">Event settings</div>
     <div class="card-body">
-        <h6 class="card-subtitle mb-2 text-muted">Default description</h6>
-        <p class="card-text" style="white-space: pre-line">@settings.defaultDescription.value</p>
+        <h6 class="card-subtitle mb-2 text-muted d-flex justify-content-between align-items-center">
+            <span>Default description</span>
+            <button class="btn btn-primary btn-xs" data-toggle="modal" data-target="#eventModalDescription">Update</button>
+        </h6>
+        <p class="card-text" style="white-space: pre-line; max-height: 114px; overflow: hidden;">@settings.defaultDescription.value</p>
     </div>
-    @modalEvent("eventModal", group, eventSettings)
+    @modalEventDescription("eventModalDescription", group, eventSettings)
 </div>

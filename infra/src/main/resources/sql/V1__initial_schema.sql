@@ -207,17 +207,20 @@ CREATE TABLE proposals
 
 CREATE TABLE sponsor_packs
 (
-    id          CHAR(36)      NOT NULL PRIMARY KEY,
-    group_id    CHAR(36)      NOT NULL REFERENCES groups (id),
-    slug        VARCHAR(120)  NOT NULL,
-    name        VARCHAR(120)  NOT NULL,
-    description VARCHAR(2048) NOT NULL,
-    price       REAL          NOT NULL,
-    active      BOOLEAN       NOT NULL,
-    created     TIMESTAMP     NOT NULL,
-    created_by  CHAR(36)      NOT NULL REFERENCES users (id),
-    updated     TIMESTAMP     NOT NULL,
-    updated_by  CHAR(36)      NOT NULL REFERENCES users (id)
+    id          CHAR(36)         NOT NULL PRIMARY KEY,
+    group_id    CHAR(36)         NOT NULL REFERENCES groups (id),
+    slug        VARCHAR(120)     NOT NULL,
+    name        VARCHAR(120)     NOT NULL,
+    description VARCHAR(2048)    NOT NULL,
+    price       DOUBLE PRECISION NOT NULL,
+    currency    VARCHAR(10)      NOT NULL,
+    duration    VARCHAR(20)      NOT NULL,
+    active      BOOLEAN          NOT NULL,
+    created     TIMESTAMP        NOT NULL,
+    created_by  CHAR(36)         NOT NULL REFERENCES users (id),
+    updated     TIMESTAMP        NOT NULL,
+    updated_by  CHAR(36)         NOT NULL REFERENCES users (id),
+    UNIQUE (group_id, slug)
 );
 
 CREATE TABLE sponsors
@@ -226,11 +229,12 @@ CREATE TABLE sponsors
     group_id        CHAR(36)  NOT NULL REFERENCES groups (id),
     partner_id      CHAR(36)  NOT NULL REFERENCES partners (id),
     sponsor_pack_id CHAR(36)  NOT NULL REFERENCES sponsor_packs (id),
-    contact_id      CHAR(36)  NOT NULL REFERENCES contacts (id),
-    start           TIMESTAMP NOT NULL,
-    finish          TIMESTAMP,
-    paid            TIMESTAMP,
-    paid_amount     REAL,
+    -- contact_id      CHAR(36) REFERENCES contacts (id),
+    start           DATE      NOT NULL,
+    finish          DATE      NOT NULL,
+    paid            DATE,
+    price           DOUBLE PRECISION,
+    currency        VARCHAR(10),
     created         TIMESTAMP NOT NULL,
     created_by      CHAR(36)  NOT NULL REFERENCES users (id),
     updated         TIMESTAMP NOT NULL,
@@ -239,10 +243,10 @@ CREATE TABLE sponsors
 
 CREATE TABLE settings
 (
-    target     VARCHAR(30)   NOT NULL, -- enum for the target: group or user
-    target_id  CHAR(36)      NOT NULL, -- id for the target
-    value      VARCHAR(2048) NOT NULL, -- json serialized settings
-    updated    TIMESTAMP     NOT NULL,
-    updated_by CHAR(36)      NOT NULL REFERENCES users (id),
+    target     VARCHAR(30) NOT NULL, -- enum for the target: group or user
+    target_id  CHAR(36)    NOT NULL, -- id for the target
+    value      VARCHAR     NOT NULL, -- json serialized settings
+    updated    TIMESTAMP   NOT NULL,
+    updated_by CHAR(36)    NOT NULL REFERENCES users (id),
     UNIQUE (target, target_id)
 );

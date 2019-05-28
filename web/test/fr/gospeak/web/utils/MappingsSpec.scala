@@ -1,6 +1,7 @@
 package fr.gospeak.web.utils
 
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 
 import fr.gospeak.core.domain._
 import fr.gospeak.core.testingutils.Generators._
@@ -14,6 +15,15 @@ import scala.concurrent.duration.FiniteDuration
 
 class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
   describe("Mappings") {
+    it("should bind & unbind a Double") {
+      forAll { v: Double =>
+        val data = double.unbind(v)
+        double.bind(data) shouldBe Right(v)
+      }
+      double.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
+      double.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.real"), Seq())))
+      double.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.real"), Seq())))
+    }
     it("should bind & unbind a Instant") {
       forAll { v: Instant =>
         val data = instant.unbind(v)
@@ -23,14 +33,23 @@ class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
       instant.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.datetime"), Seq())))
       instant.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.datetime"), Seq())))
     }
+    it("should bind & unbind a TimeUnit") {
+      forAll { v: TimeUnit =>
+        val data = timeUnit.unbind(v)
+        timeUnit.bind(data) shouldBe Right(v)
+      }
+      timeUnit.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
+      timeUnit.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
+      timeUnit.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
+    }
     it("should bind & unbind a FiniteDuration") {
       forAll { v: FiniteDuration =>
         val data = duration.unbind(v)
         duration.bind(data).map(_.toMinutes) shouldBe Right(v.toMinutes)
       }
-      duration.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
-      duration.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.number"), Seq())))
-      duration.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.number"), Seq())))
+      duration.bind(Map()) shouldBe Left(Seq(FormError("length", Seq("error.required"), Seq()), FormError("unit", Seq("error.required"), Seq())))
+      duration.bind(Map("length" -> "", "unit" -> "")) shouldBe Left(Seq(FormError("length", Seq("error.number"), Seq()), FormError("unit", Seq("error.format"), Seq())))
+      duration.bind(Map("length" -> "wrong", "unit" -> "wrong")) shouldBe Left(Seq(FormError("length", Seq("error.number"), Seq()), FormError("unit", Seq("error.format"), Seq())))
     }
     it("should bind & unbind a EmailAddress") {
       forAll { v: EmailAddress =>
@@ -143,7 +162,7 @@ class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
       }
     }
     it("should bind & unbind a Template") {
-      forAll { v: MarkdownTemplate =>
+      forAll { v: MarkdownTemplate[Any] =>
         val data = template.unbind(v)
         template.bind(data) shouldBe Right(v)
       }

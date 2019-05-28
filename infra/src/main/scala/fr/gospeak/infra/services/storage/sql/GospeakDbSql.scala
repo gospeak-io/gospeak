@@ -28,16 +28,18 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
 
   def dropTables(): IO[Done] = IO(flyway.clean()).map(_ => Done)
 
-  val user = new UserRepoSql(xa)
-  val userRequest = new UserRequestRepoSql(xa)
-  val talk = new TalkRepoSql(xa)
-  val group = new GroupRepoSql(xa)
-  val cfp = new CfpRepoSql(xa)
-  val partner = new PartnerRepoSql(xa)
-  val venue = new VenueRepoSql(xa)
-  val event = new EventRepoSql(xa)
-  val proposal = new ProposalRepoSql(xa)
-  val settings = new SettingsRepoSql(xa)
+  override val user = new UserRepoSql(xa)
+  override val userRequest = new UserRequestRepoSql(xa)
+  override val talk = new TalkRepoSql(xa)
+  override val group = new GroupRepoSql(xa)
+  override val cfp = new CfpRepoSql(xa)
+  override val partner = new PartnerRepoSql(xa)
+  override val venue = new VenueRepoSql(xa)
+  override val sponsorPack = new SponsorPackRepoSql(xa)
+  override val sponsor = new SponsorRepoSql(xa)
+  override val event = new EventRepoSql(xa)
+  override val proposal = new ProposalRepoSql(xa)
+  override val settings = new SettingsRepoSql(xa)
 
   def insertHTData(mongoUri: String): IO[Done] = {
     val dbName = mongoUri.split('?').head.split('/').last

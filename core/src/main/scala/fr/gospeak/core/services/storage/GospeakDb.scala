@@ -8,6 +8,8 @@ trait GospeakDb {
   val cfp: CfpRepo
   val partner: PartnerRepo
   val venue: VenueRepo
+  val sponsorPack: SponsorPackRepo
+  val sponsor: SponsorRepo
   val event: EventRepo
   val proposal: ProposalRepo
   val settings: SettingsRepo

@@ -10,7 +10,7 @@ object JsonFormats {
   implicit val suggestedItemWrites: Writes[SuggestedItem] = Json.writes[SuggestedItem]
   implicit val validationResultWrites: Writes[ValidationResult] = Json.writes[ValidationResult]
   implicit val templateDataResponseWrites: Writes[TemplateDataResponse] = Json.writes[TemplateDataResponse]
-  implicit val templateReads: Reads[MarkdownTemplate] = (json: JsValue) => json.validate[String].map(MarkdownTemplate.Mustache)
+  implicit def templateReads[A]: Reads[MarkdownTemplate[A]] = (json: JsValue) => json.validate[String].map(MarkdownTemplate.Mustache[A])
   implicit val templateDataRefReads: Reads[TemplateData.Ref] = (json: JsValue) => json.validate[String].flatMap(TemplateData.Ref.from(_).toJsResult(_.getMessage))
   implicit val templateRequestReads: Reads[TemplateRequest] = Json.reads[TemplateRequest]
   implicit val htmlWrites: Writes[Html] = (o: Html) => JsString(o.value)

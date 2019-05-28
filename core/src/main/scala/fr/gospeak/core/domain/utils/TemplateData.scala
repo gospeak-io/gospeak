@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 import fr.gospeak.core.domain
 import fr.gospeak.core.domain.utils.GospeakMessage.Linked
 import fr.gospeak.libs.scalautils.StringUtils._
-import fr.gospeak.libs.scalautils.domain.CustomException
+import fr.gospeak.libs.scalautils.domain.{CustomException, MarkdownTemplate}
 
 /*
   Formatted data for user templates (mustache for example)
@@ -50,7 +50,7 @@ object TemplateData {
 
   final case class Proposal(link: String, title: String, description: Description, slides: Option[String], video: Option[String], tags: Seq[String])
 
-  final case class EventVenue(name: String, address: String, logo: String, url: String)
+  final case class EventVenue(name: String, address: String, logoUrl: String, addressUrl: String)
 
   final case class TalkSpeaker(link: String, publicLink: Option[String], name: String, avatar: String)
 
@@ -86,16 +86,16 @@ object TemplateData {
     private val proposal = Proposal(s"${cfp.link}/proposals/28f26543-1ab8-4749-b0ac-786d1bd76888", "The Scala revolution", description, None, None, Seq("scala", "fp"))
     private val eventVenue = EventVenue("Zeenea", "48 Rue de Ponthieu, 75008 Paris", "https://www.zeenea.com/wp-content/uploads/2019/01/zeenea-logo-424x112-1.png", "https://maps.google.com/?cid=3360768160548514744")
     private val talkSpeaker = TalkSpeaker(s"${group.link}/speakers/john-doe", Some(s"$host/speakers/empty"), "John Doe", "https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=wavatar")
-    private val eventTalk = EventTalk(s"${cfp.link}/proposals/28f26543-1ab8-4749-b0ac-786d1bd76888", Some("TODO"), "The Scala revolution", proposal.description, Seq(talkSpeaker), Seq("scala", "FP"))
+    private val eventTalk = EventTalk(s"${cfp.link}/proposals/28f26543-1ab8-4749-b0ac-786d1bd76888", Some(s"$host/groups/humantalks-paris/talks/28f26543-1ab8-4749-b0ac-786d1bd76888"), "The Scala revolution", proposal.description, Seq(talkSpeaker), Seq("scala", "FP"))
 
     private val eventCreated = EventCreated(group = group, event = event, user = user)
     private val talkAdded = TalkAdded(group = group, event = event, cfp = cfp, proposal = proposal, user = user)
     private val talkRemoved = TalkRemoved(group = group, event = event, cfp = cfp, proposal = proposal, user = user)
     private val eventPublished = EventPublished()
     private val proposalCreated = ProposalCreated(group, cfp, proposal, user)
-    private val eventInfo = EventInfo(group, event, Some(eventVenue), Some(cfp), Seq(eventTalk))
+    val eventInfo = EventInfo(group, event, Some(eventVenue), Some(cfp), Seq(eventTalk))
 
-    val all: Seq[TemplateData] = Seq(eventCreated, talkAdded, talkRemoved, eventPublished, proposalCreated, eventInfo)
+    private[utils] val all = Seq(eventCreated, talkAdded, talkRemoved, eventPublished, proposalCreated, eventInfo)
     private val map = all.map(d => (d.ref, d)).toMap
 
     def fromRef(ref: Ref): Option[TemplateData] = map.get(ref)
@@ -169,6 +169,31 @@ object TemplateData {
 
   object EventInfo {
     val ref: Ref = Ref.from(classOf[EventInfo].getSimpleName).right.get
+  }
+
+  object Static {
+    val defaultEventDescription: MarkdownTemplate.Mustache[EventInfo] = MarkdownTemplate.Mustache[TemplateData.EventInfo](
+      """Hi everyone, welcome to **{{event.name}}**!
+        |
+        |
+        |{{#venue}}
+        |This month we are hosted by **{{name}}**, at *[{{address}}]({{addressUrl}})*
+        |
+        |![{{name}} logo]({{logoUrl}})
+        |{{/venue}}
+        |
+        |
+        |{{#talks}}
+        |{{#-first}}For this session we are happy to have the following talks:{{/-first}}
+        |
+        |- **{{title}}** by {{#speakers}}*{{name}}*{{^-last}}, {{/-last}}{{/speakers}}
+        |
+        |{{description.short2}} {{#publicLink}}[see more]({{.}}){{/publicLink}}
+        |{{/talks}}
+        |
+        |
+        |For the next sessions, propose your talks on [Gospeak]({{cfp.publicLink}})
+      """.stripMargin.trim)
   }
 
 }

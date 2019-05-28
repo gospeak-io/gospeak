@@ -1,0 +1,10 @@
+@import fr.gospeak.libs.scalautils.domain.Price.Currency
+@(field: Field, args: Seq[(String, String)] = Seq())
+<div class="row">
+    <div class="col">
+        @inputNumber(field("amount"), args)
+    </div>
+    <div class="col">
+        @inputSelect(field("currency"), Currency.all.map(c => (c.value, c.name)), ("placeholder", "currency") +: args)
+    </div>
+</div>

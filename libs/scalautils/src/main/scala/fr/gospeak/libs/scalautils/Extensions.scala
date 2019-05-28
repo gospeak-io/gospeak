@@ -129,6 +129,8 @@ object Extensions {
       case None => Left(e)
     }
 
+    def toEither: Either[Throwable, A] = toEither(new NoSuchElementException("None.toEither"))
+
     def toIO(e: => Throwable): IO[A] = in match {
       case Some(v) => IO.pure(v)
       case None => IO.raiseError(e)
@@ -194,7 +196,7 @@ object Extensions {
 
   implicit class IOExtension[A](val in: IO[A]) extends AnyVal {
     def filter(p: A => Boolean): IO[A] =
-      in.flatMap(v => if (p(v)) IO.pure(v) else IO.raiseError(new NoSuchElementException("Predicate does not hold for " + v)))
+      in.flatMap(v => if (p(v)) IO.pure(v) else IO.raiseError(new NoSuchElementException(s"Predicate does not hold for $v")))
 
     def mapFailure(f: Throwable => Throwable): IO[A] = {
       in.recoverWith { case NonFatal(e) => IO.raiseError(f(e)) }

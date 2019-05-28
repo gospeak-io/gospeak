@@ -1,0 +1,20 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Group, Sponsor}
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.orga.partials.html.{container, sponsorFields}
+@import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
+@import fr.gospeak.web.pages.partials.form.html._
+
+@(group: Group, form: Form[Sponsor.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", group, b)() {
+    <h1 class="page-header">Save a sponsor</h1>
+
+    @formElt(form, SponsorCtrl.doCreate(group.slug)) {
+        @sponsorFields(form, group)
+        @actionsHorizontal() {
+            @btnCancel(SponsorCtrl.list(group.slug))
+            @btnSubmit("Create")
+        }
+    }
+}()

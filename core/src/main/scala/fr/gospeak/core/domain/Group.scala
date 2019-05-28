@@ -3,7 +3,7 @@ package fr.gospeak.core.domain
 import java.time.Instant
 
 import cats.data.NonEmptyList
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.{Info, TemplateData}
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackCredentials}
 import fr.gospeak.libs.scalautils.domain._
 
@@ -58,28 +58,7 @@ object Group {
         twitter = None,
         youtube = None),
       actions = Map(),
-      event = Event(MarkdownTemplate.Mustache(
-        """Hi everyone, welcome to **{{event.name}}**!
-          |
-          |
-          |{{#venue}}
-          |This month we are hosted by **{{name}}**, at *[{{address}}]({{url}})*
-          |
-          |![{{name}} logo]({{logo}})
-          |{{/venue}}
-          |
-          |
-          |{{#talks}}
-          |{{#-first}}For this session we are happy to have the following talks:{{/-first}}
-          |
-          |- **{{title}}** by {{#speakers}}*{{name}}*{{^-last}}, {{/-last}}{{/speakers}}
-          |
-          |{{description.short2}} {{#publicLink}}[see more]({{.}}){{/publicLink}}
-          |{{/talks}}
-          |
-          |
-          |For the next sessions, propose your talks on [Gospeak]({{cfp.publicLink}})
-        """.stripMargin.trim)))
+      event = Event(TemplateData.Static.defaultEventDescription))
 
     final case class Accounts(slack: Option[SlackCredentials],
                               meetup: Option[String],
@@ -115,7 +94,7 @@ object Group {
 
     }
 
-    final case class Event(defaultDescription: MarkdownTemplate)
+    final case class Event(defaultDescription: MarkdownTemplate[TemplateData.EventInfo])
 
   }
 

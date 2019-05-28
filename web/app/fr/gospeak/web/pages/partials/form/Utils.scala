@@ -1,5 +1,8 @@
 package fr.gospeak.web.pages.partials.form
 
+import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeUnit
+
 import fr.gospeak.web.utils.Mappings
 import play.api.data.Field
 import play.api.i18n.Messages
@@ -10,6 +13,18 @@ import scala.util.matching.Regex
 object Utils {
   type Args = Seq[(String, String)]
   type Constraint = (String, Seq[Any])
+
+  val timeUnits: Seq[(String, String)] = Seq(
+    TimeUnit.MINUTES.name() -> "Minutes",
+    TimeUnit.HOURS.name() -> "Hours",
+    TimeUnit.DAYS.name() -> "Days")
+  val chronoUnits: Seq[(String, String)] = Seq(
+    ChronoUnit.MINUTES.name() -> "Minutes",
+    ChronoUnit.HOURS.name() -> "Hours",
+    ChronoUnit.DAYS.name() -> "Days",
+    ChronoUnit.WEEKS.name() -> "Weeks",
+    ChronoUnit.MONTHS.name() -> "Months",
+    ChronoUnit.YEARS.name() -> "Years")
 
   def typeAttr(value: String): Html =
     attr("type", value)
