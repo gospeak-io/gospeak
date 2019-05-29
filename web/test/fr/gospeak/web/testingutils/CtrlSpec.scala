@@ -12,9 +12,10 @@ import com.typesafe.config.ConfigFactory
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.services.storage.sql.{DatabaseConf, GospeakDbSql}
-import fr.gospeak.web.{AppConf, GospeakComponents}
+import fr.gospeak.infra.services.{GravatarSrv, InMemoryEmailSrv}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
-import fr.gospeak.web.auth.services.AuthSrv
+import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv}
+import fr.gospeak.web.{AppConf, GospeakComponents}
 import org.scalatest.{FunSpec, Matchers}
 import org.scalatestplus.play.components.OneAppPerSuiteWithComponents
 import play.api.BuiltInComponents
@@ -50,4 +51,7 @@ trait CtrlSpec extends FunSpec with Matchers with RandomDataGenerator with OneAp
   // app
   protected val conf: AppConf = AppConf.load(ConfigFactory.load()).get
   protected val db: GospeakDbSql = new GospeakDbSql(DatabaseConf.H2(s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"))
+  private val authRepo = new AuthRepo(db.user, db.group)
+  protected val emailSrv = new InMemoryEmailSrv()
+  protected val authSrv = AuthSrv(conf.auth, silhouette, db.user, db.userRequest, db.group, authRepo, clock, new GravatarSrv())
 }

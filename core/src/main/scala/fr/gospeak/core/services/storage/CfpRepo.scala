@@ -56,5 +56,5 @@ trait SuggestCfpRepo {
 
 object CfpFields {
   val name = "name"
-  val end = "end"
+  val close = "close"
 }
