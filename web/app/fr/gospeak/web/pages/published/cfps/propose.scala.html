@@ -3,6 +3,7 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.auth.routes.AuthCtrl
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.published.cfps.CfpForms.Create
@@ -11,14 +12,14 @@
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(cfp: Cfp, talks: Page[Talk], form: Form[Create])(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(cfp: Cfp, talks: Page[Talk], form: Form[Create])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @talkItem(talk: Talk) = {
     <a href="@ProposalCtrl.create(talk.slug, cfp.slug)" class="list-group-item list-group-item-action">
         <h5 class="mb-0">@talk.title.value</h5>
         <span>@talkStatus(talk.status) @duration(talk.duration) @slidesIcon(talk.slides) @videoIcon(talk.video)</span>
     </a>
 }
-@container(cfp.name.value + " - Talk proposal - Gospeak")() {
+@container(cfp.name.value + " - Talk proposal - Gospeak", b)() {
     <h1>Propose a talk to @cfp.name.value</h1>
     <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
 

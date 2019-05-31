@@ -1,9 +1,10 @@
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 @import fr.gospeak.core.domain.User
 @import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.published.partials.html.container
 
-@(speaker: User)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
-@container("Gospeak")() {
+@(speaker: User)(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", b)() {
     <h1>@speaker.name.value</h1>
 }()

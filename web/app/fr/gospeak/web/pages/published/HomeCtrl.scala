@@ -10,8 +10,10 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{EmailAddress, Markdown, MarkdownTemplate, Page, Tag}
+import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
+import fr.gospeak.web.domain.Breadcrumb
+import fr.gospeak.web.pages.published.HomeCtrl._
 import fr.gospeak.web.utils.UICtrl
 import org.joda.time.DateTime
 import play.api.mvc._
@@ -24,7 +26,8 @@ class HomeCtrl(cc: ControllerComponents,
   import silhouette._
 
   def index(): Action[AnyContent] = UserAwareAction { implicit req =>
-    Ok(html.index())
+    val b = breadcrumb()
+    Ok(html.index()(b))
   }
 
   private val now = Instant.now()
@@ -126,4 +129,9 @@ class HomeCtrl(cc: ControllerComponents,
     implicit val messages = req.messages
     Ok(html.styleguide(user, group, cfp, event, talk, proposal, Instant.now(), params))
   }
+}
+
+object HomeCtrl {
+  def breadcrumb(): Breadcrumb =
+    Breadcrumb("Home" -> routes.HomeCtrl.index())
 }
