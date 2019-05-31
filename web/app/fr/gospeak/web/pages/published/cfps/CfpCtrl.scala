@@ -15,7 +15,9 @@ import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.emails.Emails
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
-import fr.gospeak.web.domain.GospeakMessageBus
+import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus}
+import fr.gospeak.web.pages.published.cfps.CfpCtrl._
+import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
@@ -38,7 +40,8 @@ class CfpCtrl(cc: ControllerComponents,
   import silhouette._
 
   def gettingStarted(): Action[AnyContent] = UserAwareAction { implicit req =>
-    Ok(html.gettingStarted())
+    val b = gettingStartedBreadcrumb()
+    Ok(html.gettingStarted()(b))
   }
 
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
@@ -46,13 +49,15 @@ class CfpCtrl(cc: ControllerComponents,
     val customParams = params.defaultOrderBy(cfpRepo.fields.close, cfpRepo.fields.name)
     (for {
       cfps <- cfpRepo.listOpen(now, customParams)
-    } yield Ok(html.list(cfps, now))).unsafeToFuture()
+      b = listBreadcrumb()
+    } yield Ok(html.list(cfps, now)(b))).unsafeToFuture()
   }
 
   def detail(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction.async { implicit req =>
     (for {
       cfpElt <- OptionT(cfpRepo.find(cfp))
-    } yield Ok(html.detail(cfpElt))).value.map(_.getOrElse(publicCfpNotFound(cfp))).unsafeToFuture()
+      b = breadcrumb(cfpElt)
+    } yield Ok(html.detail(cfpElt)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp))).unsafeToFuture()
   }
 
   def propose(cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
@@ -73,6 +78,7 @@ class CfpCtrl(cc: ControllerComponents,
             proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers, identity.user.id, now))
             groupElt <- OptionT(groupRepo.find(cfpElt.group))
             _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt, identity, nowLDT))
+            b = listBreadcrumb() // replace
             msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
           } yield Redirect(ProposalCtrl.detail(talkElt.slug, cfp)).flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp)))
         }.getOrElse {
@@ -88,7 +94,8 @@ class CfpCtrl(cc: ControllerComponents,
     (for {
       cfpElt <- OptionT(cfpRepo.findOpen(cfp, now))
       talks <- OptionT.liftF(userOpt.map(talkRepo.listActive(_, cfpElt.id, params)).getOrElse(IO.pure(Page.empty[Talk])))
-    } yield Ok(html.propose(cfpElt, talks, form))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
+      b = proposeTalkBreadcrumb(cfpElt)
+    } yield Ok(html.propose(cfpElt, talks, form)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
   }
 
   def doProposeSignup(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction.async { implicit req =>
@@ -144,7 +151,8 @@ class CfpCtrl(cc: ControllerComponents,
   private def proposeConnectForm(cfp: Cfp.Slug, signupForm: Form[CfpForms.ProposalSignupData], loginForm: Form[CfpForms.ProposalLoginData], now: Instant)(implicit req: UserAwareRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
       cfpElt <- OptionT(cfpRepo.findOpen(cfp, now))
-    } yield Ok(html.proposeConnect(cfpElt, signupForm, loginForm))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
+      b = proposeTalkBreadcrumb(cfpElt)
+    } yield Ok(html.proposeConnect(cfpElt, signupForm, loginForm)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
   }
 
   private def proposeConnectForm(cfp: Cfp.Slug, now: Instant, error: String, signupData: Option[CfpForms.ProposalSignupData] = None, loginData: Option[CfpForms.ProposalLoginData] = None)(implicit req: UserAwareRequest[CookieEnv, AnyContent]): IO[Result] =
@@ -154,4 +162,18 @@ class CfpCtrl(cc: ControllerComponents,
       loginData.map(CfpForms.login.fill(_).withGlobalError(error)).getOrElse(CfpForms.login.bindFromRequest),
       now
     )
+}
+
+object CfpCtrl {
+  def listBreadcrumb(): Breadcrumb =
+    HomeCtrl.breadcrumb().add("Cfps" -> routes.CfpCtrl.list())
+
+  def breadcrumb(cfp: Cfp): Breadcrumb =
+    listBreadcrumb().add(cfp.name.value -> routes.CfpCtrl.detail(cfp.slug))
+
+  def gettingStartedBreadcrumb(): Breadcrumb =
+    listBreadcrumb().add("Getting Started" -> routes.CfpCtrl.gettingStarted())
+
+  def proposeTalkBreadcrumb(cfp: Cfp): Breadcrumb =
+    breadcrumb(cfp).add("Propose talk" -> routes.CfpCtrl.propose(cfp.slug))
 }

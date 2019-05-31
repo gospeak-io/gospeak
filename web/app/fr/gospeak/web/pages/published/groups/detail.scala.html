@@ -1,13 +1,14 @@
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 @import fr.gospeak.core.domain.{Cfp, Group}
 @import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.html._
 @import fr.gospeak.web.pages.partials.display.html.markdown
 @import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 
-@(group: Group, cfps: Seq[Cfp])(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
-@container(group.name.value + " - Gospeak")() {
+@(group: Group, cfps: Seq[Cfp])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@container(group.name.value + " - Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@group.name.value</span>
         @cfps.length match {

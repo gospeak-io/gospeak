@@ -1,12 +1,13 @@
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 @import fr.gospeak.core.domain.Cfp
 @import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.partials.display.html.markdown
 
-@(cfp: Cfp)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
-@container(cfp.name.value + " - Gospeak")() {
+@(cfp: Cfp)(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@container(cfp.name.value + " - Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@cfp.name.value</span>
         <a class="btn btn-primary" href="@CfpCtrl.propose(cfp.slug)">Propose a talk</a>

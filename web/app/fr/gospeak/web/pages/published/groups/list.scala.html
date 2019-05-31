@@ -2,12 +2,13 @@
 @import fr.gospeak.core.domain.Group
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.pages.published.partials.html.{container, groupItem}
 @import fr.gospeak.web.utils.Formats
 
-@(groups: Page[Group])(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
-@container("Gospeak - groups")() {
+@(groups: Page[Group])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak - groups", b)() {
     <h1>Groups (TODO)</h1>
     @Formats.paginated[Group](groups, GroupCtrl.list, groupItem(_))
 }()

@@ -1,13 +1,14 @@
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.auth.routes.AuthCtrl
-@import fr.gospeak.web.pages.partials.container.html.{flash, main, navbarLink, userDropdown}
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.partials.container.html.{breadcrumb, flash, main, navbarLink, userDropdown}
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.pages.published.routes.HomeCtrl
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 
-@(title: String)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @main(title, style, script) {
     <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
         <div class="container">
@@ -32,6 +33,7 @@
             </div>
         </div>
     </nav>
+    @breadcrumb(b)
     <div class="container">
         @flash(req.flash)
         @content

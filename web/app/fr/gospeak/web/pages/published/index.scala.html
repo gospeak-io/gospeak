@@ -1,9 +1,10 @@
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 @import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.published.partials.html.container
 
-@()(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
-@container("Gospeak")() {
+@()(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", b)() {
     <h1 class="home-title">Gospeak</h1>
 
     <div class="card-deck">
