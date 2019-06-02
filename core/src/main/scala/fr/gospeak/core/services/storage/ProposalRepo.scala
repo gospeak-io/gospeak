@@ -55,7 +55,9 @@ trait SpeakerProposalRepo {
   def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]]
 }
 
-trait UserProposalRepo
+trait UserProposalRepo {
+  def list(user: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Cfp, Proposal)]]
+}
 
 trait AuthProposalRepo
 

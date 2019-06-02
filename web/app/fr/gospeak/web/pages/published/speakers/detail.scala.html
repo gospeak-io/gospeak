@@ -1,72 +1,34 @@
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
-@import fr.gospeak.core.domain.{Cfp, Proposal, Talk, User}
+@import fr.gospeak.core.domain.{Cfp, Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.speaker.partials.html.proposalItem
-@import fr.gospeak.web.utils.Formats._
+@import fr.gospeak.web.pages.published.partials.html.{container, speakerCard, talkItem, groupItem}
+@import fr.gospeak.web.domain.Breadcrumb
 
-@(speaker: User, acceptedProposals: Page[(Cfp, Proposal)])(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
-@container(speaker.name.value + " - Gospeak")() {
-    <div class="media">
-        <div class="card shadow-sm mr-5" style="width: 300px">
-            <img src="@speaker.avatar.url.value" class="avatar align-self-center" alt="avatar">
-            <div class="card-body">
-                <h5 class="card-title mb-0">@speaker.name.value<br>
-                    <h6 class="text-secondary font-weight-normal font-italic">@speaker.slug
-                        @speaker.profile.twitter.map { l => <a class="no-style" href="@l"> <i class="fab fa-twitter"></i></a> }
-                        @speaker.profile.linkedin.map { l => <a class="no-style" href="@l"> <i class="fab fa-linkedin"></i></a> }</h6>
-                    <br>
-                </h5>
-                <p class="card-text">
-            <p>@speaker.profile.description </p>
-                @speaker.profile.location.map { l => <i class="fas fa-map-marker-alt"></i> @l } <br>
-                @speaker.profile.webSite.map { l => <i class="fas fa-globe"></i> <a class="no-style" href="@l"> @l</a> } <br>
-
-                <a href="mailto:@speaker.email.value">@speaker.email.value</a>
-                </p>
-
-            </div>
+@(speaker: User, acceptedProposals: Page[(Cfp, Proposal)], ownedGroups: Page[Group])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@container(speaker.name.value + " - Gospeak", b)() {
+    <div class="row">
+        <div class="col-4">
+            @speakerCard(speaker)
         </div>
-        <div class="media-body">
-            <h1 class="mt-0 mb-3">Talks</h1>
-            <div>
-            @acceptedProposals.items.map { proposal =>
-                <div class="list-group-item d-flex justify-content-between align-items-center">
-                    <h5 class="mb-1">
-                        <a ref="#">@proposal._2.title.value</a>
-                    </h5>
-                    <span>
-                        @duration(proposal._2.duration)
-                        @slidesIcon(proposal._2.slides)
-                        @videoIcon(proposal._2.video)
-                        @tags(proposal._2.tags)
-                        <small>Proposed on @date(proposal._2.info.created)</small>
-                    </span>
+        <div class="col-8">
+            @if(acceptedProposals.nonEmpty) {
+                <h2 class="mt-0 mb-3">Talks</h2>
+                <div>
+                @acceptedProposals.items.map { proposal =>
+                  @talkItem(proposal)
+                }
                 </div>
             }
-            </div>
-
-            <h1 class="mt-0 mb-3">Groups</h1>
-            <div>
-            @acceptedProposals.items.map { proposal =>
-                <div class="list-group-item d-flex justify-content-between align-items-center">
-                    <h5 class="mb-1">
-                        <a ref="#">@proposal._2.title.value</a>
-                    </h5>
-                    <span>
-                        @duration(proposal._2.duration)
-                        @slidesIcon(proposal._2.slides)
-                        @videoIcon(proposal._2.video)
-                        @tags(proposal._2.tags)
-                        <small>Proposed on @date(proposal._2.info.created)</small>
-                    </span>
+            @if(ownedGroups.nonEmpty) {
+                <h2 class="mt-0 mb-3 mt-3">Organises</h2>
+                <div>
+                @ownedGroups.items.map { group =>
+                    @groupItem(group)
+                }
                 </div>
             }
-            </div>
         </div>
     </div>
 }()

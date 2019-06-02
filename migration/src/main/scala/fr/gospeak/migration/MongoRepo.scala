@@ -1,6 +1,5 @@
 package fr.gospeak.migration
 
-import fr.gospeak.libs.scalautils.domain.Url
 import fr.gospeak.migration.domain._
 import fr.gospeak.migration.domain.utils.{Coords, GMapPlace, MeetupRef, Meta}
 import reactivemongo.api.collections.bson.BSONCollection

@@ -37,13 +37,12 @@ CREATE TABLE users
     avatar_source   VARCHAR(20)  NOT NULL,
     published       TIMESTAMP,
     description     VARCHAR(2048),
-    shirt           VARCHAR(5),
     company         VARCHAR(36),
     location        VARCHAR(36),
-    twitter         VARCHAR(36),
-    linkedin        VARCHAR(36),
+    twitter         VARCHAR(200),
+    linkedin        VARCHAR(200),
     phone           VARCHAR(36),
-    webSite         VARCHAR(36),
+    webSite         VARCHAR(200),
     created         TIMESTAMP    NOT NULL,
     updated         TIMESTAMP    NOT NULL
 );

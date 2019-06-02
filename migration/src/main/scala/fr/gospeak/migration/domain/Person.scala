@@ -3,7 +3,7 @@ package fr.gospeak.migration.domain
 import java.time.Instant
 
 import fr.gospeak.core.domain.User
-import fr.gospeak.core.domain.User.{Profile, Shirt}
+import fr.gospeak.core.domain.User.Profile
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.StringUtils
 import fr.gospeak.libs.scalautils.domain.{EmailAddress, Url}
@@ -26,7 +26,6 @@ case class Person(id: String, // Person.Id,
     val avatar = AvatarUtils.buildAvatarQuick(data.avatar, email)
     val profile: Profile = Profile(
       description = data.description,
-      shirt = data.shirt.map(Shirt.from(_).getOrElse(User.Shirt.NotAValidSize)),
       company = data.company,
       location = data.location,
       twitter = data.twitter.map(Url.from(_).get),
@@ -58,7 +57,6 @@ case class PersonData(name: String,
                       phone: Option[String],
                       webSite: Option[String],
                       avatar: Option[String],
-                      shirt: Option[String], // Option[Person.Shirt.Value], (XS_M, S_F, S_M, M_F, M_M, L_F, L_M, XL_M)
                       description: Option[String])
 
 case class PersonAuth(loginInfo: LoginInfo,

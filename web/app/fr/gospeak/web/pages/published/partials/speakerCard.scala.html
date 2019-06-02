@@ -1,0 +1,22 @@
+@import fr.gospeak.core.domain.User
+@import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+
+@(speaker: User)
+<div class="card shadow-sm">
+    <img src="@speaker.avatar.url.value" class="avatar-lg align-self-center mt-1" alt="avatar">
+    <div class="card-body">
+        <h5 class="card-title mb-0">@speaker.name.value <br>
+            <h6 class="text-secondary font-weight-normal font-italic">@speaker.slug
+                @speaker.profile.twitter.map { l => <a class="no-style" href="@l"> <i class="fab fa-twitter"></i></a> }
+                @speaker.profile.linkedin.map { l => <a class="no-style" href="@l"> <i class="fab fa-linkedin"></i></a> }</h6>
+        </h5>
+        <p class="card-text">
+    <p>@speaker.profile.description </p>
+        <p class="text-secondary font-italic">
+            @speaker.profile.location.map { l => <i class="fas fa-map-marker-alt"></i> @l <br> }
+            @speaker.profile.webSite.map { l => <i class="fas fa-globe"></i> <a class="no-style" href="@l"> @l</a> <br> }
+            @speaker.profile.phone.map { l => <i class="fas fa-phone"></i> <a class="no-style" href="@l"> @l</a> <br> }
+            <a href="mailto:@speaker.email.value" class="no-style"><i class="fas fa-envelope"></i> @speaker.email.value</a>
+        </p>
+    </div>
+</div>

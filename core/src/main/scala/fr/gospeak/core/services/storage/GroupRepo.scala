@@ -29,6 +29,8 @@ trait AuthGroupRepo {
 trait PublicGroupRepo {
   def listPublic(params: Page.Params): IO[Page[Group]]
 
+  def findPublic(user: User.Id, params: Page.Params): IO[Page[Group]]
+
   def findPublic(group: Group.Slug): IO[Option[Group]]
 
   def find(group: Group.Id): IO[Option[Group]]

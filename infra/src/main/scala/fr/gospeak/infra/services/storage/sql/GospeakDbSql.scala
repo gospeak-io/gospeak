@@ -129,7 +129,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       Venue(Venue.Id.generate(), partner.id, address, Markdown(description), roomSize, Info(by.id, now))
 
     val userDemoProfil = User.Profile(Some("Entrepreneur, functional programmer, OSS contributor, speaker, author. Work hard, stay positive, and live fearlessly."),
-      Some(User.Shirt.XL), Some("Zeenea"), Some("Paris"), Some(Url.from("https://twitter.com/HumanTalks").get), Some(Url.from("https://twitter.com/HumanTalks").get), None, Some(Url.from("https://humantalks.com/").get))
+      Some("Zeenea"), Some("Paris"), Some(Url.from("https://twitter.com/HumanTalks").get), Some(Url.from("https://twitter.com/HumanTalks").get), None, Some(Url.from("https://humantalks.com/").get))
     val userDemo = user("demo", "demo@mail.com", "Demo", "User", userDemoProfil)
     val userSpeaker = user("speaker", "speaker@mail.com", "Speaker", "User")
     val userOrga = user("orga", "orga@mail.com", "Orga", "User")
