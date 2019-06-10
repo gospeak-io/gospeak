@@ -1,6 +1,6 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.core.domain.{Event, Group, UserRequest}
+import fr.gospeak.core.domain.{Event, Group, Partner, SponsorPack, UserRequest}
 import fr.gospeak.libs.scalautils.domain.{Page, Url}
 import play.api.mvc.QueryStringBindable
 import fr.gospeak.libs.scalautils.Extensions._
@@ -59,5 +59,23 @@ object QueryStringBindables {
 
       override def unbind(key: String, value: Group.Settings.Action.Trigger): String =
         stringBinder.unbind(key, value.toString)
+    }
+
+  implicit def partnerSlugQueryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[Partner.Slug] =
+    new QueryStringBindable[Partner.Slug] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Partner.Slug]] =
+        stringBinder.bind(key, params).map(_.flatMap(u => Partner.Slug.from(u).left.map(_.getMessage)))
+
+      override def unbind(key: String, value: Partner.Slug): String =
+        stringBinder.unbind(key, value.value)
+    }
+
+  implicit def sponsorPackSlugQueryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[SponsorPack.Slug] =
+    new QueryStringBindable[SponsorPack.Slug] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, SponsorPack.Slug]] =
+        stringBinder.bind(key, params).map(_.flatMap(u => SponsorPack.Slug.from(u).left.map(_.getMessage)))
+
+      override def unbind(key: String, value: SponsorPack.Slug): String =
+        stringBinder.unbind(key, value.value)
     }
 }

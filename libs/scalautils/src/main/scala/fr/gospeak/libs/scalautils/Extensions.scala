@@ -211,6 +211,13 @@ object Extensions {
     }
   }
 
+  implicit class OptionIOExtension[A](val in: Option[IO[A]]) extends AnyVal {
+    def sequence: IO[Option[A]] = in match {
+      case Some(io) => io.map(Some(_))
+      case None => IO.pure(None)
+    }
+  }
+
   private def sequenceResult[A, M[X] <: TraversableOnce[X]](in: (mutable.Builder[A, M[A]], Seq[Throwable])): Try[M[A]] = {
     val (results, errors) = in
     NonEmptyList.fromList(errors.reverse.toList)

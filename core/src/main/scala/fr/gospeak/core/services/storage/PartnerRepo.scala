@@ -15,6 +15,8 @@ trait OrgaPartnerRepo {
 
   def list(group: Group.Id, params: Page.Params): IO[Page[Partner]]
 
+  def list(ids: Seq[Partner.Id]): IO[Seq[Partner]]
+
   def find(group: Group.Id, slug: Partner.Slug): IO[Option[Partner]]
 }
 

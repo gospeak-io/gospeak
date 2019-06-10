@@ -2,7 +2,9 @@ package fr.gospeak.infra.services.storage.sql
 
 import java.time.Instant
 
+import cats.data.NonEmptyList
 import cats.effect.IO
+import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
@@ -34,6 +36,8 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def list(group: Group.Id): IO[Seq[Partner]] = run(selectAll(group).to[List])
 
+  override def list(ids: Seq[Partner.Id]): IO[Seq[Partner]] = runIn(selectAll)(ids)
+
   override def find(group: Group.Id, slug: Partner.Slug): IO[Option[Partner]] = run(selectOne(group, slug).option)
 }
 
@@ -63,6 +67,9 @@ object PartnerRepoSql {
 
   private[sql] def selectAll(group: Group.Id): doobie.Query0[Partner] =
     buildSelect(tableFr, fieldsFr, fr"WHERE group_id=$group").query[Partner]
+
+  private[sql] def selectAll(ids: NonEmptyList[Partner.Id]): doobie.Query0[Partner] =
+    buildSelect(tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids)).query[Partner]
 
   private[sql] def selectOne(group: Group.Id, slug: Partner.Slug): doobie.Query0[Partner] =
     buildSelect(tableFr, fieldsFr, where(group, slug)).query[Partner]
