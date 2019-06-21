@@ -1,7 +1,7 @@
 package fr.gospeak.web.utils
 
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDateTime, ZoneOffset}
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 import java.util.Locale
 
 import fr.gospeak.core.domain.Cfp
@@ -20,6 +20,8 @@ object Formats {
   def date(i: Instant): String = df.format(i)
 
   def date(d: LocalDateTime): String = df.format(d)
+
+  def date(d: LocalDate): String = df.format(d)
 
   def datetime(i: Instant): String = dtf.format(i)
 

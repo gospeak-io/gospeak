@@ -1,9 +1,12 @@
 @import fr.gospeak.core.domain.{Group, SponsorPack}
+@import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 
 @(group: Group, sponsorPack: SponsorPack)
-<a class="list-group-item d-flex justify-content-between align-items-center">
+<div class="list-group-item d-flex justify-content-between align-items-center @if(!sponsorPack.active) {list-group-item-light}">
     <div>
-        <h5 class="mb-1">@sponsorPack.name.value</h5>
-        <p>@sponsorPack</p>
+        <a href="@SponsorCtrl.detail(group.slug, sponsorPack.slug)"><b>@sponsorPack.name.value</b></a>, @sponsorPack.price.value for @sponsorPack.duration.value
     </div>
-</a>
+    <div>
+        <a href="@SponsorCtrl.create(group.slug, sponsorPack.slug)" class="btn btn-primary btn-sm">Add sponsor</a>
+    </div>
+</div>

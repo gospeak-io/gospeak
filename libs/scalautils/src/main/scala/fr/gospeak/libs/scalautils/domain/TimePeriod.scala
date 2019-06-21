@@ -16,7 +16,7 @@ case class TimePeriod(length: Long, unit: ChronoUnit) {
       .map(u => Success(new FiniteDuration(length, u)))
       .getOrElse(Try(new FiniteDuration(length * unit.getDuration.getSeconds, TimeUnit.SECONDS).toCoarsest))
 
-  def value: String = s"$length $unit"
+  def value: String = if (length == 1) s"$length $unit".stripSuffix("s") else s"$length $unit"
 }
 
 object TimePeriod {
@@ -27,7 +27,7 @@ object TimePeriod {
     str.split(" ") match {
       case Array(length, unit) => for {
         l <- Try(length.toLong)
-        u <- ChronoUnit.values().find(_.toString == unit).toTry(CustomException(s"No enum constant java.time.temporal.ChronoUnit for '$unit'"))
+        u <- ChronoUnit.values().find(_.toString.startsWith(unit)).toTry(CustomException(s"No enum constant java.time.temporal.ChronoUnit for '$unit'"))
       } yield TimePeriod(l, u)
       case _ => Failure(CustomException("Invalid format for TimePeriod, expects: 'length unit'"))
     }
