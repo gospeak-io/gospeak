@@ -4,7 +4,7 @@
 <div class="form-group @Utils.getArg(args, "class")">
     <label for="@Utils.id(field, args)">@Utils.getArg(args, "label", field.name)</label>
     @input(field, Seq(Utils.getArg(args, "help").map(_ => "help" -> Utils.helpId(args, field))).flatten)
-    @if(field.hasErrors && field.errors.nonEmpty) {
+    @if(Utils.hasErrors(field)) {
         <div class="invalid-feedback">
             @Utils.getArg(args, "help").map { help => @helpText(field, args, help) }
             @field.errors.map(_.format).mkString(", ")
