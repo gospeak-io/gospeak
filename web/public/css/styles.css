@@ -77,6 +77,12 @@
     min-width: 50px;
 }
 
+.card .avatar-lg {
+    height: 200px;
+    min-width: 100px;
+    border-radius: 50%;
+}
+
 .media .avatar {
     height: 100px;
     min-width: 100px;
@@ -119,6 +125,10 @@
 .home-title {
     text-align: center;
     margin: 50px auto;
+}
+
+a.no-style {
+    color: inherit;
 }
 
 .event-item, .proposal-item {

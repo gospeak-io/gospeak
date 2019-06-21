@@ -1,10 +1,34 @@
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
-@import fr.gospeak.core.domain.User
+@import fr.gospeak.core.domain.{Cfp, Group, Proposal, User}
+@import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.pages.published.partials.html.{container, speakerCard, talkItem, groupItem}
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.published.partials.html.container
 
-@(speaker: User)(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
-@container("Gospeak", b)() {
-    <h1>@speaker.name.value</h1>
+@(speaker: User, acceptedProposals: Page[(Cfp, Proposal)], ownedGroups: Page[Group])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@container(speaker.name.value + " - Gospeak", b)() {
+    <div class="row">
+        <div class="col-4">
+            @speakerCard(speaker)
+        </div>
+        <div class="col-8">
+            @if(acceptedProposals.nonEmpty) {
+                <h2 class="mt-0 mb-3">Talks</h2>
+                <div>
+                @acceptedProposals.items.map { proposal =>
+                  @talkItem(proposal)
+                }
+                </div>
+            }
+            @if(ownedGroups.nonEmpty) {
+                <h2 class="mt-0 mb-3 mt-3">Organises</h2>
+                <div>
+                @ownedGroups.items.map { group =>
+                    @groupItem(group)
+                }
+                </div>
+            }
+        </div>
+    </div>
 }()

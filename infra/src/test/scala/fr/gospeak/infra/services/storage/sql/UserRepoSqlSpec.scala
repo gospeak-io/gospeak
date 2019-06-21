@@ -10,7 +10,7 @@ class UserRepoSqlSpec extends RepoSpec {
   private val pass = Password(Hasher("hasher"), PasswordValue("password"), Some(Salt("salt")))
   private val loginRef = LoginRef(login, user.id)
   private val credentials = Credentials(login, pass)
-  private val fields = "id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, published, created, updated"
+  private val fields = "id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, published, description, company, location, twitter, linkedin, phone, webSite, created, updated"
 
   describe("UserRepoSql") {
     it("should create and retrieve a user") {
@@ -76,12 +76,12 @@ class UserRepoSqlSpec extends RepoSpec {
       }
       it("should build insert") {
         val q = insert(user)
-        q.sql shouldBe s"INSERT INTO users ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO users ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update") {
         val q = update(user)
-        q.sql shouldBe "UPDATE users SET slug=?, first_name=?, last_name=?, email=?, updated=? WHERE id=?"
+        q.sql shouldBe "UPDATE users SET slug=?, first_name=?, last_name=?, email=?, description=?, company=?, location=?, twitter=?, linkedin=?, phone=?, webSite=?, updated=? WHERE id=?"
         check(q)
       }
       it("should build validateAccount") {

@@ -15,7 +15,7 @@ GET         /groups/:group                                                      
 #GET         /groups/:group/talks                                         fr.gospeak.web.??? # group public talks
 
 GET         /speakers                                                           fr.gospeak.web.pages.published.speakers.SpeakerCtrl.list(params: Page.Params ?= Page.Params.defaults)
-GET         /speakers/:speaker                                                  fr.gospeak.web.pages.published.speakers.SpeakerCtrl.detail(speaker: User.Slug)
+GET         /speakers/:speaker                                                  fr.gospeak.web.pages.published.speakers.SpeakerCtrl.detail(speaker: User.Slug, params: Page.Params ?= Page.Params.defaults)
 
 GET         /signup                                                             fr.gospeak.web.auth.AuthCtrl.signup(redirect: Option[String] ?= None)
 POST        /signup                                                             fr.gospeak.web.auth.AuthCtrl.doSignup(redirect: Option[String] ?= None)
@@ -96,7 +96,9 @@ POST        /u/groups/:group/settings/add-action                                
 POST        /u/groups/:group/settings/remove-action                             fr.gospeak.web.pages.orga.settings.SettingsCtrl.removeAction(group: Group.Slug, trigger: Group.Settings.Action.Trigger, index: Int)
 POST        /u/groups/:group/settings/event                                     fr.gospeak.web.pages.orga.settings.SettingsCtrl.updateEventSettings(group: Group.Slug)
 
-GET         /u/profile                                                          fr.gospeak.web.pages.speaker.SpeakerCtrl.profile
+GET         /u/profile                                                          fr.gospeak.web.pages.speaker.SpeakerCtrl.profile(params: Page.Params ?= Page.Params.defaults)
+GET         /u/edit-profile                                                     fr.gospeak.web.pages.speaker.SpeakerCtrl.getProfile(params: Page.Params ?= Page.Params.defaults)
+POST        /u/profile                                                          fr.gospeak.web.pages.speaker.SpeakerCtrl.editProfile()
 GET         /u/talks                                                            fr.gospeak.web.pages.speaker.talks.TalkCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /u/talks/create                                                     fr.gospeak.web.pages.speaker.talks.TalkCtrl.create
 POST        /u/talks/create                                                     fr.gospeak.web.pages.speaker.talks.TalkCtrl.doCreate

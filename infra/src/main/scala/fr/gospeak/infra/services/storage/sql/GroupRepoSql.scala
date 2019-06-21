@@ -24,6 +24,8 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listPublic(params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPagePublic, params))
 
+  override def findPublic(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPagePublic(user, _), params))
+
   override def list(user: User.Id): IO[Seq[Group]] = run(selectAll(user).to[List])
 
   override def find(user: User.Id, slug: Group.Slug): IO[Option[Group]] = run(selectOne(user, slug).option)
@@ -56,6 +58,11 @@ object GroupRepoSql {
 
   private[sql] def selectPagePublic(params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE published IS NOT NULL"))
+    (buildSelect(tableFr, fieldsFr, page.all).query[Group], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+  }
+
+  private[sql] def selectPagePublic(user: User.Id, params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
+    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE published IS NOT NULL AND owners LIKE ${"%" + user.value + "%"}"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Group], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 

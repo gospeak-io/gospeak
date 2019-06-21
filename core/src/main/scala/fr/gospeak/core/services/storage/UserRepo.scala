@@ -27,6 +27,8 @@ trait AuthUserRepo {
 
   def edit(user: User, now: Instant): IO[User]
 
+  def edit(user: User, profile: User.EditableFields, now: Instant): IO[User]
+
   def createLoginRef(login: User.Login, user: User.Id): IO[Done]
 
   def createCredentials(credentials: User.Credentials): IO[User.Credentials]

@@ -1,9 +1,131 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.core.domain.{Cfp, Group, Proposal, User}
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.speaker.partials.html.container
+@import fr.gospeak.web.pages.partials.form.Utils
 
-@()(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@import fr.gospeak.core.domain.User
+@import fr.gospeak.web.pages.published.partials.html.{groupItem, speakerCard, talkItem}
+@import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
+@import fr.gospeak.core.domain.User.EditableFields
+
+@(form: Form[EditableFields], acceptedProposals: Page[(Cfp, Proposal)] = Page.empty[(Cfp, Proposal)], ownedGroups: Page[Group] = Page.empty[Group])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", b)() {
-    <h1>Profile (TODO)</h1>
+    @formElt(form, SpeakerCtrl.editProfile()) {
+        <div class="row">
+            <div class="col">
+                <div class="float-right">
+                    @btnCancel(SpeakerCtrl.profile())
+                    @btnSubmit("Update Profile")
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <div class="card shadow-sm">
+                    <img src="@req.identity.user.avatar.url.value" class="avatar-lg align-self-center mt-1" alt="avatar">
+                    <div class="card-body">
+                        <div class="form-group @if(form("first-name").errors.nonEmpty || form("last-name").errors.nonEmpty) {is-invalid}">
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                </div>
+                                @inputText(form("first-name"), Seq("placeholder" -> "First Name", "autofocus" -> "true"))
+                                @inputText(form("last-name"), Seq("placeholder" -> "Last Name"))
+                            </div>
+                            <div class="row">
+                                <div class="col invalid-feedback">@form("first-name").errors.map(_.format).mkString(", ")</div>
+                                <div class="col invalid-feedback">@form("last-name").errors.map(_.format).mkString(", ")</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group @if(form("email").errors.nonEmpty) {is-invalid}">
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                </div>
+                                @inputEmail(form("email"), Seq("placeholder" -> "Email"))
+                            </div>
+                            <div class="invalid-feedback">@form("email").errors.map(_.format).mkString(", ")</div>
+                        </div>
+                        <div class="input-group input-group-sm mb-3">
+                        @inputTextarea(form("description"), Seq("placeholder" -> "Add a bio", "rows" -> "3"))
+                        </div>
+
+                        <div class="form-group">
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-sitemap"></i></span>
+                                </div>
+                                @inputText(form("company"), Seq("placeholder" -> "Company"))
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                </div>
+                                @inputText(form("location"), Seq("placeholder" -> "location"))
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group input-group-sm mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fab fa-linkedin"></i></span>
+                                </div>
+                                @inputText(form("linkedin"))
+                            </div>
+                            <div class="row">
+                                <div class="col invalid-feedback">@form("linkedin").errors.map(_.format).mkString(", ")</div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fab fa-twitter"></i></span>
+                                    </div>
+                                    @inputText(form("twitter"))
+                                </div>
+                                <div class="row">
+                                    <div class="col invalid-feedback">@form("twitter").errors.map(_.format).mkString(", ")</div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-globe"></i></span>
+                                    </div>
+                                    @inputText(form("web-site"), Seq("placeholder" -> "WebSite"))
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    </div>
+                                    @inputText(form("phone"))
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-8">
+                @if(acceptedProposals.nonEmpty) {
+                    <h2 class="mt-0 mb-3">Accepted talks</h2>
+                    <div>
+                    @acceptedProposals.items.map { proposal =>
+                        @talkItem(proposal)
+                    }
+                    </div>
+                }
+                @if(ownedGroups.nonEmpty) {
+                    <h2 class="mt-0 mb-3 mt-3">Organises</h2>
+                    <div>
+                    @ownedGroups.items.map { group =>
+                        @groupItem(group)
+                    }
+                    </div>
+                }
+            </div>
+        </div>
+    }
 }()
