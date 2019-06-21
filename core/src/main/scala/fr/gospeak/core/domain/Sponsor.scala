@@ -13,7 +13,7 @@ case class Sponsor(id: Sponsor.Id,
                    start: LocalDate,
                    finish: LocalDate,
                    paid: Option[LocalDate],
-                   price: Option[Price],
+                   price: Price,
                    info: Info) {
   def data: Sponsor.Data = Sponsor.Data(this)
 }
@@ -31,7 +31,7 @@ object Sponsor {
                         start: LocalDate,
                         finish: LocalDate,
                         paid: Option[LocalDate],
-                        price: Option[Price])
+                        price: Price)
 
   object Data {
     def apply(s: Sponsor): Data = new Data(s.partner, s.pack, s.start, s.finish, s.paid, s.price)

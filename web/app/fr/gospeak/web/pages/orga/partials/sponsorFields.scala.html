@@ -1,23 +1,25 @@
-@import fr.gospeak.core.domain.{Group, Sponsor}
+@import fr.gospeak.core.domain.{Group, Sponsor, SponsorPack, Partner}
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 
-@(form: Form[Sponsor.Data], group: Group)(implicit messages: Messages)
-@fieldHorizontal(form("partner"), Seq("label" -> "Partner", "help" -> "The sponsoring partner")) { (field, args) =>
-    @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.partners(group.slug).toString) ++ args)
+@(form: Form[Sponsor.Data], group: Group, pack: SponsorPack, partner: Option[Partner])(implicit messages: Messages)
+@inputHidden(form("pack"), Seq("value" -> pack.id.value))
+@partner.map { p =>
+    @inputHidden(form("partner"), Seq("value" -> p.id.value))
+}.getOrElse {
+    @fieldHorizontal(form("partner"), Seq("label" -> "Partner", "help" -> "The sponsoring partner")) { (field, args) =>
+        @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.partners(group.slug).toString) ++ args)
+    }
 }
-@fieldHorizontal(form("pack"), Seq("label" -> "Pack", "help" -> "The chosen pack")) { (field, args) =>
-    @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.sponsorPacks(group.slug).toString) ++ args)
-}
-@fieldHorizontal(form("start"), Seq("label" -> "Start", "help" -> "When the sponsoring start")) { (field, args) =>
-    @inputLocalDate(field, Seq("placeholder" -> "ex: 2019-07-14") ++ args)
-}
-@fieldHorizontal(form("finish"), Seq("label" -> "Finish", "help" -> "When the sponsoring finish")) { (field, args) =>
-    @inputLocalDate(field, Seq("placeholder" -> "ex: 2019-07-14") ++ args)
-}
-@fieldHorizontal(form("paid"), Seq("label" -> "Paid", "help" -> "When the sponsoring was paid")) { (field, args) =>
-    @inputLocalDate(field, Seq("placeholder" -> "ex: 2019-07-14") ++ args)
+@fieldHorizontal(form("start"), Seq("label" -> "Period", "help" -> "Sponsoring period")) { (field, args) =>
+    <div class="row">
+        <div class="col">@inputLocalDate(field, Seq("placeholder" -> "ex: 2019-07-14") ++ args)</div>
+        <div class="col">@inputLocalDate(form("finish"), Seq("placeholder" -> "ex: 2019-07-14") ++ args)</div>
+    </div>
 }
 @fieldHorizontal(form("price"), Seq("label" -> "Price", "help" -> "The paid price (useful when pack price changes)")) { (field, args) =>
     @inputPrice(field, args)
+}
+@fieldHorizontal(form("paid"), Seq("label" -> "Paid", "help" -> "When the sponsoring was paid")) { (field, args) =>
+    @inputLocalDate(field, Seq("placeholder" -> "ex: 2019-07-14") ++ args)
 }

@@ -46,6 +46,11 @@
     border-radius: .2rem;
 }
 
+.select2-container--bootstrap .select2-selection--single {
+    height: 38px;
+    padding: 8px 24px 8px 12px;
+}
+
 /* My styles */
 
 .footer {

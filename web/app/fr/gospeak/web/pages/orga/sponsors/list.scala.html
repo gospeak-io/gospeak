@@ -1,13 +1,13 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Group, SponsorPack, Sponsor}
+@import fr.gospeak.core.domain.{Group, Partner, Sponsor, SponsorPack}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.{container, sponsorPackItem, sponsorItem}
+@import fr.gospeak.web.pages.orga.partials.html.{container, sponsorItem, sponsorPackItem}
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, sponsorPacks: Seq[SponsorPack], sponsors: Page[Sponsor])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, sponsorPacks: Seq[SponsorPack], sponsors: Page[Sponsor], partners: Seq[Partner])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(group.name.value + " - Gospeak", group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span class="text-capitalize">@Formats.plural(sponsorPacks.length, "sponsor pack")</span>
@@ -23,11 +23,7 @@
             @sponsorPacks.map { sp => @sponsorPackItem(group, sp) }
         </div>
 
-        @* If no sponsor pack, no sponsor can exist  *@
-        <h1 class="d-flex justify-content-between align-items-center">
-            <span class="text-capitalize">@Formats.plural(sponsors.total.value, "sponsor")</span>
-            <a class="btn btn-primary" href="@SponsorCtrl.create(group.slug)">Create a sponsor</a>
-        </h1>
-        @Formats.paginated[Sponsor](sponsors, SponsorCtrl.list(group.slug, _), i => sponsorItem(group, i))
+        <h1 class="text-capitalize">@Formats.plural(sponsors.total.value, "sponsor")</h1>
+        @Formats.paginated[Sponsor](sponsors, SponsorCtrl.list(group.slug, _), i => sponsorItem(group, i, sponsorPacks, partners))
     }
 }()

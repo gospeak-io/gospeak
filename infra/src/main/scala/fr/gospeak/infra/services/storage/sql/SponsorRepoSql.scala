@@ -7,7 +7,7 @@ import cats.effect.IO
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.core.domain.{Group, Sponsor, User}
+import fr.gospeak.core.domain.{Group, Partner, Sponsor, User}
 import fr.gospeak.core.services.storage.SponsorRepo
 import fr.gospeak.infra.services.storage.sql.SponsorRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
@@ -23,9 +23,14 @@ class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
   override def edit(group: Group.Id, sponsor: Sponsor.Id)(data: Sponsor.Data, by: User.Id, now: Instant): IO[Done] =
     run(update(group, sponsor)(data, by, now))
 
+  override def remove(group: Group.Id, sponsor: Sponsor.Id): IO[Done] =
+    run(delete(group, sponsor))
+
   override def find(group: Group.Id, sponsor: Sponsor.Id): IO[Option[Sponsor]] = run(selectOne(group, sponsor).option)
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[Sponsor]] = run(Queries.selectPage(selectPage(group, _), params))
+
+  override def listAll(group: Group.Id, partner: Partner.Id): IO[Seq[Sponsor]] = run(selectAll(group, partner).to[List])
 }
 
 object SponsorRepoSql {
@@ -38,14 +43,17 @@ object SponsorRepoSql {
   private val defaultSort: Page.OrderBy = Page.OrderBy("-start")
 
   private def values(e: Sponsor): Fragment =
-    fr0"${e.id}, ${e.group}, ${e.partner}, ${e.pack}, ${e.start}, ${e.finish}, ${e.paid}, ${e.price.map(_.amount)}, ${e.price.map(_.currency)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.group}, ${e.partner}, ${e.pack}, ${e.start}, ${e.finish}, ${e.paid}, ${e.price.amount}, ${e.price.currency}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   private[sql] def insert(elt: Sponsor): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
   private[sql] def update(group: Group.Id, sponsor: Sponsor.Id)(data: Sponsor.Data, by: User.Id, now: Instant): doobie.Update0 = {
-    val fields = fr0"partner_id=${data.partner}, sponsor_pack_id=${data.pack}, start=${data.start}, finish=${data.finish}, paid=${data.paid}, price=${data.price.map(_.amount)}, currency=${data.price.map(_.currency)}, updated=$now, updated_by=$by"
+    val fields = fr0"partner_id=${data.partner}, sponsor_pack_id=${data.pack}, start=${data.start}, finish=${data.finish}, paid=${data.paid}, price=${data.price.amount}, currency=${data.price.currency}, updated=$now, updated_by=$by"
     buildUpdate(tableFr, fields, where(group, sponsor)).update
   }
+
+  private[sql] def delete(group: Group.Id, sponsor: Sponsor.Id): doobie.Update0 =
+    buildDelete(tableFr, where(group, sponsor)).update
 
   private[sql] def selectOne(group: Group.Id, pack: Sponsor.Id): doobie.Query0[Sponsor] =
     buildSelect(tableFr, fieldsFr, where(group, pack)).query[Sponsor]
@@ -55,9 +63,15 @@ object SponsorRepoSql {
     (buildSelect(tableFr, fieldsFr, page.all).query[Sponsor], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 
+  private[sql] def selectAll(group: Group.Id, partner: Partner.Id): doobie.Query0[Sponsor] =
+    buildSelect(tableFr, fieldsFr, where(group, partner)).query[Sponsor]
+
   private def where(group: Group.Id, sponsor: Sponsor.Id): Fragment =
     fr0"WHERE group_id=$group AND id=$sponsor"
 
   private def where(group: Group.Id): Fragment =
     fr0"WHERE group_id=$group"
+
+  private def where(group: Group.Id, partner: Partner.Id): Fragment =
+    fr0"WHERE group_id=$group AND partner_id=$partner"
 }

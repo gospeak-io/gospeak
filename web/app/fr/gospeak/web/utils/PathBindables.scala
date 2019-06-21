@@ -84,4 +84,20 @@ object PathBindables {
     override def unbind(key: String, id: TemplateData.Ref): String =
       id.value
   }
+
+  implicit def sponsorPackSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[SponsorPack.Slug] = new PathBindable[SponsorPack.Slug] {
+    override def bind(key: String, value: String): Either[String, SponsorPack.Slug] =
+      stringBinder.bind(key, value).flatMap(SponsorPack.Slug.from(_).left.map(_.getMessage))
+
+    override def unbind(key: String, slug: SponsorPack.Slug): String =
+      slug.value
+  }
+
+  implicit def sponsorIdPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Sponsor.Id] = new PathBindable[Sponsor.Id] {
+    override def bind(key: String, value: String): Either[String, Sponsor.Id] =
+      stringBinder.bind(key, value).flatMap(Sponsor.Id.from(_).left.map(_.getMessage))
+
+    override def unbind(key: String, id: Sponsor.Id): String =
+      id.value
+  }
 }

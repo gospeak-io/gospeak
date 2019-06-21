@@ -20,6 +20,6 @@ object SponsorForms {
     "start" -> localDate,
     "finish" -> localDate,
     "paid" -> optional(localDate),
-    "price" -> optional(price)
+    "price" -> price
   )(Sponsor.Data.apply)(Sponsor.Data.unapply))
 }

@@ -175,5 +175,5 @@ object CfpCtrl {
     listBreadcrumb().add("Getting Started" -> routes.CfpCtrl.gettingStarted())
 
   def proposeTalkBreadcrumb(cfp: Cfp): Breadcrumb =
-    breadcrumb(cfp).add("Propose talk" -> routes.CfpCtrl.propose(cfp.slug))
+    breadcrumb(cfp).add("Proposing a talk" -> routes.CfpCtrl.propose(cfp.slug))
 }
