@@ -232,20 +232,20 @@ CREATE TABLE sponsor_packs
 
 CREATE TABLE sponsors
 (
-    id              CHAR(36)  NOT NULL PRIMARY KEY,
-    group_id        CHAR(36)  NOT NULL REFERENCES groups (id),
-    partner_id      CHAR(36)  NOT NULL REFERENCES partners (id),
-    sponsor_pack_id CHAR(36)  NOT NULL REFERENCES sponsor_packs (id),
+    id              CHAR(36)         NOT NULL PRIMARY KEY,
+    group_id        CHAR(36)         NOT NULL REFERENCES groups (id),
+    partner_id      CHAR(36)         NOT NULL REFERENCES partners (id),
+    sponsor_pack_id CHAR(36)         NOT NULL REFERENCES sponsor_packs (id),
     -- contact_id      CHAR(36) REFERENCES contacts (id),
-    start           DATE      NOT NULL,
-    finish          DATE      NOT NULL,
+    start           DATE             NOT NULL,
+    finish          DATE             NOT NULL,
     paid            DATE,
-    price           DOUBLE PRECISION,
-    currency        VARCHAR(10),
-    created         TIMESTAMP NOT NULL,
-    created_by      CHAR(36)  NOT NULL REFERENCES users (id),
-    updated         TIMESTAMP NOT NULL,
-    updated_by      CHAR(36)  NOT NULL REFERENCES users (id)
+    price           DOUBLE PRECISION NOT NULL,
+    currency        VARCHAR(10)      NOT NULL,
+    created         TIMESTAMP        NOT NULL,
+    created_by      CHAR(36)         NOT NULL REFERENCES users (id),
+    updated         TIMESTAMP        NOT NULL,
+    updated_by      CHAR(36)         NOT NULL REFERENCES users (id)
 );
 
 CREATE TABLE settings

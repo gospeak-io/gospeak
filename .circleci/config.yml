@@ -8,7 +8,7 @@ jobs:
       - SBT_VERSION: 1.2.8
     steps:
       - run: echo 'export ARTIFACT_BUILD=$CIRCLE_PROJECT_REPONAME-$CIRCLE_BUILD_NUM.zip' >> $BASH_ENV
-      - run: export SBT_OPTS="-Xms2048M -Xmx2048M -Xss2M -XX:MaxMetaspaceSize=1024M"
+      - run: export SBT_OPTS="-Xms3072M -Xmx3072M -Xss2M -XX:MaxMetaspaceSize=1024M"
       - run:
           name: Get sbt binary
           command: |
