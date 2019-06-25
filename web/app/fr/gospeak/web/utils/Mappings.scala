@@ -33,27 +33,27 @@ object Mappings {
 
   val double: Mapping[Double] = of(doubleFormat)
   val instant: Mapping[Instant] = stringEitherMapping(s => Try(LocalDateTime.parse(s).toInstant(ZoneOffset.UTC)).toEither, _.atZone(ZoneOffset.UTC).toLocalDateTime.toString, datetimeError) // FIXME manage timezone
-  val chronoUnit: Mapping[ChronoUnit] = stringEitherMapping(d => Try(ChronoUnit.valueOf(d)).toEither, _.name())
+  val chronoUnit: Mapping[ChronoUnit] = stringEitherMapping(d => Try(ChronoUnit.valueOf(d)).toEither, _.name(), formatError)
   val period: Mapping[TimePeriod] = mapping(
     "length" -> longNumber,
     "unit" -> chronoUnit
   )(TimePeriod.apply)(TimePeriod.unapply)
-  val timeUnit: Mapping[TimeUnit] = stringEitherMapping(d => Try(TimeUnit.valueOf(d)).toEither, _.name())
+  val timeUnit: Mapping[TimeUnit] = stringEitherMapping(d => Try(TimeUnit.valueOf(d)).toEither, _.name(), formatError)
   val duration: Mapping[FiniteDuration] = mapping(
     "length" -> longNumber,
     "unit" -> timeUnit
   )(new FiniteDuration(_, _))(d => Some(d.length -> d.unit))
-  val emailAddress: Mapping[EmailAddress] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(100)), (s: String) => EmailAddress.from(s).right.get, _.value)
-  val url: Mapping[Url] = stringEitherMapping(Url.from, _.value)
-  val slides: Mapping[Slides] = stringEitherMapping(Slides.from, _.value)
-  val video: Mapping[Video] = stringEitherMapping(Video.from, _.value)
+  val emailAddress: Mapping[EmailAddress] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(Values.maxLength.title)), (s: String) => EmailAddress.from(s).right.get, _.value)
+  val url: Mapping[Url] = stringEitherMapping(Url.from, _.value, formatError, Constraints.maxLength(Values.maxLength.title))
+  val slides: Mapping[Slides] = stringEitherMapping(Slides.from, _.value, formatError, Constraints.maxLength(Values.maxLength.title))
+  val video: Mapping[Video] = stringEitherMapping(Video.from, _.value, formatError, Constraints.maxLength(Values.maxLength.title))
   val secret: Mapping[Secret] = textMapping(Secret, _.decode)
   val password: Mapping[Secret] = secret.verifying(Constraint[Secret](passwordConstraint) { o =>
     if (o.decode.length >= 8) PlayValid
     else PlayInvalid(ValidationError(passwordError))
   })
-  val markdown: Mapping[Markdown] = textMapping(Markdown, _.value)
-  val currency: Mapping[Price.Currency] = stringEitherMapping(Price.Currency.from(_).toEither, _.value)
+  val markdown: Mapping[Markdown] = textMapping(Markdown, _.value, Constraints.maxLength(Values.maxLength.text))
+  val currency: Mapping[Price.Currency] = stringEitherMapping(Price.Currency.from(_).toEither, _.value, formatError)
   val price: Mapping[Price] = mapping(
     "amount" -> double,
     "currency" -> currency
@@ -101,21 +101,21 @@ object Mappings {
 
   val userSlug: Mapping[User.Slug] = slugMapping(User.Slug)
   val groupSlug: Mapping[Group.Slug] = slugMapping(Group.Slug)
-  val groupName: Mapping[Group.Name] = nonEmptyTextMapping(Group.Name, _.value)
+  val groupName: Mapping[Group.Name] = nonEmptyTextMapping(Group.Name, _.value, Constraints.maxLength(Values.maxLength.title))
   val eventSlug: Mapping[Event.Slug] = slugMapping(Event.Slug)
-  val eventName: Mapping[Event.Name] = nonEmptyTextMapping(Event.Name, _.value)
+  val eventName: Mapping[Event.Name] = nonEmptyTextMapping(Event.Name, _.value, Constraints.maxLength(Values.maxLength.title))
   val cfpId: Mapping[Cfp.Id] = idMapping(Cfp.Id)
   val cfpSlug: Mapping[Cfp.Slug] = slugMapping(Cfp.Slug)
-  val cfpName: Mapping[Cfp.Name] = nonEmptyTextMapping(Cfp.Name, _.value)
+  val cfpName: Mapping[Cfp.Name] = nonEmptyTextMapping(Cfp.Name, _.value, Constraints.maxLength(Values.maxLength.title))
   val talkSlug: Mapping[Talk.Slug] = slugMapping(Talk.Slug)
-  val talkTitle: Mapping[Talk.Title] = nonEmptyTextMapping(Talk.Title, _.value)
+  val talkTitle: Mapping[Talk.Title] = nonEmptyTextMapping(Talk.Title, _.value, Constraints.maxLength(Values.maxLength.title))
   val partnerId: Mapping[Partner.Id] = idMapping(Partner.Id)
   val partnerSlug: Mapping[Partner.Slug] = slugMapping(Partner.Slug)
-  val partnerName: Mapping[Partner.Name] = nonEmptyTextMapping(Partner.Name, _.value)
+  val partnerName: Mapping[Partner.Name] = nonEmptyTextMapping(Partner.Name, _.value, Constraints.maxLength(Values.maxLength.title))
   val venueId: Mapping[Venue.Id] = idMapping(Venue.Id)
   val sponsorPackId: Mapping[SponsorPack.Id] = idMapping(SponsorPack.Id)
   val sponsorPackSlug: Mapping[SponsorPack.Slug] = slugMapping(SponsorPack.Slug)
-  val sponsorPackName: Mapping[SponsorPack.Name] = nonEmptyTextMapping(SponsorPack.Name, _.value)
+  val sponsorPackName: Mapping[SponsorPack.Name] = nonEmptyTextMapping(SponsorPack.Name, _.value, Constraints.maxLength(Values.maxLength.title))
   val slackToken: Mapping[SlackToken] = nonEmptyTextMapping(SlackToken, _.value)
 
   private def templateFormatter[A]: Formatter[MarkdownTemplate[A]] = new Formatter[MarkdownTemplate[A]] {
@@ -163,14 +163,14 @@ object Mappings {
   })
 
   private[utils] object Utils {
-    def textMapping[A](from: String => A, to: A => String): Mapping[A] =
-      WrappedMapping(text, from, to)
+    def textMapping[A](from: String => A, to: A => String, constraints: Constraint[String]*): Mapping[A] =
+      WrappedMapping(text.verifying(constraints: _*), from, to)
 
-    def nonEmptyTextMapping[A](from: String => A, to: A => String): Mapping[A] =
-      WrappedMapping(nonEmptyText, from, to)
+    def nonEmptyTextMapping[A](from: String => A, to: A => String, constraints: Constraint[String]*): Mapping[A] =
+      WrappedMapping(nonEmptyText.verifying(constraints: _*), from, to)
 
-    def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, errorMessage: String = formatError): Mapping[A] =
-      WrappedMapping(text.verifying(format(from, errorMessage)), (s: String) => from(s).right.get, to)
+    def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, errorMessage: String, constraints: Constraint[String]*): Mapping[A] =
+      WrappedMapping(text.verifying(constraints: _*).verifying(format(from, errorMessage)), (s: String) => from(s).right.get, to)
 
     def idMapping[A <: IId](builder: UuidIdBuilder[A]): Mapping[A] =
       WrappedMapping(text.verifying(Constraints.nonEmpty()), (s: String) => builder.from(s).right.get, _.value)

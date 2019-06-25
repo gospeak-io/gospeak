@@ -4,7 +4,7 @@ import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
 import fr.gospeak.web.utils.Mappings
-import play.api.data.Field
+import play.api.data.{Field, FormError}
 import play.api.i18n.Messages
 import play.twirl.api.Html
 
@@ -42,13 +42,19 @@ object Utils {
     attr("value", value(field, args, default))
 
   def classAttr(field: Field, args: Args, classes: String): Html =
-    attr("class", s"""$classes ${getArg(args, "class", "")}${if (field.hasErrors) " is-invalid" else ""}""")
+    attr("class", s"""$classes ${getArg(args, "class", "")}${if (hasErrors(field)) " is-invalid" else ""}""")
 
   def classAttr(args: Args, classes: String): Html =
     attr("class", s"""$classes ${getArg(args, "class", "")}""")
 
   def placeholderAttr(args: Args): Html =
     getArg(args, "placeholder").map(attr("placeholder", _)).getOrElse(Html(""))
+
+  def hasErrors(field: Field): Boolean =
+    getErrors(field).nonEmpty
+
+  def getErrors(field: Field): Seq[FormError] =
+    field.errors ++ field.indexes.flatMap(i => field(s"[$i]").errors)
 
   def requiredAttr(field: Field, args: Args): Html =
     field.constraints

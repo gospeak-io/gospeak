@@ -97,6 +97,10 @@
     margin-bottom: 0;
 }
 
+.markdown p:last-child {
+    margin-bottom: 0;
+}
+
 .markdown-editor .tab-content {
     margin-top: 5px;
 }

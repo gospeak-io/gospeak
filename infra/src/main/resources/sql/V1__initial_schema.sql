@@ -27,24 +27,24 @@
 
 CREATE TABLE users
 (
-    id              CHAR(36)     NOT NULL PRIMARY KEY,
-    slug            VARCHAR(120) NOT NULL UNIQUE,
-    first_name      VARCHAR(30)  NOT NULL,
-    last_name       VARCHAR(30)  NOT NULL,
-    email           VARCHAR(100) NOT NULL UNIQUE,
+    id              CHAR(36)      NOT NULL PRIMARY KEY,
+    slug            VARCHAR(120)  NOT NULL UNIQUE,
+    first_name      VARCHAR(120)  NOT NULL,
+    last_name       VARCHAR(120)  NOT NULL,
+    email           VARCHAR(120)  NOT NULL UNIQUE,
     email_validated TIMESTAMP,
-    avatar          VARCHAR(200) NOT NULL,
-    avatar_source   VARCHAR(20)  NOT NULL,
+    avatar          VARCHAR(1024) NOT NULL,
+    avatar_source   VARCHAR(20)   NOT NULL,
     published       TIMESTAMP,
-    description     VARCHAR(2048),
+    description     VARCHAR(4096),
     company         VARCHAR(36),
     location        VARCHAR(36),
-    twitter         VARCHAR(200),
-    linkedin        VARCHAR(200),
+    twitter         VARCHAR(1024),
+    linkedin        VARCHAR(1024),
     phone           VARCHAR(36),
-    webSite         VARCHAR(200),
-    created         TIMESTAMP    NOT NULL,
-    updated         TIMESTAMP    NOT NULL
+    webSite         VARCHAR(1024),
+    created         TIMESTAMP     NOT NULL,
+    updated         TIMESTAMP     NOT NULL
 );
 
 CREATE TABLE credentials
@@ -65,18 +65,6 @@ CREATE TABLE logins
     PRIMARY KEY (provider_id, provider_key)
 );
 
-CREATE TABLE requests
-(
-    id       CHAR(36)    NOT NULL,
-    kind     VARCHAR(30) NOT NULL,
-    email    VARCHAR(100),
-    user_id  CHAR(36) REFERENCES users (id),
-    deadline TIMESTAMP   NOT NULL,
-    created  TIMESTAMP   NOT NULL,
-    accepted TIMESTAMP,
-    rejected TIMESTAMP
-);
-
 CREATE TABLE talks
 (
     id          CHAR(36)      NOT NULL PRIMARY KEY,
@@ -88,7 +76,7 @@ CREATE TABLE talks
     speakers    VARCHAR(184)  NOT NULL, -- 5 speakers max
     slides      VARCHAR(1024),
     video       VARCHAR(1024),
-    tags        VARCHAR(100)  NOT NULL, -- 5 tags max
+    tags        VARCHAR(150)  NOT NULL, -- 5 tags max
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,
@@ -100,9 +88,9 @@ CREATE TABLE groups
     id          CHAR(36)      NOT NULL PRIMARY KEY,
     slug        VARCHAR(120)  NOT NULL UNIQUE,
     name        VARCHAR(120)  NOT NULL,
-    description VARCHAR(2048) NOT NULL,
+    description VARCHAR(4096) NOT NULL,
     owners      VARCHAR(369)  NOT NULL, -- 10 owners max
-    tags        VARCHAR(100)  NOT NULL, -- 5 tags max
+    tags        VARCHAR(150)  NOT NULL, -- 5 tags max
     published   TIMESTAMP,
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
@@ -118,8 +106,8 @@ CREATE TABLE cfps
     name        VARCHAR(120)  NOT NULL,
     begin       TIMESTAMP,
     close       TIMESTAMP,
-    description VARCHAR(2048) NOT NULL,
-    tags        VARCHAR(100)  NOT NULL, -- 5 tags max
+    description VARCHAR(4096) NOT NULL,
+    tags        VARCHAR(150)  NOT NULL, -- 5 tags max
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,
@@ -132,8 +120,8 @@ CREATE TABLE partners
     group_id    CHAR(36)      NOT NULL REFERENCES groups (id),
     slug        VARCHAR(120)  NOT NULL,
     name        VARCHAR(120)  NOT NULL,
-    description VARCHAR(2048) NOT NULL,
-    logo        VARCHAR(200)  NOT NULL,
+    description VARCHAR(4096) NOT NULL,
+    logo        VARCHAR(1024) NOT NULL,
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,
@@ -145,11 +133,11 @@ CREATE TABLE venues
 (
     id              CHAR(36)         NOT NULL PRIMARY KEY,
     partner_id      CHAR(36)         NOT NULL REFERENCES partners (id),
-    address         VARCHAR(2048)    NOT NULL,
+    address         VARCHAR(4096)    NOT NULL,
     address_lat     DOUBLE PRECISION NOT NULL,
     address_lng     DOUBLE PRECISION NOT NULL,
-    address_country VARCHAR(20)      NOT NULL,
-    description     VARCHAR(2048)    NOT NULL,
+    address_country VARCHAR(30)      NOT NULL,
+    description     VARCHAR(4096)    NOT NULL,
     room_size       INT,
     created         TIMESTAMP        NOT NULL,
     created_by      CHAR(36)         NOT NULL REFERENCES users (id),
@@ -161,9 +149,9 @@ CREATE TABLE contacts
 (
     id         CHAR(36)     NOT NULL PRIMARY KEY,
     partner_id CHAR(36)     NOT NULL REFERENCES partners (id),
-    first_name VARCHAR(30)  NOT NULL,
-    last_name  VARCHAR(30)  NOT NULL,
-    email      VARCHAR(100) NOT NULL,
+    first_name VARCHAR(120) NOT NULL,
+    last_name  VARCHAR(120) NOT NULL,
+    email      VARCHAR(120) NOT NULL,
     role       VARCHAR(30)  NOT NULL,
     created    TIMESTAMP    NOT NULL,
     created_by CHAR(36)     NOT NULL REFERENCES users (id),
@@ -179,10 +167,10 @@ CREATE TABLE events
     slug        VARCHAR(120)  NOT NULL,
     name        VARCHAR(120)  NOT NULL,
     start       TIMESTAMP     NOT NULL,
-    description VARCHAR(2048) NOT NULL,
+    description VARCHAR(4096) NOT NULL,
     venue       CHAR(36) REFERENCES venues (id),
     talks       VARCHAR(258)  NOT NULL, -- 7 talks max
-    tags        VARCHAR(100)  NOT NULL, -- 5 tags max
+    tags        VARCHAR(150)  NOT NULL, -- 5 tags max
     published   TIMESTAMP,
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
@@ -204,7 +192,7 @@ CREATE TABLE proposals
     speakers    VARCHAR(184)  NOT NULL, -- 5 speakers max
     slides      VARCHAR(1024),
     video       VARCHAR(1024),
-    tags        VARCHAR(100)  NOT NULL, -- 5 tags max
+    tags        VARCHAR(150)  NOT NULL, -- 5 tags max
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,
@@ -218,7 +206,7 @@ CREATE TABLE sponsor_packs
     group_id    CHAR(36)         NOT NULL REFERENCES groups (id),
     slug        VARCHAR(120)     NOT NULL,
     name        VARCHAR(120)     NOT NULL,
-    description VARCHAR(2048)    NOT NULL,
+    description VARCHAR(4096)    NOT NULL,
     price       DOUBLE PRECISION NOT NULL,
     currency    VARCHAR(10)      NOT NULL,
     duration    VARCHAR(20)      NOT NULL,
@@ -246,6 +234,21 @@ CREATE TABLE sponsors
     created_by      CHAR(36)         NOT NULL REFERENCES users (id),
     updated         TIMESTAMP        NOT NULL,
     updated_by      CHAR(36)         NOT NULL REFERENCES users (id)
+);
+
+CREATE TABLE requests
+(
+    id          CHAR(36)    NOT NULL,
+    kind        VARCHAR(30) NOT NULL,
+    group_id    CHAR(36) REFERENCES groups (id),
+    email       VARCHAR(120),
+    deadline    TIMESTAMP,
+    created     TIMESTAMP   NOT NULL,
+    created_by  CHAR(36) REFERENCES users (id),
+    accepted    TIMESTAMP,
+    accepted_by CHAR(36) REFERENCES users (id),
+    rejected    TIMESTAMP,
+    rejected_by CHAR(36) REFERENCES users (id)
 );
 
 CREATE TABLE settings

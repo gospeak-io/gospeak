@@ -9,7 +9,6 @@ import scala.concurrent.duration._
 sealed trait UserRequest {
   val id: UserRequest.Id
   val created: Instant
-  val deadline: Instant
 }
 
 object UserRequest {
@@ -20,25 +19,29 @@ object UserRequest {
 
   final case class AccountValidationRequest(id: Id,
                                             email: EmailAddress,
-                                            user: User.Id,
-                                            created: Instant,
                                             deadline: Instant,
+                                            created: Instant,
+                                            createdBy: User.Id,
                                             accepted: Option[Instant]) extends UserRequest
-
-  object AccountValidationRequest {
-    def apply(email: EmailAddress, user: User.Id, now: Instant): AccountValidationRequest =
-      new AccountValidationRequest(Id.generate(), email, user, now, now.plusMillis(1.day.toMillis), None)
-  }
 
   final case class PasswordResetRequest(id: Id,
                                         email: EmailAddress,
-                                        created: Instant,
                                         deadline: Instant,
+                                        created: Instant,
                                         accepted: Option[Instant]) extends UserRequest
 
-  object PasswordResetRequest {
-    def apply(email: EmailAddress, now: Instant): PasswordResetRequest =
-      new PasswordResetRequest(Id.generate(), email, now, now.plusMillis(1.hour.toMillis), None)
+  final case class UserAskToJoinAGroupRequest(id: Id,
+                                              group: Group.Id,
+                                              created: Instant,
+                                              createdBy: User.Id,
+                                              accepted: Option[Meta],
+                                              rejected: Option[Meta]) extends UserRequest
+
+  final case class Meta(by: User.Id, date: Instant)
+
+  object Timeout {
+    val accountValidation: FiniteDuration = 1.day
+    val passwordReset: FiniteDuration = 1.hour
   }
 
 }

@@ -33,6 +33,8 @@ GET         /u                                                                  
 GET         /u/groups                                                           fr.gospeak.web.pages.user.UserCtrl.listGroup(params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/create                                                    fr.gospeak.web.pages.user.UserCtrl.createGroup
 POST        /u/groups/create                                                    fr.gospeak.web.pages.user.UserCtrl.doCreateGroup
+GET         /u/groups/join                                                      fr.gospeak.web.pages.user.UserCtrl.joinGroup(params: Page.Params ?= Page.Params.defaults)
+POST        /u/groups/join/:group                                               fr.gospeak.web.pages.user.UserCtrl.doJoinGroup(group: Group.Slug, params: Page.Params)
 
 GET         /u/groups/:group                                                    fr.gospeak.web.pages.orga.GroupCtrl.detail(group: Group.Slug)
 GET         /u/groups/:group/events                                             fr.gospeak.web.pages.orga.events.EventCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)

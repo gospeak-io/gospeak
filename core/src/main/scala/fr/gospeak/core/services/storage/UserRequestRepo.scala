@@ -3,17 +3,30 @@ package fr.gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest}
-import fr.gospeak.core.domain.{User, UserRequest}
-import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress}
+import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
+import fr.gospeak.core.domain.{Group, User, UserRequest}
+import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 trait UserRequestRepo extends OrgaUserRequestRepo with SpeakerUserRequestRepo with UserUserRequestRepo with AuthUserRequestRepo
 
-trait OrgaUserRequestRepo
+trait OrgaUserRequestRepo {
+  def findGroupRequests(group: Group.Id, params: Page.Params): IO[Page[UserRequest]]
+}
 
 trait SpeakerUserRequestRepo
 
-trait UserUserRequestRepo
+trait UserUserRequestRepo {
+  def findUserRequests(user: User.Id, params: Page.Params): IO[Page[UserRequest]]
+
+
+  def createUserAskToJoinAGroup(user: User.Id, group: Group.Id, now: Instant): IO[UserAskToJoinAGroupRequest]
+
+  def acceptUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done]
+
+  def rejectUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done]
+
+  def findPendingUserToJoinAGroupRequests(user: User.Id): IO[Seq[UserAskToJoinAGroupRequest]]
+}
 
 trait AuthUserRequestRepo {
   def createAccountValidationRequest(email: EmailAddress, user: User.Id, now: Instant): IO[AccountValidationRequest]

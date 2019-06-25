@@ -74,7 +74,7 @@ abstract class SlugBuilder[A <: ISlug](clazz: String, build: String => A) {
 }
 
 object SlugBuilder {
-  val maxLength = 120
+  val maxLength: Int = Values.maxLength.title
   val pattern: Regex = "[a-z0-9-]+".r
 }
 

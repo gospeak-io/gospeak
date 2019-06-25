@@ -9,7 +9,7 @@
         @Utils.valueAttr(field, args, "true")
         @Utils.classAttr(field, args, "custom-control-input")>
     <label for="@Utils.id(field, args)" class="custom-control-label">@Utils.getArg(args, "label", field.name)</label>
-    @if(field.hasErrors && field.errors.nonEmpty) {
+    @if(Utils.hasErrors(field)) {
         <div class="invalid-feedback">
             @Utils.getArg(args, "help").map { help => @helpText(field, args, help) }
             @field.errors.map(_.format).mkString(", ")

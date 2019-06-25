@@ -1,6 +1,6 @@
 package fr.gospeak.infra.utils
 
-import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
+import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import cats.data.NonEmptyList
 import cats.effect.{ContextShift, IO}
@@ -8,10 +8,11 @@ import doobie.Transactor
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import doobie.util.update.Update
-import doobie.util.{Meta, Write}
+import doobie.util.{Meta, Read, Write}
 import fr.gospeak.core.domain._
 import fr.gospeak.infra.formats.JsonFormats._
 import fr.gospeak.infra.services.storage.sql.DatabaseConf
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
 
 import scala.concurrent.ExecutionContext
@@ -101,60 +102,75 @@ object DoobieUtils {
   }
 
   object Mappings {
+
     import scala.reflect.runtime.universe._
 
     implicit val timePeriodMeta: Meta[TimePeriod] = Meta[String].timap(TimePeriod.from(_).get)(_.value)
     implicit val finiteDurationMeta: Meta[FiniteDuration] = Meta[Long].timap(Duration.fromNanos)(_.toNanos)
     implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Instant].timap(LocalDateTime.ofInstant(_, ZoneOffset.UTC))(_.toInstant(ZoneOffset.UTC))
-    implicit val emailAddressMeta: Meta[EmailAddress] = Meta[String].timap(EmailAddress.from(_).right.get)(_.value)
-    implicit val urlMeta: Meta[Url] = Meta[String].timap(Url.from(_).right.get)(_.value)
-    implicit val slidesMeta: Meta[Slides] = Meta[String].timap(Slides.from(_).right.get)(_.value)
-    implicit val videoMeta: Meta[Video] = Meta[String].timap(Video.from(_).right.get)(_.value)
+    implicit val emailAddressMeta: Meta[EmailAddress] = Meta[String].timap(EmailAddress.from(_).get)(_.value)
+    implicit val urlMeta: Meta[Url] = Meta[String].timap(Url.from(_).get)(_.value)
+    implicit val slidesMeta: Meta[Slides] = Meta[String].timap(Slides.from(_).get)(_.value)
+    implicit val videoMeta: Meta[Video] = Meta[String].timap(Video.from(_).get)(_.value)
     implicit val currencyMeta: Meta[Price.Currency] = Meta[String].timap(Price.Currency.from(_).get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
-    implicit def markdownTemplateMeta[A: TypeTag]: Meta[MarkdownTemplate[A]] = Meta[String].timap(MarkdownTemplate.Mustache[A](_).asInstanceOf[MarkdownTemplate[A]])(_.value)
-    implicit val gMapPlaceMeta: Meta[GMapPlace] = Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
-    implicit val avatarSourceMeta: Meta[Avatar.Source] = Meta[String].timap(Avatar.Source.from(_).right.get)(_.toString)
-    implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))
 
-     val a = implicitly[Meta[LocalDate]]
+    implicit def markdownTemplateMeta[A: TypeTag]: Meta[MarkdownTemplate[A]] = Meta[String].timap(MarkdownTemplate.Mustache[A](_).asInstanceOf[MarkdownTemplate[A]])(_.value)
+
+    implicit val gMapPlaceMeta: Meta[GMapPlace] = Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
+    implicit val avatarSourceMeta: Meta[Avatar.Source] = Meta[String].timap(Avatar.Source.from(_).get)(_.toString)
+    implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))
 
     // TODO build Meta[Seq[A]] and Meta[NonEmptyList[A]]
     // implicit def seqMeta[A](implicit m: Meta[A]): Meta[Seq[A]] = ???
     // implicit def nelMeta[A](implicit m: Meta[A]): Meta[NonEmptyList[A]] = ???
 
-    implicit val userIdMeta: Meta[User.Id] = Meta[String].timap(User.Id.from(_).right.get)(_.value)
-    implicit val userSlugMeta: Meta[User.Slug] = Meta[String].timap(User.Slug.from(_).right.get)(_.value)
-    implicit val userRequestIdMeta: Meta[UserRequest.Id] = Meta[String].timap(UserRequest.Id.from(_).right.get)(_.value)
-    implicit val talkIdMeta: Meta[Talk.Id] = Meta[String].timap(Talk.Id.from(_).right.get)(_.value)
-    implicit val talkSlugMeta: Meta[Talk.Slug] = Meta[String].timap(Talk.Slug.from(_).right.get)(_.value)
+    implicit val userIdMeta: Meta[User.Id] = Meta[String].timap(User.Id.from(_).get)(_.value)
+    implicit val userSlugMeta: Meta[User.Slug] = Meta[String].timap(User.Slug.from(_).get)(_.value)
+    implicit val userRequestIdMeta: Meta[UserRequest.Id] = Meta[String].timap(UserRequest.Id.from(_).get)(_.value)
+    implicit val talkIdMeta: Meta[Talk.Id] = Meta[String].timap(Talk.Id.from(_).get)(_.value)
+    implicit val talkSlugMeta: Meta[Talk.Slug] = Meta[String].timap(Talk.Slug.from(_).get)(_.value)
     implicit val talkTitleMeta: Meta[Talk.Title] = Meta[String].timap(Talk.Title)(_.value)
-    implicit val talkStatusMeta: Meta[Talk.Status] = Meta[String].timap(Talk.Status.from(_).right.get)(_.toString)
-    implicit val groupIdMeta: Meta[Group.Id] = Meta[String].timap(Group.Id.from(_).right.get)(_.value)
-    implicit val groupSlugMeta: Meta[Group.Slug] = Meta[String].timap(Group.Slug.from(_).right.get)(_.value)
+    implicit val talkStatusMeta: Meta[Talk.Status] = Meta[String].timap(Talk.Status.from(_).get)(_.toString)
+    implicit val groupIdMeta: Meta[Group.Id] = Meta[String].timap(Group.Id.from(_).get)(_.value)
+    implicit val groupSlugMeta: Meta[Group.Slug] = Meta[String].timap(Group.Slug.from(_).get)(_.value)
     implicit val groupNameMeta: Meta[Group.Name] = Meta[String].timap(Group.Name)(_.value)
-    implicit val eventIdMeta: Meta[Event.Id] = Meta[String].timap(Event.Id.from(_).right.get)(_.value)
-    implicit val eventSlugMeta: Meta[Event.Slug] = Meta[String].timap(Event.Slug.from(_).right.get)(_.value)
+    implicit val eventIdMeta: Meta[Event.Id] = Meta[String].timap(Event.Id.from(_).get)(_.value)
+    implicit val eventSlugMeta: Meta[Event.Slug] = Meta[String].timap(Event.Slug.from(_).get)(_.value)
     implicit val eventNameMeta: Meta[Event.Name] = Meta[String].timap(Event.Name)(_.value)
-    implicit val cfpIdMeta: Meta[Cfp.Id] = Meta[String].timap(Cfp.Id.from(_).right.get)(_.value)
-    implicit val cfpSlugMeta: Meta[Cfp.Slug] = Meta[String].timap(Cfp.Slug.from(_).right.get)(_.value)
+    implicit val cfpIdMeta: Meta[Cfp.Id] = Meta[String].timap(Cfp.Id.from(_).get)(_.value)
+    implicit val cfpSlugMeta: Meta[Cfp.Slug] = Meta[String].timap(Cfp.Slug.from(_).get)(_.value)
     implicit val cfpNameMeta: Meta[Cfp.Name] = Meta[String].timap(Cfp.Name)(_.value)
-    implicit val proposalIdMeta: Meta[Proposal.Id] = Meta[String].timap(Proposal.Id.from(_).right.get)(_.value)
-    implicit val proposalStatusMeta: Meta[Proposal.Status] = Meta[String].timap(Proposal.Status.from(_).right.get)(_.toString)
-    implicit val partnerIdMeta: Meta[Partner.Id] = Meta[String].timap(Partner.Id.from(_).right.get)(_.value)
-    implicit val partnerSlugMeta: Meta[Partner.Slug] = Meta[String].timap(Partner.Slug.from(_).right.get)(_.value)
+    implicit val proposalIdMeta: Meta[Proposal.Id] = Meta[String].timap(Proposal.Id.from(_).get)(_.value)
+    implicit val proposalStatusMeta: Meta[Proposal.Status] = Meta[String].timap(Proposal.Status.from(_).get)(_.toString)
+    implicit val partnerIdMeta: Meta[Partner.Id] = Meta[String].timap(Partner.Id.from(_).get)(_.value)
+    implicit val partnerSlugMeta: Meta[Partner.Slug] = Meta[String].timap(Partner.Slug.from(_).get)(_.value)
     implicit val partnerNameMeta: Meta[Partner.Name] = Meta[String].timap(Partner.Name)(_.value)
-    implicit val venueIdMeta: Meta[Venue.Id] = Meta[String].timap(Venue.Id.from(_).right.get)(_.value)
-    implicit val sponsorPackIdMeta: Meta[SponsorPack.Id] = Meta[String].timap(SponsorPack.Id.from(_).right.get)(_.value)
-    implicit val sponsorPackSlugMeta: Meta[SponsorPack.Slug] = Meta[String].timap(SponsorPack.Slug.from(_).right.get)(_.value)
+    implicit val venueIdMeta: Meta[Venue.Id] = Meta[String].timap(Venue.Id.from(_).get)(_.value)
+    implicit val sponsorPackIdMeta: Meta[SponsorPack.Id] = Meta[String].timap(SponsorPack.Id.from(_).get)(_.value)
+    implicit val sponsorPackSlugMeta: Meta[SponsorPack.Slug] = Meta[String].timap(SponsorPack.Slug.from(_).get)(_.value)
     implicit val sponsorPackNameMeta: Meta[SponsorPack.Name] = Meta[String].timap(SponsorPack.Name)(_.value)
-    implicit val sponsorIdMeta: Meta[Sponsor.Id] = Meta[String].timap(Sponsor.Id.from(_).right.get)(_.value)
+    implicit val sponsorIdMeta: Meta[Sponsor.Id] = Meta[String].timap(Sponsor.Id.from(_).get)(_.value)
     implicit val userIdNelMeta: Meta[NonEmptyList[User.Id]] = Meta[String].timap(
-      s => NonEmptyList.fromListUnsafe(s.split(",").filter(_.nonEmpty).map(User.Id.from(_).right.get).toList))(
+      s => NonEmptyList.fromListUnsafe(s.split(",").filter(_.nonEmpty).map(User.Id.from(_).get).toList))(
       _.map(_.value).toList.mkString(","))
     implicit val proposalIdSeqMeta: Meta[Seq[Proposal.Id]] = Meta[String].timap(
-      _.split(",").filter(_.nonEmpty).map(Proposal.Id.from(_).right.get).toSeq)(
+      _.split(",").filter(_.nonEmpty).map(Proposal.Id.from(_).get).toSeq)(
       _.map(_.value).mkString(","))
+
+    implicit val userRequestRead: Read[UserRequest] =
+      Read[(UserRequest.Id, String, Option[EmailAddress], Option[Group.Id], Option[Instant], Instant, Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id])].map {
+        case (id, "AccountValidation", Some(email), _, Some(deadline), created, Some(createdBy), accepted, _, _, _) =>
+          UserRequest.AccountValidationRequest(id, email, deadline, created, createdBy, accepted)
+        case (id, "PasswordReset", Some(email), _, Some(deadline), created, _, accepted, _, _, _) =>
+          UserRequest.PasswordResetRequest(id, email, deadline, created, accepted)
+        case (id, "UserAskToJoinAGroup", _, Some(groupId), _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy) =>
+          UserRequest.UserAskToJoinAGroupRequest(id, groupId, created, createdBy,
+            accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(_, date))),
+            rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(_, date))))
+        case (id, kind, email, group, deadline, created, createdBy, accepted, acceptedBy, rejected, rejectedBy) =>
+          throw new Exception(s"Unable to read UserRequest with ($id, $kind, $email, $group, $deadline, $created, $createdBy, $accepted, $acceptedBy, $rejected, $rejectedBy)")
+      }
   }
 
 }

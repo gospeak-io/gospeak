@@ -1,7 +1,7 @@
 package fr.gospeak.web.auth
 
 import fr.gospeak.core.domain.User
-import fr.gospeak.libs.scalautils.domain.{Avatar, EmailAddress, Secret}
+import fr.gospeak.libs.scalautils.domain.{Avatar, EmailAddress, Secret, Values}
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Forms._
 import play.api.data.{Form, Mapping}
@@ -14,8 +14,8 @@ object AuthForms {
 
   val signupMapping: Mapping[SignupData] = mapping(
     "slug" -> userSlug,
-    "first-name" -> text(1, 30),
-    "last-name" -> text(1, 30),
+    "first-name" -> text(1, Values.maxLength.title),
+    "last-name" -> text(1, Values.maxLength.title),
     "email" -> emailAddress,
     "password" -> password,
     "rememberMe" -> boolean
