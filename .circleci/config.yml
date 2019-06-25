@@ -8,7 +8,6 @@ jobs:
       - SBT_VERSION: 1.2.8
     steps:
       - run: echo 'export ARTIFACT_BUILD=$CIRCLE_PROJECT_REPONAME-$CIRCLE_BUILD_NUM.zip' >> $BASH_ENV
-      - run: export SBT_OPTS="-Xms3072M -Xmx3072M -Xss2M -XX:MaxMetaspaceSize=1024M"
       - run:
           name: Get sbt binary
           command: |
@@ -38,4 +37,4 @@ jobs:
       - run: sbt "testOnly  $(circleci tests split --split-by=timings --timings-type=classname test-full-class-names.log | tr '\n' ' ') -- -u ./test-results/junit"
       - store_test_results:
           path: ./test-results
-      - run: sbt clean coverage test coverageReport coverageAggregate codacyCoverage
+      - run: sbt -mem 2048 clean coverage test coverageReport coverageAggregate codacyCoverage
