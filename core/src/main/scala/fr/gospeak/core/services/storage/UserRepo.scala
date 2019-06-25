@@ -20,7 +20,9 @@ trait SpeakerUserRepo {
   def list(ids: Seq[User.Id]): IO[Seq[User]]
 }
 
-trait UserUserRepo
+trait UserUserRepo {
+  def list(ids: Seq[User.Id]): IO[Seq[User]]
+}
 
 trait AuthUserRepo {
   def create(data: User.Data, now: Instant): IO[User]

@@ -2,11 +2,12 @@ package fr.gospeak.web.pages.user
 
 import java.time.Instant
 
+import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, User}
-import fr.gospeak.core.services.storage.{UserGroupRepo, UserTalkRepo}
+import fr.gospeak.core.services.storage.{UserGroupRepo, UserTalkRepo, UserUserRepo, UserUserRequestRepo}
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain._
@@ -19,7 +20,9 @@ import play.api.mvc._
 
 class UserCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
+               userRepo: UserUserRepo,
                groupRepo: UserGroupRepo,
+               userRequestRepo: UserUserRequestRepo,
                talkRepo: UserTalkRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
@@ -57,6 +60,24 @@ class UserCtrl(cc: ControllerComponents,
   private def createGroupForm(form: Form[Group.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     val b = groupBreadcrumb(req.identity.user).add("New" -> routes.UserCtrl.createGroup())
     IO.pure(Ok(html.createGroup(form)(b)))
+  }
+
+  def joinGroup(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+    (for {
+      groups <- groupRepo.listJoinable(user, params)
+      pendingRequests <- userRequestRepo.findPendingUserToJoinAGroupRequests(user)
+      owners <- userRepo.list(groups.items.flatMap(_.owners.toList).distinct)
+      b = groupBreadcrumb(req.identity.user).add("Join" -> routes.UserCtrl.joinGroup())
+    } yield Ok(html.joinGroup(groups, owners, pendingRequests)(b))).unsafeToFuture()
+  }
+
+  def doJoinGroup(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    (for {
+      groupElt <- OptionT(groupRepo.findPublic(group))
+      _ <- OptionT.liftF(userRequestRepo.createUserAskToJoinAGroup(user, groupElt.id, now))
+    } yield Redirect(routes.UserCtrl.index()).flashing("success" -> s"Join request sent to <b>${groupElt.name.value}</b> group"))
+      .value.map(_.getOrElse(Redirect(routes.UserCtrl.joinGroup(params)).flashing("error" -> s"Unable to send join request to <b>$group</b>"))).unsafeToFuture()
   }
 }
 

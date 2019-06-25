@@ -1,5 +1,7 @@
 package fr.gospeak.libs.scalautils
 
+import java.time.Instant
+
 import cats.MonadError
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -7,6 +9,7 @@ import fr.gospeak.libs.scalautils.domain.MultiException
 
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.higherKinds
 import scala.util.control.NonFatal
@@ -192,6 +195,10 @@ object Extensions {
       case Right(a) => IO.pure(a)
       case Left(e) => IO.raiseError(f(e))
     }
+  }
+
+  implicit class InstantExtension(val in: Instant) extends AnyVal {
+    def plus(d: FiniteDuration): Instant = in.plusMillis(d.toMillis)
   }
 
   implicit class IOExtension[A](val in: IO[A]) extends AnyVal {

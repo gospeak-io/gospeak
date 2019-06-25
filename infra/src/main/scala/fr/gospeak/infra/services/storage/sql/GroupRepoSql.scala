@@ -14,23 +14,28 @@ import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.utils.DoobieUtils.Queries
-import fr.gospeak.libs.scalautils.domain.{Page, Tag}
+import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
 
 class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with GroupRepo {
   override def create(data: Group.Data, by: User.Id, now: Instant): IO[Group] =
     run(insert, Group(data, NonEmptyList.of(by), Info(by, now)))
 
+  override def addOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done] =
+    run(GroupRepoSql.addOwner(group)(owner, by, now))
+
   override def list(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPage(user, _), params))
+
+  override def list(user: User.Id): IO[Seq[Group]] = run(selectAll(user).to[List])
 
   override def listPublic(params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPagePublic, params))
 
-  override def findPublic(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPagePublic(user, _), params))
-
-  override def list(user: User.Id): IO[Seq[Group]] = run(selectAll(user).to[List])
+  override def listJoinable(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPageJoinable(user, _), params))
 
   override def find(user: User.Id, slug: Group.Slug): IO[Option[Group]] = run(selectOne(user, slug).option)
 
   override def find(group: Group.Id): IO[Option[Group]] = run(selectOne(group).option)
+
+  override def findPublic(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPagePublic(user, _), params))
 
   override def findPublic(slug: Group.Slug): IO[Option[Group]] = run(selectOnePublic(slug).option)
 
@@ -51,6 +56,11 @@ object GroupRepoSql {
 
   private[sql] def insert(elt: Group): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
+  private[sql] def addOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): doobie.Update0 = {
+    val fields = fr0"owners=CONCAT(owners, '," ++ Fragment.const0(owner.value) ++ fr0"'), updated=$now, updated_by=$by"
+    buildUpdate(tableFr, fields, fr0"WHERE id=$group").update
+  }
+
   private[sql] def selectPage(user: User.Id, params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE owners LIKE ${"%" + user.value + "%"}"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Group], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
@@ -63,6 +73,11 @@ object GroupRepoSql {
 
   private[sql] def selectPagePublic(user: User.Id, params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE published IS NOT NULL AND owners LIKE ${"%" + user.value + "%"}"))
+    (buildSelect(tableFr, fieldsFr, page.all).query[Group], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+  }
+
+  private[sql] def selectPageJoinable(user: User.Id, params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
+    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE owners NOT LIKE ${"%" + user.value + "%"}"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Group], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 

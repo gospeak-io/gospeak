@@ -36,17 +36,17 @@ object EmailSrv {
 
   object Conf {
 
-    final case object Console extends Conf
+    final case class Console() extends Conf
 
-    final case object InMemery extends Conf
+    final case class InMemery() extends Conf
 
     final case class SendGrid(apiKey: Secret) extends Conf
 
   }
 
   def from(conf: Conf): EmailSrv = conf match {
-    case Conf.Console => new ConsoleEmailSrv()
-    case Conf.InMemery => new InMemoryEmailSrv()
+    case _: Conf.Console => new ConsoleEmailSrv()
+    case _: Conf.InMemery => new InMemoryEmailSrv()
     case conf: Conf.SendGrid => SendGridEmailSrv(conf)
   }
 

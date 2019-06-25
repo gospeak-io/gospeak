@@ -67,7 +67,8 @@
         </span>
     </h1>
 
-    <p>@talkStatus(talk.status) @duration(talk.duration) @slidesIcon(talk.slides) @videoIcon(talk.video) @tags(talk.tags)</p>
+    <p class="mb-0">@talkStatus(talk.status) @duration(talk.duration) @slidesIcon(talk.slides) @videoIcon(talk.video)</p>
+    <p class="mb-0">@tags(talk.tags)</p>
     <p>Speakers: @talk.speakers.toList.map { id => @speaker(speakers, id) }</p>
     <p>@markdown(talk.description)</p>
 

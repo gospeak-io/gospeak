@@ -65,18 +65,6 @@ CREATE TABLE logins
     PRIMARY KEY (provider_id, provider_key)
 );
 
-CREATE TABLE requests
-(
-    id       CHAR(36)    NOT NULL,
-    kind     VARCHAR(30) NOT NULL,
-    email    VARCHAR(120),
-    user_id  CHAR(36) REFERENCES users (id),
-    deadline TIMESTAMP   NOT NULL,
-    created  TIMESTAMP   NOT NULL,
-    accepted TIMESTAMP,
-    rejected TIMESTAMP
-);
-
 CREATE TABLE talks
 (
     id          CHAR(36)      NOT NULL PRIMARY KEY,
@@ -246,6 +234,21 @@ CREATE TABLE sponsors
     created_by      CHAR(36)  NOT NULL REFERENCES users (id),
     updated         TIMESTAMP NOT NULL,
     updated_by      CHAR(36)  NOT NULL REFERENCES users (id)
+);
+
+CREATE TABLE requests
+(
+    id          CHAR(36)    NOT NULL,
+    kind        VARCHAR(30) NOT NULL,
+    group_id    CHAR(36) REFERENCES groups (id),
+    email       VARCHAR(120),
+    deadline    TIMESTAMP,
+    created     TIMESTAMP   NOT NULL,
+    created_by  CHAR(36) REFERENCES users (id),
+    accepted    TIMESTAMP,
+    accepted_by CHAR(36) REFERENCES users (id),
+    rejected    TIMESTAMP,
+    rejected_by CHAR(36) REFERENCES users (id)
 );
 
 CREATE TABLE settings
