@@ -14,6 +14,24 @@ object Utils {
   type Args = Seq[(String, String)]
   type Constraint = (String, Seq[Any])
 
+  case class ArgsWrapper(args: Args) extends AnyVal {
+    def replace(key: String, value: String): ArgsWrapper =
+      ArgsWrapper(args.filter(_._1 != key) ++ Seq(key -> value))
+
+    def remove(key: String): ArgsWrapper =
+      ArgsWrapper(args.filter(_._1 != key))
+
+    def extend(key: String, value: String): ArgsWrapper =
+      if (args.exists(_._1 == key)) ArgsWrapper(args.map { case (k, v) => if (k == key) k -> (v + value) else k -> v })
+      else ArgsWrapper(args ++ Seq(key -> value))
+
+    def addIfNotExists(key: String, value: String): ArgsWrapper =
+      if (args.exists(_._1 == key)) ArgsWrapper(args)
+      else ArgsWrapper(args ++ Seq(key -> value))
+
+    def toArgs: Args = args
+  }
+
   val timeUnits: Seq[(String, String)] = Seq(
     TimeUnit.MINUTES.name() -> "Minutes",
     TimeUnit.HOURS.name() -> "Hours",

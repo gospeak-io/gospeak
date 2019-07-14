@@ -33,6 +33,10 @@ object Mappings {
 
   val double: Mapping[Double] = of(doubleFormat)
   val instant: Mapping[Instant] = stringEitherMapping(s => Try(LocalDateTime.parse(s).toInstant(ZoneOffset.UTC)).toEither, _.atZone(ZoneOffset.UTC).toLocalDateTime.toString, datetimeError) // FIXME manage timezone
+  val myLocalDateTime: Mapping[LocalDateTime] = mapping(
+    "date" -> localDate("dd/MM/yyyy"),
+    "time" -> localTime
+  )({ case (d, t) => LocalDateTime.of(d, t) })(dt => Some(dt.toLocalDate -> dt.toLocalTime))
   val chronoUnit: Mapping[ChronoUnit] = stringEitherMapping(d => Try(ChronoUnit.valueOf(d)).toEither, _.name(), formatError)
   val period: Mapping[TimePeriod] = mapping(
     "length" -> longNumber,

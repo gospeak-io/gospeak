@@ -65,7 +65,9 @@ val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib f
   "org.webjars.npm" % "autosize" % "4.0.2",
   // "org.webjars.npm" % "@fortawesome/fontawesome-free" % "5.6.3",
   "org.webjars.npm" % "select2" % "4.0.5",
-  "org.webjars.npm" % "select2-bootstrap-theme" % "0.1.0-beta.10")
+  "org.webjars.npm" % "select2-bootstrap-theme" % "0.1.0-beta.10",
+  "org.webjars.npm" % "bootstrap-datepicker" % "1.9.0",
+  "org.webjars.npm" % "imask" % "5.1.7")
 val logback = Seq(
   "org.slf4j" % "slf4j-api" % "1.7.25",
   "ch.qos.logback" % "logback-classic" % "1.2.3")

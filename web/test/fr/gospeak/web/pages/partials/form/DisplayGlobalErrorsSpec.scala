@@ -5,11 +5,11 @@ import play.api.data.Form
 import play.api.data.Forms._
 
 class DisplayGlobalErrorsSpec extends TwirlSpec {
-  private val form = Form(mapping(
+  private val form: Form[String] = Form(mapping(
     "text" -> text
   )(identity)(Some(_)))
 
-  describe("partials.form.displayGlobalErrors.scala.html") {
+  describe("pages.partials.form.displayGlobalErrors.scala.html") {
     it("should display nothing when no errors") {
       val res = html.displayGlobalErrors(form).body.trim
       res shouldBe ""

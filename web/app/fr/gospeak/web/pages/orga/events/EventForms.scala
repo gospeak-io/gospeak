@@ -11,7 +11,7 @@ object EventForms {
     "cfp" -> optional(cfpId),
     "slug" -> eventSlug,
     "name" -> eventName,
-    "start" -> localDateTime,
+    "start" -> myLocalDateTime,
     "venue" -> optional(venueId),
     "description" -> template[TemplateData.EventInfo],
     "tags" -> tags

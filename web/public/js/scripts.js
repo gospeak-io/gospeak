@@ -195,24 +195,20 @@ function slugify(str) {
     }
 })();
 
-// http://www.malot.fr/bootstrap-datetimepicker/
-(function () {
-    $('input.input-datetime').each(function () {
-        $(this).datetimepicker({
-            language: 'en',
-            autoclose: true,
-            initialDate: $(this).attr('startDate')
-        });
-    });
-})();
-
 // https://uxsolutions.github.io/bootstrap-datepicker/
 (function () {
+    var DAYS = 0;
+    var MONTHS = 1;
+    var YEARS = 2;
     var defaultConfig = {
         format: 'dd/mm/yyyy',
         weekStart: 1,
-        maxViewMode: 2,
+        startView: DAYS,
+        minViewMode: DAYS,
+        maxViewMode: YEARS,
         language: 'en',
+        daysOfWeekHighlighted: "0,6",
+        calendarWeeks: true,
         autoclose: true,
         todayHighlight: true,
         toggleActive: true
@@ -221,6 +217,21 @@ function slugify(str) {
         $(this).datepicker(Object.assign({}, defaultConfig, {
             defaultViewDate: $(this).attr('startDate')
         }));
+    });
+})();
+
+// https://unmanner.github.io/imaskjs/
+(function () {
+    $('input.input-time').each(function () {
+        IMask(this, {
+            mask: 'hh:mm:ss',
+            lazy: false,
+            blocks: {
+                hh: {mask: IMask.MaskedRange, from: 0, to: 23},
+                mm: {mask: IMask.MaskedRange, from: 0, to: 59},
+                ss: {mask: IMask.MaskedRange, from: 0, to: 59}
+            }
+        });
     });
 })();
 
@@ -279,7 +290,7 @@ function slugify(str) {
         var target = $elt.attr('data-target');
         var $target = target ? $('#' + target) : undefined;
         updateData($elt, ref);
-        if($target) {
+        if ($target) {
             $target.change(function () {
                 updateData($elt, $target.val());
             });
@@ -301,9 +312,9 @@ function slugify(str) {
         previewTab.on('hidden.bs.tab', function () {
             previewPane.html(loadingHtml);
         });
-        if($target) {
+        if ($target) {
             $target.change(function () {
-                if(previewPane.hasClass('active')) {
+                if (previewPane.hasClass('active')) {
                     updateTemplate($input, $target.val(), previewPane);
                 }
             });

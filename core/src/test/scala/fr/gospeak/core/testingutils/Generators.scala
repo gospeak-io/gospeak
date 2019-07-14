@@ -1,5 +1,6 @@
 package fr.gospeak.core.testingutils
 
+import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 
 import fr.gospeak.core.domain._
@@ -24,18 +25,23 @@ object Generators {
     length <- implicitly[Arbitrary[Long]].arbitrary
     unit <- implicitly[Arbitrary[TimeUnit]].arbitrary
   } yield buildDuration(length, unit))
+  implicit val aTimePeriod: Arbitrary[TimePeriod] = Arbitrary(for {
+    length <- implicitly[Arbitrary[Long]].arbitrary
+    unit <- implicitly[Arbitrary[ChronoUnit]].arbitrary
+  } yield TimePeriod(length, unit))
   implicit val aInstant: Arbitrary[Instant] = Arbitrary(Gen.calendar.map(_.toInstant))
   implicit val aLocalDate: Arbitrary[LocalDate] = Arbitrary(Gen.calendar.map(_.toInstant.atZone(ZoneOffset.UTC).toLocalDate))
   implicit val aLocalDateTime: Arbitrary[LocalDateTime] = Arbitrary(Gen.calendar.map(_.toInstant.atZone(ZoneOffset.UTC).toLocalDateTime))
   implicit val aMarkdown: Arbitrary[Markdown] = Arbitrary(stringGen.map(str => Markdown(str)))
   implicit val aSecret: Arbitrary[Secret] = Arbitrary(stringGen.map(str => Secret(str)))
-  implicit val aSlides: Arbitrary[Slides] = Arbitrary(slugGen.map(slug => Slides.from(s"http://docs.google.com/presentation/d/$slug").right.get))
-  implicit val aVideo: Arbitrary[Video] = Arbitrary(slugGen.map(slug => Video.from(s"http://youtu.be/$slug").right.get))
-  implicit val aEmailAddress: Arbitrary[EmailAddress] = Arbitrary(nonEmptyStringGen.map(slug => EmailAddress.from(slug.take(90) + "e@mail.com").right.get)) // TODO improve
+  implicit val aSlides: Arbitrary[Slides] = Arbitrary(slugGen.map(slug => Slides.from(s"http://docs.google.com/presentation/d/${slug.take(82)}").right.get))
+  implicit val aVideo: Arbitrary[Video] = Arbitrary(slugGen.map(slug => Video.from(s"http://youtu.be/${slug.take(104)}").right.get))
+  implicit val aEmailAddress: Arbitrary[EmailAddress] = Arbitrary(nonEmptyStringGen.map(slug => EmailAddress.from(slug.take(110) + "e@mail.com").right.get)) // TODO improve
   implicit val aUrl: Arbitrary[Url] = Arbitrary(stringGen.map(_ => Url.from("https://www.youtube.com/watch").right.get)) // TODO improve
   implicit val aAvatar: Arbitrary[Avatar] = Arbitrary(aEmailAddress.arbitrary.map(e => Avatar(Url.from(s"https://secure.gravatar.com/avatar/${Crypto.md5(e.value)}").right.get, Avatar.Source.Gravatar))) // TODO improve
   implicit val aTag: Arbitrary[Tag] = Arbitrary(nonEmptyStringGen.map(str => Tag(str.take(Tag.maxSize))))
   implicit val aTags: Arbitrary[Seq[Tag]] = Arbitrary(Gen.listOf(aTag.arbitrary).map(_.take(Tag.maxNumber)))
+  implicit val aCurrency: Arbitrary[Price.Currency] = Arbitrary(Gen.oneOf(Price.Currency.all))
 
   implicit val aUserId: Arbitrary[User.Id] = Arbitrary(Gen.uuid.map(id => User.Id.from(id.toString).right.get))
   implicit val aUserSlug: Arbitrary[User.Slug] = Arbitrary(slugGen.map(slug => User.Slug.from(slug).right.get))

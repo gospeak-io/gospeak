@@ -9,8 +9,8 @@ object CfpForms {
   val create: Form[Cfp.Data] = Form(mapping(
     "slug" -> cfpSlug,
     "name" -> cfpName,
-    "start" -> optional(localDateTime),
-    "end" -> optional(localDateTime),
+    "start" -> optional(myLocalDateTime),
+    "end" -> optional(myLocalDateTime),
     "description" -> markdown,
     "tags" -> tags
   )(Cfp.Data.apply)(Cfp.Data.unapply)

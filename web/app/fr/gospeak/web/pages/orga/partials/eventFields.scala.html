@@ -9,7 +9,7 @@
     @inputText(field, Seq("placeholder" -> "Event name", "autofocus" -> "true") ++ args)
 }
 @fieldVertical(form("start"), Seq("label" -> "Date", "help" -> "Local date and time when the event will start")) { (field, args) =>
-    @inputDatetime(field, args)
+    @inputLocalDatetime(field, args)
 }
 @fieldVertical(form("venue"), Seq("label" -> "Venue", "help" -> "Where your event will take place")) { (field, args) =>
     @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.venues(group.slug).toString, "optional" -> "") ++ args)
