@@ -51,6 +51,11 @@
     padding: 8px 24px 8px 12px;
 }
 
+.input-group > .input-group-prepend ~ .hideShowPassword-wrapper > .form-control {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
 /* My styles */
 
 .footer {

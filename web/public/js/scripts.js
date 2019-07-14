@@ -207,7 +207,7 @@ function slugify(str) {
         minViewMode: DAYS,
         maxViewMode: YEARS,
         language: 'en',
-        daysOfWeekHighlighted: "0,6",
+        daysOfWeekHighlighted: '0,6',
         calendarWeeks: true,
         autoclose: true,
         todayHighlight: true,
@@ -231,6 +231,17 @@ function slugify(str) {
                 mm: {mask: IMask.MaskedRange, from: 0, to: 59},
                 ss: {mask: IMask.MaskedRange, from: 0, to: 59}
             }
+        });
+    });
+})();
+
+// http://cloudfour.github.io/hideShowPassword/
+(function () {
+    $('input[type="password"]').each(function () {
+        $(this).hideShowPassword({
+            show: false,
+            innerToggle: true,
+            triggerOnToggle: 'focus'
         });
     });
 })();
