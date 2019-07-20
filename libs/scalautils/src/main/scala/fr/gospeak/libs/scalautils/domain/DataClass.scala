@@ -75,7 +75,7 @@ abstract class SlugBuilder[A <: ISlug](clazz: String, build: String => A) {
 
 object SlugBuilder {
   val maxLength: Int = Values.maxLength.title
-  val pattern: Regex = "[a-z0-9-]+".r
+  val pattern: Regex = "[a-z0-9-_]+".r
 }
 
 abstract class EnumBuilder[A](clazz: String) {

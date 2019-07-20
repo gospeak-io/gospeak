@@ -16,7 +16,8 @@ case class Event(id: String, // Event.Id
                  data: EventData,
                  meta: Meta) {
   lazy val toEvent: NewEvent = {
-    val date = LocalDateTime.ofInstant(Instant.ofEpochMilli(data.date), ZoneOffset.UTC)
+    val instant = Instant.ofEpochMilli(data.date)
+    val date = LocalDateTime.ofInstant(instant, ZoneOffset.UTC)
     // TODO [migration] missing fields: venue, roti, personCount & sponsor apero
     Try(NewEvent(
       id = NewEvent.Id.from(id).get,
@@ -29,13 +30,13 @@ case class Event(id: String, // Event.Id
       venue = None, // TODO
       talks = Seq(), // should be set later
       tags = Seq(),
-      published = Some(Instant.from(date)),
+      published = Some(instant),
       info = meta.toInfo)).mapFailure(e => new Exception(s"toEvent error for $this", e)).get
   }
 }
 
 object Event {
-  val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
+  val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy_MM")
 }
 
 case class EventData(title: String,

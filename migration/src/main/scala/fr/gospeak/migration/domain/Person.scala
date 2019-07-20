@@ -28,7 +28,7 @@ case class Person(id: String, // Person.Id,
       description = data.description,
       company = data.company,
       location = data.location,
-      twitter = data.twitter.map(Url.from(_).get),
+      twitter = data.twitter.map(t => Url.from("https://twitter.com/" + t).get),
       linkedin = data.linkedin.map(Url.from(_).get),
       phone = data.phone,
       webSite = data.webSite.map(Url.from(_).get))
