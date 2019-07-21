@@ -88,7 +88,7 @@ class SponsorCtrl(cc: ControllerComponents,
         "price.amount" -> packElt.price.amount.toString,
         "price.currency" -> packElt.price.currency.name,
         "start" -> nowLD.toString,
-        "finish" -> packElt.duration.unit.addTo(nowLD, packElt.duration.length).toString
+        "finish" -> packElt.duration.unit.chrono.addTo(nowLD, packElt.duration.length).toString
       )).discardingErrors
       b = listBreadcrumb(groupElt).add("New" -> routes.SponsorCtrl.create(group, packElt.slug))
     } yield Ok(html.create(groupElt, packElt, filledForm, partnerElt)(b))).value.map(_.getOrElse(groupNotFound(group)))

@@ -42,7 +42,7 @@ CREATE TABLE users
     twitter         VARCHAR(1024),
     linkedin        VARCHAR(1024),
     phone           VARCHAR(36),
-    webSite         VARCHAR(1024),
+    website         VARCHAR(1024),
     created         TIMESTAMP     NOT NULL,
     updated         TIMESTAMP     NOT NULL
 );

@@ -1,7 +1,7 @@
 package fr.gospeak.migration.domain
 
 import cats.data.NonEmptyList
-import fr.gospeak.core.domain.{User, Proposal => NewProposal, Talk => NewTalk}
+import fr.gospeak.core.domain.{Cfp => NewCfp, User, Proposal => NewProposal, Talk => NewTalk}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.StringUtils
 import fr.gospeak.libs.scalautils.domain.{Markdown, Slides, Video}
@@ -14,7 +14,7 @@ case class Talk(id: String, // Talk.Id
                 status: String, // Talk.Status.Value, (Proposed, Accepted, Planified, Finalized, Rejected)
                 data: TalkData,
                 meta: Meta) {
-  lazy val toTalk: NewTalk = {
+  def toTalk: NewTalk = {
     Try(NewTalk(
       id = NewTalk.Id.from(id).get,
       slug = NewTalk.Slug.from(StringUtils.slugify(data.title)).get,
@@ -24,15 +24,15 @@ case class Talk(id: String, // Talk.Id
       description = Markdown(data.description.getOrElse("")),
       speakers = NonEmptyList.fromListUnsafe(data.speakers.map(User.Id.from(_).get)),
       slides = data.slides.map(Slides.from(_).get),
-      video = data.slides.map(Video.from(_).get),
+      video = data.video.map(Video.from(_).get),
       tags = Seq(),
       info = meta.toInfo)).mapFailure(e => new Exception(s"toTalk error for $this", e)).get
   }
-  lazy val toProposal: NewProposal = {
+  def toProposal(cfp: NewCfp.Id): NewProposal = {
     Try(NewProposal(
       id = NewProposal.Id.generate(),
       talk = NewTalk.Id.from(id).get,
-      cfp = null, // should be set later
+      cfp = cfp,
       event = None, // should be set later
       title = NewTalk.Title(data.title),
       duration = 10.minutes,
@@ -46,7 +46,7 @@ case class Talk(id: String, // Talk.Id
       description = Markdown(data.description.getOrElse("")),
       speakers = NonEmptyList.fromListUnsafe(data.speakers.map(User.Id.from(_).get)),
       slides = data.slides.map(Slides.from(_).get),
-      video = data.slides.map(Video.from(_).get),
+      video = data.video.map(Video.from(_).get),
       tags = Seq(),
       info = meta.toInfo)).mapFailure(e => new Exception(s"toProposal error for $this", e)).get
   }

@@ -236,7 +236,7 @@ function slugify(str) {
 })();
 
 // http://cloudfour.github.io/hideShowPassword/
-(function () {
+/* (function () {
     $('input[type="password"]').each(function () {
         $(this).hideShowPassword({
             show: false,
@@ -244,7 +244,7 @@ function slugify(str) {
             triggerOnToggle: 'focus'
         });
     });
-})();
+})(); */
 
 // inputImageUrl
 (function () {

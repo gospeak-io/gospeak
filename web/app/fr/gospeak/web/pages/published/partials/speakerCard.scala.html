@@ -14,7 +14,7 @@
     <p>@speaker.profile.description </p>
         <p class="text-secondary font-italic">
             @speaker.profile.location.map { l => <i class="fas fa-map-marker-alt"></i> @l <br> }
-            @speaker.profile.webSite.map { l => <i class="fas fa-globe"></i> <a class="no-style" href="@l"> @l</a> <br> }
+            @speaker.profile.website.map { l => <i class="fas fa-globe"></i> <a class="no-style" href="@l"> @l</a> <br> }
             @speaker.profile.phone.map { l => <i class="fas fa-phone"></i> <a class="no-style" href="@l"> @l</a> <br> }
             <a href="mailto:@speaker.email.value" class="no-style"><i class="fas fa-envelope"></i> @speaker.email.value</a>
         </p>

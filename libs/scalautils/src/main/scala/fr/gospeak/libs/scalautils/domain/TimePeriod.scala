@@ -10,47 +10,111 @@ import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success, Try}
 
 // Like Java Period but keeping constructor values
-case class TimePeriod(length: Long, unit: ChronoUnit) {
+case class TimePeriod(length: Long, unit: PeriodUnit) {
   def toDuration: Try[FiniteDuration] =
     toTime(unit)
       .map(u => Success(new FiniteDuration(length, u)))
-      .getOrElse(Try(new FiniteDuration(length * unit.getDuration.getSeconds, TimeUnit.SECONDS).toCoarsest))
+      .getOrElse(Try(new FiniteDuration(length * toChrono(unit).getDuration.getSeconds, TimeUnit.SECONDS).toCoarsest))
 
-  def value: String = if (length == 1) s"$length $unit".stripSuffix("s") else s"$length $unit"
+  def value: String = s"$length $unit"
 }
 
 object TimePeriod {
   def from(d: FiniteDuration): TimePeriod =
-    TimePeriod(d.length, toChrono(d.unit))
+    TimePeriod(d.length, toPeriod(d.unit))
 
   def from(str: String): Try[TimePeriod] = {
     str.split(" ") match {
       case Array(length, unit) => for {
         l <- Try(length.toLong)
-        u <- ChronoUnit.values().find(_.toString.startsWith(unit)).toTry(CustomException(s"No enum constant java.time.temporal.ChronoUnit for '$unit'"))
+        u <- PeriodUnit.values.find(_.toString == unit).toTry(CustomException(s"No PeriodUnit for '$unit'"))
       } yield TimePeriod(l, u)
       case _ => Failure(CustomException("Invalid format for TimePeriod, expects: 'length unit'"))
     }
   }
 
-  private def toChrono(t: TimeUnit): ChronoUnit = t match {
-    case TimeUnit.NANOSECONDS => ChronoUnit.NANOS
-    case TimeUnit.MICROSECONDS => ChronoUnit.MICROS
-    case TimeUnit.MILLISECONDS => ChronoUnit.MILLIS
-    case TimeUnit.SECONDS => ChronoUnit.SECONDS
-    case TimeUnit.MINUTES => ChronoUnit.MINUTES
-    case TimeUnit.HOURS => ChronoUnit.HOURS
-    case TimeUnit.DAYS => ChronoUnit.DAYS
+  sealed trait PeriodUnit {
+    def chrono: ChronoUnit = toChrono(this)
   }
 
-  private def toTime(c: ChronoUnit): Option[TimeUnit] = c match {
-    case ChronoUnit.NANOS => Some(TimeUnit.NANOSECONDS)
-    case ChronoUnit.MICROS => Some(TimeUnit.MICROSECONDS)
-    case ChronoUnit.MILLIS => Some(TimeUnit.MILLISECONDS)
-    case ChronoUnit.SECONDS => Some(TimeUnit.SECONDS)
-    case ChronoUnit.MINUTES => Some(TimeUnit.MINUTES)
-    case ChronoUnit.HOURS => Some(TimeUnit.HOURS)
-    case ChronoUnit.DAYS => Some(TimeUnit.DAYS)
+  object PeriodUnit {
+
+    case object Nano extends PeriodUnit
+
+    case object Micro extends PeriodUnit
+
+    case object Milli extends PeriodUnit
+
+    case object Second extends PeriodUnit
+
+    case object Minute extends PeriodUnit
+
+    case object Hour extends PeriodUnit
+
+    case object Day extends PeriodUnit
+
+    case object Week extends PeriodUnit
+
+    case object Month extends PeriodUnit
+
+    case object Year extends PeriodUnit
+
+    val values: Seq[PeriodUnit] = Seq(Nano, Micro, Milli, Second, Minute, Hour, Day, Week, Month, Year)
+  }
+
+  implicit class TimePeriodBuilder(val value: Long) extends AnyVal {
+    def nano: TimePeriod = TimePeriod(value, PeriodUnit.Nano)
+
+    def micro: TimePeriod = TimePeriod(value, PeriodUnit.Micro)
+
+    def milli: TimePeriod = TimePeriod(value, PeriodUnit.Milli)
+
+    def second: TimePeriod = TimePeriod(value, PeriodUnit.Second)
+
+    def minute: TimePeriod = TimePeriod(value, PeriodUnit.Minute)
+
+    def hour: TimePeriod = TimePeriod(value, PeriodUnit.Hour)
+
+    def day: TimePeriod = TimePeriod(value, PeriodUnit.Day)
+
+    def week: TimePeriod = TimePeriod(value, PeriodUnit.Week)
+
+    def month: TimePeriod = TimePeriod(value, PeriodUnit.Month)
+
+    def year: TimePeriod = TimePeriod(value, PeriodUnit.Year)
+  }
+
+  private def toChrono(u: PeriodUnit): ChronoUnit = u match {
+    case PeriodUnit.Nano => ChronoUnit.NANOS
+    case PeriodUnit.Micro => ChronoUnit.MICROS
+    case PeriodUnit.Milli => ChronoUnit.MILLIS
+    case PeriodUnit.Second => ChronoUnit.SECONDS
+    case PeriodUnit.Minute => ChronoUnit.MINUTES
+    case PeriodUnit.Hour => ChronoUnit.HOURS
+    case PeriodUnit.Day => ChronoUnit.DAYS
+    case PeriodUnit.Week => ChronoUnit.WEEKS
+    case PeriodUnit.Month => ChronoUnit.MONTHS
+    case PeriodUnit.Year => ChronoUnit.YEARS
+  }
+
+  private def toTime(u: PeriodUnit): Option[TimeUnit] = u match {
+    case PeriodUnit.Nano => Some(TimeUnit.NANOSECONDS)
+    case PeriodUnit.Micro => Some(TimeUnit.MICROSECONDS)
+    case PeriodUnit.Milli => Some(TimeUnit.MILLISECONDS)
+    case PeriodUnit.Second => Some(TimeUnit.SECONDS)
+    case PeriodUnit.Minute => Some(TimeUnit.MINUTES)
+    case PeriodUnit.Hour => Some(TimeUnit.HOURS)
+    case PeriodUnit.Day => Some(TimeUnit.DAYS)
     case _ => None
+  }
+
+  private def toPeriod(t: TimeUnit): PeriodUnit = t match {
+    case TimeUnit.NANOSECONDS => PeriodUnit.Nano
+    case TimeUnit.MICROSECONDS => PeriodUnit.Micro
+    case TimeUnit.MILLISECONDS => PeriodUnit.Milli
+    case TimeUnit.SECONDS => PeriodUnit.Second
+    case TimeUnit.MINUTES => PeriodUnit.Minute
+    case TimeUnit.HOURS => PeriodUnit.Hour
+    case TimeUnit.DAYS => PeriodUnit.Day
   }
 }

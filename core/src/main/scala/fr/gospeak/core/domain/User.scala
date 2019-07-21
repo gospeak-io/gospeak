@@ -88,7 +88,7 @@ object User {
                      twitter: Option[Url],
                      linkedin: Option[Url],
                      phone: Option[String],
-                     webSite: Option[Url]
+                     website: Option[Url]
                     )
 
   case class EditableFields(firstName: String,
@@ -106,12 +106,12 @@ object User {
               twitter: Option[Url],
               linkedin: Option[Url],
               phone: Option[String],
-              webSite: Option[Url]): EditableFields = EditableFields(firstName, lastName, email,
-      Profile(description, company, location, twitter, linkedin, phone, webSite))
+              website: Option[Url]): EditableFields = EditableFields(firstName, lastName, email,
+      Profile(description, company, location, twitter, linkedin, phone, website))
 
     def unapply(arg: EditableFields): Option[(String, String, EmailAddress, Option[String], Option[String], Option[String], Option[Url], Option[Url], Option[String], Option[Url])] =
       Some((arg.firstName, arg.lastName, arg.email, arg.profile.description, arg.profile.company,
-        arg.profile.location, arg.profile.twitter, arg.profile.linkedin, arg.profile.phone, arg.profile.webSite))
+        arg.profile.location, arg.profile.twitter, arg.profile.linkedin, arg.profile.phone, arg.profile.website))
 
   }
 

@@ -1,11 +1,11 @@
 package fr.gospeak.core.testingutils
 
-import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.libs.scalautils.Crypto
+import fr.gospeak.libs.scalautils.domain.TimePeriod.PeriodUnit
 import fr.gospeak.libs.scalautils.domain._
 import org.scalacheck.ScalacheckShapeless._
 import org.scalacheck.{Arbitrary, Gen}
@@ -25,9 +25,10 @@ object Generators {
     length <- implicitly[Arbitrary[Long]].arbitrary
     unit <- implicitly[Arbitrary[TimeUnit]].arbitrary
   } yield buildDuration(length, unit))
+  implicit val aPeriodUnit: Arbitrary[PeriodUnit] = Arbitrary(Gen.oneOf(PeriodUnit.values))
   implicit val aTimePeriod: Arbitrary[TimePeriod] = Arbitrary(for {
     length <- implicitly[Arbitrary[Long]].arbitrary
-    unit <- implicitly[Arbitrary[ChronoUnit]].arbitrary
+    unit <- implicitly[Arbitrary[PeriodUnit]].arbitrary
   } yield TimePeriod(length, unit))
   implicit val aInstant: Arbitrary[Instant] = Arbitrary(Gen.calendar.map(_.toInstant))
   implicit val aLocalDate: Arbitrary[LocalDate] = Arbitrary(Gen.calendar.map(_.toInstant.atZone(ZoneOffset.UTC).toLocalDate))

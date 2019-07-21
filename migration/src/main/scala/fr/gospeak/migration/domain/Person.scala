@@ -16,13 +16,13 @@ case class Person(id: String, // Person.Id,
                   data: PersonData,
                   auth: Option[PersonAuth],
                   meta: Meta) {
-  lazy val toUser: User = {
+  def toUser: User = {
     val names = data.name.split(' ').filter(_.nonEmpty)
     val emailStr = auth.map(_.loginInfo).filter(_.providerID == "credentials").map(_.providerKey)
       .orElse(data.email)
       .getOrElse(StringUtils.slugify(data.name) + "@missing-email.com")
     val email = EmailAddress.from(emailStr).get
-    val validated = auth.filter(_.activated).map(_ => meta.created)
+    val validated = auth.filter(_.activated).map(_ => Instant.ofEpochMilli(meta.created))
     val avatar = AvatarUtils.buildAvatarQuick(data.avatar, email)
     val profile: Profile = Profile(
       description = data.description,
@@ -31,7 +31,7 @@ case class Person(id: String, // Person.Id,
       twitter = data.twitter.map(t => Url.from("https://twitter.com/" + t).get),
       linkedin = data.linkedin.map(Url.from(_).get),
       phone = data.phone,
-      webSite = data.webSite.map(Url.from(_).get))
+      website = data.webSite.map(Url.from(_).get))
 
     Try(User(
       id = User.Id.from(id).get,
@@ -39,13 +39,23 @@ case class Person(id: String, // Person.Id,
       firstName = names.headOption.getOrElse("N/A"),
       lastName = Option(names.drop(1).mkString(" ")).filter(_.nonEmpty).getOrElse("N/A"),
       email = email,
-      emailValidated = validated.map(Instant.ofEpochMilli),
+      emailValidated = validated,
       avatar = avatar,
       published = None,
       profile = profile,
       created = Instant.ofEpochMilli(meta.created),
       updated = Instant.ofEpochMilli(meta.updated))).mapFailure(e => new Exception(s"toUser error for $this", e)).get
   }
+}
+
+object Person {
+
+  object Role {
+    val user = "User"
+    val organizer = "Organizer"
+    val admin = "Admin"
+  }
+
 }
 
 case class PersonData(name: String,
@@ -61,6 +71,8 @@ case class PersonData(name: String,
 
 case class PersonAuth(loginInfo: LoginInfo,
                       role: String, // Person.Role.Value, (User, Organizer, Admin)
-                      activated: Boolean)
+                      activated: Boolean) {
+  def isOrga: Boolean = role == Person.Role.organizer || role == Person.Role.admin
+}
 
 case class LoginInfo(providerID: String, providerKey: String)

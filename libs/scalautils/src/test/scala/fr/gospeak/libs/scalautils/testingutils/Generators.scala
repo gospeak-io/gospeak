@@ -1,9 +1,8 @@
 package fr.gospeak.libs.scalautils.testingutils
 
-import java.time.temporal.ChronoUnit
-
 import fr.gospeak.libs.scalautils.domain.TimePeriod
-import org.scalacheck.Arbitrary
+import fr.gospeak.libs.scalautils.domain.TimePeriod.PeriodUnit
+import org.scalacheck.{Arbitrary, Gen}
 
 import scala.concurrent.duration.{FiniteDuration, TimeUnit}
 import scala.util.Try
@@ -15,8 +14,9 @@ object Generators {
     length <- implicitly[Arbitrary[Long]].arbitrary
     unit <- implicitly[Arbitrary[TimeUnit]].arbitrary
   } yield buildDuration(length, unit))
+  implicit val aPeriodUnit: Arbitrary[PeriodUnit] = Arbitrary(Gen.oneOf(PeriodUnit.values))
   implicit val aTimePeriod: Arbitrary[TimePeriod] = Arbitrary(for {
     length <- implicitly[Arbitrary[Long]].arbitrary
-    unit <- implicitly[Arbitrary[ChronoUnit]].arbitrary
+    unit <- implicitly[Arbitrary[PeriodUnit]].arbitrary
   } yield TimePeriod(length, unit))
 }
