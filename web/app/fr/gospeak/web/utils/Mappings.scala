@@ -1,7 +1,8 @@
 package fr.gospeak.web.utils
 
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.time.{Instant, LocalDateTime, ZoneOffset}
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
 import cats.implicits._
@@ -30,6 +31,9 @@ object Mappings {
   val formatConstraint = "constraint.format"
   val passwordConstraint = "constraint.password"
   val passwordError = "error.password"
+
+  val localDateFormat = "dd/MM/yyyy"
+  val localDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern(localDateFormat)
 
   val double: Mapping[Double] = of(doubleFormat)
   val instant: Mapping[Instant] = stringEitherMapping(s => Try(LocalDateTime.parse(s).toInstant(ZoneOffset.UTC)).toEither, _.atZone(ZoneOffset.UTC).toLocalDateTime.toString, datetimeError) // FIXME manage timezone

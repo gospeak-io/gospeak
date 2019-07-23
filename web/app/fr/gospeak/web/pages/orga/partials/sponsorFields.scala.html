@@ -13,13 +13,13 @@
 }
 @fieldHorizontal(form("start"), Seq("label" -> "Period", "help" -> "Sponsoring period")) { (field, args) =>
     <div class="row">
-        <div class="col">@inputLocalDate(field, Seq("placeholder" -> "ex: 2019-07-14") ++ args)</div>
-        <div class="col">@inputLocalDate(form("finish"), Seq("placeholder" -> "ex: 2019-07-14") ++ args)</div>
+        <div class="col">@inputLocalDate(field, Seq("placeholder" -> "ex: 14/07/2019") ++ args)</div>
+        <div class="col">@inputLocalDate(form("finish"), Seq("placeholder" -> "ex: 14/07/2019") ++ args)</div>
     </div>
 }
 @fieldHorizontal(form("price"), Seq("label" -> "Price", "help" -> "The paid price (useful when pack price changes)")) { (field, args) =>
     @inputPrice(field, args)
 }
 @fieldHorizontal(form("paid"), Seq("label" -> "Paid", "help" -> "When the sponsoring was paid")) { (field, args) =>
-    @inputLocalDate(field, Seq("placeholder" -> "ex: 2019-07-14") ++ args)
+    @inputLocalDate(field, Seq("placeholder" -> "ex: 14/07/2019") ++ args)
 }

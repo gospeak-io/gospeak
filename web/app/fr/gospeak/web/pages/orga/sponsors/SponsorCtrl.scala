@@ -14,7 +14,7 @@ import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.sponsors.SponsorCtrl._
 import fr.gospeak.web.pages.orga.partners.routes.{PartnerCtrl => PartnerRoutes}
-import fr.gospeak.web.utils.{HttpUtils, UICtrl}
+import fr.gospeak.web.utils.{HttpUtils, Mappings, UICtrl}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -87,8 +87,8 @@ class SponsorCtrl(cc: ControllerComponents,
         "pack" -> packElt.id.value,
         "price.amount" -> packElt.price.amount.toString,
         "price.currency" -> packElt.price.currency.name,
-        "start" -> nowLD.toString,
-        "finish" -> packElt.duration.unit.chrono.addTo(nowLD, packElt.duration.length).toString
+        "start" -> Mappings.localDateFormatter.format(nowLD),
+        "finish" -> Mappings.localDateFormatter.format(packElt.duration.unit.chrono.addTo(nowLD, packElt.duration.length))
       )).discardingErrors
       b = listBreadcrumb(groupElt).add("New" -> routes.SponsorCtrl.create(group, packElt.slug))
     } yield Ok(html.create(groupElt, packElt, filledForm, partnerElt)(b))).value.map(_.getOrElse(groupNotFound(group)))
