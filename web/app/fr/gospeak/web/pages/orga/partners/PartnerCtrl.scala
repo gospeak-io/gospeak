@@ -72,7 +72,7 @@ class PartnerCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(user, group))
       partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
       venues <- OptionT.liftF(venueRepo.list(partnerElt.id))
-      packs <- OptionT.liftF(sponsorPackRepo.listAll(groupElt.id))
+      packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       sponsors <- OptionT.liftF(sponsorRepo.listAll(groupElt.id, partnerElt.id))
       users <- OptionT.liftF(userRepo.list((partnerElt.users ++ venues.flatMap(_.users)).distinct))
       b = breadcrumb(groupElt, partnerElt)

@@ -18,6 +18,11 @@ class SponsorPackRepoSqlSpec extends RepoSpec {
         q.sql shouldBe "UPDATE sponsor_packs SET slug=?, name=?, description=?, price=?, currency=?, duration=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
         check(q)
       }
+      it("should build setActive") {
+        val q = setActive(group.id, sponsorPack.slug)(active = true, user.id, now)
+        q.sql shouldBe "UPDATE sponsor_packs SET active=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
+        check(q)
+      }
       it("should build selectOne") {
         val q = selectOne(group.id, sponsorPack.slug)
         q.sql shouldBe s"SELECT $fields FROM sponsor_packs WHERE group_id=? AND slug=?"
@@ -26,6 +31,11 @@ class SponsorPackRepoSqlSpec extends RepoSpec {
       it("should build selectAll") {
         val q = selectAll(group.id)
         q.sql shouldBe s"SELECT $fields FROM sponsor_packs WHERE group_id=?"
+        check(q)
+      }
+      it("should build selectActives") {
+        val q = selectActives(group.id)
+        q.sql shouldBe s"SELECT $fields FROM sponsor_packs WHERE group_id=? AND active=?"
         check(q)
       }
     }

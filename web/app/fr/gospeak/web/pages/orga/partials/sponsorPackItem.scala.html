@@ -4,9 +4,16 @@
 @(group: Group, sponsorPack: SponsorPack)
 <div class="list-group-item d-flex justify-content-between align-items-center @if(!sponsorPack.active) {list-group-item-light}">
     <div>
-        <a href="@SponsorCtrl.detail(group.slug, sponsorPack.slug)"><b>@sponsorPack.name.value</b></a>, @sponsorPack.price.value for @sponsorPack.duration.value
+        @if(sponsorPack.active) {
+            <a href="@SponsorCtrl.detail(group.slug, sponsorPack.slug)"><b>@sponsorPack.name.value</b></a>,
+        } else {
+            <a href="@SponsorCtrl.detail(group.slug, sponsorPack.slug)"><s class="text-muted">@sponsorPack.name.value</s></a>,
+        }
+        @sponsorPack.price.value for @sponsorPack.duration.value
     </div>
-    <div>
-        <a href="@SponsorCtrl.create(group.slug, sponsorPack.slug)" class="btn btn-primary btn-sm">Add sponsor</a>
-    </div>
+    @if(sponsorPack.active) {
+        <div>
+            <a href="@SponsorCtrl.create(group.slug, sponsorPack.slug)" class="btn btn-primary btn-sm">Add sponsor</a>
+        </div>
+    }
 </div>

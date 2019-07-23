@@ -29,9 +29,17 @@ class SponsorPackRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
     }
   }
 
+  override def disable(group: Group.Id, pack: SponsorPack.Slug)(by: User.Id, now: Instant): IO[Done] =
+    run(SponsorPackRepoSql.setActive(group, pack)(active = false, by, now))
+
+  override def enable(group: Group.Id, pack: SponsorPack.Slug)(by: User.Id, now: Instant): IO[Done] =
+    run(SponsorPackRepoSql.setActive(group, pack)(active = true, by, now))
+
   override def find(group: Group.Id, pack: SponsorPack.Slug): IO[Option[SponsorPack]] = run(selectOne(group, pack).option)
 
   override def listAll(group: Group.Id): IO[Seq[SponsorPack]] = run(selectAll(group).to[List])
+
+  override def listActives(group: Group.Id): IO[Seq[SponsorPack]] = run(selectActives(group).to[List])
 }
 
 object SponsorPackRepoSql {
@@ -53,11 +61,21 @@ object SponsorPackRepoSql {
     buildUpdate(tableFr, fields, where(group, pack)).update
   }
 
+  private[sql] def setActive(group: Group.Id, pack: SponsorPack.Slug)(active: Boolean, by: User.Id, now: Instant): doobie.Update0 = {
+    val fields = fr0"active=$active, updated=$now, updated_by=$by"
+    buildUpdate(tableFr, fields, where(group, pack)).update
+  }
+
   private[sql] def selectOne(group: Group.Id, pack: SponsorPack.Slug): doobie.Query0[SponsorPack] =
     buildSelect(tableFr, fieldsFr, where(group, pack)).query[SponsorPack]
 
   private[sql] def selectAll(group: Group.Id): doobie.Query0[SponsorPack] =
     buildSelect(tableFr, fieldsFr, where(group)).query[SponsorPack]
+
+  private[sql] def selectActives(group: Group.Id): doobie.Query0[SponsorPack] = {
+    val active = true
+    buildSelect(tableFr, fieldsFr, where(group) ++ fr0" AND active=$active").query[SponsorPack]
+  }
 
   private def where(group: Group.Id, slug: SponsorPack.Slug): Fragment =
     fr0"WHERE group_id=$group AND slug=$slug"

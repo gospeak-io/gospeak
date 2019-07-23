@@ -87,6 +87,8 @@ GET         /u/groups/:group/sponsors                                           
 GET         /u/groups/:group/sponsors/create-pack                               fr.gospeak.web.pages.orga.sponsors.SponsorCtrl.createPack(group: Group.Slug)
 POST        /u/groups/:group/sponsors/create-pack                               fr.gospeak.web.pages.orga.sponsors.SponsorCtrl.doCreatePack(group: Group.Slug)
 GET         /u/groups/:group/sponsors/:pack                                     fr.gospeak.web.pages.orga.sponsors.SponsorCtrl.detail(group: Group.Slug, pack: SponsorPack.Slug)
+POST        /u/groups/:group/sponsors/:pack/disable                             fr.gospeak.web.pages.orga.sponsors.SponsorCtrl.disablePack(group: Group.Slug, pack: SponsorPack.Slug)
+POST        /u/groups/:group/sponsors/:pack/enable                              fr.gospeak.web.pages.orga.sponsors.SponsorCtrl.enablePack(group: Group.Slug, pack: SponsorPack.Slug)
 GET         /u/groups/:group/sponsors/:pack/create                              fr.gospeak.web.pages.orga.sponsors.SponsorCtrl.create(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug] ?= None)
 POST        /u/groups/:group/sponsors/:pack/create                              fr.gospeak.web.pages.orga.sponsors.SponsorCtrl.doCreate(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug] ?= None)
 POST        /u/groups/:group/sponsors/:sponsor/paid                             fr.gospeak.web.pages.orga.sponsors.SponsorCtrl.paid(group: Group.Slug, sponsor: Sponsor.Id)

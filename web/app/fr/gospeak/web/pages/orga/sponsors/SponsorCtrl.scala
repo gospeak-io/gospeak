@@ -102,6 +102,24 @@ class SponsorCtrl(cc: ControllerComponents,
     } yield Ok(html.detail(groupElt, packElt)(b))).value.map(_.getOrElse(packNotFound(group, pack))).unsafeToFuture()
   }
 
+  def disablePack(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.SponsorCtrl.list(group).toString))
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      _ <- OptionT.liftF(sponsorPackRepo.disable(groupElt.id, pack)(user, now))
+    } yield next).value.map(_.getOrElse(next.flashing("error" -> s"Unable to disable sponsor pack ${pack.value} of group ${group.value}"))).unsafeToFuture()
+  }
+
+  def enablePack(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.SponsorCtrl.list(group).toString))
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      _ <- OptionT.liftF(sponsorPackRepo.enable(groupElt.id, pack)(user, now))
+    } yield next).value.map(_.getOrElse(next.flashing("error" -> s"Unable to disable sponsor pack ${pack.value} of group ${group.value}"))).unsafeToFuture()
+  }
+
   def paid(group: Group.Slug, sponsor: Sponsor.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     val nowLD = LocalDate.now()

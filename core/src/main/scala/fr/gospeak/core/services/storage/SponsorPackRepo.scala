@@ -13,9 +13,15 @@ trait OrgaSponsorPackRepo {
 
   def edit(group: Group.Id, pack: SponsorPack.Slug)(data: SponsorPack.Data, by: User.Id, now: Instant): IO[Done]
 
+  def disable(group: Group.Id, pack: SponsorPack.Slug)(by: User.Id, now: Instant): IO[Done]
+
+  def enable(group: Group.Id, pack: SponsorPack.Slug)(by: User.Id, now: Instant): IO[Done]
+
   def find(group: Group.Id, pack: SponsorPack.Slug): IO[Option[SponsorPack]]
 
   def listAll(group: Group.Id): IO[Seq[SponsorPack]]
+
+  def listActives(group: Group.Id): IO[Seq[SponsorPack]]
 }
 
 trait SuggestSponsorPackRepo {

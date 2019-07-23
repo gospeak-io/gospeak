@@ -244,7 +244,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       (cfp1, event3, Seq(proposal1), humanTalks.owners.head),
       (cfp4, event5, Seq(proposal3), parisJs.owners.head))
 
-    val base = sponsorPack(humanTalks, "Base", 500, userDemo)
+    val base = sponsorPack(humanTalks, "Base", 500, userDemo, "Description of the pack")
     val premium = sponsorPack(humanTalks, "Premium", 1500, userDemo)
     val packs = NonEmptyList.of(base, premium)
 
