@@ -59,7 +59,7 @@ class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
         val data = period.unbind(v)
         period.bind(data) shouldBe Right(v)
       }
-      period.bind(Map("length" -> "12", "unit" -> "HOURS")) shouldBe Right(TimePeriod(12, ChronoUnit.HOURS))
+      period.bind(Map("length" -> "12", "unit" -> "Hour")) shouldBe Right(TimePeriod(12, TimePeriod.PeriodUnit.Hour))
     }
     it("should bind & unbind a TimeUnit") {
       forAll { v: TimeUnit =>
