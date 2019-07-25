@@ -19,7 +19,10 @@ class GroupCtrl(cc: ControllerComponents,
                 groupRepo: OrgaGroupRepo,
                 eventRepo: OrgaEventRepo,
                 venueRepo: OrgaVenueRepo,
-                proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette) {
+                proposalRepo: OrgaProposalRepo,
+                sponsorRepo: OrgaSponsorRepo,
+                sponsorPackRepo: OrgaSponsorPackRepo,
+                partnerRepo: OrgaPartnerRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
@@ -31,8 +34,13 @@ class GroupCtrl(cc: ControllerComponents,
       venues <- OptionT.liftF(venueRepo.list(groupElt.id, events.items.flatMap(_.venue)))
       proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.users)))
+      sponsors <- OptionT.liftF(sponsorRepo.listAll(groupElt.id).map(_.groupBy(_.partner)))
+      partners <- OptionT.liftF(partnerRepo.list(sponsors.keys.toSeq))
+      currentSponsors = sponsors.flatMap { case (id, ss) => partners.find(_.id == id).flatMap(p => ss.find(_.isCurrent(now)).map(s => (p, (s, ss.length)))) }
+      pastSponsors = sponsors.filter(_._2.exists(!_.isCurrent(now))).flatMap { case (id, s) => partners.find(_.id == id).map(p => (p, s)) }
+      packs <- OptionT.liftF(sponsorPackRepo.listAll(groupElt.id))
       b = breadcrumb(groupElt)
-    } yield Ok(html.detail(groupElt, events, venues, proposals, speakers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, events, venues, proposals, speakers, currentSponsors, pastSponsors, packs)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 }
 

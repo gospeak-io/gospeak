@@ -19,5 +19,7 @@ trait OrgaSponsorRepo {
 
   def list(group: Group.Id, params: Page.Params): IO[Page[Sponsor]]
 
+  def listAll(group: Group.Id): IO[Seq[Sponsor]]
+
   def listAll(group: Group.Id, partner: Partner.Id): IO[Seq[Sponsor]]
 }

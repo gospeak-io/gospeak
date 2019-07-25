@@ -2,6 +2,7 @@ package fr.gospeak.infra.services.storage.sql
 
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import SponsorPackRepoSql._
+import cats.data.NonEmptyList
 
 class SponsorPackRepoSqlSpec extends RepoSpec {
   private val fields = "id, group_id, slug, name, description, price, currency, duration, active, created, created_by, updated, updated_by"
@@ -26,6 +27,11 @@ class SponsorPackRepoSqlSpec extends RepoSpec {
       it("should build selectOne") {
         val q = selectOne(group.id, sponsorPack.slug)
         q.sql shouldBe s"SELECT $fields FROM sponsor_packs WHERE group_id=? AND slug=?"
+        check(q)
+      }
+      it("should build selectAll ids") {
+        val q = selectAll(NonEmptyList.of(sponsorPack.id, sponsorPack.id))
+        q.sql shouldBe s"SELECT $fields FROM sponsor_packs WHERE id IN (?, ?) "
         check(q)
       }
       it("should build selectAll") {

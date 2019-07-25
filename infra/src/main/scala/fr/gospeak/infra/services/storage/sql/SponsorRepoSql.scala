@@ -30,6 +30,8 @@ class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[Sponsor]] = run(Queries.selectPage(selectPage(group, _), params))
 
+  override def listAll(group: Group.Id): IO[Seq[Sponsor]] = run(selectAll(group).to[List])
+
   override def listAll(group: Group.Id, partner: Partner.Id): IO[Seq[Sponsor]] = run(selectAll(group, partner).to[List])
 }
 
@@ -62,6 +64,9 @@ object SponsorRepoSql {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Sponsor], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
+
+  private[sql] def selectAll(group: Group.Id): doobie.Query0[Sponsor] =
+    buildSelect(tableFr, fieldsFr, where(group)).query[Sponsor]
 
   private[sql] def selectAll(group: Group.Id, partner: Partner.Id): doobie.Query0[Sponsor] =
     buildSelect(tableFr, fieldsFr, where(group, partner)).query[Sponsor]

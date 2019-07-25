@@ -1,5 +1,4 @@
 @import java.time.LocalDateTime
-
 @import fr.gospeak.core.domain.{Event, Group, Proposal, User, Cfp, Venue, Partner}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.pages.partials.display.html._
@@ -12,8 +11,8 @@
     <h5 class="mb-1">@event.name.value</h5>
     @if(!event.isPublic) {<span class="badge badge-dark">Draft</span>}
     @Formats.date(event.start),
-    @event.venue.map { v => @venue(venues, v) }.getOrElse { <b class="text-danger">Missing venue</b>, }
-    @event.talks.length planned talks
+    @event.venue.map { v => at @venue(venues, v) }.getOrElse { <b class="text-danger">Missing venue</b>, }
+    @Formats.plural(event.talks.length, "planned talk")
     @tags(event.tags)
     @if(event.talks.nonEmpty) {
         <ol>

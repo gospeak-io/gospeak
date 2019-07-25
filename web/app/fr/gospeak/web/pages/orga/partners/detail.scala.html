@@ -1,3 +1,4 @@
+@import java.time.Instant
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Group, Partner, User, Venue, Sponsor, SponsorPack}
 @import fr.gospeak.web.auth.domain.CookieEnv
@@ -12,7 +13,7 @@
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, partner: Partner, venues: Seq[Venue], speakers: Seq[User], sponsors: Seq[Sponsor], packs: Seq[SponsorPack])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, partner: Partner, venues: Seq[Venue], speakers: Seq[User], sponsors: Seq[Sponsor], packs: Seq[SponsorPack], now: Instant = Instant.now())(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @venueItem(venue: Venue) = {
     <a class="list-group-item list-group-item-action" href="@VenueCtrl.detail(group.slug, partner.slug, venue.id)">
     @venue.address.value
@@ -86,7 +87,11 @@
             @sponsors.map { sponsor =>
                 <span class="list-group-item d-flex justify-content-between align-items-center">
                     <span>
-                        <b>@packs.find(_.id == sponsor.pack).map { p => <a href="@SponsorCtrl.detail(group.slug, p.slug)">@p.name.value pack</a> }.getOrElse {Unknown pack}</b>
+                        @if(sponsor.isCurrent(now)) {
+                            <b>@packs.find(_.id == sponsor.pack).map { p => <a href="@SponsorCtrl.detail(group.slug, p.slug)">@p.name.value pack</a> }.getOrElse {Unknown pack}</b>
+                        } else {
+                            <b>@packs.find(_.id == sponsor.pack).map { p => <a href="@SponsorCtrl.detail(group.slug, p.slug)"><s class="text-muted">@p.name.value pack</s></a> }.getOrElse {<s class="text-muted">Unknown pack</s>}</b>
+                        }
                         from @Formats.date(sponsor.start) to @Formats.date(sponsor.finish)
                         @sponsor.paid.map { p => (@sponsor.price.value paid on @Formats.date(p)) }.getOrElse {(@sponsor.price.value, not paid)}
                     </span>

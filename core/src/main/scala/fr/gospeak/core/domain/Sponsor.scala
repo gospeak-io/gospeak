@@ -1,6 +1,6 @@
 package fr.gospeak.core.domain
 
-import java.time.LocalDate
+import java.time.{Instant, LocalDate, ZoneOffset}
 
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.libs.scalautils.domain.{DataClass, IId, Price, UuidIdBuilder}
@@ -16,6 +16,9 @@ case class Sponsor(id: Sponsor.Id,
                    price: Price,
                    info: Info) {
   def data: Sponsor.Data = Sponsor.Data(this)
+
+  def isCurrent(now: Instant): Boolean =
+    start.atStartOfDay().toInstant(ZoneOffset.UTC).isBefore(now) && finish.atStartOfDay().toInstant(ZoneOffset.UTC).isAfter(now)
 }
 
 object Sponsor {

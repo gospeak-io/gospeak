@@ -30,6 +30,16 @@ class SponsorRepoSqlSpec extends RepoSpec {
         check(s)
         check(c)
       }
+      it("should build selectAll group") {
+        val q = selectAll(group.id)
+        q.sql shouldBe s"SELECT $fields FROM sponsors WHERE group_id=?"
+        check(q)
+      }
+      it("should build selectAll partner") {
+        val q = selectAll(group.id, partner.id)
+        q.sql shouldBe s"SELECT $fields FROM sponsors WHERE group_id=? AND partner_id=?"
+        check(q)
+      }
     }
   }
 }

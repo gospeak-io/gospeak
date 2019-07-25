@@ -19,6 +19,8 @@ trait OrgaSponsorPackRepo {
 
   def find(group: Group.Id, pack: SponsorPack.Slug): IO[Option[SponsorPack]]
 
+  def list(ids: Seq[SponsorPack.Id]): IO[Seq[SponsorPack]]
+
   def listAll(group: Group.Id): IO[Seq[SponsorPack]]
 
   def listActives(group: Group.Id): IO[Seq[SponsorPack]]

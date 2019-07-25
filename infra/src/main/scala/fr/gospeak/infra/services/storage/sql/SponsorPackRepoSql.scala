@@ -2,7 +2,9 @@ package fr.gospeak.infra.services.storage.sql
 
 import java.time.Instant
 
+import cats.data.NonEmptyList
 import cats.effect.IO
+import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
@@ -37,6 +39,8 @@ class SponsorPackRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
 
   override def find(group: Group.Id, pack: SponsorPack.Slug): IO[Option[SponsorPack]] = run(selectOne(group, pack).option)
 
+  override def list(ids: Seq[SponsorPack.Id]): IO[Seq[SponsorPack]] = runIn(selectAll)(ids)
+
   override def listAll(group: Group.Id): IO[Seq[SponsorPack]] = run(selectAll(group).to[List])
 
   override def listActives(group: Group.Id): IO[Seq[SponsorPack]] = run(selectActives(group).to[List])
@@ -68,6 +72,9 @@ object SponsorPackRepoSql {
 
   private[sql] def selectOne(group: Group.Id, pack: SponsorPack.Slug): doobie.Query0[SponsorPack] =
     buildSelect(tableFr, fieldsFr, where(group, pack)).query[SponsorPack]
+
+  private[sql] def selectAll(ids: NonEmptyList[SponsorPack.Id]): doobie.Query0[SponsorPack] =
+    buildSelect(tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids)).query[SponsorPack]
 
   private[sql] def selectAll(group: Group.Id): doobie.Query0[SponsorPack] =
     buildSelect(tableFr, fieldsFr, where(group)).query[SponsorPack]

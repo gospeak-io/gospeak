@@ -153,7 +153,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       SponsorPack(SponsorPack.Id.generate(), group.id, SponsorPack.Slug.from(StringUtils.slugify(name)).get, SponsorPack.Name(name), Markdown(description), Price(price, Price.Currency.EUR), 1.year, active = true, Info(by.id, now))
 
     def sponsor(group: Group, partner: Partner, pack: SponsorPack, by: User, start: String, finish: String): Sponsor =
-      Sponsor(Sponsor.Id.generate(), group.id, partner.id, pack.id, LocalDate.parse(start), LocalDate.parse(finish), None, Price(1500, Price.Currency.EUR), Info(by.id, now))
+      Sponsor(Sponsor.Id.generate(), group.id, partner.id, pack.id, LocalDate.parse(start), LocalDate.parse(finish), Some(LocalDate.parse(start)), Price(1500, Price.Currency.EUR), Info(by.id, now))
 
     val userDemoProfil = User.Profile(Some("Entrepreneur, functional programmer, OSS contributor, speaker, author. Work hard, stay positive, and live fearlessly."),
       Some("Zeenea"), Some("Paris"), Some(Url.from("https://twitter.com/HumanTalks").get), Some(Url.from("https://twitter.com/HumanTalks").get), None, Some(Url.from("https://humantalks.com/").get))
@@ -235,13 +235,13 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val event1 = event(humanTalks, Some(cfp2), "2018-06", "HumanTalks Day #1", "2018-06-01", userDemo, venue = None, description = Group.Settings.default.event.defaultDescription.value)
     val event2 = event(humanTalks, None, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, venue = None, description = Group.Settings.default.event.defaultDescription.value)
     val event3 = event(humanTalks, Some(cfp1), "2019-02", "HumanTalks Paris Fevrier 2019", "2019-02-12", userOrga)
-    val event4 = event(humanTalks, Some(cfp1), "2019-06", "HumanTalks Paris Juin 2019", "2019-06-12", userDemo, venue = Some(venue1), description = Group.Settings.default.event.defaultDescription.value)
+    val event4 = event(humanTalks, Some(cfp1), "2019-11", "HumanTalks Paris Novembre 2019", "2019-11-12", userDemo, venue = Some(venue1), description = Group.Settings.default.event.defaultDescription.value)
     val event5 = event(parisJs, Some(cfp4), "2019-04", "Paris.Js Avril", "2019-04-01", userOrga)
     val event6 = event(dataGov, None, "2019-03", "Nouveaux modeles de gouvenance", "2019-03-15", userDemo, tags = Seq("Data Gouv"))
     val events = NonEmptyList.of(event1, event2, event3, event4, event5, event6)
 
     val eventTalks = NonEmptyList.of(
-      (cfp1, event3, Seq(proposal1), humanTalks.owners.head),
+      (cfp1, event4, Seq(proposal1), humanTalks.owners.head),
       (cfp4, event5, Seq(proposal3), parisJs.owners.head))
 
     val base = sponsorPack(humanTalks, "Base", 500, userDemo, "Description of the pack")
@@ -249,7 +249,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val packs = NonEmptyList.of(base, premium)
 
     val sponsor1 = sponsor(humanTalks, zeenea, premium, userDemo, "2019-01-01", "2020-01-01")
-    val sponsors = NonEmptyList.of(sponsor1)
+    val sponsor2 = sponsor(humanTalks, nexeo, base, userDemo, "2018-01-01", "2019-01-01")
+    val sponsors = NonEmptyList.of(sponsor1, sponsor2)
 
     val generated = (1 to 25).toList.map { i =>
       val groupId = Group.Id.generate()
