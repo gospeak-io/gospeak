@@ -61,7 +61,7 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def list(group: Group.Id, speaker: User.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]] = run(Queries.selectPage(selectPage(group, speaker, _), params))
 
-  override def list(speaker: User.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]] = run(Queries.selectPage(selectPage(speaker, _), params))
+  override def list(speaker: User.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]] = run(Queries.selectPage(selectPageWithCfp(speaker, _), params))
 
   override def list(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal]] = run(Queries.selectPage(selectPage(cfp, _), params))
 
@@ -69,7 +69,7 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def list(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = runIn(selectAll)(ids)
 
-  override def list(speaker: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Cfp, Proposal)]] = run(Queries.selectPage(selectPage(speaker, status, _), params))
+  override def list(speaker: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Event, Proposal)]] = run(Queries.selectPage(selectPageWithEvent(speaker, status, _), params))
 
   override def listTags(): IO[Seq[Tag]] = run(selectTags().to[List]).map(_.flatten.distinct)
 }
@@ -145,7 +145,7 @@ object ProposalRepoSql {
     (buildSelect(selectedTables, selectedFields, page.all).query[(Cfp, Proposal)], buildSelect(selectedTables, fr0"count(*)", page.where).query[Long])
   }
 
-  private[sql] def selectPage(speaker: User.Id, params: Page.Params): (doobie.Query0[(Cfp, Proposal)], doobie.Query0[Long]) = {
+  private[sql] def selectPageWithCfp(speaker: User.Id, params: Page.Params): (doobie.Query0[(Cfp, Proposal)], doobie.Query0[Long]) = {
     val selectedTables = Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id")
     val selectedFields = Fragment.const0((CfpRepoSql.fields.map("c." + _) ++ fields.map("p." + _)).mkString(", "))
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"}"), Some("p"))
@@ -162,11 +162,11 @@ object ProposalRepoSql {
     (buildSelect(tableFr, fieldsFr, page.all).query[Proposal], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 
-  private[sql] def selectPage(speaker: User.Id, status: Proposal.Status, params: Page.Params): (doobie.Query0[(Cfp, Proposal)], doobie.Query0[Long]) = {
-    val selectedTables = Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id")
-    val selectedFields = Fragment.const0((CfpRepoSql.fields.map("c." + _) ++ fields.map("p." + _)).mkString(", "))
+  private[sql] def selectPageWithEvent(speaker: User.Id, status: Proposal.Status, params: Page.Params): (doobie.Query0[(Event, Proposal)], doobie.Query0[Long]) = {
+    val selectedTables = Fragment.const0(s"$table p INNER JOIN ${EventRepoSql.table} e ON p.event_id=e.id")
+    val selectedFields = Fragment.const0((EventRepoSql.fields.map("e." + _) ++ fields.map("p." + _)).mkString(", "))
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.status=$status AND p.speakers LIKE ${"%" + speaker.value + "%"} "), Some("p"))
-    (buildSelect(selectedTables, selectedFields, page.all).query[(Cfp, Proposal)], buildSelect(selectedTables, fr0"count(*)", page.where).query[Long])
+    (buildSelect(selectedTables, selectedFields, page.all).query[(Event, Proposal)], buildSelect(selectedTables, fr0"count(*)", page.where).query[Long])
   }
 
   private[sql] def selectAll(ids: NonEmptyList[Proposal.Id]): doobie.Query0[Proposal] =

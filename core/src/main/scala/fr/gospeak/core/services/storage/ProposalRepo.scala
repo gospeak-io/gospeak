@@ -56,13 +56,13 @@ trait SpeakerProposalRepo {
 }
 
 trait UserProposalRepo {
-  def list(user: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Cfp, Proposal)]]
+  def list(user: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Event, Proposal)]]
 }
 
 trait AuthProposalRepo
 
 trait PublicProposalRepo {
-  def list(speaker: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Cfp, Proposal)]]
+  def list(speaker: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Event, Proposal)]]
 }
 
 trait SuggestProposalRepo {
