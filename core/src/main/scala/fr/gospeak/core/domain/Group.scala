@@ -95,7 +95,19 @@ object Group {
     }
 
     final case class Event(defaultDescription: MarkdownTemplate[TemplateData.EventInfo],
-                           templates: Map[String, MarkdownTemplate[TemplateData.EventInfo]])
+                           templates: Map[String, MarkdownTemplate[TemplateData.EventInfo]]) {
+      def getTemplate(id: String): Option[MarkdownTemplate[TemplateData.EventInfo]] =
+        if (id == Event.defaultDescriptionId) Some(defaultDescription)
+        else templates.get(id)
+
+      def updateTemplate(id: String, value: MarkdownTemplate[TemplateData.EventInfo]): Event =
+        if (id == Event.defaultDescriptionId) copy(defaultDescription = value)
+        else copy(templates = templates ++ Map(id -> value))
+    }
+
+    object Event {
+      val defaultDescriptionId = "default-description"
+    }
 
   }
 

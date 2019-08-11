@@ -98,7 +98,8 @@ POST        /u/groups/:group/settings/slack-account                             
 POST        /u/groups/:group/settings/slack-account/remove                      fr.gospeak.web.pages.orga.settings.SettingsCtrl.removeSlackAccount(group: Group.Slug)
 POST        /u/groups/:group/settings/add-action                                fr.gospeak.web.pages.orga.settings.SettingsCtrl.addAction(group: Group.Slug)
 POST        /u/groups/:group/settings/remove-action                             fr.gospeak.web.pages.orga.settings.SettingsCtrl.removeAction(group: Group.Slug, trigger: Group.Settings.Action.Trigger, index: Int)
-POST        /u/groups/:group/settings/event                                     fr.gospeak.web.pages.orga.settings.SettingsCtrl.updateEventSettings(group: Group.Slug)
+GET         /u/groups/:group/settings/event-template/:templateId                fr.gospeak.web.pages.orga.settings.SettingsCtrl.updateEventTemplate(group: Group.Slug, templateId: String)
+POST        /u/groups/:group/settings/event-template/:templateId                fr.gospeak.web.pages.orga.settings.SettingsCtrl.doUpdateEventTemplate(group: Group.Slug, templateId: String)
 
 GET         /u/profile                                                          fr.gospeak.web.pages.speaker.SpeakerCtrl.profile(params: Page.Params ?= Page.Params.defaults)
 GET         /u/edit-profile                                                     fr.gospeak.web.pages.speaker.SpeakerCtrl.getProfile(params: Page.Params ?= Page.Params.defaults)

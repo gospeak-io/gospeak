@@ -88,15 +88,25 @@ class SettingsCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
-  def updateEventSettings(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def updateEventTemplate(group: Group.Slug, templateId: String): Action[AnyContent] = SecuredAction.async { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      template <- OptionT.fromOption[IO](settings.event.getTemplate(templateId))
+      form = SettingsForms.eventTemplateSettings.fill(template)
+    } yield updateEventTemplateView(groupElt, templateId, form))
+      .value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+  }
+
+  def doUpdateEventTemplate(group: Group.Slug, templateId: String): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
       res <- OptionT.liftF(SettingsForms.eventTemplateSettings.bindFromRequest.fold(
-        formWithErrors => IO.pure(settingsView(groupElt, settings, eventSettings = Some(formWithErrors))),
-        data => settingsRepo.set(groupElt.id, settings.copy(event = settings.event.copy(defaultDescription = data)), user, now)
-          .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Event settings updated"))
+        formWithErrors => IO.pure(updateEventTemplateView(groupElt, templateId, formWithErrors)),
+        data => settingsRepo.set(groupElt.id, settings.copy(event = settings.event.updateTemplate(templateId, data)), user, now)
+          .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> s"Template '$templateId' updated for events"))
       ))
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
@@ -114,6 +124,17 @@ class SettingsCtrl(cc: ControllerComponents,
       action.getOrElse(SettingsForms.addAction),
       eventSettings.getOrElse(SettingsForms.eventTemplateSettings.fill(settings.event.defaultDescription))
     )(listBreadcrumb(groupElt)))
+  }
+
+  private def updateEventTemplateView(group: Group,
+                                      templateId: String,
+                                      form: Form[MarkdownTemplate[TemplateData.EventInfo]])
+                                     (implicit req: SecuredRequest[CookieEnv, AnyContent]): Result = {
+    val b = listBreadcrumb(group).add(
+      "Event" -> routes.SettingsCtrl.list(group.slug),
+      "Templates" -> routes.SettingsCtrl.list(group.slug),
+      templateId -> routes.SettingsCtrl.updateEventTemplate(group.slug, templateId))
+    Ok(html.updateEventTemplate(group, templateId, form)(b))
   }
 
   private def addActionToSettings(settings: Group.Settings, addAction: SettingsForms.AddAction): Group.Settings = {
