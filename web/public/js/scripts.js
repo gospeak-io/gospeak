@@ -10,6 +10,13 @@ function slugify(str) {
 // enable global features
 (function () {
     $('[data-toggle="tooltip"]').tooltip();
+    $('[data-toggle="popover"]').popover();
+    $('[data-toggle="html-popover"]').each(function () {
+        var $el = $(this);
+        var $content = $el.find('.content');
+        $el.popover({html: true, content: $content});
+        $content.remove();
+    });
     autosize($('textarea'));
 })();
 

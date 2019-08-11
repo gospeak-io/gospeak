@@ -96,6 +96,9 @@ object Group {
 
     final case class Event(defaultDescription: MarkdownTemplate[TemplateData.EventInfo],
                            templates: Map[String, MarkdownTemplate[TemplateData.EventInfo]]) {
+      def allTemplates: Seq[(String, MarkdownTemplate[TemplateData.EventInfo])] =
+        Seq(Event.defaultDescriptionId -> defaultDescription) ++ templates.toSeq.sortBy(_._1)
+
       def getTemplate(id: String): Option[MarkdownTemplate[TemplateData.EventInfo]] =
         if (id == Event.defaultDescriptionId) Some(defaultDescription)
         else templates.get(id)
@@ -106,7 +109,7 @@ object Group {
     }
 
     object Event {
-      val defaultDescriptionId = "default-description"
+      val defaultDescriptionId = "Default description"
     }
 
   }

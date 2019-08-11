@@ -9,10 +9,24 @@
 <div class="card mb-3">
     <div class="card-header">Event settings</div>
     <div class="card-body">
-        <h6 class="card-subtitle mb-2 text-muted d-flex justify-content-between align-items-center">
-            <span>Default description</span>
-            <a href="@SettingsCtrl.updateEventTemplate(group.slug, Group.Settings.Event.defaultDescriptionId)" class="btn btn-primary btn-xs">Update</a>
+        <h6 class="card-title mb-0 text-muted d-flex justify-content-between align-items-center">
+            <span>Templates</span>
+            <a href="@SettingsCtrl.updateEventTemplate(group.slug, "")" class="btn btn-success btn-xs">Add</a>
         </h6>
-        <p class="card-text" style="white-space: pre-line; max-height: 114px; overflow: hidden;">@settings.defaultDescription.value</p>
     </div>
+    <ul class="list-group list-group-flush">
+    @settings.allTemplates.map { case (id, template) =>
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>@id</span>
+        <a
+        href="@SettingsCtrl.updateEventTemplate(group.slug, id)"
+        class="btn btn-primary btn-xs"
+        data-toggle="html-popover"
+        data-trigger="hover">
+            <div class="content" style="white-space: pre-line;
+                width: 500px">@template.value</div>
+        Update</a>
+    </li>
+    }
+    </ul>
 </div>
