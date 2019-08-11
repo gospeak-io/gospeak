@@ -1,16 +1,15 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.Group
+@import fr.gospeak.core.domain.utils.TemplateData
+@import fr.gospeak.core.services.slack.domain.SlackCredentials
+@import fr.gospeak.libs.scalautils.domain.MarkdownTemplate
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.container
-@import fr.gospeak.core.services.slack.domain.SlackCredentials
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
-@import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.AddAction
 @import fr.gospeak.web.pages.orga.settings.partials.html._
 
-@(group: Group, settings: Group.Settings, slackAccount: Form[SlackCredentials], addAction: Form[AddAction], eventSettings: Form[Group.Settings.Event])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, settings: Group.Settings, slackAccount: Form[SlackCredentials], addAction: Form[AddAction], eventSettings: Form[MarkdownTemplate[TemplateData.EventInfo]])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", group, b)() {
     <h1>Settings</h1>
 

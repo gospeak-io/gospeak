@@ -58,7 +58,7 @@ object Group {
         twitter = None,
         youtube = None),
       actions = Map(),
-      event = Event(TemplateData.Static.defaultEventDescription))
+      event = Event(TemplateData.Static.defaultEventDescription, Map()))
 
     final case class Accounts(slack: Option[SlackCredentials],
                               meetup: Option[String],
@@ -94,7 +94,8 @@ object Group {
 
     }
 
-    final case class Event(defaultDescription: MarkdownTemplate[TemplateData.EventInfo])
+    final case class Event(defaultDescription: MarkdownTemplate[TemplateData.EventInfo],
+                           templates: Map[String, MarkdownTemplate[TemplateData.EventInfo]])
 
   }
 

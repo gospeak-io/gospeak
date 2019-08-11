@@ -3,6 +3,7 @@ package fr.gospeak.web.pages.orga.settings
 import fr.gospeak.core.domain.Group.Settings
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.slack.domain.SlackCredentials
+import fr.gospeak.libs.scalautils.domain.MarkdownTemplate
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
@@ -21,7 +22,5 @@ object SettingsForms {
     "action" -> groupSettingsAction
   )(AddAction.apply)(AddAction.unapply))
 
-  val eventSettings: Form[Settings.Event] = Form(mapping(
-    "defaultDescription" -> template[TemplateData.EventInfo]
-  )(Settings.Event.apply)(Settings.Event.unapply))
+  val eventTemplateSettings: Form[MarkdownTemplate[TemplateData.EventInfo]] = Form(single("template" -> template[TemplateData.EventInfo]))
 }

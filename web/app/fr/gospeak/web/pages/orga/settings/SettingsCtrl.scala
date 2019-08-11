@@ -7,9 +7,11 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.Group
+import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackCredentials
 import fr.gospeak.core.services.storage.{OrgaGroupRepo, SettingsRepo}
+import fr.gospeak.libs.scalautils.domain.MarkdownTemplate
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.GroupCtrl
@@ -91,9 +93,9 @@ class SettingsCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
-      res <- OptionT.liftF(SettingsForms.eventSettings.bindFromRequest.fold(
+      res <- OptionT.liftF(SettingsForms.eventTemplateSettings.bindFromRequest.fold(
         formWithErrors => IO.pure(settingsView(groupElt, settings, eventSettings = Some(formWithErrors))),
-        data => settingsRepo.set(groupElt.id, settings.copy(event = data), user, now)
+        data => settingsRepo.set(groupElt.id, settings.copy(event = settings.event.copy(defaultDescription = data)), user, now)
           .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Event settings updated"))
       ))
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
@@ -103,14 +105,14 @@ class SettingsCtrl(cc: ControllerComponents,
                            settings: Group.Settings,
                            slack: Option[Form[SlackCredentials]] = None,
                            action: Option[Form[SettingsForms.AddAction]] = None,
-                           eventSettings: Option[Form[Group.Settings.Event]] = None)
+                           eventSettings: Option[Form[MarkdownTemplate[TemplateData.EventInfo]]] = None)
                           (implicit req: SecuredRequest[CookieEnv, AnyContent]): Result = {
     Ok(html.list(
       groupElt,
       settings,
       slack.getOrElse(settings.accounts.slack.map(s => SettingsForms.slackAccount.fill(s)).getOrElse(SettingsForms.slackAccount)),
       action.getOrElse(SettingsForms.addAction),
-      eventSettings.getOrElse(SettingsForms.eventSettings.fill(settings.event))
+      eventSettings.getOrElse(SettingsForms.eventTemplateSettings.fill(settings.event.defaultDescription))
     )(listBreadcrumb(groupElt)))
   }
 
