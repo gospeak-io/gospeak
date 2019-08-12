@@ -70,7 +70,9 @@ object Group {
         twitter = None,
         youtube = None),
       actions = Map(),
-      event = Event(TemplateData.Static.defaultEventDescription, Map()))
+      event = Event(
+        defaultDescription = TemplateData.Static.defaultEventDescription,
+        templates = Map()))
 
     final case class Accounts(slack: Option[SlackCredentials],
                               meetup: Option[String],
@@ -118,7 +120,7 @@ object Group {
 
       def removeTemplate(id: String): Try[Event] =
         if (templates.contains(id)) Success(copy(templates = templates - id))
-        else if(id == Event.defaultDescriptionId) Failure(new IllegalArgumentException(s"Template '$id' is a default one, unable to remove it"))
+        else if (id == Event.defaultDescriptionId) Failure(new IllegalArgumentException(s"Template '$id' is a default one, unable to remove it"))
         else Failure(new IllegalArgumentException(s"Template '$id' does not exists, unable to remove it"))
 
       def addTemplate(id: String, template: MarkdownTemplate[TemplateData.EventInfo]): Try[Event] =

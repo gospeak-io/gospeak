@@ -49,6 +49,7 @@ POST        /u/groups/:group/events/:event/cancel-talk/:talk                    
 POST        /u/groups/:group/events/:event/move-talk/:talk                      fr.gospeak.web.pages.orga.events.EventCtrl.moveTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, up: Boolean ?= true, params: Page.Params ?= Page.Params.defaults)
 POST        /u/groups/:group/events/:event/reject-proposal/:talk                fr.gospeak.web.pages.orga.events.EventCtrl.rejectProposal(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params ?= Page.Params.defaults)
 POST        /u/groups/:group/events/:event/publish                              fr.gospeak.web.pages.orga.events.EventCtrl.publish(group: Group.Slug, event: Event.Slug)
+GET         /u/groups/:group/events/:event/template/:templateId                 fr.gospeak.web.pages.orga.events.EventCtrl.showTemplate(group: Group.Slug, event: Event.Slug, templateId: String)
 GET         /u/groups/:group/cfps                                               fr.gospeak.web.pages.orga.cfps.CfpCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/cfps/create                                        fr.gospeak.web.pages.orga.cfps.CfpCtrl.create(group: Group.Slug, event: Option[Event.Slug] ?= None)
 POST        /u/groups/:group/cfps/create                                        fr.gospeak.web.pages.orga.cfps.CfpCtrl.doCreate(group: Group.Slug, event: Option[Event.Slug] ?= None)

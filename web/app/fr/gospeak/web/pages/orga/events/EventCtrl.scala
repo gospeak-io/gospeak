@@ -14,7 +14,7 @@ import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus, MessageBuilder}
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.events.EventCtrl._
-import fr.gospeak.web.utils.UICtrl
+import fr.gospeak.web.utils.{MarkdownUtils, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -76,6 +76,7 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
+      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
       venueOpt <- OptionT.liftF(venueRepo.list(groupElt.id, eventElt.venue.toList).map(_.headOption))
       talks <- OptionT.liftF(proposalRepo.list(eventElt.talks))
       cfpOpt <- OptionT.liftF(cfpRepo.find(eventElt.id))
@@ -84,7 +85,25 @@ class EventCtrl(cc: ControllerComponents,
       data = builder.buildEventInfo(groupElt, eventElt, cfpOpt, venueOpt, talks, speakers, nowLDT)
       desc = templateSrv.render(eventElt.description, data)
       b = breadcrumb(groupElt, eventElt)
-      res = Ok(html.detail(groupElt, eventElt, venueOpt, talks, desc, cfpOpt, proposals, speakers, EventForms.attachCfp)(b))
+      res = Ok(html.detail(groupElt, eventElt, venueOpt, talks, desc, cfpOpt, proposals, speakers, settings.event, EventForms.attachCfp)(b))
+    } yield res).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+  }
+
+  def showTemplate(group: Group.Slug, event: Event.Slug, templateId: String): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val nowLDT = LocalDateTime.now()
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      eventElt <- OptionT(eventRepo.find(groupElt.id, event))
+      cfpOpt <- OptionT.liftF(cfpRepo.find(eventElt.id))
+      venueOpt <- OptionT.liftF(venueRepo.list(groupElt.id, eventElt.venue.toList).map(_.headOption))
+      talks <- OptionT.liftF(proposalRepo.list(eventElt.talks))
+      speakers <- OptionT.liftF(userRepo.list(talks.flatMap(_.users).distinct))
+      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      data = builder.buildEventInfo(groupElt, eventElt, cfpOpt, venueOpt, talks, speakers, nowLDT)
+      res = settings.event.getTemplate(templateId)
+        .flatMap(template => templateSrv.render(template, data).toOption)
+        .map(md => Ok(html.showTemplate(MarkdownUtils.renderHtml(md))))
+        .getOrElse(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Invalid template '$templateId'"))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 

@@ -54,6 +54,7 @@ object MustacheTemplateSrv {
   def render[A](tmpl: domain.MarkdownTemplate.Mustache[A], data: A)(implicit e: Encoder[A]): Either[String, Markdown] = {
     mustache.parse(tmpl.value)
       .map(mustache.render(_)(jsonToContext(e.apply(data))))
+      .map(v => if (v.startsWith("Vector(MapValue(yamusca.context$")) "Invalid mustache template" else v)
       .map(Markdown)
       .leftMap(_._2)
   }

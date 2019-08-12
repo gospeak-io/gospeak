@@ -7,7 +7,7 @@ import cats.effect.IO
 import doobie.implicits._
 import fr.gospeak.core.domain.User.Profile
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.{Info, TemplateData}
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.core.services.storage.GospeakDb
 import fr.gospeak.infra.services.GravatarSrv
@@ -16,6 +16,7 @@ import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.infra.utils.{DoobieUtils, FlywayUtils}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.StringUtils
+import fr.gospeak.libs.scalautils.domain.MarkdownTemplate.Mustache
 import fr.gospeak.libs.scalautils.domain.TimePeriod._
 import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.migration.MongoRepo
@@ -187,13 +188,25 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val bigGroup = group("big-group", "Big Group", Seq("BigData"), userOrga)
     val groups = NonEmptyList.of(humanTalks, parisJs, dataGov, bigGroup)
 
-    val group1Settings = Group.Settings.default.copy(actions = Map(
-      Group.Settings.Action.Trigger.OnEventCreated -> Seq(
-        Group.Settings.Action.Slack(SlackAction.PostMessage(
-          MarkdownTemplate.Mustache("{{event.start.year}}_{{event.start.month}}"),
-          MarkdownTemplate.Mustache("Meetup [{{event.name}}]({{event.link}}) créé !"),
-          createdChannelIfNotExist = true,
-          inviteEverybody = true)))))
+    val humanTalksSettings = Group.Settings.default.copy(
+      actions = Map(
+        Group.Settings.Action.Trigger.OnEventCreated -> Seq(
+          Group.Settings.Action.Slack(SlackAction.PostMessage(
+            MarkdownTemplate.Mustache("{{event.start.year}}_{{event.start.month}}"),
+            MarkdownTemplate.Mustache("Meetup [{{event.name}}]({{event.link}}) créé !"),
+            createdChannelIfNotExist = true,
+            inviteEverybody = true)))),
+      event = Group.Settings.default.event.copy(
+        templates = Map(
+          "ROTI" -> Mustache[TemplateData.EventInfo](
+            """<div style="color: red">
+              |  talks:
+              |  <ul>
+              |    {{#talks}}<li>{{title}}</li>{{/talks}}
+              |  </ul>
+              |</div>
+              |<script>console.log('hello');</script>
+            """.stripMargin))))
 
     val cfp1 = cfp(humanTalks, "ht-paris", "HumanTalks Paris", None, None, "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq("tag1", "tag2"), userDemo)
     val cfp2 = cfp(humanTalks, "ht-paris-day-1", "HumanTalks Paris Day - Edition 1", None, Some("2018-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
@@ -278,7 +291,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       _ <- run(Queries.insertMany(SponsorRepoSql.insert)(sponsors))
       _ <- run(Queries.insertMany(EventRepoSql.insert)(events ++ generated.map(_._3)))
       _ <- IO(eventTalks.map { case (c, e, p, u) => addTalk(c, e, p, u, now) }.map(_.unsafeRunSync()))
-      _ <- settings.set(humanTalks.id, group1Settings, userDemo.id, now)
+      _ <- settings.set(humanTalks.id, humanTalksSettings, userDemo.id, now)
     } yield Done
   }
 

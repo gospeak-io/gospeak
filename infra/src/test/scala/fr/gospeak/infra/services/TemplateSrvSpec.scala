@@ -87,6 +87,15 @@ class TemplateSrvSpec extends FunSpec with Matchers {
             |For the next sessions, propose your talks on [Gospeak](https://gospeak.fr/cfps/humantalks-paris)
           """.stripMargin.trim
       }
+      it("should do a nice fallback on error") {
+        val tmpl =
+          """{{talks}}
+            |  {{title}}
+            |{{/talks}}
+          """.stripMargin
+        val result = srv.render(Mustache[TemplateData.EventInfo](tmpl), TemplateData.Sample.eventInfo).right.get.value
+        result shouldBe "Invalid mustache template"
+      }
     }
   }
 }
