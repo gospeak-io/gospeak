@@ -5,6 +5,14 @@ import fr.gospeak.core.domain.utils.TemplateData
 import play.api.mvc.PathBindable
 
 object PathBindables {
+  implicit def optionStringPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Option[String]] = new PathBindable[Option[String]] {
+    override def bind(key: String, value: String): Either[String, Option[String]] =
+      Right(Some(value))
+
+    override def unbind(key: String, value: Option[String]): String =
+      value.getOrElse("")
+  }
+
   implicit def groupSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Group.Slug] = new PathBindable[Group.Slug] {
     override def bind(key: String, value: String): Either[String, Group.Slug] =
       stringBinder.bind(key, value).flatMap(Group.Slug.from(_).left.map(_.getMessage))

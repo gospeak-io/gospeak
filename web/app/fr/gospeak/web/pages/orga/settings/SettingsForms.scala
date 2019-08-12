@@ -22,5 +22,10 @@ object SettingsForms {
     "action" -> groupSettingsAction
   )(AddAction.apply)(AddAction.unapply))
 
-  val eventTemplateSettings: Form[MarkdownTemplate[TemplateData.EventInfo]] = Form(single("template" -> template[TemplateData.EventInfo]))
+  case class EventTemplateItem(id: String, template: MarkdownTemplate[TemplateData.EventInfo])
+
+  val eventTemplateItem: Form[EventTemplateItem] = Form(mapping(
+    "id" -> nonEmptyText,
+    "template" -> template[TemplateData.EventInfo]
+  )(EventTemplateItem.apply)(EventTemplateItem.unapply))
 }

@@ -9,14 +9,14 @@
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.AddAction
 @import fr.gospeak.web.pages.orga.settings.partials.html._
 
-@(group: Group, settings: Group.Settings, slackAccount: Form[SlackCredentials], addAction: Form[AddAction], eventSettings: Form[MarkdownTemplate[TemplateData.EventInfo]])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, settings: Group.Settings, slackAccount: Form[SlackCredentials], addAction: Form[AddAction])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(group.name.value + "settings - Gospeak", group, b)() {
     <h1>Settings</h1>
 
     <div class="row">
         <div class="col">
             @cardIntegrations(group, settings.accounts, slackAccount)
-            @cardEvent(group, settings.event, eventSettings)
+            @cardEvent(group, settings.event)
         </div>
         <div class="col">
             @cardActions(group, settings, addAction)

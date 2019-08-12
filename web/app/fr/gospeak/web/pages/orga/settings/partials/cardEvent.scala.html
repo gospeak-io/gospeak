@@ -4,28 +4,37 @@
 @import fr.gospeak.libs.scalautils.domain.MarkdownTemplate
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import fr.gospeak.web.pages.partials.form.html._
 
-@(group: Group, settings: Group.Settings.Event, eventSettings: Form[MarkdownTemplate[TemplateData.EventInfo]])(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, settings: Group.Settings.Event)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 <div class="card mb-3">
     <div class="card-header">Event settings</div>
     <div class="card-body">
         <h6 class="card-title mb-0 text-muted d-flex justify-content-between align-items-center">
             <span>Templates</span>
-            <a href="@SettingsCtrl.updateEventTemplate(group.slug, "")" class="btn btn-success btn-xs">Add</a>
+            <a href="@SettingsCtrl.updateEventTemplate(group.slug, None)" class="btn btn-success btn-xs">Add</a>
         </h6>
     </div>
     <ul class="list-group list-group-flush">
-    @settings.allTemplates.map { case (id, template) =>
+    @settings.allTemplates.map { case (id, isDefault, template) =>
     <li class="list-group-item d-flex justify-content-between align-items-center">
         <span>@id</span>
-        <a
-        href="@SettingsCtrl.updateEventTemplate(group.slug, id)"
-        class="btn btn-primary btn-xs"
-        data-toggle="html-popover"
-        data-trigger="hover">
-            <div class="content" style="white-space: pre-line;
-                width: 500px">@template.value</div>
-        Update</a>
+        <span>
+            @if(!isDefault) {
+                @formBtn(SettingsCtrl.doRemoveEventTemplate(group.slug, id), Seq(
+                    "class" -> "btn btn-danger btn-xs",
+                    "title" -> "Remove this template",
+                    "confirm" -> s"Remove template '$id'?")) {&times;}
+            }
+            <a
+            href="@SettingsCtrl.updateEventTemplate(group.slug, Some(id))"
+            class="btn btn-primary btn-xs"
+            data-toggle="html-popover"
+            data-trigger="hover">
+                <div class="content" style="white-space: pre-line;
+                    width: 500px">@template.value</div>
+        Update </a>
+    </span>
     </li>
     }
     </ul>

@@ -5,7 +5,10 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.{Info, TemplateData}
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackCredentials}
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
+
+import scala.util.{Failure, Success, Try}
 
 final case class Group(id: Group.Id,
                        slug: Group.Slug,
@@ -48,6 +51,15 @@ object Group {
                             actions: Map[Settings.Action.Trigger, Seq[Settings.Action]],
                             event: Settings.Event) {
     def set(slack: SlackCredentials): Settings = copy(accounts = accounts.copy(slack = Some(slack)))
+
+    def addEventTemplate(id: String, template: MarkdownTemplate[TemplateData.EventInfo]): Try[Settings] =
+      event.addTemplate(id, template).map(e => copy(event = e))
+
+    def removeEventTemplate(id: String): Try[Settings] =
+      event.removeTemplate(id).map(e => copy(event = e))
+
+    def updateEventTemplate(oldId: String, newId: String, template: MarkdownTemplate[TemplateData.EventInfo]): Try[Settings] =
+      event.updateTemplate(oldId, newId, template).map(e => copy(event = e))
   }
 
   object Settings {
@@ -96,16 +108,27 @@ object Group {
 
     final case class Event(defaultDescription: MarkdownTemplate[TemplateData.EventInfo],
                            templates: Map[String, MarkdownTemplate[TemplateData.EventInfo]]) {
-      def allTemplates: Seq[(String, MarkdownTemplate[TemplateData.EventInfo])] =
-        Seq(Event.defaultDescriptionId -> defaultDescription) ++ templates.toSeq.sortBy(_._1)
+      def allTemplates: Seq[(String, Boolean, MarkdownTemplate[TemplateData.EventInfo])] =
+        Seq((Event.defaultDescriptionId, true, defaultDescription)) ++
+          templates.toSeq.map { case (id, t) => (id, false, t) }.sortBy(_._1)
 
       def getTemplate(id: String): Option[MarkdownTemplate[TemplateData.EventInfo]] =
         if (id == Event.defaultDescriptionId) Some(defaultDescription)
         else templates.get(id)
 
-      def updateTemplate(id: String, value: MarkdownTemplate[TemplateData.EventInfo]): Event =
-        if (id == Event.defaultDescriptionId) copy(defaultDescription = value)
-        else copy(templates = templates ++ Map(id -> value))
+      def removeTemplate(id: String): Try[Event] =
+        if (templates.contains(id)) Success(copy(templates = templates - id))
+        else if(id == Event.defaultDescriptionId) Failure(new IllegalArgumentException(s"Template '$id' is a default one, unable to remove it"))
+        else Failure(new IllegalArgumentException(s"Template '$id' does not exists, unable to remove it"))
+
+      def addTemplate(id: String, template: MarkdownTemplate[TemplateData.EventInfo]): Try[Event] =
+        if (templates.contains(id) || id == Event.defaultDescriptionId) Failure(new IllegalArgumentException(s"Template '$id' already exists, unable to add it"))
+        else Success(copy(templates = templates ++ Map(id -> template)))
+
+      def updateTemplate(oldId: String, newId: String, template: MarkdownTemplate[TemplateData.EventInfo]): Try[Event] =
+        if (newId == Event.defaultDescriptionId) Success(copy(defaultDescription = template))
+        else removeTemplate(oldId).mapFailure(e => new IllegalArgumentException(s"Template '$oldId' does not exists, unable to update it", e))
+          .flatMap(_.addTemplate(newId, template).mapFailure(e => new IllegalArgumentException(s"Template '$newId' already exists, unable to rename to it", e)))
     }
 
     object Event {

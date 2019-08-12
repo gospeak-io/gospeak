@@ -19,7 +19,10 @@ import fr.gospeak.web.pages.orga.settings.SettingsCtrl._
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
+import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.web.pages.orga.settings.SettingsForms.EventTemplateItem
 
+import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
 
 class SettingsCtrl(cc: ControllerComponents,
@@ -88,52 +91,64 @@ class SettingsCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
-  def updateEventTemplate(group: Group.Slug, templateId: String): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def updateEventTemplate(group: Group.Slug, templateId: Option[String]): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
-      template <- OptionT.fromOption[IO](settings.event.getTemplate(templateId))
-      form = SettingsForms.eventTemplateSettings.fill(template)
+      template <- templateId.map(id => OptionT.fromOption[IO](settings.event.getTemplate(id)).map(t => Option(EventTemplateItem(id, t)))).getOrElse(OptionT.pure[IO](Option.empty[EventTemplateItem]))
+      form = template.map(SettingsForms.eventTemplateItem.fill).getOrElse(SettingsForms.eventTemplateItem)
     } yield updateEventTemplateView(groupElt, templateId, form))
       .value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
-  def doUpdateEventTemplate(group: Group.Slug, templateId: String): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def doUpdateEventTemplate(group: Group.Slug, templateId: Option[String]): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
-      res <- OptionT.liftF(SettingsForms.eventTemplateSettings.bindFromRequest.fold(
+      res <- OptionT.liftF(SettingsForms.eventTemplateItem.bindFromRequest.fold(
         formWithErrors => IO.pure(updateEventTemplateView(groupElt, templateId, formWithErrors)),
-        data => settingsRepo.set(groupElt.id, settings.copy(event = settings.event.updateTemplate(templateId, data)), user, now)
-          .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> s"Template '$templateId' updated for events"))
+        data => templateId.map(id => settings.updateEventTemplate(id, data.id, data.template)).getOrElse(settings.addEventTemplate(data.id, data.template)).fold(
+          e => IO.pure(updateEventTemplateView(groupElt, templateId, SettingsForms.eventTemplateItem.bindFromRequest.withGlobalError(e.getMessage))),
+          updated => settingsRepo.set(groupElt.id, updated, user, now)
+            .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> s"Template '${data.id}' updated for events"))
+        )
       ))
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+  }
+
+  def doRemoveEventTemplate(group: Group.Slug, templateId: String): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    val next = Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> s"Template '$templateId' removed for events")
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      updated <- OptionT.liftF(settings.removeEventTemplate(templateId).toIO)
+      _ <- OptionT.liftF(settingsRepo.set(groupElt.id, updated, user, now))
+    } yield next).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
   private def settingsView(groupElt: Group,
                            settings: Group.Settings,
                            slack: Option[Form[SlackCredentials]] = None,
-                           action: Option[Form[SettingsForms.AddAction]] = None,
-                           eventSettings: Option[Form[MarkdownTemplate[TemplateData.EventInfo]]] = None)
+                           action: Option[Form[SettingsForms.AddAction]] = None)
                           (implicit req: SecuredRequest[CookieEnv, AnyContent]): Result = {
     Ok(html.list(
       groupElt,
       settings,
       slack.getOrElse(settings.accounts.slack.map(s => SettingsForms.slackAccount.fill(s)).getOrElse(SettingsForms.slackAccount)),
-      action.getOrElse(SettingsForms.addAction),
-      eventSettings.getOrElse(SettingsForms.eventTemplateSettings.fill(settings.event.defaultDescription))
+      action.getOrElse(SettingsForms.addAction)
     )(listBreadcrumb(groupElt)))
   }
 
   private def updateEventTemplateView(group: Group,
-                                      templateId: String,
-                                      form: Form[MarkdownTemplate[TemplateData.EventInfo]])
+                                      templateId: Option[String],
+                                      form: Form[EventTemplateItem])
                                      (implicit req: SecuredRequest[CookieEnv, AnyContent]): Result = {
     val b = listBreadcrumb(group).add(
       "Event" -> routes.SettingsCtrl.list(group.slug),
       "Templates" -> routes.SettingsCtrl.list(group.slug),
-      templateId -> routes.SettingsCtrl.updateEventTemplate(group.slug, templateId))
+      templateId.getOrElse("New") -> routes.SettingsCtrl.updateEventTemplate(group.slug, templateId))
     Ok(html.updateEventTemplate(group, templateId, form)(b))
   }
 
