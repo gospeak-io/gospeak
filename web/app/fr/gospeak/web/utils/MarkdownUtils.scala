@@ -18,7 +18,7 @@ object MarkdownUtils {
   private val rendererHtml = HtmlRenderer.builder(options).escapeHtml(false).build
 
   def render(md: Markdown): Html = {
-    val content = renderer.render(parser.parse(md.value))
+    val content = renderer.render(parser.parse(md.value)).trim
     Html(s"""<div class="markdown">$content</div>""")
   }
 
