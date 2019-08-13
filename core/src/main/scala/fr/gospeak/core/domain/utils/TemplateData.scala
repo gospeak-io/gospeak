@@ -5,7 +5,8 @@ import java.time.LocalDateTime
 import fr.gospeak.core.domain
 import fr.gospeak.core.domain.utils.GospeakMessage.Linked
 import fr.gospeak.libs.scalautils.StringUtils._
-import fr.gospeak.libs.scalautils.domain.{CustomException, MarkdownTemplate}
+import fr.gospeak.libs.scalautils.domain.CustomException
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 
 /*
   Formatted data for user templates (mustache for example)
@@ -172,7 +173,7 @@ object TemplateData {
   }
 
   object Static {
-    val defaultEventDescription: MarkdownTemplate.Mustache[EventInfo] = MarkdownTemplate.Mustache[TemplateData.EventInfo](
+    val defaultEventDescription: MustacheMarkdownTmpl[EventInfo] = MustacheMarkdownTmpl[TemplateData.EventInfo](
       """Hi everyone, welcome to **{{event.name}}**!
         |
         |

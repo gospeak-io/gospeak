@@ -2,7 +2,7 @@ package fr.gospeak.infra.services
 
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.infra.services.TemplateSrvSpec._
-import fr.gospeak.libs.scalautils.domain.MarkdownTemplate._
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.{Encoder, Json}
 import org.scalatest.{FunSpec, Matchers}
@@ -13,15 +13,15 @@ class TemplateSrvSpec extends FunSpec with Matchers {
   describe("MustacheTemplateSrv") {
     it("should render a simple template") {
       MustacheTemplateSrv.render(
-        tmpl = Mustache[Json]("Hello {{name}}"),
+        tmpl = "Hello {{name}}",
         data = Json.obj("name" -> Json.fromString("John"))
-      ).right.get.value shouldBe "Hello John"
+      ).right.get shouldBe "Hello John"
     }
     it("should render a template with case class") {
       MustacheTemplateSrv.render(
-        tmpl = Mustache[Data]("Hello {{name}}"),
+        tmpl = "Hello {{name}}",
         data = Data("John")
-      ).right.get.value shouldBe "Hello John"
+      ).right.get shouldBe "Hello John"
     }
     it("should render a complex template") {
       val json = Json.obj(
@@ -37,7 +37,7 @@ class TemplateSrvSpec extends FunSpec with Matchers {
         ),
         "arrObj" -> Json.arr(Seq("aaa", "bbb", "ccc").map(v => Json.obj("value" -> Json.fromString(v))): _*)
       )
-      val template = Mustache[Json](
+      val template =
         """null: '{{null}}'
           |boolean: {{boolean}}
           |iftrue: {{#boolean}}show{{/boolean}}
@@ -47,7 +47,7 @@ class TemplateSrvSpec extends FunSpec with Matchers {
           |arr:{{#arr}} v:{{.}}{{/arr}},
           |obj.aaa: {{obj.aaa}}
           |arrObj:{{#arrObj}} value:{{value}}{{/arrObj}}
-        """.stripMargin.trim)
+        """.stripMargin.trim
       val expected =
         s"""null: ''
            |boolean: true
@@ -60,7 +60,7 @@ class TemplateSrvSpec extends FunSpec with Matchers {
            |arrObj: value:aaa value:bbb value:ccc
          """.stripMargin.trim
       val result = MustacheTemplateSrv.render(template, json)
-      result.right.get.value shouldBe expected
+      result.right.get shouldBe expected
     }
   }
   describe("TemplateSrv") {
@@ -93,7 +93,7 @@ class TemplateSrvSpec extends FunSpec with Matchers {
             |  {{title}}
             |{{/talks}}
           """.stripMargin
-        val result = srv.render(Mustache[TemplateData.EventInfo](tmpl), TemplateData.Sample.eventInfo).right.get.value
+        val result = srv.render(MustacheMarkdownTmpl[TemplateData.EventInfo](tmpl), TemplateData.Sample.eventInfo).right.get.value
         result shouldBe "Invalid mustache template"
       }
     }

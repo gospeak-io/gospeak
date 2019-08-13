@@ -6,6 +6,7 @@ import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.{Info, TemplateData}
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackCredentials}
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import fr.gospeak.libs.scalautils.domain._
 
 import scala.util.{Failure, Success, Try}
@@ -52,14 +53,14 @@ object Group {
                             event: Settings.Event) {
     def set(slack: SlackCredentials): Settings = copy(accounts = accounts.copy(slack = Some(slack)))
 
-    def addEventTemplate(id: String, template: MarkdownTemplate[TemplateData.EventInfo]): Try[Settings] =
-      event.addTemplate(id, template).map(e => copy(event = e))
+    def addEventTemplate(id: String, tmpl: MustacheTextTmpl[TemplateData.EventInfo]): Try[Settings] =
+      event.addTemplate(id, tmpl).map(e => copy(event = e))
 
     def removeEventTemplate(id: String): Try[Settings] =
       event.removeTemplate(id).map(e => copy(event = e))
 
-    def updateEventTemplate(oldId: String, newId: String, template: MarkdownTemplate[TemplateData.EventInfo]): Try[Settings] =
-      event.updateTemplate(oldId, newId, template).map(e => copy(event = e))
+    def updateEventTemplate(oldId: String, newId: String, tmpl: MustacheMarkdownTmpl[TemplateData.EventInfo]): Try[Settings] =
+      event.updateTemplate(oldId, newId, tmpl).map(e => copy(event = e))
   }
 
   object Settings {
@@ -108,13 +109,16 @@ object Group {
 
     }
 
-    final case class Event(defaultDescription: MarkdownTemplate[TemplateData.EventInfo],
-                           templates: Map[String, MarkdownTemplate[TemplateData.EventInfo]]) {
-      def allTemplates: Seq[(String, Boolean, MarkdownTemplate[TemplateData.EventInfo])] =
-        Seq((Event.defaultDescriptionId, true, defaultDescription)) ++
+    final case class Event(defaultDescription: MustacheMarkdownTmpl[TemplateData.EventInfo],
+                           templates: Map[String, MustacheTextTmpl[TemplateData.EventInfo]]) {
+      def defaultTemplates: Seq[(String, MustacheMarkdownTmpl[TemplateData.EventInfo])] =
+        Seq((Event.defaultDescriptionId, defaultDescription))
+
+      def allTemplates: Seq[(String, Boolean, MustacheTmpl[TemplateData.EventInfo])] =
+        defaultTemplates.map { case (id, t) => (id, true, t) } ++
           templates.toSeq.map { case (id, t) => (id, false, t) }.sortBy(_._1)
 
-      def getTemplate(id: String): Option[MarkdownTemplate[TemplateData.EventInfo]] =
+      def getTemplate(id: String): Option[MustacheTmpl[TemplateData.EventInfo]] =
         if (id == Event.defaultDescriptionId) Some(defaultDescription)
         else templates.get(id)
 
@@ -123,14 +127,14 @@ object Group {
         else if (id == Event.defaultDescriptionId) Failure(new IllegalArgumentException(s"Template '$id' is a default one, unable to remove it"))
         else Failure(new IllegalArgumentException(s"Template '$id' does not exists, unable to remove it"))
 
-      def addTemplate(id: String, template: MarkdownTemplate[TemplateData.EventInfo]): Try[Event] =
+      def addTemplate(id: String, tmpl: MustacheTextTmpl[TemplateData.EventInfo]): Try[Event] =
         if (templates.contains(id) || id == Event.defaultDescriptionId) Failure(new IllegalArgumentException(s"Template '$id' already exists, unable to add it"))
-        else Success(copy(templates = templates ++ Map(id -> template)))
+        else Success(copy(templates = templates ++ Map(id -> tmpl)))
 
-      def updateTemplate(oldId: String, newId: String, template: MarkdownTemplate[TemplateData.EventInfo]): Try[Event] =
-        if (newId == Event.defaultDescriptionId) Success(copy(defaultDescription = template))
+      def updateTemplate(oldId: String, newId: String, tmpl: MustacheMarkdownTmpl[TemplateData.EventInfo]): Try[Event] =
+        if (newId == Event.defaultDescriptionId) Success(copy(defaultDescription = tmpl))
         else removeTemplate(oldId).mapFailure(e => new IllegalArgumentException(s"Template '$oldId' does not exists, unable to update it", e))
-          .flatMap(_.addTemplate(newId, template).mapFailure(e => new IllegalArgumentException(s"Template '$newId' already exists, unable to rename to it", e)))
+          .flatMap(_.addTemplate(newId, tmpl.asText).mapFailure(e => new IllegalArgumentException(s"Template '$newId' already exists, unable to rename to it", e)))
     }
 
     object Event {

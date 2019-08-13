@@ -15,14 +15,9 @@ object MarkdownUtils {
     .set(EmojiExtension.USE_IMAGE_TYPE, EmojiImageType.UNICODE_ONLY)
   private val parser = Parser.builder(options).build
   private val renderer = HtmlRenderer.builder(options).escapeHtml(true).build
-  private val rendererHtml = HtmlRenderer.builder(options).escapeHtml(false).build
 
   def render(md: Markdown): Html = {
     val content = renderer.render(parser.parse(md.value)).trim
     Html(s"""<div class="markdown">$content</div>""")
-  }
-
-  def renderHtml(md: Markdown): Html = {
-    Html(rendererHtml.render(parser.parse(md.value)))
   }
 }

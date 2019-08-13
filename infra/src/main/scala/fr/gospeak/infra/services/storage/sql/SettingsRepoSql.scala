@@ -13,15 +13,18 @@ import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Done, MarkdownTemplate, Url}
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
+import fr.gospeak.libs.scalautils.domain.{Done, Url}
 import io.circe._
 import io.circe.generic.semiauto._
 
 class SettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SettingsRepo {
   private implicit val urlDecoder: Decoder[Url] = (c: HCursor) => c.as[String].flatMap(s => Url.from(s).leftMap(e => DecodingFailure(e.message, List())))
   private implicit val urlEncoder: Encoder[Url] = (a: Url) => Json.fromString(a.value)
-  private implicit def templateDecoder[A]: Decoder[MarkdownTemplate[A]] = deriveDecoder[MarkdownTemplate[A]]
-  private implicit def templateEncoder[A]: Encoder[MarkdownTemplate[A]] = deriveEncoder[MarkdownTemplate[A]]
+  private implicit def textTemplateDecoder[A]: Decoder[MustacheTextTmpl[A]] = deriveDecoder[MustacheTextTmpl[A]]
+  private implicit def textTemplateEncoder[A]: Encoder[MustacheTextTmpl[A]] = deriveEncoder[MustacheTextTmpl[A]]
+  private implicit def markdownTemplateDecoder[A]: Decoder[MustacheMarkdownTmpl[A]] = deriveDecoder[MustacheMarkdownTmpl[A]]
+  private implicit def markdownTemplateEncoder[A]: Encoder[MustacheMarkdownTmpl[A]] = deriveEncoder[MustacheMarkdownTmpl[A]]
   private implicit val slackTokenDecoder: Decoder[SlackToken] = deriveDecoder[SlackToken]
   private implicit val slackTokenEncoder: Encoder[SlackToken] = deriveEncoder[SlackToken]
   private implicit val slackCredentialsDecoder: Decoder[SlackCredentials] = deriveDecoder[SlackCredentials]

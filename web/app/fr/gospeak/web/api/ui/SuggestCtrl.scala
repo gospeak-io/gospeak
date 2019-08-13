@@ -9,12 +9,14 @@ import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackToken
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.TemplateSrv
-import fr.gospeak.libs.scalautils.domain.{Html, MarkdownTemplate}
+import fr.gospeak.libs.scalautils.domain.Html
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.JsonFormats._
 import fr.gospeak.web.utils.{ApiCtrl, Formats, MarkdownUtils}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.twirl.api.HtmlFormat
 
 import scala.util.control.NonFatal
 
@@ -24,7 +26,7 @@ case class ValidationResult(valid: Boolean, message: String)
 
 case class TemplateDataResponse(data: JsValue)
 
-case class TemplateRequest(template: MarkdownTemplate[TemplateData], ref: Option[TemplateData.Ref])
+case class TemplateRequest(template: MustacheMarkdownTmpl[TemplateData], ref: Option[TemplateData.Ref], markdown: Boolean)
 
 case class TemplateResponse(result: Option[Html], error: Option[String])
 
@@ -113,7 +115,8 @@ class SuggestCtrl(cc: ControllerComponents,
           .getOrElse(templateSrv.render(data.template))
         val res = template match {
           case Left(err) => TemplateResponse(None, Some(err))
-          case Right(tmpl) => TemplateResponse(Some(MarkdownUtils.render(tmpl)), None)
+          case Right(tmpl) if data.markdown => TemplateResponse(Some(MarkdownUtils.render(tmpl)), None)
+          case Right(tmpl) => TemplateResponse(Some(Html(s"<pre>${HtmlFormat.escape(tmpl.value)}</pre>")), None)
         }
         IO.pure(Ok(Json.toJson(res)))
       }

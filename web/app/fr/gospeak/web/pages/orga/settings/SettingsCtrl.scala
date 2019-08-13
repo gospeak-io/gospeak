@@ -7,22 +7,19 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.Group
-import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackCredentials
 import fr.gospeak.core.services.storage.{OrgaGroupRepo, SettingsRepo}
-import fr.gospeak.libs.scalautils.domain.MarkdownTemplate
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.settings.SettingsCtrl._
+import fr.gospeak.web.pages.orga.settings.SettingsForms.EventTemplateItem
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.web.pages.orga.settings.SettingsForms.EventTemplateItem
 
-import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
 
 class SettingsCtrl(cc: ControllerComponents,
@@ -41,7 +38,6 @@ class SettingsCtrl(cc: ControllerComponents,
   }
 
   def updateSlackAccount(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    import cats.implicits._
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
@@ -95,9 +91,10 @@ class SettingsCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
-      template <- templateId.map(id => OptionT.fromOption[IO](settings.event.getTemplate(id)).map(t => Option(EventTemplateItem(id, t)))).getOrElse(OptionT.pure[IO](Option.empty[EventTemplateItem]))
+      template <- templateId.map(id => OptionT.fromOption[IO](settings.event.getTemplate(id)).map(t => Some(EventTemplateItem(id, t.asMarkdown))))
+        .getOrElse(OptionT.pure[IO](None))
       form = template.map(SettingsForms.eventTemplateItem.fill).getOrElse(SettingsForms.eventTemplateItem)
-    } yield updateEventTemplateView(groupElt, templateId, form))
+    } yield updateEventTemplateView(groupElt, templateId, settings, form))
       .value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
@@ -107,9 +104,9 @@ class SettingsCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
       res <- OptionT.liftF(SettingsForms.eventTemplateItem.bindFromRequest.fold(
-        formWithErrors => IO.pure(updateEventTemplateView(groupElt, templateId, formWithErrors)),
-        data => templateId.map(id => settings.updateEventTemplate(id, data.id, data.template)).getOrElse(settings.addEventTemplate(data.id, data.template)).fold(
-          e => IO.pure(updateEventTemplateView(groupElt, templateId, SettingsForms.eventTemplateItem.bindFromRequest.withGlobalError(e.getMessage))),
+        formWithErrors => IO.pure(updateEventTemplateView(groupElt, templateId, settings, formWithErrors)),
+        data => templateId.map(id => settings.updateEventTemplate(id, data.id, data.template)).getOrElse(settings.addEventTemplate(data.id, data.template.asText)).fold(
+          e => IO.pure(updateEventTemplateView(groupElt, templateId, settings, SettingsForms.eventTemplateItem.bindFromRequest.withGlobalError(e.getMessage))),
           updated => settingsRepo.set(groupElt.id, updated, user, now)
             .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> s"Template '${data.id}' updated for events"))
         )
@@ -143,13 +140,14 @@ class SettingsCtrl(cc: ControllerComponents,
 
   private def updateEventTemplateView(group: Group,
                                       templateId: Option[String],
+                                      settings: Group.Settings,
                                       form: Form[EventTemplateItem])
                                      (implicit req: SecuredRequest[CookieEnv, AnyContent]): Result = {
     val b = listBreadcrumb(group).add(
       "Event" -> routes.SettingsCtrl.list(group.slug),
       "Templates" -> routes.SettingsCtrl.list(group.slug),
       templateId.getOrElse("New") -> routes.SettingsCtrl.updateEventTemplate(group.slug, templateId))
-    Ok(html.updateEventTemplate(group, templateId, form)(b))
+    Ok(html.updateEventTemplate(group, templateId, settings, form)(b))
   }
 
   private def addActionToSettings(settings: Group.Settings, addAction: SettingsForms.AddAction): Group.Settings = {

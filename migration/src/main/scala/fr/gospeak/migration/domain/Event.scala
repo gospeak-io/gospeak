@@ -3,9 +3,9 @@ package fr.gospeak.migration.domain
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 
-import fr.gospeak.core.domain.{Event => NewEvent, Group => NewGroup, Cfp => NewCfp, Venue => NewVenue, Proposal => NewProposal}
+import fr.gospeak.core.domain.{Cfp => NewCfp, Event => NewEvent, Group => NewGroup, Proposal => NewProposal, Venue => NewVenue}
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.MarkdownTemplate
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.migration.domain.Event._
 import fr.gospeak.migration.domain.utils.{GMapPlace, MeetupRef, Meta}
 
@@ -26,7 +26,7 @@ case class Event(id: String, // Event.Id
       slug = NewEvent.Slug.from(formatter.format(date)).get,
       name = NewEvent.Name(data.title),
       start = date,
-      description = MarkdownTemplate.Mustache(data.description.getOrElse("")),
+      description = MustacheMarkdownTmpl(data.description.getOrElse("")),
       venue = data.venue.map(v => venues.find(_.partner.value == v).get.id),
       talks = data.talks.map(t => proposals.find(_.talk.value == t).get.id),
       tags = Seq(),
