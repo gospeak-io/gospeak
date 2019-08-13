@@ -96,7 +96,8 @@ class EventCtrl(cc: ControllerComponents,
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
       cfpOpt <- OptionT.liftF(cfpRepo.find(eventElt.id))
       venueOpt <- OptionT.liftF(venueRepo.list(groupElt.id, eventElt.venue.toList).map(_.headOption))
-      talks <- OptionT.liftF(proposalRepo.list(eventElt.talks))
+      talks <- OptionT.liftF(proposalRepo.list(eventElt.talks)
+        .map(proposals => eventElt.talks.flatMap(t => proposals.find(_.id == t)))) // to keep talk order
       speakers <- OptionT.liftF(userRepo.list(talks.flatMap(_.users).distinct))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
       data = builder.buildEventInfo(groupElt, eventElt, cfpOpt, venueOpt, talks, speakers, nowLDT)

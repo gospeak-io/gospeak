@@ -198,15 +198,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
             inviteEverybody = true)))),
       event = Group.Settings.default.event.copy(
         templates = Map(
-          "ROTI" -> Mustache[TemplateData.EventInfo](
-            """<div style="color: red">
-              |  talks:
-              |  <ul>
-              |    {{#talks}}<li>{{title}}</li>{{/talks}}
-              |  </ul>
-              |</div>
-              |<script>console.log('hello');</script>
-            """.stripMargin))))
+          "ROTI" -> Mustache[TemplateData.EventInfo](humanTalksRoti))))
 
     val cfp1 = cfp(humanTalks, "ht-paris", "HumanTalks Paris", None, None, "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq("tag1", "tag2"), userDemo)
     val cfp2 = cfp(humanTalks, "ht-paris-day-1", "HumanTalks Paris Day - Edition 1", None, Some("2018-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
@@ -294,6 +286,193 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       _ <- settings.set(humanTalks.id, humanTalksSettings, userDemo.id, now)
     } yield Done
   }
+
+  private val humanTalksRoti =
+    s"""<html lang="en">
+       |<head>
+       |  <meta charset="utf-8">
+       |  <meta name='viewport' content='width=device-width, initial-scale=1' />
+       |  <title>{{event.name}} ROTI</title>
+       |  <style>
+       |    body {
+       |      font-family: helvetica;
+       |      display: flex;
+       |      flex-direction:column;
+       |      height: 100vh;
+       |      max-height: calc(100vh - 20px);
+       |      padding: 10px;
+       |      margin: 0;
+       |    }
+       |    h1 {
+       |      text-align: center;
+       |      font-size: 3rem;
+       |      font-weight: normal;
+       |      flex-shrink: 0;
+       |      margin: 20px 0;
+       |      margin-left: -20px;
+       |      font-weight: bold;
+       |      color: #790257;
+       |    }
+       |    .grid {
+       |      display: grid;
+       |      height: calc(100% - 95px);
+       |      grid-template-columns: 20% repeat(3, 1fr);
+       |      grid-template-rows: 75px repeat(5, 1fr);
+       |      border: 2px solid #790257;
+       |      border-top: none;
+       |      flex-grow: 1;
+       |      border-radius: 15px;
+       |      overflow: hidden;
+       |    }
+       |    .grid > :nth-child(4n + 1) {
+       |      border-left: none;
+       |    }
+       |    .grid > :nth-child(4n) {
+       |      border-right: none;
+       |    }
+       |    .grid > :nth-last-child(1),
+       |    .grid > :nth-last-child(2),
+       |    .grid > :nth-last-child(3),
+       |    .grid > :nth-last-child(4) {
+       |      border-bottom: none;
+       |    }
+       |    .grid > :nth-child(1),
+       |    .grid > :nth-child(2),
+       |    .grid > :nth-child(3),
+       |    .grid > :nth-child(4) {
+       |      border-top: none;
+       |    }
+       |    .grid > * {
+       |      border: 1px solid #790257;
+       |      display: flex;
+       |      align-items: center;
+       |      align-content: center;
+       |      flex-wrap: wrap;
+       |      position: relative;
+       |    }
+       |    .good, .average, .bad {
+       |      justify-content: center;
+       |    }
+       |    .title {
+       |      padding: 10px;
+       |      font-size: 1.2rem;
+       |    }
+       |    .title > span {
+       |      max-width: 100%;
+       |    }
+       |    .talker {
+       |      width: calc(100% - 50px);
+       |      font-size: 1rem;
+       |      font-style: italic;
+       |      color: darkgrey;
+       |    }
+       |    .logo {
+       |      width: 100px;
+       |      transform: rotate(-15deg);
+       |      display: block;
+       |      margin-top: -40px;
+       |    }
+       |    .date {
+       |      display: flex;
+       |      align-items: center;
+       |      justify-content: center;
+       |      font-size: 1.5rem;
+       |      color: darkgrey;
+       |      text-align: center;
+       |      font-style: italic;
+       |      text-transform: capitalize;
+       |    }
+       |    .main-title {
+       |      display: flex;
+       |      align-items: center;
+       |      justify-content: center;
+       |      height: 80px;
+       |      padding-top: 10px;
+       |    }
+       |    .title-cell.date {
+       |      justify-content: space-around;
+       |    }
+       |    .title-cell {
+       |      -webkit-print-color-adjust: exact;
+       |      background-color: #790257;
+       |      border-left-color: white;
+       |      border-right-color: white;
+       |      color: white;
+       |    }
+       |    .title-cell:first-child {
+       |        border-left-color: #790257;
+       |    }
+       |    .title-cell:nth-child(4) {
+       |        border-right-color: #790257;
+       |    }
+       |    .avatar {
+       |      position: absolute;
+       |      right: 5px;
+       |      bottom: 5px;
+       |    }
+       |    .avatar > img {
+       |      display: block;
+       |      margin-left: auto;
+       |      border-radius: 50%;
+       |      width: 50px;
+       |    }
+       |    .sponsor {
+       |        display: block;
+       |        margin: 0 auto;
+       |        margin-top: 10px;
+       |        text-align: center;
+       |    }
+       |    .sponsor > img {
+       |        height: 50px;
+       |    }
+       |    .url {
+       |      font-size: 0.8rem;
+       |      font-weight: bold;
+       |      font-style: italic;
+       |      text-align: right;
+       |      margin-top: 5px;
+       |      margin-right: 15px;
+       |    }
+       |    @media print {
+       |      body {
+       |        margin: 0;
+       |      }
+       |    }
+       |  </style>
+       |</head>
+       |<body>
+       |  <div class="main-title">
+       |    <h1>Donnez votre avis !</h1>
+       |  </div>
+       |  <div class="grid">
+       |    <div class="date title-cell">juillet<br/>2019</div>
+       |    <div class="good title-cell"><svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 5.8208332 5.8208335"><g transform="translate(-11.33-290.78)"><circle r="5.5" cy="542.35" cx="488.27" stroke="white" fill="none" stroke-width="0.75" transform="matrix(.43294 0 0 .43294-197.15 58.882)"/><g transform="translate(-12.12 3.336)" fill="none" fill-rule="evenodd" stroke="white" stroke-linecap="round" stroke-width=".3"><path d="m24.674 290.11c.003-.572.683-.632.815-.107"/><path d="m27.24 289.86c.003-.572.683-.632.815-.107"/><path d="m25.03 290.76c.755.849 1.97.693 2.676-.081"/></g></g></svg></div>
+       |    <div class="average title-cell"><svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 5.8208332 5.8208335"><g transform="matrix(-.43294 0 0 .43294 209.54-231.57)"><circle cx="469.83" cy="542.55" r="5.5" transform="translate(7.44-.975)" stroke="white" fill="none"stroke-width="0.75"/><g transform="translate(-10.87 -1)" fill="white"><circle cx="485.13" cy="542.3" r=".9"/><circle cx="491.15" cy="542.3" r=".9"/></g><path d="m475.38 544.35c0 0 .19-.614 1.402-.55.267.014.678.165.938.393.653.573 1.452.309 1.452.309" fill="none" fill-rule="evenodd" stroke="white" stroke-linecap="round" stroke-width=".75"/></g></svg></div>
+       |    <div class="bad title-cell"><svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 5.8208332 5.8208335"><g transform="matrix(.29032 0 0 .29032 2.065-82.47)"><g transform="matrix(1.49127 0 0 1.49127-725.23-514.71)"><circle r="5.5" cy="542.35" cx="488.27" stroke="white" fill="none"stroke-width="0.75"/><g fill="white"><circle cx="485.18" cy="542.3" r=".9"/><circle cx="491.35" cy="542.3" r=".9"/></g></g><path d="m1.455 298.59c.476-1.323 2.476-1.323 2.91 0" fill="none" fill-rule="evenodd" stroke="white" stroke-linejoin="round" stroke-linecap="round" stroke-width="1.25"/></g></svg></div>
+       |    {{#talks}}
+       |    <div class="title">
+       |      <span>{{title}}</span>
+       |      {{#speakers}}<span class="talker">Par {{name}}</span>{{/speakers}}
+       |      {{#speakers}}{{#-first}}<span class="avatar"><img src="{{avatar}}"/></span>{{/-first}}{{/speakers}}
+       |    </div>
+       |    <div class="good"></div>
+       |    <div class="average"></div>
+       |    <div class="bad"></div>
+       |    {{/talks}}
+       |    {{#venue}}
+       |    <div class="title">
+       |      <span>La salle et le buffet</span>
+       |      <span class="sponsor"><img src="{{logoUrl}}"/></span>
+       |    </div>
+       |    <div class="good"></div>
+       |    <div class="average"></div>
+       |    <div class="bad"></div>
+       |    {{/venue}}
+       |  </div>
+       |  <div class="url">http://humantalks.com/paris</div>
+       |</body>
+       |</html>
+    """.stripMargin
 
   private def addTalk(cfp: Cfp, event: Event, proposals: Seq[Proposal], by: User.Id, now: Instant): IO[Done] = for {
     _ <- run(EventRepoSql.updateTalks(event.group, event.slug)(proposals.map(_.id), by, now))

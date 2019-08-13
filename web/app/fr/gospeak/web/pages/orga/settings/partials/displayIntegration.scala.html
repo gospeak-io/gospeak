@@ -10,10 +10,10 @@
         }</span>
         <div>
             @account.map { _ =>
-            <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#@id">Update</a>
+            <a href="#" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#@id">Update</a>
             @formBtn(deleteCall, Seq("class" -> "btn-danger btn-sm", "confirm" -> s"Remove $name integration?")) {Remove}
             }.getOrElse {
-                <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#@id">Enable</a>
+                <a href="#" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#@id">Enable</a>
             }
             @modal(id)
         </div>
