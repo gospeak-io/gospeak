@@ -8,6 +8,7 @@
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
@@ -20,7 +21,11 @@
         <div class="alert alert-info" role="alert">
             <h4 class="alert-heading d-flex justify-content-between align-items-center">
                 <span>Not published event</span>
-                <span>@formBtn(EventCtrl.publish(group.slug, event.slug), Seq("class" -> "btn-sm btn-primary")) {Publish event}</span>
+                <span>@formBtn(EventCtrl.publish(group.slug, event.slug), Seq(
+                    "class" -> "btn-sm btn-primary",
+                    "title" -> "Will be listed publicly on the group page",
+                    "data-toggle" -> "tooltip",
+                    "data-placement" -> "bottom")) {Publish event}</span>
             </h4>
             <p class="mb-0">This event is not published, so it is not visible outside of this group, publish it to make it public.</p>
         </div>
@@ -42,12 +47,16 @@
     </h1>
 
     <p>
-        @event.venue.map { v => @venue(venueOpt.toList, v) }.getOrElse{ <b class="text-danger">Missing venue</b>, }
+        @event.venue.map { id => @venue(venueOpt.toList, id, venueOpt.map { case (p, _) => _ => PartnerCtrl.detail(group.slug, p.slug) }) }.getOrElse{ <b class="text-danger">Missing venue</b>, }
         @Formats.datetime(event.start)
         @tags(event.tags)
     </p>
 
-    @if(event.talks.nonEmpty) {
+    @if(event.talks.isEmpty) {
+        @if(cfpOpt.isDefined) {
+            <h3 class="text-danger">No talk added!</h3>
+        }
+    } else {
         <div class="card mb-3">
             <h5 class="card-header d-flex justify-content-between align-items-center">
                 <span class="text-capitalize">@Formats.plural(event.talks.length, "planned talk")</span>
@@ -74,11 +83,6 @@
         </div>
     }
 
-    @description match {
-        case Left(err) => {<p class="text-danger">Unable to build description template: @err</p>}
-        case Right(md) => {<div class="quote">@markdown(md)</div>}
-    }
-
     @cfpOpt.map { cfp =>
         @if(proposals.isEmpty && proposals.params.search.isEmpty) {
             <div class="card">
@@ -98,7 +102,7 @@
                     <div class="list-group-item p-1 d-flex justify-content-between align-items-center">
                         <div>
                             @formBtn(EventCtrl.addToTalks(group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
-                            @formBtn(EventCtrl.rejectProposal(group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Reject this proposal", "confirm" -> s"Reject proposal: ${proposal.title.value}?")){<i class="far fa-trash-alt"></i>}
+                            @formBtn(EventCtrl.rejectProposal(group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Reject this proposal", "confirm" -> s"Reject proposal: ${proposal.title.value}?")){<i class="fas fa-comment-slash"></i>}
                             @duration(proposal.duration)
                             @slidesIcon(proposal.slides)
                             @videoIcon(proposal.video)

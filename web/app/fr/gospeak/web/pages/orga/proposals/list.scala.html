@@ -9,7 +9,7 @@
 
 @(group: Group, proposals: Page[Proposal], cfps: Seq[Cfp], speakers: Seq[User], events: Seq[Event])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(group.name.value + " - Gospeak", group, b)() {
-    <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h1>
+    <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") <small>(from any CFP)</small></h1>
     @Formats.paginated[Proposal](
         page = proposals,
         link = ProposalCtrl.list(group.slug, _),

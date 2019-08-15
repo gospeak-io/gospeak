@@ -156,8 +156,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     def sponsor(group: Group, partner: Partner, pack: SponsorPack, by: User, start: String, finish: String): Sponsor =
       Sponsor(Sponsor.Id.generate(), group.id, partner.id, pack.id, LocalDate.parse(start), LocalDate.parse(finish), Some(LocalDate.parse(start)), Price(1500, Price.Currency.EUR), Info(by.id, now))
 
-    val userDemoProfil = User.Profile(Some("Entrepreneur, functional programmer, OSS contributor, speaker, author. Work hard, stay positive, and live fearlessly."),
-      Some("Zeenea"), Some("Paris"), Some(Url.from("https://twitter.com/HumanTalks").get), Some(Url.from("https://twitter.com/HumanTalks").get), None, Some(Url.from("https://humantalks.com/").get))
+    val userDemoProfil = User.Profile(Some("Entrepreneur, functional programmer, OSS contributor, speaker, author.\nWork hard, stay positive, and live fearlessly."),
+      Some("Zeenea"), Some("Paris"), Some(Url.from("https://twitter.com/HumanTalks").get), Some(Url.from("https://www.linkedin.com/in/loicknuchel").get), None, Some(Url.from("https://humantalks.com").get))
     val userDemo = user("demo", "demo@mail.com", "Demo", "User", userDemoProfil)
     val userSpeaker = user("speaker", "speaker@mail.com", "Speaker", "User")
     val userOrga = user("orga", "orga@mail.com", "Orga", "User")
@@ -210,7 +210,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val proposal2 = proposal(talk2, cfp1)
     val proposal3 = proposal(talk2, cfp4)
     val proposal4 = proposal(talk3, cfp1, status = Proposal.Status.Rejected)
-    val proposals = NonEmptyList.of(proposal1, proposal2, proposal3, proposal4)
+    val proposal5 = proposal(talk4, cfp3)
+    val proposals = NonEmptyList.of(proposal1, proposal2, proposal3, proposal4, proposal5)
 
     val zeenea = partner(humanTalks, "Zeenea", "", 1, userDemo)
     val criteo = partner(humanTalks, "Criteo", "", 2, userDemo)

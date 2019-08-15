@@ -40,7 +40,7 @@ object Mappings {
   val instant: Mapping[Instant] = stringEitherMapping(s => Try(LocalDateTime.parse(s).toInstant(ZoneOffset.UTC)).toEither, _.atZone(ZoneOffset.UTC).toLocalDateTime.toString, datetimeError) // FIXME manage timezone
   val myLocalDateTime: Mapping[LocalDateTime] = mapping(
     "date" -> localDate("dd/MM/yyyy"),
-    "time" -> localTime
+    "time" -> localTime("HH:mm")
   )({ case (d, t) => LocalDateTime.of(d, t) })(dt => Some(dt.toLocalDate -> dt.toLocalTime))
   val chronoUnit: Mapping[ChronoUnit] = stringEitherMapping(d => Try(ChronoUnit.valueOf(d)).toEither, _.name(), formatError)
   val periodUnit: Mapping[TimePeriod.PeriodUnit] = stringEitherMapping(d => TimePeriod.PeriodUnit.values.find(_.toString == d).toEither, _.toString, formatError)
@@ -53,7 +53,7 @@ object Mappings {
     "length" -> longNumber,
     "unit" -> timeUnit
   )(new FiniteDuration(_, _))(d => Some(d.length -> d.unit))
-  val emailAddress: Mapping[EmailAddress] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(Values.maxLength.title)), (s: String) => EmailAddress.from(s).right.get, _.value)
+  val emailAddress: Mapping[EmailAddress] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(Values.maxLength.title)), (s: String) => EmailAddress.from(s).get, _.value)
   val url: Mapping[Url] = stringEitherMapping(Url.from, _.value, formatError, Constraints.maxLength(Values.maxLength.title))
   val slides: Mapping[Slides] = stringEitherMapping(Slides.from, _.value, formatError, Constraints.maxLength(Values.maxLength.title))
   val video: Mapping[Video] = stringEitherMapping(Video.from, _.value, formatError, Constraints.maxLength(Values.maxLength.title))
@@ -85,7 +85,7 @@ object Mappings {
       data.get(s"$key.website").validNec[FormError],
       data.get(s"$key.phone").validNec[FormError],
       data.eitherGetAndParse(s"$key.utcOffset", _.tryInt, numberError).toValidatedNec
-    ).mapN(GMapPlace.apply).toEither.left.map(_.toList)
+      ).mapN(GMapPlace.apply).toEither.left.map(_.toList)
 
     override def unbind(key: String, value: GMapPlace): Map[String, String] =
       Seq(
@@ -157,7 +157,7 @@ object Mappings {
           templateFormatter.bind(s"$key.message", data),
           implicitly[Formatter[Boolean]].bind(s"$key.createdChannelIfNotExist", data),
           implicitly[Formatter[Boolean]].bind(s"$key.inviteEverybody", data)
-        ).mapN(SlackAction.PostMessage.apply).map(Group.Settings.Action.Slack)
+          ).mapN(SlackAction.PostMessage.apply).map(Group.Settings.Action.Slack)
         case v => Left(Seq(FormError(s"$key.kind", s"action kind '$v' not found")))
       }
     }
@@ -180,13 +180,13 @@ object Mappings {
       WrappedMapping(nonEmptyText.verifying(constraints: _*), from, to)
 
     def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, errorMessage: String, constraints: Constraint[String]*): Mapping[A] =
-      WrappedMapping(text.verifying(constraints: _*).verifying(format(from, errorMessage)), (s: String) => from(s).right.get, to)
+      WrappedMapping(text.verifying(constraints: _*).verifying(format(from, errorMessage)), (s: String) => from(s).get, to)
 
     def idMapping[A <: IId](builder: UuidIdBuilder[A]): Mapping[A] =
-      WrappedMapping(text.verifying(Constraints.nonEmpty()), (s: String) => builder.from(s).right.get, _.value)
+      WrappedMapping(text.verifying(Constraints.nonEmpty()), (s: String) => builder.from(s).get, _.value)
 
     def slugMapping[A <: ISlug](builder: SlugBuilder[A]): Mapping[A] =
-      WrappedMapping(text.verifying(Constraints.nonEmpty(), Constraints.pattern(SlugBuilder.pattern), Constraints.maxLength(SlugBuilder.maxLength)), (s: String) => builder.from(s).right.get, _.value)
+      WrappedMapping(text.verifying(Constraints.nonEmpty(), Constraints.pattern(SlugBuilder.pattern), Constraints.maxLength(SlugBuilder.maxLength)), (s: String) => builder.from(s).get, _.value)
 
     private def format[E, A](parse: String => Either[E, A], errorMessage: String = formatError): Constraint[String] =
       Constraint[String](formatConstraint) { o =>

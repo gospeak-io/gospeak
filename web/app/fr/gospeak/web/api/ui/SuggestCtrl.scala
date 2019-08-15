@@ -60,7 +60,7 @@ class SuggestCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
       cfps <- OptionT.liftF(cfpRepo.list(groupElt.id))
-      suggestItems = cfps.map(c => SuggestedItem(c.slug.value, c.name.value + " - " + Formats.cfpDates(c)))
+      suggestItems = cfps.map(c => SuggestedItem(c.id.value, c.name.value + " - " + Formats.cfpDates(c)))
     } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
   }
 
