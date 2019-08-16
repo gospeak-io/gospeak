@@ -2,6 +2,7 @@ package fr.gospeak.web
 
 import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
 import com.typesafe.config.{Config, ConfigFactory}
+import fr.gospeak.infra.libs.meetup.MeetupClient
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.infra.services.storage.sql.DatabaseConf
 import fr.gospeak.libs.scalautils.Extensions._
@@ -18,7 +19,8 @@ import scala.util.{Failure, Success, Try}
 final case class AppConf(application: ApplicationConf,
                          auth: AuthConf,
                          database: DatabaseConf,
-                         emailService: EmailSrv.Conf)
+                         emailService: EmailSrv.Conf,
+                         meetup: MeetupClient.Conf)
 
 object AppConf {
   def load(conf: Config): Try[AppConf] = {
@@ -66,6 +68,7 @@ object AppConf {
     private implicit val applicationConfReader: ConfigReader[ApplicationConf] = deriveReader[ApplicationConf]
     private implicit val authConfReader: ConfigReader[AuthConf] = deriveReader[AuthConf]
     private implicit val databaseConfReader: ConfigReader[DatabaseConf] = deriveReader[DatabaseConf]
+    private implicit val meetupClientConfReader: ConfigReader[MeetupClient.Conf] = deriveReader[MeetupClient.Conf]
     private implicit val emailSrvConfReader: ConfigReader[EmailSrv.Conf] = deriveReader[EmailSrv.Conf]
 
     private implicit val appConfReader: ConfigReader[AppConf] = deriveReader[AppConf]

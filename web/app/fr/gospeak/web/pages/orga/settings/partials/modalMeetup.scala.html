@@ -1,4 +1,6 @@
-@()
+@import fr.gospeak.core.services.meetup.domain.MeetupInfo
+@import fr.gospeak.core.services.meetup.domain.MeetupCredentials
+@(meetup: MeetupInfo, creds: Option[MeetupCredentials])
 <div class="modal fade" id="meetupModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
@@ -9,7 +11,9 @@
                 </button>
             </div>
             <div class="modal-body">
-                TODO
+                <a href="@meetup.authorizationUrl.value" target="_blank" class="btn btn-success">
+                    Authorize Gospeak on Meetup</a>
+                You can <a href="@meetup.revokeUrl.value" target="_blank">revoke the access</a> at any time.
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

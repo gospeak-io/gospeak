@@ -22,10 +22,10 @@ object EmbedSrv {
     }
 
   private def embedCodeAsync(url: Url): IO[Option[Html]] =
-    HttpClient.getAsString(url.value).map { content =>
+    HttpClient.get(url.value).map { res =>
       AsyncService.all.foldLeft(Option.empty[Html]) { (acc, cur) =>
         if (acc.isDefined) acc
-        else cur.embed(url, content)
+        else cur.embed(url, res.body)
       }
     }
 

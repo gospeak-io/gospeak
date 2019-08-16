@@ -1,10 +1,10 @@
 {
   "id": 9067432,
-  "name": "Human Talks Paris",
+  "name": "HumanTalks Paris",
   "status": "active",
   "link": "https://www.meetup.com/HumanTalks-Paris/",
   "urlname": "HumanTalks-Paris",
-  "description": "<p>Human Talks, c'est un événement mensuel pour les développeurs. Chaque mois, des développeurs se succèdent pour présenter en 10 minutes un sujet de leur choix (language, méthode de programmation, projet perso, design...) Quelque soit votre niveau vous pouvez <a href=\"http://humantalksparis.herokuapp.com/submit-talk\">proposer un talk</a> aux organisateurs du Human Talks de Paris. L'accès est gratuit !</p>\n<p>Cet événement est à l'initiative de <a href=\"http://formations.humancoders.com/\">Human Coders</a>, le centre de formation recommandé par les développeurs.</p>",
+  "description": "<p>HumanTalks Paris, c'est un événement mensuel pour les développeuses et développeurs. Chaque mois, 4 speakeuses et/ou speakeurs se succèdent pour présenter en 10 minutes un sujet de leur choix (language, méthode de programmation, projet perso, design...) Quelque soit votre niveau vous pouvez <a href=\"https://humantalks.com/cities/paris/submit_talk\">proposer un talk</a> aux organisateurs du HumanTalks de Paris. L'accès est gratuit !</p>\n<p>Les talks sont filmés et retransmis sur notre <a href=\"https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog\">chaine YouTube</a> <br></p>\n<p> <br></p>",
   "created": 1372084756000,
   "city": "Paris",
   "untranslated_city": "Paris",
@@ -16,10 +16,10 @@
   "visibility": "public",
   "lat": 48.86,
   "lon": 2.34,
-  "members": 6616,
+  "members": 6825,
   "organizer": {
     "id": 22982471,
-    "name": "Matthieu S.",
+    "name": "Matthieu Segret",
     "bio": "Développeur web et directeur associé de Human Coders, communauté et centre de formation pour coders",
     "photo": {
       "id": 250084803,
@@ -30,7 +30,7 @@
       "base_url": "https://secure.meetupstatic.com"
     }
   },
-  "who": "développeurs",
+  "who": "dev",
   "group_photo": {
     "id": 251926612,
     "highres_link": "https://secure.meetupstatic.com/photos/event/b/6/1/4/highres_251926612.jpeg",
@@ -40,10 +40,10 @@
     "base_url": "https://secure.meetupstatic.com"
   },
   "key_photo": {
-    "id": 251927742,
-    "highres_link": "https://secure.meetupstatic.com/photos/event/b/a/7/e/highres_251927742.jpeg",
-    "photo_link": "https://secure.meetupstatic.com/photos/event/b/a/7/e/600_251927742.jpeg",
-    "thumb_link": "https://secure.meetupstatic.com/photos/event/b/a/7/e/thumb_251927742.jpeg",
+    "id": 483434958,
+    "highres_link": "https://secure.meetupstatic.com/photos/event/3/a/6/e/highres_483434958.jpeg",
+    "photo_link": "https://secure.meetupstatic.com/photos/event/3/a/6/e/600_483434958.jpeg",
+    "thumb_link": "https://secure.meetupstatic.com/photos/event/3/a/6/e/thumb_483434958.jpeg",
     "type": "event",
     "base_url": "https://secure.meetupstatic.com"
   },
