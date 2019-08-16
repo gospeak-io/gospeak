@@ -203,7 +203,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
 
     val cfp1 = cfp(humanTalks, "ht-paris", "HumanTalks Paris", None, None, "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq("tag1", "tag2"), userDemo)
     val cfp2 = cfp(humanTalks, "ht-paris-day-1", "HumanTalks Paris Day - Edition 1", None, Some("2018-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
-    val cfp3 = cfp(humanTalks, "ht-paris-day-2", "HumanTalks Paris Day - Edition 2", Some("2019-03-01"), Some("2019-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
+    val cfp3 = cfp(humanTalks, "ht-paris-day-2", "HumanTalks Paris Day - Edition 2", Some("2019-03-01"), Some("2019-12-31"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
     val cfp4 = cfp(parisJs, "paris-js", "Paris.Js", None, Some("2019-05-21"), "Submit your talk to exchange with the Paris JS community", Seq(), userOrga)
     val cfps = NonEmptyList.of(cfp1, cfp2, cfp3, cfp4)
 

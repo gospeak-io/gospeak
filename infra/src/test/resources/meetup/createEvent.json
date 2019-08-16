@@ -1,0 +1,21 @@
+{
+  "name": "Test event",
+  "description": "A <b>nice event</b>, just to <i>test</i> publishing from <a href=\"https://github.com/loicknuchel/gospeak\" target=\"_blank\">gospeak</a>.\n\nHoping description supports lists:\n- item 1\n- item 2\n- item 3\n\nhttps://blog.humancoders.com/wp-content/uploads/2012/11/tumblr_md28i6bE1X1qcyigs.png\n",
+  "time": 1566070374751,
+  "publish_status": "draft",
+  "announce": false,
+  "duration": 10800000,
+  "venue_id": null,
+  "lat": null,
+  "lon": null,
+  "how_to_find_us": null,
+  "venue_visibility": "public",
+  "event_hosts": null,
+  "rsvp_limit": null,
+  "rsvp_close_time": null,
+  "rsvp_open_time": null,
+  "question": null,
+  "guest_limit": null,
+  "featured_photo_id": null,
+  "self_rsvp": true
+}

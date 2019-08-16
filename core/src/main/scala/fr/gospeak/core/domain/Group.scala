@@ -4,6 +4,7 @@ import java.time.Instant
 
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.{Info, TemplateData}
+import fr.gospeak.core.services.meetup.domain.MeetupCredentials
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackCredentials}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
@@ -51,7 +52,17 @@ object Group {
   final case class Settings(accounts: Settings.Accounts,
                             actions: Map[Settings.Action.Trigger, Seq[Settings.Action]],
                             event: Settings.Event) {
+    def set(meetup: MeetupCredentials): Settings = copy(accounts = accounts.copy(meetup = Some(meetup)))
+
     def set(slack: SlackCredentials): Settings = copy(accounts = accounts.copy(slack = Some(slack)))
+
+    def removeAccount(kind: String): Try[Settings] = kind match {
+      case "meetup" => Success(copy(accounts = accounts.copy(meetup = None)))
+      case "slack" => Success(copy(accounts = accounts.copy(slack = None)))
+      case "twitter" => Success(copy(accounts = accounts.copy(twitter = None)))
+      case "youtube" => Success(copy(accounts = accounts.copy(youtube = None)))
+      case _ => Failure(new IllegalArgumentException(s"Account '$kind' does not exists"))
+    }
 
     def addEventTemplate(id: String, tmpl: MustacheTextTmpl[TemplateData.EventInfo]): Try[Settings] =
       event.addTemplate(id, tmpl).map(e => copy(event = e))
@@ -66,8 +77,8 @@ object Group {
   object Settings {
     val default = Settings(
       accounts = Accounts(
-        slack = None,
         meetup = None,
+        slack = None,
         twitter = None,
         youtube = None),
       actions = Map(),
@@ -75,8 +86,8 @@ object Group {
         defaultDescription = TemplateData.Static.defaultEventDescription,
         templates = Map()))
 
-    final case class Accounts(slack: Option[SlackCredentials],
-                              meetup: Option[String],
+    final case class Accounts(meetup: Option[MeetupCredentials],
+                              slack: Option[SlackCredentials],
                               twitter: Option[String],
                               youtube: Option[String])
 

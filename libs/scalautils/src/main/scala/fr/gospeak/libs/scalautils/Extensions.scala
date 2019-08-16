@@ -186,6 +186,14 @@ object Extensions {
       case Left(e) => Left(f(e))
     }
 
+    def orElse(other: => Either[E, A]): Either[E, A] = in match {
+      case Right(a) => Right(a)
+      case Left(e) => other match {
+        case Right(a) => Right(a)
+        case Left(_) => Left(e)
+      }
+    }
+
     def toIO(implicit ev: E <:< Throwable): IO[A] = in match {
       case Right(a) => IO.pure(a)
       case Left(e) => IO.raiseError(e)

@@ -1,0 +1,48 @@
+{
+  "country": "fr",
+  "hometown": "Paris",
+  "city": "Paris",
+  "topics": [
+    {
+      "urlkey": "coding-dojos",
+      "name": "Coding Dojos",
+      "id": 44602
+    },
+    {
+      "urlkey": "entrepreneurship",
+      "name": "Entrepreneurship",
+      "id": 19882
+    },
+    {
+      "urlkey": "functional-programming",
+      "name": "Functional Programming",
+      "id": 22792
+    }
+  ],
+  "joined": 1300965978000,
+  "link": "http:\/\/www.meetup.com\/members\/13320103",
+  "bio": "Développeur web et Java, adore les nouvelles technologies et s'intéresse de près aux startups. J'adore faire de nouvelles rencontres et discuter sur tous ces sujets.",
+  "photo": {
+    "highres_link": "https:\/\/secure.meetupstatic.com\/photos\/member\/5\/a\/2\/highres_91541413.jpeg",
+    "photo_id": 91541413,
+    "base_url": "https:\/\/secure.meetupstatic.com",
+    "type": "member",
+    "photo_link": "https:\/\/secure.meetupstatic.com\/photos\/member\/5\/a\/2\/member_91541413.jpeg",
+    "thumb_link": "https:\/\/secure.meetupstatic.com\/photos\/member\/5\/a\/2\/thumb_91541413.jpeg"
+  },
+  "lon": 2.3490999041623135,
+  "other_services": {
+    "twitter": {
+      "identifier": "@loicknuchel"
+    }
+  },
+  "name": "loic knuchel",
+  "visited": 1545881915000,
+  "self": {
+    "common": {}
+  },
+  "id": 13320103,
+  "lang": "fr_FR",
+  "lat": 48.83000161635156,
+  "status": "active"
+}
