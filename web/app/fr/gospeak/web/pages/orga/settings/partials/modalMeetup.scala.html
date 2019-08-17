@@ -27,7 +27,7 @@
                     <div class="alert alert-success" role="alert">Connected to <b>@creds.group.value</b> group with <b>@creds.loggedUserName</b> account.</div>
                     <p>If you want to change the group or the logged account, you can connect again:</p>
                 }
-                @fieldHorizontal(meetupForm("group"), Seq("label" -> "Group URL name", "help" -> "To find it, go on your meetup group and look for the last part of the URL")) { (field, args) =>
+                @fieldHorizontal(meetupForm("group"), Seq("label" -> "URL group name", "help" -> "To find it, go on your meetup group and look for the last part of the URL")) { (field, args) =>
                     @inputText(field, args)
                 }
             </div>
