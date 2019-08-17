@@ -8,7 +8,7 @@ import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.Group
 import fr.gospeak.core.services.meetup.MeetupSrv
-import fr.gospeak.core.services.meetup.domain.{MeetupCredentials, MeetupException}
+import fr.gospeak.core.services.meetup.domain.{MeetupCredentials, MeetupException, MeetupGroup}
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackCredentials
 import fr.gospeak.core.services.storage.{OrgaGroupRepo, SettingsRepo}
@@ -17,19 +17,17 @@ import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.settings.SettingsCtrl._
-import fr.gospeak.web.pages.orga.settings.SettingsForms.EventTemplateItem
+import fr.gospeak.web.pages.orga.settings.SettingsForms.{EventTemplateItem, MeetupAccount}
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
 
-import scala.util.Try
 import scala.util.control.NonFatal
 
 /*
   TODO
     - encode meetup accessToken & refreshToken (in MeetupCredentials)
     - encode slack token (in SlackCredentials)
-    - display connected meetup
  */
 class SettingsCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
@@ -44,25 +42,38 @@ class SettingsCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
-      res <- OptionT.liftF(settingsView(groupElt, settings).toIO)
+      res = settingsView(groupElt, settings)
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
-  def meetupOauth2(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def meetupAuthorize(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      res <- OptionT.liftF(SettingsForms.meetupAccount.bindFromRequest.fold(
+        formWithErrors => IO.pure(settingsView(groupElt, settings, meetup = Some(formWithErrors))),
+        data => {
+          val redirectUri = routes.SettingsCtrl.meetupCallback(group, data.group).absoluteURL()
+          meetupSrv.buildAuthorizationUrl(redirectUri).map(url => Redirect(url.value)).toIO
+        }))
+    } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+  }
+
+  def meetupCallback(group: Group.Slug, meetupGroup: MeetupGroup.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
+    val redirectUri = routes.SettingsCtrl.meetupCallback(group, meetupGroup).absoluteURL()
     req.getQueryString("code").map { code =>
-      val redirectUri = routes.SettingsCtrl.meetupOauth2(group).absoluteURL()
       (for {
         groupElt <- OptionT(groupRepo.find(user, group))
         settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
         token <- OptionT.liftF(meetupSrv.requestAccessToken(redirectUri, code))
-        _ = println(s"Meetup token: $token")
-        loggedUser <- OptionT.liftF(meetupSrv.getLoggedUser(token))
-        creds = MeetupCredentials(token, loggedUser)
+        loggedUser <- OptionT.liftF(meetupSrv.getLoggedUser()(token))
+        meetupGroupElt <- OptionT.liftF(meetupSrv.getGroup(meetupGroup)(token))
+        creds = MeetupCredentials(token, loggedUser, meetupGroupElt)
         _ <- OptionT.liftF(settingsRepo.set(groupElt.id, settings.set(creds), user, now))
         next = Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> s"Connected to <b>${loggedUser.name}</b> meetup account")
       } yield next).value.map(_.getOrElse(groupNotFound(group))).recoverWith {
-        case e: MeetupException => IO.pure(Redirect(routes.SettingsCtrl.list(group)).flashing("error" -> s"Error connecting with meetup: ${e.error}"))
+        case e: MeetupException => IO.pure(Redirect(routes.SettingsCtrl.list(group)).flashing("error" -> e.getMessage))
       }
     }.getOrElse {
       val state = req.getQueryString("state")
@@ -78,7 +89,7 @@ class SettingsCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
       res <- OptionT.liftF(SettingsForms.slackAccount.bindFromRequest.fold(
-        formWithErrors => settingsView(groupElt, settings, slack = Some(formWithErrors)).toIO,
+        formWithErrors => IO.pure(settingsView(groupElt, settings, slack = Some(formWithErrors))),
         creds => slackSrv.getInfos(creds.token)
           .flatMap(_ => settingsRepo.set(groupElt.id, settings.set(creds), user, now))
           .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Slack account updated"))
@@ -105,7 +116,7 @@ class SettingsCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
       res <- OptionT.liftF(SettingsForms.addAction.bindFromRequest.fold(
-        formWithErrors => settingsView(groupElt, settings, action = Some(formWithErrors)).toIO,
+        formWithErrors => IO.pure(settingsView(groupElt, settings, action = Some(formWithErrors))),
         data => settingsRepo.set(groupElt.id, addActionToSettings(settings, data), user, now)
           .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Action added"))
       ))
@@ -163,19 +174,17 @@ class SettingsCtrl(cc: ControllerComponents,
 
   private def settingsView(groupElt: Group,
                            settings: Group.Settings,
+                           meetup: Option[Form[MeetupAccount]] = None,
                            slack: Option[Form[SlackCredentials]] = None,
                            action: Option[Form[SettingsForms.AddAction]] = None)
-                          (implicit req: SecuredRequest[CookieEnv, AnyContent]): Try[Result] = {
-    val redirectUrl = routes.SettingsCtrl.meetupOauth2(groupElt.slug).absoluteURL()
-    meetupSrv.getInfo(redirectUrl).map { meetup =>
-      Ok(html.list(
-        groupElt,
-        settings,
-        meetup,
-        slack.getOrElse(settings.accounts.slack.map(s => SettingsForms.slackAccount.fill(s)).getOrElse(SettingsForms.slackAccount)),
-        action.getOrElse(SettingsForms.addAction)
-      )(listBreadcrumb(groupElt)))
-    }
+                          (implicit req: SecuredRequest[CookieEnv, AnyContent]): Result = {
+    Ok(html.list(
+      groupElt,
+      settings,
+      meetup.getOrElse(settings.accounts.meetup.map(s => SettingsForms.meetupAccount.fill(MeetupAccount(s.group))).getOrElse(SettingsForms.meetupAccount)),
+      slack.getOrElse(settings.accounts.slack.map(s => SettingsForms.slackAccount.fill(s)).getOrElse(SettingsForms.slackAccount)),
+      action.getOrElse(SettingsForms.addAction)
+    )(listBreadcrumb(groupElt)))
   }
 
   private def updateEventTemplateView(group: Group,

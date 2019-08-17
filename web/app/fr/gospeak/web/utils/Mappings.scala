@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit
 
 import cats.implicits._
 import fr.gospeak.core.domain._
+import fr.gospeak.core.services.meetup.domain.MeetupGroup
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
@@ -126,8 +127,9 @@ object Mappings {
   val sponsorPackId: Mapping[SponsorPack.Id] = idMapping(SponsorPack.Id)
   val sponsorPackSlug: Mapping[SponsorPack.Slug] = slugMapping(SponsorPack.Slug)
   val sponsorPackName: Mapping[SponsorPack.Name] = nonEmptyTextMapping(SponsorPack.Name, _.value, Constraints.maxLength(Values.maxLength.title))
-  val firstName: Mapping[Contact.FirstName] = nonEmptyTextMapping(Contact.FirstName, _.value)
-  val lastName: Mapping[Contact.LastName] = nonEmptyTextMapping(Contact.LastName, _.value)
+  val contactFirstName: Mapping[Contact.FirstName] = nonEmptyTextMapping(Contact.FirstName, _.value)
+  val contactLastName: Mapping[Contact.LastName] = nonEmptyTextMapping(Contact.LastName, _.value)
+  val meetupGroupSlug: Mapping[MeetupGroup.Slug] = stringEitherMapping(MeetupGroup.Slug.from, _.value, formatError, Constraints.nonEmpty)
   val slackToken: Mapping[SlackToken] = nonEmptyTextMapping(SlackToken, _.value)
 
   private def templateFormatter[A]: Formatter[MustacheMarkdownTmpl[A]] = new Formatter[MustacheMarkdownTmpl[A]] {

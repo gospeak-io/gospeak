@@ -38,8 +38,8 @@ class ContactCtrl(cc: ControllerComponents,
 
   private val createForm: Form[Contact.Data] = Form(mapping(
     "partner" -> partnerId,
-    "first_name" -> firstName,
-    "last_name" -> lastName,
+    "first_name" -> contactFirstName,
+    "last_name" -> contactLastName,
     "email" -> emailAddress,
     "description" -> markdown
   )(Contact.Data.apply)(Contact.Data.unapply))

@@ -129,6 +129,7 @@ val web = (project in file("web"))
     routesImport ++= Seq(
       "fr.gospeak.core.domain._",
       "fr.gospeak.libs.scalautils.domain._",
+      "fr.gospeak.core.services.meetup.domain._",
       "fr.gospeak.web.utils.PathBindables._",
       "fr.gospeak.web.utils.QueryStringBindables._"),
     buildInfoKeys := Seq[BuildInfoKey](

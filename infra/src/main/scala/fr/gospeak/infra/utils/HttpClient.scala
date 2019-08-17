@@ -34,7 +34,7 @@ object HttpClient {
     buildUri(url, query)(uri => Hammock.request(Method.POST, uri, headers + ("Content-Type" -> "application/x-www-form-urlencoded"), Some(buildParams(body))).exec[IO]).map(Response.from)
 
   private def buildUri(url: String, query: Map[String, String])(callback: Uri => IO[HttpResponse]): IO[HttpResponse] =
-    Uri.fromString(buildUrl(url, query)).map(callback).getOrElse(IO.raiseError(CustomException(s"Invalid URI '$url'")))
+    Uri.fromString(buildUrl(url, query)).map(callback).getOrElse(IO.raiseError(CustomException(s"Invalid URI '${buildUrl(url, query)}'")))
 
   def buildUrl(url: String, query: Map[String, String]): String = {
     if (query.isEmpty) {
