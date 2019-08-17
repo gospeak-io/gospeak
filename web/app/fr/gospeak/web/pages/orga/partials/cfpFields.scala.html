@@ -9,13 +9,13 @@
 @fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the CFP (in urls for example)")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "CFP slug", "slug-for" -> form("name").id) ++ args)
 }
-@fieldHorizontal(form("start"), Seq("label" -> "Start", "help" -> "When the CFP will start")) { (field, args) =>
+@fieldHorizontal(form("start"), Seq("label" -> "Start", "help" -> "When the CFP will start, leave it empty if you want it to start now")) { (field, args) =>
     @inputLocalDatetime(field, args)
 }
-@fieldHorizontal(form("end"), Seq("label" -> "End", "help" -> "When the CFP will end")) { (field, args) =>
+@fieldHorizontal(form("end"), Seq("label" -> "End", "help" -> "When the CFP will end, leave it empty if you don't want the CFP to end")) { (field, args) =>
     @inputLocalDatetime(field, args)
 }
-@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Explain what is the purpose of this CFP to speakers wanting to apply")) { (field, args) =>
+@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "This is where to give speaker instructions: explain your event and what you expect from speakers")) { (field, args) =>
     @inputMarkdown(field, args)
 }
 @fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your CFP")) { (field, args) =>

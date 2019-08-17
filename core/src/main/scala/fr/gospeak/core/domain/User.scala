@@ -88,8 +88,7 @@ object User {
                      twitter: Option[Url],
                      linkedin: Option[Url],
                      phone: Option[String],
-                     website: Option[Url]
-                    )
+                     website: Option[Url])
 
   case class EditableFields(firstName: String,
                             lastName: String,

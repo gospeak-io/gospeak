@@ -2,7 +2,6 @@
 @import fr.gospeak.core.domain.Group
 @import fr.gospeak.core.domain.utils.TemplateData
 @import fr.gospeak.core.services.slack.domain.SlackCredentials
-@import fr.gospeak.libs.scalautils.domain.MarkdownTemplate
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.container
@@ -10,7 +9,7 @@
 @import fr.gospeak.web.pages.orga.settings.partials.html._
 
 @(group: Group, settings: Group.Settings, slackAccount: Form[SlackCredentials], addAction: Form[AddAction])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@container(group.name.value + "settings - Gospeak", group, b)() {
+@container(group.name.value + " settings - Gospeak", group, b)() {
     <h1>Settings</h1>
 
     <div class="row">

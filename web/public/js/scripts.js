@@ -231,12 +231,20 @@ function slugify(str) {
 (function () {
     $('input.input-time').each(function () {
         IMask(this, {
-            mask: 'hh:mm:ss',
+            mask: 'HH:mm',
             lazy: false,
             blocks: {
-                hh: {mask: IMask.MaskedRange, from: 0, to: 23},
-                mm: {mask: IMask.MaskedRange, from: 0, to: 59},
-                ss: {mask: IMask.MaskedRange, from: 0, to: 59}
+                HH: {mask: IMask.MaskedRange, from: 0, to: 23},
+                mm: {mask: IMask.MaskedRange, from: 0, to: 59}
+            }
+        });
+    });
+    // clear empty input-time so backend will get empty values instead of placeholder ones
+    $('form').submit(function (e) {
+        $(e.target).find('input.input-time').each(function() {
+            var $input = $(this);
+            if($input.val() === '__:__') {
+                $input.val('');
             }
         });
     });
@@ -323,9 +331,10 @@ function slugify(str) {
         var $input = $elt.find('textarea,input[type="text"]');
         var previewPane = $elt.find('.tab-pane.preview');
         var loadingHtml = previewPane.html();
+        var markdown = $elt.attr('data-markdown') === 'true';
         previewTab.on('show.bs.tab', function () {
             var r = $target ? $target.val() : ref;
-            updateTemplate($input, r, previewPane);
+            updateTemplate($input, r, markdown, previewPane);
         });
         previewTab.on('hidden.bs.tab', function () {
             previewPane.html(loadingHtml);
@@ -333,7 +342,7 @@ function slugify(str) {
         if ($target) {
             $target.change(function () {
                 if (previewPane.hasClass('active')) {
-                    updateTemplate($input, $target.val(), previewPane);
+                    updateTemplate($input, $target.val(), markdown, previewPane);
                 }
             });
         }
@@ -350,9 +359,9 @@ function slugify(str) {
         }
     }
 
-    function updateTemplate($input, ref, previewPane) {
+    function updateTemplate($input, ref, markdown, previewPane) {
         var tmpl = $input.val();
-        fetchTemplate(tmpl, ref).then(function (tmpl) {
+        fetchTemplate(tmpl, ref, markdown).then(function (tmpl) {
             if (tmpl.error) {
                 console.warn('Template error', tmpl.error);
             }
@@ -366,7 +375,7 @@ function slugify(str) {
         });
     }
 
-    function fetchTemplate(tmpl, ref) {
+    function fetchTemplate(tmpl, ref, markdown) {
         return fetch('/ui/utils/render-template', {
             method: 'POST',
             headers: {
@@ -375,7 +384,8 @@ function slugify(str) {
             },
             body: JSON.stringify({
                 template: tmpl,
-                ref: ref
+                ref: ref,
+                markdown: markdown
             })
         }).then(function (res) {
             return res.json();

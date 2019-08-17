@@ -16,7 +16,7 @@ import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.infra.utils.{DoobieUtils, FlywayUtils}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.StringUtils
-import fr.gospeak.libs.scalautils.domain.MarkdownTemplate.Mustache
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import fr.gospeak.libs.scalautils.domain.TimePeriod._
 import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.migration.MongoRepo
@@ -143,7 +143,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, status, talk.title, talk.duration, talk.description, talk.speakers, talk.slides, talk.video, talk.tags, talk.info)
 
     def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, venue: Option[Venue] = None, description: String = "", tags: Seq[String] = Seq()): Event =
-      Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), MarkdownTemplate.Mustache(description), venue.map(_.id), Seq(), tags.map(Tag(_)), Some(now).filter(_.isAfter(Instant.parse(date + "T06:06:24.074Z"))), Info(by.id, now))
+      Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), MustacheMarkdownTmpl(description), venue.map(_.id), Seq(), tags.map(Tag(_)), Some(now).filter(_.isAfter(Instant.parse(date + "T06:06:24.074Z"))), Info(by.id, now))
 
     def partner(g: Group, name: String, description: String, logo: Int, by: User): Partner =
       Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(description), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").get, Info(by.id, now))
@@ -157,8 +157,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     def sponsor(group: Group, partner: Partner, pack: SponsorPack, by: User, start: String, finish: String): Sponsor =
       Sponsor(Sponsor.Id.generate(), group.id, partner.id, pack.id, LocalDate.parse(start), LocalDate.parse(finish), Some(LocalDate.parse(start)), Price(1500, Price.Currency.EUR), Info(by.id, now))
 
-    val userDemoProfil = User.Profile(Some("Entrepreneur, functional programmer, OSS contributor, speaker, author. Work hard, stay positive, and live fearlessly."),
-      Some("Zeenea"), Some("Paris"), Some(Url.from("https://twitter.com/HumanTalks").get), Some(Url.from("https://twitter.com/HumanTalks").get), None, Some(Url.from("https://humantalks.com/").get))
+    val userDemoProfil = User.Profile(Some("Entrepreneur, functional programmer, OSS contributor, speaker, author.\nWork hard, stay positive, and live fearlessly."),
+      Some("Zeenea"), Some("Paris"), Some(Url.from("https://twitter.com/HumanTalks").get), Some(Url.from("https://www.linkedin.com/in/loicknuchel").get), None, Some(Url.from("https://humantalks.com").get))
     val userDemo = user("demo", "demo@mail.com", "Demo", "User", userDemoProfil)
     val userSpeaker = user("speaker", "speaker@mail.com", "Speaker", "User")
     val userOrga = user("orga", "orga@mail.com", "Orga", "User")
@@ -193,13 +193,13 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       actions = Map(
         Group.Settings.Action.Trigger.OnEventCreated -> Seq(
           Group.Settings.Action.Slack(SlackAction.PostMessage(
-            MarkdownTemplate.Mustache("{{event.start.year}}_{{event.start.month}}"),
-            MarkdownTemplate.Mustache("Meetup [{{event.name}}]({{event.link}}) créé !"),
+            MustacheMarkdownTmpl("{{event.start.year}}_{{event.start.month}}"),
+            MustacheMarkdownTmpl("Meetup [{{event.name}}]({{event.link}}) créé !"),
             createdChannelIfNotExist = true,
             inviteEverybody = true)))),
       event = Group.Settings.default.event.copy(
         templates = Map(
-          "ROTI" -> Mustache[TemplateData.EventInfo](humanTalksRoti))))
+          "ROTI" -> MustacheTextTmpl[TemplateData.EventInfo](humanTalksRoti))))
 
     val cfp1 = cfp(humanTalks, "ht-paris", "HumanTalks Paris", None, None, "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq("tag1", "tag2"), userDemo)
     val cfp2 = cfp(humanTalks, "ht-paris-day-1", "HumanTalks Paris Day - Edition 1", None, Some("2018-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
@@ -211,7 +211,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val proposal2 = proposal(talk2, cfp1)
     val proposal3 = proposal(talk2, cfp4)
     val proposal4 = proposal(talk3, cfp1, status = Proposal.Status.Rejected)
-    val proposals = NonEmptyList.of(proposal1, proposal2, proposal3, proposal4)
+    val proposal5 = proposal(talk4, cfp3)
+    val proposals = NonEmptyList.of(proposal1, proposal2, proposal3, proposal4, proposal5)
 
     val zeenea = partner(humanTalks, "Zeenea", "", 1, userDemo)
     val criteo = partner(humanTalks, "Criteo", "", 2, userDemo)
@@ -263,7 +264,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       val cfpId = Cfp.Id.generate()
       val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga.id), Seq(), published = Some(now), Info(userOrga.id, now))
       val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), None, None, Markdown("Only your best talks !"), Seq(), Info(userOrga.id, now))
-      val e = Event(Event.Id.generate(), bigGroup.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), MarkdownTemplate.Mustache(""), None, Seq(), Seq(), Some(now), Info(userOrga.id, now))
+      val e = Event(Event.Id.generate(), bigGroup.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), MustacheMarkdownTmpl(""), None, Seq(), Seq(), Some(now), Info(userOrga.id, now))
       val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Status.Draft, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Info(userSpeaker.id, now))
       val p = Proposal(Proposal.Id.generate(), talk7.id, cfpId, None, Proposal.Status.Pending, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Markdown("temporary description"), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Info(userSpeaker.id, now))
       (g, c, e, t, p)
@@ -289,7 +290,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
   }
 
   private val humanTalksRoti =
-    s"""<html lang="en">
+    s"""<!doctype html>
+       |<html lang="en">
        |<head>
        |  <meta charset="utf-8">
        |  <meta name='viewport' content='width=device-width, initial-scale=1' />

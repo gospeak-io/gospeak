@@ -9,12 +9,12 @@ import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.TemplateSrv
-import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.libs.scalautils.domain.{Html, Page}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus, MessageBuilder}
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.events.EventCtrl._
-import fr.gospeak.web.utils.{MarkdownUtils, UICtrl}
+import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
 
@@ -101,9 +101,9 @@ class EventCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(talks.flatMap(_.users).distinct))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
       data = builder.buildEventInfo(groupElt, eventElt, cfpOpt, venueOpt, talks, speakers, nowLDT)
-      res = settings.event.getTemplate(templateId)
+      res = settings.event.templates.get(templateId)
         .flatMap(template => templateSrv.render(template, data).toOption)
-        .map(md => Ok(html.showTemplate(MarkdownUtils.renderHtml(md))))
+        .map(text => Ok(html.showTemplate(Html(text))))
         .getOrElse(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Invalid template '$templateId'"))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }

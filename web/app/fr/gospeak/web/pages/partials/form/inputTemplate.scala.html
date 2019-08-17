@@ -4,8 +4,8 @@
 * @param 'ref' Ref of TemplateData to use
 * @param 'target' Id of input to watch to get the TemplateData Ref (or some info that allow to get the TemplateData Ref)
 *@
-@(field: Field, ref: Option[TemplateData.Ref] = None, target: Option[String] = None, multiline: Boolean = true, args: Seq[(String, String)] = Seq())
-<div class="template-editor" @ref.map { r => data-ref="@r.value" }@target.map { t => data-target="@t" }>
+@(field: Field, ref: Option[TemplateData.Ref] = None, target: Option[String] = None, multiline: Boolean = true, markdown: Boolean = true, args: Seq[(String, String)] = Seq())
+<div class="template-editor" @ref.map { r => data-ref="@r.value" }@target.map { t => data-target="@t" } data-markdown="@markdown">
     <ul class="nav nav-tabs" role="tablist" id="@Utils.id(field, args)-tab">
         <li class="nav-item">
             <a class="nav-link write active" id="@Utils.id(field, args)-write-tab" data-toggle="tab" href="#@Utils.id(field, args)-write" role="tab" aria-controls="@Utils.id(field, args)-write" aria-selected="true" tabindex="-1">Write</a>
@@ -31,9 +31,17 @@
             </div>
         </div>
     </div>
-    <small class="form-text text-muted">
-        You can use <a href="https://mustache.github.io/mustache.5.html" target="_blank" tabindex="-1">mustache</a>
-        templating with <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet" target="_blank" tabindex="-1">markdown</a>
-        formatting.
-    </small>
+    @if(markdown) {
+        <small class="form-text text-muted">
+            You can use <a href="https://mustache.github.io/mustache.5.html" target="_blank" tabindex="-1">mustache</a>
+            (<a href="https://github.com/eikek/yamusca" target="_blank" tabindex="-1">yamusca</a>) templating with
+            <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet" target="_blank" tabindex="-1">markdown</a>
+            (<a href="https://github.com/vsch/flexmark-java" target="_blank" tabindex="-1">flexmark</a>) formatting.
+        </small>
+    } else {
+        <small class="form-text text-muted">
+            You can use <a href="https://mustache.github.io/mustache.5.html" target="_blank" tabindex="-1">mustache</a>
+            (<a href="https://github.com/eikek/yamusca" target="_blank" tabindex="-1">yamusca</a>) templating.
+        </small>
+    }
 </div>

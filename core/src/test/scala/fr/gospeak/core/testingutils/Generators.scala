@@ -5,6 +5,7 @@ import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.libs.scalautils.Crypto
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain.TimePeriod.PeriodUnit
 import fr.gospeak.libs.scalautils.domain._
 import org.scalacheck.ScalacheckShapeless._
@@ -85,7 +86,7 @@ object Generators {
   implicit val aProposal = implicitly[Arbitrary[Proposal]]
   implicit val aSponsor = implicitly[Arbitrary[Sponsor]]
 
-  implicit val aTemplate = implicitly[Arbitrary[MarkdownTemplate[Any]]]
+  implicit val aTemplate = implicitly[Arbitrary[MustacheMarkdownTmpl[Any]]]
   implicit val aGroupSettingsActionTrigger = implicitly[Arbitrary[Group.Settings.Action.Trigger]]
   implicit val aGroupSettingsAction = implicitly[Arbitrary[Group.Settings.Action]]
 }

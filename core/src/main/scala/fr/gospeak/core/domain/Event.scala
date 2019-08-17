@@ -4,6 +4,7 @@ import java.time.{Instant, LocalDateTime}
 
 import fr.gospeak.core.domain.utils.{Info, TemplateData}
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain._
 
 final case class Event(id: Event.Id,
@@ -13,7 +14,7 @@ final case class Event(id: Event.Id,
                        name: Event.Name,
                        start: LocalDateTime,
                        // duration: Option[Duration]
-                       description: MarkdownTemplate[TemplateData.EventInfo],
+                       description: MustacheMarkdownTmpl[TemplateData.EventInfo],
                        venue: Option[Venue.Id],
                        talks: Seq[Proposal.Id],
                        tags: Seq[Tag],
@@ -49,7 +50,7 @@ object Event {
                         name: Name,
                         start: LocalDateTime,
                         venue: Option[Venue.Id],
-                        description: MarkdownTemplate[TemplateData.EventInfo],
+                        description: MustacheMarkdownTmpl[TemplateData.EventInfo],
                         tags: Seq[Tag])
 
   object Data {

@@ -1,7 +1,6 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.Group
 @import fr.gospeak.core.domain.utils.TemplateData
-@import fr.gospeak.libs.scalautils.domain.MarkdownTemplate
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
@@ -32,7 +31,7 @@
             data-toggle="html-popover"
             data-trigger="hover">
                 <div class="content" style="white-space: pre-line;
-                    width: 500px">@template.value</div>
+                    width: 500px">@template.value.take(1000)</div>
         Update </a>
     </span>
     </li>

@@ -1,6 +1,7 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.{container, proposalItem}
@@ -12,8 +13,14 @@
     <div class="media">
         <img src="@speaker.avatar.url.value" class="avatar align-self-start mr-3" alt="avatar">
         <div class="media-body">
-            <h1 class="mt-0">@speaker.name.value</h1>
-            <p><a href="mailto:@speaker.email.value">@speaker.email.value</a></p>
+            <h1 class="mt-0">@speaker.name.value@speaker.profile.company.map{ c => (@c)}</h1>
+            <p>
+                @emailLink(speaker.email)
+                @speaker.profile.twitter.map { url => @twitterLink(url) }
+                @speaker.profile.linkedin.map { url => @linkedinLink(url) }
+                @speaker.profile.website.map { url => @websiteLink(url) }
+            </p>
+            @speaker.profile.description.map { d => <p style="white-space: pre-line">@d</p>}
         </div>
     </div>
 

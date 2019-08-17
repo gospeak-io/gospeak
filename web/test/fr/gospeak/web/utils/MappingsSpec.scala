@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit
 
 import fr.gospeak.core.domain._
 import fr.gospeak.core.testingutils.Generators._
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.utils.Mappings._
 import org.scalatest.prop.PropertyChecks
@@ -40,12 +41,13 @@ class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
       forAll { v: LocalDateTime =>
         val in = v
           .minusNanos(v.getNano) // do not manage nanos
+          .minusSeconds(v.getSecond) // do not manage seconds
           .plusYears(if (v.getYear == 0) 1 else 0) // do not handle year 0, it's serialized as 1
 
         val data = myLocalDateTime.unbind(in)
         myLocalDateTime.bind(data) shouldBe Right(in)
       }
-      myLocalDateTime.bind(Map("date" -> "14/07/2019", "time" -> "17:45:33")) shouldBe Right(LocalDateTime.of(2019, 7, 14, 17, 45, 33))
+      myLocalDateTime.bind(Map("date" -> "14/07/2019", "time" -> "17:45")) shouldBe Right(LocalDateTime.of(2019, 7, 14, 17, 45, 0))
     }
     it("should bind & unbind a ChronoUnit") {
       forAll { v: ChronoUnit =>
@@ -205,7 +207,7 @@ class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
       }
     }
     it("should bind & unbind a Template") {
-      forAll { v: MarkdownTemplate[Any] =>
+      forAll { v: MustacheMarkdownTmpl[Any] =>
         val data = template.unbind(v)
         template.bind(data) shouldBe Right(v)
       }

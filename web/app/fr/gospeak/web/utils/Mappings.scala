@@ -2,13 +2,14 @@ package fr.gospeak.web.utils
 
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
+import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
 import cats.implicits._
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.utils.Extensions._
 import fr.gospeak.web.utils.Mappings.Utils._
@@ -39,7 +40,7 @@ object Mappings {
   val instant: Mapping[Instant] = stringEitherMapping(s => Try(LocalDateTime.parse(s).toInstant(ZoneOffset.UTC)).toEither, _.atZone(ZoneOffset.UTC).toLocalDateTime.toString, datetimeError) // FIXME manage timezone
   val myLocalDateTime: Mapping[LocalDateTime] = mapping(
     "date" -> localDate("dd/MM/yyyy"),
-    "time" -> localTime
+    "time" -> localTime("HH:mm")
   )({ case (d, t) => LocalDateTime.of(d, t) })(dt => Some(dt.toLocalDate -> dt.toLocalTime))
   val chronoUnit: Mapping[ChronoUnit] = stringEitherMapping(d => Try(ChronoUnit.valueOf(d)).toEither, _.name(), formatError)
   val periodUnit: Mapping[TimePeriod.PeriodUnit] = stringEitherMapping(d => TimePeriod.PeriodUnit.values.find(_.toString == d).toEither, _.toString, formatError)
@@ -52,7 +53,7 @@ object Mappings {
     "length" -> longNumber,
     "unit" -> timeUnit
   )(new FiniteDuration(_, _))(d => Some(d.length -> d.unit))
-  val emailAddress: Mapping[EmailAddress] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(Values.maxLength.title)), (s: String) => EmailAddress.from(s).right.get, _.value)
+  val emailAddress: Mapping[EmailAddress] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(Values.maxLength.title)), (s: String) => EmailAddress.from(s).get, _.value)
   val url: Mapping[Url] = stringEitherMapping(Url.from, _.value, formatError, Constraints.maxLength(Values.maxLength.title))
   val slides: Mapping[Slides] = stringEitherMapping(Slides.from, _.value, formatError, Constraints.maxLength(Values.maxLength.title))
   val video: Mapping[Video] = stringEitherMapping(Video.from, _.value, formatError, Constraints.maxLength(Values.maxLength.title))
@@ -84,7 +85,7 @@ object Mappings {
       data.get(s"$key.website").validNec[FormError],
       data.get(s"$key.phone").validNec[FormError],
       data.eitherGetAndParse(s"$key.utcOffset", _.tryInt, numberError).toValidatedNec
-    ).mapN(GMapPlace.apply).toEither.left.map(_.toList)
+      ).mapN(GMapPlace.apply).toEither.left.map(_.toList)
 
     override def unbind(key: String, value: GMapPlace): Map[String, String] =
       Seq(
@@ -129,19 +130,19 @@ object Mappings {
   val lastName: Mapping[Contact.LastName] = nonEmptyTextMapping(Contact.LastName, _.value)
   val slackToken: Mapping[SlackToken] = nonEmptyTextMapping(SlackToken, _.value)
 
-  private def templateFormatter[A]: Formatter[MarkdownTemplate[A]] = new Formatter[MarkdownTemplate[A]] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], MarkdownTemplate[A]] =
+  private def templateFormatter[A]: Formatter[MustacheMarkdownTmpl[A]] = new Formatter[MustacheMarkdownTmpl[A]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], MustacheMarkdownTmpl[A]] =
       data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
-        case "Mustache" => data.get(s"$key.value").map(v => Right(MarkdownTemplate.Mustache[A](v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
+        case "Mustache" => data.get(s"$key.value").map(v => Right(MustacheMarkdownTmpl[A](v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
         case v => Left(Seq(FormError(s"$key.kind", s"Invalid value '$v' for key '$key.kind'")))
       }
 
-    override def unbind(key: String, value: MarkdownTemplate[A]): Map[String, String] = value match {
-      case MarkdownTemplate.Mustache(v) => Map(s"$key.kind" -> "Mustache", s"$key.value" -> v)
+    override def unbind(key: String, value: MustacheMarkdownTmpl[A]): Map[String, String] = value match {
+      case MustacheMarkdownTmpl(v) => Map(s"$key.kind" -> "Mustache", s"$key.value" -> v)
     }
   }
 
-  def template[A]: Mapping[MarkdownTemplate[A]] = of(templateFormatter)
+  def template[A]: Mapping[MustacheMarkdownTmpl[A]] = of(templateFormatter)
 
   val groupSettingsEvent: Mapping[Group.Settings.Action.Trigger] = of(new Formatter[Group.Settings.Action.Trigger] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action.Trigger] =
@@ -158,7 +159,7 @@ object Mappings {
           templateFormatter.bind(s"$key.message", data),
           implicitly[Formatter[Boolean]].bind(s"$key.createdChannelIfNotExist", data),
           implicitly[Formatter[Boolean]].bind(s"$key.inviteEverybody", data)
-        ).mapN(SlackAction.PostMessage.apply).map(Group.Settings.Action.Slack)
+          ).mapN(SlackAction.PostMessage.apply).map(Group.Settings.Action.Slack)
         case v => Left(Seq(FormError(s"$key.kind", s"action kind '$v' not found")))
       }
     }
@@ -181,13 +182,13 @@ object Mappings {
       WrappedMapping(nonEmptyText.verifying(constraints: _*), from, to)
 
     def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, errorMessage: String, constraints: Constraint[String]*): Mapping[A] =
-      WrappedMapping(text.verifying(constraints: _*).verifying(format(from, errorMessage)), (s: String) => from(s).right.get, to)
+      WrappedMapping(text.verifying(constraints: _*).verifying(format(from, errorMessage)), (s: String) => from(s).get, to)
 
     def idMapping[A <: IId](builder: UuidIdBuilder[A]): Mapping[A] =
-      WrappedMapping(text.verifying(Constraints.nonEmpty()), (s: String) => builder.from(s).right.get, _.value)
+      WrappedMapping(text.verifying(Constraints.nonEmpty()), (s: String) => builder.from(s).get, _.value)
 
     def slugMapping[A <: ISlug](builder: SlugBuilder[A]): Mapping[A] =
-      WrappedMapping(text.verifying(Constraints.nonEmpty(), Constraints.pattern(SlugBuilder.pattern), Constraints.maxLength(SlugBuilder.maxLength)), (s: String) => builder.from(s).right.get, _.value)
+      WrappedMapping(text.verifying(Constraints.nonEmpty(), Constraints.pattern(SlugBuilder.pattern), Constraints.maxLength(SlugBuilder.maxLength)), (s: String) => builder.from(s).get, _.value)
 
     private def format[E, A](parse: String => Either[E, A], errorMessage: String = formatError): Constraint[String] =
       Constraint[String](formatConstraint) { o =>
