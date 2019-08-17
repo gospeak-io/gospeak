@@ -10,8 +10,8 @@ import hammock.{Encoder, Entity, Hammock, HttpResponse, Method, Uri}
 object HttpClient {
 
   final case class Response(status: Int,
-                            headers: Map[String, String],
-                            body: String)
+                            body: String,
+                            headers: Map[String, String])
 
   object Response {
     def from(res: HttpResponse): Response =

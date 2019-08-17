@@ -19,7 +19,7 @@ class MeetupClient(conf: Conf) {
   def buildAuthorizationUrl(redirectUri: String): Try[Url] =
     if (redirectUri.startsWith(conf.baseRedirectUri)) {
       Url.from(HttpClient.buildUrl("https://secure.meetup.com/oauth2/authorize", Map(
-        "scope" -> "basic",
+        "scope" -> "event_management",
         "client_id" -> conf.key,
         "response_type" -> "code",
         "redirect_uri" -> redirectUri))).toTry
@@ -35,7 +35,6 @@ class MeetupClient(conf: Conf) {
       "client_id" -> conf.key,
       "client_secret" -> conf.secret.decode,
       "grant_type" -> "authorization_code",
-      "apiAppScopes" -> "group_edit",
       "redirect_uri" -> redirectUri,
       "code" -> code)).flatMap(parse[MeetupToken])
 
@@ -60,8 +59,8 @@ class MeetupClient(conf: Conf) {
     get[Seq[MeetupEvent]](s"$baseUrl/$urlname/events", Map("status" -> "upcoming,past"))
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events#create
-  /* def createEvent(urlname: String, event: MeetupEvent.Create): IO[Response] =
-    HttpClient.postJson(s"$baseUrl/$urlname", toJson(event)) */
+  def createEvent(urlname: String, event: MeetupEvent.Create): IO[Response] =
+    HttpClient.postJson(s"$baseUrl/$urlname", toJson(event))
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#get
   def getEvent(urlname: String, eventId: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
