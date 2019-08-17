@@ -53,7 +53,7 @@ class SettingsCtrl(cc: ControllerComponents,
       res <- OptionT.liftF(SettingsForms.meetupAccount.bindFromRequest.fold(
         formWithErrors => IO.pure(settingsView(groupElt, settings, meetup = Some(formWithErrors))),
         data => {
-          val redirectUri = routes.SettingsCtrl.meetupCallback(group, data.group).absoluteURL()
+          val redirectUri = routes.SettingsCtrl.meetupCallback(group, data.group).absoluteURL(meetupSrv.hasSecureCallback)
           meetupSrv.buildAuthorizationUrl(redirectUri).map(url => Redirect(url.value)).toIO
         }))
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
@@ -61,7 +61,7 @@ class SettingsCtrl(cc: ControllerComponents,
 
   def meetupCallback(group: Group.Slug, meetupGroup: MeetupGroup.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
-    val redirectUri = routes.SettingsCtrl.meetupCallback(group, meetupGroup).absoluteURL()
+    val redirectUri = routes.SettingsCtrl.meetupCallback(group, meetupGroup).absoluteURL(meetupSrv.hasSecureCallback)
     req.getQueryString("code").map { code =>
       (for {
         groupElt <- OptionT(groupRepo.find(user, group))

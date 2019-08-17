@@ -16,6 +16,8 @@ import scala.util.{Failure, Try}
 class MeetupClient(conf: Conf) {
   private val baseUrl = "https://api.meetup.com"
 
+  def hasSecureCallback: Boolean = conf.baseRedirectUri.startsWith("https")
+
   def buildAuthorizationUrl(redirectUri: String): Try[Url] =
     if (redirectUri.startsWith(conf.baseRedirectUri)) {
       Url.from(HttpClient.buildUrl("https://secure.meetup.com/oauth2/authorize", Map(
@@ -59,6 +61,12 @@ class MeetupClient(conf: Conf) {
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events#create
   def createEvent(urlname: String, event: MeetupEvent.Create): IO[Response] =
     HttpClient.postJson(s"$baseUrl/$urlname", toJson(event))
+
+  /* HttpClient.postForm(s"$baseUrl/$urlname", Map(
+    "name" -> event.name,
+    "description" -> event.description,
+    "publish_status" -> event.publish_status,
+    "announce" -> event.announce.toString)) */
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#get
   def getEvent(urlname: String, eventId: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =

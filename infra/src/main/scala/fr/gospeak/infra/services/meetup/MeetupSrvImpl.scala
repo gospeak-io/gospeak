@@ -10,6 +10,8 @@ import fr.gospeak.libs.scalautils.domain.{Avatar, Url}
 import scala.util.Try
 
 class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
+  override def hasSecureCallback: Boolean = client.hasSecureCallback
+
   override def buildAuthorizationUrl(redirectUri: String): Try[Url] = client.buildAuthorizationUrl(redirectUri)
 
   override def requestAccessToken(redirectUri: String, code: String): IO[MeetupToken] =

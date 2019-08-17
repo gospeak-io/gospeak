@@ -7,6 +7,8 @@ import fr.gospeak.libs.scalautils.domain.Url
 import scala.util.Try
 
 trait MeetupSrv {
+  def hasSecureCallback: Boolean
+
   def buildAuthorizationUrl(redirectUri: String): Try[Url]
 
   def requestAccessToken(redirectUri: String, code: String): IO[MeetupToken]
