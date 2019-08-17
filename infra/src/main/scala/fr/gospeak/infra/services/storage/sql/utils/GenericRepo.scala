@@ -3,7 +3,6 @@ package fr.gospeak.infra.services.storage.sql.utils
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
-import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done}
 
 trait GenericRepo {

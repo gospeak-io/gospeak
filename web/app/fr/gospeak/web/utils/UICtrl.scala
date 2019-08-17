@@ -3,8 +3,10 @@ package fr.gospeak.web.utils
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import fr.gospeak.core.domain._
+import fr.gospeak.libs.scalautils.domain.EmailAddress
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.pages
+import fr.gospeak.web.pages.orga.partners.contacts.routes
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 
@@ -46,6 +48,9 @@ abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv
 
   protected def packNotFound(group: Group.Slug, pack: SponsorPack.Slug): Result =
     Redirect(pages.orga.sponsors.routes.SponsorCtrl.list(group)).flashing("warning" -> s"Unable to find sponsoring pack with slug '${pack.value}'")
+
+  protected def contactNotFound(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Result =
+    Redirect(pages.orga.partners.routes.PartnerCtrl.detail(group, partner)).flashing("warning" -> s"Unable to find contact with id '${contact.value}'")
 
   // speaker redirects
   protected def talkNotFound(talk: Talk.Slug): Result =

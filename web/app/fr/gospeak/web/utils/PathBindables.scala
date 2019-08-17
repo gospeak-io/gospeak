@@ -85,6 +85,13 @@ object PathBindables {
       id.value
   }
 
+  implicit def contactIdPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Contact.Id] = new PathBindable[Contact.Id] {
+    override def bind(key: String, value: String): Either[String, Contact.Id] =
+      stringBinder.bind(key, value).flatMap(Contact.Id.from(_).left.map(_.getMessage))
+
+    override def unbind(key: String, id: Contact.Id): String = id.value
+  }
+
   implicit def templateDataRefPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[TemplateData.Ref] = new PathBindable[TemplateData.Ref] {
     override def bind(key: String, value: String): Either[String, TemplateData.Ref] =
       stringBinder.bind(key, value).flatMap(TemplateData.Ref.from(_).left.map(_.getMessage))

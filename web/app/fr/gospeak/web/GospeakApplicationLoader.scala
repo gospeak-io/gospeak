@@ -71,6 +71,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val venueRepo: VenueRepo = db.venue
   lazy val sponsorPackRepo: SponsorPackRepo = db.sponsorPack
   lazy val sponsorRepo: SponsorRepo = db.sponsor
+  lazy val contactRepo: ContactRepo = db.contact
   lazy val settingsRepo: SettingsRepo = db.settings
   lazy val authRepo: AuthRepo = wire[AuthRepo]
 
@@ -83,7 +84,6 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val messageBus: MessageBus[GospeakMessage] = wire[BasicMessageBus[GospeakMessage]]
   lazy val orgaMessageBus: GospeakMessageBus = wire[GospeakMessageBus]
   lazy val messageHandler: MessageHandler = wire[MessageHandler]
-
   // start:Silhouette conf
   lazy val clock: Clock = Clock()
   lazy val idGenerator: SecureRandomIDGenerator = new SecureRandomIDGenerator()
@@ -157,6 +157,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val apiStatusCtrl = wire[api.StatusCtrl]
   lazy val apiUiSuggestCtrl = wire[api.ui.SuggestCtrl]
   lazy val apiUiUtilsCtrl = wire[api.ui.UtilsCtrl]
+  lazy val contactCtrl = wire[orga.partners.contacts.ContactCtrl]
 
   override lazy val router: Router = {
     val prefix = "/"
@@ -164,11 +165,11 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
 
   def onStart(): Unit = {
-    if(!envConf.isProd) {
+    if (!envConf.isProd) {
       db.dropTables().unsafeRunSync() // TODO remove it for prod
     }
     db.migrate().unsafeRunSync()
-    if(!envConf.isProd) {
+    if (!envConf.isProd) {
       db.insertMockData().unsafeRunSync() // TODO remove it for prod
       // db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync() // TODO remove it for prod
     }

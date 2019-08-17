@@ -26,7 +26,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val venueRepo: VenueRepoSql = db.venue
   protected val eventRepo: EventRepoSql = db.event
   protected val proposalRepo: ProposalRepoSql = db.proposal
-
+  protected val contactRepo: ContactReposSql = db.contact
   protected val now: Instant = random[Instant]
   protected val user: User = random[User]
   protected val group: Group = random[Group]
@@ -38,12 +38,13 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val venue: Venue = random[Venue]
   protected val sponsorPack: SponsorPack = random[SponsorPack]
   protected val sponsor: Sponsor = random[Sponsor]
-  protected val params = Page.Params()
   protected val slides: Slides = random[Slides]
   protected val video: Video = random[Video]
+  protected val contact: Contact = random[Contact]
 
   protected val Seq(userData1, userData2, userData3) = random[User.Data](10).distinctBy(_.email).take(3)
   protected val Seq(groupData1, groupData2) = random[Group.Data](2)
+  protected val contactData: Contact.Data = random[Contact.Data]
   protected val Seq(partnerData1, partnerData2) = random[Partner.Data](2)
   protected val Seq(venueData1, venueData2) = random[Venue.Data](2)
   protected val cfpData1: Cfp.Data = random[Cfp.Data]
@@ -51,7 +52,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val Seq(talkData1, talkData2) = random[Talk.Data](2)
   protected val proposalData1: Proposal.Data = random[Proposal.Data]
   protected val speakers: NonEmptyList[User.Id] = NonEmptyList.fromListUnsafe(random[User.Id](3).toList)
-  protected val page = Page.Params()
+  protected val params: Page.Params = Page.Params()
 
   override def beforeEach(): Unit = db.migrate().unsafeRunSync()
 

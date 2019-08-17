@@ -152,7 +152,7 @@ CREATE TABLE contacts
     first_name VARCHAR(120) NOT NULL,
     last_name  VARCHAR(120) NOT NULL,
     email      VARCHAR(120) NOT NULL,
-    role       VARCHAR(30)  NOT NULL,
+    description       VARCHAR(4096) NOT NULL,
     created    TIMESTAMP    NOT NULL,
     created_by CHAR(36)     NOT NULL REFERENCES users (id),
     updated    TIMESTAMP    NOT NULL,

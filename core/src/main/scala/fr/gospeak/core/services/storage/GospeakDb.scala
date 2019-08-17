@@ -13,4 +13,5 @@ trait GospeakDb {
   val event: EventRepo
   val proposal: ProposalRepo
   val settings: SettingsRepo
+  val contact: ContactRepo
 }

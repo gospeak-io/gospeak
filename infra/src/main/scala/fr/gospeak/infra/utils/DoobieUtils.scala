@@ -171,6 +171,7 @@ object DoobieUtils {
         case (id, kind, email, group, deadline, created, createdBy, accepted, acceptedBy, rejected, rejectedBy) =>
           throw new Exception(s"Unable to read UserRequest with ($id, $kind, $email, $group, $deadline, $created, $createdBy, $accepted, $acceptedBy, $rejected, $rejectedBy)")
       }
+    implicit val contactIdMeta: Meta[Contact.Id] = Meta[String].timap(Contact.Id.from(_).right.get)(_.value)
   }
 
 }
