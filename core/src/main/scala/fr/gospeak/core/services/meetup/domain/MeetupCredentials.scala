@@ -1,7 +1,7 @@
 package fr.gospeak.core.services.meetup.domain
 
-final case class MeetupCredentials(accessToken: String,
-                                   refreshToken: String,
+final case class MeetupCredentials(accessToken: String, // FIXME must be encoded
+                                   refreshToken: String, // FIXME must be encoded
                                    loggedUserId: MeetupUser.Id,
                                    loggedUserName: String)
 

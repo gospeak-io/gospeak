@@ -19,8 +19,9 @@ class MeetupClientSpec extends FunSpec with Matchers {
   private val groupId = "HumanTalks-Paris"
   private val eventId = "262874292"
   private val venueId = 25982234L
+  private val userId = 14321102L
 
-  describe("MeetupClient") {
+  ignore("MeetupClient") {
     ignore("should request an access token") {
       val token = client.requestAccessToken(redirectUri, code).unsafeRunSync()
       println(s"token: $token")
@@ -43,7 +44,7 @@ class MeetupClientSpec extends FunSpec with Matchers {
       println(s"events: $events")
       events should not be empty
     }
-    /* it("should create an event") {
+    it("should create an event") {
       val created = client.createEvent(groupId, MeetupEvent.Create(
         name = "Test event",
         description =
@@ -56,12 +57,14 @@ class MeetupClientSpec extends FunSpec with Matchers {
             |
             |https://blog.humancoders.com/wp-content/uploads/2012/11/tumblr_md28i6bE1X1qcyigs.png
             |""".stripMargin,
-        time = Instant.now().plus(1, ChronoUnit.DAYS).toEpochMilli)).unsafeRunSync()
+        time = Instant.now().plus(1, ChronoUnit.DAYS).toEpochMilli,
+        event_hosts = Some(s"$userId"))).unsafeRunSync()
       println(s"status: ${created.status}")
       println(s"created: ${created.body}")
       println(s"headers: ${created.headers.map { case (key, value) => s"$key=$value" }.mkString("\n")}")
       // {"errors":[{"code":"authentication_error","message":"Authenticated member required"}]}
-    } */
+      created.status shouldBe 201
+    }
     it("should get event details") {
       client.getEvent(groupId, "aaa").unsafeRunSync() shouldBe a[Left[_, _]]
       val event = client.getEvent(groupId, eventId).unsafeRunSync().get
