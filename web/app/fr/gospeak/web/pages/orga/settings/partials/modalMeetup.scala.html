@@ -1,9 +1,16 @@
-@import fr.gospeak.core.services.meetup.domain.MeetupInfo
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.Group
 @import fr.gospeak.core.services.meetup.domain.MeetupCredentials
-@(meetup: MeetupInfo, creds: Option[MeetupCredentials])
-<div class="modal fade" id="meetupModal" tabindex="-1" role="dialog">
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.orga.settings.SettingsForms.MeetupAccount
+@import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import fr.gospeak.web.pages.partials.form.html._
+
+@(id: String, group: Group, meetupForm: Form[MeetupAccount], credsOpt: Option[MeetupCredentials])(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+<div class="modal fade" id="@id" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
+        @formElt(meetupForm, SettingsCtrl.meetupAuthorize(group.slug)) {
             <div class="modal-header">
                 <h5 class="modal-title" id="meetupIntegrationModal">Meetup integration</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -11,14 +18,24 @@
                 </button>
             </div>
             <div class="modal-body">
-                <a href="@meetup.authorizationUrl.value" target="_blank" class="btn btn-success">
-                    Authorize Gospeak on Meetup</a>
-                You can <a href="@meetup.revokeUrl.value" target="_blank">revoke the access</a> at any time.
+                <p>
+                    Connect Gospeak to your Meetup group so you will be able to create meetup events automatically.<br>
+                    You can <a href="https://www.meetup.com/fr-FR/account/oauth_apps" target="_blank">
+                    revoke the access</a> at any time.
+                </p>
+                @credsOpt.map { creds =>
+                    <div class="alert alert-success" role="alert">Connected to <b>@creds.group.value</b> group with <b>@creds.loggedUserName</b> account.</div>
+                    <p>If you want to change the group or the logged account, you can connect again:</p>
+                }
+                @fieldHorizontal(meetupForm("group"), Seq("label" -> "Group URL name", "help" -> "To find it, go on your meetup group and look for the last part of the URL")) { (field, args) =>
+                    @inputText(field, args)
+                }
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save</button>
+                @btnSubmit("Connect Meetup")
             </div>
+        }
         </div>
     </div>
 </div>

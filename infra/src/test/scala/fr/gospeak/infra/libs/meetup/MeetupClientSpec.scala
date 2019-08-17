@@ -45,6 +45,7 @@ class MeetupClientSpec extends FunSpec with Matchers {
       events should not be empty
     }
     it("should create an event") {
+      // cf https://github.com/meetup/api/issues/339
       val created = client.createEvent(groupId, MeetupEvent.Create(
         name = "Test event",
         description =

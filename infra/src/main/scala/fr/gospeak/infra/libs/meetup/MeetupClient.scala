@@ -27,8 +27,6 @@ class MeetupClient(conf: Conf) {
       Failure(new IllegalArgumentException(s"Bad redirectUri ($redirectUri), it should start with ${conf.baseRedirectUri}"))
     }
 
-  def buildRevokeUrl(): Url = Url.from("https://www.meetup.com/fr-FR/account/oauth_apps/").get
-
   // https://www.meetup.com/meetup_api/auth/#oauth2server
   def requestAccessToken(redirectUri: String, code: String): IO[Either[MeetupError, MeetupToken]] =
     HttpClient.postForm("https://secure.meetup.com/oauth2/access", Map(
@@ -80,7 +78,6 @@ class MeetupClient(conf: Conf) {
     HttpClient.get(url, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])
 
   private def parse[A](res: Response)(implicit d: Decoder[A]): IO[Either[MeetupError, A]] = {
-    println(s"parse($res)")
     decode[A](res.body) match {
       case Right(info) => IO.pure(Right(info))
       case Left(err) => decode[MeetupError.NotAuthorized](res.body).map(_.toErr)
@@ -94,9 +91,7 @@ class MeetupClient(conf: Conf) {
 
   private def toJson[A](value: A)(implicit e: Encoder[A]): String = {
     import io.circe.syntax._
-    val res = value.asJson.noSpaces
-    println(s"toJson => $res")
-    res
+    value.asJson.noSpaces
   }
 }
 
