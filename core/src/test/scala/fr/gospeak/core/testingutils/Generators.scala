@@ -4,6 +4,7 @@ import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.services.meetup.domain.MeetupGroup
 import fr.gospeak.libs.scalautils.Crypto
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain.TimePeriod.PeriodUnit
@@ -73,6 +74,7 @@ object Generators {
   implicit val aContactId: Arbitrary[Contact.Id] = Arbitrary(Gen.uuid.map(id => Contact.Id.from(id.toString).right.get))
   implicit val aContactFirstName: Arbitrary[Contact.FirstName] = Arbitrary(nonEmptyStringGen.map(f => Contact.FirstName(f)))
   implicit val aContactLastName: Arbitrary[Contact.LastName] = Arbitrary(nonEmptyStringGen.map(l => Contact.LastName(l)))
+  implicit val aMeetupGroupSlug: Arbitrary[MeetupGroup.Slug] = Arbitrary(slugGen.map(slug => MeetupGroup.Slug.from(slug).right.get))
 
   // do not write explicit type, it will throw a NullPointerException
   implicit val aInfo = implicitly[Arbitrary[Info]]

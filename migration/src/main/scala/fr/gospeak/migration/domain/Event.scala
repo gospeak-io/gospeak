@@ -3,7 +3,8 @@ package fr.gospeak.migration.domain
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 
-import fr.gospeak.core.domain.{Cfp => NewCfp, Event => NewEvent, Group => NewGroup, Proposal => NewProposal, Venue => NewVenue}
+import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup}
+import fr.gospeak.core.{domain => gs}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.migration.domain.Event._
@@ -15,23 +16,24 @@ case class Event(id: String, // Event.Id
                  meetupRef: Option[MeetupRef],
                  data: EventData,
                  meta: Meta) {
-  def toEvent(group: NewGroup.Id, cfp: NewCfp.Id, venues: Seq[NewVenue], proposals: Seq[NewProposal]): NewEvent = {
+  def toEvent(group: gs.Group.Id, cfp: gs.Cfp.Id, venues: Seq[gs.Venue], proposals: Seq[gs.Proposal]): gs.Event = {
     val instant = Instant.ofEpochMilli(data.date)
     val date = LocalDateTime.ofInstant(instant, ZoneOffset.UTC)
-    // TODO [migration] missing fields: venue, roti, personCount & sponsor apero
-    Try(NewEvent(
-      id = NewEvent.Id.from(id).get,
+    Try(gs.Event(
+      id = gs.Event.Id.from(id).get,
       group = group,
       cfp = Some(cfp),
-      slug = NewEvent.Slug.from(formatter.format(date)).get,
-      name = NewEvent.Name(data.title),
+      slug = gs.Event.Slug.from(formatter.format(date)).get,
+      name = gs.Event.Name(data.title),
       start = date,
       description = MustacheMarkdownTmpl(data.description.getOrElse("")),
       venue = data.venue.map(v => venues.find(_.partner.value == v).get.id),
       talks = data.talks.map(t => proposals.find(_.talk.value == t).get.id),
       tags = Seq(),
       published = Some(instant),
-      info = meta.toInfo)).mapFailure(e => new Exception(s"toEvent error for $this", e)).get
+      refs = gs.Event.ExtRefs(
+        meetup = meetupRef.map(r => MeetupEvent.Ref(MeetupGroup.Slug.from(r.group).get, MeetupEvent.Id(r.id.toLong)))),
+      info = meta.toInfo)).mapFailure(e => new Exception(s"toEvent error for $this ", e)).get
   }
 }
 

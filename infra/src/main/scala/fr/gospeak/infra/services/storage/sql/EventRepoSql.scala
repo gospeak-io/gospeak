@@ -8,8 +8,8 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.EventRepo
 import fr.gospeak.infra.services.storage.sql.EventRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
@@ -20,7 +20,7 @@ import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
 
 class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with EventRepo {
   override def create(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event] =
-    run(insert, Event(group, data, Info(by, now)))
+    run(insert, Event.create(group, data, Info(by, now)))
 
   override def edit(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): IO[Done] = {
     if (data.slug != event) {
@@ -57,14 +57,14 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 object EventRepoSql {
   private val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table = "events"
-  private val fields = Seq("id", "group_id", "cfp_id", "slug", "name", "start", "description", "venue", "talks", "tags", "published", "created", "created_by", "updated", "updated_by")
+  private val fields = Seq("id", "group_id", "cfp_id", "slug", "name", "start", "description", "venue", "talks", "tags", "published", "meetupGroup", "meetupEvent", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "slug", "name", "description", "tags")
   private val defaultSort = Page.OrderBy("-start")
 
   private def values(e: Event): Fragment =
-    fr0"${e.id}, ${e.group}, ${e.cfp}, ${e.slug}, ${e.name}, ${e.start}, ${e.description}, ${e.venue}, ${e.talks}, ${e.tags}, ${e.published}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.group}, ${e.cfp}, ${e.slug}, ${e.name}, ${e.start}, ${e.description}, ${e.venue}, ${e.talks}, ${e.tags}, ${e.published}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.event)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   private[sql] def insert(elt: Event): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 

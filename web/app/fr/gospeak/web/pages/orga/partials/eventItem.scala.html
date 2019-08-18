@@ -5,13 +5,17 @@
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 
-@(group: Group, event: Event, venues: Seq[(Partner, Venue)], proposals: Seq[Proposal], speakers: Seq[User])
-<a class="list-group-item list-group-item-action @if(event.start.isAfter(LocalDateTime.now())) {list-group-item-secondary}" href="@EventCtrl.detail(group.slug, event.slug)">
-    <h5 class="mb-1">@event.name.value</h5>
+@(group: Group, event: Event, cfp: Option[Cfp], venues: Seq[(Partner, Venue)], proposals: Seq[Proposal], speakers: Seq[User])
+<div class="list-group-item list-group-item-action @if(event.start.isAfter(LocalDateTime.now())) {list-group-item-secondary}">
+    <h5 class="mb-1">
+        <a href="@EventCtrl.detail(group.slug, event.slug)">@event.name.value</a>
+        @event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }
+    </h5>
     @if(!event.isPublic) {<span class="badge badge-dark">Draft</span>}
     @Formats.date(event.start),
-    @event.venue.map { v => at @venue(venues, v) }.getOrElse { <b class="text-danger">Missing venue</b>, }
+    @event.venue.map { v => at @venue(venues, v, Some(_ => VenueCtrl.detail(group.slug, v))) }.getOrElse { <b class="text-danger">Missing venue</b>, }
     @Formats.plural(event.talks.length, "planned talk")
     @tags(event.tags)
     @if(event.talks.nonEmpty) {
@@ -19,11 +23,11 @@
         @event.talks.map { pId =>
             <li>
                 @proposals.find(_.id == pId).map { p =>
-                    <span>@p.title.value</span>
-                    @p.speakers.toList.map { uId => @speaker(speakers, uId) }
+                    @cfp.map { c => <a href="@ProposalCtrl.detail(group.slug, c.slug, p.id)">@p.title.value</a> }.getOrElse{<span>@p.title.value</span>}
+                    @p.speakers.toList.map { uId => @speaker(speakers, uId, Some(s => SpeakerCtrl.detail(group.slug, s.slug))) }
                 }.getOrElse { Unknown (@pId.value) }
             </li>
         }
         </ol>
     }
-</a>
+</div>

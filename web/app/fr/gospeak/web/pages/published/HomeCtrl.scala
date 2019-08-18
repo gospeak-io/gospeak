@@ -93,6 +93,7 @@ class HomeCtrl(cc: ControllerComponents,
     talks = Seq(),
     tags = Seq("tag").map(Tag(_)),
     published = Some(now),
+    refs = Event.ExtRefs(),
     info = Info(user.id, now))
   private val talk = Talk(
     id = Talk.Id.generate(),

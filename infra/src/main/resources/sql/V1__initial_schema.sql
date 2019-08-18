@@ -147,16 +147,16 @@ CREATE TABLE venues
 
 CREATE TABLE contacts
 (
-    id         CHAR(36)     NOT NULL PRIMARY KEY,
-    partner_id CHAR(36)     NOT NULL REFERENCES partners (id),
-    first_name VARCHAR(120) NOT NULL,
-    last_name  VARCHAR(120) NOT NULL,
-    email      VARCHAR(120) NOT NULL,
-    description       VARCHAR(4096) NOT NULL,
-    created    TIMESTAMP    NOT NULL,
-    created_by CHAR(36)     NOT NULL REFERENCES users (id),
-    updated    TIMESTAMP    NOT NULL,
-    updated_by CHAR(36)     NOT NULL REFERENCES users (id)
+    id          CHAR(36)      NOT NULL PRIMARY KEY,
+    partner_id  CHAR(36)      NOT NULL REFERENCES partners (id),
+    first_name  VARCHAR(120)  NOT NULL,
+    last_name   VARCHAR(120)  NOT NULL,
+    email       VARCHAR(120)  NOT NULL,
+    description VARCHAR(4096) NOT NULL,
+    created     TIMESTAMP     NOT NULL,
+    created_by  CHAR(36)      NOT NULL REFERENCES users (id),
+    updated     TIMESTAMP     NOT NULL,
+    updated_by  CHAR(36)      NOT NULL REFERENCES users (id)
 );
 
 CREATE TABLE events
@@ -172,6 +172,8 @@ CREATE TABLE events
     talks       VARCHAR(258)  NOT NULL, -- 7 talks max
     tags        VARCHAR(150)  NOT NULL, -- 5 tags max
     published   TIMESTAMP,
+    meetupGroup VARCHAR(80),
+    meetupEvent BIGINT,
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,

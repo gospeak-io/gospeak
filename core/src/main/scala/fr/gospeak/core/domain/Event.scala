@@ -3,6 +3,7 @@ package fr.gospeak.core.domain
 import java.time.{Instant, LocalDateTime}
 
 import fr.gospeak.core.domain.utils.{Info, TemplateData}
+import fr.gospeak.core.services.meetup.domain.MeetupEvent
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain._
@@ -19,6 +20,7 @@ final case class Event(id: Event.Id,
                        talks: Seq[Proposal.Id],
                        tags: Seq[Tag],
                        published: Option[Instant],
+                       refs: Event.ExtRefs,
                        info: Info) {
   def data: Event.Data = Event.Data(this)
 
@@ -32,8 +34,8 @@ final case class Event(id: Event.Id,
 }
 
 object Event {
-  def apply(group: Group.Id, data: Data, info: Info): Event =
-    new Event(Id.generate(), group, data.cfp, data.slug, data.name, data.start, data.description, data.venue, Seq(), data.tags, None, info)
+  def create(group: Group.Id, data: Data, info: Info): Event =
+    new Event(Id.generate(), group, data.cfp, data.slug, data.name, data.start, data.description, data.venue, Seq(), data.tags, None, ExtRefs(), info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -44,6 +46,8 @@ object Event {
   object Slug extends SlugBuilder[Slug]("Event.Slug", new Slug(_))
 
   final case class Name(value: String) extends AnyVal
+
+  final case class ExtRefs(meetup: Option[MeetupEvent.Ref] = None)
 
   final case class Data(cfp: Option[Cfp.Id],
                         slug: Slug,

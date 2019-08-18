@@ -35,7 +35,12 @@ class MongoRepo(connection: MongoConnection, dbName: String) extends AutoCloseab
    */
 
   private implicit val metaReader: BSONDocumentReader[Meta] = Macros.reader[Meta]
-  private implicit val meetupRefReader: BSONDocumentReader[MeetupRef] = Macros.reader[MeetupRef]
+  private implicit val meetupRefReader: BSONDocumentReader[MeetupRef] = BSONDocumentReader[MeetupRef](bson => (for {
+    group <- bson.getAsTry[String]("group")
+    id <- bson.getAsTry[Long]("id")
+      .orElse(bson.getAsTry[Int]("id").map(_.toLong))
+      .orElse(bson.getAsTry[Double]("id").map(_.toLong))
+  } yield MeetupRef(group, id)).get)
   private implicit val coordsReader: BSONDocumentReader[Coords] = Macros.reader[Coords]
   private implicit val gMapPlaceReader: BSONDocumentReader[GMapPlace] = Macros.reader[GMapPlace]
 

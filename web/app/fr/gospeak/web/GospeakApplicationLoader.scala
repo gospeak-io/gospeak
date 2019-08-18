@@ -14,7 +14,6 @@ import fr.gospeak.core.services._
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.infra
 import fr.gospeak.infra.libs.meetup.MeetupClient
 import fr.gospeak.infra.libs.slack.SlackClient
 import fr.gospeak.infra.services.meetup.MeetupSrvImpl
