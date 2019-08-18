@@ -15,9 +15,7 @@ class ContactRepoSqlSpec extends RepoSpec {
     it("should create a contact and retrieve it") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
       val partner = partnerRepo.create(group.id, partnerData1, user.id, now).unsafeRunSync()
-      println(partner)
       val contact = contactRepo.create(contactData.copy(partner = partner.id), user.id, Instant.now()).unsafeRunSync
-      println(contact)
       contactRepo.find(contact.id).unsafeRunSync shouldBe Some(contact)
     }
     it("should update contact") {

@@ -42,9 +42,7 @@ object AvatarUtils {
       200
     } catch {
       case _: FileNotFoundException => 404
-      case NonFatal(e) =>
-        println(s"getStatusCode($url) => ${e.getClass.getSimpleName}: ${e.getMessage}")
-        500
+      case NonFatal(_) => 500
     } finally {
       source.map(_.close())
     }
