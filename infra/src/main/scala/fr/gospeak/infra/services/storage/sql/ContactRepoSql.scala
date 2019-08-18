@@ -9,14 +9,14 @@ import fr.gospeak.core.domain.Contact.Id
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.ContactRepo
-import fr.gospeak.infra.services.storage.sql.ContactReposSql._
+import fr.gospeak.infra.services.storage.sql.ContactRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
-class ContactReposSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ContactRepo {
+class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ContactRepo {
 
   override def create(data: Contact.Data, by: User.Id, now: Instant): IO[Contact] =
     run(insert, Contact(data, Info(by, now)))
@@ -32,7 +32,7 @@ class ContactReposSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def exists(partner: Partner.Id, email: EmailAddress): IO[Boolean] = run(selectOne(partner, email).option.map(_.isDefined))
 }
 
-object ContactReposSql {
+object ContactRepoSql {
   private val _ = contactIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table = "contacts"
   private[sql] val fields = Seq("id", "partner_id", "first_name", "last_name", "email", "description", "created", "created_by", "updated", "updated_by")

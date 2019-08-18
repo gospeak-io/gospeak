@@ -1,11 +1,11 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Group, Partner}
+@import fr.gospeak.core.domain.{Contact, Group, Partner}
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.{container, contactsFields}
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.core.domain.Contact
+@import fr.gospeak.web.pages.orga.partials.html.{contactsFields, container}
 @import fr.gospeak.web.pages.orga.partners.contacts.routes.ContactCtrl
+@import fr.gospeak.web.pages.partials.form.html._
+
 @(group: Group, partner: Partner, form: Form[Contact.Data], doCreate: Call)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", group, b)() {
     <h1 class="page-header">Create a contact</h1>

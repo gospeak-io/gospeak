@@ -1,19 +1,18 @@
 @import java.time.Instant
+
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Group, Partner, User, Venue, Sponsor, SponsorPack}
+@import fr.gospeak.core.domain.{Contact, Group, Partner, Sponsor, SponsorPack, User, Venue}
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.pages.orga.partials.html.container
+@import fr.gospeak.web.pages.orga.partials.html._
+@import fr.gospeak.web.pages.orga.partners.contacts.routes.ContactCtrl
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.pages.orga.partners.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.orga.partners.contacts.routes.ContactCtrl
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.core.domain.Contact
 
 @(group: Group, partner: Partner, venues: Seq[Venue], contacts: Seq[Contact], speakers: Seq[User], sponsors: Seq[Sponsor], packs: Seq[SponsorPack], now: Instant = Instant.now())(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @venueItem(venue: Venue) = {
@@ -120,13 +119,10 @@
         <div class="card mb-3">
             <h5 class="card-header d-flex justify-content-between align-items-center">
                 <span>@Formats.plural(contacts.length, "contact") for @partner.name.value</span>
-                <a class="btn btn-primary btn-sm" href="@ContactCtrl.create(group.slug, partner.slug)">
-                    Create a contact</a>
+                <a class="btn btn-primary btn-sm" href="@ContactCtrl.create(group.slug, partner.slug)">Create a contact</a>
             </h5>
             <div class="list-group list-group-flush">
-            @contacts.map { contact =>
-                <a class="list-group-item list-group-item-action" href="@ContactCtrl.detail(group.slug, partner.slug, contact.id)">@contact.email.value</a>
-            }
+                @contacts.map { contact => @contactItem(group, partner, contact) }
             </div>
         </div>
     }

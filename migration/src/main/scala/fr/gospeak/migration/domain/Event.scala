@@ -32,7 +32,7 @@ case class Event(id: String, // Event.Id
       tags = Seq(),
       published = Some(instant),
       refs = gs.Event.ExtRefs(
-        meetup = meetupRef.map(r => MeetupEvent.Ref(MeetupGroup.Slug.from(r.group).get, MeetupEvent.Id(r.id.toLong)))),
+        meetup = meetupRef.map(r => MeetupEvent.Ref(MeetupGroup.Slug.from(r.group).get, MeetupEvent.Id(r.id)))),
       info = meta.toInfo)).mapFailure(e => new Exception(s"toEvent error for $this ", e)).get
   }
 }

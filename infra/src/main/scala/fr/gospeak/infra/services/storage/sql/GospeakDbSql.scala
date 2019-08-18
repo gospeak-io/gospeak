@@ -42,9 +42,15 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
   override val sponsor = new SponsorRepoSql(xa)
   override val event = new EventRepoSql(xa)
   override val proposal = new ProposalRepoSql(xa)
-  override val contact = new ContactReposSql(xa)
+  override val contact = new ContactRepoSql(xa)
   override val settings = new SettingsRepoSql(xa)
 
+  /*
+    TODO:
+      - partner twitter account
+      - still miss venue and sponsor contact (link to partner contact)
+      - group settings (hardcoded)
+   */
   def insertHTData(mongoUri: String): IO[Done] = {
     val dbName = mongoUri.split('?').head.split('/').last
     IO.fromFuture(IO(MongoRepo.create(mongoUri, dbName).toFuture)).bracket { mongo =>
@@ -59,8 +65,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
           u.auth.exists(_.isOrga) ||
             htTalks.exists(t => t.data.speakers.contains(u.id) || t.meta.createdBy == u.id || t.meta.updatedBy == u.id)
         }.map(_.toUser)
-        lkn = users.find(_.email.value == "loicknuchel@gmail.com").get
         orgas = htUsers.filter(_.auth.exists(_.isOrga)).map(_.toUser)
+        lkn = orgas.find(_.email.value == "loicknuchel@gmail.com").get
         groupHt = Group(Group.Id.generate(), Group.Slug.from("humantalks-paris").get, Group.Name("HumanTalks Paris"), Markdown(
           """Description des HumanTalks
             |
@@ -82,6 +88,10 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
           updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(e.speakers.head)
         )))
         partners = htPartners.map(_.toPartner(groupHt.id)).map(e => e.copy(info = e.info.copy(
+          createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
+          updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
+        )))
+        contacts = htPartners.flatMap(p => htUsers.filter(u => p.data.contacts.contains(u.id)).map(_.toContact(p))).map(e => e.copy(info = e.info.copy(
           createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
           updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
         )))
@@ -109,6 +119,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
         _ <- run(Queries.insertMany(TalkRepoSql.insert)(NonEmptyList.fromListUnsafe(talks)))
         _ <- run(Queries.insertMany(ProposalRepoSql.insert)(NonEmptyList.fromListUnsafe(proposals)))
         _ <- run(Queries.insertMany(PartnerRepoSql.insert)(NonEmptyList.fromListUnsafe(partners)))
+        _ <- run(Queries.insertMany(ContactRepoSql.insert)(NonEmptyList.fromListUnsafe(contacts)))
         _ <- run(Queries.insertMany(SponsorPackRepoSql.insert)(NonEmptyList.fromListUnsafe(sponsorPacks)))
         _ <- run(Queries.insertMany(SponsorRepoSql.insert)(NonEmptyList.fromListUnsafe(sponsors)))
         // _ <- run(Queries.insertMany(VenueRepoSql.insert)(NonEmptyList.fromListUnsafe(venues))) // fail with: JdbcSQLException: Parameter "#10" is not set :(
@@ -149,7 +160,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(description), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").get, Info(by.id, now))
 
     def venue(partner: Partner, address: GMapPlace, by: User, description: String = "", roomSize: Option[Int] = None): Venue =
-      Venue(Venue.Id.generate(), partner.id, address, Markdown(description), roomSize, Info(by.id, now))
+      Venue(Venue.Id.generate(), partner.id, address, Markdown(description), roomSize, Venue.ExtRefs(), Info(by.id, now))
 
     def sponsorPack(group: Group, name: String, price: Int, by: User, description: String = ""): SponsorPack =
       SponsorPack(SponsorPack.Id.generate(), group.id, SponsorPack.Slug.from(StringUtils.slugify(name)).get, SponsorPack.Name(name), Markdown(description), Price(price, Price.Currency.EUR), 1.year, active = true, Info(by.id, now))

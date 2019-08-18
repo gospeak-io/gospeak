@@ -2,11 +2,10 @@ package fr.gospeak.migration.domain
 
 import java.time.Instant
 
-import fr.gospeak.core.domain.User
-import fr.gospeak.core.domain.User.Profile
+import fr.gospeak.core.{domain => gs}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.StringUtils
-import fr.gospeak.libs.scalautils.domain.{EmailAddress, Url}
+import fr.gospeak.libs.scalautils.domain.{EmailAddress, Markdown, Url}
 import fr.gospeak.migration.domain.utils.Meta
 import fr.gospeak.migration.utils.AvatarUtils
 
@@ -16,15 +15,12 @@ case class Person(id: String, // Person.Id,
                   data: PersonData,
                   auth: Option[PersonAuth],
                   meta: Meta) {
-  def toUser: User = {
-    val names = data.name.split(' ').filter(_.nonEmpty)
-    val emailStr = auth.map(_.loginInfo).filter(_.providerID == "credentials").map(_.providerKey)
-      .orElse(data.email)
-      .getOrElse(StringUtils.slugify(data.name) + "@missing-email.com")
-    val email = EmailAddress.from(emailStr).get
+  def toUser: gs.User = {
+    val (firstName, lastName) = getNames
+    val email = getEmail
     val validated = auth.filter(_.activated).map(_ => Instant.ofEpochMilli(meta.created))
     val avatar = AvatarUtils.buildAvatarQuick(data.avatar, email)
-    val profile: Profile = Profile(
+    val profile: gs.User.Profile = gs.User.Profile(
       description = data.description,
       company = data.company,
       location = data.location,
@@ -33,18 +29,44 @@ case class Person(id: String, // Person.Id,
       phone = data.phone,
       website = data.webSite.map(Url.from(_).get))
 
-    Try(User(
-      id = User.Id.from(id).get,
-      slug = User.Slug.from(StringUtils.slugify(data.name)).get,
-      firstName = names.headOption.getOrElse("N/A"),
-      lastName = Option(names.drop(1).mkString(" ")).filter(_.nonEmpty).getOrElse("N/A"),
+    Try(gs.User(
+      id = gs.User.Id.from(id).get,
+      slug = gs.User.Slug.from(StringUtils.slugify(data.name)).get,
+      firstName = firstName,
+      lastName = lastName,
       email = email,
       emailValidated = validated,
       avatar = avatar,
       published = None,
       profile = profile,
       created = Instant.ofEpochMilli(meta.created),
-      updated = Instant.ofEpochMilli(meta.updated))).mapFailure(e => new Exception(s"toUser error for $this", e)).get
+      updated = Instant.ofEpochMilli(meta.updated))).mapFailure(e => new Exception(s"toUser error for $this ", e)).get
+  }
+
+  def toContact(partner: Partner): gs.Contact = {
+    val (firstName, lastName) = getNames
+    gs.Contact(
+      id = gs.Contact.Id.generate(),
+      partner = gs.Partner.Id.from(partner.id).get,
+      firstName = gs.Contact.FirstName(firstName),
+      lastName = gs.Contact.LastName(lastName),
+      email = getEmail,
+      description = Markdown(data.description.getOrElse("")),
+      info = meta.toInfo)
+  }
+
+  private def getNames: (String, String) = {
+    val names = data.name.split(' ').filter(_.nonEmpty)
+    val firstName = names.headOption.getOrElse("N/A")
+    val lastName = Option(names.drop(1).mkString(" ")).filter(_.nonEmpty).getOrElse("N/A")
+    (firstName, lastName)
+  }
+
+  private def getEmail: EmailAddress = {
+    val emailStr = auth.map(_.loginInfo).filter(_.providerID == "credentials").map(_.providerKey)
+      .orElse(data.email)
+      .getOrElse(StringUtils.slugify(data.name) + "@missing-email.com")
+    EmailAddress.from(emailStr).get
   }
 }
 

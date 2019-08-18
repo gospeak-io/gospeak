@@ -5,14 +5,14 @@ import fr.gospeak.infra.services.storage.sql.VenueRepoSql._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class VenueRepoSqlSpec extends RepoSpec {
-  private val fields = "id, partner_id, address, address_lat, address_lng, address_country, description, room_size, created, created_by, updated, updated_by"
-  private val fieldsSelect = "id, partner_id, address, description, room_size, created, created_by, updated, updated_by"
+  private val fields = "id, partner_id, address, address_lat, address_lng, address_country, description, room_size, meetupGroup, meetupVenue, created, created_by, updated, updated_by"
+  private val fieldsSelect = "id, partner_id, address, description, room_size, meetupGroup, meetupVenue, created, created_by, updated, updated_by"
 
   describe("VenueRepoSql") {
     describe("Queries") {
       it("should build insert") {
         val q = insert(venue)
-        q.sql shouldBe s"INSERT INTO venues ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO venues ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update") {

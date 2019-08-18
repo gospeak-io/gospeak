@@ -76,7 +76,7 @@ class MeetupClient(conf: Conf) {
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#delete
 
   def getVenues(urlname: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupVenue]]] =
-    get[Seq[MeetupVenue]](s"$baseUrl/$urlname/venues")
+    get[Seq[MeetupVenue]](s"$baseUrl/$urlname/venues", Map("page" -> "50"))
 
   // to test
   def getRequest(urlname: String, venueId: Long)(implicit accessToken: MeetupToken.Access): IO[String] =

@@ -1,7 +1,7 @@
 package fr.gospeak.migration.domain
 
 import cats.data.NonEmptyList
-import fr.gospeak.core.domain.{Cfp => NewCfp, User, Proposal => NewProposal, Talk => NewTalk}
+import fr.gospeak.core.{domain => gs}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.StringUtils
 import fr.gospeak.libs.scalautils.domain.{Markdown, Slides, Video}
@@ -14,41 +14,42 @@ case class Talk(id: String, // Talk.Id
                 status: String, // Talk.Status.Value, (Proposed, Accepted, Planified, Finalized, Rejected)
                 data: TalkData,
                 meta: Meta) {
-  def toTalk: NewTalk = {
-    Try(NewTalk(
-      id = NewTalk.Id.from(id).get,
-      slug = NewTalk.Slug.from(StringUtils.slugify(data.title)).get,
-      title = NewTalk.Title(data.title),
+  def toTalk: gs.Talk = {
+    Try(gs.Talk(
+      id = gs.Talk.Id.from(id).get,
+      slug = gs.Talk.Slug.from(StringUtils.slugify(data.title)).get,
+      title = gs.Talk.Title(data.title),
       duration = 10.minutes,
-      status = NewTalk.Status.Draft,
+      status = gs.Talk.Status.Draft,
       description = Markdown(data.description.getOrElse("")),
-      speakers = NonEmptyList.fromListUnsafe(data.speakers.map(User.Id.from(_).get)),
+      speakers = NonEmptyList.fromListUnsafe(data.speakers.map(gs.User.Id.from(_).get)),
       slides = data.slides.map(Slides.from(_).get),
       video = data.video.map(Video.from(_).get),
       tags = Seq(),
-      info = meta.toInfo)).mapFailure(e => new Exception(s"toTalk error for $this", e)).get
+      info = meta.toInfo)).mapFailure(e => new Exception(s"toTalk error for $this ", e)).get
   }
-  def toProposal(cfp: NewCfp.Id): NewProposal = {
-    Try(NewProposal(
-      id = NewProposal.Id.generate(),
-      talk = NewTalk.Id.from(id).get,
+
+  def toProposal(cfp: gs.Cfp.Id): gs.Proposal = {
+    Try(gs.Proposal(
+      id = gs.Proposal.Id.generate(),
+      talk = gs.Talk.Id.from(id).get,
       cfp = cfp,
       event = None, // should be set later
-      title = NewTalk.Title(data.title),
+      title = gs.Talk.Title(data.title),
       duration = 10.minutes,
       status = status match {
-        case "Proposed" => NewProposal.Status.Pending
-        case "Accepted" => NewProposal.Status.Pending
-        case "Planified" => NewProposal.Status.Accepted
-        case "Finalized" => NewProposal.Status.Accepted
-        case "Rejected" => NewProposal.Status.Rejected
+        case "Proposed" => gs.Proposal.Status.Pending
+        case "Accepted" => gs.Proposal.Status.Pending
+        case "Planified" => gs.Proposal.Status.Accepted
+        case "Finalized" => gs.Proposal.Status.Accepted
+        case "Rejected" => gs.Proposal.Status.Rejected
       },
       description = Markdown(data.description.getOrElse("")),
-      speakers = NonEmptyList.fromListUnsafe(data.speakers.map(User.Id.from(_).get)),
+      speakers = NonEmptyList.fromListUnsafe(data.speakers.map(gs.User.Id.from(_).get)),
       slides = data.slides.map(Slides.from(_).get),
       video = data.video.map(Video.from(_).get),
       tags = Seq(),
-      info = meta.toInfo)).mapFailure(e => new Exception(s"toProposal error for $this", e)).get
+      info = meta.toInfo)).mapFailure(e => new Exception(s"toProposal error for $this ", e)).get
   }
 }
 

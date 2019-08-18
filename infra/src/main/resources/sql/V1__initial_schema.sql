@@ -139,6 +139,8 @@ CREATE TABLE venues
     address_country VARCHAR(30)      NOT NULL,
     description     VARCHAR(4096)    NOT NULL,
     room_size       INT,
+    meetupGroup     VARCHAR(80),
+    meetupVenue     BIGINT,
     created         TIMESTAMP        NOT NULL,
     created_by      CHAR(36)         NOT NULL REFERENCES users (id),
     updated         TIMESTAMP        NOT NULL,

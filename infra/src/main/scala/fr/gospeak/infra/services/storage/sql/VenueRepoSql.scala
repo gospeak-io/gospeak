@@ -38,7 +38,7 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 object VenueRepoSql {
   private val _ = venueIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = "venues"
-  private val writeFields = Seq("id", "partner_id", "address", "address_lat", "address_lng", "address_country", "description", "room_size", "created", "created_by", "updated", "updated_by")
+  private val writeFields = Seq("id", "partner_id", "address", "address_lat", "address_lng", "address_country", "description", "room_size", "meetupGroup", "meetupVenue", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val writeFieldsFr: Fragment = Fragment.const0(writeFields.mkString(", "))
   private val searchFields = Seq("id", "address", "description")
@@ -50,7 +50,7 @@ object VenueRepoSql {
   private val partnerAndVenueFields = Fragment.const0((PartnerRepoSql.fields.map("p." + _) ++ fields.map("v." + _)).mkString(", "))
 
   private def values(e: Venue): Fragment =
-    fr0"${e.id}, ${e.partner}, ${e.address}, ${e.address.lat}, ${e.address.lng}, ${e.address.country}, ${e.description}, ${e.roomSize}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.partner}, ${e.address}, ${e.address.lat}, ${e.address.lng}, ${e.address.country}, ${e.description}, ${e.roomSize}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.venue)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   private[sql] def insert(elt: Venue): doobie.Update0 =
     buildInsert(tableFr, writeFieldsFr, values(elt)).update

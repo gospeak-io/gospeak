@@ -5,7 +5,7 @@ import java.time.Instant
 import fr.gospeak.core.domain.Contact.{FirstName, LastName}
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import fr.gospeak.libs.scalautils.domain.EmailAddress
-import ContactReposSql._
+import ContactRepoSql._
 
 class ContactRepoSqlSpec extends RepoSpec {
 

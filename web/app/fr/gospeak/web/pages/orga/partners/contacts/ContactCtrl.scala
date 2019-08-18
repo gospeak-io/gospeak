@@ -13,11 +13,8 @@ import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.exceptions.DuplicateEmailException
 import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.pages.orga.contacts._
 import fr.gospeak.web.pages.orga.partners.PartnerCtrl
 import fr.gospeak.web.pages.orga.partners.contacts.ContactCtrl._
-import fr.gospeak.web.pages.orga.partners.contacts.routes.{ContactCtrl => ContactRoutes}
-import fr.gospeak.web.pages.orga.partners.routes.{PartnerCtrl => PartnerRoutes}
 import fr.gospeak.web.utils.Mappings._
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
@@ -44,7 +41,6 @@ class ContactCtrl(cc: ControllerComponents,
     "description" -> markdown
   )(Contact.Data.apply)(Contact.Data.unapply))
 
-
   def list(group: Group.Slug, partner: Partner.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
@@ -68,14 +64,13 @@ class ContactCtrl(cc: ControllerComponents,
         exists <- OptionT.liftF(contactRepo.exists(partnerElt.id, data.email))
         _ <- OptionT.liftF((!exists).toIO(DuplicateEmailException(data.email)))
         contact <- OptionT.liftF(contactRepo.create(data, by, now))
-      } yield Redirect(ContactRoutes.detail(group, partner, contact.id))).value.map(_.getOrElse(partnerNotFound(group, partner)))
+      } yield Redirect(routes.ContactCtrl.detail(group, partner, contact.id))).value.map(_.getOrElse(partnerNotFound(group, partner)))
         .recoverWith {
           case _: DuplicateEmailException => createForm(group, partner, createForm.bindFromRequest().withError("email", "Email already exists"))
           case NonFatal(e) => createForm(group, partner, createForm.bindFromRequest().withGlobalError(e.getMessage))
         }
     ).unsafeToFuture()
   }
-
 
   private def createForm(group: Group.Slug, partner: Partner.Slug, form: Form[Contact.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
@@ -86,15 +81,13 @@ class ContactCtrl(cc: ControllerComponents,
     } yield Ok(html.create(groupElt, partnerElt, form, call)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
   }
 
-
   def detail(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
-      users <- OptionT.liftF(userRepo.list(partnerElt.users))
       contactElt <- OptionT(contactRepo.find(contact))
       b = breadcrumb(groupElt, partnerElt, contactElt)
-    } yield Ok(html.detail(groupElt, partnerElt, contactElt, users)(b))).value.map(_.getOrElse(contactNotFound(group, partner, contact))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, partnerElt, contactElt)(b))).value.map(_.getOrElse(contactNotFound(group, partner, contact))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -130,12 +123,10 @@ class ContactCtrl(cc: ControllerComponents,
   }
 }
 
-
 object ContactCtrl {
   def listBreadcrumb(group: Group, partner: Partner): Breadcrumb =
-    PartnerCtrl.breadcrumb(group, partner).add("Contacts" -> PartnerRoutes.detail(group.slug, partner.slug))
+    PartnerCtrl.breadcrumb(group, partner).add("Contacts" -> routes.ContactCtrl.list(group.slug, partner.slug))
 
   def breadcrumb(group: Group, partner: Partner, contact: Contact): Breadcrumb =
-    listBreadcrumb(group, partner).add(contact.email.value -> ContactRoutes.detail(group.slug, partner.slug, contact.id))
-
+    listBreadcrumb(group, partner).add(contact.email.value -> routes.ContactCtrl.detail(group.slug, partner.slug, contact.id))
 }

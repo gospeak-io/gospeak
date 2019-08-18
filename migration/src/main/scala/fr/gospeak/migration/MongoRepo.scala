@@ -57,7 +57,19 @@ class MongoRepo(connection: MongoConnection, dbName: String) extends AutoCloseab
   private implicit val talkReader: BSONDocumentReader[Talk] = Macros.reader[Talk]
 
   private implicit val sponsorReader: BSONDocumentReader[Sponsor] = Macros.reader[Sponsor]
-  private implicit val venueReader: BSONDocumentReader[Venue] = Macros.reader[Venue]
+  private implicit val venueReader: BSONDocumentReader[Venue] = BSONDocumentReader[Venue](bson => (for {
+    location <- bson.getAsTry[GMapPlace]("location")
+    capacity = bson.getAsTry[Int]("capacity")
+      .orElse(bson.getAsTry[Long]("capacity").map(_.toInt))
+      .orElse(bson.getAsTry[Double]("capacity").map(_.toInt))
+      .toOption
+    closeTime = bson.getAs[String]("closeTime")
+    attendeeList = bson.getAs[Boolean]("attendeeList")
+    entranceCheck = bson.getAs[Boolean]("entranceCheck")
+    offeredAperitif = bson.getAs[Boolean]("offeredAperitif")
+    contact = bson.getAs[String]("contact")
+    comment = bson.getAs[String]("comment")
+  } yield Venue(location, capacity, closeTime, attendeeList, entranceCheck, offeredAperitif, contact, comment)).get)
   private implicit val partnerDataReader: BSONDocumentReader[PartnerData] = Macros.reader[PartnerData]
   private implicit val partnerReader: BSONDocumentReader[Partner] = Macros.reader[Partner]
 

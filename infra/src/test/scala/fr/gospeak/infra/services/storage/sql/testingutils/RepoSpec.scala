@@ -26,7 +26,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val venueRepo: VenueRepoSql = db.venue
   protected val eventRepo: EventRepoSql = db.event
   protected val proposalRepo: ProposalRepoSql = db.proposal
-  protected val contactRepo: ContactReposSql = db.contact
+  protected val contactRepo: ContactRepoSql = db.contact
   protected val now: Instant = random[Instant]
   protected val user: User = random[User]
   protected val group: Group = random[Group]

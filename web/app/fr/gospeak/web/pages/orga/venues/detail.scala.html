@@ -16,6 +16,7 @@
             <div class="media-body">
                 <h1 class="mt-0"><a href="@PartnerCtrl.detail(group.slug, partner.slug)">@partner.name.value</a></h1>
                 <p>@venue.address.value</p>
+                @venue.roomSize.map { s => <p>@s places in the room</p> }
             </div>
         </div>
         <a class="btn btn-outline-secondary" href="@edit" title="edit"><i class="fas fa-edit"></i></a>
