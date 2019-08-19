@@ -174,10 +174,10 @@ class GospeakComponents(context: ApplicationLoader.Context)
     // FIXME update when really deploy on prod
     db.dropTables().unsafeRunSync()
     db.migrate().unsafeRunSync()
-    if (envConf.isProd) {
-      db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync()
-    } else {
+    if (envConf.isLocal) {
       db.insertMockData().unsafeRunSync()
+    } else {
+      db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync()
     }
 
     messageBus.subscribe(messageHandler.handle)
