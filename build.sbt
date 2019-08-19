@@ -41,7 +41,7 @@ val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
   "com.pepegar" %% "hammock-apache-http").map(_ % "0.9.0")
-val flyway = Seq("org.flywaydb" % "flyway-core" % "5.1.4")
+val flyway = Seq("org.flywaydb" % "flyway-core" % "5.2.4")
 val silhouetteVersion = "5.0.7"
 val silhouette = Seq(
   "com.mohiva" %% "play-silhouette",
