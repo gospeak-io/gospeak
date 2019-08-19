@@ -90,6 +90,11 @@ h5.test {
   height: 50px;
   min-width: 50px;
 }
+.avatar.avatar-list {
+  height: 70px;
+  min-width: 71px;
+  border-radius: 50%;
+}
 
 .card .avatar-lg {
   height: 200px;
@@ -147,6 +152,11 @@ h5.test {
 
 a.no-style {
   color: inherit;
+}
+
+.no-margin {
+  margin: 0;
+  padding: 0;
 }
 
 .event-item, .proposal-item {

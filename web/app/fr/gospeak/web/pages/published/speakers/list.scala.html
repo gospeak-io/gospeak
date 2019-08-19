@@ -9,6 +9,6 @@
 
 @(speakers: Page[User])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak - speakers", b)() {
-    <h1>Speakers (TODO)</h1>
+    <h1>Speakers</h1>
     @Formats.paginated[User](speakers, SpeakerCtrl.list, speakerItem(_))
 }()
