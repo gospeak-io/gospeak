@@ -14,11 +14,12 @@
         </h5>
         <p class="card-text">
     <p>@speaker.profile.description </p>
-        <p class="text-secondary font-italic">
+        <p class="text-secondary font-italic no-margin">
             @speaker.profile.location.map { l => <i class="fas fa-map-marker-alt"></i> @l <br> }
             @speaker.profile.website.map { l => @websiteLink(l) <br> }
             @speaker.profile.phone.map { l => <i class="fas fa-phone"></i> <a class="no-style" href="@l"> @l</a> <br> }
-            @emailLink(speaker.email)
+            @emailLink(speaker.email) <br>
+            @speaker.profile.company.map{ company => <i class="fas fa-sitemap"></i> @company }
         </p>
     </div>
 </div>

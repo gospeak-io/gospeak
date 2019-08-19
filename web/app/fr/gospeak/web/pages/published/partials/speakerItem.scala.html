@@ -15,6 +15,7 @@
             @speaker.profile.linkedin.map { url => @linkedinLink(url) }</h6>
         <p class="text-secondary font-italic no-margin">
             @emailLink(speaker.email)
+            @speaker.profile.company.map{ company => <i class="fas fa-sitemap"></i> @company }
             @speaker.profile.website.map { url => @websiteLink(url) }
         </p>
     </div>
