@@ -7,17 +7,14 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, Partner}
-import fr.gospeak.core.services.storage.{OrgaGroupRepo, OrgaPartnerRepo, OrgaSponsorPackRepo, OrgaSponsorRepo, OrgaUserRepo, OrgaVenueRepo}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.partners.PartnerCtrl._
-import fr.gospeak.web.utils.Mappings._
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
-import play.api.data.Forms._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
 class PartnerCtrl(cc: ControllerComponents,
@@ -32,13 +29,6 @@ class PartnerCtrl(cc: ControllerComponents,
 
   import silhouette._
 
-  private val createForm: Form[Partner.Data] = Form(mapping(
-    "slug" -> partnerSlug,
-    "name" -> partnerName,
-    "description" -> markdown,
-    "logo" -> url
-  )(Partner.Data.apply)(Partner.Data.unapply))
-
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
@@ -48,12 +38,12 @@ class PartnerCtrl(cc: ControllerComponents,
   }
 
   def create(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    createForm(group, createForm).unsafeToFuture()
+    createForm(group, PartnerForms.create).unsafeToFuture()
   }
 
   def doCreate(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
-    createForm.bindFromRequest.fold(
+    PartnerForms.create.bindFromRequest.fold(
       formWithErrors => createForm(group, formWithErrors),
       data => (for {
         groupElt <- OptionT(groupRepo.find(user, group))
@@ -83,19 +73,19 @@ class PartnerCtrl(cc: ControllerComponents,
   }
 
   def edit(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    editForm(group, partner, createForm).unsafeToFuture()
+    editForm(group, partner, PartnerForms.create).unsafeToFuture()
   }
 
   def doEdit(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
-    createForm.bindFromRequest.fold(
+    PartnerForms.create.bindFromRequest.fold(
       formWithErrors => editForm(group, partner, formWithErrors),
       data => (for {
         groupElt <- OptionT(groupRepo.find(user, group))
         partnerOpt <- OptionT.liftF(partnerRepo.find(groupElt.id, data.slug))
         res <- OptionT.liftF(partnerOpt match {
           case Some(duplicate) if data.slug != partner =>
-            editForm(group, partner, createForm.fillAndValidate(data).withError("slug", s"Slug already taken by partner: ${duplicate.name.value}"))
+            editForm(group, partner, PartnerForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by partner: ${duplicate.name.value}"))
           case _ =>
             partnerRepo.edit(groupElt.id, partner)(data, by, now).map { _ => Redirect(routes.PartnerCtrl.detail(group, data.slug)) }
         })

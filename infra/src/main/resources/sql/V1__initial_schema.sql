@@ -122,6 +122,7 @@ CREATE TABLE partners
     name        VARCHAR(120)  NOT NULL,
     description VARCHAR(4096) NOT NULL,
     logo        VARCHAR(1024) NOT NULL,
+    twitter     VARCHAR(1024),
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,

@@ -157,7 +157,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), MustacheMarkdownTmpl(description), venue.map(_.id), Seq(), tags.map(Tag(_)), Some(now).filter(_.isAfter(Instant.parse(date + "T06:06:24.074Z"))), Event.ExtRefs(), Info(by.id, now))
 
     def partner(g: Group, name: String, description: String, logo: Int, by: User): Partner =
-      Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(description), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").get, Info(by.id, now))
+      Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(description), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").get, None, Info(by.id, now))
 
     def venue(partner: Partner, address: GMapPlace, by: User, description: String = "", roomSize: Option[Int] = None): Venue =
       Venue(Venue.Id.generate(), partner.id, address, Markdown(description), roomSize, Venue.ExtRefs(), Info(by.id, now))

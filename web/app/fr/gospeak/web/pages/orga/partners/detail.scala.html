@@ -26,6 +26,7 @@
             <img src="@partner.logo.value" class="avatar align-self-start mr-3" alt="avatar">
             <div class="media-body">
                 <h1 class="mt-0">@partner.name.value</h1>
+                @partner.twitter.map { t => @twitterLink(t) }
             </div>
         </div>
         <a class="btn btn-outline-secondary" href="@PartnerCtrl.edit(group.slug, partner.slug)" title="edit"><i class="fas fa-edit"></i></a>

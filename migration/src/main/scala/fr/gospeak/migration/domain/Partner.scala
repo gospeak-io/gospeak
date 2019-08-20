@@ -20,6 +20,7 @@ case class Partner(id: String, // Partner.Id
     name = gs.Partner.Name(data.name),
     description = Markdown(data.comment.getOrElse("")),
     logo = Url.from(data.logo.getOrElse("https://img.icons8.com/bubbles/2x/company.png")).get,
+    twitter = data.twitter.map(t => Url.from("https://twitter.com/" + t).get),
     info = meta.toInfo)
 
   def toVenue: Option[gs.Venue] = data.venue.map(venue => gs.Venue(
@@ -45,7 +46,7 @@ case class Partner(id: String, // Partner.Id
 }
 
 case class PartnerData(name: String,
-                       twitter: Option[String], // FIXME should add to gospeak
+                       twitter: Option[String],
                        logo: Option[String],
                        contacts: List[String], // List[Person.Id],
                        venue: Option[Venue],
