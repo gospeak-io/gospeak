@@ -18,7 +18,6 @@ case class Person(id: String, // Person.Id,
   def toUser: gs.User = {
     val (firstName, lastName) = getNames
     val email = getEmail
-    val validated = auth.filter(_.activated).map(_ => Instant.ofEpochMilli(meta.created))
     val avatar = AvatarUtils.buildAvatarQuick(data.avatar, email)
     val profile: gs.User.Profile = gs.User.Profile(
       description = data.description,
@@ -35,7 +34,7 @@ case class Person(id: String, // Person.Id,
       firstName = firstName,
       lastName = lastName,
       email = email,
-      emailValidated = validated,
+      emailValidated = None,
       avatar = avatar,
       published = None,
       profile = profile,
