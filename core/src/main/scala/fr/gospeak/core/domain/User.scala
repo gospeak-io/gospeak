@@ -18,6 +18,8 @@ final case class User(id: User.Id,
 
   def name: User.Name = User.Name(firstName, lastName)
 
+  def nameAndCompany: String = name.value + profile.company.map(c => s" ($c)").getOrElse("")
+
   def isPublic: Boolean = profile.status.isPublic
 
   def editable: User.EditableFields = User.EditableFields(firstName, lastName, email, profile)
