@@ -1,4 +1,9 @@
-function slugify(str) {
+declare const $;
+declare const autosize;
+declare const IMask;
+declare const google;
+
+function slugify(str: string): string {
     return (str || '')
         .trim()
         .toLowerCase()
@@ -12,8 +17,8 @@ function slugify(str) {
     $('[data-toggle="tooltip"]').tooltip();
     $('[data-toggle="popover"]').popover();
     $('[data-toggle="html-popover"]').each(function () {
-        var $el = $(this);
-        var $content = $el.find('.content');
+        const $el = $(this);
+        const $content = $el.find('.content');
         $el.popover({html: true, content: $content});
         $content.remove();
     });
@@ -23,7 +28,7 @@ function slugify(str) {
 // confirm actions
 (function () {
     $('[confirm]').click(function (e) {
-        var text = $(this).attr('confirm') || $(this).attr('title') || 'Confirm?';
+        const text = $(this).attr('confirm') || $(this).attr('title') || 'Confirm?';
         if (!confirm(text)) {
             e.preventDefault();
         }
@@ -33,7 +38,7 @@ function slugify(str) {
 // autofocus when a modal opens
 (function () {
     $('.modal').on('shown.bs.modal', function () {
-        var $modal = $(this);
+        const $modal = $(this);
         $modal.find('input[autofocus], textarea[autofocus]').focus();
         autosize.update($modal.find('textarea'));
     });
@@ -55,7 +60,7 @@ function slugify(str) {
 
 // build slug from an other field
 (function () {
-    function buildSlug(inputs, prev /* ?string */) {
+    function buildSlug(inputs, prev?: string) {
         return inputs.map(function (input) {
             return prev && input.attr('id') === prev ? input.data('prev') : input.val();
         }).filter(function (value) {
@@ -66,16 +71,16 @@ function slugify(str) {
     }
 
     $('input[slug-for]').each(function () {
-        var slugInput = $(this);
-        var srcInputs = slugInput.attr('slug-for').split(',').map(function (id) {
+        const slugInput = $(this);
+        const srcInputs = slugInput.attr('slug-for').split(',').map(function (id) {
             return $('#' + id);
         });
         srcInputs.forEach(function (srcInput) {
             srcInput.change(function () {
-                var newSlug = buildSlug(srcInputs);
-                var oldSlug = buildSlug(srcInputs, srcInput.attr('id'));
+                const newSlug = buildSlug(srcInputs);
+                const oldSlug = buildSlug(srcInputs, srcInput.attr('id'));
                 srcInput.data('prev', srcInput.val());
-                var curSlug = slugInput.val();
+                const curSlug = slugInput.val();
                 if (curSlug === '' || curSlug === oldSlug) {
                     slugInput.val(newSlug);
                 }
@@ -87,8 +92,8 @@ function slugify(str) {
 // remote input validation
 (function () {
     $('input[remote-validate]').each(function () {
-        var $input = $(this);
-        var url = $input.attr('remote-validate');
+        const $input = $(this);
+        const url = $input.attr('remote-validate');
         if (url) {
             update($input, url); // run on page load
             $input.change(function () {
@@ -98,7 +103,7 @@ function slugify(str) {
     });
 
     function update($input, url) {
-        var value = $input.val();
+        const value = $input.val();
         if (value) {
             $.getJSON(url.replace('%7B%7Binput%7D%7D', value), function (res) {
                 if ($input.val() === value) {
@@ -118,7 +123,7 @@ function slugify(str) {
     function removeFeedback($input) {
         $input.removeClass('is-valid');
         $input.removeClass('is-invalid');
-        var $next = $input.next();
+        const $next = $input.next();
         if ($next.hasClass('valid-feedback') || $next.hasClass('invalid-feedback')) {
             $next.remove();
         }
@@ -141,7 +146,7 @@ function slugify(str) {
 
 // https://select2.org/ & https://github.com/select2/select2-bootstrap-theme
 (function () {
-    var defaultOpts = {
+    const defaultOpts = {
         theme: 'bootstrap',
         allowClear: true
     };
@@ -162,10 +167,10 @@ function slugify(str) {
     });
 
     function addRemoteOptions($select) {
-        var remote = $select.attr('remote');
+        const remote = $select.attr('remote');
         if (remote) {
             $.getJSON(remote, function (res) {
-                var values = ($select.attr('value') || '').split(',').filter(function (v) {
+                const values = ($select.attr('value') || '').split(',').filter(function (v) {
                     return v.length > 0;
                 });
                 res.map(function (item) {
@@ -179,10 +184,10 @@ function slugify(str) {
     }
 
     function addRemoteOptions2($select, callback) {
-        var remote = $select.attr('remote');
+        const remote = $select.attr('remote');
         if (remote) {
             $.getJSON(remote, function (res) {
-                var values = ($select.attr('value') || '').split(',').filter(function (v) {
+                const values = ($select.attr('value') || '').split(',').filter(function (v) {
                     return v.length > 0;
                 });
                 res.map(function (item) {
@@ -204,10 +209,10 @@ function slugify(str) {
 
 // https://uxsolutions.github.io/bootstrap-datepicker/
 (function () {
-    var DAYS = 0;
-    var MONTHS = 1;
-    var YEARS = 2;
-    var defaultConfig = {
+    const DAYS = 0;
+    const MONTHS = 1;
+    const YEARS = 2;
+    const defaultConfig = {
         format: 'dd/mm/yyyy',
         weekStart: 1,
         startView: DAYS,
@@ -242,7 +247,7 @@ function slugify(str) {
     // clear empty input-time so backend will get empty values instead of placeholder ones
     $('form').submit(function (e) {
         $(e.target).find('input.input-time').each(function() {
-            var $input = $(this);
+            const $input = $(this);
             if($input.val() === '__:__') {
                 $input.val('');
             }
@@ -264,9 +269,9 @@ function slugify(str) {
 // inputImageUrl
 (function () {
     $('.input-imageurl').each(function () {
-        var $elt = $(this);
-        var $input = $elt.find('input[type="text"]');
-        var $preview = $elt.find('.preview');
+        const $elt = $(this);
+        const $input = $elt.find('input[type="text"]');
+        const $preview = $elt.find('.preview');
         update($input, $preview); // run on page load
         $input.change(function () {
             update($input, $preview);
@@ -292,12 +297,12 @@ function slugify(str) {
     }
 
     $('.markdown-editor').each(function () {
-        var previewTab = $(this).find('a[data-toggle="tab"].preview');
-        var textarea = $(this).find('textarea');
-        var previewPane = $(this).find('.tab-pane.preview');
-        var loadingHtml = previewPane.html();
+        const previewTab = $(this).find('a[data-toggle="tab"].preview');
+        const textarea = $(this).find('textarea');
+        const previewPane = $(this).find('.tab-pane.preview');
+        const loadingHtml = previewPane.html();
         previewTab.on('show.bs.tab', function () {
-            var md = textarea.val();
+            const md = textarea.val();
             fetchHtml(md).then(function (html) {
                 previewPane.html(html);
             });
@@ -311,10 +316,10 @@ function slugify(str) {
 // template input & data
 (function () {
     $('.template-data').each(function () {
-        var $elt = $(this);
-        var ref = $elt.attr('data-ref');
-        var target = $elt.attr('data-target');
-        var $target = target ? $('#' + target) : undefined;
+        const $elt = $(this);
+        const ref = $elt.attr('data-ref');
+        const target = $elt.attr('data-target');
+        const $target = target ? $('#' + target) : undefined;
         updateData($elt, ref);
         if ($target) {
             $target.change(function () {
@@ -323,17 +328,17 @@ function slugify(str) {
         }
     });
     $('.template-editor').each(function () {
-        var $elt = $(this);
-        var ref = $elt.attr('data-ref');
-        var target = $elt.attr('data-target');
-        var $target = target ? $('#' + target) : undefined;
-        var previewTab = $elt.find('a[data-toggle="tab"].preview');
-        var $input = $elt.find('textarea,input[type="text"]');
-        var previewPane = $elt.find('.tab-pane.preview');
-        var loadingHtml = previewPane.html();
-        var markdown = $elt.attr('data-markdown') === 'true';
+        const $elt = $(this);
+        const ref = $elt.attr('data-ref');
+        const target = $elt.attr('data-target');
+        const $target = target ? $('#' + target) : undefined;
+        const previewTab = $elt.find('a[data-toggle="tab"].preview');
+        const $input = $elt.find('textarea,input[type="text"]');
+        const previewPane = $elt.find('.tab-pane.preview');
+        const loadingHtml = previewPane.html();
+        const markdown = $elt.attr('data-markdown') === 'true';
         previewTab.on('show.bs.tab', function () {
-            var r = $target ? $target.val() : ref;
+            const r = $target ? $target.val() : ref;
             updateTemplate($input, r, markdown, previewPane);
         });
         previewTab.on('hidden.bs.tab', function () {
@@ -360,7 +365,7 @@ function slugify(str) {
     }
 
     function updateTemplate($input, ref, markdown, previewPane) {
-        var tmpl = $input.val();
+        const tmpl = $input.val();
         fetchTemplate(tmpl, ref, markdown).then(function (tmpl) {
             if (tmpl.error) {
                 console.warn('Template error', tmpl.error);
@@ -402,7 +407,7 @@ function slugify(str) {
     }
 
     function inputFetchEmbedCode(input, target) {
-        var url = input.val();
+        const url = input.val();
         if (!!url) {
             target.html('<div class="d-flex justify-content-center m-5"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>');
             fetchEmbedCode(url).then(function (html) {
@@ -421,16 +426,16 @@ function slugify(str) {
     }
 
     $('.embed-editor').each(function () {
-        var input = $(this).find('input');
-        var embed = $(this).find('.embed');
+        const input = $(this).find('input');
+        const embed = $(this).find('.embed');
         inputFetchEmbedCode(input, embed);
         input.change(function () {
             inputFetchEmbedCode(input, embed);
         });
     });
     $('.embed-display').each(function () {
-        var embed = $(this);
-        var url = embed.attr('data-url');
+        const embed = $(this);
+        const url = embed.attr('data-url');
         fetchEmbedCode(url).then(function (html) {
             embed.html(html);
         });
@@ -438,17 +443,17 @@ function slugify(str) {
 })();
 
 // GMapPlace picker (https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete?hl=fr)
-var GMapPlacePicker = (function () {
+const GMapPlacePicker = (function () {
     function initMap($map) {
-        var map = new google.maps.Map($map.get(0), {
+        const map = new google.maps.Map($map.get(0), {
             center: {lat: -33.8688, lng: 151.2195},
             zoom: 13
         });
-        var marker = new google.maps.Marker({
+        const marker = new google.maps.Marker({
             map: map,
             anchorPoint: new google.maps.Point(0, -29)
         });
-        var infowindow = new google.maps.InfoWindow();
+        const infowindow = new google.maps.InfoWindow();
         return {
             $map: $map,
             map: map,
@@ -466,7 +471,7 @@ var GMapPlacePicker = (function () {
     }
 
     function showMap(mapData, location) {
-        var point = {lat: parseFloat(location.lat), lng: parseFloat(location.lng)};
+        const point = {lat: parseFloat(location.lat), lng: parseFloat(location.lng)};
         mapData.$map.show();
         google.maps.event.trigger(mapData.map, 'resize');
         mapData.infowindow.close();
@@ -487,7 +492,7 @@ var GMapPlacePicker = (function () {
         mapData.$map.hide();
     }
 
-    var fields = ['id', 'name', 'streetNo', 'street', 'postalCode', 'locality', 'country', 'formatted', 'lat', 'lng', 'url', 'website', 'phone', 'utcOffset'];
+    const fields = ['id', 'name', 'streetNo', 'street', 'postalCode', 'locality', 'country', 'formatted', 'lat', 'lng', 'url', 'website', 'phone', 'utcOffset'];
 
     function writeForm($elt, location) {
         fields.forEach(function (field) {
@@ -496,7 +501,7 @@ var GMapPlacePicker = (function () {
     }
 
     function readForm($elt) {
-        var location = {};
+        const location = {};
         fields.forEach(function (field) {
             location[field] = $elt.find('input.gmapplace-' + field).val();
         });
@@ -510,7 +515,7 @@ var GMapPlacePicker = (function () {
 
         function toAddress(components) {
             function getByType(components, type) {
-                var c = components.find(function (e) {
+                const c = components.find(function (e) {
                     return e.types.indexOf(type) >= 0;
                 });
                 return c && c.long_name;
@@ -539,8 +544,8 @@ var GMapPlacePicker = (function () {
             };
         }
 
-        var address = toAddress(place.address_components);
-        var loc = place && place.geometry && place.geometry.location;
+        const address = toAddress(place.address_components);
+        const loc = place && place.geometry && place.geometry.location;
         return {
             id: getSafe(place, 'place_id'),
             name: getSafe(place, 'name'),
@@ -560,10 +565,10 @@ var GMapPlacePicker = (function () {
     }
 
     function initAutocomplete($elt, $input, mapData) {
-        var autocomplete = new google.maps.places.Autocomplete($input.get(0));
+        const autocomplete = new google.maps.places.Autocomplete($input.get(0));
         autocomplete.addListener('place_changed', function () {
-            var place = autocomplete.getPlace(); // cf https://developers.google.com/maps/documentation/javascript/reference/places-service?hl=fr#PlaceResult
-            var location = toLocation(place);
+            const place = autocomplete.getPlace(); // cf https://developers.google.com/maps/documentation/javascript/reference/places-service?hl=fr#PlaceResult
+            const location = toLocation(place);
             writeForm($elt, location);
             toggleMap(mapData, location);
         });
@@ -572,11 +577,11 @@ var GMapPlacePicker = (function () {
     return {
         init: function () {
             $('.gmapplace-input').each(function () {
-                var $elt = $(this);
-                var $input = $elt.find('input[type="text"]');
-                var $map = $elt.find('.map');
-                var mapData = initMap($map);
-                var location = readForm($elt);
+                const $elt = $(this);
+                const $input = $elt.find('input[type="text"]');
+                const $map = $elt.find('.map');
+                const mapData = initMap($map);
+                const location = readForm($elt);
                 toggleMap(mapData, location);
                 initAutocomplete($elt, $input, mapData);
                 // prevent form submit on enter
@@ -588,7 +593,7 @@ var GMapPlacePicker = (function () {
                 // clear form when input is cleared
                 $input.on('change', function () {
                     if ($input.val() === '') {
-                        var location = null;
+                        const location = null;
                         writeForm($elt, location);
                         toggleMap(mapData, location);
                     }
