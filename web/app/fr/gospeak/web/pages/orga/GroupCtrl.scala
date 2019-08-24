@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.orga
 
-import java.time.Instant
+import java.time.{Instant, LocalDate}
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
@@ -38,8 +38,8 @@ class GroupCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.users)))
       sponsors <- OptionT.liftF(sponsorRepo.listAll(groupElt.id).map(_.groupBy(_.partner)))
       partners <- OptionT.liftF(partnerRepo.list(sponsors.keys.toSeq))
-      currentSponsors = sponsors.flatMap { case (id, ss) => partners.find(_.id == id).flatMap(p => ss.find(_.isCurrent(now)).map(s => (p, (s, ss.length)))) }
-      pastSponsors = sponsors.filter(_._2.exists(!_.isCurrent(now))).flatMap { case (id, s) => partners.find(_.id == id).map(p => (p, s)) }
+      currentSponsors = sponsors.flatMap { case (id, ss) => partners.find(_.id == id).flatMap(p => ss.find(_.isCurrent(now)).map(s => (p, (s, ss.length)))) }.toSeq.sortBy(_._2._1.finish.toEpochDay)
+      pastSponsors = sponsors.filter(_._2.forall(!_.isCurrent(now))).flatMap { case (id, s) => partners.find(_.id == id).map(p => (p, s)) }.toSeq.sortBy(s => -s._2.map(_.finish.toEpochDay).max)
       packs <- OptionT.liftF(sponsorPackRepo.listAll(groupElt.id))
       b = breadcrumb(groupElt)
     } yield Ok(html.detail(groupElt, events, cfps, venues, proposals, speakers, currentSponsors, pastSponsors, packs)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()

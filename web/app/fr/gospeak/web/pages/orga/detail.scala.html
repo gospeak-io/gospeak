@@ -8,8 +8,9 @@
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.utils.Formats
+@import java.time.LocalDate
 
-@(group: Group, events: Page[Event], cfps: Seq[Cfp], venues: Seq[(Partner, Venue)], proposals: Seq[Proposal], speakers: Seq[User], currentSponsors: Map[Partner, (Sponsor, Int)], pastSponsors: Map[Partner, Seq[Sponsor]], packs: Seq[SponsorPack])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, events: Page[Event], cfps: Seq[Cfp], venues: Seq[(Partner, Venue)], proposals: Seq[Proposal], speakers: Seq[User], currentSponsors: Seq[(Partner, (Sponsor, Int))], pastSponsors: Seq[(Partner, Seq[Sponsor])], packs: Seq[SponsorPack])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @addSponsorBtn() = {
 @defining(packs.filter(_.active)) { activePacks: Seq[SponsorPack] =>
     @if(activePacks.nonEmpty) {
@@ -56,7 +57,13 @@
         <li>
             Until @Formats.date(sponsor.finish):
             <a href="@PartnerCtrl.detail(group.slug, partner.slug)">@partner.name.value</a>
-            <b>@packs.find(_.id == sponsor.pack).map(_.name.value) pack</b> (@count times sponsor)
+            @packs.find(_.id == sponsor.pack).map(_.name.value) pack
+            @if(sponsor.finish.minusMonths(1).isBefore(LocalDate.now())) {
+                <span class="text-danger">Will finish very soon</span>
+            } else if(sponsor.finish.minusMonths(3).isBefore(LocalDate.now())) {
+                <span class="text-warning">Will finish soon</span>
+            }
+            (@count times sponsor)
             @if(sponsor.paid.isEmpty) {
                 <span class="text-danger">Not paid</span>
             }

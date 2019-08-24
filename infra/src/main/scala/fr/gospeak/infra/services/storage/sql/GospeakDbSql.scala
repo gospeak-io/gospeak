@@ -116,9 +116,9 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
         )))
 
         _ <- run(Queries.insertMany(UserRepoSql.insert)(NonEmptyList.fromListUnsafe(users)))
-        // _ <- run(UserRepoSql.insertCredentials(User.Credentials("credentials", lkn.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
-        // _ <- run(UserRepoSql.insertLoginRef(User.LoginRef("credentials", lkn.email.value, lkn.id)))
-        // _ <- run(UserRepoSql.validateAccount(lkn.email, lkn.created))
+        _ <- run(UserRepoSql.insertCredentials(User.Credentials("credentials", lkn.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
+        _ <- run(UserRepoSql.insertLoginRef(User.LoginRef("credentials", lkn.email.value, lkn.id)))
+        _ <- run(UserRepoSql.validateAccount(lkn.email, lkn.created))
         _ <- run(GroupRepoSql.insert(groupHt))
         _ <- run(CfpRepoSql.insert(cfpHt))
         _ <- run(Queries.insertMany(TalkRepoSql.insert)(NonEmptyList.fromListUnsafe(talks)))
@@ -271,9 +271,10 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val premium = sponsorPack(humanTalks, "Premium", 1500, userDemo)
     val packs = NonEmptyList.of(base, premium)
 
-    val sponsor1 = sponsor(humanTalks, zeenea, premium, userDemo, "2019-01-01", "2020-01-01")
-    val sponsor2 = sponsor(humanTalks, nexeo, base, userDemo, "2018-01-01", "2019-01-01")
-    val sponsors = NonEmptyList.of(sponsor1, sponsor2)
+    val sponsor1 = sponsor(humanTalks, zeenea, base, userDemo, "2018-01-01", "2019-01-01")
+    val sponsor2 = sponsor(humanTalks, zeenea, premium, userDemo, "2019-01-01", "2020-01-01")
+    val sponsor3 = sponsor(humanTalks, nexeo, base, userDemo, "2018-01-01", "2019-01-01")
+    val sponsors = NonEmptyList.of(sponsor1, sponsor2, sponsor3)
 
     val generated = (1 to 25).toList.map { i =>
       val groupId = Group.Id.generate()
