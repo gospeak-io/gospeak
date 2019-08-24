@@ -1,4 +1,4 @@
-@import fr.gospeak.web.pages.partials.form.Utils
+@import fr.gospeak.libs.scalautils.domain.TimePeriod
 
 @(field: Field, args: Seq[(String, String)] = Seq())
 <div class="row">
@@ -6,6 +6,6 @@
         @inputNumber(field("length"), args)
     </div>
     <div class="col">
-        @inputSelect(field("unit"), Utils.chronoUnits, ("placeholder", "time unit") +: args)
+        @inputSelect(field("unit"), TimePeriod.PeriodUnit.simple.map(u => (u.value, u.value)), ("placeholder", "time unit") +: args)
     </div>
 </div>

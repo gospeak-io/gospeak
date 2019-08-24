@@ -44,7 +44,7 @@ object Mappings {
     "time" -> localTime("HH:mm")
   )({ case (d, t) => LocalDateTime.of(d, t) })(dt => Some(dt.toLocalDate -> dt.toLocalTime))
   val chronoUnit: Mapping[ChronoUnit] = stringEitherMapping(d => Try(ChronoUnit.valueOf(d)).toEither, _.name(), formatError)
-  val periodUnit: Mapping[TimePeriod.PeriodUnit] = stringEitherMapping(d => TimePeriod.PeriodUnit.values.find(_.toString == d).toEither, _.toString, formatError)
+  val periodUnit: Mapping[TimePeriod.PeriodUnit] = stringEitherMapping(d => TimePeriod.PeriodUnit.all.find(_.toString == d).toEither, _.toString, formatError)
   val period: Mapping[TimePeriod] = mapping(
     "length" -> longNumber,
     "unit" -> periodUnit

@@ -27,7 +27,7 @@ object Generators {
     length <- implicitly[Arbitrary[Long]].arbitrary
     unit <- implicitly[Arbitrary[TimeUnit]].arbitrary
   } yield buildDuration(length, unit))
-  implicit val aPeriodUnit: Arbitrary[PeriodUnit] = Arbitrary(Gen.oneOf(PeriodUnit.values))
+  implicit val aPeriodUnit: Arbitrary[PeriodUnit] = Arbitrary(Gen.oneOf(PeriodUnit.all))
   implicit val aTimePeriod: Arbitrary[TimePeriod] = Arbitrary(for {
     length <- implicitly[Arbitrary[Long]].arbitrary
     unit <- implicitly[Arbitrary[PeriodUnit]].arbitrary

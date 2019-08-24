@@ -95,9 +95,13 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
           createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
           updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
         )))
-        standardPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("standard").get, SponsorPack.Name("Standard"), Markdown(""), Price(500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
-        premiumPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("premium").get, SponsorPack.Name("Premium"), Markdown(""), Price(1500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
-        sponsorPacks = List(standardPack, premiumPack)
+        standardPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("standard").get, SponsorPack.Name("Standard"), Markdown(""), Price(500, Price.Currency.EUR), 1.year, active = false, Info(lkn.id, initDate))
+        premiumPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("premium").get, SponsorPack.Name("Premium"), Markdown(""), Price(1500, Price.Currency.EUR), 1.year, active = false, Info(lkn.id, initDate))
+        bronzePack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("bronze").get, SponsorPack.Name("Bronze"), Markdown(""), Price(500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
+        silverPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("silver").get, SponsorPack.Name("Silver"), Markdown(""), Price(1500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
+        goldPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("gold").get, SponsorPack.Name("Gold"), Markdown(""), Price(2500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
+        platiniumPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("platinium").get, SponsorPack.Name("Platinium"), Markdown(""), Price(6000, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
+        sponsorPacks = List(standardPack, premiumPack, bronzePack, silverPack, goldPack, platiniumPack)
         sponsors = htPartners.flatMap(_.toSponsors(groupHt.id, sponsorPacks)).map(e => e.copy(info = e.info.copy(
           createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
           updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
@@ -114,6 +118,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
         _ <- run(Queries.insertMany(UserRepoSql.insert)(NonEmptyList.fromListUnsafe(users)))
         // _ <- run(UserRepoSql.insertCredentials(User.Credentials("credentials", lkn.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
         // _ <- run(UserRepoSql.insertLoginRef(User.LoginRef("credentials", lkn.email.value, lkn.id)))
+        // _ <- run(UserRepoSql.validateAccount(lkn.email, lkn.created))
         _ <- run(GroupRepoSql.insert(groupHt))
         _ <- run(CfpRepoSql.insert(cfpHt))
         _ <- run(Queries.insertMany(TalkRepoSql.insert)(NonEmptyList.fromListUnsafe(talks)))

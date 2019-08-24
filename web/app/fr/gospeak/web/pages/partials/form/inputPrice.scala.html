@@ -5,6 +5,6 @@
         @inputNumber(field("amount"), args)
     </div>
     <div class="col">
-        @inputSelect(field("currency"), Currency.all.map(c => (c.value, c.name)), ("placeholder", "currency") +: args)
+        @inputSelect(field("currency"), Currency.all.map(c => (c.value, c.name)), Seq("placeholder" -> "currency", "value" -> Currency.EUR.value) ++ args)
     </div>
 </div>

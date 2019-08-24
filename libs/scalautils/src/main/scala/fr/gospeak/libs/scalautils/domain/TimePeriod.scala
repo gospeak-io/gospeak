@@ -27,7 +27,7 @@ object TimePeriod {
     str.split(" ") match {
       case Array(length, unit) => for {
         l <- Try(length.toLong)
-        u <- PeriodUnit.values.find(_.toString == unit).toTry(CustomException(s"No PeriodUnit for '$unit'"))
+        u <- PeriodUnit.all.find(_.value == unit).toTry(CustomException(s"No PeriodUnit for '$unit'"))
       } yield TimePeriod(l, u)
       case _ => Failure(CustomException("Invalid format for TimePeriod, expects: 'length unit'"))
     }
@@ -35,6 +35,8 @@ object TimePeriod {
 
   sealed trait PeriodUnit {
     def chrono: ChronoUnit = toChrono(this)
+
+    def value: String = toString
   }
 
   object PeriodUnit {
@@ -59,7 +61,8 @@ object TimePeriod {
 
     case object Year extends PeriodUnit
 
-    val values: Seq[PeriodUnit] = Seq(Nano, Micro, Milli, Second, Minute, Hour, Day, Week, Month, Year)
+    val all: Seq[PeriodUnit] = Seq(Nano, Micro, Milli, Second, Minute, Hour, Day, Week, Month, Year)
+    val simple: Seq[PeriodUnit] = Seq(Minute, Hour, Day, Week, Month, Year)
   }
 
   implicit class TimePeriodBuilder(val value: Long) extends AnyVal {

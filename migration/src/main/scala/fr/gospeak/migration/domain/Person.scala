@@ -56,8 +56,8 @@ case class Person(id: String, // Person.Id,
 
   private def getNames: (String, String) = {
     val names = data.name.split(' ').filter(_.nonEmpty)
-    val firstName = names.headOption.getOrElse("N/A")
-    val lastName = Option(names.drop(1).mkString(" ")).filter(_.nonEmpty).getOrElse("N/A")
+    val firstName = names.headOption.getOrElse("")
+    val lastName = Option(names.drop(1).mkString(" ")).filter(_.nonEmpty).getOrElse("")
     (firstName, lastName)
   }
 
