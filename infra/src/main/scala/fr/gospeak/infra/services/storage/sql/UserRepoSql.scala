@@ -17,15 +17,20 @@ import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRepo {
-  override def create(data: User.Data, now: Instant): IO[User] = {
+  override def create(data: User.Data, now: Instant): IO[User] =
     run(insert, User(data, User.emptyProfile, now))
-  }
 
   override def edit(user: User, now: Instant): IO[User] =
     run(update(user.copy(updated = now))).map(_ => user.copy(updated = now))
 
   override def edit(user: User, editable: User.EditableFields, now: Instant): IO[User] =
     run(update(user.copy(firstName = editable.firstName, lastName = editable.lastName, email = editable.email, profile = editable.profile, updated = now))).map(_ => user.copy(updated = now))
+
+  override def editStatus(user: User.Id)(status: User.Profile.Status): IO[Done] =
+    run(selectOne(user).option).flatMap {
+      case Some(userElt) => run(update(userElt.copy(profile = userElt.profile.copy(status = status))))
+      case None => IO.raiseError(new IllegalArgumentException(s"User $user does not exists"))
+    }
 
   override def createLoginRef(login: User.Login, user: User.Id): IO[Done] =
     run(insertLoginRef, User.LoginRef(login, user)).map(_ => Done)
@@ -56,8 +61,8 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
   override def speakers(group: Group.Id, params: Page.Params): IO[Page[User]] = {
     val speakerIdsQuery = fr0"SELECT p.speakers FROM proposals p INNER JOIN cfps c ON c.id=p.cfp_id WHERE c.group_id=$group".query[NonEmptyList[User.Id]]
     for {
-        speakerIds <- run(speakerIdsQuery.to[List]).map(_.flatMap(_.toList).distinct)
-        res <- NonEmptyList.fromList(speakerIds).map(ids => run(Queries.selectPage(selectPage(ids, _), params))).getOrElse(IO.pure(Page.empty[User]))
+      speakerIds <- run(speakerIdsQuery.to[List]).map(_.flatMap(_.toList).distinct)
+      res <- NonEmptyList.fromList(speakerIds).map(ids => run(Queries.selectPage(selectPage(ids, _), params))).getOrElse(IO.pure(Page.empty[User]))
     } yield res
   }
 
@@ -73,19 +78,19 @@ object UserRepoSql {
   private val loginTable = "logins"
   private val loginFields = Seq("provider_id", "provider_key", "user_id")
   private val table = "users"
-  private val fields = Seq("id", "slug", "first_name", "last_name", "email", "email_validated", "avatar", "avatar_source", "published", "description", "company", "location", "twitter", "linkedin", "phone", "website", "created", "updated")
+  private val fields = Seq("id", "slug", "first_name", "last_name", "email", "email_validated", "avatar", "avatar_source", "status", "description", "company", "location", "twitter", "linkedin", "phone", "website", "created", "updated")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "slug", "first_name", "last_name", "email")
   private val defaultSort = Page.OrderBy("first_name")
 
   private def values(e: User): Fragment =
-    fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.published}, ${e.profile.description}, ${e.profile.company}, ${e.profile.location}, ${e.profile.twitter}, ${e.profile.linkedin}, ${e.profile.phone}, ${e.profile.website}, ${e.created}, ${e.updated}"
+    fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.profile.status}, ${e.profile.description}, ${e.profile.company}, ${e.profile.location}, ${e.profile.twitter}, ${e.profile.linkedin}, ${e.profile.phone}, ${e.profile.website}, ${e.created}, ${e.updated}"
 
   private[sql] def insert(elt: User): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
   private[sql] def update(elt: User): doobie.Update0 = {
-    val fields = fr0"slug=${elt.slug}, first_name=${elt.firstName}, last_name=${elt.lastName}, email=${elt.email}, description=${elt.profile.description}, company=${elt.profile.company}, location=${elt.profile.location}, twitter=${elt.profile.twitter}, linkedin=${elt.profile.linkedin}, phone=${elt.profile.phone}, website=${elt.profile.website}, updated=${elt.updated}"
+    val fields = fr0"slug=${elt.slug}, first_name=${elt.firstName}, last_name=${elt.lastName}, email=${elt.email}, status=${elt.profile.status}, description=${elt.profile.description}, company=${elt.profile.company}, location=${elt.profile.location}, twitter=${elt.profile.twitter}, linkedin=${elt.profile.linkedin}, phone=${elt.profile.phone}, website=${elt.profile.website}, updated=${elt.updated}"
     val where = fr0"WHERE id=${elt.id}"
     buildUpdate(tableFr, fields, where).update
   }
@@ -125,8 +130,13 @@ object UserRepoSql {
   private[sql] def selectOne(slug: User.Slug): doobie.Query0[User] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE slug=$slug").query[User]
 
-  private[sql] def selectOnePublic(slug: User.Slug): doobie.Query0[User] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE published IS NOT NULL AND slug=$slug").query[User]
+  private[sql] def selectOne(id: User.Id): doobie.Query0[User] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[User]
+
+  private[sql] def selectOnePublic(slug: User.Slug): doobie.Query0[User] = {
+    val public: User.Profile.Status = User.Profile.Status.Public
+    buildSelect(tableFr, fieldsFr, fr0"WHERE status=$public AND slug=$slug").query[User]
+  }
 
   // should replace def selectPage(ids: NonEmptyList[User.Id], params: Page.Params) when split or array works...
   /* private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[User], doobie.Query0[Long]) = {
@@ -136,7 +146,8 @@ object UserRepoSql {
   } */
 
   private[sql] def selectPagePublic(params: Page.Params): (doobie.Query0[User], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr"WHERE published IS NOT NULL"))
+    val public: User.Profile.Status = User.Profile.Status.Public
+    val page = paginate(params, searchFields, defaultSort, Some(fr"WHERE status=$public"))
     (buildSelect(tableFr, fieldsFr, page.all).query[User], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 

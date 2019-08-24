@@ -111,6 +111,7 @@ object Mappings {
   val tags: Mapping[Seq[Tag]] = seq(tag).verifying(s"Can't add more than ${Tag.maxNumber} tags", _.length <= Tag.maxNumber)
 
   val userSlug: Mapping[User.Slug] = slugMapping(User.Slug)
+  val userProfileStatus: Mapping[User.Profile.Status] = stringEitherMapping(User.Profile.Status.from, _.value, formatError)
   val groupSlug: Mapping[Group.Slug] = slugMapping(Group.Slug)
   val groupName: Mapping[Group.Name] = nonEmptyTextMapping(Group.Name, _.value, Constraints.maxLength(Values.maxLength.title))
   val eventSlug: Mapping[Event.Slug] = slugMapping(Event.Slug)

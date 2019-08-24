@@ -35,7 +35,7 @@ CREATE TABLE users
     email_validated TIMESTAMP,
     avatar          VARCHAR(1024) NOT NULL,
     avatar_source   VARCHAR(20)   NOT NULL,
-    published       TIMESTAMP,
+    status          VARCHAR(10)   NOT NULL,
     description     VARCHAR(4096),
     company         VARCHAR(36),
     location        VARCHAR(36),

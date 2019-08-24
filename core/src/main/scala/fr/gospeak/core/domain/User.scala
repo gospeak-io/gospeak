@@ -11,7 +11,6 @@ final case class User(id: User.Id,
                       email: EmailAddress,
                       emailValidated: Option[Instant],
                       avatar: Avatar,
-                      published: Option[Instant],
                       profile: User.Profile,
                       created: Instant,
                       updated: Instant) {
@@ -19,16 +18,16 @@ final case class User(id: User.Id,
 
   def name: User.Name = User.Name(firstName, lastName)
 
-  def isPublic: Boolean = published.isDefined
+  def isPublic: Boolean = profile.status.isPublic
 
   def editable: User.EditableFields = User.EditableFields(firstName, lastName, email, profile)
 }
 
 object User {
   def apply(data: Data, profile: Profile, now: Instant): User =
-    new User(Id.generate(), data.slug, data.firstName, data.lastName, data.email, None, data.avatar, None, profile, now, now)
+    new User(Id.generate(), data.slug, data.firstName, data.lastName, data.email, None, data.avatar, profile, now, now)
 
-  val emptyProfile = Profile(None, None, None, None, None, None, None)
+  val emptyProfile = Profile(Profile.Status.Undefined, None, None, None, None, None, None, None)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -82,13 +81,46 @@ object User {
       new Credentials(Login(ProviderId(providerId), ProviderKey(providerKey)), Password(Hasher(hasher), PasswordValue(password), salt.map(Salt)))
   }
 
-  case class Profile(description: Option[String],
+  case class Profile(status: Profile.Status,
+                     description: Option[String],
                      company: Option[String],
                      location: Option[String],
                      twitter: Option[Url],
                      linkedin: Option[Url],
                      phone: Option[String],
                      website: Option[Url])
+
+  object Profile {
+
+    sealed trait Status extends StringEnum with Product with Serializable {
+      def value: String = toString
+
+      def isUndefined: Boolean = this == Status.Undefined
+
+      def isPrivate: Boolean = this == Status.Private
+
+      def isPublic: Boolean = this == Status.Public
+    }
+
+    object Status extends EnumBuilder[Status]("User.Profile.Status") {
+
+      case object Undefined extends Status {
+        def description = s"Profile privacy still undefined, choose if you want it $Public or $Private"
+      }
+
+      case object Private extends Status {
+        def description = "Stay under cover, your speaker page is not accessible and you are not in the public list of speakers"
+      }
+
+      case object Public extends Status {
+        def description = "Promote your name with your speaker page featuring your public talks and interventions you have done in groups"
+      }
+
+      val all: Seq[Status] = Seq(Undefined, Private, Public)
+      val selectable: Seq[Status] = Seq(Private, Public)
+    }
+
+  }
 
   case class EditableFields(firstName: String,
                             lastName: String,
@@ -99,19 +131,19 @@ object User {
     def apply(firstName: String,
               lastName: String,
               email: EmailAddress,
+              status: Profile.Status,
               description: Option[String],
               company: Option[String],
               location: Option[String],
               twitter: Option[Url],
               linkedin: Option[Url],
               phone: Option[String],
-              website: Option[Url]): EditableFields = EditableFields(firstName, lastName, email,
-      Profile(description, company, location, twitter, linkedin, phone, website))
+              website: Option[Url]): EditableFields =
+      EditableFields(firstName, lastName, email, Profile(status, description, company, location, twitter, linkedin, phone, website))
 
-    def unapply(arg: EditableFields): Option[(String, String, EmailAddress, Option[String], Option[String], Option[String], Option[Url], Option[Url], Option[String], Option[Url])] =
-      Some((arg.firstName, arg.lastName, arg.email, arg.profile.description, arg.profile.company,
+    def unapply(arg: EditableFields): Option[(String, String, EmailAddress, Profile.Status, Option[String], Option[String], Option[String], Option[Url], Option[Url], Option[String], Option[Url])] =
+      Some((arg.firstName, arg.lastName, arg.email, arg.profile.status, arg.profile.description, arg.profile.company,
         arg.profile.location, arg.profile.twitter, arg.profile.linkedin, arg.profile.phone, arg.profile.website))
-
   }
 
 }

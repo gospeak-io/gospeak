@@ -10,10 +10,15 @@
         <img src="@identity.user.avatar.url.value" class="avatar" alt="avatar"/>
     </a>
     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-user">
-        <a class="dropdown-item" href="@UserCtrl.index()">My account</a>
-        @identity.groups.map { g =>
-            <a class="dropdown-item @if(group.exists(_.id == g.id)) {active}" href="@GroupCtrl.detail(g.slug)">@g.name.value</a>
+        <a class="dropdown-item" href="@UserCtrl.index()">Home</a>
+        @if(identity.groups.nonEmpty) {
+            <div class="dropdown-divider"></div>
+            <h6 class="dropdown-header">My groups</h6>
+            @identity.groups.map { g =>
+                <a class="dropdown-item @if(group.exists(_.id == g.id)) {active}" href="@GroupCtrl.detail(g.slug)">&nbsp;&nbsp;@g.name.value</a>
+            }
         }
+        <div class="dropdown-divider"></div>
         <a class="dropdown-item" href="@AuthCtrl.doLogout()">Logout</a>
     </div>
 </div>

@@ -118,20 +118,19 @@
                 @example(s"$name with different update date") { _ => @display.info(talk.info.copy(updated = talk.info.updated.plusSeconds(60)), Seq(user)) }
             }
             @component("talkStatus", "@talkStatus(talk.status)") { name =>
-                @example(s"$name draft") { _ => @display.talkStatus(Talk.Status.Draft) }
-                @example(s"$name public") { _ => @display.talkStatus(Talk.Status.Public) }
-                @example(s"$name private") { _ => @display.talkStatus(Talk.Status.Private) }
-                @example(s"$name archived") { _ => @display.talkStatus(Talk.Status.Archived) }
+                @Talk.Status.all.map { status =>
+                    @example(s"$name $status") { _ => @display.talkStatus(status) }
+                }
             }
             @component("proposalStatus", "@proposalStatus(proposal.status)") { name =>
-                @example(s"$name pending") { _ => @display.proposalStatus(Proposal.Status.Pending) }
-                @example(s"$name accepted") { _ => @display.proposalStatus(Proposal.Status.Accepted) }
-                @example(s"$name rejected") { _ => @display.proposalStatus(Proposal.Status.Rejected) }
+                @Proposal.Status.all.map { status =>
+                    @example(s"$name $status") { _ => @display.proposalStatus(status) }
+                }
             }
             @component("proposalStatusIcon", "@proposalStatusIcon(proposal.status)") { name =>
-                @example(s"$name pending") { _ => @display.proposalStatusIcon(Proposal.Status.Pending) }
-                @example(s"$name accepted") { _ => @display.proposalStatusIcon(Proposal.Status.Accepted) }
-                @example(s"$name rejected") { _ => @display.proposalStatusIcon(Proposal.Status.Rejected) }
+                @Proposal.Status.all.map { status =>
+                    @example(s"$name $status") { _ => @display.proposalStatusIcon(status) }
+                }
             }
             @component("slidesIcon", "@slidesIcon(talk.slides)") { name =>
                 @example(s"$name when empty") { _ => @display.slidesIcon(None) }

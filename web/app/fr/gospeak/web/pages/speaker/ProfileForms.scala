@@ -11,6 +11,7 @@ object ProfileForms {
     "first-name" -> text(1, 30),
     "last-name" -> text(1, 30),
     "email" -> emailAddress,
+    "status" -> userProfileStatus,
     "description" -> optional(text),
     "company" -> optional(text),
     "location" -> optional(text),

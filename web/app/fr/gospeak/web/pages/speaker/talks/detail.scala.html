@@ -24,6 +24,11 @@
                         "title" -> Talk.Status.Private.description,
                         "data-toggle" -> "tooltip",
                         "data-placement" -> "bottom")) {Make it private}
+                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Listed), Seq(
+                        "class" -> "btn-sm btn-info",
+                        "title" -> Talk.Status.Listed.description,
+                        "data-toggle" -> "tooltip",
+                        "data-placement" -> "bottom")) {Make it listed}
                     @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Public), Seq(
                         "class" -> "btn-sm btn-primary",
                         "title" -> Talk.Status.Public.description,
@@ -48,6 +53,13 @@
                         "title" -> Talk.Status.Public.description,
                         "data-toggle" -> "tooltip",
                         "data-placement" -> "left")) {Make it public}
+                }
+                @if(talk.status != Talk.Status.Listed) {
+                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Listed), Seq(
+                        "class" -> "dropdown-item",
+                        "title" -> Talk.Status.Listed.description,
+                        "data-toggle" -> "tooltip",
+                        "data-placement" -> "left")) {Make it listed}
                 }
                 @if(talk.status != Talk.Status.Private) {
                     @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Private), Seq(

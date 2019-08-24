@@ -20,6 +20,7 @@ case class Person(id: String, // Person.Id,
     val email = getEmail
     val avatar = AvatarUtils.buildAvatarQuick(data.avatar, email)
     val profile: gs.User.Profile = gs.User.Profile(
+      status = gs.User.Profile.Status.Undefined,
       description = data.description,
       company = data.company,
       location = data.location,
@@ -36,7 +37,6 @@ case class Person(id: String, // Person.Id,
       email = email,
       emailValidated = None,
       avatar = avatar,
-      published = None,
       profile = profile,
       created = Instant.ofEpochMilli(meta.created),
       updated = Instant.ofEpochMilli(meta.updated))).mapFailure(e => new Exception(s"toUser error for $this ", e)).get

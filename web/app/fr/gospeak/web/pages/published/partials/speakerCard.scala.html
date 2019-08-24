@@ -1,11 +1,12 @@
 @import fr.gospeak.core.domain.User
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.pages.partials.display.html.userProfileStatusIcon
 
 @(speaker: User)
 <div class="card shadow-sm">
     <img src="@speaker.avatar.url.value" class="avatar-lg align-self-center mt-1" alt="avatar">
     <div class="card-body">
-        <h5 class="card-title mb-0">@speaker.name.value <br>
+        <h5 class="card-title mb-0"><small>@userProfileStatusIcon(speaker.profile.status)</small> @speaker.name.value<br>
             <h6 class="text-secondary font-weight-normal font-italic">@speaker.slug
                 @speaker.profile.twitter.map { l => <a class="no-style" href="@l"> <i class="fab fa-twitter"></i></a> }
                 @speaker.profile.linkedin.map { l => <a class="no-style" href="@l"> <i class="fab fa-linkedin"></i></a> }</h6>
