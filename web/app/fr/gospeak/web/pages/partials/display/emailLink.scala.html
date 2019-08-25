@@ -1,3 +1,3 @@
 @import fr.gospeak.libs.scalautils.domain.EmailAddress
 @(email: EmailAddress)
-<a href="mailto:@email.value" class="no-style"><i class="fas fa-envelope"></i> @email.value</a>
+<span class="email-link"><i class="fas fa-envelope" title="Email"></i> <a href="mailto:@email.value" class="no-style" target="_blank">@email.value</a></span>

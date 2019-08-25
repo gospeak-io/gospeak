@@ -1,25 +1,20 @@
 @import fr.gospeak.core.domain.User
 @import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.partials.display.html.userProfileStatusIcon
 
 @(speaker: User)
 <div class="card shadow-sm">
     <img src="@speaker.avatar.url.value" class="avatar-lg align-self-center mt-1" alt="avatar">
     <div class="card-body">
-        <h5 class="card-title mb-0"><small>@userProfileStatusIcon(speaker.profile.status)</small> @speaker.name.value<br>
-            <h6 class="text-secondary font-weight-normal font-italic">@speaker.slug
-                @speaker.profile.twitter.map { l => @twitterLink(l) }
-                @speaker.profile.linkedin.map { l => @linkedinLink(l) }</h6>
-        </h5>
-        <p class="card-text">
-    <p>@speaker.profile.description </p>
+        <h5 class="card-title"><small>@userProfileStatusIcon(speaker.profile.status)</small> @speaker.name.value</h5>
+        @speaker.profile.description.map { d => <p>@d</p> }
         <p class="text-secondary font-italic no-margin">
-            @speaker.profile.location.map { l => <i class="fas fa-map-marker-alt"></i> @l <br> }
-            @speaker.profile.website.map { l => @websiteLink(l) <br> }
-            @speaker.profile.phone.map { l => <i class="fas fa-phone"></i> <a class="no-style" href="@l"> @l</a> <br> }
-            @emailLink(speaker.email) <br>
-            @speaker.profile.company.map{ company => <i class="fas fa-sitemap"></i> @company }
+            @speaker.profile.twitter.map { url => @twitterLink(url)<br> }
+            @speaker.profile.linkedin.map { url => @linkedinLink(url)<br> }
+            @emailLink(speaker.email)<br>
+            @speaker.profile.phone.map { phone => @phoneLink(phone)<br> }
+            @speaker.profile.website.map { url => @websiteLink(url) <br> }
+            @speaker.profile.location.map { location => @locationDisplay(location)<br> }
+            @speaker.profile.company.map { company => @companyDisplay(company)<br> }
         </p>
     </div>
 </div>

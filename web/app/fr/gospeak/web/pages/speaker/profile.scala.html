@@ -32,7 +32,7 @@
                     <div class="card-body">
                         <div class="form-group @if(form("first-name").errors.nonEmpty || form("last-name").errors.nonEmpty) {is-invalid}">
                             <div class="input-group input-group-sm">
-                                <div class="input-group-prepend">
+                                <div class="input-group-prepend" title="First name & Last name">
                                     <span class="input-group-text"><i class="fas fa-user"></i></span>
                                 </div>
                                 @inputText(form("first-name"), Seq("placeholder" -> "First Name", "autofocus" -> "true"))
@@ -43,35 +43,31 @@
                                 <div class="col invalid-feedback">@form("last-name").errors.map(_.format).mkString(", ")</div>
                             </div>
                         </div>
-
-                        <div class="form-group @if(form("email").errors.nonEmpty) {is-invalid}">
+                        <div class="form-group">
                             <div class="input-group input-group-sm">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <div class="input-group-prepend" title="Status">
+                                    <span class="input-group-text"><i class="fas fa-shield-alt"></i></span>
                                 </div>
-                                @inputEmail(form("email"), Seq("placeholder" -> "Email"))
+                                @inputSelect(form("status"), User.Profile.Status.selectable.map(s => (s.value, s.value)))
                             </div>
-                            <div class="invalid-feedback">@form("email").errors.map(_.format).mkString(", ")</div>
                         </div>
                         <div class="input-group input-group-sm mb-3">
-                        @inputTextarea(form("description"), Seq("placeholder" -> "Add a bio", "rows" -> "3"))
+                            @inputTextarea(form("description"), Seq("placeholder" -> "Add a bio", "rows" -> "3"))
                         </div>
-
                         <div class="form-group">
                             <div class="input-group input-group-sm">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-sitemap"></i></span>
+                                <div class="input-group-prepend" title="Twitter url">
+                                    <span class="input-group-text"><i class="fab fa-twitter"></i></span>
                                 </div>
-                                @inputText(form("company"), Seq("placeholder" -> "Company"))
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                                </div>
-                                @inputText(form("location"), Seq("placeholder" -> "location"))
+                                @inputText(form("twitter"))
+                            </div>
+                            <div class="row">
+                                <div class="col invalid-feedback">@form("twitter").errors.map(_.format).mkString(", ")</div>
                             </div>
                         </div>
                         <div class="form-group">
-                            <div class="input-group input-group-sm mb-3">
-                                <div class="input-group-prepend">
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend" title="LinkedIn url">
                                     <span class="input-group-text"><i class="fab fa-linkedin"></i></span>
                                 </div>
                                 @inputText(form("linkedin"))
@@ -79,40 +75,42 @@
                             <div class="row">
                                 <div class="col invalid-feedback">@form("linkedin").errors.map(_.format).mkString(", ")</div>
                             </div>
-                            <div class="form-group">
-                                <div class="input-group input-group-sm">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fab fa-twitter"></i></span>
-                                    </div>
-                                    @inputText(form("twitter"))
+                        </div>
+                        <div class="form-group @if(form("email").errors.nonEmpty) {is-invalid}">
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend" title="Email">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                                 </div>
-                                <div class="row">
-                                    <div class="col invalid-feedback">@form("twitter").errors.map(_.format).mkString(", ")</div>
-                                </div>
+                                @inputEmail(form("email"), Seq("placeholder" -> "Email"))
                             </div>
-                            <div class="form-group">
-                                <div class="input-group input-group-sm">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-globe"></i></span>
-                                    </div>
-                                    @inputText(form("web-site"), Seq("placeholder" -> "WebSite"))
+                            <div class="invalid-feedback">@form("email").errors.map(_.format).mkString(", ")</div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend" title="Phone">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
                                 </div>
+                                @inputText(form("phone"))
                             </div>
-                            <div class="form-group">
-                                <div class="input-group input-group-sm">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                    </div>
-                                    @inputText(form("phone"))
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend" title="Website">
+                                    <span class="input-group-text"><i class="fas fa-globe"></i></span>
                                 </div>
+                                @inputText(form("web-site"), Seq("placeholder" -> "WebSite"))
                             </div>
-                            <div class="form-group">
-                                <div class="input-group input-group-sm">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-shield-alt"></i></span>
-                                    </div>
-                                    @inputSelect(form("status"), User.Profile.Status.selectable.map(s => (s.value, s.value)))
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend" title="Company">
+                                    <span class="input-group-text"><i class="fas fa-sitemap"></i></span>
                                 </div>
+                                @inputText(form("company"), Seq("placeholder" -> "Company"))
+                                <div class="input-group-prepend" title="Location">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                </div>
+                                @inputText(form("location"), Seq("placeholder" -> "location"))
                             </div>
                         </div>
                     </div>
