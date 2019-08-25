@@ -1,6 +1,7 @@
+@import java.time.Instant
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.core.domain.{Cfp, Group, Proposal, User}
+@import fr.gospeak.core.domain.{Cfp, Group, Event, Proposal, User}
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.speaker.partials.html.container
 @import fr.gospeak.web.pages.partials.form.Utils
@@ -12,7 +13,7 @@
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
 @import fr.gospeak.core.domain.User.EditableFields
 
-@(form: Form[EditableFields], acceptedProposals: Page[(Cfp, Proposal)] = Page.empty[(Cfp, Proposal)], ownedGroups: Page[Group] = Page.empty[Group])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(form: Form[EditableFields], now: Instant, acceptedProposals: Page[(Event, Proposal)] = Page.empty[(Event, Proposal)], ownedGroups: Page[Group] = Page.empty[Group])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", b)() {
     @formElt(form, SpeakerCtrl.editProfile()) {
         <div class="row">
@@ -121,7 +122,7 @@
                     <h2 class="mt-0 mb-3">Accepted talks</h2>
                     <div>
                     @acceptedProposals.items.map { proposal =>
-                        @talkItem(proposal)
+                        @talkItem(proposal, now)
                     }
                     </div>
                 }

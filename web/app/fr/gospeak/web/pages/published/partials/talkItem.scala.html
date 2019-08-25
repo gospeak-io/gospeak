@@ -1,18 +1,23 @@
-@import fr.gospeak.core.domain.{Cfp, Proposal}
+@import java.time.{Instant, LocalDateTime, ZoneOffset}
+@import fr.gospeak.core.domain.{Cfp, Event, Proposal}
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats._
 
-@(talkWithCfp: (Cfp, Proposal))
-<div class="list-group-item d-flex justify-content-between align-items-center">
+@(talkWithEvent: (Event, Proposal), now: Instant)
+@tense(event: Event) = {
+@if(event.start.isAfter(LocalDateTime.ofInstant(now, ZoneOffset.UTC))) {Will be hold} else {Was held}
+}
+<div class="list-group-item list-group-item-action">
     <h5 class="mb-1">
-        <a ref="#">@talkWithCfp._2.title.value</a>
+        <a ref="#">@talkWithEvent._2.title.value</a>
     </h5>
+    <span class="badge badge-dark">@talkWithEvent._1.name.value</span>
+    @duration(talkWithEvent._2.duration)
+    @slidesIcon(talkWithEvent._2.slides)
+    @videoIcon(talkWithEvent._2.video)
+    @tags(talkWithEvent._2.tags)
     <span>
-        @duration(talkWithCfp._2.duration)
-        @slidesIcon(talkWithCfp._2.slides)
-        @videoIcon(talkWithCfp._2.video)
-        @tags(talkWithCfp._2.tags)
-    <small>Proposed on @date(talkWithCfp._2.info.created)</small>
+        <small>@tense(talkWithEvent._1) on @date(talkWithEvent._1.start)</small>
     </span>
 </div>
