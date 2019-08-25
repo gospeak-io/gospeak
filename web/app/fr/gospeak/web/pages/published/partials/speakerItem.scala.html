@@ -1,7 +1,22 @@
 @import fr.gospeak.core.domain.User
+@import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 
 @(speaker: User)
-<a class="list-group-item list-group-item-action" href="@SpeakerCtrl.detail(speaker.slug)">
-    <h5 class="mb-0">@speaker.name.value</h5>
-</a>
+<div class="list-group-item list-group-item-action d-flex justify-content-start">
+    <div>
+        <img src="@speaker.avatar.url.value" class="avatar avatar-list" alt="avatar">
+    </div>
+    <div class="col-11">
+        <a href="@SpeakerCtrl.detail(speaker.slug)" class="no-style">
+            <h5 class="mb-0">@speaker.name.value</h5></a>
+        <h6 class="text-secondary font-weight-normal font-italic">@speaker.slug
+            @speaker.profile.twitter.map { url => @twitterLink(url) }
+            @speaker.profile.linkedin.map { url => @linkedinLink(url) }</h6>
+        <p class="text-secondary font-italic no-margin">
+            @emailLink(speaker.email)
+            @speaker.profile.company.map{ company => <i class="fas fa-sitemap"></i> @company }
+            @speaker.profile.website.map { url => @websiteLink(url) }
+        </p>
+    </div>
+</div>
