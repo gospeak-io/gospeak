@@ -6,8 +6,6 @@ import org.flywaydb.core.Flyway
 
 object FlywayUtils {
   def build(conf: DatabaseConf): Flyway = {
-    val flyway = new Flyway()
-    flyway.setLocations("classpath:sql")
     val config = new HikariConfig()
     conf match {
       case c: DatabaseConf.H2 =>
@@ -19,7 +17,9 @@ object FlywayUtils {
         config.setUsername(c.user)
         config.setPassword(c.pass.decode)
     }
-    flyway.setDataSource(new HikariDataSource(config))
-    flyway
+    Flyway.configure()
+      .dataSource(new HikariDataSource(config))
+      .locations("classpath:sql")
+      .load()
   }
 }

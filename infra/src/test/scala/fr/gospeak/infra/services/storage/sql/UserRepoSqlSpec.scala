@@ -10,7 +10,7 @@ class UserRepoSqlSpec extends RepoSpec {
   private val pass = Password(Hasher("hasher"), PasswordValue("password"), Some(Salt("salt")))
   private val loginRef = LoginRef(login, user.id)
   private val credentials = Credentials(login, pass)
-  private val fields = "id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, published, description, company, location, twitter, linkedin, phone, website, created, updated"
+  private val fields = "id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, status, description, company, location, twitter, linkedin, phone, website, created, updated"
 
   describe("UserRepoSql") {
     it("should create and retrieve a user") {
@@ -81,7 +81,7 @@ class UserRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = update(user)
-        q.sql shouldBe "UPDATE users SET slug=?, first_name=?, last_name=?, email=?, description=?, company=?, location=?, twitter=?, linkedin=?, phone=?, website=?, updated=? WHERE id=?"
+        q.sql shouldBe "UPDATE users SET slug=?, first_name=?, last_name=?, email=?, status=?, description=?, company=?, location=?, twitter=?, linkedin=?, phone=?, website=?, updated=? WHERE id=?"
         check(q)
       }
       it("should build validateAccount") {
@@ -103,6 +103,30 @@ class UserRepoSqlSpec extends RepoSpec {
         val q = selectOne(user.slug)
         q.sql shouldBe s"SELECT $fields FROM users WHERE slug=?"
         check(q)
+      }
+      it("should build selectOne with id") {
+        val q = selectOne(user.id)
+        q.sql shouldBe s"SELECT $fields FROM users WHERE id=?"
+        check(q)
+      }
+      it("should build selectOnePublic with slug") {
+        val q = selectOnePublic(user.slug)
+        q.sql shouldBe s"SELECT $fields FROM users WHERE status=? AND slug=?"
+        check(q)
+      }
+      it("should build selectPage") {
+        val (s, c) = selectPage(NonEmptyList.of(user.id), params)
+        s.sql shouldBe s"SELECT $fields FROM users WHERE id IN (?)  ORDER BY first_name IS NULL, first_name OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM users WHERE id IN (?)  "
+        check(s)
+        check(c)
+      }
+      it("should build selectPagePublic") {
+        val (s, c) = selectPagePublic(params)
+        s.sql shouldBe s"SELECT $fields FROM users WHERE status=?  ORDER BY first_name IS NULL, first_name OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM users WHERE status=?  "
+        check(s)
+        check(c)
       }
       it("should build selectAll with ids") {
         val q = selectAll(NonEmptyList.of(user.id, user.id))

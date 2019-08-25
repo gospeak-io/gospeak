@@ -38,7 +38,9 @@ object Proposal {
 
   object Id extends UuidIdBuilder[Id]("Proposal.Id", new Id(_))
 
-  sealed trait Status extends Product with Serializable
+  sealed trait Status extends StringEnum with Product with Serializable {
+    def value: String = toString
+  }
 
   object Status extends EnumBuilder[Status]("Proposal.Status") {
 

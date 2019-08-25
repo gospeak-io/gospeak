@@ -44,7 +44,7 @@ object Mappings {
     "time" -> localTime("HH:mm")
   )({ case (d, t) => LocalDateTime.of(d, t) })(dt => Some(dt.toLocalDate -> dt.toLocalTime))
   val chronoUnit: Mapping[ChronoUnit] = stringEitherMapping(d => Try(ChronoUnit.valueOf(d)).toEither, _.name(), formatError)
-  val periodUnit: Mapping[TimePeriod.PeriodUnit] = stringEitherMapping(d => TimePeriod.PeriodUnit.values.find(_.toString == d).toEither, _.toString, formatError)
+  val periodUnit: Mapping[TimePeriod.PeriodUnit] = stringEitherMapping(d => TimePeriod.PeriodUnit.all.find(_.toString == d).toEither, _.toString, formatError)
   val period: Mapping[TimePeriod] = mapping(
     "length" -> longNumber,
     "unit" -> periodUnit
@@ -111,6 +111,7 @@ object Mappings {
   val tags: Mapping[Seq[Tag]] = seq(tag).verifying(s"Can't add more than ${Tag.maxNumber} tags", _.length <= Tag.maxNumber)
 
   val userSlug: Mapping[User.Slug] = slugMapping(User.Slug)
+  val userProfileStatus: Mapping[User.Profile.Status] = stringEitherMapping(User.Profile.Status.from, _.value, formatError)
   val groupSlug: Mapping[Group.Slug] = slugMapping(Group.Slug)
   val groupName: Mapping[Group.Name] = nonEmptyTextMapping(Group.Name, _.value, Constraints.maxLength(Values.maxLength.title))
   val eventSlug: Mapping[Event.Slug] = slugMapping(Event.Slug)

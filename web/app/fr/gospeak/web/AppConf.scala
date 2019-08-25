@@ -83,6 +83,10 @@ final case class ApplicationConf(env: ApplicationConf.Env)
 object ApplicationConf {
 
   sealed trait Env {
+    def isLocal: Boolean = false
+
+    def isDev: Boolean = false
+
     def isProd: Boolean = false
   }
 
@@ -90,9 +94,13 @@ object ApplicationConf {
     implicit val hint: EnumCoproductHint[Env] = new EnumCoproductHint[Env]
   }
 
-  final case object Local extends Env
+  final case object Local extends Env {
+    override def isLocal: Boolean = true
+  }
 
-  final case object Dev extends Env
+  final case object Dev extends Env {
+    override def isDev: Boolean = true
+  }
 
   final case object Prod extends Env {
     override def isProd: Boolean = true

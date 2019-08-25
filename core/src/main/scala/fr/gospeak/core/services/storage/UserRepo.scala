@@ -21,6 +21,10 @@ trait SpeakerUserRepo {
 }
 
 trait UserUserRepo {
+  def edit(user: User, profile: User.EditableFields, now: Instant): IO[User]
+
+  def editStatus(user: User.Id)(status: User.Profile.Status): IO[Done]
+
   def list(ids: Seq[User.Id]): IO[Seq[User]]
 }
 
@@ -28,8 +32,6 @@ trait AuthUserRepo {
   def create(data: User.Data, now: Instant): IO[User]
 
   def edit(user: User, now: Instant): IO[User]
-
-  def edit(user: User, profile: User.EditableFields, now: Instant): IO[User]
 
   def createLoginRef(login: User.Login, user: User.Id): IO[Done]
 

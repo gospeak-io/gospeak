@@ -171,13 +171,13 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
 
   def onStart(): Unit = {
-    if (!envConf.isProd) {
-      db.dropTables().unsafeRunSync() // TODO remove it for prod
-    }
+    // FIXME update when really deploy on prod
+    db.dropTables().unsafeRunSync()
     db.migrate().unsafeRunSync()
-    if (!envConf.isProd) {
-      db.insertMockData().unsafeRunSync() // TODO remove it for prod
-      // db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync() // TODO remove it for prod
+    if (envConf.isProd) {
+      db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync()
+    } else {
+      db.insertMockData().unsafeRunSync()
     }
 
     messageBus.subscribe(messageHandler.handle)

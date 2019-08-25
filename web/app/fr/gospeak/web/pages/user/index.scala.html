@@ -1,10 +1,12 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Group, Talk}
+@import fr.gospeak.core.domain.{Group, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
+@import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.speaker.partials.html.container
+@import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
 @import fr.gospeak.web.pages.user.routes.UserCtrl
 
@@ -20,6 +22,29 @@
 }
 }
 @container("Gospeak", b)() {
+    @if(talks.nonEmpty && req.identity.user.profile.status.isUndefined) {
+        <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading d-flex justify-content-between align-items-center">
+                <span>Hi speaker!</span>
+                <span>
+                    @formBtn(SpeakerCtrl.changeStatus(User.Profile.Status.Private), Seq(
+                        "class" -> "btn-sm btn-secondary",
+                        "title" -> User.Profile.Status.Private.description,
+                        "data-toggle" -> "tooltip",
+                        "data-placement" -> "bottom")) {Make it private}
+                    @formBtn(SpeakerCtrl.changeStatus(User.Profile.Status.Public), Seq(
+                        "class" -> "btn-sm btn-primary",
+                        "title" -> User.Profile.Status.Public.description,
+                        "data-toggle" -> "tooltip",
+                        "data-placement" -> "bottom")) {Make it public}
+                </span>
+            </h4>
+            <p class="mb-0">
+                Gospeak allows you to have a public page to promote your talks, Enable it with a <b>Public</b> profile or keep your info <b>Private</b> if you prefer.
+                This can be changed at any time in your profile settings.
+            </p>
+        </div>
+    }
     <div class="row">
         <div class="col-6">
         @if(groups.isEmpty) {

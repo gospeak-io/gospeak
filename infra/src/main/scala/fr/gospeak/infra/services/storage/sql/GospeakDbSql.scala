@@ -95,9 +95,13 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
           createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
           updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
         )))
-        standardPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("standard").get, SponsorPack.Name("Standard"), Markdown(""), Price(500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
-        premiumPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("premium").get, SponsorPack.Name("Premium"), Markdown(""), Price(1500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
-        sponsorPacks = List(standardPack, premiumPack)
+        standardPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("standard").get, SponsorPack.Name("Standard"), Markdown(""), Price(500, Price.Currency.EUR), 1.year, active = false, Info(lkn.id, initDate))
+        premiumPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("premium").get, SponsorPack.Name("Premium"), Markdown(""), Price(1500, Price.Currency.EUR), 1.year, active = false, Info(lkn.id, initDate))
+        bronzePack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("bronze").get, SponsorPack.Name("Bronze"), Markdown(""), Price(500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
+        silverPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("silver").get, SponsorPack.Name("Silver"), Markdown(""), Price(1500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
+        goldPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("gold").get, SponsorPack.Name("Gold"), Markdown(""), Price(2500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
+        platiniumPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("platinium").get, SponsorPack.Name("Platinium"), Markdown(""), Price(6000, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
+        sponsorPacks = List(standardPack, premiumPack, bronzePack, silverPack, goldPack, platiniumPack)
         sponsors = htPartners.flatMap(_.toSponsors(groupHt.id, sponsorPacks)).map(e => e.copy(info = e.info.copy(
           createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
           updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
@@ -112,8 +116,9 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
         )))
 
         _ <- run(Queries.insertMany(UserRepoSql.insert)(NonEmptyList.fromListUnsafe(users)))
-        // _ <- run(UserRepoSql.insertCredentials(User.Credentials("credentials", lkn.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
-        // _ <- run(UserRepoSql.insertLoginRef(User.LoginRef("credentials", lkn.email.value, lkn.id)))
+        _ <- run(UserRepoSql.insertCredentials(User.Credentials("credentials", lkn.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
+        _ <- run(UserRepoSql.insertLoginRef(User.LoginRef("credentials", lkn.email.value, lkn.id)))
+        _ <- run(UserRepoSql.validateAccount(lkn.email, lkn.created))
         _ <- run(GroupRepoSql.insert(groupHt))
         _ <- run(CfpRepoSql.insert(cfpHt))
         _ <- run(Queries.insertMany(TalkRepoSql.insert)(NonEmptyList.fromListUnsafe(talks)))
@@ -138,7 +143,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     def user(slug: String, email: String, firstName: String, lastName: String, profile: Profile = User.emptyProfile): User = {
       val emailAddr = EmailAddress.from(email).get
       val avatar = gravatarSrv.getAvatar(emailAddr)
-      User(User.Id.generate(), User.Slug.from(slug).get, firstName, lastName, emailAddr, Some(now), avatar, published = Some(now), profile, now, now)
+      User(User.Id.generate(), User.Slug.from(slug).get, firstName, lastName, emailAddr, Some(now), avatar, profile, now, now)
     }
 
     def group(slug: String, name: String, tags: Seq[String], by: User, owners: Seq[User] = Seq()): Group =
@@ -157,7 +162,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), MustacheMarkdownTmpl(description), venue.map(_.id), Seq(), tags.map(Tag(_)), Some(now).filter(_.isAfter(Instant.parse(date + "T06:06:24.074Z"))), Event.ExtRefs(), Info(by.id, now))
 
     def partner(g: Group, name: String, description: String, logo: Int, by: User): Partner =
-      Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(description), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").get, Info(by.id, now))
+      Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(description), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").get, None, Info(by.id, now))
 
     def venue(partner: Partner, address: GMapPlace, by: User, description: String = "", roomSize: Option[Int] = None): Venue =
       Venue(Venue.Id.generate(), partner.id, address, Markdown(description), roomSize, Venue.ExtRefs(), Info(by.id, now))
@@ -168,7 +173,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     def sponsor(group: Group, partner: Partner, pack: SponsorPack, by: User, start: String, finish: String): Sponsor =
       Sponsor(Sponsor.Id.generate(), group.id, partner.id, pack.id, LocalDate.parse(start), LocalDate.parse(finish), Some(LocalDate.parse(start)), Price(1500, Price.Currency.EUR), Info(by.id, now))
 
-    val userDemoProfil = User.Profile(Some("Entrepreneur, functional programmer, OSS contributor, speaker, author.\nWork hard, stay positive, and live fearlessly."),
+    val userDemoProfil = User.Profile(User.Profile.Status.Undefined, Some("Entrepreneur, functional programmer, OSS contributor, speaker, author.\nWork hard, stay positive, and live fearlessly."),
       Some("Zeenea"), Some("Paris"), Some(Url.from("https://twitter.com/HumanTalks").get), Some(Url.from("https://www.linkedin.com/in/loicknuchel").get), None, Some(Url.from("https://humantalks.com").get))
     val userDemo = user("demo", "demo@mail.com", "Demo", "User", userDemoProfil)
     val userSpeaker = user("speaker", "speaker@mail.com", "Speaker", "User")
@@ -266,9 +271,10 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val premium = sponsorPack(humanTalks, "Premium", 1500, userDemo)
     val packs = NonEmptyList.of(base, premium)
 
-    val sponsor1 = sponsor(humanTalks, zeenea, premium, userDemo, "2019-01-01", "2020-01-01")
-    val sponsor2 = sponsor(humanTalks, nexeo, base, userDemo, "2018-01-01", "2019-01-01")
-    val sponsors = NonEmptyList.of(sponsor1, sponsor2)
+    val sponsor1 = sponsor(humanTalks, zeenea, base, userDemo, "2018-01-01", "2019-01-01")
+    val sponsor2 = sponsor(humanTalks, zeenea, premium, userDemo, "2019-01-01", "2020-01-01")
+    val sponsor3 = sponsor(humanTalks, nexeo, base, userDemo, "2018-01-01", "2019-01-01")
+    val sponsors = NonEmptyList.of(sponsor1, sponsor2, sponsor3)
 
     val generated = (1 to 25).toList.map { i =>
       val groupId = Group.Id.generate()

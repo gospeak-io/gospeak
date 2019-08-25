@@ -78,9 +78,13 @@ object SlugBuilder {
   val pattern: Regex = "[a-z0-9-_]+".r
 }
 
-abstract class EnumBuilder[A](clazz: String) {
+trait StringEnum {
+  def value: String
+}
+
+abstract class EnumBuilder[A <: StringEnum](clazz: String) {
   val all: Seq[A]
 
   def from(str: String): Either[CustomException, A] =
-    all.find(_.toString == str).toEither(CustomException(s"$str in an invalid $clazz"))
+    all.find(_.value == str).toEither(CustomException(s"$str in an invalid $clazz"))
 }

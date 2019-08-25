@@ -116,6 +116,7 @@ POST        /u/groups/:group/settings/event-template/:templateId/remove         
 GET         /u/profile                                                          fr.gospeak.web.pages.speaker.SpeakerCtrl.profile(params: Page.Params ?= Page.Params.defaults)
 GET         /u/edit-profile                                                     fr.gospeak.web.pages.speaker.SpeakerCtrl.getProfile(params: Page.Params ?= Page.Params.defaults)
 POST        /u/profile                                                          fr.gospeak.web.pages.speaker.SpeakerCtrl.editProfile()
+POST        /u/profile/status/:status                                           fr.gospeak.web.pages.speaker.SpeakerCtrl.changeStatus(status: User.Profile.Status)
 GET         /u/talks                                                            fr.gospeak.web.pages.speaker.talks.TalkCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /u/talks/create                                                     fr.gospeak.web.pages.speaker.talks.TalkCtrl.create
 POST        /u/talks/create                                                     fr.gospeak.web.pages.speaker.talks.TalkCtrl.doCreate

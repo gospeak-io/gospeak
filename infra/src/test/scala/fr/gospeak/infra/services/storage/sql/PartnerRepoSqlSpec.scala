@@ -4,18 +4,18 @@ import fr.gospeak.infra.services.storage.sql.PartnerRepoSql._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class PartnerRepoSqlSpec extends RepoSpec {
-  private val fields = "id, group_id, slug, name, description, logo, created, created_by, updated, updated_by"
+  private val fields = "id, group_id, slug, name, description, logo, twitter, created, created_by, updated, updated_by"
 
   describe("PartnerRepoSql") {
     describe("Queries") {
       it("should build insert") {
         val q = insert(partner)
-        q.sql shouldBe s"INSERT INTO partners ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO partners ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update") {
         val q = update(group.id, partner.slug)(partner.data, user.id, now)
-        q.sql shouldBe "UPDATE partners SET slug=?, name=?, description=?, logo=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
+        q.sql shouldBe "UPDATE partners SET slug=?, name=?, description=?, logo=?, twitter=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
         check(q)
       }
       it("should build selectPage") {

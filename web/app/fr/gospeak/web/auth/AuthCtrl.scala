@@ -25,9 +25,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-// TODO add conf for db, emailsrv...
-
-// TODO Test this controller
 // TODO Social auth
 // TODO JWT Auth for API
 class AuthCtrl(cc: ControllerComponents,

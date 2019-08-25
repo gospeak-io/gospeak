@@ -72,7 +72,7 @@ class AuthSrv(userRepo: AuthUserRepo,
 
   def login(user: AuthUser, rememberMe: Boolean, redirect: Result)(implicit req: Request[AnyContent]): Future[AuthenticatorResult] = {
     for {
-      _ <- if (user.user.emailValidated.isEmpty && user.user.created != user.user.updated) Future.failed(AccountValidationRequiredException(user)) else Future.successful(())
+      _ <- if (user.shouldValidateEmail()) Future.failed(AccountValidationRequiredException(user)) else Future.successful(())
       authenticator <- silhouette.env.authenticatorService.create(user.loginInfo).map {
         case auth if rememberMe => auth.copy(
           expirationDateTime = clock.now.plus(authConf.cookie.rememberMe.authenticatorExpiry.toMillis),
