@@ -1,7 +1,9 @@
 package fr.gospeak.core.services.meetup.domain
 
-final case class MeetupCredentials(accessToken: String, // FIXME must be encoded
-                                   refreshToken: String, // FIXME must be encoded
+import fr.gospeak.libs.scalautils.domain.Crypted
+
+final case class MeetupCredentials(accessToken: Crypted,
+                                   refreshToken: Crypted,
                                    group: MeetupGroup.Slug,
                                    loggedUserId: MeetupUser.Id,
                                    loggedUserName: String)

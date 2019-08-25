@@ -9,6 +9,7 @@ import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaSigner}
 import com.mohiva.play.silhouette.impl.authenticators._
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.softwaremill.macwire.wire
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.utils.GospeakMessage
 import fr.gospeak.core.services._
 import fr.gospeak.core.services.meetup.MeetupSrv
@@ -58,7 +59,8 @@ class GospeakComponents(context: ApplicationLoader.Context)
   logger.info("Start application")
   lazy val conf: AppConf = AppConf.load(configuration).get
   logger.info(s"Configuration loaded: $conf")
-  lazy val envConf: ApplicationConf.Env = conf.application.env
+  lazy val appConf: ApplicationConf = conf.application
+  lazy val envConf: ApplicationConf.Env = appConf.env
   lazy val authConf: AuthConf = conf.auth
   lazy val dbConf: DatabaseConf = conf.database
   lazy val meetupConf: MeetupClient.Conf = conf.meetup

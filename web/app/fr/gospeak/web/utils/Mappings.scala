@@ -9,6 +9,7 @@ import cats.implicits._
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.meetup.domain.MeetupGroup
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
+import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain._
@@ -131,7 +132,8 @@ object Mappings {
   val contactFirstName: Mapping[Contact.FirstName] = nonEmptyTextMapping(Contact.FirstName, _.value)
   val contactLastName: Mapping[Contact.LastName] = nonEmptyTextMapping(Contact.LastName, _.value)
   val meetupGroupSlug: Mapping[MeetupGroup.Slug] = stringEitherMapping(MeetupGroup.Slug.from, _.value, formatError, Constraints.nonEmpty)
-  val slackToken: Mapping[SlackToken] = nonEmptyTextMapping(SlackToken, _.value)
+
+  def slackToken(key: AesSecretKey): Mapping[SlackToken] = stringEitherMapping(SlackToken.from(_, key).toEither, _.decode(key).get, formatError, Constraints.nonEmpty)
 
   private def templateFormatter[A]: Formatter[MustacheMarkdownTmpl[A]] = new Formatter[MustacheMarkdownTmpl[A]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], MustacheMarkdownTmpl[A]] =

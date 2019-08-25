@@ -9,23 +9,26 @@ import fr.gospeak.core.services.slack.domain._
 import fr.gospeak.infra.libs.slack.{SlackClient, domain => api}
 import fr.gospeak.infra.services.TemplateSrv
 import fr.gospeak.infra.services.slack.SlackSrvImpl._
+import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Markdown}
+
+import scala.util.Try
 
 // SlackSrv should not use Slack classes in the API, it's independent and the implementation should do the needed conversion
 class SlackSrvImpl(client: SlackClient,
                    templateSrv: TemplateSrv) extends SlackSrv {
-  override def getInfos(token: SlackToken): IO[SlackTokenInfo] =
-    client.info(toSlack(token)).map(_.map(toGospeak)).flatMap(toIO)
+  override def getInfos(token: SlackToken, key: AesSecretKey): IO[SlackTokenInfo] =
+    toSlack(token, key).toIO.flatMap(client.info).map(_.map(toGospeak)).flatMap(toIO)
 
-  override def exec(creds: SlackCredentials, action: SlackAction, data: TemplateData): IO[Unit] = action match {
-    case a: PostMessage => postMessage(creds, a, data).map(_ => ())
+  override def exec(action: SlackAction, data: TemplateData, creds: SlackCredentials, key: AesSecretKey): IO[Unit] = action match {
+    case a: PostMessage => postMessage(a, data, creds, key).map(_ => ())
   }
 
-  private def postMessage(creds: SlackCredentials, action: PostMessage, data: TemplateData): IO[Either[api.SlackError, api.SlackMessage]] = {
-    val token = toSlack(creds.token)
+  private def postMessage(action: PostMessage, data: TemplateData, creds: SlackCredentials, key: AesSecretKey): IO[Either[api.SlackError, api.SlackMessage]] = {
     val sender = api.SlackSender.Bot(creds.name, creds.avatar.map(_.value))
     for {
+      token <- toSlack(creds.token, key).toIO
       channel <- templateSrv.render(action.channel, data).map(toSlackName).toIO(CustomException(_))
       message <- templateSrv.render(action.message, data).map(toSlack).toIO(CustomException(_))
       attempt1 <- client.postMessage(token, sender, channel, message)
@@ -45,8 +48,8 @@ class SlackSrvImpl(client: SlackClient,
     } yield attempt2
   }
 
-  private def toSlack(token: SlackToken): api.SlackToken =
-    api.SlackToken(token.value)
+  private def toSlack(token: SlackToken, key: AesSecretKey): Try[api.SlackToken] =
+    token.decode(key).map(api.SlackToken)
 
   private def toSlack(md: Markdown): api.SlackContent.Markdown =
     api.SlackContent.Markdown(md.value)

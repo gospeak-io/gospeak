@@ -15,7 +15,7 @@ import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
-import fr.gospeak.libs.scalautils.domain.{Done, Url}
+import fr.gospeak.libs.scalautils.domain.{Crypted, Done, Url}
 import io.circe._
 import io.circe.generic.semiauto._
 
@@ -26,6 +26,8 @@ class SettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   private implicit def textTemplateEncoder[A]: Encoder[MustacheTextTmpl[A]] = deriveEncoder[MustacheTextTmpl[A]]
   private implicit def markdownTemplateDecoder[A]: Decoder[MustacheMarkdownTmpl[A]] = deriveDecoder[MustacheMarkdownTmpl[A]]
   private implicit def markdownTemplateEncoder[A]: Encoder[MustacheMarkdownTmpl[A]] = deriveEncoder[MustacheMarkdownTmpl[A]]
+  private implicit val cryptedDecoder: Decoder[Crypted] = (c: HCursor) => c.as[String].map(Crypted(_))
+  private implicit val cryptedEncoder: Encoder[Crypted] = (a: Crypted) => Json.fromString(a.value)
   private implicit val meetupGroupSlugDecoder: Decoder[MeetupGroup.Slug] = (c: HCursor) => c.as[String].flatMap(s => MeetupGroup.Slug.from(s).leftMap(e => DecodingFailure(e.message, List())))
   private implicit val meetupGroupSlugEncoder: Encoder[MeetupGroup.Slug] = (a: MeetupGroup.Slug) => Json.fromString(a.value)
   private implicit val meetupUserIdDecoder: Decoder[MeetupUser.Id] = deriveDecoder[MeetupUser.Id]

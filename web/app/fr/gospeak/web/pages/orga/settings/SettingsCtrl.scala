@@ -6,6 +6,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.Group
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.meetup.domain.{MeetupCredentials, MeetupException, MeetupGroup}
@@ -24,13 +25,9 @@ import play.api.mvc._
 
 import scala.util.control.NonFatal
 
-/*
-  TODO
-    - encode meetup accessToken & refreshToken (in MeetupCredentials)
-    - encode slack token (in SlackCredentials)
- */
 class SettingsCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
+                   appConf: ApplicationConf,
                    groupRepo: OrgaGroupRepo,
                    settingsRepo: SettingsRepo,
                    meetupSrv: MeetupSrv,
@@ -66,9 +63,9 @@ class SettingsCtrl(cc: ControllerComponents,
       (for {
         groupElt <- OptionT(groupRepo.find(user, group))
         settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
-        token <- OptionT.liftF(meetupSrv.requestAccessToken(redirectUri, code))
-        loggedUser <- OptionT.liftF(meetupSrv.getLoggedUser()(token))
-        meetupGroupElt <- OptionT.liftF(meetupSrv.getGroup(meetupGroup)(token))
+        token <- OptionT.liftF(meetupSrv.requestAccessToken(redirectUri, code, appConf.aesKey))
+        loggedUser <- OptionT.liftF(meetupSrv.getLoggedUser(appConf.aesKey)(token))
+        meetupGroupElt <- OptionT.liftF(meetupSrv.getGroup(meetupGroup, appConf.aesKey)(token))
         creds = MeetupCredentials(token, loggedUser, meetupGroupElt)
         _ <- OptionT.liftF(settingsRepo.set(groupElt.id, settings.set(creds), user, now))
         next = Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> s"Connected to <b>${loggedUser.name}</b> meetup account")
@@ -88,9 +85,9 @@ class SettingsCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
-      res <- OptionT.liftF(SettingsForms.slackAccount.bindFromRequest.fold(
+      res <- OptionT.liftF(SettingsForms.slackAccount(appConf.aesKey).bindFromRequest.fold(
         formWithErrors => IO.pure(settingsView(groupElt, settings, slack = Some(formWithErrors))),
-        creds => slackSrv.getInfos(creds.token)
+        creds => slackSrv.getInfos(creds.token, appConf.aesKey)
           .flatMap(_ => settingsRepo.set(groupElt.id, settings.set(creds), user, now))
           .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Slack account updated"))
           .recover { case NonFatal(e) => Redirect(routes.SettingsCtrl.list(group)).flashing("error" -> s"Invalid Slack token: ${e.getMessage}") }
@@ -182,7 +179,7 @@ class SettingsCtrl(cc: ControllerComponents,
       groupElt,
       settings,
       meetup.getOrElse(settings.accounts.meetup.map(s => SettingsForms.meetupAccount.fill(MeetupAccount(s.group))).getOrElse(SettingsForms.meetupAccount)),
-      slack.getOrElse(settings.accounts.slack.map(s => SettingsForms.slackAccount.fill(s)).getOrElse(SettingsForms.slackAccount)),
+      slack.getOrElse(settings.accounts.slack.map(s => SettingsForms.slackAccount(appConf.aesKey).fill(s)).getOrElse(SettingsForms.slackAccount(appConf.aesKey))),
       action.getOrElse(SettingsForms.addAction)
     )(listBreadcrumb(groupElt)))
   }

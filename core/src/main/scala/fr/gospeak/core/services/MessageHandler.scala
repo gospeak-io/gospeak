@@ -1,6 +1,7 @@
 package fr.gospeak.core.services
 
 import cats.effect.IO
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.Group
 import fr.gospeak.core.domain.Group.Settings.Action
 import fr.gospeak.core.domain.Group.Settings.Action.Trigger
@@ -12,7 +13,8 @@ import fr.gospeak.libs.scalautils.domain.CustomException
 
 import scala.util.control.NonFatal
 
-class MessageHandler(settingsRepo: SettingsRepo,
+class MessageHandler(appConf: ApplicationConf,
+                     settingsRepo: SettingsRepo,
                      slackSrv: SlackSrv) {
   def handle(msg: GospeakMessage): IO[Unit] = (msg match {
     case m: GospeakMessage.EventCreated => handle(m)
@@ -38,6 +40,6 @@ class MessageHandler(settingsRepo: SettingsRepo,
   } yield results.length
 
   private def exec(settings: Group.Settings, action: Action, data: TemplateData): IO[Unit] = action match {
-    case Action.Slack(slack) => settings.accounts.slack.map(slackSrv.exec(_, slack, data)).getOrElse(IO.raiseError(CustomException("No credentials for Slack")))
+    case Action.Slack(slack) => settings.accounts.slack.map(slackSrv.exec(slack, data, _, appConf.aesKey)).getOrElse(IO.raiseError(CustomException("No credentials for Slack")))
   }
 }

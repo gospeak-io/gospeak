@@ -9,10 +9,7 @@ val commonSettings: Seq[Setting[_]] = Seq(
   scalacOptions ++= Seq(
     "-deprecation",
     "-Ypartial-unification"),
-  resolvers ++= Seq(
-    Resolver.jcenterRepo,
-    "Typesafe Repository" at "https://repo.typesafe.com/typesafe/maven-releases",
-    Resolver.typesafeRepo("releases")),
+  resolvers ++= Seq(Resolver.jcenterRepo),
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
 )
 

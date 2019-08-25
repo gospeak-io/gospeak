@@ -3,6 +3,7 @@ package fr.gospeak.web.api.ui
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.Group
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.slack.SlackSrv
@@ -15,6 +16,7 @@ import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.JsonFormats._
 import fr.gospeak.web.utils.{ApiCtrl, Formats, MarkdownUtils}
 import play.api.libs.json._
+import fr.gospeak.libs.scalautils.Extensions._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import play.twirl.api.HtmlFormat
 
@@ -32,6 +34,7 @@ case class TemplateResponse(result: Option[Html], error: Option[String])
 
 class SuggestCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
+                  appConf: ApplicationConf,
                   groupRepo: SuggestGroupRepo,
                   cfpRepo: SuggestCfpRepo,
                   eventRepo: SuggestEventRepo,
@@ -90,7 +93,7 @@ class SuggestCtrl(cc: ControllerComponents,
 
   def validateSlackToken(token: String): Action[AnyContent] = SecuredAction.async { implicit req =>
     import cats.implicits._
-    slackSrv.getInfos(SlackToken(token))
+    SlackToken.from(token, appConf.aesKey).toIO.flatMap(slackSrv.getInfos(_, appConf.aesKey))
       .map(infos => ValidationResult(valid = true, s"Token for ${infos.teamName} team, created by ${infos.userName}"))
       .recover { case NonFatal(e) => ValidationResult(valid = false, s"Invalid token: ${e.getMessage}") }
       .map(res => Ok(Json.toJson(res))).unsafeToFuture()

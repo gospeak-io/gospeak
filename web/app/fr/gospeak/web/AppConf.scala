@@ -2,9 +2,11 @@ package fr.gospeak.web
 
 import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
 import com.typesafe.config.{Config, ConfigFactory}
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.infra.libs.meetup.MeetupClient
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.infra.services.storage.sql.DatabaseConf
+import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Secret
 import fr.gospeak.web.auth.AuthConf
@@ -43,6 +45,7 @@ object AppConf {
     import pureconfig.generic.semiauto._
 
     private implicit val secretReader: ConfigReader[Secret] = deriveReader[Secret]
+    private implicit val aesSecretKeyReader: ConfigReader[AesSecretKey] = (cur: ConfigCursor) => cur.asString.map(AesSecretKey)
 
     private implicit val applicationConfEnvReader: ConfigReader[ApplicationConf.Env] = (cur: ConfigCursor) => cur.asString.flatMap {
       case "local" => Right(ApplicationConf.Local)
@@ -65,6 +68,7 @@ object AppConf {
     private implicit val emailSrvConfInMemeryReader: ConfigReader[EmailSrv.Conf.InMemery] = deriveReader[EmailSrv.Conf.InMemery]
     private implicit val emailSrvConfSendGridReader: ConfigReader[EmailSrv.Conf.SendGrid] = deriveReader[EmailSrv.Conf.SendGrid]
 
+    private implicit val applicationConfEnvHint: EnumCoproductHint[ApplicationConf.Env] = new EnumCoproductHint[ApplicationConf.Env]
     private implicit val applicationConfReader: ConfigReader[ApplicationConf] = deriveReader[ApplicationConf]
     private implicit val authConfReader: ConfigReader[AuthConf] = deriveReader[AuthConf]
     private implicit val databaseConfReader: ConfigReader[DatabaseConf] = deriveReader[DatabaseConf]
@@ -74,36 +78,6 @@ object AppConf {
     private implicit val appConfReader: ConfigReader[AppConf] = deriveReader[AppConf]
 
     val reader: Derivation[ConfigReader[AppConf]] = implicitly[Derivation[ConfigReader[AppConf]]]
-  }
-
-}
-
-final case class ApplicationConf(env: ApplicationConf.Env)
-
-object ApplicationConf {
-
-  sealed trait Env {
-    def isLocal: Boolean = false
-
-    def isDev: Boolean = false
-
-    def isProd: Boolean = false
-  }
-
-  object Env {
-    implicit val hint: EnumCoproductHint[Env] = new EnumCoproductHint[Env]
-  }
-
-  final case object Local extends Env {
-    override def isLocal: Boolean = true
-  }
-
-  final case object Dev extends Env {
-    override def isDev: Boolean = true
-  }
-
-  final case object Prod extends Env {
-    override def isProd: Boolean = true
   }
 
 }

@@ -3,6 +3,7 @@ package fr.gospeak.infra.services.storage.sql
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.Group
 import fr.gospeak.infra.services.storage.sql.EventRepoSql._
+import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class EventRepoSqlSpec extends RepoSpec {
@@ -31,7 +32,7 @@ class EventRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = insert(event)
-        q.sql shouldBe s"INSERT INTO events ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO events ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update") {
@@ -51,24 +52,24 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne") {
         val q = selectOne(group.id, event.slug)
-        q.sql shouldBe s"SELECT $fields FROM events WHERE group_id=? AND slug=?"
+        q.sql shouldBe s"SELECT $fieldList FROM events WHERE group_id=? AND slug=?"
         check(q)
       }
       it("should build selectPage") {
         val (s, c) = selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fields FROM events WHERE group_id=? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fieldList FROM events WHERE group_id=? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM events WHERE group_id=? "
         check(s)
         check(c)
       }
       it("should build selectAll") {
         val q = selectAll(NonEmptyList.of(event.id))
-        q.sql shouldBe s"SELECT $fields FROM events WHERE id IN (?) "
+        q.sql shouldBe s"SELECT $fieldList FROM events WHERE id IN (?) "
         check(q)
       }
       it("should build selectAllAfter") {
         val (s, c) = selectAllAfter(group.id, now, params)
-        s.sql shouldBe s"SELECT $fields FROM events WHERE group_id=? AND start > ? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fieldList FROM events WHERE group_id=? AND start > ? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM events WHERE group_id=? AND start > ? "
         check(s)
         check(c)
