@@ -1,11 +1,17 @@
 @import fr.gospeak.web.pages.partials.form.Utils
+@import java.util.concurrent.TimeUnit
 
-@(field: Field, args: Seq[(String, String)] = Seq())
+@(field: Field, timeUnits: Seq[TimeUnit] = Utils.timeUnits, args: Seq[(String, String)] = Seq())
 <div class="row">
     <div class="col">
         @inputNumber(field("length"), args)
     </div>
     <div class="col">
-        @inputSelect(field("unit"), Utils.timeUnits, ("placeholder", "time unit") +: args)
+        @if(timeUnits.length == 1) {
+            @inputHidden(field("unit"), ("value", timeUnits.head.name()) +: args)
+            <input type="text" class="form-control-plaintext" value="@timeUnits.head.name().toLowerCase.capitalize" readonly tabindex="-1" />
+        } else {
+            @inputSelect(field("unit"), timeUnits.map(u => (u.name(), u.name().toLowerCase.capitalize)), ("placeholder", "time unit") +: args)
+        }
     </div>
 </div>

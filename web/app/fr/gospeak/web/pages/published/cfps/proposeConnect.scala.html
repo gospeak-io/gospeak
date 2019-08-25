@@ -39,7 +39,8 @@
                 @formElt(loginForm, CfpCtrl.doProposeLogin(cfp.slug)) {
                     @inputHidden(loginForm("talk.title"))
                     @inputHidden(loginForm("talk.description"))
-                    @inputHidden(loginForm("talk.duration"))
+                    @inputHidden(loginForm("talk.duration.length"))
+                    @inputHidden(loginForm("talk.duration.unit"))
                     @inputHidden(loginForm("talk.slides"))
                     @inputHidden(loginForm("talk.video"))
                     @inputHidden(loginForm("talk.slug"))
@@ -56,7 +57,8 @@
                 @formElt(signupForm, CfpCtrl.doProposeSignup(cfp.slug)) {
                     @inputHidden(signupForm("talk.title"))
                     @inputHidden(signupForm("talk.description"))
-                    @inputHidden(signupForm("talk.duration"))
+                    @inputHidden(signupForm("talk.duration.length"))
+                    @inputHidden(signupForm("talk.duration.unit"))
                     @inputHidden(signupForm("talk.slides"))
                     @inputHidden(signupForm("talk.video"))
                     @inputHidden(signupForm("talk.slug"))

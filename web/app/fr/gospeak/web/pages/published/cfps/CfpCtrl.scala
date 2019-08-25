@@ -116,7 +116,7 @@ class CfpCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt, identity, nowLDT).unsafeToFuture())
         msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
       } yield result.flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp))).recoverWith {
-        case _: AccountValidationRequiredException => proposeConnectForm(cfp, now, signupData = Some(data), error = "Account created, you need to validate it by clicking on the email validation link").unsafeToFuture()
+        case _: AccountValidationRequiredException => proposeConnectForm(cfp, now, signupData = Some(data), error = "Account activated, you need to validate it by clicking on the email validation link before submitting a talk").unsafeToFuture()
         case _: DuplicateIdentityException => proposeConnectForm(cfp, now, signupData = Some(data), error = "User already exists").unsafeToFuture()
         case e: DuplicateSlugException => proposeConnectForm(cfp, now, signupData = Some(data), error = s"Username ${e.slug.value} is already taken").unsafeToFuture()
         case NonFatal(e) => proposeConnectForm(cfp, now, signupData = Some(data), error = s"${e.getClass.getSimpleName}: ${e.getMessage}").unsafeToFuture()
@@ -158,8 +158,8 @@ class CfpCtrl(cc: ControllerComponents,
   private def proposeConnectForm(cfp: Cfp.Slug, now: Instant, error: String, signupData: Option[CfpForms.ProposalSignupData] = None, loginData: Option[CfpForms.ProposalLoginData] = None)(implicit req: UserAwareRequest[CookieEnv, AnyContent]): IO[Result] =
     proposeConnectForm(
       cfp,
-      signupData.map(CfpForms.signup.fill(_).withGlobalError(error)).getOrElse(CfpForms.signup.bindFromRequest),
-      loginData.map(CfpForms.login.fill(_).withGlobalError(error)).getOrElse(CfpForms.login.bindFromRequest),
+      signupData.map(CfpForms.signup.fill(_).withGlobalError(error)).getOrElse(CfpForms.signup.bindFromRequest.discardingErrors),
+      loginData.map(CfpForms.login.fill(_).withGlobalError(error)).getOrElse(CfpForms.login.bindFromRequest.discardingErrors),
       now
     )
 }

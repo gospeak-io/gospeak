@@ -32,17 +32,7 @@ object Utils {
     def toArgs: Args = args
   }
 
-  val timeUnits: Seq[(String, String)] = Seq(
-    TimeUnit.MINUTES.name() -> "Minutes",
-    TimeUnit.HOURS.name() -> "Hours",
-    TimeUnit.DAYS.name() -> "Days")
-  val chronoUnits: Seq[(String, String)] = Seq(
-    ChronoUnit.MINUTES.name() -> "Minutes",
-    ChronoUnit.HOURS.name() -> "Hours",
-    ChronoUnit.DAYS.name() -> "Days",
-    ChronoUnit.WEEKS.name() -> "Weeks",
-    ChronoUnit.MONTHS.name() -> "Months",
-    ChronoUnit.YEARS.name() -> "Years")
+  val timeUnits: Seq[TimeUnit] = Seq(TimeUnit.MINUTES, TimeUnit.HOURS, TimeUnit.DAYS)
 
   def typeAttr(value: String): Html =
     attr("type", value)

@@ -12,7 +12,7 @@
     @inputPrice(field, args)
 }
 @fieldHorizontal(form("duration"), Seq("label" -> "Subscription period", "help" -> "Standard period of subscription for this pack")) { (field, args) =>
-    @inputPeriod(field, args)
+    @inputPeriod(field, args = args)
 }
 @fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the sponsor pack (in urls for example)")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "Sponsor pack slug", "slug-for" -> form("name").id) ++ args)

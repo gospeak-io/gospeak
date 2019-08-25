@@ -37,6 +37,8 @@ object TimePeriod {
     def chrono: ChronoUnit = toChrono(this)
 
     def value: String = toString
+
+    def plural: String = s"${toString}s"
   }
 
   object PeriodUnit {
