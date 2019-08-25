@@ -6,8 +6,6 @@ import fr.gospeak.infra.services.storage.sql.EventRepoSql._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class EventRepoSqlSpec extends RepoSpec {
-  private val fields = "id, group_id, cfp_id, slug, name, start, description, venue, talks, tags, published, meetupGroup, meetupEvent, created, created_by, updated, updated_by"
-
   describe("EventRepoSql") {
     it("should create and retrieve an event for a group") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
@@ -77,4 +75,8 @@ class EventRepoSqlSpec extends RepoSpec {
       }
     }
   }
+}
+
+object EventRepoSqlSpec {
+  val fieldList = "id, group_id, cfp_id, slug, name, start, description, venue, talks, tags, published, meetupGroup, meetupEvent, created, created_by, updated, updated_by"
 }

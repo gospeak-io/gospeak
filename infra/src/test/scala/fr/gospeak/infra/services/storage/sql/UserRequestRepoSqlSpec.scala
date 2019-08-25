@@ -3,23 +3,22 @@ package fr.gospeak.infra.services.storage.sql
 import fr.gospeak.core.domain.UserRequest
 import fr.gospeak.core.domain.UserRequest._
 import fr.gospeak.infra.services.storage.sql.UserRequestRepoSql._
+import fr.gospeak.infra.services.storage.sql.UserRequestRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class UserRequestRepoSqlSpec extends RepoSpec {
-  private val fields = "id, kind, email, group_id, deadline, created, created_by, accepted, accepted_by, rejected, rejected_by"
-
   describe("UserRequestRepoSql") {
     describe("Queries") {
       it("should build selectPage for user") {
         val (s, c) = selectPage(user.id, params)
-        s.sql shouldBe s"SELECT $fields FROM requests WHERE created_by = ? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fieldList FROM requests WHERE created_by = ? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM requests WHERE created_by = ? "
         check(s)
         check(c)
       }
       it("should build selectPage for group") {
         val (s, c) = selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fields FROM requests WHERE group_id = ? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fieldList FROM requests WHERE group_id = ? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM requests WHERE group_id = ? "
         check(s)
         check(c)
@@ -98,4 +97,8 @@ class UserRequestRepoSqlSpec extends RepoSpec {
       }
     }
   }
+}
+
+object UserRequestRepoSqlSpec {
+  val fieldList = "id, kind, email, group_id, deadline, created, created_by, accepted, accepted_by, rejected, rejected_by"
 }

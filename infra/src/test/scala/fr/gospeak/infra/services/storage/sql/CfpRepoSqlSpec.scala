@@ -1,13 +1,12 @@
 package fr.gospeak.infra.services.storage.sql
 
-import fr.gospeak.core.domain.{Group, Talk}
-import CfpRepoSql._
 import cats.data.NonEmptyList
+import fr.gospeak.core.domain.{Group, Talk}
+import fr.gospeak.infra.services.storage.sql.CfpRepoSql._
+import fr.gospeak.infra.services.storage.sql.CfpRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class CfpRepoSqlSpec extends RepoSpec {
-  private val fields = "id, group_id, slug, name, begin, close, description, tags, created, created_by, updated, updated_by"
-
   describe("CfpRepoSql") {
     it("should create and retrieve a cfp for a group") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
@@ -39,7 +38,7 @@ class CfpRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = insert(cfp)
-        q.sql shouldBe s"INSERT INTO cfps ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO cfps ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update") {
@@ -49,63 +48,63 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne for cfp id") {
         val q = selectOne(cfp.id)
-        q.sql shouldBe s"SELECT $fields FROM cfps WHERE id=?"
+        q.sql shouldBe s"SELECT $fieldList FROM cfps WHERE id=?"
         check(q)
       }
       it("should build selectOne for cfp slug") {
         val q = selectOne(cfp.slug)
-        q.sql shouldBe s"SELECT $fields FROM cfps WHERE slug=?"
+        q.sql shouldBe s"SELECT $fieldList FROM cfps WHERE slug=?"
         check(q)
       }
       it("should build selectOne for group id and cfp slug") {
         val q = selectOne(group.id, cfp.slug)
-        q.sql shouldBe s"SELECT $fields FROM cfps WHERE group_id=? AND slug=?"
+        q.sql shouldBe s"SELECT $fieldList FROM cfps WHERE group_id=? AND slug=?"
         check(q)
       }
       it("should build selectOne for event id") {
         val q = selectOne(event.id)
-        q.sql shouldBe s"SELECT ${fields.split(", ").map("c." + _).mkString(", ")} FROM cfps c INNER JOIN events e ON e.cfp_id=c.id WHERE e.id=?"
+        q.sql shouldBe s"SELECT ${fieldsPrefixedBy(fieldList, "c.")} FROM cfps c INNER JOIN events e ON e.cfp_id=c.id WHERE e.id=?"
         check(q)
       }
       it("should build selectOne for cfp slug id and date") {
         val q = selectOne(cfp.slug, now)
-        q.sql shouldBe s"SELECT $fields FROM cfps WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) AND slug=?"
+        q.sql shouldBe s"SELECT $fieldList FROM cfps WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) AND slug=?"
         check(q)
       }
       it("should build selectPage for a group") {
         val (s, c) = selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fields FROM cfps WHERE group_id=? ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fieldList FROM cfps WHERE group_id=? ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM cfps WHERE group_id=? "
         check(s)
         check(c)
       }
       it("should build selectPage for a talk") {
         val (s, c) = selectPage(talk.id, params)
-        s.sql shouldBe s"SELECT $fields FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fieldList FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM cfps WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) "
         check(s)
         check(c)
       }
       it("should build selectPage for a date") {
         val (s, c) = selectPage(now, params)
-        s.sql shouldBe s"SELECT $fields FROM cfps WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fieldList FROM cfps WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM cfps WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) "
         check(s)
         check(c)
       }
       it("should build selectAll for group id") {
         val q = selectAll(group.id)
-        q.sql shouldBe s"SELECT $fields FROM cfps WHERE group_id=?"
+        q.sql shouldBe s"SELECT $fieldList FROM cfps WHERE group_id=?"
         check(q)
       }
       it("should build selectAll for cfp ids") {
         val q = selectAll(NonEmptyList.of(cfp.id, cfp.id, cfp.id))
-        q.sql shouldBe s"SELECT $fields FROM cfps WHERE id IN (?, ?, ?) "
+        q.sql shouldBe s"SELECT $fieldList FROM cfps WHERE id IN (?, ?, ?) "
         check(q)
       }
       it("should build selectAll for group and date") {
         val q = selectAll(group.id, now)
-        q.sql shouldBe s"SELECT $fields FROM cfps WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) AND group_id=?"
+        q.sql shouldBe s"SELECT $fieldList FROM cfps WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) AND group_id=?"
         check(q)
       }
       it("should build selectTags") {
@@ -115,4 +114,8 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
     }
   }
+}
+
+object CfpRepoSqlSpec {
+  val fieldList = "id, group_id, slug, name, begin, close, description, tags, created, created_by, updated, updated_by"
 }

@@ -2,11 +2,10 @@ package fr.gospeak.infra.services.storage.sql
 
 import fr.gospeak.core.domain.Talk
 import fr.gospeak.infra.services.storage.sql.TalkRepoSql._
+import fr.gospeak.infra.services.storage.sql.TalkRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class TalkRepoSqlSpec extends RepoSpec {
-  private val fields = "id, slug, status, title, duration, description, speakers, slides, video, tags, created, created_by, updated, updated_by"
-
   describe("TalkRepoSql") {
     it("should create and retrieve") {
       val user = userRepo.create(userData1, now).unsafeRunSync()
@@ -53,7 +52,7 @@ class TalkRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = insert(talk)
-        q.sql shouldBe s"INSERT INTO talks ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO talks ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update") {
@@ -78,28 +77,32 @@ class TalkRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne by slug") {
         val q = selectOne(talk.slug)
-        q.sql shouldBe s"SELECT $fields FROM talks WHERE slug=?"
+        q.sql shouldBe s"SELECT $fieldList FROM talks WHERE slug=?"
         check(q)
       }
       it("should build selectOne by user and slug") {
         val q = selectOne(user.id, talk.slug)
-        q.sql shouldBe s"SELECT $fields FROM talks WHERE speakers LIKE ? AND slug=?"
+        q.sql shouldBe s"SELECT $fieldList FROM talks WHERE speakers LIKE ? AND slug=?"
         check(q)
       }
       it("should build selectPage for user") {
         val (s, c) = selectPage(user.id, params)
-        s.sql shouldBe s"SELECT $fields FROM talks WHERE speakers LIKE ? ORDER BY title IS NULL, title OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fieldList FROM talks WHERE speakers LIKE ? ORDER BY title IS NULL, title OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM talks WHERE speakers LIKE ? "
         check(s)
         check(c)
       }
       it("should build selectPage for user, cfp and status") {
         val (s, c) = selectPage(user.id, cfp.id, Talk.Status.active, params)
-        s.sql shouldBe s"SELECT $fields FROM talks WHERE speakers LIKE ? AND id NOT IN (SELECT talk_id FROM proposals WHERE cfp_id=?) AND status IN (?, ?, ?)  ORDER BY title IS NULL, title OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM talks WHERE speakers LIKE ? AND id NOT IN (SELECT talk_id FROM proposals WHERE cfp_id=?) AND status IN (?, ?, ?)  "
+        s.sql shouldBe s"SELECT $fieldList FROM talks WHERE speakers LIKE ? AND id NOT IN (SELECT talk_id FROM proposals WHERE cfp_id=?) AND status IN (?, ?, ?, ?)  ORDER BY title IS NULL, title OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM talks WHERE speakers LIKE ? AND id NOT IN (SELECT talk_id FROM proposals WHERE cfp_id=?) AND status IN (?, ?, ?, ?)  "
         check(s)
         check(c)
       }
     }
   }
+}
+
+object TalkRepoSqlSpec {
+  val fieldList = "id, slug, status, title, duration, description, speakers, slides, video, tags, created, created_by, updated, updated_by"
 }

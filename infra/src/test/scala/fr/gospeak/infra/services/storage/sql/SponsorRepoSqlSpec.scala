@@ -1,16 +1,15 @@
 package fr.gospeak.infra.services.storage.sql
 
 import fr.gospeak.infra.services.storage.sql.SponsorRepoSql._
+import fr.gospeak.infra.services.storage.sql.SponsorRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class SponsorRepoSqlSpec extends RepoSpec {
-  private val fields = "id, group_id, partner_id, sponsor_pack_id, start, finish, paid, price, currency, created, created_by, updated, updated_by"
-
   describe("SponsorRepoSql") {
     describe("Queries") {
       it("should build insert") {
         val q = insert(sponsor)
-        q.sql shouldBe s"INSERT INTO sponsors ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO sponsors ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update") {
@@ -20,26 +19,30 @@ class SponsorRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne") {
         val q = selectOne(group.id, sponsor.id)
-        q.sql shouldBe s"SELECT $fields FROM sponsors WHERE group_id=? AND id=?"
+        q.sql shouldBe s"SELECT $fieldList FROM sponsors WHERE group_id=? AND id=?"
         check(q)
       }
       it("should build selectPage") {
         val (s, c) = selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fields FROM sponsors WHERE group_id=? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fieldList FROM sponsors WHERE group_id=? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM sponsors WHERE group_id=? "
         check(s)
         check(c)
       }
       it("should build selectAll group") {
         val q = selectAll(group.id)
-        q.sql shouldBe s"SELECT $fields FROM sponsors WHERE group_id=?"
+        q.sql shouldBe s"SELECT $fieldList FROM sponsors WHERE group_id=?"
         check(q)
       }
       it("should build selectAll partner") {
         val q = selectAll(group.id, partner.id)
-        q.sql shouldBe s"SELECT $fields FROM sponsors WHERE group_id=? AND partner_id=?"
+        q.sql shouldBe s"SELECT $fieldList FROM sponsors WHERE group_id=? AND partner_id=?"
         check(q)
       }
     }
   }
+}
+
+object SponsorRepoSqlSpec {
+  val fieldList = "id, group_id, partner_id, sponsor_pack_id, start, finish, paid, price, currency, created, created_by, updated, updated_by"
 }
