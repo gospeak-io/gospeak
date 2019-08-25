@@ -3,6 +3,7 @@ package fr.gospeak.infra.services.storage.sql
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.User._
 import fr.gospeak.infra.services.storage.sql.UserRepoSql._
+import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class UserRepoSqlSpec extends RepoSpec {
@@ -10,7 +11,6 @@ class UserRepoSqlSpec extends RepoSpec {
   private val pass = Password(Hasher("hasher"), PasswordValue("password"), Some(Salt("salt")))
   private val loginRef = LoginRef(login, user.id)
   private val credentials = Credentials(login, pass)
-  private val fields = "id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, status, description, company, location, twitter, linkedin, phone, website, created, updated"
 
   describe("UserRepoSql") {
     it("should create and retrieve a user") {
@@ -76,7 +76,7 @@ class UserRepoSqlSpec extends RepoSpec {
       }
       it("should build insert") {
         val q = insert(user)
-        q.sql shouldBe s"INSERT INTO users ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO users ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update") {
@@ -91,48 +91,52 @@ class UserRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne with login") {
         val q = selectOne(login)
-        q.sql shouldBe s"SELECT ${fields.split(", ").map("u." + _).mkString(", ")} FROM users u INNER JOIN logins l ON u.id=l.user_id WHERE l.provider_id=? AND l.provider_key=?"
+        q.sql shouldBe s"SELECT ${fieldList.split(", ").map("u." + _).mkString(", ")} FROM users u INNER JOIN logins l ON u.id=l.user_id WHERE l.provider_id=? AND l.provider_key=?"
         check(q)
       }
       it("should build selectOne with email") {
         val q = selectOne(user.email)
-        q.sql shouldBe s"SELECT $fields FROM users WHERE email=?"
+        q.sql shouldBe s"SELECT $fieldList FROM users WHERE email=?"
         check(q)
       }
       it("should build selectOne with slug") {
         val q = selectOne(user.slug)
-        q.sql shouldBe s"SELECT $fields FROM users WHERE slug=?"
+        q.sql shouldBe s"SELECT $fieldList FROM users WHERE slug=?"
         check(q)
       }
       it("should build selectOne with id") {
         val q = selectOne(user.id)
-        q.sql shouldBe s"SELECT $fields FROM users WHERE id=?"
+        q.sql shouldBe s"SELECT $fieldList FROM users WHERE id=?"
         check(q)
       }
       it("should build selectOnePublic with slug") {
         val q = selectOnePublic(user.slug)
-        q.sql shouldBe s"SELECT $fields FROM users WHERE status=? AND slug=?"
+        q.sql shouldBe s"SELECT $fieldList FROM users WHERE status=? AND slug=?"
         check(q)
       }
       it("should build selectPage") {
         val (s, c) = selectPage(NonEmptyList.of(user.id), params)
-        s.sql shouldBe s"SELECT $fields FROM users WHERE id IN (?)  ORDER BY first_name IS NULL, first_name OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fieldList FROM users WHERE id IN (?)  ORDER BY first_name IS NULL, first_name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM users WHERE id IN (?)  "
         check(s)
         check(c)
       }
       it("should build selectPagePublic") {
         val (s, c) = selectPagePublic(params)
-        s.sql shouldBe s"SELECT $fields FROM users WHERE status=?  ORDER BY first_name IS NULL, first_name OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT $fieldList FROM users WHERE status=?  ORDER BY first_name IS NULL, first_name OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM users WHERE status=?  "
         check(s)
         check(c)
       }
       it("should build selectAll with ids") {
         val q = selectAll(NonEmptyList.of(user.id, user.id))
-        q.sql shouldBe s"SELECT $fields FROM users WHERE id IN (?, ?) "
+        q.sql shouldBe s"SELECT $fieldList FROM users WHERE id IN (?, ?) "
         check(q)
       }
     }
   }
+}
+
+object UserRepoSqlSpec {
+  val fieldList = "id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, status, description, company, location, twitter, linkedin, phone, website, created, updated"
 }

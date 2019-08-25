@@ -1,16 +1,15 @@
 package fr.gospeak.infra.services.storage.sql
 
 import fr.gospeak.infra.services.storage.sql.SettingsRepoSql._
+import fr.gospeak.infra.services.storage.sql.SettingsRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class SettingsRepoSqlSpec extends RepoSpec {
-  private val fields = "target, target_id, value, updated, updated_by"
-
   describe("SettingsRepoSql") {
     describe("Queries") {
       it("should build insert group settings") {
         val q = insert(group.id, "", user.id, now)
-        q.sql shouldBe s"INSERT INTO settings ($fields) VALUES (?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO settings ($fieldList) VALUES (?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update group settings") {
@@ -25,4 +24,8 @@ class SettingsRepoSqlSpec extends RepoSpec {
       }
     }
   }
+}
+
+object SettingsRepoSqlSpec {
+  val fieldList = "target, target_id, value, updated, updated_by"
 }

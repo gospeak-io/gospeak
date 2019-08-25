@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import fr.gospeak.core.domain.{Proposal, User}
+import fr.gospeak.core.domain.{Event, Group, Proposal, User}
 import fr.gospeak.core.services.storage.{SpeakerUserRepo, UserGroupRepo, UserProposalRepo, UserRepo, UserTalkRepo, UserUserRepo}
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -26,7 +26,7 @@ class SpeakerCtrl(cc: ControllerComponents,
 
   def profile(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      proposals <- proposalRepo.list(req.identity.user.id, Proposal.Status.Accepted, params)
+      proposals <- proposalRepo.listWithEvent(req.identity.user.id, Proposal.Status.Accepted, params)
       groups <- groupRepo.list(req.identity.user.id, params)
       b = SpeakerCtrl.breadcrumb(req.identity.user)
     } yield Ok(html.details(proposals, groups, Instant.now())(b))).unsafeToFuture()
@@ -34,12 +34,12 @@ class SpeakerCtrl(cc: ControllerComponents,
 
   def getProfile(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      proposals <- proposalRepo.list(req.identity.user.id, Proposal.Status.Accepted, params)
+      proposals <- proposalRepo.listWithEvent(req.identity.user.id, Proposal.Status.Accepted, params)
       groups <- groupRepo.list(req.identity.user.id, params)
       b = SpeakerCtrl.editBreadcrumb(req.identity.user)
       form = ProfileForms.create
       filledForm = if (form.hasErrors) form else form.fill(req.identity.user.editable)
-    } yield Ok(html.profile(filledForm, Instant.now(), proposals, groups)(b))).unsafeToFuture()
+    } yield Ok(html.profile(filledForm, proposals, groups, Instant.now())(b))).unsafeToFuture()
   }
 
   def changeStatus(status: User.Profile.Status): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -65,7 +65,7 @@ class SpeakerCtrl(cc: ControllerComponents,
   private def doEditOrCreate(form: Form[User.EditableFields])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     val b = SpeakerCtrl.breadcrumb(req.identity.user)
     val filledForm = if (form.hasErrors) form else form.fill(req.identity.user.editable)
-    IO(Ok(html.profile(filledForm, Instant.now())(b)))
+    IO(Ok(html.profile(filledForm, Page.empty[(Option[Event], Proposal)], Page.empty[Group], Instant.now())(b)))
   }
 }
 

@@ -32,7 +32,7 @@ class SpeakerCtrl(cc: ControllerComponents,
   def detail(user: User.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
     (for {
       speakerElt <- OptionT(userRepo.findPublic(user))
-      acceptedProposals <- OptionT.liftF(proposalRepo.list(speakerElt.id, Proposal.Status.Accepted, params))
+      acceptedProposals <- OptionT.liftF(proposalRepo.listWithEvent(speakerElt.id, Proposal.Status.Accepted, params))
       groups <- OptionT.liftF(groupRepo.findPublic(speakerElt.id, params))
       b = breadcrumb(speakerElt)
     } yield Ok(html.detail(speakerElt, acceptedProposals, groups, Instant.now())(b))).value.map(_.getOrElse(publicUserNotFound(user))).unsafeToFuture()

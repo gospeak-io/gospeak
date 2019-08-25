@@ -3,14 +3,12 @@ package fr.gospeak.infra.services.storage.sql
 import java.time.Instant
 
 import fr.gospeak.core.domain.Contact.{FirstName, LastName}
+import fr.gospeak.infra.services.storage.sql.ContactRepoSql._
+import fr.gospeak.infra.services.storage.sql.ContactRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import fr.gospeak.libs.scalautils.domain.EmailAddress
-import ContactRepoSql._
 
 class ContactRepoSqlSpec extends RepoSpec {
-
-  private val fields = "id, partner_id, first_name, last_name, email, description, created, created_by, updated, updated_by"
-
   describe("ContactRepoSql") {
     it("should create a contact and retrieve it") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
@@ -48,7 +46,7 @@ class ContactRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = insert(contact)
-        q.sql shouldBe s"INSERT INTO contacts ($fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO contacts ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update") {
@@ -58,21 +56,25 @@ class ContactRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage") {
         val (s, c) = selectPage(partner.id, params)
-        s.sql shouldBe s"SELECT ${fieldsPrefixedBy(fields, "c.")} FROM contacts c INNER JOIN partners p ON c.partner_id=p.id WHERE p.id=? ORDER BY c.created IS NULL, c.created OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT ${fieldsPrefixedBy(fieldList, "c.")} FROM contacts c INNER JOIN partners p ON c.partner_id=p.id WHERE p.id=? ORDER BY c.created IS NULL, c.created OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT COUNT(*) FROM contacts c INNER JOIN partners p ON c.partner_id=p.id WHERE p.id=? "
         check(s)
         check(c)
       }
       it("should build selectAll") {
         val q = selectAll(partner.id)
-        q.sql shouldBe s"SELECT ${fieldsPrefixedBy(fields, "c.")} FROM contacts c INNER JOIN partners p ON c.partner_id=p.id WHERE p.id=?"
+        q.sql shouldBe s"SELECT ${fieldsPrefixedBy(fieldList, "c.")} FROM contacts c INNER JOIN partners p ON c.partner_id=p.id WHERE p.id=?"
         check(q)
       }
       it("should build selectOne") {
         val q = selectOne(partner.id, contact.email)
-        q.sql shouldBe s"SELECT ${fieldsPrefixedBy(fields, "c.")} FROM contacts c INNER JOIN partners p ON c.partner_id=p.id WHERE p.id=? AND c.email=?"
+        q.sql shouldBe s"SELECT ${fieldsPrefixedBy(fieldList, "c.")} FROM contacts c INNER JOIN partners p ON c.partner_id=p.id WHERE p.id=? AND c.email=?"
         check(q)
       }
     }
   }
+}
+
+object ContactRepoSqlSpec {
+  val fieldList = "id, partner_id, first_name, last_name, email, description, created, created_by, updated, updated_by"
 }
