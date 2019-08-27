@@ -103,7 +103,11 @@ class SendGridEmailSrv private(client: com.sendgrid.SendGrid) extends EmailSrv {
   }
 
   private def buildEmail(contact: Contact): sg.Email =
-    new sg.Email(contact.address.value)
+    contact.name.map { name =>
+      new sg.Email(contact.address.value, name)
+    }.getOrElse {
+      new sg.Email(contact.address.value)
+    }
 }
 
 object SendGridEmailSrv {
