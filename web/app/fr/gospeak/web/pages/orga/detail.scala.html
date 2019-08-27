@@ -53,18 +53,18 @@
             @addSponsorBtn()
         </h2>
         <ul>
-        @currentSponsors.map { case (partner, (sponsor, count)) =>
+        @currentSponsors.map { case (partner, sp) =>
         <li>
-            Until @Formats.date(sponsor.finish):
+            Until @Formats.date(sp._1.finish):
             <a href="@PartnerCtrl.detail(group.slug, partner.slug)">@partner.name.value</a>
-            @packs.find(_.id == sponsor.pack).map(_.name.value) pack
-            @if(sponsor.finish.minusMonths(1).isBefore(LocalDate.now())) {
+            @packs.find(_.id == sp._1.pack).map(_.name.value) pack
+            @if(sp._1.finish.minusMonths(1).isBefore(LocalDate.now())) {
                 <span class="text-danger">Will finish very soon</span>
-            } else if(sponsor.finish.minusMonths(3).isBefore(LocalDate.now())) {
+            } else if(sp._1.finish.minusMonths(3).isBefore(LocalDate.now())) {
                 <span class="text-warning">Will finish soon</span>
             }
-            (@count times sponsor)
-            @if(sponsor.paid.isEmpty) {
+            (@sp._2 times sponsor)
+            @if(sp._1.paid.isEmpty) {
                 <span class="text-danger">Not paid</span>
             }
         </li>

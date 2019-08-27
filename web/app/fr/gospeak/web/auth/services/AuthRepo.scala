@@ -12,9 +12,12 @@ import fr.gospeak.libs.scalautils.domain.Done
 import fr.gospeak.web.auth.domain.AuthUser
 
 import scala.concurrent.Future
+import scala.reflect.ClassTag
 
 // TODO merge it with AuthSrv
 class AuthRepo(userRepo: AuthUserRepo, groupRepo: AuthGroupRepo) extends DelegableAuthInfoDAO[PasswordInfo] with IdentityService[AuthUser] {
+  override val classTag: ClassTag[PasswordInfo] = scala.reflect.classTag[PasswordInfo]
+
   override def retrieve(loginInfo: LoginInfo): Future[Option[AuthUser]] = (for {
     user <- OptionT(userRepo.find(toDomain(loginInfo)))
     groups <- OptionT.liftF(groupRepo.list(user.id))

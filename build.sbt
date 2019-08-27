@@ -44,7 +44,7 @@ val hammock = Seq(
 // use flyway 6.0.0 in prod to have support of postgres 11
 // use flyway 5.2.4 in local to have support of H2 (https://github.com/flyway/flyway/issues/2467)
 val flyway = Seq("org.flywaydb" % "flyway-core" % "6.0.0")
-val silhouetteVersion = "5.0.7"
+val silhouetteVersion = "6.1.0"
 val silhouette = Seq(
   "com.mohiva" %% "play-silhouette",
   "com.mohiva" %% "play-silhouette-password-bcrypt",
