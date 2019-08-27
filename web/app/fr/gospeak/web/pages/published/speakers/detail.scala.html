@@ -1,34 +1,42 @@
 @import java.time.Instant
+
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
-@import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
+@import fr.gospeak.core.domain.{Event, Group, Proposal, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.partials.html.speakerCard
-@import fr.gospeak.web.pages.published.partials.html.{container, talkItem, groupItem}
 @import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.partials.html.speakerCard
+@import fr.gospeak.web.pages.published.partials.html.{container, groupItem, proposalItem, talkItem}
 
-@(speaker: User, acceptedProposals: Page[(Option[Event], Proposal)], ownedGroups: Page[Group], now: Instant)(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(speaker: User, publicTalks: Page[Talk], acceptedProposals: Page[(Option[Event], Proposal)], ownedGroups: Page[Group], now: Instant)(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @container(speaker.name.value + " - Gospeak", b)() {
     <div class="row">
         <div class="col-4">
             @speakerCard(speaker)
         </div>
         <div class="col-8">
+            @if(publicTalks.nonEmpty) {
+                <div class="mb-3">
+                    <h2>Actual talks</h2>
+                    @publicTalks.items.map { talk =>
+                        @talkItem(talk)
+                    }
+                </div>
+            }
             @if(acceptedProposals.nonEmpty) {
-                <h2 class="mt-0 mb-3">Talks</h2>
-                <div>
-                @acceptedProposals.items.map { proposal =>
-                  @talkItem(proposal, now)
-                }
+                <div class="mb-3">
+                    <h2>Planned talks</h2>
+                    @acceptedProposals.items.map { proposal =>
+                        @proposalItem(proposal, now)
+                    }
                 </div>
             }
             @if(ownedGroups.nonEmpty) {
-                <h2 class="mt-0 mb-3 mt-3">Organises</h2>
-                <div>
-                @ownedGroups.items.map { group =>
-                    @groupItem(group)
-                }
+                <div class="mb-3">
+                    <h2>Organises</h2>
+                    @ownedGroups.items.map { group =>
+                        @groupItem(group)
+                    }
                 </div>
             }
         </div>

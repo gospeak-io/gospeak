@@ -4,8 +4,8 @@ import java.time.Instant
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.{Proposal, User}
-import fr.gospeak.core.services.storage.{PublicGroupRepo, PublicProposalRepo, PublicUserRepo}
+import fr.gospeak.core.domain.{Proposal, Talk, User}
+import fr.gospeak.core.services.storage.{PublicGroupRepo, PublicProposalRepo, PublicTalkRepo, PublicUserRepo, TalkRepo}
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
@@ -17,6 +17,7 @@ import play.api.mvc._
 class SpeakerCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
                   userRepo: PublicUserRepo,
+                  talkRepo: PublicTalkRepo,
                   proposalRepo: PublicProposalRepo,
                   groupRepo: PublicGroupRepo) extends UICtrl(cc, silhouette) {
 
@@ -32,10 +33,11 @@ class SpeakerCtrl(cc: ControllerComponents,
   def detail(user: User.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
     (for {
       speakerElt <- OptionT(userRepo.findPublic(user))
+      publicTalks <- OptionT.liftF(talkRepo.list(speakerElt.id, Talk.Status.Public, params))
       acceptedProposals <- OptionT.liftF(proposalRepo.listWithEvent(speakerElt.id, Proposal.Status.Accepted, params))
       groups <- OptionT.liftF(groupRepo.findPublic(speakerElt.id, params))
       b = breadcrumb(speakerElt)
-    } yield Ok(html.detail(speakerElt, acceptedProposals, groups, Instant.now())(b))).value.map(_.getOrElse(publicUserNotFound(user))).unsafeToFuture()
+    } yield Ok(html.detail(speakerElt, publicTalks, acceptedProposals, groups, Instant.now())(b))).value.map(_.getOrElse(publicUserNotFound(user))).unsafeToFuture()
   }
 }
 

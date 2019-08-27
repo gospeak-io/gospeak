@@ -6,7 +6,7 @@ import cats.effect.IO
 import fr.gospeak.core.domain.{Cfp, Talk, User}
 import fr.gospeak.libs.scalautils.domain._
 
-trait TalkRepo extends OrgaTalkRepo with SpeakerTalkRepo with UserTalkRepo with AuthTalkRepo with SuggestTalkRepo
+trait TalkRepo extends OrgaTalkRepo with SpeakerTalkRepo with UserTalkRepo with AuthTalkRepo with PublicTalkRepo with SuggestTalkRepo
 
 trait OrgaTalkRepo
 
@@ -35,6 +35,10 @@ trait UserTalkRepo {
 }
 
 trait AuthTalkRepo
+
+trait PublicTalkRepo {
+  def list(user: User.Id, status: Talk.Status, params: Page.Params): IO[Page[Talk]]
+}
 
 trait SuggestTalkRepo {
   def listTags(): IO[Seq[Tag]]
