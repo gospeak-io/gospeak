@@ -181,6 +181,9 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val userEmpty = user("empty", "empty@mail.com", "Empty", "User")
     val users = NonEmptyList.of(userDemo, userSpeaker, userOrga, userEmpty)
 
+    val credentials = users.map(u => User.Credentials("credentials", u.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None)) // pwd: demo
+    val loginRefs = users.map(u => User.LoginRef("credentials", u.email.value, u.id))
+
     val talk1 = talk(userDemo, "why-fp", "Why FP", status = Talk.Status.Private, tags = Seq("FP"))
     val talk2 = talk(userDemo, "scala-best-practices", "Scala Best Practices", speakers = Seq(userSpeaker),
       slides = Some(Slides.from("https://docs.google.com/presentation/d/1wWRKbxz81AzhBJJqc505yUkileRPn5b-bNH1Th852f4").get),
@@ -289,8 +292,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
 
     for {
       _ <- run(Queries.insertMany(UserRepoSql.insert)(users))
-      _ <- run(UserRepoSql.insertCredentials(User.Credentials("credentials", "demo@mail.com", "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
-      _ <- run(UserRepoSql.insertLoginRef(User.LoginRef("credentials", "demo@mail.com", userDemo.id)))
+      _ <- run(Queries.insertMany(UserRepoSql.insertCredentials)(credentials))
+      _ <- run(Queries.insertMany(UserRepoSql.insertLoginRef)(loginRefs))
       _ <- run(Queries.insertMany(TalkRepoSql.insert)(talks ++ generated.map(_._4)))
       _ <- run(Queries.insertMany(GroupRepoSql.insert)(groups ++ generated.map(_._1)))
       _ <- run(Queries.insertMany(CfpRepoSql.insert)(cfps ++ generated.map(_._2)))

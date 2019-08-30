@@ -10,22 +10,24 @@ import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 trait UserRequestRepo extends OrgaUserRequestRepo with SpeakerUserRequestRepo with UserUserRequestRepo with AuthUserRequestRepo
 
 trait OrgaUserRequestRepo {
-  def findGroupRequests(group: Group.Id, params: Page.Params): IO[Page[UserRequest]]
+  def listPendingGroupRequests(group: Group.Id, now: Instant): IO[Seq[UserRequest]]
+
+  def findPendingUserToJoinAGroup(group: Group.Id, req: UserRequest.Id): IO[Option[UserAskToJoinAGroupRequest]]
+
+  def acceptUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done]
+
+  def rejectUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done]
 }
 
 trait SpeakerUserRequestRepo
 
 trait UserUserRequestRepo {
-  def findUserRequests(user: User.Id, params: Page.Params): IO[Page[UserRequest]]
+  def list(user: User.Id, params: Page.Params): IO[Page[UserRequest]]
 
 
   def createUserAskToJoinAGroup(user: User.Id, group: Group.Id, now: Instant): IO[UserAskToJoinAGroupRequest]
 
-  def acceptUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done]
-
-  def rejectUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done]
-
-  def findPendingUserToJoinAGroupRequests(user: User.Id): IO[Seq[UserAskToJoinAGroupRequest]]
+  def listPendingUserToJoinAGroupRequests(user: User.Id): IO[Seq[UserAskToJoinAGroupRequest]]
 }
 
 trait AuthUserRequestRepo {

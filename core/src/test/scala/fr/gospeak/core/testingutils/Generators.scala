@@ -2,6 +2,7 @@ package fr.gospeak.core.testingutils
 
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 
+import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.meetup.domain.MeetupGroup
@@ -75,6 +76,7 @@ object Generators {
   implicit val aContactFirstName: Arbitrary[Contact.FirstName] = Arbitrary(nonEmptyStringGen.map(f => Contact.FirstName(f)))
   implicit val aContactLastName: Arbitrary[Contact.LastName] = Arbitrary(nonEmptyStringGen.map(l => Contact.LastName(l)))
   implicit val aMeetupGroupSlug: Arbitrary[MeetupGroup.Slug] = Arbitrary(slugGen.map(slug => MeetupGroup.Slug.from(slug).right.get))
+  implicit val aUserRequestId: Arbitrary[UserRequest.Id] = Arbitrary(Gen.uuid.map(id => UserRequest.Id.from(id.toString).right.get))
 
   // do not write explicit type, it will throw a NullPointerException
   implicit val aInfo = implicitly[Arbitrary[Info]]
@@ -87,6 +89,10 @@ object Generators {
   implicit val aEvent = implicitly[Arbitrary[Event]]
   implicit val aProposal = implicitly[Arbitrary[Proposal]]
   implicit val aSponsor = implicitly[Arbitrary[Sponsor]]
+  implicit val aAccountValidationRequest = implicitly[Arbitrary[AccountValidationRequest]]
+  implicit val aPasswordResetRequest = implicitly[Arbitrary[PasswordResetRequest]]
+  implicit val aUserAskToJoinAGroupRequest = implicitly[Arbitrary[UserAskToJoinAGroupRequest]]
+  implicit val aUserRequest = implicitly[Arbitrary[UserRequest]]
 
   implicit val aTemplate = implicitly[Arbitrary[MustacheMarkdownTmpl[Any]]]
   implicit val aGroupSettingsActionTrigger = implicitly[Arbitrary[Group.Settings.Action.Trigger]]

@@ -9,19 +9,22 @@ import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 class UserRequestRepoSqlSpec extends RepoSpec {
   describe("UserRequestRepoSql") {
     describe("Queries") {
+      it("should build selectOnePending for group") {
+        val q = selectOnePending(group.id, userRequest.id, now)
+        q.sql shouldBe s"SELECT $fieldList FROM requests WHERE id=? AND group_id=? AND accepted IS NULL AND rejected IS NULL AND (deadline IS NULL OR deadline > ?)"
+        check(q)
+      }
       it("should build selectPage for user") {
         val (s, c) = selectPage(user.id, params)
-        s.sql shouldBe s"SELECT $fieldList FROM requests WHERE created_by = ? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM requests WHERE created_by = ? "
+        s.sql shouldBe s"SELECT $fieldList FROM requests WHERE created_by=? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM requests WHERE created_by=? "
         check(s)
         check(c)
       }
-      it("should build selectPage for group") {
-        val (s, c) = selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fieldList FROM requests WHERE group_id = ? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM requests WHERE group_id = ? "
-        check(s)
-        check(c)
+      it("should build selectAllPending for group") {
+        val q = selectAllPending(group.id, now)
+        q.sql shouldBe s"SELECT $fieldList FROM requests WHERE group_id=? AND accepted IS NULL AND rejected IS NULL AND (deadline IS NULL OR deadline > ?)"
+        check(q)
       }
       describe("AccountValidation") {
         import AccountValidation._
@@ -88,6 +91,11 @@ class UserRequestRepoSqlSpec extends RepoSpec {
           val q = reject(req.id, user.id, now)
           q.sql shouldBe "UPDATE requests SET rejected=?, rejected_by=? WHERE id=? AND kind=? AND accepted IS NULL AND rejected IS NULL"
           check(q)
+        }
+        it("should build selectOnePending") {
+          val q = selectOnePending(group.id, userRequest.id)
+          q.sql shouldBe "SELECT id, group_id, created, created_by, accepted, accepted_by, rejected, rejected_by FROM requests WHERE kind=? AND id=? AND group_id=? AND accepted IS NULL AND rejected IS NULL "
+          // check(q) // ignored because missing "NOT NULL" on 'group_id' and 'created_by'... due to sealed trait
         }
         it("should build selectAllPending") {
           val q = selectAllPending(user.id)

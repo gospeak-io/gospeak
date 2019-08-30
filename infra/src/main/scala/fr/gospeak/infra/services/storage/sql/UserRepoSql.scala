@@ -55,6 +55,8 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def find(slug: User.Slug): IO[Option[User]] = run(selectOne(slug).option)
 
+  override def find(id: User.Id): IO[Option[User]] = run(selectOne(id).option)
+
   override def findPublic(slug: User.Slug): IO[Option[User]] = run(selectOnePublic(slug).option)
 
   // FIXME should be done in only one query: joining on speakers array or splitting speakers string

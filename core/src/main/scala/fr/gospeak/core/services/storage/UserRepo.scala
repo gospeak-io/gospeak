@@ -11,6 +11,8 @@ trait UserRepo extends OrgaUserRepo with SpeakerUserRepo with UserUserRepo with 
 trait OrgaUserRepo {
   def find(slug: User.Slug): IO[Option[User]]
 
+  def find(id: User.Id): IO[Option[User]]
+
   def speakers(group: Group.Id, params: Page.Params): IO[Page[User]]
 
   def list(ids: Seq[User.Id]): IO[Seq[User]]

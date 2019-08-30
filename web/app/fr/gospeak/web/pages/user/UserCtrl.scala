@@ -65,7 +65,7 @@ class UserCtrl(cc: ControllerComponents,
   def joinGroup(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groups <- groupRepo.listJoinable(user, params)
-      pendingRequests <- userRequestRepo.findPendingUserToJoinAGroupRequests(user)
+      pendingRequests <- userRequestRepo.listPendingUserToJoinAGroupRequests(user)
       owners <- userRepo.list(groups.items.flatMap(_.owners.toList).distinct)
       b = groupBreadcrumb(req.identity.user).add("Join" -> routes.UserCtrl.joinGroup())
     } yield Ok(html.joinGroup(groups, owners, pendingRequests)(b))).unsafeToFuture()

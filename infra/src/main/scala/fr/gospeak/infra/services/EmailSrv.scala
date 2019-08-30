@@ -1,6 +1,7 @@
 package fr.gospeak.infra.services
 
 import cats.effect.IO
+import fr.gospeak.core.domain.User
 import fr.gospeak.infra.services.EmailSrv._
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{EmailAddress, Secret}
@@ -18,6 +19,10 @@ object EmailSrv {
 
   final case class Contact(address: EmailAddress, name: Option[String]) {
     def format: String = name.map(n => s"$n<${address.value}>").getOrElse(address.value)
+  }
+
+  object Contact {
+    def apply(user: User): Contact = new Contact(user.email, Some(user.name.value))
   }
 
   sealed trait Content {

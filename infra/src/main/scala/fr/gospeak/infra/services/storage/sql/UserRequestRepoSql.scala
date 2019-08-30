@@ -5,6 +5,7 @@ import java.time.Instant
 import cats.effect.IO
 import doobie.implicits._
 import doobie.util.fragment.Fragment
+import fr.gospeak.core.domain
 import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, Timeout, UserAskToJoinAGroupRequest}
 import fr.gospeak.core.domain.{Group, User, UserRequest}
 import fr.gospeak.core.services.storage.UserRequestRepo
@@ -17,12 +18,17 @@ import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRequestRepo {
-  override def findUserRequests(user: User.Id, params: Page.Params): IO[Page[UserRequest]] =
+  override def list(user: User.Id, params: Page.Params): IO[Page[UserRequest]] =
     run(Queries.selectPage(selectPage(user, _), params))
 
-  override def findGroupRequests(group: Group.Id, params: Page.Params): IO[Page[UserRequest]] =
-    run(Queries.selectPage(selectPage(group, _), params))
+  override def listPendingGroupRequests(group: Group.Id, now: Instant): IO[Seq[UserRequest]] =
+    run(selectAllPending(group, now).to[List])
 
+  /* def findPending(group: Group.Id, req: UserRequest.Id, now: Instant): IO[Option[UserRequest]] =
+    run(selectOnePending(group, req, now).option) */
+
+  override def findPendingUserToJoinAGroup(group: Group.Id, req: UserRequest.Id): IO[Option[UserAskToJoinAGroupRequest]] =
+    run(UserAskToJoinAGroup.selectOnePending(group, req).option)
 
   override def createAccountValidationRequest(email: EmailAddress, user: User.Id, now: Instant): IO[AccountValidationRequest] =
     run(AccountValidation.insert, AccountValidationRequest(UserRequest.Id.generate(), email, now.plus(Timeout.accountValidation), now, user, None))
@@ -66,7 +72,7 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
   override def rejectUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done] =
     run(UserAskToJoinAGroup.reject(req.id, by, now))
 
-  override def findPendingUserToJoinAGroupRequests(user: User.Id): IO[Seq[UserAskToJoinAGroupRequest]] =
+  override def listPendingUserToJoinAGroupRequests(user: User.Id): IO[Seq[UserAskToJoinAGroupRequest]] =
     run(UserAskToJoinAGroup.selectAllPending(user).to[List])
 }
 
@@ -79,15 +85,16 @@ object UserRequestRepoSql {
   private val searchFields = Seq("id", "email", "group_id", "created_by")
   private val defaultSort = Page.OrderBy("-created")
 
+  private[sql] def selectOnePending(group: Group.Id, req: domain.UserRequest.Id, now: Instant): doobie.Query0[UserRequest] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$req AND group_id=$group AND accepted IS NULL AND rejected IS NULL AND (deadline IS NULL OR deadline > $now)").query[UserRequest]
+
   private[sql] def selectPage(user: User.Id, params: Page.Params): (doobie.Query0[UserRequest], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE created_by = $user"))
+    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE created_by=$user"))
     (buildSelect(tableFr, fieldsFr, page.all).query[UserRequest], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 
-  private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[UserRequest], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id = $group"))
-    (buildSelect(tableFr, fieldsFr, page.all).query[UserRequest], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
-  }
+  private[sql] def selectAllPending(group: Group.Id, now: Instant): doobie.Query0[UserRequest] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE group_id=$group AND accepted IS NULL AND rejected IS NULL AND (deadline IS NULL OR deadline > $now)").query[UserRequest]
 
   object AccountValidation {
     private val kind = "AccountValidation"
@@ -153,6 +160,9 @@ object UserRequestRepoSql {
 
     private[sql] def reject(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 =
       buildUpdate(tableFr, fr0"rejected=$now, rejected_by=$by", wherePending(id, now)).update
+
+    private[sql] def selectOnePending(group: Group.Id, id: UserRequest.Id): doobie.Query0[UserAskToJoinAGroupRequest] =
+      buildSelect(tableFr, fieldsFrSelect, fr"WHERE kind=$kind AND id=$id AND group_id=$group AND accepted IS NULL AND rejected IS NULL").query[UserAskToJoinAGroupRequest]
 
     private[sql] def selectAllPending(user: User.Id): doobie.Query0[UserAskToJoinAGroupRequest] =
       buildSelect(tableFr, fieldsFrSelect, fr"WHERE kind=$kind AND created_by=$user AND accepted IS NULL AND rejected IS NULL").query[UserAskToJoinAGroupRequest]

@@ -6,6 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import doobie.scalatest.IOChecker
+import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
 import fr.gospeak.core.domain._
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.services.storage.sql._
@@ -41,6 +42,10 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val slides: Slides = random[Slides]
   protected val video: Video = random[Video]
   protected val contact: Contact = random[Contact]
+  protected val accountValidationRequest: AccountValidationRequest = random[AccountValidationRequest]
+  protected val passwordResetRequest: PasswordResetRequest = random[PasswordResetRequest]
+  protected val userAskToJoinAGroupRequest: UserAskToJoinAGroupRequest = random[UserAskToJoinAGroupRequest]
+  protected val userRequest: UserRequest = accountValidationRequest
 
   protected val Seq(userData1, userData2, userData3) = random[User.Data](10).distinctBy(_.email).take(3)
   protected val Seq(groupData1, groupData2) = random[Group.Data](2)

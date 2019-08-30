@@ -1,0 +1,11 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Group, User}
+@import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
+@import fr.gospeak.web.pages.orga.routes.GroupCtrl
+
+@(acceptedUser: User, acceptingOrga: AuthUser, group: Group)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+<p>Hello @acceptedUser.firstName,</p>
+<p>Good news! Your application to <b>@group.name.value</b> was accepted by @acceptingOrga.user.firstName \o/</p>
+<p>You can now <a href="@GroupCtrl.detail(group.slug).absoluteURL()">access</a> to the group and fully participate to it.</p>
+<p>Make awesome events and help people get together.</p>
+<p>The Gospeak team</p>

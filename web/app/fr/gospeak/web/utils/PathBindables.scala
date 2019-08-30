@@ -1,5 +1,6 @@
 package fr.gospeak.web.utils
 
+import fr.gospeak.core.domain
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.meetup.domain.MeetupGroup
@@ -14,6 +15,9 @@ object PathBindables {
     override def unbind(key: String, value: Option[String]): String =
       value.getOrElse("")
   }
+
+  implicit def userRequestIdPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[UserRequest.Id] =
+    stringEitherPathBindable[UserRequest.Id](UserRequest.Id.from, _.value)
 
   implicit def groupSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Group.Slug] =
     stringEitherPathBindable[Group.Slug](Group.Slug.from, _.value)
