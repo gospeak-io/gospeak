@@ -5,12 +5,12 @@ final case class MeetupEvent(id: String,
                              status: String, // "cancelled", "upcoming", "past", "proposed", "suggested", or "draft"
                              visibility: String, // "public", "public_limited", or "members"
                              description: String,
-                             time: Long,
-                             local_date: String,
-                             local_time: String,
-                             utc_offset: Int,
+                             time: Option[Long],
+                             local_date: Option[String],
+                             local_time: Option[String],
+                             utc_offset: Option[Int],
                              duration: Option[Int],
-                             venue: MeetupVenue.Basic,
+                             venue: Option[MeetupVenue.Basic],
                              group: MeetupGroup.Basic,
                              rsvp_limit: Option[Int],
                              yes_rsvp_count: Int,
@@ -40,6 +40,27 @@ object MeetupEvent {
                           question: Option[String] = None, // < 250 char
                           guest_limit: Option[Int] = None, // between 0 and 2
                           featured_photo_id: Option[Int] = None,
-                          self_rsvp: Boolean = true)
+                          self_rsvp: Boolean = true) {
+    def toMap: Map[String, String] = Map(
+      "name" -> Some(name),
+      "description" -> Some(description),
+      "time" -> Some(time.toString),
+      "publish_status" -> Some(publish_status),
+      "announce" -> Some(announce.toString),
+      "duration" -> Some(duration.toString),
+      "venue_id" -> venue_id.map(_.toString),
+      "lat" -> lat.map(_.toString),
+      "lon" -> lon.map(_.toString),
+      "how_to_find_us" -> how_to_find_us,
+      "venue_visibility" -> Some(venue_visibility),
+      "event_hosts" -> event_hosts,
+      "rsvp_limit" -> rsvp_limit.map(_.toString),
+      "rsvp_close_time" -> rsvp_close_time.map(_.toString),
+      "rsvp_open_time" -> rsvp_open_time.map(_.toString),
+      "question" -> question,
+      "guest_limit" -> guest_limit.map(_.toString),
+      "featured_photo_id" -> featured_photo_id.map(_.toString),
+      "self_rsvp" -> Some(self_rsvp.toString)).collect { case (k, Some(v)) => (k, v) }
+  }
 
 }

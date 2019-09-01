@@ -21,13 +21,18 @@ class MeetupJsonSpec extends FunSpec with Matchers {
   it("should parse event response") {
     decode[MeetupEvent](FileUtils.read(basePath + "/event.json").get).toTry.get
     decode[Seq[MeetupEvent]](FileUtils.read(basePath + "/events.json").get).toTry.get
+    decode[MeetupEvent](FileUtils.read(basePath + "/eventCreated.json").get).toTry.get
   }
   it("should parse venues response") {
     decode[Seq[MeetupVenue]](FileUtils.read(basePath + "/venues.json").get).toTry.get
   }
   it("should parse error responses") {
-    decode[MeetupError.NotAuthorized](FileUtils.read(basePath + "/errors/notAuthorized.json").get).toTry.get
+    decode[MeetupError.NotAuthorized](FileUtils.read(basePath + "/errors/not_authorized.json").get).toTry.get
+    decode[MeetupError](FileUtils.read(basePath + "/errors/invalid_request.json").get).toTry.get
+    decode[MeetupError.Multi](FileUtils.read(basePath + "/errors/authentication_error.json").get).toTry.get
+    decode[MeetupError.Multi](FileUtils.read(basePath + "/errors/group_error.json").get).toTry.get
+    decode[MeetupError.Multi](FileUtils.read(basePath + "/errors/name_error.json").get).toTry.get
+    decode[MeetupError.Multi](FileUtils.read(basePath + "/errors/scope_error.json").get).toTry.get
     decode[MeetupError.Multi](FileUtils.read(basePath + "/errors/multi.json").get).toTry.get
-    decode[MeetupError](FileUtils.read(basePath + "/errors/badAuth.json").get).toTry.get
   }
 }

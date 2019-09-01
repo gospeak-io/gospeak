@@ -1,0 +1,9 @@
+{
+  "errors": [
+    {
+      "code": "name_error",
+      "message": "A title is required to post your Meetup",
+      "field": "name"
+    }
+  ]
+}

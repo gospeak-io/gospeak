@@ -44,27 +44,17 @@ class MeetupClientSpec extends FunSpec with Matchers {
       println(s"events: $events")
       events should not be empty
     }
-    it("should create an event") {
-      // cf https://github.com/meetup/api/issues/339
-      val created = client.createEvent(groupId, MeetupEvent.Create(
-        name = "Test event",
-        description =
-          """A <b>nice event</b>, just to <i>test</i> publishing from <a href="https://github.com/loicknuchel/gospeak" target="_blank">gospeak</a>.
-            |
-            |Hoping description supports lists:
-            |- item 1
-            |- item 2
-            |- item 3
-            |
-            |https://blog.humancoders.com/wp-content/uploads/2012/11/tumblr_md28i6bE1X1qcyigs.png
-            |""".stripMargin,
+    it("should create, update and delete an event") {
+      val event = MeetupEvent.Create(
+        name = "Event name 3",
+        description = "desc",
         time = Instant.now().plus(1, ChronoUnit.DAYS).toEpochMilli,
-        event_hosts = Some(s"$userId"))).unsafeRunSync()
-      println(s"status: ${created.status}")
-      println(s"created: ${created.body}")
-      println(s"headers: ${created.headers.map { case (key, value) => s"$key=$value" }.mkString("\n")}")
-      // {"errors":[{"code":"authentication_error","message":"Authenticated member required"}]}
-      created.status shouldBe 201
+        event_hosts = Some(s"$userId"))
+      val created = client.createEvent(groupId, event).unsafeRunSync().get
+      println(s"created: $created")
+      val updated = client.updateEvent(groupId, created.id, event.copy(description = "aaa")).unsafeRunSync().get
+      println(s"updated: $updated")
+      client.deleteEvent(groupId, created.id).unsafeRunSync().get
     }
     it("should get event details") {
       client.getEvent(groupId, "aaa").unsafeRunSync() shouldBe a[Left[_, _]]

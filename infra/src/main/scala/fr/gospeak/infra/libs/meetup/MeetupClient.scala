@@ -13,6 +13,11 @@ import io.circe.{Decoder, Encoder}
 
 import scala.util.{Failure, Try}
 
+/**
+ * Allows to interact with the meetup API
+ *
+ * `groupSlug` is `urlname` in API, this name change in parameters is for better clariry
+ */
 class MeetupClient(conf: Conf) {
   private val baseUrl = "https://api.meetup.com"
 
@@ -51,51 +56,64 @@ class MeetupClient(conf: Conf) {
     get[MeetupUser](s"$baseUrl/2/member/self")
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname#get
-  def getGroup(urlname: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupGroup]] =
-    get[MeetupGroup](s"$baseUrl/$urlname")
+  def getGroup(groupSlug: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupGroup]] =
+    get[MeetupGroup](s"$baseUrl/$groupSlug")
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/#list
-  def getEvents(urlname: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupEvent]]] =
-    get[Seq[MeetupEvent]](s"$baseUrl/$urlname/events", Map("status" -> "upcoming,past"))
+  def getEvents(groupSlug: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupEvent]]] =
+    get[Seq[MeetupEvent]](s"$baseUrl/$groupSlug/events", Map("status" -> "upcoming,past"))
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events#create
-  def createEvent(urlname: String, event: MeetupEvent.Create): IO[Response] =
-    HttpClient.postJson(s"$baseUrl/$urlname", toJson(event))
-
-  /* HttpClient.postForm(s"$baseUrl/$urlname", Map(
-    "name" -> event.name,
-    "description" -> event.description,
-    "publish_status" -> event.publish_status,
-    "announce" -> event.announce.toString)) */
+  def createEvent(groupSlug: String, event: MeetupEvent.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
+    post[MeetupEvent](s"$baseUrl/$groupSlug/events", event.toMap)
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#get
-  def getEvent(urlname: String, eventId: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
-    get[MeetupEvent](s"$baseUrl/$urlname/events/$eventId")
+  def getEvent(groupSlug: String, eventId: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
+    get[MeetupEvent](s"$baseUrl/$groupSlug/events/$eventId")
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#edit
-  // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#delete
+  def updateEvent(groupSlug: String, eventId: String, event: MeetupEvent.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
+    patch[MeetupEvent](s"$baseUrl/$groupSlug/events/$eventId", event.toMap)
 
-  def getVenues(urlname: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupVenue]]] =
-    get[Seq[MeetupVenue]](s"$baseUrl/$urlname/venues", Map("page" -> "50"))
+  // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#delete
+  def deleteEvent(groupSlug: String, eventId: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Unit]] =
+    delete[Unit](s"$baseUrl/$groupSlug/events/$eventId", Map("remove_from_calendar" -> "true"))
+
+  def getVenues(groupSlug: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupVenue]]] =
+    get[Seq[MeetupVenue]](s"$baseUrl/$groupSlug/venues", Map("page" -> "50"))
 
   // to test
-  def getRequest(urlname: String, venueId: Long)(implicit accessToken: MeetupToken.Access): IO[String] =
-    HttpClient.get(s"$baseUrl/$urlname/venues/$venueId", headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).map(_.body)
+  def getRequest(groupSlug: String, venueId: Long)(implicit accessToken: MeetupToken.Access): IO[String] =
+    HttpClient.get(s"$baseUrl/$groupSlug/venues/$venueId", headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).map(_.body)
 
   private def get[A](url: String, query: Map[String, String] = Map())(implicit accessToken: MeetupToken.Access, d: Decoder[A]): IO[Either[MeetupError, A]] =
     HttpClient.get(url, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])
 
+  private def post[A](url: String, body: Map[String, String], query: Map[String, String] = Map())(implicit accessToken: MeetupToken.Access, d: Decoder[A]): IO[Either[MeetupError, A]] =
+    HttpClient.postForm(url, body, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])
+
+  private def patch[A](url: String, body: Map[String, String], query: Map[String, String] = Map())(implicit accessToken: MeetupToken.Access, d: Decoder[A]): IO[Either[MeetupError, A]] =
+    HttpClient.patchForm(url, body, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])
+
+  private def delete[A](url: String, body: Map[String, String], query: Map[String, String] = Map())(implicit accessToken: MeetupToken.Access, d: Decoder[A]): IO[Either[MeetupError, A]] =
+    HttpClient.deleteForm(url, body, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])
+
   private def parse[A](res: Response)(implicit d: Decoder[A]): IO[Either[MeetupError, A]] = {
-    decode[A](res.body) match {
+    val body = transformBody(res.body)
+    decode[A](body) match {
       case Right(info) => IO.pure(Right(info))
-      case Left(err) => decode[MeetupError.NotAuthorized](res.body).map(_.toErr)
-        .orElse(decode[MeetupError.Multi](res.body).map(_.toErr))
-        .orElse(decode[MeetupError](res.body)) match {
+      case Left(err) => decode[MeetupError.NotAuthorized](body).map(_.toErr)
+        .orElse(decode[MeetupError.Multi](body).map(_.toErr))
+        .orElse(decode[MeetupError](body)) match {
         case Right(fail) => IO.pure(Left(fail))
-        case Left(_) => IO.raiseError(new IllegalArgumentException(s"Unable to parse ${res.body}", err))
+        case Left(_) => IO.raiseError(new IllegalArgumentException(s"Unable to parse response body: '${res.body}'", err))
       }
     }
   }
+
+  // when body is not a JSON, transform it to JSON
+  private def transformBody(body: String): String =
+    if (body == "()") "{}" else body
 
   private def toJson[A](value: A)(implicit e: Encoder[A]): String = {
     import io.circe.syntax._

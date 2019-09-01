@@ -1,10 +1,6 @@
 {
   "errors": [
     {
-      "code": "authentication_error",
-      "message": "Authenticated member required"
-    },
-    {
       "code": "scope_error",
       "message": "Insufficient oauth scope"
     }
