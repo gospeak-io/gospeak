@@ -14,8 +14,25 @@ object EventForms {
     "start" -> myLocalDateTime,
     "venue" -> optional(venueId),
     "description" -> template[TemplateData.EventInfo],
-    "tags" -> tags
+    "tags" -> tags,
+    "refs" -> eventRefs
   )(Event.Data.apply)(Event.Data.unapply))
 
   val attachCfp: Form[Cfp.Slug] = Form(single("cfp" -> cfpSlug))
+
+  final case class MeetupOptions(publish: Boolean, draft: Boolean)
+
+  final case class PublishOptions(meetup: Option[MeetupOptions])
+
+  object PublishOptions {
+    val default = PublishOptions(
+      meetup = Some(MeetupOptions(publish = true, draft = true)))
+  }
+
+  val publish: Form[PublishOptions] = Form(mapping(
+    "meetup" -> optional(mapping(
+      "publish" -> boolean,
+      "draft" -> boolean
+    )(MeetupOptions.apply)(MeetupOptions.unapply)))
+  (PublishOptions.apply)(PublishOptions.unapply))
 }

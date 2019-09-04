@@ -29,10 +29,11 @@ object Venue {
   final case class Data(partner: Partner.Id,
                         address: GMapPlace,
                         description: Markdown,
-                        roomSize: Option[Int])
+                        roomSize: Option[Int],
+                        refs: Venue.ExtRefs)
 
   object Data {
-    def apply(venue: Venue): Data = new Data(venue.partner, venue.address, venue.description, venue.roomSize)
+    def apply(venue: Venue): Data = new Data(venue.partner, venue.address, venue.description, venue.roomSize, venue.refs)
   }
 
 }

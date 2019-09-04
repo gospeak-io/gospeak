@@ -15,17 +15,17 @@
 @import fr.gospeak.web.pages.partials.html.{pagination, search}
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, event: Event, venueOpt: Option[(Partner, Venue)], talks: Seq[Proposal], description: Either[String, Markdown], cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], eventSettings: Group.Settings.Event, attachCfp: Form[Cfp.Slug])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, event: Event, venueOpt: Option[(Partner, Venue)], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], eventSettings: Group.Settings.Event, attachCfp: Form[Cfp.Slug])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(event.name.value + " - Gospeak", group, b)() {
     @if(!event.isPublic) {
         <div class="alert alert-info" role="alert">
             <h4 class="alert-heading d-flex justify-content-between align-items-center">
                 <span>Not published event</span>
-                <span>@formBtn(EventCtrl.publish(group.slug, event.slug), Seq(
-                    "class" -> "btn-sm btn-primary",
-                    "title" -> "Will be listed publicly on the group page",
-                    "data-toggle" -> "tooltip",
-                    "data-placement" -> "bottom")) {Publish event}</span>
+                <a href="@EventCtrl.publish(group.slug, event.slug)"
+                    class="btn btn-sm btn-primary"
+                    title="Will be listed publicly on the group page"
+                    data-toggle="tooltip"
+                    data-placement="bottom">Publish event</a>
             </h4>
             <p class="mb-0">This event is not published, so it is not visible outside of this group, publish it to make it public.</p>
         </div>

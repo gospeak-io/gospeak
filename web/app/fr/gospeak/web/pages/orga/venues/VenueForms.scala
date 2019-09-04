@@ -10,6 +10,7 @@ object VenueForms {
     "partner" -> partnerId,
     "address" -> gMapPlace,
     "description" -> markdown,
-    "roomSize" -> optional(number)
+    "roomSize" -> optional(number),
+    "refs" -> venueRefs
   )(Venue.Data.apply)(Venue.Data.unapply))
 }

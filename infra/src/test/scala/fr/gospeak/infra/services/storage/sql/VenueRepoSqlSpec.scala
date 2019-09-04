@@ -15,7 +15,7 @@ class VenueRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = update(group.id, venue.id)(venue.data, user.id, now)
-        q.sql shouldBe "UPDATE venues SET address=?, address_lat=?, address_lng=?, address_country=?, description=?, room_size=?, updated=?, updated_by=? WHERE id=(SELECT v.id FROM venues v INNER JOIN partners p ON v.partner_id=p.id WHERE p.group_id=? AND v.id=?)"
+        q.sql shouldBe "UPDATE venues SET address=?, address_lat=?, address_lng=?, address_country=?, description=?, room_size=?, meetupGroup=?, meetupVenue=?, updated=?, updated_by=? WHERE id=(SELECT v.id FROM venues v INNER JOIN partners p ON v.partner_id=p.id WHERE p.group_id=? AND v.id=?)"
         check(q)
       }
       it("should build selectPage") {

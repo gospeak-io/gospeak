@@ -6,12 +6,12 @@
 @import fr.gospeak.web.pages.orga.partials.html.{container, eventFields}
 @import fr.gospeak.web.pages.partials.form.html._
 
-@(group: Group, form: Form[Event.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, settings: Group.Settings, form: Form[Event.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("New Event - Gospeak", group, b)() {
     <h1 class="page-header">Create an event</h1>
 
     @formElt(form, EventCtrl.doCreate(group.slug)) {
-        @eventFields(form, group)
+        @eventFields(form, group, settings)
         @actionsVertical() {
             @btnCancel(EventCtrl.list(group.slug))
             @btnSubmit("Create")

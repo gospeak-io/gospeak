@@ -30,6 +30,7 @@ import fr.gospeak.web.pages._
 import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.pages.speaker.talks.TalkCtrl
 import fr.gospeak.web.pages.user.UserCtrl
+import fr.gospeak.web.services.EventSrv
 import org.slf4j.LoggerFactory
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.{BodyParsers, CookieHeaderEncoding, DefaultCookieHeaderEncoding}
@@ -81,6 +82,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val settingsRepo: SettingsRepo = db.settings
   lazy val authRepo: AuthRepo = wire[AuthRepo]
 
+  lazy val eventSrv: EventSrv = wire[EventSrv]
   lazy val templateSrv: TemplateSrv = wire[TemplateSrv]
   lazy val gravatarSrv: GravatarSrv = wire[GravatarSrv]
   lazy val emailSrv: EmailSrv = EmailSrv.from(conf.emailService)

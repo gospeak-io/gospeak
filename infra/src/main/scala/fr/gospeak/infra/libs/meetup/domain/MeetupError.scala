@@ -1,6 +1,8 @@
 package fr.gospeak.infra.libs.meetup.domain
 
-final case class MeetupError(error: String, error_description: Option[String])
+final case class MeetupError(error: String, error_description: Option[String]) {
+  def format: String = error_description.map(description => s"$description ($error)").getOrElse(error)
+}
 
 object MeetupError {
 

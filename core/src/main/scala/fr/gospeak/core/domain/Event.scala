@@ -55,10 +55,11 @@ object Event {
                         start: LocalDateTime,
                         venue: Option[Venue.Id],
                         description: MustacheMarkdownTmpl[TemplateData.EventInfo],
-                        tags: Seq[Tag])
+                        tags: Seq[Tag],
+                        refs: Event.ExtRefs)
 
   object Data {
-    def apply(event: Event): Data = new Data(event.cfp, event.slug, event.name, event.start, event.venue, event.description, event.tags)
+    def apply(event: Event): Data = new Data(event.cfp, event.slug, event.name, event.start, event.venue, event.description, event.tags, event.refs)
   }
 
 }

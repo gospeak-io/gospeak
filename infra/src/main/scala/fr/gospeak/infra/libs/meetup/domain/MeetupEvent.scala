@@ -1,5 +1,7 @@
 package fr.gospeak.infra.libs.meetup.domain
 
+import java.time.Instant
+
 final case class MeetupEvent(id: String,
                              name: String,
                              status: String, // "cancelled", "upcoming", "past", "proposed", "suggested", or "draft"
@@ -28,15 +30,15 @@ object MeetupEvent {
                           publish_status: String = "draft", // "draft" or "published"
                           announce: Boolean = false,
                           duration: Int = 10800000, // in millis
-                          venue_id: Option[Int] = None,
+                          venue_visibility: String = "public", // "public" or "members"
+                          venue_id: Option[Long] = None,
                           lat: Option[Double] = None,
                           lon: Option[Double] = None,
                           how_to_find_us: Option[String] = None,
-                          venue_visibility: String = "public", // "public" or "members"
-                          event_hosts: Option[String] = None, // coma separated member ids, <= 5
                           rsvp_limit: Option[Int] = None,
                           rsvp_close_time: Option[Long] = None, // timestamp
                           rsvp_open_time: Option[Long] = None, // timestamp
+                          event_hosts: Option[String] = None, // coma separated member ids, <= 5
                           question: Option[String] = None, // < 250 char
                           guest_limit: Option[Int] = None, // between 0 and 2
                           featured_photo_id: Option[Int] = None,
@@ -48,19 +50,49 @@ object MeetupEvent {
       "publish_status" -> Some(publish_status),
       "announce" -> Some(announce.toString),
       "duration" -> Some(duration.toString),
+      "venue_visibility" -> Some(venue_visibility),
       "venue_id" -> venue_id.map(_.toString),
       "lat" -> lat.map(_.toString),
       "lon" -> lon.map(_.toString),
       "how_to_find_us" -> how_to_find_us,
-      "venue_visibility" -> Some(venue_visibility),
-      "event_hosts" -> event_hosts,
       "rsvp_limit" -> rsvp_limit.map(_.toString),
       "rsvp_close_time" -> rsvp_close_time.map(_.toString),
       "rsvp_open_time" -> rsvp_open_time.map(_.toString),
+      "event_hosts" -> event_hosts,
       "question" -> question,
       "guest_limit" -> guest_limit.map(_.toString),
       "featured_photo_id" -> featured_photo_id.map(_.toString),
       "self_rsvp" -> Some(self_rsvp.toString)).collect { case (k, Some(v)) => (k, v) }
+
+    def fakeCreate(groupSlug: String, eventId: String): MeetupEvent = MeetupEvent(
+      id = eventId,
+      name = name,
+      status = publish_status,
+      visibility = venue_visibility,
+      description = description,
+      time = Some(time),
+      local_date = None,
+      local_time = None,
+      utc_offset = None,
+      duration = Some(duration),
+      venue = None,
+      group = MeetupGroup.Basic(
+        id = 25389214L,
+        name = "name",
+        urlname = groupSlug,
+        join_mode = "open",
+        lat = 48.86,
+        lon = 2.34,
+        country = "FR",
+        timezone = "Europe/Paris",
+        created = 1372084756000L),
+      rsvp_limit = rsvp_limit,
+      yes_rsvp_count = 100,
+      waitlist_count = 10,
+      link = s"https://www.meetup.com/$groupSlug",
+      member_pay_fee = false,
+      created = Instant.now().toEpochMilli,
+      updated = Instant.now().toEpochMilli)
   }
 
 }

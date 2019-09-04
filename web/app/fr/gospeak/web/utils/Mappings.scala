@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit
 
 import cats.implicits._
 import fr.gospeak.core.domain._
-import fr.gospeak.core.services.meetup.domain.MeetupGroup
+import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup, MeetupVenue}
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.Extensions._
@@ -132,6 +132,20 @@ object Mappings {
   val contactFirstName: Mapping[Contact.FirstName] = nonEmptyTextMapping(Contact.FirstName, _.value)
   val contactLastName: Mapping[Contact.LastName] = nonEmptyTextMapping(Contact.LastName, _.value)
   val meetupGroupSlug: Mapping[MeetupGroup.Slug] = stringEitherMapping(MeetupGroup.Slug.from, _.value, formatError, Constraints.nonEmpty)
+  val meetupEventId: Mapping[MeetupEvent.Id] = stringEitherMapping(MeetupEvent.Id.from, _.value.toString, formatError, Constraints.nonEmpty)
+  val meetupVenueId: Mapping[MeetupVenue.Id] = stringEitherMapping(MeetupVenue.Id.from, _.value.toString, formatError, Constraints.nonEmpty)
+  val eventRefs: Mapping[Event.ExtRefs] = mapping(
+    "meetup" -> optional(mapping(
+      "group" -> meetupGroupSlug,
+      "event" -> meetupEventId
+    )(MeetupEvent.Ref.apply)(MeetupEvent.Ref.unapply))
+  )(Event.ExtRefs.apply)(Event.ExtRefs.unapply)
+  val venueRefs: Mapping[Venue.ExtRefs] = mapping(
+    "meetup" -> optional(mapping(
+      "group" -> meetupGroupSlug,
+      "venue" -> meetupVenueId
+    )(MeetupVenue.Ref.apply)(MeetupVenue.Ref.unapply))
+  )(Venue.ExtRefs.apply)(Venue.ExtRefs.unapply)
 
   def slackToken(key: AesSecretKey): Mapping[SlackToken] = stringEitherMapping(SlackToken.from(_, key).toEither, _.decode(key).get, formatError, Constraints.nonEmpty)
 

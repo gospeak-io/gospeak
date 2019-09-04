@@ -4,7 +4,7 @@
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.display.html._
 
-@(form: Form[Event.Data], group: Group)(implicit messages: Messages)
+@(form: Form[Event.Data], group: Group, settings: Group.Settings)(implicit messages: Messages)
 @fieldVertical(form("name"), Seq("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "Event name", "autofocus" -> "true") ++ args)
 }
@@ -32,4 +32,12 @@
 }
 @fieldVertical(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the event (in urls for example)")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "Event slug", "slug-for" -> form("name").id) ++ args)
+}
+@if(settings.accounts.meetup.isDefined) {
+    @fieldVertical(form("refs.meetup"), Seq("label" -> "Meetup reference", "help" -> "References of this event in Meetup.com")) { (field, args) =>
+        <div class="row">
+            <div class="col-6">@inputText(field("group"), Seq("placeholder" -> "Group url name name", "optional" -> "true") ++ args)</div>
+            <div class="col-6">@inputNumber(field("event"), Seq("placeholder" -> "Event id", "optional" -> "true") ++ args)</div>
+        </div>
+    }
 }

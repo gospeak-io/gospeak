@@ -1,5 +1,7 @@
 package fr.gospeak.core.services.meetup.domain
 
+import fr.gospeak.core.domain.{Event, Partner, Venue}
+
 sealed abstract class MeetupException(msg: String) extends Exception(msg)
 
 object MeetupException {
@@ -10,5 +12,23 @@ object MeetupException {
 
   final case class GroupNotFound(slug: MeetupGroup.Slug,
                                  error: String) extends MeetupException(s"Meetup group '${slug.value}' not found: $error")
+
+  final case class CantFetchOrgas(slug: MeetupGroup.Slug,
+                                  error: String) extends MeetupException(s"Unable to fetch meetup orgas for group '${slug.value}': $error")
+
+  final case class CantCreateVenue(slug: MeetupGroup.Slug,
+                                   event: Event,
+                                   partner: Partner,
+                                   venue: Venue,
+                                   error: String) extends MeetupException(
+    s"Unable to create meetup venue '${partner.name.value}' (${venue.address.formatted}) for event '${event.name.value}': $error")
+
+  final case class CantCreateEvent(slug: MeetupGroup.Slug,
+                                   event: Event,
+                                   error: String) extends MeetupException(s"Unable to create meetup event '${event.name.value}': $error")
+
+  final case class CantUpdateEvent(slug: MeetupGroup.Slug,
+                                   event: Event,
+                                   error: String) extends MeetupException(s"Unable to update meetup event '${event.name.value}': $error")
 
 }

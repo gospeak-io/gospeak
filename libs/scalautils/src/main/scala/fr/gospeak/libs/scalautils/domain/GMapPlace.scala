@@ -1,5 +1,7 @@
 package fr.gospeak.libs.scalautils.domain
 
+import java.time.ZoneOffset
+
 case class GMapPlace(id: String,
                      name: String,
                      streetNo: Option[String],
@@ -14,8 +16,10 @@ case class GMapPlace(id: String,
                      url: String,
                      website: Option[String],
                      phone: Option[String],
-                     utcOffset: Int) {
+                     utcOffset: Int) { // in minutes
   def value: String = formatted
+
+  def zoneOffset: ZoneOffset = ZoneOffset.ofTotalSeconds(utcOffset * 60)
 
   def trim: GMapPlace = GMapPlace(
     id = id.trim,

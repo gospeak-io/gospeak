@@ -13,7 +13,7 @@ class MeetupJsonSpec extends FunSpec with Matchers {
     decode[MeetupToken](FileUtils.read(basePath + "/accessToken.json").get).toTry.get
   }
   it("should parse user response") {
-    decode[MeetupUser](FileUtils.read(basePath + "/user.json").get).toTry.get
+    decode[MeetupUser.Alt](FileUtils.read(basePath + "/user.json").get).toTry.get
   }
   it("should parse group response") {
     decode[MeetupGroup](FileUtils.read(basePath + "/group.json").get).toTry.get

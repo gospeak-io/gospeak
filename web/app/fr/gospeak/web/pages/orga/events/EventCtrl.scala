@@ -6,20 +6,26 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
+import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.TemplateSrv
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Html, Page}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus, MessageBuilder}
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.events.EventCtrl._
+import fr.gospeak.web.pages.orga.events.EventForms.PublishOptions
+import fr.gospeak.web.services.EventSrv
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
 
 class EventCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
+                appConf: ApplicationConf,
                 userRepo: OrgaUserRepo,
                 groupRepo: OrgaGroupRepo,
                 cfpRepo: OrgaCfpRepo,
@@ -27,8 +33,10 @@ class EventCtrl(cc: ControllerComponents,
                 venueRepo: OrgaVenueRepo,
                 proposalRepo: OrgaProposalRepo,
                 settingsRepo: SettingsRepo,
-                templateSrv: TemplateSrv,
                 builder: MessageBuilder,
+                templateSrv: TemplateSrv,
+                eventSrv: EventSrv,
+                meetupSrv: MeetupSrv,
                 mb: GospeakMessageBus) extends UICtrl(cc, silhouette) {
 
   import silhouette._
@@ -68,40 +76,29 @@ class EventCtrl(cc: ControllerComponents,
       settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
       b = listBreadcrumb(groupElt).add("New" -> routes.EventCtrl.create(group))
       filledForm = if (form.hasErrors) form else form.bind(Map("description.value" -> settings.event.defaultDescription.value)).discardingErrors
-    } yield Ok(html.create(groupElt, filledForm)(b))).value.map(_.getOrElse(groupNotFound(group)))
+    } yield Ok(html.create(groupElt, settings, filledForm)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
   def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     val customParams = params.defaultSize(40).defaultOrderBy(proposalRepo.fields.created)
     val nowLDT = LocalDateTime.now()
     (for {
-      groupElt <- OptionT(groupRepo.find(user, group))
-      eventElt <- OptionT(eventRepo.find(groupElt.id, event))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
-      venueOpt <- OptionT.liftF(venueRepo.list(groupElt.id, eventElt.venue.toList).map(_.headOption))
-      talks <- OptionT.liftF(proposalRepo.list(eventElt.talks))
-      cfpOpt <- OptionT.liftF(cfpRepo.find(eventElt.id))
-      proposals <- OptionT.liftF(cfpOpt.map(cfp => proposalRepo.list(cfp.id, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal])))
-      speakers <- OptionT.liftF(userRepo.list((proposals.items ++ talks).flatMap(_.users).distinct))
-      data = builder.buildEventInfo(groupElt, eventElt, cfpOpt, venueOpt, talks, speakers, nowLDT)
-      desc = templateSrv.render(eventElt.description, data)
-      b = breadcrumb(groupElt, eventElt)
-      res = Ok(html.detail(groupElt, eventElt, venueOpt, talks, desc, cfpOpt, proposals, speakers, settings.event, EventForms.attachCfp)(b))
+      e <- OptionT(eventSrv.getFullEvent(group, event, user))
+      settings <- OptionT.liftF(settingsRepo.find(e.group.id))
+      proposals <- OptionT.liftF(e.cfpOpt.map(cfp => proposalRepo.list(cfp.id, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal])))
+      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
+      desc = eventSrv.buildDescription(e, nowLDT)
+      b = breadcrumb(e.group, e.event)
+      res = Ok(html.detail(e.group, e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, settings.event, EventForms.attachCfp)(b))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
   def showTemplate(group: Group.Slug, event: Event.Slug, templateId: String): Action[AnyContent] = SecuredAction.async { implicit req =>
     val nowLDT = LocalDateTime.now()
     (for {
-      groupElt <- OptionT(groupRepo.find(user, group))
-      eventElt <- OptionT(eventRepo.find(groupElt.id, event))
-      cfpOpt <- OptionT.liftF(cfpRepo.find(eventElt.id))
-      venueOpt <- OptionT.liftF(venueRepo.list(groupElt.id, eventElt.venue.toList).map(_.headOption))
-      talks <- OptionT.liftF(proposalRepo.list(eventElt.talks)
-        .map(proposals => eventElt.talks.flatMap(t => proposals.find(_.id == t)))) // to keep talk order
-      speakers <- OptionT.liftF(userRepo.list(talks.flatMap(_.users).distinct))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
-      data = builder.buildEventInfo(groupElt, eventElt, cfpOpt, venueOpt, talks, speakers, nowLDT)
+      e <- OptionT(eventSrv.getFullEvent(group, event, user))
+      settings <- OptionT.liftF(settingsRepo.find(e.group.id))
+      data = builder.buildEventInfo(e, nowLDT)
       res = settings.event.templates.get(templateId)
         .flatMap(template => templateSrv.render(template, data).toOption)
         .map(text => Ok(html.showTemplate(Html(text))))
@@ -134,9 +131,10 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
+      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
       b = breadcrumb(groupElt, eventElt).add("Edit" -> routes.EventCtrl.edit(group, event))
       filledForm = if (form.hasErrors) form else form.fill(eventElt.data)
-    } yield Ok(html.edit(groupElt, eventElt, filledForm)(b))).value.map(_.getOrElse(eventNotFound(group, event)))
+    } yield Ok(html.edit(groupElt, settings, eventElt, filledForm)(b))).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
   def attachCfp(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -199,11 +197,41 @@ class EventCtrl(cc: ControllerComponents,
   }
 
   def publish(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val nowLDT = LocalDateTime.now()
+    publishForm(group, event, EventForms.publish.fill(PublishOptions.default), nowLDT).unsafeToFuture()
+  }
+
+  def doPublish(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
+    val nowLDT = LocalDateTime.now()
+    EventForms.publish.bindFromRequest.fold(
+      formWithErrors => publishForm(group, event, formWithErrors, nowLDT),
+      data => (for {
+        e <- OptionT(eventSrv.getFullEvent(group, event, user))
+        description = eventSrv.buildDescription(e, nowLDT)
+        settings <- OptionT.liftF(settingsRepo.find(e.group.id))
+        meetup <- OptionT.liftF((for {
+          creds <- settings.accounts.meetup
+          info <- data.meetup if info.publish
+        } yield meetupSrv.publish(e.event, e.venueOpt, description.value, info.draft, appConf.aesKey, creds)).sequence)
+        _ <- OptionT.liftF(meetup.map(_._1).filter(_ => e.event.refs.meetup.isEmpty)
+          .map(ref => e.event.copy(refs = e.event.refs.copy(meetup = Some(ref))))
+          .map(eventElt => eventRepo.edit(e.group.id, event)(eventElt.data, user, now)).sequence)
+        _ <- OptionT.liftF(meetup.flatMap(m => m._2.flatMap(r => e.venueOpt.map(v => (r, v._2)))).filter { case (_, v) => v.refs.meetup.isEmpty }
+          .map { case (ref, venue) => venue.copy(refs = venue.refs.copy(meetup = Some(ref))) }
+          .map(venueElt => venueRepo.edit(e.group.id, venueElt.id)(venueElt.data, user, now)).sequence)
+        _ <- OptionT.liftF(eventRepo.publish(e.group.id, event, user, now))
+      } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event)))).unsafeToFuture()
+  }
+
+  private def publishForm(group: Group.Slug, event: Event.Slug, form: Form[PublishOptions], nowLDT: LocalDateTime)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      groupElt <- OptionT(groupRepo.find(user, group))
-      _ <- OptionT.liftF(eventRepo.publish(groupElt.id, event, user, now))
-    } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
+      e <- OptionT(eventSrv.getFullEvent(group, event, user))
+      description = eventSrv.buildDescription(e, nowLDT)
+      settings <- OptionT.liftF(settingsRepo.find(e.group.id))
+      b = breadcrumb(e.group, e.event).add("Publish" -> routes.EventCtrl.publish(group, event))
+      res = Ok(html.publish(e.group, e.event, description, form, settings)(b))
+    } yield res).value.map(_.getOrElse(groupNotFound(group)))
   }
 }
 

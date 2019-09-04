@@ -20,7 +20,7 @@
     <div class="invalid-feedback">@form("password").errors.map(_.format).mkString(", ")</div>
 </div>
 
-<div class="form-group form-check @if(form("rememberMe").errors.nonEmpty){is-invalid}">
+<div class="form-group custom-control custom-checkbox @if(form("rememberMe").errors.nonEmpty){is-invalid}">
     @inputCheckbox(form("rememberMe"), Seq("label" -> "Remember me"))
     <div class="invalid-feedback">@form("rememberMe").errors.map(_.format).mkString(", ")</div>
 </div>

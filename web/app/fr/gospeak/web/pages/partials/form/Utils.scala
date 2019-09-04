@@ -1,6 +1,5 @@
 package fr.gospeak.web.pages.partials.form
 
-import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
 import fr.gospeak.web.utils.Mappings
@@ -57,6 +56,9 @@ object Utils {
 
   def placeholderAttr(args: Args): Html =
     getArg(args, "placeholder").map(attr("placeholder", _)).getOrElse(Html(""))
+
+  def checkedAttr(field: Field, args: Args, checkedValue: => String = "true"): Html =
+    getArg(args, "value").orElse(field.value).filter(_ == checkedValue).map(_ => Html("checked")).getOrElse(Html(""))
 
   def hasErrors(field: Field): Boolean =
     getErrors(field).nonEmpty
