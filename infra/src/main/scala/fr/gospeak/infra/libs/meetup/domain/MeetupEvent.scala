@@ -1,7 +1,5 @@
 package fr.gospeak.infra.libs.meetup.domain
 
-import java.time.Instant
-
 final case class MeetupEvent(id: String,
                              name: String,
                              status: String, // "cancelled", "upcoming", "past", "proposed", "suggested", or "draft"
@@ -63,36 +61,6 @@ object MeetupEvent {
       "guest_limit" -> guest_limit.map(_.toString),
       "featured_photo_id" -> featured_photo_id.map(_.toString),
       "self_rsvp" -> Some(self_rsvp.toString)).collect { case (k, Some(v)) => (k, v) }
-
-    def fakeCreate(groupSlug: String, eventId: String): MeetupEvent = MeetupEvent(
-      id = eventId,
-      name = name,
-      status = publish_status,
-      visibility = venue_visibility,
-      description = description,
-      time = Some(time),
-      local_date = None,
-      local_time = None,
-      utc_offset = None,
-      duration = Some(duration),
-      venue = None,
-      group = MeetupGroup.Basic(
-        id = 25389214L,
-        name = "name",
-        urlname = groupSlug,
-        join_mode = "open",
-        lat = 48.86,
-        lon = 2.34,
-        country = "FR",
-        timezone = "Europe/Paris",
-        created = 1372084756000L),
-      rsvp_limit = rsvp_limit,
-      yes_rsvp_count = 100,
-      waitlist_count = 10,
-      link = s"https://www.meetup.com/$groupSlug",
-      member_pay_fee = false,
-      created = Instant.now().toEpochMilli,
-      updated = Instant.now().toEpochMilli)
   }
 
 }
