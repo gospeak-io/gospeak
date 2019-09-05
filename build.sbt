@@ -76,7 +76,7 @@ val scalaTest = Seq(
   "org.scalatest" %% "scalatest" % "3.0.5").map(_ % Test)
 val scalaCheck = Seq(
   "org.scalacheck" %% "scalacheck" % "1.14.0",
-  "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.0",
+  "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.3",
   "com.danielasfregola" %% "random-data-generator" % "2.6").map(_ % Test)
 
 val scalautilsDependencies = cats ++ scalaTest ++ scalaCheck
