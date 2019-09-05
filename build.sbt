@@ -73,7 +73,7 @@ val logback = Seq(
   "org.slf4j" % "slf4j-api" % "1.7.25",
   "ch.qos.logback" % "logback-classic" % "1.2.3")
 val scalaTest = Seq(
-  "org.scalatest" %% "scalatest" % "3.0.5").map(_ % Test)
+  "org.scalatest" %% "scalatest" % "3.0.8").map(_ % Test)
 val scalaCheck = Seq(
   "org.scalacheck" %% "scalacheck" % "1.14.0",
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.0",
