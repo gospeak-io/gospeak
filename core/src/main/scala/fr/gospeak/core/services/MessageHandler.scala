@@ -34,12 +34,13 @@ class MessageHandler(appConf: ApplicationConf,
 
   private def handle(msg: GospeakMessage.ProposalCreated): IO[Int] = handleGroupEvent(msg.cfp.value.group, Trigger.OnProposalCreated, TemplateData.proposalCreated(msg))
 
-  private def handleGroupEvent(id: Group.Id, e: Trigger, data: TemplateData): IO[Int] = for {
-    settings <- groupSettingsRepo.find(id)
-    results <- settings.actions.getOrElse(e, Seq()).map(exec(settings, _, data)).sequence
+  private def handleGroupEvent(id: Group.Id, trigger: Trigger, data: TemplateData): IO[Int] = for {
+    actions <- groupSettingsRepo.findActions(id)
+    accounts <- groupSettingsRepo.findAccounts(id)
+    results <- actions.getOrElse(trigger, Seq()).map(exec(accounts, _, data)).sequence
   } yield results.length
 
-  private def exec(settings: Group.Settings, action: Action, data: TemplateData): IO[Unit] = action match {
-    case Action.Slack(slack) => settings.accounts.slack.map(slackSrv.exec(slack, data, _, appConf.aesKey)).getOrElse(IO.raiseError(CustomException("No credentials for Slack")))
+  private def exec(accounts: Group.Settings.Accounts, action: Action, data: TemplateData): IO[Unit] = action match {
+    case Action.Slack(slack) => accounts.slack.map(slackSrv.exec(slack, data, _, appConf.aesKey)).getOrElse(IO.raiseError(CustomException("No credentials for Slack")))
   }
 }

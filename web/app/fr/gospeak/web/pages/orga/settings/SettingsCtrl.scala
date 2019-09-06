@@ -46,9 +46,8 @@ class SettingsCtrl(cc: ControllerComponents,
   def meetupAuthorize(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       res <- OptionT.liftF(SettingsForms.meetupAccount.bindFromRequest.fold(
-        formWithErrors => IO.pure(settingsView(groupElt, settings, meetup = Some(formWithErrors))),
+        formWithErrors => groupSettingsRepo.find(groupElt.id).map(settingsView(groupElt, _, meetup = Some(formWithErrors))),
         data => {
           val redirectUri = routes.SettingsCtrl.meetupCallback(group, data.group).absoluteURL(meetupSrv.hasSecureCallback)
           meetupSrv.buildAuthorizationUrl(redirectUri).map(url => Redirect(url.value)).toIO

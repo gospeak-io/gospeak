@@ -2,7 +2,7 @@
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 
-@(form: Form[Venue.Data], group: Group, settings: Group.Settings, partner: Option[Partner])(implicit messages: Messages)
+@(form: Form[Venue.Data], group: Group, hasMeetupAccount: Boolean, partner: Option[Partner])(implicit messages: Messages)
 @fieldHorizontal(form("address"), Seq("label" -> "Address", "help" -> "Address of the venue")) { (field, args) =>
     @inputGMapPlace(field, Seq("autofocus" -> "true") ++ args)
 }
@@ -19,7 +19,7 @@
 @fieldHorizontal(form("roomSize"), Seq("label" -> "Room size")) { (field, args) =>
     @inputNumber(field, args)
 }
-@if(settings.accounts.meetup.isDefined) {
+@if(hasMeetupAccount) {
     @fieldHorizontal(form("refs.meetup"), Seq("label" -> "Meetup reference", "help" -> "References of this venue in Meetup.com")) { (field, args) =>
         <div class="row">
             <div class="col-6">@inputText(field("group"), Seq("placeholder" -> "Group url name name", "optional" -> "true") ++ args)</div>
