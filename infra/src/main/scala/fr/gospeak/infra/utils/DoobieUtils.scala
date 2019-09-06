@@ -75,7 +75,6 @@ object DoobieUtils {
           val f = p + v.stripPrefix("-")
           if (nullsFirst) {
             s"$f IS NOT NULL, $f" + (if (v.startsWith("-")) " DESC" else "")
-
           } else {
             s"$f IS NULL, $f" + (if (v.startsWith("-")) " DESC" else "")
           }

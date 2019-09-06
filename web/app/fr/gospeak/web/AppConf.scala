@@ -13,7 +13,6 @@ import fr.gospeak.web.auth.AuthConf
 import play.api.Configuration
 import play.api.mvc.Cookie.SameSite
 import pureconfig.error.{CannotConvert, ConfigReaderFailure, ConfigReaderFailures, ConvertFailure}
-import pureconfig.generic.EnumCoproductHint
 import pureconfig.{ConfigCursor, ConfigReader, Derivation}
 
 import scala.util.{Failure, Success, Try}
@@ -63,15 +62,14 @@ object AppConf {
 
     private implicit val databaseConfH2Reader: ConfigReader[DatabaseConf.H2] = deriveReader[DatabaseConf.H2]
     private implicit val databaseConfPostgreSQLReader: ConfigReader[DatabaseConf.PostgreSQL] = deriveReader[DatabaseConf.PostgreSQL]
+    private implicit val databaseConfReader: ConfigReader[DatabaseConf] = deriveReader[DatabaseConf]
 
     private implicit val emailSrvConfConsoleReader: ConfigReader[EmailSrv.Conf.Console] = deriveReader[EmailSrv.Conf.Console]
-    private implicit val emailSrvConfInMemeryReader: ConfigReader[EmailSrv.Conf.InMemery] = deriveReader[EmailSrv.Conf.InMemery]
+    private implicit val emailSrvConfInMemoryReader: ConfigReader[EmailSrv.Conf.InMemory] = deriveReader[EmailSrv.Conf.InMemory]
     private implicit val emailSrvConfSendGridReader: ConfigReader[EmailSrv.Conf.SendGrid] = deriveReader[EmailSrv.Conf.SendGrid]
 
-    private implicit val applicationConfEnvHint: EnumCoproductHint[ApplicationConf.Env] = new EnumCoproductHint[ApplicationConf.Env]
     private implicit val applicationConfReader: ConfigReader[ApplicationConf] = deriveReader[ApplicationConf]
     private implicit val authConfReader: ConfigReader[AuthConf] = deriveReader[AuthConf]
-    private implicit val databaseConfReader: ConfigReader[DatabaseConf] = deriveReader[DatabaseConf]
     private implicit val meetupClientConfReader: ConfigReader[MeetupClient.Conf] = deriveReader[MeetupClient.Conf]
     private implicit val emailSrvConfReader: ConfigReader[EmailSrv.Conf] = deriveReader[EmailSrv.Conf]
 

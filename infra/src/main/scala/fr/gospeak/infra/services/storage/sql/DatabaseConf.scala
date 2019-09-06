@@ -11,4 +11,3 @@ object DatabaseConf {
   final case class PostgreSQL(url: String, user: String, pass: Secret) extends DatabaseConf
 
 }
-
