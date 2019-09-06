@@ -255,7 +255,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       website = Some("https://www.zeenea.com/"),
       phone = None,
       utcOffset = 120)
-    val venue1 = venue(zeenea, zeeneaPlace, userDemo)
+    val venue1 = venue(zeenea, zeeneaPlace, userDemo, roomSize = Some(80))
     val venues = NonEmptyList.of(venue1)
 
     val event1 = event(humanTalks, Some(cfp2), "2018-06", "HumanTalks Day #1", "2018-06-01", userDemo, venue = None, description = Group.Settings.default.event.defaultDescription.value)

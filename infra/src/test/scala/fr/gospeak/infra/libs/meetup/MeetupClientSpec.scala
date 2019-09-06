@@ -60,7 +60,7 @@ class MeetupClientSpec extends FunSpec with Matchers {
         println(s"events: $events")
         events should not be empty
       }
-      it ("should create, read, update and delete an event") {
+      it("should create, read, update and delete an event") {
         val event = MeetupEvent.Create(
           name = "Event name 3",
           description = "desc",
@@ -74,7 +74,7 @@ class MeetupClientSpec extends FunSpec with Matchers {
         println(s"updated: $updated")
         client.deleteEvent(groupId, created.id).unsafeRunSync().get
       }
-      it ("should get event details") {
+      it("should get event details") {
         val event = client.getEvent(groupId, eventId).unsafeRunSync().get
         println(s"event: $event")
         event.id shouldBe eventId
@@ -86,7 +86,7 @@ class MeetupClientSpec extends FunSpec with Matchers {
         println(s"venues (${venues.length}):\n${venues.mkString("\n")}")
         venues should not be empty
       }
-      it ("should create, read, update and delete a venue") {
+      it("should create, read, update and delete a venue") {
         val venue = MeetupVenue.Create(
           name = "Test venue",
           address_1 = "119 rue des Pyrénées",
@@ -105,6 +105,12 @@ class MeetupClientSpec extends FunSpec with Matchers {
         val updated = client.updateVenue(groupId, created.id, venue.copy(name = "Test venue 2")).unsafeRunSync().get
         println(s"updated: $updated")
         client.deleteVenue(groupId, created.id).unsafeRunSync().get
+      }
+    }
+    describe("locations") {
+      it("should fetch locations") {
+        val locations = client.getLocations(48.8716827, 2.3070390000000316).unsafeRunSync().get
+        println(s"locations (${locations.length}):\n${locations.mkString("\n")}")
       }
     }
   }

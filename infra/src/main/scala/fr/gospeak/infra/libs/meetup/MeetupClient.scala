@@ -139,6 +139,10 @@ class MeetupClient(conf: Conf) {
       delete[Unit](s"$baseUrl/$groupSlug/venues/$venueId", Map())
     }
 
+  // cf https://www.meetup.com/fr-FR/meetup_api/docs/find/locations
+  def getLocations(lat: Double, lon: Double)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupLocation]]] =
+    get[Seq[MeetupLocation]](s"$baseUrl/find/locations", Map("lat" -> lat.toString, "lon" -> lon.toString))
+
   private def get[A](url: String, query: Map[String, String] = Map())(implicit accessToken: MeetupToken.Access, d: Decoder[A]): IO[Either[MeetupError, A]] =
     HttpClient.get(url, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])
 

@@ -26,6 +26,9 @@ class MeetupJsonSpec extends FunSpec with Matchers {
   it("should parse venues response") {
     decode[Seq[MeetupVenue]](FileUtils.read(basePath + "/venues.json").get).toTry.get
   }
+  it("should parse locations response") {
+    decode[Seq[MeetupLocation]](FileUtils.read(basePath + "/locations.json").get).toTry.get
+  }
   it("should parse error responses") {
     decode[MeetupError.NotAuthorized](FileUtils.read(basePath + "/errors/not_authorized.json").get).toTry.get
     decode[MeetupError](FileUtils.read(basePath + "/errors/invalid_request.json").get).toTry.get

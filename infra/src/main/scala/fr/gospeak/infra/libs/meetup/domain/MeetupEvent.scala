@@ -21,6 +21,7 @@ final case class MeetupEvent(id: String,
                              updated: Long)
 
 object MeetupEvent {
+  val maxHosts = 5
 
   final case class Create(name: String, // < 80 char
                           description: String, // < 50000 char, html with only <b>, <i> & <a>, img link are rendered

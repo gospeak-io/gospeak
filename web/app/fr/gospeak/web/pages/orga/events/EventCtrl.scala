@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.orga.events
 
-import java.time.{Instant, LocalDateTime}
+import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import cats.data.OptionT
 import cats.effect.IO
