@@ -32,7 +32,7 @@ class EventCtrl(cc: ControllerComponents,
                 eventRepo: OrgaEventRepo,
                 venueRepo: OrgaVenueRepo,
                 proposalRepo: OrgaProposalRepo,
-                settingsRepo: SettingsRepo,
+                groupSettingsRepo: GroupSettingsRepo,
                 builder: MessageBuilder,
                 templateSrv: TemplateSrv,
                 eventSrv: EventSrv,
@@ -73,7 +73,7 @@ class EventCtrl(cc: ControllerComponents,
   private def createForm(group: Group.Slug, form: Form[Event.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       b = listBreadcrumb(groupElt).add("New" -> routes.EventCtrl.create(group))
       filledForm = if (form.hasErrors) form else form.bind(Map("description.value" -> settings.event.defaultDescription.value)).discardingErrors
     } yield Ok(html.create(groupElt, settings, filledForm)(b))).value.map(_.getOrElse(groupNotFound(group)))
@@ -84,7 +84,7 @@ class EventCtrl(cc: ControllerComponents,
     val nowLDT = LocalDateTime.now()
     (for {
       e <- OptionT(eventSrv.getFullEvent(group, event, user))
-      settings <- OptionT.liftF(settingsRepo.find(e.group.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(e.group.id))
       proposals <- OptionT.liftF(e.cfpOpt.map(cfp => proposalRepo.list(cfp.id, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal])))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
       desc = eventSrv.buildDescription(e, nowLDT)
@@ -97,7 +97,7 @@ class EventCtrl(cc: ControllerComponents,
     val nowLDT = LocalDateTime.now()
     (for {
       e <- OptionT(eventSrv.getFullEvent(group, event, user))
-      settings <- OptionT.liftF(settingsRepo.find(e.group.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(e.group.id))
       data = builder.buildEventInfo(e, nowLDT)
       res = settings.event.templates.get(templateId)
         .flatMap(template => templateSrv.render(template, data).toOption)
@@ -131,7 +131,7 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       b = breadcrumb(groupElt, eventElt).add("Edit" -> routes.EventCtrl.edit(group, event))
       filledForm = if (form.hasErrors) form else form.fill(eventElt.data)
     } yield Ok(html.edit(groupElt, settings, eventElt, filledForm)(b))).value.map(_.getOrElse(eventNotFound(group, event)))
@@ -209,7 +209,7 @@ class EventCtrl(cc: ControllerComponents,
       data => (for {
         e <- OptionT(eventSrv.getFullEvent(group, event, user))
         description = eventSrv.buildDescription(e, nowLDT)
-        settings <- OptionT.liftF(settingsRepo.find(e.group.id))
+        settings <- OptionT.liftF(groupSettingsRepo.find(e.group.id))
         meetup <- OptionT.liftF((for {
           creds <- settings.accounts.meetup
           info <- data.meetup if info.publish
@@ -228,7 +228,7 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       e <- OptionT(eventSrv.getFullEvent(group, event, user))
       description = eventSrv.buildDescription(e, nowLDT)
-      settings <- OptionT.liftF(settingsRepo.find(e.group.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(e.group.id))
       b = breadcrumb(e.group, e.event).add("Publish" -> routes.EventCtrl.publish(group, event))
       res = Ok(html.publish(e.group, e.event, description, form, settings)(b))
     } yield res).value.map(_.getOrElse(groupNotFound(group)))

@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, Partner, Venue}
-import fr.gospeak.core.services.storage.{OrgaGroupRepo, OrgaPartnerRepo, OrgaUserRepo, OrgaVenueRepo, SettingsRepo}
+import fr.gospeak.core.services.storage.{OrgaGroupRepo, OrgaPartnerRepo, OrgaUserRepo, OrgaVenueRepo, GroupSettingsRepo}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.partners.PartnerCtrl
@@ -24,7 +24,7 @@ class VenueCtrl(cc: ControllerComponents,
                 groupRepo: OrgaGroupRepo,
                 partnerRepo: OrgaPartnerRepo,
                 venueRepo: OrgaVenueRepo,
-                settingsRepo: SettingsRepo) extends UICtrl(cc, silhouette) {
+                groupSettingsRepo: GroupSettingsRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
@@ -46,7 +46,7 @@ class VenueCtrl(cc: ControllerComponents,
   private def createForm(group: Group.Slug, partner: Partner.Slug, form: Form[Venue.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
       b = listBreadcrumb(groupElt, partnerElt).add("New" -> routes.VenueCtrl.create(group, partner))
       call = routes.VenueCtrl.doCreate(group, partner)
@@ -81,7 +81,7 @@ class VenueCtrl(cc: ControllerComponents,
   private def editForm(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id, form: Form[Venue.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       (partnerElt, venueElt) <- OptionT(venueRepo.find(groupElt.id, venue))
       b = breadcrumb(groupElt, partnerElt, venueElt).add("Edit" -> routes.VenueCtrl.edit(group, partner, venue))
       filledForm = if (form.hasErrors) form else form.fill(venueElt.data)

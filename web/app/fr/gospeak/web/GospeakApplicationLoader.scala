@@ -70,6 +70,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val userRepo: UserRepo = db.user
   lazy val userRequestRepo: UserRequestRepo = db.userRequest
   lazy val groupRepo: GroupRepo = db.group
+  lazy val groupSettingsRepo: GroupSettingsRepo = db.groupSettings
   lazy val eventRepo: EventRepo = db.event
   lazy val cfpRepo: CfpRepo = db.cfp
   lazy val talkRepo: TalkRepo = db.talk
@@ -79,7 +80,6 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val sponsorPackRepo: SponsorPackRepo = db.sponsorPack
   lazy val sponsorRepo: SponsorRepo = db.sponsor
   lazy val contactRepo: ContactRepo = db.contact
-  lazy val settingsRepo: SettingsRepo = db.settings
   lazy val authRepo: AuthRepo = wire[AuthRepo]
 
   lazy val eventSrv: EventSrv = wire[EventSrv]

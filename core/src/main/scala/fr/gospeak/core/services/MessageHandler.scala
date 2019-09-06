@@ -7,14 +7,14 @@ import fr.gospeak.core.domain.Group.Settings.Action
 import fr.gospeak.core.domain.Group.Settings.Action.Trigger
 import fr.gospeak.core.domain.utils.{GospeakMessage, TemplateData}
 import fr.gospeak.core.services.slack.SlackSrv
-import fr.gospeak.core.services.storage.SettingsRepo
+import fr.gospeak.core.services.storage.GroupSettingsRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.CustomException
 
 import scala.util.control.NonFatal
 
 class MessageHandler(appConf: ApplicationConf,
-                     settingsRepo: SettingsRepo,
+                     groupSettingsRepo: GroupSettingsRepo,
                      slackSrv: SlackSrv) {
   def handle(msg: GospeakMessage): IO[Unit] = (msg match {
     case m: GospeakMessage.EventCreated => handle(m)
@@ -35,7 +35,7 @@ class MessageHandler(appConf: ApplicationConf,
   private def handle(msg: GospeakMessage.ProposalCreated): IO[Int] = handleGroupEvent(msg.cfp.value.group, Trigger.OnProposalCreated, TemplateData.proposalCreated(msg))
 
   private def handleGroupEvent(id: Group.Id, e: Trigger, data: TemplateData): IO[Int] = for {
-    settings <- settingsRepo.find(id)
+    settings <- groupSettingsRepo.find(id)
     results <- settings.actions.getOrElse(e, Seq()).map(exec(settings, _, data)).sequence
   } yield results.length
 

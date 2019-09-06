@@ -50,8 +50,8 @@ object Group {
 
 
   final case class Settings(accounts: Settings.Accounts,
-                            actions: Map[Settings.Action.Trigger, Seq[Settings.Action]],
-                            event: Settings.Event) {
+                            event: Settings.Event,
+                            actions: Map[Settings.Action.Trigger, Seq[Settings.Action]]) {
     def set(meetup: MeetupCredentials): Settings = copy(accounts = accounts.copy(meetup = Some(meetup)))
 
     def set(slack: SlackCredentials): Settings = copy(accounts = accounts.copy(slack = Some(slack)))
@@ -59,8 +59,8 @@ object Group {
     def removeAccount(kind: String): Try[Settings] = kind match {
       case "meetup" => Success(copy(accounts = accounts.copy(meetup = None)))
       case "slack" => Success(copy(accounts = accounts.copy(slack = None)))
-      case "twitter" => Success(copy(accounts = accounts.copy(twitter = None)))
-      case "youtube" => Success(copy(accounts = accounts.copy(youtube = None)))
+      // case "twitter" => Success(copy(accounts = accounts.copy(twitter = None)))
+      // case "youtube" => Success(copy(accounts = accounts.copy(youtube = None)))
       case _ => Failure(new IllegalArgumentException(s"Account '$kind' does not exists"))
     }
 
@@ -78,18 +78,18 @@ object Group {
     val default = Settings(
       accounts = Accounts(
         meetup = None,
-        slack = None,
-        twitter = None,
-        youtube = None),
-      actions = Map(),
+        slack = None),
+        // twitter = None,
+        // youtube = None),
       event = Event(
         defaultDescription = TemplateData.Static.defaultEventDescription,
-        templates = Map()))
+        templates = Map()),
+      actions = Map())
 
     final case class Accounts(meetup: Option[MeetupCredentials],
-                              slack: Option[SlackCredentials],
-                              twitter: Option[String],
-                              youtube: Option[String])
+                              slack: Option[SlackCredentials])
+                              // twitter: Option[String],
+                              // youtube: Option[String])
 
     sealed trait Action
 

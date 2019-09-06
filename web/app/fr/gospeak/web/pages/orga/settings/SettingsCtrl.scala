@@ -12,7 +12,7 @@ import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.meetup.domain.{MeetupCredentials, MeetupException, MeetupGroup}
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackCredentials
-import fr.gospeak.core.services.storage.{OrgaGroupRepo, SettingsRepo}
+import fr.gospeak.core.services.storage.{OrgaGroupRepo, GroupSettingsRepo}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
@@ -29,7 +29,7 @@ class SettingsCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
                    appConf: ApplicationConf,
                    groupRepo: OrgaGroupRepo,
-                   settingsRepo: SettingsRepo,
+                   groupSettingsRepo: GroupSettingsRepo,
                    meetupSrv: MeetupSrv,
                    slackSrv: SlackSrv) extends UICtrl(cc, silhouette) {
 
@@ -38,7 +38,7 @@ class SettingsCtrl(cc: ControllerComponents,
   def list(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       res = settingsView(groupElt, settings)
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
@@ -46,7 +46,7 @@ class SettingsCtrl(cc: ControllerComponents,
   def meetupAuthorize(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       res <- OptionT.liftF(SettingsForms.meetupAccount.bindFromRequest.fold(
         formWithErrors => IO.pure(settingsView(groupElt, settings, meetup = Some(formWithErrors))),
         data => {
@@ -62,12 +62,12 @@ class SettingsCtrl(cc: ControllerComponents,
     req.getQueryString("code").map { code =>
       (for {
         groupElt <- OptionT(groupRepo.find(user, group))
-        settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+        settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
         token <- OptionT.liftF(meetupSrv.requestAccessToken(redirectUri, code, appConf.aesKey))
         loggedUser <- OptionT.liftF(meetupSrv.getLoggedUser(appConf.aesKey)(token))
         meetupGroupElt <- OptionT.liftF(meetupSrv.getGroup(meetupGroup, appConf.aesKey)(token))
         creds = MeetupCredentials(token, loggedUser, meetupGroupElt)
-        _ <- OptionT.liftF(settingsRepo.set(groupElt.id, settings.set(creds), user, now))
+        _ <- OptionT.liftF(groupSettingsRepo.set(groupElt.id, settings.set(creds), user, now))
         next = Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> s"Connected to <b>${loggedUser.name}</b> meetup account")
       } yield next).value.map(_.getOrElse(groupNotFound(group))).recoverWith {
         case e: MeetupException => IO.pure(Redirect(routes.SettingsCtrl.list(group)).flashing("error" -> e.getMessage))
@@ -84,11 +84,11 @@ class SettingsCtrl(cc: ControllerComponents,
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       res <- OptionT.liftF(SettingsForms.slackAccount(appConf.aesKey).bindFromRequest.fold(
         formWithErrors => IO.pure(settingsView(groupElt, settings, slack = Some(formWithErrors))),
         creds => slackSrv.getInfos(creds.token, appConf.aesKey)
-          .flatMap(_ => settingsRepo.set(groupElt.id, settings.set(creds), user, now))
+          .flatMap(_ => groupSettingsRepo.set(groupElt.id, settings.set(creds), user, now))
           .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Slack account updated"))
           .recover { case NonFatal(e) => Redirect(routes.SettingsCtrl.list(group)).flashing("error" -> s"Invalid Slack token: ${e.getMessage}") }
       ))
@@ -99,9 +99,9 @@ class SettingsCtrl(cc: ControllerComponents,
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       updated <- OptionT.liftF(settings.removeAccount(kind).toIO)
-      res <- OptionT.liftF(settingsRepo.set(groupElt.id, updated, user, now)
+      res <- OptionT.liftF(groupSettingsRepo.set(groupElt.id, updated, user, now)
         .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> s"${kind.capitalize} account removed"))
       )
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
@@ -111,10 +111,10 @@ class SettingsCtrl(cc: ControllerComponents,
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       res <- OptionT.liftF(SettingsForms.addAction.bindFromRequest.fold(
         formWithErrors => IO.pure(settingsView(groupElt, settings, action = Some(formWithErrors))),
-        data => settingsRepo.set(groupElt.id, addActionToSettings(settings, data), user, now)
+        data => groupSettingsRepo.set(groupElt.id, addActionToSettings(settings, data), user, now)
           .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Action added"))
       ))
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
@@ -124,8 +124,8 @@ class SettingsCtrl(cc: ControllerComponents,
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
-      res <- OptionT.liftF(settingsRepo.set(groupElt.id, removeActionToSettings(settings, trigger, index), user, now)
+      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
+      res <- OptionT.liftF(groupSettingsRepo.set(groupElt.id, removeActionToSettings(settings, trigger, index), user, now)
         .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Action removed"))
       )
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
@@ -134,7 +134,7 @@ class SettingsCtrl(cc: ControllerComponents,
   def updateEventTemplate(group: Group.Slug, templateId: Option[String]): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       template <- templateId.map(id => OptionT.fromOption[IO](settings.event.getTemplate(id)).map(t => Some(EventTemplateItem(id, t.asMarkdown))))
         .getOrElse(OptionT.pure[IO](None))
       form = template.map(SettingsForms.eventTemplateItem.fill).getOrElse(SettingsForms.eventTemplateItem)
@@ -146,12 +146,12 @@ class SettingsCtrl(cc: ControllerComponents,
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       res <- OptionT.liftF(SettingsForms.eventTemplateItem.bindFromRequest.fold(
         formWithErrors => IO.pure(updateEventTemplateView(groupElt, templateId, settings, formWithErrors)),
         data => templateId.map(id => settings.updateEventTemplate(id, data.id, data.template)).getOrElse(settings.addEventTemplate(data.id, data.template.asText)).fold(
           e => IO.pure(updateEventTemplateView(groupElt, templateId, settings, SettingsForms.eventTemplateItem.bindFromRequest.withGlobalError(e.getMessage))),
-          updated => settingsRepo.set(groupElt.id, updated, user, now)
+          updated => groupSettingsRepo.set(groupElt.id, updated, user, now)
             .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> s"Template '${data.id}' updated for events"))
         )
       ))
@@ -163,9 +163,9 @@ class SettingsCtrl(cc: ControllerComponents,
     val next = Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> s"Template '$templateId' removed for events")
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       updated <- OptionT.liftF(settings.removeEventTemplate(templateId).toIO)
-      _ <- OptionT.liftF(settingsRepo.set(groupElt.id, updated, user, now))
+      _ <- OptionT.liftF(groupSettingsRepo.set(groupElt.id, updated, user, now))
     } yield next).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
