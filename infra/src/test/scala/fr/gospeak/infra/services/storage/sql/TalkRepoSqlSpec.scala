@@ -75,6 +75,16 @@ class TalkRepoSqlSpec extends RepoSpec {
         q.sql shouldBe "UPDATE talks SET video=?, updated=?, updated_by=? WHERE speakers LIKE ? AND slug=?"
         check(q)
       }
+      it("should build updateSpeakers") {
+        val q = updateSpeakers(user.id, talk.slug)(talk.speakers, now)
+        q.sql shouldBe "UPDATE talks SET speakers=?, updated=?, updated_by=? WHERE speakers LIKE ? AND slug=?"
+        check(q)
+      }
+      it("should build selectOne by id") {
+        val q = selectOne(talk.id)
+        q.sql shouldBe s"SELECT $fieldList FROM talks WHERE id=?"
+        check(q)
+      }
       it("should build selectOne by slug") {
         val q = selectOne(talk.slug)
         q.sql shouldBe s"SELECT $fieldList FROM talks WHERE slug=?"

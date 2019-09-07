@@ -35,6 +35,9 @@ GET         /u/groups/create                                                    
 POST        /u/groups/create                                                    fr.gospeak.web.pages.user.UserCtrl.doCreateGroup
 GET         /u/groups/join                                                      fr.gospeak.web.pages.user.UserCtrl.joinGroup(params: Page.Params ?= Page.Params.defaults)
 POST        /u/groups/join/:group                                               fr.gospeak.web.pages.user.UserCtrl.doJoinGroup(group: Group.Slug, params: Page.Params)
+GET         /u/answer/:request                                                  fr.gospeak.web.pages.user.UserCtrl.answerRequest(request: UserRequest.Id)
+POST        /u/accept/:request                                                  fr.gospeak.web.pages.user.UserCtrl.acceptRequest(request: UserRequest.Id)
+POST        /u/reject/:request                                                  fr.gospeak.web.pages.user.UserCtrl.rejectRequest(request: UserRequest.Id)
 
 GET         /u/groups/:group                                                    fr.gospeak.web.pages.orga.GroupCtrl.detail(group: Group.Slug)
 GET         /u/groups/:group/accept-join/:request                               fr.gospeak.web.pages.orga.GroupCtrl.acceptJoin(group: Group.Slug, request: UserRequest.Id)
@@ -126,6 +129,9 @@ POST        /u/talks/create                                                     
 GET         /u/talks/:talk                                                      fr.gospeak.web.pages.speaker.talks.TalkCtrl.detail(talk: Talk.Slug)
 GET         /u/talks/:talk/edit                                                 fr.gospeak.web.pages.speaker.talks.TalkCtrl.edit(talk: Talk.Slug)
 POST        /u/talks/:talk/edit                                                 fr.gospeak.web.pages.speaker.talks.TalkCtrl.doEdit(talk: Talk.Slug)
+POST        /u/talks/:talk/speakers                                             fr.gospeak.web.pages.speaker.talks.TalkCtrl.inviteSpeaker(talk: Talk.Slug)
+POST        /u/talks/:talk/speakers/cancel/:request                             fr.gospeak.web.pages.speaker.talks.TalkCtrl.cancelInviteSpeaker(talk: Talk.Slug, request: UserRequest.Id)
+POST        /u/talks/:talk/speakers/:speaker                                    fr.gospeak.web.pages.speaker.talks.TalkCtrl.removeSpeaker(talk: Talk.Slug, speaker: User.Slug)
 POST        /u/talks/:talk/slides                                               fr.gospeak.web.pages.speaker.talks.TalkCtrl.doAddSlides(talk: Talk.Slug)
 POST        /u/talks/:talk/video                                                fr.gospeak.web.pages.speaker.talks.TalkCtrl.doAddVideo(talk: Talk.Slug)
 POST        /u/talks/:talk/status/:status                                       fr.gospeak.web.pages.speaker.talks.TalkCtrl.changeStatus(talk: Talk.Slug, status: Talk.Status)

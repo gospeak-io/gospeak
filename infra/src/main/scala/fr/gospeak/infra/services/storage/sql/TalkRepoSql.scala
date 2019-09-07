@@ -4,8 +4,8 @@ import java.time.Instant
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import doobie.implicits._
 import doobie.Fragments
+import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain.{Cfp, Talk, User}
@@ -24,22 +24,52 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
       case _ => IO.raiseError(CustomException(s"Talk slug '${data.slug}' is already used"))
     }
 
-  override def edit(user: User.Id, slug: Talk.Slug)(data: Talk.Data, now: Instant): IO[Done] = {
-    if (data.slug != slug) {
+  override def edit(user: User.Id, talk: Talk.Slug)(data: Talk.Data, now: Instant): IO[Done] = {
+    if (data.slug != talk) {
       find(data.slug).flatMap {
-        case None => run(update(user, slug)(data, now))
+        case None => run(update(user, talk)(data, now))
         case _ => IO.raiseError(CustomException(s"Talk slug '${data.slug}' is already used"))
       }
     } else {
-      run(update(user, slug)(data, now))
+      run(update(user, talk)(data, now))
     }
   }
 
-  override def editStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done] = run(updateStatus(user, slug)(status))
+  override def editStatus(user: User.Id, talk: Talk.Slug)(status: Talk.Status): IO[Done] = run(updateStatus(user, talk)(status))
 
-  override def editSlides(user: User.Id, slug: Talk.Slug)(slides: Slides, now: Instant): IO[Done] = run(updateSlides(user, slug)(slides, now))
+  override def editSlides(user: User.Id, talk: Talk.Slug)(slides: Slides, now: Instant): IO[Done] = run(updateSlides(user, talk)(slides, now))
 
-  override def editVideo(user: User.Id, slug: Talk.Slug)(video: Video, now: Instant): IO[Done] = run(updateVideo(user, slug)(video, now))
+  override def editVideo(user: User.Id, talk: Talk.Slug)(video: Video, now: Instant): IO[Done] = run(updateVideo(user, talk)(video, now))
+
+  override def addSpeaker(user: User.Id, talk: Talk.Id)(speaker: User.Id, now: Instant): IO[Done] =
+    find(talk).flatMap {
+      case Some(talkElt) =>
+        if (talkElt.speakers.toList.contains(speaker)) {
+          IO.raiseError(new IllegalArgumentException("speaker already added"))
+        } else {
+          run(updateSpeakers(user, talkElt.slug)(talkElt.speakers.append(speaker), now))
+        }
+      case None => IO.raiseError(new IllegalArgumentException("unreachable talk"))
+    }
+
+  override def removeSpeaker(user: User.Id, talk: Talk.Slug)(speaker: User.Id, now: Instant): IO[Done] =
+    find(user, talk).flatMap {
+      case Some(talkElt) =>
+        if (talkElt.info.createdBy == speaker) {
+          IO.raiseError(new IllegalArgumentException("talk creator can't be removed"))
+        } else if (talkElt.speakers.toList.contains(speaker)) {
+          NonEmptyList.fromList(talkElt.speakers.filter(_ != speaker)).map { speakers =>
+            run(updateSpeakers(user, talk)(speakers, now))
+          }.getOrElse {
+            IO.raiseError(new IllegalArgumentException("last speaker can't be removed"))
+          }
+        } else {
+          IO.raiseError(new IllegalArgumentException("user is not a speaker"))
+        }
+      case None => IO.raiseError(new IllegalArgumentException("unreachable talk"))
+    }
+
+  override def find(talk: Talk.Id): IO[Option[Talk]] = run(selectOne(talk).option)
 
   override def list(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(selectPage(user, _), params))
 
@@ -47,11 +77,11 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def listActive(user: User.Id, cfp: Cfp.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(selectPage(user, cfp, Talk.Status.active, _), params))
 
-  private def find(slug: Talk.Slug): IO[Option[Talk]] = run(selectOne(slug).option)
+  private def find(talk: Talk.Slug): IO[Option[Talk]] = run(selectOne(talk).option)
 
-  override def find(user: User.Id, slug: Talk.Slug): IO[Option[Talk]] = run(selectOne(user, slug).option)
+  override def find(user: User.Id, talk: Talk.Slug): IO[Option[Talk]] = run(selectOne(user, talk).option)
 
-  override def exists(slug: Talk.Slug): IO[Boolean] = run(selectOne(slug).option.map(_.isDefined))
+  override def exists(talk: Talk.Slug): IO[Boolean] = run(selectOne(talk).option.map(_.isDefined))
 
   override def listTags(): IO[Seq[Tag]] = run(selectTags().to[List]).map(_.flatten.distinct)
 }
@@ -59,7 +89,7 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 object TalkRepoSql {
   private val _ = talkIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table = "talks"
-  private val fields = Seq("id", "slug", "status", "title", "duration", "description", "speakers", "slides", "video", "tags", "created", "created_by", "updated", "updated_by")
+  private[sql] val fields = Seq("id", "slug", "status", "title", "duration", "description", "speakers", "slides", "video", "tags", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "slug", "title", "description", "tags")
@@ -70,25 +100,31 @@ object TalkRepoSql {
 
   private[sql] def insert(elt: Talk): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
-  private[sql] def update(user: User.Id, slug: Talk.Slug)(data: Talk.Data, now: Instant): doobie.Update0 = {
+  private[sql] def update(user: User.Id, talk: Talk.Slug)(data: Talk.Data, now: Instant): doobie.Update0 = {
     val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$user"
-    buildUpdate(tableFr, fields, where(user, slug)).update
+    buildUpdate(tableFr, fields, where(user, talk)).update
   }
 
-  private[sql] def updateStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): doobie.Update0 =
-    buildUpdate(tableFr, fr0"status=$status", where(user, slug)).update
+  private[sql] def updateStatus(user: User.Id, talk: Talk.Slug)(status: Talk.Status): doobie.Update0 =
+    buildUpdate(tableFr, fr0"status=$status", where(user, talk)).update
 
-  private[sql] def updateSlides(user: User.Id, slug: Talk.Slug)(slides: Slides, now: Instant): doobie.Update0 =
-    buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$user", where(user, slug)).update
+  private[sql] def updateSlides(user: User.Id, talk: Talk.Slug)(slides: Slides, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$user", where(user, talk)).update
 
-  private[sql] def updateVideo(user: User.Id, slug: Talk.Slug)(video: Video, now: Instant): doobie.Update0 =
-    buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$user", where(user, slug)).update
+  private[sql] def updateVideo(user: User.Id, talk: Talk.Slug)(video: Video, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$user", where(user, talk)).update
 
-  private[sql] def selectOne(slug: Talk.Slug): doobie.Query0[Talk] =
-    buildSelect(tableFr, fieldsFr, where(slug)).query[Talk]
+  private[sql] def updateSpeakers(user: User.Id, talk: Talk.Slug)(speakers: NonEmptyList[User.Id], now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"speakers=$speakers, updated=$now, updated_by=$user", where(user, talk)).update
 
-  private[sql] def selectOne(user: User.Id, slug: Talk.Slug): doobie.Query0[Talk] =
-    buildSelect(tableFr, fieldsFr, where(user, slug)).query[Talk]
+  private[sql] def selectOne(talk: Talk.Id): doobie.Query0[Talk] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$talk").query[Talk]
+
+  private[sql] def selectOne(talk: Talk.Slug): doobie.Query0[Talk] =
+    buildSelect(tableFr, fieldsFr, where(talk)).query[Talk]
+
+  private[sql] def selectOne(user: User.Id, talk: Talk.Slug): doobie.Query0[Talk] =
+    buildSelect(tableFr, fieldsFr, where(user, talk)).query[Talk]
 
   private[sql] def selectPage(user: User.Id, params: Page.Params): (doobie.Query0[Talk], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE speakers LIKE ${"%" + user.value + "%"}"))
@@ -110,9 +146,9 @@ object TalkRepoSql {
   private[sql] def selectTags(): doobie.Query0[Seq[Tag]] =
     Fragment.const0(s"SELECT tags FROM $table").query[Seq[Tag]]
 
-  private def where(slug: Talk.Slug): Fragment =
-    fr0"WHERE slug=$slug"
+  private def where(talk: Talk.Slug): Fragment =
+    fr0"WHERE slug=$talk"
 
-  private def where(user: User.Id, slug: Talk.Slug): Fragment =
-    fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND slug=$slug"
+  private def where(user: User.Id, talk: Talk.Slug): Fragment =
+    fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND slug=$talk"
 }

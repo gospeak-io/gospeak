@@ -32,7 +32,6 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
   def dropTables(): IO[Done] = IO(flyway.clean()).map(_ => Done)
 
   override val user = new UserRepoSql(xa)
-  override val userRequest = new UserRequestRepoSql(xa)
   override val talk = new TalkRepoSql(xa)
   override val group = new GroupRepoSql(xa)
   override val groupSettings = new GroupSettingsRepoSql(xa)
@@ -44,6 +43,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
   override val event = new EventRepoSql(xa)
   override val proposal = new ProposalRepoSql(xa)
   override val contact = new ContactRepoSql(xa)
+  override val userRequest = new UserRequestRepoSql(talk, xa)
 
   /*
     TODO:

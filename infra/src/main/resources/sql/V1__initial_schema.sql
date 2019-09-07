@@ -246,6 +246,8 @@ CREATE TABLE requests
     id          CHAR(36)    NOT NULL,
     kind        VARCHAR(30) NOT NULL,
     group_id    CHAR(36) REFERENCES groups (id),
+    talk_id     CHAR(36) REFERENCES talks (id),
+    proposal_id CHAR(36) REFERENCES proposals (id),
     email       VARCHAR(120),
     deadline    TIMESTAMP,
     created     TIMESTAMP   NOT NULL,
@@ -253,7 +255,9 @@ CREATE TABLE requests
     accepted    TIMESTAMP,
     accepted_by CHAR(36) REFERENCES users (id),
     rejected    TIMESTAMP,
-    rejected_by CHAR(36) REFERENCES users (id)
+    rejected_by CHAR(36) REFERENCES users (id),
+    canceled    TIMESTAMP,
+    canceled_by CHAR(36) REFERENCES users (id)
 );
 
 CREATE TABLE group_settings

@@ -22,6 +22,8 @@ object EmailSrv {
   }
 
   object Contact {
+    def apply(email: EmailAddress): Contact = new Contact(email, None)
+
     def apply(user: User): Contact = new Contact(user.email, Some(user.name.value))
   }
 

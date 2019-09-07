@@ -191,17 +191,28 @@ object DoobieUtils {
       _.map(_.value).mkString(","))
 
     implicit val userRequestRead: Read[UserRequest] =
-      Read[(UserRequest.Id, String, Option[EmailAddress], Option[Group.Id], Option[Instant], Instant, Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id])].map {
-        case (id, "AccountValidation", Some(email), _, Some(deadline), created, Some(createdBy), accepted, _, _, _) =>
+      Read[(UserRequest.Id, String, Option[Group.Id], Option[Talk.Id], Option[Proposal.Id], Option[EmailAddress], Option[Instant], Instant, Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id])].map {
+        case (id, "AccountValidation", _, _, _, Some(email), Some(deadline), created, Some(createdBy), accepted, _, _, _, _, _) =>
           UserRequest.AccountValidationRequest(id, email, deadline, created, createdBy, accepted)
-        case (id, "PasswordReset", Some(email), _, Some(deadline), created, _, accepted, _, _, _) =>
+        case (id, "PasswordReset", _, _, _, Some(email), Some(deadline), created, _, accepted, _, _, _, _, _) =>
           UserRequest.PasswordResetRequest(id, email, deadline, created, accepted)
-        case (id, "UserAskToJoinAGroup", _, Some(groupId), _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy) =>
+        case (id, "UserAskToJoinAGroup", Some(groupId), _, _, _, _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
           UserRequest.UserAskToJoinAGroupRequest(id, groupId, created, createdBy,
-            accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(_, date))),
-            rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(_, date))))
-        case (id, kind, email, group, deadline, created, createdBy, accepted, acceptedBy, rejected, rejectedBy) =>
-          throw new Exception(s"Unable to read UserRequest with ($id, $kind, $email, $group, $deadline, $created, $createdBy, $accepted, $acceptedBy, $rejected, $rejectedBy)")
+            accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
+            rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
+            canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
+        case (id, "TalkInvite", _, Some(talkId), _, Some(email), _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+          UserRequest.TalkInvite(id, talkId, email, created, createdBy,
+            accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
+            rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
+            canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
+        case (id, "ProposalInvite", _, _, Some(proposalId), Some(email), _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+          UserRequest.ProposalInvite(id, proposalId, email, created, createdBy,
+            accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
+            rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
+            canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
+        case (id, kind, group, talk, proposal, email, deadline, created, createdBy, accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+          throw new Exception(s"Unable to read UserRequest with ($id, $kind, group=$group, talk=$talk, proposal=$proposal, $email, $deadline, created=($created, $createdBy), accepted=($accepted, $acceptedBy), rejected=($rejected, $rejectedBy), canceled=($canceled, $canceledBy))")
       }
 
     private def toJson[A](v: A)(implicit e: Encoder[A]): String = e.apply(v).noSpaces

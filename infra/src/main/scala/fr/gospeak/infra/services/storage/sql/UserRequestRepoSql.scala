@@ -5,9 +5,8 @@ import java.time.Instant
 import cats.effect.IO
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain
-import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, Timeout, UserAskToJoinAGroupRequest}
-import fr.gospeak.core.domain.{Group, User, UserRequest}
+import fr.gospeak.core.domain.UserRequest._
+import fr.gospeak.core.domain.{Group, Talk, User, UserRequest}
 import fr.gospeak.core.services.storage.UserRequestRepo
 import fr.gospeak.infra.services.storage.sql.UserRequestRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
@@ -17,7 +16,11 @@ import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
-class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRequestRepo {
+class UserRequestRepoSql(talkRepo: TalkRepoSql,
+                         protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRequestRepo {
+  override def find(id: UserRequest.Id): IO[Option[UserRequest]] =
+    run(selectOne(id).option)
+
   override def list(user: User.Id, params: Page.Params): IO[Page[UserRequest]] =
     run(Queries.selectPage(selectPage(user, _), params))
 
@@ -62,7 +65,7 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
 
 
   override def createUserAskToJoinAGroup(user: User.Id, group: Group.Id, now: Instant): IO[UserAskToJoinAGroupRequest] =
-    run(UserAskToJoinAGroup.insert, UserAskToJoinAGroupRequest(UserRequest.Id.generate(), group, now, user, None, None))
+    run(UserAskToJoinAGroup.insert, UserAskToJoinAGroupRequest(UserRequest.Id.generate(), group, now, user, None, None, None))
 
   override def acceptUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done] = for {
     _ <- run(UserAskToJoinAGroup.accept(req.id, by, now))
@@ -74,18 +77,39 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
 
   override def listPendingUserToJoinAGroupRequests(user: User.Id): IO[Seq[UserAskToJoinAGroupRequest]] =
     run(UserAskToJoinAGroup.selectAllPending(user).to[List])
+
+
+  override def invite(talk: Talk.Id, email: EmailAddress, by: User.Id, now: Instant): IO[TalkInvite] =
+    run(TalkInviteQueries.insert, TalkInvite(UserRequest.Id.generate(), talk, email, now, by, None, None, None))
+
+  override def cancelInvite(id: UserRequest.Id, by: User.Id, now: Instant): IO[TalkInvite] =
+    run(TalkInviteQueries.cancel(id, by, now)).flatMap(_ => run(TalkInviteQueries.selectOne(id).unique))
+
+  override def accept(request: UserRequest.TalkInvite, by: User.Id, now: Instant): IO[Done] = for {
+    _ <- run(TalkInviteQueries.accept(request.id, by, now))
+    _ <- talkRepo.addSpeaker(request.createdBy, request.talk)(by, now)
+  } yield Done
+
+  override def reject(request: UserRequest.TalkInvite, by: User.Id, now: Instant): IO[Done] =
+    run(TalkInviteQueries.reject(request.id, by, now))
+
+  override def listPendingTalkInvites(talk: Talk.Id): IO[Seq[TalkInvite]] =
+    run(TalkInviteQueries.selectAllPending(talk).to[List])
 }
 
 object UserRequestRepoSql {
   private val _ = userRequestIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = "requests"
-  private val fields = Seq("id", "kind", "email", "group_id", "deadline", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by")
+  private val fields = Seq("id", "kind", "group_id", "talk_id", "proposal_id", "email", "deadline", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by", "canceled", "canceled_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "email", "group_id", "created_by")
   private val defaultSort = Page.OrderBy("-created")
 
-  private[sql] def selectOnePending(group: Group.Id, req: domain.UserRequest.Id, now: Instant): doobie.Query0[UserRequest] =
+  private[sql] def selectOne(id: UserRequest.Id): doobie.Query0[UserRequest] =
+    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[UserRequest]
+
+  private[sql] def selectOnePending(group: Group.Id, req: UserRequest.Id, now: Instant): doobie.Query0[UserRequest] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE id=$req AND group_id=$group AND accepted IS NULL AND rejected IS NULL AND (deadline IS NULL OR deadline > $now)").query[UserRequest]
 
   private[sql] def selectPage(user: User.Id, params: Page.Params): (doobie.Query0[UserRequest], doobie.Query0[Long]) = {
@@ -146,28 +170,63 @@ object UserRequestRepoSql {
 
   object UserAskToJoinAGroup {
     private val kind = "UserAskToJoinAGroup"
-    private val fields = Seq("id", "kind", "group_id", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by")
+    private val fields = Seq("id", "kind", "group_id", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by", "canceled", "canceled_by")
     private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
     private val fieldsFrSelect: Fragment = Fragment.const0(fields.filter(_ != "kind").mkString(", "))
 
     private[sql] def insert(elt: UserAskToJoinAGroupRequest): doobie.Update0 = {
-      val values = fr0"${elt.id}, $kind, ${elt.group}, ${elt.created}, ${elt.createdBy}, ${elt.accepted.map(_.date)}, ${elt.accepted.map(_.by)}, ${elt.rejected.map(_.date)}, ${elt.rejected.map(_.by)}"
+      val values = fr0"${elt.id}, $kind, ${elt.group}, ${elt.created}, ${elt.createdBy}, ${elt.accepted.map(_.date)}, ${elt.accepted.map(_.by)}, ${elt.rejected.map(_.date)}, ${elt.rejected.map(_.by)}, ${elt.canceled.map(_.date)}, ${elt.canceled.map(_.by)}"
       buildInsert(tableFr, fieldsFr, values).update
     }
 
-    private[sql] def accept(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 =
-      buildUpdate(tableFr, fr0"accepted=$now, accepted_by=$by", wherePending(id, now)).update
+    private[sql] def accept(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"accepted=$now, accepted_by=$by", wherePending(id, now)).update
 
-    private[sql] def reject(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 =
-      buildUpdate(tableFr, fr0"rejected=$now, rejected_by=$by", wherePending(id, now)).update
+    private[sql] def reject(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"rejected=$now, rejected_by=$by", wherePending(id, now)).update
+
+    private[sql] def cancel(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"canceled=$now, canceled_by=$by", wherePending(id, now)).update
 
     private[sql] def selectOnePending(group: Group.Id, id: UserRequest.Id): doobie.Query0[UserAskToJoinAGroupRequest] =
-      buildSelect(tableFr, fieldsFrSelect, fr"WHERE kind=$kind AND id=$id AND group_id=$group AND accepted IS NULL AND rejected IS NULL").query[UserAskToJoinAGroupRequest]
+      buildSelect(tableFr, fieldsFrSelect, fr"WHERE id=$id AND kind=$kind AND group_id=$group AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL").query[UserAskToJoinAGroupRequest]
 
     private[sql] def selectAllPending(user: User.Id): doobie.Query0[UserAskToJoinAGroupRequest] =
-      buildSelect(tableFr, fieldsFrSelect, fr"WHERE kind=$kind AND created_by=$user AND accepted IS NULL AND rejected IS NULL").query[UserAskToJoinAGroupRequest]
+      buildSelect(tableFr, fieldsFrSelect, fr"WHERE kind=$kind AND created_by=$user AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL").query[UserAskToJoinAGroupRequest]
 
-    private def wherePending(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE id=$id AND kind=$kind AND accepted IS NULL AND rejected IS NULL"
+    private def wherePending(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE id=$id AND kind=$kind AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL"
+  }
+
+  object TalkInviteQueries {
+    private val kind = "TalkInvite"
+    private val fields = Seq("id", "kind", "talk_id", "email", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by", "canceled", "canceled_by")
+    private val fieldsSelect = fields.filter(_ != "kind")
+    private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
+    private val fieldsFrSelect: Fragment = Fragment.const0(fieldsSelect.mkString(", "))
+    private val inviteWithTalkTables = Fragment.const0(s"$table i INNER JOIN ${TalkRepoSql.table} t ON i.talk_id=t.id")
+    private val inviteWithTalkFields = Fragment.const0((fieldsSelect.map("i." + _) ++ TalkRepoSql.fields.map("t." + _)).mkString(", "))
+
+    private[sql] def insert(elt: TalkInvite): doobie.Update0 = {
+      val values = fr0"${elt.id}, $kind, ${elt.talk}, ${elt.email}, ${elt.created}, ${elt.createdBy}, ${elt.accepted.map(_.date)}, ${elt.accepted.map(_.by)}, ${elt.rejected.map(_.date)}, ${elt.rejected.map(_.by)}, ${elt.canceled.map(_.date)}, ${elt.canceled.map(_.by)}"
+      buildInsert(tableFr, fieldsFr, values).update
+    }
+
+    private[sql] def accept(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"accepted=$now, accepted_by=$by", wherePending(id, now)).update
+
+    private[sql] def reject(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"rejected=$now, rejected_by=$by", wherePending(id, now)).update
+
+    private[sql] def cancel(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"canceled=$now, canceled_by=$by", wherePending(id, now)).update
+
+    private[sql] def selectOne(id: UserRequest.Id): doobie.Query0[TalkInvite] =
+      buildSelect(tableFr, fieldsFrSelect, fr"WHERE id=$id").query[TalkInvite]
+
+    private[sql] def selectOneWithTalk(id: UserRequest.Id): doobie.Query0[(TalkInvite, Talk)] =
+      buildSelect(inviteWithTalkTables, inviteWithTalkFields, fr"WHERE i.id=$id").query[(TalkInvite, Talk)]
+
+    private[sql] def selectOnePending(id: UserRequest.Id): doobie.Query0[TalkInvite] =
+      buildSelect(tableFr, fieldsFrSelect, fr"WHERE id=$id AND kind=$kind AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL").query[TalkInvite]
+
+    private[sql] def selectAllPending(talk: Talk.Id): doobie.Query0[TalkInvite] =
+      buildSelect(tableFr, fieldsFrSelect, fr"WHERE kind=$kind AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL").query[TalkInvite]
+
+    private def wherePending(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE id=$id AND kind=$kind AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL"
   }
 
 }

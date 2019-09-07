@@ -1,7 +1,7 @@
 package fr.gospeak.web.auth.emails
 
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
-import fr.gospeak.core.domain.{Group, User}
+import fr.gospeak.core.domain.{Group, Talk, User, UserRequest}
 import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest}
 import fr.gospeak.infra.services.EmailSrv.{Contact, Email, HtmlContent}
 import fr.gospeak.libs.scalautils.domain.EmailAddress
@@ -47,4 +47,39 @@ object Emails {
       to = Seq(Contact(rejectedUser)),
       subject = s"Your application to ${group.name.value} group was rejected :(",
       content = HtmlContent(emails.html.joinGroupRejected(rejectedUser, acceptingOrga, group).body))
+
+  def inviteSpeakerToTalk(invite: UserRequest.TalkInvite, talk: Talk, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(invite.email)),
+      subject = s"You have been invited to join ${by.name.value} for a talk: ${talk.title.value}",
+      content = HtmlContent(emails.html.inviteSpeakerToTalk(invite, talk, by).body))
+
+  def inviteSpeakerToTalkCanceled(invite: UserRequest.TalkInvite, talk: Talk, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(invite.email)),
+      subject = s"Your invitation for the talk '${talk.title.value}' has been canceled :(",
+      content = HtmlContent(emails.html.inviteSpeakerToTalkCanceled(invite, talk, by).body))
+
+  def inviteSpeakerToTalkAccepted(invite: UserRequest.TalkInvite, talk: Talk, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(speaker)),
+      subject = s"${by.name.value} has accepted your invitation for the talk '${talk.title.value}'",
+      content = HtmlContent(emails.html.inviteSpeakerToTalkAccepted(invite, talk, speaker, by).body))
+
+  def inviteSpeakerToTalkRejected(invite: UserRequest.TalkInvite, talk: Talk, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(speaker)),
+      subject = s"Oups, ${by.name.value} rejected your invitation for the talk '${talk.title.value}' :(",
+      content = HtmlContent(emails.html.inviteSpeakerToTalkRejected(invite, talk, speaker, by).body))
+
+  def speakerRemovedFromTalk(talk: Talk, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(speaker)),
+      subject = s"${by.name.value} removed you from the speakers of '${talk.title.value}' :(",
+      content = HtmlContent(emails.html.speakerRemovedFromTalk(talk, speaker, by).body))
 }

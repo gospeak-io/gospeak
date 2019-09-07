@@ -1,0 +1,17 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Talk, User, UserRequest}
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.partials.display.html.markdown
+@import fr.gospeak.web.pages.partials.form.html.formBtn
+@import fr.gospeak.web.pages.speaker.partials.html.container
+@import fr.gospeak.web.pages.user.routes.UserCtrl
+
+@(request: UserRequest.TalkInvite, talk: Talk, speaker: User)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", b)() {
+    <h1>Nice!!! You have been invited to join a talk <i class="far fa-thumbs-up"></i></h1>
+    <h3>@talk.title.value</h3>
+    <p>@markdown(talk.description)</p>
+    @formBtn(UserCtrl.rejectRequest(request.id), Seq("class" -> "btn-danger")) { Do not join }
+    @formBtn(UserCtrl.acceptRequest(request.id), Seq("class" -> "btn-success")) { Join <b>@speaker.name.value</b> for talk <b>@talk.title.value</b> }
+}()
