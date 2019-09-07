@@ -1,10 +1,10 @@
 package fr.gospeak.libs.scalautils
 
 import fr.gospeak.libs.scalautils.Crypto.{AesEncrypted, AesSecretKey}
-import org.scalatest.prop.PropertyChecks
 import org.scalatest.{FunSpec, Matchers}
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class CryptoSpec extends FunSpec with Matchers with PropertyChecks {
+class CryptoSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
   describe("Crypto") {
     describe("base64") {
       it("should encode and decode base64") {

@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, Venue}
-import fr.gospeak.core.services.storage.{OrgaGroupRepo, OrgaUserRepo, OrgaVenueRepo, SettingsRepo}
+import fr.gospeak.core.services.storage.{OrgaGroupRepo, OrgaUserRepo, OrgaVenueRepo, GroupSettingsRepo}
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
@@ -22,7 +22,7 @@ class VenueCtrl(cc: ControllerComponents,
                 userRepo: OrgaUserRepo,
                 groupRepo: OrgaGroupRepo,
                 venueRepo: OrgaVenueRepo,
-                settingsRepo: SettingsRepo) extends UICtrl(cc, silhouette) {
+                groupSettingsRepo: GroupSettingsRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
@@ -52,10 +52,10 @@ class VenueCtrl(cc: ControllerComponents,
   private def createForm(group: Group.Slug, form: Form[Venue.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup(groupElt.id))
       b = listBreadcrumb(groupElt).add("New" -> routes.VenueCtrl.create(group))
       call = routes.VenueCtrl.doCreate(group)
-    } yield Ok(html.create(groupElt, settings, None, form, call)(b))).value.map(_.getOrElse(groupNotFound(group)))
+    } yield Ok(html.create(groupElt, meetupAccount.isDefined, None, form, call)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
   def detail(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -86,12 +86,12 @@ class VenueCtrl(cc: ControllerComponents,
   private def editForm(group: Group.Slug, venue: Venue.Id, form: Form[Venue.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      settings <- OptionT.liftF(settingsRepo.find(groupElt.id))
+      meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup(groupElt.id))
       (partnerElt, venueElt) <- OptionT(venueRepo.find(groupElt.id, venue))
       b = breadcrumb(groupElt, venueElt).add("Edit" -> routes.VenueCtrl.edit(group, venue))
       filledForm = if (form.hasErrors) form else form.fill(venueElt.data)
       call = routes.VenueCtrl.doEdit(group, venue)
-    } yield Ok(html.edit(groupElt, settings, partnerElt, venueElt, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
+    } yield Ok(html.edit(groupElt, meetupAccount.isDefined, partnerElt, venueElt, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
   }
 }
 

@@ -1,0 +1,1802 @@
+[
+  {
+    "city": "Paris",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Paris, France",
+    "zip": "meetup1",
+    "lat": 48.86,
+    "lon": 2.34
+  },
+  {
+    "city": "Levallois-Perret",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Levallois-Perret, France",
+    "zip": "meetup80",
+    "lat": 48.9,
+    "lon": 2.29
+  },
+  {
+    "city": "Neuilly-sur-Seine",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Neuilly-sur-Seine, France",
+    "zip": "meetup74",
+    "lat": 48.89,
+    "lon": 2.27
+  },
+  {
+    "city": "Clichy",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Clichy, France",
+    "zip": "meetup97",
+    "lat": 48.91,
+    "lon": 2.3
+  },
+  {
+    "city": "Asnières-sur-Seine",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Asnières-sur-Seine, France",
+    "zip": "meetup50",
+    "lat": 48.91,
+    "lon": 2.29
+  },
+  {
+    "city": "Saint-Ouen",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Saint-Ouen, France",
+    "zip": "meetup165",
+    "lat": 48.91,
+    "lon": 2.34
+  },
+  {
+    "city": "Vanves",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Vanves, France",
+    "zip": "meetup278",
+    "lat": 48.83,
+    "lon": 2.27
+  },
+  {
+    "city": "Malakoff",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Malakoff, France",
+    "zip": "meetup229",
+    "lat": 48.82,
+    "lon": 2.3
+  },
+  {
+    "city": "Issy-les-Moulineaux",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Issy-les-Moulineaux, France",
+    "zip": "meetup87",
+    "lat": 48.83,
+    "lon": 2.26
+  },
+  {
+    "city": "Courbevoie",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Courbevoie, France",
+    "zip": "meetup61",
+    "lat": 48.9,
+    "lon": 2.25
+  },
+  {
+    "city": "Le Pré-Saint-Gervais",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Le Pré-Saint-Gervais, France",
+    "zip": "meetup536",
+    "lat": 48.89,
+    "lon": 2.39
+  },
+  {
+    "city": "Puteaux",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Puteaux, France",
+    "zip": "meetup141",
+    "lat": 48.88,
+    "lon": 2.23
+  },
+  {
+    "city": "Montrouge",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Montrouge, France",
+    "zip": "meetup160",
+    "lat": 48.81,
+    "lon": 2.32
+  },
+  {
+    "city": "Gentilly",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Gentilly, France",
+    "zip": "meetup540",
+    "lat": 48.81,
+    "lon": 2.32
+  },
+  {
+    "city": "Le Kremlin-Bicêtre",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Le Kremlin-Bicêtre, France",
+    "zip": "meetup340",
+    "lat": 48.81,
+    "lon": 2.33
+  },
+  {
+    "city": "Bois-Colombes",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Bois-Colombes, France",
+    "zip": "meetup311",
+    "lat": 48.92,
+    "lon": 2.27
+  },
+  {
+    "city": "Chatillon",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Chatillon, France",
+    "zip": "meetup235",
+    "lat": 48.81,
+    "lon": 2.29
+  },
+  {
+    "city": "Les Lilas",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Les Lilas, France",
+    "zip": "meetup415",
+    "lat": 48.89,
+    "lon": 2.4
+  },
+  {
+    "city": "Boulogne-Billancourt",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Boulogne-Billancourt, France",
+    "zip": "meetup34",
+    "lat": 48.83,
+    "lon": 2.24
+  },
+  {
+    "city": "Suresnes",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Suresnes, France",
+    "zip": "meetup152",
+    "lat": 48.87,
+    "lon": 2.22
+  },
+  {
+    "city": "Villeneuve-la-Garenne",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Villeneuve-la-Garenne, France",
+    "zip": "meetup344",
+    "lat": 48.93,
+    "lon": 2.3
+  },
+  {
+    "city": "Saint-Mandé",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Saint-Mandé, France",
+    "zip": "meetup419",
+    "lat": 48.84,
+    "lon": 2.4
+  },
+  {
+    "city": "Bagnolet",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Bagnolet, France",
+    "zip": "meetup217",
+    "lat": 48.86,
+    "lon": 2.41
+  },
+  {
+    "city": "La Garenne-Colombes",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "La Garenne-Colombes, France",
+    "zip": "meetup306",
+    "lat": 48.91,
+    "lon": 2.24
+  },
+  {
+    "city": "Ivry-sur-Seine",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Ivry-sur-Seine, France",
+    "zip": "meetup103",
+    "lat": 48.82,
+    "lon": 2.38
+  },
+  {
+    "city": "Cachan",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Cachan, France",
+    "zip": "meetup316",
+    "lat": 48.8,
+    "lon": 2.32
+  },
+  {
+    "city": "Arcueil",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Arcueil, France",
+    "zip": "meetup469",
+    "lat": 48.8,
+    "lon": 2.32
+  },
+  {
+    "city": "Meudon",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Meudon, France",
+    "zip": "meetup125",
+    "lat": 48.82,
+    "lon": 2.24
+  },
+  {
+    "city": "Aubervillers",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Aubervillers, France",
+    "zip": "meetup71",
+    "lat": 48.92,
+    "lon": 2.38
+  },
+  {
+    "city": "Pantin",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Pantin, France",
+    "zip": "meetup109",
+    "lat": 48.9,
+    "lon": 2.41
+  },
+  {
+    "city": "Saint-Maurice",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Saint-Maurice, France",
+    "zip": "meetup675",
+    "lat": 48.83,
+    "lon": 2.41
+  },
+  {
+    "city": "Gennevillers",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Gennevillers, France",
+    "zip": "meetup132",
+    "lat": 48.94,
+    "lon": 2.29
+  },
+  {
+    "city": "Colombes",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Colombes, France",
+    "zip": "meetup49",
+    "lat": 48.93,
+    "lon": 2.25
+  },
+  {
+    "city": "La Courneuve",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "La Courneuve, France",
+    "zip": "meetup198",
+    "lat": 48.93,
+    "lon": 2.38
+  },
+  {
+    "city": "Clamart",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Clamart, France",
+    "zip": "meetup100",
+    "lat": 48.8,
+    "lon": 2.26
+  },
+  {
+    "city": "Montreuil",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Montreuil, France",
+    "zip": "meetup41",
+    "lat": 48.86,
+    "lon": 2.43
+  },
+  {
+    "city": "Bagneux",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Bagneux, France",
+    "zip": "meetup164",
+    "lat": 48.79,
+    "lon": 2.3
+  },
+  {
+    "city": "Saint-Denis",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Saint-Denis, France",
+    "zip": "meetup44",
+    "lat": 48.94,
+    "lon": 2.36
+  },
+  {
+    "city": "Charenton-le-Pont",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Charenton-le-Pont, France",
+    "zip": "meetup281",
+    "lat": 48.82,
+    "lon": 2.41
+  },
+  {
+    "city": "Nanterre",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Nanterre, France",
+    "zip": "meetup42",
+    "lat": 48.9,
+    "lon": 2.2
+  },
+  {
+    "city": "Sèvres",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Sèvres, France",
+    "zip": "meetup341",
+    "lat": 48.82,
+    "lon": 2.21
+  },
+  {
+    "city": "Villejuif",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Villejuif, France",
+    "zip": "meetup119",
+    "lat": 48.8,
+    "lon": 2.39
+  },
+  {
+    "city": "Vincennes",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Vincennes, France",
+    "zip": "meetup137",
+    "lat": 48.85,
+    "lon": 2.44
+  },
+  {
+    "city": "Stains",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Stains, France",
+    "zip": "meetup214",
+    "lat": 48.95,
+    "lon": 2.35
+  },
+  {
+    "city": "Saint-Cloud",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Saint-Cloud, France",
+    "zip": "meetup242",
+    "lat": 48.84,
+    "lon": 2.19
+  },
+  {
+    "city": "Romainville",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Romainville, France",
+    "zip": "meetup348",
+    "lat": 48.89,
+    "lon": 2.44
+  },
+  {
+    "city": "Argenteuil",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Argenteuil, France",
+    "zip": "meetup39",
+    "lat": 48.94,
+    "lon": 2.24
+  },
+  {
+    "city": "Bourg-la-Reine",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Bourg-la-Reine, France",
+    "zip": "meetup432",
+    "lat": 48.78,
+    "lon": 2.3
+  },
+  {
+    "city": "L'Hay-les-Roses",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "L'Hay-les-Roses, France",
+    "zip": "meetup240",
+    "lat": 48.78,
+    "lon": 2.33
+  },
+  {
+    "city": "Fontenay-aux-Roses",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Fontenay-aux-Roses, France",
+    "zip": "meetup319",
+    "lat": 48.78,
+    "lon": 2.28
+  },
+  {
+    "city": "Sceaux",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Sceaux, France",
+    "zip": "meetup402",
+    "lat": 48.78,
+    "lon": 2.28
+  },
+  {
+    "city": "Alfortville",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Alfortville, France",
+    "zip": "meetup185",
+    "lat": 48.81,
+    "lon": 2.42
+  },
+  {
+    "city": "Chatenay-Malabry",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Chatenay-Malabry, France",
+    "zip": "meetup215",
+    "lat": 48.78,
+    "lon": 2.27
+  },
+  {
+    "city": "Enghien-les-Bains",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Enghien-les-Bains, France",
+    "zip": "meetup841",
+    "lat": 48.96,
+    "lon": 2.31
+  },
+  {
+    "city": "Vitry-sur-Seine",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Vitry-sur-Seine, France",
+    "zip": "meetup53",
+    "lat": 48.79,
+    "lon": 2.39
+  },
+  {
+    "city": "Villetaneuse",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Villetaneuse, France",
+    "zip": "meetup775",
+    "lat": 48.96,
+    "lon": 2.33
+  },
+  {
+    "city": "Bobigny",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Bobigny, France",
+    "zip": "meetup139",
+    "lat": 48.91,
+    "lon": 2.44
+  },
+  {
+    "city": "Montmagny",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Montmagny, France",
+    "zip": "meetup666",
+    "lat": 48.96,
+    "lon": 2.35
+  },
+  {
+    "city": "Carrières-sur-Seine",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Carrières-sur-Seine, France",
+    "zip": "meetup728",
+    "lat": 48.92,
+    "lon": 2.19
+  },
+  {
+    "city": "Rueil-Malmaison",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Rueil-Malmaison, France",
+    "zip": "meetup54",
+    "lat": 48.89,
+    "lon": 2.17
+  },
+  {
+    "city": "Le Plessis-Robinson",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Le Plessis-Robinson, France",
+    "zip": "meetup357",
+    "lat": 48.78,
+    "lon": 2.25
+  },
+  {
+    "city": "Pierrefitte-sur-Seine",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Pierrefitte-sur-Seine, France",
+    "zip": "meetup303",
+    "lat": 48.96,
+    "lon": 2.36
+  },
+  {
+    "city": "Bezons",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Bezons, France",
+    "zip": "meetup291",
+    "lat": 48.93,
+    "lon": 2.2
+  },
+  {
+    "city": "Garches",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Garches, France",
+    "zip": "meetup442",
+    "lat": 48.84,
+    "lon": 2.17
+  },
+  {
+    "city": "Noisy-le-Sec",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Noisy-le-Sec, France",
+    "zip": "meetup182",
+    "lat": 48.89,
+    "lon": 2.46
+  },
+  {
+    "city": "Viroflay",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Viroflay, France",
+    "zip": "meetup585",
+    "lat": 48.81,
+    "lon": 2.19
+  },
+  {
+    "city": "Le Bourget",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Le Bourget, France",
+    "zip": "meetup721",
+    "lat": 48.94,
+    "lon": 2.42
+  },
+  {
+    "city": "Maisons-Alfort",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Maisons-Alfort, France",
+    "zip": "meetup101",
+    "lat": 48.81,
+    "lon": 2.44
+  },
+  {
+    "city": "Houilles",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Houilles, France",
+    "zip": "meetup248",
+    "lat": 48.92,
+    "lon": 2.18
+  },
+  {
+    "city": "Deuil-la-Barre",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Deuil-la-Barre, France",
+    "zip": "meetup414",
+    "lat": 48.97,
+    "lon": 2.31
+  },
+  {
+    "city": "Épinay-sur-Seine",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Épinay-sur-Seine, France",
+    "zip": "meetup128",
+    "lat": 48.97,
+    "lon": 2.3
+  },
+  {
+    "city": "Ville-d'Avray",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Ville-d'Avray, France",
+    "zip": "meetup714",
+    "lat": 48.82,
+    "lon": 2.17
+  },
+  {
+    "city": "Saint-Gratien",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Saint-Gratien, France",
+    "zip": "meetup439",
+    "lat": 48.97,
+    "lon": 2.27
+  },
+  {
+    "city": "Nogent-sur-Marne",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Nogent-sur-Marne, France",
+    "zip": "meetup260",
+    "lat": 48.84,
+    "lon": 2.47
+  },
+  {
+    "city": "Joinville-le-Pont",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Joinville-le-Pont, France",
+    "zip": "meetup500",
+    "lat": 48.82,
+    "lon": 2.46
+  },
+  {
+    "city": "Antony",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Antony, France",
+    "zip": "meetup69",
+    "lat": 48.76,
+    "lon": 2.3
+  },
+  {
+    "city": "La Celle-Saint-Cloud",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "La Celle-Saint-Cloud, France",
+    "zip": "meetup391",
+    "lat": 48.85,
+    "lon": 2.15
+  },
+  {
+    "city": "Rosny-sous-Bois",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Rosny-sous-Bois, France",
+    "zip": "meetup169",
+    "lat": 48.88,
+    "lon": 2.48
+  },
+  {
+    "city": "Chevilly-Larue",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Chevilly-Larue, France",
+    "zip": "meetup466",
+    "lat": 48.76,
+    "lon": 2.35
+  },
+  {
+    "city": "Chaville",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Chaville, France",
+    "zip": "meetup445",
+    "lat": 48.81,
+    "lon": 2.17
+  },
+  {
+    "city": "Bondy",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Bondy, France",
+    "zip": "meetup124",
+    "lat": 48.91,
+    "lon": 2.47
+  },
+  {
+    "city": "Montmorency",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Montmorency, France",
+    "zip": "meetup404",
+    "lat": 48.98,
+    "lon": 2.31
+  },
+  {
+    "city": "Le Perreux-sur-Marne",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Le Perreux-sur-Marne, France",
+    "zip": "meetup236",
+    "lat": 48.84,
+    "lon": 2.48
+  },
+  {
+    "city": "Soisy-sous-Montmorency",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Soisy-sous-Montmorency, France",
+    "zip": "meetup520",
+    "lat": 48.98,
+    "lon": 2.29
+  },
+  {
+    "city": "Sartrouville",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Sartrouville, France",
+    "zip": "meetup110",
+    "lat": 48.94,
+    "lon": 2.18
+  },
+  {
+    "city": "Bougival",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Bougival, France",
+    "zip": "meetup77630",
+    "lat": 48.86,
+    "lon": 2.14
+  },
+  {
+    "city": "Croissy-sur-Seine",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Croissy-sur-Seine, France",
+    "zip": "meetup877",
+    "lat": 48.88,
+    "lon": 2.14
+  },
+  {
+    "city": "Thiais",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Thiais, France",
+    "zip": "meetup259",
+    "lat": 48.76,
+    "lon": 2.38
+  },
+  {
+    "city": "Chatou",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Chatou, France",
+    "zip": "meetup262",
+    "lat": 48.89,
+    "lon": 2.14
+  },
+  {
+    "city": "Les Pavillons-sous-Bois",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Les Pavillons-sous-Bois, France",
+    "zip": "meetup467",
+    "lat": 48.91,
+    "lon": 2.48
+  },
+  {
+    "city": "Vélizy-Villacoublay",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Vélizy-Villacoublay, France",
+    "zip": "meetup412",
+    "lat": 48.79,
+    "lon": 2.18
+  },
+  {
+    "city": "Fresnes",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Fresnes, France",
+    "zip": "meetup307",
+    "lat": 48.75,
+    "lon": 2.32
+  },
+  {
+    "city": "Créteil",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Créteil, France",
+    "zip": "meetup46",
+    "lat": 48.79,
+    "lon": 2.45
+  },
+  {
+    "city": "Garges-lès-Gonesse",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Garges-lès-Gonesse, France",
+    "zip": "meetup162",
+    "lat": 48.97,
+    "lon": 2.41
+  },
+  {
+    "city": "Drancy",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Drancy, France",
+    "zip": "meetup75",
+    "lat": 48.94,
+    "lon": 2.46
+  },
+  {
+    "city": "Choisy-le-Roi",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Choisy-le-Roi, France",
+    "zip": "meetup201",
+    "lat": 48.76,
+    "lon": 2.4
+  },
+  {
+    "city": "Montesson",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Montesson, France",
+    "zip": "meetup642",
+    "lat": 48.91,
+    "lon": 2.14
+  },
+  {
+    "city": "Sannois",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Sannois, France",
+    "zip": "meetup314",
+    "lat": 48.98,
+    "lon": 2.24
+  },
+  {
+    "city": "Verrières-le-Buisson",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Verrières-le-Buisson, France",
+    "zip": "meetup557",
+    "lat": 48.75,
+    "lon": 2.26
+  },
+  {
+    "city": "Fontenay-sous-Bois",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Fontenay-sous-Bois, France",
+    "zip": "meetup102",
+    "lat": 48.85,
+    "lon": 2.5
+  },
+  {
+    "city": "Villemomble",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Villemomble, France",
+    "zip": "meetup284",
+    "lat": 48.89,
+    "lon": 2.5
+  },
+  {
+    "city": "Le Vésinet",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Le Vésinet, France",
+    "zip": "meetup555",
+    "lat": 48.9,
+    "lon": 2.13
+  },
+  {
+    "city": "Bry-sur-Marne",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Bry-sur-Marne, France",
+    "zip": "meetup579",
+    "lat": 48.84,
+    "lon": 2.5
+  },
+  {
+    "city": "Le Raincy",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Le Raincy, France",
+    "zip": "meetup672",
+    "lat": 48.9,
+    "lon": 2.5
+  },
+  {
+    "city": "Bonneuil",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Bonneuil, France",
+    "zip": "meetup544",
+    "lat": 48.97,
+    "lon": 2.43
+  },
+  {
+    "city": "Versailles",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Versailles, France",
+    "zip": "meetup45",
+    "lat": 48.81,
+    "lon": 2.14
+  },
+  {
+    "city": "Franconville",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Franconville, France",
+    "zip": "meetup209",
+    "lat": 48.98,
+    "lon": 2.22
+  },
+  {
+    "city": "Neuilly-Plaisance",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Neuilly-Plaisance, France",
+    "zip": "meetup477",
+    "lat": 48.86,
+    "lon": 2.51
+  },
+  {
+    "city": "Le Chesnay",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Le Chesnay, France",
+    "zip": "meetup264",
+    "lat": 48.84,
+    "lon": 2.12
+  },
+  {
+    "city": "Cormeilles-en-Parisis",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Cormeilles-en-Parisis, France",
+    "zip": "meetup429",
+    "lat": 48.97,
+    "lon": 2.19
+  },
+  {
+    "city": "Saint-Maur-des-Fossés",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Saint-Maur-des-Fossés, France",
+    "zip": "meetup57",
+    "lat": 48.8,
+    "lon": 2.49
+  },
+  {
+    "city": "Saint-Brice-sous-Forêt",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Saint-Brice-sous-Forêt, France",
+    "zip": "meetup690",
+    "lat": 49.0,
+    "lon": 2.35
+  },
+  {
+    "city": "Eaubonne",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Eaubonne, France",
+    "zip": "meetup361",
+    "lat": 49.0,
+    "lon": 2.27
+  },
+  {
+    "city": "Neuilly-sur-Marne",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Neuilly-sur-Marne, France",
+    "zip": "meetup216",
+    "lat": 48.85,
+    "lon": 2.52
+  },
+  {
+    "city": "Orly",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Orly, France",
+    "zip": "meetup401",
+    "lat": 48.74,
+    "lon": 2.39
+  },
+  {
+    "city": "Champigny-sur-Marne",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Champigny-sur-Marne, France",
+    "zip": "meetup55",
+    "lat": 48.82,
+    "lon": 2.51
+  },
+  {
+    "city": "Arnouville-lès-Gonesse",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Arnouville-lès-Gonesse, France",
+    "zip": "meetup705",
+    "lat": 48.99,
+    "lon": 2.41
+  },
+  {
+    "city": "Le Pecq",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Le Pecq, France",
+    "zip": "meetup542",
+    "lat": 48.9,
+    "lon": 2.11
+  },
+  {
+    "city": "Le Blanc-Mesnil",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Le Blanc-Mesnil, France",
+    "zip": "meetup123",
+    "lat": 48.96,
+    "lon": 2.47
+  },
+  {
+    "city": "Ermont",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Ermont, France",
+    "zip": "meetup274",
+    "lat": 49.0,
+    "lon": 2.25
+  },
+  {
+    "city": "Sarcelles",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Sarcelles, France",
+    "zip": "meetup82",
+    "lat": 49.0,
+    "lon": 2.38
+  },
+  {
+    "city": "Villeneuve-le-Roi",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Villeneuve-le-Roi, France",
+    "zip": "meetup465",
+    "lat": 48.74,
+    "lon": 2.4
+  },
+  {
+    "city": "Maisons-Laffitte",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Maisons-Laffitte, France",
+    "zip": "meetup381",
+    "lat": 48.95,
+    "lon": 2.14
+  },
+  {
+    "city": "Montigny-lès-Cormeilles",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Montigny-lès-Cormeilles, France",
+    "zip": "meetup501",
+    "lat": 48.99,
+    "lon": 2.2
+  },
+  {
+    "city": "Palaiseau",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Palaiseau, France",
+    "zip": "meetup257",
+    "lat": 48.73,
+    "lon": 2.25
+  },
+  {
+    "city": "Gagny",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Gagny, France",
+    "zip": "meetup186",
+    "lat": 48.89,
+    "lon": 2.53
+  },
+  {
+    "city": "Saint-Germain-en-Laye",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Saint-Germain-en-Laye, France",
+    "zip": "meetup176",
+    "lat": 48.9,
+    "lon": 2.1
+  },
+  {
+    "city": "Igny",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Igny, France",
+    "zip": "meetup902",
+    "lat": 48.74,
+    "lon": 2.21
+  },
+  {
+    "city": "Valenton",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Valenton, France",
+    "zip": "meetup755",
+    "lat": 48.75,
+    "lon": 2.45
+  },
+  {
+    "city": "Aulnay-sous-Bois",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Aulnay-sous-Bois, France",
+    "zip": "meetup52",
+    "lat": 48.96,
+    "lon": 2.49
+  },
+  {
+    "city": "Villiers-le-Bel",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Villiers-le-Bel, France",
+    "zip": "meetup294",
+    "lat": 49.01,
+    "lon": 2.38
+  },
+  {
+    "city": "Sevran",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Sevran, France",
+    "zip": "meetup121",
+    "lat": 48.93,
+    "lon": 2.52
+  },
+  {
+    "city": "Saint-Leu-la-Forêt",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Saint-Leu-la-Forêt, France",
+    "zip": "meetup578",
+    "lat": 49.01,
+    "lon": 2.24
+  },
+  {
+    "city": "Massy",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Massy, France",
+    "zip": "meetup179",
+    "lat": 48.72,
+    "lon": 2.27
+  },
+  {
+    "city": "Gonesse",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Gonesse, France",
+    "zip": "meetup327",
+    "lat": 48.99,
+    "lon": 2.45
+  },
+  {
+    "city": "Villeneuve-Saint-Georges",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Villeneuve-Saint-Georges, France",
+    "zip": "meetup258",
+    "lat": 48.74,
+    "lon": 2.45
+  },
+  {
+    "city": "Noisy-le-Grand",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Noisy-le-Grand, France",
+    "zip": "meetup83",
+    "lat": 48.85,
+    "lon": 2.55
+  },
+  {
+    "city": "Chilly-Mazarin",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Chilly-Mazarin, France",
+    "zip": "meetup494",
+    "lat": 48.71,
+    "lon": 2.31
+  },
+  {
+    "city": "Livry-Gargan",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Livry-Gargan, France",
+    "zip": "meetup181",
+    "lat": 48.92,
+    "lon": 2.54
+  },
+  {
+    "city": "Villiers-sur-Marne",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Villiers-sur-Marne, France",
+    "zip": "meetup285",
+    "lat": 48.84,
+    "lon": 2.55
+  },
+  {
+    "city": "Longjumeau",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Longjumeau, France",
+    "zip": "meetup427",
+    "lat": 48.71,
+    "lon": 2.29
+  },
+  {
+    "city": "Montfermeil",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Montfermeil, France",
+    "zip": "meetup343",
+    "lat": 48.9,
+    "lon": 2.55
+  },
+  {
+    "city": "Marly-le-Roi",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Marly-le-Roi, France",
+    "zip": "meetup524",
+    "lat": 48.87,
+    "lon": 2.07
+  },
+  {
+    "city": "Domont",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Domont, France",
+    "zip": "meetup588",
+    "lat": 49.03,
+    "lon": 2.33
+  },
+  {
+    "city": "Athis-Mons",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Athis-Mons, France",
+    "zip": "meetup251",
+    "lat": 48.71,
+    "lon": 2.38
+  },
+  {
+    "city": "Clichy-sous-Bois",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Clichy-sous-Bois, France",
+    "zip": "meetup263",
+    "lat": 48.92,
+    "lon": 2.55
+  },
+  {
+    "city": "Ézanville",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Ézanville, France",
+    "zip": "meetup920",
+    "lat": 49.03,
+    "lon": 2.36
+  },
+  {
+    "city": "Herblay",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Herblay, France",
+    "zip": "meetup354",
+    "lat": 49.0,
+    "lon": 2.16
+  },
+  {
+    "city": "Morangis",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Morangis, France",
+    "zip": "meetup829",
+    "lat": 48.7,
+    "lon": 2.33
+  },
+  {
+    "city": "Ormesson-sur-Marne",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Ormesson-sur-Marne, France",
+    "zip": "meetup866",
+    "lat": 48.79,
+    "lon": 2.54
+  },
+  {
+    "city": "Limeil-Brévannes",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Limeil-Brévannes, France",
+    "zip": "meetup489",
+    "lat": 48.74,
+    "lon": 2.48
+  },
+  {
+    "city": "Saint-Cyr-l'École",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Saint-Cyr-l'École, France",
+    "zip": "meetup609",
+    "lat": 48.81,
+    "lon": 2.07
+  },
+  {
+    "city": "Taverny",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Taverny, France",
+    "zip": "meetup300",
+    "lat": 49.02,
+    "lon": 2.19
+  },
+  {
+    "city": "Villebon-sur-Yvette",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Villebon-sur-Yvette, France",
+    "zip": "meetup908",
+    "lat": 48.7,
+    "lon": 2.25
+  },
+  {
+    "city": "Sucy-en-Brie",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Sucy-en-Brie, France",
+    "zip": "meetup317",
+    "lat": 48.76,
+    "lon": 2.52
+  },
+  {
+    "city": "Boissy-Saint-Léger",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Boissy-Saint-Léger, France",
+    "zip": "meetup567",
+    "lat": 48.75,
+    "lon": 2.51
+  },
+  {
+    "city": "Villepinte",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Villepinte, France",
+    "zip": "meetup208",
+    "lat": 48.97,
+    "lon": 2.53
+  },
+  {
+    "city": "Le Plessis-Trévise",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Le Plessis-Trévise, France",
+    "zip": "meetup513",
+    "lat": 48.81,
+    "lon": 2.57
+  },
+  {
+    "city": "Savigny-sur-Orge",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Savigny-sur-Orge, France",
+    "zip": "meetup190",
+    "lat": 48.69,
+    "lon": 2.35
+  },
+  {
+    "city": "Vigneux-sur-Seine",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Vigneux-sur-Seine, France",
+    "zip": "meetup315",
+    "lat": 48.7,
+    "lon": 2.41
+  },
+  {
+    "city": "Fontenay-le-Fleury",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Fontenay-le-Fleury, France",
+    "zip": "meetup698",
+    "lat": 48.82,
+    "lon": 2.05
+  },
+  {
+    "city": "Champs-sur-Marne",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Champs-sur-Marne, France",
+    "zip": "meetup318",
+    "lat": 48.86,
+    "lon": 2.59
+  },
+  {
+    "city": "Goussainville",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Goussainville, France",
+    "zip": "meetup276",
+    "lat": 49.02,
+    "lon": 2.47
+  },
+  {
+    "city": "Montgeron",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Montgeron, France",
+    "zip": "meetup382",
+    "lat": 48.7,
+    "lon": 2.44
+  },
+  {
+    "city": "Yerres",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Yerres, France",
+    "zip": "meetup277",
+    "lat": 48.72,
+    "lon": 2.49
+  },
+  {
+    "city": "Orsay",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Orsay, France",
+    "zip": "meetup545",
+    "lat": 48.7,
+    "lon": 2.18
+  },
+  {
+    "city": "Chelles",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Chelles, France",
+    "zip": "meetup127",
+    "lat": 48.89,
+    "lon": 2.6
+  },
+  {
+    "city": "Poissy",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Poissy, France",
+    "zip": "meetup192",
+    "lat": 48.93,
+    "lon": 2.04
+  },
+  {
+    "city": "La Queue-en-Brie",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "La Queue-en-Brie, France",
+    "zip": "meetup802",
+    "lat": 48.79,
+    "lon": 2.58
+  },
+  {
+    "city": "Bures-sur-Yvette",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Bures-sur-Yvette, France",
+    "zip": "meetup880",
+    "lat": 48.7,
+    "lon": 2.17
+  },
+  {
+    "city": "Juvisy-sur-Orge",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Juvisy-sur-Orge, France",
+    "zip": "meetup739",
+    "lat": 48.68,
+    "lon": 2.38
+  },
+  {
+    "city": "Guyancourt",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Guyancourt, France",
+    "zip": "meetup324",
+    "lat": 48.77,
+    "lon": 2.06
+  },
+  {
+    "city": "Chennevières-sur-Marne",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Chennevières-sur-Marne, France",
+    "zip": "meetup478",
+    "lat": 49.01,
+    "lon": 2.11
+  },
+  {
+    "city": "Achères",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Achères, France",
+    "zip": "meetup456",
+    "lat": 48.97,
+    "lon": 2.06
+  },
+  {
+    "city": "Brunoy",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Brunoy, France",
+    "zip": "meetup350",
+    "lat": 48.71,
+    "lon": 2.49
+  },
+  {
+    "city": "Lognes",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Lognes, France",
+    "zip": "meetup605",
+    "lat": 48.84,
+    "lon": 2.61
+  },
+  {
+    "city": "Tremblay-en-France",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Tremblay-en-France, France",
+    "zip": "meetup206",
+    "lat": 48.99,
+    "lon": 2.55
+  },
+  {
+    "city": "Épinay-sur-Orge",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Épinay-sur-Orge, France",
+    "zip": "meetup900",
+    "lat": 48.67,
+    "lon": 2.33
+  },
+  {
+    "city": "Draveil",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Draveil, France",
+    "zip": "meetup269",
+    "lat": 48.68,
+    "lon": 2.41
+  },
+  {
+    "city": "Morsang-sur-Orge",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Morsang-sur-Orge, France",
+    "zip": "meetup446",
+    "lat": 48.67,
+    "lon": 2.34
+  },
+  {
+    "city": "Conflans-Sainte-Honorine",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Conflans-Sainte-Honorine, France",
+    "zip": "meetup213",
+    "lat": 49.01,
+    "lon": 2.1
+  },
+  {
+    "city": "Viry-Chatillon",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Viry-Chatillon, France",
+    "zip": "meetup241",
+    "lat": 48.67,
+    "lon": 2.37
+  },
+  {
+    "city": "Andrésy",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Andrésy, France",
+    "zip": "meetup704",
+    "lat": 48.99,
+    "lon": 2.07
+  },
+  {
+    "city": "Bois-d'Arcy",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Bois-d'Arcy, France",
+    "zip": "meetup731",
+    "lat": 48.81,
+    "lon": 2.02
+  },
+  {
+    "city": "Carrières-sous-Poissy",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Carrières-sous-Poissy, France",
+    "zip": "meetup646",
+    "lat": 48.95,
+    "lon": 2.03
+  },
+  {
+    "city": "Villeparisis",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Villeparisis, France",
+    "zip": "meetup378",
+    "lat": 48.95,
+    "lon": 2.6
+  },
+  {
+    "city": "Éragny",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Éragny, France",
+    "zip": "meetup562",
+    "lat": 49.02,
+    "lon": 2.1
+  },
+  {
+    "city": "Vaires-sur-Marne",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Vaires-sur-Marne, France",
+    "zip": "meetup726",
+    "lat": 48.88,
+    "lon": 2.63
+  },
+  {
+    "city": "Noisiel",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Noisiel, France",
+    "zip": "meetup560",
+    "lat": 48.85,
+    "lon": 2.63
+  },
+  {
+    "city": "Voisins-le-Bretonneux",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Voisins-le-Bretonneux, France",
+    "zip": "meetup727",
+    "lat": 48.76,
+    "lon": 2.04
+  },
+  {
+    "city": "Pontault-Combault",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Pontault-Combault, France",
+    "zip": "meetup210",
+    "lat": 48.79,
+    "lon": 2.61
+  },
+  {
+    "city": "Montigny-le-Bretonneux",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Montigny-le-Bretonneux, France",
+    "zip": "meetup199",
+    "lat": 48.76,
+    "lon": 2.03
+  },
+  {
+    "city": "Ris-Orangis",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Ris-Orangis, France",
+    "zip": "meetup335",
+    "lat": 48.66,
+    "lon": 2.41
+  },
+  {
+    "city": "Les Ulis",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Les Ulis, France",
+    "zip": "meetup308",
+    "lat": 48.67,
+    "lon": 2.17
+  },
+  {
+    "city": "Trappes",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Trappes, France",
+    "zip": "meetup261",
+    "lat": 48.79,
+    "lon": 2.0
+  },
+  {
+    "city": "Les Clayes-sous-Bois",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Les Clayes-sous-Bois, France",
+    "zip": "meetup515",
+    "lat": 48.83,
+    "lon": 1.98
+  },
+  {
+    "city": "Chanteloup-les-Vignes",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Chanteloup-les-Vignes, France",
+    "zip": "meetup897",
+    "lat": 48.99,
+    "lon": 2.03
+  },
+  {
+    "city": "Gif-sur-Yvette",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Gif-sur-Yvette, France",
+    "zip": "meetup392",
+    "lat": 48.68,
+    "lon": 2.13
+  },
+  {
+    "city": "Grigny",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Grigny, France",
+    "zip": "meetup333",
+    "lat": 48.65,
+    "lon": 2.39
+  },
+  {
+    "city": "Mitry-Mory",
+    "country": "fr",
+    "localized_country_name": "France",
+    "name_string": "Mitry-Mory, France",
+    "zip": "meetup502",
+    "lat": 48.98,
+    "lon": 2.61
+  }
+]

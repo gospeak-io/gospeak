@@ -6,10 +6,13 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import fr.gospeak.core.domain.{Group, User}
+import fr.gospeak.core.domain.{Group, User, UserRequest}
 import fr.gospeak.core.services.storage.{UserGroupRepo, UserTalkRepo, UserUserRepo, UserUserRequestRepo}
+import fr.gospeak.infra.services.EmailSrv
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
+import fr.gospeak.web.auth.emails.Emails
 import fr.gospeak.web.domain._
 import fr.gospeak.web.pages.orga.GroupForms
 import fr.gospeak.web.pages.orga.routes.{GroupCtrl => GroupRoutes}
@@ -18,12 +21,15 @@ import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
 
+import scala.util.control.NonFatal
+
 class UserCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
                userRepo: UserUserRepo,
                groupRepo: UserGroupRepo,
                userRequestRepo: UserUserRequestRepo,
-               talkRepo: UserTalkRepo) extends UICtrl(cc, silhouette) {
+               talkRepo: UserTalkRepo,
+               emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
@@ -78,6 +84,47 @@ class UserCtrl(cc: ControllerComponents,
       _ <- OptionT.liftF(userRequestRepo.createUserAskToJoinAGroup(user, groupElt.id, now))
     } yield Redirect(routes.UserCtrl.index()).flashing("success" -> s"Join request sent to <b>${groupElt.name.value}</b> group"))
       .value.map(_.getOrElse(Redirect(routes.UserCtrl.joinGroup(params)).flashing("error" -> s"Unable to send join request to <b>$group</b>"))).unsafeToFuture()
+  }
+
+  def answerRequest(request: UserRequest.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    userRequestRepo.find(request).flatMap {
+      case Some(r: UserRequest.TalkInvite) => (for {
+        talkElt <- OptionT(talkRepo.find(r.talk))
+        speakerElt <- OptionT(userRepo.find(r.createdBy))
+        res = Ok(html.answerTalkInvite(r, talkElt, speakerElt)(breadcrumb(req.identity.user)))
+      } yield res).value.map(_.getOrElse(Redirect(routes.UserCtrl.index())))
+      case _ => IO.pure(Redirect(routes.UserCtrl.index()))
+    }.unsafeToFuture()
+  }
+
+  def acceptRequest(request: UserRequest.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    userRequestRepo.find(request).map(_.filter(_.isPending(now))).flatMap {
+      case Some(r: UserRequest.TalkInvite) => (for {
+        talkElt <- OptionT(talkRepo.find(r.talk))
+        speakerElt <- OptionT(userRepo.find(r.createdBy))
+        _ <- OptionT.liftF(userRequestRepo.accept(r, user, now))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToTalkAccepted(r, talkElt, speakerElt, req.identity.user)))
+      } yield s"Invitation to <b>${talkElt.title.value}</b> accepted").value
+      case _ => IO.pure(Some("Request not found or unhandled"))
+    }.map(msg => Redirect(routes.UserCtrl.index()).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))
+      .recover { case NonFatal(e) => Redirect(routes.UserCtrl.index()).flashing("error" -> s"Unexpected error: ${e.getMessage}") }
+      .unsafeToFuture()
+  }
+
+  def rejectRequest(request: UserRequest.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    userRequestRepo.find(request).map(_.filter(_.isPending(now))).flatMap {
+      case Some(r: UserRequest.TalkInvite) => (for {
+        talkElt <- OptionT(talkRepo.find(r.talk))
+        speakerElt <- OptionT(userRepo.find(r.createdBy))
+        _ <- OptionT.liftF(userRequestRepo.reject(r, user, now))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToTalkRejected(r, talkElt, speakerElt, req.identity.user)))
+      } yield s"Invitation to <b>${talkElt.title.value}</b> rejected").value
+      case _ => IO.pure(Some("Request not found or unhandled"))
+    }.map(msg => Redirect(routes.UserCtrl.index()).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))
+      .recover { case NonFatal(e) => Redirect(routes.UserCtrl.index()).flashing("error" -> s"Unexpected error: ${e.getMessage}") }
+      .unsafeToFuture()
   }
 }
 

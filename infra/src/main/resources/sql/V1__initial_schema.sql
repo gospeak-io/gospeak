@@ -246,6 +246,8 @@ CREATE TABLE requests
     id          CHAR(36)    NOT NULL,
     kind        VARCHAR(30) NOT NULL,
     group_id    CHAR(36) REFERENCES groups (id),
+    talk_id     CHAR(36) REFERENCES talks (id),
+    proposal_id CHAR(36) REFERENCES proposals (id),
     email       VARCHAR(120),
     deadline    TIMESTAMP,
     created     TIMESTAMP   NOT NULL,
@@ -253,15 +255,25 @@ CREATE TABLE requests
     accepted    TIMESTAMP,
     accepted_by CHAR(36) REFERENCES users (id),
     rejected    TIMESTAMP,
-    rejected_by CHAR(36) REFERENCES users (id)
+    rejected_by CHAR(36) REFERENCES users (id),
+    canceled    TIMESTAMP,
+    canceled_by CHAR(36) REFERENCES users (id)
 );
 
-CREATE TABLE settings
+CREATE TABLE group_settings
 (
-    target     VARCHAR(30) NOT NULL, -- enum for the target: group or user
-    target_id  CHAR(36)    NOT NULL, -- id for the target
-    value      VARCHAR     NOT NULL, -- json serialized settings
-    updated    TIMESTAMP   NOT NULL,
-    updated_by CHAR(36)    NOT NULL REFERENCES users (id),
-    UNIQUE (target, target_id)
+    group_id                  CHAR(36) PRIMARY KEY REFERENCES groups (id),
+    meetup_access_token       CHAR(67),
+    meetup_refresh_token      CHAR(67),
+    meetup_group_slug         CHAR(120),
+    meetup_logged_user_id     BIGINT,
+    meetup_logged_user_name   CHAR(120),
+    slack_token               CHAR(74),
+    slack_bot_name            CHAR(120),
+    slack_bot_avatar          CHAR(1024),
+    event_default_description VARCHAR   NOT NULL,
+    event_templates           VARCHAR   NOT NULL, -- json serialized Map[String, MustacheTextTmpl[TemplateData.EventInfo]]
+    actions                   VARCHAR   NOT NULL, -- json serialized Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]
+    updated                   TIMESTAMP NOT NULL,
+    updated_by                CHAR(36)  NOT NULL REFERENCES users (id)
 );

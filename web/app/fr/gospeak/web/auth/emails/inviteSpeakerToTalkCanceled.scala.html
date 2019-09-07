@@ -1,0 +1,11 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Talk, User, UserRequest}
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.user.routes.UserCtrl
+@import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
+
+@(invite: UserRequest.TalkInvite, talk: Talk, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+<p>Hi,</p>
+<p><a href="mailto:@by.email.value">@by.name.value</a> has canceled your invitation to <b>@talk.title.value</b> talk.</p>
+<p>We hope everything is alright, you can <a href="@TalkCtrl.create().absoluteURL()">propose a new talk</a> at any time ;)</p>
+<p>The Gospeak team</p>

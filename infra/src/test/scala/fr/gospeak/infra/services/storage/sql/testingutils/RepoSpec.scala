@@ -31,6 +31,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val now: Instant = random[Instant]
   protected val user: User = random[User]
   protected val group: Group = random[Group]
+  protected val groupSettings: Group.Settings = random[Group.Settings]
   protected val cfp: Cfp = random[Cfp]
   protected val event: Event = random[Event].copy(cfp = None)
   protected val talk: Talk = random[Talk]

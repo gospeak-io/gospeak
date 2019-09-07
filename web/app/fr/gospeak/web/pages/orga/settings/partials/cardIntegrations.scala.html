@@ -11,7 +11,7 @@
     <div class="list-group list-group-flush">
         @displayIntegration("Meetup", accounts.meetup, id => modalMeetup(id, group, meetupForm, accounts.meetup), SettingsCtrl.removeAccount(group.slug, "meetup"))
         @displayIntegration("Slack", accounts.slack, id => modalSlack(id, group, slackForm), SettingsCtrl.removeAccount(group.slug, "slack"))
-        @displayIntegration("Twitter", accounts.twitter, id => modalTwitter(), SettingsCtrl.removeAccount(group.slug, "twitter"))
-        @displayIntegration("YouTube", accounts.youtube, id => modalYoutube(), SettingsCtrl.removeAccount(group.slug, "youtube"))
+        @* displayIntegration("Twitter", accounts.twitter, id => modalTwitter(), SettingsCtrl.removeAccount(group.slug, "twitter")) *@
+        @* displayIntegration("YouTube", accounts.youtube, id => modalYoutube(), SettingsCtrl.removeAccount(group.slug, "youtube")) *@
     </div>
 </div>

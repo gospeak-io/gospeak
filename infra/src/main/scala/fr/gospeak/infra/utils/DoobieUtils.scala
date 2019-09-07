@@ -10,12 +10,15 @@ import doobie.util.fragment.Fragment
 import doobie.util.update.Update
 import doobie.util.{Meta, Read, Write}
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup}
-import fr.gospeak.infra.formats.JsonFormats._
+import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.infra.services.storage.sql.DatabaseConf
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import fr.gospeak.libs.scalautils.domain._
+import io.circe._
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -72,7 +75,6 @@ object DoobieUtils {
           val f = p + v.stripPrefix("-")
           if (nullsFirst) {
             s"$f IS NOT NULL, $f" + (if (v.startsWith("-")) " DESC" else "")
-
           } else {
             s"$f IS NULL, $f" + (if (v.startsWith("-")) " DESC" else "")
           }
@@ -118,9 +120,33 @@ object DoobieUtils {
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
     implicit def mustacheMarkdownTemplateMeta[A: TypeTag]: Meta[MustacheMarkdownTmpl[A]] = Meta[String].timap(MustacheMarkdownTmpl[A])(_.value)
     implicit def mustacheTextTemplateMeta[A: TypeTag]: Meta[MustacheTextTmpl[A]] = Meta[String].timap(MustacheTextTmpl[A])(_.value)
-    implicit val gMapPlaceMeta: Meta[GMapPlace] = Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
     implicit val avatarSourceMeta: Meta[Avatar.Source] = Meta[String].timap(Avatar.Source.from(_).get)(_.toString)
     implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))
+    implicit val gMapPlaceMeta: Meta[GMapPlace] = {
+      implicit val gMapPlaceDecoder: Decoder[GMapPlace] = deriveDecoder[GMapPlace]
+      implicit val gMapPlaceEncoder: Encoder[GMapPlace] = deriveEncoder[GMapPlace]
+      Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
+    }
+    implicit val groupSettingsEventTemplatesMeta: Meta[Map[String, MustacheTextTmpl[TemplateData.EventInfo]]] = {
+      implicit val textTemplateDecoder: Decoder[MustacheTextTmpl[TemplateData.EventInfo]] = deriveDecoder[MustacheTextTmpl[TemplateData.EventInfo]]
+      implicit val textTemplateEncoder: Encoder[MustacheTextTmpl[TemplateData.EventInfo]] = deriveEncoder[MustacheTextTmpl[TemplateData.EventInfo]]
+      Meta[String].timap(fromJson[Map[String, MustacheTextTmpl[TemplateData.EventInfo]]](_).get)(toJson)
+    }
+    implicit val groupSettingsActionsMeta: Meta[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]] = {
+      implicit val markdownTemplateDecoder: Decoder[MustacheMarkdownTmpl[TemplateData]] = deriveDecoder[MustacheMarkdownTmpl[TemplateData]]
+      implicit val markdownTemplateEncoder: Encoder[MustacheMarkdownTmpl[TemplateData]] = deriveEncoder[MustacheMarkdownTmpl[TemplateData]]
+      implicit val slackActionPostMessageDecoder: Decoder[SlackAction.PostMessage] = deriveDecoder[SlackAction.PostMessage]
+      implicit val slackActionPostMessageEncoder: Encoder[SlackAction.PostMessage] = deriveEncoder[SlackAction.PostMessage]
+      implicit val slackActionDecoder: Decoder[SlackAction] = deriveDecoder[SlackAction]
+      implicit val slackActionEncoder: Encoder[SlackAction] = deriveEncoder[SlackAction]
+      implicit val groupSettingsActionSlackDecoder: Decoder[Group.Settings.Action.Slack] = deriveDecoder[Group.Settings.Action.Slack]
+      implicit val groupSettingsActionSlackEncoder: Encoder[Group.Settings.Action.Slack] = deriveEncoder[Group.Settings.Action.Slack]
+      implicit val groupSettingsActionDecoder: Decoder[Group.Settings.Action] = deriveDecoder[Group.Settings.Action]
+      implicit val groupSettingsActionEncoder: Encoder[Group.Settings.Action] = deriveEncoder[Group.Settings.Action]
+      implicit val groupSettingsActionTriggerDecoder: KeyDecoder[Group.Settings.Action.Trigger] = (key: String) => Group.Settings.Action.Trigger.from(key)
+      implicit val groupSettingsActionTriggerEncoder: KeyEncoder[Group.Settings.Action.Trigger] = (e: Group.Settings.Action.Trigger) => e.toString
+      Meta[String].timap(fromJson[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]](_).get)(toJson)
+    }
 
     // TODO build Meta[Seq[A]] and Meta[NonEmptyList[A]]
     // implicit def seqMeta[A](implicit m: Meta[A]): Meta[Seq[A]] = ???
@@ -165,18 +191,33 @@ object DoobieUtils {
       _.map(_.value).mkString(","))
 
     implicit val userRequestRead: Read[UserRequest] =
-      Read[(UserRequest.Id, String, Option[EmailAddress], Option[Group.Id], Option[Instant], Instant, Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id])].map {
-        case (id, "AccountValidation", Some(email), _, Some(deadline), created, Some(createdBy), accepted, _, _, _) =>
+      Read[(UserRequest.Id, String, Option[Group.Id], Option[Talk.Id], Option[Proposal.Id], Option[EmailAddress], Option[Instant], Instant, Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id])].map {
+        case (id, "AccountValidation", _, _, _, Some(email), Some(deadline), created, Some(createdBy), accepted, _, _, _, _, _) =>
           UserRequest.AccountValidationRequest(id, email, deadline, created, createdBy, accepted)
-        case (id, "PasswordReset", Some(email), _, Some(deadline), created, _, accepted, _, _, _) =>
+        case (id, "PasswordReset", _, _, _, Some(email), Some(deadline), created, _, accepted, _, _, _, _, _) =>
           UserRequest.PasswordResetRequest(id, email, deadline, created, accepted)
-        case (id, "UserAskToJoinAGroup", _, Some(groupId), _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy) =>
+        case (id, "UserAskToJoinAGroup", Some(groupId), _, _, _, _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
           UserRequest.UserAskToJoinAGroupRequest(id, groupId, created, createdBy,
-            accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(_, date))),
-            rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(_, date))))
-        case (id, kind, email, group, deadline, created, createdBy, accepted, acceptedBy, rejected, rejectedBy) =>
-          throw new Exception(s"Unable to read UserRequest with ($id, $kind, $email, $group, $deadline, $created, $createdBy, $accepted, $acceptedBy, $rejected, $rejectedBy)")
+            accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
+            rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
+            canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
+        case (id, "TalkInvite", _, Some(talkId), _, Some(email), _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+          UserRequest.TalkInvite(id, talkId, email, created, createdBy,
+            accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
+            rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
+            canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
+        case (id, "ProposalInvite", _, _, Some(proposalId), Some(email), _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+          UserRequest.ProposalInvite(id, proposalId, email, created, createdBy,
+            accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
+            rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
+            canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
+        case (id, kind, group, talk, proposal, email, deadline, created, createdBy, accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+          throw new Exception(s"Unable to read UserRequest with ($id, $kind, group=$group, talk=$talk, proposal=$proposal, $email, $deadline, created=($created, $createdBy), accepted=($accepted, $acceptedBy), rejected=($rejected, $rejectedBy), canceled=($canceled, $canceledBy))")
       }
+
+    private def toJson[A](v: A)(implicit e: Encoder[A]): String = e.apply(v).noSpaces
+
+    private def fromJson[A](s: String)(implicit d: Decoder[A]): util.Try[A] = parser.parse(s).flatMap(d.decodeJson).toTry
   }
 
 }

@@ -6,6 +6,7 @@ import cats.effect.IO
 import fr.gospeak.core.domain.{Event, Partner, Venue}
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.meetup.domain._
+import fr.gospeak.infra.libs.meetup.domain.MeetupLocation
 import fr.gospeak.infra.libs.meetup.{MeetupClient, domain => lib}
 import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.Extensions._
@@ -47,8 +48,13 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
         orgas <- client.getOrgas(creds.group.value).flatMap(_.toIO(e => MeetupException.CantFetchOrgas(creds.group, e.format)))
         venueId <- venue.map { case (p, v) =>
           v.refs.meetup.map(r => IO.pure(r.venue.value)).getOrElse {
-            client.createVenue(creds.group.value, toLib(p, v))
-              .flatMap(e => e.map(_.id).toIO(e => MeetupException.CantCreateVenue(creds.group, event, p, v, e.format)))
+            for {
+              location <- client.getLocations(v.address.lat, v.address.lng)
+                .flatMap(_.toIO(e => MeetupException.CantFetchLocation(v.address.lat, v.address.lng, e.format)))
+                .flatMap(_.headOption.toIO(MeetupException.CantFetchLocation(v.address.lat, v.address.lng, "No location found")))
+              created <- client.createVenue(creds.group.value, toLib(p, v, location))
+              id <- created.map(_.id).toIO(e => MeetupException.CantCreateVenue(creds.group, event, p, v, e.format))
+            } yield id
           }
         }.sequence
         venueRef = venueId.map(id => MeetupVenue.Ref(creds.group, MeetupVenue.Id(id)))
@@ -67,26 +73,26 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
   private def toLib(creds: MeetupCredentials, key: AesSecretKey): Try[lib.MeetupToken.Access] =
     creds.accessToken.decode(key).map(lib.MeetupToken.Access)
 
-  private def toLib(partner: Partner, venue: Venue): lib.MeetupVenue.Create =
+  private def toLib(partner: Partner, venue: Venue, location: MeetupLocation): lib.MeetupVenue.Create =
     lib.MeetupVenue.Create(
       name = partner.name.value,
       address_1 = venue.address.formatted,
-      city = venue.address.locality.getOrElse(""),
+      city = location.city,
       state = None,
-      country = venue.address.country,
-      localized_country_name = "",
+      country = location.country,
+      localized_country_name = location.localized_country_name,
       lat = venue.address.lat,
       lon = venue.address.lng,
       repinned = false,
       visibility = "public")
 
-  private def toLib(event: Event, venue: Option[Venue], venueId: Option[Long], orgaIds: Seq[Long], description: String, draft: Boolean): lib.MeetupEvent.Create =
+  private def toLib(event: Event, venue: Option[Venue], venueId: Option[Long], orgaIds: Seq[Long], description: String, isDraft: Boolean): lib.MeetupEvent.Create =
     lib.MeetupEvent.Create(
       name = event.name.value,
       description = description,
-      time = event.start.toEpochSecond(venue.map(_.address.zoneOffset).getOrElse(ZoneOffset.UTC)),
-      publish_status = if (draft) "draft" else "published",
-      announce = if (draft) false else true,
+      time = event.start.toEpochSecond(venue.map(_.address.zoneOffset).getOrElse(ZoneOffset.UTC)) * 1000,
+      publish_status = if (isDraft) "draft" else "published",
+      announce = !isDraft,
       // duration = 10800000,
       // venue_visibility = "public",
       venue_id = venueId,
@@ -96,7 +102,7 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
       rsvp_limit = venue.flatMap(_.roomSize),
       rsvp_close_time = None,
       rsvp_open_time = None,
-      event_hosts = orgaIds.headOption.map(_ => orgaIds.mkString(",")),
+      event_hosts = orgaIds.headOption.map(_ => orgaIds.take(lib.MeetupEvent.maxHosts).mkString(",")),
       question = None,
       guest_limit = Some(0),
       featured_photo_id = None,

@@ -32,9 +32,9 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
   def dropTables(): IO[Done] = IO(flyway.clean()).map(_ => Done)
 
   override val user = new UserRepoSql(xa)
-  override val userRequest = new UserRequestRepoSql(xa)
   override val talk = new TalkRepoSql(xa)
   override val group = new GroupRepoSql(xa)
+  override val groupSettings = new GroupSettingsRepoSql(xa)
   override val cfp = new CfpRepoSql(xa)
   override val partner = new PartnerRepoSql(xa)
   override val venue = new VenueRepoSql(xa)
@@ -43,7 +43,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
   override val event = new EventRepoSql(xa)
   override val proposal = new ProposalRepoSql(xa)
   override val contact = new ContactRepoSql(xa)
-  override val settings = new SettingsRepoSql(xa)
+  override val userRequest = new UserRequestRepoSql(talk, xa)
 
   /*
     TODO:
@@ -255,7 +255,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       website = Some("https://www.zeenea.com/"),
       phone = None,
       utcOffset = 120)
-    val venue1 = venue(zeenea, zeeneaPlace, userDemo)
+    val venue1 = venue(zeenea, zeeneaPlace, userDemo, roomSize = Some(80))
     val venues = NonEmptyList.of(venue1)
 
     val event1 = event(humanTalks, Some(cfp2), "2018-06", "HumanTalks Day #1", "2018-06-01", userDemo, venue = None, description = Group.Settings.default.event.defaultDescription.value)
@@ -305,7 +305,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       _ <- run(Queries.insertMany(SponsorRepoSql.insert)(sponsors))
       _ <- run(Queries.insertMany(EventRepoSql.insert)(events ++ generated.map(_._3)))
       _ <- IO(eventTalks.map { case (c, e, p, u) => addTalk(c, e, p, u, now) }.map(_.unsafeRunSync()))
-      _ <- settings.set(humanTalks.id, humanTalksSettings, userDemo.id, now)
+      _ <- groupSettings.set(humanTalks.id, humanTalksSettings, userDemo.id, now)
     } yield Done
   }
 

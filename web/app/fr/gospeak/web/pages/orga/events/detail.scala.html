@@ -1,6 +1,7 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Partner, Proposal, User, Venue}
-@import fr.gospeak.libs.scalautils.domain.{Markdown, Page}
+@import fr.gospeak.core.domain.utils.TemplateData
+@import fr.gospeak.libs.scalautils.domain.{Markdown, MustacheTmpl, Page}
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
@@ -15,7 +16,7 @@
 @import fr.gospeak.web.pages.partials.html.{pagination, search}
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, event: Event, venueOpt: Option[(Partner, Venue)], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], eventSettings: Group.Settings.Event, attachCfp: Form[Cfp.Slug])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, event: Event, venueOpt: Option[(Partner, Venue)], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], attachCfp: Form[Cfp.Slug])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(event.name.value + " - Gospeak", group, b)() {
     @if(!event.isPublic) {
         <div class="alert alert-info" role="alert">
@@ -39,7 +40,7 @@
             </button>
             <span class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" href="@EventCtrl.edit(group.slug, event.slug)">Edit</a>
-                @eventSettings.templates.keys.map { id =>
+                @eventTemplates.keys.map { id =>
                     <a class="dropdown-item" href="@EventCtrl.showTemplate(group.slug, event.slug, id)">Show @id template</a>
                 }
             </span>

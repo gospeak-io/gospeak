@@ -19,10 +19,16 @@ trait OrgaUserRepo {
 }
 
 trait SpeakerUserRepo {
+  def find(email: EmailAddress): IO[Option[User]]
+
+  def find(slug: User.Slug): IO[Option[User]]
+
   def list(ids: Seq[User.Id]): IO[Seq[User]]
 }
 
 trait UserUserRepo {
+  def find(id: User.Id): IO[Option[User]]
+
   def edit(user: User, profile: User.EditableFields, now: Instant): IO[User]
 
   def editStatus(user: User.Id)(status: User.Profile.Status): IO[Done]

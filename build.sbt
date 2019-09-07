@@ -18,16 +18,16 @@ val commonSettings: Seq[Setting[_]] = Seq(
   * Dependencies
   */
 val cats = Seq(
-  "org.typelevel" %% "cats-core" % "1.5.0",
-  "org.typelevel" %% "cats-effect" % "1.1.0")
+  "org.typelevel" %% "cats-core" % "1.6.1",
+  "org.typelevel" %% "cats-effect" % "1.4.0")
 val circe = Seq(
   "io.circe" %% "circe-core",
   "io.circe" %% "circe-generic",
   "io.circe" %% "circe-parser",
   "io.circe" %% "circe-literal",
   "io.circe" %% "circe-generic-extras",
-  "io.circe" %% "circe-java8").map(_ % "0.10.1")
-val doobieVersion = "0.7.0"
+  "io.circe" %% "circe-java8").map(_ % "0.11.1")
+val doobieVersion = "0.6.0"
 val doobie = Seq(
   "org.tpolecat" %% "doobie-core",
   "org.tpolecat" %% "doobie-h2",
@@ -36,7 +36,7 @@ val doobie = Seq(
 val doobieTest = Seq(
   "org.tpolecat" %% "doobie-scalatest" % doobieVersion).map(_ % Test)
 val mongo = Seq("org.reactivemongo" %% "reactivemongo" % "0.16.5")
-val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.10.2")
+val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.11.1")
 val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
@@ -50,34 +50,34 @@ val silhouette = Seq(
   "com.mohiva" %% "play-silhouette-persistence").map(_ % silhouetteVersion)
 val silhouetteTest = Seq(
   "com.mohiva" %% "play-silhouette-testkit").map(_ % silhouetteVersion % "test")
-val macwireVersion = "2.3.1"
+val macwireVersion = "2.3.3"
 val play = Seq(
   "com.softwaremill.macwire" %% "macros" % macwireVersion % Provided,
   "com.softwaremill.macwire" %% "macrosakka" % macwireVersion % Provided)
 val playTest = Seq(
-  "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2").map(_ % Test)
-val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.40.16")
+  "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3").map(_ % Test)
+val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.40.34")
 val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.5.1")
 val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.3.0")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
-  "org.webjars.npm" % "jquery" % "3.3.1",
+  "org.webjars.npm" % "jquery" % "3.4.1",
   "org.webjars.npm" % "bootstrap" % "4.3.1",
   "org.webjars.npm" % "autosize" % "4.0.2",
   // "org.webjars.npm" % "@fortawesome/fontawesome-free" % "5.6.3",
-  "org.webjars.npm" % "select2" % "4.0.5",
+  "org.webjars.npm" % "select2" % "4.0.10",
   "org.webjars.npm" % "select2-bootstrap-theme" % "0.1.0-beta.10",
   "org.webjars.npm" % "bootstrap-datepicker" % "1.9.0",
-  "org.webjars.npm" % "imask" % "5.1.7",
+  "org.webjars.npm" % "imask" % "5.2.1",
   "org.webjars.npm" % "hideshowpassword" % "2.1.1")
 val logback = Seq(
-  "org.slf4j" % "slf4j-api" % "1.7.25",
+  "org.slf4j" % "slf4j-api" % "1.7.28",
   "ch.qos.logback" % "logback-classic" % "1.2.3")
 val scalaTest = Seq(
-  "org.scalatest" %% "scalatest" % "3.0.5").map(_ % Test)
+  "org.scalatest" %% "scalatest" % "3.0.8").map(_ % Test)
 val scalaCheck = Seq(
   "org.scalacheck" %% "scalacheck" % "1.14.0",
-  "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.0",
-  "com.danielasfregola" %% "random-data-generator" % "2.6").map(_ % Test)
+  "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.3",
+  "com.danielasfregola" %% "random-data-generator" % "2.7").map(_ % Test)
 
 val scalautilsDependencies = cats ++ scalaTest ++ scalaCheck
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
