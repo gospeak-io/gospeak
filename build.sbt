@@ -56,7 +56,7 @@ val play = Seq(
   "com.softwaremill.macwire" %% "macrosakka" % macwireVersion % Provided)
 val playTest = Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3").map(_ % Test)
-val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.40.34")
+val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.50.36")
 val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.5.1")
 val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.3.0")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
