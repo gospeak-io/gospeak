@@ -103,7 +103,7 @@
                     <div class="list-group-item p-1 d-flex justify-content-between align-items-center">
                         <div>
                             @formBtn(EventCtrl.addToTalks(group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
-                            @formBtn(EventCtrl.rejectProposal(group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Reject this proposal", "confirm" -> s"Reject proposal: ${proposal.title.value}?")){<i class="fas fa-comment-slash"></i>}
+                            @formBtn(EventCtrl.rejectProposal(group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link btn-sm text-danger", "title" -> "Reject this proposal", "confirm" -> s"Reject proposal: ${proposal.title.value}?")){<i class="fas fa-comment-slash"></i>}
                             @duration(proposal.duration)
                             @slidesIcon(proposal.slides)
                             @videoIcon(proposal.video)
