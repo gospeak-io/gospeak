@@ -8,7 +8,7 @@
 @import fr.gospeak.web.pages.user.routes.UserCtrl
 
 @(request: UserRequest.TalkInvite, talk: Talk, speaker: User)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@container("Gospeak", b)() {
+@container("Gospeak", b, hideAlert = true)() {
     <h1>Nice!!! You have been invited to join a talk <i class="far fa-thumbs-up"></i></h1>
     <h3>@talk.title.value</h3>
     <p>@markdown(talk.description)</p>

@@ -23,6 +23,8 @@ trait SpeakerTalkRepo {
 
   def removeSpeaker(user: User.Id, talk: Talk.Slug)(speaker: User.Id, now: Instant): IO[Done]
 
+  def find(talk: Talk.Id): IO[Option[Talk]]
+
   def list(user: User.Id, params: Page.Params): IO[Page[Talk]]
 
   def listActive(user: User.Id, cfp: Cfp.Id, params: Page.Params): IO[Page[Talk]]
@@ -34,8 +36,6 @@ trait SpeakerTalkRepo {
 
 trait UserTalkRepo {
   def addSpeaker(user: User.Id, talk: Talk.Id)(speaker: User.Id, now: Instant): IO[Done]
-
-  def find(talk: Talk.Id): IO[Option[Talk]]
 
   def list(user: User.Id, params: Page.Params): IO[Page[Talk]]
 }

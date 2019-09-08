@@ -96,7 +96,7 @@
             case None => { <span class="badge badge-pill badge-primary">Unknown user</span> }
         }
         @invites.map { i =>
-            <span class="badge badge-pill badge-secondary">
+            <span class="badge badge-pill badge-secondary" title="Speaker invitation, he is not a speaker yet">
                 @i.email.value
                 @formBtn(TalkCtrl.cancelInviteSpeaker(talk.slug, i.id), Seq("class" -> "no-style", "title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
             </span>

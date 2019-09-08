@@ -50,6 +50,8 @@ trait SpeakerProposalRepo {
 
   def editVideo(talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, by: User.Id, now: Instant): IO[Done]
 
+  def listWithCfpTalkEvent(user: User.Id, params: Page.Params): IO[Page[(Cfp, Talk, Proposal, Option[Event])]]
+
   def list(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
 
   def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]]

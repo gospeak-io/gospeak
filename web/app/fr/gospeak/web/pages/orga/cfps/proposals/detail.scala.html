@@ -21,10 +21,10 @@
             </button>
             <span class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" href="@ProposalCtrl.edit(group.slug, cfp.slug, proposal.id)">Edit</a>
-                @if(proposal.status != Proposal.Status.Rejected) {
+                @if(proposal.status != Proposal.Status.Declined) {
                     @formBtn(ProposalCtrl.reject(group.slug, cfp.slug, proposal.id), Seq(
                         "class" -> "dropdown-item",
-                        "title" -> Proposal.Status.Rejected.description,
+                        "title" -> Proposal.Status.Declined.description,
                         "data-toggle" -> "tooltip",
                         "data-placement" -> "left")) {Reject this proposal}
                 } else {

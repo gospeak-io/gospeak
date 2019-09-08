@@ -48,11 +48,11 @@ object Proposal {
 
     case object Accepted extends Status // TODO: rename this to Planified ?
 
-    case object Rejected extends Status {
+    case object Declined extends Status {
       def description = "Remove this proposal from the pending ones"
     }
 
-    val all: Seq[Status] = Seq(Pending, Accepted, Rejected)
+    val all: Seq[Status] = Seq(Pending, Accepted, Declined)
   }
 
   final case class Data(title: Talk.Title,

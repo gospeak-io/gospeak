@@ -56,19 +56,19 @@ class ContactRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage") {
         val (s, c) = selectPage(partner.id, params)
-        s.sql shouldBe s"SELECT ${fieldsPrefixedBy(fieldList, "c.")} FROM contacts c INNER JOIN partners p ON c.partner_id=p.id WHERE p.id=? ORDER BY c.created IS NULL, c.created OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT ${withPrefix(fieldList, "c.")} FROM contacts c INNER JOIN partners p ON c.partner_id=p.id WHERE p.id=? ORDER BY c.created IS NULL, c.created OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT COUNT(*) FROM contacts c INNER JOIN partners p ON c.partner_id=p.id WHERE p.id=? "
         check(s)
         check(c)
       }
       it("should build selectAll") {
         val q = selectAll(partner.id)
-        q.sql shouldBe s"SELECT ${fieldsPrefixedBy(fieldList, "c.")} FROM contacts c INNER JOIN partners p ON c.partner_id=p.id WHERE p.id=?"
+        q.sql shouldBe s"SELECT ${withPrefix(fieldList, "c.")} FROM contacts c INNER JOIN partners p ON c.partner_id=p.id WHERE p.id=?"
         check(q)
       }
       it("should build selectOne") {
         val q = selectOne(partner.id, contact.email)
-        q.sql shouldBe s"SELECT ${fieldsPrefixedBy(fieldList, "c.")} FROM contacts c INNER JOIN partners p ON c.partner_id=p.id WHERE p.id=? AND c.email=?"
+        q.sql shouldBe s"SELECT ${withPrefix(fieldList, "c.")} FROM contacts c INNER JOIN partners p ON c.partner_id=p.id WHERE p.id=? AND c.email=?"
         check(q)
       }
     }

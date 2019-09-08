@@ -42,7 +42,7 @@ case class Talk(id: String, // Talk.Id
         case "Accepted" => gs.Proposal.Status.Pending
         case "Planified" => gs.Proposal.Status.Accepted
         case "Finalized" => gs.Proposal.Status.Accepted
-        case "Rejected" => gs.Proposal.Status.Rejected
+        case "Rejected" => gs.Proposal.Status.Declined
       },
       description = Markdown(data.description.getOrElse("")),
       speakers = NonEmptyList.fromListUnsafe(data.speakers.map(gs.User.Id.from(_).get)),

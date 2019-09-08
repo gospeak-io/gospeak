@@ -137,7 +137,11 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
 
   def insertMockData(): IO[Done] = {
     val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
-    val now = Instant.now()
+    var n = Instant.now()
+    def now: Instant = { // to not have the same date everywhere
+      n = n.plusSeconds(1)
+      n
+    }
     val gravatarSrv = new GravatarSrv()
 
     def user(slug: String, email: String, firstName: String, lastName: String, profile: Profile = User.emptyProfile): User = {
@@ -229,7 +233,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val proposal1 = proposal(talk1, cfp1)
     val proposal2 = proposal(talk2, cfp1)
     val proposal3 = proposal(talk2, cfp4)
-    val proposal4 = proposal(talk3, cfp1, status = Proposal.Status.Rejected)
+    val proposal4 = proposal(talk3, cfp1, status = Proposal.Status.Declined)
     val proposal5 = proposal(talk4, cfp3)
     val proposals = NonEmptyList.of(proposal1, proposal2, proposal3, proposal4, proposal5)
 

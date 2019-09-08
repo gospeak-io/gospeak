@@ -20,14 +20,14 @@ class VenueRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage") {
         val (s, c) = selectPage(group.id, params)
-        s.sql shouldBe s"SELECT ${fieldsPrefixedBy(PartnerRepoSqlSpec.fieldList, "p.")}, ${fieldsPrefixedBy(fieldList, "v.")} FROM venues v INNER JOIN partners p ON v.partner_id=p.id WHERE p.group_id=? ORDER BY v.created IS NULL, v.created OFFSET 0 LIMIT 20"
+        s.sql shouldBe s"SELECT ${withPrefix(PartnerRepoSqlSpec.fieldList, "p.")}, ${withPrefix(fieldList, "v.")} FROM venues v INNER JOIN partners p ON v.partner_id=p.id WHERE p.group_id=? ORDER BY v.created IS NULL, v.created OFFSET 0 LIMIT 20"
         c.sql shouldBe "SELECT count(*) FROM venues v INNER JOIN partners p ON v.partner_id=p.id WHERE p.group_id=? "
         check(s)
         check(c)
       }
       it("should build selectAll for group id") {
         val q = selectAll(group.id)
-        q.sql shouldBe s"SELECT ${fieldsPrefixedBy(PartnerRepoSqlSpec.fieldList, "p.")}, ${fieldsPrefixedBy(fieldList, "v.")} FROM venues v INNER JOIN partners p ON v.partner_id=p.id WHERE p.group_id=? "
+        q.sql shouldBe s"SELECT ${withPrefix(PartnerRepoSqlSpec.fieldList, "p.")}, ${withPrefix(fieldList, "v.")} FROM venues v INNER JOIN partners p ON v.partner_id=p.id WHERE p.group_id=? "
         check(q)
       }
       it("should build selectAll for partner id") {
@@ -37,12 +37,12 @@ class VenueRepoSqlSpec extends RepoSpec {
       }
       it("should build selectAll for group id and ids") {
         val q = selectAll(group.id, NonEmptyList.of(venue.id))
-        q.sql shouldBe s"SELECT ${fieldsPrefixedBy(PartnerRepoSqlSpec.fieldList, "p.")}, ${fieldsPrefixedBy(fieldList, "v.")} FROM venues v INNER JOIN partners p ON v.partner_id=p.id WHERE p.group_id=? AND  v.id IN (?) "
+        q.sql shouldBe s"SELECT ${withPrefix(PartnerRepoSqlSpec.fieldList, "p.")}, ${withPrefix(fieldList, "v.")} FROM venues v INNER JOIN partners p ON v.partner_id=p.id WHERE p.group_id=? AND  v.id IN (?) "
         check(q)
       }
       it("should build selectOne") {
         val q = selectOne(group.id, venue.id)
-        q.sql shouldBe s"SELECT ${fieldsPrefixedBy(PartnerRepoSqlSpec.fieldList, "p.")}, ${fieldsPrefixedBy(fieldList, "v.")} FROM venues v INNER JOIN partners p ON v.partner_id=p.id WHERE p.group_id=? AND v.id=?"
+        q.sql shouldBe s"SELECT ${withPrefix(PartnerRepoSqlSpec.fieldList, "p.")}, ${withPrefix(fieldList, "v.")} FROM venues v INNER JOIN partners p ON v.partner_id=p.id WHERE p.group_id=? AND v.id=?"
         check(q)
       }
     }

@@ -63,7 +63,7 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne for event id") {
         val q = selectOne(event.id)
-        q.sql shouldBe s"SELECT ${fieldsPrefixedBy(fieldList, "c.")} FROM cfps c INNER JOIN events e ON e.cfp_id=c.id WHERE e.id=?"
+        q.sql shouldBe s"SELECT ${withPrefix(fieldList, "c.")} FROM cfps c INNER JOIN events e ON e.cfp_id=c.id WHERE e.id=?"
         check(q)
       }
       it("should build selectOne for cfp slug id and date") {

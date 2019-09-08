@@ -201,7 +201,7 @@
             @component("proposalItem", "@proposalItem(talk, cfp, proposal, events)") { name =>
                 @example(s"$name pending") { _ => @speaker.proposalItem(talk, cfp, proposal, Seq()) }
                 @example(s"$name accepted") { _ => @speaker.proposalItem(talk, cfp, proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id)), Seq(event)) }
-                @example(s"$name rejected") { _ => @speaker.proposalItem(talk, cfp, proposal.copy(status = Proposal.Status.Rejected), Seq()) }
+                @example(s"$name declined") { _ => @speaker.proposalItem(talk, cfp, proposal.copy(status = Proposal.Status.Declined), Seq()) }
             }
         }
 
@@ -220,12 +220,12 @@
             @component("proposalItem", "@proposalItem(group, cfp, proposal, speakers, events)") { name =>
                 @example(s"$name pending") { _ => @orga.proposalItem(group, cfp, proposal, Seq(user), Seq()) }
                 @example(s"$name accepted with an event") { _ => @orga.proposalItem(group, cfp, proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id)), Seq(user), Seq(event)) }
-                @example(s"$name rejected") { _ => @orga.proposalItem(group, cfp, proposal.copy(status = Proposal.Status.Rejected), Seq(user), Seq()) }
+                @example(s"$name declined") { _ => @orga.proposalItem(group, cfp, proposal.copy(status = Proposal.Status.Declined), Seq(user), Seq()) }
             }
             @component("proposalItem1", "@proposalItem1(group, cfp, proposal, speakers, events)") { name =>
                 @example(s"$name pending") { _ => @orga.proposalItem1(group, cfp, proposal, Seq(user), Seq()) }
                 @example(s"$name accepted with an event") { _ => @orga.proposalItem1(group, cfp, proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id)), Seq(user), Seq(event)) }
-                @example(s"$name rejected") { _ => @orga.proposalItem1(group, cfp, proposal.copy(status = Proposal.Status.Rejected), Seq(user), Seq()) }
+                @example(s"$name declined") { _ => @orga.proposalItem1(group, cfp, proposal.copy(status = Proposal.Status.Declined), Seq(user), Seq()) }
             }
             @component("speakerItem", "@speakerItem(group, speaker)") { name =>
                 @example(s"$name") { _ => @orga.speakerItem(group, user) }

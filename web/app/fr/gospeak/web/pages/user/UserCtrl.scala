@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, User, UserRequest}
-import fr.gospeak.core.services.storage.{UserGroupRepo, UserTalkRepo, UserUserRepo, UserUserRequestRepo}
+import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
@@ -28,17 +28,18 @@ class UserCtrl(cc: ControllerComponents,
                userRepo: UserUserRepo,
                groupRepo: UserGroupRepo,
                userRequestRepo: UserUserRequestRepo,
-               talkRepo: UserTalkRepo,
+               talkRepo: SpeakerTalkRepo,
+               proposalRepo: SpeakerProposalRepo,
                emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
   def index(): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      groups <- groupRepo.list(user, Page.Params.defaults)
       talks <- talkRepo.list(user, Page.Params.defaults)
+      proposals <- proposalRepo.listWithCfpTalkEvent(user, Page.Params.defaults)
       b = breadcrumb(req.identity.user)
-    } yield Ok(html.index(groups, talks)(b))).unsafeToFuture()
+    } yield Ok(html.index(talks, proposals)(b))).unsafeToFuture()
   }
 
   def listGroup(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>

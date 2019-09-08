@@ -80,6 +80,6 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
     talk <- talkRepo.create(talkData1, user.id, now)
   } yield (user, group, cfp, talk)
 
-  protected def fieldsPrefixedBy(fields: String, prefix: String): String =
+  protected def withPrefix(fields: String, prefix: String): String =
     fields.split(", ").map(prefix + _).mkString(", ")
 }
