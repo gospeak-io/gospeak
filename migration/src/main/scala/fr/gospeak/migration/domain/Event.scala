@@ -27,13 +27,13 @@ case class Event(id: String, // Event.Id
       name = gs.Event.Name(data.title),
       start = date,
       description = MustacheMarkdownTmpl(data.description.getOrElse("")),
-      venue = data.venue.map(v => venues.find(_.partner.value == v).get.id),
-      talks = data.talks.map(t => proposals.find(_.talk.value == t).get.id),
+      venue = data.venue.map(v => venues.find(_.partner.value == v).getOrElse(throw new Exception(s"Missing venue $v")).id),
+      talks = data.talks.map(t => proposals.find(_.talk.value == t).getOrElse(throw new Exception(s"Missing proposal $t")).id),
       tags = Seq(),
       published = Some(instant),
       refs = gs.Event.ExtRefs(
         meetup = meetupRef.map(r => MeetupEvent.Ref(MeetupGroup.Slug.from(r.group).get, MeetupEvent.Id(r.id)))),
-      info = meta.toInfo)).mapFailure(e => new Exception(s"toEvent error for $this ", e)).get
+      info = meta.toInfo)).mapFailure(e => new Exception(s"toEvent error for ${data.title}: ${e.getMessage}", e)).get
   }
 }
 

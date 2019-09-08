@@ -9,8 +9,8 @@ import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.auth.emails.Emails
 import fr.gospeak.web.domain._
+import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.orga.GroupCtrl._
 import fr.gospeak.web.utils.{HttpUtils, UICtrl}
 import play.api.mvc._

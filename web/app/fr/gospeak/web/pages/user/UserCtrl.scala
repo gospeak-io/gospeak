@@ -12,8 +12,8 @@ import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.auth.emails.Emails
 import fr.gospeak.web.domain._
+import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.orga.GroupForms
 import fr.gospeak.web.pages.orga.routes.{GroupCtrl => GroupRoutes}
 import fr.gospeak.web.pages.user.UserCtrl._

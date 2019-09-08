@@ -1,16 +1,15 @@
 package fr.gospeak.web.pages.speaker.proposals
 
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.{Cfp, Event, Proposal, Talk, User}
+import fr.gospeak.core.domain.User
 import fr.gospeak.core.services.storage.SpeakerProposalRepo
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.pages.speaker.talks.{html, routes}
+import fr.gospeak.web.pages.speaker.proposals.ProposalCtrl._
 import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.utils.UICtrl
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import ProposalCtrl._
 
 class ProposalCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],

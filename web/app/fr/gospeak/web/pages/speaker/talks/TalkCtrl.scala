@@ -12,8 +12,8 @@ import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.auth.emails.Emails
 import fr.gospeak.web.domain.Breadcrumb
+import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.speaker.talks.TalkCtrl._
 import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
