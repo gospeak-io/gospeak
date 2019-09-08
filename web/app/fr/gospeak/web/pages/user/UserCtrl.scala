@@ -42,13 +42,6 @@ class UserCtrl(cc: ControllerComponents,
     } yield Ok(html.index(talks, proposals)(b))).unsafeToFuture()
   }
 
-  def listGroup(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
-    (for {
-      groups <- groupRepo.list(user, params)
-      b = groupBreadcrumb(req.identity.user)
-    } yield Ok(html.listGroup(groups)(b))).unsafeToFuture()
-  }
-
   def createGroup(): Action[AnyContent] = SecuredAction.async { implicit req =>
     createGroupForm(GroupForms.create).unsafeToFuture()
   }
@@ -134,5 +127,5 @@ object UserCtrl {
     Breadcrumb(user.name.value -> routes.UserCtrl.index())
 
   def groupBreadcrumb(user: User): Breadcrumb =
-    UserCtrl.breadcrumb(user).add("Groups" -> routes.UserCtrl.listGroup())
+    UserCtrl.breadcrumb(user).add("Groups" -> routes.UserCtrl.index())
 }
