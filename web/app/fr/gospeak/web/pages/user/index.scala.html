@@ -9,6 +9,7 @@
 @import fr.gospeak.web.pages.speaker.partials.html.container
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
+@import fr.gospeak.web.pages.speaker.proposals.routes.{ProposalCtrl => ProposalListCtrl}
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 
@@ -104,7 +105,7 @@
                 }
                 </div>
                 @if(!proposals.isLast) {
-                    <div class="card-footer"><a href="#">More... (TODO)</a></div>
+                    <div class="card-footer"><a href="@ProposalListCtrl.list()">More...</a></div>
                 }
             </div>
         }

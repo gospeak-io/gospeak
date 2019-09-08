@@ -1,7 +1,6 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Talk, User, UserRequest}
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.pages.user.routes.UserCtrl
 @import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
 
 @(invite: UserRequest.TalkInvite, talk: Talk, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)

@@ -1,7 +1,7 @@
 package fr.gospeak.web.emails
 
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
-import fr.gospeak.core.domain.{Group, Talk, User, UserRequest}
+import fr.gospeak.core.domain.{Cfp, Group, Proposal, Talk, User, UserRequest}
 import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest}
 import fr.gospeak.infra.services.EmailSrv.{Contact, Email, HtmlContent}
 import fr.gospeak.libs.scalautils.domain.EmailAddress
@@ -52,7 +52,7 @@ object Emails {
     Email(
       from = sender,
       to = Seq(Contact(invite.email)),
-      subject = s"You have been invited to join ${by.name.value} for a talk: ${talk.title.value}",
+      subject = s"You have been invited to join ${by.name.value} for a talk '${talk.title.value}'",
       content = HtmlContent(html.inviteSpeakerToTalk(invite, talk, by).body))
 
   def inviteSpeakerToTalkCanceled(invite: UserRequest.TalkInvite, talk: Talk, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
@@ -82,4 +82,39 @@ object Emails {
       to = Seq(Contact(speaker)),
       subject = s"${by.name.value} removed you from the speakers of '${talk.title.value}' :(",
       content = HtmlContent(html.speakerRemovedFromTalk(talk, speaker, by).body))
+
+  def inviteSpeakerToProposal(invite: UserRequest.ProposalInvite, proposal: Proposal, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(invite.email)),
+      subject = s"You have been invited to join ${by.name.value} to speak about '${proposal.title.value}'",
+      content = HtmlContent(html.inviteSpeakerToProposal(invite, proposal, by).body))
+
+  def inviteSpeakerToProposalCanceled(invite: UserRequest.ProposalInvite, proposal: Proposal, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(invite.email)),
+      subject = s"Your invitation for speaking about '${proposal.title.value}' has been canceled :(",
+      content = HtmlContent(html.inviteSpeakerToProposalCanceled(invite, proposal, by).body))
+
+  def inviteSpeakerToProposalAccepted(invite: UserRequest.ProposalInvite, cfp: Cfp, talk: Talk, proposal: Proposal, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(speaker)),
+      subject = s"${by.name.value} has accepted your invitation to speak about '${proposal.title.value}'",
+      content = HtmlContent(html.inviteSpeakerToProposalAccepted(invite, cfp, talk, proposal, speaker, by).body))
+
+  def inviteSpeakerToProposalRejected(invite: UserRequest.ProposalInvite, cfp: Cfp, talk: Talk, proposal: Proposal, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(speaker)),
+      subject = s"Oups, ${by.name.value} rejected your invitation to speak about '${proposal.title.value}' :(",
+      content = HtmlContent(html.inviteSpeakerToProposalRejected(invite, cfp, talk, proposal, speaker, by).body))
+
+  def speakerRemovedFromProposal(proposal: Proposal, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(speaker)),
+      subject = s"${by.name.value} removed you from the speakers of '${proposal.title.value}' proposal :(",
+      content = HtmlContent(html.speakerRemovedFromProposal(proposal, speaker, by).body))
 }

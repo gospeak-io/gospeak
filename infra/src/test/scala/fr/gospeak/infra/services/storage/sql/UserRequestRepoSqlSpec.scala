@@ -136,20 +136,44 @@ class UserRequestRepoSqlSpec extends RepoSpec {
           q.sql shouldBe "SELECT id, talk_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by FROM requests WHERE id=? "
           // check(q) // ignored because missing "NOT NULL" on 'talk_id', 'email' and 'created_by'... due to sealed trait
         }
-        it("should build selectOneWithTalk") {
-          val q = selectOneWithTalk(req.id)
-          q.sql shouldBe "SELECT i.id, i.talk_id, i.email, i.created, i.created_by, i.accepted, i.accepted_by, i.rejected, i.rejected_by, i.canceled, i.canceled_by, t.id, t.slug, t.status, t.title, t.duration, t.description, t.speakers, t.slides, t.video, t.tags, t.created, t.created_by, t.updated, t.updated_by FROM requests i INNER JOIN talks t ON i.talk_id=t.id WHERE i.id=? "
-          // check(q) // ignored because missing "NOT NULL" on 'talk_id', 'email' and 'created_by'... due to sealed trait
-        }
-        it("should build selectOnePending") {
-          val q = selectOnePending(req.id)
-          q.sql shouldBe "SELECT id, talk_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by FROM requests WHERE id=? AND kind=? AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL "
-          // check(q) // ignored because missing "NOT NULL" on 'talk_id', 'email' and 'created_by'... due to sealed trait
-        }
         it("should build selectAllPending") {
           val q = selectAllPending(talk.id)
-          q.sql shouldBe "SELECT id, talk_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by FROM requests WHERE kind=? AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL "
+          q.sql shouldBe "SELECT id, talk_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by FROM requests WHERE kind=? AND talk_id=? AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL "
           // check(q) // ignored because missing "NOT NULL" on 'talk_id', 'email' and 'created_by'... due to sealed trait
+        }
+      }
+      describe("ProposalInviteQueries") {
+        import ProposalInviteQueries._
+        val req = ProposalInvite(UserRequest.Id.generate(), proposal.id, user.email, now, user.id, None, None, None)
+        it("should build insert") {
+          val q = insert(req)
+          q.sql shouldBe "INSERT INTO requests (id, kind, proposal_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+          check(q)
+        }
+        it("should build accept") {
+          val q = accept(req.id, user.id, now)
+          q.sql shouldBe "UPDATE requests SET accepted=?, accepted_by=? WHERE id=? AND kind=? AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL"
+          check(q)
+        }
+        it("should build reject") {
+          val q = reject(req.id, user.id, now)
+          q.sql shouldBe "UPDATE requests SET rejected=?, rejected_by=? WHERE id=? AND kind=? AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL"
+          check(q)
+        }
+        it("should build cancel") {
+          val q = ProposalInviteQueries.cancel(req.id, user.id, now)
+          q.sql shouldBe "UPDATE requests SET canceled=?, canceled_by=? WHERE id=? AND kind=? AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL"
+          check(q)
+        }
+        it("should build selectOne") {
+          val q = selectOne(req.id)
+          q.sql shouldBe "SELECT id, proposal_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by FROM requests WHERE id=? "
+          // check(q) // ignored because missing "NOT NULL" on 'proposal_id', 'email' and 'created_by'... due to sealed trait
+        }
+        it("should build selectAllPending") {
+          val q = selectAllPending(proposal.id)
+          q.sql shouldBe "SELECT id, proposal_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by FROM requests WHERE kind=? AND proposal_id=? AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL "
+          // check(q) // ignored because missing "NOT NULL" on 'proposal_id', 'email' and 'created_by'... due to sealed trait
         }
       }
     }

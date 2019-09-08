@@ -43,7 +43,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
   override val event = new EventRepoSql(xa)
   override val proposal = new ProposalRepoSql(xa)
   override val contact = new ContactRepoSql(xa)
-  override val userRequest = new UserRequestRepoSql(talk, xa)
+  override val userRequest = new UserRequestRepoSql(talk, proposal, xa)
 
   /*
     TODO:

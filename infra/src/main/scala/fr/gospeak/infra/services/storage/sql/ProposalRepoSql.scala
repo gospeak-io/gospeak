@@ -10,12 +10,15 @@ import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.ProposalRepo
+import fr.gospeak.infra.services.storage.sql.CfpRepoSql.{fields => cfpFields, table => cfpTable}
+import fr.gospeak.infra.services.storage.sql.EventRepoSql.{fields => eventFields, table => eventTable}
 import fr.gospeak.infra.services.storage.sql.ProposalRepoSql._
+import fr.gospeak.infra.services.storage.sql.TalkRepoSql.{fields => talkFields, table => talkTable}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.utils.DoobieUtils.Queries
-import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Tag, Video}
+import fr.gospeak.libs.scalautils.domain._
 
 class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ProposalRepo {
   override def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal] =
@@ -39,6 +42,34 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def editVideo(talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, by: User.Id, now: Instant): IO[Done] =
     run(updateVideo(by, talk, cfp)(video, by, now))
 
+  override def addSpeaker(proposal: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
+    find(proposal).flatMap {
+      case Some(proposalElt) =>
+        if (proposalElt.speakers.toList.contains(speaker)) {
+          IO.raiseError(new IllegalArgumentException("speaker already added"))
+        } else {
+          run(updateSpeakers(proposalElt.id)(proposalElt.speakers.append(speaker), by, now))
+        }
+      case None => IO.raiseError(new IllegalArgumentException("unreachable talk"))
+    }
+
+  override def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug)(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
+    find(by, talk, cfp).flatMap {
+      case Some(proposalElt) =>
+        if (proposalElt.info.createdBy == speaker) {
+          IO.raiseError(new IllegalArgumentException("proposal creator can't be removed"))
+        } else if (proposalElt.speakers.toList.contains(speaker)) {
+          NonEmptyList.fromList(proposalElt.speakers.filter(_ != speaker)).map { speakers =>
+            run(updateSpeakers(proposalElt.id)(speakers, by, now))
+          }.getOrElse {
+            IO.raiseError(new IllegalArgumentException("last speaker can't be removed"))
+          }
+        } else {
+          IO.raiseError(new IllegalArgumentException("user is not a speaker"))
+        }
+      case None => IO.raiseError(new IllegalArgumentException("unreachable proposal"))
+    }
+
   override def accept(cfp: Cfp.Slug, id: Proposal.Id, event: Event.Id, by: User.Id, now: Instant): IO[Done] =
     run(updateStatus(cfp, id)(Proposal.Status.Accepted, Some(event))) // FIXME track user & date
 
@@ -51,9 +82,15 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def cancelReject(cfp: Cfp.Slug, id: Proposal.Id, by: User.Id, now: Instant): IO[Done] =
     run(updateStatus(cfp, id)(Proposal.Status.Pending, None)) // FIXME track user & date
 
+  override def find(proposal: Proposal.Id): IO[Option[Proposal]] = run(selectOne(proposal).option)
+
   override def find(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal]] = run(selectOne(cfp, id).option)
 
   override def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]] = run(selectOne(speaker, talk, cfp).option)
+
+  override def findWithCfpTalkEvent(proposal: Proposal.Id): IO[Option[(Cfp, Talk, Proposal, Option[Event])]] = run(selectOneWithCfpTalkEvent(proposal).option)
+
+  override def findWithCfpTalkEvent(talk: Talk.Slug, cfp: Cfp.Slug)(by: User.Id): IO[Option[(Cfp, Talk, Proposal, Option[Event])]] = run(selectOneWithCfpTalkEvent(talk, cfp, by).option)
 
   override def list(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]] = run(Queries.selectPage(selectPage(talk, _), params))
 
@@ -87,6 +124,15 @@ object ProposalRepoSql {
   private val searchFields = Seq("id", "title", "status", "description", "tags")
   private val defaultSort = Page.OrderBy("-created")
 
+  private val tableWithCfpFr = Fragment.const0(s"$table p INNER JOIN $cfpTable c ON p.cfp_id=c.id")
+  private val fieldsWithCfpFr = Fragment.const0((cfpFields.map("c." + _) ++ fields.map("p." + _)).mkString(", "))
+
+  private val tableWithEventFr = Fragment.const0(s"$table p LEFT OUTER JOIN $eventTable e ON p.event_id=e.id")
+  private val fieldsWithEventFr = Fragment.const0((eventFields.map("e." + _) ++ fields.map("p." + _)).mkString(", "))
+
+  private val tableWithCfpTalkEventFr = Fragment.const0(s"$table p INNER JOIN $cfpTable c ON p.cfp_id=c.id INNER JOIN $talkTable t ON p.talk_id=t.id LEFT OUTER JOIN $eventTable e ON p.event_id=e.id")
+  private val fieldsWithCfpTalkEventFr = Fragment.const0((cfpFields.map("c." + _) ++ talkFields.map("t." + _) ++ fields.map("p." + _) ++ eventFields.map("e." + _)).mkString(", "))
+
   private def values(e: Proposal): Fragment =
     fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
@@ -119,6 +165,9 @@ object ProposalRepoSql {
   private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, by: User.Id, now: Instant): doobie.Update0 =
     buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$by", where(speaker, talk, cfp)).update
 
+  private[sql] def updateSpeakers(id: Proposal.Id)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"speakers=$speakers, updated=$now, updated_by=$by", fr0"WHERE id=$id").update
+
   private[sql] def selectOne(id: Proposal.Id): doobie.Query0[Proposal] =
     buildSelect(tableFr, fieldsFr, where(id)).query[Proposal]
 
@@ -127,6 +176,12 @@ object ProposalRepoSql {
 
   private[sql] def selectOne(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): doobie.Query0[Proposal] =
     buildSelect(tableFr, fieldsFr, where(speaker, talk, cfp)).query[Proposal]
+
+  private[sql] def selectOneWithCfpTalkEvent(id: Proposal.Id): doobie.Query0[(Cfp, Talk, Proposal, Option[Event])] =
+    buildSelect(tableWithCfpTalkEventFr, fieldsWithCfpTalkEventFr, fr0"WHERE p.id=$id").query[(Cfp, Talk, Proposal, Option[Event])]
+
+  private[sql] def selectOneWithCfpTalkEvent(talk: Talk.Slug, cfp: Cfp.Slug, by: User.Id): doobie.Query0[(Cfp, Talk, Proposal, Option[Event])] =
+    buildSelect(tableWithCfpTalkEventFr, fieldsWithCfpTalkEventFr, fr0"WHERE t.slug=$talk AND c.slug=$cfp AND p.speakers LIKE ${"%" + by.value + "%"}").query[(Cfp, Talk, Proposal, Option[Event])]
 
   private[sql] def selectPage(cfp: Cfp.Id, params: Page.Params): (doobie.Query0[Proposal], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE cfp_id=$cfp"))
@@ -139,55 +194,39 @@ object ProposalRepoSql {
   }
 
   private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[Proposal], doobie.Query0[Long]) = {
-    val selectedTables = Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id")
     val selectedFields = Fragment.const0(fields.map("p." + _).mkString(", "))
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE c.group_id=$group"), Some("p"))
-    (buildSelect(selectedTables, selectedFields, page.all).query[Proposal], buildSelect(selectedTables, fr0"count(*)", page.where).query[Long])
+    (buildSelect(tableWithCfpFr, selectedFields, page.all).query[Proposal], buildSelect(tableWithCfpFr, fr0"count(*)", page.where).query[Long])
   }
 
   private[sql] def selectPage(group: Group.Id, speaker: User.Id, params: Page.Params): (doobie.Query0[(Cfp, Proposal)], doobie.Query0[Long]) = {
-    val selectedTables = Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id")
-    val selectedFields = Fragment.const0((CfpRepoSql.fields.map("c." + _) ++ fields.map("p." + _)).mkString(", "))
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE c.group_id=$group AND p.speakers LIKE ${"%" + speaker.value + "%"}"), Some("p"))
-    (buildSelect(selectedTables, selectedFields, page.all).query[(Cfp, Proposal)], buildSelect(selectedTables, fr0"count(*)", page.where).query[Long])
+    (buildSelect(tableWithCfpFr, fieldsWithCfpFr, page.all).query[(Cfp, Proposal)], buildSelect(tableWithCfpFr, fr0"count(*)", page.where).query[Long])
   }
 
   private[sql] def selectPage(talk: Talk.Id, params: Page.Params): (doobie.Query0[(Cfp, Proposal)], doobie.Query0[Long]) = {
-    val selectedTables = Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id")
-    val selectedFields = Fragment.const0((CfpRepoSql.fields.map("c." + _) ++ fields.map("p." + _)).mkString(", "))
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.talk_id=$talk"), Some("p"))
-    (buildSelect(selectedTables, selectedFields, page.all).query[(Cfp, Proposal)], buildSelect(selectedTables, fr0"count(*)", page.where).query[Long])
+    (buildSelect(tableWithCfpFr, fieldsWithCfpFr, page.all).query[(Cfp, Proposal)], buildSelect(tableWithCfpFr, fr0"count(*)", page.where).query[Long])
   }
 
   private[sql] def selectPage(speaker: User.Id, params: Page.Params): (doobie.Query0[(Cfp, Proposal)], doobie.Query0[Long]) = {
-    val selectedTables = Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id")
-    val selectedFields = Fragment.const0((CfpRepoSql.fields.map("c." + _) ++ fields.map("p." + _)).mkString(", "))
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"}"), Some("p"))
-    (buildSelect(selectedTables, selectedFields, page.all).query[(Cfp, Proposal)], buildSelect(selectedTables, fr0"count(*)", page.where).query[Long])
+    (buildSelect(tableWithCfpFr, fieldsWithCfpFr, page.all).query[(Cfp, Proposal)], buildSelect(tableWithCfpFr, fr0"count(*)", page.where).query[Long])
   }
 
   private[sql] def selectPage(speaker: User.Id, status: Proposal.Status, params: Page.Params): (doobie.Query0[(Cfp, Proposal)], doobie.Query0[Long]) = {
-    val selectedTables = Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id")
-    val selectedFields = Fragment.const0((CfpRepoSql.fields.map("c." + _) ++ fields.map("p." + _)).mkString(", "))
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.status=$status AND p.speakers LIKE ${"%" + speaker.value + "%"} "), Some("p"))
-    (buildSelect(selectedTables, selectedFields, page.all).query[(Cfp, Proposal)], buildSelect(selectedTables, fr0"count(*)", page.where).query[Long])
+    (buildSelect(tableWithCfpFr, fieldsWithCfpFr, page.all).query[(Cfp, Proposal)], buildSelect(tableWithCfpFr, fr0"count(*)", page.where).query[Long])
   }
 
   private[sql] def selectPageWithEvent(speaker: User.Id, status: Proposal.Status, params: Page.Params): (doobie.Query0[(Option[Event], Proposal)], doobie.Query0[Long]) = {
-    val selectedTables = Fragment.const0(s"$table p LEFT OUTER JOIN ${EventRepoSql.table} e ON p.event_id=e.id")
-    val selectedFields = Fragment.const0((EventRepoSql.fields.map("e." + _) ++ fields.map("p." + _)).mkString(", "))
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.status=$status AND p.speakers LIKE ${"%" + speaker.value + "%"} "), Some("p"))
-    (buildSelect(selectedTables, selectedFields, page.all).query[(Option[Event], Proposal)], buildSelect(selectedTables, fr0"count(*)", page.where).query[Long])
+    (buildSelect(tableWithEventFr, fieldsWithEventFr, page.all).query[(Option[Event], Proposal)], buildSelect(tableWithEventFr, fr0"count(*)", page.where).query[Long])
   }
 
   private[sql] def selectPageWithCfpTalkEvent(speaker: User.Id, params: Page.Params): (doobie.Query0[(Cfp, Talk, Proposal, Option[Event])], doobie.Query0[Long]) = {
-    val selectedTables = Fragment.const0(s"$table p " +
-      s"INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id " +
-      s"INNER JOIN ${TalkRepoSql.table} t ON p.talk_id=t.id " +
-      s"LEFT OUTER JOIN ${EventRepoSql.table} e ON p.event_id=e.id")
-    val selectedFields = Fragment.const0((CfpRepoSql.fields.map("c." + _) ++ TalkRepoSql.fields.map("t." + _) ++ fields.map("p." + _) ++ EventRepoSql.fields.map("e." + _)).mkString(", "))
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"} "), Some("p"))
-    (buildSelect(selectedTables, selectedFields, page.all).query[(Cfp, Talk, Proposal, Option[Event])], buildSelect(selectedTables, fr0"count(*)", page.where).query[Long])
+    (buildSelect(tableWithCfpTalkEventFr, fieldsWithCfpTalkEventFr, page.all).query[(Cfp, Talk, Proposal, Option[Event])], buildSelect(tableWithCfpTalkEventFr, fr0"count(*)", page.where).query[Long])
   }
 
   private[sql] def selectAll(ids: NonEmptyList[Proposal.Id]): doobie.Query0[Proposal] =
@@ -201,16 +240,16 @@ object ProposalRepoSql {
 
   private def where(cfp: Cfp.Slug, id: Proposal.Id): Fragment =
     fr0"WHERE id=(SELECT p.id FROM " ++
-      Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id ") ++
+      Fragment.const0(s"$table p INNER JOIN $cfpTable c ON p.cfp_id=c.id ") ++
       fr0"WHERE p.id=$id AND c.slug=$cfp" ++ fr0")"
 
   private def where(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Fragment =
     fr0"WHERE id=(SELECT p.id FROM " ++
-      Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id INNER JOIN ${GroupRepoSql.table} g ON c.group_id=g.id ") ++
+      Fragment.const0(s"$table p INNER JOIN $cfpTable c ON p.cfp_id=c.id INNER JOIN ${GroupRepoSql.table} g ON c.group_id=g.id ") ++
       fr0"WHERE p.id=$proposal AND c.slug=$cfp AND g.slug=$group AND g.owners LIKE ${"%" + orga.value + "%"}" ++ fr0")"
 
   private def where(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Fragment =
     fr0"WHERE id=(SELECT p.id FROM " ++
-      Fragment.const0(s"$table p INNER JOIN ${CfpRepoSql.table} c ON p.cfp_id=c.id INNER JOIN ${TalkRepoSql.table} t ON p.talk_id=t.id ") ++
-      fr0"WHERE c.slug=$cfp AND t.slug=$talk AND t.speakers LIKE ${"%" + speaker.value + "%"}" ++ fr0")"
+      Fragment.const0(s"$table p INNER JOIN $cfpTable c ON p.cfp_id=c.id INNER JOIN $talkTable t ON p.talk_id=t.id ") ++
+      fr0"WHERE c.slug=$cfp AND t.slug=$talk AND p.speakers LIKE ${"%" + speaker.value + "%"}" ++ fr0")"
 }

@@ -50,6 +50,14 @@ trait SpeakerProposalRepo {
 
   def editVideo(talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, by: User.Id, now: Instant): IO[Done]
 
+  def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
+
+  def find(proposal: Proposal.Id): IO[Option[Proposal]]
+
+  def findWithCfpTalkEvent(proposal: Proposal.Id): IO[Option[(Cfp, Talk, Proposal, Option[Event])]]
+
+  def findWithCfpTalkEvent(talk: Talk.Slug, cfp: Cfp.Slug)(by: User.Id): IO[Option[(Cfp, Talk, Proposal, Option[Event])]]
+
   def listWithCfpTalkEvent(user: User.Id, params: Page.Params): IO[Page[(Cfp, Talk, Proposal, Option[Event])]]
 
   def list(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
@@ -58,6 +66,8 @@ trait SpeakerProposalRepo {
 }
 
 trait UserProposalRepo {
+  def addSpeaker(proposal: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
+
   def list(user: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Cfp, Proposal)]]
 
   def listWithEvent(user: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Option[Event], Proposal)]]

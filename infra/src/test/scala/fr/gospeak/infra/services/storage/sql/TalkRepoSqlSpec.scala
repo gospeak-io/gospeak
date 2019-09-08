@@ -32,7 +32,7 @@ class TalkRepoSqlSpec extends RepoSpec {
       val user = userRepo.create(userData1, now).unsafeRunSync()
       talkRepo.create(talkData1, user.id, now).unsafeRunSync()
       talkRepo.find(user.id, talkData1.slug).unsafeRunSync().map(_.data) shouldBe Some(talkData1)
-      talkRepo.edit(user.id, talkData1.slug)(talkData2, now).unsafeRunSync()
+      talkRepo.edit(talkData1.slug)(talkData2, user.id, now).unsafeRunSync()
       talkRepo.find(user.id, talkData1.slug).unsafeRunSync() shouldBe None
       talkRepo.find(user.id, talkData2.slug).unsafeRunSync().map(_.data) shouldBe Some(talkData2)
     }
@@ -40,13 +40,13 @@ class TalkRepoSqlSpec extends RepoSpec {
       val user = userRepo.create(userData1, now).unsafeRunSync()
       talkRepo.create(talkData1, user.id, now).unsafeRunSync()
       talkRepo.create(talkData2, user.id, now).unsafeRunSync()
-      an[Exception] should be thrownBy talkRepo.edit(user.id, talkData1.slug)(talkData1.copy(slug = talkData2.slug), now).unsafeRunSync()
+      an[Exception] should be thrownBy talkRepo.edit(talkData1.slug)(talkData1.copy(slug = talkData2.slug), user.id, now).unsafeRunSync()
     }
     it("should update the status") {
       val user = userRepo.create(userData1, now).unsafeRunSync()
       talkRepo.create(talkData1, user.id, now).unsafeRunSync()
       talkRepo.find(user.id, talkData1.slug).unsafeRunSync().map(_.status) shouldBe Some(Talk.Status.Draft)
-      talkRepo.editStatus(user.id, talkData1.slug)(Talk.Status.Public).unsafeRunSync()
+      talkRepo.editStatus(talkData1.slug)(Talk.Status.Public, user.id).unsafeRunSync()
       talkRepo.find(user.id, talkData1.slug).unsafeRunSync().map(_.status) shouldBe Some(Talk.Status.Public)
     }
     describe("Queries") {
@@ -56,27 +56,27 @@ class TalkRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build update") {
-        val q = update(user.id, talk.slug)(talkData1, now)
+        val q = update(talk.slug)(talkData1, user.id, now)
         q.sql shouldBe "UPDATE talks SET slug=?, title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE speakers LIKE ? AND slug=?"
         check(q)
       }
       it("should build updateStatus") {
-        val q = updateStatus(user.id, talk.slug)(Talk.Status.Public)
+        val q = updateStatus(talk.slug)(Talk.Status.Public, user.id)
         q.sql shouldBe "UPDATE talks SET status=? WHERE speakers LIKE ? AND slug=?"
         check(q)
       }
       it("should build updateSlides") {
-        val q = updateSlides(user.id, talk.slug)(slides, now)
+        val q = updateSlides(talk.slug)(slides, user.id, now)
         q.sql shouldBe "UPDATE talks SET slides=?, updated=?, updated_by=? WHERE speakers LIKE ? AND slug=?"
         check(q)
       }
       it("should build updateVideo") {
-        val q = updateVideo(user.id, talk.slug)(video, now)
+        val q = updateVideo(talk.slug)(video, user.id, now)
         q.sql shouldBe "UPDATE talks SET video=?, updated=?, updated_by=? WHERE speakers LIKE ? AND slug=?"
         check(q)
       }
       it("should build updateSpeakers") {
-        val q = updateSpeakers(user.id, talk.slug)(talk.speakers, now)
+        val q = updateSpeakers(talk.slug)(talk.speakers, user.id, now)
         q.sql shouldBe "UPDATE talks SET speakers=?, updated=?, updated_by=? WHERE speakers LIKE ? AND slug=?"
         check(q)
       }

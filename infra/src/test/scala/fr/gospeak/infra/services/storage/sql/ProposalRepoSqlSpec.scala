@@ -77,6 +77,11 @@ class ProposalRepoSqlSpec extends RepoSpec {
         q.sql shouldBe "UPDATE proposals SET video=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND t.speakers LIKE ?)"
         check(q)
       }
+      it("should build updateSpeakers by id") {
+        val q = updateSpeakers(proposal.id)(proposal.speakers, user.id, now)
+        q.sql shouldBe "UPDATE proposals SET speakers=?, updated=?, updated_by=? WHERE id=?"
+        check(q)
+      }
       it("should build selectOne for proposal id") {
         val q = selectOne(proposal.id)
         q.sql shouldBe s"SELECT $fieldList FROM proposals WHERE id=?"
@@ -90,6 +95,16 @@ class ProposalRepoSqlSpec extends RepoSpec {
       it("should build selectOne for speaker, talk and cfp") {
         val q = selectOne(user.id, talk.slug, cfp.slug)
         q.sql shouldBe s"SELECT $fieldList FROM proposals WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND t.speakers LIKE ?)"
+        check(q)
+      }
+      it("should build selectOneWithCfpTalkEvent for id") {
+        val q = selectOneWithCfpTalkEvent(proposal.id)
+        q.sql shouldBe s"SELECT $proposalCfpTalkEventFields FROM $proposalCfpTalkEventTables WHERE p.id=?"
+        check(q)
+      }
+      it("should build selectOneWithCfpTalkEvent for talk, cfp and speaker") {
+        val q = selectOneWithCfpTalkEvent(talk.slug, cfp.slug, user.id)
+        q.sql shouldBe s"SELECT $proposalCfpTalkEventFields FROM $proposalCfpTalkEventTables WHERE t.slug=? AND c.slug=? AND p.speakers LIKE ?"
         check(q)
       }
       it("should build selectPage for a cfp") {
@@ -161,9 +176,8 @@ class ProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPageWithCfpTalkEvent for a speaker") {
         val (s, c) = selectPageWithCfpTalkEvent(user.id, params)
-        val tables = "proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id LEFT OUTER JOIN events e ON p.event_id=e.id"
-        s.sql shouldBe s"SELECT ${withPrefix(cfpFieldList, "c.")}, ${withPrefix(talkFieldList, "t.")}, ${withPrefix(fieldList, "p.")}, ${withPrefix(eventFieldList, "e.")} FROM $tables WHERE p.speakers LIKE ?  ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $tables WHERE p.speakers LIKE ?  "
+        s.sql shouldBe s"SELECT $proposalCfpTalkEventFields FROM $proposalCfpTalkEventTables WHERE p.speakers LIKE ?  ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $proposalCfpTalkEventTables WHERE p.speakers LIKE ?  "
         check(s)
         check(c)
       }
@@ -182,5 +196,11 @@ class ProposalRepoSqlSpec extends RepoSpec {
 }
 
 object ProposalRepoSqlSpec {
+
+  import RepoSpec._
+
   val fieldList = "id, talk_id, cfp_id, event_id, status, title, duration, description, speakers, slides, video, tags, created, created_by, updated, updated_by"
+
+  private val proposalCfpTalkEventTables = "proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id LEFT OUTER JOIN events e ON p.event_id=e.id"
+  private val proposalCfpTalkEventFields = s"${withPrefix(cfpFieldList, "c.")}, ${withPrefix(talkFieldList, "t.")}, ${withPrefix(fieldList, "p.")}, ${withPrefix(eventFieldList, "e.")}"
 }

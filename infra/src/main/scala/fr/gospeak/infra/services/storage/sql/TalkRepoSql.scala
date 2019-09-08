@@ -24,42 +24,42 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
       case _ => IO.raiseError(CustomException(s"Talk slug '${data.slug}' is already used"))
     }
 
-  override def edit(user: User.Id, talk: Talk.Slug)(data: Talk.Data, now: Instant): IO[Done] = {
+  override def edit(talk: Talk.Slug)(data: Talk.Data, by: User.Id, now: Instant): IO[Done] = {
     if (data.slug != talk) {
       find(data.slug).flatMap {
-        case None => run(update(user, talk)(data, now))
+        case None => run(update(talk)(data, by, now))
         case _ => IO.raiseError(CustomException(s"Talk slug '${data.slug}' is already used"))
       }
     } else {
-      run(update(user, talk)(data, now))
+      run(update(talk)(data, by, now))
     }
   }
 
-  override def editStatus(user: User.Id, talk: Talk.Slug)(status: Talk.Status): IO[Done] = run(updateStatus(user, talk)(status))
+  override def editStatus(talk: Talk.Slug)(status: Talk.Status, by: User.Id): IO[Done] = run(updateStatus(talk)(status, by))
 
-  override def editSlides(user: User.Id, talk: Talk.Slug)(slides: Slides, now: Instant): IO[Done] = run(updateSlides(user, talk)(slides, now))
+  override def editSlides(talk: Talk.Slug)(slides: Slides, by: User.Id, now: Instant): IO[Done] = run(updateSlides(talk)(slides, by, now))
 
-  override def editVideo(user: User.Id, talk: Talk.Slug)(video: Video, now: Instant): IO[Done] = run(updateVideo(user, talk)(video, now))
+  override def editVideo(talk: Talk.Slug)(video: Video, by: User.Id, now: Instant): IO[Done] = run(updateVideo(talk)(video, by, now))
 
-  override def addSpeaker(user: User.Id, talk: Talk.Id)(speaker: User.Id, now: Instant): IO[Done] =
+  override def addSpeaker(talk: Talk.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
     find(talk).flatMap {
       case Some(talkElt) =>
         if (talkElt.speakers.toList.contains(speaker)) {
           IO.raiseError(new IllegalArgumentException("speaker already added"))
         } else {
-          run(updateSpeakers(user, talkElt.slug)(talkElt.speakers.append(speaker), now))
+          run(updateSpeakers(talkElt.slug)(talkElt.speakers.append(speaker), by, now))
         }
       case None => IO.raiseError(new IllegalArgumentException("unreachable talk"))
     }
 
-  override def removeSpeaker(user: User.Id, talk: Talk.Slug)(speaker: User.Id, now: Instant): IO[Done] =
-    find(user, talk).flatMap {
+  override def removeSpeaker(talk: Talk.Slug)(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
+    find(by, talk).flatMap {
       case Some(talkElt) =>
         if (talkElt.info.createdBy == speaker) {
           IO.raiseError(new IllegalArgumentException("talk creator can't be removed"))
         } else if (talkElt.speakers.toList.contains(speaker)) {
           NonEmptyList.fromList(talkElt.speakers.filter(_ != speaker)).map { speakers =>
-            run(updateSpeakers(user, talk)(speakers, now))
+            run(updateSpeakers(talk)(speakers, by, now))
           }.getOrElse {
             IO.raiseError(new IllegalArgumentException("last speaker can't be removed"))
           }
@@ -100,22 +100,22 @@ object TalkRepoSql {
 
   private[sql] def insert(elt: Talk): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
-  private[sql] def update(user: User.Id, talk: Talk.Slug)(data: Talk.Data, now: Instant): doobie.Update0 = {
-    val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$user"
-    buildUpdate(tableFr, fields, where(user, talk)).update
+  private[sql] def update(talk: Talk.Slug)(data: Talk.Data, by: User.Id, now: Instant): doobie.Update0 = {
+    val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$by"
+    buildUpdate(tableFr, fields, where(by, talk)).update
   }
 
-  private[sql] def updateStatus(user: User.Id, talk: Talk.Slug)(status: Talk.Status): doobie.Update0 =
-    buildUpdate(tableFr, fr0"status=$status", where(user, talk)).update
+  private[sql] def updateStatus(talk: Talk.Slug)(status: Talk.Status, by: User.Id): doobie.Update0 =
+    buildUpdate(tableFr, fr0"status=$status", where(by, talk)).update
 
-  private[sql] def updateSlides(user: User.Id, talk: Talk.Slug)(slides: Slides, now: Instant): doobie.Update0 =
-    buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$user", where(user, talk)).update
+  private[sql] def updateSlides(talk: Talk.Slug)(slides: Slides, by: User.Id, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"slides=$slides, updated=$now, updated_by=$by", where(by, talk)).update
 
-  private[sql] def updateVideo(user: User.Id, talk: Talk.Slug)(video: Video, now: Instant): doobie.Update0 =
-    buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$user", where(user, talk)).update
+  private[sql] def updateVideo(talk: Talk.Slug)(video: Video, by: User.Id, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"video=$video, updated=$now, updated_by=$by", where(by, talk)).update
 
-  private[sql] def updateSpeakers(user: User.Id, talk: Talk.Slug)(speakers: NonEmptyList[User.Id], now: Instant): doobie.Update0 =
-    buildUpdate(tableFr, fr0"speakers=$speakers, updated=$now, updated_by=$user", where(user, talk)).update
+  private[sql] def updateSpeakers(talk: Talk.Slug)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"speakers=$speakers, updated=$now, updated_by=$by", where(by, talk)).update
 
   private[sql] def selectOne(talk: Talk.Id): doobie.Query0[Talk] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE id=$talk").query[Talk]

@@ -66,7 +66,7 @@ class TalkCtrl(cc: ControllerComponents,
   def detail(talk: Talk.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(user, talk))
-      invites <- OptionT.liftF(userRequestRepo.listPendingTalkInvites(talkElt.id))
+      invites <- OptionT.liftF(userRequestRepo.listPendingInvites(talkElt.id))
       speakers <- OptionT.liftF(userRepo.list(talkElt.users))
       proposals <- OptionT.liftF(proposalRepo.list(talkElt.id, Page.Params.defaults))
       events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_._2.event)))
@@ -86,7 +86,7 @@ class TalkCtrl(cc: ControllerComponents,
         case Some(duplicate) if data.slug != talk =>
           editForm(talk, TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
         case _ =>
-          talkRepo.edit(user, talk)(data, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+          talkRepo.edit(talk)(data, user, now).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
     ).unsafeToFuture()
   }
@@ -119,9 +119,9 @@ class TalkCtrl(cc: ControllerComponents,
     val now = Instant.now()
     (for {
       talkElt <- OptionT(talkRepo.find(user, talk))
-      invite <- OptionT.liftF(userRequestRepo.cancelInvite(request, user, now))
+      invite <- OptionT.liftF(userRequestRepo.cancelTalkInvite(request, user, now))
       _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToTalkCanceled(invite, talkElt, req.identity.user)))
-      next = Redirect(routes.TalkCtrl.detail(talkElt.slug)).flashing("success" -> s"Invitation to <b>${invite.email.value}</b> has been canceled")
+      next = Redirect(routes.TalkCtrl.detail(talk)).flashing("success" -> s"Invitation to <b>${invite.email.value}</b> has been canceled")
     } yield next).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 
@@ -132,7 +132,7 @@ class TalkCtrl(cc: ControllerComponents,
       talkElt <- OptionT(talkRepo.find(user, talk))
       speakerElt <- OptionT(userRepo.find(speaker))
       res <- OptionT.liftF {
-        talkRepo.removeSpeaker(user, talk)(speakerElt.id, now).flatMap { _ =>
+        talkRepo.removeSpeaker(talk)(speakerElt.id, user, now).flatMap { _ =>
           if (speakerElt.id == user) IO.pure(Redirect(UserRoutes.index()).flashing("success" -> s"You removed yourself from <b>$talk</b> talk"))
           else emailSrv.send(Emails.speakerRemovedFromTalk(talkElt, speakerElt, req.identity.user))
             .map(_ => next.flashing("success" -> s"<b>${speakerElt.name.value}</b> removed from speakers"))
@@ -148,7 +148,7 @@ class TalkCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(slides) => talkRepo.editSlides(user, talk)(slides, now).map(_ => next)
+        case Right(slides) => talkRepo.editSlides(talk)(slides, user, now).map(_ => next)
       }
     ).unsafeToFuture()
   }
@@ -160,13 +160,13 @@ class TalkCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(video) => talkRepo.editVideo(user, talk)(video, now).map(_ => next)
+        case Right(video) => talkRepo.editVideo(talk)(video, user, now).map(_ => next)
       }
     ).unsafeToFuture()
   }
 
   def changeStatus(talk: Talk.Slug, status: Talk.Status): Action[AnyContent] = SecuredAction.async { implicit req =>
-    talkRepo.editStatus(user, talk)(status)
+    talkRepo.editStatus(talk)(status, user)
       .map(_ => Redirect(routes.TalkCtrl.detail(talk)))
       .unsafeToFuture()
   }
@@ -177,5 +177,5 @@ object TalkCtrl {
     UserCtrl.breadcrumb(user).add("Talks" -> routes.TalkCtrl.list())
 
   def breadcrumb(user: User, talk: Talk): Breadcrumb =
-    listBreadcrumb(user).add(talk.title.value -> routes.TalkCtrl.detail(talk.slug))
+    listBreadcrumb(user).addOpt(talk.title.value -> Some(routes.TalkCtrl.detail(talk.slug)).filter(_ => talk.hasSpeaker(user.id)))
 }

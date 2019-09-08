@@ -30,6 +30,7 @@ class UserCtrl(cc: ControllerComponents,
                userRequestRepo: UserUserRequestRepo,
                talkRepo: SpeakerTalkRepo,
                proposalRepo: SpeakerProposalRepo,
+               cfpRepo: SpeakerCfpRepo,
                emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
 
   import silhouette._
@@ -81,13 +82,21 @@ class UserCtrl(cc: ControllerComponents,
   }
 
   def answerRequest(request: UserRequest.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
     userRequestRepo.find(request).flatMap {
       case Some(r: UserRequest.TalkInvite) => (for {
         talkElt <- OptionT(talkRepo.find(r.talk))
         speakerElt <- OptionT(userRepo.find(r.createdBy))
-        res = Ok(html.answerTalkInvite(r, talkElt, speakerElt)(breadcrumb(req.identity.user)))
+        res = Ok(html.answerTalkInvite(r, talkElt, speakerElt, now)(breadcrumb(req.identity.user)))
       } yield res).value.map(_.getOrElse(Redirect(routes.UserCtrl.index())))
-      case _ => IO.pure(Redirect(routes.UserCtrl.index()))
+      case Some(r: UserRequest.ProposalInvite) => (for {
+        proposalElt <- OptionT(proposalRepo.find(r.proposal))
+        speakerElt <- OptionT(userRepo.find(r.createdBy))
+        res = Ok(html.answerProposalInvite(r, proposalElt, speakerElt, now)(breadcrumb(req.identity.user)))
+      } yield res).value.map(_.getOrElse(Redirect(routes.UserCtrl.index())))
+      case _ =>
+        // TODO: add log here
+        IO.pure(Redirect(routes.UserCtrl.index()).flashing("error" -> "Invalid request"))
     }.unsafeToFuture()
   }
 
@@ -100,6 +109,12 @@ class UserCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(userRequestRepo.accept(r, user, now))
         _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToTalkAccepted(r, talkElt, speakerElt, req.identity.user)))
       } yield s"Invitation to <b>${talkElt.title.value}</b> accepted").value
+      case Some(r: UserRequest.ProposalInvite) => (for {
+        (cfpElt, talkElt, proposalElt, _) <- OptionT(proposalRepo.findWithCfpTalkEvent(r.proposal))
+        speakerElt <- OptionT(userRepo.find(r.createdBy))
+        _ <- OptionT.liftF(userRequestRepo.accept(r, user, now))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalAccepted(r, cfpElt, talkElt, proposalElt, speakerElt, req.identity.user)))
+      } yield s"Invitation to <b>${proposalElt.title.value}</b> accepted").value
       case _ => IO.pure(Some("Request not found or unhandled"))
     }.map(msg => Redirect(routes.UserCtrl.index()).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))
       .recover { case NonFatal(e) => Redirect(routes.UserCtrl.index()).flashing("error" -> s"Unexpected error: ${e.getMessage}") }
@@ -115,6 +130,12 @@ class UserCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(userRequestRepo.reject(r, user, now))
         _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToTalkRejected(r, talkElt, speakerElt, req.identity.user)))
       } yield s"Invitation to <b>${talkElt.title.value}</b> rejected").value
+      case Some(r: UserRequest.ProposalInvite) => (for {
+        (cfpElt, talkElt, proposalElt, _) <- OptionT(proposalRepo.findWithCfpTalkEvent(r.proposal))
+        speakerElt <- OptionT(userRepo.find(r.createdBy))
+        _ <- OptionT.liftF(userRequestRepo.reject(r, user, now))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalRejected(r, cfpElt, talkElt, proposalElt, speakerElt, req.identity.user)))
+      } yield s"Invitation to <b>${proposalElt.title.value}</b> rejected").value
       case _ => IO.pure(Some("Request not found or unhandled"))
     }.map(msg => Redirect(routes.UserCtrl.index()).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))
       .recover { case NonFatal(e) => Redirect(routes.UserCtrl.index()).flashing("error" -> s"Unexpected error: ${e.getMessage}") }
