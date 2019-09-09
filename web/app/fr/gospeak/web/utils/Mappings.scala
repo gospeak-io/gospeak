@@ -9,6 +9,7 @@ import cats.implicits._
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup, MeetupVenue}
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
+import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
@@ -70,7 +71,28 @@ object Mappings {
     "amount" -> double,
     "currency" -> currency
   )(Price.apply)(Price.unapply)
-  val gMapPlace: Mapping[GMapPlace] = of(new Formatter[GMapPlace] {
+
+  def gMapPlace(timeShape: TimeShape): Mapping[GMapPlace] = of(new Formatter[GMapPlace] {
+    private def buildGMapPlace(key: String)(id: String,
+                                            name: String,
+                                            streetNo: Option[String],
+                                            street: Option[String],
+                                            postalCode: Option[String],
+                                            locality: Option[String],
+                                            country: String,
+                                            formatted: String,
+                                            input: String,
+                                            lat: Double,
+                                            lng: Double,
+                                            url: String,
+                                            website: Option[String],
+                                            phone: Option[String],
+                                            utcOffset: Int): Either[List[FormError], GMapPlace] = {
+      timeShape.getZoneId(Geo(lat, lng)).map { timezone =>
+        GMapPlace(id, name, streetNo, street, postalCode, locality, country, formatted, input, lat, lng, url, website, phone, utcOffset, timezone)
+      }.toEither(List(FormError(s"$key.timezone", s"Unable to get timezone for Geo($lat, $lng) :(")))
+    }
+
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], GMapPlace] = (
       data.eitherGet(s"$key.id").toValidatedNec,
       data.eitherGet(s"$key.name").toValidatedNec,
@@ -87,7 +109,7 @@ object Mappings {
       data.get(s"$key.website").validNec[FormError],
       data.get(s"$key.phone").validNec[FormError],
       data.eitherGetAndParse(s"$key.utcOffset", _.tryInt, numberError).toValidatedNec
-      ).mapN(GMapPlace.apply).toEither.left.map(_.toList)
+      ).mapN(buildGMapPlace(key)).toEither.left.map(_.toList).flatten
 
     override def unbind(key: String, value: GMapPlace): Map[String, String] =
       Seq(
@@ -108,6 +130,7 @@ object Mappings {
         s"$key.utcOffset" -> Some(value.utcOffset.toString)
       ).collect { case (k, Some(v)) => (k, v) }.toMap
   })
+
   private val tag: Mapping[Tag] = WrappedMapping[String, Tag](text(1, Tag.maxSize), s => Tag(s.trim), _.value)
   val tags: Mapping[Seq[Tag]] = seq(tag).verifying(s"Can't add more than ${Tag.maxNumber} tags", _.length <= Tag.maxNumber)
 

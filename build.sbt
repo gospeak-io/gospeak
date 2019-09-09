@@ -3,8 +3,8 @@ ThisBuild / scalaVersion := "2.12.8"
 ThisBuild / organization := "fr.gospeak"
 
 /**
-  * Global settings
-  */
+ * Global settings
+ */
 val commonSettings: Seq[Setting[_]] = Seq(
   scalacOptions ++= Seq(
     "-deprecation",
@@ -15,8 +15,8 @@ val commonSettings: Seq[Setting[_]] = Seq(
 
 
 /**
-  * Dependencies
-  */
+ * Dependencies
+ */
 val cats = Seq(
   "org.typelevel" %% "cats-core" % "1.6.1",
   "org.typelevel" %% "cats-effect" % "1.4.0")
@@ -78,17 +78,18 @@ val scalaCheck = Seq(
   "org.scalacheck" %% "scalacheck" % "1.14.0",
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.3",
   "com.danielasfregola" %% "random-data-generator" % "2.7").map(_ % Test)
+val timeshape = Seq("net.iakovlev" % "timeshape" % "2018d.6")
 
 val scalautilsDependencies = cats ++ scalaTest ++ scalaCheck
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
-val infraDependencies = hammock ++ flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
+val infraDependencies = timeshape ++ hammock ++ flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
 val migrationDependencies = mongo ++ logback ++ scalaTest ++ scalaCheck
 val webDependencies = play ++ silhouette ++ pureconfig ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
 
 
 /**
-  * Project definition
-  */
+ * Project definition
+ */
 val scalautils = (project in file("libs/scalautils"))
   .settings(
     name := "scalautils",

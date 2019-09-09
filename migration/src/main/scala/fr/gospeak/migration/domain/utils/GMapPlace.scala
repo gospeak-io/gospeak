@@ -1,5 +1,7 @@
 package fr.gospeak.migration.domain.utils
 
+import java.time.ZoneId
+
 import fr.gospeak.libs.scalautils.domain.{GMapPlace => NewGMapPlace}
 
 case class GMapPlace(id: String,
@@ -31,7 +33,8 @@ case class GMapPlace(id: String,
       url = url,
       website = website,
       phone = phone,
-      utcOffset = 120) // France offset
+      utcOffset = 120, // France offset
+      timezone = ZoneId.of("Europe/Paris"))
   }
 }
 

@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services.meetup
 
-import java.time.ZoneOffset
+import java.time.{Instant, LocalDateTime, ZoneId, ZoneOffset}
 
 import cats.effect.IO
 import fr.gospeak.core.domain.{Event, Partner, Venue}
@@ -90,7 +90,7 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
     lib.MeetupEvent.Create(
       name = event.name.value,
       description = description,
-      time = event.start.toEpochSecond(venue.map(_.address.zoneOffset).getOrElse(ZoneOffset.UTC)) * 1000,
+      time = toInstant(event.start, venue.map(_.address.timezone).getOrElse(ZoneOffset.UTC)).toEpochMilli,
       publish_status = if (isDraft) "draft" else "published",
       announce = !isDraft,
       // duration = 10800000,
@@ -136,4 +136,6 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
       link = link,
       city = group.city,
       country = group.country)
+
+  private def toInstant(date: LocalDateTime, zone: ZoneId): Instant = date.toInstant(zone.getRules.getOffset(date))
 }

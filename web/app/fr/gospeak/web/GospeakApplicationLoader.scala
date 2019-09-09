@@ -17,6 +17,7 @@ import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.libs.meetup.MeetupClient
 import fr.gospeak.infra.libs.slack.SlackClient
+import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.infra.services.meetup.MeetupSrvImpl
 import fr.gospeak.infra.services.slack.SlackSrvImpl
 import fr.gospeak.infra.services.storage.sql._
@@ -58,8 +59,12 @@ class GospeakComponents(context: ApplicationLoader.Context)
     with _root_.controllers.AssetsComponents {
   private val logger = LoggerFactory.getLogger(this.getClass)
   logger.info("Start application")
+
+  // unsafe init should be done at the beginning
   lazy val conf: AppConf = AppConf.load(configuration).get
   logger.info(s"Configuration loaded: $conf")
+  lazy val timeShape: TimeShape = TimeShape.create().get
+
   lazy val appConf: ApplicationConf = conf.application
   lazy val envConf: ApplicationConf.Env = appConf.env
   lazy val authConf: AuthConf = conf.auth

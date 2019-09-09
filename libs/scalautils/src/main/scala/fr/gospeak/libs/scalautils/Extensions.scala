@@ -1,6 +1,7 @@
 package fr.gospeak.libs.scalautils
 
 import java.time.Instant
+import java.util.Optional
 
 import cats.MonadError
 import cats.data.NonEmptyList
@@ -151,6 +152,10 @@ object Extensions {
       case Some(Failure(e)) => Failure(e)
       case None => Success(None)
     }
+  }
+
+  implicit class OptionalExtension[A](val in: Optional[A]) extends AnyVal {
+    def asScala: Option[A] = if (in.isPresent) Some(in.get()) else None
   }
 
   implicit class TryExtension[A](val in: Try[A]) extends AnyVal {

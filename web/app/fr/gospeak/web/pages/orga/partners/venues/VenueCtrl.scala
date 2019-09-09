@@ -7,7 +7,8 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, Partner, Venue}
-import fr.gospeak.core.services.storage.{OrgaGroupRepo, OrgaPartnerRepo, OrgaUserRepo, OrgaVenueRepo, GroupSettingsRepo}
+import fr.gospeak.core.services.storage.{GroupSettingsRepo, OrgaGroupRepo, OrgaPartnerRepo, OrgaUserRepo, OrgaVenueRepo}
+import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.partners.PartnerCtrl
@@ -24,17 +25,18 @@ class VenueCtrl(cc: ControllerComponents,
                 groupRepo: OrgaGroupRepo,
                 partnerRepo: OrgaPartnerRepo,
                 venueRepo: OrgaVenueRepo,
-                groupSettingsRepo: GroupSettingsRepo) extends UICtrl(cc, silhouette) {
+                groupSettingsRepo: GroupSettingsRepo,
+                timeShape: TimeShape) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
   def create(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    createForm(group, partner, VenueForms.create).unsafeToFuture()
+    createForm(group, partner, VenueForms.create(timeShape)).unsafeToFuture()
   }
 
   def doCreate(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
-    VenueForms.create.bindFromRequest.fold(
+    VenueForms.create(timeShape).bindFromRequest.fold(
       formWithErrors => createForm(group, partner, formWithErrors),
       data => (for {
         groupElt <- OptionT(groupRepo.find(user, group))
@@ -64,12 +66,12 @@ class VenueCtrl(cc: ControllerComponents,
   }
 
   def edit(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    editForm(group, partner, venue, VenueForms.create).unsafeToFuture()
+    editForm(group, partner, venue, VenueForms.create(timeShape)).unsafeToFuture()
   }
 
   def doEdit(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
-    VenueForms.create.bindFromRequest.fold(
+    VenueForms.create(timeShape).bindFromRequest.fold(
       formWithErrors => editForm(group, partner, venue, formWithErrors),
       data => (for {
         groupElt <- OptionT(groupRepo.find(user, group))

@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services.storage.sql
 
-import java.time.{Instant, LocalDate, LocalDateTime}
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
 
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -258,7 +258,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       url = "https://maps.google.com/?cid=3360768160548514744",
       website = Some("https://www.zeenea.com/"),
       phone = None,
-      utcOffset = 120)
+      utcOffset = 120,
+      timezone = ZoneId.of("Europe/Paris"))
     val venue1 = venue(zeenea, zeeneaPlace, userDemo, roomSize = Some(80))
     val venues = NonEmptyList.of(venue1)
 
