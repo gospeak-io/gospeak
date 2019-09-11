@@ -26,7 +26,7 @@ val circe = Seq(
   "io.circe" %% "circe-parser",
   "io.circe" %% "circe-literal",
   "io.circe" %% "circe-generic-extras",
-  "io.circe" %% "circe-java8").map(_ % "0.11.1")
+  "io.circe" %% "circe-java8").map(_ % "0.12.1")
 val doobieVersion = "0.6.0"
 val doobie = Seq(
   "org.tpolecat" %% "doobie-core",
