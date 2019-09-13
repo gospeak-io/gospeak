@@ -36,7 +36,7 @@ val doobie = Seq(
 val doobieTest = Seq(
   "org.tpolecat" %% "doobie-scalatest" % doobieVersion).map(_ % Test)
 val mongo = Seq("org.reactivemongo" %% "reactivemongo" % "0.16.5")
-val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.11.1")
+val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.12.0")
 val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
