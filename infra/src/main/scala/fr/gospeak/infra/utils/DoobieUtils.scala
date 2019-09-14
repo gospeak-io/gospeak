@@ -203,6 +203,11 @@ object DoobieUtils {
             accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
             rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
             canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
+        case (id, "GroupInvite", Some(groupId), _, _, Some(email), _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+          UserRequest.GroupInvite(id, groupId, email, created, createdBy,
+            accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
+            rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
+            canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
         case (id, "TalkInvite", _, Some(talkId), _, Some(email), _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
           UserRequest.TalkInvite(id, talkId, email, created, createdBy,
             accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),

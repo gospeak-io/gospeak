@@ -186,8 +186,8 @@ object TemplateData {
         |
         |
         |{{#talks}}
-        |{{#-first}}Here are the talks for this session:
-        |{{/-first}}
+        |{{#-first}}Here are the talks for this session:{{/-first}}
+        |
         |- **{{title}}** by {{#speakers}}*{{name}}*{{^-last}} and {{/-last}}{{/speakers}}
         |
         |{{description.short2}} {{#publicLink}}[see more]({{.}}){{/publicLink}}

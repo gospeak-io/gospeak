@@ -3,7 +3,7 @@ package fr.gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, ProposalInvite, TalkInvite, UserAskToJoinAGroupRequest}
+import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, GroupInvite, PasswordResetRequest, ProposalInvite, TalkInvite, UserAskToJoinAGroupRequest}
 import fr.gospeak.core.domain.{Group, Proposal, Talk, User, UserRequest}
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
@@ -17,6 +17,13 @@ trait OrgaUserRequestRepo {
   def acceptUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done]
 
   def rejectUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done]
+
+
+  def invite(group: Group.Id, email: EmailAddress, by: User.Id, now: Instant): IO[GroupInvite]
+
+  def cancelGroupInvite(id: UserRequest.Id, by: User.Id, now: Instant): IO[GroupInvite]
+
+  def listPendingInvites(group: Group.Id): IO[Seq[GroupInvite]]
 }
 
 trait SpeakerUserRequestRepo {
@@ -43,6 +50,11 @@ trait UserUserRequestRepo {
   def createUserAskToJoinAGroup(user: User.Id, group: Group.Id, now: Instant): IO[UserAskToJoinAGroupRequest]
 
   def listPendingUserToJoinAGroupRequests(user: User.Id): IO[Seq[UserAskToJoinAGroupRequest]]
+
+
+  def accept(invite: UserRequest.GroupInvite, by: User.Id, now: Instant): IO[Done]
+
+  def reject(invite: UserRequest.GroupInvite, by: User.Id, now: Instant): IO[Done]
 
 
   def accept(invite: UserRequest.TalkInvite, by: User.Id, now: Instant): IO[Done]

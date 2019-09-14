@@ -108,6 +108,40 @@ class UserRequestRepoSqlSpec extends RepoSpec {
           // check(q) // ignored because missing "NOT NULL" on 'group_id' and 'created_by'... due to sealed trait
         }
       }
+      describe("GroupInviteQueries") {
+        import GroupInviteQueries._
+        val req = GroupInvite(UserRequest.Id.generate(), group.id, user.email, now, user.id, None, None, None)
+        it("should build insert") {
+          val q = insert(req)
+          q.sql shouldBe "INSERT INTO requests (id, kind, group_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+          check(q)
+        }
+        it("should build accept") {
+          val q = accept(req.id, user.id, now)
+          q.sql shouldBe "UPDATE requests SET accepted=?, accepted_by=? WHERE id=? AND kind=? AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL"
+          check(q)
+        }
+        it("should build reject") {
+          val q = reject(req.id, user.id, now)
+          q.sql shouldBe "UPDATE requests SET rejected=?, rejected_by=? WHERE id=? AND kind=? AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL"
+          check(q)
+        }
+        it("should build cancel") {
+          val q = GroupInviteQueries.cancel(req.id, user.id, now)
+          q.sql shouldBe "UPDATE requests SET canceled=?, canceled_by=? WHERE id=? AND kind=? AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL"
+          check(q)
+        }
+        it("should build selectOne") {
+          val q = selectOne(req.id)
+          q.sql shouldBe "SELECT id, group_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by FROM requests WHERE id=? "
+          // check(q) // ignored because missing "NOT NULL" on 'group_id', 'email' and 'created_by'... due to sealed trait
+        }
+        it("should build selectAllPending") {
+          val q = selectAllPending(group.id)
+          q.sql shouldBe "SELECT id, group_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by FROM requests WHERE kind=? AND group_id=? AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL "
+          // check(q) // ignored because missing "NOT NULL" on 'group_id', 'email' and 'created_by'... due to sealed trait
+        }
+      }
       describe("TalkInviteQueries") {
         import TalkInviteQueries._
         val req = TalkInvite(UserRequest.Id.generate(), talk.id, user.email, now, user.id, None, None, None)

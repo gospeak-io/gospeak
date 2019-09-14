@@ -21,7 +21,30 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
     run(insert, Group(data, NonEmptyList.of(by), Info(by, now)))
 
   override def addOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done] =
-    run(GroupRepoSql.addOwner(group)(owner, by, now))
+    find(group).flatMap {
+      case Some(groupElt) =>
+        if (groupElt.owners.toList.contains(owner)) {
+          IO.raiseError(new IllegalArgumentException("owner already added"))
+        } else {
+          run(updateOwners(groupElt.id)(groupElt.owners.append(owner), by, now))
+        }
+      case None => IO.raiseError(new IllegalArgumentException("unreachable group"))
+    }
+
+  override def removeOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done] =
+    find(group).flatMap {
+      case Some(groupElt) =>
+        if (groupElt.owners.toList.contains(owner)) {
+          NonEmptyList.fromList(groupElt.owners.filter(_ != owner)).map { owners =>
+            run(updateOwners(group)(owners, by, now))
+          }.getOrElse {
+            IO.raiseError(new IllegalArgumentException("last owner can't be removed"))
+          }
+        } else {
+          IO.raiseError(new IllegalArgumentException("user is not a owner"))
+        }
+      case None => IO.raiseError(new IllegalArgumentException("unreachable group"))
+    }
 
   override def list(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPage(user, _), params))
 
@@ -56,10 +79,8 @@ object GroupRepoSql {
 
   private[sql] def insert(elt: Group): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
-  private[sql] def addOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): doobie.Update0 = {
-    val fields = fr0"owners=CONCAT(owners, '," ++ Fragment.const0(owner.value) ++ fr0"'), updated=$now, updated_by=$by"
-    buildUpdate(tableFr, fields, fr0"WHERE id=$group").update
-  }
+  private[sql] def updateOwners(group: Group.Id)(owners: NonEmptyList[User.Id], by: User.Id, now: Instant): doobie.Update0 =
+    buildUpdate(tableFr, fr0"owners=$owners, updated=$now, updated_by=$by", fr0"WHERE id=$group").update
 
   private[sql] def selectPage(user: User.Id, params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE owners LIKE ${"%" + user.value + "%"}"))

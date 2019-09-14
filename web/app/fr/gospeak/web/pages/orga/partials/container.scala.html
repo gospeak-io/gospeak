@@ -47,7 +47,7 @@
             @alert("warning", "d-flex justify-content-between align-items-center") {
                 <span class="align-self-center">
                     Your email is not validated, please click on the validation link in the signup email</span>
-                @formBtn(AuthCtrl.accountValidation(), Seq("class" -> "btn-sm btn-secondary")) {Resend validation email}
+                @formBtn(AuthCtrl.accountValidation(), Seq("class" -> "btn-sm btn-warning")) {Resend validation email}
             }
         }
         @flash(req.flash)

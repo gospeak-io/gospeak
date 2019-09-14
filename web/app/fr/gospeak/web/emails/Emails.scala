@@ -48,6 +48,41 @@ object Emails {
       subject = s"Your application to ${group.name.value} group was rejected :(",
       content = HtmlContent(html.joinGroupRejected(rejectedUser, acceptingOrga, group).body))
 
+  def inviteOrgaToGroup(invite: UserRequest.GroupInvite, group: Group, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(invite.email)),
+      subject = s"You have been invited to join ${by.name.value} in the ${group.name.value} group",
+      content = HtmlContent(html.inviteOrgaToGroup(invite, group, by).body))
+
+  def inviteOrgaToGroupCanceled(invite: UserRequest.GroupInvite, group: Group, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(invite.email)),
+      subject = s"Your invitation for the group ${group.name.value} has been canceled :(",
+      content = HtmlContent(html.inviteOrgaToGroupCanceled(invite, group, by).body))
+
+  def inviteOrgaToGroupAccepted(invite: UserRequest.GroupInvite, group: Group, orga: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(orga)),
+      subject = s"${by.name.value} has accepted your invitation for the ${group.name.value} group",
+      content = HtmlContent(html.inviteOrgaToGroupAccepted(invite, group, orga, by).body))
+
+  def inviteOrgaToGroupRejected(invite: UserRequest.GroupInvite, group: Group, orga: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(orga)),
+      subject = s"Oups, ${by.name.value} rejected your invitation in the ${group.name.value} group :(",
+      content = HtmlContent(html.inviteOrgaToGroupRejected(invite, group, orga, by).body))
+
+  def orgaRemovedFromGroup(group: Group, orga: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(orga)),
+      subject = s"${by.name.value} removed you from the organizers of ${group.name.value} :(",
+      content = HtmlContent(html.orgaRemovedFromGroup(group, orga, by).body))
+
   def inviteSpeakerToTalk(invite: UserRequest.TalkInvite, talk: Talk, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
     Email(
       from = sender,

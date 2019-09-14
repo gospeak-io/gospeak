@@ -7,19 +7,22 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.ApplicationConf
-import fr.gospeak.core.domain.Group
+import fr.gospeak.core.domain.{Group, User, UserRequest}
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.meetup.domain.{MeetupCredentials, MeetupException, MeetupGroup}
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackCredentials
-import fr.gospeak.core.services.storage.{OrgaGroupRepo, GroupSettingsRepo}
+import fr.gospeak.core.services.storage.{GroupSettingsRepo, OrgaGroupRepo, OrgaUserRepo, OrgaUserRequestRepo}
+import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
+import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.settings.SettingsCtrl._
 import fr.gospeak.web.pages.orga.settings.SettingsForms.{EventTemplateItem, MeetupAccount}
-import fr.gospeak.web.utils.UICtrl
+import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
+import fr.gospeak.web.utils.{GenericForm, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -30,6 +33,9 @@ class SettingsCtrl(cc: ControllerComponents,
                    appConf: ApplicationConf,
                    groupRepo: OrgaGroupRepo,
                    groupSettingsRepo: GroupSettingsRepo,
+                   userRepo: OrgaUserRepo,
+                   userRequestRepo: OrgaUserRequestRepo,
+                   emailSrv: EmailSrv,
                    meetupSrv: MeetupSrv,
                    slackSrv: SlackSrv) extends UICtrl(cc, silhouette) {
 
@@ -39,7 +45,7 @@ class SettingsCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
-      res = settingsView(groupElt, settings)
+      res <- OptionT.liftF(settingsView(groupElt, settings))
     } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
@@ -47,7 +53,7 @@ class SettingsCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       res <- OptionT.liftF(SettingsForms.meetupAccount.bindFromRequest.fold(
-        formWithErrors => groupSettingsRepo.find(groupElt.id).map(settingsView(groupElt, _, meetup = Some(formWithErrors))),
+        formWithErrors => groupSettingsRepo.find(groupElt.id).flatMap(settingsView(groupElt, _, meetup = Some(formWithErrors))),
         data => {
           val redirectUri = routes.SettingsCtrl.meetupCallback(group, data.group).absoluteURL(meetupSrv.hasSecureCallback)
           meetupSrv.buildAuthorizationUrl(redirectUri).map(url => Redirect(url.value)).toIO
@@ -85,7 +91,7 @@ class SettingsCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       res <- OptionT.liftF(SettingsForms.slackAccount(appConf.aesKey).bindFromRequest.fold(
-        formWithErrors => IO.pure(settingsView(groupElt, settings, slack = Some(formWithErrors))),
+        formWithErrors => settingsView(groupElt, settings, slack = Some(formWithErrors)),
         creds => slackSrv.getInfos(creds.token, appConf.aesKey)
           .flatMap(_ => groupSettingsRepo.set(groupElt.id, settings.set(creds), user, now))
           .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Slack account updated"))
@@ -112,7 +118,7 @@ class SettingsCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(user, group))
       settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
       res <- OptionT.liftF(SettingsForms.addAction.bindFromRequest.fold(
-        formWithErrors => IO.pure(settingsView(groupElt, settings, action = Some(formWithErrors))),
+        formWithErrors => settingsView(groupElt, settings, action = Some(formWithErrors)),
         data => groupSettingsRepo.set(groupElt.id, addActionToSettings(settings, data), user, now)
           .map(_ => Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> "Action added"))
       ))
@@ -168,18 +174,59 @@ class SettingsCtrl(cc: ControllerComponents,
     } yield next).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
+  def inviteOrga(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    val next = Redirect(routes.SettingsCtrl.list(group))
+    GenericForm.invite.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      email => (for {
+        groupElt <- OptionT(groupRepo.find(user, group))
+        invite <- OptionT.liftF(userRequestRepo.invite(groupElt.id, email, user, now))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteOrgaToGroup(invite, groupElt, req.identity.user)))
+      } yield next.flashing("success" -> s"<b>$email</b> is invited as orga")).value.map(_.getOrElse(groupNotFound(group)))
+    ).unsafeToFuture()
+  }
+
+  def cancelInviteOrga(group: Group.Slug, request: UserRequest.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      invite <- OptionT.liftF(userRequestRepo.cancelGroupInvite(request, user, now))
+      _ <- OptionT.liftF(emailSrv.send(Emails.inviteOrgaToGroupCanceled(invite, groupElt, req.identity.user)))
+      next = Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> s"Invitation to <b>${invite.email.value}</b> has been canceled")
+    } yield next).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+  }
+
+  def doRemoveOrga(group: Group.Slug, orga: User.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      orgaElt <- OptionT(userRepo.find(orga))
+      _ <- OptionT.liftF(groupRepo.removeOwner(groupElt.id)(orgaElt.id, user, now))
+      _ <- OptionT.liftF(emailSrv.send(Emails.orgaRemovedFromGroup(groupElt, orgaElt, req.identity.user)))
+      next = if (req.identity.user.slug == orga) Redirect(UserRoutes.index()).flashing("success" -> s"You removed yourself from <b>${groupElt.name.value}</b> group")
+      else Redirect(routes.SettingsCtrl.list(group)).flashing("success" -> s"You removed <b>${orgaElt.name.value}</b> from  <b>${groupElt.name.value}</b> group")
+    } yield next).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+  }
+
   private def settingsView(groupElt: Group,
                            settings: Group.Settings,
                            meetup: Option[Form[MeetupAccount]] = None,
                            slack: Option[Form[SlackCredentials]] = None,
                            action: Option[Form[SettingsForms.AddAction]] = None)
-                          (implicit req: SecuredRequest[CookieEnv, AnyContent]): Result = {
-    Ok(html.list(
+                          (implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+    for {
+      orgas <- userRepo.list(groupElt.owners.toList)
+      invites <- userRequestRepo.listPendingInvites(groupElt.id)
+    } yield Ok(html.list(
       groupElt,
       settings,
+      orgas,
+      invites,
       meetup.getOrElse(settings.accounts.meetup.map(s => SettingsForms.meetupAccount.fill(MeetupAccount(s.group))).getOrElse(SettingsForms.meetupAccount)),
       slack.getOrElse(settings.accounts.slack.map(s => SettingsForms.slackAccount(appConf.aesKey).fill(s)).getOrElse(SettingsForms.slackAccount(appConf.aesKey))),
-      action.getOrElse(SettingsForms.addAction)
+      action.getOrElse(SettingsForms.addAction),
+      GenericForm.invite
     )(listBreadcrumb(groupElt)))
   }
 

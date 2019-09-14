@@ -12,6 +12,8 @@ trait OrgaGroupRepo {
   def find(user: User.Id, slug: Group.Slug): IO[Option[Group]]
 
   def addOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done]
+
+  def removeOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done]
 }
 
 trait SpeakerGroupRepo {
@@ -19,6 +21,8 @@ trait SpeakerGroupRepo {
 }
 
 trait UserGroupRepo {
+  def find(group: Group.Id): IO[Option[Group]]
+
   def create(data: Group.Data, by: User.Id, now: Instant): IO[Group]
 
   def list(user: User.Id, params: Page.Params): IO[Page[Group]]

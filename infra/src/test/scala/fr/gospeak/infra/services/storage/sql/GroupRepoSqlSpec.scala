@@ -1,5 +1,6 @@
 package fr.gospeak.infra.services.storage.sql
 
+import cats.data.NonEmptyList
 import fr.gospeak.infra.services.storage.sql.GroupRepoSql._
 import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
@@ -40,6 +41,11 @@ class GroupRepoSqlSpec extends RepoSpec {
       it("should build insert") {
         val q = insert(group)
         q.sql shouldBe s"INSERT INTO groups ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        check(q)
+      }
+      it("should build updateOwners") {
+        val q = updateOwners(group.id)(NonEmptyList.of(user.id), user.id, now)
+        q.sql shouldBe s"UPDATE groups SET owners=?, updated=?, updated_by=? WHERE id=?"
         check(q)
       }
       it("should build selectPage") {

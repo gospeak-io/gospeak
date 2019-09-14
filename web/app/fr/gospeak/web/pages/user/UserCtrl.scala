@@ -84,6 +84,11 @@ class UserCtrl(cc: ControllerComponents,
   def answerRequest(request: UserRequest.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     userRequestRepo.find(request).flatMap {
+      case Some(r: UserRequest.GroupInvite) => (for {
+        groupElt <- OptionT(groupRepo.find(r.group))
+        orgaElt <- OptionT(userRepo.find(r.createdBy))
+        res = Ok(html.answerGroupInvite(r, groupElt, orgaElt, now)(breadcrumb(req.identity.user)))
+      } yield res).value.map(_.getOrElse(Redirect(routes.UserCtrl.index())))
       case Some(r: UserRequest.TalkInvite) => (for {
         talkElt <- OptionT(talkRepo.find(r.talk))
         speakerElt <- OptionT(userRepo.find(r.createdBy))
@@ -103,6 +108,12 @@ class UserCtrl(cc: ControllerComponents,
   def acceptRequest(request: UserRequest.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     userRequestRepo.find(request).map(_.filter(_.isPending(now))).flatMap {
+      case Some(r: UserRequest.GroupInvite) => (for {
+        groupElt <- OptionT(groupRepo.find(r.group))
+        speakerElt <- OptionT(userRepo.find(r.createdBy))
+        _ <- OptionT.liftF(userRequestRepo.accept(r, user, now))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteOrgaToGroupAccepted(r, groupElt, speakerElt, req.identity.user)))
+      } yield s"""Invitation to <a href="${GroupRoutes.detail(groupElt.slug)}">${groupElt.name.value}</a> accepted""").value
       case Some(r: UserRequest.TalkInvite) => (for {
         talkElt <- OptionT(talkRepo.find(r.talk))
         speakerElt <- OptionT(userRepo.find(r.createdBy))
@@ -124,6 +135,12 @@ class UserCtrl(cc: ControllerComponents,
   def rejectRequest(request: UserRequest.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     userRequestRepo.find(request).map(_.filter(_.isPending(now))).flatMap {
+      case Some(r: UserRequest.GroupInvite) => (for {
+        groupElt <- OptionT(groupRepo.find(r.group))
+        orgaElt <- OptionT(userRepo.find(r.createdBy))
+        _ <- OptionT.liftF(userRequestRepo.reject(r, user, now))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteOrgaToGroupRejected(r, groupElt, orgaElt, req.identity.user)))
+      } yield s"Invitation to the <b>${groupElt.name.value}</b> group rejected").value
       case Some(r: UserRequest.TalkInvite) => (for {
         talkElt <- OptionT(talkRepo.find(r.talk))
         speakerElt <- OptionT(userRepo.find(r.createdBy))

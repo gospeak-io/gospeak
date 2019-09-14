@@ -67,7 +67,7 @@ class TemplateSrvSpec extends FunSpec with Matchers {
     describe("TemplateData.Static") {
       it("should render correctly default event description") {
         val result = srv.render(TemplateData.Static.eventDescription, TemplateData.Sample.eventInfo).right.get.value
-        println(result)
+        result shouldBe
           """This month we are hosted by **Zeenea**, thanks to them :)
             |
             |![Zeenea logo](https://www.zeenea.com/wp-content/uploads/2019/01/zeenea-logo-424x112-1.png)
@@ -77,6 +77,7 @@ class TemplateSrvSpec extends FunSpec with Matchers {
             |- **The Scala revolution** by *John Doe*
             |
             |Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor odio vitae venenatis porta. Quisque cursus dolor augue, nec pharetra dolor ullamcorper id. [see more](https://gospeak.fr/groups/humantalks-paris/talks/28f26543-1ab8-4749-b0ac-786d1bd76888)
+            |
             |
             |- **Public speaking for everyone** by *John Doe* and *Jane Doe*
             |

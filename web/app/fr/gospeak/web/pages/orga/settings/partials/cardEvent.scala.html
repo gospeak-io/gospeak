@@ -22,8 +22,8 @@
             @if(!isDefault) {
                 @formBtn(SettingsCtrl.doRemoveEventTemplate(group.slug, id), Seq(
                     "class" -> "btn btn-danger btn-xs",
-                    "title" -> "Remove this template",
-                    "confirm" -> s"Remove template '$id'?")) {&times;}
+                    "title" -> "Delete this template",
+                    "confirm" -> s"Delete template '$id'?")) {Delete}
             }
             <a
             href="@SettingsCtrl.updateEventTemplate(group.slug, Some(id))"

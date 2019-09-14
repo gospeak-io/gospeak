@@ -1,0 +1,10 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Group, User, UserRequest}
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.user.routes.UserCtrl
+
+@(invite: UserRequest.GroupInvite, group: Group, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+<p>Hi,</p>
+<p><a href="mailto:@by.email.value">@by.name.value</a> has canceled your invitation to <b>@group.name.value</b> group.</p>
+<p>We hope everything is alright, you still can <a href="@UserCtrl.joinGroup().absoluteURL()">apply to existing groups</a> or <a href="@UserCtrl.createGroup().absoluteURL()">create your own</a>.</p>
+<p>The Gospeak team</p>
