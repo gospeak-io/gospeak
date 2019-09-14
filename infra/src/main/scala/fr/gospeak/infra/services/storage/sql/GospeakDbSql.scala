@@ -7,6 +7,7 @@ import cats.effect.IO
 import doobie.implicits._
 import fr.gospeak.core.domain.User.Profile
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.TemplateData.EventInfo
 import fr.gospeak.core.domain.utils.{Info, TemplateData}
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.core.services.storage.GospeakDb
@@ -162,8 +163,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     def proposal(talk: Talk, cfp: Cfp, status: Proposal.Status = Proposal.Status.Pending): Proposal =
       Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, status, talk.title, talk.duration, talk.description, talk.speakers, talk.slides, talk.video, talk.tags, talk.info)
 
-    def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, venue: Option[Venue] = None, description: String = "", tags: Seq[String] = Seq()): Event =
-      Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), MustacheMarkdownTmpl(description), venue.map(_.id), Seq(), tags.map(Tag(_)), Some(now).filter(_.isAfter(Instant.parse(date + "T06:06:24.074Z"))), Event.ExtRefs(), Info(by.id, now))
+    def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, venue: Option[Venue] = None, description: MustacheMarkdownTmpl[EventInfo] = MustacheMarkdownTmpl[EventInfo](""), tags: Seq[String] = Seq()): Event =
+      Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), description, venue.map(_.id), Seq(), tags.map(Tag(_)), Some(now).filter(_.isAfter(Instant.parse(date + "T06:06:24.074Z"))), Event.ExtRefs(), Info(by.id, now))
 
     def partner(g: Group, name: String, description: String, logo: Int, by: User): Partner =
       Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(description), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").get, None, Info(by.id, now))
@@ -253,8 +254,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
       country = "France",
       formatted = "48 Rue de Ponthieu, 75008 Paris, France",
       input = "Zeenea Data Catalog, Rue de Ponthieu, Paris, France",
-      lat = 48.8716827,
-      lng = 2.3070390000000316,
+      geo = Geo(48.8716827, 2.3070390000000316),
       url = "https://maps.google.com/?cid=3360768160548514744",
       website = Some("https://www.zeenea.com/"),
       phone = None,
@@ -263,10 +263,10 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val venue1 = venue(zeenea, zeeneaPlace, userDemo, roomSize = Some(80))
     val venues = NonEmptyList.of(venue1)
 
-    val event1 = event(humanTalks, Some(cfp2), "2018-06", "HumanTalks Day #1", "2018-06-01", userDemo, venue = None, description = Group.Settings.default.event.defaultDescription.value)
-    val event2 = event(humanTalks, None, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, venue = None, description = Group.Settings.default.event.defaultDescription.value)
+    val event1 = event(humanTalks, Some(cfp2), "2018-06", "HumanTalks Day #1", "2018-06-01", userDemo, venue = None, description = Group.Settings.default.event.description)
+    val event2 = event(humanTalks, None, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, venue = None, description = Group.Settings.default.event.description)
     val event3 = event(humanTalks, Some(cfp1), "2019-02", "HumanTalks Paris Fevrier 2019", "2019-02-12", userOrga)
-    val event4 = event(humanTalks, Some(cfp1), "2019-11", "HumanTalks Paris Novembre 2019", "2019-11-12", userDemo, venue = Some(venue1), description = Group.Settings.default.event.defaultDescription.value)
+    val event4 = event(humanTalks, Some(cfp1), "2019-11", "HumanTalks Paris Novembre 2019", "2019-11-12", userDemo, venue = Some(venue1), description = Group.Settings.default.event.description)
     val event5 = event(parisJs, Some(cfp4), "2019-04", "Paris.Js Avril", "2019-04-01", userOrga)
     val event6 = event(dataGov, None, "2019-03", "Nouveaux modeles de gouvenance", "2019-03-15", userDemo, tags = Seq("Data Gouv"))
     val events = NonEmptyList.of(event1, event2, event3, event4, event5, event6)

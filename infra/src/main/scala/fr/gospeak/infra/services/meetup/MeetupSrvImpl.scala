@@ -8,9 +8,10 @@ import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.meetup.domain._
 import fr.gospeak.infra.libs.meetup.domain.MeetupLocation
 import fr.gospeak.infra.libs.meetup.{MeetupClient, domain => lib}
+import fr.gospeak.infra.services.meetup.MeetupSrvImpl._
 import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Avatar, CustomException, Url}
+import fr.gospeak.libs.scalautils.domain.{Avatar, CustomException, Markdown, Url}
 
 import scala.util.Try
 
@@ -39,7 +40,7 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
 
   override def publish(event: Event,
                        venue: Option[(Partner, Venue)],
-                       description: String,
+                       description: Markdown,
                        draft: Boolean,
                        key: AesSecretKey,
                        creds: MeetupCredentials): IO[(MeetupEvent.Ref, Option[MeetupVenue.Ref])] = {
@@ -49,9 +50,9 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
         venueId <- venue.map { case (p, v) =>
           v.refs.meetup.map(r => IO.pure(r.venue.value)).getOrElse {
             for {
-              location <- client.getLocations(v.address.lat, v.address.lng)
-                .flatMap(_.toIO(e => MeetupException.CantFetchLocation(v.address.lat, v.address.lng, e.format)))
-                .flatMap(_.headOption.toIO(MeetupException.CantFetchLocation(v.address.lat, v.address.lng, "No location found")))
+              location <- client.getLocations(v.address.geo)
+                .flatMap(_.toIO(e => MeetupException.CantFetchLocation(v.address.geo, e.format)))
+                .flatMap(_.headOption.toIO(MeetupException.CantFetchLocation(v.address.geo, "No location found")))
               created <- client.createVenue(creds.group.value, toLib(p, v, location))
               id <- created.map(_.id).toIO(e => MeetupException.CantCreateVenue(creds.group, event, p, v, e.format))
             } yield id
@@ -81,23 +82,23 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
       state = None,
       country = location.country,
       localized_country_name = location.localized_country_name,
-      lat = venue.address.lat,
-      lon = venue.address.lng,
+      lat = venue.address.geo.lat,
+      lon = venue.address.geo.lng,
       repinned = false,
       visibility = "public")
 
-  private def toLib(event: Event, venue: Option[Venue], venueId: Option[Long], orgaIds: Seq[Long], description: String, isDraft: Boolean): lib.MeetupEvent.Create =
+  private def toLib(event: Event, venue: Option[Venue], venueId: Option[Long], orgaIds: Seq[Long], description: Markdown, isDraft: Boolean): lib.MeetupEvent.Create =
     lib.MeetupEvent.Create(
       name = event.name.value,
-      description = description,
+      description = toSimpleHtml(description),
       time = toInstant(event.start, venue.map(_.address.timezone).getOrElse(ZoneOffset.UTC)).toEpochMilli,
       publish_status = if (isDraft) "draft" else "published",
       announce = !isDraft,
       // duration = 10800000,
       // venue_visibility = "public",
       venue_id = venueId,
-      lat = venue.map(_.address.lat),
-      lon = venue.map(_.address.lng),
+      lat = venue.map(_.address.geo.lat),
+      lon = venue.map(_.address.geo.lng),
       how_to_find_us = None,
       rsvp_limit = venue.flatMap(_.roomSize),
       rsvp_close_time = None,
@@ -138,4 +139,15 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
       country = group.country)
 
   private def toInstant(date: LocalDateTime, zone: ZoneId): Instant = date.toInstant(zone.getRules.getOffset(date))
+}
+
+object MeetupSrvImpl {
+  // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events#create
+  private[meetup] def toSimpleHtml(md: Markdown): String = {
+    md.value
+      .replaceAll("\\*\\*([^*]+)\\*\\*", "<b>$1</b>") // bold
+      .replaceAll("\\*([^*]+)\\*", "<i>$1</i>") // italic
+      .replaceAll("!\\[([^]]*)]\\(([^)]+)\\)", "$2") // images
+      .replaceAll("\\[([^]]*)]\\(([^)]+)\\)", "$2") // links
+  }
 }

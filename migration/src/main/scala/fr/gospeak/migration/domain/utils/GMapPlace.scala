@@ -2,7 +2,7 @@ package fr.gospeak.migration.domain.utils
 
 import java.time.ZoneId
 
-import fr.gospeak.libs.scalautils.domain.{GMapPlace => NewGMapPlace}
+import fr.gospeak.libs.scalautils.{domain => gs}
 
 case class GMapPlace(id: String,
                      name: String,
@@ -17,8 +17,8 @@ case class GMapPlace(id: String,
                      url: String,
                      website: Option[String],
                      phone: Option[String]) {
-  def toGMapPlace: NewGMapPlace = {
-    NewGMapPlace(
+  def toGMapPlace: gs.GMapPlace = {
+    gs.GMapPlace(
       id = id,
       name = name,
       streetNo = streetNo,
@@ -28,8 +28,7 @@ case class GMapPlace(id: String,
       country = country,
       formatted = formatted,
       input = input,
-      lat = coords.lat,
-      lng = coords.lng,
+      geo = gs.Geo(coords.lat, coords.lng),
       url = url,
       website = website,
       phone = phone,

@@ -31,7 +31,7 @@ class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends
     run(selectOneSlack(group).option).map(_.getOrElse(Group.Settings.default.accounts.slack))
 
   override def findEventDescription(group: Group.Id): IO[MustacheMarkdownTmpl[TemplateData.EventInfo]] =
-    run(selectOneEventDescription(group).option).map(_.getOrElse(Group.Settings.default.event.defaultDescription))
+    run(selectOneEventDescription(group).option).map(_.getOrElse(Group.Settings.default.event.description))
 
   override def findEventTemplates(group: Group.Id): IO[Map[String, MustacheTextTmpl[TemplateData.EventInfo]]] =
     run(selectOneEventTemplates(group).option).map(_.getOrElse(Group.Settings.default.event.templates))
@@ -54,7 +54,7 @@ object GroupSettingsRepoSql {
   private val table = "group_settings"
   private val meetupFields = Seq("meetup_access_token", "meetup_refresh_token", "meetup_group_slug", "meetup_logged_user_id", "meetup_logged_user_name")
   private val slackFields = Seq("slack_token", "slack_bot_name", "slack_bot_avatar")
-  private val eventFields = Seq("event_default_description", "event_templates")
+  private val eventFields = Seq("event_description", "event_templates")
   private val fields = Seq("group_id") ++ meetupFields ++ slackFields ++ eventFields ++ Seq("actions", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
@@ -64,12 +64,13 @@ object GroupSettingsRepoSql {
     buildInsert(tableFr, fieldsFr, fr0"$group, " ++
       fr0"${settings.accounts.meetup.map(_.accessToken)}, ${settings.accounts.meetup.map(_.refreshToken)}, ${settings.accounts.meetup.map(_.group)}, ${settings.accounts.meetup.map(_.loggedUserId)}, ${settings.accounts.meetup.map(_.loggedUserName)}, " ++
       fr0"${settings.accounts.slack.map(_.token)}, ${settings.accounts.slack.map(_.name)}, ${settings.accounts.slack.flatMap(_.avatar)}, " ++
-      fr0"${settings.event.defaultDescription}, ${settings.event.templates}, ${settings.actions}, $now, $by").update
+      fr0"${settings.event.description}, ${settings.event.templates}, ${settings.actions}, $now, $by").update
 
   private[sql] def update(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): doobie.Update0 = {
     val fields = fr0"meetup_access_token=${settings.accounts.meetup.map(_.accessToken)}, meetup_refresh_token=${settings.accounts.meetup.map(_.refreshToken)}, meetup_group_slug=${settings.accounts.meetup.map(_.group)}, meetup_logged_user_id=${settings.accounts.meetup.map(_.loggedUserId)}, meetup_logged_user_name=${settings.accounts.meetup.map(_.loggedUserName)}, " ++
       fr0"slack_token=${settings.accounts.slack.map(_.token)}, slack_bot_name=${settings.accounts.slack.map(_.name)}, slack_bot_avatar=${settings.accounts.slack.flatMap(_.avatar)}, " ++
-      fr0"event_default_description=${settings.event.defaultDescription}, event_templates=${settings.event.templates}, actions=${settings.actions}, updated=$now, updated_by=$by"
+      fr0"event_description=${settings.event.description}, event_templates=${settings.event.templates}, " ++
+      fr0"actions=${settings.actions}, updated=$now, updated_by=$by"
     buildUpdate(tableFr, fields, where(group)).update
   }
 
@@ -86,7 +87,7 @@ object GroupSettingsRepoSql {
     buildSelect(tableFr, Fragment.const0((slackFields).mkString(", ")), where(group)).query[Option[SlackCredentials]]
 
   private[sql] def selectOneEventDescription(group: Group.Id): doobie.Query0[MustacheMarkdownTmpl[TemplateData.EventInfo]] =
-    buildSelect(tableFr, fr0"event_default_description", where(group)).query[MustacheMarkdownTmpl[TemplateData.EventInfo]]
+    buildSelect(tableFr, fr0"event_description", where(group)).query[MustacheMarkdownTmpl[TemplateData.EventInfo]]
 
   private[sql] def selectOneEventTemplates(group: Group.Id): doobie.Query0[Map[String, MustacheTextTmpl[TemplateData.EventInfo]]] =
     buildSelect(tableFr, fr0"event_templates", where(group)).query[Map[String, MustacheTextTmpl[TemplateData.EventInfo]]]

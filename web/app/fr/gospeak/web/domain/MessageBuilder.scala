@@ -3,9 +3,9 @@ package fr.gospeak.web.domain
 import java.time.LocalDateTime
 
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
+import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.GospeakMessage.Linked
 import fr.gospeak.core.domain.utils.{GospeakMessage, TemplateData}
-import fr.gospeak.core.domain._
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.services.EventSrv.EventFull
 import play.api.mvc.{AnyContent, RequestHeader}
@@ -94,7 +94,9 @@ class MessageBuilder {
     val publicLink = if (user.isPublic) {
       Some(fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl.detail(user.slug).absoluteURL())
     } else {
-      None
+      user.profile.website.map(_.value)
+        .orElse(user.profile.linkedin.map(_.value))
+        .orElse(user.profile.twitter.map(_.value))
     }
     Linked[User](user, link, publicLink)
   }

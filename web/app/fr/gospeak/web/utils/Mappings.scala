@@ -89,7 +89,7 @@ object Mappings {
                                             phone: Option[String],
                                             utcOffset: Int): Either[List[FormError], GMapPlace] = {
       timeShape.getZoneId(Geo(lat, lng)).map { timezone =>
-        GMapPlace(id, name, streetNo, street, postalCode, locality, country, formatted, input, lat, lng, url, website, phone, utcOffset, timezone)
+        GMapPlace(id, name, streetNo, street, postalCode, locality, country, formatted, input, Geo(lat, lng), url, website, phone, utcOffset, timezone)
       }.toEither(List(FormError(s"$key.timezone", s"Unable to get timezone for Geo($lat, $lng) :(")))
     }
 
@@ -122,8 +122,8 @@ object Mappings {
         s"$key.country" -> Some(value.country),
         s"$key.formatted" -> Some(value.formatted),
         s"$key.input" -> Some(value.input),
-        s"$key.lat" -> Some(value.lat.toString),
-        s"$key.lng" -> Some(value.lng.toString),
+        s"$key.lat" -> Some(value.geo.lat.toString),
+        s"$key.lng" -> Some(value.geo.lng.toString),
         s"$key.url" -> Some(value.url),
         s"$key.website" -> value.website,
         s"$key.phone" -> value.phone,

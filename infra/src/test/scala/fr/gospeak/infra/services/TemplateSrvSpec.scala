@@ -66,25 +66,25 @@ class TemplateSrvSpec extends FunSpec with Matchers {
   describe("TemplateSrv") {
     describe("TemplateData.Static") {
       it("should render correctly default event description") {
-        val result = srv.render(TemplateData.Static.defaultEventDescription, TemplateData.Sample.eventInfo).right.get.value
-        result shouldBe
-          """Hi everyone, welcome to **HumanTalks Paris Septembre**!
-            |
-            |
-            |This month we are hosted by **Zeenea**, at *[48 Rue de Ponthieu, 75008 Paris](https://maps.google.com/?cid=3360768160548514744)*
+        val result = srv.render(TemplateData.Static.eventDescription, TemplateData.Sample.eventInfo).right.get.value
+        println(result)
+          """This month we are hosted by **Zeenea**, thanks to them :)
             |
             |![Zeenea logo](https://www.zeenea.com/wp-content/uploads/2019/01/zeenea-logo-424x112-1.png)
             |
-            |
-            |
-            |
-            |For this session we are happy to have the following talks:
+            |Here are the talks for this session:
             |
             |- **The Scala revolution** by *John Doe*
             |
             |Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor odio vitae venenatis porta. Quisque cursus dolor augue, nec pharetra dolor ullamcorper id. [see more](https://gospeak.fr/groups/humantalks-paris/talks/28f26543-1ab8-4749-b0ac-786d1bd76888)
             |
-            |For the next sessions, propose your talks on [Gospeak](https://gospeak.fr/cfps/humantalks-paris)
+            |- **Public speaking for everyone** by *John Doe* and *Jane Doe*
+            |
+            |Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor odio vitae venenatis porta. Quisque cursus dolor augue, nec pharetra dolor ullamcorper id. [see more](https://gospeak.fr/groups/humantalks-paris/talks/28f26543-1ab8-4749-b0ac-786d1bd76666)
+            |
+            |---
+            |
+            |Propose your talks for the next sessions on [Gospeak](https://gospeak.fr/cfps/humantalks-paris)
           """.stripMargin.trim
       }
       it("should do a nice fallback on error") {

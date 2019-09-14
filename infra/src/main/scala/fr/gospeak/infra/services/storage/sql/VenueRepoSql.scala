@@ -50,13 +50,13 @@ object VenueRepoSql {
   private val partnerAndVenueFields = Fragment.const0((PartnerRepoSql.fields.map("p." + _) ++ fields.map("v." + _)).mkString(", "))
 
   private def values(e: Venue): Fragment =
-    fr0"${e.id}, ${e.partner}, ${e.address}, ${e.address.lat}, ${e.address.lng}, ${e.address.country}, ${e.description}, ${e.roomSize}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.venue)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.partner}, ${e.address}, ${e.address.geo.lat}, ${e.address.geo.lng}, ${e.address.country}, ${e.description}, ${e.roomSize}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.venue)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   private[sql] def insert(elt: Venue): doobie.Update0 =
     buildInsert(tableFr, writeFieldsFr, values(elt)).update
 
   private[sql] def update(group: Group.Id, id: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): doobie.Update0 = {
-    val fields = fr0"address=${data.address}, address_lat=${data.address.lat}, address_lng=${data.address.lng}, address_country=${data.address.country}, description=${data.description}, room_size=${data.roomSize}, meetupGroup=${data.refs.meetup.map(_.group)}, meetupVenue=${data.refs.meetup.map(_.venue)}, updated=$now, updated_by=$by"
+    val fields = fr0"address=${data.address}, address_lat=${data.address.geo.lat}, address_lng=${data.address.geo.lng}, address_country=${data.address.country}, description=${data.description}, room_size=${data.roomSize}, meetupGroup=${data.refs.meetup.map(_.group)}, meetupVenue=${data.refs.meetup.map(_.venue)}, updated=$now, updated_by=$by"
     buildUpdate(tableFr, fields, where(group, id)).update
   }
 

@@ -39,7 +39,7 @@ class GroupSettingsRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOneEventDescription group settings") {
         val q = selectOneEventDescription(group.id)
-        q.sql shouldBe s"SELECT event_default_description FROM group_settings WHERE group_id=?"
+        q.sql shouldBe s"SELECT event_description FROM group_settings WHERE group_id=?"
         check(q)
       }
       it("should build selectOneEventTemplates group settings") {
@@ -59,7 +59,7 @@ class GroupSettingsRepoSqlSpec extends RepoSpec {
 object GroupSettingsRepoSqlSpec {
   val meetupFields = "meetup_access_token, meetup_refresh_token, meetup_group_slug, meetup_logged_user_id, meetup_logged_user_name"
   val slackFields = "slack_token, slack_bot_name, slack_bot_avatar"
-  val eventFields = "event_default_description, event_templates"
+  val eventFields = "event_description, event_templates"
 
   val fieldList = s"group_id, $meetupFields, $slackFields, $eventFields, actions, updated, updated_by"
   val fieldListSelect = s"$meetupFields, $slackFields, $eventFields, actions"

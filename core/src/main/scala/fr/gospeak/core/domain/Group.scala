@@ -82,7 +82,7 @@ object Group {
         // twitter = None,
         // youtube = None),
       event = Event(
-        defaultDescription = TemplateData.Static.defaultEventDescription,
+        description = TemplateData.Static.eventDescription,
         templates = Map()),
       actions = Map())
 
@@ -120,36 +120,38 @@ object Group {
 
     }
 
-    final case class Event(defaultDescription: MustacheMarkdownTmpl[TemplateData.EventInfo],
+    final case class Event(description: MustacheMarkdownTmpl[TemplateData.EventInfo],
                            templates: Map[String, MustacheTextTmpl[TemplateData.EventInfo]]) {
-      def defaultTemplates: Seq[(String, MustacheMarkdownTmpl[TemplateData.EventInfo])] =
-        Seq((Event.defaultDescriptionId, defaultDescription))
+      private def defaultTemplates: Map[String, MustacheTmpl[TemplateData.EventInfo]] = Map(
+        Event.descriptionTmplId -> Some(description),
+      ).collect { case (id, Some(tmpl)) => (id, tmpl) }
 
       def allTemplates: Seq[(String, Boolean, MustacheTmpl[TemplateData.EventInfo])] =
-        defaultTemplates.map { case (id, t) => (id, true, t) } ++
+        defaultTemplates.toSeq.map { case (id, t) => (id, true, t) } ++
           templates.toSeq.map { case (id, t) => (id, false, t) }.sortBy(_._1)
 
       def getTemplate(id: String): Option[MustacheTmpl[TemplateData.EventInfo]] =
-        if (id == Event.defaultDescriptionId) Some(defaultDescription)
-        else templates.get(id)
+        defaultTemplates.get(id).orElse(templates.get(id))
 
       def removeTemplate(id: String): Try[Event] =
         if (templates.contains(id)) Success(copy(templates = templates - id))
-        else if (id == Event.defaultDescriptionId) Failure(new IllegalArgumentException(s"Template '$id' is a default one, unable to remove it"))
+        else if (Event.defaultTmplIds.contains(id)) Failure(new IllegalArgumentException(s"Template '$id' is a default one, unable to remove it"))
         else Failure(new IllegalArgumentException(s"Template '$id' does not exists, unable to remove it"))
 
       def addTemplate(id: String, tmpl: MustacheTextTmpl[TemplateData.EventInfo]): Try[Event] =
-        if (templates.contains(id) || id == Event.defaultDescriptionId) Failure(new IllegalArgumentException(s"Template '$id' already exists, unable to add it"))
+        if (templates.contains(id) || Event.defaultTmplIds.contains(id)) Failure(new IllegalArgumentException(s"Template '$id' already exists, unable to add it"))
         else Success(copy(templates = templates ++ Map(id -> tmpl)))
 
-      def updateTemplate(oldId: String, newId: String, tmpl: MustacheMarkdownTmpl[TemplateData.EventInfo]): Try[Event] =
-        if (newId == Event.defaultDescriptionId) Success(copy(defaultDescription = tmpl))
+      def updateTemplate(oldId: String, newId: String, tmpl: MustacheTmpl[TemplateData.EventInfo]): Try[Event] =
+        if (newId == Event.descriptionTmplId) Success(copy(description = tmpl.asMarkdown))
         else removeTemplate(oldId).mapFailure(e => new IllegalArgumentException(s"Template '$oldId' does not exists, unable to update it", e))
           .flatMap(_.addTemplate(newId, tmpl.asText).mapFailure(e => new IllegalArgumentException(s"Template '$newId' already exists, unable to rename to it", e)))
     }
 
     object Event {
-      val defaultDescriptionId = "Default description"
+      val descriptionTmplId = "Event description"
+
+      val defaultTmplIds: Seq[String] = Seq(descriptionTmplId)
     }
 
   }

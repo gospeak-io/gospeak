@@ -1,6 +1,6 @@
 package fr.gospeak.core.testingutils
 
-import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
+import java.time._
 
 import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
 import fr.gospeak.core.domain._
@@ -13,6 +13,7 @@ import fr.gospeak.libs.scalautils.domain._
 import org.scalacheck.ScalacheckShapeless._
 import org.scalacheck.{Arbitrary, Gen}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.duration.{FiniteDuration, TimeUnit}
 import scala.util.Try
 
@@ -36,6 +37,7 @@ object Generators {
   implicit val aInstant: Arbitrary[Instant] = Arbitrary(Gen.calendar.map(_.toInstant))
   implicit val aLocalDate: Arbitrary[LocalDate] = Arbitrary(Gen.calendar.map(_.toInstant.atZone(ZoneOffset.UTC).toLocalDate))
   implicit val aLocalDateTime: Arbitrary[LocalDateTime] = Arbitrary(Gen.calendar.map(_.toInstant.atZone(ZoneOffset.UTC).toLocalDateTime))
+  implicit val aZoneId: Arbitrary[ZoneId] = Arbitrary(Gen.oneOf(ZoneId.getAvailableZoneIds.asScala.toSeq.map(ZoneId.of)))
   implicit val aMarkdown: Arbitrary[Markdown] = Arbitrary(stringGen.map(str => Markdown(str)))
   implicit val aSecret: Arbitrary[Secret] = Arbitrary(stringGen.map(str => Secret(str)))
   implicit val aSlides: Arbitrary[Slides] = Arbitrary(slugGen.map(slug => Slides.from(s"http://docs.google.com/presentation/d/${slug.take(82)}").right.get))
@@ -46,6 +48,10 @@ object Generators {
   implicit val aTag: Arbitrary[Tag] = Arbitrary(nonEmptyStringGen.map(str => Tag(str.take(Tag.maxSize))))
   implicit val aTags: Arbitrary[Seq[Tag]] = Arbitrary(Gen.listOf(aTag.arbitrary).map(_.take(Tag.maxNumber)))
   implicit val aCurrency: Arbitrary[Price.Currency] = Arbitrary(Gen.oneOf(Price.Currency.all))
+  implicit val aGeo: Arbitrary[Geo] = Arbitrary(for {
+    lat <- Gen.chooseNum[Double](-90, 90)
+    lng <- Gen.chooseNum[Double](-180, 180)
+  } yield Geo(lat, lng))
 
   implicit val aUserId: Arbitrary[User.Id] = Arbitrary(Gen.uuid.map(id => User.Id.from(id.toString).right.get))
   implicit val aUserSlug: Arbitrary[User.Slug] = Arbitrary(slugGen.map(slug => User.Slug.from(slug).right.get))

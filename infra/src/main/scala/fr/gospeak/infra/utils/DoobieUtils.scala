@@ -123,6 +123,8 @@ object DoobieUtils {
     implicit val avatarSourceMeta: Meta[Avatar.Source] = Meta[String].timap(Avatar.Source.from(_).get)(_.toString)
     implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))
     implicit val gMapPlaceMeta: Meta[GMapPlace] = {
+      implicit val geoDecoder: Decoder[Geo] = deriveDecoder[Geo]
+      implicit val geoEncoder: Encoder[Geo] = deriveEncoder[Geo]
       implicit val gMapPlaceDecoder: Decoder[GMapPlace] = deriveDecoder[GMapPlace]
       implicit val gMapPlaceEncoder: Encoder[GMapPlace] = deriveEncoder[GMapPlace]
       Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
