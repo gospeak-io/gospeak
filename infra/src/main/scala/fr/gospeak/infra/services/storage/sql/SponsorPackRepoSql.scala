@@ -49,7 +49,7 @@ class SponsorPackRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
 object SponsorPackRepoSql {
   private val _ = sponsorPackIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table: String = "sponsor_packs"
-  private val fields: Seq[String] = Seq("id", "group_id", "slug", "name", "description", "price", "currency", "duration", "active", "created", "created_by", "updated", "updated_by")
+  private[sql] val fields: Seq[String] = Seq("id", "group_id", "slug", "name", "description", "price", "currency", "duration", "active", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields: Seq[String] = Seq("id", "slug", "name", "description")

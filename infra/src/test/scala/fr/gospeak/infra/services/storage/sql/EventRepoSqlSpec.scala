@@ -62,6 +62,13 @@ class EventRepoSqlSpec extends RepoSpec {
         check(s)
         check(c)
       }
+      it("should build selectPagePublished") {
+        val (s, c) = selectPagePublished(group.id, params)
+        s.sql shouldBe s"SELECT $eventVenuePartnerFields FROM $eventVenuePartnerTables WHERE e.group_id=? AND e.published IS NOT NULL ORDER BY e.start IS NULL, e.start DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $eventVenuePartnerTables WHERE e.group_id=? AND e.published IS NOT NULL "
+        check(s)
+        check(c)
+      }
       it("should build selectAll") {
         val q = selectAll(NonEmptyList.of(event.id))
         q.sql shouldBe s"SELECT $fieldList FROM events WHERE id IN (?) "
@@ -79,5 +86,11 @@ class EventRepoSqlSpec extends RepoSpec {
 }
 
 object EventRepoSqlSpec {
+
+  import RepoSpec._
+
   val fieldList = "id, group_id, cfp_id, slug, name, start, description, venue, talks, tags, published, meetupGroup, meetupEvent, created, created_by, updated, updated_by"
+
+  private val eventVenuePartnerTables = "events e LEFT OUTER JOIN venues v ON e.venue=v.id LEFT OUTER JOIN partners p ON v.partner_id=p.id"
+  private val eventVenuePartnerFields = s"${withPrefix(fieldList, "e.")}, ${withPrefix(VenueRepoSqlSpec.fieldList, "v.")}, ${withPrefix(PartnerRepoSqlSpec.fieldList, "p.")}"
 }

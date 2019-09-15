@@ -7,8 +7,10 @@ import cats.effect.IO
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.core.domain.{Group, Partner, Sponsor, User}
+import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage.SponsorRepo
+import fr.gospeak.infra.services.storage.sql.PartnerRepoSql.{fields => partnerFields, table => partnerTable}
+import fr.gospeak.infra.services.storage.sql.SponsorPackRepoSql.{fields => sponsorPackFields, table => sponsorPackTable}
 import fr.gospeak.infra.services.storage.sql.SponsorRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
@@ -30,6 +32,8 @@ class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[Sponsor]] = run(Queries.selectPage(selectPage(group, _), params))
 
+  override def listCurrent(group: Group.Id, now: Instant): IO[Seq[(Sponsor, Partner, SponsorPack)]] = run(selectCurrent(group, now).to[List])
+
   override def listAll(group: Group.Id): IO[Seq[Sponsor]] = run(selectAll(group).to[List])
 
   override def listAll(group: Group.Id, partner: Partner.Id): IO[Seq[Sponsor]] = run(selectAll(group, partner).to[List])
@@ -43,6 +47,9 @@ object SponsorRepoSql {
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields: Seq[String] = Seq("id")
   private val defaultSort: Page.OrderBy = Page.OrderBy("-start")
+
+  private val tableWithPartnerSponsorPackFr = Fragment.const0(s"$table s INNER JOIN $partnerTable p ON s.partner_id=p.id INNER JOIN $sponsorPackTable sp ON s.sponsor_pack_id=sp.id")
+  private val fieldsWithPartnerSponsorPackFr = Fragment.const0((fields.map("s." + _) ++ partnerFields.map("p." + _) ++ sponsorPackFields.map("sp." + _)).mkString(", "))
 
   private def values(e: Sponsor): Fragment =
     fr0"${e.id}, ${e.group}, ${e.partner}, ${e.pack}, ${e.start}, ${e.finish}, ${e.paid}, ${e.price.amount}, ${e.price.currency}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
@@ -64,6 +71,9 @@ object SponsorRepoSql {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Sponsor], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
+
+  private[sql] def selectCurrent(group: Group.Id, now: Instant): doobie.Query0[(Sponsor, Partner, SponsorPack)] =
+    buildSelect(tableWithPartnerSponsorPackFr, fieldsWithPartnerSponsorPackFr, fr0"WHERE s.group_id=$group AND s.start < $now AND s.finish > $now").query[(Sponsor, Partner, SponsorPack)]
 
   private[sql] def selectAll(group: Group.Id): doobie.Query0[Sponsor] =
     buildSelect(tableFr, fieldsFr, where(group)).query[Sponsor]

@@ -29,6 +29,11 @@ class SponsorRepoSqlSpec extends RepoSpec {
         check(s)
         check(c)
       }
+      it("should build selectCurrent") {
+        val q = selectCurrent(group.id, now)
+        q.sql shouldBe s"SELECT $sponsorPartnerSponsorPackFields FROM $sponsorPartnerSponsorPackTables WHERE s.group_id=? AND s.start < ? AND s.finish > ?"
+        // check(q)
+      }
       it("should build selectAll group") {
         val q = selectAll(group.id)
         q.sql shouldBe s"SELECT $fieldList FROM sponsors WHERE group_id=?"
@@ -44,5 +49,11 @@ class SponsorRepoSqlSpec extends RepoSpec {
 }
 
 object SponsorRepoSqlSpec {
+
+  import RepoSpec._
+
   val fieldList = "id, group_id, partner_id, sponsor_pack_id, start, finish, paid, price, currency, created, created_by, updated, updated_by"
+
+  private val sponsorPartnerSponsorPackTables = "sponsors s INNER JOIN partners p ON s.partner_id=p.id INNER JOIN sponsor_packs sp ON s.sponsor_pack_id=sp.id"
+  private val sponsorPartnerSponsorPackFields = s"${withPrefix(fieldList, "s.")}, ${withPrefix(PartnerRepoSqlSpec.fieldList, "p.")}, ${withPrefix(SponsorPackRepoSqlSpec.fieldList, "sp.")}"
 }

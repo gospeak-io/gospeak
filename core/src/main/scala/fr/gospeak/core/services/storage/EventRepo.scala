@@ -8,7 +8,7 @@ import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
 
 // TODO: take full object as parameter instead of Id/slug to guarantee it exists
 // TODO: remove list(Seq[Id]) methods as they are dangerous (right wise) and pack them with previous one (listProposalsWithSpeakers)
-trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with SuggestEventRepo
+trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with PublicEventRepo with SuggestEventRepo
 
 trait OrgaEventRepo {
   def create(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event]
@@ -37,6 +37,10 @@ trait SpeakerEventRepo {
 trait UserEventRepo
 
 trait AuthEventRepo
+
+trait PublicEventRepo {
+  def listPublished(group: Group.Id, params: Page.Params): IO[Page[(Event, Option[(Venue, Partner)])]]
+}
 
 trait SuggestEventRepo {
   def listTags(): IO[Seq[Tag]]

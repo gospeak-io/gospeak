@@ -1,5 +1,6 @@
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
-@import fr.gospeak.core.domain.{Cfp, Group}
+@import fr.gospeak.core.domain.{Cfp, Group, Event, Sponsor, Venue, Partner, SponsorPack}
+@import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.html._
@@ -7,7 +8,7 @@
 @import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 
-@(group: Group, cfps: Seq[Cfp])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, cfps: Seq[Cfp], events: Page[(Event, Option[(Venue, Partner)])], sponsors: Seq[(Sponsor, Partner, SponsorPack)], packs: Seq[SponsorPack])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @container(group.name.value + " - Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@group.name.value</span>
@@ -28,5 +29,21 @@
             }
         }
     </h1>
-    <blockquote class="blockquote">@markdown(group.description)</blockquote>
+    <div class="row">
+        <div class="col">
+            @events.items.map { case (event, venueOpt) =>
+                <div>@event.name.value @venueOpt.map { case (v, p) => at @p.name.value }</div>
+            }
+        </div>
+        <div class="col">
+            <h3>About</h3>
+            <blockquote class="blockquote">@markdown(group.description)</blockquote>
+            <h3>Follow us</h3>
+            <p>TODO</p>
+            <h3>Sponsors</h3>
+            @sponsors.map { case (s, p, sp) =>
+                <div>@p.name.value</div>
+            }
+        </div>
+    </div>
 }()

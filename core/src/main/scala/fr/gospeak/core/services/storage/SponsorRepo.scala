@@ -3,10 +3,10 @@ package fr.gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.{Group, Partner, Sponsor, User}
+import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
-trait SponsorRepo extends OrgaSponsorRepo
+trait SponsorRepo extends OrgaSponsorRepo with PublicSponsorRepo
 
 trait OrgaSponsorRepo {
   def create(group: Group.Id, data: Sponsor.Data, by: User.Id, now: Instant): IO[Sponsor]
@@ -22,4 +22,8 @@ trait OrgaSponsorRepo {
   def listAll(group: Group.Id): IO[Seq[Sponsor]]
 
   def listAll(group: Group.Id, partner: Partner.Id): IO[Seq[Sponsor]]
+}
+
+trait PublicSponsorRepo {
+  def listCurrent(group: Group.Id, now: Instant): IO[Seq[(Sponsor, Partner, SponsorPack)]]
 }

@@ -37,14 +37,14 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
 object VenueRepoSql {
   private val _ = venueIdMeta // for intellij not remove DoobieUtils.Mappings import
-  private val table = "venues"
+  private[sql] val table = "venues"
   private val writeFields = Seq("id", "partner_id", "address", "address_lat", "address_lng", "address_country", "description", "room_size", "meetupGroup", "meetupVenue", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val writeFieldsFr: Fragment = Fragment.const0(writeFields.mkString(", "))
   private val searchFields = Seq("id", "address", "description")
   private val defaultSort = Page.OrderBy("created")
 
-  private val fields = writeFields.filterNot(_.startsWith("address_"))
+  private[sql] val fields = writeFields.filterNot(_.startsWith("address_"))
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val partnerAndVenueTables = Fragment.const0(s"$table v INNER JOIN ${PartnerRepoSql.table} p ON v.partner_id=p.id")
   private val partnerAndVenueFields = Fragment.const0((PartnerRepoSql.fields.map("p." + _) ++ fields.map("v." + _)).mkString(", "))

@@ -12,6 +12,8 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.EventRepo
 import fr.gospeak.infra.services.storage.sql.EventRepoSql._
+import fr.gospeak.infra.services.storage.sql.PartnerRepoSql.{fields => partnerFields, table => partnerTable}
+import fr.gospeak.infra.services.storage.sql.VenueRepoSql.{fields => venueFields, table => venueTable}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
@@ -46,6 +48,8 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(Queries.selectPage(selectPage(group, _), params))
 
+  override def listPublished(group: Group.Id, params: Page.Params): IO[Page[(Event, Option[(Venue, Partner)])]] = run(Queries.selectPage(selectPagePublished(group, _), params))
+
   override def list(ids: Seq[Event.Id]): IO[Seq[Event]] = runIn[Event.Id, Event](selectAll)(ids)
 
   override def listAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]] =
@@ -62,6 +66,9 @@ object EventRepoSql {
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "slug", "name", "description", "tags")
   private val defaultSort = Page.OrderBy("-start")
+
+  private val tableWithVenuePartnerFr = Fragment.const0(s"$table e LEFT OUTER JOIN $venueTable v ON e.venue=v.id LEFT OUTER JOIN $partnerTable p ON v.partner_id=p.id")
+  private val fieldsWithVenuePartnerFr = Fragment.const0((fields.map("e." + _) ++ venueFields.map("v." + _) ++ partnerFields.map("p." + _)).mkString(", "))
 
   private def values(e: Event): Fragment =
     fr0"${e.id}, ${e.group}, ${e.cfp}, ${e.slug}, ${e.name}, ${e.start}, ${e.description}, ${e.venue}, ${e.talks}, ${e.tags}, ${e.published}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.event)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
@@ -94,6 +101,11 @@ object EventRepoSql {
   private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[Event], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Event], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+  }
+
+  private[sql] def selectPagePublished(group: Group.Id, params: Page.Params): (doobie.Query0[(Event, Option[(Venue, Partner)])], doobie.Query0[Long]) = {
+    val page = paginate(params, searchFields, defaultSort.prefix("e."), Some(fr0"WHERE e.group_id=$group AND e.published IS NOT NULL"))
+    (buildSelect(tableWithVenuePartnerFr, fieldsWithVenuePartnerFr, page.all).query[(Event, Option[(Venue, Partner)])], buildSelect(tableWithVenuePartnerFr, fr0"count(*)", page.where).query[Long])
   }
 
   private[sql] def selectAll(ids: NonEmptyList[Event.Id]): doobie.Query0[Event] =

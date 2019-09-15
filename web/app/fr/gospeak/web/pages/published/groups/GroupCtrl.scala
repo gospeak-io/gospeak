@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.Group
-import fr.gospeak.core.services.storage.{PublicCfpRepo, PublicGroupRepo}
+import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
@@ -17,7 +17,10 @@ import play.api.mvc._
 class GroupCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
                 groupRepo: PublicGroupRepo,
-                cfpRepo: PublicCfpRepo) extends UICtrl(cc, silhouette) {
+                cfpRepo: PublicCfpRepo,
+                eventRepo: PublicEventRepo,
+                sponsorRepo: PublicSponsorRepo,
+                sponsorPackRepo: PublicSponsorPackRepo) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
@@ -33,8 +36,11 @@ class GroupCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       cfps <- OptionT.liftF(cfpRepo.listAllOpen(groupElt.id, now))
+      events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, Page.Params.defaults))
+      sponsors <- OptionT.liftF(sponsorRepo.listCurrent(groupElt.id, now))
+      packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       b = breadcrumb(groupElt)
-    } yield Ok(html.detail(groupElt, cfps)(b))).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, cfps, events, sponsors, packs)(b))).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
   }
 }
 
