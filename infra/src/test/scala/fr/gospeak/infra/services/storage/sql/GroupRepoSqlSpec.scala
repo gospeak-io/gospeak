@@ -40,7 +40,12 @@ class GroupRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = insert(group)
-        q.sql shouldBe s"INSERT INTO groups ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO groups ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        check(q)
+      }
+      it("should build update") {
+        val q = update(group.slug)(group.data, user.id, now)
+        q.sql shouldBe s"UPDATE groups SET slug=?, name=?, contact=?, description=?, tags=?, updated=?, updated_by=? WHERE slug=?"
         check(q)
       }
       it("should build updateOwners") {
@@ -91,6 +96,11 @@ class GroupRepoSqlSpec extends RepoSpec {
         q.sql shouldBe s"SELECT $fieldList FROM groups WHERE id=?"
         check(q)
       }
+      it("should build selectOne with slug") {
+        val q = selectOne(group.slug)
+        q.sql shouldBe s"SELECT $fieldList FROM groups WHERE slug=?"
+        check(q)
+      }
       it("should build selectOnePublic") {
         val q = selectOnePublic(group.slug)
         q.sql shouldBe s"SELECT $fieldList FROM groups WHERE published IS NOT NULL AND slug=?"
@@ -106,5 +116,5 @@ class GroupRepoSqlSpec extends RepoSpec {
 }
 
 object GroupRepoSqlSpec {
-  val fieldList = "id, slug, name, description, owners, tags, published, created, created_by, updated, updated_by"
+  val fieldList = "id, slug, name, contact, description, owners, tags, published, created, created_by, updated, updated_by"
 }

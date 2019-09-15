@@ -36,7 +36,7 @@
                 </div>
             </div>
             <div class="navbar-nav">
-                @navbarLink(SettingsCtrl.list(group.slug)) {<i class="fas fa-cog"></i>}
+                @navbarLink(SettingsCtrl.settings(group.slug)) {<i class="fas fa-cog"></i>}
                 @userDropdown(req.identity, Some(group))
             </div>
         </div>

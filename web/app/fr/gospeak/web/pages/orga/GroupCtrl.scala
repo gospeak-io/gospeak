@@ -3,7 +3,9 @@ package fr.gospeak.web.pages.orga
 import java.time.Instant
 
 import cats.data.OptionT
+import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, UserRequest}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
@@ -12,7 +14,10 @@ import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain._
 import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.orga.GroupCtrl._
+import fr.gospeak.web.pages.orga.settings.SettingsCtrl
+import fr.gospeak.web.pages.orga.settings.routes.{SettingsCtrl => SettingsRoutes}
 import fr.gospeak.web.utils.{HttpUtils, UICtrl}
+import play.api.data.Form
 import play.api.mvc._
 
 class GroupCtrl(cc: ControllerComponents,
@@ -49,6 +54,35 @@ class GroupCtrl(cc: ControllerComponents,
       requestUsers <- OptionT.liftF(userRepo.list(requests.flatMap(_.users).distinct))
       b = breadcrumb(groupElt)
     } yield Ok(html.detail(groupElt, events, cfps, venues, proposals, speakers, currentSponsors, pastSponsors, packs, requests, requestUsers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+  }
+
+  def edit(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    editForm(group, GroupForms.create).unsafeToFuture()
+  }
+
+  def doEdit(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    GroupForms.create.bindFromRequest.fold(
+      formWithErrors => editForm(group, formWithErrors),
+      data => (for {
+        _ <- OptionT(groupRepo.find(user, group)) // to check that user is a group owner
+        newSlugExits <- OptionT.liftF(groupRepo.exists(data.slug))
+        res <- OptionT.liftF(
+          if (newSlugExits && data.slug != group) {
+            editForm(group, GroupForms.create.fillAndValidate(data).withError("slug", s"Slug ${data.slug.value} already taken by an other group"))
+          } else {
+            groupRepo.edit(group)(data, by, now).map { _ => Redirect(SettingsRoutes.settings(data.slug)) }
+          })
+      } yield res).value.map(_.getOrElse(groupNotFound(group)))
+    ).unsafeToFuture()
+  }
+
+  private def editForm(group: Group.Slug, form: Form[Group.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      b = SettingsCtrl.listBreadcrumb(groupElt).add("Edit group" -> routes.GroupCtrl.edit(group))
+      filledForm = if (form.hasErrors) form else form.fill(groupElt.data)
+    } yield Ok(html.edit(groupElt, filledForm)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
   def acceptJoin(group: Group.Slug, userRequest: UserRequest.Id): Action[AnyContent] = SecuredAction.async { implicit req =>

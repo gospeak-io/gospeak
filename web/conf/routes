@@ -39,6 +39,8 @@ POST        /u/accept/:request                                                  
 POST        /u/reject/:request                                                  fr.gospeak.web.pages.user.UserCtrl.rejectRequest(request: UserRequest.Id)
 
 GET         /u/groups/:group                                                    fr.gospeak.web.pages.orga.GroupCtrl.detail(group: Group.Slug)
+GET         /u/groups/:group/edit                                               fr.gospeak.web.pages.orga.GroupCtrl.edit(group: Group.Slug)
+POST        /u/groups/:group/edit                                               fr.gospeak.web.pages.orga.GroupCtrl.doEdit(group: Group.Slug)
 GET         /u/groups/:group/accept-join/:request                               fr.gospeak.web.pages.orga.GroupCtrl.acceptJoin(group: Group.Slug, request: UserRequest.Id)
 GET         /u/groups/:group/reject-join/:request                               fr.gospeak.web.pages.orga.GroupCtrl.rejectJoin(group: Group.Slug, request: UserRequest.Id)
 GET         /u/groups/:group/events                                             fr.gospeak.web.pages.orga.events.EventCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
@@ -105,7 +107,7 @@ GET         /u/groups/:group/sponsors/:pack/create                              
 POST        /u/groups/:group/sponsors/:pack/create                              fr.gospeak.web.pages.orga.sponsors.SponsorCtrl.doCreate(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug] ?= None)
 POST        /u/groups/:group/sponsors/:sponsor/paid                             fr.gospeak.web.pages.orga.sponsors.SponsorCtrl.paid(group: Group.Slug, sponsor: Sponsor.Id)
 POST        /u/groups/:group/sponsors/:sponsor/remove                           fr.gospeak.web.pages.orga.sponsors.SponsorCtrl.remove(group: Group.Slug, sponsor: Sponsor.Id)
-GET         /u/groups/:group/settings                                           fr.gospeak.web.pages.orga.settings.SettingsCtrl.list(group: Group.Slug)
+GET         /u/groups/:group/settings                                           fr.gospeak.web.pages.orga.settings.SettingsCtrl.settings(group: Group.Slug)
 POST        /u/groups/:group/settings/meetup/authorize                          fr.gospeak.web.pages.orga.settings.SettingsCtrl.meetupAuthorize(group: Group.Slug)
 GET         /u/groups/:group/settings/meetup/callback/:meetupGroup              fr.gospeak.web.pages.orga.settings.SettingsCtrl.meetupCallback(group: Group.Slug, meetupGroup: MeetupGroup.Slug)
 POST        /u/groups/:group/settings/slack-account                             fr.gospeak.web.pages.orga.settings.SettingsCtrl.updateSlackAccount(group: Group.Slug)

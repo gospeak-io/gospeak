@@ -15,6 +15,7 @@ import scala.util.{Failure, Success, Try}
 final case class Group(id: Group.Id,
                        slug: Group.Slug,
                        name: Group.Name,
+                       contact: Option[EmailAddress],
                        description: Markdown,
                        owners: NonEmptyList[User.Id],
                        tags: Seq[Tag],
@@ -27,7 +28,7 @@ final case class Group(id: Group.Id,
 
 object Group {
   def apply(data: Data, owners: NonEmptyList[User.Id], info: Info): Group =
-    new Group(Id.generate(), data.slug, data.name, data.description, owners, data.tags, None, info) // FIXME add public in form
+    new Group(Id.generate(), data.slug, data.name, data.contact, data.description, owners, data.tags, None, info) // FIXME add public in form
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -41,11 +42,12 @@ object Group {
 
   final case class Data(slug: Group.Slug,
                         name: Group.Name,
+                        contact: Option[EmailAddress],
                         description: Markdown,
                         tags: Seq[Tag])
 
   object Data {
-    def apply(group: Group): Data = new Data(group.slug, group.name, group.description, group.tags)
+    def apply(group: Group): Data = new Data(group.slug, group.name, group.contact, group.description, group.tags)
   }
 
 
@@ -79,8 +81,8 @@ object Group {
       accounts = Accounts(
         meetup = None,
         slack = None),
-        // twitter = None,
-        // youtube = None),
+      // twitter = None,
+      // youtube = None),
       event = Event(
         description = TemplateData.Static.eventDescription,
         templates = Map()),
@@ -88,8 +90,9 @@ object Group {
 
     final case class Accounts(meetup: Option[MeetupCredentials],
                               slack: Option[SlackCredentials])
-                              // twitter: Option[String],
-                              // youtube: Option[String])
+
+    // twitter: Option[String],
+    // youtube: Option[String])
 
     sealed trait Action
 

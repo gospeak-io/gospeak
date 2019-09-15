@@ -65,14 +65,14 @@ object Emails {
   def inviteOrgaToGroupAccepted(invite: UserRequest.GroupInvite, group: Group, orga: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
     Email(
       from = sender,
-      to = Seq(Contact(orga)),
+      to = Seq(Contact(group.contact.getOrElse(orga.email))),
       subject = s"${by.name.value} has accepted your invitation for the ${group.name.value} group",
       content = HtmlContent(html.inviteOrgaToGroupAccepted(invite, group, orga, by).body))
 
   def inviteOrgaToGroupRejected(invite: UserRequest.GroupInvite, group: Group, orga: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
     Email(
       from = sender,
-      to = Seq(Contact(orga)),
+      to = Seq(Contact(group.contact.getOrElse(orga.email))),
       subject = s"Oups, ${by.name.value} rejected your invitation in the ${group.name.value} group :(",
       content = HtmlContent(html.inviteOrgaToGroupRejected(invite, group, orga, by).body))
 

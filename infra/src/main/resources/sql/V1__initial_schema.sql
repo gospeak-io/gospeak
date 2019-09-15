@@ -88,6 +88,7 @@ CREATE TABLE groups
     id          CHAR(36)      NOT NULL PRIMARY KEY,
     slug        VARCHAR(120)  NOT NULL UNIQUE,
     name        VARCHAR(120)  NOT NULL,
+    contact     VARCHAR(120),           -- group email address
     description VARCHAR(4096) NOT NULL,
     owners      VARCHAR(369)  NOT NULL, -- 10 owners max
     tags        VARCHAR(150)  NOT NULL, -- 5 tags max

@@ -55,6 +55,7 @@ class HomeCtrl(cc: ControllerComponents,
     id = Group.Id.generate(),
     slug = Group.Slug.from("group-slug").get,
     name = Group.Name("A group"),
+    contact = Some(EmailAddress.from("contact@gospeak.fr").get),
     description = Markdown(
       """This is an **awesome** group, you should come and see us.
         |

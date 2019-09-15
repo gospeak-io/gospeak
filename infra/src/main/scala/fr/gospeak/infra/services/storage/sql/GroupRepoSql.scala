@@ -14,11 +14,22 @@ import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.utils.DoobieUtils.Queries
-import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
+import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
 
 class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with GroupRepo {
   override def create(data: Group.Data, by: User.Id, now: Instant): IO[Group] =
     run(insert, Group(data, NonEmptyList.of(by), Info(by, now)))
+
+  override def edit(slug: Group.Slug)(data: Group.Data, by: User.Id, now: Instant): IO[Done] = {
+    if (data.slug != slug) {
+      find(data.slug).flatMap {
+        case None => run(update(slug)(data, by, now))
+        case _ => IO.raiseError(CustomException(s"You already have a partner with slug ${data.slug}"))
+      }
+    } else {
+      run(update(slug)(data, by, now))
+    }
+  }
 
   override def addOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done] =
     find(group).flatMap {
@@ -58,9 +69,13 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def find(group: Group.Id): IO[Option[Group]] = run(selectOne(group).option)
 
+  private def find(group: Group.Slug): IO[Option[Group]] = run(selectOne(group).option)
+
   override def findPublic(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPagePublic(user, _), params))
 
   override def findPublic(slug: Group.Slug): IO[Option[Group]] = run(selectOnePublic(slug).option)
+
+  override def exists(group: Group.Slug): IO[Boolean] = run(selectOne(group).option.map(_.isDefined))
 
   override def listTags(): IO[Seq[Tag]] = run(selectTags().to[List]).map(_.flatten.distinct)
 }
@@ -68,16 +83,21 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 object GroupRepoSql {
   private val _ = groupIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table: String = "groups"
-  private val fields: Seq[String] = Seq("id", "slug", "name", "description", "owners", "tags", "published", "created", "created_by", "updated", "updated_by")
+  private val fields: Seq[String] = Seq("id", "slug", "name", "contact", "description", "owners", "tags", "published", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-  private val searchFields: Seq[String] = Seq("id", "slug", "name", "description", "tags")
+  private val searchFields: Seq[String] = Seq("id", "slug", "name", "contact", "description", "tags")
   private val defaultSort: Page.OrderBy = Page.OrderBy("name")
 
   private def values(e: Group): Fragment =
-    fr0"${e.id}, ${e.slug}, ${e.name}, ${e.description}, ${e.owners}, ${e.tags}, ${e.published}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.slug}, ${e.name}, ${e.contact}, ${e.description}, ${e.owners}, ${e.tags}, ${e.published}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   private[sql] def insert(elt: Group): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
+
+  private[sql] def update(group: Group.Slug)(data: Group.Data, by: User.Id, now: Instant): doobie.Update0 = {
+    val fields = fr0"slug=${data.slug}, name=${data.name}, contact=${data.contact}, description=${data.description}, tags=${data.tags}, updated=$now, updated_by=$by"
+    buildUpdate(tableFr, fields, where(group)).update
+  }
 
   private[sql] def updateOwners(group: Group.Id)(owners: NonEmptyList[User.Id], by: User.Id, now: Instant): doobie.Update0 =
     buildUpdate(tableFr, fr0"owners=$owners, updated=$now, updated_by=$by", fr0"WHERE id=$group").update
@@ -109,11 +129,18 @@ object GroupRepoSql {
     buildSelect(tableFr, fieldsFr, fr0"WHERE owners LIKE ${"%" + user.value + "%"} AND slug=$slug").query[Group]
 
   private[sql] def selectOne(group: Group.Id): doobie.Query0[Group] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$group").query[Group]
+    buildSelect(tableFr, fieldsFr, where(group)).query[Group]
+
+  private[sql] def selectOne(group: Group.Slug): doobie.Query0[Group] =
+    buildSelect(tableFr, fieldsFr, where(group)).query[Group]
 
   private[sql] def selectOnePublic(slug: Group.Slug): doobie.Query0[Group] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE published IS NOT NULL AND slug=$slug").query[Group]
 
   private[sql] def selectTags(): doobie.Query0[Seq[Tag]] =
     Fragment.const0(s"SELECT tags FROM $table").query[Seq[Tag]]
+
+  private def where(group: Group.Id): Fragment = fr0"WHERE id=$group"
+
+  private def where(group: Group.Slug): Fragment = fr0"WHERE slug=$group"
 }

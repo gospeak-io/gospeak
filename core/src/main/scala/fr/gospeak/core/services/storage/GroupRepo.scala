@@ -11,6 +11,10 @@ trait GroupRepo extends OrgaGroupRepo with SpeakerGroupRepo with UserGroupRepo w
 trait OrgaGroupRepo {
   def find(user: User.Id, slug: Group.Slug): IO[Option[Group]]
 
+  def exists(slug: Group.Slug): IO[Boolean]
+
+  def edit(slug: Group.Slug)(data: Group.Data, by: User.Id, now: Instant): IO[Done]
+
   def addOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done]
 
   def removeOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done]
