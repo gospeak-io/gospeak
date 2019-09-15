@@ -36,13 +36,10 @@ object ContactRepoSql {
   private val _ = contactIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table = "contacts"
   private[sql] val fields = Seq("id", "partner_id", "first_name", "last_name", "email", "description", "created", "created_by", "updated", "updated_by")
-  private val tableFr: Fragment = Fragment.const0(table)
-  private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-  private val partnerAndContactTables = Fragment.const0(s"$table c INNER JOIN ${PartnerRepoSql.table} p ON c.partner_id=p.id")
-  private val partnerAndContactFields = Fragment.const0((PartnerRepoSql.fields.map("p." + _) ++ fields.map("c." + _)).mkString(", "))
+  private val tableFr = Fragment.const0(table)
+  private val fieldsFr = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "first_name", "last_name", "email")
-  private val defaultSort = Page.OrderBy("c.created")
-  private val prefixedFields = Fragment.const0(fields.map("c." + _).mkString(", "))
+  private val defaultSort = Page.OrderBy("created")
 
   private def values(c: Contact): Fragment =
     fr0"${c.id}, ${c.partner}, ${c.firstName}, ${c.lastName}, ${c.email}, ${c.description}, ${c.info.created}, ${c.info.createdBy}, ${c.info.updated}, ${c.info.updatedBy}"
@@ -60,23 +57,23 @@ object ContactRepoSql {
   }
 
   private[sql] def selectPage(partner: Partner.Id, params: Page.Params): (doobie.Query0[Contact], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.id=$partner"))
-    (buildSelect(partnerAndContactTables, prefixedFields, page.all).query[Contact], buildSelect(partnerAndContactTables, fr0"COUNT(*)", page.where).query[Long])
+    val page = paginate(params, searchFields, defaultSort, Some(where(partner)))
+    (buildSelect(tableFr, fieldsFr, page.all).query[Contact], buildSelect(tableFr, fr0"COUNT(*)", page.where).query[Long])
   }
 
   private[sql] def selectAll(partner: Partner.Id): doobie.Query0[Contact] = {
-    buildSelect(partnerAndContactTables, prefixedFields, fr0"WHERE p.id=$partner").query[Contact]
+    buildSelect(tableFr, fieldsFr, where(partner)).query[Contact]
   }
 
   private[sql] def selectOne(id: Contact.Id): doobie.Query0[Contact] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[Contact]
+    buildSelect(tableFr, fieldsFr, where(id)).query[Contact]
 
   private[sql] def selectOne(partner: Partner.Id, email: EmailAddress): doobie.Query0[Contact] =
-    buildSelect(partnerAndContactTables, prefixedFields, where(partner, email)).query[Contact]
+    buildSelect(tableFr, fieldsFr, where(partner, email)).query[Contact]
 
-  private[sql] def where(partner: Partner.Id, email: EmailAddress): Fragment = fr0"WHERE p.id=$partner AND c.email=$email"
+  private def where(partner: Partner.Id): Fragment = fr0"WHERE partner_id=$partner"
 
-  private[sql] def where(id: Id): Fragment = fr0"WHERE id=$id"
+  private def where(partner: Partner.Id, email: EmailAddress): Fragment = fr0"WHERE partner_id=$partner AND email=$email"
 
-  private[sql] def where(partner: Partner.Id) = fr0"WHERE partner_id=$partner"
+  private def where(id: Id): Fragment = fr0"WHERE id=$id"
 }

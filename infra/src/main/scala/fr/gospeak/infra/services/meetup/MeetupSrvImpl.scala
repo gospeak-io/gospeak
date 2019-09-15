@@ -38,7 +38,7 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
     }
 
   override def publish(event: Event,
-                       venue: Option[(Partner, Venue)],
+                       venue: Option[Venue.Full],
                        description: Markdown,
                        draft: Boolean,
                        key: AesSecretKey,
@@ -46,19 +46,19 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
     toLib(creds, key).toIO.flatMap { implicit token =>
       for {
         orgas <- client.getOrgas(creds.group.value).flatMap(_.toIO(e => gs.MeetupException.CantFetchOrgas(creds.group, e.format)))
-        venueId <- venue.map { case (p, v) =>
-          v.refs.meetup.map(r => IO.pure(r.venue.value)).getOrElse {
+        venueId <- venue.map { v =>
+          v.venue.refs.meetup.map(r => IO.pure(r.venue.value)).getOrElse {
             for {
-              location <- client.getLocations(v.address.geo)
-                .flatMap(_.toIO(e => gs.MeetupException.CantFetchLocation(v.address.geo, e.format)))
-                .flatMap(_.headOption.toIO(gs.MeetupException.CantFetchLocation(v.address.geo, "No location found")))
-              created <- client.createVenue(creds.group.value, toLib(p, v, location))
-              id <- created.map(_.id).toIO(e => gs.MeetupException.CantCreateVenue(creds.group, event, p, v, e.format))
+              location <- client.getLocations(v.venue.address.geo)
+                .flatMap(_.toIO(e => gs.MeetupException.CantFetchLocation(v.venue.address.geo, e.format)))
+                .flatMap(_.headOption.toIO(gs.MeetupException.CantFetchLocation(v.venue.address.geo, "No location found")))
+              created <- client.createVenue(creds.group.value, toLib(v.partner, v.venue, location))
+              id <- created.map(_.id).toIO(e => gs.MeetupException.CantCreateVenue(creds.group, event, v.partner, v.venue, e.format))
             } yield id
           }
         }.sequence
         venueRef = venueId.map(id => gs.MeetupVenue.Ref(creds.group, gs.MeetupVenue.Id(id)))
-        toCreateEvent = toLib(event, venue.map(_._2), venueId, orgas.map(_.id), description, draft)
+        toCreateEvent = toLib(event, venue.map(_.venue), venueId, orgas.map(_.id), description, draft)
         meetupEvent <- event.refs.meetup
           .map(r => client.updateEvent(creds.group.value, r.event.value.toString, toCreateEvent).flatMap(_.toIO(e => gs.MeetupException.CantUpdateEvent(creds.group, event, e.format))))
           .getOrElse(client.createEvent(creds.group.value, toCreateEvent).flatMap(_.toIO(e => gs.MeetupException.CantCreateEvent(creds.group, event, e.format))))

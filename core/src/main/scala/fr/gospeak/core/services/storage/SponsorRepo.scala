@@ -25,5 +25,5 @@ trait OrgaSponsorRepo {
 }
 
 trait PublicSponsorRepo {
-  def listCurrent(group: Group.Id, now: Instant): IO[Seq[(Sponsor, Partner, SponsorPack)]]
+  def listCurrent(group: Group.Id, now: Instant): IO[Seq[Sponsor.Full]]
 }

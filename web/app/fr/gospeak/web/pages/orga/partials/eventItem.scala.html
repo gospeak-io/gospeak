@@ -1,5 +1,5 @@
 @import java.time.LocalDateTime
-@import fr.gospeak.core.domain.{Event, Group, Proposal, User, Cfp, Venue, Partner}
+@import fr.gospeak.core.domain.{Event, Group, Proposal, User, Cfp, Venue}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
@@ -7,7 +7,7 @@
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 
-@(group: Group, event: Event, cfp: Option[Cfp], venues: Seq[(Partner, Venue)], proposals: Seq[Proposal], speakers: Seq[User])
+@(group: Group, event: Event, cfp: Option[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User])
 <div class="list-group-item list-group-item-action @if(event.start.isAfter(LocalDateTime.now())) {list-group-item-secondary}">
     <h5 class="mb-1">
         <a href="@EventCtrl.detail(group.slug, event.slug)">@event.name.value</a>

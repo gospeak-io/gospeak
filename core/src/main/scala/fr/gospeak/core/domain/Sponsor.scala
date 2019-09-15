@@ -29,6 +29,8 @@ object Sponsor {
 
   object Id extends UuidIdBuilder[Id]("Sponsor.Id", new Id(_))
 
+  final case class Full(sponsor: Sponsor, sponsorPack: SponsorPack, partner: Partner)
+
   final case class Data(partner: Partner.Id,
                         pack: SponsorPack.Id,
                         start: LocalDate,

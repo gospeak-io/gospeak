@@ -20,7 +20,7 @@ trait MeetupSrv {
   def getGroup(group: MeetupGroup.Slug, key: AesSecretKey)(implicit token: MeetupToken): IO[MeetupGroup]
 
   def publish(event: Event,
-              venue: Option[(Partner, Venue)],
+              venue: Option[Venue.Full],
               description: Markdown,
               draft: Boolean,
               key: AesSecretKey, creds: MeetupCredentials): IO[(MeetupEvent.Ref, Option[MeetupVenue.Ref])]

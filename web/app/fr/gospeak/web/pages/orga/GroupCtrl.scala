@@ -93,7 +93,8 @@ class GroupCtrl(cc: ControllerComponents,
       requests <- OptionT.liftF(userRequestRepo.listPendingGroupRequests(groupElt.id, now))
       requestUsers <- OptionT.liftF(userRepo.list(requests.flatMap(_.users).distinct))
       b = breadcrumb(groupElt)
-    } yield Ok(html.detail(groupElt, events, cfps, venues, proposals, speakers, currentSponsors, pastSponsors, packs, requests, requestUsers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+      res = Ok(html.detail(groupElt, events, cfps, venues, proposals, speakers, currentSponsors, pastSponsors, packs, requests, requestUsers)(b))
+    } yield res).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>

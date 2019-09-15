@@ -54,11 +54,11 @@ trait SpeakerProposalRepo {
 
   def find(proposal: Proposal.Id): IO[Option[Proposal]]
 
-  def findWithCfpTalkEvent(proposal: Proposal.Id): IO[Option[(Cfp, Talk, Proposal, Option[Event])]]
+  def findWithCfpTalkEvent(proposal: Proposal.Id): IO[Option[Proposal.Full]]
 
-  def findWithCfpTalkEvent(talk: Talk.Slug, cfp: Cfp.Slug)(by: User.Id): IO[Option[(Cfp, Talk, Proposal, Option[Event])]]
+  def findWithCfpTalkEvent(talk: Talk.Slug, cfp: Cfp.Slug)(by: User.Id): IO[Option[Proposal.Full]]
 
-  def listWithCfpTalkEvent(user: User.Id, params: Page.Params): IO[Page[(Cfp, Talk, Proposal, Option[Event])]]
+  def listWithCfpTalkEvent(user: User.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
   def list(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
 

@@ -2,11 +2,10 @@ package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.{Cfp, Proposal, Talk}
-import fr.gospeak.infra.services.storage.sql.CfpRepoSqlSpec.{fieldList => cfpFieldList}
-import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec.{fieldList => eventFieldList}
-import fr.gospeak.infra.services.storage.sql.ProposalRepoSql._
+import fr.gospeak.infra.services.storage.sql.CfpRepoSqlSpec.{fields => cfpFields, table => cfpTable}
+import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec.{fields => eventFields, table => eventTable}
 import fr.gospeak.infra.services.storage.sql.ProposalRepoSqlSpec._
-import fr.gospeak.infra.services.storage.sql.TalkRepoSqlSpec.{fieldList => talkFieldList}
+import fr.gospeak.infra.services.storage.sql.TalkRepoSqlSpec.{fields => talkFields, table => talkTable}
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class ProposalRepoSqlSpec extends RepoSpec {
@@ -38,157 +37,157 @@ class ProposalRepoSqlSpec extends RepoSpec {
     }
     describe("Queries") {
       it("should build insert") {
-        val q = insert(proposal)
-        q.sql shouldBe s"INSERT INTO proposals ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        val q = ProposalRepoSql.insert(proposal)
+        q.sql shouldBe s"INSERT INTO $table ($fields) VALUES (${mapFields(fields, _ => "?")})"
         check(q)
       }
       it("should build update for orga") {
-        val q = update(user.id, group.slug, cfp.slug, proposal.id)(proposal.data, now)
-        q.sql shouldBe "UPDATE proposals SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN groups g ON c.group_id=g.id WHERE p.id=? AND c.slug=? AND g.slug=? AND g.owners LIKE ?)"
+        val q = ProposalRepoSql.update(user.id, group.slug, cfp.slug, proposal.id)(proposal.data, now)
+        q.sql shouldBe s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE id=$whereGroupAndCfp"
         check(q)
       }
       it("should build update for speaker") {
-        val q = update(user.id, talk.slug, cfp.slug)(proposal.data, now)
-        q.sql shouldBe "UPDATE proposals SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND p.speakers LIKE ?)"
+        val q = ProposalRepoSql.update(user.id, talk.slug, cfp.slug)(proposal.data, now)
+        q.sql shouldBe s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE id=$whereCfpAndTalk"
         check(q)
       }
       it("should build updateStatus") {
-        val q = updateStatus(cfp.slug, proposal.id)(proposal.status, None)
-        q.sql shouldBe "UPDATE proposals SET status=?, event_id=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.id=? AND c.slug=?)"
+        val q = ProposalRepoSql.updateStatus(cfp.slug, proposal.id)(proposal.status, None)
+        q.sql shouldBe s"UPDATE $table SET status=?, event_id=? WHERE id=$whereCfp"
         check(q)
       }
       it("should build updateSlides by cfp and talk") {
-        val q = updateSlides(cfp.slug, proposal.id)(slides, user.id, now)
-        q.sql shouldBe "UPDATE proposals SET slides=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.id=? AND c.slug=?)"
+        val q = ProposalRepoSql.updateSlides(cfp.slug, proposal.id)(slides, user.id, now)
+        q.sql shouldBe s"UPDATE $table SET slides=?, updated=?, updated_by=? WHERE id=$whereCfp"
         check(q)
       }
       it("should build updateSlides by speaker, talk and cfp") {
-        val q = updateSlides(user.id, talk.slug, cfp.slug)(slides, user.id, now)
-        q.sql shouldBe "UPDATE proposals SET slides=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND p.speakers LIKE ?)"
+        val q = ProposalRepoSql.updateSlides(user.id, talk.slug, cfp.slug)(slides, user.id, now)
+        q.sql shouldBe s"UPDATE $table SET slides=?, updated=?, updated_by=? WHERE id=$whereCfpAndTalk"
         check(q)
       }
       it("should build updateVideo by cfp and talk") {
-        val q = updateVideo(cfp.slug, proposal.id)(video, user.id, now)
-        q.sql shouldBe "UPDATE proposals SET video=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.id=? AND c.slug=?)"
+        val q = ProposalRepoSql.updateVideo(cfp.slug, proposal.id)(video, user.id, now)
+        q.sql shouldBe s"UPDATE $table SET video=?, updated=?, updated_by=? WHERE id=$whereCfp"
         check(q)
       }
       it("should build updateVideo by speaker, talk and cfp") {
-        val q = updateVideo(user.id, talk.slug, cfp.slug)(video, user.id, now)
-        q.sql shouldBe "UPDATE proposals SET video=?, updated=?, updated_by=? WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND p.speakers LIKE ?)"
+        val q = ProposalRepoSql.updateVideo(user.id, talk.slug, cfp.slug)(video, user.id, now)
+        q.sql shouldBe s"UPDATE $table SET video=?, updated=?, updated_by=? WHERE id=$whereCfpAndTalk"
         check(q)
       }
       it("should build updateSpeakers by id") {
-        val q = updateSpeakers(proposal.id)(proposal.speakers, user.id, now)
-        q.sql shouldBe "UPDATE proposals SET speakers=?, updated=?, updated_by=? WHERE id=?"
+        val q = ProposalRepoSql.updateSpeakers(proposal.id)(proposal.speakers, user.id, now)
+        q.sql shouldBe s"UPDATE $table SET speakers=?, updated=?, updated_by=? WHERE id=?"
         check(q)
       }
       it("should build selectOne for proposal id") {
-        val q = selectOne(proposal.id)
-        q.sql shouldBe s"SELECT $fieldList FROM proposals WHERE id=?"
+        val q = ProposalRepoSql.selectOne(proposal.id)
+        q.sql shouldBe s"SELECT $fields FROM $table WHERE id=?"
         check(q)
       }
       it("should build selectOne for cfp and proposal id") {
-        val q = selectOne(cfp.slug, proposal.id)
-        q.sql shouldBe s"SELECT $fieldList FROM proposals WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.id=? AND c.slug=?)"
+        val q = ProposalRepoSql.selectOne(cfp.slug, proposal.id)
+        q.sql shouldBe s"SELECT $fields FROM $table WHERE id=$whereCfp"
         check(q)
       }
       it("should build selectOne for speaker, talk and cfp") {
-        val q = selectOne(user.id, talk.slug, cfp.slug)
-        q.sql shouldBe s"SELECT $fieldList FROM proposals WHERE id=(SELECT p.id FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND p.speakers LIKE ?)"
+        val q = ProposalRepoSql.selectOne(user.id, talk.slug, cfp.slug)
+        q.sql shouldBe s"SELECT $fields FROM $table WHERE id=$whereCfpAndTalk"
         check(q)
       }
       it("should build selectOneWithCfpTalkEvent for id") {
-        val q = selectOneWithCfpTalkEvent(proposal.id)
-        q.sql shouldBe s"SELECT $proposalCfpTalkEventFields FROM $proposalCfpTalkEventTables WHERE p.id=?"
+        val q = ProposalRepoSql.selectOneWithCfpTalkEvent(proposal.id)
+        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.id=?"
         check(q)
       }
       it("should build selectOneWithCfpTalkEvent for talk, cfp and speaker") {
-        val q = selectOneWithCfpTalkEvent(talk.slug, cfp.slug, user.id)
-        q.sql shouldBe s"SELECT $proposalCfpTalkEventFields FROM $proposalCfpTalkEventTables WHERE t.slug=? AND c.slug=? AND p.speakers LIKE ?"
+        val q = ProposalRepoSql.selectOneWithCfpTalkEvent(talk.slug, cfp.slug, user.id)
+        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE t.slug=? AND c.slug=? AND p.speakers LIKE ?"
         check(q)
       }
       it("should build selectPage for a cfp") {
-        val (s, c) = selectPage(cfp.id, params)
-        s.sql shouldBe s"SELECT $fieldList FROM proposals WHERE cfp_id=? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM proposals WHERE cfp_id=? "
+        val (s, c) = ProposalRepoSql.selectPage(cfp.id, params)
+        s.sql shouldBe s"SELECT $fields FROM $table WHERE cfp_id=? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $table WHERE cfp_id=? "
         check(s)
         check(c)
       }
       it("should build selectPage for a cfp and status") {
-        val (s, c) = selectPage(cfp.id, Proposal.Status.Pending, params)
-        s.sql shouldBe s"SELECT $fieldList FROM proposals WHERE cfp_id=? AND status=? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM proposals WHERE cfp_id=? AND status=? "
+        val (s, c) = ProposalRepoSql.selectPage(cfp.id, Proposal.Status.Pending, params)
+        s.sql shouldBe s"SELECT $fields FROM $table WHERE cfp_id=? AND status=? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $table WHERE cfp_id=? AND status=? "
         check(s)
         check(c)
       }
       it("should build selectPage for a group") {
-        val (s, c) = selectPage(group.id, params)
+        val (s, c) = ProposalRepoSql.selectPage(group.id, params)
         s.sql shouldBe
-          s"SELECT ${withPrefix(fieldList, "p.")} FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? "
+          s"SELECT ${mapFields(fields, "p." + _)} FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? "
         check(s)
         check(c)
       }
       it("should build selectPage for a group and speaker") {
-        val (s, c) = selectPage(group.id, user.id, params)
+        val (s, c) = ProposalRepoSql.selectPage(group.id, user.id, params)
         s.sql shouldBe
-          s"SELECT ${withPrefix(cfpFieldList, "c.")}, ${withPrefix(fieldList, "p.")} " +
-            "FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? AND p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? AND p.speakers LIKE ? "
+          s"SELECT ${mapFields(cfpFields, "c." + _)}, ${mapFields(fields, "p." + _)} " +
+            s"FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? AND p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id WHERE c.group_id=? AND p.speakers LIKE ? "
         check(s)
         check(c)
       }
       it("should build selectPage for a talk") {
-        val (s, c) = selectPage(talk.id, params)
+        val (s, c) = ProposalRepoSql.selectPage(talk.id, params)
         s.sql shouldBe
-          s"SELECT ${withPrefix(cfpFieldList, "c.")}, ${withPrefix(fieldList, "p.")} " +
-            "FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.talk_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.talk_id=? "
+          s"SELECT ${mapFields(cfpFields, "c." + _)}, ${mapFields(fields, "p." + _)} " +
+            s"FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.talk_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.talk_id=? "
         check(s)
         check(c)
       }
       it("should build selectPage for a speaker") {
-        val (s, c) = selectPage(user.id, params)
+        val (s, c) = ProposalRepoSql.selectPage(user.id, params)
         s.sql shouldBe
-          s"SELECT ${withPrefix(cfpFieldList, "c.")}, ${withPrefix(fieldList, "p.")} " +
-            "FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.speakers LIKE ? "
+          s"SELECT ${mapFields(cfpFields, "c." + _)}, ${mapFields(fields, "p." + _)} " +
+            s"FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.speakers LIKE ? "
         check(s)
         check(c)
       }
       it("should build selectPage for a speaker and status") {
-        val (s, c) = selectPage(user.id, Proposal.Status.Pending, params)
+        val (s, c) = ProposalRepoSql.selectPage(user.id, Proposal.Status.Pending, params)
         s.sql shouldBe
-          s"SELECT ${withPrefix(cfpFieldList, "c.")}, ${withPrefix(fieldList, "p.")} " +
-            "FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.status=? AND p.speakers LIKE ?  ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM proposals p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.status=? AND p.speakers LIKE ?  "
+          s"SELECT ${mapFields(cfpFields, "c." + _)}, ${mapFields(fields, "p." + _)} " +
+            s"FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.status=? AND p.speakers LIKE ?  ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.status=? AND p.speakers LIKE ?  "
         check(s)
         check(c)
       }
       it("should build selectPageWithEvent for a speaker and status") {
-        val (s, c) = selectPageWithEvent(user.id, Proposal.Status.Pending, params)
+        val (s, c) = ProposalRepoSql.selectPageWithEvent(user.id, Proposal.Status.Pending, params)
         s.sql shouldBe
-          s"SELECT ${withPrefix(eventFieldList, "e.")}, ${withPrefix(fieldList, "p.")} " +
-            "FROM proposals p LEFT OUTER JOIN events e ON p.event_id=e.id WHERE p.status=? AND p.speakers LIKE ?  ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM proposals p LEFT OUTER JOIN events e ON p.event_id=e.id WHERE p.status=? AND p.speakers LIKE ?  "
+          s"SELECT ${mapFields(eventFields, "e." + _)}, ${mapFields(fields, "p." + _)} " +
+            s"FROM $table p LEFT OUTER JOIN events e ON p.event_id=e.id WHERE p.status=? AND p.speakers LIKE ?  ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $table p LEFT OUTER JOIN events e ON p.event_id=e.id WHERE p.status=? AND p.speakers LIKE ?  "
         check(s)
         check(c)
       }
       it("should build selectPageWithCfpTalkEvent for a speaker") {
-        val (s, c) = selectPageWithCfpTalkEvent(user.id, params)
-        s.sql shouldBe s"SELECT $proposalCfpTalkEventFields FROM $proposalCfpTalkEventTables WHERE p.speakers LIKE ?  ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $proposalCfpTalkEventTables WHERE p.speakers LIKE ?  "
+        val (s, c) = ProposalRepoSql.selectPageWithCfpTalkEvent(user.id, params)
+        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ?  ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE p.speakers LIKE ?  "
         check(s)
         check(c)
       }
       it("should build selectAll") {
-        val q = selectAll(NonEmptyList.of(proposal.id))
-        q.sql shouldBe s"SELECT $fieldList FROM proposals WHERE id IN (?) "
+        val q = ProposalRepoSql.selectAll(NonEmptyList.of(proposal.id))
+        q.sql shouldBe s"SELECT $fields FROM $table WHERE id IN (?) "
         check(q)
       }
       it("should build selectTags") {
-        val q = selectTags()
-        q.sql shouldBe s"SELECT tags FROM proposals"
+        val q = ProposalRepoSql.selectTags()
+        q.sql shouldBe s"SELECT tags FROM $table"
         check(q)
       }
     }
@@ -199,8 +198,13 @@ object ProposalRepoSqlSpec {
 
   import RepoSpec._
 
-  val fieldList = "id, talk_id, cfp_id, event_id, status, title, duration, description, speakers, slides, video, tags, created, created_by, updated, updated_by"
+  val table = "proposals"
+  val fields = "id, talk_id, cfp_id, event_id, status, title, duration, description, speakers, slides, video, tags, created, created_by, updated, updated_by"
 
-  private val proposalCfpTalkEventTables = "proposals p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id LEFT OUTER JOIN events e ON p.event_id=e.id"
-  private val proposalCfpTalkEventFields = s"${withPrefix(cfpFieldList, "c.")}, ${withPrefix(talkFieldList, "t.")}, ${withPrefix(fieldList, "p.")}, ${withPrefix(eventFieldList, "e.")}"
+  val whereCfp = s"(SELECT p.id FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id WHERE p.id=? AND c.slug=?)"
+  val whereCfpAndTalk = s"(SELECT p.id FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND p.speakers LIKE ?)"
+  val whereGroupAndCfp = s"(SELECT p.id FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN groups g ON c.group_id=g.id WHERE p.id=? AND c.slug=? AND g.slug=? AND g.owners LIKE ?)"
+
+  private val tableFull = s"$table p INNER JOIN $cfpTable c ON p.cfp_id=c.id INNER JOIN $talkTable t ON p.talk_id=t.id LEFT OUTER JOIN $eventTable e ON p.event_id=e.id"
+  private val fieldsFull = s"${mapFields(fields, "p." + _)}, ${mapFields(cfpFields, "c." + _)}, ${mapFields(talkFields, "t." + _)}, ${mapFields(eventFields, "e." + _)}"
 }

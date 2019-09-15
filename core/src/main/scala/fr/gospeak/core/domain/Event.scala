@@ -49,6 +49,8 @@ object Event {
 
   final case class ExtRefs(meetup: Option[MeetupEvent.Ref] = None)
 
+  final case class Full(event: Event, venue: Option[Venue.Full])
+
   final case class Data(cfp: Option[Cfp.Id],
                         slug: Slug,
                         name: Name,

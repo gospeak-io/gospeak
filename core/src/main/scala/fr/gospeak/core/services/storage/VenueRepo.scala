@@ -13,15 +13,15 @@ trait OrgaVenueRepo {
 
   def edit(group: Group.Id, id: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): IO[Done]
 
-  def list(group: Group.Id, params: Page.Params): IO[Page[(Partner, Venue)]]
+  def list(group: Group.Id, params: Page.Params): IO[Page[Venue.Full]]
 
   def list(partner: Partner.Id): IO[Seq[Venue]]
 
-  def list(group: Group.Id, ids: Seq[Venue.Id]): IO[Seq[(Partner, Venue)]]
+  def list(group: Group.Id, ids: Seq[Venue.Id]): IO[Seq[Venue.Full]]
 
-  def find(group: Group.Id, id: Venue.Id): IO[Option[(Partner, Venue)]]
+  def find(group: Group.Id, id: Venue.Id): IO[Option[Venue.Full]]
 }
 
 trait SuggestVenueRepo {
-  def list(group: Group.Id): IO[Seq[(Partner, Venue)]]
+  def list(group: Group.Id): IO[Seq[Venue.Full]]
 }

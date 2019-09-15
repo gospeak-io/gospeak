@@ -1,7 +1,6 @@
 package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
-import fr.gospeak.infra.services.storage.sql.GroupRepoSql._
 import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
@@ -39,57 +38,57 @@ class GroupRepoSqlSpec extends RepoSpec {
     }
     describe("Queries") {
       it("should build insert") {
-        val q = insert(group)
-        q.sql shouldBe s"INSERT INTO groups ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        val q = GroupRepoSql.insert(group)
+        q.sql shouldBe s"INSERT INTO $table ($fields) VALUES (${mapFields(fields, _ => "?")})"
         check(q)
       }
       it("should build update") {
-        val q = update(group.slug)(group.data, user.id, now)
-        q.sql shouldBe s"UPDATE groups SET slug=?, name=?, contact=?, description=?, tags=?, updated=?, updated_by=? WHERE slug=?"
+        val q = GroupRepoSql.update(group.slug)(group.data, user.id, now)
+        q.sql shouldBe s"UPDATE $table SET slug=?, name=?, contact=?, description=?, tags=?, updated=?, updated_by=? WHERE slug=?"
         check(q)
       }
       it("should build updateOwners") {
-        val q = updateOwners(group.id)(NonEmptyList.of(user.id), user.id, now)
-        q.sql shouldBe s"UPDATE groups SET owners=?, updated=?, updated_by=? WHERE id=?"
+        val q = GroupRepoSql.updateOwners(group.id)(NonEmptyList.of(user.id), user.id, now)
+        q.sql shouldBe s"UPDATE $table SET owners=?, updated=?, updated_by=? WHERE id=?"
         check(q)
       }
       it("should build selectPage") {
-        val (s, c) = selectPage(params)
-        s.sql shouldBe s"SELECT $fieldList FROM groups ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM groups "
+        val (s, c) = GroupRepoSql.selectPage(params)
+        s.sql shouldBe s"SELECT $fields FROM $table ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $table "
         check(s)
         check(c)
       }
       it("should build selectPageJoinable") {
-        val (s, c) = selectPageJoinable(user.id, params)
-        s.sql shouldBe s"SELECT $fieldList FROM groups WHERE owners NOT LIKE ? ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM groups WHERE owners NOT LIKE ? "
+        val (s, c) = GroupRepoSql.selectPageJoinable(user.id, params)
+        s.sql shouldBe s"SELECT $fields FROM $table WHERE owners NOT LIKE ? ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $table WHERE owners NOT LIKE ? "
         check(s)
         check(c)
       }
       it("should build selectAll") {
-        val q = selectAll(user.id)
-        q.sql shouldBe s"SELECT $fieldList FROM groups WHERE owners LIKE ?"
+        val q = GroupRepoSql.selectAll(user.id)
+        q.sql shouldBe s"SELECT $fields FROM $table WHERE owners LIKE ?"
         check(q)
       }
       it("should build selectOne") {
-        val q = selectOne(user.id, group.slug)
-        q.sql shouldBe s"SELECT $fieldList FROM groups WHERE owners LIKE ? AND slug=?"
+        val q = GroupRepoSql.selectOne(user.id, group.slug)
+        q.sql shouldBe s"SELECT $fields FROM $table WHERE owners LIKE ? AND slug=?"
         check(q)
       }
       it("should build selectOne with id") {
-        val q = selectOne(group.id)
-        q.sql shouldBe s"SELECT $fieldList FROM groups WHERE id=?"
+        val q = GroupRepoSql.selectOne(group.id)
+        q.sql shouldBe s"SELECT $fields FROM $table WHERE id=?"
         check(q)
       }
       it("should build selectOne with slug") {
-        val q = selectOne(group.slug)
-        q.sql shouldBe s"SELECT $fieldList FROM groups WHERE slug=?"
+        val q = GroupRepoSql.selectOne(group.slug)
+        q.sql shouldBe s"SELECT $fields FROM $table WHERE slug=?"
         check(q)
       }
       it("should build selectTags") {
-        val q = selectTags()
-        q.sql shouldBe s"SELECT tags FROM groups"
+        val q = GroupRepoSql.selectTags()
+        q.sql shouldBe s"SELECT tags FROM $table"
         check(q)
       }
     }
@@ -97,5 +96,6 @@ class GroupRepoSqlSpec extends RepoSpec {
 }
 
 object GroupRepoSqlSpec {
-  val fieldList = "id, slug, name, contact, description, owners, tags, created, created_by, updated, updated_by"
+  val table = "groups"
+  val fields = "id, slug, name, contact, description, owners, tags, created, created_by, updated, updated_by"
 }

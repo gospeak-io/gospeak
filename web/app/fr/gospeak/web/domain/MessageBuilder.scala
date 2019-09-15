@@ -31,7 +31,7 @@ class MessageBuilder {
     GospeakMessage.ProposalCreated(linked(group), linked(group, cfp, now), linked(group, cfp, proposal), identity.user)
   }
 
-  def buildEventInfo(group: Group, event: Event, cfpOpt: Option[Cfp], venueOpt: Option[(Partner, Venue)], talks: Seq[Proposal], speakers: Seq[User], now: LocalDateTime)(implicit req: SecuredRequest[CookieEnv, AnyContent]): TemplateData.EventInfo = {
+  def buildEventInfo(group: Group, event: Event, cfpOpt: Option[Cfp], venueOpt: Option[Venue.Full], talks: Seq[Proposal], speakers: Seq[User], now: LocalDateTime)(implicit req: SecuredRequest[CookieEnv, AnyContent]): TemplateData.EventInfo = {
     TemplateData.eventInfo(
       g = linked(group),
       e = linked(group, event),

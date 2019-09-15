@@ -63,11 +63,11 @@ class VenueCtrl(cc: ControllerComponents,
   def detail(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      (partnerElt, venueElt) <- OptionT(venueRepo.find(groupElt.id, venue))
-      users <- OptionT.liftF(userRepo.list((partnerElt.users ++ venueElt.users).distinct))
-      b = breadcrumb(groupElt, venueElt)
+      venueFull <- OptionT(venueRepo.find(groupElt.id, venue))
+      users <- OptionT.liftF(userRepo.list(venueFull.users))
+      b = breadcrumb(groupElt, venueFull.venue)
       edit = routes.VenueCtrl.edit(group, venue)
-    } yield Ok(html.detail(groupElt, partnerElt, venueElt, users, edit)(b))).value.map(_.getOrElse(venueNotFound(group, venue))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, venueFull.partner, venueFull.venue, users, edit)(b))).value.map(_.getOrElse(venueNotFound(group, venue))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -89,11 +89,11 @@ class VenueCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup(groupElt.id))
-      (partnerElt, venueElt) <- OptionT(venueRepo.find(groupElt.id, venue))
-      b = breadcrumb(groupElt, venueElt).add("Edit" -> routes.VenueCtrl.edit(group, venue))
-      filledForm = if (form.hasErrors) form else form.fill(venueElt.data)
+      venueFull <- OptionT(venueRepo.find(groupElt.id, venue))
+      b = breadcrumb(groupElt, venueFull.venue).add("Edit" -> routes.VenueCtrl.edit(group, venue))
+      filledForm = if (form.hasErrors) form else form.fill(venueFull.venue.data)
       call = routes.VenueCtrl.doEdit(group, venue)
-    } yield Ok(html.edit(groupElt, meetupAccount.isDefined, partnerElt, venueElt, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
+    } yield Ok(html.edit(groupElt, meetupAccount.isDefined, venueFull.partner, venueFull.venue, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
   }
 }
 

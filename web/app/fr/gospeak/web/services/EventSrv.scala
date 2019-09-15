@@ -45,7 +45,7 @@ object EventSrv {
   final case class EventFull(group: Group,
                              event: Event,
                              cfpOpt: Option[Cfp],
-                             venueOpt: Option[(Partner, Venue)],
+                             venueOpt: Option[Venue.Full],
                              talks: Seq[Proposal],
                              speakers: Seq[User])
 

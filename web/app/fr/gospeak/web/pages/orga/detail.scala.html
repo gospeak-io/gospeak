@@ -6,15 +6,15 @@
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.orga.partials.html.{container, eventItem}
+@import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import fr.gospeak.web.pages.orga.routes.GroupCtrl
+@import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.pages.partials.display.html.emailLink
 @import fr.gospeak.web.pages.partials.form.html.formBtn
-@import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
-@import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, events: Page[Event], cfps: Seq[Cfp], venues: Seq[(Partner, Venue)], proposals: Seq[Proposal], speakers: Seq[User], currentSponsors: Seq[(Partner, (Sponsor, Int))], pastSponsors: Seq[(Partner, Seq[Sponsor])], packs: Seq[SponsorPack], requests: Seq[UserRequest], requestUsers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, events: Page[Event], cfps: Seq[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User], currentSponsors: Seq[(Partner, (Sponsor, Int))], pastSponsors: Seq[(Partner, Seq[Sponsor])], packs: Seq[SponsorPack], requests: Seq[UserRequest], requestUsers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @addSponsorBtn() = {
 @defining(packs.filter(_.active)) { activePacks: Seq[SponsorPack] =>
     @if(activePacks.nonEmpty) {

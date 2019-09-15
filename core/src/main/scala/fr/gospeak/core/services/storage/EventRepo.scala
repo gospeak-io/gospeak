@@ -39,7 +39,7 @@ trait UserEventRepo
 trait AuthEventRepo
 
 trait PublicEventRepo {
-  def listPublished(group: Group.Id, params: Page.Params): IO[Page[(Event, Option[(Venue, Partner)])]]
+  def listPublished(group: Group.Id, params: Page.Params): IO[Page[Event.Full]]
 }
 
 trait SuggestEventRepo {

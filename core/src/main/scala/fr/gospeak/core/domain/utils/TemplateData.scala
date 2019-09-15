@@ -131,7 +131,7 @@ object TemplateData {
 
   private def proposal(p: Linked[domain.Proposal]): Proposal = Proposal(link = p.link, title = p.value.title.value, description = desc(p.value.description.value), slides = p.value.slides.map(_.value), video = p.value.video.map(_.value), tags = p.value.tags.map(_.value))
 
-  private def eventVenue(v: (domain.Partner, domain.Venue)): EventVenue = EventVenue(v._1.name.value, v._2.address.value, v._1.logo.value, v._2.address.url)
+  private def eventVenue(v: domain.Venue.Full): EventVenue = EventVenue(v.partner.name.value, v.venue.address.value, v.partner.logo.value, v.venue.address.url)
 
   private def talkSpeaker(v: Linked[domain.User]): TalkSpeaker = TalkSpeaker(link = v.link, publicLink = v.publicLink, name = v.value.name.value, avatar = v.value.avatar.url.value)
 
@@ -148,7 +148,7 @@ object TemplateData {
 
   def proposalCreated(msg: GospeakMessage.ProposalCreated): ProposalCreated = ProposalCreated(group(msg.group), cfp(msg.cfp), proposal(msg.proposal), user(msg.user))
 
-  def eventInfo(g: Linked[domain.Group], e: Linked[domain.Event], v: Option[(domain.Partner, domain.Venue)], c: Option[Linked[domain.Cfp]], ts: Seq[Linked[domain.Proposal]], ss: Seq[Linked[domain.User]]): EventInfo =
+  def eventInfo(g: Linked[domain.Group], e: Linked[domain.Event], v: Option[domain.Venue.Full], c: Option[Linked[domain.Cfp]], ts: Seq[Linked[domain.Proposal]], ss: Seq[Linked[domain.User]]): EventInfo =
     EventInfo(group(g), event(e), v.map(eventVenue), c.map(cfp), ts.map(t => eventTalk(t, t.value.speakers.toList.flatMap(s => ss.find(_.value.id == s)))))
 
   object EventCreated {

@@ -4,7 +4,7 @@ import java.time.Instant
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.Group
+import fr.gospeak.core.domain.{Event, Group, Partner, Venue}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv

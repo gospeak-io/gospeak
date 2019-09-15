@@ -26,6 +26,10 @@ object Venue {
 
   final case class ExtRefs(meetup: Option[MeetupVenue.Ref] = None)
 
+  final case class Full(venue: Venue, partner: Partner) {
+    def users: Seq[User.Id] = (venue.users ++ partner.users).distinct
+  }
+
   final case class Data(partner: Partner.Id,
                         address: GMapPlace,
                         description: Markdown,
