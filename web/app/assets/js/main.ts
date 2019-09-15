@@ -450,8 +450,7 @@ function slugify(str: string): string {
         const baseUrl = $search.attr('data-omni-search');
         const datasetBuilder = (url, title) => ({
             name: url,
-            async: true,
-            limit: 10,
+            limit: 20,
             source: new Bloodhound({
                 datumTokenizer: Bloodhound.tokenizers.whitespace,
                 queryTokenizer: Bloodhound.tokenizers.whitespace,
@@ -476,6 +475,11 @@ function slugify(str: string): string {
             datasetBuilder('partners', 'Partners'),
             datasetBuilder('events', 'Events')
         );
+        $search.bind('typeahead:select', (evt, item) => {
+            if(item.url) {
+                window.location.href = item.url; // navigate to url when item is selected (with keyboard)
+            }
+        });
     });
 })();
 
