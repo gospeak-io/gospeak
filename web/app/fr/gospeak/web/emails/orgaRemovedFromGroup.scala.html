@@ -1,10 +1,10 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Group, User}
 @import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.web.pages.user.routes.UserCtrl
+@import fr.gospeak.web.pages.orga.routes.GroupCtrl
 
 @(group: Group, orga: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 <p>Hi @orga.name.value,</p>
 <p>Just to let you know that <a href="mailto:@by.email.value">@by.name.value</a> removed you from the <b>@group.name.value</b> group.</p>
-<p>You can still <a href="@UserCtrl.joinGroup().absoluteURL()">apply to existing group</a> or <a href="@UserCtrl.createGroup().absoluteURL()">create your own</a>.</p>
+<p>You can still <a href="@GroupCtrl.join().absoluteURL()">apply to existing group</a> or <a href="@GroupCtrl.create().absoluteURL()">create your own</a>.</p>
 <p>The Gospeak team</p>

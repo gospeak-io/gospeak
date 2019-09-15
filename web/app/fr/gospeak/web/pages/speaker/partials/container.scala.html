@@ -1,6 +1,7 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.auth.routes.AuthCtrl
+@import fr.gospeak.core.domain.User
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.container.html._
 @import fr.gospeak.web.pages.partials.form.html.formBtn
@@ -8,6 +9,7 @@
 @import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
 @import fr.gospeak.web.pages.speaker.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.user.routes.UserCtrl
+@import fr.gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublicSpeakerCtrl}
 
 @(title: String, b: Breadcrumb, hideAlert: Boolean = false)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @main(title, style, script) {
@@ -26,6 +28,11 @@
                 </div>
             </div>
             <div class="navbar-nav">
+                @req.identity.user.profile.status match {
+                    case User.Profile.Status.Public => {<a class="nav-item nav-link" href="@PublicSpeakerCtrl.detail(req.identity.user.slug)" target="_blank" title="Your profile is public, see it here" data-toggle="tooltip" data-placement="bottom"><i class="fas fa-eye"></i></a>}
+                    case User.Profile.Status.Private => {<span title="Your profile is private, you can make it public by editing your profile" data-toggle="tooltip" data-placement="bottom"><span class="nav-item nav-link disabled"><i class="fas fa-eye-slash"></i></span></span>}
+                    case User.Profile.Status.Undefined => {}
+                }
                 @userDropdown(req.identity)
             </div>
         </div>

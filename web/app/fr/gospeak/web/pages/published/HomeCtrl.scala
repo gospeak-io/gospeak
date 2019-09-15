@@ -64,7 +64,6 @@ class HomeCtrl(cc: ControllerComponents,
         |- pizzas ^^
       """.stripMargin),
     owners = NonEmptyList.of(user.id),
-    published = Some(now),
     tags = Seq("tag").map(Tag(_)),
     info = Info(user.id, now))
   private val cfp = Cfp(

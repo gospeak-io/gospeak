@@ -1,7 +1,5 @@
 package fr.gospeak.core.domain
 
-import java.time.Instant
-
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.{Info, TemplateData}
 import fr.gospeak.core.services.meetup.domain.MeetupCredentials
@@ -19,16 +17,13 @@ final case class Group(id: Group.Id,
                        description: Markdown,
                        owners: NonEmptyList[User.Id],
                        tags: Seq[Tag],
-                       published: Option[Instant],
                        info: Info) {
   def data: Group.Data = Group.Data(this)
-
-  def isPublic: Boolean = published.isDefined
 }
 
 object Group {
   def apply(data: Data, owners: NonEmptyList[User.Id], info: Info): Group =
-    new Group(Id.generate(), data.slug, data.name, data.contact, data.description, owners, data.tags, None, info) // FIXME add public in form
+    new Group(Id.generate(), data.slug, data.name, data.contact, data.description, owners, data.tags, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 

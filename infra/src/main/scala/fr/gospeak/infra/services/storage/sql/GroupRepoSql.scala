@@ -57,23 +57,17 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
       case None => IO.raiseError(new IllegalArgumentException("unreachable group"))
     }
 
-  override def list(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPage(user, _), params))
-
-  override def list(user: User.Id): IO[Seq[Group]] = run(selectAll(user).to[List])
-
-  override def listPublic(params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPagePublic, params))
+  override def list(params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPage, params))
 
   override def listJoinable(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPageJoinable(user, _), params))
+
+  override def list(user: User.Id): IO[Seq[Group]] = run(selectAll(user).to[List])
 
   override def find(user: User.Id, slug: Group.Slug): IO[Option[Group]] = run(selectOne(user, slug).option)
 
   override def find(group: Group.Id): IO[Option[Group]] = run(selectOne(group).option)
 
-  private def find(group: Group.Slug): IO[Option[Group]] = run(selectOne(group).option)
-
-  override def findPublic(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPagePublic(user, _), params))
-
-  override def findPublic(slug: Group.Slug): IO[Option[Group]] = run(selectOnePublic(slug).option)
+  override def find(group: Group.Slug): IO[Option[Group]] = run(selectOne(group).option)
 
   override def exists(group: Group.Slug): IO[Boolean] = run(selectOne(group).option.map(_.isDefined))
 
@@ -83,14 +77,14 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 object GroupRepoSql {
   private val _ = groupIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table: String = "groups"
-  private val fields: Seq[String] = Seq("id", "slug", "name", "contact", "description", "owners", "tags", "published", "created", "created_by", "updated", "updated_by")
+  private val fields: Seq[String] = Seq("id", "slug", "name", "contact", "description", "owners", "tags", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields: Seq[String] = Seq("id", "slug", "name", "contact", "description", "tags")
   private val defaultSort: Page.OrderBy = Page.OrderBy("name")
 
   private def values(e: Group): Fragment =
-    fr0"${e.id}, ${e.slug}, ${e.name}, ${e.contact}, ${e.description}, ${e.owners}, ${e.tags}, ${e.published}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.slug}, ${e.name}, ${e.contact}, ${e.description}, ${e.owners}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   private[sql] def insert(elt: Group): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
@@ -102,18 +96,8 @@ object GroupRepoSql {
   private[sql] def updateOwners(group: Group.Id)(owners: NonEmptyList[User.Id], by: User.Id, now: Instant): doobie.Update0 =
     buildUpdate(tableFr, fr0"owners=$owners, updated=$now, updated_by=$by", fr0"WHERE id=$group").update
 
-  private[sql] def selectPage(user: User.Id, params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE owners LIKE ${"%" + user.value + "%"}"))
-    (buildSelect(tableFr, fieldsFr, page.all).query[Group], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
-  }
-
-  private[sql] def selectPagePublic(params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE published IS NOT NULL"))
-    (buildSelect(tableFr, fieldsFr, page.all).query[Group], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
-  }
-
-  private[sql] def selectPagePublic(user: User.Id, params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE published IS NOT NULL AND owners LIKE ${"%" + user.value + "%"}"))
+  private[sql] def selectPage(params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
+    val page = paginate(params, searchFields, defaultSort, None)
     (buildSelect(tableFr, fieldsFr, page.all).query[Group], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 
@@ -133,9 +117,6 @@ object GroupRepoSql {
 
   private[sql] def selectOne(group: Group.Slug): doobie.Query0[Group] =
     buildSelect(tableFr, fieldsFr, where(group)).query[Group]
-
-  private[sql] def selectOnePublic(slug: Group.Slug): doobie.Query0[Group] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE published IS NOT NULL AND slug=$slug").query[Group]
 
   private[sql] def selectTags(): doobie.Query0[Seq[Tag]] =
     Fragment.const0(s"SELECT tags FROM $table").query[Seq[Tag]]

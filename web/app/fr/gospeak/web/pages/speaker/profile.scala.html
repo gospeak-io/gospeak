@@ -14,7 +14,7 @@
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
 @import fr.gospeak.core.domain.User.EditableFields
 
-@(form: Form[EditableFields], acceptedProposals: Page[(Option[Event], Proposal)], ownedGroups: Page[Group], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(form: Form[EditableFields], acceptedProposals: Page[(Option[Event], Proposal)], ownedGroups: Seq[Group], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", b)() {
     @formElt(form, SpeakerCtrl.editProfile()) {
         <div class="row">
@@ -128,7 +128,7 @@
                 @if(ownedGroups.nonEmpty) {
                     <h2 class="mt-0 mb-3 mt-3">Organises</h2>
                     <div>
-                    @ownedGroups.items.map { group =>
+                    @ownedGroups.map { group =>
                         @groupItem(group)
                     }
                     </div>

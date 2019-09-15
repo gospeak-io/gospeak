@@ -206,7 +206,8 @@ class SettingsCtrl(cc: ControllerComponents,
       _ <- OptionT.liftF(emailSrv.send(Emails.orgaRemovedFromGroup(groupElt, orgaElt, req.identity.user)))
       next = if (req.identity.user.slug == orga) Redirect(UserRoutes.index()).flashing("success" -> s"You removed yourself from <b>${groupElt.name.value}</b> group")
       else Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"You removed <b>${orgaElt.name.value}</b> from  <b>${groupElt.name.value}</b> group")
-    } yield next).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+    } yield next).value.map(_.getOrElse(groupNotFound(group)))
+      .recover { case NonFatal(e) => Redirect(routes.SettingsCtrl.settings(group)).flashing("error" -> s"Error: ${e.getMessage}") }.unsafeToFuture()
   }
 
   private def settingsView(groupElt: Group,

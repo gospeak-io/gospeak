@@ -46,11 +46,7 @@ class MessageBuilder {
 
   private def linked(group: Group)(implicit req: RequestHeader): Linked[Group] = {
     val link = fr.gospeak.web.pages.orga.routes.GroupCtrl.detail(group.slug).absoluteURL()
-    val publicLink = if (group.isPublic) {
-      Some(fr.gospeak.web.pages.published.groups.routes.GroupCtrl.detail(group.slug).absoluteURL())
-    } else {
-      None
-    }
+    val publicLink = Some(fr.gospeak.web.pages.published.groups.routes.GroupCtrl.detail(group.slug).absoluteURL())
     Linked[Group](group, link, publicLink)
   }
 

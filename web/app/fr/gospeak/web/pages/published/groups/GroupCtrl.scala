@@ -23,7 +23,7 @@ class GroupCtrl(cc: ControllerComponents,
 
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
     (for {
-      groups <- groupRepo.listPublic(params)
+      groups <- groupRepo.list(params)
       b = listBreadcrumb()
     } yield Ok(html.list(groups)(b))).unsafeToFuture()
   }
@@ -31,7 +31,7 @@ class GroupCtrl(cc: ControllerComponents,
   def detail(group: Group.Slug): Action[AnyContent] = UserAwareAction.async { implicit req =>
     val now = Instant.now()
     (for {
-      groupElt <- OptionT(groupRepo.findPublic(group))
+      groupElt <- OptionT(groupRepo.find(group))
       cfps <- OptionT.liftF(cfpRepo.listAllOpen(groupElt.id, now))
       b = breadcrumb(groupElt)
     } yield Ok(html.detail(groupElt, cfps)(b))).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()

@@ -1,3 +1,4 @@
+@import java.time.LocalDateTime
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
@@ -6,13 +7,26 @@
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.orga.partials.html.{container, proposalItem}
 @import fr.gospeak.web.pages.partials.display.html.tags
+@import fr.gospeak.web.pages.published.cfps.routes.{CfpCtrl => PublicCfpCtrl}
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, cfp: Cfp, proposals: Page[Proposal], speakers: Seq[User], events: Seq[Event])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, cfp: Cfp, proposals: Page[Proposal], speakers: Seq[User], events: Seq[Event], nowLDT: LocalDateTime)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(cfp.name.value + " - Gospeak", group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@cfp.name.value</span>
-        <a class="btn btn-outline-secondary" href="@CfpCtrl.edit(group.slug, cfp.slug)" title="edit"><i class="fas fa-edit"></i></a>
+        <span class="btn-group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-cog"></i>
+            </button>
+            <span class="dropdown-menu dropdown-menu-right">
+                <a class="dropdown-item" href="@CfpCtrl.edit(group.slug, cfp.slug)">Edit</a>
+                @if(cfp.isActive(nowLDT)) {
+                    <a class="dropdown-item" href="@PublicCfpCtrl.detail(cfp.slug)" target="_blank">View public page</a>
+                } else {
+                    <a class="dropdown-item disabled" href="#">Not active, public page is disabled</a>
+                }
+            </span>
+        </span>
     </h1>
 
     <p>@Formats.cfpDates(cfp).capitalize @tags(cfp.tags)</p>

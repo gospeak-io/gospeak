@@ -12,7 +12,12 @@ trait UserRequestRepo extends OrgaUserRequestRepo with SpeakerUserRequestRepo wi
 trait OrgaUserRequestRepo {
   def listPendingGroupRequests(group: Group.Id, now: Instant): IO[Seq[UserRequest]]
 
+
+  def listPendingUserToJoinAGroupRequests(user: User.Id): IO[Seq[UserAskToJoinAGroupRequest]]
+
   def findPendingUserToJoinAGroup(group: Group.Id, req: UserRequest.Id): IO[Option[UserAskToJoinAGroupRequest]]
+
+  def createUserAskToJoinAGroup(user: User.Id, group: Group.Id, now: Instant): IO[UserAskToJoinAGroupRequest]
 
   def acceptUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done]
 
@@ -45,11 +50,6 @@ trait UserUserRequestRepo {
   def find(request: UserRequest.Id): IO[Option[UserRequest]]
 
   def list(user: User.Id, params: Page.Params): IO[Page[UserRequest]]
-
-
-  def createUserAskToJoinAGroup(user: User.Id, group: Group.Id, now: Instant): IO[UserAskToJoinAGroupRequest]
-
-  def listPendingUserToJoinAGroupRequests(user: User.Id): IO[Seq[UserAskToJoinAGroupRequest]]
 
 
   def accept(invite: UserRequest.GroupInvite, by: User.Id, now: Instant): IO[Done]

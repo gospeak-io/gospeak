@@ -9,17 +9,17 @@ class GroupRepoSqlSpec extends RepoSpec {
   describe("GroupRepoSql") {
     it("should create and retrieve a group") {
       val user = userRepo.create(userData1, now).unsafeRunSync()
-      groupRepo.list(user.id, params).unsafeRunSync().items shouldBe Seq()
+      groupRepo.list(user.id).unsafeRunSync() shouldBe Seq()
       groupRepo.find(user.id, groupData1.slug).unsafeRunSync() shouldBe None
       val group = groupRepo.create(groupData1, user.id, now).unsafeRunSync()
-      groupRepo.list(user.id, params).unsafeRunSync().items shouldBe Seq(group)
+      groupRepo.list(user.id).unsafeRunSync() shouldBe Seq(group)
       groupRepo.find(user.id, groupData1.slug).unsafeRunSync() shouldBe Some(group)
     }
     it("should not retrieve not owned groups") {
       val user1 = userRepo.create(userData1, now).unsafeRunSync()
       val user2 = userRepo.create(userData2, now).unsafeRunSync()
       groupRepo.create(groupData1, user2.id, now).unsafeRunSync()
-      groupRepo.list(user1.id, params).unsafeRunSync().items shouldBe Seq()
+      groupRepo.list(user1.id).unsafeRunSync() shouldBe Seq()
       groupRepo.find(user1.id, groupData1.slug).unsafeRunSync() shouldBe None
     }
     it("should fail on duplicate slug") {
@@ -40,7 +40,7 @@ class GroupRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = insert(group)
-        q.sql shouldBe s"INSERT INTO groups ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        q.sql shouldBe s"INSERT INTO groups ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         check(q)
       }
       it("should build update") {
@@ -54,23 +54,9 @@ class GroupRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build selectPage") {
-        val (s, c) = selectPage(user.id, params)
-        s.sql shouldBe s"SELECT $fieldList FROM groups WHERE owners LIKE ? ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM groups WHERE owners LIKE ? "
-        check(s)
-        check(c)
-      }
-      it("should build selectPagePublic") {
-        val (s, c) = selectPagePublic(params)
-        s.sql shouldBe s"SELECT $fieldList FROM groups WHERE published IS NOT NULL ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM groups WHERE published IS NOT NULL "
-        check(s)
-        check(c)
-      }
-      it("should build selectPagePublic with user") {
-        val (s, c) = selectPagePublic(user.id, params)
-        s.sql shouldBe s"SELECT $fieldList FROM groups WHERE published IS NOT NULL AND owners LIKE ? ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM groups WHERE published IS NOT NULL AND owners LIKE ? "
+        val (s, c) = selectPage(params)
+        s.sql shouldBe s"SELECT $fieldList FROM groups ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
+        c.sql shouldBe "SELECT count(*) FROM groups "
         check(s)
         check(c)
       }
@@ -101,11 +87,6 @@ class GroupRepoSqlSpec extends RepoSpec {
         q.sql shouldBe s"SELECT $fieldList FROM groups WHERE slug=?"
         check(q)
       }
-      it("should build selectOnePublic") {
-        val q = selectOnePublic(group.slug)
-        q.sql shouldBe s"SELECT $fieldList FROM groups WHERE published IS NOT NULL AND slug=?"
-        check(q)
-      }
       it("should build selectTags") {
         val q = selectTags()
         q.sql shouldBe s"SELECT tags FROM groups"
@@ -116,5 +97,5 @@ class GroupRepoSqlSpec extends RepoSpec {
 }
 
 object GroupRepoSqlSpec {
-  val fieldList = "id, slug, name, contact, description, owners, tags, published, created, created_by, updated, updated_by"
+  val fieldList = "id, slug, name, contact, description, owners, tags, created, created_by, updated, updated_by"
 }

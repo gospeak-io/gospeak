@@ -6,14 +6,13 @@
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.speaker.partials.html.container
 @import fr.gospeak.web.pages.user.routes.UserCtrl
+@import fr.gospeak.web.pages.orga.routes.GroupCtrl
 
 @(form: Form[Group.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", b)() {
-    <div class="page-header">
-        <h1>Create your group</h1>
-    </div>
+    <h1 class="page-header">Create your group</h1>
 
-    @formElt(form, UserCtrl.doCreateGroup()) {
+    @formElt(form, GroupCtrl.doCreate()) {
         @groupFields(form)
         @actionsHorizontal() {
             @btnCancel(UserCtrl.index())

@@ -92,7 +92,6 @@ CREATE TABLE groups
     description VARCHAR(4096) NOT NULL,
     owners      VARCHAR(369)  NOT NULL, -- 10 owners max
     tags        VARCHAR(150)  NOT NULL, -- 5 tags max
-    published   TIMESTAMP,
     created     TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,

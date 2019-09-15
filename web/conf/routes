@@ -30,14 +30,14 @@ GET         /reset-password                                                     
 POST        /reset-password                                                     fr.gospeak.web.auth.AuthCtrl.doResetPassword(id: UserRequest.Id)
 
 GET         /u                                                                  fr.gospeak.web.pages.user.UserCtrl.index
-GET         /u/groups/create                                                    fr.gospeak.web.pages.user.UserCtrl.createGroup
-POST        /u/groups/create                                                    fr.gospeak.web.pages.user.UserCtrl.doCreateGroup
-GET         /u/groups/join                                                      fr.gospeak.web.pages.user.UserCtrl.joinGroup(params: Page.Params ?= Page.Params.defaults)
-POST        /u/groups/join/:group                                               fr.gospeak.web.pages.user.UserCtrl.doJoinGroup(group: Group.Slug, params: Page.Params)
 GET         /u/answer/:request                                                  fr.gospeak.web.pages.user.UserCtrl.answerRequest(request: UserRequest.Id)
 POST        /u/accept/:request                                                  fr.gospeak.web.pages.user.UserCtrl.acceptRequest(request: UserRequest.Id)
 POST        /u/reject/:request                                                  fr.gospeak.web.pages.user.UserCtrl.rejectRequest(request: UserRequest.Id)
 
+GET         /u/groups/create                                                    fr.gospeak.web.pages.orga.GroupCtrl.create
+POST        /u/groups/create                                                    fr.gospeak.web.pages.orga.GroupCtrl.doCreate
+GET         /u/groups/join                                                      fr.gospeak.web.pages.orga.GroupCtrl.join(params: Page.Params ?= Page.Params.defaults)
+POST        /u/groups/join/:group                                               fr.gospeak.web.pages.orga.GroupCtrl.doJoin(group: Group.Slug, params: Page.Params)
 GET         /u/groups/:group                                                    fr.gospeak.web.pages.orga.GroupCtrl.detail(group: Group.Slug)
 GET         /u/groups/:group/edit                                               fr.gospeak.web.pages.orga.GroupCtrl.edit(group: Group.Slug)
 POST        /u/groups/:group/edit                                               fr.gospeak.web.pages.orga.GroupCtrl.doEdit(group: Group.Slug)

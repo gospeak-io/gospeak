@@ -3,10 +3,10 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.speaker.partials.html.container
-@import fr.gospeak.web.pages.user.routes.UserCtrl
+@import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.partials.display.html.{markdown, speaker, timeAgo}
 @import fr.gospeak.web.pages.partials.form.html.formBtn
+@import fr.gospeak.web.pages.speaker.partials.html.container
 @import fr.gospeak.web.utils.Formats
 
 @(groups: Page[Group], owners: Seq[User], pendingRequests: Seq[UserRequest.UserAskToJoinAGroupRequest])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
@@ -20,7 +20,7 @@
         @pendingRequests.find(_.group == group.id).map { req =>
             <a href="#" class="btn btn-success disabled">Asked @timeAgo(req.created)</a>
         }.getOrElse {
-            @formBtn(UserCtrl.doJoinGroup(group.slug, groups.params), Seq("class" -> "btn-primary")){Ask to join}
+            @formBtn(GroupCtrl.doJoin(group.slug, groups.params), Seq("class" -> "btn-primary")){Ask to join}
         }
     </div>
 }
@@ -29,11 +29,11 @@
         <div class="jumbotron">
             <h1 style="margin-bottom: 3rem">No group available to join <i class="far fa-sad-tear"></i></h1>
             <p class="text-center mb-0">
-                <a href="@UserCtrl.createGroup()" class="btn btn-lg btn-success">Create your own</a>
+                <a href="@GroupCtrl.create()" class="btn btn-lg btn-success">Create your own</a>
             </p>
         </div>
     } else {
         <h1 class="text-capitalize">@Formats.plural(groups.total.value, "group") you can ask to join</h1>
-        @Formats.paginated[Group](groups, UserCtrl.joinGroup, groupItem)
+        @Formats.paginated[Group](groups, GroupCtrl.join, groupItem)
     }
 }()
