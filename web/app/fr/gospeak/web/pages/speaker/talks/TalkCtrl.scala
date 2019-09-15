@@ -68,8 +68,8 @@ class TalkCtrl(cc: ControllerComponents,
       talkElt <- OptionT(talkRepo.find(user, talk))
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(talkElt.id))
       speakers <- OptionT.liftF(userRepo.list(talkElt.users))
-      proposals <- OptionT.liftF(proposalRepo.list(talkElt.id, Page.Params.defaults))
-      events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_._2.event)))
+      proposals <- OptionT.liftF(proposalRepo.listWithCfp(talkElt.id, Page.Params.defaults))
+      events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_._1.event)))
       b = breadcrumb(req.identity.user, talkElt)
     } yield Ok(html.detail(talkElt, speakers, invites, proposals, events, GenericForm.invite, GenericForm.embed)(b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }

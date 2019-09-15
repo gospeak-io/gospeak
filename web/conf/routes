@@ -159,11 +159,16 @@ GET         /status                                                             
 + nocsrf
 POST        /ui/utils/markdown-to-html                                          fr.gospeak.web.api.ui.UtilsCtrl.markdownToHtml
 GET         /ui/utils/embed                                                     fr.gospeak.web.api.ui.UtilsCtrl.embed(url: Url)
-GET         /ui/suggest/tags                                                    fr.gospeak.web.api.ui.SuggestCtrl.tags
-GET         /ui/suggest/cfps/:group                                             fr.gospeak.web.api.ui.SuggestCtrl.cfps(group: Group.Slug)
-GET         /ui/suggest/partners/:group                                         fr.gospeak.web.api.ui.SuggestCtrl.partners(group: Group.Slug)
-GET         /ui/suggest/venues/:group                                           fr.gospeak.web.api.ui.SuggestCtrl.venues(group: Group.Slug)
-GET         /ui/suggest/sponsor-packs/:group                                    fr.gospeak.web.api.ui.SuggestCtrl.sponsorPacks(group: Group.Slug)
+GET         /ui/suggest/tags                                                    fr.gospeak.web.api.ui.SuggestCtrl.suggestTags
+GET         /ui/suggest/cfps/:group                                             fr.gospeak.web.api.ui.SuggestCtrl.suggestCfps(group: Group.Slug)
+GET         /ui/suggest/partners/:group                                         fr.gospeak.web.api.ui.SuggestCtrl.suggestPartners(group: Group.Slug)
+GET         /ui/suggest/venues/:group                                           fr.gospeak.web.api.ui.SuggestCtrl.suggestVenues(group: Group.Slug)
+GET         /ui/suggest/sponsor-packs/:group                                    fr.gospeak.web.api.ui.SuggestCtrl.suggestSponsorPacks(group: Group.Slug)
+GET         /ui/search/:group                                                   fr.gospeak.web.api.ui.SuggestCtrl.searchRoot(group: Group.Slug)
+GET         /ui/search/:group/speakers                                          fr.gospeak.web.api.ui.SuggestCtrl.searchSpeakers(group: Group.Slug, q: String)
+GET         /ui/search/:group/proposals                                         fr.gospeak.web.api.ui.SuggestCtrl.searchProposals(group: Group.Slug, q: String)
+GET         /ui/search/:group/partners                                          fr.gospeak.web.api.ui.SuggestCtrl.searchPartners(group: Group.Slug, q: String)
+GET         /ui/search/:group/events                                            fr.gospeak.web.api.ui.SuggestCtrl.searchEvents(group: Group.Slug, q: String)
 GET         /ui/validate/slack-token                                            fr.gospeak.web.api.ui.SuggestCtrl.validateSlackToken(token: String)
 GET         /ui/utils/template-data/:ref                                        fr.gospeak.web.api.ui.SuggestCtrl.templateData(ref: utils.TemplateData.Ref)
 + nocsrf

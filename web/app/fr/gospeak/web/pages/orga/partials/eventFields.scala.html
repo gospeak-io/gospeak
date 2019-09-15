@@ -12,13 +12,13 @@
     @inputLocalDatetime(field, args)
 }
 @fieldVertical(form("venue"), Seq("label" -> "Venue", "help" -> "Where your event will take place")) { (field, args) =>
-    @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.venues(group.slug).toString, "optional" -> "") ++ args)
+    @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.suggestVenues(group.slug).toString, "optional" -> "") ++ args)
 }
 @fieldVertical(form("cfp"), Seq("label" -> "CFP", "help" -> "You will be able to add proposals from the CFP to the event")) { (field, args) =>
-    @inputSelect(field, Seq(), Seq("placeholder" -> "-- Attach a CFP to this event", "remote" -> SuggestCtrl.cfps(group.slug).toString, "optional" -> "") ++ args)
+    @inputSelect(field, Seq(), Seq("placeholder" -> "-- Attach a CFP to this event", "remote" -> SuggestCtrl.suggestCfps(group.slug).toString, "optional" -> "") ++ args)
 }
 @fieldVertical(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of the event")) { (field, args) =>
-    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.tags().toString))
+    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
 }
 @fieldVertical(form("description"), Seq("label" -> "Description", "help" -> "Description of your event")) { (field, args) =>
     <div class="row">

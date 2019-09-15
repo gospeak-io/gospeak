@@ -19,7 +19,7 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def list(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      proposals <- proposalRepo.listWithCfpTalkEvent(user, params)
+      proposals <- proposalRepo.listFull(user, params)
       b = listBreadcrumb(req.identity.user)
     } yield Ok(html.list(proposals)(b))).unsafeToFuture()
   }

@@ -13,7 +13,7 @@
 @import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Page[(Cfp, Proposal)], events: Seq[Event], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Page[(Proposal, Cfp)], events: Seq[Event], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(talk.title.value + " - Gospeak", b)() {
     @if(talk.status == Talk.Status.Draft) {
         <div class="alert alert-info" role="alert">
@@ -128,7 +128,7 @@
                 <a class="btn btn-primary btn-sm" href="@CfpCtrl.list(talk.slug)">Find a CFP to propose your talk</a>
             </h5>
             <ul class="list-group list-group-flush">
-            @proposals.items.map { case (cfp, proposal) => @proposalItem(talk, cfp, proposal, events) }
+            @proposals.items.map { case (proposal, cfp) => @proposalItem(talk, cfp, proposal, events) }
             </ul>
             @if(!proposals.isLast) {
                 <div class="card-footer"><a href="@ProposalCtrl.list(talk.slug)">More...</a></div>

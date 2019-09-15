@@ -121,6 +121,8 @@ object Page {
 
     def orderBy(field: String*): Params = copy(orderBy = Some(OrderBy(field)))
 
+    def search(q: String): Params = copy(search = Some(Search(q)))
+
     def withNullsFirst: Params = copy(nullsFirst = true)
 
     def withNullsLast: Params = copy(nullsFirst = false)

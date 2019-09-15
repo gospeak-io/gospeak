@@ -88,29 +88,27 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]] = run(selectOne(speaker, talk, cfp).option)
 
-  override def findWithCfpTalkEvent(proposal: Proposal.Id): IO[Option[Proposal.Full]] = run(selectOneWithCfpTalkEvent(proposal).option)
+  override def findFull(proposal: Proposal.Id): IO[Option[Proposal.Full]] = run(selectOneWithCfpTalkEvent(proposal).option)
 
-  override def findWithCfpTalkEvent(talk: Talk.Slug, cfp: Cfp.Slug)(by: User.Id): IO[Option[Proposal.Full]] = run(selectOneWithCfpTalkEvent(talk, cfp, by).option)
-
-  override def list(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]] = run(Queries.selectPage(selectPage(talk, _), params))
+  override def findFull(talk: Talk.Slug, cfp: Cfp.Slug)(by: User.Id): IO[Option[Proposal.Full]] = run(selectOneWithCfpTalkEvent(talk, cfp, by).option)
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[Proposal]] = run(Queries.selectPage(selectPage(group, _), params))
-
-  override def list(group: Group.Id, speaker: User.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]] = run(Queries.selectPage(selectPage(group, speaker, _), params))
-
-  override def list(speaker: User.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]] = run(Queries.selectPage(selectPage(speaker, _), params))
 
   override def list(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal]] = run(Queries.selectPage(selectPage(cfp, _), params))
 
   override def list(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal]] = run(Queries.selectPage(selectPage(cfp, status, _), params))
 
-  override def list(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = runIn(selectAll)(ids)
+  override def listWithCfp(talk: Talk.Id, params: Page.Params): IO[Page[(Proposal, Cfp)]] = run(Queries.selectPage(selectPageWithCfp(talk, _), params))
 
-  override def list(speaker: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Cfp, Proposal)]] = run(Queries.selectPage(selectPage(speaker, status, _), params))
+  override def listWithCfp(group: Group.Id, speaker: User.Id, params: Page.Params): IO[Page[(Proposal, Cfp)]] = run(Queries.selectPage(selectPageWithCfp(group, speaker, _), params))
+
+  override def listWithCfp(group: Group.Id, params: Page.Params): IO[Page[(Proposal, Cfp)]] = run(Queries.selectPage(selectPageWithCfp(group, _), params))
 
   override def listWithEvent(speaker: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Option[Event], Proposal)]] = run(Queries.selectPage(selectPageWithEvent(speaker, status, _), params))
 
-  override def listWithCfpTalkEvent(speaker: User.Id, params: Page.Params): IO[Page[Proposal.Full]] = run(Queries.selectPage(selectPageWithCfpTalkEvent(speaker, _), params))
+  override def listFull(speaker: User.Id, params: Page.Params): IO[Page[Proposal.Full]] = run(Queries.selectPage(selectPageWithCfpTalkEvent(speaker, _), params))
+
+  override def list(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = runIn(selectAll)(ids)
 
   override def listTags(): IO[Seq[Tag]] = run(selectTags().to[List]).map(_.flatten.distinct)
 }
@@ -125,7 +123,7 @@ object ProposalRepoSql {
   private val defaultSort = Page.OrderBy("-created")
 
   private val tableWithCfpFr = Fragment.const0(s"$table p INNER JOIN $cfpTable c ON p.cfp_id=c.id")
-  private val fieldsWithCfpFr = Fragment.const0((cfpFields.map("c." + _) ++ fields.map("p." + _)).mkString(", "))
+  private val fieldsWithCfpFr = Fragment.const0((fields.map("p." + _) ++ cfpFields.map("c." + _)).mkString(", "))
 
   private val tableWithEventFr = Fragment.const0(s"$table p LEFT OUTER JOIN $eventTable e ON p.event_id=e.id")
   private val fieldsWithEventFr = Fragment.const0((eventFields.map("e." + _) ++ fields.map("p." + _)).mkString(", "))
@@ -199,24 +197,19 @@ object ProposalRepoSql {
     (buildSelect(tableWithCfpFr, selectedFields, page.all).query[Proposal], buildSelect(tableWithCfpFr, fr0"count(*)", page.where).query[Long])
   }
 
-  private[sql] def selectPage(group: Group.Id, speaker: User.Id, params: Page.Params): (doobie.Query0[(Cfp, Proposal)], doobie.Query0[Long]) = {
+  private[sql] def selectPageWithCfp(group: Group.Id, params: Page.Params): (doobie.Query0[(Proposal, Cfp)], doobie.Query0[Long]) = {
+    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE c.group_id=$group"), Some("p"))
+    (buildSelect(tableWithCfpFr, fieldsWithCfpFr, page.all).query[(Proposal, Cfp)], buildSelect(tableWithCfpFr, fr0"count(*)", page.where).query[Long])
+  }
+
+  private[sql] def selectPageWithCfp(group: Group.Id, speaker: User.Id, params: Page.Params): (doobie.Query0[(Proposal, Cfp)], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE c.group_id=$group AND p.speakers LIKE ${"%" + speaker.value + "%"}"), Some("p"))
-    (buildSelect(tableWithCfpFr, fieldsWithCfpFr, page.all).query[(Cfp, Proposal)], buildSelect(tableWithCfpFr, fr0"count(*)", page.where).query[Long])
+    (buildSelect(tableWithCfpFr, fieldsWithCfpFr, page.all).query[(Proposal, Cfp)], buildSelect(tableWithCfpFr, fr0"count(*)", page.where).query[Long])
   }
 
-  private[sql] def selectPage(talk: Talk.Id, params: Page.Params): (doobie.Query0[(Cfp, Proposal)], doobie.Query0[Long]) = {
+  private[sql] def selectPageWithCfp(talk: Talk.Id, params: Page.Params): (doobie.Query0[(Proposal, Cfp)], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.talk_id=$talk"), Some("p"))
-    (buildSelect(tableWithCfpFr, fieldsWithCfpFr, page.all).query[(Cfp, Proposal)], buildSelect(tableWithCfpFr, fr0"count(*)", page.where).query[Long])
-  }
-
-  private[sql] def selectPage(speaker: User.Id, params: Page.Params): (doobie.Query0[(Cfp, Proposal)], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"}"), Some("p"))
-    (buildSelect(tableWithCfpFr, fieldsWithCfpFr, page.all).query[(Cfp, Proposal)], buildSelect(tableWithCfpFr, fr0"count(*)", page.where).query[Long])
-  }
-
-  private[sql] def selectPage(speaker: User.Id, status: Proposal.Status, params: Page.Params): (doobie.Query0[(Cfp, Proposal)], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.status=$status AND p.speakers LIKE ${"%" + speaker.value + "%"} "), Some("p"))
-    (buildSelect(tableWithCfpFr, fieldsWithCfpFr, page.all).query[(Cfp, Proposal)], buildSelect(tableWithCfpFr, fr0"count(*)", page.where).query[Long])
+    (buildSelect(tableWithCfpFr, fieldsWithCfpFr, page.all).query[(Proposal, Cfp)], buildSelect(tableWithCfpFr, fr0"count(*)", page.where).query[Long])
   }
 
   private[sql] def selectPageWithEvent(speaker: User.Id, status: Proposal.Status, params: Page.Params): (doobie.Query0[(Option[Event], Proposal)], doobie.Query0[Long]) = {

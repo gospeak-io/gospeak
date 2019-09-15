@@ -9,20 +9,18 @@
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, speaker: User, proposals: Page[(Cfp, Proposal)], speakers: Seq[User], events: Seq[Event])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, speaker: User, proposals: Page[(Proposal, Cfp)], speakers: Seq[User], events: Seq[Event])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(speaker.name.value + " - Gospeak", group, b)() {
     <div class="row">
         <div class="col-4">
-        @speakerCard(speaker)
+            @speakerCard(speaker)
         </div>
         <div class="col-8">
             <h2 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h2>
-            @Formats.paginated[(Cfp, Proposal)](
+            @Formats.paginated[(Proposal, Cfp)](
                 page = proposals,
                 link = SpeakerCtrl.detail(group.slug, speaker.slug, _),
-                item = a => proposalItem(group, a._1, a._2, speakers, events))
+                item = i => proposalItem(group, i._2, i._1, speakers, events))
         </div>
-
-    </div>
     </div>
 }()

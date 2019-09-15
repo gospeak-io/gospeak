@@ -21,5 +21,7 @@ trait OrgaPartnerRepo {
 }
 
 trait SuggestPartnerRepo {
+  def list(group: Group.Id, params: Page.Params): IO[Page[Partner]]
+
   def list(group: Group.Id): IO[Seq[Partner]]
 }

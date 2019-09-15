@@ -128,7 +128,7 @@
                 @formElt(attachCfp, EventCtrl.attachCfp(group.slug, event.slug), Seq("class" -> "form-inline")) {
                     @inputSelect(attachCfp("cfp"), Seq(), Seq(
                         "placeholder" -> "-- Attach a CFP to this event",
-                        "remote" -> SuggestCtrl.cfps(group.slug).toString,
+                        "remote" -> SuggestCtrl.suggestCfps(group.slug).toString,
                         "optional" -> ""))
                     @btnSubmit("Attach a CFP", "btn btn-primary ml-2")
                     <span class="ml-2">or</span>

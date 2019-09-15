@@ -28,9 +28,7 @@ trait OrgaProposalRepo {
 
   def list(group: Group.Id, params: Page.Params): IO[Page[Proposal]]
 
-  def list(group: Group.Id, speaker: User.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
-
-  def list(speaker: User.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
+  def listWithCfp(group: Group.Id, speaker: User.Id, params: Page.Params): IO[Page[(Proposal, Cfp)]]
 
   def list(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal]]
 
@@ -54,13 +52,13 @@ trait SpeakerProposalRepo {
 
   def find(proposal: Proposal.Id): IO[Option[Proposal]]
 
-  def findWithCfpTalkEvent(proposal: Proposal.Id): IO[Option[Proposal.Full]]
+  def findFull(proposal: Proposal.Id): IO[Option[Proposal.Full]]
 
-  def findWithCfpTalkEvent(talk: Talk.Slug, cfp: Cfp.Slug)(by: User.Id): IO[Option[Proposal.Full]]
+  def findFull(talk: Talk.Slug, cfp: Cfp.Slug)(by: User.Id): IO[Option[Proposal.Full]]
 
-  def listWithCfpTalkEvent(user: User.Id, params: Page.Params): IO[Page[Proposal.Full]]
+  def listFull(user: User.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
-  def list(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
+  def listWithCfp(talk: Talk.Id, params: Page.Params): IO[Page[(Proposal, Cfp)]]
 
   def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]]
 }
@@ -68,21 +66,19 @@ trait SpeakerProposalRepo {
 trait UserProposalRepo {
   def addSpeaker(proposal: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
 
-  def list(user: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Cfp, Proposal)]]
-
   def listWithEvent(user: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Option[Event], Proposal)]]
 }
 
 trait AuthProposalRepo
 
 trait PublicProposalRepo {
-  def list(user: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Cfp, Proposal)]]
-
   def listWithEvent(speaker: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Option[Event], Proposal)]]
 }
 
 trait SuggestProposalRepo {
   def listTags(): IO[Seq[Tag]]
+
+  def listWithCfp(group: Group.Id, params: Page.Params): IO[Page[(Proposal, Cfp)]]
 }
 
 object ProposalFields {

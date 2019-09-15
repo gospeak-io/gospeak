@@ -35,7 +35,7 @@ class UserCtrl(cc: ControllerComponents,
   def index(): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       talks <- talkRepo.list(user, Page.Params.defaults)
-      proposals <- proposalRepo.listWithCfpTalkEvent(user, Page.Params.defaults)
+      proposals <- proposalRepo.listFull(user, Page.Params.defaults)
       b = breadcrumb(req.identity.user)
     } yield Ok(html.index(talks, proposals)(b))).unsafeToFuture()
   }
@@ -80,7 +80,7 @@ class UserCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToTalkAccepted(r, talkElt, speakerElt, req.identity.user)))
       } yield s"Invitation to <b>${talkElt.title.value}</b> accepted").value
       case Some(r: UserRequest.ProposalInvite) => (for {
-        proposalFull <- OptionT(proposalRepo.findWithCfpTalkEvent(r.proposal))
+        proposalFull <- OptionT(proposalRepo.findFull(r.proposal))
         speakerElt <- OptionT(userRepo.find(r.createdBy))
         _ <- OptionT.liftF(userRequestRepo.accept(r, user, now))
         _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalAccepted(r, proposalFull.cfp, proposalFull.talk, proposalFull.proposal, speakerElt, req.identity.user)))
@@ -107,7 +107,7 @@ class UserCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToTalkRejected(r, talkElt, speakerElt, req.identity.user)))
       } yield s"Invitation to <b>${talkElt.title.value}</b> rejected").value
       case Some(r: UserRequest.ProposalInvite) => (for {
-        proposalFull <- OptionT(proposalRepo.findWithCfpTalkEvent(r.proposal))
+        proposalFull <- OptionT(proposalRepo.findFull(r.proposal))
         speakerElt <- OptionT(userRepo.find(r.createdBy))
         _ <- OptionT.liftF(userRequestRepo.reject(r, user, now))
         _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalRejected(r, proposalFull.cfp, proposalFull.talk, proposalFull.proposal, speakerElt, req.identity.user)))

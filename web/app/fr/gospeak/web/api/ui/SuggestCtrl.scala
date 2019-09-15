@@ -3,26 +3,34 @@ package fr.gospeak.web.api.ui
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.ApplicationConf
-import fr.gospeak.core.domain.Group
 import fr.gospeak.core.domain.utils.TemplateData
+import fr.gospeak.core.domain._
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackToken
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.TemplateSrv
-import fr.gospeak.libs.scalautils.domain.Html
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
+import fr.gospeak.libs.scalautils.domain.{Html, Page}
 import fr.gospeak.web.auth.domain.CookieEnv
+import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
+import fr.gospeak.web.pages.orga.events.routes.EventCtrl
+import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
+import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 import fr.gospeak.web.utils.JsonFormats._
 import fr.gospeak.web.utils.{ApiCtrl, Formats, MarkdownUtils}
 import play.api.libs.json._
-import fr.gospeak.libs.scalautils.Extensions._
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import play.twirl.api.HtmlFormat
 
+import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 case class SuggestedItem(id: String, text: String)
+
+case class SearchResultItem(text: String, url: String)
 
 case class ValidationResult(valid: Boolean, message: String)
 
@@ -36,6 +44,7 @@ class SuggestCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
                   appConf: ApplicationConf,
                   groupRepo: SuggestGroupRepo,
+                  userRepo: SuggestUserRepo,
                   cfpRepo: SuggestCfpRepo,
                   eventRepo: SuggestEventRepo,
                   talkRepo: SuggestTalkRepo,
@@ -48,7 +57,7 @@ class SuggestCtrl(cc: ControllerComponents,
 
   import silhouette._
 
-  def tags(): Action[AnyContent] = Action.async { implicit req =>
+  def suggestTags(): Action[AnyContent] = Action.async { implicit req =>
     (for {
       gTags <- groupRepo.listTags()
       cTags <- cfpRepo.listTags()
@@ -59,40 +68,63 @@ class SuggestCtrl(cc: ControllerComponents,
     } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))).unsafeToFuture()
   }
 
-  def cfps(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
-      cfps <- OptionT.liftF(cfpRepo.list(groupElt.id))
-      suggestItems = cfps.map(c => SuggestedItem(c.id.value, c.name.value + " - " + Formats.cfpDates(c)))
-    } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
+  def suggestCfps(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    makeSuggest[Cfp](cfpRepo.list, c => SuggestedItem(c.id.value, c.name.value + " - " + Formats.cfpDates(c)))(group)
   }
 
-  def partners(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
-      partners <- OptionT.liftF(partnerRepo.list(groupElt.id))
-      suggestItems = partners.map(p => SuggestedItem(p.id.value, p.name.value))
-    } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
+  def suggestPartners(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    makeSuggest[Partner](partnerRepo.list, p => SuggestedItem(p.id.value, p.name.value))(group)
   }
 
-  def venues(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
-      venues <- OptionT.liftF(venueRepo.list(groupElt.id))
-      suggestItems = venues.map { v => SuggestedItem(v.venue.id.value, v.partner.name.value + " - " + v.venue.address.value) }
-    } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
+  def suggestVenues(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    makeSuggest[Venue.Full](venueRepo.list, v => SuggestedItem(v.venue.id.value, v.partner.name.value + " - " + v.venue.address.value))(group)
   }
 
-  def sponsorPacks(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def suggestSponsorPacks(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    makeSuggest[SponsorPack](sponsorPackRepo.listAll, sp => SuggestedItem(sp.id.value, sp.name.value + " (" + sp.price.value + ")"))(group)
+  }
+
+  private def makeSuggest[A](list: Group.Id => IO[Seq[A]], format: A => SuggestedItem)
+                            (group: Group.Slug)
+                            (implicit req: SecuredRequest[CookieEnv, AnyContent]): Future[Result] = {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.identity.user.id, group))
-      sponsorPacks <- OptionT.liftF(sponsorPackRepo.listAll(groupElt.id))
-      suggestItems = sponsorPacks.sortBy(-_.price.amount).map(sp => SuggestedItem(sp.id.value, sp.name.value + " (" + sp.price.value + ")"))
-    } yield Ok(Json.toJson(suggestItems))).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
+      groupElt <- OptionT(groupRepo.find(user, group))
+      results <- OptionT.liftF(list(groupElt.id))
+      res = Ok(Json.toJson(results.map(format).sortBy(_.text)))
+    } yield res).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
+  }
+
+  def searchRoot(group: Group.Slug): Action[AnyContent] = SecuredAction { implicit req =>
+    BadRequest("this endpoint should not be requested")
+  }
+
+  def searchSpeakers(group: Group.Slug, q: String): Action[AnyContent] = SecuredAction.async { implicit req =>
+    makeSearch[User](userRepo.speakers, s => SearchResultItem(s.name.value, SpeakerCtrl.detail(group, s.slug).toString))(group, q)
+  }
+
+  def searchProposals(group: Group.Slug, q: String): Action[AnyContent] = SecuredAction.async { implicit req =>
+    makeSearch[(Proposal, Cfp)](proposalRepo.listWithCfp, { case (p, c) => SearchResultItem(p.title.value, ProposalCtrl.detail(group, c.slug, p.id).toString) })(group, q)
+  }
+
+  def searchPartners(group: Group.Slug, q: String): Action[AnyContent] = SecuredAction.async { implicit req =>
+    makeSearch[Partner](partnerRepo.list, p => SearchResultItem(p.name.value, PartnerCtrl.detail(group, p.slug).toString))(group, q)
+  }
+
+  def searchEvents(group: Group.Slug, q: String): Action[AnyContent] = SecuredAction.async { implicit req =>
+    makeSearch[Event](eventRepo.list, e => SearchResultItem(e.name.value, EventCtrl.detail(group, e.slug).toString))(group, q)
+  }
+
+  private def makeSearch[A](list: (Group.Id, Page.Params) => IO[Page[A]], format: A => SearchResultItem)
+                           (group: Group.Slug, q: String)
+                           (implicit req: SecuredRequest[CookieEnv, AnyContent]): Future[Result] = {
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      results <- OptionT.liftF(list(groupElt.id, Page.Params.defaults.search(q)))
+      res = Ok(Json.toJson(results.items.map(format)))
+    } yield res).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SearchResultItem])))).unsafeToFuture()
   }
 
   def validateSlackToken(token: String): Action[AnyContent] = SecuredAction.async { implicit req =>
-    import cats.implicits._
     SlackToken.from(token, appConf.aesKey).toIO.flatMap(slackSrv.getInfos(_, appConf.aesKey))
       .map(infos => ValidationResult(valid = true, s"Token for ${infos.teamName} team, created by ${infos.userName}"))
       .recover { case NonFatal(e) => ValidationResult(valid = false, s"Invalid token: ${e.getMessage}") }

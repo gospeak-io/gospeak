@@ -1,6 +1,7 @@
 declare const $;
 declare const autosize;
 declare const IMask;
+declare const Bloodhound;
 declare const google;
 
 function slugify(str: string): string {
@@ -246,9 +247,9 @@ function slugify(str: string): string {
     });
     // clear empty input-time so backend will get empty values instead of placeholder ones
     $('form').submit(function (e) {
-        $(e.target).find('input.input-time').each(function() {
+        $(e.target).find('input.input-time').each(function () {
             const $input = $(this);
-            if($input.val() === '__:__') {
+            if ($input.val() === '__:__') {
                 $input.val('');
             }
         });
@@ -439,6 +440,42 @@ function slugify(str: string): string {
         fetchEmbedCode(url).then(function (html) {
             embed.html(html);
         });
+    });
+})();
+
+// omni-search with https://twitter.github.io/typeahead.js/
+(function () {
+    $('[data-omni-search]').each(function () {
+        const $search = $(this);
+        const baseUrl = $search.attr('data-omni-search');
+        const datasetBuilder = (url, title) => ({
+            name: url,
+            async: true,
+            limit: 10,
+            source: new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.whitespace,
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: {
+                    wildcard: '%QUERY',
+                    url: baseUrl + '/' + url + '?q=%QUERY'
+                }
+            }),
+            display: item => item.text, // will be set in the input
+            templates: {
+                header: '<b class="tt-header">' + title + '</b>',
+                suggestion: item => '<a href="' + item.url + '">' + item.text + '</a>',
+                pending: '<b class="tt-header">'+title+' <i class="fas fa-circle-notch fa-spin"></i></b>',
+                notFound: '<b class="tt-header">' + title + '</b>'
+            }
+        });
+
+        $search.typeahead(
+            {minLength: 2, hint: true, highlight: true},
+            datasetBuilder('speakers', 'Speakers'),
+            datasetBuilder('proposals', 'Proposals'),
+            datasetBuilder('partners', 'Partners'),
+            datasetBuilder('events', 'Events')
+        );
     });
 })();
 

@@ -42,8 +42,8 @@ class ProposalCtrl(cc: ControllerComponents,
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(user, talk))
-      proposals <- OptionT.liftF(proposalRepo.list(talkElt.id, params))
-      events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_._2.event)))
+      proposals <- OptionT.liftF(proposalRepo.listWithCfp(talkElt.id, params))
+      events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_._1.event)))
       b = listBreadcrumb(req.identity.user, talkElt)
     } yield Ok(html.list(talkElt, proposals, events)(b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
@@ -84,7 +84,7 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def detail(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      proposalFull <- OptionT(proposalRepo.findWithCfpTalkEvent(talk, cfp)(user))
+      proposalFull <- OptionT(proposalRepo.findFull(talk, cfp)(user))
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposalFull.proposal.id))
       speakers <- OptionT.liftF(userRepo.list(proposalFull.proposal.users))
       b = breadcrumb(req.identity.user, proposalFull.talk, proposalFull.cfp)
@@ -106,7 +106,7 @@ class ProposalCtrl(cc: ControllerComponents,
 
   private def editForm(talk: Talk.Slug, cfp: Cfp.Slug, form: Form[Proposal.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      proposalFull <- OptionT(proposalRepo.findWithCfpTalkEvent(talk, cfp)(user))
+      proposalFull <- OptionT(proposalRepo.findFull(talk, cfp)(user))
       b = breadcrumb(req.identity.user, proposalFull.talk, proposalFull.cfp).add("Edit" -> routes.ProposalCtrl.edit(talk, cfp))
       filledForm = if (form.hasErrors) form else form.fill(proposalFull.proposal.data)
     } yield Ok(html.edit(filledForm, proposalFull.talk, proposalFull.cfp, proposalFull.proposal)(b))).value.map(_.getOrElse(talkNotFound(talk)))
