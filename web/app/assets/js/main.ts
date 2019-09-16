@@ -487,7 +487,7 @@ declare const Mousetrap;
 (function () {
     $('[data-hotkey]').each(function () {
         const $hotkey = $(this);
-        if ($hotkey.hasClass('tt-hint')) return;
+        if ($hotkey.hasClass('tt-hint')) return; // 'tt-hint' is a duplicated field from omni-search, so it's ignored
         const keys = $hotkey.attr('data-hotkey');
         Mousetrap.bind(keys.split(','), function (event, key) {
             const tagName = $hotkey.prop('tagName');
@@ -495,8 +495,8 @@ declare const Mousetrap;
                 $hotkey.focus();
                 return false;
             } else if (tagName === 'A' && $hotkey.attr('href')) {
-                // $hotkey[0].click();
                 window.location.href = $hotkey.attr('href'); // to prevent opening in new tab when "_blank" attribute
+                return false;
             } else if (tagName === 'DIV' && $hotkey.hasClass('modal')) {
                 $hotkey.modal('toggle');
                 return false;
