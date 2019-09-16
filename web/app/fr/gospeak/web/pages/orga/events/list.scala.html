@@ -11,7 +11,7 @@
 @container("Gospeak", group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span class="text-capitalize">@Formats.plural(events.total.value, "event")</span>
-        <a class="btn btn-primary" href="@EventCtrl.create(group.slug)">Create an event</a>
+        <a class="btn btn-primary" href="@EventCtrl.create(group.slug)" data-hotkey="+">Create an event</a>
     </h1>
     @Formats.paginated[Event](events, EventCtrl.list(group.slug, _), e => eventItem(group, e, cfps.find(c => e.cfp.contains(c.id)), venues, proposals, speakers))
 }()

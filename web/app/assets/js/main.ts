@@ -1,8 +1,4 @@
 declare const $;
-declare const autosize;
-declare const IMask;
-declare const Bloodhound;
-declare const google;
 
 function slugify(str: string): string {
     return (str || '')
@@ -14,6 +10,7 @@ function slugify(str: string): string {
 }
 
 // enable global features
+declare const autosize;
 (function () {
     $('[data-toggle="tooltip"]').tooltip();
     $('[data-toggle="popover"]').popover();
@@ -234,6 +231,7 @@ function slugify(str: string): string {
 })();
 
 // https://unmanner.github.io/imaskjs/
+declare const IMask;
 (function () {
     $('input.input-time').each(function () {
         IMask(this, {
@@ -444,6 +442,7 @@ function slugify(str: string): string {
 })();
 
 // omni-search with https://twitter.github.io/typeahead.js/
+declare const Bloodhound;
 (function () {
     $('[data-omni-search]').each(function () {
         const $search = $(this);
@@ -463,7 +462,7 @@ function slugify(str: string): string {
             templates: {
                 header: '<b class="tt-header">' + title + '</b>',
                 suggestion: item => '<a href="' + item.url + '">' + item.text + '</a>',
-                pending: '<b class="tt-header">'+title+' <i class="fas fa-circle-notch fa-spin"></i></b>',
+                pending: '<b class="tt-header">' + title + ' <i class="fas fa-circle-notch fa-spin"></i></b>',
                 notFound: '<b class="tt-header">' + title + '</b>'
             }
         });
@@ -476,14 +475,40 @@ function slugify(str: string): string {
             datasetBuilder('events', 'Events')
         );
         $search.bind('typeahead:select', (evt, item) => {
-            if(item.url) {
+            if (item.url) {
                 window.location.href = item.url; // navigate to url when item is selected (with keyboard)
             }
         });
     });
 })();
 
+// https://craig.is/killing/mice
+declare const Mousetrap;
+(function () {
+    $('[data-hotkey]').each(function () {
+        const $hotkey = $(this);
+        if ($hotkey.hasClass('tt-hint')) return;
+        const keys = $hotkey.attr('data-hotkey');
+        Mousetrap.bind(keys.split(','), function (event, key) {
+            const tagName = $hotkey.prop('tagName');
+            if (tagName === 'INPUT') {
+                $hotkey.focus();
+                return false;
+            } else if (tagName === 'A' && $hotkey.attr('href')) {
+                // $hotkey[0].click();
+                window.location.href = $hotkey.attr('href'); // to prevent opening in new tab when "_blank" attribute
+            } else if (tagName === 'DIV' && $hotkey.hasClass('modal')) {
+                $hotkey.modal('toggle');
+                return false;
+            } else {
+                console.warn('"' + keys + '" was pressed by no default binding for ' + tagName, $hotkey);
+            }
+        });
+    });
+})();
+
 // GMapPlace picker (https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete?hl=fr)
+declare const google;
 const GMapPlacePicker = (function () {
     function initMap($map) {
         const map = new google.maps.Map($map.get(0), {

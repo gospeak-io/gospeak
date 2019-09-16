@@ -28,21 +28,21 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav">
-                    @navbarLink(EventCtrl.list(group.slug)) {Events}
-                    @navbarLink(CfpCtrl.list(group.slug)) {CFPs}
-                    @navbarLink(ProposalCtrl.list(group.slug)) {Proposals}
-                    @navbarLink(SpeakerCtrl.list(group.slug)) {Speakers}
-                    @navbarLink(PartnerCtrl.list(group.slug)) {Partners}
-                    @navbarLink(VenueCtrl.list(group.slug)) {Venues}
-                    @navbarLink(SponsorCtrl.list(group.slug)) {Sponsors}
+                    @navbarLink(EventCtrl.list(group.slug), "data-hotkey" -> "1") {Events}
+                    @navbarLink(CfpCtrl.list(group.slug), "data-hotkey" -> "2") {CFPs}
+                    @navbarLink(ProposalCtrl.list(group.slug), "data-hotkey" -> "3") {Proposals}
+                    @navbarLink(SpeakerCtrl.list(group.slug), "data-hotkey" -> "4") {Speakers}
+                    @navbarLink(PartnerCtrl.list(group.slug), "data-hotkey" -> "5") {Partners}
+                    @navbarLink(VenueCtrl.list(group.slug), "data-hotkey" -> "6") {Venues}
+                    @navbarLink(SponsorCtrl.list(group.slug), "data-hotkey" -> "7") {Sponsors}
                 </div>
             </div>
             <form class="form-inline my-2 my-lg-0">
-                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" autocomplete="off" data-omni-search="@SuggestCtrl.searchRoot(group.slug)">
+                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" autocomplete="off" data-omni-search="@SuggestCtrl.searchRoot(group.slug)" data-hotkey="/">
             </form>
             <div class="navbar-nav">
-                <a class="nav-item nav-link" href="@PublicGroupCtrl.detail(group.slug)" target="_blank" title="Public page of your group" data-toggle="tooltip" data-placement="bottom"><i class="fas fa-eye"></i></a>
-                @navbarLink(SettingsCtrl.settings(group.slug)) {<i class="fas fa-cogs"></i>}
+                <a class="nav-item nav-link" href="@PublicGroupCtrl.detail(group.slug)" target="_blank" title="Public page of your group" data-toggle="tooltip" data-placement="bottom" data-hotkey="g p"><i class="fas fa-eye"></i></a>
+                @navbarLink(SettingsCtrl.settings(group.slug), "data-hotkey" -> "g s") {<i class="fas fa-cogs"></i>}
                 @userDropdown(req.identity, Some(group))
             </div>
         </div>
@@ -58,6 +58,42 @@
         }
         @flash(req.flash)
         @content
+    </div>
+    <div class="modal fade" id="hotkeysModal" tabindex="-1" role="dialog" aria-labelledby="hotkeysModalLabel" aria-hidden="true" data-hotkey="?">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="hotkeysModalLabel">Gospeak hotkeys</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Hi power user, you can use theses shortcuts to be more productive in Gospeak</p>
+                    <div class="row">
+                        <div class="col">
+                            <h4>Navigation</h4>
+                            <p class="mb-1"><span class="float-right"><kbd>?</kbd></span>Hotkey help</p>
+                            <p class="mb-1"><span class="float-right"><kbd>/</kbd></span>Focus search</p>
+                            <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>h</kbd></span>Go to your Home</p>
+                            <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>g</kbd></span>Go to your first Group</p>
+                            <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>p</kbd></span>Go to Public page</p>
+                            <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>s</kbd></span>Go to Settings</p>
+                            <p class="mb-1"><span class="float-right"><kbd>1</kbd> or <kbd>2</kbd> or <kbd>3</kbd>...</span>Navigate to menu X</p>
+                            <p class="mb-1"><span class="float-right"><kbd>shift</kbd>+<kbd>right</kbd></span>Next page</p>
+                            <p class="mb-1"><span class="float-right"><kbd>shift</kbd>+<kbd>left</kbd></span>Previous page</p>
+                        </div>
+                        <div class="col">
+                            <h4>Actions</h4>
+                            <p class="mb-1"><span class="float-right"><kbd>+</kbd></span>Toggle create button</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
     @footer()
 }
