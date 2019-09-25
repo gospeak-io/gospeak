@@ -17,6 +17,7 @@ case class Event(id: String, // Event.Id
                  data: EventData,
                  meta: Meta) {
   def toEvent(group: gs.Group.Id, cfp: gs.Cfp.Id, venues: Seq[gs.Venue], proposals: Seq[gs.Proposal]): gs.Event = {
+    val now = Instant.now()
     val instant = Instant.ofEpochMilli(data.date)
     val date = LocalDateTime.ofInstant(instant, ZoneOffset.UTC)
     Try(gs.Event(
@@ -30,7 +31,7 @@ case class Event(id: String, // Event.Id
       venue = data.venue.map(v => venues.find(_.partner.value == v).getOrElse(throw new Exception(s"Missing venue $v")).id),
       talks = data.talks.map(t => proposals.find(_.talk.value == t).getOrElse(throw new Exception(s"Missing proposal $t")).id),
       tags = Seq(),
-      published = Some(instant),
+      published = Some(instant).filter(_.isBefore(now)),
       refs = gs.Event.ExtRefs(
         meetup = meetupRef.map(r => MeetupEvent.Ref(MeetupGroup.Slug.from(r.group).get, MeetupEvent.Id(r.id)))),
       info = meta.toInfo)).mapFailure(e => new Exception(s"toEvent error for ${data.title}: ${e.getMessage}", e)).get
