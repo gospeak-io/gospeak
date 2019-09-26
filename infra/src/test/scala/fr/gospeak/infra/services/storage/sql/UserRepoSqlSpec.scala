@@ -80,7 +80,7 @@ class UserRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = UserRepoSql.update(user)
-        q.sql shouldBe s"UPDATE $table SET slug=?, first_name=?, last_name=?, email=?, status=?, description=?, company=?, location=?, twitter=?, linkedin=?, phone=?, website=?, updated=? WHERE id=?"
+        q.sql shouldBe s"UPDATE $table SET slug=?, first_name=?, last_name=?, email=?, status=?, bio=?, company=?, location=?, twitter=?, linkedin=?, phone=?, website=?, updated=? WHERE id=?"
         check(q)
       }
       it("should build validateAccount") {
@@ -144,5 +144,5 @@ object UserRepoSqlSpec {
   val credentialsFields = "provider_id, provider_key, hasher, password, salt"
 
   val table = "users"
-  val fields = "id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, status, description, company, location, twitter, linkedin, phone, website, created, updated"
+  val fields = "id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, status, bio, company, location, twitter, linkedin, phone, website, created, updated"
 }

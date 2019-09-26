@@ -6,7 +6,7 @@
     <img src="@speaker.avatar.url.value" class="avatar-lg align-self-center mt-1" alt="avatar">
     <div class="card-body">
         <h5 class="card-title"><small>@userProfileStatusIcon(speaker.profile.status)</small> @speaker.name.value</h5>
-        @speaker.profile.description.map { d => <p>@d</p> }
+        @speaker.profile.bio.map { b => <p>@markdown(b)</p> }
         <p class="text-secondary font-italic no-margin">
             @speaker.profile.twitter.map { url => @twitterLink(url)<br> }
             @speaker.profile.linkedin.map { url => @linkedinLink(url)<br> }

@@ -36,7 +36,7 @@ CREATE TABLE users
     avatar          VARCHAR(1024) NOT NULL,
     avatar_source   VARCHAR(20)   NOT NULL,
     status          VARCHAR(10)   NOT NULL,
-    description     VARCHAR(4096),
+    bio             VARCHAR(4096),
     company         VARCHAR(36),
     location        VARCHAR(36),
     twitter         VARCHAR(1024),

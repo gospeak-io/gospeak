@@ -84,7 +84,7 @@ object User {
   }
 
   case class Profile(status: Profile.Status,
-                     description: Option[String],
+                     bio: Option[Markdown],
                      company: Option[String],
                      location: Option[String],
                      twitter: Option[Url],
@@ -134,17 +134,17 @@ object User {
               lastName: String,
               email: EmailAddress,
               status: Profile.Status,
-              description: Option[String],
+              bio: Option[Markdown],
               company: Option[String],
               location: Option[String],
               twitter: Option[Url],
               linkedin: Option[Url],
               phone: Option[String],
               website: Option[Url]): EditableFields =
-      EditableFields(firstName, lastName, email, Profile(status, description, company, location, twitter, linkedin, phone, website))
+      EditableFields(firstName, lastName, email, Profile(status, bio, company, location, twitter, linkedin, phone, website))
 
-    def unapply(arg: EditableFields): Option[(String, String, EmailAddress, Profile.Status, Option[String], Option[String], Option[String], Option[Url], Option[Url], Option[String], Option[Url])] =
-      Some((arg.firstName, arg.lastName, arg.email, arg.profile.status, arg.profile.description, arg.profile.company,
+    def unapply(arg: EditableFields): Option[(String, String, EmailAddress, Profile.Status, Option[Markdown], Option[String], Option[String], Option[Url], Option[Url], Option[String], Option[Url])] =
+      Some((arg.firstName, arg.lastName, arg.email, arg.profile.status, arg.profile.bio, arg.profile.company,
         arg.profile.location, arg.profile.twitter, arg.profile.linkedin, arg.profile.phone, arg.profile.website))
   }
 
