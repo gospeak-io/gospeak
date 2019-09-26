@@ -1,12 +1,13 @@
 @import java.time.Instant
 
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Contact, Group, Partner, Sponsor, SponsorPack, User, Venue}
+@import fr.gospeak.core.domain.{Contact, Event, Group, Partner, Sponsor, SponsorPack, User, Venue}
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html._
 @import fr.gospeak.web.pages.orga.partners.contacts.routes.ContactCtrl
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partners.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
@@ -14,12 +15,7 @@
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, partner: Partner, venues: Seq[Venue], contacts: Seq[Contact], speakers: Seq[User], sponsors: Seq[Sponsor], packs: Seq[SponsorPack], now: Instant = Instant.now())(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@venueItem(venue: Venue) = {
-    <a class="list-group-item list-group-item-action" href="@VenueCtrl.detail(group.slug, partner.slug, venue.id)">
-    @venue.address.value
-    </a>
-}
+@(group: Group, partner: Partner, venues: Seq[Venue], contacts: Seq[Contact], speakers: Seq[User], sponsors: Seq[Sponsor], packs: Seq[SponsorPack], events: Seq[(Event, Venue)], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(partner.name.value + " - Gospeak", group, b)() {
     <div class="d-flex justify-content-between align-items-start">
         <div class="media">
@@ -127,5 +123,20 @@
             </div>
         </div>
     }
+
+    @if(events.nonEmpty) {
+        <div class="card mb-3">
+            <h5 class="card-header">Hosted @Formats.plural(events.length, "event")</h5>
+            <div class="list-group list-group-flush">
+            @events.map { case (event, venue) =>
+                <span class="list-group-item">
+                    <a href="@EventCtrl.detail(group.slug, event.slug)">@event.name.value</a> at
+                    <a href="@VenueCtrl.detail(group.slug, partner.slug, venue.id)">@venue.address.value</a>
+                </span>
+            }
+            </div>
+        </div>
+    }
+
     <p>@info(partner.info, speakers, Some(u => SpeakerCtrl.detail(group.slug, u.slug)))</p>
 }()

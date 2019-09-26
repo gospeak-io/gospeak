@@ -48,6 +48,10 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(Queries.selectPage(selectPage(group, _), params))
 
+  override def list(group: Group.Id, venue: Venue.Id): IO[Seq[Event]] = run(selectAll(group, venue).to[List])
+
+  override def list(group: Group.Id, partner: Partner.Id): IO[Seq[(Event, Venue)]] = run(selectAll(group, partner).to[List])
+
   override def listPublished(group: Group.Id, params: Page.Params): IO[Page[Event.Full]] = run(Queries.selectPage(selectPagePublished(group, _), params))
 
   override def list(ids: Seq[Event.Id]): IO[Seq[Event]] = runIn[Event.Id, Event](selectAll)(ids)
@@ -66,6 +70,9 @@ object EventRepoSql {
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "slug", "name", "description", "tags")
   private val defaultSort = Page.OrderBy("-start")
+
+  private val tableWithVenueFr = Fragment.const0(s"$table e LEFT OUTER JOIN $venueTable v ON e.venue=v.id")
+  private val fieldsWithVenueFr = Fragment.const0((fields.map("e." + _) ++ venueFields.map("v." + _)).mkString(", "))
 
   private val tableFullFr = Fragment.const0(s"$table e LEFT OUTER JOIN $venueTable v ON e.venue=v.id LEFT OUTER JOIN $partnerTable p ON v.partner_id=p.id")
   private val fieldsFullFr = Fragment.const0((fields.map("e." + _) ++ venueFields.map("v." + _) ++ partnerFields.map("p." + _)).mkString(", "))
@@ -110,6 +117,12 @@ object EventRepoSql {
 
   private[sql] def selectAll(ids: NonEmptyList[Event.Id]): doobie.Query0[Event] =
     buildSelect(tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids)).query[Event]
+
+  private[sql] def selectAll(group: Group.Id, venue: Venue.Id): doobie.Query0[Event] =
+    buildSelect(tableFr, fieldsFr, fr"WHERE group_id=$group AND venue=$venue").query[Event]
+
+  private[sql] def selectAll(group: Group.Id, partner: Partner.Id): doobie.Query0[(Event, Venue)] =
+    buildSelect(tableWithVenueFr, fieldsWithVenueFr, fr"WHERE e.group_id=$group AND v.partner_id=$partner").query[(Event, Venue)]
 
   private[sql] def selectAllAfter(group: Group.Id, now: Instant, params: Page.Params): (doobie.Query0[Event], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group AND start > $now"))

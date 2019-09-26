@@ -6,8 +6,6 @@ import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
 
-// TODO: take full object as parameter instead of Id/slug to guarantee it exists
-// TODO: remove list(Seq[Id]) methods as they are dangerous (right wise) and pack them with previous one (listProposalsWithSpeakers)
 trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with PublicEventRepo with SuggestEventRepo
 
 trait OrgaEventRepo {
@@ -22,6 +20,10 @@ trait OrgaEventRepo {
   def publish(group: Group.Id, event: Event.Slug, by: User.Id, now: Instant): IO[Done]
 
   def list(group: Group.Id, params: Page.Params): IO[Page[Event]]
+
+  def list(group: Group.Id, venue: Venue.Id): IO[Seq[Event]]
+
+  def list(group: Group.Id, partner: Partner.Id): IO[Seq[(Event, Venue)]]
 
   def list(ids: Seq[Event.Id]): IO[Seq[Event]]
 

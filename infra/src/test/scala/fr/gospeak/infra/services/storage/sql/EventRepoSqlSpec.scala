@@ -68,6 +68,16 @@ class EventRepoSqlSpec extends RepoSpec {
         check(s)
         check(c)
       }
+      it("should build selectAll for venue") {
+        val q = EventRepoSql.selectAll(group.id, venue.id)
+        q.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? AND venue=? "
+        check(q)
+      }
+      it("should build selectAll for partner") {
+        val q = EventRepoSql.selectAll(group.id, partner.id)
+        q.sql shouldBe s"SELECT $fieldsWithVenue FROM $tableWithVenue WHERE e.group_id=? AND v.partner_id=? "
+        check(q)
+      }
       it("should build selectAll") {
         val q = EventRepoSql.selectAll(NonEmptyList.of(event.id))
         q.sql shouldBe s"SELECT $fields FROM $table WHERE id IN (?) "
@@ -90,6 +100,9 @@ object EventRepoSqlSpec {
 
   val table = "events"
   val fields = "id, group_id, cfp_id, slug, name, start, description, venue, talks, tags, published, meetupGroup, meetupEvent, created, created_by, updated, updated_by"
+
+  private val tableWithVenue = s"$table e LEFT OUTER JOIN venues v ON e.venue=v.id"
+  private val fieldsWithVenue = s"${mapFields(fields, "e." + _)}, ${mapFields(VenueRepoSqlSpec.fields, "v." + _)}"
 
   private val tableFull = s"$table e LEFT OUTER JOIN venues v ON e.venue=v.id LEFT OUTER JOIN partners p ON v.partner_id=p.id"
   private val fieldsFull = s"${mapFields(fields, "e." + _)}, ${mapFields(VenueRepoSqlSpec.fields, "v." + _)}, ${mapFields(PartnerRepoSqlSpec.fields, "p." + _)}"

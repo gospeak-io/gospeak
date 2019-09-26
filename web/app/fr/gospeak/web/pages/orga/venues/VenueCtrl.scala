@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, Venue}
-import fr.gospeak.core.services.storage.{GroupSettingsRepo, OrgaGroupRepo, OrgaUserRepo, OrgaVenueRepo}
+import fr.gospeak.core.services.storage.{GroupSettingsRepo, OrgaEventRepo, OrgaGroupRepo, OrgaUserRepo, OrgaVenueRepo}
 import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -22,6 +22,7 @@ class VenueCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
                 userRepo: OrgaUserRepo,
                 groupRepo: OrgaGroupRepo,
+                eventRepo: OrgaEventRepo,
                 venueRepo: OrgaVenueRepo,
                 groupSettingsRepo: GroupSettingsRepo,
                 timeShape: TimeShape) extends UICtrl(cc, silhouette) {
@@ -64,10 +65,12 @@ class VenueCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       venueFull <- OptionT(venueRepo.find(groupElt.id, venue))
+      events <- OptionT.liftF(eventRepo.list(groupElt.id, venue))
       users <- OptionT.liftF(userRepo.list(venueFull.users))
       b = breadcrumb(groupElt, venueFull.venue)
       edit = routes.VenueCtrl.edit(group, venue)
-    } yield Ok(html.detail(groupElt, venueFull.partner, venueFull.venue, users, edit)(b))).value.map(_.getOrElse(venueNotFound(group, venue))).unsafeToFuture()
+      res = Ok(html.detail(groupElt, venueFull.partner, venueFull.venue, events, users, edit)(b))
+    } yield res).value.map(_.getOrElse(venueNotFound(group, venue))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
