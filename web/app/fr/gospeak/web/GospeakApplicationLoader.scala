@@ -162,6 +162,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val userGroupSpeakerCtrl = wire[orga.speakers.SpeakerCtrl]
   lazy val userGroupPartnerCtrl = wire[orga.partners.PartnerCtrl]
   lazy val userGroupPartnersVenueCtrl = wire[orga.partners.venues.VenueCtrl]
+  lazy val userGroupPartnersContactCtrl = wire[orga.partners.contacts.ContactCtrl]
   lazy val userGroupVenueCtrl = wire[orga.venues.VenueCtrl]
   lazy val userGroupSponsorCtrl = wire[orga.sponsors.SponsorCtrl]
   lazy val userGroupSettingsCtrl = wire[orga.settings.SettingsCtrl]
@@ -173,7 +174,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val apiStatusCtrl = wire[api.StatusCtrl]
   lazy val apiUiSuggestCtrl = wire[api.ui.SuggestCtrl]
   lazy val apiUiUtilsCtrl = wire[api.ui.UtilsCtrl]
-  lazy val contactCtrl = wire[orga.partners.contacts.ContactCtrl]
+  lazy val apiGroupCtrl = wire[api.published.GroupCtrl]
 
   override lazy val router: Router = {
     val prefix = "/"

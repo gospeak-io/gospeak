@@ -103,6 +103,16 @@ object Page {
 
   object Size {
     val key = "page-size"
+
+    def from(i: Int): Either[String, Size] = {
+      if (i < 1) {
+        Left(s"$key should be greater than 1")
+      } else if (i > 200) {
+        Left(s"$key should be lesser than 200")
+      } else {
+        Right(Size(i))
+      }
+    }
   }
 
   final case class Total(value: Long) extends AnyVal

@@ -19,7 +19,7 @@ import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
-import fr.gospeak.web.utils.JsonFormats._
+import fr.gospeak.web.api.utils.JsonFormats._
 import fr.gospeak.web.utils.{ApiCtrl, Formats, MarkdownUtils}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}

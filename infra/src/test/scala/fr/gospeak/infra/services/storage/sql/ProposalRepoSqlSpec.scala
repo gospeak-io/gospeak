@@ -96,13 +96,13 @@ class ProposalRepoSqlSpec extends RepoSpec {
         q.sql shouldBe s"SELECT $fields FROM $table WHERE id=$whereCfpAndTalk"
         check(q)
       }
-      it("should build selectOneWithCfpTalkEvent for id") {
-        val q = ProposalRepoSql.selectOneWithCfpTalkEvent(proposal.id)
+      it("should build selectOneFull for id") {
+        val q = ProposalRepoSql.selectOneFull(proposal.id)
         q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.id=?"
         check(q)
       }
-      it("should build selectOneWithCfpTalkEvent for talk, cfp and speaker") {
-        val q = ProposalRepoSql.selectOneWithCfpTalkEvent(talk.slug, cfp.slug, user.id)
+      it("should build selectOneFull for talk, cfp and speaker") {
+        val q = ProposalRepoSql.selectOneFull(talk.slug, cfp.slug, user.id)
         q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE t.slug=? AND c.slug=? AND p.speakers LIKE ?"
         check(q)
       }
@@ -152,15 +152,22 @@ class ProposalRepoSqlSpec extends RepoSpec {
         val (s, c) = ProposalRepoSql.selectPageWithEvent(user.id, Proposal.Status.Pending, params)
         s.sql shouldBe
           s"SELECT ${mapFields(eventFields, "e." + _)}, ${mapFields(fields, "p." + _)} " +
-            s"FROM $table p LEFT OUTER JOIN events e ON p.event_id=e.id WHERE p.status=? AND p.speakers LIKE ?  ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table p LEFT OUTER JOIN events e ON p.event_id=e.id WHERE p.status=? AND p.speakers LIKE ?  "
+            s"FROM $table p LEFT OUTER JOIN events e ON p.event_id=e.id WHERE p.status=? AND p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $table p LEFT OUTER JOIN events e ON p.event_id=e.id WHERE p.status=? AND p.speakers LIKE ? "
         check(s)
         check(c)
       }
-      it("should build selectPageWithCfpTalkEvent for a speaker") {
-        val (s, c) = ProposalRepoSql.selectPageWithCfpTalkEvent(user.id, params)
-        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ?  ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE p.speakers LIKE ?  "
+      it("should build selectPublicPageFull for a group") {
+        val (s, c) = ProposalRepoSql.selectPublicPageFull(group.id, params)
+        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL "
+        check(s)
+        check(c)
+      }
+      it("should build selectPageFull for a speaker") {
+        val (s, c) = ProposalRepoSql.selectPageFull(user.id, params)
+        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE p.speakers LIKE ? "
         check(s)
         check(c)
       }

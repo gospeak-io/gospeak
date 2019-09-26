@@ -6,7 +6,7 @@ import cats.effect.IO
 import fr.gospeak.core.domain.{Group, Partner, User, Venue}
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
-trait VenueRepo extends OrgaVenueRepo with SuggestVenueRepo
+trait VenueRepo extends OrgaVenueRepo with PublicVenueRepo with SuggestVenueRepo
 
 trait OrgaVenueRepo {
   def create(group: Group.Id, data: Venue.Data, by: User.Id, now: Instant): IO[Venue]
@@ -20,6 +20,10 @@ trait OrgaVenueRepo {
   def list(group: Group.Id, ids: Seq[Venue.Id]): IO[Seq[Venue.Full]]
 
   def find(group: Group.Id, id: Venue.Id): IO[Option[Venue.Full]]
+}
+
+trait PublicVenueRepo {
+  def list(group: Group.Id, ids: Seq[Venue.Id]): IO[Seq[Venue.Full]]
 }
 
 trait SuggestVenueRepo {

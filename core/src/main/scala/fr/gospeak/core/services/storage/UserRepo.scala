@@ -64,6 +64,8 @@ trait PublicUserRepo {
   def listPublic(params: Page.Params): IO[Page[User]]
 
   def findPublic(user: User.Slug): IO[Option[User]]
+
+  def list(ids: Seq[User.Id]): IO[Seq[User]]
 }
 
 trait SuggestUserRepo {

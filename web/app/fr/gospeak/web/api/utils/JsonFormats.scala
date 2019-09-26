@@ -1,7 +1,7 @@
-package fr.gospeak.web.utils
+package fr.gospeak.web.api.utils
 
 import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.libs.scalautils.domain.Html
+import fr.gospeak.libs.scalautils.domain.{Html, Page}
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.web.api.ui._
 import fr.gospeak.web.utils.Extensions._
