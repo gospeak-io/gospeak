@@ -7,7 +7,8 @@ final case class Partner(id: Partner.Id,
                          group: Group.Id,
                          slug: Partner.Slug,
                          name: Partner.Name,
-                         description: Markdown,
+                         notes: Markdown, // private infos for the group
+                         description: Option[Markdown], // public description
                          logo: Url,
                          twitter: Option[Url],
                          info: Info) {
@@ -18,7 +19,7 @@ final case class Partner(id: Partner.Id,
 
 object Partner {
   def apply(group: Group.Id, data: Data, info: Info): Partner =
-    new Partner(Id.generate(), group, data.slug, data.name, data.description, data.logo, data.twitter, info)
+    new Partner(Id.generate(), group, data.slug, data.name, data.notes, data.description, data.logo, data.twitter, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -32,12 +33,13 @@ object Partner {
 
   final case class Data(slug: Partner.Slug,
                         name: Partner.Name,
-                        description: Markdown,
+                        notes: Markdown,
+                        description: Option[Markdown],
                         logo: Url,
                         twitter: Option[Url])
 
   object Data {
-    def apply(p: Partner): Data = new Data(p.slug, p.name, p.description, p.logo, p.twitter)
+    def apply(p: Partner): Data = new Data(p.slug, p.name, p.notes, p.description, p.logo, p.twitter)
   }
 
 }

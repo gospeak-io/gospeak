@@ -21,7 +21,7 @@ case class Person(id: String, // Person.Id,
     val avatar = AvatarUtils.buildAvatarQuick(data.avatar, email)
     val profile: gs.User.Profile = gs.User.Profile(
       status = gs.User.Profile.Status.Undefined,
-      description = data.description,
+      bio = data.description.map(Markdown),
       company = data.company,
       location = data.location,
       twitter = data.twitter.map(t => Url.from("https://twitter.com/" + t).get),

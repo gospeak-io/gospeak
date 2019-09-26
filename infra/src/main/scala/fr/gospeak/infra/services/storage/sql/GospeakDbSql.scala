@@ -166,8 +166,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, venue: Option[Venue] = None, description: MustacheMarkdownTmpl[EventInfo] = MustacheMarkdownTmpl[EventInfo](""), tags: Seq[String] = Seq()): Event =
       Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), description, venue.map(_.id), Seq(), tags.map(Tag(_)), Some(now).filter(_.isAfter(Instant.parse(date + "T06:06:24.074Z"))), Event.ExtRefs(), Info(by.id, now))
 
-    def partner(g: Group, name: String, description: String, logo: Int, by: User): Partner =
-      Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(description), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").get, None, Info(by.id, now))
+    def partner(g: Group, name: String, notes: String, description: Option[String], logo: Int, by: User): Partner =
+      Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(notes), description.map(Markdown), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").get, None, Info(by.id, now))
 
     def venue(partner: Partner, address: GMapPlace, by: User, description: String = "", roomSize: Option[Int] = None): Venue =
       Venue(Venue.Id.generate(), partner.id, address, Markdown(description), roomSize, Venue.ExtRefs(), Info(by.id, now))
@@ -238,10 +238,10 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val proposal5 = proposal(talk4, cfp3)
     val proposals = NonEmptyList.of(proposal1, proposal2, proposal3, proposal4, proposal5)
 
-    val zeenea = partner(humanTalks, "Zeenea", "", 1, userDemo)
-    val criteo = partner(humanTalks, "Criteo", "", 2, userDemo)
-    val nexeo = partner(humanTalks, "Nexeo", "", 3, userDemo)
-    val google = partner(humanTalks, "Google", "", 4, userDemo)
+    val zeenea = partner(humanTalks, "Zeenea", "Recrute des devs Scala et Angular", Some("A startup building a data catalog"), 1, userDemo)
+    val criteo = partner(humanTalks, "Criteo", "", None, 2, userDemo)
+    val nexeo = partner(humanTalks, "Nexeo", "", None, 3, userDemo)
+    val google = partner(humanTalks, "Google", "", None, 4, userDemo)
     val partners = NonEmptyList.of(zeenea, criteo, nexeo, google)
 
     val zeeneaPlace = GMapPlace(

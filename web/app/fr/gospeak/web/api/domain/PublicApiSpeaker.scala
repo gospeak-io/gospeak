@@ -19,7 +19,7 @@ object PublicApiSpeaker {
       firstName = user.firstName,
       lastName = user.lastName,
       avatar = user.avatar.url.value,
-      bio = user.profile.description,
+      bio = user.profile.bio.map(_.value),
       twitter = user.profile.twitter.map(_.value),
       linkedin = user.profile.linkedin.map(_.value),
       website = user.profile.website.map(_.value))

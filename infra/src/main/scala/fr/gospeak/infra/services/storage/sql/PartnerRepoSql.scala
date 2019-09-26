@@ -44,19 +44,19 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 object PartnerRepoSql {
   private val _ = partnerIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table = "partners"
-  private[sql] val fields = Seq("id", "group_id", "slug", "name", "description", "logo", "twitter", "created", "created_by", "updated", "updated_by")
+  private[sql] val fields = Seq("id", "group_id", "slug", "name", "notes", "description", "logo", "twitter", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-  private val searchFields = Seq("id", "slug", "name", "description")
+  private val searchFields = Seq("id", "slug", "name", "notes", "description")
   private val defaultSort = Page.OrderBy("name")
 
   private def values(e: Partner): Fragment =
-    fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.description}, ${e.logo}, ${e.twitter}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.notes}, ${e.description}, ${e.logo}, ${e.twitter}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   private[sql] def insert(elt: Partner): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
   private[sql] def update(group: Group.Id, slug: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): doobie.Update0 = {
-    val fields = fr0"slug=${data.slug}, name=${data.name}, description=${data.description}, logo=${data.logo}, twitter=${data.twitter}, updated=$now, updated_by=$by"
+    val fields = fr0"slug=${data.slug}, name=${data.name}, notes=${data.notes}, description=${data.description}, logo=${data.logo}, twitter=${data.twitter}, updated=$now, updated_by=$by"
     buildUpdate(tableFr, fields, where(group, slug)).update
   }
 

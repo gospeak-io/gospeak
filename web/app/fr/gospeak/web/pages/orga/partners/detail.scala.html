@@ -31,7 +31,7 @@
         </div>
         <a class="btn btn-outline-secondary" href="@PartnerCtrl.edit(group.slug, partner.slug)" title="edit"><i class="fas fa-edit"></i></a>
     </div>
-    <p>@markdown(partner.description)</p>
+    <p>@markdown(partner.notes)</p>
 
     @if(venues.isEmpty) {
         <div class="card mb-3">

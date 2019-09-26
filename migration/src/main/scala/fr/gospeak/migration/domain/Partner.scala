@@ -18,7 +18,8 @@ case class Partner(id: String, // Partner.Id
     group = group,
     slug = gs.Partner.Slug.from(StringUtils.slugify(data.name)).get,
     name = gs.Partner.Name(data.name),
-    description = Markdown(data.comment.getOrElse("")),
+    notes = Markdown(data.comment.getOrElse("")),
+    description = None,
     logo = Url.from(data.logo.getOrElse("https://img.icons8.com/bubbles/2x/company.png")).get,
     twitter = data.twitter.map(t => Url.from("https://twitter.com/" + t).get),
     info = meta.toInfo)
