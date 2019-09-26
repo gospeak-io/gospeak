@@ -54,7 +54,13 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
     }
 
   override def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug)(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
-    find(by, talk, cfp).flatMap {
+    removeSpeaker(find(by, talk, cfp))(speaker, by, now)
+
+  override def removeSpeaker(cfp: Cfp.Slug, id: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
+    removeSpeaker(find(cfp, id))(speaker, by, now)
+
+  private def removeSpeaker(proposal: IO[Option[Proposal]])(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
+    proposal.flatMap {
       case Some(proposalElt) =>
         if (proposalElt.info.createdBy == speaker) {
           IO.raiseError(new IllegalArgumentException("proposal creator can't be removed"))

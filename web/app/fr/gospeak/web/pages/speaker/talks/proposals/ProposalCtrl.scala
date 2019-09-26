@@ -143,7 +143,7 @@ class ProposalCtrl(cc: ControllerComponents,
       speakerElt <- OptionT(userRepo.find(speaker))
       res <- OptionT.liftF {
         proposalRepo.removeSpeaker(talk, cfp)(speakerElt.id, user, now).flatMap { _ =>
-          if (speakerElt.id == user) IO.pure(Redirect(UserRoutes.index()).flashing("success" -> s"You removed yourself from <b>$talk</b> talk"))
+          if (speakerElt.id == user) IO.pure(Redirect(UserRoutes.index()).flashing("success" -> s"You removed yourself from <b>$talk</b> proposal"))
           else emailSrv.send(Emails.speakerRemovedFromProposal(proposalElt, speakerElt, req.identity.user))
             .map(_ => next.flashing("success" -> s"<b>${speakerElt.name.value}</b> removed from speakers"))
         }.recover { case NonFatal(e) => next.flashing("error" -> s"<b>${speakerElt.name.value}</b> not removed: ${e.getMessage}") }

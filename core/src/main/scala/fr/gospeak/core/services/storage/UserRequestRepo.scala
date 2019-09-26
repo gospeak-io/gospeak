@@ -29,6 +29,13 @@ trait OrgaUserRequestRepo {
   def cancelGroupInvite(id: UserRequest.Id, by: User.Id, now: Instant): IO[GroupInvite]
 
   def listPendingInvites(group: Group.Id): IO[Seq[GroupInvite]]
+
+
+  def invite(talk: Proposal.Id, email: EmailAddress, by: User.Id, now: Instant): IO[ProposalInvite]
+
+  def cancelProposalInvite(id: UserRequest.Id, by: User.Id, now: Instant): IO[ProposalInvite]
+
+  def listPendingInvites(proposal: Proposal.Id): IO[Seq[ProposalInvite]]
 }
 
 trait SpeakerUserRequestRepo {

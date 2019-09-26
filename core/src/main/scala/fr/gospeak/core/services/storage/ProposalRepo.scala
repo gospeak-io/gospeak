@@ -26,6 +26,8 @@ trait OrgaProposalRepo {
 
   def editVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, by: User.Id, now: Instant): IO[Done]
 
+  def removeSpeaker(cfp: Cfp.Slug, id: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
+
   def list(group: Group.Id, params: Page.Params): IO[Page[Proposal]]
 
   def listWithCfp(group: Group.Id, speaker: User.Id, params: Page.Params): IO[Page[(Proposal, Cfp)]]
