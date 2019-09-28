@@ -140,8 +140,8 @@
                 @example(s"$name when empty") { _ => @display.videoIcon(None) }
                 @example(s"$name when filled") { _ => @display.videoIcon(Some(Video.from("http://video.com/here").right.get)) }
             }
-            @component("speaker", "@speaker(users, user.id, Some(u => MyCtrl.detail(u.slug)))") { name =>
-                @example(s"$name") { _ => @display.speaker(Seq(user), user.id, Some(_ => HomeCtrl.styleguide(params))) }
+            @component("speaker", "@speaker(users, user.id, u => Some(MyCtrl.detail(u.slug)))") { name =>
+                @example(s"$name") { _ => @display.speaker(Seq(user), user.id, _ => Some(HomeCtrl.styleguide(params))) }
                 @example(s"$name without link") { _ => @display.speaker(Seq(user), user.id) }
                 @example(s"$name not found") { _ => @display.speaker(Seq(), user.id) }
             }

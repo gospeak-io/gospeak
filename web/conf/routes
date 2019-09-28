@@ -10,9 +10,10 @@ POST        /cfps/:cfp/propose/login                                            
 
 GET         /groups                                                                        fr.gospeak.web.pages.published.groups.GroupCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /groups/:group                                                                 fr.gospeak.web.pages.published.groups.GroupCtrl.detail(group: Group.Slug)
-#GET         /groups/:group/cfps                                          fr.gospeak.web.pages.published.groups.GroupCtrl.detail(group: Group.Slug)
-#GET         /groups/:group/events                                        fr.gospeak.web.??? # group public events
-#GET         /groups/:group/talks                                         fr.gospeak.web.??? # group public talks
+GET         /groups/:group/events                                                          fr.gospeak.web.pages.published.groups.GroupCtrl.events(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /groups/:group/events/:event                                                   fr.gospeak.web.pages.published.groups.GroupCtrl.event(group: Group.Slug, event: Event.Slug)
+GET         /groups/:group/talks                                                           fr.gospeak.web.pages.published.groups.GroupCtrl.talks(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /groups/:group/speakers                                                        fr.gospeak.web.pages.published.groups.GroupCtrl.speakers(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 
 GET         /speakers                                                                      fr.gospeak.web.pages.published.speakers.SpeakerCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /speakers/:speaker                                                             fr.gospeak.web.pages.published.speakers.SpeakerCtrl.detail(speaker: User.Slug, params: Page.Params ?= Page.Params.defaults)

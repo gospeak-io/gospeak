@@ -69,12 +69,14 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
         orgas = htUsers.filter(_.auth.exists(_.isOrga)).map(_.toUser)
         lkn = orgas.find(_.email.value == "loicknuchel@gmail.com").get
         groupHt = Group(Group.Id.generate(), Group.Slug.from("humantalks-paris").get, Group.Name("HumanTalks Paris"), Some(EmailAddress.from("paris@humantalks.com").get), Markdown(
-          """Description des HumanTalks
+          """HumanTalks Paris, c'est un événement mensuel pour les développeuses et développeurs.
+            |Chaque mois, 4 speakeuses et/ou speakeurs se succèdent pour présenter en 10 minutes un sujet de leur choix (language, méthode de programmation, projet perso, design...).
+            |Quelque soit votre niveau vous pouvez proposer un talk aux organisateurs du HumanTalks de Paris. L'accès est gratuit !
             |
-            |TODO
+            |Les talks sont filmés et retransmis sur [notre chaine YouTube](https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog)
           """.stripMargin.trim), NonEmptyList.fromListUnsafe(orgas.map(_.id)), tags = Seq(), info = Info(lkn.id, initDate))
         cfpHt = Cfp(Cfp.Id.generate(), groupHt.id, Cfp.Slug.from("humantalks-paris").get, Cfp.Name("HumanTalks Paris"), None, None, Markdown(
-          """Les HumanTalks sont des événements pour les développeurs de tous horizons et qui ont lieu partout en France.
+          """Les HumanTalks sont des événements pour les développeuses et développeurs de tous horizons et qui ont lieu partout en France.
             |
             |Le principe est simple: 4 talks de 10 minutes tous les 2ème mardi du mois pour partager autour du développement logiciel au sens large: code bien sûr, mais aussi design, organisation, agilité...
             |
@@ -178,7 +180,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     def sponsor(group: Group, partner: Partner, pack: SponsorPack, by: User, start: String, finish: String): Sponsor =
       Sponsor(Sponsor.Id.generate(), group.id, partner.id, pack.id, LocalDate.parse(start), LocalDate.parse(finish), Some(LocalDate.parse(start)), Price(1500, Price.Currency.EUR), Info(by.id, now))
 
-    val userDemoProfil = User.Profile(User.Profile.Status.Undefined, Some(Markdown("Entrepreneur, functional programmer, OSS contributor, speaker, author.\nWork hard, stay positive, and live fearlessly.")),
+    val userDemoProfil = User.Profile(User.Profile.Status.Public, Some(Markdown("Entrepreneur, functional programmer, OSS contributor, speaker, author.\nWork hard, stay positive, and live fearlessly.")),
       Some("Zeenea"), Some("Paris"), Some(Url.from("https://twitter.com/HumanTalks").get), Some(Url.from("https://www.linkedin.com/in/loicknuchel").get), None, Some(Url.from("https://humantalks.com").get))
     val userDemo = user("demo", "demo@mail.com", "Demo", "User", userDemoProfil)
     val userSpeaker = user("speaker", "speaker@mail.com", "Speaker", "User")

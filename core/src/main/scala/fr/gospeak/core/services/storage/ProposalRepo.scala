@@ -77,6 +77,8 @@ trait PublicProposalRepo {
   def listWithEvent(speaker: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Option[Event], Proposal)]]
 
   def listPublicFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]]
+
+  def list(ids: Seq[Proposal.Id]): IO[Seq[Proposal]]
 }
 
 trait SuggestProposalRepo {

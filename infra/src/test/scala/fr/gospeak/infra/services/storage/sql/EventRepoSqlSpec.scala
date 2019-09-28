@@ -54,6 +54,11 @@ class EventRepoSqlSpec extends RepoSpec {
         q.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? AND slug=?"
         check(q)
       }
+      it("should build selectOnePublished") {
+        val q = EventRepoSql.selectOnePublished(group.id, event.slug)
+        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? AND e.published IS NOT NULL"
+        check(q)
+      }
       it("should build selectPage") {
         val (s, c) = EventRepoSql.selectPage(group.id, params)
         s.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"

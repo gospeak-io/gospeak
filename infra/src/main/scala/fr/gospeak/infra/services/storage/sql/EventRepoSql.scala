@@ -46,6 +46,8 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def find(group: Group.Id, event: Event.Slug): IO[Option[Event]] = run(selectOne(group, event).option)
 
+  override def findPublished(group: Group.Id, event: Event.Slug): IO[Option[Event.Full]] = run(selectOnePublished(group, event).option)
+
   override def list(group: Group.Id, params: Page.Params): IO[Page[Event]] = run(Queries.selectPage(selectPage(group, _), params))
 
   override def list(group: Group.Id, venue: Venue.Id): IO[Seq[Event]] = run(selectAll(group, venue).to[List])
@@ -105,13 +107,16 @@ object EventRepoSql {
   private[sql] def selectOne(group: Group.Id, event: Event.Slug): doobie.Query0[Event] =
     buildSelect(tableFr, fieldsFr, where(group, event)).query[Event]
 
+  private[sql] def selectOnePublished(group: Group.Id, event: Event.Slug): doobie.Query0[Event.Full] =
+    buildSelect(tableFullFr, fieldsFullFr, fr0"WHERE e.group_id=$group AND e.slug=$event AND e.published IS NOT NULL").query[Event.Full]
+
   private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[Event], doobie.Query0[Long]) = {
     val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group"))
     (buildSelect(tableFr, fieldsFr, page.all).query[Event], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
   }
 
   private[sql] def selectPagePublished(group: Group.Id, params: Page.Params): (doobie.Query0[Event.Full], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort.prefix("e."), Some(fr0"WHERE e.group_id=$group AND e.published IS NOT NULL"))
+    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE e.group_id=$group AND e.published IS NOT NULL"), prefix = Some("e"))
     (buildSelect(tableFullFr, fieldsFullFr, page.all).query[Event.Full], buildSelect(tableFullFr, fr0"count(*)", page.where).query[Long])
   }
 
@@ -132,6 +137,5 @@ object EventRepoSql {
   private[sql] def selectTags(): doobie.Query0[Seq[Tag]] =
     Fragment.const0(s"SELECT tags FROM $table").query[Seq[Tag]]
 
-  private def where(group: Group.Id, event: Event.Slug): Fragment =
-    fr0"WHERE group_id=$group AND slug=$event"
+  private def where(group: Group.Id, event: Event.Slug): Fragment = fr0"WHERE group_id=$group AND slug=$event"
 }

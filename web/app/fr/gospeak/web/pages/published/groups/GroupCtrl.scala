@@ -4,7 +4,7 @@ import java.time.Instant
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.Group
+import fr.gospeak.core.domain.{Event, Group}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -16,9 +16,11 @@ import play.api.mvc._
 
 class GroupCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
+                userRepo: PublicUserRepo,
                 groupRepo: PublicGroupRepo,
                 cfpRepo: PublicCfpRepo,
                 eventRepo: PublicEventRepo,
+                proposalRepo: PublicProposalRepo,
                 sponsorRepo: PublicSponsorRepo,
                 sponsorPackRepo: PublicSponsorPackRepo) extends UICtrl(cc, silhouette) {
 
@@ -40,7 +42,47 @@ class GroupCtrl(cc: ControllerComponents,
       sponsors <- OptionT.liftF(sponsorRepo.listCurrent(groupElt.id, now))
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       b = breadcrumb(groupElt)
-    } yield Ok(html.detail(groupElt, cfps, events, sponsors, packs)(b))).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
+      res = Ok(html.detail(groupElt, cfps, events, sponsors, packs)(b))
+    } yield res).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
+  }
+
+  def events(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(group))
+      events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, params))
+      b = breadcrumbEvents(groupElt)
+      res = Ok(html.events(groupElt, events)(b))
+    } yield res).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
+  }
+
+  def event(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction.async { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(group))
+      eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
+      proposals <- OptionT.liftF(proposalRepo.list(eventElt.event.talks))
+      speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.speakers.toList).distinct))
+      b = breadcrumbEvent(groupElt, eventElt)
+      res = Ok(html.event(groupElt, eventElt, proposals, speakers)(b))
+    } yield res).value.map(_.getOrElse(publicEventNotFound(group, event))).unsafeToFuture()
+  }
+
+  def talks(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(group))
+      proposals <- OptionT.liftF(proposalRepo.listPublicFull(groupElt.id, params))
+      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.proposal.speakers.toList).distinct))
+      b = breadcrumbTalks(groupElt)
+      res = Ok(html.talks(groupElt, proposals, speakers)(b))
+    } yield res).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
+  }
+
+  def speakers(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(group))
+      speakers <- OptionT.liftF(userRepo.speakers(groupElt.id, params))
+      b = breadcrumbSpeakers(groupElt)
+      res = Ok(html.speakers(groupElt, speakers)(b))
+    } yield res).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
   }
 }
 
@@ -50,4 +92,16 @@ object GroupCtrl {
 
   def breadcrumb(group: Group): Breadcrumb =
     listBreadcrumb().add(group.name.value -> routes.GroupCtrl.detail(group.slug))
+
+  def breadcrumbEvents(group: Group): Breadcrumb =
+    breadcrumb(group).add("Events" -> routes.GroupCtrl.events(group.slug))
+
+  def breadcrumbTalks(group: Group): Breadcrumb =
+    breadcrumb(group).add("Talks" -> routes.GroupCtrl.talks(group.slug))
+
+  def breadcrumbSpeakers(group: Group): Breadcrumb =
+    breadcrumb(group).add("Speakers" -> routes.GroupCtrl.speakers(group.slug))
+
+  def breadcrumbEvent(group: Group, event: Event.Full): Breadcrumb =
+    breadcrumbEvents(group).add(event.event.name.value -> routes.GroupCtrl.event(group.slug, event.event.slug))
 }

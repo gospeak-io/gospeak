@@ -1,12 +1,13 @@
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
-@import fr.gospeak.core.domain.{Cfp, Group, Event, Sponsor, Venue, Partner, SponsorPack}
+@import fr.gospeak.core.domain.{Cfp, Event, Group, Sponsor, SponsorPack}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.partials.html._
 @import fr.gospeak.web.pages.partials.display.html.markdown
-@import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
+@import fr.gospeak.web.pages.published.partials.html.container
+@import fr.gospeak.web.utils.Formats
 
 @(group: Group, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @container(group.name.value + " - Gospeak", b)() {
@@ -29,20 +30,39 @@
             }
         }
     </h1>
+    <p>
+        <a href="@GroupCtrl.events(group.slug)">Events</a> -
+        <a href="@GroupCtrl.talks(group.slug)">Talks</a> -
+        <a href="@GroupCtrl.speakers(group.slug)">Speakers</a>
+    </p>
     <div class="row">
         <div class="col">
+            <h3>Last events</h3>
             @events.items.map { e =>
-                <div>@e.event.name.value @e.venue.map { v => at @v.partner.name.value }</div>
+                <a class="card mb-3" href="@GroupCtrl.event(group.slug, e.event.slug)">
+                    <div class="card-body">
+                        <h5 class="card-title">@e.event.name.value</h5>
+                        <p class="card-text d-flex justify-content-between align-items-center">
+                            <small class="text-muted">@Formats.date(e.event.start)</small>
+                            @e.venue.map { v => <small class="text-muted">at @v.partner.name.value</small> }
+                        </p>
+                    </div>
+                </a>
+            }
+            @if(!events.isLast) {
+                <a href="@GroupCtrl.events(group.slug, Page.Params.no(2))">Previous events</a>
             }
         </div>
         <div class="col">
             <h3>About</h3>
             <blockquote class="blockquote">@markdown(group.description)</blockquote>
-            <h3>Follow us</h3>
-            <p>TODO</p>
             <h3>Sponsors</h3>
-            @sponsors.map { s =>
-                <div>@s.partner.name.value</div>
+            @sponsors.sortBy(-_.sponsor.price.amount).map { s =>
+                <img src="@s.partner.logo.value"
+                    title="@s.sponsorPack.name.value sponsoring by @s.partner.name.value"
+                    alt="@s.partner.name.value logo"
+                    class="rounded"
+                    style="height: 100px; padding: 5px">
             }
         </div>
     </div>
