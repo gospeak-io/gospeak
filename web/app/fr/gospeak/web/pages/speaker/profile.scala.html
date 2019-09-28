@@ -3,12 +3,9 @@
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.core.domain.{Cfp, Group, Event, Proposal, User}
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.speaker.partials.html.container
 @import fr.gospeak.web.pages.partials.form.Utils
-
 @import fr.gospeak.core.domain.User
-@import fr.gospeak.web.pages.partials.html.speakerCard
-@import fr.gospeak.web.pages.published.partials.html.{groupItem, proposalItem}
+@import fr.gospeak.web.pages.speaker.partials.html.{container, speakerCard, groupItem, proposalItemForProfile}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
@@ -121,7 +118,7 @@
                     <h2 class="mt-0 mb-3">Accepted talks</h2>
                     <div>
                     @acceptedProposals.items.map { proposal =>
-                        @proposalItem(proposal, now)
+                        @proposalItemForProfile(proposal, now)
                     }
                     </div>
                 }

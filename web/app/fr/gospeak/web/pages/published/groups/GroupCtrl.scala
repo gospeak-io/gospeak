@@ -69,7 +69,7 @@ class GroupCtrl(cc: ControllerComponents,
   def talks(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(group))
-      proposals <- OptionT.liftF(proposalRepo.listPublicFull(groupElt.id, params))
+      proposals <- OptionT.liftF(proposalRepo.listPublicFull(groupElt.id, params.defaultOrderBy("title")))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.proposal.speakers.toList).distinct))
       b = breadcrumbTalks(groupElt)
       res = Ok(html.talks(groupElt, proposals, speakers)(b))
