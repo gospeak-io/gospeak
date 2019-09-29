@@ -1,0 +1,19 @@
+@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
+@import fr.gospeak.core.domain.{Group, Proposal, User}
+@import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
+@import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.pages.published.partials.html.container
+@import fr.gospeak.web.utils.Formats
+
+@(group: Group, talk: Proposal.Full, speakers: Seq[User])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@container(talk.proposal.title.value + " at " + group.name.value + " - Gospeak", b)() {
+    <h1>@slidesIcon(talk.proposal.slides)@videoIcon(talk.proposal.video)@talk.proposal.title.value</h1>
+    <p>By @talk.proposal.speakers.toList.map { id => @speaker(speakers, id, s => Some(SpeakerCtrl.detail(s.slug)).filter(_ => s.isPublic)) }</p>
+    @markdown(talk.proposal.description)
+    @if(talk.proposal.tags.nonEmpty) { <p>@tags(talk.proposal.tags)</p> }
+    @talk.event.map { event => <p>At <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a> on @Formats.date(event.start)</p> }
+}()

@@ -4,7 +4,7 @@ import java.time.Instant
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.{Event, Group}
+import fr.gospeak.core.domain.{Event, Group, Proposal}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -59,7 +59,7 @@ class GroupCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
-      proposals <- OptionT.liftF(proposalRepo.list(eventElt.event.talks))
+      proposals <- OptionT.liftF(proposalRepo.listPublicFull(eventElt.event.talks).map(_.map(_.proposal)))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.speakers.toList).distinct))
       b = breadcrumbEvent(groupElt, eventElt)
       res = Ok(html.event(groupElt, eventElt, proposals, speakers)(b))
@@ -74,6 +74,16 @@ class GroupCtrl(cc: ControllerComponents,
       b = breadcrumbTalks(groupElt)
       res = Ok(html.talks(groupElt, proposals, speakers)(b))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
+  }
+
+  def talk(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = UserAwareAction.async { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(group))
+      proposalElt <- OptionT(proposalRepo.findPublicFull(groupElt.id, proposal))
+      speakers <- OptionT.liftF(userRepo.list(proposalElt.proposal.speakers.toList))
+      b = breadcrumbTalk(groupElt, proposalElt.proposal)
+      res = Ok(html.talk(groupElt, proposalElt, speakers)(b))
+    } yield res).value.map(_.getOrElse(publicProposalNotFound(group, proposal))).unsafeToFuture()
   }
 
   def speakers(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
@@ -96,12 +106,15 @@ object GroupCtrl {
   def breadcrumbEvents(group: Group): Breadcrumb =
     breadcrumb(group).add("Events" -> routes.GroupCtrl.events(group.slug))
 
+  def breadcrumbEvent(group: Group, event: Event.Full): Breadcrumb =
+    breadcrumbEvents(group).add(event.event.name.value -> routes.GroupCtrl.event(group.slug, event.event.slug))
+
   def breadcrumbTalks(group: Group): Breadcrumb =
     breadcrumb(group).add("Talks" -> routes.GroupCtrl.talks(group.slug))
 
+  def breadcrumbTalk(group: Group, proposal: Proposal): Breadcrumb =
+    breadcrumbTalks(group).add(proposal.title.value -> routes.GroupCtrl.talk(group.slug, proposal.id))
+
   def breadcrumbSpeakers(group: Group): Breadcrumb =
     breadcrumb(group).add("Speakers" -> routes.GroupCtrl.speakers(group.slug))
-
-  def breadcrumbEvent(group: Group, event: Event.Full): Breadcrumb =
-    breadcrumbEvents(group).add(event.event.name.value -> routes.GroupCtrl.event(group.slug, event.event.slug))
 }

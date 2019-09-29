@@ -55,7 +55,7 @@ object Proposal {
     val all: Seq[Status] = Seq(Pending, Accepted, Declined)
   }
 
-  final case class Full(proposal: Proposal, cfp: Cfp, talk: Talk, event: Option[Event])
+  final case class Full(proposal: Proposal, cfp: Cfp, group: Group, talk: Talk, event: Option[Event])
 
   final case class Data(title: Talk.Title,
                         duration: FiniteDuration,

@@ -4,6 +4,7 @@ import cats.data.NonEmptyList
 import fr.gospeak.core.domain.{Cfp, Proposal, Talk}
 import fr.gospeak.infra.services.storage.sql.CfpRepoSqlSpec.{fields => cfpFields, table => cfpTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec.{fields => eventFields, table => eventTable}
+import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec.{fields => groupFields, table => groupTable}
 import fr.gospeak.infra.services.storage.sql.ProposalRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.TalkRepoSqlSpec.{fields => talkFields, table => talkTable}
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
@@ -41,12 +42,12 @@ class ProposalRepoSqlSpec extends RepoSpec {
         q.sql shouldBe s"INSERT INTO $table ($fields) VALUES (${mapFields(fields, _ => "?")})"
         check(q)
       }
-      it("should build update for orga") {
+      it("should build update for orga, group, cfp and proposal") {
         val q = ProposalRepoSql.update(user.id, group.slug, cfp.slug, proposal.id)(proposal.data, now)
         q.sql shouldBe s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE id=$whereGroupAndCfp"
         check(q)
       }
-      it("should build update for speaker") {
+      it("should build update for speaker, talk and cfp") {
         val q = ProposalRepoSql.update(user.id, talk.slug, cfp.slug)(proposal.data, now)
         q.sql shouldBe s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE id=$whereCfpAndTalk"
         check(q)
@@ -56,7 +57,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
         q.sql shouldBe s"UPDATE $table SET status=?, event_id=? WHERE id=$whereCfp"
         check(q)
       }
-      it("should build updateSlides by cfp and talk") {
+      it("should build updateSlides by cfp and proposal") {
         val q = ProposalRepoSql.updateSlides(cfp.slug, proposal.id)(slides, user.id, now)
         q.sql shouldBe s"UPDATE $table SET slides=?, updated=?, updated_by=? WHERE id=$whereCfp"
         check(q)
@@ -66,7 +67,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
         q.sql shouldBe s"UPDATE $table SET slides=?, updated=?, updated_by=? WHERE id=$whereCfpAndTalk"
         check(q)
       }
-      it("should build updateVideo by cfp and talk") {
+      it("should build updateVideo by cfp and proposal") {
         val q = ProposalRepoSql.updateVideo(cfp.slug, proposal.id)(video, user.id, now)
         q.sql shouldBe s"UPDATE $table SET video=?, updated=?, updated_by=? WHERE id=$whereCfp"
         check(q)
@@ -104,6 +105,11 @@ class ProposalRepoSqlSpec extends RepoSpec {
       it("should build selectOneFull for talk, cfp and speaker") {
         val q = ProposalRepoSql.selectOneFull(talk.slug, cfp.slug, user.id)
         q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE t.slug=? AND c.slug=? AND p.speakers LIKE ?"
+        check(q)
+      }
+      it("should build selectOnePublicFull for id") {
+        val q = ProposalRepoSql.selectOnePublicFull(group.id, proposal.id)
+        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? AND p.id=? AND e.published IS NOT NULL"
         check(q)
       }
       it("should build selectPage for a cfp") {
@@ -148,22 +154,6 @@ class ProposalRepoSqlSpec extends RepoSpec {
         check(s)
         check(c)
       }
-      it("should build selectPageWithEvent for a speaker and status") {
-        val (s, c) = ProposalRepoSql.selectPageWithEvent(user.id, Proposal.Status.Pending, params)
-        s.sql shouldBe
-          s"SELECT ${mapFields(eventFields, "e." + _)}, ${mapFields(fields, "p." + _)} " +
-            s"FROM $table p LEFT OUTER JOIN events e ON p.event_id=e.id WHERE p.status=? AND p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table p LEFT OUTER JOIN events e ON p.event_id=e.id WHERE p.status=? AND p.speakers LIKE ? "
-        check(s)
-        check(c)
-      }
-      it("should build selectPublicPageFull for a group") {
-        val (s, c) = ProposalRepoSql.selectPublicPageFull(group.id, params)
-        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL "
-        check(s)
-        check(c)
-      }
       it("should build selectPageFull for a speaker") {
         val (s, c) = ProposalRepoSql.selectPageFull(user.id, params)
         s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
@@ -171,9 +161,28 @@ class ProposalRepoSqlSpec extends RepoSpec {
         check(s)
         check(c)
       }
+      it("should build selectPagePublicFull for a speaker") {
+        val (s, c) = ProposalRepoSql.selectPagePublicFull(user.id, params)
+        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL "
+        check(s)
+        check(c)
+      }
+      it("should build selectPagePublicFull for a group") {
+        val (s, c) = ProposalRepoSql.selectPagePublicFull(group.id, params)
+        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL "
+        check(s)
+        check(c)
+      }
       it("should build selectAll") {
         val q = ProposalRepoSql.selectAll(NonEmptyList.of(proposal.id))
         q.sql shouldBe s"SELECT $fields FROM $table WHERE id IN (?) "
+        check(q)
+      }
+      it("should build selectAllPublicFull") {
+        val q = ProposalRepoSql.selectAllPublicFull(NonEmptyList.of(proposal.id))
+        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.id IN (?) AND e.published IS NOT NULL"
         check(q)
       }
       it("should build selectTags") {
@@ -199,6 +208,6 @@ object ProposalRepoSqlSpec {
   private val whereCfpAndTalk = s"(SELECT p.id FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND p.speakers LIKE ?)"
   private val whereGroupAndCfp = s"(SELECT p.id FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN groups g ON c.group_id=g.id WHERE p.id=? AND c.slug=? AND g.slug=? AND g.owners LIKE ?)"
 
-  private val tableFull = s"$table p INNER JOIN $cfpTable c ON p.cfp_id=c.id INNER JOIN $talkTable t ON p.talk_id=t.id LEFT OUTER JOIN $eventTable e ON p.event_id=e.id"
-  private val fieldsFull = s"${mapFields(fields, "p." + _)}, ${mapFields(cfpFields, "c." + _)}, ${mapFields(talkFields, "t." + _)}, ${mapFields(eventFields, "e." + _)}"
+  private val tableFull = s"$table p INNER JOIN $cfpTable c ON p.cfp_id=c.id INNER JOIN $groupTable g ON c.group_id=g.id INNER JOIN $talkTable t ON p.talk_id=t.id LEFT OUTER JOIN $eventTable e ON p.event_id=e.id"
+  private val fieldsFull = s"${mapFields(fields, "p." + _)}, ${mapFields(cfpFields, "c." + _)}, ${mapFields(groupFields, "g." + _)}, ${mapFields(talkFields, "t." + _)}, ${mapFields(eventFields, "e." + _)}"
 }

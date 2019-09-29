@@ -13,7 +13,11 @@
 @talkItem(group: Group, talk: Proposal.Full, speakers: Seq[User]) = {
     <div class="card mb-3">
         <div class="card-body">
-            <h5 class="card-title">@slidesIcon(talk.proposal.slides)@videoIcon(talk.proposal.video)@talk.proposal.title.value</h5>
+            <h5 class="card-title">
+                @slidesIcon(talk.proposal.slides)
+                @videoIcon(talk.proposal.video)
+                <a href="@GroupCtrl.talk(group.slug, talk.proposal.id)">@talk.proposal.title.value</a>
+            </h5>
             <p>By @talk.proposal.speakers.toList.map { id => @speaker(speakers, id, s => Some(SpeakerCtrl.detail(s.slug)).filter(_ => s.isPublic)) }</p>
             @markdown(talk.proposal.description)
             @if(talk.proposal.tags.nonEmpty) { <p>@tags(talk.proposal.tags)</p> }

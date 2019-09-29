@@ -13,6 +13,7 @@ GET         /groups/:group                                                      
 GET         /groups/:group/events                                                          fr.gospeak.web.pages.published.groups.GroupCtrl.events(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /groups/:group/events/:event                                                   fr.gospeak.web.pages.published.groups.GroupCtrl.event(group: Group.Slug, event: Event.Slug)
 GET         /groups/:group/talks                                                           fr.gospeak.web.pages.published.groups.GroupCtrl.talks(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /groups/:group/talks/:proposal                                                 fr.gospeak.web.pages.published.groups.GroupCtrl.talk(group: Group.Slug, proposal: Proposal.Id)
 GET         /groups/:group/speakers                                                        fr.gospeak.web.pages.published.groups.GroupCtrl.speakers(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 
 GET         /speakers                                                                      fr.gospeak.web.pages.published.speakers.SpeakerCtrl.list(params: Page.Params ?= Page.Params.defaults)
