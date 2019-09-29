@@ -6,6 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
 import fr.gospeak.core.GospeakConf
+import fr.gospeak.core.domain.Contact.{FirstName, LastName}
 import fr.gospeak.core.domain.User.Profile
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.TemplateData.EventInfo
@@ -172,14 +173,17 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     def partner(g: Group, name: String, notes: String, description: Option[String], logo: Int, by: User): Partner =
       Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(notes), description.map(Markdown), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").get, None, Info(by.id, now))
 
-    def venue(partner: Partner, address: GMapPlace, by: User, description: String = "", roomSize: Option[Int] = None): Venue =
-      Venue(Venue.Id.generate(), partner.id, address, Markdown(description), roomSize, Venue.ExtRefs(), Info(by.id, now))
+    def contact(partner: Partner, email: String, firstName: String, lastName: String, by: User, description: String = ""): Contact =
+      Contact(Contact.Id.generate(), partner.id, FirstName(firstName), LastName(lastName), EmailAddress.from(email).get, Markdown(description), Info(by.id, now))
+
+    def venue(partner: Partner, address: GMapPlace, by: User, description: String = "", contact: Option[Contact] = None, roomSize: Option[Int] = None): Venue =
+      Venue(Venue.Id.generate(), partner.id, contact.map(_.id), address, Markdown(description), roomSize, Venue.ExtRefs(), Info(by.id, now))
 
     def sponsorPack(group: Group, name: String, price: Int, by: User, description: String = ""): SponsorPack =
       SponsorPack(SponsorPack.Id.generate(), group.id, SponsorPack.Slug.from(StringUtils.slugify(name)).get, SponsorPack.Name(name), Markdown(description), Price(price, Price.Currency.EUR), 1.year, active = true, Info(by.id, now))
 
-    def sponsor(group: Group, partner: Partner, pack: SponsorPack, by: User, start: String, finish: String): Sponsor =
-      Sponsor(Sponsor.Id.generate(), group.id, partner.id, pack.id, LocalDate.parse(start), LocalDate.parse(finish), Some(LocalDate.parse(start)), Price(1500, Price.Currency.EUR), Info(by.id, now))
+    def sponsor(group: Group, partner: Partner, pack: SponsorPack, by: User, start: String, finish: String, contact: Option[Contact] = None): Sponsor =
+      Sponsor(Sponsor.Id.generate(), group.id, partner.id, pack.id, contact.map(_.id), LocalDate.parse(start), LocalDate.parse(finish), Some(LocalDate.parse(start)), Price(1500, Price.Currency.EUR), Info(by.id, now))
 
     val groupDefaultSettings = conf.defaultGroupSettings
 
@@ -249,6 +253,11 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val google = partner(humanTalks, "Google", "", None, 4, userDemo)
     val partners = NonEmptyList.of(zeenea, criteo, nexeo, google)
 
+    val zeeneaNina = contact(zeenea, "nina@zeenea.com", "Nina", "Truc", userDemo)
+    val zeeneaJean = contact(zeenea, "jean@zeenea.com", "Jean", "Machin", userDemo)
+    val criteoClaude = contact(criteo, "claude@criteo.com", "Claude", "Bidule", userDemo)
+    val contacts = NonEmptyList.of(zeeneaNina, zeeneaJean, criteoClaude)
+
     val zeeneaPlace = GMapPlace(
       id = "ChIJ0wnrwMdv5kcRuOvv_dXYoy4",
       name = "Zeenea Data Catalog",
@@ -265,7 +274,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       phone = None,
       utcOffset = 120,
       timezone = ZoneId.of("Europe/Paris"))
-    val venue1 = venue(zeenea, zeeneaPlace, userDemo, roomSize = Some(80))
+    val venue1 = venue(zeenea, zeeneaPlace, userDemo, contact = Some(zeeneaNina), roomSize = Some(80))
     val venues = NonEmptyList.of(venue1)
 
     val event1 = event(humanTalks, Some(cfp2), "2018-06", "HumanTalks Day #1", "2018-06-01", userDemo, venue = None, description = groupDefaultSettings.event.description)
@@ -285,7 +294,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val premium = sponsorPack(humanTalks, "Premium", 1500, userDemo)
     val packs = NonEmptyList.of(base, premium)
 
-    val sponsor1 = sponsor(humanTalks, zeenea, base, userDemo, "2018-01-01", "2019-01-01")
+    val sponsor1 = sponsor(humanTalks, zeenea, base, userDemo, "2018-01-01", "2019-01-01", Some(zeeneaJean))
     val sponsor2 = sponsor(humanTalks, zeenea, premium, userDemo, "2019-01-01", "2020-01-01")
     val sponsor3 = sponsor(humanTalks, nexeo, base, userDemo, "2018-01-01", "2019-01-01")
     val sponsors = NonEmptyList.of(sponsor1, sponsor2, sponsor3)
@@ -310,6 +319,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       _ <- run(Queries.insertMany(CfpRepoSql.insert)(cfps ++ generated.map(_._2)))
       _ <- run(Queries.insertMany(ProposalRepoSql.insert)(proposals ++ generated.map(_._5)))
       _ <- run(Queries.insertMany(PartnerRepoSql.insert)(partners))
+      _ <- run(Queries.insertMany(ContactRepoSql.insert)(contacts))
       // _ <- run(Queries.insertMany(VenueRepoSql.insert)(venues)) // fail with: JdbcSQLException: Parameter "#10" is not set :(
       _ <- IO(venues.toList.map(venue => run(Queries.insertOne(VenueRepoSql.insert)(venue)).unsafeRunSync()))
       _ <- run(Queries.insertMany(SponsorPackRepoSql.insert)(packs))

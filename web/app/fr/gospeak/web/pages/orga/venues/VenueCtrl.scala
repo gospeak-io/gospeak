@@ -32,7 +32,7 @@ class VenueCtrl(cc: ControllerComponents,
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      venues <- OptionT.liftF(venueRepo.list(groupElt.id, params))
+      venues <- OptionT.liftF(venueRepo.listFull(groupElt.id, params))
       b = listBreadcrumb(groupElt)
     } yield Ok(html.list(groupElt, venues)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
@@ -64,12 +64,12 @@ class VenueCtrl(cc: ControllerComponents,
   def detail(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      venueFull <- OptionT(venueRepo.find(groupElt.id, venue))
+      venueElt <- OptionT(venueRepo.findFull(groupElt.id, venue))
       events <- OptionT.liftF(eventRepo.list(groupElt.id, venue))
-      users <- OptionT.liftF(userRepo.list(venueFull.users))
-      b = breadcrumb(groupElt, venueFull.venue)
+      users <- OptionT.liftF(userRepo.list(venueElt.users))
+      b = breadcrumb(groupElt, venueElt.venue)
       edit = routes.VenueCtrl.edit(group, venue)
-      res = Ok(html.detail(groupElt, venueFull.partner, venueFull.venue, events, users, edit)(b))
+      res = Ok(html.detail(groupElt, venueElt, events, users, edit)(b))
     } yield res).value.map(_.getOrElse(venueNotFound(group, venue))).unsafeToFuture()
   }
 
@@ -92,11 +92,11 @@ class VenueCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup(groupElt.id))
-      venueFull <- OptionT(venueRepo.find(groupElt.id, venue))
-      b = breadcrumb(groupElt, venueFull.venue).add("Edit" -> routes.VenueCtrl.edit(group, venue))
-      filledForm = if (form.hasErrors) form else form.fill(venueFull.venue.data)
+      venueElt <- OptionT(venueRepo.findFull(groupElt.id, venue))
+      b = breadcrumb(groupElt, venueElt.venue).add("Edit" -> routes.VenueCtrl.edit(group, venue))
+      filledForm = if (form.hasErrors) form else form.fill(venueElt.data)
       call = routes.VenueCtrl.doEdit(group, venue)
-    } yield Ok(html.edit(groupElt, meetupAccount.isDefined, venueFull.partner, venueFull.venue, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
+    } yield Ok(html.edit(groupElt, meetupAccount.isDefined, venueElt, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
   }
 }
 

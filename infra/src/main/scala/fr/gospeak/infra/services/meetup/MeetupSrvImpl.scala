@@ -3,7 +3,7 @@ package fr.gospeak.infra.services.meetup
 import java.time.{Instant, LocalDateTime, ZoneId, ZoneOffset}
 
 import cats.effect.IO
-import fr.gospeak.core.domain.{Event, Partner, Venue}
+import fr.gospeak.core.domain.{Event, Venue}
 import fr.gospeak.core.services.meetup.{MeetupSrv, domain => gs}
 import fr.gospeak.infra.libs.meetup.MeetupClient
 import fr.gospeak.infra.libs.meetup.domain._
@@ -47,12 +47,12 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
       for {
         orgas <- client.getOrgas(creds.group.value).flatMap(_.toIO(e => gs.MeetupException.CantFetchOrgas(creds.group, e.format)))
         venueId <- venue.map { v =>
-          v.venue.refs.meetup.map(r => IO.pure(r.venue.value)).getOrElse {
+          v.refs.meetup.map(r => IO.pure(r.venue.value)).getOrElse {
             for {
-              location <- client.getLocations(v.venue.address.geo)
-                .flatMap(_.toIO(e => gs.MeetupException.CantFetchLocation(v.venue.address.geo, e.format)))
-                .flatMap(_.headOption.toIO(gs.MeetupException.CantFetchLocation(v.venue.address.geo, "No location found")))
-              created <- client.createVenue(creds.group.value, toLib(v.partner, v.venue, location))
+              location <- client.getLocations(v.address.geo)
+                .flatMap(_.toIO(e => gs.MeetupException.CantFetchLocation(v.address.geo, e.format)))
+                .flatMap(_.headOption.toIO(gs.MeetupException.CantFetchLocation(v.address.geo, "No location found")))
+              created <- client.createVenue(creds.group.value, toLib(v, location))
               id <- created.map(_.id).toIO(e => gs.MeetupException.CantCreateVenue(creds.group, event, v.partner, v.venue, e.format))
             } yield id
           }
@@ -73,9 +73,9 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
   private def toLib(creds: gs.MeetupCredentials, key: AesSecretKey): Try[MeetupToken.Access] =
     creds.accessToken.decode(key).map(MeetupToken.Access)
 
-  private def toLib(partner: Partner, venue: Venue, location: MeetupLocation): MeetupVenue.Create =
+  private def toLib(venue: Venue.Full, location: MeetupLocation): MeetupVenue.Create =
     MeetupVenue.Create(
-      name = partner.name.value,
+      name = venue.partner.name.value,
       address_1 = venue.address.formatted,
       city = location.city,
       state = None,

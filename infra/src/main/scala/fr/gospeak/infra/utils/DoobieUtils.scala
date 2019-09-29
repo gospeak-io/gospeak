@@ -68,7 +68,7 @@ object DoobieUtils {
         limitFragment(params.offsetStart, params.pageSize))
     }
 
-    private def orderByFragment(orderBy: Page.OrderBy, prefix: Option[String], nullsFirst: Boolean): Fragment = {
+    def orderByFragment(orderBy: Page.OrderBy, prefix: Option[String] = None, nullsFirst: Boolean = false): Fragment = {
       if (orderBy.nonEmpty) {
         val fields = orderBy.values.map { v =>
           val p = prefix.map(_ + ".").getOrElse("")

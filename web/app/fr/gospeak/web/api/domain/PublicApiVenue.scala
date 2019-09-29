@@ -21,11 +21,11 @@ object PublicApiVenue {
       logo = v.partner.logo.value,
       twitter = v.partner.twitter.map(_.value),
       description = v.partner.description.map(_.value),
-      address = v.venue.address.formatted,
-      locality = v.venue.address.locality,
-      country = v.venue.address.country,
-      coords = v.venue.address.geo,
-      url = v.venue.address.url)
+      address = v.address.formatted,
+      locality = v.address.locality,
+      country = v.address.country,
+      coords = v.address.geo,
+      url = v.address.url)
 
   implicit val writesGeo: Writes[Geo] = Json.writes[Geo]
   implicit val writes: Writes[PublicApiVenue] = Json.writes[PublicApiVenue]

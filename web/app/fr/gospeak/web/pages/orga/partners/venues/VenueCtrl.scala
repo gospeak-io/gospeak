@@ -59,12 +59,12 @@ class VenueCtrl(cc: ControllerComponents,
   def detail(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      venueFull <- OptionT(venueRepo.find(groupElt.id, venue))
+      venueElt <- OptionT(venueRepo.findFull(groupElt.id, venue))
       events <- OptionT.liftF(eventRepo.list(groupElt.id, venue))
-      users <- OptionT.liftF(userRepo.list(venueFull.users))
-      b = breadcrumb(groupElt, venueFull.partner, venueFull.venue)
+      users <- OptionT.liftF(userRepo.list(venueElt.users))
+      b = breadcrumb(groupElt, venueElt.partner, venueElt.venue)
       edit = routes.VenueCtrl.edit(group, partner, venue)
-      res = Ok(html.detail(groupElt, venueFull.partner, venueFull.venue, events, users, edit)(b))
+      res = Ok(html.detail(groupElt, venueElt, events, users, edit)(b))
     } yield res).value.map(_.getOrElse(venueNotFound(group, partner, venue))).unsafeToFuture()
   }
 
@@ -87,11 +87,11 @@ class VenueCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup(groupElt.id))
-      venueFull <- OptionT(venueRepo.find(groupElt.id, venue))
-      b = breadcrumb(groupElt, venueFull.partner, venueFull.venue).add("Edit" -> routes.VenueCtrl.edit(group, partner, venue))
-      filledForm = if (form.hasErrors) form else form.fill(venueFull.venue.data)
+      venueElt <- OptionT(venueRepo.findFull(groupElt.id, venue))
+      b = breadcrumb(groupElt, venueElt.partner, venueElt.venue).add("Edit" -> routes.VenueCtrl.edit(group, partner, venue))
+      filledForm = if (form.hasErrors) form else form.fill(venueElt.data)
       call = routes.VenueCtrl.doEdit(group, partner, venue)
-    } yield Ok(html.edit(groupElt, meetupAccount.isDefined, venueFull.partner, venueFull.venue, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
+    } yield Ok(html.edit(groupElt, meetupAccount.isDefined, venueElt, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
   }
 }
 

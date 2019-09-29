@@ -17,7 +17,6 @@ import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ContactRepo {
-
   override def create(data: Contact.Data, by: User.Id, now: Instant): IO[Contact] =
     run(insert, Contact(data, Info(by, now)))
 

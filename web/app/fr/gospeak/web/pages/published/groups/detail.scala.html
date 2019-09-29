@@ -57,7 +57,7 @@
             <h3>About</h3>
             <blockquote class="blockquote">@markdown(group.description)</blockquote>
             <h3>Sponsors</h3>
-            @sponsors.sortBy(-_.sponsor.price.amount).map { s =>
+            @sponsors.sortBy(-_.price.amount).map { s =>
                 <img src="@s.partner.logo.value"
                     alt="@s.partner.name.value logo"
                     title="@s.sponsorPack.name.value sponsoring by @s.partner.name.value"

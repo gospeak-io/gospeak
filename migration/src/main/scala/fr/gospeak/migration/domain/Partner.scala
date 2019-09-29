@@ -27,6 +27,7 @@ case class Partner(id: String, // Partner.Id
   def toVenue: Option[gs.Venue] = data.venue.map(venue => gs.Venue(
     id = gs.Venue.Id.generate(),
     partner = gs.Partner.Id.from(id).get,
+    contact = None, // FIXME migration
     address = venue.location.toGMapPlace,
     description = Markdown(venue.comment.getOrElse("")),
     roomSize = venue.capacity,
@@ -39,6 +40,7 @@ case class Partner(id: String, // Partner.Id
     group = group,
     partner = gs.Partner.Id.from(id).get,
     pack = packs.find(_.name.value == sponsor.level).get.id,
+    contact = None, // FIXME migration
     start = LocalDate.parse(sponsor.start),
     finish = LocalDate.parse(sponsor.end),
     paid = Some(LocalDate.parse(sponsor.start)),

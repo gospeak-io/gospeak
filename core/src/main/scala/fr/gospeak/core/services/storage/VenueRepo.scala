@@ -13,19 +13,19 @@ trait OrgaVenueRepo {
 
   def edit(group: Group.Id, id: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): IO[Done]
 
-  def list(group: Group.Id, params: Page.Params): IO[Page[Venue.Full]]
+  def listFull(group: Group.Id, params: Page.Params): IO[Page[Venue.Full]]
 
-  def list(partner: Partner.Id): IO[Seq[Venue]]
+  def listFull(partner: Partner.Id): IO[Seq[Venue.Full]]
 
-  def list(group: Group.Id, ids: Seq[Venue.Id]): IO[Seq[Venue.Full]]
+  def listFull(group: Group.Id, ids: Seq[Venue.Id]): IO[Seq[Venue.Full]]
 
-  def find(group: Group.Id, id: Venue.Id): IO[Option[Venue.Full]]
+  def findFull(group: Group.Id, id: Venue.Id): IO[Option[Venue.Full]]
 }
 
 trait PublicVenueRepo {
-  def list(group: Group.Id, ids: Seq[Venue.Id]): IO[Seq[Venue.Full]]
+  def listFull(group: Group.Id, ids: Seq[Venue.Id]): IO[Seq[Venue.Full]]
 }
 
 trait SuggestVenueRepo {
-  def list(group: Group.Id): IO[Seq[Venue.Full]]
+  def listFull(group: Group.Id): IO[Seq[Venue.Full]]
 }

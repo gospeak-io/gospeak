@@ -46,7 +46,7 @@ class EventCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(user, group))
       events <- OptionT.liftF(eventRepo.list(groupElt.id, params))
       cfps <- OptionT.liftF(cfpRepo.list(events.items.flatMap(_.cfp)))
-      venues <- OptionT.liftF(venueRepo.list(groupElt.id, events.items.flatMap(_.venue)))
+      venues <- OptionT.liftF(venueRepo.listFull(groupElt.id, events.items.flatMap(_.venue)))
       proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.users)))
       b = listBreadcrumb(groupElt)

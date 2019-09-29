@@ -28,7 +28,7 @@ object PublicApiProposal {
       speakers = p.proposal.speakers.toList.map(id => speakers.find(_.id == id).map(PublicApiSpeaker(_)).getOrElse(PublicApiSpeaker.unknown)),
       tags = p.proposal.tags.map(_.value),
       event = p.event.map(PublicApiEvent(_)),
-      venue = p.event.flatMap(_.venue).flatMap(id => venues.find(_.venue.id == id)).map(PublicApiVenue(_)))
+      venue = p.event.flatMap(_.venue).flatMap(id => venues.find(_.id == id)).map(PublicApiVenue(_)))
 
   implicit val durationWrites: Writes[FiniteDuration] = (o: FiniteDuration) => JsNumber(o.toMinutes)
   implicit val writes: Writes[PublicApiProposal] = Json.writes[PublicApiProposal]

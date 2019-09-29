@@ -149,59 +149,53 @@ declare const autosize;
         allowClear: true
     };
     $('select.select2').each(function () {
-        addRemoteOptions2($(this), function ($select) {
-            $select.select2(Object.assign({}, defaultOpts, {
-                placeholder: $select.attr('placeholder')
-            }));
-        });
+        const $select= $(this);
+        $select.select2(Object.assign({}, defaultOpts, {
+            placeholder: $select.attr('placeholder')
+        }));
+        addRemoteOptions($select);
     });
     $('select.tags').each(function () {
-        addRemoteOptions2($(this), function ($select) {
-            $select.select2(Object.assign({}, defaultOpts, {
-                placeholder: $select.attr('placeholder'),
-                tags: true
-            }));
-        });
+        const $select= $(this);
+        $select.select2(Object.assign({}, defaultOpts, {
+            placeholder: $select.attr('placeholder'),
+            tags: true
+        }));
+        addRemoteOptions($select);
     });
 
     function addRemoteOptions($select) {
         const remote = $select.attr('remote');
-        if (remote) {
-            $.getJSON(remote, function (res) {
-                const values = ($select.attr('value') || '').split(',').filter(function (v) {
-                    return v.length > 0;
+        const remoteReplace = $select.attr('remote-replace');
+        if (remote) { // $select input should be populated using remote call response
+            if (remoteReplace) { // remote url depends on the value of an other field ("$placeholder:$fieldId")
+                const [placeholder, fieldId] = remoteReplace.split(':');
+                const $input = $('#' + fieldId);
+                $input.change(function () {
+                    fetchAndSetOptions($select, remote.replace(placeholder, $input.val()));
                 });
-                res.map(function (item) {
-                    if ($select.find('option[value="' + item.id + '"]').length === 0) { // do not add item if it already exists
-                        $select.append(new Option(item.text, item.id, false, values.indexOf(item.id) > -1));
-                    }
-                });
-                $select.trigger('change');
-            });
+            } else {
+                fetchAndSetOptions($select, remote);
+            }
         }
     }
 
-    function addRemoteOptions2($select, callback) {
-        const remote = $select.attr('remote');
-        if (remote) {
-            $.getJSON(remote, function (res) {
-                const values = ($select.attr('value') || '').split(',').filter(function (v) {
-                    return v.length > 0;
-                });
-                res.map(function (item) {
-                    if ($select.find('option[value="' + item.id + '"]').length === 0) { // do not add item if it already exists
-                        if (values.indexOf(item.id) > -1) {
-                            $select.append('<option value="' + item.id + '" selected>' + item.text + '</option>');
-                        } else {
-                            $select.append('<option value="' + item.id + '">' + item.text + '</option>');
-                        }
-                    }
-                });
-                callback($select);
+    function fetchAndSetOptions($select, url) {
+        $.getJSON(url, function (res) {
+            const values = ($select.attr('value') || '').split(',').filter(function (v) {
+                return v.length > 0;
             });
-        } else {
-            callback($select);
-        }
+            $select.find('option[value]').remove(); // remove non empty existing options before adding new ones
+            res.map(function (item) {
+                if ($select.find('option[value="' + item.id + '"]').length === 0) { // do not add item if it already exists
+                    if (values.indexOf(item.id) > -1) {
+                        $select.append('<option value="' + item.id + '" selected>' + item.text + '</option>');
+                    } else {
+                        $select.append('<option value="' + item.id + '">' + item.text + '</option>');
+                    }
+                }
+            });
+        });
     }
 })();
 

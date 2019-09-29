@@ -130,7 +130,7 @@ object TemplateData {
 
   private def proposal(p: Linked[domain.Proposal]): Proposal = Proposal(link = p.link, title = p.value.title.value, description = desc(p.value.description.value), slides = p.value.slides.map(_.value), video = p.value.video.map(_.value), tags = p.value.tags.map(_.value))
 
-  private def eventVenue(v: domain.Venue.Full): EventVenue = EventVenue(v.partner.name.value, v.venue.address.value, v.partner.logo.value, v.venue.address.url)
+  private def eventVenue(v: domain.Venue.Full): EventVenue = EventVenue(v.partner.name.value, v.address.value, v.partner.logo.value, v.address.url)
 
   private def talkSpeaker(v: Linked[domain.User]): TalkSpeaker = TalkSpeaker(link = v.link, publicLink = v.publicLink, name = v.value.name.value, avatar = v.value.avatar.url.value)
 

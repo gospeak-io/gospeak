@@ -39,7 +39,7 @@ class GroupCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(group))
       cfps <- OptionT.liftF(cfpRepo.listAllOpen(groupElt.id, now))
       events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, Page.Params.defaults))
-      sponsors <- OptionT.liftF(sponsorRepo.listCurrent(groupElt.id, now))
+      sponsors <- OptionT.liftF(sponsorRepo.listCurrentFull(groupElt.id, now))
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       b = breadcrumb(groupElt)
       res = Ok(html.detail(groupElt, cfps, events, sponsors, packs)(b))

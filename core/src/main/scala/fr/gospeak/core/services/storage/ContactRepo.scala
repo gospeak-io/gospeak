@@ -6,8 +6,7 @@ import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
-trait ContactRepo {
-
+trait ContactRepo extends SuggestContactRepo {
   def list(partner: Partner.Id): IO[Seq[Contact]]
 
   def create(data: Contact.Data, by: User.Id, now: Instant): IO[Contact]
@@ -19,4 +18,8 @@ trait ContactRepo {
   def edit(contact: Contact.Id, data: Contact.Data)(by: User.Id, now: Instant): IO[Done]
 
   def exists(partner: Partner.Id, email: EmailAddress): IO[Boolean]
+}
+
+trait SuggestContactRepo {
+  def list(partner: Partner.Id): IO[Seq[Contact]]
 }

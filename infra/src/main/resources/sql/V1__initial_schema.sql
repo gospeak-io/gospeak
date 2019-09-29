@@ -131,24 +131,6 @@ CREATE TABLE partners
     UNIQUE (group_id, slug)
 );
 
-CREATE TABLE venues
-(
-    id              CHAR(36)         NOT NULL PRIMARY KEY,
-    partner_id      CHAR(36)         NOT NULL REFERENCES partners (id),
-    address         VARCHAR(4096)    NOT NULL,
-    address_lat     DOUBLE PRECISION NOT NULL,
-    address_lng     DOUBLE PRECISION NOT NULL,
-    address_country VARCHAR(30)      NOT NULL,
-    description     VARCHAR(4096)    NOT NULL,
-    room_size       INT,
-    meetupGroup     VARCHAR(80),
-    meetupVenue     BIGINT,
-    created         TIMESTAMP        NOT NULL,
-    created_by      CHAR(36)         NOT NULL REFERENCES users (id),
-    updated         TIMESTAMP        NOT NULL,
-    updated_by      CHAR(36)         NOT NULL REFERENCES users (id)
-);
-
 CREATE TABLE contacts
 (
     id          CHAR(36)      NOT NULL PRIMARY KEY,
@@ -161,6 +143,25 @@ CREATE TABLE contacts
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,
     updated_by  CHAR(36)      NOT NULL REFERENCES users (id)
+);
+
+CREATE TABLE venues
+(
+    id              CHAR(36)         NOT NULL PRIMARY KEY,
+    partner_id      CHAR(36)         NOT NULL REFERENCES partners (id),
+    contact_id      CHAR(36) REFERENCES contacts (id),
+    address         VARCHAR(4096)    NOT NULL,
+    address_lat     DOUBLE PRECISION NOT NULL,
+    address_lng     DOUBLE PRECISION NOT NULL,
+    address_country VARCHAR(30)      NOT NULL,
+    description     VARCHAR(4096)    NOT NULL,
+    room_size       INT,
+    meetupGroup     VARCHAR(80),
+    meetupVenue     BIGINT,
+    created         TIMESTAMP        NOT NULL,
+    created_by      CHAR(36)         NOT NULL REFERENCES users (id),
+    updated         TIMESTAMP        NOT NULL,
+    updated_by      CHAR(36)         NOT NULL REFERENCES users (id)
 );
 
 CREATE TABLE events
@@ -230,7 +231,7 @@ CREATE TABLE sponsors
     group_id        CHAR(36)         NOT NULL REFERENCES groups (id),
     partner_id      CHAR(36)         NOT NULL REFERENCES partners (id),
     sponsor_pack_id CHAR(36)         NOT NULL REFERENCES sponsor_packs (id),
-    -- contact_id      CHAR(36) REFERENCES contacts (id),
+    contact_id      CHAR(36) REFERENCES contacts (id),
     start           DATE             NOT NULL,
     finish          DATE             NOT NULL,
     paid            DATE,

@@ -27,7 +27,7 @@ class EventSrv(groupRepo: OrgaGroupRepo,
       groupElt <- OptionT(groupRepo.find(user, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
       cfpOpt <- OptionT.liftF(cfpRepo.find(eventElt.id))
-      venueOpt <- OptionT.liftF(venueRepo.list(groupElt.id, eventElt.venue.toList).map(_.headOption))
+      venueOpt <- OptionT.liftF(venueRepo.listFull(groupElt.id, eventElt.venue.toList).map(_.headOption))
       talks <- OptionT.liftF(proposalRepo.list(eventElt.talks)
         .map(proposals => eventElt.talks.flatMap(t => proposals.find(_.id == t)))) // to keep talk order
       speakers <- OptionT.liftF(userRepo.list(talks.flatMap(_.users).distinct))
