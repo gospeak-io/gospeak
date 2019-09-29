@@ -1,6 +1,7 @@
 package fr.gospeak.infra.services
 
 import fr.gospeak.core.domain.utils.TemplateData
+import fr.gospeak.core.domain.utils.TemplateData.EventInfo
 import fr.gospeak.infra.services.TemplateSrvSpec._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import io.circe.generic.semiauto.deriveEncoder
@@ -66,11 +67,32 @@ class TemplateSrvSpec extends FunSpec with Matchers {
   describe("TemplateSrv") {
     describe("TemplateData.Static") {
       it("should render correctly default event description") {
-        val result = srv.render(TemplateData.Static.eventDescription, TemplateData.Sample.eventInfo).right.get.value
+        val description = MustacheMarkdownTmpl[EventInfo](
+          """{{#venue}}
+            |This month we are hosted by **{{name}}**, thanks to them :)
+            |
+            |![{{name}} logo]({{logoUrl}})
+            |{{/venue}}
+            |
+            |
+            |{{#talks}}
+            |{{#-first}}Here are the talks for this session:{{/-first}}
+            |
+            |- **{{title}}** by {{#speakers}}*{{name}}*{{^-last}} and {{/-last}}{{/speakers}}
+            |
+            |{{description.short2}} {{#publicLink}}[see more]({{.}}){{/publicLink}}
+            |{{/talks}}
+            |
+            |
+            |---
+            |
+            |Propose your talks for the next sessions on [Gospeak]({{cfp.publicLink}})
+      """.stripMargin.trim)
+        val result = srv.render(description, TemplateData.Sample.eventInfo).right.get.value
         result shouldBe
           """This month we are hosted by **Zeenea**, thanks to them :)
             |
-            |![Zeenea logo](https://www.zeenea.com/wp-content/uploads/2019/01/zeenea-logo-424x112-1.png)
+            |![Zeenea logo](https://dataxday.fr/wp-content/uploads/2018/01/zeenea-logo.png)
             |
             |Here are the talks for this session:
             |

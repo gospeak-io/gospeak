@@ -5,6 +5,7 @@ import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
+import fr.gospeak.core.GospeakConf
 import fr.gospeak.core.domain.User.Profile
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.TemplateData.EventInfo
@@ -24,9 +25,9 @@ import fr.gospeak.migration.MongoRepo
 
 import scala.concurrent.duration._
 
-class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
-  private val flyway = FlywayUtils.build(conf)
-  private[sql] val xa: doobie.Transactor[IO] = DoobieUtils.transactor(conf)
+class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb {
+  private val flyway = FlywayUtils.build(dbConf)
+  private[sql] val xa: doobie.Transactor[IO] = DoobieUtils.transactor(dbConf)
 
   def migrate(): IO[Int] = IO(flyway.migrate())
 
@@ -35,7 +36,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
   override val user = new UserRepoSql(xa)
   override val talk = new TalkRepoSql(xa)
   override val group = new GroupRepoSql(xa)
-  override val groupSettings = new GroupSettingsRepoSql(xa)
+  override val groupSettings = new GroupSettingsRepoSql(xa, gsConf)
   override val cfp = new CfpRepoSql(xa)
   override val partner = new PartnerRepoSql(xa)
   override val venue = new VenueRepoSql(xa)
@@ -138,7 +139,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     } { mongo => IO(mongo.close()) }
   }
 
-  def insertMockData(): IO[Done] = {
+  def insertMockData(conf: GospeakConf): IO[Done] = {
     val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
     var n = Instant.now()
     def now: Instant = { // to not have the same date everywhere
@@ -180,6 +181,8 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     def sponsor(group: Group, partner: Partner, pack: SponsorPack, by: User, start: String, finish: String): Sponsor =
       Sponsor(Sponsor.Id.generate(), group.id, partner.id, pack.id, LocalDate.parse(start), LocalDate.parse(finish), Some(LocalDate.parse(start)), Price(1500, Price.Currency.EUR), Info(by.id, now))
 
+    val groupDefaultSettings = conf.defaultGroupSettings
+
     val userDemoProfil = User.Profile(User.Profile.Status.Public, Some(Markdown("Entrepreneur, functional programmer, OSS contributor, speaker, author.\nWork hard, stay positive, and live fearlessly.")),
       Some("Zeenea"), Some("Paris"), Some(Url.from("https://twitter.com/HumanTalks").get), Some(Url.from("https://www.linkedin.com/in/loicknuchel").get), None, Some(Url.from("https://humantalks.com").get))
     val userDemo = user("demo", "demo@mail.com", "Demo", "User", userDemoProfil)
@@ -215,7 +218,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val bigGroup = group("big-group", "Big Group", Seq("BigData"), userOrga)
     val groups = NonEmptyList.of(humanTalks, parisJs, dataGov, bigGroup)
 
-    val humanTalksSettings = Group.Settings.default.copy(
+    val humanTalksSettings = groupDefaultSettings.copy(
       actions = Map(
         Group.Settings.Action.Trigger.OnEventCreated -> Seq(
           Group.Settings.Action.Slack(SlackAction.PostMessage(
@@ -223,7 +226,7 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
             MustacheMarkdownTmpl("Meetup [{{event.name}}]({{event.link}}) créé !"),
             createdChannelIfNotExist = true,
             inviteEverybody = true)))),
-      event = Group.Settings.default.event.copy(
+      event = groupDefaultSettings.event.copy(
         templates = Map(
           "ROTI" -> MustacheTextTmpl[TemplateData.EventInfo](humanTalksRoti))))
 
@@ -265,10 +268,10 @@ class GospeakDbSql(conf: DatabaseConf) extends GospeakDb {
     val venue1 = venue(zeenea, zeeneaPlace, userDemo, roomSize = Some(80))
     val venues = NonEmptyList.of(venue1)
 
-    val event1 = event(humanTalks, Some(cfp2), "2018-06", "HumanTalks Day #1", "2018-06-01", userDemo, venue = None, description = Group.Settings.default.event.description)
-    val event2 = event(humanTalks, None, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, venue = None, description = Group.Settings.default.event.description)
+    val event1 = event(humanTalks, Some(cfp2), "2018-06", "HumanTalks Day #1", "2018-06-01", userDemo, venue = None, description = groupDefaultSettings.event.description)
+    val event2 = event(humanTalks, None, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, venue = None, description = groupDefaultSettings.event.description)
     val event3 = event(humanTalks, Some(cfp1), "2019-02", "HumanTalks Paris Fevrier 2019", "2019-02-12", userOrga, venue = Some(venue1))
-    val event4 = event(humanTalks, Some(cfp1), "2019-11", "HumanTalks Paris Novembre 2019", "2019-11-12", userDemo, venue = Some(venue1), description = Group.Settings.default.event.description)
+    val event4 = event(humanTalks, Some(cfp1), "2019-11", "HumanTalks Paris Novembre 2019", "2019-11-12", userDemo, venue = Some(venue1), description = groupDefaultSettings.event.description)
     val event5 = event(parisJs, Some(cfp4), "2019-04", "Paris.Js Avril", "2019-04-01", userOrga)
     val event6 = event(dataGov, None, "2019-03", "Nouveaux modeles de gouvenance", "2019-03-15", userDemo, tags = Seq("Data Gouv"))
     val events = NonEmptyList.of(event1, event2, event3, event4, event5, event6)
