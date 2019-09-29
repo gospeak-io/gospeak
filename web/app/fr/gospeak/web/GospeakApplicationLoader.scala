@@ -189,7 +189,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
     if (envConf.isProd) {
       db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync()
     } else {
-      db.insertMockData().unsafeRunSync()
+      db.insertMockData(conf.gospeak).unsafeRunSync()
     }
 
     messageBus.subscribe(messageHandler.handle)
