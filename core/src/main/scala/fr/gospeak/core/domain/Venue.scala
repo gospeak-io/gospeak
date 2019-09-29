@@ -34,6 +34,8 @@ object Venue {
 
     def address: GMapPlace = venue.address
 
+    def roomSize: Option[Int] = venue.roomSize
+
     def refs: ExtRefs = venue.refs
 
     def data: Data = venue.data

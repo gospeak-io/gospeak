@@ -14,13 +14,13 @@
     <div class="card mb-3">
         <div class="card-body">
             <h5 class="card-title">
-                @slidesIcon(talk.proposal.slides)
-                @videoIcon(talk.proposal.video)
-                <a href="@GroupCtrl.talk(group.slug, talk.proposal.id)">@talk.proposal.title.value</a>
+                @slidesIcon(talk.slides)
+                @videoIcon(talk.video)
+                <a href="@GroupCtrl.talk(group.slug, talk.id)">@talk.title.value</a>
             </h5>
-            <p>By @talk.proposal.speakers.toList.map { id => @speaker(speakers, id, s => Some(SpeakerCtrl.detail(s.slug)).filter(_ => s.isPublic)) }</p>
-            @markdown(talk.proposal.description)
-            @if(talk.proposal.tags.nonEmpty) { <p>@tags(talk.proposal.tags)</p> }
+            <p>By @talk.speakers.toList.map { id => @speaker(speakers, id, s => Some(SpeakerCtrl.detail(s.slug)).filter(_ => s.isPublic)) }</p>
+            @markdown(talk.description)
+            @if(talk.tags.nonEmpty) { <p>@tags(talk.tags)</p> }
             @talk.event.map { event => <p>At <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a> on @Formats.date(event.start)</p> }
         </div>
     </div>

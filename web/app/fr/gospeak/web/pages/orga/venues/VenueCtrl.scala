@@ -67,7 +67,7 @@ class VenueCtrl(cc: ControllerComponents,
       venueElt <- OptionT(venueRepo.findFull(groupElt.id, venue))
       events <- OptionT.liftF(eventRepo.list(groupElt.id, venue))
       users <- OptionT.liftF(userRepo.list(venueElt.users))
-      b = breadcrumb(groupElt, venueElt.venue)
+      b = breadcrumb(groupElt, venueElt)
       edit = routes.VenueCtrl.edit(group, venue)
       res = Ok(html.detail(groupElt, venueElt, events, users, edit)(b))
     } yield res).value.map(_.getOrElse(venueNotFound(group, venue))).unsafeToFuture()
@@ -93,7 +93,7 @@ class VenueCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(user, group))
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup(groupElt.id))
       venueElt <- OptionT(venueRepo.findFull(groupElt.id, venue))
-      b = breadcrumb(groupElt, venueElt.venue).add("Edit" -> routes.VenueCtrl.edit(group, venue))
+      b = breadcrumb(groupElt, venueElt).add("Edit" -> routes.VenueCtrl.edit(group, venue))
       filledForm = if (form.hasErrors) form else form.fill(venueElt.data)
       call = routes.VenueCtrl.doEdit(group, venue)
     } yield Ok(html.edit(groupElt, meetupAccount.isDefined, venueElt, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
@@ -104,6 +104,6 @@ object VenueCtrl {
   def listBreadcrumb(group: Group): Breadcrumb =
     GroupCtrl.breadcrumb(group).add("Venues" -> routes.VenueCtrl.list(group.slug))
 
-  def breadcrumb(group: Group, venue: Venue): Breadcrumb =
+  def breadcrumb(group: Group, venue: Venue.Full): Breadcrumb =
     listBreadcrumb(group).add(venue.address.value -> routes.VenueCtrl.detail(group.slug, venue.id))
 }

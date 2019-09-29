@@ -55,7 +55,31 @@ object Proposal {
     val all: Seq[Status] = Seq(Pending, Accepted, Declined)
   }
 
-  final case class Full(proposal: Proposal, cfp: Cfp, group: Group, talk: Talk, event: Option[Event])
+  final case class Full(proposal: Proposal, cfp: Cfp, group: Group, talk: Talk, event: Option[Event]) {
+    def id: Id = proposal.id
+
+    def status: Status = proposal.status
+
+    def title: Talk.Title = proposal.title
+
+    def description: Markdown = proposal.description
+
+    def duration: FiniteDuration = proposal.duration
+
+    def speakers: NonEmptyList[User.Id] = proposal.speakers
+
+    def slides: Option[Slides] = proposal.slides
+
+    def video: Option[Video] = proposal.video
+
+    def tags: Seq[Tag] = proposal.tags
+
+    def info: Info = proposal.info
+
+    def data: Data = proposal.data
+
+    def users: Seq[User.Id] = proposal.users
+  }
 
   final case class Data(title: Talk.Title,
                         duration: FiniteDuration,

@@ -60,7 +60,7 @@ trait SpeakerProposalRepo {
 
   def listFull(user: User.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
-  def listWithCfp(talk: Talk.Id, params: Page.Params): IO[Page[(Proposal, Cfp)]]
+  def listFull(talk: Talk.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
   def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]]
 }
@@ -86,7 +86,7 @@ trait PublicProposalRepo {
 trait SuggestProposalRepo {
   def listTags(): IO[Seq[Tag]]
 
-  def listWithCfp(group: Group.Id, params: Page.Params): IO[Page[(Proposal, Cfp)]]
+  def listFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]]
 }
 
 object ProposalFields {

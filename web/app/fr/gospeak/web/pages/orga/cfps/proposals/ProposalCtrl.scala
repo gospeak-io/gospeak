@@ -40,7 +40,7 @@ class ProposalCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(user, group))
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
       proposals <- OptionT.liftF(proposalRepo.listFull(cfpElt.id, params))
-      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.proposal.users).distinct))
+      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
       b = listBreadcrumb(groupElt, cfpElt)
     } yield Ok(html.list(groupElt, cfpElt, proposals, speakers)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp))).unsafeToFuture()
   }

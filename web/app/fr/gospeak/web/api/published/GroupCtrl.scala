@@ -31,7 +31,7 @@ class GroupCtrl(cc: ControllerComponents,
       for {
         groupElt <- OptionT(groupRepo.find(group))
         talks <- OptionT.liftF(proposalRepo.listPublicFull(groupElt.id, params))
-        speakers <- OptionT.liftF(userRepo.list(talks.items.flatMap(_.proposal.speakers.toList).distinct))
+        speakers <- OptionT.liftF(userRepo.list(talks.items.flatMap(_.speakers.toList).distinct))
         venues <- OptionT.liftF(venueRepo.listFull(groupElt.id, talks.items.flatMap(_.event.flatMap(_.venue))))
       } yield talks.map(PublicApiProposal(_, speakers, venues))
     }

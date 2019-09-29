@@ -9,17 +9,17 @@
 <div class="list-group-item d-flex justify-content-between align-items-center">
     <div>
         <h5 class="mb-1">
-            <span>@proposalStatusIcon(proposal.proposal.status)</span>
-            <a href="@ProposalCtrl.detail(group.slug, proposal.cfp.slug, proposal.proposal.id)">@proposal.proposal.title.value</a>
+            <span>@proposalStatusIcon(proposal.status)</span>
+            <a href="@ProposalCtrl.detail(group.slug, proposal.cfp.slug, proposal.id)">@proposal.title.value</a>
             @proposal.event.map { event => <small>given at <a href="@EventCtrl.detail(group.slug, event.slug)" title="on @date(event.start)">@event.name.value</a></small> }
         </h5>
         <span>
-            @duration(proposal.proposal.duration)
-            @slidesIcon(proposal.proposal.slides)
-            @videoIcon(proposal.proposal.video)
-            @tags(proposal.proposal.tags)
-            <small>Proposed on @date(proposal.proposal.info.created)</small>
+            @duration(proposal.duration)
+            @slidesIcon(proposal.slides)
+            @videoIcon(proposal.video)
+            @tags(proposal.tags)
+            <small>Proposed on @date(proposal.info.created)</small>
         </span>
     </div>
-    <div style="white-space: nowrap">@proposal.proposal.speakers.toList.map { id => @speakerAvatar(speakers, id, Some(s => SpeakerCtrl.detail(group.slug, s.slug))) }</div>
+    <div style="white-space: nowrap">@proposal.speakers.toList.map { id => @speakerAvatar(speakers, id, Some(s => SpeakerCtrl.detail(group.slug, s.slug))) }</div>
 </div>

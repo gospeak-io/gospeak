@@ -50,7 +50,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
 
   protected val Seq(userData1, userData2, userData3) = random[User.Data](10).distinctBy(_.email).take(3)
   protected val Seq(groupData1, groupData2) = random[Group.Data](2)
-  protected val contactData: Contact.Data = random[Contact.Data]
+  protected val Seq(contactData1, contactData2) = random[Contact.Data](2)
   protected val Seq(partnerData1, partnerData2) = random[Partner.Data](2)
   protected val Seq(venueData1, venueData2) = random[Venue.Data](2)
   protected val cfpData1: Cfp.Data = random[Cfp.Data]
@@ -71,7 +71,8 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
 
   protected def createPartnerAndVenue(user: User, group: Group): IO[(Partner, Venue)] = for {
     partner <- partnerRepo.create(group.id, partnerData1, user.id, now)
-    venue <- venueRepo.create(group.id, venueData1.copy(partner = partner.id), user.id, now)
+    contact <- venueData1.contact.map(_ => contactRepo.create(contactData1.copy(partner = partner.id), user.id, now)).sequence
+    venue <- venueRepo.create(group.id, venueData1.copy(partner = partner.id, contact = contact.map(_.id)), user.id, now)
   } yield (partner, venue)
 
   protected def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk)] = for {

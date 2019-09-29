@@ -108,7 +108,7 @@ class SuggestCtrl(cc: ControllerComponents,
   }
 
   def searchProposals(group: Group.Slug, q: String): Action[AnyContent] = SecuredAction.async { implicit req =>
-    makeSearch[(Proposal, Cfp)](proposalRepo.listWithCfp, { case (p, c) => SearchResultItem(p.title.value, ProposalCtrl.detail(group, c.slug, p.id).toString) })(group, q)
+    makeSearch[Proposal.Full](proposalRepo.listFull, p => SearchResultItem(p.title.value, ProposalCtrl.detail(group, p.cfp.slug, p.id).toString))(group, q)
   }
 
   def searchPartners(group: Group.Slug, q: String): Action[AnyContent] = SecuredAction.async { implicit req =>

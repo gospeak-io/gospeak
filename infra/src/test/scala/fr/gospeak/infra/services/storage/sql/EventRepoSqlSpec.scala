@@ -2,7 +2,10 @@ package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.Group
+import fr.gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{fields => contactFields, table => contactTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec._
+import fr.gospeak.infra.services.storage.sql.PartnerRepoSqlSpec.{fields => partnerFields, table => partnerTable}
+import fr.gospeak.infra.services.storage.sql.VenueRepoSqlSpec.{fields => venueFields, table => venueTable}
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class EventRepoSqlSpec extends RepoSpec {
@@ -107,8 +110,8 @@ object EventRepoSqlSpec {
   val fields = "id, group_id, cfp_id, slug, name, start, description, venue, talks, tags, published, meetupGroup, meetupEvent, created, created_by, updated, updated_by"
 
   private val tableWithVenue = s"$table e LEFT OUTER JOIN venues v ON e.venue=v.id"
-  private val fieldsWithVenue = s"${mapFields(fields, "e." + _)}, ${mapFields(VenueRepoSqlSpec.fields, "v." + _)}"
+  private val fieldsWithVenue = s"${mapFields(fields, "e." + _)}, ${mapFields(venueFields, "v." + _)}"
 
-  private val tableFull = s"$table e LEFT OUTER JOIN venues v ON e.venue=v.id LEFT OUTER JOIN partners p ON v.partner_id=p.id"
-  private val fieldsFull = s"${mapFields(fields, "e." + _)}, ${mapFields(VenueRepoSqlSpec.fields, "v." + _)}, ${mapFields(PartnerRepoSqlSpec.fields, "p." + _)}"
+  private val tableFull = s"$table e LEFT OUTER JOIN $venueTable v ON e.venue=v.id LEFT OUTER JOIN $partnerTable p ON v.partner_id=p.id LEFT OUTER JOIN $contactTable c ON v.contact_id=c.id"
+  private val fieldsFull = s"${mapFields(fields, "e." + _)}, ${mapFields(venueFields, "v." + _)}, ${mapFields(partnerFields, "p." + _)}, ${mapFields(contactFields, "c." + _)}"
 }

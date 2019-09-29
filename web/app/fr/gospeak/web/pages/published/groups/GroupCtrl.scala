@@ -59,7 +59,7 @@ class GroupCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
-      proposals <- OptionT.liftF(proposalRepo.listPublicFull(eventElt.event.talks).map(_.map(_.proposal)))
+      proposals <- OptionT.liftF(proposalRepo.listPublicFull(eventElt.talks))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.speakers.toList).distinct))
       b = breadcrumbEvent(groupElt, eventElt)
       res = Ok(html.event(groupElt, eventElt, proposals, speakers)(b))
@@ -70,7 +70,7 @@ class GroupCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       proposals <- OptionT.liftF(proposalRepo.listPublicFull(groupElt.id, params.defaultOrderBy("title")))
-      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.proposal.speakers.toList).distinct))
+      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.speakers.toList).distinct))
       b = breadcrumbTalks(groupElt)
       res = Ok(html.talks(groupElt, proposals, speakers)(b))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
@@ -80,8 +80,8 @@ class GroupCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       proposalElt <- OptionT(proposalRepo.findPublicFull(groupElt.id, proposal))
-      speakers <- OptionT.liftF(userRepo.list(proposalElt.proposal.speakers.toList))
-      b = breadcrumbTalk(groupElt, proposalElt.proposal)
+      speakers <- OptionT.liftF(userRepo.list(proposalElt.speakers.toList))
+      b = breadcrumbTalk(groupElt, proposalElt)
       res = Ok(html.talk(groupElt, proposalElt, speakers)(b))
     } yield res).value.map(_.getOrElse(publicProposalNotFound(group, proposal))).unsafeToFuture()
   }
@@ -107,12 +107,12 @@ object GroupCtrl {
     breadcrumb(group).add("Events" -> routes.GroupCtrl.events(group.slug))
 
   def breadcrumbEvent(group: Group, event: Event.Full): Breadcrumb =
-    breadcrumbEvents(group).add(event.event.name.value -> routes.GroupCtrl.event(group.slug, event.event.slug))
+    breadcrumbEvents(group).add(event.name.value -> routes.GroupCtrl.event(group.slug, event.slug))
 
   def breadcrumbTalks(group: Group): Breadcrumb =
     breadcrumb(group).add("Talks" -> routes.GroupCtrl.talks(group.slug))
 
-  def breadcrumbTalk(group: Group, proposal: Proposal): Breadcrumb =
+  def breadcrumbTalk(group: Group, proposal: Proposal.Full): Breadcrumb =
     breadcrumbTalks(group).add(proposal.title.value -> routes.GroupCtrl.talk(group.slug, proposal.id))
 
   def breadcrumbSpeakers(group: Group): Breadcrumb =

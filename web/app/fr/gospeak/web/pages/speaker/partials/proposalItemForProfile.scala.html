@@ -9,11 +9,11 @@
     @if(datetime.isAfter(LocalDateTime.ofInstant(now, ZoneOffset.UTC))) {Will be hold} else {Was held} on @date(datetime)
 }
 <div class="list-group-item list-group-item-action">
-    <h5 class="mb-1">@proposal.proposal.title.value</h5>
+    <h5 class="mb-1">@proposal.title.value</h5>
     @proposal.event.map { e => <span class="badge badge-dark">@e.name.value</span> }
-    @duration(proposal.proposal.duration)
-    @slidesIcon(proposal.proposal.slides)
-    @videoIcon(proposal.proposal.video)
-    @tags(proposal.proposal.tags)
-    <small>@tense(proposal.event.map(_.start).getOrElse(LocalDateTime.ofInstant(proposal.proposal.info.created, ZoneOffset.UTC)))</small>
+    @duration(proposal.duration)
+    @slidesIcon(proposal.slides)
+    @videoIcon(proposal.video)
+    @tags(proposal.tags)
+    <small>@tense(proposal.event.map(_.start).getOrElse(LocalDateTime.ofInstant(proposal.info.created, ZoneOffset.UTC)))</small>
 </div>

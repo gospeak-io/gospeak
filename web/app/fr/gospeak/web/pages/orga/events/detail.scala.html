@@ -54,7 +54,7 @@
     </h1>
 
     <p>
-        @event.venue.map { id => @venue(venueOpt.toList, id, venueOpt.map { v => _ => VenueCtrl.detail(group.slug, v.partner.slug, v.id) }) }.getOrElse{ <b class="text-danger">Missing venue</b>, }
+        @event.venue.map { id => @venue(venueOpt.toList, id, v => Some(VenueCtrl.detail(group.slug, v.partner.slug, v.id))) }.getOrElse{ <b class="text-danger">Missing venue</b>, }
         @Formats.datetime(event.start)
         @tags(event.tags)
     </p>

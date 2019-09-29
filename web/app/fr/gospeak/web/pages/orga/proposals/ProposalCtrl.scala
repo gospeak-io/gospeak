@@ -28,7 +28,7 @@ class ProposalCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       proposals <- OptionT.liftF(proposalRepo.listFull(groupElt.id, customParams))
-      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.proposal.users)))
+      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users)))
       b = listBreadcrumb(groupElt)
     } yield Ok(html.list(groupElt, proposals, speakers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }

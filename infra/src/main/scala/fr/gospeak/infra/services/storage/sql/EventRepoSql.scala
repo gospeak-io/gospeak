@@ -11,6 +11,7 @@ import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.EventRepo
+import fr.gospeak.infra.services.storage.sql.ContactRepoSql.{fields => contactFields, table => contactTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSql._
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSql.{fields => partnerFields, table => partnerTable}
 import fr.gospeak.infra.services.storage.sql.VenueRepoSql.{fields => venueFields, table => venueTable}
@@ -76,8 +77,16 @@ object EventRepoSql {
   private val tableWithVenueFr = Fragment.const0(s"$table e LEFT OUTER JOIN $venueTable v ON e.venue=v.id")
   private val fieldsWithVenueFr = Fragment.const0((fields.map("e." + _) ++ venueFields.map("v." + _)).mkString(", "))
 
-  private val tableFullFr = Fragment.const0(s"$table e LEFT OUTER JOIN $venueTable v ON e.venue=v.id LEFT OUTER JOIN $partnerTable p ON v.partner_id=p.id")
-  private val fieldsFullFr = Fragment.const0((fields.map("e." + _) ++ venueFields.map("v." + _) ++ partnerFields.map("p." + _)).mkString(", "))
+  private val tableFullFr = Fragment.const0(
+    s"$table e " +
+      s"LEFT OUTER JOIN $venueTable v ON e.venue=v.id " +
+      s"LEFT OUTER JOIN $partnerTable p ON v.partner_id=p.id " +
+      s"LEFT OUTER JOIN $contactTable c ON v.contact_id=c.id")
+  private val fieldsFullFr = Fragment.const0((
+    fields.map("e." + _) ++
+      venueFields.map("v." + _) ++
+      partnerFields.map("p." + _) ++
+      contactFields.map("c." + _)).mkString(", "))
 
   private def values(e: Event): Fragment =
     fr0"${e.id}, ${e.group}, ${e.cfp}, ${e.slug}, ${e.name}, ${e.start}, ${e.description}, ${e.venue}, ${e.talks}, ${e.tags}, ${e.published}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.event)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"

@@ -218,9 +218,8 @@ class EventCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(meetup.map(_._1).filter(_ => e.event.refs.meetup.isEmpty)
           .map(ref => e.event.copy(refs = e.event.refs.copy(meetup = Some(ref))))
           .map(eventElt => eventRepo.edit(e.group.id, event)(eventElt.data, user, now)).sequence)
-        _ <- OptionT.liftF(meetup.flatMap(m => m._2.flatMap(r => e.venueOpt.map(v => (r, v.venue)))).filter { case (_, v) => v.refs.meetup.isEmpty }
-          .map { case (ref, venue) => venue.copy(refs = venue.refs.copy(meetup = Some(ref))) }
-          .map(venueElt => venueRepo.edit(e.group.id, venueElt.id)(venueElt.data, user, now)).sequence)
+        _ <- OptionT.liftF(meetup.flatMap(m => m._2.flatMap(r => e.venueOpt.map(v => (r, v)))).filter { case (_, v) => v.refs.meetup.isEmpty }
+          .map { case (ref, venue) => venueRepo.edit(e.group.id, venue.id)(venue.data.copy(refs = venue.refs.copy(meetup = Some(ref))), user, now) }.sequence)
         _ <- OptionT.liftF(eventRepo.publish(e.group.id, event, user, now))
       } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event)))).unsafeToFuture()
   }

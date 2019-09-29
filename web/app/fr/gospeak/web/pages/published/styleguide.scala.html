@@ -198,10 +198,10 @@
             @component("talkItem", "@talkItem(talk)") { name =>
                 @example(s"$name") { _ => @speaker.talkItem(talk) }
             }
-            @component("proposalItem", "@proposalItem(talk, cfp, proposal, events)") { name =>
-                @example(s"$name pending") { _ => @speaker.proposalItem(talk, cfp, proposal, Seq()) }
-                @example(s"$name accepted") { _ => @speaker.proposalItem(talk, cfp, proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id)), Seq(event)) }
-                @example(s"$name declined") { _ => @speaker.proposalItem(talk, cfp, proposal.copy(status = Proposal.Status.Declined), Seq()) }
+            @component("proposalItem", "@proposalItem(proposalFull)") { name =>
+                @example(s"$name pending") { _ => @speaker.proposalItem(proposalFull.copy(event = None)) }
+                @example(s"$name accepted") { _ => @speaker.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Accepted))) }
+                @example(s"$name declined") { _ => @speaker.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Declined))) }
             }
         }
 
@@ -217,7 +217,7 @@
                 @example(s"$name in the past") { _ => @orga.eventItem(group, event.copy(start = event.start.plusDays(-3)), None, Seq(), Seq(), Seq(user)) }
                 @example(s"$name with a talk") { _ => @orga.eventItem(group, event.copy(talks = Seq(proposal.id)), Some(cfp), Seq(), Seq(proposal), Seq(user)) }
             }
-            @component("proposalItem", "@proposalItem(group, cfp, proposal, speakers, events)") { name =>
+            @component("proposalItem", "@proposalItem(group, proposalFull, speakers)") { name =>
                 @example(s"$name pending") { _ => @orga.proposalItem(group, proposalFull.copy(event = None), Seq(user)) }
                 @example(s"$name accepted with an event") { _ => @orga.proposalItem(group, proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id))), Seq(user)) }
                 @example(s"$name declined") { _ => @orga.proposalItem(group, proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Declined)), Seq(user)) }

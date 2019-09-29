@@ -8,13 +8,13 @@
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, event: Event.Full, proposals: Seq[Proposal], speakers: Seq[User])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
-@container(event.event.name.value + " - Gospeak", b)() {
-    <h1>@event.event.name.value@event.event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }</h1>
-    <p>@event.venue.map { v => Hosted by @v.partner.name.value, }@Formats.date(event.event.start)</p>
+@(group: Group, event: Event.Full, proposals: Seq[Proposal.Full], speakers: Seq[User])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@container(event.name.value + " - Gospeak", b)() {
+    <h1>@event.name.value@event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }</h1>
+    <p>@event.venue.map { v => Hosted by @v.partner.name.value, }@Formats.date(event.start)</p>
     <div class="row">
         <div class="col">
-            @event.event.talks.toList.flatMap(id => proposals.find(_.id == id)).map { talk =>
+            @event.talks.toList.flatMap(id => proposals.find(_.id == id)).map { talk =>
                 <div class="card mb-3">
                     <div class="card-body">
                         <h5 class="card-title">

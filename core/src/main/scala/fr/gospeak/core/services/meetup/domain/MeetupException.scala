@@ -22,10 +22,9 @@ object MeetupException {
 
   final case class CantCreateVenue(slug: MeetupGroup.Slug,
                                    event: Event,
-                                   partner: Partner,
-                                   venue: Venue,
+                                   venue: Venue.Full,
                                    error: String) extends MeetupException(
-    s"Unable to create meetup venue '${partner.name.value}' (${venue.address.formatted}) for event '${event.name.value}': $error")
+    s"Unable to create meetup venue '${venue.partner.name.value}' (${venue.address.formatted}) for event '${event.name.value}': $error")
 
   final case class CantCreateEvent(slug: MeetupGroup.Slug,
                                    event: Event,
