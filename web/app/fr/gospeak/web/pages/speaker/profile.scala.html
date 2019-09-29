@@ -25,7 +25,7 @@
         <div class="row">
             <div class="col-4">
                 <div class="card shadow-sm">
-                    <img src="@req.identity.user.avatar.url.value" class="avatar-lg align-self-center mt-1" alt="avatar">
+                    <img src="@req.identity.user.avatar.url.value" alt="@req.identity.user.name.value avatar" class="avatar-lg align-self-center mt-1">
                     <div class="card-body">
                         <div class="form-group @if(form("first-name").errors.nonEmpty || form("last-name").errors.nonEmpty) {is-invalid}">
                             <div class="input-group input-group-sm">

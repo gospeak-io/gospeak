@@ -7,11 +7,8 @@
 @import fr.gospeak.web.pages.orga.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, proposals: Page[Proposal], cfps: Seq[Cfp], speakers: Seq[User], events: Seq[Event])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, proposals: Page[Proposal.Full], speakers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(group.name.value + " - Gospeak", group, b)() {
     <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") <small>(from any CFP)</small></h1>
-    @Formats.paginated[Proposal](
-        page = proposals,
-        link = ProposalCtrl.list(group.slug, _),
-        item = a => cfps.find(_.id == a.cfp).map { cfp => proposalItem(group, cfp, a, speakers, events) }.getOrElse(Html("")))
+    @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list(group.slug, _), proposalItem(group, _, speakers))
 }()

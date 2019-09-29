@@ -59,8 +59,8 @@
             <h3>Sponsors</h3>
             @sponsors.sortBy(-_.sponsor.price.amount).map { s =>
                 <img src="@s.partner.logo.value"
-                    title="@s.sponsorPack.name.value sponsoring by @s.partner.name.value"
                     alt="@s.partner.name.value logo"
+                    title="@s.sponsorPack.name.value sponsoring by @s.partner.name.value"
                     class="rounded"
                     style="height: 100px; padding: 5px">
             }

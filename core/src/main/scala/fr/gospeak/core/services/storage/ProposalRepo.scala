@@ -28,11 +28,11 @@ trait OrgaProposalRepo {
 
   def removeSpeaker(cfp: Cfp.Slug, id: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
 
-  def list(group: Group.Id, params: Page.Params): IO[Page[Proposal]]
+  def listFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
-  def listWithCfp(group: Group.Id, speaker: User.Id, params: Page.Params): IO[Page[(Proposal, Cfp)]]
+  def listFull(group: Group.Id, speaker: User.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
-  def list(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal]]
+  def listFull(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
   def list(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal]]
 

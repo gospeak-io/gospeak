@@ -14,10 +14,10 @@ class ProposalRepoSqlSpec extends RepoSpec {
     it("should create and retrieve a proposal for a group and talk") {
       val (user, _, cfp, talk) = createUserGroupCfpAndTalk().unsafeRunSync()
       proposalRepo.listWithCfp(talk.id, params).unsafeRunSync().items shouldBe Seq()
-      proposalRepo.list(cfp.id, params).unsafeRunSync().items shouldBe Seq()
+      proposalRepo.listFull(cfp.id, params).unsafeRunSync().items shouldBe Seq()
       val proposal = proposalRepo.create(talk.id, cfp.id, proposalData1, speakers, user.id, now).unsafeRunSync()
       proposalRepo.listWithCfp(talk.id, params).unsafeRunSync().items shouldBe Seq(proposal -> cfp)
-      proposalRepo.list(cfp.id, params).unsafeRunSync().items shouldBe Seq(proposal)
+      proposalRepo.listFull(cfp.id, params).unsafeRunSync().items.map(_.proposal) shouldBe Seq(proposal)
       proposalRepo.find(cfp.slug, proposal.id).unsafeRunSync() shouldBe Some(proposal)
     }
     it("should fail to create a proposal when talk does not exists") {
@@ -112,24 +112,10 @@ class ProposalRepoSqlSpec extends RepoSpec {
         q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? AND p.id=? AND e.published IS NOT NULL"
         check(q)
       }
-      it("should build selectPage for a cfp") {
-        val (s, c) = ProposalRepoSql.selectPage(cfp.id, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE cfp_id=? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE cfp_id=? "
-        check(s)
-        check(c)
-      }
       it("should build selectPage for a cfp and status") {
         val (s, c) = ProposalRepoSql.selectPage(cfp.id, Proposal.Status.Pending, params)
         s.sql shouldBe s"SELECT $fields FROM $table WHERE cfp_id=? AND status=? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe s"SELECT count(*) FROM $table WHERE cfp_id=? AND status=? "
-        check(s)
-        check(c)
-      }
-      it("should build selectPage for a group") {
-        val (s, c) = ProposalRepoSql.selectPage(group.id, params)
-        s.sql shouldBe s"SELECT ${mapFields(fields, "p." + _)} FROM $tableWithCfp WHERE c.group_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $tableWithCfp WHERE c.group_id=? "
         check(s)
         check(c)
       }
@@ -140,17 +126,17 @@ class ProposalRepoSqlSpec extends RepoSpec {
         check(s)
         check(c)
       }
-      it("should build selectPageWithCfp for a group and speaker") {
-        val (s, c) = ProposalRepoSql.selectPageWithCfp(group.id, user.id, params)
-        s.sql shouldBe s"SELECT $fieldsWithCfp FROM $tableWithCfp WHERE c.group_id=? AND p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $tableWithCfp WHERE c.group_id=? AND p.speakers LIKE ? "
-        check(s)
-        check(c)
-      }
       it("should build selectPageWithCfp for a talk") {
         val (s, c) = ProposalRepoSql.selectPageWithCfp(talk.id, params)
         s.sql shouldBe s"SELECT $fieldsWithCfp FROM $tableWithCfp WHERE p.talk_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
         c.sql shouldBe s"SELECT count(*) FROM $tableWithCfp WHERE p.talk_id=? "
+        check(s)
+        check(c)
+      }
+      it("should build selectPageFull for a group and speaker") {
+        val (s, c) = ProposalRepoSql.selectPageFull(group.id, user.id, params)
+        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? AND p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE c.group_id=? AND p.speakers LIKE ? "
         check(s)
         check(c)
       }

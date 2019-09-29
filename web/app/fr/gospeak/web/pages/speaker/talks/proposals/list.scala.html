@@ -20,9 +20,6 @@
         </div>
     } else {
         <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") for @talk.title.value</h1>
-        @Formats.paginated[(Proposal, Cfp)](
-            page = proposals,
-            link = ProposalCtrl.list(talk.slug, _),
-            item = i => proposalItem(talk, i._2, i._1, events))
+        @Formats.paginated[(Proposal, Cfp)](proposals, ProposalCtrl.list(talk.slug, _), i => proposalItem(talk, i._2, i._1, events))
     }
 }()

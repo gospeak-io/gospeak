@@ -7,7 +7,7 @@
 @(identity: AuthUser, group: Option[Group] = None)
 <div class="nav-item dropdown">
     <a class="nav-link dropdown-toggle" href="#" id="dropdown-user" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <img src="@identity.user.avatar.url.value" class="avatar" alt="avatar"/>
+        <img src="@identity.user.avatar.url.value" alt="@identity.user.name.value avatar" class="avatar">
     </a>
     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-user">
         <a class="dropdown-item" href="@UserCtrl.index()" data-hotkey="g h">Home</a>

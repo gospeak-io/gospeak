@@ -27,12 +27,10 @@ class ProposalCtrl(cc: ControllerComponents,
     val customParams = params.defaultOrderBy(proposalRepo.fields.title)
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      proposals <- OptionT.liftF(proposalRepo.list(groupElt.id, customParams))
-      cfps <- OptionT.liftF(cfpRepo.list(proposals.items.map(_.cfp)))
-      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users)))
-      events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_.event)))
+      proposals <- OptionT.liftF(proposalRepo.listFull(groupElt.id, customParams))
+      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.proposal.users)))
       b = listBreadcrumb(groupElt)
-    } yield Ok(html.list(groupElt, proposals, cfps, speakers, events)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+    } yield Ok(html.list(groupElt, proposals, speakers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 }
 

@@ -120,9 +120,9 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
         )))
 
         _ <- run(Queries.insertMany(UserRepoSql.insert)(NonEmptyList.fromListUnsafe(users)))
-        _ <- run(UserRepoSql.insertCredentials(User.Credentials("credentials", lkn.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
-        _ <- run(UserRepoSql.insertLoginRef(User.LoginRef("credentials", lkn.email.value, lkn.id)))
-        _ <- run(UserRepoSql.validateAccount(lkn.email, lkn.created))
+        // _ <- run(UserRepoSql.insertCredentials(User.Credentials("credentials", lkn.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
+        // _ <- run(UserRepoSql.insertLoginRef(User.LoginRef("credentials", lkn.email.value, lkn.id)))
+        // _ <- run(UserRepoSql.validateAccount(lkn.email, lkn.created))
         _ <- run(GroupRepoSql.insert(groupHt))
         _ <- run(CfpRepoSql.insert(cfpHt))
         _ <- run(Queries.insertMany(TalkRepoSql.insert)(NonEmptyList.fromListUnsafe(talks)))
@@ -154,8 +154,8 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       User(User.Id.generate(), User.Slug.from(slug).get, firstName, lastName, emailAddr, Some(now), avatar, profile, now, now)
     }
 
-    def group(slug: String, name: String, tags: Seq[String], by: User, owners: Seq[User] = Seq()): Group =
-      Group(Group.Id.generate(), Group.Slug.from(slug).get, Group.Name(name), None, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(by.id) ++ owners.map(_.id).toList, tags.map(Tag(_)), Info(by.id, now))
+    def group(slug: String, name: String, tags: Seq[String], by: User, owners: Seq[User] = Seq(), email: Option[String] = None): Group =
+      Group(Group.Id.generate(), Group.Slug.from(slug).get, Group.Name(name), email.map(EmailAddress.from(_).get), description = Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), owners = NonEmptyList.of(by.id) ++ owners.map(_.id).toList, tags = tags.map(Tag(_)), info = Info(by.id, now))
 
     def cfp(group: Group, slug: String, name: String, start: Option[String], end: Option[String], description: String, tags: Seq[String], by: User): Cfp =
       Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).get, Cfp.Name(name), start.map(d => LocalDateTime.parse(d + "T00:00:00")), end.map(d => LocalDateTime.parse(d + "T00:00:00")), Markdown(description), tags.map(Tag(_)), Info(by.id, now))
@@ -212,7 +212,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val talk7 = talk(userSpeaker, "big-talk", "Big Talk")
     val talks = NonEmptyList.of(talk1, talk2, talk3, talk4, talk5, talk6, talk7)
 
-    val humanTalks = group("ht-paris", "HumanTalks Paris", Seq("tech"), userDemo, Seq(userOrga))
+    val humanTalks = group("ht-paris", "HumanTalks Paris", Seq("tech"), userDemo, Seq(userOrga), Some("paris@humantalks.com"))
     val parisJs = group("paris-js", "Paris.Js", Seq("JavaScript"), userOrga)
     val dataGov = group("data-gov", "Data governance", Seq(), userDemo)
     val bigGroup = group("big-group", "Big Group", Seq("BigData"), userOrga)
