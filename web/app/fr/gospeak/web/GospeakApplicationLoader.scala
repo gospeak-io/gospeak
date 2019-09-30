@@ -183,12 +183,12 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
 
   def onStart(): Unit = {
-    // FIXME update when really deploy on prod
-    db.dropTables().unsafeRunSync()
-    db.migrate().unsafeRunSync()
     if (envConf.isProd) {
-      db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync()
+      db.migrate().unsafeRunSync()
+      // db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync()
     } else {
+      db.dropTables().unsafeRunSync()
+      db.migrate().unsafeRunSync()
       db.insertMockData(conf.gospeak).unsafeRunSync()
     }
 
