@@ -5,6 +5,7 @@ import java.time.Instant
 import cats.effect.IO
 import doobie.implicits._
 import doobie.util.fragment.Fragment
+import fr.gospeak.core.GospeakConf
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.meetup.domain.MeetupCredentials
@@ -17,27 +18,27 @@ import fr.gospeak.infra.utils.DoobieUtils.Mappings._
 import fr.gospeak.libs.scalautils.domain.Done
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 
-class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with GroupSettingsRepo {
+class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: GospeakConf) extends GenericRepo with GroupSettingsRepo {
   override def find(group: Group.Id): IO[Group.Settings] =
-    run(selectOne(group).option).map(_.getOrElse(Group.Settings.default))
+    run(selectOne(group).option).map(_.getOrElse(conf.defaultGroupSettings))
 
   override def findAccounts(group: Group.Id): IO[Group.Settings.Accounts] =
-    run(selectOneAccounts(group).option).map(_.getOrElse(Group.Settings.default.accounts))
+    run(selectOneAccounts(group).option).map(_.getOrElse(conf.defaultGroupSettings.accounts))
 
   override def findMeetup(group: Group.Id): IO[Option[MeetupCredentials]] =
-    run(selectOneMeetup(group).option).map(_.getOrElse(Group.Settings.default.accounts.meetup))
+    run(selectOneMeetup(group).option).map(_.getOrElse(conf.defaultGroupSettings.accounts.meetup))
 
   override def findSlack(group: Group.Id): IO[Option[SlackCredentials]] =
-    run(selectOneSlack(group).option).map(_.getOrElse(Group.Settings.default.accounts.slack))
+    run(selectOneSlack(group).option).map(_.getOrElse(conf.defaultGroupSettings.accounts.slack))
 
   override def findEventDescription(group: Group.Id): IO[MustacheMarkdownTmpl[TemplateData.EventInfo]] =
-    run(selectOneEventDescription(group).option).map(_.getOrElse(Group.Settings.default.event.description))
+    run(selectOneEventDescription(group).option).map(_.getOrElse(conf.defaultGroupSettings.event.description))
 
   override def findEventTemplates(group: Group.Id): IO[Map[String, MustacheTextTmpl[TemplateData.EventInfo]]] =
-    run(selectOneEventTemplates(group).option).map(_.getOrElse(Group.Settings.default.event.templates))
+    run(selectOneEventTemplates(group).option).map(_.getOrElse(conf.defaultGroupSettings.event.templates))
 
   override def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]] =
-    run(selectOneActions(group).option).map(_.getOrElse(Group.Settings.default.actions))
+    run(selectOneActions(group).option).map(_.getOrElse(conf.defaultGroupSettings.actions))
 
   override def set(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): IO[Done] =
     run(selectOne(group).option).flatMap { opt =>
@@ -81,10 +82,10 @@ object GroupSettingsRepoSql {
     buildSelect(tableFr, Fragment.const0((meetupFields ++ slackFields).mkString(", ")), where(group)).query[Group.Settings.Accounts]
 
   private[sql] def selectOneMeetup(group: Group.Id): doobie.Query0[Option[MeetupCredentials]] =
-    buildSelect(tableFr, Fragment.const0((meetupFields).mkString(", ")), where(group)).query[Option[MeetupCredentials]]
+    buildSelect(tableFr, Fragment.const0(meetupFields.mkString(", ")), where(group)).query[Option[MeetupCredentials]]
 
   private[sql] def selectOneSlack(group: Group.Id): doobie.Query0[Option[SlackCredentials]] =
-    buildSelect(tableFr, Fragment.const0((slackFields).mkString(", ")), where(group)).query[Option[SlackCredentials]]
+    buildSelect(tableFr, Fragment.const0(slackFields.mkString(", ")), where(group)).query[Option[SlackCredentials]]
 
   private[sql] def selectOneEventDescription(group: Group.Id): doobie.Query0[MustacheMarkdownTmpl[TemplateData.EventInfo]] =
     buildSelect(tableFr, fr0"event_description", where(group)).query[MustacheMarkdownTmpl[TemplateData.EventInfo]]

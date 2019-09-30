@@ -1,0 +1,33 @@
+@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
+@import fr.gospeak.core.domain.{Event, Group, Proposal, User}
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.published.partials.html.container
+@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
+@import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.utils.Formats
+
+@(group: Group, event: Event.Full, proposals: Seq[Proposal.Full], speakers: Seq[User])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@container(event.name.value + " - Gospeak", b)() {
+    <h1>@event.name.value@event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }</h1>
+    <p>@event.venue.map { v => Hosted by @v.partner.name.value, }@Formats.date(event.start)</p>
+    <div class="row">
+        <div class="col">
+            @event.talks.toList.flatMap(id => proposals.find(_.id == id)).map { talk =>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            @slidesIcon(talk.slides)
+                            @videoIcon(talk.video)
+                            <a href="@GroupCtrl.talk(group.slug, talk.id)">@talk.title.value</a>
+                        </h5>
+                        <p>By @talk.speakers.toList.map { id => @speaker(speakers, id, s => Some(SpeakerCtrl.detail(s.slug)).filter(_ => s.isPublic)) }</p>
+                        @markdown(talk.description)
+                        @if(talk.tags.nonEmpty) { <p class="mb-0">@tags(talk.tags)</p> }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}()

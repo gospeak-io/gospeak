@@ -53,7 +53,7 @@ class MessageBuilder {
   private def linked(group: Group, event: Event)(implicit req: RequestHeader): Linked[Event] = {
     val link = fr.gospeak.web.pages.orga.events.routes.EventCtrl.detail(group.slug, event.slug).absoluteURL()
     val publicLink = if (event.isPublic) {
-      Some(fr.gospeak.web.pages.published.groups.routes.GroupCtrl.detail(group.slug).absoluteURL()) // FIXME use event link instead of group!!!
+      Some(fr.gospeak.web.pages.published.groups.routes.GroupCtrl.event(group.slug, event.slug).absoluteURL())
     } else {
       None
     }
@@ -78,7 +78,7 @@ class MessageBuilder {
   private def linked(group: Group, event: Event, cfp: Cfp, proposal: Proposal)(implicit req: RequestHeader): Linked[Proposal] = {
     val link = fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl.detail(group.slug, cfp.slug, proposal.id).absoluteURL()
     val publicLink = if (event.isPublic) {
-      Some(fr.gospeak.web.pages.published.groups.routes.GroupCtrl.detail(group.slug).absoluteURL()) // FIXME use talk link instead of group!!!
+      Some(fr.gospeak.web.pages.published.groups.routes.GroupCtrl.talk(group.slug, proposal.id).absoluteURL())
     } else {
       None
     }

@@ -148,6 +148,7 @@ object Mappings {
   val partnerId: Mapping[Partner.Id] = idMapping(Partner.Id)
   val partnerSlug: Mapping[Partner.Slug] = slugMapping(Partner.Slug)
   val partnerName: Mapping[Partner.Name] = nonEmptyTextMapping(Partner.Name, _.value, Constraints.maxLength(Values.maxLength.title))
+  val contactId: Mapping[Contact.Id] = idMapping(Contact.Id)
   val venueId: Mapping[Venue.Id] = idMapping(Venue.Id)
   val sponsorPackId: Mapping[SponsorPack.Id] = idMapping(SponsorPack.Id)
   val sponsorPackSlug: Mapping[SponsorPack.Slug] = slugMapping(SponsorPack.Slug)

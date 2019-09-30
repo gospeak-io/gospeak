@@ -83,8 +83,8 @@ class UserCtrl(cc: ControllerComponents,
         proposalFull <- OptionT(proposalRepo.findFull(r.proposal))
         speakerElt <- OptionT(userRepo.find(r.createdBy))
         _ <- OptionT.liftF(userRequestRepo.accept(r, user, now))
-        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalAccepted(r, proposalFull.cfp, proposalFull.talk, proposalFull.proposal, speakerElt, req.identity.user)))
-      } yield s"Invitation to <b>${proposalFull.proposal.title.value}</b> accepted").value
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalAccepted(r, proposalFull, speakerElt, req.identity.user)))
+      } yield s"Invitation to <b>${proposalFull.title.value}</b> accepted").value
       case _ => IO.pure(Some("Request not found or unhandled"))
     }.map(msg => Redirect(routes.UserCtrl.index()).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))
       .recover { case NonFatal(e) => Redirect(routes.UserCtrl.index()).flashing("error" -> s"Unexpected error: ${e.getMessage}") }
@@ -110,8 +110,8 @@ class UserCtrl(cc: ControllerComponents,
         proposalFull <- OptionT(proposalRepo.findFull(r.proposal))
         speakerElt <- OptionT(userRepo.find(r.createdBy))
         _ <- OptionT.liftF(userRequestRepo.reject(r, user, now))
-        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalRejected(r, proposalFull.cfp, proposalFull.talk, proposalFull.proposal, speakerElt, req.identity.user)))
-      } yield s"Invitation to <b>${proposalFull.proposal.title.value}</b> rejected").value
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalRejected(r, proposalFull, speakerElt, req.identity.user)))
+      } yield s"Invitation to <b>${proposalFull.title.value}</b> rejected").value
       case _ => IO.pure(Some("Request not found or unhandled"))
     }.map(msg => Redirect(routes.UserCtrl.index()).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))
       .recover { case NonFatal(e) => Redirect(routes.UserCtrl.index()).flashing("error" -> s"Unexpected error: ${e.getMessage}") }

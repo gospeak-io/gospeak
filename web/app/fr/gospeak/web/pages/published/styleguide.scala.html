@@ -14,7 +14,7 @@
 @import fr.gospeak.web.pages.speaker.partials.{html => speaker}
 @import fr.gospeak.web.utils.GenericForm
 
-@(user: User, group: Group, cfp: Cfp, event: Event, talk: Talk, proposal: Proposal, now: Instant, params: Page.Params)(implicit secured: SecuredRequest[CookieEnv, AnyContent], userAware: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(user: User, group: Group, cfp: Cfp, event: Event, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, now: Instant, params: Page.Params)(implicit secured: SecuredRequest[CookieEnv, AnyContent], userAware: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @section(id: String, title: String, localization: String)(display: String => Html) = {
     <div id="@id" class="section">
         <h2>@title: <code style="font-size: 1rem">@localization</code></h2>
@@ -140,8 +140,8 @@
                 @example(s"$name when empty") { _ => @display.videoIcon(None) }
                 @example(s"$name when filled") { _ => @display.videoIcon(Some(Video.from("http://video.com/here").right.get)) }
             }
-            @component("speaker", "@speaker(users, user.id, Some(u => MyCtrl.detail(u.slug)))") { name =>
-                @example(s"$name") { _ => @display.speaker(Seq(user), user.id, Some(_ => HomeCtrl.styleguide(params))) }
+            @component("speaker", "@speaker(users, user.id, u => Some(MyCtrl.detail(u.slug)))") { name =>
+                @example(s"$name") { _ => @display.speaker(Seq(user), user.id, _ => Some(HomeCtrl.styleguide(params))) }
                 @example(s"$name without link") { _ => @display.speaker(Seq(user), user.id) }
                 @example(s"$name not found") { _ => @display.speaker(Seq(), user.id) }
             }
@@ -198,10 +198,10 @@
             @component("talkItem", "@talkItem(talk)") { name =>
                 @example(s"$name") { _ => @speaker.talkItem(talk) }
             }
-            @component("proposalItem", "@proposalItem(talk, cfp, proposal, events)") { name =>
-                @example(s"$name pending") { _ => @speaker.proposalItem(talk, cfp, proposal, Seq()) }
-                @example(s"$name accepted") { _ => @speaker.proposalItem(talk, cfp, proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id)), Seq(event)) }
-                @example(s"$name declined") { _ => @speaker.proposalItem(talk, cfp, proposal.copy(status = Proposal.Status.Declined), Seq()) }
+            @component("proposalItem", "@proposalItem(proposalFull)") { name =>
+                @example(s"$name pending") { _ => @speaker.proposalItem(proposalFull.copy(event = None)) }
+                @example(s"$name accepted") { _ => @speaker.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Accepted))) }
+                @example(s"$name declined") { _ => @speaker.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Declined))) }
             }
         }
 
@@ -217,10 +217,10 @@
                 @example(s"$name in the past") { _ => @orga.eventItem(group, event.copy(start = event.start.plusDays(-3)), None, Seq(), Seq(), Seq(user)) }
                 @example(s"$name with a talk") { _ => @orga.eventItem(group, event.copy(talks = Seq(proposal.id)), Some(cfp), Seq(), Seq(proposal), Seq(user)) }
             }
-            @component("proposalItem", "@proposalItem(group, cfp, proposal, speakers, events)") { name =>
-                @example(s"$name pending") { _ => @orga.proposalItem(group, cfp, proposal, Seq(user), Seq()) }
-                @example(s"$name accepted with an event") { _ => @orga.proposalItem(group, cfp, proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id)), Seq(user), Seq(event)) }
-                @example(s"$name declined") { _ => @orga.proposalItem(group, cfp, proposal.copy(status = Proposal.Status.Declined), Seq(user), Seq()) }
+            @component("proposalItem", "@proposalItem(group, proposalFull, speakers)") { name =>
+                @example(s"$name pending") { _ => @orga.proposalItem(group, proposalFull.copy(event = None), Seq(user)) }
+                @example(s"$name accepted with an event") { _ => @orga.proposalItem(group, proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id))), Seq(user)) }
+                @example(s"$name declined") { _ => @orga.proposalItem(group, proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Declined)), Seq(user)) }
             }
             @component("proposalItem1", "@proposalItem1(group, cfp, proposal, speakers, events)") { name =>
                 @example(s"$name pending") { _ => @orga.proposalItem1(group, cfp, proposal, Seq(user), Seq()) }

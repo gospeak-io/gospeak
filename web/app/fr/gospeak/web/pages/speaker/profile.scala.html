@@ -3,18 +3,15 @@
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.core.domain.{Cfp, Group, Event, Proposal, User}
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.speaker.partials.html.container
 @import fr.gospeak.web.pages.partials.form.Utils
-
 @import fr.gospeak.core.domain.User
-@import fr.gospeak.web.pages.partials.html.speakerCard
-@import fr.gospeak.web.pages.published.partials.html.{groupItem, proposalItem}
+@import fr.gospeak.web.pages.speaker.partials.html.{container, speakerCard, groupItem, proposalItemForProfile}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
 @import fr.gospeak.core.domain.User.EditableFields
 
-@(form: Form[EditableFields], acceptedProposals: Page[(Option[Event], Proposal)], ownedGroups: Seq[Group], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(form: Form[EditableFields], proposals: Page[Proposal.Full], ownedGroups: Seq[Group], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", b)() {
     @formElt(form, SpeakerCtrl.editProfile()) {
         <div class="row">
@@ -28,7 +25,7 @@
         <div class="row">
             <div class="col-4">
                 <div class="card shadow-sm">
-                    <img src="@req.identity.user.avatar.url.value" class="avatar-lg align-self-center mt-1" alt="avatar">
+                    <img src="@req.identity.user.avatar.url.value" alt="@req.identity.user.name.value avatar" class="avatar-lg align-self-center mt-1">
                     <div class="card-body">
                         <div class="form-group @if(form("first-name").errors.nonEmpty || form("last-name").errors.nonEmpty) {is-invalid}">
                             <div class="input-group input-group-sm">
@@ -117,11 +114,11 @@
                 </div>
             </div>
             <div class="col-8">
-                @if(acceptedProposals.nonEmpty) {
+                @if(proposals.nonEmpty) {
                     <h2 class="mt-0 mb-3">Accepted talks</h2>
                     <div>
-                    @acceptedProposals.items.map { proposal =>
-                        @proposalItem(proposal, now)
+                    @proposals.items.map { proposal =>
+                        @proposalItemForProfile(proposal, now)
                     }
                     </div>
                 }

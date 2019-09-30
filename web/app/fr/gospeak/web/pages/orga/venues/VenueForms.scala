@@ -9,6 +9,7 @@ import play.api.data.Forms.{mapping, number, optional}
 object VenueForms {
   def create(timeShape: TimeShape): Form[Venue.Data] = Form(mapping(
     "partner" -> partnerId,
+    "contact" -> optional(contactId),
     "address" -> gMapPlace(timeShape),
     "description" -> markdown,
     "roomSize" -> optional(number),

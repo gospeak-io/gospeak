@@ -1,0 +1,19 @@
+@import java.time.{Instant, LocalDateTime, ZoneOffset}
+
+@import fr.gospeak.core.domain.{Event, Proposal}
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.utils.Formats._
+
+@(proposal: Proposal.Full, now: Instant)
+@tense(datetime: LocalDateTime) = {
+    @if(datetime.isAfter(LocalDateTime.ofInstant(now, ZoneOffset.UTC))) {Will be hold} else {Was held} on @date(datetime)
+}
+<div class="list-group-item list-group-item-action">
+    <h5 class="mb-1">@proposal.title.value</h5>
+    @proposal.event.map { e => <span class="badge badge-dark">@e.name.value</span> }
+    @duration(proposal.duration)
+    @slidesIcon(proposal.slides)
+    @videoIcon(proposal.video)
+    @tags(proposal.tags)
+    <small>@tense(proposal.event.map(_.start).getOrElse(LocalDateTime.ofInstant(proposal.info.created, ZoneOffset.UTC)))</small>
+</div>

@@ -72,16 +72,6 @@ object Group {
   }
 
   object Settings {
-    val default = Settings(
-      accounts = Accounts(
-        meetup = None,
-        slack = None),
-      // twitter = None,
-      // youtube = None),
-      event = Event(
-        description = TemplateData.Static.eventDescription,
-        templates = Map()),
-      actions = Map())
 
     final case class Accounts(meetup: Option[MeetupCredentials],
                               slack: Option[SlackCredentials])

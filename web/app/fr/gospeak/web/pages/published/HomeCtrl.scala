@@ -129,7 +129,8 @@ class HomeCtrl(cc: ControllerComponents,
     implicit val secured = SecuredRequest[CookieEnv, AnyContent](identity, authenticator, req)
     implicit val userAware = UserAwareRequest[CookieEnv, AnyContent](Some(identity), Some(authenticator), req)
     implicit val messages = req.messages
-    Ok(html.styleguide(user, group, cfp, event, talk, proposal, Instant.now(), params))
+    val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event))
+    Ok(html.styleguide(user, group, cfp, event, talk, proposal, proposalFull, Instant.now(), params))
   }
 }
 

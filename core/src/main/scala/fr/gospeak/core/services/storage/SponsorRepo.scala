@@ -21,9 +21,9 @@ trait OrgaSponsorRepo {
 
   def listAll(group: Group.Id): IO[Seq[Sponsor]]
 
-  def listAll(group: Group.Id, partner: Partner.Id): IO[Seq[Sponsor]]
+  def listAllFull(group: Group.Id, partner: Partner.Id): IO[Seq[Sponsor.Full]]
 }
 
 trait PublicSponsorRepo {
-  def listCurrent(group: Group.Id, now: Instant): IO[Seq[Sponsor.Full]]
+  def listCurrentFull(group: Group.Id, now: Instant): IO[Seq[Sponsor.Full]]
 }

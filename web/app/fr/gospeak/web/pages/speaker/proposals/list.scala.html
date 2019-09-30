@@ -1,12 +1,11 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Talk, Cfp, Proposal, Event}
+@import fr.gospeak.core.domain.Proposal
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.speaker.partials.html.{container, proposalItem}
-@import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
-@import fr.gospeak.web.pages.speaker.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.speaker.partials.html.{container, proposalItem}
+@import fr.gospeak.web.pages.speaker.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 
 @(proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
@@ -25,6 +24,6 @@
             <span class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</span>
             <a class="btn btn-primary" href="@CfpCtrl.list()">Find a CFP</a>
         </h1>
-        @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list, i => proposalItem(i.talk, i.cfp, i.proposal, i.event.toList))
+        @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list, proposalItem(_))
     }
 }()

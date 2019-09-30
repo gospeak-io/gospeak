@@ -1,10 +1,10 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Cfp, Proposal, Talk, User, UserRequest}
+@import fr.gospeak.core.domain.{Proposal, User, UserRequest}
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 
-@(invite: UserRequest.ProposalInvite, cfp: Cfp, talk: Talk, proposal: Proposal, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(invite: UserRequest.ProposalInvite, proposal: Proposal.Full, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 <p>Hi @speaker.name.value,</p>
-<p><a href="mailto:@by.email.value">@by.name.value</a> has <b>accepted</b> your invitation to <a href="@ProposalCtrl.detail(talk.slug, cfp.slug).absoluteURL()">@proposal.title.value</a> proposal.</p>
+<p><a href="mailto:@by.email.value">@by.name.value</a> has <b>accepted</b> your invitation to <a href="@ProposalCtrl.detail(proposal.talk.slug, proposal.cfp.slug).absoluteURL()">@proposal.title.value</a> proposal.</p>
 <p>Together you are stronger, keep going!</p>
 <p>The Gospeak team</p>

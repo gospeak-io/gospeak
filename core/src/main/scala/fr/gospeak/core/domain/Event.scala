@@ -49,7 +49,17 @@ object Event {
 
   final case class ExtRefs(meetup: Option[MeetupEvent.Ref] = None)
 
-  final case class Full(event: Event, venue: Option[Venue.Full])
+  final case class Full(event: Event, venue: Option[Venue.Full]) {
+    def slug: Slug = event.slug
+
+    def name: Name = event.name
+
+    def start: LocalDateTime = event.start
+
+    def talks: Seq[Proposal.Id] = event.talks
+
+    def refs: ExtRefs = event.refs
+  }
 
   final case class Data(cfp: Option[Cfp.Id],
                         slug: Slug,

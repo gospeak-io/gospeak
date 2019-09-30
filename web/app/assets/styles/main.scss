@@ -18,10 +18,24 @@ h5.test {
   background-color: #e9ecef;
 }
 
+a.card {
+  color: inherit;
+}
+
+a.card:hover {
+  text-decoration: inherit;
+}
+
 .card-header .btn-sm,
 .card-header .input-group-sm {
   margin-top: -3px;
   margin-bottom: -4px;
+}
+
+.card-body p:last-child,
+.card-body h5:last-child,
+.card-body .markdown:last-child {
+  margin-bottom: 0;
 }
 
 .list-group-item ul, .list-group-item ol {
@@ -143,10 +157,11 @@ span.twitter-typeahead .tt-suggestion.tt-cursor:hover {
 }
 
 .markdown {
-  margin-bottom: 0;
+  margin-bottom: 1rem;
 }
 
-.markdown p:last-child {
+.markdown p:last-child,
+.markdown ul:last-child {
   margin-bottom: 0;
 }
 

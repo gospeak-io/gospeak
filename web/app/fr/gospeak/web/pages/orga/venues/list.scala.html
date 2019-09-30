@@ -13,5 +13,5 @@
         <span class="text-capitalize">@Formats.plural(venues.total.value, "venue")</span>
         <a class="btn btn-primary" href="@VenueCtrl.create(group.slug)" data-hotkey="+">Create a venue</a>
     </h1>
-    @Formats.paginated[Venue.Full](venues, VenueCtrl.list(group.slug, _), i => venueItem(group, i.partner, i.venue))
+    @Formats.paginated[Venue.Full](venues, VenueCtrl.list(group.slug, _), venueItem(group, _))
 }()

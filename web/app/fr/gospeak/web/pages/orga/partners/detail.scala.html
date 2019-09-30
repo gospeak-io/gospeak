@@ -4,10 +4,10 @@
 @import fr.gospeak.core.domain.{Contact, Event, Group, Partner, Sponsor, SponsorPack, User, Venue}
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partials.html._
 @import fr.gospeak.web.pages.orga.partners.contacts.routes.ContactCtrl
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
-@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partners.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
@@ -15,11 +15,11 @@
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, partner: Partner, venues: Seq[Venue], contacts: Seq[Contact], speakers: Seq[User], sponsors: Seq[Sponsor], packs: Seq[SponsorPack], events: Seq[(Event, Venue)], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, partner: Partner, venues: Seq[Venue.Full], contacts: Seq[Contact], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], events: Seq[(Event, Venue)], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(partner.name.value + " - Gospeak", group, b)() {
     <div class="d-flex justify-content-between align-items-start">
         <div class="media">
-            <img src="@partner.logo.value" class="avatar align-self-start mr-3" alt="avatar">
+            <img src="@partner.logo.value" alt="@partner.name.value logo" class="avatar align-self-start mr-3">
             <div class="media-body">
                 <h1 class="mt-0">@partner.name.value</h1>
                 @partner.twitter.map { t => @twitterLink(t) }
@@ -44,7 +44,10 @@
             </h5>
             <div class="list-group list-group-flush">
             @venues.map { venue =>
-                <a class="list-group-item list-group-item-action" href="@VenueCtrl.detail(group.slug, partner.slug, venue.id)">@venue.address.value</a>
+                <div class="list-group-item">
+                    <a href="@VenueCtrl.detail(group.slug, partner.slug, venue.id)">@venue.address.value</a>
+                    @venue.contact.map { c => (contact: <a href="@ContactCtrl.detail(group.slug, partner.slug, c.id)">@c.name.value</a>)}
+                </div>
             }
             </div>
         </div>
@@ -90,6 +93,7 @@
                         } else {
                             <b>@packs.find(_.id == sponsor.pack).map { p => <a href="@SponsorCtrl.detail(group.slug, p.slug)"><s class="text-muted">@p.name.value pack</s></a> }.getOrElse {<s class="text-muted">Unknown pack</s>}</b>
                         }
+                        @sponsor.contact.map { c => (contact: <a href="@ContactCtrl.detail(group.slug, partner.slug, c.id)">@c.name.value</a>) }
                         from @Formats.date(sponsor.start) to @Formats.date(sponsor.finish)
                         @sponsor.paid.map { p => (@sponsor.price.value paid on @Formats.date(p)) }.getOrElse {(@sponsor.price.value, not paid)}
                     </span>

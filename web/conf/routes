@@ -10,9 +10,11 @@ POST        /cfps/:cfp/propose/login                                            
 
 GET         /groups                                                                        fr.gospeak.web.pages.published.groups.GroupCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /groups/:group                                                                 fr.gospeak.web.pages.published.groups.GroupCtrl.detail(group: Group.Slug)
-#GET         /groups/:group/cfps                                          fr.gospeak.web.pages.published.groups.GroupCtrl.detail(group: Group.Slug)
-#GET         /groups/:group/events                                        fr.gospeak.web.??? # group public events
-#GET         /groups/:group/talks                                         fr.gospeak.web.??? # group public talks
+GET         /groups/:group/events                                                          fr.gospeak.web.pages.published.groups.GroupCtrl.events(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /groups/:group/events/:event                                                   fr.gospeak.web.pages.published.groups.GroupCtrl.event(group: Group.Slug, event: Event.Slug)
+GET         /groups/:group/talks                                                           fr.gospeak.web.pages.published.groups.GroupCtrl.talks(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /groups/:group/talks/:proposal                                                 fr.gospeak.web.pages.published.groups.GroupCtrl.talk(group: Group.Slug, proposal: Proposal.Id)
+GET         /groups/:group/speakers                                                        fr.gospeak.web.pages.published.groups.GroupCtrl.speakers(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 
 GET         /speakers                                                                      fr.gospeak.web.pages.published.speakers.SpeakerCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /speakers/:speaker                                                             fr.gospeak.web.pages.published.speakers.SpeakerCtrl.detail(speaker: User.Slug, params: Page.Params ?= Page.Params.defaults)
@@ -163,10 +165,11 @@ GET         /status                                                             
 POST        /ui/utils/markdown-to-html                                                     fr.gospeak.web.api.ui.UtilsCtrl.markdownToHtml
 GET         /ui/utils/embed                                                                fr.gospeak.web.api.ui.UtilsCtrl.embed(url: Url)
 GET         /ui/suggest/tags                                                               fr.gospeak.web.api.ui.SuggestCtrl.suggestTags
-GET         /ui/suggest/cfps/:group                                                        fr.gospeak.web.api.ui.SuggestCtrl.suggestCfps(group: Group.Slug)
-GET         /ui/suggest/partners/:group                                                    fr.gospeak.web.api.ui.SuggestCtrl.suggestPartners(group: Group.Slug)
-GET         /ui/suggest/venues/:group                                                      fr.gospeak.web.api.ui.SuggestCtrl.suggestVenues(group: Group.Slug)
-GET         /ui/suggest/sponsor-packs/:group                                               fr.gospeak.web.api.ui.SuggestCtrl.suggestSponsorPacks(group: Group.Slug)
+GET         /ui/suggest/:group/cfps                                                        fr.gospeak.web.api.ui.SuggestCtrl.suggestCfps(group: Group.Slug)
+GET         /ui/suggest/:group/partners                                                    fr.gospeak.web.api.ui.SuggestCtrl.suggestPartners(group: Group.Slug)
+GET         /ui/suggest/:group/partners/:partner/contacts                                  fr.gospeak.web.api.ui.SuggestCtrl.suggestContacts(group: Group.Slug, partner: Partner.Id)
+GET         /ui/suggest/:group/venues                                                      fr.gospeak.web.api.ui.SuggestCtrl.suggestVenues(group: Group.Slug)
+GET         /ui/suggest/:group/sponsor-packs                                               fr.gospeak.web.api.ui.SuggestCtrl.suggestSponsorPacks(group: Group.Slug)
 GET         /ui/search/:group                                                              fr.gospeak.web.api.ui.SuggestCtrl.searchRoot(group: Group.Slug)
 GET         /ui/search/:group/speakers                                                     fr.gospeak.web.api.ui.SuggestCtrl.searchSpeakers(group: Group.Slug, q: String)
 GET         /ui/search/:group/proposals                                                    fr.gospeak.web.api.ui.SuggestCtrl.searchProposals(group: Group.Slug, q: String)

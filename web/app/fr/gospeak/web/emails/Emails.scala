@@ -132,19 +132,19 @@ object Emails {
       subject = s"Your invitation for speaking about '${proposal.title.value}' has been canceled :(",
       content = HtmlContent(html.inviteSpeakerToProposalCanceled(invite, proposal, by).body))
 
-  def inviteSpeakerToProposalAccepted(invite: UserRequest.ProposalInvite, cfp: Cfp, talk: Talk, proposal: Proposal, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+  def inviteSpeakerToProposalAccepted(invite: UserRequest.ProposalInvite, proposal: Proposal.Full, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
     Email(
       from = sender,
       to = Seq(Contact(speaker)),
       subject = s"${by.name.value} has accepted your invitation to speak about '${proposal.title.value}'",
-      content = HtmlContent(html.inviteSpeakerToProposalAccepted(invite, cfp, talk, proposal, speaker, by).body))
+      content = HtmlContent(html.inviteSpeakerToProposalAccepted(invite, proposal, speaker, by).body))
 
-  def inviteSpeakerToProposalRejected(invite: UserRequest.ProposalInvite, cfp: Cfp, talk: Talk, proposal: Proposal, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+  def inviteSpeakerToProposalRejected(invite: UserRequest.ProposalInvite, proposal: Proposal.Full, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
     Email(
       from = sender,
       to = Seq(Contact(speaker)),
       subject = s"Oups, ${by.name.value} rejected your invitation to speak about '${proposal.title.value}' :(",
-      content = HtmlContent(html.inviteSpeakerToProposalRejected(invite, cfp, talk, proposal, speaker, by).body))
+      content = HtmlContent(html.inviteSpeakerToProposalRejected(invite, proposal, speaker, by).body))
 
   def speakerRemovedFromProposal(proposal: Proposal, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
     Email(

@@ -1,21 +1,18 @@
-@import fr.gospeak.core.domain.{Cfp, Event, Proposal, Talk}
+@import fr.gospeak.core.domain.Proposal
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(talk: Talk, cfp: Cfp, proposal: Proposal, events: Seq[Event])
-@eventinfo(id: Event.Id) = {
-    @events.find(_.id == id).map { e => (@e.name.value - @Formats.date(e.start)) }.getOrElse { Unknown event @id.value }
-}
-<a href="@ProposalCtrl.detail(talk.slug, cfp.slug)" class="list-group-item list-group-item-action">
+@(proposal: Proposal.Full)
+<a href="@ProposalCtrl.detail(proposal.talk.slug, proposal.cfp.slug)" class="list-group-item list-group-item-action">
     <div class="d-flex w-100 justify-content-between align-items-center">
-        <h5 class="mb-1">@cfp.name.value @proposal.event.map { id => @eventinfo(id) }</h5>
+        <h5 class="mb-1">@proposal.cfp.name.value @proposal.event.map { e => (@e.name.value - @Formats.date(e.start)) }</h5>
         <div>@proposalStatus(proposal.status)</div>
     </div>
     <div class="d-flex w-100 justify-content-between align-items-center">
         <p class="mb-1">
             Title: @proposal.title.value
-            @if(proposal.duration != talk.duration) {
+            @if(proposal.duration != proposal.talk.duration) {
                 @duration(proposal.duration, Some("Proposal duration"))
             }
             @tags(proposal.tags)

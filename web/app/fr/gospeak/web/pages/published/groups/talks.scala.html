@@ -1,0 +1,35 @@
+@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
+@import fr.gospeak.core.domain.{Group, Proposal, User}
+@import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
+@import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.pages.published.partials.html.container
+@import fr.gospeak.web.utils.Formats
+
+@(group: Group, talks: Page[Proposal.Full], speakers: Seq[User])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@talkItem(group: Group, talk: Proposal.Full, speakers: Seq[User]) = {
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">
+                @slidesIcon(talk.slides)
+                @videoIcon(talk.video)
+                <a href="@GroupCtrl.talk(group.slug, talk.id)">@talk.title.value</a>
+            </h5>
+            <p>By @talk.speakers.toList.map { id => @speaker(speakers, id, s => Some(SpeakerCtrl.detail(s.slug)).filter(_ => s.isPublic)) }</p>
+            @markdown(talk.description)
+            @if(talk.tags.nonEmpty) { <p>@tags(talk.tags)</p> }
+            @talk.event.map { event => <p>At <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a> on @Formats.date(event.start)</p> }
+        </div>
+    </div>
+}
+@container(group.name.value + " - Gospeak", b)() {
+    <h1>@Formats.plural(talks.total.value, "talk") given at @group.name.value</h1>
+    <div class="row">
+        <div class="col">
+            @Formats.paginated[Proposal.Full](talks, GroupCtrl.talks(group.slug, _), t => talkItem(group, t, speakers))
+        </div>
+    </div>
+}()

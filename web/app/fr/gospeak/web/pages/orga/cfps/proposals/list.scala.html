@@ -7,8 +7,8 @@
 @import fr.gospeak.web.pages.orga.partials.html.{container, proposalItem}
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, cfp: Cfp, proposals: Page[Proposal], speakers: Seq[User], events: Seq[Event])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, cfp: Cfp, proposals: Page[Proposal.Full], speakers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", group, b)() {
     <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h1>
-    @Formats.paginated[Proposal](proposals, ProposalCtrl.list(group.slug, cfp.slug, _), proposalItem(group, cfp, _, speakers, events))
+    @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list(group.slug, cfp.slug, _), proposalItem(group, _, speakers))
 }()

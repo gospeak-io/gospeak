@@ -42,6 +42,8 @@ trait AuthEventRepo
 
 trait PublicEventRepo {
   def listPublished(group: Group.Id, params: Page.Params): IO[Page[Event.Full]]
+
+  def findPublished(group: Group.Id, event: Event.Slug): IO[Option[Event.Full]]
 }
 
 trait SuggestEventRepo {
