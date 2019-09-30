@@ -30,13 +30,13 @@ class SponsorCtrl(cc: ControllerComponents,
   import silhouette._
 
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       sponsorPacks <- OptionT.liftF(sponsorPackRepo.listAll(groupElt.id))
-      sponsors <- OptionT.liftF(sponsorRepo.list(groupElt.id, params))
-      partners <- OptionT.liftF(partnerRepo.list(sponsors.items.map(_.partner)))
+      sponsors <- OptionT.liftF(sponsorRepo.listFull(groupElt.id, params))
       b = listBreadcrumb(groupElt)
-    } yield Ok(html.list(groupElt, sponsorPacks, sponsors, partners)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+    } yield Ok(html.list(groupElt, sponsorPacks, sponsors, now)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
   }
 
   def createPack(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>

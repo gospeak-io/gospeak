@@ -47,7 +47,7 @@ object PartnerRepoSql {
   private[sql] val fields = Seq("id", "group_id", "slug", "name", "notes", "description", "logo", "twitter", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-  private val searchFields = Seq("id", "slug", "name", "notes", "description")
+  private[sql] val searchFields = Seq("id", "slug", "name", "notes", "description")
   private val defaultSort = Page.OrderBy("name")
 
   private def values(e: Partner): Fragment =

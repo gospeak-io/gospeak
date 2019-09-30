@@ -52,7 +52,7 @@ object SponsorPackRepoSql {
   private[sql] val fields: Seq[String] = Seq("id", "group_id", "slug", "name", "description", "price", "currency", "duration", "active", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-  private val searchFields: Seq[String] = Seq("id", "slug", "name", "description")
+  private[sql] val searchFields: Seq[String] = Seq("id", "slug", "name", "description")
   private val defaultSort: Page.OrderBy = Page.OrderBy("name")
 
   private def values(e: SponsorPack): Fragment =
