@@ -13,6 +13,9 @@ case class Partner(id: String, // Partner.Id
                    meetupRef: Option[MeetupRef],
                    data: PartnerData,
                    meta: Meta) {
+  def containsContact(id: String): Boolean =
+    data.contacts.contains(id) || data.venue.exists(_.contact.contains(id)) || data.sponsoring.exists(_.contact.contains(id))
+
   def toPartner(group: gs.Group.Id): gs.Partner = gs.Partner(
     id = gs.Partner.Id.from(id).get,
     group = group,
@@ -24,10 +27,10 @@ case class Partner(id: String, // Partner.Id
     twitter = data.twitter.map(t => Url.from("https://twitter.com/" + t).get),
     info = meta.toInfo)
 
-  def toVenue: Option[gs.Venue] = data.venue.map(venue => gs.Venue(
+  def toVenue(contacts: Seq[(String, gs.Contact)]): Option[gs.Venue] = data.venue.map(venue => gs.Venue(
     id = gs.Venue.Id.generate(),
     partner = gs.Partner.Id.from(id).get,
-    contact = None, // FIXME migration
+    contact = venue.contact.flatMap(id => contacts.find(c => c._1 == id && c._2.partner.value == this.id)).map(_._2.id),
     address = venue.location.toGMapPlace,
     description = Markdown(venue.comment.getOrElse("")),
     roomSize = venue.capacity,
@@ -35,12 +38,12 @@ case class Partner(id: String, // Partner.Id
       meetup = meetupRef.map(r => MeetupVenue.Ref(MeetupGroup.Slug.from(r.group).get, MeetupVenue.Id(r.id)))),
     info = meta.toInfo))
 
-  def toSponsors(group: gs.Group.Id, packs: Seq[gs.SponsorPack]): Seq[gs.Sponsor] = data.sponsoring.map(sponsor => gs.Sponsor(
+  def toSponsors(group: gs.Group.Id, packs: Seq[gs.SponsorPack], contacts: Seq[(String, gs.Contact)]): Seq[gs.Sponsor] = data.sponsoring.map(sponsor => gs.Sponsor(
     id = gs.Sponsor.Id.generate(),
     group = group,
     partner = gs.Partner.Id.from(id).get,
     pack = packs.find(_.name.value == sponsor.level).get.id,
-    contact = None, // FIXME migration
+    contact = sponsor.contact.flatMap(id => contacts.find(c => c._1 == id && c._2.partner.value == this.id)).map(_._2.id),
     start = LocalDate.parse(sponsor.start),
     finish = LocalDate.parse(sponsor.end),
     paid = Some(LocalDate.parse(sponsor.start)),

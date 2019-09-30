@@ -42,16 +42,16 @@ case class Person(id: String, // Person.Id,
       updated = Instant.ofEpochMilli(meta.updated))).mapFailure(e => new Exception(s"toUser error for $this ", e)).get
   }
 
-  def toContact(partner: Partner): gs.Contact = {
+  def toContact(partner: Partner): (String, gs.Contact) = {
     val (firstName, lastName) = getNames
-    gs.Contact(
+    (id, gs.Contact(
       id = gs.Contact.Id.generate(),
       partner = gs.Partner.Id.from(partner.id).get,
       firstName = gs.Contact.FirstName(firstName),
       lastName = gs.Contact.LastName(lastName),
       email = getEmail,
       description = Markdown(data.description.getOrElse("")),
-      info = meta.toInfo)
+      info = meta.toInfo))
   }
 
   private def getNames: (String, String) = {

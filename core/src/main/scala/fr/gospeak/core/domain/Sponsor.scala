@@ -29,12 +29,10 @@ object Sponsor {
 
   object Id extends UuidIdBuilder[Id]("Sponsor.Id", new Id(_))
 
-  final case class Full(sponsor: Sponsor, sponsorPack: SponsorPack, partner: Partner, contact: Option[Contact]) {
+  final case class Full(sponsor: Sponsor, pack: SponsorPack, partner: Partner, contact: Option[Contact]) {
     def isCurrent(now: Instant): Boolean = sponsor.isCurrent(now)
 
     def id: Id = sponsor.id
-
-    def pack: SponsorPack.Id = sponsor.pack
 
     def start: LocalDate = sponsor.start
 
