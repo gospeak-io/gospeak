@@ -17,7 +17,7 @@ trait OrgaSponsorRepo {
 
   def find(group: Group.Id, sponsor: Sponsor.Id): IO[Option[Sponsor]]
 
-  def list(group: Group.Id, params: Page.Params): IO[Page[Sponsor]]
+  def listFull(group: Group.Id, params: Page.Params): IO[Page[Sponsor.Full]]
 
   def listAll(group: Group.Id): IO[Seq[Sponsor]]
 

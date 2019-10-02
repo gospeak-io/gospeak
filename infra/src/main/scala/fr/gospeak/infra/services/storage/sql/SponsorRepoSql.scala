@@ -8,9 +8,9 @@ import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.SponsorRepo
-import fr.gospeak.infra.services.storage.sql.ContactRepoSql.{fields => contactFields, table => contactTable}
-import fr.gospeak.infra.services.storage.sql.PartnerRepoSql.{fields => partnerFields, table => partnerTable}
-import fr.gospeak.infra.services.storage.sql.SponsorPackRepoSql.{fields => sponsorPackFields, table => sponsorPackTable}
+import fr.gospeak.infra.services.storage.sql.ContactRepoSql.{fields => contactFields, table => contactTable, searchFields => contactSearch}
+import fr.gospeak.infra.services.storage.sql.PartnerRepoSql.{fields => partnerFields, table => partnerTable, searchFields => partnerSearch}
+import fr.gospeak.infra.services.storage.sql.SponsorPackRepoSql.{fields => sponsorPackFields, table => sponsorPackTable, searchFields => sponsorPackSearch}
 import fr.gospeak.infra.services.storage.sql.SponsorRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
@@ -30,7 +30,7 @@ class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def find(group: Group.Id, sponsor: Sponsor.Id): IO[Option[Sponsor]] = run(selectOne(group, sponsor).option)
 
-  override def list(group: Group.Id, params: Page.Params): IO[Page[Sponsor]] = run(Queries.selectPage(selectPage(group, _), params))
+  override def listFull(group: Group.Id, params: Page.Params): IO[Page[Sponsor.Full]] = run(Queries.selectPage(selectPage(group, _), params))
 
   override def listCurrentFull(group: Group.Id, now: Instant): IO[Seq[Sponsor.Full]] = run(selectCurrent(group, now).to[List])
 
@@ -75,9 +75,10 @@ object SponsorRepoSql {
   private[sql] def selectOne(group: Group.Id, pack: Sponsor.Id): doobie.Query0[Sponsor] =
     buildSelect(tableFr, fieldsFr, where(group, pack)).query[Sponsor]
 
-  private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[Sponsor], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group"))
-    (buildSelect(tableFr, fieldsFr, page.all).query[Sponsor], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+  private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[Sponsor.Full], doobie.Query0[Long]) = {
+    val search = searchFields.map("s." + _) ++ sponsorPackSearch.map("sp." + _) ++ partnerSearch.map("p." + _) ++ contactSearch.map("c." + _)
+    val page = paginate(params, search, defaultSort, Some(fr0"WHERE s.group_id=$group"))
+    (buildSelect(tableFullFr, fieldsFullFr, page.all).query[Sponsor.Full], buildSelect(tableFullFr, fr0"count(*)", page.where).query[Long])
   }
 
   private[sql] def selectCurrent(group: Group.Id, now: Instant): doobie.Query0[Sponsor.Full] =

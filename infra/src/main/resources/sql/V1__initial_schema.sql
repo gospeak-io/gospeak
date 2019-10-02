@@ -265,14 +265,14 @@ CREATE TABLE requests
 CREATE TABLE group_settings
 (
     group_id                CHAR(36) PRIMARY KEY REFERENCES groups (id),
-    meetup_access_token     CHAR(67),
-    meetup_refresh_token    CHAR(67),
-    meetup_group_slug       CHAR(120),
+    meetup_access_token     VARCHAR(200), -- encrypted
+    meetup_refresh_token    VARCHAR(200), -- encrypted
+    meetup_group_slug       VARCHAR(120),
     meetup_logged_user_id   BIGINT,
-    meetup_logged_user_name CHAR(120),
-    slack_token             CHAR(74),
-    slack_bot_name          CHAR(120),
-    slack_bot_avatar        CHAR(1024),
+    meetup_logged_user_name VARCHAR(120),
+    slack_token             VARCHAR(200), -- encrypted
+    slack_bot_name          VARCHAR(120),
+    slack_bot_avatar        VARCHAR(1024),
     event_description       VARCHAR   NOT NULL,
     event_templates         VARCHAR   NOT NULL, -- json serialized Map[String, MustacheTextTmpl[TemplateData.EventInfo]]
     actions                 VARCHAR   NOT NULL, -- json serialized Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]

@@ -96,10 +96,12 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
           createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
           updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
         )))
-        contacts = htPartners.flatMap(p => htUsers.filter(u => p.data.contacts.contains(u.id)).map(_.toContact(p))).map(e => e.copy(info = e.info.copy(
-          createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
-          updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
-        )))
+        contacts = htPartners.flatMap(p => htUsers.filter(u => p.containsContact(u.id)).map(_.toContact(p))).map { case (id, e) =>
+          (id, e.copy(info = e.info.copy(
+            createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
+            updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
+          )))
+        }
         standardPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("standard").get, SponsorPack.Name("Standard"), Markdown(""), Price(500, Price.Currency.EUR), 1.year, active = false, Info(lkn.id, initDate))
         premiumPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("premium").get, SponsorPack.Name("Premium"), Markdown(""), Price(1500, Price.Currency.EUR), 1.year, active = false, Info(lkn.id, initDate))
         bronzePack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("bronze").get, SponsorPack.Name("Bronze"), Markdown(""), Price(500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
@@ -107,11 +109,11 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
         goldPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("gold").get, SponsorPack.Name("Gold"), Markdown(""), Price(2500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
         platiniumPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("platinium").get, SponsorPack.Name("Platinium"), Markdown(""), Price(6000, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
         sponsorPacks = List(standardPack, premiumPack, bronzePack, silverPack, goldPack, platiniumPack)
-        sponsors = htPartners.flatMap(_.toSponsors(groupHt.id, sponsorPacks)).map(e => e.copy(info = e.info.copy(
+        sponsors = htPartners.flatMap(_.toSponsors(groupHt.id, sponsorPacks, contacts)).map(e => e.copy(info = e.info.copy(
           createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
           updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
         )))
-        venues = htPartners.flatMap(_.toVenue).map(e => e.copy(info = e.info.copy(
+        venues = htPartners.flatMap(_.toVenue(contacts)).map(e => e.copy(info = e.info.copy(
           createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
           updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
         )))
@@ -129,7 +131,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
         _ <- run(Queries.insertMany(TalkRepoSql.insert)(NonEmptyList.fromListUnsafe(talks)))
         _ <- run(Queries.insertMany(ProposalRepoSql.insert)(NonEmptyList.fromListUnsafe(proposals)))
         _ <- run(Queries.insertMany(PartnerRepoSql.insert)(NonEmptyList.fromListUnsafe(partners)))
-        _ <- run(Queries.insertMany(ContactRepoSql.insert)(NonEmptyList.fromListUnsafe(contacts)))
+        _ <- run(Queries.insertMany(ContactRepoSql.insert)(NonEmptyList.fromListUnsafe(contacts.map(_._2))))
         _ <- run(Queries.insertMany(SponsorPackRepoSql.insert)(NonEmptyList.fromListUnsafe(sponsorPacks)))
         _ <- run(Queries.insertMany(SponsorRepoSql.insert)(NonEmptyList.fromListUnsafe(sponsors)))
         // _ <- run(Queries.insertMany(VenueRepoSql.insert)(NonEmptyList.fromListUnsafe(venues))) // fail with: JdbcSQLException: Parameter "#10" is not set :(
@@ -143,10 +145,12 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
   def insertMockData(conf: GospeakConf): IO[Done] = {
     val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
     var n = Instant.now()
+
     def now: Instant = { // to not have the same date everywhere
       n = n.plusSeconds(1)
       n
     }
+
     val gravatarSrv = new GravatarSrv()
 
     def user(slug: String, email: String, firstName: String, lastName: String, profile: Profile = User.emptyProfile): User = {
@@ -179,8 +183,8 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     def venue(partner: Partner, address: GMapPlace, by: User, description: String = "", contact: Option[Contact] = None, roomSize: Option[Int] = None): Venue =
       Venue(Venue.Id.generate(), partner.id, contact.map(_.id), address, Markdown(description), roomSize, Venue.ExtRefs(), Info(by.id, now))
 
-    def sponsorPack(group: Group, name: String, price: Int, by: User, description: String = ""): SponsorPack =
-      SponsorPack(SponsorPack.Id.generate(), group.id, SponsorPack.Slug.from(StringUtils.slugify(name)).get, SponsorPack.Name(name), Markdown(description), Price(price, Price.Currency.EUR), 1.year, active = true, Info(by.id, now))
+    def sponsorPack(group: Group, name: String, price: Int, by: User, description: String = "", active: Boolean = true): SponsorPack =
+      SponsorPack(SponsorPack.Id.generate(), group.id, SponsorPack.Slug.from(StringUtils.slugify(name)).get, SponsorPack.Name(name), Markdown(description), Price(price, Price.Currency.EUR), 1.year, active, Info(by.id, now))
 
     def sponsor(group: Group, partner: Partner, pack: SponsorPack, by: User, start: String, finish: String, contact: Option[Contact] = None): Sponsor =
       Sponsor(Sponsor.Id.generate(), group.id, partner.id, pack.id, contact.map(_.id), LocalDate.parse(start), LocalDate.parse(finish), Some(LocalDate.parse(start)), Price(1500, Price.Currency.EUR), Info(by.id, now))
@@ -292,7 +296,8 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
 
     val base = sponsorPack(humanTalks, "Base", 500, userDemo, "Description of the pack")
     val premium = sponsorPack(humanTalks, "Premium", 1500, userDemo)
-    val packs = NonEmptyList.of(base, premium)
+    val old = sponsorPack(humanTalks, "Old", 100, userDemo, active = false)
+    val packs = NonEmptyList.of(base, premium, old)
 
     val sponsor1 = sponsor(humanTalks, zeenea, base, userDemo, "2018-01-01", "2019-01-01", Some(zeeneaJean))
     val sponsor2 = sponsor(humanTalks, zeenea, premium, userDemo, "2019-01-01", "2020-01-01")

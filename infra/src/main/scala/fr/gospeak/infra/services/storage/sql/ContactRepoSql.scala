@@ -37,7 +37,7 @@ object ContactRepoSql {
   private[sql] val fields = Seq("id", "partner_id", "first_name", "last_name", "email", "description", "created", "created_by", "updated", "updated_by")
   private val tableFr = Fragment.const0(table)
   private val fieldsFr = Fragment.const0(fields.mkString(", "))
-  private val searchFields = Seq("id", "first_name", "last_name", "email")
+  private[sql] val searchFields = Seq("id", "first_name", "last_name", "email")
   private val defaultSort = Page.OrderBy("created")
 
   private def values(c: Contact): Fragment =

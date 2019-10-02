@@ -63,7 +63,7 @@
                     </button>
                     <span class="dropdown-menu dropdown-menu-right">
                     @packs.map { pack =>
-                        <a class="dropdown-item" href="@SponsorCtrl.create(group.slug, pack.slug, Some(partner.slug))">@pack.name.value pack</a>
+                        <a class="dropdown-item" href="@SponsorCtrl.create(group.slug, pack.slug, Some(partner.slug))">@pack.name.value pack (@pack.price.value)</a>
                     }
                     </span>
                 </span>
@@ -79,7 +79,7 @@
                     </button>
                     <span class="dropdown-menu dropdown-menu-right">
                     @packs.map { pack =>
-                        <a class="dropdown-item" href="@SponsorCtrl.create(group.slug, pack.slug, Some(partner.slug))">@pack.name.value pack</a>
+                        <a class="dropdown-item" href="@SponsorCtrl.create(group.slug, pack.slug, Some(partner.slug))">@pack.name.value pack (@pack.price.value)</a>
                     }
                     </span>
                 </span>
@@ -89,9 +89,9 @@
                 <span class="list-group-item d-flex justify-content-between align-items-center">
                     <span>
                         @if(sponsor.isCurrent(now)) {
-                            <b>@packs.find(_.id == sponsor.pack).map { p => <a href="@SponsorCtrl.detail(group.slug, p.slug)">@p.name.value pack</a> }.getOrElse {Unknown pack}</b>
+                            <b><a href="@SponsorCtrl.detail(group.slug, sponsor.pack.slug)">@sponsor.pack.name.value pack</a></b>
                         } else {
-                            <b>@packs.find(_.id == sponsor.pack).map { p => <a href="@SponsorCtrl.detail(group.slug, p.slug)"><s class="text-muted">@p.name.value pack</s></a> }.getOrElse {<s class="text-muted">Unknown pack</s>}</b>
+                            <b><a href="@SponsorCtrl.detail(group.slug, sponsor.pack.slug)"><s class="text-muted">@sponsor.pack.name.value pack</s></a></b>
                         }
                         @sponsor.contact.map { c => (contact: <a href="@ContactCtrl.detail(group.slug, partner.slug, c.id)">@c.name.value</a>) }
                         from @Formats.date(sponsor.start) to @Formats.date(sponsor.finish)

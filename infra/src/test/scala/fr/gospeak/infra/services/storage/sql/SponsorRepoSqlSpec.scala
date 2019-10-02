@@ -26,8 +26,8 @@ class SponsorRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage") {
         val (s, c) = SponsorRepoSql.selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE group_id=? "
+        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE s.group_id=? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
+        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE s.group_id=? "
         check(s)
         check(c)
       }
