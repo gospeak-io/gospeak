@@ -130,8 +130,7 @@ span.twitter-typeahead .tt-suggestion.tt-cursor:hover {
 }
 
 .avatar.avatar-lg {
-  height: 50px;
-  min-width: 50px;
+  max-width: 50px;
 }
 
 .avatar.avatar-list {
@@ -141,8 +140,8 @@ span.twitter-typeahead .tt-suggestion.tt-cursor:hover {
 }
 
 .card .avatar-lg {
-  height: 200px;
-  min-width: 100px;
+  max-width: 200px;
+  width: 100%;
   border-radius: 50%;
 }
 
@@ -152,8 +151,7 @@ span.twitter-typeahead .tt-suggestion.tt-cursor:hover {
 }
 
 .dropdown .avatar {
-  height: 21px;
-  min-width: 21px;
+  max-width: 21px;
 }
 
 .markdown {
