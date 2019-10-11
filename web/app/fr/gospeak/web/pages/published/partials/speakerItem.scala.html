@@ -8,7 +8,7 @@
         <img src="@speaker.avatar.url.value" alt="@speaker.name.value avatar" class="avatar avatar-list">
     </div>
     <div class="col-11">
-        <a href="@SpeakerCtrl.detail(speaker.slug)" class="no-style"><h5 class="mb-0">@speaker.name.value</h5></a>
+        <h5 class="mb-0"><a href="@SpeakerCtrl.detail(speaker.slug)" class="no-style">@speaker.name.value</a></h5>
         <p class="text-secondary font-italic no-margin">
             @speaker.profile.website.map { url => @websiteLink(url) }
             @speaker.profile.company.map { company => @companyDisplay(company) }
