@@ -68,7 +68,7 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 object EventRepoSql {
   private val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table = "events"
-  private[sql] val fields = Seq("id", "group_id", "cfp_id", "slug", "name", "start", "description", "venue", "talks", "tags", "published", "meetupGroup", "meetupEvent", "created", "created_by", "updated", "updated_by")
+  private[sql] val fields = Seq("id", "group_id", "cfp_id", "slug", "name", "start", "max_attendee", "description", "venue", "talks", "tags", "published", "meetupGroup", "meetupEvent", "created", "created_by", "updated", "updated_by")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "slug", "name", "description", "tags")
@@ -89,12 +89,12 @@ object EventRepoSql {
       contactFields.map("c." + _)).mkString(", "))
 
   private def values(e: Event): Fragment =
-    fr0"${e.id}, ${e.group}, ${e.cfp}, ${e.slug}, ${e.name}, ${e.start}, ${e.description}, ${e.venue}, ${e.talks}, ${e.tags}, ${e.published}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.event)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    fr0"${e.id}, ${e.group}, ${e.cfp}, ${e.slug}, ${e.name}, ${e.start}, ${e.maxAttendee}, ${e.description}, ${e.venue}, ${e.talks}, ${e.tags}, ${e.published}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.event)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
 
   private[sql] def insert(elt: Event): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
 
   private[sql] def update(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): doobie.Update0 = {
-    val fields = fr0"cfp_id=${data.cfp}, slug=${data.slug}, name=${data.name}, start=${data.start}, description=${data.description}, venue=${data.venue}, tags=${data.tags}, meetupGroup=${data.refs.meetup.map(_.group)}, meetupEvent=${data.refs.meetup.map(_.event)}, updated=$now, updated_by=$by"
+    val fields = fr0"cfp_id=${data.cfp}, slug=${data.slug}, name=${data.name}, start=${data.start}, max_attendee=${data.maxAttendee}, description=${data.description}, venue=${data.venue}, tags=${data.tags}, meetupGroup=${data.refs.meetup.map(_.group)}, meetupEvent=${data.refs.meetup.map(_.event)}, updated=$now, updated_by=$by"
     buildUpdate(tableFr, fields, where(group, event)).update
   }
 
