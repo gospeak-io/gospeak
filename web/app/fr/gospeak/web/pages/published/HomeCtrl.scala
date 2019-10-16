@@ -31,6 +31,11 @@ class HomeCtrl(cc: ControllerComponents,
     Ok(html.index()(b))
   }
 
+  def why(): Action[AnyContent] = UserAwareAction { implicit req =>
+    val b = breadcrumb().add("Why use Gospeak" -> routes.HomeCtrl.why())
+    Ok(html.why()(b))
+  }
+
   private val now = Instant.now()
   private val dt = new DateTime()
   private val ldt = LocalDateTime.now()
