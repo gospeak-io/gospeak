@@ -7,7 +7,7 @@ import io.circe.parser.decode
 import org.scalatest.{FunSpec, Matchers}
 
 class MeetupJsonSpec extends FunSpec with Matchers {
-  private val basePath = "infra/src/test/resources/meetup"
+  private val basePath = "src/test/resources/meetup"
 
   it("should parse access token response") {
     decode[MeetupToken](FileUtils.read(basePath + "/accessToken.json").get).toTry.get
