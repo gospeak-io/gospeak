@@ -79,11 +79,11 @@ object UserRepoSql {
   private val credentialsFields = Seq("provider_id", "provider_key", "hasher", "password", "salt")
   private val loginTable = "logins"
   private val loginFields = Seq("provider_id", "provider_key", "user_id")
-  private val table = "users"
-  private val fields = Seq("id", "slug", "first_name", "last_name", "email", "email_validated", "avatar", "avatar_source", "status", "bio", "company", "location", "twitter", "linkedin", "phone", "website", "created", "updated")
+  private[sql] val table = "users"
+  private[sql] val fields = Seq("id", "slug", "first_name", "last_name", "email", "email_validated", "avatar", "avatar_source", "status", "bio", "company", "location", "twitter", "linkedin", "phone", "website", "created", "updated")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-  private val searchFields = Seq("id", "slug", "first_name", "last_name", "email")
+  private[sql] val searchFields = Seq("id", "slug", "first_name", "last_name", "email")
   private val defaultSort = Page.OrderBy("first_name")
 
   private def values(e: User): Fragment =

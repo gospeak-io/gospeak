@@ -10,6 +10,7 @@ import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.GroupRepo
 import fr.gospeak.infra.services.storage.sql.GroupRepoSql._
+import fr.gospeak.infra.services.storage.sql.UserRepoSql.{fields => userFields, searchFields => userSearchFields, table => userTable}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
@@ -78,10 +79,19 @@ object GroupRepoSql {
   private val _ = groupIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table: String = "groups"
   private[sql] val fields: Seq[String] = Seq("id", "slug", "name", "contact", "description", "owners", "tags", "created", "created_by", "updated", "updated_by")
+  private[sql] val memberTable: String = "group_members"
+  private[sql] val memberFields: Seq[String] = Seq("group_id", "user_id", "presentation", "joined_at")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields: Seq[String] = Seq("id", "slug", "name", "contact", "description", "tags")
   private val defaultSort: Page.OrderBy = Page.OrderBy("name")
+  private val memberTableFr: Fragment = Fragment.const0(memberTable)
+  private val memberFieldsFr: Fragment = Fragment.const0(memberFields.mkString(", "))
+
+  private val memberTableWithUserFr = Fragment.const0(s"$memberTable m INNER JOIN $userTable u ON m.user_id=u.id")
+  private val memberFieldsWithUserFr = Fragment.const0((userFields.map("u." + _) ++ memberFields.filter(f => f != "group_id" && f != "user_id").map("m." + _)).mkString(", "))
+  private val memberSearchFieldsWithUser: Seq[String] = userSearchFields.map("u." + _) ++ Seq("presentation").map("m." + _)
+  private val memberDefaultSortWithUser: Page.OrderBy = Page.OrderBy("m.joined_at")
 
   private def values(e: Group): Fragment =
     fr0"${e.id}, ${e.slug}, ${e.name}, ${e.contact}, ${e.description}, ${e.owners}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
@@ -124,4 +134,15 @@ object GroupRepoSql {
   private def where(group: Group.Id): Fragment = fr0"WHERE id=$group"
 
   private def where(group: Group.Slug): Fragment = fr0"WHERE slug=$group"
+
+  private[sql] def insertMember(g: Group, u: User, presentation: Option[String], now: Instant): doobie.Update0 =
+    buildInsert(memberTableFr, memberFieldsFr, fr0"${g.id}, ${u.id}, $presentation, $now").update
+
+  private[sql] def selectPageMembers(group: Group.Id, params: Page.Params): (doobie.Query0[Group.Member], doobie.Query0[Long]) = {
+    val page = paginate(params, memberSearchFieldsWithUser, memberDefaultSortWithUser, Some(fr0"WHERE m.group_id=$group"))
+    (buildSelect(memberTableWithUserFr, memberFieldsWithUserFr, page.all).query[Group.Member], buildSelect(memberTableWithUserFr, fr0"count(*)", page.where).query[Long])
+  }
+
+  private[sql] def selectOneMember(group: Group.Id, user: User.Id): doobie.Query0[Group.Member] =
+    buildSelect(memberTableWithUserFr, memberFieldsWithUserFr, fr0"WHERE m.group_id=$group AND m.user_id=$user").query[Group.Member]
 }

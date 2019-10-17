@@ -14,6 +14,7 @@ import fr.gospeak.core.services.storage.EventRepo
 import fr.gospeak.infra.services.storage.sql.ContactRepoSql.{fields => contactFields, table => contactTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSql._
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSql.{fields => partnerFields, table => partnerTable}
+import fr.gospeak.infra.services.storage.sql.UserRepoSql.{fields => userFields, searchFields => userSearchFields, table => userTable}
 import fr.gospeak.infra.services.storage.sql.VenueRepoSql.{fields => venueFields, table => venueTable}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
@@ -69,10 +70,14 @@ object EventRepoSql {
   private val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
   private[sql] val table = "events"
   private[sql] val fields = Seq("id", "group_id", "cfp_id", "slug", "name", "start", "max_attendee", "description", "venue", "talks", "tags", "published", "meetupGroup", "meetupEvent", "created", "created_by", "updated", "updated_by")
+  private[sql] val rsvpTable: String = "event_rsvps"
+  private[sql] val rsvpFields: Seq[String] = Seq("event_id", "user_id", "answer", "answered_at")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields = Seq("id", "slug", "name", "description", "tags")
   private val defaultSort = Page.OrderBy("-start")
+  private val rsvpTableFr: Fragment = Fragment.const0(rsvpTable)
+  private val rsvpFieldsFr: Fragment = Fragment.const0(rsvpFields.mkString(", "))
 
   private val tableWithVenueFr = Fragment.const0(s"$table e LEFT OUTER JOIN $venueTable v ON e.venue=v.id")
   private val fieldsWithVenueFr = Fragment.const0((fields.map("e." + _) ++ venueFields.map("v." + _)).mkString(", "))
@@ -87,6 +92,11 @@ object EventRepoSql {
       venueFields.map("v." + _) ++
       partnerFields.map("p." + _) ++
       contactFields.map("c." + _)).mkString(", "))
+
+  private val rsvpTableWithUserFr = Fragment.const0(s"$rsvpTable r INNER JOIN $userTable u ON r.user_id=u.id")
+  private val rsvpFieldsWithUserFr = Fragment.const0((userFields.map("u." + _) ++ rsvpFields.filter(f => f != "event_id" && f != "user_id").map("r." + _)).mkString(", "))
+  private val rsvpSearchFieldsWithUser: Seq[String] = userSearchFields.map("u." + _)
+  private val rsvpDefaultSortWithUser: Page.OrderBy = Page.OrderBy("r.answered_at")
 
   private def values(e: Event): Fragment =
     fr0"${e.id}, ${e.group}, ${e.cfp}, ${e.slug}, ${e.name}, ${e.start}, ${e.maxAttendee}, ${e.description}, ${e.venue}, ${e.talks}, ${e.tags}, ${e.published}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.event)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
@@ -147,4 +157,15 @@ object EventRepoSql {
     Fragment.const0(s"SELECT tags FROM $table").query[Seq[Tag]]
 
   private def where(group: Group.Id, event: Event.Slug): Fragment = fr0"WHERE group_id=$group AND slug=$event"
+
+  private[sql] def insertRsvp(e: Event, u: User, answer: Event.Rsvp.Answer, now: Instant): doobie.Update0 =
+    buildInsert(rsvpTableFr, rsvpFieldsFr, fr0"${e.id}, ${u.id}, $answer, $now").update
+
+  private[sql] def selectPageRsvps(event: Event.Id, params: Page.Params): (doobie.Query0[Event.Rsvp], doobie.Query0[Long]) = {
+    val page = paginate(params, rsvpSearchFieldsWithUser, rsvpDefaultSortWithUser, Some(fr0"WHERE r.event_id=$event"))
+    (buildSelect(rsvpTableWithUserFr, rsvpFieldsWithUserFr, page.all).query[Event.Rsvp], buildSelect(rsvpTableWithUserFr, fr0"count(*)", page.where).query[Long])
+  }
+
+  private[sql] def selectOneRsvp(event: Event.Id, user: User.Id): doobie.Query0[Event.Rsvp] =
+    buildSelect(rsvpTableWithUserFr, rsvpFieldsWithUserFr, fr0"WHERE r.event_id=$event AND r.user_id=$user").query[Event.Rsvp]
 }

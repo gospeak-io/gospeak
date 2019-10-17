@@ -3,6 +3,8 @@ package fr.gospeak.infra.services.storage.sql
 import cats.data.NonEmptyList
 import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
+import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
+import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec.{fields => userFields, table => userTable}
 
 class GroupRepoSqlSpec extends RepoSpec {
   describe("GroupRepoSql") {
@@ -91,6 +93,25 @@ class GroupRepoSqlSpec extends RepoSpec {
         q.sql shouldBe s"SELECT tags FROM $table"
         check(q)
       }
+      describe("member") {
+        it("should build insertMember") {
+          val q = GroupRepoSql.insertMember(group, user, None, now)
+          q.sql shouldBe s"INSERT INTO $memberTable ($memberFields) VALUES (${mapFields(memberFields, _ => "?")})"
+          check(q)
+        }
+        it("should build selectPageMembers") {
+          val (s, c) = GroupRepoSql.selectPageMembers(group.id, params)
+          s.sql shouldBe s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE m.group_id=? ORDER BY m.joined_at IS NULL, m.joined_at OFFSET 0 LIMIT 20"
+          c.sql shouldBe s"SELECT count(*) FROM $memberTableWithUser WHERE m.group_id=? "
+          check(s)
+          check(c)
+        }
+        it("should build selectOneMember") {
+          val q = GroupRepoSql.selectOneMember(group.id, user.id)
+          q.sql shouldBe s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE m.group_id=? AND m.user_id=?"
+          check(q)
+        }
+      }
     }
   }
 }
@@ -98,4 +119,9 @@ class GroupRepoSqlSpec extends RepoSpec {
 object GroupRepoSqlSpec {
   val table = "groups"
   val fields = "id, slug, name, contact, description, owners, tags, created, created_by, updated, updated_by"
+
+  private val memberTable = "group_members"
+  private val memberFields = "group_id, user_id, presentation, joined_at"
+  private val memberTableWithUser = s"$memberTable m INNER JOIN $userTable u ON m.user_id=u.id"
+  private val memberFieldsWithUser = s"${mapFields(userFields, "u." + _)}, ${mapFields("presentation, joined_at", "m." + _)}"
 }

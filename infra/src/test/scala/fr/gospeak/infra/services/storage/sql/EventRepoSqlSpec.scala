@@ -1,11 +1,12 @@
 package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
-import fr.gospeak.core.domain.Group
+import fr.gospeak.core.domain.{Event, Group}
 import fr.gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{fields => contactFields, table => contactTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSqlSpec.{fields => partnerFields, table => partnerTable}
 import fr.gospeak.infra.services.storage.sql.VenueRepoSqlSpec.{fields => venueFields, table => venueTable}
+import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec.{fields => userFields, table => userTable}
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class EventRepoSqlSpec extends RepoSpec {
@@ -98,6 +99,25 @@ class EventRepoSqlSpec extends RepoSpec {
         check(s)
         check(c)
       }
+      describe("rsvp") {
+        it("should build insertRsvp") {
+          val q = EventRepoSql.insertRsvp(event, user, Event.Rsvp.Answer.Yes, now)
+          q.sql shouldBe s"INSERT INTO $rsvpTable ($rsvpFields) VALUES (${mapFields(rsvpFields, _ => "?")})"
+          check(q)
+        }
+        it("should build selectPageRsvps") {
+          val (s, c) = EventRepoSql.selectPageRsvps(event.id, params)
+          s.sql shouldBe s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE r.event_id=? ORDER BY r.answered_at IS NULL, r.answered_at OFFSET 0 LIMIT 20"
+          c.sql shouldBe s"SELECT count(*) FROM $rsvpTableWithUser WHERE r.event_id=? "
+          check(s)
+          check(c)
+        }
+        it("should build selectOneRsvp") {
+          val q = EventRepoSql.selectOneRsvp(event.id, user.id)
+          q.sql shouldBe s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE r.event_id=? AND r.user_id=?"
+          check(q)
+        }
+      }
     }
   }
 }
@@ -114,4 +134,9 @@ object EventRepoSqlSpec {
 
   private val tableFull = s"$table e LEFT OUTER JOIN $venueTable v ON e.venue=v.id LEFT OUTER JOIN $partnerTable p ON v.partner_id=p.id LEFT OUTER JOIN $contactTable c ON v.contact_id=c.id"
   private val fieldsFull = s"${mapFields(fields, "e." + _)}, ${mapFields(venueFields, "v." + _)}, ${mapFields(partnerFields, "p." + _)}, ${mapFields(contactFields, "c." + _)}"
+
+  private val rsvpTable = "event_rsvps"
+  private val rsvpFields = "event_id, user_id, answer, answered_at"
+  private val rsvpTableWithUser = s"$rsvpTable r INNER JOIN $userTable u ON r.user_id=u.id"
+  private val rsvpFieldsWithUser = s"${mapFields(userFields, "u." + _)}, ${mapFields("answer, answered_at", "r." + _)}"
 }

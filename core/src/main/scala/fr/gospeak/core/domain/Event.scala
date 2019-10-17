@@ -50,6 +50,30 @@ object Event {
 
   final case class ExtRefs(meetup: Option[MeetupEvent.Ref] = None)
 
+  final case class Rsvp(user: User,
+                        answer: Rsvp.Answer,
+                        rsvpAt: Instant)
+
+  object Rsvp {
+
+    sealed trait Answer
+
+    object Answer {
+
+      case object Yes extends Answer
+
+      case object No extends Answer
+
+      case object Wait extends Answer
+
+      val all: Seq[Answer] = Seq(Yes, No, Wait)
+
+      def from(str: String): Either[CustomException, Answer] =
+        all.find(_.toString == str).map(Right(_)).getOrElse(Left(CustomException(s"'$str' is not a valid Event.Rsvp.Answer")))
+    }
+
+  }
+
   final case class Full(event: Event, venue: Option[Venue.Full]) {
     def slug: Slug = event.slug
 
@@ -73,7 +97,7 @@ object Event {
                         refs: Event.ExtRefs)
 
   object Data {
-    def apply(event: Event): Data = new Data(event.cfp, event.slug, event.name, event.start,  event.maxAttendee, event.venue, event.description, event.tags, event.refs)
+    def apply(event: Event): Data = new Data(event.cfp, event.slug, event.name, event.start, event.maxAttendee, event.venue, event.description, event.tags, event.refs)
   }
 
 }

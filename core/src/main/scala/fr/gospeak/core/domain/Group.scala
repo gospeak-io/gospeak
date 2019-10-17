@@ -1,5 +1,7 @@
 package fr.gospeak.core.domain
 
+import java.time.Instant
+
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.{Info, TemplateData}
 import fr.gospeak.core.services.meetup.domain.MeetupCredentials
@@ -34,6 +36,10 @@ object Group {
   object Slug extends SlugBuilder[Slug]("Group.Slug", new Slug(_))
 
   final case class Name(value: String) extends AnyVal
+
+  final case class Member(user: User,
+                          presentation: Option[String],
+                          joinedAt: Instant)
 
   final case class Data(slug: Group.Slug,
                         name: Group.Name,
