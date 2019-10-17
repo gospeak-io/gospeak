@@ -1,5 +1,5 @@
 ALTER TABLE events
-    ADD COLUMN max_attendee INT AFTER start;
+    ADD COLUMN max_attendee INT;
 
 CREATE TABLE group_members
 (
