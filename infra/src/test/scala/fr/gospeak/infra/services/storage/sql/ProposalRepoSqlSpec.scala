@@ -113,46 +113,46 @@ class ProposalRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build selectPage for a cfp and status") {
-        val (s, c) = ProposalRepoSql.selectPage(cfp.id, Proposal.Status.Pending, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE cfp_id=? AND status=? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE cfp_id=? AND status=? "
-        check(s)
-        check(c)
+        val q = ProposalRepoSql.selectPage(cfp.id, Proposal.Status.Pending, params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE cfp_id=? AND status=? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE cfp_id=? AND status=? "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectPageFull for a talk") {
-        val (s, c) = ProposalRepoSql.selectPageFull(talk.id, params)
-        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.talk_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE p.talk_id=? "
-        check(s)
-        check(c)
+        val q = ProposalRepoSql.selectPageFull(talk.id, params)
+        q.query.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.talk_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE p.talk_id=? "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectPageFull for a group and speaker") {
-        val (s, c) = ProposalRepoSql.selectPageFull(group.id, user.id, params)
-        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? AND p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE c.group_id=? AND p.speakers LIKE ? "
-        check(s)
-        check(c)
+        val q = ProposalRepoSql.selectPageFull(group.id, user.id, params)
+        q.query.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? AND p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE c.group_id=? AND p.speakers LIKE ? "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectPageFull for a speaker") {
-        val (s, c) = ProposalRepoSql.selectPageFull(user.id, params)
-        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE p.speakers LIKE ? "
-        check(s)
-        check(c)
+        val q = ProposalRepoSql.selectPageFull(user.id, params)
+        q.query.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE p.speakers LIKE ? "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectPagePublicFull for a speaker") {
-        val (s, c) = ProposalRepoSql.selectPagePublicFull(user.id, params)
-        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL "
-        check(s)
-        check(c)
+        val q = ProposalRepoSql.selectPagePublicFull(user.id, params)
+        q.query.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectPagePublicFull for a group") {
-        val (s, c) = ProposalRepoSql.selectPagePublicFull(group.id, params)
-        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL "
-        check(s)
-        check(c)
+        val q = ProposalRepoSql.selectPagePublicFull(group.id, params)
+        q.query.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectAll") {
         val q = ProposalRepoSql.selectAll(NonEmptyList.of(proposal.id))

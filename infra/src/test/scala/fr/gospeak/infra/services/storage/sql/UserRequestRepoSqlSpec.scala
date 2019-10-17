@@ -14,11 +14,11 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build selectPage for user") {
-        val (s, c) = UserRequestRepoSql.selectPage(user.id, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE created_by=? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE created_by=? "
-        check(s)
-        check(c)
+        val q = UserRequestRepoSql.selectPage(user.id, params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE created_by=? ORDER BY created IS NULL, created DESC OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE created_by=? "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectAllPending for group") {
         val q = UserRequestRepoSql.selectAllPending(group.id, now)

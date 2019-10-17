@@ -54,18 +54,48 @@ object DoobieUtils {
       def all: Fragment = Seq(where, orderBy, limit).reduce(_ ++ _)
     }
 
-    // TODO improve tests & extract some methods
-    def paginate(params: Page.Params, searchFields: Seq[String], defaultSort: Page.OrderBy, whereOpt: Option[Fragment] = None, prefix: Option[String] = None): Paginate = {
-      val search = params.search.filter(_ => searchFields.nonEmpty)
-        .map { search => searchFields.map(s => Fragment.const(prefix.map(_ + ".").getOrElse("") + s) ++ fr"ILIKE ${"%" + search.value + "%"}").reduce(_ ++ fr"OR" ++ _) }
-        .map { search => whereOpt.map(_ ++ fr" AND" ++ fr0"(" ++ search ++ fr")").getOrElse(fr"WHERE" ++ search) }
-        .orElse(whereOpt.map(_ ++ space))
-        .getOrElse(empty)
+    object Paginate {
+      // TODO improve tests & extract some methods
+      private[utils] def apply(params: Page.Params, searchFields: Seq[String], defaultSort: Page.OrderBy, whereOpt: Option[Fragment] = None, prefix: Option[String] = None): Paginate = {
+        val search = params.search.filter(_ => searchFields.nonEmpty)
+          .map { search => searchFields.map(s => Fragment.const(prefix.map(_ + ".").getOrElse("") + s) ++ fr"ILIKE ${"%" + search.value + "%"}").reduce(_ ++ fr"OR" ++ _) }
+          .map { search => whereOpt.map(_ ++ fr" AND" ++ fr0"(" ++ search ++ fr")").getOrElse(fr"WHERE" ++ search) }
+          .orElse(whereOpt.map(_ ++ space))
+          .getOrElse(empty)
 
-      Paginate(
-        search,
-        orderByFragment(params.orderBy.getOrElse(defaultSort), prefix, params.nullsFirst),
-        limitFragment(params.offsetStart, params.pageSize))
+        Paginate(
+          search,
+          orderByFragment(params.orderBy.getOrElse(defaultSort), prefix, params.nullsFirst),
+          limitFragment(params.offsetStart, params.pageSize))
+      }
+    }
+
+    final case class Paginated[A](query: doobie.Query0[A],
+                                  count: doobie.Query0[Long],
+                                  params: Page.Params) {
+      def page: doobie.ConnectionIO[Page[A]] = for {
+        elts <- query.to[List]
+        total <- count.unique
+      } yield Page(elts, params, Page.Total(total))
+    }
+
+    object Paginated {
+      def apply[A: Read](table: Fragment, fields: Fragment, where: Option[Fragment], params: Page.Params, orderBy: Page.OrderBy, search: Seq[String], prefix: Option[String]): Paginated[A] = {
+        val page = Paginate(params, search, orderBy, where, prefix)
+        Paginated(
+          query = buildSelect(table, fields, page.all).query[A],
+          count = buildSelect(table, fr0"count(*)", page.where).query[Long],
+          params = params)
+      }
+
+      def apply[A: Read](table: Fragment, fields: Fragment, params: Page.Params, orderBy: Page.OrderBy, search: Seq[String]): Paginated[A] =
+        apply[A](table, fields, None, params, orderBy, search, None)
+
+      def apply[A: Read](table: Fragment, fields: Fragment, where: Fragment, params: Page.Params, orderBy: Page.OrderBy, search: Seq[String]): Paginated[A] =
+        apply[A](table, fields, Some(where), params, orderBy, search, None)
+
+      def apply[A: Read](table: Fragment, fields: Fragment, where: Fragment, params: Page.Params, orderBy: Page.OrderBy, search: Seq[String], prefix: String): Paginated[A] =
+        apply[A](table, fields, Some(where), params, orderBy, search, Some(prefix))
     }
 
     def orderByFragment(orderBy: Page.OrderBy, prefix: Option[String] = None, nullsFirst: Boolean = false): Fragment = {
@@ -95,14 +125,6 @@ object DoobieUtils {
 
     def insertMany[A](insert: A => doobie.Update0)(elts: NonEmptyList[A])(implicit w: Write[A]): doobie.ConnectionIO[Int] =
       Update[A](insert(elts.head).sql).updateMany(elts)
-
-    def selectPage[A](in: Page.Params => (doobie.Query0[A], doobie.Query0[Long]), params: Page.Params): doobie.ConnectionIO[Page[A]] = {
-      val (select, count) = in(params)
-      for {
-        elts <- select.to[List]
-        total <- count.unique
-      } yield Page(elts, params, Page.Total(total))
-    }
   }
 
   object Mappings {

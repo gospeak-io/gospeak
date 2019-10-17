@@ -18,11 +18,11 @@ class PartnerRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build selectPage") {
-        val (s, c) = PartnerRepoSql.selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE group_id=? "
-        check(s)
-        check(c)
+        val q = PartnerRepoSql.selectPage(group.id, params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE group_id=? "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectAll") {
         val q = PartnerRepoSql.selectAll(group.id)

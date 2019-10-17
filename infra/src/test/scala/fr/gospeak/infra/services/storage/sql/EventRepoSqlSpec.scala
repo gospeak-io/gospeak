@@ -64,18 +64,18 @@ class EventRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build selectPage") {
-        val (s, c) = EventRepoSql.selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE group_id=? "
-        check(s)
-        check(c)
+        val q = EventRepoSql.selectPage(group.id, params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE group_id=? "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectPagePublished") {
-        val (s, c) = EventRepoSql.selectPagePublished(group.id, params)
-        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL ORDER BY e.start IS NULL, e.start DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL "
-        check(s)
-        check(c)
+        val q = EventRepoSql.selectPagePublished(group.id, params)
+        q.query.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL ORDER BY e.start IS NULL, e.start DESC OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectAll for venue") {
         val q = EventRepoSql.selectAll(group.id, venue.id)
@@ -92,12 +92,12 @@ class EventRepoSqlSpec extends RepoSpec {
         q.sql shouldBe s"SELECT $fields FROM $table WHERE id IN (?) "
         check(q)
       }
-      it("should build selectAllAfter") {
-        val (s, c) = EventRepoSql.selectAllAfter(group.id, now, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? AND start > ? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE group_id=? AND start > ? "
-        check(s)
-        check(c)
+      it("should build selectPageAfter") {
+        val q = EventRepoSql.selectPageAfter(group.id, now, params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? AND start > ? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE group_id=? AND start > ? "
+        check(q.query)
+        check(q.count)
       }
       describe("rsvp") {
         it("should build insertRsvp") {
@@ -106,11 +106,11 @@ class EventRepoSqlSpec extends RepoSpec {
           check(q)
         }
         it("should build selectPageRsvps") {
-          val (s, c) = EventRepoSql.selectPageRsvps(event.id, params)
-          s.sql shouldBe s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE r.event_id=? ORDER BY r.answered_at IS NULL, r.answered_at OFFSET 0 LIMIT 20"
-          c.sql shouldBe s"SELECT count(*) FROM $rsvpTableWithUser WHERE r.event_id=? "
-          check(s)
-          check(c)
+          val q = EventRepoSql.selectPageRsvps(event.id, params)
+          q.query.sql shouldBe s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE r.event_id=? ORDER BY r.answered_at IS NULL, r.answered_at OFFSET 0 LIMIT 20"
+          q.count.sql shouldBe s"SELECT count(*) FROM $rsvpTableWithUser WHERE r.event_id=? "
+          check(q.query)
+          check(q.count)
         }
         it("should build selectOneRsvp") {
           val q = EventRepoSql.selectOneRsvp(event.id, user.id)

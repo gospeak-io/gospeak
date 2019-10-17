@@ -14,8 +14,7 @@ import fr.gospeak.infra.services.storage.sql.TalkRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.Queries
-import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video, _}
+import fr.gospeak.libs.scalautils.domain._
 
 class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with TalkRepo {
   override def create(data: Talk.Data, by: User.Id, now: Instant): IO[Talk] =
@@ -71,11 +70,11 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def find(talk: Talk.Id): IO[Option[Talk]] = run(selectOne(talk).option)
 
-  override def list(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(selectPage(user, _), params))
+  override def list(user: User.Id, params: Page.Params): IO[Page[Talk]] = run(selectPage(user, params).page)
 
-  override def list(user: User.Id, status: Talk.Status, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(selectPage(user, status, _), params))
+  override def list(user: User.Id, status: Talk.Status, params: Page.Params): IO[Page[Talk]] = run(selectPage(user, status, params).page)
 
-  override def listActive(user: User.Id, cfp: Cfp.Id, params: Page.Params): IO[Page[Talk]] = run(Queries.selectPage(selectPage(user, cfp, Talk.Status.active, _), params))
+  override def listActive(user: User.Id, cfp: Cfp.Id, params: Page.Params): IO[Page[Talk]] = run(selectPage(user, cfp, Talk.Status.active, params).page)
 
   private def find(talk: Talk.Slug): IO[Option[Talk]] = run(selectOne(talk).option)
 
@@ -95,10 +94,10 @@ object TalkRepoSql {
   private val searchFields = Seq("id", "slug", "title", "description", "tags")
   private val defaultSort = Page.OrderBy("title")
 
-  private def values(e: Talk): Fragment =
-    fr0"${e.id}, ${e.slug}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
-
-  private[sql] def insert(elt: Talk): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
+  private[sql] def insert(e: Talk): doobie.Update0 = {
+    val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    buildInsert(tableFr, fieldsFr, values).update
+  }
 
   private[sql] def update(talk: Talk.Slug)(data: Talk.Data, by: User.Id, now: Instant): doobie.Update0 = {
     val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$by"
@@ -126,21 +125,15 @@ object TalkRepoSql {
   private[sql] def selectOne(user: User.Id, talk: Talk.Slug): doobie.Query0[Talk] =
     buildSelect(tableFr, fieldsFr, where(user, talk)).query[Talk]
 
-  private[sql] def selectPage(user: User.Id, params: Page.Params): (doobie.Query0[Talk], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE speakers LIKE ${"%" + user.value + "%"}"))
-    (buildSelect(tableFr, fieldsFr, page.all).query[Talk], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
-  }
+  private[sql] def selectPage(user: User.Id, params: Page.Params): Paginated[Talk] =
+    Paginated[Talk](tableFr, fieldsFr, fr0"WHERE speakers LIKE ${"%" + user.value + "%"}", params, defaultSort, searchFields)
 
-  private[sql] def selectPage(user: User.Id, status: Talk.Status, params: Page.Params): (doobie.Query0[Talk], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND status=$status"))
-    (buildSelect(tableFr, fieldsFr, page.all).query[Talk], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
-  }
+  private[sql] def selectPage(user: User.Id, status: Talk.Status, params: Page.Params): Paginated[Talk] =
+    Paginated[Talk](tableFr, fieldsFr, fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND status=$status", params, defaultSort, searchFields)
 
-  private[sql] def selectPage(user: User.Id, cfp: Cfp.Id, status: NonEmptyList[Talk.Status], params: Page.Params): (doobie.Query0[Talk], doobie.Query0[Long]) = {
+  private[sql] def selectPage(user: User.Id, cfp: Cfp.Id, status: NonEmptyList[Talk.Status], params: Page.Params): Paginated[Talk] = {
     val cfpTalks = buildSelect(ProposalRepoSql.tableFr, fr0"talk_id", fr0"WHERE cfp_id=$cfp")
-    val where = fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND id NOT IN (" ++ cfpTalks ++ fr0") AND " ++ Fragments.in(fr"status", status)
-    val page = paginate(params, searchFields, defaultSort, Some(where))
-    (buildSelect(tableFr, fieldsFr, page.all).query[Talk], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+    Paginated[Talk](tableFr, fieldsFr, fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND id NOT IN (" ++ cfpTalks ++ fr0") AND " ++ Fragments.in(fr"status", status), params, defaultSort, searchFields)
   }
 
   private[sql] def selectTags(): doobie.Query0[Seq[Tag]] =

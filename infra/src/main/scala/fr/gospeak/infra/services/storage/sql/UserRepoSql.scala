@@ -13,7 +13,6 @@ import fr.gospeak.infra.services.storage.sql.UserRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRepo {
@@ -64,11 +63,11 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
     val speakerIdsQuery = fr0"SELECT p.speakers FROM proposals p INNER JOIN cfps c ON c.id=p.cfp_id WHERE c.group_id=$group".query[NonEmptyList[User.Id]]
     for {
       speakerIds <- run(speakerIdsQuery.to[List]).map(_.flatMap(_.toList).distinct)
-      res <- NonEmptyList.fromList(speakerIds).map(ids => run(Queries.selectPage(selectPage(ids, _), params))).getOrElse(IO.pure(Page.empty[User]))
+      res <- NonEmptyList.fromList(speakerIds).map(ids => run(selectPage(ids, params).page)).getOrElse(IO.pure(Page.empty[User]))
     } yield res
   }
 
-  override def listPublic(params: Page.Params): IO[Page[User]] = run(Queries.selectPage(selectPagePublic, params))
+  override def listPublic(params: Page.Params): IO[Page[User]] = run(selectPagePublic(params).page)
 
   override def list(ids: Seq[User.Id]): IO[Seq[User]] = runIn(selectAll)(ids)
 }
@@ -86,10 +85,10 @@ object UserRepoSql {
   private[sql] val searchFields = Seq("id", "slug", "first_name", "last_name", "email")
   private val defaultSort = Page.OrderBy("first_name")
 
-  private def values(e: User): Fragment =
-    fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.profile.status}, ${e.profile.bio}, ${e.profile.company}, ${e.profile.location}, ${e.profile.twitter}, ${e.profile.linkedin}, ${e.profile.phone}, ${e.profile.website}, ${e.created}, ${e.updated}"
-
-  private[sql] def insert(elt: User): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
+  private[sql] def insert(e: User): doobie.Update0 = {
+    val values = fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.profile.status}, ${e.profile.bio}, ${e.profile.company}, ${e.profile.location}, ${e.profile.twitter}, ${e.profile.linkedin}, ${e.profile.phone}, ${e.profile.website}, ${e.created}, ${e.updated}"
+    buildInsert(tableFr, fieldsFr, values).update
+  }
 
   private[sql] def update(elt: User): doobie.Update0 = {
     val fields = fr0"slug=${elt.slug}, first_name=${elt.firstName}, last_name=${elt.lastName}, email=${elt.email}, status=${elt.profile.status}, bio=${elt.profile.bio}, company=${elt.profile.company}, location=${elt.profile.location}, twitter=${elt.profile.twitter}, linkedin=${elt.profile.linkedin}, phone=${elt.profile.phone}, website=${elt.profile.website}, updated=${elt.updated}"
@@ -141,22 +140,18 @@ object UserRepoSql {
   }
 
   // should replace def selectPage(ids: NonEmptyList[User.Id], params: Page.Params) when split or array works...
-  /* private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[User], doobie.Query0[Long]) = {
+  /* private[sql] def selectPage(group: Group.Id, params: Page.Params): Paginated[User] = {
     val speakerIds = fr0"SELECT p.speakers FROM proposals p INNER JOIN cfps c ON c.id=p.cfp_id WHERE c.group_id=$group"
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE id IN (" ++ speakerIds ++ fr0")"))
-    (buildSelect(tableFr, fieldsFr, page.all).query[User], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+    Paginated[User](tableFr, fieldsFr, fr0"WHERE id IN (" ++ speakerIds ++ fr0")", params, defaultSort, searchFields)
   } */
 
-  private[sql] def selectPagePublic(params: Page.Params): (doobie.Query0[User], doobie.Query0[Long]) = {
+  private[sql] def selectPagePublic(params: Page.Params): Paginated[User] = {
     val public: User.Profile.Status = User.Profile.Status.Public
-    val page = paginate(params, searchFields, defaultSort, Some(fr"WHERE status=$public"))
-    (buildSelect(tableFr, fieldsFr, page.all).query[User], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
+    Paginated[User](tableFr, fieldsFr, fr"WHERE status=$public", params, defaultSort, searchFields)
   }
 
-  private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params): (doobie.Query0[User], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr"WHERE" ++ Fragments.in(fr"id", ids)))
-    (buildSelect(tableFr, fieldsFr, page.all).query[User], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
-  }
+  private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params): Paginated[User] =
+    Paginated[User](tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids), params, defaultSort, searchFields)
 
   private[sql] def selectAll(ids: NonEmptyList[User.Id]): doobie.Query0[User] =
     buildSelect(tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids)).query[User]

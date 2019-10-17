@@ -25,11 +25,11 @@ class SponsorRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build selectPage") {
-        val (s, c) = SponsorRepoSql.selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE s.group_id=? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE s.group_id=? "
-        check(s)
-        check(c)
+        val q = SponsorRepoSql.selectPage(group.id, params)
+        q.query.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE s.group_id=? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE s.group_id=? "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectCurrent") {
         val q = SponsorRepoSql.selectCurrent(group.id, now)

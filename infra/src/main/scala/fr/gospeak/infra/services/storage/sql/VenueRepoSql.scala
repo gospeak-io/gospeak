@@ -16,7 +16,6 @@ import fr.gospeak.infra.services.storage.sql.VenueRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
 class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with VenueRepo {
@@ -26,7 +25,7 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def edit(group: Group.Id, id: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): IO[Done] =
     run(update(group, id)(data, by, now))
 
-  override def listFull(group: Group.Id, params: Page.Params): IO[Page[Venue.Full]] = run(Queries.selectPage(selectPageFull(group, _), params))
+  override def listFull(group: Group.Id, params: Page.Params): IO[Page[Venue.Full]] = run(selectPageFull(group, params).page)
 
   override def listFull(partner: Partner.Id): IO[Seq[Venue.Full]] = run(selectAllFull(partner).to[List])
 
@@ -50,11 +49,10 @@ object VenueRepoSql {
   private val tableFullFr = Fragment.const0(s"$table v INNER JOIN $partnerTable p ON v.partner_id=p.id LEFT OUTER JOIN $contactTable c ON v.contact_id=c.id")
   private val fieldsFullFr = Fragment.const0((fields.map("v." + _) ++ partnerFields.map("p." + _) ++ contactFields.map("c." + _)).mkString(", "))
 
-  private def values(e: Venue): Fragment =
-    fr0"${e.id}, ${e.partner}, ${e.contact}, ${e.address}, ${e.address.geo.lat}, ${e.address.geo.lng}, ${e.address.country}, ${e.description}, ${e.roomSize}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.venue)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
-
-  private[sql] def insert(elt: Venue): doobie.Update0 =
-    buildInsert(tableFr, writeFieldsFr, values(elt)).update
+  private[sql] def insert(e: Venue): doobie.Update0 = {
+    val values = fr0"${e.id}, ${e.partner}, ${e.contact}, ${e.address}, ${e.address.geo.lat}, ${e.address.geo.lng}, ${e.address.country}, ${e.description}, ${e.roomSize}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.venue)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    buildInsert(tableFr, writeFieldsFr, values).update
+  }
 
   private[sql] def update(group: Group.Id, id: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): doobie.Update0 = {
     val fields = fr0"contact_id=${data.contact}, address=${data.address}, address_lat=${data.address.geo.lat}, address_lng=${data.address.geo.lng}, address_country=${data.address.country}, description=${data.description}, room_size=${data.roomSize}, meetupGroup=${data.refs.meetup.map(_.group)}, meetupVenue=${data.refs.meetup.map(_.venue)}, updated=$now, updated_by=$by"
@@ -64,10 +62,8 @@ object VenueRepoSql {
   private[sql] def selectOneFull(group: Group.Id, id: Venue.Id): doobie.Query0[Venue.Full] =
     buildSelect(tableFullFr, fieldsFullFr, fr0"WHERE p.group_id=$group AND v.id=$id").query[Venue.Full]
 
-  private[sql] def selectPageFull(group: Group.Id, params: Page.Params): (doobie.Query0[Venue.Full], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.group_id=$group"), Some("v"))
-    (buildSelect(tableFullFr, fieldsFullFr, page.all).query[Venue.Full], buildSelect(tableFullFr, fr0"count(*)", page.where).query[Long])
-  }
+  private[sql] def selectPageFull(group: Group.Id, params: Page.Params): Paginated[Venue.Full] =
+    Paginated[Venue.Full](tableFullFr, fieldsFullFr, fr0"WHERE p.group_id=$group", params, defaultSort, searchFields, "v")
 
   private[sql] def selectAllFull(group: Group.Id): doobie.Query0[Venue.Full] =
     buildSelect(tableFullFr, fieldsFullFr, fr"WHERE p.group_id=$group").query[Venue.Full]
@@ -81,5 +77,3 @@ object VenueRepoSql {
   private def where(group: Group.Id, id: Venue.Id): Fragment =
     fr0"WHERE id=(SELECT v.id FROM " ++ tableFullFr ++ fr0" WHERE p.group_id=$group AND v.id=$id" ++ fr0")"
 }
-
-

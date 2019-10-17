@@ -6,13 +6,12 @@ import cats.effect.IO
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.UserRequest._
-import fr.gospeak.core.domain.{Group, Proposal, Talk, User, UserRequest}
+import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage.UserRequestRepo
 import fr.gospeak.infra.services.storage.sql.UserRequestRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
@@ -24,7 +23,7 @@ class UserRequestRepoSql(groupRepo: GroupRepoSql,
     run(selectOne(id).option)
 
   override def list(user: User.Id, params: Page.Params): IO[Page[UserRequest]] =
-    run(Queries.selectPage(selectPage(user, _), params))
+    run(selectPage(user, params).page)
 
   override def listPendingGroupRequests(group: Group.Id, now: Instant): IO[Seq[UserRequest]] =
     run(selectAllPending(group, now).to[List])
@@ -150,10 +149,8 @@ object UserRequestRepoSql {
   private[sql] def selectOnePending(group: Group.Id, req: UserRequest.Id, now: Instant): doobie.Query0[UserRequest] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE id=$req AND group_id=$group AND accepted IS NULL AND rejected IS NULL AND (deadline IS NULL OR deadline > $now)").query[UserRequest]
 
-  private[sql] def selectPage(user: User.Id, params: Page.Params): (doobie.Query0[UserRequest], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE created_by=$user"))
-    (buildSelect(tableFr, fieldsFr, page.all).query[UserRequest], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
-  }
+  private[sql] def selectPage(user: User.Id, params: Page.Params): Paginated[UserRequest] =
+    Paginated[UserRequest](tableFr, fieldsFr, fr0"WHERE created_by=$user", params, defaultSort, searchFields)
 
   private[sql] def selectAllPending(group: Group.Id, now: Instant): doobie.Query0[UserRequest] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE group_id=$group AND accepted IS NULL AND rejected IS NULL AND (deadline IS NULL OR deadline > $now)").query[UserRequest]

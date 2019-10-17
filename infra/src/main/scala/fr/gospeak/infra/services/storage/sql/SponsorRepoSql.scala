@@ -8,14 +8,13 @@ import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.SponsorRepo
-import fr.gospeak.infra.services.storage.sql.ContactRepoSql.{fields => contactFields, table => contactTable, searchFields => contactSearch}
-import fr.gospeak.infra.services.storage.sql.PartnerRepoSql.{fields => partnerFields, table => partnerTable, searchFields => partnerSearch}
-import fr.gospeak.infra.services.storage.sql.SponsorPackRepoSql.{fields => sponsorPackFields, table => sponsorPackTable, searchFields => sponsorPackSearch}
+import fr.gospeak.infra.services.storage.sql.ContactRepoSql.{fields => contactFields, searchFields => contactSearch, table => contactTable}
+import fr.gospeak.infra.services.storage.sql.PartnerRepoSql.{fields => partnerFields, searchFields => partnerSearch, table => partnerTable}
+import fr.gospeak.infra.services.storage.sql.SponsorPackRepoSql.{fields => sponsorPackFields, searchFields => sponsorPackSearch, table => sponsorPackTable}
 import fr.gospeak.infra.services.storage.sql.SponsorRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
 class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SponsorRepo {
@@ -30,7 +29,7 @@ class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def find(group: Group.Id, sponsor: Sponsor.Id): IO[Option[Sponsor]] = run(selectOne(group, sponsor).option)
 
-  override def listFull(group: Group.Id, params: Page.Params): IO[Page[Sponsor.Full]] = run(Queries.selectPage(selectPage(group, _), params))
+  override def listFull(group: Group.Id, params: Page.Params): IO[Page[Sponsor.Full]] = run(selectPage(group, params).page)
 
   override def listCurrentFull(group: Group.Id, now: Instant): IO[Seq[Sponsor.Full]] = run(selectCurrent(group, now).to[List])
 
@@ -59,10 +58,10 @@ object SponsorRepoSql {
       partnerFields.map("p." + _) ++
       contactFields.map("c." + _)).mkString(", "))
 
-  private def values(e: Sponsor): Fragment =
-    fr0"${e.id}, ${e.group}, ${e.partner}, ${e.pack}, ${e.contact}, ${e.start}, ${e.finish}, ${e.paid}, ${e.price.amount}, ${e.price.currency}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
-
-  private[sql] def insert(elt: Sponsor): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
+  private[sql] def insert(e: Sponsor): doobie.Update0 = {
+    val values = fr0"${e.id}, ${e.group}, ${e.partner}, ${e.pack}, ${e.contact}, ${e.start}, ${e.finish}, ${e.paid}, ${e.price.amount}, ${e.price.currency}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    buildInsert(tableFr, fieldsFr, values).update
+  }
 
   private[sql] def update(group: Group.Id, sponsor: Sponsor.Id)(data: Sponsor.Data, by: User.Id, now: Instant): doobie.Update0 = {
     val fields = fr0"partner_id=${data.partner}, sponsor_pack_id=${data.pack}, contact_id=${data.contact}, start=${data.start}, finish=${data.finish}, paid=${data.paid}, price=${data.price.amount}, currency=${data.price.currency}, updated=$now, updated_by=$by"
@@ -75,10 +74,9 @@ object SponsorRepoSql {
   private[sql] def selectOne(group: Group.Id, pack: Sponsor.Id): doobie.Query0[Sponsor] =
     buildSelect(tableFr, fieldsFr, where(group, pack)).query[Sponsor]
 
-  private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[Sponsor.Full], doobie.Query0[Long]) = {
+  private[sql] def selectPage(group: Group.Id, params: Page.Params): Paginated[Sponsor.Full] = {
     val search = searchFields.map("s." + _) ++ sponsorPackSearch.map("sp." + _) ++ partnerSearch.map("p." + _) ++ contactSearch.map("c." + _)
-    val page = paginate(params, search, defaultSort, Some(fr0"WHERE s.group_id=$group"))
-    (buildSelect(tableFullFr, fieldsFullFr, page.all).query[Sponsor.Full], buildSelect(tableFullFr, fr0"count(*)", page.where).query[Long])
+    Paginated[Sponsor.Full](tableFullFr, fieldsFullFr, fr0"WHERE s.group_id=$group", params, defaultSort, search)
   }
 
   private[sql] def selectCurrent(group: Group.Id, now: Instant): doobie.Query0[Sponsor.Full] =

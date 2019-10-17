@@ -55,18 +55,18 @@ class GroupRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build selectPage") {
-        val (s, c) = GroupRepoSql.selectPage(params)
-        s.sql shouldBe s"SELECT $fields FROM $table ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table "
-        check(s)
-        check(c)
+        val q = GroupRepoSql.selectPage(params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectPageJoinable") {
-        val (s, c) = GroupRepoSql.selectPageJoinable(user.id, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE owners NOT LIKE ? ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE owners NOT LIKE ? "
-        check(s)
-        check(c)
+        val q = GroupRepoSql.selectPageJoinable(user.id, params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE owners NOT LIKE ? ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE owners NOT LIKE ? "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectAll") {
         val q = GroupRepoSql.selectAll(user.id)
@@ -100,11 +100,11 @@ class GroupRepoSqlSpec extends RepoSpec {
           check(q)
         }
         it("should build selectPageMembers") {
-          val (s, c) = GroupRepoSql.selectPageMembers(group.id, params)
-          s.sql shouldBe s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE m.group_id=? ORDER BY m.joined_at IS NULL, m.joined_at OFFSET 0 LIMIT 20"
-          c.sql shouldBe s"SELECT count(*) FROM $memberTableWithUser WHERE m.group_id=? "
-          check(s)
-          check(c)
+          val q = GroupRepoSql.selectPageMembers(group.id, params)
+          q.query.sql shouldBe s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE m.group_id=? ORDER BY m.joined_at IS NULL, m.joined_at OFFSET 0 LIMIT 20"
+          q.count.sql shouldBe s"SELECT count(*) FROM $memberTableWithUser WHERE m.group_id=? "
+          check(q.query)
+          check(q.count)
         }
         it("should build selectOneMember") {
           val q = GroupRepoSql.selectOneMember(group.id, user.id)

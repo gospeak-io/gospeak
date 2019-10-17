@@ -50,11 +50,11 @@ class ContactRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build selectPage") {
-        val (s, c) = ContactRepoSql.selectPage(partner.id, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE partner_id=? ORDER BY created IS NULL, created OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT COUNT(*) FROM $table WHERE partner_id=? "
-        check(s)
-        check(c)
+        val q = ContactRepoSql.selectPage(partner.id, params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE partner_id=? ORDER BY created IS NULL, created OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE partner_id=? "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectAll") {
         val q = ContactRepoSql.selectAll(partner.id)

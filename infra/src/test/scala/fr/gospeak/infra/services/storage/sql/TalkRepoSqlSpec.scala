@@ -95,25 +95,25 @@ class TalkRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build selectPage for user") {
-        val (s, c) = TalkRepoSql.selectPage(user.id, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE speakers LIKE ? ORDER BY title IS NULL, title OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE speakers LIKE ? "
-        check(s)
-        check(c)
+        val q = TalkRepoSql.selectPage(user.id, params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE speakers LIKE ? ORDER BY title IS NULL, title OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE speakers LIKE ? "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectPage for user and status") {
-        val (s, c) = TalkRepoSql.selectPage(user.id, talk.status, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE speakers LIKE ? AND status=? ORDER BY title IS NULL, title OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE speakers LIKE ? AND status=? "
-        check(s)
-        check(c)
+        val q = TalkRepoSql.selectPage(user.id, talk.status, params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE speakers LIKE ? AND status=? ORDER BY title IS NULL, title OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE speakers LIKE ? AND status=? "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectPage for user, cfp and status") {
-        val (s, c) = TalkRepoSql.selectPage(user.id, cfp.id, Talk.Status.active, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE speakers LIKE ? AND id NOT IN (SELECT talk_id FROM proposals WHERE cfp_id=?) AND status IN (?, ?, ?, ?)  ORDER BY title IS NULL, title OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE speakers LIKE ? AND id NOT IN (SELECT talk_id FROM proposals WHERE cfp_id=?) AND status IN (?, ?, ?, ?)  "
-        check(s)
-        check(c)
+        val q = TalkRepoSql.selectPage(user.id, cfp.id, Talk.Status.active, params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE speakers LIKE ? AND id NOT IN (SELECT talk_id FROM proposals WHERE cfp_id=?) AND status IN (?, ?, ?, ?)  ORDER BY title IS NULL, title OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE speakers LIKE ? AND id NOT IN (SELECT talk_id FROM proposals WHERE cfp_id=?) AND status IN (?, ?, ?, ?)  "
+        check(q.query)
+        check(q.count)
       }
     }
   }
