@@ -54,6 +54,7 @@
     </h1>
 
     <p>
+        @event.maxAttendee.map { max =>  @Formats.plural(max, "place") }
         @event.venue.map { id => @venue(venueOpt.toList, id, v => Some(VenueCtrl.detail(group.slug, v.partner.slug, v.id))) }.getOrElse{ <b class="text-danger">Missing venue</b>, }
         @Formats.datetime(event.start)
         @tags(event.tags)

@@ -39,7 +39,7 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = EventRepoSql.update(group.id, event.slug)(eventData1, user.id, now)
-        q.sql shouldBe s"UPDATE $table SET cfp_id=?, slug=?, name=?, start=?, description=?, venue=?, tags=?, meetupGroup=?, meetupEvent=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
+        q.sql shouldBe s"UPDATE $table SET cfp_id=?, slug=?, name=?, start=?, max_attendee=?, description=?, venue=?, tags=?, meetupGroup=?, meetupEvent=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
         check(q)
       }
       it("should build updateCfp") {
@@ -107,7 +107,7 @@ object EventRepoSqlSpec {
   import RepoSpec._
 
   val table = "events"
-  val fields = "id, group_id, cfp_id, slug, name, start, description, venue, talks, tags, published, meetupGroup, meetupEvent, created, created_by, updated, updated_by"
+  val fields = "id, group_id, cfp_id, slug, name, start, max_attendee, description, venue, talks, tags, published, meetupGroup, meetupEvent, created, created_by, updated, updated_by"
 
   private val tableWithVenue = s"$table e LEFT OUTER JOIN venues v ON e.venue=v.id"
   private val fieldsWithVenue = s"${mapFields(fields, "e." + _)}, ${mapFields(venueFields, "v." + _)}"

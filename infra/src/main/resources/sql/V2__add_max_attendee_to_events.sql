@@ -1,0 +1,1 @@
+ALTER TABLE events ADD COLUMN max_attendee INT AFTER start;

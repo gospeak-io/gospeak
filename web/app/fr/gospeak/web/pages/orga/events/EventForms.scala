@@ -12,6 +12,7 @@ object EventForms {
     "slug" -> eventSlug,
     "name" -> eventName,
     "start" -> myLocalDateTime,
+    "max-attendee" -> optional(number),
     "venue" -> optional(venueId),
     "description" -> template[TemplateData.EventInfo],
     "tags" -> tags,
