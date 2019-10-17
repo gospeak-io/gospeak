@@ -14,6 +14,7 @@ final case class Event(id: Event.Id,
                        slug: Event.Slug,
                        name: Event.Name,
                        start: LocalDateTime,
+                       maxAttendee: Option[Int],
                        // duration: Option[Duration]
                        description: MustacheMarkdownTmpl[TemplateData.EventInfo],
                        venue: Option[Venue.Id],
@@ -35,7 +36,7 @@ final case class Event(id: Event.Id,
 
 object Event {
   def create(group: Group.Id, data: Data, info: Info): Event =
-    new Event(Id.generate(), group, data.cfp, data.slug, data.name, data.start, data.description, data.venue, Seq(), data.tags, None, ExtRefs(), info)
+    new Event(Id.generate(), group, data.cfp, data.slug, data.name, data.start, data.maxAttendee, data.description, data.venue, Seq(), data.tags, None, ExtRefs(), info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -65,13 +66,14 @@ object Event {
                         slug: Slug,
                         name: Name,
                         start: LocalDateTime,
+                        maxAttendee: Option[Int],
                         venue: Option[Venue.Id],
                         description: MustacheMarkdownTmpl[TemplateData.EventInfo],
                         tags: Seq[Tag],
                         refs: Event.ExtRefs)
 
   object Data {
-    def apply(event: Event): Data = new Data(event.cfp, event.slug, event.name, event.start, event.venue, event.description, event.tags, event.refs)
+    def apply(event: Event): Data = new Data(event.cfp, event.slug, event.name, event.start,  event.maxAttendee, event.venue, event.description, event.tags, event.refs)
   }
 
 }

@@ -27,6 +27,7 @@ case class Event(id: String, // Event.Id
       slug = gs.Event.Slug.from(formatter.format(date)).get,
       name = gs.Event.Name(data.title),
       start = date,
+      maxAttendee = Some(100),
       description = MustacheMarkdownTmpl(data.description.getOrElse("")),
       venue = data.venue.map(v => venues.find(_.partner.value == v).getOrElse(throw new Exception(s"Missing venue $v")).id),
       talks = data.talks.map(t => proposals.find(_.talk.value == t).getOrElse(throw new Exception(s"Missing proposal $t")).id),

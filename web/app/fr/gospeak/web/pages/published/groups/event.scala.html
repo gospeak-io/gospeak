@@ -11,7 +11,8 @@
 @(group: Group, event: Event.Full, proposals: Seq[Proposal.Full], speakers: Seq[User])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @container(event.name.value + " - Gospeak", b)() {
     <h1>@event.name.value@event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }</h1>
-    <p>@event.venue.map { v => Hosted by @v.partner.name.value, }@Formats.date(event.start)</p>
+    <p>@event.venue.map { v => Hosted by @v.partner.name.value, }@Formats.date(event.start),
+    @event.event.maxAttendee.map { max =>  @Formats.plural(max, "place") }</p>
     <div class="row">
         <div class="col">
             @event.talks.toList.flatMap(id => proposals.find(_.id == id)).map { talk =>

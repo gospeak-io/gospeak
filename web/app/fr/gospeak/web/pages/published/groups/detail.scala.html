@@ -45,6 +45,7 @@
                         <p class="card-text d-flex justify-content-between align-items-center">
                             <small class="text-muted">@Formats.date(e.start)</small>
                             @e.venue.map { v => <small class="text-muted">at @v.partner.name.value</small> }
+@*                          @e.event.maxAttendee.map { max =>  @Formats.plural(max, "place") }*@
                         </p>
                     </div>
                 </a>
