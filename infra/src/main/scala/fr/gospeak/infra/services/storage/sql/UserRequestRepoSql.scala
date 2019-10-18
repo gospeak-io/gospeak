@@ -12,6 +12,7 @@ import fr.gospeak.infra.services.storage.sql.UserRequestRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.utils.DoobieUtils.SelectPage
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
@@ -149,8 +150,8 @@ object UserRequestRepoSql {
   private[sql] def selectOnePending(group: Group.Id, req: UserRequest.Id, now: Instant): doobie.Query0[UserRequest] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE id=$req AND group_id=$group AND accepted IS NULL AND rejected IS NULL AND (deadline IS NULL OR deadline > $now)").query[UserRequest]
 
-  private[sql] def selectPage(user: User.Id, params: Page.Params): Paginated[UserRequest] =
-    Paginated[UserRequest](tableFr, fieldsFr, fr0"WHERE created_by=$user", params, defaultSort, searchFields)
+  private[sql] def selectPage(user: User.Id, params: Page.Params): SelectPage[UserRequest] =
+    SelectPage[UserRequest](table, fieldsFr, fr0"WHERE created_by=$user", params, defaultSort, searchFields)
 
   private[sql] def selectAllPending(group: Group.Id, now: Instant): doobie.Query0[UserRequest] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE group_id=$group AND accepted IS NULL AND rejected IS NULL AND (deadline IS NULL OR deadline > $now)").query[UserRequest]

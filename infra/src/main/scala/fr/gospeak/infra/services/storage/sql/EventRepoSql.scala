@@ -19,6 +19,7 @@ import fr.gospeak.infra.services.storage.sql.VenueRepoSql.{fields => venueFields
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.utils.DoobieUtils.SelectPage
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
 
 class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with EventRepo {
@@ -91,7 +92,8 @@ object EventRepoSql {
       partnerFields.map("p." + _) ++
       contactFields.map("c." + _)).mkString(", "))
 
-  private val rsvpTableWithUserFr = Fragment.const0(s"$rsvpTable r INNER JOIN $userTable u ON r.user_id=u.id")
+  private val rsvpTableWithUser = s"$rsvpTable r INNER JOIN $userTable u ON r.user_id=u.id"
+  private val rsvpTableWithUserFr = Fragment.const0(rsvpTableWithUser)
   private val rsvpFieldsWithUserFr = Fragment.const0((userFields.map("u." + _) ++ rsvpFields.filter(f => f != "event_id" && f != "user_id").map("r." + _)).mkString(", "))
   private val rsvpSearchFieldsWithUser: Seq[String] = userSearchFields.map("u." + _)
   private val rsvpDefaultSortWithUser: Page.OrderBy = Page.OrderBy("r.answered_at")
@@ -127,11 +129,11 @@ object EventRepoSql {
   private[sql] def selectOnePublished(group: Group.Id, event: Event.Slug): doobie.Query0[Event.Full] =
     buildSelect(tableFullFr, fieldsFullFr, fr0"WHERE e.group_id=$group AND e.slug=$event AND e.published IS NOT NULL").query[Event.Full]
 
-  private[sql] def selectPage(group: Group.Id, params: Page.Params): Paginated[Event] =
-    Paginated[Event](tableFr, fieldsFr, fr0"WHERE group_id=$group", params, defaultSort, searchFields)
+  private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[Event] =
+    SelectPage[Event](table, fieldsFr, fr0"WHERE group_id=$group", params, defaultSort, searchFields)
 
-  private[sql] def selectPagePublished(group: Group.Id, params: Page.Params): Paginated[Event.Full] =
-    Paginated[Event.Full](tableFullFr, fieldsFullFr, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL", params, defaultSort, searchFields, "e")
+  private[sql] def selectPagePublished(group: Group.Id, params: Page.Params): SelectPage[Event.Full] =
+    SelectPage[Event.Full](tableFullFr, fieldsFullFr, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL", params, defaultSort, searchFields, "e")
 
   private[sql] def selectAll(ids: NonEmptyList[Event.Id]): doobie.Query0[Event] =
     buildSelect(tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids)).query[Event]
@@ -142,8 +144,8 @@ object EventRepoSql {
   private[sql] def selectAll(group: Group.Id, partner: Partner.Id): doobie.Query0[(Event, Venue)] =
     buildSelect(tableWithVenueFr, fieldsWithVenueFr, fr"WHERE e.group_id=$group AND v.partner_id=$partner").query[(Event, Venue)]
 
-  private[sql] def selectPageAfter(group: Group.Id, now: Instant, params: Page.Params): Paginated[Event] =
-    Paginated[Event](tableFr, fieldsFr, fr0"WHERE group_id=$group AND start > $now", params, defaultSort, searchFields)
+  private[sql] def selectPageAfter(group: Group.Id, now: Instant, params: Page.Params): SelectPage[Event] =
+    SelectPage[Event](table, fieldsFr, fr0"WHERE group_id=$group AND start > $now", params, defaultSort, searchFields)
 
   private[sql] def selectTags(): doobie.Query0[Seq[Tag]] =
     Fragment.const0(s"SELECT tags FROM $table").query[Seq[Tag]]
@@ -153,8 +155,8 @@ object EventRepoSql {
   private[sql] def insertRsvp(e: Event, u: User, answer: Event.Rsvp.Answer, now: Instant): doobie.Update0 =
     buildInsert(rsvpTableFr, rsvpFieldsFr, fr0"${e.id}, ${u.id}, $answer, $now").update
 
-  private[sql] def selectPageRsvps(event: Event.Id, params: Page.Params): Paginated[Event.Rsvp] =
-    Paginated[Event.Rsvp](rsvpTableWithUserFr, rsvpFieldsWithUserFr, fr0"WHERE r.event_id=$event", params, rsvpDefaultSortWithUser, rsvpSearchFieldsWithUser)
+  private[sql] def selectPageRsvps(event: Event.Id, params: Page.Params): SelectPage[Event.Rsvp] =
+    SelectPage[Event.Rsvp](rsvpTableWithUser, rsvpFieldsWithUserFr, fr0"WHERE r.event_id=$event", params, rsvpDefaultSortWithUser, rsvpSearchFieldsWithUser)
 
   private[sql] def selectOneRsvp(event: Event.Id, user: User.Id): doobie.Query0[Event.Rsvp] =
     buildSelect(rsvpTableWithUserFr, rsvpFieldsWithUserFr, fr0"WHERE r.event_id=$event AND r.user_id=$user").query[Event.Rsvp]

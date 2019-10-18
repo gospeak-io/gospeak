@@ -126,7 +126,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
         // _ <- run(UserRepoSql.insertCredentials(User.Credentials("credentials", lkn.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None))) // pwd: demo
         // _ <- run(UserRepoSql.insertLoginRef(User.LoginRef("credentials", lkn.email.value, lkn.id)))
         // _ <- run(UserRepoSql.validateAccount(lkn.email, lkn.created))
-        _ <- run(GroupRepoSql.insert(groupHt))
+        _ <- GroupRepoSql.insert(groupHt).run(xa)
         _ <- run(CfpRepoSql.insert(cfpHt))
         _ <- run(Queries.insertMany(TalkRepoSql.insert)(NonEmptyList.fromListUnsafe(talks)))
         _ <- run(Queries.insertMany(ProposalRepoSql.insert)(NonEmptyList.fromListUnsafe(proposals)))
@@ -320,7 +320,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       _ <- run(Queries.insertMany(UserRepoSql.insertCredentials)(credentials))
       _ <- run(Queries.insertMany(UserRepoSql.insertLoginRef)(loginRefs))
       _ <- run(Queries.insertMany(TalkRepoSql.insert)(talks ++ generated.map(_._4)))
-      _ <- run(Queries.insertMany(GroupRepoSql.insert)(groups ++ generated.map(_._1)))
+      _ <- run(Queries.insertMany(GroupRepoSql.insert(_: Group).fr.update)(groups ++ generated.map(_._1)))
       _ <- run(Queries.insertMany(CfpRepoSql.insert)(cfps ++ generated.map(_._2)))
       _ <- run(Queries.insertMany(ProposalRepoSql.insert)(proposals ++ generated.map(_._5)))
       _ <- run(Queries.insertMany(PartnerRepoSql.insert)(partners))
