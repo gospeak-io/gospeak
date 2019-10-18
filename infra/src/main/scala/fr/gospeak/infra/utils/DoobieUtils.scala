@@ -92,7 +92,7 @@ object DoobieUtils {
 
     def from(name: String, prefix: String, fields: Seq[Field], sort: Page.OrderBy, search: Seq[Field], hasJoin: Boolean): Either[CustomException, Table] = {
       val duplicateFields = fields.diff(fields.distinct).distinct
-      val invalidSort = sort.values.diff(fields.map(_.value))
+      val invalidSort = sort.values.map(_.stripPrefix("-")).diff(fields.map(_.value))
       val invalidSearch = search.diff(fields)
       val errors = Seq(
         duplicateFields.headOption.map(_ => CustomError(s"fields ${duplicateFields.map(s"'" + _.value + "'").mkString(", ")} are duplicated")),

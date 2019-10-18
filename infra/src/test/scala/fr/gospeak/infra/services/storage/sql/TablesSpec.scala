@@ -5,8 +5,10 @@ import org.scalatest.{FunSpec, Matchers}
 class TablesSpec extends FunSpec with Matchers {
   describe("Tables") {
     it("should not have duplicate name or prefix") {
-      Tables.all.map(_.name).distinct shouldBe Tables.all.map(_.name)
-      Tables.all.map(_.prefix).distinct shouldBe Tables.all.map(_.prefix)
+      val names = Tables.all.map(_.name)
+      val prefixes = Tables.all.map(_.prefix)
+      names.diff(names.distinct) shouldBe Seq()
+      prefixes.diff(prefixes.distinct) shouldBe Seq()
     }
   }
 }
