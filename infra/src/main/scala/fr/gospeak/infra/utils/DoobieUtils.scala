@@ -14,6 +14,7 @@ import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup}
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.infra.services.storage.sql.DatabaseConf
+import fr.gospeak.infra.utils.DoobieUtils.Fragments.Paginated
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import fr.gospeak.libs.scalautils.domain._
@@ -31,24 +32,59 @@ object DoobieUtils {
     case c: DatabaseConf.PostgreSQL => Transactor.fromDriverManager[IO]("org.postgresql.Driver", c.url, c.user, c.pass.decode)
   }
 
+  case class Table(name: String,
+                   prefix: String,
+                   fields: Seq[String],
+                   sort: Page.OrderBy,
+                   search: Seq[String]) {
+    def nameFr: Fragment = Fragment.const0(s"$name $prefix")
+
+    def fieldsFr: Fragment = Fragment.const0(fields.map(prefix + "." + _).mkString(", "))
+
+    def nameFrNoPrefix: Fragment = Fragment.const0(s"$name")
+
+    def fieldsFrNoPrefix: Fragment = Fragment.const0(fields.mkString(", "))
+
+    def insert(values: Fragment): Insert = Insert(nameFrNoPrefix, fieldsFrNoPrefix, values)
+
+    def select(where: Fragment): Select = Select(nameFr, fieldsFr, Some(where))
+
+    def select(fields: String): Select = Select(nameFr, Fragment.const0(fields), None)
+
+    def select(fields: String, where: Fragment): Select = Select(nameFr, Fragment.const0(fields), Some(where))
+
+    def paginated[A: Read](params: Page.Params): Paginated[A] = Paginated[A](nameFr, fieldsFr, None, params, sort, search, Some(prefix))
+
+    def paginated[A: Read](params: Page.Params, where: Fragment): Paginated[A] = Paginated[A](nameFr, fieldsFr, Some(where), params, sort, search, Some(prefix))
+  }
+
+  case class Insert(table: Fragment, fields: Fragment, values: Fragment) {
+    def fr: Fragment = fr0"INSERT INTO " ++ table ++ fr0" (" ++ fields ++ fr0") VALUES (" ++ values ++ fr0")"
+
+    def update: doobie.Update0 = fr.update
+  }
+
+  case class Select(table: Fragment, fields: Fragment, where: Option[Fragment]) {
+    def fr: Fragment = fr0"SELECT " ++ fields ++ fr0" FROM " ++ table ++ where.map(fr0" " ++ _).getOrElse(fr0"")
+
+    def query[A: Read]: doobie.Query0[A] = fr.query[A]
+  }
+
   object Fragments {
     val empty = fr0""
     val space = fr0" "
 
-    def buildInsert(table: Fragment, fields: Fragment, values: Fragment): Fragment =
-      fr"INSERT INTO" ++ table ++ fr0" (" ++ fields ++ fr0") VALUES (" ++ values ++ fr0")"
+    def buildInsert(table: Fragment, fields: Fragment, values: Fragment): Fragment = Insert(table, fields, values).fr
 
-    def buildSelect(table: Fragment, fields: Fragment): Fragment =
-      fr"SELECT" ++ fields ++ fr" FROM" ++ table
+    def buildSelect(table: Fragment, fields: Fragment): Fragment = Select(table, fields, None).fr
 
-    def buildSelect(table: Fragment, fields: Fragment, where: Fragment): Fragment =
-      buildSelect(table, fields) ++ space ++ where
+    def buildSelect(table: Fragment, fields: Fragment, where: Fragment): Fragment = Select(table, fields, Some(where)).fr
 
     def buildUpdate(table: Fragment, fields: Fragment, where: Fragment): Fragment =
-      fr"UPDATE" ++ table ++ fr" SET" ++ fields ++ space ++ where
+      fr0"UPDATE " ++ table ++ fr0" SET " ++ fields ++ space ++ where
 
     def buildDelete(table: Fragment, where: Fragment): Fragment =
-      fr"DELETE FROM" ++ table ++ space ++ where
+      fr0"DELETE FROM " ++ table ++ space ++ where
 
     final case class Paginate(where: Fragment, orderBy: Fragment, limit: Fragment) {
       def all: Fragment = Seq(where, orderBy, limit).reduce(_ ++ _)
@@ -58,8 +94,8 @@ object DoobieUtils {
       // TODO improve tests & extract some methods
       private[utils] def apply(params: Page.Params, searchFields: Seq[String], defaultSort: Page.OrderBy, whereOpt: Option[Fragment] = None, prefix: Option[String] = None): Paginate = {
         val search = params.search.filter(_ => searchFields.nonEmpty)
-          .map { search => searchFields.map(s => Fragment.const(prefix.map(_ + ".").getOrElse("") + s) ++ fr"ILIKE ${"%" + search.value + "%"}").reduce(_ ++ fr"OR" ++ _) }
-          .map { search => whereOpt.map(_ ++ fr" AND" ++ fr0"(" ++ search ++ fr")").getOrElse(fr"WHERE" ++ search) }
+          .map { search => searchFields.map(s => Fragment.const(prefix.map(_ + ".").getOrElse("") + s) ++ fr0"ILIKE ${"%" + search.value + "%"} ").reduce(_ ++ fr0"OR " ++ _) }
+          .map { search => whereOpt.map(_ ++ fr0" AND " ++ fr0"(" ++ search ++ fr0") ").getOrElse(fr0"WHERE " ++ search) }
           .orElse(whereOpt.map(_ ++ space))
           .getOrElse(empty)
 
@@ -112,14 +148,14 @@ object DoobieUtils {
             s"$f IS NULL, $f" + (if (v.startsWith("-")) " DESC" else "")
           }
         }
-        fr"ORDER BY" ++ Fragment.const(fields.mkString(", "))
+        fr0"ORDER BY " ++ Fragment.const(fields.mkString(", "))
       } else {
         fr0""
       }
     }
 
     private def limitFragment(start: Int, size: Page.Size): Fragment =
-      fr"OFFSET" ++ Fragment.const(start.toString) ++ fr"LIMIT" ++ Fragment.const0(size.value.toString)
+      fr0"OFFSET " ++ Fragment.const(start.toString) ++ fr0"LIMIT " ++ Fragment.const0(size.value.toString)
   }
 
   object Queries {

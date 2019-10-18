@@ -76,14 +76,9 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
 object GroupRepoSql {
   private val _ = groupIdMeta // for intellij not remove DoobieUtils.Mappings import
-  private[sql] val table: String = "groups"
-  private[sql] val fields: Seq[String] = Seq("id", "slug", "name", "contact", "description", "owners", "tags", "created", "created_by", "updated", "updated_by")
+  private val table = Tables.groups
   private[sql] val memberTable: String = "group_members"
   private[sql] val memberFields: Seq[String] = Seq("group_id", "user_id", "role", "presentation", "joined_at")
-  private val tableFr: Fragment = Fragment.const0(s"$table g")
-  private val fieldsFr: Fragment = Fragment.const0(fields.map("g." + _).mkString(", "))
-  private val searchFields: Seq[String] = Seq("id", "slug", "name", "contact", "description", "tags")
-  private val defaultSort: Page.OrderBy = Page.OrderBy("name")
   private val memberTableFr: Fragment = Fragment.const0(memberTable)
   private val memberFieldsFr: Fragment = Fragment.const0(memberFields.mkString(", "))
 
@@ -94,37 +89,37 @@ object GroupRepoSql {
 
   private[sql] def insert(e: Group): doobie.Update0 = {
     val values = fr0"${e.id}, ${e.slug}, ${e.name}, ${e.contact}, ${e.description}, ${e.owners}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
-    buildInsert(Fragment.const0(table), Fragment.const0(fields.mkString(", ")), values).update
+    table.insert(values).update
   }
 
   private[sql] def update(group: Group.Slug)(data: Group.Data, by: User.Id, now: Instant): doobie.Update0 = {
     val fields = fr0"g.slug=${data.slug}, g.name=${data.name}, g.contact=${data.contact}, g.description=${data.description}, g.tags=${data.tags}, g.updated=$now, g.updated_by=$by"
-    buildUpdate(tableFr, fields, where(group)).update
+    buildUpdate(table.nameFr, fields, where(group)).update
   }
 
   private[sql] def updateOwners(group: Group.Id)(owners: NonEmptyList[User.Id], by: User.Id, now: Instant): doobie.Update0 =
-    buildUpdate(tableFr, fr0"g.owners=$owners, g.updated=$now, g.updated_by=$by", fr0"WHERE g.id=$group").update
+    buildUpdate(table.nameFr, fr0"g.owners=$owners, g.updated=$now, g.updated_by=$by", fr0"WHERE g.id=$group").update
 
   private[sql] def selectPage(params: Page.Params): Paginated[Group] =
-    Paginated[Group](tableFr, fieldsFr, params, defaultSort, searchFields, "g")
+    table.paginated[Group](params)
 
   private[sql] def selectPageJoinable(user: User.Id, params: Page.Params): Paginated[Group] =
-    Paginated[Group](tableFr, fieldsFr, fr0"WHERE g.owners NOT LIKE ${"%" + user.value + "%"}", params, defaultSort, searchFields, "g")
+    table.paginated[Group](params, fr0"WHERE g.owners NOT LIKE ${"%" + user.value + "%"}")
 
   private[sql] def selectAll(user: User.Id): doobie.Query0[Group] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE g.owners LIKE ${"%" + user.value + "%"}").query[Group]
+    table.select(fr0"WHERE g.owners LIKE ${"%" + user.value + "%"}").query[Group]
 
   private[sql] def selectOne(user: User.Id, slug: Group.Slug): doobie.Query0[Group] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE g.owners LIKE ${"%" + user.value + "%"} AND g.slug=$slug").query[Group]
+    table.select(fr0"WHERE g.owners LIKE ${"%" + user.value + "%"} AND g.slug=$slug").query[Group]
 
   private[sql] def selectOne(group: Group.Id): doobie.Query0[Group] =
-    buildSelect(tableFr, fieldsFr, where(group)).query[Group]
+    table.select(where(group)).query[Group]
 
   private[sql] def selectOne(group: Group.Slug): doobie.Query0[Group] =
-    buildSelect(tableFr, fieldsFr, where(group)).query[Group]
+    table.select(where(group)).query[Group]
 
   private[sql] def selectTags(): doobie.Query0[Seq[Tag]] =
-    buildSelect(tableFr, Fragment.const0("g.tags")).query[Seq[Tag]]
+    table.select("g.tags").query[Seq[Tag]]
 
   private def where(group: Group.Id): Fragment = fr0"WHERE g.id=$group"
 
