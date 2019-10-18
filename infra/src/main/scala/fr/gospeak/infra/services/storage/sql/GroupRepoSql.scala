@@ -79,7 +79,7 @@ object GroupRepoSql {
   private[sql] val table: String = "groups"
   private[sql] val fields: Seq[String] = Seq("id", "slug", "name", "contact", "description", "owners", "tags", "created", "created_by", "updated", "updated_by")
   private[sql] val memberTable: String = "group_members"
-  private[sql] val memberFields: Seq[String] = Seq("group_id", "user_id", "presentation", "joined_at")
+  private[sql] val memberFields: Seq[String] = Seq("group_id", "user_id", "role", "presentation", "joined_at")
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private val searchFields: Seq[String] = Seq("id", "slug", "name", "contact", "description", "tags")
@@ -130,8 +130,8 @@ object GroupRepoSql {
 
   private def where(group: Group.Slug): Fragment = fr0"WHERE slug=$group"
 
-  private[sql] def insertMember(g: Group, u: User, presentation: Option[String], now: Instant): doobie.Update0 =
-    buildInsert(memberTableFr, memberFieldsFr, fr0"${g.id}, ${u.id}, $presentation, $now").update
+  private[sql] def insertMember(g: Group, u: User, role: Group.Member.Role, presentation: Option[String], now: Instant): doobie.Update0 =
+    buildInsert(memberTableFr, memberFieldsFr, fr0"${g.id}, ${u.id}, $role, $presentation, $now").update
 
   private[sql] def selectPageMembers(group: Group.Id, params: Page.Params): Paginated[Group.Member] =
     Paginated[Group.Member](memberTableWithUserFr, memberFieldsWithUserFr, fr0"WHERE m.group_id=$group", params, memberDefaultSortWithUser, memberSearchFieldsWithUser)
