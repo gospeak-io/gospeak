@@ -1,6 +1,7 @@
 package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
+import fr.gospeak.core.domain.Group
 import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
@@ -41,61 +42,61 @@ class GroupRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = GroupRepoSql.insert(group)
-        q.sql shouldBe s"INSERT INTO $table ($fields) VALUES (${mapFields(fields, _ => "?")})"
+        q.sql shouldBe s"INSERT INTO ${table.stripSuffix(" g")} (${mapFields(fields, _.stripPrefix("g."))}) VALUES (${mapFields(fields, _ => "?")})"
         check(q)
       }
       it("should build update") {
         val q = GroupRepoSql.update(group.slug)(group.data, user.id, now)
-        q.sql shouldBe s"UPDATE $table SET slug=?, name=?, contact=?, description=?, tags=?, updated=?, updated_by=? WHERE slug=?"
+        q.sql shouldBe s"UPDATE $table SET g.slug=?, g.name=?, g.contact=?, g.description=?, g.tags=?, g.updated=?, g.updated_by=? WHERE g.slug=?"
         check(q)
       }
       it("should build updateOwners") {
         val q = GroupRepoSql.updateOwners(group.id)(NonEmptyList.of(user.id), user.id, now)
-        q.sql shouldBe s"UPDATE $table SET owners=?, updated=?, updated_by=? WHERE id=?"
+        q.sql shouldBe s"UPDATE $table SET g.owners=?, g.updated=?, g.updated_by=? WHERE g.id=?"
         check(q)
       }
       it("should build selectPage") {
         val q = GroupRepoSql.selectPage(params)
-        q.query.sql shouldBe s"SELECT $fields FROM $table ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
+        q.query.sql shouldBe s"SELECT $fields FROM $table ORDER BY g.name IS NULL, g.name OFFSET 0 LIMIT 20"
         q.count.sql shouldBe s"SELECT count(*) FROM $table "
         check(q.query)
         check(q.count)
       }
       it("should build selectPageJoinable") {
         val q = GroupRepoSql.selectPageJoinable(user.id, params)
-        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE owners NOT LIKE ? ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
-        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE owners NOT LIKE ? "
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE g.owners NOT LIKE ? ORDER BY g.name IS NULL, g.name OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE g.owners NOT LIKE ? "
         check(q.query)
         check(q.count)
       }
       it("should build selectAll") {
         val q = GroupRepoSql.selectAll(user.id)
-        q.sql shouldBe s"SELECT $fields FROM $table WHERE owners LIKE ?"
+        q.sql shouldBe s"SELECT $fields FROM $table WHERE g.owners LIKE ?"
         check(q)
       }
       it("should build selectOne") {
         val q = GroupRepoSql.selectOne(user.id, group.slug)
-        q.sql shouldBe s"SELECT $fields FROM $table WHERE owners LIKE ? AND slug=?"
+        q.sql shouldBe s"SELECT $fields FROM $table WHERE g.owners LIKE ? AND g.slug=?"
         check(q)
       }
       it("should build selectOne with id") {
         val q = GroupRepoSql.selectOne(group.id)
-        q.sql shouldBe s"SELECT $fields FROM $table WHERE id=?"
+        q.sql shouldBe s"SELECT $fields FROM $table WHERE g.id=?"
         check(q)
       }
       it("should build selectOne with slug") {
         val q = GroupRepoSql.selectOne(group.slug)
-        q.sql shouldBe s"SELECT $fields FROM $table WHERE slug=?"
+        q.sql shouldBe s"SELECT $fields FROM $table WHERE g.slug=?"
         check(q)
       }
       it("should build selectTags") {
         val q = GroupRepoSql.selectTags()
-        q.sql shouldBe s"SELECT tags FROM $table"
+        q.sql shouldBe s"SELECT g.tags FROM $table"
         check(q)
       }
       describe("member") {
         it("should build insertMember") {
-          val q = GroupRepoSql.insertMember(group, user, None, now)
+          val q = GroupRepoSql.insertMember(group, user, Group.Member.Role.Owner, None, now)
           q.sql shouldBe s"INSERT INTO $memberTable ($memberFields) VALUES (${mapFields(memberFields, _ => "?")})"
           check(q)
         }
@@ -117,11 +118,11 @@ class GroupRepoSqlSpec extends RepoSpec {
 }
 
 object GroupRepoSqlSpec {
-  val table = "groups"
-  val fields = "id, slug, name, contact, description, owners, tags, created, created_by, updated, updated_by"
+  val table = "groups g"
+  val fields = "g.id, g.slug, g.name, g.contact, g.description, g.owners, g.tags, g.created, g.created_by, g.updated, g.updated_by"
 
   private val memberTable = "group_members"
-  private val memberFields = "group_id, user_id, presentation, joined_at"
+  private val memberFields = "group_id, user_id, role, presentation, joined_at"
   private val memberTableWithUser = s"$memberTable m INNER JOIN $userTable u ON m.user_id=u.id"
-  private val memberFieldsWithUser = s"${mapFields(userFields, "u." + _)}, ${mapFields("presentation, joined_at", "m." + _)}"
+  private val memberFieldsWithUser = s"${mapFields(userFields, "u." + _)}, ${mapFields(memberFields.stripPrefix("group_id, user_id, "), "m." + _)}"
 }

@@ -12,7 +12,6 @@ import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.ProposalRepo
 import fr.gospeak.infra.services.storage.sql.CfpRepoSql.{fields => cfpFields, table => cfpTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSql.{fields => eventFields, table => eventTable}
-import fr.gospeak.infra.services.storage.sql.GroupRepoSql.{fields => groupFields, table => groupTable}
 import fr.gospeak.infra.services.storage.sql.ProposalRepoSql._
 import fr.gospeak.infra.services.storage.sql.TalkRepoSql.{fields => talkFields, table => talkTable}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
@@ -135,13 +134,13 @@ object ProposalRepoSql {
   private val tableFullFr = Fragment.const0(
     s"$table p " +
       s"INNER JOIN $cfpTable c ON p.cfp_id=c.id " +
-      s"INNER JOIN $groupTable g ON c.group_id=g.id " +
+      s"INNER JOIN ${Tables.groups.name} g ON c.group_id=g.id " +
       s"INNER JOIN $talkTable t ON p.talk_id=t.id " +
       s"LEFT OUTER JOIN $eventTable e ON p.event_id=e.id")
   private val fieldsFullFr = Fragment.const0((
     fields.map("p." + _) ++
       cfpFields.map("c." + _) ++
-      groupFields.map("g." + _) ++
+      Tables.groups.fields.map("g." + _) ++
       talkFields.map("t." + _) ++
       eventFields.map("e." + _)).mkString(", "))
 
@@ -241,7 +240,7 @@ object ProposalRepoSql {
 
   private def where(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Fragment =
     fr0"WHERE id=(SELECT p.id FROM " ++
-      Fragment.const0(s"$table p INNER JOIN $cfpTable c ON p.cfp_id=c.id INNER JOIN ${GroupRepoSql.table} g ON c.group_id=g.id ") ++
+      Fragment.const0(s"$table p INNER JOIN $cfpTable c ON p.cfp_id=c.id INNER JOIN ${Tables.groups.name} g ON c.group_id=g.id ") ++
       fr0"WHERE p.id=$proposal AND c.slug=$cfp AND g.slug=$group AND g.owners LIKE ${"%" + orga.value + "%"}" ++ fr0")"
 
   private def where(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Fragment =

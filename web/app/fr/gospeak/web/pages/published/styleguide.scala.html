@@ -206,9 +206,6 @@
         }
 
         @section("orga", "Orga components", "@import fr.gospeak.web.pages.orga.partials.html._") { _ =>
-            @component("groupItem", "@groupItem(group)") { name =>
-                @example(s"$name") { _ => @orga.groupItem(group) }
-            }
             @component("cfpItem", "@cfpItem(group, cfp)") { name =>
                 @example(s"$name") { _ => @orga.cfpItem(group, cfp) }
             }

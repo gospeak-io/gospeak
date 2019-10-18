@@ -38,8 +38,28 @@ object Group {
   final case class Name(value: String) extends AnyVal
 
   final case class Member(user: User,
+                          role: Member.Role,
                           presentation: Option[String],
                           joinedAt: Instant)
+
+  object Member {
+
+    sealed trait Role
+
+    object Role {
+
+      case object Owner extends Role
+
+      case object Member extends Role
+
+      val all: Seq[Role] = Seq(Owner, Member)
+
+      def from(str: String): Either[CustomException, Role] =
+        all.find(_.toString == str).map(Right(_)).getOrElse(Left(CustomException(s"'$str' is not a valid Group.Member.Role")))
+
+    }
+
+  }
 
   final case class Data(slug: Group.Slug,
                         name: Group.Name,
