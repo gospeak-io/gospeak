@@ -94,6 +94,9 @@ object DoobieUtils {
       def apply[A: Read](table: Fragment, fields: Fragment, where: Fragment, params: Page.Params, orderBy: Page.OrderBy, search: Seq[String]): Paginated[A] =
         apply[A](table, fields, Some(where), params, orderBy, search, None)
 
+      def apply[A: Read](table: Fragment, fields: Fragment, params: Page.Params, orderBy: Page.OrderBy, search: Seq[String], prefix: String): Paginated[A] =
+        apply[A](table, fields, None, params, orderBy, search, Some(prefix))
+
       def apply[A: Read](table: Fragment, fields: Fragment, where: Fragment, params: Page.Params, orderBy: Page.OrderBy, search: Seq[String], prefix: String): Paginated[A] =
         apply[A](table, fields, Some(where), params, orderBy, search, Some(prefix))
     }
