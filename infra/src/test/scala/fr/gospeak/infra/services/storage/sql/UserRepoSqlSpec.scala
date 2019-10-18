@@ -114,18 +114,18 @@ class UserRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build selectPage") {
-        val (s, c) = UserRepoSql.selectPage(NonEmptyList.of(user.id), params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE id IN (?)  ORDER BY first_name IS NULL, first_name OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE id IN (?)  "
-        check(s)
-        check(c)
+        val q = UserRepoSql.selectPage(NonEmptyList.of(user.id), params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE id IN (?)  ORDER BY first_name IS NULL, first_name OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE id IN (?)  "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectPagePublic") {
-        val (s, c) = UserRepoSql.selectPagePublic(params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE status=?  ORDER BY first_name IS NULL, first_name OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE status=?  "
-        check(s)
-        check(c)
+        val q = UserRepoSql.selectPagePublic(params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE status=?  ORDER BY first_name IS NULL, first_name OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE status=?  "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectAll with ids") {
         val q = UserRepoSql.selectAll(NonEmptyList.of(user.id, user.id))

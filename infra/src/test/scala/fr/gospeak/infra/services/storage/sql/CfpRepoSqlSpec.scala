@@ -71,25 +71,25 @@ class CfpRepoSqlSpec extends RepoSpec {
         check(q)
       }
       it("should build selectPage for a group") {
-        val (s, c) = CfpRepoSql.selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE group_id=? "
-        check(s)
-        check(c)
+        val q = CfpRepoSql.selectPage(group.id, params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE group_id=? "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectPage for a talk") {
-        val (s, c) = CfpRepoSql.selectPage(talk.id, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) "
-        check(s)
-        check(c)
+        val q = CfpRepoSql.selectPage(talk.id, params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE id NOT IN (SELECT cfp_id FROM proposals WHERE talk_id=?) "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectPage for a date") {
-        val (s, c) = CfpRepoSql.selectPage(now, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) "
-        check(s)
-        check(c)
+        val q = CfpRepoSql.selectPage(now, params)
+        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) ORDER BY close IS NULL, close DESC, name IS NULL, name OFFSET 0 LIMIT 20"
+        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE (begin IS NULL OR begin < ?) AND (close IS NULL OR close > ?) "
+        check(q.query)
+        check(q.count)
       }
       it("should build selectAll for group id") {
         val q = CfpRepoSql.selectAll(group.id)

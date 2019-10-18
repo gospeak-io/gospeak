@@ -14,7 +14,7 @@ import fr.gospeak.infra.services.storage.sql.SponsorPackRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page}
+import fr.gospeak.libs.scalautils.domain.{CustomException, Done}
 
 class SponsorPackRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SponsorPackRepo {
   override def create(group: Group.Id, data: SponsorPack.Data, by: User.Id, now: Instant): IO[SponsorPack] =
@@ -53,12 +53,11 @@ object SponsorPackRepoSql {
   private val tableFr: Fragment = Fragment.const0(table)
   private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
   private[sql] val searchFields: Seq[String] = Seq("id", "slug", "name", "description")
-  private val defaultSort: Page.OrderBy = Page.OrderBy("name")
 
-  private def values(e: SponsorPack): Fragment =
-    fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.description}, ${e.price.amount}, ${e.price.currency}, ${e.duration}, ${e.active}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
-
-  private[sql] def insert(elt: SponsorPack): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
+  private[sql] def insert(e: SponsorPack): doobie.Update0 = {
+    val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.description}, ${e.price.amount}, ${e.price.currency}, ${e.duration}, ${e.active}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    buildInsert(tableFr, fieldsFr, values).update
+  }
 
   private[sql] def update(group: Group.Id, pack: SponsorPack.Slug)(data: SponsorPack.Data, by: User.Id, now: Instant): doobie.Update0 = {
     val fields = fr0"slug=${data.slug}, name=${data.name}, description=${data.description}, price=${data.price.amount}, currency=${data.price.currency}, duration=${data.duration}, updated=$now, updated_by=$by"

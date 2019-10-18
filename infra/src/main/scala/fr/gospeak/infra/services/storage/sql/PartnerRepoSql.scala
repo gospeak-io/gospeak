@@ -14,7 +14,6 @@ import fr.gospeak.infra.services.storage.sql.PartnerRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page}
 
 class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with PartnerRepo {
@@ -32,7 +31,7 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
     }
   }
 
-  override def list(group: Group.Id, params: Page.Params): IO[Page[Partner]] = run(Queries.selectPage(selectPage(group, _), params))
+  override def list(group: Group.Id, params: Page.Params): IO[Page[Partner]] = run(selectPage(group, params).page)
 
   override def list(group: Group.Id): IO[Seq[Partner]] = run(selectAll(group).to[List])
 
@@ -50,20 +49,18 @@ object PartnerRepoSql {
   private[sql] val searchFields = Seq("id", "slug", "name", "notes", "description")
   private val defaultSort = Page.OrderBy("name")
 
-  private def values(e: Partner): Fragment =
-    fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.notes}, ${e.description}, ${e.logo}, ${e.twitter}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
-
-  private[sql] def insert(elt: Partner): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
+  private[sql] def insert(e: Partner): doobie.Update0 = {
+    val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.notes}, ${e.description}, ${e.logo}, ${e.twitter}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    buildInsert(tableFr, fieldsFr, values).update
+  }
 
   private[sql] def update(group: Group.Id, slug: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): doobie.Update0 = {
     val fields = fr0"slug=${data.slug}, name=${data.name}, notes=${data.notes}, description=${data.description}, logo=${data.logo}, twitter=${data.twitter}, updated=$now, updated_by=$by"
     buildUpdate(tableFr, fields, where(group, slug)).update
   }
 
-  private[sql] def selectPage(group: Group.Id, params: Page.Params): (doobie.Query0[Partner], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE group_id=$group"))
-    (buildSelect(tableFr, fieldsFr, page.all).query[Partner], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
-  }
+  private[sql] def selectPage(group: Group.Id, params: Page.Params): Paginated[Partner] =
+    Paginated[Partner](tableFr, fieldsFr, fr0"WHERE group_id=$group", params, defaultSort, searchFields)
 
   private[sql] def selectAll(group: Group.Id): doobie.Query0[Partner] =
     buildSelect(tableFr, fieldsFr, fr"WHERE group_id=$group").query[Partner]

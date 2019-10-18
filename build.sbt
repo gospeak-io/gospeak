@@ -2,6 +2,10 @@ ThisBuild / version := "0.1-SNAPSHOT"
 ThisBuild / scalaVersion := "2.12.8"
 ThisBuild / organization := "fr.gospeak"
 
+ThisBuild / fork := true
+ThisBuild / javaOptions += "-Xmx2G"
+
+
 /**
  * Global settings
  */

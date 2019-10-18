@@ -13,7 +13,6 @@ import fr.gospeak.infra.services.storage.sql.ContactRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.Queries
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ContactRepo {
@@ -26,7 +25,7 @@ class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def list(partner: Partner.Id): IO[Seq[Contact]] = run(selectAll(partner).to[List])
 
-  override def list(partner: Partner.Id, params: Page.Params): IO[Page[Contact]] = run(Queries.selectPage(selectPage(partner, _), params))
+  override def list(partner: Partner.Id, params: Page.Params): IO[Page[Contact]] = run(selectPage(partner, params).page)
 
   override def exists(partner: Partner.Id, email: EmailAddress): IO[Boolean] = run(selectOne(partner, email).option.map(_.isDefined))
 }
@@ -40,29 +39,26 @@ object ContactRepoSql {
   private[sql] val searchFields = Seq("id", "first_name", "last_name", "email")
   private val defaultSort = Page.OrderBy("created")
 
-  private def values(c: Contact): Fragment =
-    fr0"${c.id}, ${c.partner}, ${c.firstName}, ${c.lastName}, ${c.email}, ${c.description}, ${c.info.created}, ${c.info.createdBy}, ${c.info.updated}, ${c.info.updatedBy}"
-
-  private[sql] def insert(elt: Contact): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
-
-  private[sql] def select(c: Contact.Id): doobie.Query0[Contact] = buildSelect(tableFr, fieldsFr, where(c)).query[Contact]
-
-  private[sql] def selectBy(partner: Partner.Id): doobie.Query0[Contact] =
-    buildSelect(tableFr, fieldsFr, where(partner)).query[Contact]
+  private[sql] def insert(e: Contact): doobie.Update0 = {
+    val values = fr0"${e.id}, ${e.partner}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.description}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    buildInsert(tableFr, fieldsFr, values).update
+  }
 
   private[sql] def update(contact: Contact.Id, data: Contact.Data)(by: User.Id, now: Instant): doobie.Update0 = {
     val fields = fr0"first_name=${data.firstName}, last_name=${data.lastName}, email=${data.email}, description=${data.description}, updated=$now, updated_by=$by"
     buildUpdate(tableFr, fields, where(contact)).update
   }
 
-  private[sql] def selectPage(partner: Partner.Id, params: Page.Params): (doobie.Query0[Contact], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(where(partner)))
-    (buildSelect(tableFr, fieldsFr, page.all).query[Contact], buildSelect(tableFr, fr0"COUNT(*)", page.where).query[Long])
-  }
+  private[sql] def select(c: Contact.Id): doobie.Query0[Contact] = buildSelect(tableFr, fieldsFr, where(c)).query[Contact]
 
-  private[sql] def selectAll(partner: Partner.Id): doobie.Query0[Contact] = {
+  private[sql] def selectBy(partner: Partner.Id): doobie.Query0[Contact] =
     buildSelect(tableFr, fieldsFr, where(partner)).query[Contact]
-  }
+
+  private[sql] def selectPage(partner: Partner.Id, params: Page.Params): Paginated[Contact] =
+    Paginated[Contact](tableFr, fieldsFr, where(partner), params, defaultSort, searchFields)
+
+  private[sql] def selectAll(partner: Partner.Id): doobie.Query0[Contact] =
+    buildSelect(tableFr, fieldsFr, where(partner)).query[Contact]
 
   private[sql] def selectOne(id: Contact.Id): doobie.Query0[Contact] =
     buildSelect(tableFr, fieldsFr, where(id)).query[Contact]
