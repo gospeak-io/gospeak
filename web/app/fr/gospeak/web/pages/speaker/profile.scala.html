@@ -1,15 +1,14 @@
 @import java.time.Instant
+
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.web.auth.domain.CookieEnv
-@import fr.gospeak.core.domain.{Cfp, Group, Event, Proposal, User}
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.partials.form.Utils
-@import fr.gospeak.core.domain.User
-@import fr.gospeak.web.pages.speaker.partials.html.{container, speakerCard, groupItem, proposalItemForProfile}
-@import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
 @import fr.gospeak.core.domain.User.EditableFields
+@import fr.gospeak.core.domain.{Group, Proposal, User}
+@import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.speaker.partials.html.{container, groupItem, proposalItemForProfile}
+@import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
 
 @(form: Form[EditableFields], proposals: Page[Proposal.Full], ownedGroups: Seq[Group], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", b)() {
