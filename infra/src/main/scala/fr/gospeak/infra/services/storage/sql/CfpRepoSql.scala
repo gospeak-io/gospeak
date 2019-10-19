@@ -12,120 +12,113 @@ import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.CfpRepo
 import fr.gospeak.infra.services.storage.sql.CfpRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.SelectPage
+import fr.gospeak.infra.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
 
 class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with CfpRepo {
   override def create(group: Group.Id, data: Cfp.Data, by: User.Id, now: Instant): IO[Cfp] =
-    run(insert, Cfp(group, data, Info(by, now)))
+    insert(Cfp(group, data, Info(by, now))).run(xa)
 
   override def edit(group: Group.Id, cfp: Cfp.Slug)(data: Cfp.Data, by: User.Id, now: Instant): IO[Done] = {
     if (data.slug != cfp) {
       find(group, data.slug).flatMap {
-        case None => run(update(group, cfp)(data, by, now))
+        case None => update(group, cfp)(data, by, now).run(xa)
         case _ => IO.raiseError(CustomException(s"You already have a cfp with slug ${data.slug}"))
       }
     } else {
-      run(update(group, cfp)(data, by, now))
+      update(group, cfp)(data, by, now).run(xa)
     }
   }
 
-  override def find(id: Cfp.Id): IO[Option[Cfp]] = run(selectOne(id).option)
+  override def find(id: Cfp.Id): IO[Option[Cfp]] = selectOne(id).runOption(xa)
 
-  override def find(slug: Cfp.Slug): IO[Option[Cfp]] = run(selectOne(slug).option)
+  override def find(slug: Cfp.Slug): IO[Option[Cfp]] = selectOne(slug).runOption(xa)
 
-  override def find(group: Group.Id, slug: Cfp.Slug): IO[Option[Cfp]] = run(selectOne(slug).option)
+  override def find(group: Group.Id, slug: Cfp.Slug): IO[Option[Cfp]] = selectOne(group, slug).runOption(xa)
 
-  override def find(id: Event.Id): IO[Option[Cfp]] = run(selectOne(id).option)
+  override def find(id: Event.Id): IO[Option[Cfp]] = selectOne(id).runOption(xa)
 
-  override def findOpen(slug: Cfp.Slug, now: Instant): IO[Option[Cfp]] = run(selectOne(slug, now).option)
+  override def findOpen(slug: Cfp.Slug, now: Instant): IO[Option[Cfp]] = selectOne(slug, now).runOption(xa)
 
-  override def list(group: Group.Id, params: Page.Params): IO[Page[Cfp]] = run(selectPage(group, params).page)
+  override def list(group: Group.Id, params: Page.Params): IO[Page[Cfp]] = selectPage(group, params).run(xa)
 
-  override def list(ids: Seq[Cfp.Id]): IO[Seq[Cfp]] = runIn(selectAll)(ids)
+  override def availableFor(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]] = selectPage(talk, params).run(xa)
 
-  override def availableFor(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]] = run(selectPage(talk, params).page)
+  override def listOpen(now: Instant, params: Page.Params): IO[Page[Cfp]] = selectPage(now, params).run(xa)
 
-  override def list(group: Group.Id): IO[Seq[Cfp]] = run(selectAll(group).to[List])
+  override def list(ids: Seq[Cfp.Id]): IO[Seq[Cfp]] = runNel(selectAll, ids)
 
-  override def listOpen(now: Instant, params: Page.Params): IO[Page[Cfp]] = run(selectPage(now, params).page)
+  override def list(group: Group.Id): IO[Seq[Cfp]] = selectAll(group).runList(xa)
 
-  override def listAllOpen(group: Group.Id, now: Instant): IO[Seq[Cfp]] = run(selectAll(group, now).to[List])
+  override def listAllOpen(group: Group.Id, now: Instant): IO[Seq[Cfp]] = selectAll(group, now).runList(xa)
 
-  override def listTags(): IO[Seq[Tag]] = run(selectTags().to[List]).map(_.flatten.distinct)
+  override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 }
 
 object CfpRepoSql {
   private val _ = cfpIdMeta // for intellij not remove DoobieUtils.Mappings import
-  private[sql] val table = "cfps"
-  private[sql] val fields = Seq("id", "group_id", "slug", "name", "begin", "close", "description", "tags", "created", "created_by", "updated", "updated_by")
-  private val tableFr: Fragment = Fragment.const0(table)
-  private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-  private val searchFields = Seq("id", "slug", "name", "description", "tags")
-  private val defaultSort = Page.OrderBy(Seq("-close", "name"))
+  private val table = Tables.cfps
+  private val tableWithEvent = table.join(Tables.events, _.field("id"), _.field("cfp_id")).get
 
-  private[sql] def insert(e: Cfp): doobie.Update0 = {
+  private[sql] def insert(e: Cfp): Insert[Cfp] = {
     val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.begin}, ${e.close}, ${e.description}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
-    buildInsert(tableFr, fieldsFr, values).update
+    table.insert[Cfp](e, _ => values)
   }
 
-  private[sql] def update(group: Group.Id, slug: Cfp.Slug)(data: Cfp.Data, by: User.Id, now: Instant): doobie.Update0 = {
-    val fields = fr0"slug=${data.slug}, name=${data.name}, begin=${data.begin}, close=${data.close}, description=${data.description}, tags=${data.tags}, updated=$now, updated_by=$by"
-    buildUpdate(tableFr, fields, where(group, slug)).update
+  private[sql] def update(group: Group.Id, slug: Cfp.Slug)(data: Cfp.Data, by: User.Id, now: Instant): Update = {
+    val fields = fr0"c.slug=${data.slug}, c.name=${data.name}, c.begin=${data.begin}, c.close=${data.close}, c.description=${data.description}, c.tags=${data.tags}, c.updated=$now, c.updated_by=$by"
+    table.update(fields, where(group, slug))
   }
 
-  private[sql] def selectOne(id: Cfp.Id): doobie.Query0[Cfp] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[Cfp]
+  private[sql] def selectOne(id: Cfp.Id): Select[Cfp] =
+    table.select[Cfp](fr0"WHERE c.id=$id")
 
-  private[sql] def selectOne(slug: Cfp.Slug): doobie.Query0[Cfp] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE slug=$slug").query[Cfp]
+  private[sql] def selectOne(slug: Cfp.Slug): Select[Cfp] =
+    table.select[Cfp](fr0"WHERE c.slug=$slug")
 
-  private[sql] def selectOne(group: Group.Id, slug: Cfp.Slug): doobie.Query0[Cfp] =
-    buildSelect(tableFr, fieldsFr, where(group, slug)).query[Cfp]
+  private[sql] def selectOne(group: Group.Id, slug: Cfp.Slug): Select[Cfp] =
+    table.select[Cfp](where(group, slug))
 
-  private[sql] def selectOne(id: Event.Id): doobie.Query0[Cfp] = {
-    val selectedTables = Fragment.const0(s"$table c INNER JOIN ${EventRepoSql.table} e ON e.cfp_id=c.id")
-    val selectedFields = Fragment.const0(fields.map("c." + _).mkString(", "))
-    buildSelect(selectedTables, selectedFields, fr0"WHERE e.id=$id").query[Cfp]
-  }
+  private[sql] def selectOne(id: Event.Id): Select[Cfp] =
+    tableWithEvent.select[Cfp](Tables.cfps.fields, fr0"WHERE e.id=$id")
 
-  private[sql] def selectOne(slug: Cfp.Slug, now: Instant): doobie.Query0[Cfp] =
-    buildSelect(tableFr, fieldsFr, where(slug, now)).query[Cfp]
+  private[sql] def selectOne(slug: Cfp.Slug, now: Instant): Select[Cfp] =
+    table.select[Cfp](where(slug, now))
 
   private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[Cfp] =
-    SelectPage[Cfp](table, fieldsFr, fr0"WHERE group_id=$group", params, defaultSort, searchFields)
+    table.selectPage[Cfp](params, fr0"WHERE c.group_id=$group")
 
   private[sql] def selectPage(talk: Talk.Id, params: Page.Params): SelectPage[Cfp] = {
-    val talkCfps = buildSelect(ProposalRepoSql.tableFr, fr0"cfp_id", fr0"WHERE talk_id=$talk")
-    SelectPage[Cfp](table, fieldsFr, fr0"WHERE id NOT IN (" ++ talkCfps ++ fr0")", params, defaultSort, searchFields)
+    val talkCfps = Tables.proposals.select(Seq(Field("cfp_id", "p")), fr0"WHERE p.talk_id=$talk")
+    table.selectPage[Cfp](params, fr0"WHERE c.id NOT IN (" ++ talkCfps.fr ++ fr0")")
   }
 
   private[sql] def selectPage(now: Instant, params: Page.Params): SelectPage[Cfp] =
-    SelectPage[Cfp](table, fieldsFr, where(now), params, defaultSort, searchFields)
+    table.selectPage[Cfp](params, where(now))
 
-  private[sql] def selectAll(group: Group.Id): doobie.Query0[Cfp] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE group_id=$group").query[Cfp]
+  private[sql] def selectAll(group: Group.Id): Select[Cfp] =
+    table.select[Cfp](fr0"WHERE c.group_id=$group")
 
-  private[sql] def selectAll(ids: NonEmptyList[Cfp.Id]): doobie.Query0[Cfp] =
-    buildSelect(tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids)).query[Cfp]
+  private[sql] def selectAll(ids: NonEmptyList[Cfp.Id]): Select[Cfp] =
+    table.select[Cfp](fr"WHERE" ++ Fragments.in(fr"c.id", ids))
 
-  private[sql] def selectAll(group: Group.Id, now: Instant): doobie.Query0[Cfp] =
-    buildSelect(tableFr, fieldsFr, where(group, now)).query[Cfp]
+  private[sql] def selectAll(group: Group.Id, now: Instant): Select[Cfp] =
+    table.select[Cfp](where(group, now))
 
-  private[sql] def selectTags(): doobie.Query0[Seq[Tag]] =
-    Fragment.const0(s"SELECT tags FROM $table").query[Seq[Tag]]
+  private[sql] def selectTags(): Select[Seq[Tag]] =
+    table.select[Seq[Tag]](Seq(Field("tags", "c")))
 
   private def where(group: Group.Id, slug: Cfp.Slug): Fragment =
-    fr0"WHERE group_id=$group AND slug=$slug"
+    fr0"WHERE c.group_id=$group AND c.slug=$slug"
 
   private def where(now: Instant): Fragment =
-    fr0"WHERE (begin IS NULL OR begin < $now) AND (close IS NULL OR close > $now)"
+    fr0"WHERE (c.begin IS NULL OR c.begin < $now) AND (c.close IS NULL OR c.close > $now)"
 
   private def where(slug: Cfp.Slug, now: Instant): Fragment =
-    where(now) ++ fr0" AND slug=$slug"
+    where(now) ++ fr0" AND c.slug=$slug"
 
   private def where(group: Group.Id, now: Instant): Fragment =
-    where(now) ++ fr0" AND group_id=$group"
+    where(now) ++ fr0" AND c.group_id=$group"
 }

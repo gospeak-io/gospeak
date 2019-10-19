@@ -82,7 +82,7 @@ class GroupRepoSqlSpec extends RepoSpec {
       describe("member") {
         it("should build insertMember") {
           val q = GroupRepoSql.insertMember(member)
-          check(q, s"INSERT INTO $memberTable ($memberFields) VALUES (${mapFields(memberFields, _ => "?")})")
+          check(q, s"INSERT INTO ${memberTable.stripSuffix(" gm")} (${mapFields(memberFields, _.stripPrefix("gm."))}) VALUES (${mapFields(memberFields, _ => "?")})")
         }
         it("should build selectPageMembers") {
           val q = GroupRepoSql.selectPageMembers(group.id, params)
@@ -99,10 +99,10 @@ class GroupRepoSqlSpec extends RepoSpec {
 
 object GroupRepoSqlSpec {
   val table = "groups g"
-  val fields = "g.id, g.slug, g.name, g.contact, g.description, g.owners, g.tags, g.created, g.created_by, g.updated, g.updated_by"
+  val fields: String = mapFields("id, slug, name, contact, description, owners, tags, created, created_by, updated, updated_by", "g." + _)
 
-  private val memberTable = "group_members"
-  private val memberFields = "group_id, user_id, role, presentation, joined_at"
-  private val memberTableWithUser = s"$memberTable gm INNER JOIN $userTable u ON gm.user_id=u.id"
-  private val memberFieldsWithUser = s"${mapFields(memberFields.replaceAll("user_id, ", ""), "gm." + _)}, ${mapFields(userFields, "u." + _)}"
+  private val memberTable = "group_members gm"
+  private val memberFields = mapFields("group_id, user_id, role, presentation, joined_at", "gm." + _)
+  private val memberTableWithUser = s"$memberTable INNER JOIN $userTable u ON gm.user_id=u.id"
+  private val memberFieldsWithUser = s"${memberFields.replaceAll("gm.user_id, ", "")}, ${mapFields(userFields, "u." + _)}"
 }

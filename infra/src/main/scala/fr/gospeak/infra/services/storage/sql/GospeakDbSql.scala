@@ -127,16 +127,16 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
         // _ <- run(UserRepoSql.insertLoginRef(User.LoginRef("credentials", lkn.email.value, lkn.id)))
         // _ <- run(UserRepoSql.validateAccount(lkn.email, lkn.created))
         _ <- GroupRepoSql.insert(groupHt).run(xa)
-        _ <- run(CfpRepoSql.insert(cfpHt))
+        _ <- CfpRepoSql.insert(cfpHt).run(xa)
         _ <- run(Queries.insertMany(TalkRepoSql.insert)(NonEmptyList.fromListUnsafe(talks)))
         _ <- run(Queries.insertMany(ProposalRepoSql.insert)(NonEmptyList.fromListUnsafe(proposals)))
-        _ <- run(Queries.insertMany(PartnerRepoSql.insert)(NonEmptyList.fromListUnsafe(partners)))
-        _ <- run(Queries.insertMany(ContactRepoSql.insert)(NonEmptyList.fromListUnsafe(contacts.map(_._2))))
+        _ <- run(Queries.insertMany(PartnerRepoSql.insert(_: Partner).fr.update)(NonEmptyList.fromListUnsafe(partners)))
+        _ <- run(Queries.insertMany(ContactRepoSql.insert(_: Contact).fr.update)(NonEmptyList.fromListUnsafe(contacts.map(_._2))))
         _ <- run(Queries.insertMany(SponsorPackRepoSql.insert)(NonEmptyList.fromListUnsafe(sponsorPacks)))
         _ <- run(Queries.insertMany(SponsorRepoSql.insert)(NonEmptyList.fromListUnsafe(sponsors)))
         // _ <- run(Queries.insertMany(VenueRepoSql.insert)(NonEmptyList.fromListUnsafe(venues))) // fail with: JdbcSQLException: Parameter "#10" is not set :(
         _ <- IO(venues.map(venue => run(Queries.insertOne(VenueRepoSql.insert)(venue)).unsafeRunSync()))
-        _ <- run(Queries.insertMany(EventRepoSql.insert)(NonEmptyList.fromListUnsafe(events)))
+        _ <- run(Queries.insertMany(EventRepoSql.insert(_: Event).fr.update)(NonEmptyList.fromListUnsafe(events)))
         _ <- IO(events.map(event => addTalk(cfpHt, event, proposals.filter(p => event.talks.contains(p.id)), event.info.createdBy, event.info.updated)).map(_.unsafeRunSync()))
       } yield Done
     } { mongo => IO(mongo.close()) }
@@ -321,15 +321,15 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       _ <- run(Queries.insertMany(UserRepoSql.insertLoginRef)(loginRefs))
       _ <- run(Queries.insertMany(TalkRepoSql.insert)(talks ++ generated.map(_._4)))
       _ <- run(Queries.insertMany(GroupRepoSql.insert(_: Group).fr.update)(groups ++ generated.map(_._1)))
-      _ <- run(Queries.insertMany(CfpRepoSql.insert)(cfps ++ generated.map(_._2)))
+      _ <- run(Queries.insertMany(CfpRepoSql.insert(_: Cfp).fr.update)(cfps ++ generated.map(_._2)))
       _ <- run(Queries.insertMany(ProposalRepoSql.insert)(proposals ++ generated.map(_._5)))
-      _ <- run(Queries.insertMany(PartnerRepoSql.insert)(partners))
-      _ <- run(Queries.insertMany(ContactRepoSql.insert)(contacts))
+      _ <- run(Queries.insertMany(PartnerRepoSql.insert(_: Partner).fr.update)(partners))
+      _ <- run(Queries.insertMany(ContactRepoSql.insert(_: Contact).fr.update)(contacts))
       // _ <- run(Queries.insertMany(VenueRepoSql.insert)(venues)) // fail with: JdbcSQLException: Parameter "#10" is not set :(
       _ <- IO(venues.toList.map(venue => run(Queries.insertOne(VenueRepoSql.insert)(venue)).unsafeRunSync()))
       _ <- run(Queries.insertMany(SponsorPackRepoSql.insert)(packs))
       _ <- run(Queries.insertMany(SponsorRepoSql.insert)(sponsors))
-      _ <- run(Queries.insertMany(EventRepoSql.insert)(events ++ generated.map(_._3)))
+      _ <- run(Queries.insertMany(EventRepoSql.insert(_: Event).fr.update)(events ++ generated.map(_._3)))
       _ <- IO(eventTalks.map { case (c, e, p, u) => addTalk(c, e, p, u, now) }.map(_.unsafeRunSync()))
       _ <- groupSettings.set(humanTalks.id, humanTalksSettings, userDemo.id, now)
     } yield Done
@@ -524,7 +524,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     """.stripMargin
 
   private def addTalk(cfp: Cfp, event: Event, proposals: Seq[Proposal], by: User.Id, now: Instant): IO[Done] = for {
-    _ <- run(EventRepoSql.updateTalks(event.group, event.slug)(proposals.map(_.id), by, now))
+    _ <- EventRepoSql.updateTalks(event.group, event.slug)(proposals.map(_.id), by, now).run(xa)
     _ <- IO(proposals.map(p => run(ProposalRepoSql.updateStatus(cfp.slug, p.id)(Proposal.Status.Accepted, Some(event.id)))).map(_.unsafeRunSync()))
   } yield Done
 

@@ -3,10 +3,14 @@ package fr.gospeak.infra.services.storage.sql.utils
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
+import fr.gospeak.infra.utils.DoobieUtils.Select
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done}
 
 trait GenericRepo {
   protected[sql] val xa: doobie.Transactor[IO]
+
+  protected def runNel[Id, A](run: NonEmptyList[Id] => Select[A], ids: Seq[Id]): IO[Seq[A]] =
+    NonEmptyList.fromList(ids.toList).map(run(_).runList(xa)).getOrElse(IO.pure(Seq()))
 
   protected def run[A](i: A => doobie.Update0, v: A): IO[A] =
     i(v).run.transact(xa).flatMap {

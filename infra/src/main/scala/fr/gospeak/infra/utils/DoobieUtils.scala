@@ -55,11 +55,19 @@ object DoobieUtils {
 
     def dropField(f: Table => Either[CustomException, Field]): Either[CustomException, Table] = f(this).flatMap(dropField)
 
-    def join(rightTable: Table, leftField: Table => Either[CustomException, Field], rightField: Table => Either[CustomException, Field]): Either[CustomException, Table] = for {
+    def dropFields(p: Field => Boolean): Table = copy(fields = fields.filterNot(p))
+
+    def join(rightTable: Table, leftField: Table => Either[CustomException, Field], rightField: Table => Either[CustomException, Field]): Either[CustomException, Table] =
+      join("INNER JOIN", rightTable, leftField, rightField)
+
+    def joinOpt(rightTable: Table, leftField: Table => Either[CustomException, Field], rightField: Table => Either[CustomException, Field]): Either[CustomException, Table] =
+      join("LEFT OUTER JOIN", rightTable, leftField, rightField)
+
+    private def join(kind: String, rightTable: Table, leftField: Table => Either[CustomException, Field], rightField: Table => Either[CustomException, Field]): Either[CustomException, Table] = for {
       left <- leftField(this)
       right <- rightField(rightTable)
       res <- Table.from(
-        name = s"$name INNER JOIN ${rightTable.name} ON ${left.value}=${right.value}",
+        name = s"$name $kind ${rightTable.name} ON ${left.value}=${right.value}",
         prefix = prefix,
         fields = fields ++ rightTable.fields,
         sort = sort,
@@ -74,6 +82,8 @@ object DoobieUtils {
     def select[A: Read](where: Fragment): Select[A] = Select[A](name, fields, Some(where))
 
     def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](name, fields, None)
+
+    def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](name, fields, Some(where))
 
     def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](name, fields, params, sort, search.map(_.value))
 
@@ -92,7 +102,7 @@ object DoobieUtils {
 
     def from(name: String, prefix: String, fields: Seq[Field], sort: Page.OrderBy, search: Seq[Field], hasJoin: Boolean): Either[CustomException, Table] = {
       val duplicateFields = fields.diff(fields.distinct).distinct
-      val invalidSort = sort.values.diff(fields.map(_.value))
+      val invalidSort = sort.values.map(_.stripPrefix("-")).diff(fields.map(_.value))
       val invalidSearch = search.diff(fields)
       val errors = Seq(
         duplicateFields.headOption.map(_ => CustomError(s"fields ${duplicateFields.map(s"'" + _.value + "'").mkString(", ")} are duplicated")),

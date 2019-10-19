@@ -16,24 +16,21 @@ class VenueRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = VenueRepoSql.update(group.id, venue.id)(venue.data, user.id, now)
-        q.sql shouldBe s"UPDATE $table SET contact_id=?, address=?, address_lat=?, address_lng=?, address_country=?, description=?, room_size=?, meetupGroup=?, meetupVenue=?, updated=?, updated_by=? WHERE id=(SELECT v.id FROM $tableFull WHERE p.group_id=? AND v.id=?)"
+        q.sql shouldBe s"UPDATE $table SET contact_id=?, address=?, address_lat=?, address_lng=?, address_country=?, description=?, room_size=?, meetupGroup=?, meetupVenue=?, updated=?, updated_by=? WHERE id=(SELECT v.id FROM $tableFull WHERE pa.group_id=? AND v.id=?)"
         check(q)
       }
       it("should build selectOneFull") {
         val q = VenueRepoSql.selectOneFull(group.id, venue.id)
-        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.group_id=? AND v.id=?"
+        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? AND v.id=?"
         check(q)
       }
       it("should build selectPageFull") {
         val q = VenueRepoSql.selectPageFull(group.id, params)
-        q.query.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.group_id=? ORDER BY v.created IS NULL, v.created OFFSET 0 LIMIT 20"
-        q.count.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE p.group_id=? "
-        check(q.query)
-        check(q.count)
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? ORDER BY v.created IS NULL, v.created OFFSET 0 LIMIT 20")
       }
       it("should build selectAllFull for group id") {
         val q = VenueRepoSql.selectAllFull(group.id)
-        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.group_id=? "
+        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? "
         check(q)
       }
       it("should build selectAllFull for partner id") {
@@ -43,7 +40,7 @@ class VenueRepoSqlSpec extends RepoSpec {
       }
       it("should build selectAllFull for group id and ids") {
         val q = VenueRepoSql.selectAllFull(group.id, NonEmptyList.of(venue.id))
-        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE p.group_id=? AND  v.id IN (?) "
+        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? AND  v.id IN (?) "
         check(q)
       }
     }
@@ -58,6 +55,6 @@ object VenueRepoSqlSpec {
   val fieldsInsert = "id, partner_id, contact_id, address, address_lat, address_lng, address_country, description, room_size, meetupGroup, meetupVenue, created, created_by, updated, updated_by"
   val fields = "id, partner_id, contact_id, address, description, room_size, meetupGroup, meetupVenue, created, created_by, updated, updated_by"
 
-  private val tableFull = s"$table v INNER JOIN $partnerTable p ON v.partner_id=p.id LEFT OUTER JOIN $contactTable c ON v.contact_id=c.id"
-  private val fieldsFull = s"${mapFields(fields, "v." + _)}, ${mapFields(partnerFields, "p." + _)}, ${mapFields(contactFields, "c." + _)}"
+  private val tableFull = s"$table v INNER JOIN $partnerTable ON v.partner_id=pa.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id"
+  private val fieldsFull = s"${mapFields(fields, "v." + _)}, $partnerFields, $contactFields"
 }

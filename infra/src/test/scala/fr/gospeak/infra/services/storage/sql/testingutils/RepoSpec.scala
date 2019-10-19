@@ -50,6 +50,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val userAskToJoinAGroupRequest: UserAskToJoinAGroupRequest = random[UserAskToJoinAGroupRequest]
   protected val userRequest: UserRequest = accountValidationRequest
   protected val member: Group.Member = random[Group.Member]
+  protected val rsvp: Event.Rsvp = random[Event.Rsvp]
 
   protected val Seq(userData1, userData2, userData3) = random[User.Data](10).distinctBy(_.email).take(3)
   protected val Seq(groupData1, groupData2) = random[Group.Data](2)
