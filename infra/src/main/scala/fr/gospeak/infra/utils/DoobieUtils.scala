@@ -77,6 +77,8 @@ object DoobieUtils {
 
     def insert[A](value: A, build: A => Fragment): Insert[A] = Insert[A](name.split(" ").head, fields, value, build)
 
+    def insertPartial[A](fields: Seq[Field], value: A, build: A => Fragment): Insert[A] = Insert[A](name.split(" ").head, fields, value, build)
+
     def update(fields: Fragment, where: Fragment): Update = Update(name, fields, where)
 
     def delete(where: Fragment): Delete = Delete(name, where)
@@ -160,6 +162,8 @@ object DoobieUtils {
     def runList(xa: doobie.Transactor[IO]): IO[Seq[A]] = query.to[List].transact(xa)
 
     def runOption(xa: doobie.Transactor[IO]): IO[Option[A]] = query.option.transact(xa)
+
+    def runUnique(xa: doobie.Transactor[IO]): IO[A] = query.unique.transact(xa)
 
     def runExists(xa: doobie.Transactor[IO]): IO[Boolean] = query.option.map(_.isDefined).transact(xa)
   }

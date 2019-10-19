@@ -10,9 +10,8 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage.UserRequestRepo
 import fr.gospeak.infra.services.storage.sql.UserRequestRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.SelectPage
+import fr.gospeak.infra.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
@@ -20,292 +19,256 @@ class UserRequestRepoSql(groupRepo: GroupRepoSql,
                          talkRepo: TalkRepoSql,
                          proposalRepo: ProposalRepoSql,
                          protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRequestRepo {
-  override def find(id: UserRequest.Id): IO[Option[UserRequest]] =
-    run(selectOne(id).option)
+  override def find(id: UserRequest.Id): IO[Option[UserRequest]] = selectOne(id).runOption(xa)
 
-  override def list(user: User.Id, params: Page.Params): IO[Page[UserRequest]] =
-    run(selectPage(user, params).page)
+  override def list(user: User.Id, params: Page.Params): IO[Page[UserRequest]] = selectPage(user, params).run(xa)
 
-  override def listPendingGroupRequests(group: Group.Id, now: Instant): IO[Seq[UserRequest]] =
-    run(selectAllPending(group, now).to[List])
+  override def listPendingGroupRequests(group: Group.Id, now: Instant): IO[Seq[UserRequest]] = selectAllPending(group, now).runList(xa)
 
-  /* def findPending(group: Group.Id, req: UserRequest.Id, now: Instant): IO[Option[UserRequest]] =
-    run(selectOnePending(group, req, now).option) */
+  // override def findPending(group: Group.Id, req: UserRequest.Id, now: Instant): IO[Option[UserRequest]] = selectOnePending(group, req, now).runOption(xa)
 
   override def findPendingUserToJoinAGroup(group: Group.Id, req: UserRequest.Id): IO[Option[UserAskToJoinAGroupRequest]] =
-    run(UserAskToJoinAGroup.selectOnePending(group, req).option)
+    UserAskToJoinAGroup.selectOnePending(group, req).runOption(xa)
 
   override def createAccountValidationRequest(email: EmailAddress, user: User.Id, now: Instant): IO[AccountValidationRequest] =
-    run(AccountValidation.insert, AccountValidationRequest(UserRequest.Id.generate(), email, now.plus(Timeout.accountValidation), now, user, None))
+    AccountValidation.insert(AccountValidationRequest(UserRequest.Id.generate(), email, now.plus(Timeout.accountValidation), now, user, None)).run(xa)
 
   override def validateAccount(id: UserRequest.Id, email: EmailAddress, now: Instant): IO[Done] = for {
-    _ <- run(AccountValidation.accept(id, now))
+    _ <- AccountValidation.accept(id, now).run(xa)
     _ <- UserRepoSql.validateAccount(email, now).run(xa)
   } yield Done
 
-  override def findPendingAccountValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[AccountValidationRequest]] =
-    run(AccountValidation.selectPending(id, now).option)
+  override def findPendingAccountValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[AccountValidationRequest]] = AccountValidation.selectPending(id, now).runOption(xa)
 
-  override def findPendingAccountValidationRequest(id: User.Id, now: Instant): IO[Option[AccountValidationRequest]] =
-    run(AccountValidation.selectPending(id, now).option)
+  override def findPendingAccountValidationRequest(id: User.Id, now: Instant): IO[Option[AccountValidationRequest]] = AccountValidation.selectPending(id, now).runOption(xa)
 
 
   override def createPasswordResetRequest(email: EmailAddress, now: Instant): IO[PasswordResetRequest] =
-    run(PasswordReset.insert, PasswordResetRequest(UserRequest.Id.generate(), email, now, now.plus(Timeout.passwordReset), None))
+    PasswordReset.insert(PasswordResetRequest(UserRequest.Id.generate(), email, now, now.plus(Timeout.passwordReset), None)).run(xa)
 
   override def resetPassword(passwordReset: PasswordResetRequest, credentials: User.Credentials, now: Instant): IO[Done] = for {
-    _ <- run(PasswordReset.accept(passwordReset.id, now))
+    _ <- PasswordReset.accept(passwordReset.id, now).run(xa)
     _ <- UserRepoSql.updateCredentials(credentials.login)(credentials.pass).run(xa)
     _ <- UserRepoSql.validateAccount(passwordReset.email, now).run(xa)
   } yield Done
 
-  override def findPendingPasswordResetRequest(id: UserRequest.Id, now: Instant): IO[Option[PasswordResetRequest]] =
-    run(PasswordReset.selectPending(id, now).option)
+  override def findPendingPasswordResetRequest(id: UserRequest.Id, now: Instant): IO[Option[PasswordResetRequest]] = PasswordReset.selectPending(id, now).runOption(xa)
 
-  override def findPendingPasswordResetRequest(email: EmailAddress, now: Instant): IO[Option[PasswordResetRequest]] =
-    run(PasswordReset.selectPending(email, now).option)
+  override def findPendingPasswordResetRequest(email: EmailAddress, now: Instant): IO[Option[PasswordResetRequest]] = PasswordReset.selectPending(email, now).runOption(xa)
 
 
   override def createUserAskToJoinAGroup(user: User.Id, group: Group.Id, now: Instant): IO[UserAskToJoinAGroupRequest] =
-    run(UserAskToJoinAGroup.insert, UserAskToJoinAGroupRequest(UserRequest.Id.generate(), group, now, user, None, None, None))
+    UserAskToJoinAGroup.insert(UserAskToJoinAGroupRequest(UserRequest.Id.generate(), group, now, user, None, None, None)).run(xa)
 
   override def acceptUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done] = for {
-    _ <- run(UserAskToJoinAGroup.accept(req.id, by, now))
+    _ <- UserAskToJoinAGroup.accept(req.id, by, now).run(xa)
     _ <- groupRepo.addOwner(req.group)(req.createdBy, by, now)
   } yield Done
 
-  override def rejectUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done] =
-    run(UserAskToJoinAGroup.reject(req.id, by, now))
+  override def rejectUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done] = UserAskToJoinAGroup.reject(req.id, by, now).run(xa)
 
-  override def listPendingUserToJoinAGroupRequests(user: User.Id): IO[Seq[UserAskToJoinAGroupRequest]] =
-    run(UserAskToJoinAGroup.selectAllPending(user).to[List])
+  override def listPendingUserToJoinAGroupRequests(user: User.Id): IO[Seq[UserAskToJoinAGroupRequest]] = UserAskToJoinAGroup.selectAllPending(user).runList(xa)
 
 
   override def invite(group: Group.Id, email: EmailAddress, by: User.Id, now: Instant): IO[GroupInvite] =
-    run(GroupInviteQueries.insert, GroupInvite(UserRequest.Id.generate(), group, email, now, by, None, None, None))
+    GroupInviteQueries.insert(GroupInvite(UserRequest.Id.generate(), group, email, now, by, None, None, None)).run(xa)
 
   override def cancelGroupInvite(id: Id, by: User.Id, now: Instant): IO[GroupInvite] =
-    run(GroupInviteQueries.cancel(id, by, now)).flatMap(_ => run(GroupInviteQueries.selectOne(id).unique))
+    GroupInviteQueries.cancel(id, by, now).run(xa).flatMap(_ => GroupInviteQueries.selectOne(id).runUnique(xa))
 
   override def accept(invite: UserRequest.GroupInvite, by: User.Id, now: Instant): IO[Done] = for {
-    _ <- run(GroupInviteQueries.accept(invite.id, by, now))
+    _ <- GroupInviteQueries.accept(invite.id, by, now).run(xa)
     _ <- groupRepo.addOwner(invite.group)(by, invite.createdBy, now)
   } yield Done
 
-  override def reject(invite: UserRequest.GroupInvite, by: User.Id, now: Instant): IO[Done] =
-    run(GroupInviteQueries.reject(invite.id, by, now))
+  override def reject(invite: UserRequest.GroupInvite, by: User.Id, now: Instant): IO[Done] = GroupInviteQueries.reject(invite.id, by, now).run(xa)
 
-  override def listPendingInvites(group: Group.Id): IO[Seq[GroupInvite]] =
-    run(GroupInviteQueries.selectAllPending(group).to[List])
+  override def listPendingInvites(group: Group.Id): IO[Seq[GroupInvite]] = GroupInviteQueries.selectAllPending(group).runList(xa)
 
 
   override def invite(talk: Talk.Id, email: EmailAddress, by: User.Id, now: Instant): IO[TalkInvite] =
-    run(TalkInviteQueries.insert, TalkInvite(UserRequest.Id.generate(), talk, email, now, by, None, None, None))
+    TalkInviteQueries.insert(TalkInvite(UserRequest.Id.generate(), talk, email, now, by, None, None, None)).run(xa)
 
   override def cancelTalkInvite(id: UserRequest.Id, by: User.Id, now: Instant): IO[TalkInvite] =
-    run(TalkInviteQueries.cancel(id, by, now)).flatMap(_ => run(TalkInviteQueries.selectOne(id).unique))
+    TalkInviteQueries.cancel(id, by, now).run(xa).flatMap(_ => TalkInviteQueries.selectOne(id).runUnique(xa))
 
   override def accept(invite: UserRequest.TalkInvite, by: User.Id, now: Instant): IO[Done] = for {
-    _ <- run(TalkInviteQueries.accept(invite.id, by, now))
+    _ <- TalkInviteQueries.accept(invite.id, by, now).run(xa)
     _ <- talkRepo.addSpeaker(invite.talk)(by, invite.createdBy, now)
   } yield Done
 
-  override def reject(invite: UserRequest.TalkInvite, by: User.Id, now: Instant): IO[Done] =
-    run(TalkInviteQueries.reject(invite.id, by, now))
+  override def reject(invite: UserRequest.TalkInvite, by: User.Id, now: Instant): IO[Done] = TalkInviteQueries.reject(invite.id, by, now).run(xa)
 
-  override def listPendingInvites(talk: Talk.Id): IO[Seq[TalkInvite]] =
-    run(TalkInviteQueries.selectAllPending(talk).to[List])
+  override def listPendingInvites(talk: Talk.Id): IO[Seq[TalkInvite]] = TalkInviteQueries.selectAllPending(talk).runList(xa)
 
 
   override def invite(proposal: Proposal.Id, email: EmailAddress, by: User.Id, now: Instant): IO[ProposalInvite] =
-    run(ProposalInviteQueries.insert, ProposalInvite(UserRequest.Id.generate(), proposal, email, now, by, None, None, None))
+    ProposalInviteQueries.insert(ProposalInvite(UserRequest.Id.generate(), proposal, email, now, by, None, None, None)).run(xa)
 
   override def cancelProposalInvite(id: Id, by: User.Id, now: Instant): IO[ProposalInvite] =
-    run(ProposalInviteQueries.cancel(id, by, now)).flatMap(_ => run(ProposalInviteQueries.selectOne(id).unique))
+    ProposalInviteQueries.cancel(id, by, now).run(xa).flatMap(_ => ProposalInviteQueries.selectOne(id).runUnique(xa))
 
   override def accept(invite: UserRequest.ProposalInvite, by: User.Id, now: Instant): IO[Done] = for {
-    _ <- run(ProposalInviteQueries.accept(invite.id, by, now))
+    _ <- ProposalInviteQueries.accept(invite.id, by, now).run(xa)
     _ <- proposalRepo.addSpeaker(invite.proposal)(by, invite.createdBy, now)
   } yield Done
 
-  override def reject(invite: UserRequest.ProposalInvite, by: User.Id, now: Instant): IO[Done] =
-    run(ProposalInviteQueries.reject(invite.id, by, now))
+  override def reject(invite: UserRequest.ProposalInvite, by: User.Id, now: Instant): IO[Done] = ProposalInviteQueries.reject(invite.id, by, now).run(xa)
 
-  override def listPendingInvites(proposal: Proposal.Id): IO[Seq[ProposalInvite]] =
-    run(ProposalInviteQueries.selectAllPending(proposal).to[List])
+  override def listPendingInvites(proposal: Proposal.Id): IO[Seq[ProposalInvite]] = ProposalInviteQueries.selectAllPending(proposal).runList(xa)
 }
 
 object UserRequestRepoSql {
   private val _ = userRequestIdMeta // for intellij not remove DoobieUtils.Mappings import
-  private val table = "requests"
-  private val fields = Seq("id", "kind", "group_id", "talk_id", "proposal_id", "email", "deadline", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by", "canceled", "canceled_by")
-  private val tableFr: Fragment = Fragment.const0(table)
-  private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-  private val searchFields = Seq("id", "email", "group_id", "created_by")
-  private val defaultSort = Page.OrderBy("-created")
+  private val table = Tables.requests
 
-  private[sql] def selectOne(id: UserRequest.Id): doobie.Query0[UserRequest] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[UserRequest]
+  private[sql] def selectOne(id: UserRequest.Id): Select[UserRequest] =
+    table.select[UserRequest](fr0"WHERE r.id=$id")
 
-  private[sql] def selectOnePending(group: Group.Id, req: UserRequest.Id, now: Instant): doobie.Query0[UserRequest] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$req AND group_id=$group AND accepted IS NULL AND rejected IS NULL AND (deadline IS NULL OR deadline > $now)").query[UserRequest]
+  private[sql] def selectOnePending(group: Group.Id, req: UserRequest.Id, now: Instant): Select[UserRequest] =
+    table.select[UserRequest](fr0"WHERE r.id=$req AND r.group_id=$group AND r.accepted IS NULL AND r.rejected IS NULL AND (r.deadline IS NULL OR r.deadline > $now)")
 
   private[sql] def selectPage(user: User.Id, params: Page.Params): SelectPage[UserRequest] =
-    SelectPage[UserRequest](table, fieldsFr, fr0"WHERE created_by=$user", params, defaultSort, searchFields)
+    table.selectPage[UserRequest](params, fr0"WHERE r.created_by=$user")
 
-  private[sql] def selectAllPending(group: Group.Id, now: Instant): doobie.Query0[UserRequest] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE group_id=$group AND accepted IS NULL AND rejected IS NULL AND (deadline IS NULL OR deadline > $now)").query[UserRequest]
+  private[sql] def selectAllPending(group: Group.Id, now: Instant): Select[UserRequest] =
+    table.select[UserRequest](fr0"WHERE r.group_id=$group AND r.accepted IS NULL AND r.rejected IS NULL AND (r.deadline IS NULL OR r.deadline > $now)")
 
   object AccountValidation {
     private val kind = "AccountValidation"
-    private val fields = Seq("id", "kind", "email", "deadline", "created", "created_by", "accepted")
-    private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
+    private val fields = Seq("id", "kind", "email", "deadline", "created", "created_by", "accepted").map(n => Field(n, table.prefix))
 
-    private[sql] def insert(elt: AccountValidationRequest): doobie.Update0 = {
+    private[sql] def insert(elt: AccountValidationRequest): Insert[AccountValidationRequest] = {
       val values = fr0"${elt.id}, $kind, ${elt.email}, ${elt.deadline}, ${elt.created}, ${elt.createdBy}, ${elt.accepted}"
-      buildInsert(tableFr, fieldsFr, values).update
+      table.insertPartial[AccountValidationRequest](fields, elt, _ => values)
     }
 
-    private[sql] def accept(id: UserRequest.Id, now: Instant): doobie.Update0 =
-      buildUpdate(tableFr, fr0"accepted=$now", where(id, now)).update
+    private[sql] def accept(id: UserRequest.Id, now: Instant): Update = table.update(fr0"r.accepted=$now", where(id, now))
 
-    private[sql] def selectPending(id: UserRequest.Id, now: Instant): doobie.Query0[AccountValidationRequest] =
-      buildSelect(tableFr, Fragment.const0(fields.filter(_ != "kind").mkString(", ")), where(id, now)).query[AccountValidationRequest]
+    private[sql] def selectPending(id: UserRequest.Id, now: Instant): Select[AccountValidationRequest] = table.select[AccountValidationRequest](fields.filter(_.name != "kind"), where(id, now))
 
-    private[sql] def selectPending(id: User.Id, now: Instant): doobie.Query0[AccountValidationRequest] =
-      buildSelect(tableFr, Fragment.const0(fields.filter(_ != "kind").mkString(", ")), where(id, now)).query[AccountValidationRequest]
+    private[sql] def selectPending(id: User.Id, now: Instant): Select[AccountValidationRequest] = table.select[AccountValidationRequest](fields.filter(_.name != "kind"), where(id, now))
 
-    private def where(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE id=$id AND kind=$kind AND deadline > $now AND accepted IS NULL"
+    private def where(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE r.id=$id AND r.kind=$kind AND r.deadline > $now AND r.accepted IS NULL"
 
-    private def where(id: User.Id, now: Instant): Fragment = fr0"WHERE created_by=$id AND kind=$kind AND deadline > $now AND accepted IS NULL"
+    private def where(id: User.Id, now: Instant): Fragment = fr0"WHERE r.created_by=$id AND r.kind=$kind AND r.deadline > $now AND r.accepted IS NULL"
   }
 
   object PasswordReset {
     private val kind = "PasswordReset"
-    private val fields = Seq("id", "kind", "email", "deadline", "created", "accepted")
-    private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
+    private val fields = Seq("id", "kind", "email", "deadline", "created", "accepted").map(n => Field(n, table.prefix))
 
-    private[sql] def insert(elt: PasswordResetRequest): doobie.Update0 = {
+    private[sql] def insert(elt: PasswordResetRequest): Insert[PasswordResetRequest] = {
       val values = fr0"${elt.id}, $kind, ${elt.email}, ${elt.deadline}, ${elt.created}, ${elt.accepted}"
-      buildInsert(tableFr, fieldsFr, values).update
+      table.insertPartial[PasswordResetRequest](fields, elt, _ => values)
     }
 
-    private[sql] def accept(id: UserRequest.Id, now: Instant): doobie.Update0 =
-      buildUpdate(tableFr, fr0"accepted=$now", where(id, now)).update
+    private[sql] def accept(id: UserRequest.Id, now: Instant): Update = table.update(fr0"r.accepted=$now", where(id, now))
 
-    private[sql] def selectPending(id: UserRequest.Id, now: Instant): doobie.Query0[PasswordResetRequest] =
-      buildSelect(tableFr, Fragment.const0(fields.filter(_ != "kind").mkString(", ")), where(id, now)).query[PasswordResetRequest]
+    private[sql] def selectPending(id: UserRequest.Id, now: Instant): Select[PasswordResetRequest] = table.select[PasswordResetRequest](fields.filter(_.name != "kind"), where(id, now))
 
-    private[sql] def selectPending(email: EmailAddress, now: Instant): doobie.Query0[PasswordResetRequest] =
-      buildSelect(tableFr, Fragment.const0(fields.filter(_ != "kind").mkString(", ")), where(email, now)).query[PasswordResetRequest]
+    private[sql] def selectPending(email: EmailAddress, now: Instant): Select[PasswordResetRequest] = table.select[PasswordResetRequest](fields.filter(_.name != "kind"), where(email, now))
 
-    private def where(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE id=$id AND kind=$kind AND deadline > $now AND accepted IS NULL"
+    private def where(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE r.id=$id AND r.kind=$kind AND r.deadline > $now AND r.accepted IS NULL"
 
-    private def where(email: EmailAddress, now: Instant): Fragment = fr0"WHERE email=$email AND kind=$kind AND deadline > $now AND accepted IS NULL"
+    private def where(email: EmailAddress, now: Instant): Fragment = fr0"WHERE r.email=$email AND r.kind=$kind AND r.deadline > $now AND r.accepted IS NULL"
   }
 
   object UserAskToJoinAGroup {
     private val kind = "UserAskToJoinAGroup"
-    private val fields = Seq("id", "kind", "group_id", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by", "canceled", "canceled_by")
-    private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-    private val fieldsFrSelect: Fragment = Fragment.const0(fields.filter(_ != "kind").mkString(", "))
+    private val fields = Seq("id", "kind", "group_id", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by", "canceled", "canceled_by").map(n => Field(n, table.prefix))
+    private val selectFields = fields.filter(_.name != "kind")
 
-    private[sql] def insert(elt: UserAskToJoinAGroupRequest): doobie.Update0 = {
+    private[sql] def insert(elt: UserAskToJoinAGroupRequest): Insert[UserAskToJoinAGroupRequest] = {
       val values = fr0"${elt.id}, $kind, ${elt.group}, ${elt.created}, ${elt.createdBy}, ${elt.accepted.map(_.date)}, ${elt.accepted.map(_.by)}, ${elt.rejected.map(_.date)}, ${elt.rejected.map(_.by)}, ${elt.canceled.map(_.date)}, ${elt.canceled.map(_.by)}"
-      buildInsert(tableFr, fieldsFr, values).update
+      table.insertPartial[UserAskToJoinAGroupRequest](fields, elt, _ => values)
     }
 
-    private[sql] def accept(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"accepted=$now, accepted_by=$by", wherePending(id, now)).update
+    private[sql] def accept(id: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"r.accepted=$now, r.accepted_by=$by", wherePending(id, now))
 
-    private[sql] def reject(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"rejected=$now, rejected_by=$by", wherePending(id, now)).update
+    private[sql] def reject(id: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"r.rejected=$now, r.rejected_by=$by", wherePending(id, now))
 
-    private[sql] def cancel(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"canceled=$now, canceled_by=$by", wherePending(id, now)).update
+    private[sql] def cancel(id: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"r.canceled=$now, r.canceled_by=$by", wherePending(id, now))
 
-    private[sql] def selectOnePending(group: Group.Id, id: UserRequest.Id): doobie.Query0[UserAskToJoinAGroupRequest] =
-      buildSelect(tableFr, fieldsFrSelect, fr"WHERE id=$id AND kind=$kind AND group_id=$group AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL").query[UserAskToJoinAGroupRequest]
+    private[sql] def selectOnePending(group: Group.Id, id: UserRequest.Id): Select[UserAskToJoinAGroupRequest] =
+      table.select[UserAskToJoinAGroupRequest](selectFields, fr"WHERE r.id=$id AND r.kind=$kind AND r.group_id=$group AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
 
-    private[sql] def selectAllPending(user: User.Id): doobie.Query0[UserAskToJoinAGroupRequest] =
-      buildSelect(tableFr, fieldsFrSelect, fr"WHERE kind=$kind AND created_by=$user AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL").query[UserAskToJoinAGroupRequest]
+    private[sql] def selectAllPending(user: User.Id): Select[UserAskToJoinAGroupRequest] =
+      table.select[UserAskToJoinAGroupRequest](selectFields, fr"WHERE r.kind=$kind AND r.created_by=$user AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
 
-    private def wherePending(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE id=$id AND kind=$kind AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL"
+    private def wherePending(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE r.id=$id AND r.kind=$kind AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL"
   }
 
   object GroupInviteQueries {
     private val kind = "GroupInvite"
-    private val fields = Seq("id", "kind", "group_id", "email", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by", "canceled", "canceled_by")
-    private val fieldsSelect = fields.filter(_ != "kind")
-    private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-    private val fieldsFrSelect: Fragment = Fragment.const0(fieldsSelect.mkString(", "))
+    private val fields = Seq("id", "kind", "group_id", "email", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by", "canceled", "canceled_by").map(n => Field(n, table.prefix))
+    private val selectFields = fields.filter(_.name != "kind")
 
-    private[sql] def insert(elt: GroupInvite): doobie.Update0 = {
+    private[sql] def insert(elt: GroupInvite): Insert[GroupInvite] = {
       val values = fr0"${elt.id}, $kind, ${elt.group}, ${elt.email}, ${elt.created}, ${elt.createdBy}, ${elt.accepted.map(_.date)}, ${elt.accepted.map(_.by)}, ${elt.rejected.map(_.date)}, ${elt.rejected.map(_.by)}, ${elt.canceled.map(_.date)}, ${elt.canceled.map(_.by)}"
-      buildInsert(tableFr, fieldsFr, values).update
+      table.insertPartial[GroupInvite](fields, elt, _ => values)
     }
 
-    private[sql] def accept(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"accepted=$now, accepted_by=$by", wherePending(id, now)).update
+    private[sql] def accept(id: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"r.accepted=$now, r.accepted_by=$by", wherePending(id, now))
 
-    private[sql] def reject(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"rejected=$now, rejected_by=$by", wherePending(id, now)).update
+    private[sql] def reject(id: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"r.rejected=$now, r.rejected_by=$by", wherePending(id, now))
 
-    private[sql] def cancel(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"canceled=$now, canceled_by=$by", wherePending(id, now)).update
+    private[sql] def cancel(id: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"r.canceled=$now, r.canceled_by=$by", wherePending(id, now))
 
-    private[sql] def selectOne(id: UserRequest.Id): doobie.Query0[GroupInvite] = buildSelect(tableFr, fieldsFrSelect, fr"WHERE id=$id").query[GroupInvite]
+    private[sql] def selectOne(id: UserRequest.Id): Select[GroupInvite] = table.select[GroupInvite](selectFields, fr"WHERE r.id=$id")
 
-    private[sql] def selectAllPending(group: Group.Id): doobie.Query0[GroupInvite] =
-      buildSelect(tableFr, fieldsFrSelect, fr"WHERE kind=$kind AND group_id=$group AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL").query[GroupInvite]
+    private[sql] def selectAllPending(group: Group.Id): Select[GroupInvite] =
+      table.select[GroupInvite](selectFields, fr"WHERE r.kind=$kind AND r.group_id=$group AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
 
-    private def wherePending(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE id=$id AND kind=$kind AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL"
+    private def wherePending(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE r.id=$id AND r.kind=$kind AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL"
   }
 
   object TalkInviteQueries {
     private val kind = "TalkInvite"
-    private val fields = Seq("id", "kind", "talk_id", "email", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by", "canceled", "canceled_by")
-    private val fieldsSelect = fields.filter(_ != "kind")
-    private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-    private val fieldsFrSelect: Fragment = Fragment.const0(fieldsSelect.mkString(", "))
+    private val fields = Seq("id", "kind", "talk_id", "email", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by", "canceled", "canceled_by").map(n => Field(n, table.prefix))
+    private val selectFields = fields.filter(_.name != "kind")
 
-    private[sql] def insert(elt: TalkInvite): doobie.Update0 = {
+    private[sql] def insert(elt: TalkInvite): Insert[TalkInvite] = {
       val values = fr0"${elt.id}, $kind, ${elt.talk}, ${elt.email}, ${elt.created}, ${elt.createdBy}, ${elt.accepted.map(_.date)}, ${elt.accepted.map(_.by)}, ${elt.rejected.map(_.date)}, ${elt.rejected.map(_.by)}, ${elt.canceled.map(_.date)}, ${elt.canceled.map(_.by)}"
-      buildInsert(tableFr, fieldsFr, values).update
+      table.insertPartial[TalkInvite](fields, elt, _ => values)
     }
 
-    private[sql] def accept(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"accepted=$now, accepted_by=$by", wherePending(id, now)).update
+    private[sql] def accept(id: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"r.accepted=$now, r.accepted_by=$by", wherePending(id, now))
 
-    private[sql] def reject(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"rejected=$now, rejected_by=$by", wherePending(id, now)).update
+    private[sql] def reject(id: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"r.rejected=$now, r.rejected_by=$by", wherePending(id, now))
 
-    private[sql] def cancel(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"canceled=$now, canceled_by=$by", wherePending(id, now)).update
+    private[sql] def cancel(id: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"r.canceled=$now, r.canceled_by=$by", wherePending(id, now))
 
-    private[sql] def selectOne(id: UserRequest.Id): doobie.Query0[TalkInvite] = buildSelect(tableFr, fieldsFrSelect, fr"WHERE id=$id").query[TalkInvite]
+    private[sql] def selectOne(id: UserRequest.Id): Select[TalkInvite] = table.select[TalkInvite](selectFields, fr"WHERE r.id=$id")
 
-    private[sql] def selectAllPending(talk: Talk.Id): doobie.Query0[TalkInvite] =
-      buildSelect(tableFr, fieldsFrSelect, fr"WHERE kind=$kind AND talk_id=$talk AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL").query[TalkInvite]
+    private[sql] def selectAllPending(talk: Talk.Id): Select[TalkInvite] =
+      table.select[TalkInvite](selectFields, fr"WHERE r.kind=$kind AND r.talk_id=$talk AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
 
-    private def wherePending(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE id=$id AND kind=$kind AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL"
+    private def wherePending(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE r.id=$id AND r.kind=$kind AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL"
   }
 
   object ProposalInviteQueries {
     private val kind = "ProposalInvite"
-    private val fields = Seq("id", "kind", "proposal_id", "email", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by", "canceled", "canceled_by")
-    private val fieldsSelect = fields.filter(_ != "kind")
-    private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-    private val fieldsFrSelect: Fragment = Fragment.const0(fieldsSelect.mkString(", "))
+    private val fields = Seq("id", "kind", "proposal_id", "email", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by", "canceled", "canceled_by").map(n => Field(n, table.prefix))
+    private val selectFields = fields.filter(_.name != "kind")
 
-    private[sql] def insert(elt: ProposalInvite): doobie.Update0 = {
+    private[sql] def insert(elt: ProposalInvite): Insert[ProposalInvite] = {
       val values = fr0"${elt.id}, $kind, ${elt.proposal}, ${elt.email}, ${elt.created}, ${elt.createdBy}, ${elt.accepted.map(_.date)}, ${elt.accepted.map(_.by)}, ${elt.rejected.map(_.date)}, ${elt.rejected.map(_.by)}, ${elt.canceled.map(_.date)}, ${elt.canceled.map(_.by)}"
-      buildInsert(tableFr, fieldsFr, values).update
+      table.insertPartial[ProposalInvite](fields, elt, _ => values)
     }
 
-    private[sql] def accept(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"accepted=$now, accepted_by=$by", wherePending(id, now)).update
+    private[sql] def accept(id: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"r.accepted=$now, r.accepted_by=$by", wherePending(id, now))
 
-    private[sql] def reject(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"rejected=$now, rejected_by=$by", wherePending(id, now)).update
+    private[sql] def reject(id: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"r.rejected=$now, r.rejected_by=$by", wherePending(id, now))
 
-    private[sql] def cancel(id: UserRequest.Id, by: User.Id, now: Instant): doobie.Update0 = buildUpdate(tableFr, fr0"canceled=$now, canceled_by=$by", wherePending(id, now)).update
+    private[sql] def cancel(id: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"r.canceled=$now, r.canceled_by=$by", wherePending(id, now))
 
-    private[sql] def selectOne(id: UserRequest.Id): doobie.Query0[ProposalInvite] = buildSelect(tableFr, fieldsFrSelect, fr"WHERE id=$id").query[ProposalInvite]
+    private[sql] def selectOne(id: UserRequest.Id): Select[ProposalInvite] = table.select[ProposalInvite](selectFields, fr"WHERE r.id=$id")
 
-    private[sql] def selectAllPending(proposal: Proposal.Id): doobie.Query0[ProposalInvite] =
-      buildSelect(tableFr, fieldsFrSelect, fr"WHERE kind=$kind AND proposal_id=$proposal AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL").query[ProposalInvite]
+    private[sql] def selectAllPending(proposal: Proposal.Id): Select[ProposalInvite] =
+      table.select[ProposalInvite](selectFields, fr"WHERE r.kind=$kind AND r.proposal_id=$proposal AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
 
-    private def wherePending(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE id=$id AND kind=$kind AND accepted IS NULL AND rejected IS NULL AND canceled IS NULL"
+    private def wherePending(id: UserRequest.Id, now: Instant): Fragment = fr0"WHERE r.id=$id AND r.kind=$kind AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL"
   }
 
 }
