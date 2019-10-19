@@ -79,6 +79,8 @@ object DoobieUtils {
 
     def update(fields: Fragment, where: Fragment): Update = Update(name, fields, where)
 
+    def delete(where: Fragment): Delete = Delete(name, where)
+
     def select[A: Read](where: Fragment): Select[A] = Select[A](name, fields, Some(where))
 
     def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](name, fields, None)
@@ -139,6 +141,17 @@ object DoobieUtils {
       }
   }
 
+  final case class Delete(table: String, where: Fragment) {
+    def fr: Fragment = const0(s"DELETE FROM $table ") ++ where
+
+    def run(xa: doobie.Transactor[IO]): IO[Done] =
+      fr.update.run.transact(xa).flatMap {
+        case 1 => IO.pure(Done)
+        case code => IO.raiseError(CustomException(s"Failed to delete ${fr.update} (code: $code)"))
+      }
+  }
+
+  // FIXME add sort!!!
   final case class Select[A: Read](table: String, fields: Seq[Field], where: Option[Fragment]) {
     def fr: Fragment = const0(s"SELECT ${fields.map(_.value).mkString(", ")} FROM $table") ++ where.map(fr0" " ++ _).getOrElse(fr0"")
 

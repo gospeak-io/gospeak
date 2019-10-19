@@ -12,7 +12,7 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.services.storage.sql._
 import fr.gospeak.infra.testingutils.Values
-import fr.gospeak.infra.utils.DoobieUtils.{Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
@@ -93,6 +93,11 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   }
 
   protected def check(q: Update, req: String): Unit = {
+    q.fr.update.sql shouldBe req
+    check(q.fr.update)
+  }
+
+  protected def check(q: Delete, req: String): Unit = {
     q.fr.update.sql shouldBe req
     check(q.fr.update)
   }
