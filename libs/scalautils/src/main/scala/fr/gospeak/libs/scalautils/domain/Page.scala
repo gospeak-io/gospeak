@@ -80,7 +80,7 @@ object Page {
   }
 
   // should be at least 1
-  final case class No(value: Int) extends AnyVal {
+  final case class No(value: Int) {
     def key: String = No.key
 
     def nonEmpty: Boolean = value > Params.defaults.page.value
@@ -95,7 +95,7 @@ object Page {
   }
 
   // should be at least 1
-  final case class Size(value: Int) extends AnyVal {
+  final case class Size(value: Int) {
     def key: String = Size.key
 
     def nonEmpty: Boolean = value != Params.defaults.pageSize.value
@@ -142,6 +142,9 @@ object Page {
     val defaults = Params(No(1), Size(20), None, None, nullsFirst = false)
 
     def no(n: Int): Params = defaults.copy(page = No(n))
+
+    def apply(page: Int, pageSize: Int, search: Option[String], orderBy: Option[Seq[String]], nullsFirst: Boolean): Params =
+      new Params(No(page), Size(pageSize), search.map(Search(_)), orderBy.map(OrderBy(_)), nullsFirst)
   }
 
 }

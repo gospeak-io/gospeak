@@ -1,9 +1,8 @@
 package fr.gospeak.infra.utils
 
 import doobie.implicits._
-import doobie.util.fragment.Fragment
-import fr.gospeak.infra.utils.DoobieUtils.Fragments._
-import fr.gospeak.infra.utils.DoobieUtils.{Field, Table}
+import fr.gospeak.infra.utils.DoobieUtils._
+import fr.gospeak.infra.utils.DoobieUtilsSpec.Entity
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
 import org.scalatest.{FunSpec, Matchers}
@@ -81,73 +80,91 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
         }
       }
     }
-    describe("Fragments") {
-      val table = Fragment.const0("mytable")
-      val fields = Fragment.const0("id, name, description")
-      val searchFields = Seq("name", "description")
-      val defaultSort = Page.OrderBy("id")
-      val id = 123
-      val name = "Jean"
-      val description = "speaker"
-      val values = fr0"$id, $name, $description"
-      val whereOpt = Some(fr0"WHERE id=$id")
-      describe("buildInsert") {
-        it("should build insert into statement") {
-          buildInsert(table, fields, values).toString() shouldBe """Fragment("INSERT INTO mytable (id, name, description) VALUES (?, ?, ?)")"""
-        }
+    describe("Insert") {
+      it("should build an insert") {
+        val entity = Entity(1, "n")
+        val sql = Insert[Entity]("table", Seq(Field("id", "t"), Field("name", "t")), entity, e => fr0"${e.id}, ${e.name}").fr.update.sql
+        sql shouldBe "INSERT INTO table (id, name) VALUES (?, ?)"
       }
-      describe("buildSelect") {
-        it("should build select statement") {
-          buildSelect(table, fields).toString() shouldBe """Fragment("SELECT id, name, description FROM mytable")"""
-        }
-        it("should build select statement with where clause") {
-          buildSelect(table, fields, whereOpt.get).toString() shouldBe """Fragment("SELECT id, name, description FROM mytable WHERE id=?")"""
-        }
+    }
+    describe("Update") {
+      it("should build an update") {
+        val e = Entity(1, "n")
+        val sql = Update("table t", fr0"t.name=${e.name}", fr0"WHERE t.id=${e.id}").fr.update.sql
+        sql shouldBe "UPDATE table t SET t.name=? WHERE t.id=?"
       }
-      describe("buildUpdate") {
-        it("should build update statement") {
-          buildUpdate(table, fr0"name=$name", whereOpt.get).toString() shouldBe """Fragment("UPDATE mytable SET name=? WHERE id=?")"""
-        }
+    }
+    describe("Delete") {
+      it("should build a delete") {
+        val e = Entity(1, "n")
+        val sql = Delete("table t", fr0"WHERE t.id=${e.id}").fr.update.sql
+        sql shouldBe "DELETE FROM table t WHERE t.id=?"
       }
-      describe("pagination") {
-        val p = Page.Params(Page.No(3), Page.Size(20), Some(Page.Search("q")), Some(Page.OrderBy("name")))
-        it("should build pagination sql") {
-          Paginate(p, searchFields, defaultSort).all.toString() shouldBe Paginate(
-            where = fr0"WHERE name ILIKE ? OR description ILIKE ? ",
-            orderBy = fr0"ORDER BY name IS NULL, name ",
-            limit = fr0"OFFSET 40 LIMIT 20").all.toString()
-        }
-        it("should not include search when not present") {
-          Paginate(p.copy(search = None), searchFields, defaultSort).all.toString() shouldBe Paginate(
-            where = fr0"",
-            orderBy = fr0"ORDER BY name IS NULL, name ",
-            limit = fr0"OFFSET 40 LIMIT 20").all.toString()
-        }
-        it("should include default order when not present") {
-          Paginate(p.copy(orderBy = None), searchFields, defaultSort).all.toString() shouldBe Paginate(
-            where = fr0"WHERE name ILIKE ? OR description ILIKE ? ",
-            orderBy = fr0"ORDER BY id IS NULL, id ",
-            limit = fr0"OFFSET 40 LIMIT 20").all.toString()
-        }
-        it("should not include search when not searchFields") {
-          Paginate(p, Seq(), defaultSort).all.toString() shouldBe Paginate(
-            where = fr0"",
-            orderBy = fr0"ORDER BY name IS NULL, name ",
-            limit = fr0"OFFSET 40 LIMIT 20").all.toString()
-        }
-        it("should include where clause") {
-          Paginate(p, searchFields, defaultSort, whereOpt).all.toString() shouldBe Paginate(
-            where = fr0"WHERE id=? AND (name ILIKE ? OR description ILIKE ? ) ",
-            orderBy = fr0"ORDER BY name IS NULL, name ",
-            limit = fr0"OFFSET 40 LIMIT 20").all.toString()
-        }
-        it("should include where clause when present but no search") {
-          Paginate(p.copy(search = None), searchFields, defaultSort, whereOpt).all.toString() shouldBe Paginate(
-            where = fr0"WHERE id=? ",
-            orderBy = fr0"ORDER BY name IS NULL, name ",
-            limit = fr0"OFFSET 40 LIMIT 20").all.toString()
-        }
+    }
+    describe("Select") {
+      it("should build a select") {
+        val e = Entity(1, "n")
+        val sql = Select("table t", Seq(Field("id", "t"), Field("name", "t")), Some(fr0"WHERE t.id=${e.id}")).fr.update.sql
+        sql shouldBe "SELECT t.id, t.name FROM table t WHERE t.id=?"
+      }
+    }
+    describe("SelectPage") {
+      it("should build a select") {
+        val e = Entity(1, "n")
+        // val sql = SelectPage("table t", Seq(Field("id", "t"), Field("name", "t")), Some(fr0"WHERE t.id=${e.id}")).fr.update.sql
+        // sql shouldBe "SELECT t.id, t.name FROM table t WHERE t.id=?"
+      }
+    }
+    describe("whereFragment") {
+      it("should build the where fragment") {
+        val e = Entity(1, "n")
+        val fields = Seq(Field("name", "t"), Field("desc", "t"))
+        val where = fr0"WHERE t.id=${e.id}"
+        whereFragment(None, None, fields).query.sql shouldBe ""
+        whereFragment(Some(where), None, fields).query.sql shouldBe "WHERE t.id=? "
+        whereFragment(None, Some(Page.Search("q")), fields).query.sql shouldBe "WHERE t.name ILIKE ? OR t.desc ILIKE ? "
+        whereFragment(Some(where), Some(Page.Search("q")), fields).query.sql shouldBe "WHERE t.id=? AND (t.name ILIKE ? OR t.desc ILIKE ? ) "
+      }
+    }
+    describe("orderByFragment") {
+      it("should build the orderBy fragment") {
+        orderByFragment(Page.OrderBy("name")).query.sql shouldBe "ORDER BY name IS NULL, name "
+        orderByFragment(Page.OrderBy("-name")).query.sql shouldBe "ORDER BY name IS NULL, name DESC "
+        orderByFragment(Page.OrderBy("name"), nullsFirst = true).query.sql shouldBe "ORDER BY name IS NOT NULL, name "
+        orderByFragment(Page.OrderBy("name"), prefix = Some("t")).query.sql shouldBe "ORDER BY t.name IS NULL, t.name "
+        orderByFragment(Page.OrderBy(Seq("name", "date"))).query.sql shouldBe "ORDER BY name IS NULL, name, date IS NULL, date "
+      }
+    }
+    describe("limitFragment") {
+      it("should build the limit fragment") {
+        limitFragment(12, Page.Size(20)).query.sql shouldBe "OFFSET 12 LIMIT 20"
+      }
+    }
+    describe("paginationFragment") {
+      val e = Entity(1, "n")
+      val where = fr0"WHERE t.id=${e.id}"
+      val p = Page.Params(1, 20, None, None, nullsFirst = false)
+      val fields = Seq(Field("name", "t"), Field("desc", "t"))
+      val defaultSort = Page.OrderBy("created")
+      val prefix = "t"
+      it("should build pagination") {
+        paginationFragment(None, p, fields, defaultSort, Some(prefix)).query.sql shouldBe "ORDER BY t.created IS NULL, t.created OFFSET 0 LIMIT 20"
+        paginationFragment(Some(where), p, fields, defaultSort, Some(prefix)).query.sql shouldBe "WHERE t.id=? ORDER BY t.created IS NULL, t.created OFFSET 0 LIMIT 20"
+      }
+      it("should build pagination with search") {
+        paginationFragment(None, p.search("q"), fields, defaultSort, Some(prefix)).query.sql shouldBe "WHERE t.name ILIKE ? OR t.desc ILIKE ? ORDER BY t.created IS NULL, t.created OFFSET 0 LIMIT 20"
+        paginationFragment(Some(where), p.search("q"), fields, defaultSort, Some(prefix)).query.sql shouldBe "WHERE t.id=? AND (t.name ILIKE ? OR t.desc ILIKE ? ) ORDER BY t.created IS NULL, t.created OFFSET 0 LIMIT 20"
+      }
+      it("should build pagination with sort") {
+        paginationFragment(None, p.orderBy("name"), fields, defaultSort, Some(prefix)).query.sql shouldBe "ORDER BY t.name IS NULL, t.name OFFSET 0 LIMIT 20"
+        paginationFragment(Some(where), p.orderBy("name"), fields, defaultSort, Some(prefix)).query.sql shouldBe "WHERE t.id=? ORDER BY t.name IS NULL, t.name OFFSET 0 LIMIT 20"
       }
     }
   }
+}
+
+object DoobieUtilsSpec {
+
+  case class Entity(id: Int, name: String)
+
 }

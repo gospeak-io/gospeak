@@ -23,7 +23,7 @@ class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def list(partner: Partner.Id): IO[Seq[Contact]] = selectAll(partner).runList(xa)
 
-  override def list(partner: Partner.Id, params: Page.Params): IO[Page[Contact]] = run(selectPage(partner, params).page)
+  override def list(partner: Partner.Id, params: Page.Params): IO[Page[Contact]] = selectPage(partner, params).run(xa)
 
   override def exists(partner: Partner.Id, email: EmailAddress): IO[Boolean] = selectOne(partner, email).runExists(xa)
 }

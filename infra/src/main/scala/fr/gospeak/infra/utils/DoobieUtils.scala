@@ -14,7 +14,6 @@ import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup}
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.infra.services.storage.sql.DatabaseConf
-import fr.gospeak.infra.utils.DoobieUtils.Fragments.{Paginate, buildSelect}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import fr.gospeak.libs.scalautils.domain._
@@ -33,7 +32,7 @@ object DoobieUtils {
   }
 
   final case class Field(name: String, prefix: String) {
-    def value: String = s"$prefix.$name"
+    def value: String = if (prefix.isEmpty) name else s"$prefix.$name"
   }
 
   // FIXME use `case class TableJoin(table: Table, left: Field, right: Field)` for joins
@@ -89,9 +88,9 @@ object DoobieUtils {
 
     def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](name, fields, Some(where))
 
-    def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](name, fields, params, sort, search.map(_.value))
+    def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](name, fields, params, sort, search)
 
-    def selectPage[A: Read](params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](name, fields, where, params, sort, search.map(_.value))
+    def selectPage[A: Read](params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](name, fields, where, params, sort, search)
   }
 
   object Table {
@@ -159,7 +158,7 @@ object DoobieUtils {
 
     def query: doobie.Query0[A] = fr.query[A]
 
-    def runList(xa: doobie.Transactor[IO]): IO[Seq[A]] = query.to[List].transact(xa)
+    def runList(xa: doobie.Transactor[IO]): IO[List[A]] = query.to[List].transact(xa)
 
     def runOption(xa: doobie.Transactor[IO]): IO[Option[A]] = query.option.transact(xa)
 
@@ -168,100 +167,75 @@ object DoobieUtils {
     def runExists(xa: doobie.Transactor[IO]): IO[Boolean] = query.option.map(_.isDefined).transact(xa)
   }
 
-  final case class SelectPage[A](query: doobie.Query0[A],
-                                 count: doobie.Query0[Long],
-                                 params: Page.Params) {
-    def page: doobie.ConnectionIO[Page[A]] = for {
-      elts <- query.to[List]
-      total <- count.unique
-    } yield Page(elts, params, Page.Total(total))
+  final case class SelectPage[A: Read](table: String,
+                                       fields: Seq[Field],
+                                       where: Fragment,
+                                       countWhere: Fragment,
+                                       params: Page.Params) {
+    def fr: Fragment = Select[A](table, fields, Some(where)).fr
 
-    def run(xa: doobie.Transactor[IO]): IO[Page[A]] = page.transact(xa)
+    def query: doobie.Query0[A] = fr.query[A]
+
+    def countFr: Fragment = Select[A](table, Seq(Field("count(*)", "")), Some(countWhere)).fr
+
+    def countQuery: doobie.Query0[Long] = countFr.query[Long]
+
+    def run(xa: doobie.Transactor[IO]): IO[Page[A]] = (for {
+      elts <- query.to[List]
+      total <- countQuery.unique
+    } yield Page(elts, params, Page.Total(total))).transact(xa)
   }
 
   object SelectPage {
-    def apply[A: Read](table: Fragment, fields: Fragment, where: Option[Fragment], params: Page.Params, orderBy: Page.OrderBy, search: Seq[String], prefix: Option[String]): SelectPage[A] = {
-      val page = Paginate(params, search, orderBy, where, prefix)
+    def apply[A: Read](table: String, fields: Seq[Field], params: Page.Params, orderBy: Page.OrderBy, search: Seq[Field]): SelectPage[A] =
+      apply[A](table, fields, None, params, orderBy, search, None)
+
+    def apply[A: Read](table: String, fields: Seq[Field], where: Fragment, params: Page.Params, orderBy: Page.OrderBy, search: Seq[Field]): SelectPage[A] =
+      apply[A](table, fields, Some(where), params, orderBy, search, None)
+
+    def apply[A: Read](table: String, fields: Seq[Field], whereOpt: Option[Fragment], params: Page.Params, defaultSort: Page.OrderBy, searchFields: Seq[Field], prefix: Option[String]): SelectPage[A] = {
       SelectPage(
-        query = buildSelect(table, fields, page.all).query[A],
-        count = buildSelect(table, fr0"count(*)", page.where).query[Long],
+        table = table,
+        fields = fields,
+        where = paginationFragment(whereOpt, params, searchFields, defaultSort, prefix),
+        countWhere = whereFragment(whereOpt, params.search, searchFields),
         params = params)
     }
-
-    def apply[A: Read](table: String, fields: Seq[Field], params: Page.Params, orderBy: Page.OrderBy, search: Seq[String]): SelectPage[A] =
-      apply[A](const0(table), const0(fields.map(_.value).mkString(", ")), None, params, orderBy, search, None)
-
-    def apply[A: Read](table: String, fields: Seq[Field], where: Fragment, params: Page.Params, orderBy: Page.OrderBy, search: Seq[String]): SelectPage[A] =
-      apply[A](const0(table), const0(fields.map(_.value).mkString(", ")), Some(where), params, orderBy, search, None)
-
-    def apply[A: Read](table: String, fields: Fragment, where: Fragment, params: Page.Params, orderBy: Page.OrderBy, search: Seq[String]): SelectPage[A] =
-      apply[A](const0(table), fields, Some(where), params, orderBy, search, None)
-
-    def apply[A: Read](table: Fragment, fields: Fragment, params: Page.Params, orderBy: Page.OrderBy, search: Seq[String], prefix: String): SelectPage[A] =
-      apply[A](table, fields, None, params, orderBy, search, Some(prefix))
-
-    def apply[A: Read](table: Fragment, fields: Fragment, where: Fragment, params: Page.Params, orderBy: Page.OrderBy, search: Seq[String], prefix: String): SelectPage[A] =
-      apply[A](table, fields, Some(where), params, orderBy, search, Some(prefix))
   }
 
-  object Fragments {
-    val empty = fr0""
-    val space = fr0" "
+  def whereFragment(whereOpt: Option[Fragment], search: Option[Page.Search], fields: Seq[Field]): Fragment = {
+    search.filter(_ => fields.nonEmpty)
+      .map { search => fields.map(s => const0(s.value + " ") ++ fr0"ILIKE ${"%" + search.value + "%"} ").reduce(_ ++ fr0"OR " ++ _) }
+      .map { search => whereOpt.map(_ ++ fr0" AND " ++ fr0"(" ++ search ++ fr0") ").getOrElse(fr0"WHERE " ++ search) }
+      .orElse(whereOpt.map(_ ++ fr0" "))
+      .getOrElse(fr0"")
+  }
 
-    def buildInsert(table: Fragment, fields: Fragment, values: Fragment): Fragment =
-      fr0"INSERT INTO " ++ table ++ fr0" (" ++ fields ++ fr0") VALUES (" ++ values ++ fr0")"
-
-    def buildSelect(table: Fragment, fields: Fragment): Fragment =
-      fr0"SELECT " ++ fields ++ fr0" FROM " ++ table
-
-    def buildSelect(table: Fragment, fields: Fragment, where: Fragment): Fragment =
-      fr0"SELECT " ++ fields ++ fr0" FROM " ++ table ++ space ++ where
-
-    def buildUpdate(table: Fragment, fields: Fragment, where: Fragment): Fragment =
-      fr0"UPDATE " ++ table ++ fr0" SET " ++ fields ++ space ++ where
-
-    def buildDelete(table: Fragment, where: Fragment): Fragment =
-      fr0"DELETE FROM " ++ table ++ space ++ where
-
-    final case class Paginate(where: Fragment, orderBy: Fragment, limit: Fragment) {
-      def all: Fragment = Seq(where, orderBy, limit).reduce(_ ++ _)
-    }
-
-    object Paginate {
-      // TODO improve tests & extract some methods
-      private[utils] def apply(params: Page.Params, searchFields: Seq[String], defaultSort: Page.OrderBy, whereOpt: Option[Fragment] = None, prefix: Option[String] = None): Paginate = {
-        val search = params.search.filter(_ => searchFields.nonEmpty)
-          .map { search => searchFields.map(s => const0(prefix.map(_ + ".").getOrElse("") + s + " ") ++ fr0"ILIKE ${"%" + search.value + "%"} ").reduce(_ ++ fr0"OR " ++ _) }
-          .map { search => whereOpt.map(_ ++ fr0" AND " ++ fr0"(" ++ search ++ fr0") ").getOrElse(fr0"WHERE " ++ search) }
-          .orElse(whereOpt.map(_ ++ space))
-          .getOrElse(empty)
-
-        Paginate(
-          search,
-          orderByFragment(params.orderBy.getOrElse(defaultSort), prefix, params.nullsFirst),
-          limitFragment(params.offsetStart, params.pageSize))
-      }
-    }
-
-    def orderByFragment(orderBy: Page.OrderBy, prefix: Option[String] = None, nullsFirst: Boolean = false): Fragment = {
-      if (orderBy.nonEmpty) {
-        val fields = orderBy.values.map { v =>
-          val p = prefix.map(_ + ".").getOrElse("")
-          val f = p + v.stripPrefix("-")
-          if (nullsFirst) {
-            s"$f IS NOT NULL, $f" + (if (v.startsWith("-")) " DESC" else "")
-          } else {
-            s"$f IS NULL, $f" + (if (v.startsWith("-")) " DESC" else "")
-          }
+  def orderByFragment(orderBy: Page.OrderBy, prefix: Option[String] = None, nullsFirst: Boolean = false): Fragment = {
+    if (orderBy.nonEmpty) {
+      val fields = orderBy.values.map { v =>
+        val p = prefix.map(_ + ".").getOrElse("")
+        val f = p + v.stripPrefix("-")
+        if (nullsFirst) {
+          s"$f IS NOT NULL, $f" + (if (v.startsWith("-")) " DESC" else "")
+        } else {
+          s"$f IS NULL, $f" + (if (v.startsWith("-")) " DESC" else "")
         }
-        fr0"ORDER BY " ++ const0(fields.mkString(", ") + " ")
-      } else {
-        fr0""
       }
+      fr0"ORDER BY " ++ const0(fields.mkString(", ") + " ")
+    } else {
+      fr0""
     }
+  }
 
-    private def limitFragment(start: Int, size: Page.Size): Fragment =
-      fr0"OFFSET " ++ const0(start.toString + " ") ++ fr0"LIMIT " ++ const0(size.value.toString)
+  def limitFragment(start: Int, size: Page.Size): Fragment =
+    fr0"OFFSET " ++ const0(start.toString + " ") ++ fr0"LIMIT " ++ const0(size.value.toString)
+
+  def paginationFragment(whereOpt: Option[Fragment], params: Page.Params, searchFields: Seq[Field], defaultSort: Page.OrderBy, prefix: Option[String]): Fragment = {
+    val where = whereFragment(whereOpt, params.search, searchFields)
+    val orderBy = orderByFragment(params.orderBy.getOrElse(defaultSort), prefix, params.nullsFirst)
+    val limit = limitFragment(params.offsetStart, params.pageSize)
+    Seq(where, orderBy, limit).reduce(_ ++ _)
   }
 
   object Queries {

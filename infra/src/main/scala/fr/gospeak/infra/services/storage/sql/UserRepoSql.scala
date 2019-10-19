@@ -11,7 +11,7 @@ import fr.gospeak.core.services.storage.UserRepo
 import fr.gospeak.infra.services.storage.sql.UserRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
@@ -55,14 +55,16 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   // FIXME should be done in only one query: joining on speakers array or splitting speakers string
   override def speakers(group: Group.Id, params: Page.Params): IO[Page[User]] = {
-    val speakerIdsQuery = fr0"SELECT p.speakers FROM proposals p INNER JOIN cfps c ON c.id=p.cfp_id WHERE c.group_id=$group".query[NonEmptyList[User.Id]]
+    val speakerIdsQuery = Tables.proposals
+      .join(Tables.cfps, _.field("cfp_id"), _.field("id")).get
+      .select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group")
     for {
-      speakerIds <- run(speakerIdsQuery.to[List]).map(_.flatMap(_.toList).distinct)
-      res <- NonEmptyList.fromList(speakerIds).map(ids => run(selectPage(ids, params).page)).getOrElse(IO.pure(Page.empty[User]))
+      speakerIds <- speakerIdsQuery.runList(xa).map(_.flatMap(_.toList).distinct)
+      res <- NonEmptyList.fromList(speakerIds).map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User]))
     } yield res
   }
 
-  override def listPublic(params: Page.Params): IO[Page[User]] = run(selectPagePublic(params).page)
+  override def listPublic(params: Page.Params): IO[Page[User]] = selectPagePublic(params).run(xa)
 
   override def list(ids: Seq[User.Id]): IO[Seq[User]] = runNel(selectAll, ids)
 }

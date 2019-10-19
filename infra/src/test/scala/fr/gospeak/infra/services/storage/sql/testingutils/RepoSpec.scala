@@ -108,9 +108,9 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   }
 
   protected def check[A](q: SelectPage[A], req: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
-    q.query.sql shouldBe req
+    q.fr.query.sql shouldBe req
     check(q.query)
-    check(q.count)
+    check(q.countQuery)
   }
 }
 

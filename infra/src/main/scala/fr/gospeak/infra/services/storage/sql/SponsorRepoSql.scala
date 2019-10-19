@@ -10,9 +10,8 @@ import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.SponsorRepo
 import fr.gospeak.infra.services.storage.sql.SponsorRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update, orderByFragment}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
