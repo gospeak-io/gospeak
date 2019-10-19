@@ -132,7 +132,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
         _ <- run(Queries.insertMany(ProposalRepoSql.insert(_: Proposal).fr.update)(NonEmptyList.fromListUnsafe(proposals)))
         _ <- run(Queries.insertMany(PartnerRepoSql.insert(_: Partner).fr.update)(NonEmptyList.fromListUnsafe(partners)))
         _ <- run(Queries.insertMany(ContactRepoSql.insert(_: Contact).fr.update)(NonEmptyList.fromListUnsafe(contacts.map(_._2))))
-        _ <- run(Queries.insertMany(SponsorPackRepoSql.insert)(NonEmptyList.fromListUnsafe(sponsorPacks)))
+        _ <- run(Queries.insertMany(SponsorPackRepoSql.insert(_: SponsorPack).fr.update)(NonEmptyList.fromListUnsafe(sponsorPacks)))
         _ <- run(Queries.insertMany(SponsorRepoSql.insert)(NonEmptyList.fromListUnsafe(sponsors)))
         // _ <- run(Queries.insertMany(VenueRepoSql.insert)(NonEmptyList.fromListUnsafe(venues))) // fail with: JdbcSQLException: Parameter "#10" is not set :(
         _ <- IO(venues.map(venue => run(Queries.insertOne(VenueRepoSql.insert)(venue)).unsafeRunSync()))
@@ -327,7 +327,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       _ <- run(Queries.insertMany(ContactRepoSql.insert(_: Contact).fr.update)(contacts))
       // _ <- run(Queries.insertMany(VenueRepoSql.insert)(venues)) // fail with: JdbcSQLException: Parameter "#10" is not set :(
       _ <- IO(venues.toList.map(venue => run(Queries.insertOne(VenueRepoSql.insert)(venue)).unsafeRunSync()))
-      _ <- run(Queries.insertMany(SponsorPackRepoSql.insert)(packs))
+      _ <- run(Queries.insertMany(SponsorPackRepoSql.insert(_: SponsorPack).fr.update)(packs))
       _ <- run(Queries.insertMany(SponsorRepoSql.insert)(sponsors))
       _ <- run(Queries.insertMany(EventRepoSql.insert(_: Event).fr.update)(events ++ generated.map(_._3)))
       _ <- IO(eventTalks.map { case (c, e, p, u) => addTalk(c, e, p, u, now) }.map(_.unsafeRunSync()))
