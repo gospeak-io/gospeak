@@ -11,18 +11,15 @@ class VenueRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = VenueRepoSql.insert(venue)
-        q.sql shouldBe s"INSERT INTO $table ($fieldsInsert) VALUES (${mapFields(fieldsInsert, _ => "?")})"
-        check(q)
+        check(q, s"INSERT INTO ${table.stripSuffix(" v")} (${mapFields(fieldsInsert, _.stripPrefix("v."))}) VALUES (${mapFields(fieldsInsert, _ => "?")})")
       }
       it("should build update") {
         val q = VenueRepoSql.update(group.id, venue.id)(venue.data, user.id, now)
-        q.sql shouldBe s"UPDATE $table SET contact_id=?, address=?, address_lat=?, address_lng=?, address_country=?, description=?, room_size=?, meetupGroup=?, meetupVenue=?, updated=?, updated_by=? WHERE id=(SELECT v.id FROM $tableFull WHERE pa.group_id=? AND v.id=?)"
-        check(q)
+        check(q, s"UPDATE $table SET v.contact_id=?, v.address=?, v.address_lat=?, v.address_lng=?, v.address_country=?, v.description=?, v.room_size=?, v.meetupGroup=?, v.meetupVenue=?, v.updated=?, v.updated_by=? WHERE v.id=(SELECT v.id FROM $tableFull WHERE pa.group_id=? AND v.id=?)")
       }
       it("should build selectOneFull") {
         val q = VenueRepoSql.selectOneFull(group.id, venue.id)
-        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? AND v.id=?"
-        check(q)
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? AND v.id=?")
       }
       it("should build selectPageFull") {
         val q = VenueRepoSql.selectPageFull(group.id, params)
@@ -30,18 +27,15 @@ class VenueRepoSqlSpec extends RepoSpec {
       }
       it("should build selectAllFull for group id") {
         val q = VenueRepoSql.selectAllFull(group.id)
-        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? "
-        check(q)
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? ")
       }
       it("should build selectAllFull for partner id") {
         val q = VenueRepoSql.selectAllFull(partner.id)
-        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE v.partner_id=? "
-        check(q)
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE v.partner_id=? ")
       }
       it("should build selectAllFull for group id and ids") {
         val q = VenueRepoSql.selectAllFull(group.id, NonEmptyList.of(venue.id))
-        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? AND  v.id IN (?) "
-        check(q)
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? AND  v.id IN (?) ")
       }
     }
   }
@@ -51,10 +45,10 @@ object VenueRepoSqlSpec {
 
   import RepoSpec._
 
-  val table = "venues"
-  val fieldsInsert = "id, partner_id, contact_id, address, address_lat, address_lng, address_country, description, room_size, meetupGroup, meetupVenue, created, created_by, updated, updated_by"
-  val fields = "id, partner_id, contact_id, address, description, room_size, meetupGroup, meetupVenue, created, created_by, updated, updated_by"
+  val table = "venues v"
+  val fieldsInsert: String = mapFields("id, partner_id, contact_id, address, address_lat, address_lng, address_country, description, room_size, meetupGroup, meetupVenue, created, created_by, updated, updated_by", "v." + _)
+  val fields: String = mapFields("id, partner_id, contact_id, address, description, room_size, meetupGroup, meetupVenue, created, created_by, updated, updated_by", "v." + _)
 
-  private val tableFull = s"$table v INNER JOIN $partnerTable ON v.partner_id=pa.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id"
-  private val fieldsFull = s"${mapFields(fields, "v." + _)}, $partnerFields, $contactFields"
+  private val tableFull = s"$table INNER JOIN $partnerTable ON v.partner_id=pa.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id"
+  private val fieldsFull = s"$fields, $partnerFields, $contactFields"
 }
