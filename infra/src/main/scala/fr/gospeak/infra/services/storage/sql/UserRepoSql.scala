@@ -55,9 +55,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   // FIXME should be done in only one query: joining on speakers array or splitting speakers string
   override def speakers(group: Group.Id, params: Page.Params): IO[Page[User]] = {
-    val speakerIdsQuery = Tables.proposals
-      .join(Tables.cfps, _.field("cfp_id"), _.field("id")).get
-      .select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group")
+    val speakerIdsQuery = proposalsWithCfps.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group")
     for {
       speakerIds <- speakerIdsQuery.runList(xa).map(_.flatMap(_.toList).distinct)
       res <- NonEmptyList.fromList(speakerIds).map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User]))
@@ -75,6 +73,7 @@ object UserRepoSql {
   private val credentialsTable = Tables.credentials
   private val loginsTable = Tables.logins
   private val tableWithLogin = table.join(loginsTable, _.field("id"), _.field("user_id")).get
+  private val proposalsWithCfps = Tables.proposals.join(Tables.cfps, _.field("cfp_id"), _.field("id")).get
 
   private[sql] def insert(e: User): Insert[User] = {
     val values = fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.profile.status}, ${e.profile.bio}, ${e.profile.company}, ${e.profile.location}, ${e.profile.twitter}, ${e.profile.linkedin}, ${e.profile.phone}, ${e.profile.website}, ${e.created}, ${e.updated}"
