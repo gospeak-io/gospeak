@@ -10,7 +10,6 @@ import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain.{Group, Partner, User, Venue}
 import fr.gospeak.core.services.storage.VenueRepo
-import fr.gospeak.infra.services.storage.sql.ContactRepoSql.{fields => contactFields, table => contactTable}
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSql.{fields => partnerFields, table => partnerTable}
 import fr.gospeak.infra.services.storage.sql.VenueRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
@@ -47,8 +46,8 @@ object VenueRepoSql {
   private val searchFields = Seq("id", "address", "description")
   private val defaultSort = Page.OrderBy("created")
 
-  private val tableFullFr = Fragment.const0(s"$table v INNER JOIN $partnerTable p ON v.partner_id=p.id LEFT OUTER JOIN $contactTable c ON v.contact_id=c.id")
-  private val fieldsFullFr = Fragment.const0((fields.map("v." + _) ++ partnerFields.map("p." + _) ++ contactFields.map("c." + _)).mkString(", "))
+  private val tableFullFr = Fragment.const0(s"$table v INNER JOIN $partnerTable p ON v.partner_id=p.id LEFT OUTER JOIN ${Tables.contacts.name} ON v.contact_id=ct.id")
+  private val fieldsFullFr = Fragment.const0((fields.map("v." + _) ++ partnerFields.map("p." + _) ++ Tables.contacts.fields.map(_.value)).mkString(", "))
 
   private[sql] def insert(e: Venue): doobie.Update0 = {
     val values = fr0"${e.id}, ${e.partner}, ${e.contact}, ${e.address}, ${e.address.geo.lat}, ${e.address.geo.lng}, ${e.address.country}, ${e.description}, ${e.roomSize}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.venue)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"

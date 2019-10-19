@@ -58,6 +58,6 @@ object VenueRepoSqlSpec {
   val fieldsInsert = "id, partner_id, contact_id, address, address_lat, address_lng, address_country, description, room_size, meetupGroup, meetupVenue, created, created_by, updated, updated_by"
   val fields = "id, partner_id, contact_id, address, description, room_size, meetupGroup, meetupVenue, created, created_by, updated, updated_by"
 
-  private val tableFull = s"$table v INNER JOIN $partnerTable p ON v.partner_id=p.id LEFT OUTER JOIN $contactTable c ON v.contact_id=c.id"
-  private val fieldsFull = s"${mapFields(fields, "v." + _)}, ${mapFields(partnerFields, "p." + _)}, ${mapFields(contactFields, "c." + _)}"
+  private val tableFull = s"$table v INNER JOIN $partnerTable p ON v.partner_id=p.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id"
+  private val fieldsFull = s"${mapFields(fields, "v." + _)}, ${mapFields(partnerFields, "p." + _)}, $contactFields"
 }

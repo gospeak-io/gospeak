@@ -80,8 +80,8 @@ object GroupRepoSql {
   private val memberTableWithUser = Tables.members.join(Tables.user, _.field("user_id"), _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
 
   private[sql] def insert(e: Group): Insert[Group] = {
-    val fields = fr0"${e.id}, ${e.slug}, ${e.name}, ${e.contact}, ${e.description}, ${e.owners}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
-    table.insert[Group](e, _ => fields)
+    val values = fr0"${e.id}, ${e.slug}, ${e.name}, ${e.contact}, ${e.description}, ${e.owners}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    table.insert[Group](e, _ => values)
   }
 
   private[sql] def update(group: Group.Slug)(data: Group.Data, by: User.Id, now: Instant): Update = {

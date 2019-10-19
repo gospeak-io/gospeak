@@ -63,8 +63,8 @@ object CfpRepoSql {
   private val tableWithEvent = table.join(Tables.events, _.field("id"), _.field("cfp_id")).get
 
   private[sql] def insert(e: Cfp): Insert[Cfp] = {
-    val fields = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.begin}, ${e.close}, ${e.description}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
-    table.insert[Cfp](e, _ => fields)
+    val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.begin}, ${e.close}, ${e.description}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    table.insert[Cfp](e, _ => values)
   }
 
   private[sql] def update(group: Group.Id, slug: Cfp.Slug)(data: Cfp.Data, by: User.Id, now: Instant): Update = {

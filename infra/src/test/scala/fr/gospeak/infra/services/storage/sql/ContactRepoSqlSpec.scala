@@ -41,36 +41,33 @@ class ContactRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = ContactRepoSql.insert(contact)
-        q.sql shouldBe s"INSERT INTO $table ($fields) VALUES (${mapFields(fields, _ => "?")})"
-        check(q)
+        check(q, s"INSERT INTO ${table.stripSuffix(" ct")} (${mapFields(fields, _.stripPrefix("ct."))}) VALUES (${mapFields(fields, _ => "?")})")
       }
       it("should build update") {
         val q = ContactRepoSql.update(contact.id, contactData1)(user.id, now)
-        q.sql shouldBe s"UPDATE $table SET first_name=?, last_name=?, email=?, description=?, updated=?, updated_by=? WHERE id=?"
-        check(q)
+        check(q, s"UPDATE $table SET ct.first_name=?, ct.last_name=?, ct.email=?, ct.description=?, ct.updated=?, ct.updated_by=? WHERE ct.id=?")
       }
       it("should build selectPage") {
         val q = ContactRepoSql.selectPage(partner.id, params)
-        q.query.sql shouldBe s"SELECT $fields FROM $table WHERE partner_id=? ORDER BY created IS NULL, created OFFSET 0 LIMIT 20"
-        q.count.sql shouldBe s"SELECT count(*) FROM $table WHERE partner_id=? "
-        check(q.query)
-        check(q.count)
+        check(q, s"SELECT $fields FROM $table WHERE ct.partner_id=? ORDER BY ct.last_name IS NULL, ct.last_name, ct.first_name IS NULL, ct.first_name OFFSET 0 LIMIT 20")
       }
       it("should build selectAll") {
         val q = ContactRepoSql.selectAll(partner.id)
-        q.sql shouldBe s"SELECT $fields FROM $table WHERE partner_id=?"
-        check(q)
+        check(q, s"SELECT $fields FROM $table WHERE ct.partner_id=?")
       }
       it("should build selectOne") {
+        val q = ContactRepoSql.selectOne(contact.id)
+        check(q, s"SELECT $fields FROM $table WHERE ct.id=?")
+      }
+      it("should build selectOne by partner and email") {
         val q = ContactRepoSql.selectOne(partner.id, contact.email)
-        q.sql shouldBe s"SELECT $fields FROM $table WHERE partner_id=? AND email=?"
-        check(q)
+        check(q, s"SELECT $fields FROM $table WHERE ct.partner_id=? AND ct.email=?")
       }
     }
   }
 }
 
 object ContactRepoSqlSpec {
-  val table = "contacts"
-  val fields = "id, partner_id, first_name, last_name, email, description, created, created_by, updated, updated_by"
+  val table = "contacts ct"
+  val fields = "ct.id, ct.partner_id, ct.first_name, ct.last_name, ct.email, ct.description, ct.created, ct.created_by, ct.updated, ct.updated_by"
 }

@@ -11,7 +11,6 @@ import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.EventRepo
-import fr.gospeak.infra.services.storage.sql.ContactRepoSql.{fields => contactFields, table => contactTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSql._
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSql.{fields => partnerFields, table => partnerTable}
 import fr.gospeak.infra.services.storage.sql.UserRepoSql.{fields => userFields, searchFields => userSearchFields, table => userTable}
@@ -85,12 +84,12 @@ object EventRepoSql {
     s"$table e " +
       s"LEFT OUTER JOIN $venueTable v ON e.venue=v.id " +
       s"LEFT OUTER JOIN $partnerTable p ON v.partner_id=p.id " +
-      s"LEFT OUTER JOIN $contactTable c ON v.contact_id=c.id")
+      s"LEFT OUTER JOIN ${Tables.contacts.name} ON v.contact_id=ct.id")
   private val fieldsFullFr = Fragment.const0((
     fields.map("e." + _) ++
       venueFields.map("v." + _) ++
       partnerFields.map("p." + _) ++
-      contactFields.map("c." + _)).mkString(", "))
+      Tables.contacts.fields.map(_.value)).mkString(", "))
 
   private val rsvpTableWithUser = s"$rsvpTable r INNER JOIN $userTable u ON r.user_id=u.id"
   private val rsvpTableWithUserFr = Fragment.const0(rsvpTableWithUser)

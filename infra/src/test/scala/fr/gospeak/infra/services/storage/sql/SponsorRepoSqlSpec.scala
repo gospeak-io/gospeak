@@ -57,6 +57,6 @@ object SponsorRepoSqlSpec {
   val table = "sponsors"
   val fields = "id, group_id, partner_id, sponsor_pack_id, contact_id, start, finish, paid, price, currency, created, created_by, updated, updated_by"
 
-  private val tableFull = s"$table s INNER JOIN $sponsorPackTable sp ON s.sponsor_pack_id=sp.id INNER JOIN $partnerTable p ON s.partner_id=p.id LEFT OUTER JOIN $contactTable c ON s.contact_id=c.id"
-  private val fieldsFull = s"${mapFields(fields, "s." + _)}, ${mapFields(sponsorPackFields, "sp." + _)}, ${mapFields(partnerFields, "p." + _)}, ${mapFields(contactFields, "c." + _)}"
+  private val tableFull = s"$table s INNER JOIN $sponsorPackTable sp ON s.sponsor_pack_id=sp.id INNER JOIN $partnerTable p ON s.partner_id=p.id LEFT OUTER JOIN $contactTable ON s.contact_id=ct.id"
+  private val fieldsFull = s"${mapFields(fields, "s." + _)}, ${mapFields(sponsorPackFields, "sp." + _)}, ${mapFields(partnerFields, "p." + _)}, $contactFields"
 }
