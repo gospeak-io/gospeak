@@ -76,8 +76,8 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 object GroupRepoSql {
   private val _ = groupIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.groups
-  private val memberTable = Tables.members
-  private val memberTableWithUser = Tables.members.join(Tables.user, _.field("user_id"), _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
+  private val memberTable = Tables.groupMembers
+  private val memberTableWithUser = Tables.groupMembers.join(Tables.users, _.field("user_id"), _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
 
   private[sql] def insert(e: Group): Insert[Group] = {
     val values = fr0"${e.id}, ${e.slug}, ${e.name}, ${e.contact}, ${e.description}, ${e.owners}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"

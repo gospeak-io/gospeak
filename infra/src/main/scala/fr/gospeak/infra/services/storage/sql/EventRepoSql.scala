@@ -71,7 +71,7 @@ object EventRepoSql {
     .joinOpt(Tables.contacts, _.field("contact_id", "v"), _.field("id")).get
   private val rsvpTable = Tables.eventRsvps
   private val rsvpTableWithUser = rsvpTable
-    .join(Tables.user, _.field("user_id"), _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
+    .join(Tables.users, _.field("user_id"), _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
 
   private[sql] def insert(e: Event): Insert[Event] = {
     val values = fr0"${e.id}, ${e.group}, ${e.cfp}, ${e.slug}, ${e.name}, ${e.start}, ${e.maxAttendee}, ${e.description}, ${e.venue}, ${e.talks}, ${e.tags}, ${e.published}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.event)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
