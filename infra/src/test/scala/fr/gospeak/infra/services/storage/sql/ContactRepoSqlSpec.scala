@@ -5,6 +5,7 @@ import java.time.Instant
 import fr.gospeak.core.domain.Contact.{FirstName, LastName}
 import fr.gospeak.infra.services.storage.sql.ContactRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
+import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 import fr.gospeak.libs.scalautils.domain.EmailAddress
 
 class ContactRepoSqlSpec extends RepoSpec {
@@ -69,5 +70,5 @@ class ContactRepoSqlSpec extends RepoSpec {
 
 object ContactRepoSqlSpec {
   val table = "contacts ct"
-  val fields = "ct.id, ct.partner_id, ct.first_name, ct.last_name, ct.email, ct.description, ct.created, ct.created_by, ct.updated, ct.updated_by"
+  val fields: String = mapFields("id, partner_id, first_name, last_name, email, description, created, created_by, updated, updated_by", "ct." + _)
 }

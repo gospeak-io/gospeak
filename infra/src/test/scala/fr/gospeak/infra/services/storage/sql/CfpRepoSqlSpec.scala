@@ -5,6 +5,7 @@ import fr.gospeak.core.domain.{Group, Talk}
 import fr.gospeak.infra.services.storage.sql.CfpRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec.{table => eventTable}
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
+import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 
 class CfpRepoSqlSpec extends RepoSpec {
   describe("CfpRepoSql") {
@@ -58,7 +59,7 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne for event id") {
         val q = CfpRepoSql.selectOne(event.id)
-        check(q, s"SELECT $fields FROM $table INNER JOIN $eventTable e ON c.id=e.cfp_id WHERE e.id=?")
+        check(q, s"SELECT $fields FROM $table INNER JOIN $eventTable ON c.id=e.cfp_id WHERE e.id=?")
       }
       it("should build selectOne for cfp slug id and date") {
         val q = CfpRepoSql.selectOne(cfp.slug, now)
@@ -98,5 +99,5 @@ class CfpRepoSqlSpec extends RepoSpec {
 
 object CfpRepoSqlSpec {
   val table = "cfps c"
-  val fields = "c.id, c.group_id, c.slug, c.name, c.begin, c.close, c.description, c.tags, c.created, c.created_by, c.updated, c.updated_by"
+  val fields: String = mapFields("id, group_id, slug, name, begin, close, description, tags, created, created_by, updated, updated_by", "c." + _)
 }

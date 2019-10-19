@@ -50,9 +50,10 @@ object Event {
 
   final case class ExtRefs(meetup: Option[MeetupEvent.Ref] = None)
 
-  final case class Rsvp(user: User,
+  final case class Rsvp(event: Event.Id,
                         answer: Rsvp.Answer,
-                        rsvpAt: Instant)
+                        answeredAt: Instant,
+                        user: User)
 
   object Rsvp {
 

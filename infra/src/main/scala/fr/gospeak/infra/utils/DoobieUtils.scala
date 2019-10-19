@@ -55,11 +55,19 @@ object DoobieUtils {
 
     def dropField(f: Table => Either[CustomException, Field]): Either[CustomException, Table] = f(this).flatMap(dropField)
 
-    def join(rightTable: Table, leftField: Table => Either[CustomException, Field], rightField: Table => Either[CustomException, Field]): Either[CustomException, Table] = for {
+    def dropFields(p: Field => Boolean): Table = copy(fields = fields.filterNot(p))
+
+    def join(rightTable: Table, leftField: Table => Either[CustomException, Field], rightField: Table => Either[CustomException, Field]): Either[CustomException, Table] =
+      join("INNER JOIN", rightTable, leftField, rightField)
+
+    def joinOpt(rightTable: Table, leftField: Table => Either[CustomException, Field], rightField: Table => Either[CustomException, Field]): Either[CustomException, Table] =
+      join("LEFT OUTER JOIN", rightTable, leftField, rightField)
+
+    private def join(kind: String, rightTable: Table, leftField: Table => Either[CustomException, Field], rightField: Table => Either[CustomException, Field]): Either[CustomException, Table] = for {
       left <- leftField(this)
       right <- rightField(rightTable)
       res <- Table.from(
-        name = s"$name INNER JOIN ${rightTable.name} ON ${left.value}=${right.value}",
+        name = s"$name $kind ${rightTable.name} ON ${left.value}=${right.value}",
         prefix = prefix,
         fields = fields ++ rightTable.fields,
         sort = sort,

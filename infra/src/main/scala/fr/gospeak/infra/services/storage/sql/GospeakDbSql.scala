@@ -136,7 +136,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
         _ <- run(Queries.insertMany(SponsorRepoSql.insert)(NonEmptyList.fromListUnsafe(sponsors)))
         // _ <- run(Queries.insertMany(VenueRepoSql.insert)(NonEmptyList.fromListUnsafe(venues))) // fail with: JdbcSQLException: Parameter "#10" is not set :(
         _ <- IO(venues.map(venue => run(Queries.insertOne(VenueRepoSql.insert)(venue)).unsafeRunSync()))
-        _ <- run(Queries.insertMany(EventRepoSql.insert)(NonEmptyList.fromListUnsafe(events)))
+        _ <- run(Queries.insertMany(EventRepoSql.insert(_: Event).fr.update)(NonEmptyList.fromListUnsafe(events)))
         _ <- IO(events.map(event => addTalk(cfpHt, event, proposals.filter(p => event.talks.contains(p.id)), event.info.createdBy, event.info.updated)).map(_.unsafeRunSync()))
       } yield Done
     } { mongo => IO(mongo.close()) }
@@ -329,7 +329,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       _ <- IO(venues.toList.map(venue => run(Queries.insertOne(VenueRepoSql.insert)(venue)).unsafeRunSync()))
       _ <- run(Queries.insertMany(SponsorPackRepoSql.insert)(packs))
       _ <- run(Queries.insertMany(SponsorRepoSql.insert)(sponsors))
-      _ <- run(Queries.insertMany(EventRepoSql.insert)(events ++ generated.map(_._3)))
+      _ <- run(Queries.insertMany(EventRepoSql.insert(_: Event).fr.update)(events ++ generated.map(_._3)))
       _ <- IO(eventTalks.map { case (c, e, p, u) => addTalk(c, e, p, u, now) }.map(_.unsafeRunSync()))
       _ <- groupSettings.set(humanTalks.id, humanTalksSettings, userDemo.id, now)
     } yield Done
@@ -524,7 +524,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     """.stripMargin
 
   private def addTalk(cfp: Cfp, event: Event, proposals: Seq[Proposal], by: User.Id, now: Instant): IO[Done] = for {
-    _ <- run(EventRepoSql.updateTalks(event.group, event.slug)(proposals.map(_.id), by, now))
+    _ <- EventRepoSql.updateTalks(event.group, event.slug)(proposals.map(_.id), by, now).run(xa)
     _ <- IO(proposals.map(p => run(ProposalRepoSql.updateStatus(cfp.slug, p.id)(Proposal.Status.Accepted, Some(event.id)))).map(_.unsafeRunSync()))
   } yield Done
 

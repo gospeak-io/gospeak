@@ -10,7 +10,6 @@ import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.ProposalRepo
-import fr.gospeak.infra.services.storage.sql.EventRepoSql.{fields => eventFields, table => eventTable}
 import fr.gospeak.infra.services.storage.sql.ProposalRepoSql._
 import fr.gospeak.infra.services.storage.sql.TalkRepoSql.{fields => talkFields, table => talkTable}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
@@ -136,13 +135,13 @@ object ProposalRepoSql {
       s"INNER JOIN ${Tables.cfps.name} ON p.cfp_id=c.id " +
       s"INNER JOIN ${Tables.groups.name} ON c.group_id=g.id " +
       s"INNER JOIN $talkTable t ON p.talk_id=t.id " +
-      s"LEFT OUTER JOIN $eventTable e ON p.event_id=e.id")
+      s"LEFT OUTER JOIN ${Tables.events.name} ON p.event_id=e.id")
   private val fieldsFullFr = Fragment.const0((
     fields.map("p." + _) ++
       Tables.cfps.fields.map(_.value) ++
       Tables.groups.fields.map(_.value) ++
       talkFields.map("t." + _) ++
-      eventFields.map("e." + _)).mkString(", "))
+      Tables.events.fields.map(_.value)).mkString(", "))
 
   private[sql] def insert(e: Proposal): doobie.Update0 = {
     val values = fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"

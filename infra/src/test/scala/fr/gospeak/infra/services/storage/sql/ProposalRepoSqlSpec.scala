@@ -184,6 +184,6 @@ object ProposalRepoSqlSpec {
   private val whereCfpAndTalk = s"(SELECT p.id FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN talks t ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND p.speakers LIKE ?)"
   private val whereGroupAndCfp = s"(SELECT p.id FROM $table p INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN groups g ON c.group_id=g.id WHERE p.id=? AND c.slug=? AND g.slug=? AND g.owners LIKE ?)"
 
-  private val tableFull = s"$table p INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $groupTable ON c.group_id=g.id INNER JOIN $talkTable t ON p.talk_id=t.id LEFT OUTER JOIN $eventTable e ON p.event_id=e.id"
-  private val fieldsFull = s"${mapFields(fields, "p." + _)}, $cfpFields, $groupFields, ${mapFields(talkFields, "t." + _)}, ${mapFields(eventFields, "e." + _)}"
+  private val tableFull = s"$table p INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $groupTable ON c.group_id=g.id INNER JOIN $talkTable t ON p.talk_id=t.id LEFT OUTER JOIN $eventTable ON p.event_id=e.id"
+  private val fieldsFull = s"${mapFields(fields, "p." + _)}, $cfpFields, $groupFields, ${mapFields(talkFields, "t." + _)}, $eventFields"
 }
