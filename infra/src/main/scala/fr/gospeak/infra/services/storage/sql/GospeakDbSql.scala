@@ -129,7 +129,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
         _ <- GroupRepoSql.insert(groupHt).run(xa)
         _ <- CfpRepoSql.insert(cfpHt).run(xa)
         _ <- run(Queries.insertMany(TalkRepoSql.insert)(NonEmptyList.fromListUnsafe(talks)))
-        _ <- run(Queries.insertMany(ProposalRepoSql.insert)(NonEmptyList.fromListUnsafe(proposals)))
+        _ <- run(Queries.insertMany(ProposalRepoSql.insert(_: Proposal).fr.update)(NonEmptyList.fromListUnsafe(proposals)))
         _ <- run(Queries.insertMany(PartnerRepoSql.insert(_: Partner).fr.update)(NonEmptyList.fromListUnsafe(partners)))
         _ <- run(Queries.insertMany(ContactRepoSql.insert(_: Contact).fr.update)(NonEmptyList.fromListUnsafe(contacts.map(_._2))))
         _ <- run(Queries.insertMany(SponsorPackRepoSql.insert)(NonEmptyList.fromListUnsafe(sponsorPacks)))
@@ -322,7 +322,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       _ <- run(Queries.insertMany(TalkRepoSql.insert)(talks ++ generated.map(_._4)))
       _ <- run(Queries.insertMany(GroupRepoSql.insert(_: Group).fr.update)(groups ++ generated.map(_._1)))
       _ <- run(Queries.insertMany(CfpRepoSql.insert(_: Cfp).fr.update)(cfps ++ generated.map(_._2)))
-      _ <- run(Queries.insertMany(ProposalRepoSql.insert)(proposals ++ generated.map(_._5)))
+      _ <- run(Queries.insertMany(ProposalRepoSql.insert(_: Proposal).fr.update)(proposals ++ generated.map(_._5)))
       _ <- run(Queries.insertMany(PartnerRepoSql.insert(_: Partner).fr.update)(partners))
       _ <- run(Queries.insertMany(ContactRepoSql.insert(_: Contact).fr.update)(contacts))
       // _ <- run(Queries.insertMany(VenueRepoSql.insert)(venues)) // fail with: JdbcSQLException: Parameter "#10" is not set :(
@@ -525,7 +525,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
 
   private def addTalk(cfp: Cfp, event: Event, proposals: Seq[Proposal], by: User.Id, now: Instant): IO[Done] = for {
     _ <- EventRepoSql.updateTalks(event.group, event.slug)(proposals.map(_.id), by, now).run(xa)
-    _ <- IO(proposals.map(p => run(ProposalRepoSql.updateStatus(cfp.slug, p.id)(Proposal.Status.Accepted, Some(event.id)))).map(_.unsafeRunSync()))
+    _ <- IO(proposals.map(p => ProposalRepoSql.updateStatus(cfp.slug, p.id)(Proposal.Status.Accepted, Some(event.id)).run(xa)).map(_.unsafeRunSync()))
   } yield Done
 
   private def run(i: => doobie.Update0): IO[Done] =
