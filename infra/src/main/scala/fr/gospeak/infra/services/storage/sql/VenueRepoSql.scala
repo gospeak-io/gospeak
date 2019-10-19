@@ -16,6 +16,7 @@ import fr.gospeak.infra.services.storage.sql.VenueRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.utils.DoobieUtils.SelectPage
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
 class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with VenueRepo {
@@ -62,8 +63,8 @@ object VenueRepoSql {
   private[sql] def selectOneFull(group: Group.Id, id: Venue.Id): doobie.Query0[Venue.Full] =
     buildSelect(tableFullFr, fieldsFullFr, fr0"WHERE p.group_id=$group AND v.id=$id").query[Venue.Full]
 
-  private[sql] def selectPageFull(group: Group.Id, params: Page.Params): Paginated[Venue.Full] =
-    Paginated[Venue.Full](tableFullFr, fieldsFullFr, fr0"WHERE p.group_id=$group", params, defaultSort, searchFields, "v")
+  private[sql] def selectPageFull(group: Group.Id, params: Page.Params): SelectPage[Venue.Full] =
+    SelectPage[Venue.Full](tableFullFr, fieldsFullFr, fr0"WHERE p.group_id=$group", params, defaultSort, searchFields, "v")
 
   private[sql] def selectAllFull(group: Group.Id): doobie.Query0[Venue.Full] =
     buildSelect(tableFullFr, fieldsFullFr, fr"WHERE p.group_id=$group").query[Venue.Full]

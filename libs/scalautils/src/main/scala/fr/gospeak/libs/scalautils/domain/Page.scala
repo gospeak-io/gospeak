@@ -57,8 +57,8 @@ object Page {
 
   final case class OrderBy(values: Seq[String]) extends AnyVal {
     def prefix(p: String): OrderBy = OrderBy(values.map(v =>
-      if (v.startsWith("-")) s"-$p${v.stripPrefix("-")}"
-      else s"$p$v"
+      if (v.startsWith("-")) s"-$p.${v.stripPrefix("-")}"
+      else s"$p.$v"
     ))
 
     def key: String = OrderBy.key

@@ -37,10 +37,11 @@ object Group {
 
   final case class Name(value: String) extends AnyVal
 
-  final case class Member(user: User,
+  final case class Member(group: Group.Id,
                           role: Member.Role,
                           presentation: Option[String],
-                          joinedAt: Instant)
+                          joinedAt: Instant,
+                          user: User)
 
   object Member {
 

@@ -14,6 +14,7 @@ import fr.gospeak.infra.services.storage.sql.CfpRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.utils.DoobieUtils.SelectPage
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
 
 class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with CfpRepo {
@@ -93,16 +94,16 @@ object CfpRepoSql {
   private[sql] def selectOne(slug: Cfp.Slug, now: Instant): doobie.Query0[Cfp] =
     buildSelect(tableFr, fieldsFr, where(slug, now)).query[Cfp]
 
-  private[sql] def selectPage(group: Group.Id, params: Page.Params): Paginated[Cfp] =
-    Paginated[Cfp](tableFr, fieldsFr, fr0"WHERE group_id=$group", params, defaultSort, searchFields)
+  private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[Cfp] =
+    SelectPage[Cfp](table, fieldsFr, fr0"WHERE group_id=$group", params, defaultSort, searchFields)
 
-  private[sql] def selectPage(talk: Talk.Id, params: Page.Params): Paginated[Cfp] = {
+  private[sql] def selectPage(talk: Talk.Id, params: Page.Params): SelectPage[Cfp] = {
     val talkCfps = buildSelect(ProposalRepoSql.tableFr, fr0"cfp_id", fr0"WHERE talk_id=$talk")
-    Paginated[Cfp](tableFr, fieldsFr, fr0"WHERE id NOT IN (" ++ talkCfps ++ fr0")", params, defaultSort, searchFields)
+    SelectPage[Cfp](table, fieldsFr, fr0"WHERE id NOT IN (" ++ talkCfps ++ fr0")", params, defaultSort, searchFields)
   }
 
-  private[sql] def selectPage(now: Instant, params: Page.Params): Paginated[Cfp] =
-    Paginated[Cfp](tableFr, fieldsFr, where(now), params, defaultSort, searchFields)
+  private[sql] def selectPage(now: Instant, params: Page.Params): SelectPage[Cfp] =
+    SelectPage[Cfp](table, fieldsFr, where(now), params, defaultSort, searchFields)
 
   private[sql] def selectAll(group: Group.Id): doobie.Query0[Cfp] =
     buildSelect(tableFr, fieldsFr, fr0"WHERE group_id=$group").query[Cfp]

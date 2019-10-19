@@ -13,6 +13,7 @@ import fr.gospeak.infra.services.storage.sql.ContactRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.utils.DoobieUtils.SelectPage
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ContactRepo {
@@ -54,8 +55,8 @@ object ContactRepoSql {
   private[sql] def selectBy(partner: Partner.Id): doobie.Query0[Contact] =
     buildSelect(tableFr, fieldsFr, where(partner)).query[Contact]
 
-  private[sql] def selectPage(partner: Partner.Id, params: Page.Params): Paginated[Contact] =
-    Paginated[Contact](tableFr, fieldsFr, where(partner), params, defaultSort, searchFields)
+  private[sql] def selectPage(partner: Partner.Id, params: Page.Params): SelectPage[Contact] =
+    SelectPage[Contact](table, fieldsFr, where(partner), params, defaultSort, searchFields)
 
   private[sql] def selectAll(partner: Partner.Id): doobie.Query0[Contact] =
     buildSelect(tableFr, fieldsFr, where(partner)).query[Contact]

@@ -17,6 +17,7 @@ import fr.gospeak.infra.services.storage.sql.TalkRepoSql.{fields => talkFields, 
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.utils.DoobieUtils.SelectPage
 import fr.gospeak.libs.scalautils.domain._
 
 class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ProposalRepo {
@@ -134,13 +135,13 @@ object ProposalRepoSql {
   private val tableFullFr = Fragment.const0(
     s"$table p " +
       s"INNER JOIN $cfpTable c ON p.cfp_id=c.id " +
-      s"INNER JOIN ${Tables.groups.name} g ON c.group_id=g.id " +
+      s"INNER JOIN ${Tables.groups.name} ON c.group_id=g.id " +
       s"INNER JOIN $talkTable t ON p.talk_id=t.id " +
       s"LEFT OUTER JOIN $eventTable e ON p.event_id=e.id")
   private val fieldsFullFr = Fragment.const0((
     fields.map("p." + _) ++
       cfpFields.map("c." + _) ++
-      Tables.groups.fields.map("g." + _) ++
+      Tables.groups.fields.map(_.value) ++
       talkFields.map("t." + _) ++
       eventFields.map("e." + _)).mkString(", "))
 
@@ -197,29 +198,29 @@ object ProposalRepoSql {
   private[sql] def selectOnePublicFull(group: Group.Id, id: Proposal.Id): doobie.Query0[Proposal.Full] =
     buildSelect(tableFullFr, fieldsFullFr, fr0"WHERE c.group_id=$group AND p.id=$id AND e.published IS NOT NULL").query[Proposal.Full]
 
-  private[sql] def selectPage(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): Paginated[Proposal] =
-    Paginated[Proposal](tableFr, fieldsFr, fr0"WHERE cfp_id=$cfp AND status=$status", params, defaultSort, searchFields)
+  private[sql] def selectPage(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): SelectPage[Proposal] =
+    SelectPage[Proposal](table, fieldsFr, fr0"WHERE cfp_id=$cfp AND status=$status", params, defaultSort, searchFields)
 
-  private[sql] def selectPageFull(cfp: Cfp.Id, params: Page.Params): Paginated[Proposal.Full] =
-    Paginated[Proposal.Full](tableFullFr, fieldsFullFr, fr0"WHERE p.cfp_id=$cfp", params, defaultSort, searchFields, "p")
+  private[sql] def selectPageFull(cfp: Cfp.Id, params: Page.Params): SelectPage[Proposal.Full] =
+    SelectPage[Proposal.Full](tableFullFr, fieldsFullFr, fr0"WHERE p.cfp_id=$cfp", params, defaultSort, searchFields, "p")
 
-  private[sql] def selectPageFull(group: Group.Id, params: Page.Params): Paginated[Proposal.Full] =
-    Paginated[Proposal.Full](tableFullFr, fieldsFullFr, fr0"WHERE c.group_id=$group", params, defaultSort, searchFields, "p")
+  private[sql] def selectPageFull(group: Group.Id, params: Page.Params): SelectPage[Proposal.Full] =
+    SelectPage[Proposal.Full](tableFullFr, fieldsFullFr, fr0"WHERE c.group_id=$group", params, defaultSort, searchFields, "p")
 
-  private[sql] def selectPageFull(group: Group.Id, speaker: User.Id, params: Page.Params): Paginated[Proposal.Full] =
-    Paginated[Proposal.Full](tableFullFr, fieldsFullFr, fr0"WHERE c.group_id=$group AND p.speakers LIKE ${"%" + speaker.value + "%"}", params, defaultSort, searchFields, "p")
+  private[sql] def selectPageFull(group: Group.Id, speaker: User.Id, params: Page.Params): SelectPage[Proposal.Full] =
+    SelectPage[Proposal.Full](tableFullFr, fieldsFullFr, fr0"WHERE c.group_id=$group AND p.speakers LIKE ${"%" + speaker.value + "%"}", params, defaultSort, searchFields, "p")
 
-  private[sql] def selectPageFull(talk: Talk.Id, params: Page.Params): Paginated[Proposal.Full] =
-    Paginated[Proposal.Full](tableFullFr, fieldsFullFr, fr0"WHERE p.talk_id=$talk", params, defaultSort, searchFields, "p")
+  private[sql] def selectPageFull(talk: Talk.Id, params: Page.Params): SelectPage[Proposal.Full] =
+    SelectPage[Proposal.Full](tableFullFr, fieldsFullFr, fr0"WHERE p.talk_id=$talk", params, defaultSort, searchFields, "p")
 
-  private[sql] def selectPageFull(speaker: User.Id, params: Page.Params): Paginated[Proposal.Full] =
-    Paginated[Proposal.Full](tableFullFr, fieldsFullFr, fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"}", params, defaultSort, searchFields, "p")
+  private[sql] def selectPageFull(speaker: User.Id, params: Page.Params): SelectPage[Proposal.Full] =
+    SelectPage[Proposal.Full](tableFullFr, fieldsFullFr, fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"}", params, defaultSort, searchFields, "p")
 
-  private[sql] def selectPagePublicFull(speaker: User.Id, params: Page.Params): Paginated[Proposal.Full] =
-    Paginated[Proposal.Full](tableFullFr, fieldsFullFr, fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"} AND e.published IS NOT NULL", params, defaultSort, searchFields, "p")
+  private[sql] def selectPagePublicFull(speaker: User.Id, params: Page.Params): SelectPage[Proposal.Full] =
+    SelectPage[Proposal.Full](tableFullFr, fieldsFullFr, fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"} AND e.published IS NOT NULL", params, defaultSort, searchFields, "p")
 
-  private[sql] def selectPagePublicFull(group: Group.Id, params: Page.Params): Paginated[Proposal.Full] =
-    Paginated[Proposal.Full](tableFullFr, fieldsFullFr, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL", params, defaultSort, searchFields, "p")
+  private[sql] def selectPagePublicFull(group: Group.Id, params: Page.Params): SelectPage[Proposal.Full] =
+    SelectPage[Proposal.Full](tableFullFr, fieldsFullFr, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL", params, defaultSort, searchFields, "p")
 
   private[sql] def selectAll(ids: NonEmptyList[Proposal.Id]): doobie.Query0[Proposal] =
     buildSelect(tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids)).query[Proposal]
@@ -240,7 +241,7 @@ object ProposalRepoSql {
 
   private def where(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Fragment =
     fr0"WHERE id=(SELECT p.id FROM " ++
-      Fragment.const0(s"$table p INNER JOIN $cfpTable c ON p.cfp_id=c.id INNER JOIN ${Tables.groups.name} g ON c.group_id=g.id ") ++
+      Fragment.const0(s"$table p INNER JOIN $cfpTable c ON p.cfp_id=c.id INNER JOIN ${Tables.groups.name} ON c.group_id=g.id ") ++
       fr0"WHERE p.id=$proposal AND c.slug=$cfp AND g.slug=$group AND g.owners LIKE ${"%" + orga.value + "%"}" ++ fr0")"
 
   private def where(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Fragment =

@@ -14,6 +14,7 @@ import fr.gospeak.infra.services.storage.sql.PartnerRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.utils.DoobieUtils.SelectPage
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page}
 
 class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with PartnerRepo {
@@ -59,8 +60,8 @@ object PartnerRepoSql {
     buildUpdate(tableFr, fields, where(group, slug)).update
   }
 
-  private[sql] def selectPage(group: Group.Id, params: Page.Params): Paginated[Partner] =
-    Paginated[Partner](tableFr, fieldsFr, fr0"WHERE group_id=$group", params, defaultSort, searchFields)
+  private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[Partner] =
+    SelectPage[Partner](table, fieldsFr, fr0"WHERE group_id=$group", params, defaultSort, searchFields)
 
   private[sql] def selectAll(group: Group.Id): doobie.Query0[Partner] =
     buildSelect(tableFr, fieldsFr, fr"WHERE group_id=$group").query[Partner]

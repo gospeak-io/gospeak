@@ -6,11 +6,13 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import doobie.scalatest.IOChecker
+import doobie.util.testing.Analyzable
 import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
 import fr.gospeak.core.domain._
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.services.storage.sql._
 import fr.gospeak.infra.testingutils.Values
+import fr.gospeak.infra.utils.DoobieUtils.{Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
@@ -47,6 +49,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val passwordResetRequest: PasswordResetRequest = random[PasswordResetRequest]
   protected val userAskToJoinAGroupRequest: UserAskToJoinAGroupRequest = random[UserAskToJoinAGroupRequest]
   protected val userRequest: UserRequest = accountValidationRequest
+  protected val member: Group.Member = random[Group.Member]
 
   protected val Seq(userData1, userData2, userData3) = random[User.Data](10).distinctBy(_.email).take(3)
   protected val Seq(groupData1, groupData2) = random[Group.Data](2)
@@ -82,6 +85,27 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   } yield (user, group, cfp, talk)
 
   protected def mapFields(fields: String, f: String => String): String = RepoSpec.mapFields(fields, f)
+
+  protected def check[A](q: Insert[A], req: String): Unit = {
+    q.fr.update.sql shouldBe req
+    check(q.fr.update)
+  }
+
+  protected def check(q: Update, req: String): Unit = {
+    q.fr.update.sql shouldBe req
+    check(q.fr.update)
+  }
+
+  protected def check[A](q: Select[A], req: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
+    q.fr.query.sql shouldBe req
+    check(q.query)
+  }
+
+  protected def check[A](q: SelectPage[A], req: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
+    q.query.sql shouldBe req
+    check(q.query)
+    check(q.count)
+  }
 }
 
 object RepoSpec {

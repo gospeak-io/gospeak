@@ -13,6 +13,7 @@ import fr.gospeak.infra.services.storage.sql.UserRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.utils.DoobieUtils.SelectPage
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRepo {
@@ -145,13 +146,13 @@ object UserRepoSql {
     Paginated[User](tableFr, fieldsFr, fr0"WHERE id IN (" ++ speakerIds ++ fr0")", params, defaultSort, searchFields)
   } */
 
-  private[sql] def selectPagePublic(params: Page.Params): Paginated[User] = {
+  private[sql] def selectPagePublic(params: Page.Params): SelectPage[User] = {
     val public: User.Profile.Status = User.Profile.Status.Public
-    Paginated[User](tableFr, fieldsFr, fr"WHERE status=$public", params, defaultSort, searchFields)
+    SelectPage[User](table, fieldsFr, fr"WHERE status=$public", params, defaultSort, searchFields)
   }
 
-  private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params): Paginated[User] =
-    Paginated[User](tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids), params, defaultSort, searchFields)
+  private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params): SelectPage[User] =
+    SelectPage[User](table, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids), params, defaultSort, searchFields)
 
   private[sql] def selectAll(ids: NonEmptyList[User.Id]): doobie.Query0[User] =
     buildSelect(tableFr, fieldsFr, fr"WHERE" ++ Fragments.in(fr"id", ids)).query[User]

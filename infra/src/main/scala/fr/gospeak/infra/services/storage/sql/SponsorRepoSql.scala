@@ -15,6 +15,7 @@ import fr.gospeak.infra.services.storage.sql.SponsorRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.utils.DoobieUtils.SelectPage
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
 class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SponsorRepo {
@@ -47,11 +48,12 @@ object SponsorRepoSql {
   private val searchFields: Seq[String] = Seq("id")
   private val defaultSort: Page.OrderBy = Page.OrderBy("-start")
 
-  private val tableFullFr = Fragment.const0(
+  private val tableFull =
     s"$table s " +
       s"INNER JOIN $sponsorPackTable sp ON s.sponsor_pack_id=sp.id " +
       s"INNER JOIN $partnerTable p ON s.partner_id=p.id " +
-      s"LEFT OUTER JOIN $contactTable c ON s.contact_id=c.id")
+      s"LEFT OUTER JOIN $contactTable c ON s.contact_id=c.id"
+  private val tableFullFr = Fragment.const0(tableFull)
   private val fieldsFullFr = Fragment.const0((
     fields.map("s." + _) ++
       sponsorPackFields.map("sp." + _) ++
@@ -74,9 +76,9 @@ object SponsorRepoSql {
   private[sql] def selectOne(group: Group.Id, pack: Sponsor.Id): doobie.Query0[Sponsor] =
     buildSelect(tableFr, fieldsFr, where(group, pack)).query[Sponsor]
 
-  private[sql] def selectPage(group: Group.Id, params: Page.Params): Paginated[Sponsor.Full] = {
+  private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[Sponsor.Full] = {
     val search = searchFields.map("s." + _) ++ sponsorPackSearch.map("sp." + _) ++ partnerSearch.map("p." + _) ++ contactSearch.map("c." + _)
-    Paginated[Sponsor.Full](tableFullFr, fieldsFullFr, fr0"WHERE s.group_id=$group", params, defaultSort, search)
+    SelectPage[Sponsor.Full](tableFull, fieldsFullFr, fr0"WHERE s.group_id=$group", params, defaultSort, search)
   }
 
   private[sql] def selectCurrent(group: Group.Id, now: Instant): doobie.Query0[Sponsor.Full] =

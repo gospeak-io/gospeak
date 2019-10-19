@@ -14,6 +14,7 @@ import fr.gospeak.infra.services.storage.sql.TalkRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
 import fr.gospeak.infra.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.utils.DoobieUtils.SelectPage
 import fr.gospeak.libs.scalautils.domain._
 
 class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with TalkRepo {
@@ -125,15 +126,15 @@ object TalkRepoSql {
   private[sql] def selectOne(user: User.Id, talk: Talk.Slug): doobie.Query0[Talk] =
     buildSelect(tableFr, fieldsFr, where(user, talk)).query[Talk]
 
-  private[sql] def selectPage(user: User.Id, params: Page.Params): Paginated[Talk] =
-    Paginated[Talk](tableFr, fieldsFr, fr0"WHERE speakers LIKE ${"%" + user.value + "%"}", params, defaultSort, searchFields)
+  private[sql] def selectPage(user: User.Id, params: Page.Params): SelectPage[Talk] =
+    SelectPage[Talk](table, fieldsFr, fr0"WHERE speakers LIKE ${"%" + user.value + "%"}", params, defaultSort, searchFields)
 
-  private[sql] def selectPage(user: User.Id, status: Talk.Status, params: Page.Params): Paginated[Talk] =
-    Paginated[Talk](tableFr, fieldsFr, fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND status=$status", params, defaultSort, searchFields)
+  private[sql] def selectPage(user: User.Id, status: Talk.Status, params: Page.Params): SelectPage[Talk] =
+    SelectPage[Talk](table, fieldsFr, fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND status=$status", params, defaultSort, searchFields)
 
-  private[sql] def selectPage(user: User.Id, cfp: Cfp.Id, status: NonEmptyList[Talk.Status], params: Page.Params): Paginated[Talk] = {
+  private[sql] def selectPage(user: User.Id, cfp: Cfp.Id, status: NonEmptyList[Talk.Status], params: Page.Params): SelectPage[Talk] = {
     val cfpTalks = buildSelect(ProposalRepoSql.tableFr, fr0"talk_id", fr0"WHERE cfp_id=$cfp")
-    Paginated[Talk](tableFr, fieldsFr, fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND id NOT IN (" ++ cfpTalks ++ fr0") AND " ++ Fragments.in(fr"status", status), params, defaultSort, searchFields)
+    SelectPage[Talk](table, fieldsFr, fr0"WHERE speakers LIKE ${"%" + user.value + "%"} AND id NOT IN (" ++ cfpTalks ++ fr0") AND " ++ Fragments.in(fr"status", status), params, defaultSort, searchFields)
   }
 
   private[sql] def selectTags(): doobie.Query0[Seq[Tag]] =
