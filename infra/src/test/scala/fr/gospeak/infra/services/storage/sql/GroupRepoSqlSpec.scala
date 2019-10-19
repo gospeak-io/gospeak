@@ -103,6 +103,6 @@ object GroupRepoSqlSpec {
 
   private val memberTable = "group_members gm"
   private val memberFields = mapFields("group_id, user_id, role, presentation, joined_at", "gm." + _)
-  private val memberTableWithUser = s"$memberTable INNER JOIN $userTable u ON gm.user_id=u.id"
-  private val memberFieldsWithUser = s"${memberFields.replaceAll("gm.user_id, ", "")}, ${mapFields(userFields, "u." + _)}"
+  private val memberTableWithUser = s"$memberTable INNER JOIN $userTable ON gm.user_id=u.id"
+  private val memberFieldsWithUser = s"${memberFields.replaceAll("gm.user_id, ", "")}, $userFields"
 }

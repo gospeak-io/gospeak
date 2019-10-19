@@ -4,7 +4,7 @@ import fr.gospeak.infra.utils.DoobieUtils.Table
 import fr.gospeak.libs.scalautils.Extensions._
 
 object Tables {
-  val user: Table = Table.from(
+  val users: Table = Table.from(
     name = "users",
     prefix = "u",
     fields = Seq("id", "slug", "first_name", "last_name", "email", "email_validated", "avatar", "avatar_source", "status", "bio", "company", "location", "twitter", "linkedin", "phone", "website", "created", "updated"),
@@ -109,7 +109,7 @@ object Tables {
     sort = Seq(),
     search = Seq()).get
 
-  val members: Table = Table.from(
+  val groupMembers: Table = Table.from(
     name = "group_members",
     prefix = "gm",
     fields = Seq("group_id", "user_id", "role", "presentation", "joined_at"),
@@ -123,5 +123,5 @@ object Tables {
     sort = Seq("answered_at"),
     search = Seq("answer")).get
 
-  val all: Seq[Table] = Seq(user, credentials, logins, talks, groups, cfps, partners, contacts, venues, events, proposals, sponsorPacks, sponsors, requests, groupSettings, members, eventRsvps)
+  val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, cfps, partners, contacts, venues, events, proposals, sponsorPacks, sponsors, requests, groupSettings, groupMembers, eventRsvps)
 }

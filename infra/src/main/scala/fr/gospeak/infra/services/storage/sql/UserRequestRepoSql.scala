@@ -40,7 +40,7 @@ class UserRequestRepoSql(groupRepo: GroupRepoSql,
 
   override def validateAccount(id: UserRequest.Id, email: EmailAddress, now: Instant): IO[Done] = for {
     _ <- run(AccountValidation.accept(id, now))
-    _ <- run(UserRepoSql.validateAccount(email, now))
+    _ <- UserRepoSql.validateAccount(email, now).run(xa)
   } yield Done
 
   override def findPendingAccountValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[AccountValidationRequest]] =
@@ -55,8 +55,8 @@ class UserRequestRepoSql(groupRepo: GroupRepoSql,
 
   override def resetPassword(passwordReset: PasswordResetRequest, credentials: User.Credentials, now: Instant): IO[Done] = for {
     _ <- run(PasswordReset.accept(passwordReset.id, now))
-    _ <- run(UserRepoSql.updateCredentials(credentials.login)(credentials.pass))
-    _ <- run(UserRepoSql.validateAccount(passwordReset.email, now))
+    _ <- UserRepoSql.updateCredentials(credentials.login)(credentials.pass).run(xa)
+    _ <- UserRepoSql.validateAccount(passwordReset.email, now).run(xa)
   } yield Done
 
   override def findPendingPasswordResetRequest(id: UserRequest.Id, now: Instant): IO[Option[PasswordResetRequest]] =
