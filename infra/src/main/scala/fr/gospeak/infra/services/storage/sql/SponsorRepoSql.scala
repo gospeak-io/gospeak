@@ -8,7 +8,6 @@ import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.SponsorRepo
-import fr.gospeak.infra.services.storage.sql.PartnerRepoSql.{fields => partnerFields, searchFields => partnerSearch, table => partnerTable}
 import fr.gospeak.infra.services.storage.sql.SponsorPackRepoSql.{fields => sponsorPackFields, searchFields => sponsorPackSearch, table => sponsorPackTable}
 import fr.gospeak.infra.services.storage.sql.SponsorRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
@@ -50,13 +49,13 @@ object SponsorRepoSql {
   private val tableFull =
     s"$table s " +
       s"INNER JOIN $sponsorPackTable sp ON s.sponsor_pack_id=sp.id " +
-      s"INNER JOIN $partnerTable p ON s.partner_id=p.id " +
+      s"INNER JOIN ${Tables.partners.name} ON s.partner_id=pa.id " +
       s"LEFT OUTER JOIN ${Tables.contacts.name} ON s.contact_id=ct.id"
   private val tableFullFr = Fragment.const0(tableFull)
   private val fieldsFullFr = Fragment.const0((
     fields.map("s." + _) ++
       sponsorPackFields.map("sp." + _) ++
-      partnerFields.map("p." + _) ++
+      Tables.partners.fields.map(_.value) ++
       Tables.contacts.fields.map(_.value)).mkString(", "))
 
   private[sql] def insert(e: Sponsor): doobie.Update0 = {
@@ -76,7 +75,7 @@ object SponsorRepoSql {
     buildSelect(tableFr, fieldsFr, where(group, pack)).query[Sponsor]
 
   private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[Sponsor.Full] = {
-    val search = searchFields.map("s." + _) ++ sponsorPackSearch.map("sp." + _) ++ partnerSearch.map("p." + _) ++ Tables.contacts.search.map(_.value)
+    val search = searchFields.map("s." + _) ++ sponsorPackSearch.map("sp." + _) ++ Tables.partners.search.map(_.value) ++ Tables.contacts.search.map(_.value)
     SelectPage[Sponsor.Full](tableFull, fieldsFullFr, fr0"WHERE s.group_id=$group", params, defaultSort, search)
   }
 

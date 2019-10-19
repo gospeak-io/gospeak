@@ -10,7 +10,6 @@ import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain.{Group, Partner, User, Venue}
 import fr.gospeak.core.services.storage.VenueRepo
-import fr.gospeak.infra.services.storage.sql.PartnerRepoSql.{fields => partnerFields, table => partnerTable}
 import fr.gospeak.infra.services.storage.sql.VenueRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.utils.DoobieUtils.Fragments._
@@ -46,8 +45,8 @@ object VenueRepoSql {
   private val searchFields = Seq("id", "address", "description")
   private val defaultSort = Page.OrderBy("created")
 
-  private val tableFullFr = Fragment.const0(s"$table v INNER JOIN $partnerTable p ON v.partner_id=p.id LEFT OUTER JOIN ${Tables.contacts.name} ON v.contact_id=ct.id")
-  private val fieldsFullFr = Fragment.const0((fields.map("v." + _) ++ partnerFields.map("p." + _) ++ Tables.contacts.fields.map(_.value)).mkString(", "))
+  private val tableFullFr = Fragment.const0(s"$table v INNER JOIN ${Tables.partners.name} ON v.partner_id=pa.id LEFT OUTER JOIN ${Tables.contacts.name} ON v.contact_id=ct.id")
+  private val fieldsFullFr = Fragment.const0((fields.map("v." + _) ++ Tables.partners.fields.map(_.value) ++ Tables.contacts.fields.map(_.value)).mkString(", "))
 
   private[sql] def insert(e: Venue): doobie.Update0 = {
     val values = fr0"${e.id}, ${e.partner}, ${e.contact}, ${e.address}, ${e.address.geo.lat}, ${e.address.geo.lng}, ${e.address.country}, ${e.description}, ${e.roomSize}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.venue)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
@@ -60,20 +59,20 @@ object VenueRepoSql {
   }
 
   private[sql] def selectOneFull(group: Group.Id, id: Venue.Id): doobie.Query0[Venue.Full] =
-    buildSelect(tableFullFr, fieldsFullFr, fr0"WHERE p.group_id=$group AND v.id=$id").query[Venue.Full]
+    buildSelect(tableFullFr, fieldsFullFr, fr0"WHERE pa.group_id=$group AND v.id=$id").query[Venue.Full]
 
   private[sql] def selectPageFull(group: Group.Id, params: Page.Params): SelectPage[Venue.Full] =
-    SelectPage[Venue.Full](tableFullFr, fieldsFullFr, fr0"WHERE p.group_id=$group", params, defaultSort, searchFields, "v")
+    SelectPage[Venue.Full](tableFullFr, fieldsFullFr, fr0"WHERE pa.group_id=$group", params, defaultSort, searchFields, "v")
 
   private[sql] def selectAllFull(group: Group.Id): doobie.Query0[Venue.Full] =
-    buildSelect(tableFullFr, fieldsFullFr, fr"WHERE p.group_id=$group").query[Venue.Full]
+    buildSelect(tableFullFr, fieldsFullFr, fr"WHERE pa.group_id=$group").query[Venue.Full]
 
   private[sql] def selectAllFull(partner: Partner.Id): doobie.Query0[Venue.Full] =
     buildSelect(tableFullFr, fieldsFullFr, fr"WHERE v.partner_id=$partner").query[Venue.Full]
 
   private[sql] def selectAllFull(group: Group.Id, ids: NonEmptyList[Venue.Id]): doobie.Query0[Venue.Full] =
-    buildSelect(tableFullFr, fieldsFullFr, fr"WHERE p.group_id=$group AND " ++ Fragments.in(fr"v.id", ids)).query[Venue.Full]
+    buildSelect(tableFullFr, fieldsFullFr, fr"WHERE pa.group_id=$group AND " ++ Fragments.in(fr"v.id", ids)).query[Venue.Full]
 
   private def where(group: Group.Id, id: Venue.Id): Fragment =
-    fr0"WHERE id=(SELECT v.id FROM " ++ tableFullFr ++ fr0" WHERE p.group_id=$group AND v.id=$id" ++ fr0")"
+    fr0"WHERE id=(SELECT v.id FROM " ++ tableFullFr ++ fr0" WHERE pa.group_id=$group AND v.id=$id" ++ fr0")"
 }

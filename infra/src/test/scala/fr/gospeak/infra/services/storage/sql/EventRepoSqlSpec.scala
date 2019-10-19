@@ -117,8 +117,8 @@ object EventRepoSqlSpec {
   private val tableWithVenue = s"$table LEFT OUTER JOIN $venueTable v ON e.venue=v.id"
   private val fieldsWithVenue = s"$fields, ${mapFields(venueFields, "v." + _)}"
 
-  private val tableFull = s"$tableWithVenue LEFT OUTER JOIN $partnerTable pa ON v.partner_id=pa.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id"
-  private val fieldsFull = s"$fieldsWithVenue, ${mapFields(partnerFields, "pa." + _)}, $contactFields"
+  private val tableFull = s"$tableWithVenue LEFT OUTER JOIN $partnerTable ON v.partner_id=pa.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id"
+  private val fieldsFull = s"$fieldsWithVenue, $partnerFields, $contactFields"
 
   private val rsvpTable = "event_rsvps er"
   private val rsvpFields = mapFields("event_id, user_id, answer, answered_at", "er." + _)
