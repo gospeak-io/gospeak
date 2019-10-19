@@ -75,6 +75,8 @@ object DoobieUtils {
 
     def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](name, fields, None)
 
+    def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](name, fields, Some(where))
+
     def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](name, fields, params, sort, search.map(_.value))
 
     def selectPage[A: Read](params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](name, fields, where, params, sort, search.map(_.value))
