@@ -18,19 +18,19 @@ class PartnerRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage") {
         val q = PartnerRepoSql.selectPage(group.id, params)
-        check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? ORDER BY pa.name IS NULL, pa.name OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectAll") {
         val q = PartnerRepoSql.selectAll(group.id)
-        check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? ")
+        check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy")
       }
       it("should build selectAll with partner ids") {
         val q = PartnerRepoSql.selectAll(NonEmptyList.of(partner.id))
-        check(q, s"SELECT $fields FROM $table WHERE pa.id IN (?) ")
+        check(q, s"SELECT $fields FROM $table WHERE pa.id IN (?)  $orderBy")
       }
       it("should build selectOne") {
         val q = PartnerRepoSql.selectOne(group.id, partner.slug)
-        check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? AND pa.slug=?")
+        check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? AND pa.slug=? $orderBy")
       }
     }
   }
@@ -39,4 +39,5 @@ class PartnerRepoSqlSpec extends RepoSpec {
 object PartnerRepoSqlSpec {
   val table = "partners pa"
   val fields: String = mapFields("id, group_id, slug, name, notes, description, logo, twitter, created, created_by, updated, updated_by", "pa." + _)
+  val orderBy = "ORDER BY pa.name IS NULL, pa.name"
 }

@@ -58,10 +58,10 @@ object PartnerRepoSql {
     table.selectPage[Partner](params, fr0"WHERE pa.group_id=$group")
 
   private[sql] def selectAll(group: Group.Id): Select[Partner] =
-    table.select[Partner](fr"WHERE pa.group_id=$group")
+    table.select[Partner](fr0"WHERE pa.group_id=$group")
 
   private[sql] def selectAll(ids: NonEmptyList[Partner.Id]): Select[Partner] =
-    table.select[Partner](fr"WHERE" ++ Fragments.in(fr"pa.id", ids))
+    table.select[Partner](fr0"WHERE " ++ Fragments.in(fr"pa.id", ids))
 
   private[sql] def selectOne(group: Group.Id, slug: Partner.Slug): Select[Partner] =
     table.select[Partner](where(group, slug))

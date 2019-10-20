@@ -28,8 +28,8 @@ class ContactRepoSqlSpec extends RepoSpec {
     it("should list all contacts") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
       val partner = partnerRepo.create(group.id, partnerData1, user.id, now).unsafeRunSync()
-      val contact1 = contactRepo.create(contactData1.copy(partner = partner.id), user.id, Instant.now()).unsafeRunSync
-      val contact2 = contactRepo.create(contactData1.copy(partner = partner.id, firstName = FirstName("contact2")), user.id, Instant.now()).unsafeRunSync
+      val contact1 = contactRepo.create(contactData1.copy(partner = partner.id, lastName = LastName("contact1")), user.id, Instant.now()).unsafeRunSync
+      val contact2 = contactRepo.create(contactData1.copy(partner = partner.id, lastName = LastName("contact2")), user.id, Instant.now()).unsafeRunSync
       contactRepo.list(partner.id).unsafeRunSync() shouldBe Seq(contact1, contact2)
     }
     it("should find by mail") {
@@ -50,19 +50,19 @@ class ContactRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage") {
         val q = ContactRepoSql.selectPage(partner.id, params)
-        check(q, s"SELECT $fields FROM $table WHERE ct.partner_id=? ORDER BY ct.last_name IS NULL, ct.last_name, ct.first_name IS NULL, ct.first_name OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE ct.partner_id=? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectAll") {
         val q = ContactRepoSql.selectAll(partner.id)
-        check(q, s"SELECT $fields FROM $table WHERE ct.partner_id=?")
+        check(q, s"SELECT $fields FROM $table WHERE ct.partner_id=? $orderBy")
       }
       it("should build selectOne") {
         val q = ContactRepoSql.selectOne(contact.id)
-        check(q, s"SELECT $fields FROM $table WHERE ct.id=?")
+        check(q, s"SELECT $fields FROM $table WHERE ct.id=? $orderBy")
       }
       it("should build selectOne by partner and email") {
         val q = ContactRepoSql.selectOne(partner.id, contact.email)
-        check(q, s"SELECT $fields FROM $table WHERE ct.partner_id=? AND ct.email=?")
+        check(q, s"SELECT $fields FROM $table WHERE ct.partner_id=? AND ct.email=? $orderBy")
       }
     }
   }
@@ -71,4 +71,5 @@ class ContactRepoSqlSpec extends RepoSpec {
 object ContactRepoSqlSpec {
   val table = "contacts ct"
   val fields: String = mapFields("id, partner_id, first_name, last_name, email, description, created, created_by, updated, updated_by", "ct." + _)
+  val orderBy = "ORDER BY ct.last_name IS NULL, ct.last_name, ct.first_name IS NULL, ct.first_name"
 }

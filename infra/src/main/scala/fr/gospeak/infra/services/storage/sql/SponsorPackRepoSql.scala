@@ -67,7 +67,7 @@ object SponsorPackRepoSql {
     table.select[SponsorPack](where(group, pack))
 
   private[sql] def selectAll(ids: NonEmptyList[SponsorPack.Id]): Select[SponsorPack] =
-    table.select[SponsorPack](fr"WHERE" ++ Fragments.in(fr"sp.id", ids))
+    table.select[SponsorPack](fr0"WHERE " ++ Fragments.in(fr"sp.id", ids))
 
   private[sql] def selectAll(group: Group.Id): Select[SponsorPack] =
     table.select[SponsorPack](where(group))

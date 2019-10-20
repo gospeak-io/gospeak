@@ -91,7 +91,7 @@ object CfpRepoSql {
     table.selectPage[Cfp](params, fr0"WHERE c.group_id=$group")
 
   private[sql] def selectPage(talk: Talk.Id, params: Page.Params): SelectPage[Cfp] = {
-    val talkCfps = Tables.proposals.select(Seq(Field("cfp_id", "p")), fr0"WHERE p.talk_id=$talk")
+    val talkCfps = Tables.proposals.select(Seq(Field("cfp_id", "p")), fr0"WHERE p.talk_id=$talk", Seq())
     table.selectPage[Cfp](params, fr0"WHERE c.id NOT IN (" ++ talkCfps.fr ++ fr0")")
   }
 
@@ -102,13 +102,13 @@ object CfpRepoSql {
     table.select[Cfp](fr0"WHERE c.group_id=$group")
 
   private[sql] def selectAll(ids: NonEmptyList[Cfp.Id]): Select[Cfp] =
-    table.select[Cfp](fr"WHERE" ++ Fragments.in(fr"c.id", ids))
+    table.select[Cfp](fr0"WHERE " ++ Fragments.in(fr"c.id", ids))
 
   private[sql] def selectAll(group: Group.Id, now: Instant): Select[Cfp] =
     table.select[Cfp](where(group, now))
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "c")))
+    table.select[Seq[Tag]](Seq(Field("tags", "c")), Seq())
 
   private def where(group: Group.Id, slug: Cfp.Slug): Fragment =
     fr0"WHERE c.group_id=$group AND c.slug=$slug"

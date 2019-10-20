@@ -105,19 +105,19 @@ object EventRepoSql {
     tableFull.selectPage[Event.Full](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")
 
   private[sql] def selectAll(ids: NonEmptyList[Event.Id]): Select[Event] =
-    table.select[Event](fr"WHERE" ++ Fragments.in(fr"e.id", ids))
+    table.select[Event](fr0"WHERE " ++ Fragments.in(fr"e.id", ids))
 
   private[sql] def selectAll(group: Group.Id, venue: Venue.Id): Select[Event] =
-    table.select[Event](fr"WHERE e.group_id=$group AND e.venue=$venue")
+    table.select[Event](fr0"WHERE e.group_id=$group AND e.venue=$venue")
 
   private[sql] def selectAll(group: Group.Id, partner: Partner.Id): Select[(Event, Venue)] =
-    tableWithVenue.select[(Event, Venue)](fr"WHERE e.group_id=$group AND v.partner_id=$partner")
+    tableWithVenue.select[(Event, Venue)](fr0"WHERE e.group_id=$group AND v.partner_id=$partner")
 
   private[sql] def selectPageAfter(group: Group.Id, now: Instant, params: Page.Params): SelectPage[Event] =
     table.selectPage[Event](params, fr0"WHERE e.group_id=$group AND e.start > $now")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "e")))
+    table.select[Seq[Tag]](Seq(Field("tags", "e")), Seq())
 
   private def where(group: Group.Id, event: Event.Slug): Fragment = fr0"WHERE e.group_id=$group AND e.slug=$event"
 

@@ -22,19 +22,19 @@ class SponsorPackRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne") {
         val q = SponsorPackRepoSql.selectOne(group.id, sponsorPack.slug)
-        check(q, s"SELECT $fields FROM $table WHERE sp.group_id=? AND sp.slug=?")
+        check(q, s"SELECT $fields FROM $table WHERE sp.group_id=? AND sp.slug=? $orderBy")
       }
       it("should build selectAll ids") {
         val q = SponsorPackRepoSql.selectAll(NonEmptyList.of(sponsorPack.id, sponsorPack.id))
-        check(q, s"SELECT $fields FROM $table WHERE sp.id IN (?, ?) ")
+        check(q, s"SELECT $fields FROM $table WHERE sp.id IN (?, ?)  $orderBy")
       }
       it("should build selectAll") {
         val q = SponsorPackRepoSql.selectAll(group.id)
-        check(q, s"SELECT $fields FROM $table WHERE sp.group_id=?")
+        check(q, s"SELECT $fields FROM $table WHERE sp.group_id=? $orderBy")
       }
       it("should build selectActives") {
         val q = SponsorPackRepoSql.selectActives(group.id)
-        check(q, s"SELECT $fields FROM $table WHERE sp.group_id=? AND sp.active=?")
+        check(q, s"SELECT $fields FROM $table WHERE sp.group_id=? AND sp.active=? $orderBy")
       }
     }
   }
@@ -43,4 +43,5 @@ class SponsorPackRepoSqlSpec extends RepoSpec {
 object SponsorPackRepoSqlSpec {
   val table = "sponsor_packs sp"
   val fields: String = mapFields("id, group_id, slug, name, description, price, currency, duration, active, created, created_by, updated, updated_by", "sp." + _)
+  val orderBy = "ORDER BY sp.active IS NULL, sp.active, sp.price IS NULL, sp.price DESC"
 }

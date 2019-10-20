@@ -57,14 +57,14 @@ object VenueRepoSql {
     tableFull.selectPage[Venue.Full](params, fr0"WHERE pa.group_id=$group")
 
   private[sql] def selectAllFull(group: Group.Id): Select[Venue.Full] =
-    tableFull.select[Venue.Full](fr"WHERE pa.group_id=$group")
+    tableFull.select[Venue.Full](fr0"WHERE pa.group_id=$group")
 
   private[sql] def selectAllFull(partner: Partner.Id): Select[Venue.Full] =
-    tableFull.select[Venue.Full](fr"WHERE v.partner_id=$partner")
+    tableFull.select[Venue.Full](fr0"WHERE v.partner_id=$partner")
 
   private[sql] def selectAllFull(group: Group.Id, ids: NonEmptyList[Venue.Id]): Select[Venue.Full] =
-    tableFull.select[Venue.Full](fr"WHERE pa.group_id=$group AND " ++ Fragments.in(fr"v.id", ids))
+    tableFull.select[Venue.Full](fr0"WHERE pa.group_id=$group AND " ++ Fragments.in(fr"v.id", ids))
 
   private def where(group: Group.Id, id: Venue.Id): Fragment =
-    fr0"WHERE v.id=(" ++ tableFull.select(Seq(Field("id", "v")), fr0"WHERE pa.group_id=$group AND v.id=$id").fr ++ fr0")"
+    fr0"WHERE v.id=(" ++ tableFull.select(Seq(Field("id", "v")), fr0"WHERE pa.group_id=$group AND v.id=$id", Seq()).fr ++ fr0")"
 }

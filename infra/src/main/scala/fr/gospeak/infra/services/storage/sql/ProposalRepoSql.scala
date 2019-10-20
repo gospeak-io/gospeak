@@ -205,29 +205,29 @@ object ProposalRepoSql {
     tableFull.selectPage[Proposal.Full](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")
 
   private[sql] def selectAll(ids: NonEmptyList[Proposal.Id]): Select[Proposal] =
-    table.select[Proposal](fr"WHERE" ++ Fragments.in(fr"id", ids))
+    table.select[Proposal](fr0"WHERE " ++ Fragments.in(fr"id", ids))
 
   private[sql] def selectAllPublicFull(ids: NonEmptyList[Proposal.Id]): Select[Proposal.Full] =
-    tableFull.select[Proposal.Full](fr"WHERE" ++ Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
+    tableFull.select[Proposal.Full](fr0"WHERE " ++ Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "p")))
+    table.select[Seq[Tag]](Seq(Field("tags", "p")), Seq())
 
   private def where(id: Proposal.Id): Fragment =
     fr0"WHERE p.id=$id"
 
   private def where(cfp: Cfp.Slug, id: Proposal.Id): Fragment =
     fr0"WHERE p.id=(SELECT p.id FROM " ++
-      Fragment.const0(s"${table.name} INNER JOIN ${Tables.cfps.name} ON p.cfp_id=c.id ") ++
-      fr0"WHERE p.id=$id AND c.slug=$cfp" ++ fr0")"
+      Fragment.const0(s"${table.value} INNER JOIN ${Tables.cfps.value} ON p.cfp_id=c.id") ++
+      fr0" WHERE p.id=$id AND c.slug=$cfp" ++ fr0")"
 
   private def where(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Fragment =
     fr0"WHERE p.id=(SELECT p.id FROM " ++
-      Fragment.const0(s"${table.name} INNER JOIN ${Tables.cfps.name} ON p.cfp_id=c.id INNER JOIN ${Tables.groups.name} ON c.group_id=g.id ") ++
-      fr0"WHERE p.id=$proposal AND c.slug=$cfp AND g.slug=$group AND g.owners LIKE ${"%" + orga.value + "%"}" ++ fr0")"
+      Fragment.const0(s"${table.value} INNER JOIN ${Tables.cfps.value} ON p.cfp_id=c.id INNER JOIN ${Tables.groups.value} ON c.group_id=g.id") ++
+      fr0" WHERE p.id=$proposal AND c.slug=$cfp AND g.slug=$group AND g.owners LIKE ${"%" + orga.value + "%"}" ++ fr0")"
 
   private def where(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Fragment =
     fr0"WHERE p.id=(SELECT p.id FROM " ++
-      Fragment.const0(s"${table.name} INNER JOIN ${Tables.cfps.name} ON p.cfp_id=c.id INNER JOIN ${Tables.talks.name} ON p.talk_id=t.id ") ++
-      fr0"WHERE c.slug=$cfp AND t.slug=$talk AND p.speakers LIKE ${"%" + speaker.value + "%"}" ++ fr0")"
+      Fragment.const0(s"${table.value} INNER JOIN ${Tables.cfps.value} ON p.cfp_id=c.id INNER JOIN ${Tables.talks.value} ON p.talk_id=t.id") ++
+      fr0" WHERE c.slug=$cfp AND t.slug=$talk AND p.speakers LIKE ${"%" + speaker.value + "%"}" ++ fr0")"
 }

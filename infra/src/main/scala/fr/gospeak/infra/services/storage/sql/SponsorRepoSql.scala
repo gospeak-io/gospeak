@@ -9,9 +9,9 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.SponsorRepo
 import fr.gospeak.infra.services.storage.sql.SponsorRepoSql._
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update, orderByFragment}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
@@ -69,7 +69,7 @@ object SponsorRepoSql {
     table.select[Sponsor](fr0"WHERE s.group_id=$group")
 
   private[sql] def selectAllFull(group: Group.Id, partner: Partner.Id): Select[Sponsor.Full] =
-    tableFull.select[Sponsor.Full](fr"WHERE s.group_id=$group AND s.partner_id=$partner" ++ orderByFragment(Page.OrderBy("-start"), Some("s")))
+    tableFull.select[Sponsor.Full](fr0"WHERE s.group_id=$group AND s.partner_id=$partner")
 
   private def where(group: Group.Id, sponsor: Sponsor.Id): Fragment =
     fr0"WHERE s.group_id=$group AND s.id=$sponsor"

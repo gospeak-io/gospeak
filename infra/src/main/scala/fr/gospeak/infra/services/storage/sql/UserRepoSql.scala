@@ -131,12 +131,12 @@ object UserRepoSql {
 
   private[sql] def selectPagePublic(params: Page.Params): SelectPage[User] = {
     val public: User.Profile.Status = User.Profile.Status.Public
-    table.selectPage[User](params, fr"WHERE u.status=$public")
+    table.selectPage[User](params, fr0"WHERE u.status=$public")
   }
 
   private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params): SelectPage[User] =
-    table.selectPage[User](params, fr"WHERE" ++ Fragments.in(fr"u.id", ids))
+    table.selectPage[User](params, fr0"WHERE " ++ Fragments.in(fr"u.id", ids))
 
   private[sql] def selectAll(ids: NonEmptyList[User.Id]): Select[User] =
-    table.select[User](fr"WHERE" ++ Fragments.in(fr"u.id", ids))
+    table.select[User](fr0"WHERE " ++ Fragments.in(fr"u.id", ids))
 }

@@ -127,12 +127,12 @@ object TalkRepoSql {
     table.selectPage[Talk](params, fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.status=$status")
 
   private[sql] def selectPage(user: User.Id, cfp: Cfp.Id, status: NonEmptyList[Talk.Status], params: Page.Params): SelectPage[Talk] = {
-    val cfpTalks = Tables.proposals.select(Seq(Field("talk_id", "p")), fr0"WHERE p.cfp_id=$cfp").fr
+    val cfpTalks = Tables.proposals.select(Seq(Field("talk_id", "p")), fr0"WHERE p.cfp_id=$cfp", Seq()).fr
     table.selectPage[Talk](params, fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.id NOT IN (" ++ cfpTalks ++ fr0") AND " ++ Fragments.in(fr"t.status", status))
   }
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "t")))
+    table.select[Seq[Tag]](Seq(Field("tags", "t")), Seq())
 
   private def where(user: User.Id, talk: Talk.Slug): Fragment =
     fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.slug=$talk"
