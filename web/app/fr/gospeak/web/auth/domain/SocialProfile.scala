@@ -21,7 +21,7 @@ case class SocialProfile(loginInfo: LoginInfo,
       // FIXME avatar by default ??
       avatar <- Url.from(avatarURL.getOrElse("https://api.adorable.io/avatars/285/abott@adorable.png"))
       email <- email.map(EmailAddress.from) match {
-        case None => Left(CustomException("Email is missing ! Sorry, we cannot go further."))
+        case None => Left(CustomException("Email is missing ! Sorry, we cannot go further :("))
         case Some(p) => p
       }
     } yield User.Data(
