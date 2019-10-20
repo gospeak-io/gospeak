@@ -82,7 +82,7 @@ class GroupCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(user, group))
       events <- OptionT.liftF(eventRepo.listAfter(groupElt.id, now, Page.Params.defaults.orderBy("start")))
       cfps <- OptionT.liftF(cfpRepo.list(events.items.flatMap(_.cfp)))
-      venues <- OptionT.liftF(venueRepo.list(groupElt.id, events.items.flatMap(_.venue)))
+      venues <- OptionT.liftF(venueRepo.listFull(groupElt.id, events.items.flatMap(_.venue)))
       proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.users).distinct))
       sponsors <- OptionT.liftF(sponsorRepo.listAll(groupElt.id).map(_.groupBy(_.partner)))

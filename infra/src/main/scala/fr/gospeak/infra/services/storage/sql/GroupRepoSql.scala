@@ -5,29 +5,28 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
-import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.GroupRepo
 import fr.gospeak.infra.services.storage.sql.GroupRepoSql._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Fragments._
-import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.Queries
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
 
 class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with GroupRepo {
   override def create(data: Group.Data, by: User.Id, now: Instant): IO[Group] =
-    run(insert, Group(data, NonEmptyList.of(by), Info(by, now)))
+    insert(Group(data, NonEmptyList.of(by), Info(by, now))).run(xa)
 
   override def edit(slug: Group.Slug)(data: Group.Data, by: User.Id, now: Instant): IO[Done] = {
     if (data.slug != slug) {
       find(data.slug).flatMap {
-        case None => run(update(slug)(data, by, now))
+        case None => update(slug)(data, by, now).run(xa)
         case _ => IO.raiseError(CustomException(s"You already have a partner with slug ${data.slug}"))
       }
     } else {
-      run(update(slug)(data, by, now))
+      update(slug)(data, by, now).run(xa)
     }
   }
 
@@ -37,7 +36,7 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
         if (groupElt.owners.toList.contains(owner)) {
           IO.raiseError(new IllegalArgumentException("owner already added"))
         } else {
-          run(updateOwners(groupElt.id)(groupElt.owners.append(owner), by, now))
+          updateOwners(groupElt.id)(groupElt.owners.append(owner), by, now).run(xa)
         }
       case None => IO.raiseError(new IllegalArgumentException("unreachable group"))
     }
@@ -47,7 +46,7 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
       case Some(groupElt) =>
         if (groupElt.owners.toList.contains(owner)) {
           NonEmptyList.fromList(groupElt.owners.filter(_ != owner)).map { owners =>
-            run(updateOwners(group)(owners, by, now))
+            updateOwners(group)(owners, by, now).run(xa)
           }.getOrElse {
             IO.raiseError(new IllegalArgumentException("last owner can't be removed"))
           }
@@ -57,71 +56,98 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
       case None => IO.raiseError(new IllegalArgumentException("unreachable group"))
     }
 
-  override def list(params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPage, params))
+  override def list(params: Page.Params): IO[Page[Group]] = selectPage(params).run(xa)
 
-  override def listJoinable(user: User.Id, params: Page.Params): IO[Page[Group]] = run(Queries.selectPage(selectPageJoinable(user, _), params))
+  override def listJoinable(user: User.Id, params: Page.Params): IO[Page[Group]] = selectPageJoinable(user, params).run(xa)
 
-  override def list(user: User.Id): IO[Seq[Group]] = run(selectAll(user).to[List])
+  override def list(user: User.Id): IO[Seq[Group]] = selectAll(user).runList(xa)
 
-  override def find(user: User.Id, slug: Group.Slug): IO[Option[Group]] = run(selectOne(user, slug).option)
+  override def listJoined(user: User.Id, params: Page.Params): IO[Page[(Group, Group.Member)]] = selectPageJoined(user, params).run(xa)
 
-  override def find(group: Group.Id): IO[Option[Group]] = run(selectOne(group).option)
+  override def find(user: User.Id, slug: Group.Slug): IO[Option[Group]] = selectOne(user, slug).runOption(xa)
 
-  override def find(group: Group.Slug): IO[Option[Group]] = run(selectOne(group).option)
+  override def find(group: Group.Id): IO[Option[Group]] = selectOne(group).runOption(xa)
 
-  override def exists(group: Group.Slug): IO[Boolean] = run(selectOne(group).option.map(_.isDefined))
+  override def find(group: Group.Slug): IO[Option[Group]] = selectOne(group).runOption(xa)
 
-  override def listTags(): IO[Seq[Tag]] = run(selectTags().to[List]).map(_.flatten.distinct)
+  override def exists(group: Group.Slug): IO[Boolean] = selectOne(group).runExists(xa)
+
+  override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
+
+  override def join(group: Group.Id)(user: User, now: Instant): IO[Done] =
+    selectOneMember(group, user.id).runOption(xa).flatMap {
+      case Some(m) => if (m.isActive) IO.pure(Done) else enableMember(m, now).run(xa)
+      case None => insertMember(Group.Member(group, Group.Member.Role.Member, None, now, None, user)).run(xa).map(_ => Done)
+    }
+
+  override def leave(member: Group.Member)(user: User.Id, now: Instant): IO[Done] =
+    if (member.user.id == user) disableMember(member, now).run(xa)
+    else IO.raiseError(CustomException("Internal error: authenticated user is not the member one"))
+
+  override def findActiveMember(group: Group.Id, user: User.Id): IO[Option[Group.Member]] = selectOneActiveMember(group, user).runOption(xa)
 }
 
 object GroupRepoSql {
   private val _ = groupIdMeta // for intellij not remove DoobieUtils.Mappings import
-  private[sql] val table: String = "groups"
-  private val fields: Seq[String] = Seq("id", "slug", "name", "contact", "description", "owners", "tags", "created", "created_by", "updated", "updated_by")
-  private val tableFr: Fragment = Fragment.const0(table)
-  private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-  private val searchFields: Seq[String] = Seq("id", "slug", "name", "contact", "description", "tags")
-  private val defaultSort: Page.OrderBy = Page.OrderBy("name")
+  private val table = Tables.groups
+  private val memberTable = Tables.groupMembers
+  private val memberTableWithUser = Tables.groupMembers
+    .join(Tables.users, _.field("user_id"), _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
+  private val tableWithMember = table
+    .join(memberTableWithUser, _.field("id"), _.field("group_id")).get
 
-  private def values(e: Group): Fragment =
-    fr0"${e.id}, ${e.slug}, ${e.name}, ${e.contact}, ${e.description}, ${e.owners}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+  private[sql] def insert(e: Group): Insert[Group] = {
+    val values = fr0"${e.id}, ${e.slug}, ${e.name}, ${e.contact}, ${e.description}, ${e.owners}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    table.insert[Group](e, _ => values)
+  }
 
-  private[sql] def insert(elt: Group): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
-
-  private[sql] def update(group: Group.Slug)(data: Group.Data, by: User.Id, now: Instant): doobie.Update0 = {
+  private[sql] def update(group: Group.Slug)(data: Group.Data, by: User.Id, now: Instant): Update = {
     val fields = fr0"slug=${data.slug}, name=${data.name}, contact=${data.contact}, description=${data.description}, tags=${data.tags}, updated=$now, updated_by=$by"
-    buildUpdate(tableFr, fields, where(group)).update
+    table.update(fields, fr0"WHERE g.slug=$group")
   }
 
-  private[sql] def updateOwners(group: Group.Id)(owners: NonEmptyList[User.Id], by: User.Id, now: Instant): doobie.Update0 =
-    buildUpdate(tableFr, fr0"owners=$owners, updated=$now, updated_by=$by", fr0"WHERE id=$group").update
+  private[sql] def updateOwners(group: Group.Id)(owners: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
+    table.update(fr0"owners=$owners, updated=$now, updated_by=$by", fr0"WHERE g.id=$group")
 
-  private[sql] def selectPage(params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, None)
-    (buildSelect(tableFr, fieldsFr, page.all).query[Group], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
-  }
+  private[sql] def selectPage(params: Page.Params): SelectPage[Group] =
+    table.selectPage[Group](params)
 
-  private[sql] def selectPageJoinable(user: User.Id, params: Page.Params): (doobie.Query0[Group], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE owners NOT LIKE ${"%" + user.value + "%"}"))
-    (buildSelect(tableFr, fieldsFr, page.all).query[Group], buildSelect(tableFr, fr0"count(*)", page.where).query[Long])
-  }
+  private[sql] def selectPageJoinable(user: User.Id, params: Page.Params): SelectPage[Group] =
+    table.selectPage[Group](params, fr0"WHERE g.owners NOT LIKE ${"%" + user.value + "%"}")
 
-  private[sql] def selectAll(user: User.Id): doobie.Query0[Group] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE owners LIKE ${"%" + user.value + "%"}").query[Group]
+  private[sql] def selectPageJoined(user: User.Id, params: Page.Params): SelectPage[(Group, Group.Member)] =
+    tableWithMember.selectPage[(Group, Group.Member)](params, fr0"WHERE gm.user_id=$user")
 
-  private[sql] def selectOne(user: User.Id, slug: Group.Slug): doobie.Query0[Group] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE owners LIKE ${"%" + user.value + "%"} AND slug=$slug").query[Group]
+  private[sql] def selectAll(user: User.Id): Select[Group] =
+    table.select[Group](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"}")
 
-  private[sql] def selectOne(group: Group.Id): doobie.Query0[Group] =
-    buildSelect(tableFr, fieldsFr, where(group)).query[Group]
+  private[sql] def selectOne(user: User.Id, slug: Group.Slug): Select[Group] =
+    table.select[Group](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"} AND g.slug=$slug")
 
-  private[sql] def selectOne(group: Group.Slug): doobie.Query0[Group] =
-    buildSelect(tableFr, fieldsFr, where(group)).query[Group]
+  private[sql] def selectOne(group: Group.Id): Select[Group] =
+    table.select[Group](fr0"WHERE g.id=$group")
 
-  private[sql] def selectTags(): doobie.Query0[Seq[Tag]] =
-    Fragment.const0(s"SELECT tags FROM $table").query[Seq[Tag]]
+  private[sql] def selectOne(group: Group.Slug): Select[Group] =
+    table.select[Group](fr0"WHERE g.slug=$group")
 
-  private def where(group: Group.Id): Fragment = fr0"WHERE id=$group"
+  private[sql] def selectTags(): Select[Seq[Tag]] =
+    table.select[Seq[Tag]](Seq(Field("tags", "g")), Seq())
 
-  private def where(group: Group.Slug): Fragment = fr0"WHERE slug=$group"
+  private[sql] def insertMember(m: Group.Member): Insert[Group.Member] =
+    memberTable.insert[Group.Member](m, e => fr0"${e.group}, ${e.user.id}, ${e.role}, ${e.presentation}, ${e.joinedAt}, ${e.leavedAt}")
+
+  private[sql] def disableMember(m: Group.Member, now: Instant): Update =
+    memberTable.update(fr0"gm.leaved_at=$now", fr0"WHERE gm.group_id=${m.group} AND gm.user_id=${m.user.id}")
+
+  private[sql] def enableMember(m: Group.Member, now: Instant): Update =
+    memberTable.update(fr0"gm.joined_at=$now, gm.leaved_at=${Option.empty[Instant]}", fr0"WHERE gm.group_id=${m.group} AND gm.user_id=${m.user.id}")
+
+  private[sql] def selectPageActiveMembers(group: Group.Id, params: Page.Params): SelectPage[Group.Member] =
+    memberTableWithUser.selectPage(params, fr0"WHERE gm.group_id=$group AND gm.leaved_at IS NULL")
+
+  private[sql] def selectOneMember(group: Group.Id, user: User.Id): Select[Group.Member] =
+    memberTableWithUser.select(fr0"WHERE gm.group_id=$group AND gm.user_id=$user")
+
+  private[sql] def selectOneActiveMember(group: Group.Id, user: User.Id): Select[Group.Member] =
+    memberTableWithUser.select(fr0"WHERE gm.group_id=$group AND gm.user_id=$user AND gm.leaved_at IS NULL")
 }

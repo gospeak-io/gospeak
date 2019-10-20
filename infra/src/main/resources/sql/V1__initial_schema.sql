@@ -131,24 +131,6 @@ CREATE TABLE partners
     UNIQUE (group_id, slug)
 );
 
-CREATE TABLE venues
-(
-    id              CHAR(36)         NOT NULL PRIMARY KEY,
-    partner_id      CHAR(36)         NOT NULL REFERENCES partners (id),
-    address         VARCHAR(4096)    NOT NULL,
-    address_lat     DOUBLE PRECISION NOT NULL,
-    address_lng     DOUBLE PRECISION NOT NULL,
-    address_country VARCHAR(30)      NOT NULL,
-    description     VARCHAR(4096)    NOT NULL,
-    room_size       INT,
-    meetupGroup     VARCHAR(80),
-    meetupVenue     BIGINT,
-    created         TIMESTAMP        NOT NULL,
-    created_by      CHAR(36)         NOT NULL REFERENCES users (id),
-    updated         TIMESTAMP        NOT NULL,
-    updated_by      CHAR(36)         NOT NULL REFERENCES users (id)
-);
-
 CREATE TABLE contacts
 (
     id          CHAR(36)      NOT NULL PRIMARY KEY,
@@ -161,6 +143,25 @@ CREATE TABLE contacts
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated     TIMESTAMP     NOT NULL,
     updated_by  CHAR(36)      NOT NULL REFERENCES users (id)
+);
+
+CREATE TABLE venues
+(
+    id              CHAR(36)         NOT NULL PRIMARY KEY,
+    partner_id      CHAR(36)         NOT NULL REFERENCES partners (id),
+    contact_id      CHAR(36) REFERENCES contacts (id),
+    address         VARCHAR(4096)    NOT NULL,
+    address_lat     DOUBLE PRECISION NOT NULL,
+    address_lng     DOUBLE PRECISION NOT NULL,
+    address_country VARCHAR(30)      NOT NULL,
+    description     VARCHAR(4096)    NOT NULL,
+    room_size       INT,
+    meetupGroup     VARCHAR(80),
+    meetupVenue     BIGINT,
+    created         TIMESTAMP        NOT NULL,
+    created_by      CHAR(36)         NOT NULL REFERENCES users (id),
+    updated         TIMESTAMP        NOT NULL,
+    updated_by      CHAR(36)         NOT NULL REFERENCES users (id)
 );
 
 CREATE TABLE events
@@ -230,7 +231,7 @@ CREATE TABLE sponsors
     group_id        CHAR(36)         NOT NULL REFERENCES groups (id),
     partner_id      CHAR(36)         NOT NULL REFERENCES partners (id),
     sponsor_pack_id CHAR(36)         NOT NULL REFERENCES sponsor_packs (id),
-    -- contact_id      CHAR(36) REFERENCES contacts (id),
+    contact_id      CHAR(36) REFERENCES contacts (id),
     start           DATE             NOT NULL,
     finish          DATE             NOT NULL,
     paid            DATE,
@@ -264,14 +265,14 @@ CREATE TABLE requests
 CREATE TABLE group_settings
 (
     group_id                CHAR(36) PRIMARY KEY REFERENCES groups (id),
-    meetup_access_token     CHAR(67),
-    meetup_refresh_token    CHAR(67),
-    meetup_group_slug       CHAR(120),
+    meetup_access_token     VARCHAR(200), -- encrypted
+    meetup_refresh_token    VARCHAR(200), -- encrypted
+    meetup_group_slug       VARCHAR(120),
     meetup_logged_user_id   BIGINT,
-    meetup_logged_user_name CHAR(120),
-    slack_token             CHAR(74),
-    slack_bot_name          CHAR(120),
-    slack_bot_avatar        CHAR(1024),
+    meetup_logged_user_name VARCHAR(120),
+    slack_token             VARCHAR(200), -- encrypted
+    slack_bot_name          VARCHAR(120),
+    slack_bot_avatar        VARCHAR(1024),
     event_description       VARCHAR   NOT NULL,
     event_templates         VARCHAR   NOT NULL, -- json serialized Map[String, MustacheTextTmpl[TemplateData.EventInfo]]
     actions                 VARCHAR   NOT NULL, -- json serialized Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]

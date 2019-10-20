@@ -15,7 +15,7 @@
     </h5>
     @if(!event.isPublic) {<span class="badge badge-dark">Draft</span>}
     @Formats.date(event.start),
-    @event.venue.map { v => at @venue(venues, v, Some(_ => VenueCtrl.detail(group.slug, v))) }.getOrElse { <b class="text-danger">Missing venue</b>, }
+    @event.venue.map { id => at @venue(venues, id, v => Some(VenueCtrl.detail(group.slug, v.id))) }.getOrElse { <b class="text-danger">Missing venue</b>, }
     @Formats.plural(event.talks.length, "planned talk")
     @tags(event.tags)
     @if(event.talks.nonEmpty) {
@@ -30,4 +30,5 @@
         }
         </ol>
     }
+    @event.maxAttendee.map { max =>  @Formats.plural(max, "place") }
 </div>

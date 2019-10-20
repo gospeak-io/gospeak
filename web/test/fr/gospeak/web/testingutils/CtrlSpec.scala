@@ -50,7 +50,7 @@ trait CtrlSpec extends FunSpec with Matchers with RandomDataGenerator with OneAp
 
   // app
   protected val conf: AppConf = AppConf.load(ConfigFactory.load()).get
-  protected val db: GospeakDbSql = new GospeakDbSql(DatabaseConf.H2(s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"))
+  protected val db: GospeakDbSql = new GospeakDbSql(DatabaseConf.H2(s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"), conf.gospeak)
   private val authRepo = new AuthRepo(db.user, db.group)
   protected val emailSrv = new InMemoryEmailSrv()
   protected val authSrv = AuthSrv(conf.auth, silhouette, db.user, db.userRequest, db.group, authRepo, clock, new GravatarSrv())

@@ -1,13 +1,13 @@
-package fr.gospeak.infra.utils
+package fr.gospeak.infra.services.storage.sql.utils
 
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import cats.data.NonEmptyList
 import cats.effect.{ContextShift, IO}
-import doobie.Transactor
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import doobie.util.update.Update
+import doobie.util.fragment.Fragment.const0
+import doobie.util.transactor.Transactor
 import doobie.util.{Meta, Read, Write}
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.TemplateData
@@ -31,62 +31,208 @@ object DoobieUtils {
     case c: DatabaseConf.PostgreSQL => Transactor.fromDriverManager[IO]("org.postgresql.Driver", c.url, c.user, c.pass.decode)
   }
 
-  object Fragments {
-    val empty = fr0""
-    val space = fr0" "
+  final case class Field(name: String, prefix: String) {
+    def value: String = if (prefix.isEmpty) name else s"$prefix.$name"
+  }
 
-    def buildInsert(table: Fragment, fields: Fragment, values: Fragment): Fragment =
-      fr"INSERT INTO" ++ table ++ fr0" (" ++ fields ++ fr0") VALUES (" ++ values ++ fr0")"
+  final case class TableJoin(kind: String,
+                             name: String,
+                             prefix: String,
+                             left: Field,
+                             right: Field) {
+    def value: String = s"$kind $name $prefix ON ${left.value}=${right.value}"
+  }
 
-    def buildSelect(table: Fragment, fields: Fragment): Fragment =
-      fr"SELECT" ++ fields ++ fr" FROM" ++ table
+  final case class Table(name: String,
+                         prefix: String,
+                         joins: Seq[TableJoin],
+                         fields: Seq[Field],
+                         sort: Seq[Field],
+                         search: Seq[Field]) {
+    def value: String = s"$name $prefix" + joins.map(" " + _.value).mkString
 
-    def buildSelect(table: Fragment, fields: Fragment, where: Fragment): Fragment =
-      buildSelect(table, fields) ++ space ++ where
+    private def field(field: Field): Either[CustomException, Field] = fields.find(_ == field).toEither(CustomException(s"Missing field '${field.value}' in table '$value'"))
 
-    def buildUpdate(table: Fragment, fields: Fragment, where: Fragment): Fragment =
-      fr"UPDATE" ++ table ++ fr" SET" ++ fields ++ space ++ where
+    def field(name: String, prefix: String): Either[CustomException, Field] = field(Field(name, prefix))
 
-    def buildDelete(table: Fragment, where: Fragment): Fragment =
-      fr"DELETE FROM" ++ table ++ space ++ where
+    def field(name: String): Either[CustomException, Field] =
+      fields.findOne(_.name == name).leftMap(e => CustomException(s"Unable to get field '$name' in table '${this.value}'", Seq(CustomError(e.message))))
 
-    final case class Paginate(where: Fragment, orderBy: Fragment, limit: Fragment) {
-      def all: Fragment = Seq(where, orderBy, limit).reduce(_ ++ _)
+    def dropField(field: Field): Either[CustomException, Table] =
+      this.field(field).map(_ => copy(fields = fields.filterNot(f => f.name == field.name && f.prefix == field.prefix)))
+
+    def dropField(f: Table => Either[CustomException, Field]): Either[CustomException, Table] = f(this).flatMap(dropField)
+
+    def dropFields(p: Field => Boolean): Table = copy(fields = fields.filterNot(p))
+
+    def join(rightTable: Table, leftField: Table => Either[CustomException, Field], rightField: Table => Either[CustomException, Field]): Either[CustomException, Table] =
+      join("INNER JOIN", rightTable, leftField, rightField)
+
+    def joinOpt(rightTable: Table, leftField: Table => Either[CustomException, Field], rightField: Table => Either[CustomException, Field]): Either[CustomException, Table] =
+      join("LEFT OUTER JOIN", rightTable, leftField, rightField)
+
+    private def join(kind: String, rightTable: Table, leftField: Table => Either[CustomException, Field], rightField: Table => Either[CustomException, Field]): Either[CustomException, Table] = for {
+      left <- leftField(this)
+      right <- rightField(rightTable)
+      res <- Table.from(
+        name = name,
+        prefix = prefix,
+        joins = joins ++ Seq(TableJoin(kind, rightTable.name, rightTable.prefix, left, right)) ++ rightTable.joins,
+        fields = fields ++ rightTable.fields,
+        sort = sort,
+        search = search ++ rightTable.search)
+    } yield res
+
+    def insert[A](elt: A, build: A => Fragment): Insert[A] = Insert[A](name, fields, elt, build)
+
+    def insertPartial[A](fields: Seq[Field], elt: A, build: A => Fragment): Insert[A] = Insert[A](name, fields, elt, build)
+
+    def update(fields: Fragment, where: Fragment): Update = Update(value, fields, fr0" " ++ where)
+
+    def delete(where: Fragment): Delete = Delete(value, fr0" " ++ where)
+
+    def select[A: Read](where: Fragment): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort)
+
+    def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](value, fields, None, sort)
+
+    def select[A: Read](fields: Seq[Field], sort: Seq[Field]): Select[A] = Select[A](value, fields, None, sort)
+
+    def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort)
+
+    def select[A: Read](fields: Seq[Field], where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort)
+
+    def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, None, params, sort, search)
+
+    def selectPage[A: Read](params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, Some(fr0" " ++ where), params, sort, search)
+  }
+
+  object Table {
+    def from(name: String, prefix: String, fields: Seq[String], sort: Seq[String], search: Seq[String]): Either[CustomException, Table] =
+      from(
+        name = name,
+        prefix = prefix,
+        joins = Seq(),
+        fields = fields.map(f => Field(f, prefix)),
+        sort = sort.map(f => Field(f, prefix)),
+        search = search.map(f => Field(f, prefix)))
+
+    def from(name: String, prefix: String, joins: Seq[TableJoin], fields: Seq[Field], sort: Seq[Field], search: Seq[Field]): Either[CustomException, Table] = {
+      val duplicateFields = fields.diff(fields.distinct).distinct
+      val invalidSort = sort.map(s => s.copy(name = s.name.stripPrefix("-")).value).diff(fields.map(_.value))
+      val invalidSearch = search.diff(fields)
+      val errors = Seq(
+        duplicateFields.headOption.map(_ => s"fields ${duplicateFields.map(s"'" + _.value + "'").mkString(", ")} are duplicated"),
+        invalidSort.headOption.map(_ => s"sorts ${invalidSort.map(s"'" + _ + "'").mkString(", ")} do not exist in fields"),
+        invalidSearch.headOption.map(_ => s"searches ${invalidSearch.map(s"'" + _.value + "'").mkString(", ")} do not exist in fields")
+      ).flatten.map(CustomError)
+      errors.headOption.map(_ => CustomException("Invalid Table", errors)).map(Left(_)).getOrElse(Right(new Table(
+        name = name,
+        prefix = prefix,
+        joins = joins,
+        fields = fields,
+        sort = sort,
+        search = search)))
+    }
+  }
+
+  final case class Insert[A](table: String, fields: Seq[Field], elt: A, build: A => Fragment) {
+    def fr: Fragment = const0(s"INSERT INTO $table (${fields.map(_.name).mkString(", ")}) VALUES (") ++ build(elt) ++ fr0")"
+
+    def run(xa: doobie.Transactor[IO]): IO[A] =
+      fr.update.run.transact(xa).flatMap {
+        case 1 => IO.pure(elt)
+        case code => IO.raiseError(CustomException(s"Failed to insert $elt in $table (code: $code)"))
+      }
+  }
+
+  final case class Update(table: String, fields: Fragment, where: Fragment) {
+    def fr: Fragment = const0(s"UPDATE $table SET ") ++ fields ++ where
+
+    def run(xa: doobie.Transactor[IO]): IO[Done] =
+      fr.update.run.transact(xa).flatMap {
+        case 1 => IO.pure(Done)
+        case code => IO.raiseError(CustomException(s"Failed to update ${fr.update} (code: $code)"))
+      }
+  }
+
+  final case class Delete(table: String, where: Fragment) {
+    def fr: Fragment = const0(s"DELETE FROM $table") ++ where
+
+    def run(xa: doobie.Transactor[IO]): IO[Done] =
+      fr.update.run.transact(xa).flatMap {
+        case 1 => IO.pure(Done)
+        case code => IO.raiseError(CustomException(s"Failed to delete ${fr.update} (code: $code)"))
+      }
+  }
+
+  final case class Select[A: Read](table: String, fields: Seq[Field], whereOpt: Option[Fragment], sort: Seq[Field]) {
+    def fr: Fragment = {
+      val select = const0(s"SELECT ${fields.map(_.value).mkString(", ")} FROM $table")
+      val where = whereOpt.getOrElse(fr0"")
+      val orderBy = NonEmptyList.fromList(sort.toList).map(orderByFragment(_)).getOrElse(fr0"")
+      select ++ where ++ orderBy
     }
 
-    // TODO improve tests & extract some methods
-    def paginate(params: Page.Params, searchFields: Seq[String], defaultSort: Page.OrderBy, whereOpt: Option[Fragment] = None, prefix: Option[String] = None): Paginate = {
-      val search = params.search.filter(_ => searchFields.nonEmpty)
-        .map { search => searchFields.map(s => Fragment.const(prefix.map(_ + ".").getOrElse("") + s) ++ fr"ILIKE ${"%" + search.value + "%"}").reduce(_ ++ fr"OR" ++ _) }
-        .map { search => whereOpt.map(_ ++ fr" AND" ++ fr0"(" ++ search ++ fr")").getOrElse(fr"WHERE" ++ search) }
-        .orElse(whereOpt.map(_ ++ space))
-        .getOrElse(empty)
+    def query: doobie.Query0[A] = fr.query[A]
 
-      Paginate(
-        search,
-        orderByFragment(params.orderBy.getOrElse(defaultSort), prefix, params.nullsFirst),
-        limitFragment(params.offsetStart, params.pageSize))
-    }
+    def runList(xa: doobie.Transactor[IO]): IO[List[A]] = query.to[List].transact(xa)
 
-    private def orderByFragment(orderBy: Page.OrderBy, prefix: Option[String], nullsFirst: Boolean): Fragment = {
-      if (orderBy.nonEmpty) {
-        val fields = orderBy.values.map { v =>
-          val p = prefix.map(_ + ".").getOrElse("")
-          val f = p + v.stripPrefix("-")
-          if (nullsFirst) {
-            s"$f IS NOT NULL, $f" + (if (v.startsWith("-")) " DESC" else "")
-          } else {
-            s"$f IS NULL, $f" + (if (v.startsWith("-")) " DESC" else "")
-          }
-        }
-        fr"ORDER BY" ++ Fragment.const(fields.mkString(", "))
+    def runOption(xa: doobie.Transactor[IO]): IO[Option[A]] = query.option.transact(xa)
+
+    def runUnique(xa: doobie.Transactor[IO]): IO[A] = query.unique.transact(xa)
+
+    def runExists(xa: doobie.Transactor[IO]): IO[Boolean] = query.option.map(_.isDefined).transact(xa)
+  }
+
+  final case class SelectPage[A: Read](table: String,
+                                       prefix: String,
+                                       fields: Seq[Field],
+                                       whereOpt: Option[Fragment],
+                                       params: Page.Params,
+                                       defaultSort: Seq[Field],
+                                       searchFields: Seq[Field]) {
+    def fr: Fragment = Select[A](table, fields, Some(paginationFragment(prefix, whereOpt, params, searchFields, defaultSort)), Seq()).fr
+
+    def query: doobie.Query0[A] = fr.query[A]
+
+    def countFr: Fragment = Select[A](table, Seq(Field("count(*)", "")), whereFragment(whereOpt, params.search, searchFields), Seq()).fr
+
+    def countQuery: doobie.Query0[Long] = countFr.query[Long]
+
+    def run(xa: doobie.Transactor[IO]): IO[Page[A]] = (for {
+      elts <- query.to[List]
+      total <- countQuery.unique
+    } yield Page(elts, params, Page.Total(total))).transact(xa)
+  }
+
+  def whereFragment(whereOpt: Option[Fragment], search: Option[Page.Search], fields: Seq[Field]): Option[Fragment] = {
+    search.filter(_ => fields.nonEmpty)
+      .map { search => fields.map(s => const0(s.value + " ") ++ fr0"ILIKE ${"%" + search.value + "%"}").reduce(_ ++ fr0" OR " ++ _) }
+      .map { search => whereOpt.map(_ ++ fr0" AND " ++ fr0"(" ++ search ++ fr0")").getOrElse(fr0"WHERE " ++ search) }
+      .orElse(whereOpt)
+  }
+
+  def orderByFragment(sort: NonEmptyList[Field], nullsFirst: Boolean = false): Fragment = {
+    val fields = sort.map { v =>
+      val f = v.copy(name = v.name.stripPrefix("-")).value
+      if (nullsFirst) {
+        s"$f IS NOT NULL, $f" + (if (v.name.startsWith("-")) " DESC" else "")
       } else {
-        fr0""
+        s"$f IS NULL, $f" + (if (v.name.startsWith("-")) " DESC" else "")
       }
     }
+    fr0" ORDER BY " ++ const0(fields.toList.mkString(", "))
+  }
 
-    private def limitFragment(start: Int, size: Page.Size): Fragment =
-      fr"OFFSET" ++ Fragment.const(start.toString) ++ fr"LIMIT" ++ Fragment.const0(size.value.toString)
+  def limitFragment(start: Int, size: Page.Size): Fragment =
+    fr0" OFFSET " ++ const0(start.toString + " ") ++ fr0"LIMIT " ++ const0(size.value.toString)
+
+  def paginationFragment(prefix: String, whereOpt: Option[Fragment], params: Page.Params, searchFields: Seq[Field], defaultSort: Seq[Field]): Fragment = {
+    val where = whereFragment(whereOpt, params.search, searchFields).getOrElse(fr0"")
+    val sortFields = params.orderBy.map(_.values.map(f => Field(f, prefix))).getOrElse(defaultSort)
+    val orderBy = NonEmptyList.fromList(sortFields.toList).map(orderByFragment(_, params.nullsFirst)).getOrElse(fr0"")
+    val limit = limitFragment(params.offsetStart, params.pageSize)
+    Seq(where, orderBy, limit).reduce(_ ++ _)
   }
 
   object Queries {
@@ -94,15 +240,7 @@ object DoobieUtils {
       insert(elt).run
 
     def insertMany[A](insert: A => doobie.Update0)(elts: NonEmptyList[A])(implicit w: Write[A]): doobie.ConnectionIO[Int] =
-      Update[A](insert(elts.head).sql).updateMany(elts)
-
-    def selectPage[A](in: Page.Params => (doobie.Query0[A], doobie.Query0[Long]), params: Page.Params): doobie.ConnectionIO[Page[A]] = {
-      val (select, count) = in(params)
-      for {
-        elts <- select.to[List]
-        total <- count.unique
-      } yield Page(elts, params, Page.Total(total))
-    }
+      doobie.util.update.Update[A](insert(elts.head).sql).updateMany(elts)
   }
 
   object Mappings {
@@ -118,8 +256,11 @@ object DoobieUtils {
     implicit val videoMeta: Meta[Video] = Meta[String].timap(Video.from(_).get)(_.value)
     implicit val currencyMeta: Meta[Price.Currency] = Meta[String].timap(Price.Currency.from(_).get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
+
     implicit def mustacheMarkdownTemplateMeta[A: TypeTag]: Meta[MustacheMarkdownTmpl[A]] = Meta[String].timap(MustacheMarkdownTmpl[A])(_.value)
+
     implicit def mustacheTextTemplateMeta[A: TypeTag]: Meta[MustacheTextTmpl[A]] = Meta[String].timap(MustacheTextTmpl[A])(_.value)
+
     implicit val avatarSourceMeta: Meta[Avatar.Source] = Meta[String].timap(Avatar.Source.from(_).get)(_.toString)
     implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))
     implicit val gMapPlaceMeta: Meta[GMapPlace] = {
@@ -184,6 +325,8 @@ object DoobieUtils {
     implicit val contactIdMeta: Meta[Contact.Id] = Meta[String].timap(Contact.Id.from(_).right.get)(_.value)
     implicit val meetupGroupSlugMeta: Meta[MeetupGroup.Slug] = Meta[String].timap(MeetupGroup.Slug.from(_).get)(_.value)
     implicit val meetupEventIdMeta: Meta[MeetupEvent.Id] = Meta[Long].timap(MeetupEvent.Id(_))(_.value)
+    implicit val memberRoleMeta: Meta[Group.Member.Role] = Meta[String].timap(Group.Member.Role.from(_).get)(_.toString)
+    implicit val rsvpAnswerMeta: Meta[Event.Rsvp.Answer] = Meta[String].timap(Event.Rsvp.Answer.from(_).get)(_.toString)
 
     implicit val userIdNelMeta: Meta[NonEmptyList[User.Id]] = Meta[String].timap(
       s => NonEmptyList.fromListUnsafe(s.split(",").filter(_.nonEmpty).map(User.Id.from(_).get).toList))(

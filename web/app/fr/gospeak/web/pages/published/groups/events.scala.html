@@ -9,11 +9,11 @@
 
 @(group: Group, events: Page[Event.Full])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @eventItem(group: Group, e: Event.Full) = {
-    <a class="card mb-3" href="@GroupCtrl.event(group.slug, e.event.slug)">
+    <a class="card mb-3" href="@GroupCtrl.event(group.slug, e.slug)">
         <div class="card-body">
-            <h5 class="card-title">@e.event.name.value</h5>
+            <h5 class="card-title">@e.name.value</h5>
             <p class="card-text d-flex justify-content-between align-items-center">
-                <small class="text-muted">@Formats.date(e.event.start)</small>
+                <small class="text-muted">@Formats.date(e.start)</small>
                 @e.venue.map { v => <small class="text-muted">at @v.partner.name.value</small> }
             </p>
         </div>

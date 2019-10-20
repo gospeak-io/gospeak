@@ -4,16 +4,16 @@
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.utils.Formats._
 
-@(talkWithEvent: (Option[Event], Proposal), now: Instant)
+@(proposal: Proposal.Full, now: Instant)
 @tense(datetime: LocalDateTime) = {
     @if(datetime.isAfter(LocalDateTime.ofInstant(now, ZoneOffset.UTC))) {Will be hold} else {Was held} on @date(datetime)
 }
 <div class="list-group-item list-group-item-action">
-    <h5 class="mb-1">@talkWithEvent._2.title.value</h5>
-    @talkWithEvent._1.map { e => <span class="badge badge-dark">@e.name.value</span> }
-    @duration(talkWithEvent._2.duration)
-    @slidesIcon(talkWithEvent._2.slides)
-    @videoIcon(talkWithEvent._2.video)
-    @tags(talkWithEvent._2.tags)
-    <small>@tense(talkWithEvent._1.map(_.start).getOrElse(LocalDateTime.ofInstant(talkWithEvent._2.info.created, ZoneOffset.UTC)))</small>
+    <h5 class="mb-1">@proposal.title.value</h5>
+    @proposal.event.map { e => <span class="badge badge-dark">@e.name.value</span> }
+    @duration(proposal.duration)
+    @slidesIcon(proposal.slides)
+    @videoIcon(proposal.video)
+    @tags(proposal.tags)
+    <small>@tense(proposal.event.map(_.start).getOrElse(LocalDateTime.ofInstant(proposal.info.created, ZoneOffset.UTC)))</small>
 </div>

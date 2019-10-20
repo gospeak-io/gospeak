@@ -31,6 +31,11 @@ class HomeCtrl(cc: ControllerComponents,
     Ok(html.index()(b))
   }
 
+  def why(): Action[AnyContent] = UserAwareAction { implicit req =>
+    val b = breadcrumb().add("Why use Gospeak" -> routes.HomeCtrl.why())
+    Ok(html.why()(b))
+  }
+
   private val now = Instant.now()
   private val dt = new DateTime()
   private val ldt = LocalDateTime.now()
@@ -87,6 +92,7 @@ class HomeCtrl(cc: ControllerComponents,
     slug = Event.Slug.from("event-slug").get,
     name = Event.Name("Best Event in April \\o/"),
     start = ldt,
+    maxAttendee = Some(100),
     description = MustacheMarkdownTmpl(""),
     venue = None,
     talks = Seq(),
@@ -129,7 +135,8 @@ class HomeCtrl(cc: ControllerComponents,
     implicit val secured = SecuredRequest[CookieEnv, AnyContent](identity, authenticator, req)
     implicit val userAware = UserAwareRequest[CookieEnv, AnyContent](Some(identity), Some(authenticator), req)
     implicit val messages = req.messages
-    Ok(html.styleguide(user, group, cfp, event, talk, proposal, Instant.now(), params))
+    val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event))
+    Ok(html.styleguide(user, group, cfp, event, talk, proposal, proposalFull, Instant.now(), params))
   }
 }
 

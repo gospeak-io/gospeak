@@ -17,13 +17,13 @@ trait OrgaSponsorRepo {
 
   def find(group: Group.Id, sponsor: Sponsor.Id): IO[Option[Sponsor]]
 
-  def list(group: Group.Id, params: Page.Params): IO[Page[Sponsor]]
+  def listFull(group: Group.Id, params: Page.Params): IO[Page[Sponsor.Full]]
 
   def listAll(group: Group.Id): IO[Seq[Sponsor]]
 
-  def listAll(group: Group.Id, partner: Partner.Id): IO[Seq[Sponsor]]
+  def listAllFull(group: Group.Id, partner: Partner.Id): IO[Seq[Sponsor.Full]]
 }
 
 trait PublicSponsorRepo {
-  def listCurrent(group: Group.Id, now: Instant): IO[Seq[Sponsor.Full]]
+  def listCurrentFull(group: Group.Id, now: Instant): IO[Seq[Sponsor.Full]]
 }

@@ -1,21 +1,21 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Cfp, Proposal, Talk}
+@import fr.gospeak.core.domain.Proposal
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.speaker.partials.html.{proposalFields, container}
+@import fr.gospeak.web.pages.speaker.partials.html.{container, proposalFields}
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 
-@(form: Form[Proposal.Data], talk: Talk, cfp: Cfp, proposal: Proposal)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(form: Form[Proposal.Data], proposal: Proposal.Full)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", b)() {
-    <h1 class="page-header">Update @proposal.title.value at @cfp.name.value</h1>
-    <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
+    <h1 class="page-header">Update @proposal.title.value at @proposal.cfp.name.value</h1>
+    <blockquote class="blockquote">@markdown(proposal.cfp.description)</blockquote>
 
-    @formElt(form, ProposalCtrl.doEdit(talk.slug, cfp.slug)) {
+    @formElt(form, ProposalCtrl.doEdit(proposal.talk.slug, proposal.cfp.slug)) {
         @proposalFields(form)
         @actionsHorizontal() {
-            @btnCancel(ProposalCtrl.detail(talk.slug, cfp.slug))
+            @btnCancel(ProposalCtrl.detail(proposal.talk.slug, proposal.cfp.slug))
             @btnSubmit("Update your proposal")
         }
     }

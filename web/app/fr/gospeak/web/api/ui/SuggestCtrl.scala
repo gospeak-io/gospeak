@@ -50,6 +50,7 @@ class SuggestCtrl(cc: ControllerComponents,
                   talkRepo: SuggestTalkRepo,
                   proposalRepo: SuggestProposalRepo,
                   partnerRepo: SuggestPartnerRepo,
+                  contactRepo: SuggestContactRepo,
                   venueRepo: SuggestVenueRepo,
                   sponsorPackRepo: SuggestSponsorPackRepo,
                   templateSrv: TemplateSrv,
@@ -76,8 +77,12 @@ class SuggestCtrl(cc: ControllerComponents,
     makeSuggest[Partner](partnerRepo.list, p => SuggestedItem(p.id.value, p.name.value))(group)
   }
 
+  def suggestContacts(group: Group.Slug, partner: Partner.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    makeSuggest[Contact](_ => contactRepo.list(partner), p => SuggestedItem(p.id.value, p.name.value))(group)
+  }
+
   def suggestVenues(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    makeSuggest[Venue.Full](venueRepo.list, v => SuggestedItem(v.venue.id.value, v.partner.name.value + " - " + v.venue.address.value))(group)
+    makeSuggest[Venue.Full](venueRepo.listFull, v => SuggestedItem(v.id.value, v.partner.name.value + " - " + v.address.value))(group)
   }
 
   def suggestSponsorPacks(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -103,7 +108,7 @@ class SuggestCtrl(cc: ControllerComponents,
   }
 
   def searchProposals(group: Group.Slug, q: String): Action[AnyContent] = SecuredAction.async { implicit req =>
-    makeSearch[(Proposal, Cfp)](proposalRepo.listWithCfp, { case (p, c) => SearchResultItem(p.title.value, ProposalCtrl.detail(group, c.slug, p.id).toString) })(group, q)
+    makeSearch[Proposal.Full](proposalRepo.listFull, p => SearchResultItem(p.title.value, ProposalCtrl.detail(group, p.cfp.slug, p.id).toString))(group, q)
   }
 
   def searchPartners(group: Group.Slug, q: String): Action[AnyContent] = SecuredAction.async { implicit req =>

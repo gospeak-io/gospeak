@@ -6,7 +6,6 @@ import fr.gospeak.core.domain
 import fr.gospeak.core.domain.utils.GospeakMessage.Linked
 import fr.gospeak.libs.scalautils.StringUtils._
 import fr.gospeak.libs.scalautils.domain.CustomException
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 
 /*
   Formatted data for user templates (mustache for example)
@@ -86,7 +85,7 @@ object TemplateData {
     private val event = Event(s"${group.link}/events/2019-09", Some("TODO"), "2019-09", "HumanTalks Paris Septembre", description, dateTime, Seq("IOT", "UX", "Clean Code"))
     private val proposal1 = Proposal(s"${cfp.link}/proposals/28f26543-1ab8-4749-b0ac-786d1bd76888", "The Scala revolution", description, None, None, Seq("scala", "fp"))
     private val proposal2 = Proposal(s"${cfp.link}/proposals/28f26543-1ab8-4749-b0ac-786d1bd76666", "Public speaking for everyone", description, None, None, Seq("social", "marketing"))
-    private val eventVenue = EventVenue("Zeenea", "48 Rue de Ponthieu, 75008 Paris", "https://www.zeenea.com/wp-content/uploads/2019/01/zeenea-logo-424x112-1.png", "https://maps.google.com/?cid=3360768160548514744")
+    private val eventVenue = EventVenue("Zeenea", "48 Rue de Ponthieu, 75008 Paris", "https://dataxday.fr/wp-content/uploads/2018/01/zeenea-logo.png", "https://maps.google.com/?cid=3360768160548514744")
     private val talkSpeaker1 = TalkSpeaker(s"${group.link}/speakers/john-doe", Some(s"$host/speakers/john-doe"), "John Doe", "https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=wavatar")
     private val talkSpeaker2 = TalkSpeaker(s"${group.link}/speakers/jane-doe", None, "Jane Doe", "https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=wavatar")
     private val eventTalk1 = EventTalk(proposal1.link, Some(s"$host/groups/humantalks-paris/talks/28f26543-1ab8-4749-b0ac-786d1bd76888"), proposal1.title, proposal1.description, Seq(talkSpeaker1), proposal1.tags)
@@ -131,7 +130,7 @@ object TemplateData {
 
   private def proposal(p: Linked[domain.Proposal]): Proposal = Proposal(link = p.link, title = p.value.title.value, description = desc(p.value.description.value), slides = p.value.slides.map(_.value), video = p.value.video.map(_.value), tags = p.value.tags.map(_.value))
 
-  private def eventVenue(v: domain.Venue.Full): EventVenue = EventVenue(v.partner.name.value, v.venue.address.value, v.partner.logo.value, v.venue.address.url)
+  private def eventVenue(v: domain.Venue.Full): EventVenue = EventVenue(v.partner.name.value, v.address.value, v.partner.logo.value, v.address.url)
 
   private def talkSpeaker(v: Linked[domain.User]): TalkSpeaker = TalkSpeaker(link = v.link, publicLink = v.publicLink, name = v.value.name.value, avatar = v.value.avatar.url.value)
 
@@ -173,31 +172,6 @@ object TemplateData {
 
   object EventInfo {
     val ref: Ref = Ref.from(classOf[EventInfo].getSimpleName).right.get
-  }
-
-  object Static {
-    // FIXME: put in conf
-    val eventDescription: MustacheMarkdownTmpl[EventInfo] = MustacheMarkdownTmpl[EventInfo](
-      """{{#venue}}
-        |This month we are hosted by **{{name}}**, thanks to them :)
-        |
-        |![{{name}} logo]({{logoUrl}})
-        |{{/venue}}
-        |
-        |
-        |{{#talks}}
-        |{{#-first}}Here are the talks for this session:{{/-first}}
-        |
-        |- **{{title}}** by {{#speakers}}*{{name}}*{{^-last}} and {{/-last}}{{/speakers}}
-        |
-        |{{description.short2}} {{#publicLink}}[see more]({{.}}){{/publicLink}}
-        |{{/talks}}
-        |
-        |
-        |---
-        |
-        |Propose your talks for the next sessions on [Gospeak]({{cfp.publicLink}})
-      """.stripMargin.trim)
   }
 
 }

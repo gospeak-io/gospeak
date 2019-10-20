@@ -9,7 +9,7 @@ import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaSigner}
 import com.mohiva.play.silhouette.impl.authenticators._
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.softwaremill.macwire.wire
-import fr.gospeak.core.ApplicationConf
+import fr.gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.core.domain.utils.GospeakMessage
 import fr.gospeak.core.services._
 import fr.gospeak.core.services.meetup.MeetupSrv
@@ -70,6 +70,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val authConf: AuthConf = conf.auth
   lazy val dbConf: DatabaseConf = conf.database
   lazy val meetupConf: MeetupClient.Conf = conf.meetup
+  lazy val gsConf: GospeakConf = conf.gospeak
 
   lazy val db: GospeakDbSql = wire[GospeakDbSql]
   lazy val userRepo: UserRepo = db.user
@@ -182,13 +183,14 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
 
   def onStart(): Unit = {
-    // FIXME update when really deploy on prod
-    db.dropTables().unsafeRunSync()
-    db.migrate().unsafeRunSync()
     if (envConf.isProd) {
-      db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync()
+      // db.dropTables().unsafeRunSync()
+      db.migrate().unsafeRunSync()
+      // db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync()
     } else {
-      db.insertMockData().unsafeRunSync()
+      db.dropTables().unsafeRunSync()
+      db.migrate().unsafeRunSync()
+      db.insertMockData(conf.gospeak).unsafeRunSync()
     }
 
     messageBus.subscribe(messageHandler.handle)

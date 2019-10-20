@@ -2,7 +2,9 @@ package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
 import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec._
+import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec.{fields => userFields, table => userTable}
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
+import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 
 class GroupRepoSqlSpec extends RepoSpec {
   describe("GroupRepoSql") {
@@ -39,63 +41,90 @@ class GroupRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = GroupRepoSql.insert(group)
-        q.sql shouldBe s"INSERT INTO $table ($fields) VALUES (${mapFields(fields, _ => "?")})"
-        check(q)
+        check(q, s"INSERT INTO ${table.stripSuffix(" g")} (${mapFields(fields, _.stripPrefix("g."))}) VALUES (${mapFields(fields, _ => "?")})")
       }
       it("should build update") {
         val q = GroupRepoSql.update(group.slug)(group.data, user.id, now)
-        q.sql shouldBe s"UPDATE $table SET slug=?, name=?, contact=?, description=?, tags=?, updated=?, updated_by=? WHERE slug=?"
-        check(q)
+        check(q, s"UPDATE $table SET slug=?, name=?, contact=?, description=?, tags=?, updated=?, updated_by=? WHERE g.slug=?")
       }
       it("should build updateOwners") {
         val q = GroupRepoSql.updateOwners(group.id)(NonEmptyList.of(user.id), user.id, now)
-        q.sql shouldBe s"UPDATE $table SET owners=?, updated=?, updated_by=? WHERE id=?"
-        check(q)
+        check(q, s"UPDATE $table SET owners=?, updated=?, updated_by=? WHERE g.id=?")
       }
       it("should build selectPage") {
-        val (s, c) = GroupRepoSql.selectPage(params)
-        s.sql shouldBe s"SELECT $fields FROM $table ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table "
-        check(s)
-        check(c)
+        val q = GroupRepoSql.selectPage(params)
+        check(q, s"SELECT $fields FROM $table $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectPageJoinable") {
-        val (s, c) = GroupRepoSql.selectPageJoinable(user.id, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE owners NOT LIKE ? ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE owners NOT LIKE ? "
-        check(s)
-        check(c)
+        val q = GroupRepoSql.selectPageJoinable(user.id, params)
+        check(q, s"SELECT $fields FROM $table WHERE g.owners NOT LIKE ? $orderBy OFFSET 0 LIMIT 20")
+      }
+      it("should build selectPageJoined") {
+        val q = GroupRepoSql.selectPageJoined(user.id, params)
+        check(q, s"SELECT $fieldsWithMember FROM $tableWithMember WHERE gm.user_id=? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectAll") {
         val q = GroupRepoSql.selectAll(user.id)
-        q.sql shouldBe s"SELECT $fields FROM $table WHERE owners LIKE ?"
-        check(q)
+        check(q, s"SELECT $fields FROM $table WHERE g.owners LIKE ? $orderBy")
       }
       it("should build selectOne") {
         val q = GroupRepoSql.selectOne(user.id, group.slug)
-        q.sql shouldBe s"SELECT $fields FROM $table WHERE owners LIKE ? AND slug=?"
-        check(q)
+        check(q, s"SELECT $fields FROM $table WHERE g.owners LIKE ? AND g.slug=? $orderBy")
       }
       it("should build selectOne with id") {
         val q = GroupRepoSql.selectOne(group.id)
-        q.sql shouldBe s"SELECT $fields FROM $table WHERE id=?"
-        check(q)
+        check(q, s"SELECT $fields FROM $table WHERE g.id=? $orderBy")
       }
       it("should build selectOne with slug") {
         val q = GroupRepoSql.selectOne(group.slug)
-        q.sql shouldBe s"SELECT $fields FROM $table WHERE slug=?"
-        check(q)
+        check(q, s"SELECT $fields FROM $table WHERE g.slug=? $orderBy")
       }
       it("should build selectTags") {
         val q = GroupRepoSql.selectTags()
-        q.sql shouldBe s"SELECT tags FROM $table"
-        check(q)
+        check(q, s"SELECT g.tags FROM $table")
+      }
+      describe("member") {
+        it("should build insertMember") {
+          val q = GroupRepoSql.insertMember(member)
+          check(q, s"INSERT INTO ${memberTable.stripSuffix(" gm")} (${mapFields(memberFields, _.stripPrefix("gm."))}) VALUES (${mapFields(memberFields, _ => "?")})")
+        }
+        it("should build disableMember") {
+          val q = GroupRepoSql.disableMember(member, now)
+          check(q, s"UPDATE $memberTable SET gm.leaved_at=? WHERE gm.group_id=? AND gm.user_id=?")
+        }
+        it("should build enableMember") {
+          val q = GroupRepoSql.enableMember(member, now)
+          check(q, s"UPDATE $memberTable SET gm.joined_at=?, gm.leaved_at=? WHERE gm.group_id=? AND gm.user_id=?")
+        }
+        it("should build selectPageActiveMembers") {
+          val q = GroupRepoSql.selectPageActiveMembers(group.id, params)
+          check(q, s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE gm.group_id=? AND gm.leaved_at IS NULL $memberOrderBy OFFSET 0 LIMIT 20")
+        }
+        it("should build selectOneMember") {
+          val q = GroupRepoSql.selectOneMember(group.id, user.id)
+          check(q, s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE gm.group_id=? AND gm.user_id=? $memberOrderBy")
+        }
+        it("should build selectOneActiveMember") {
+          val q = GroupRepoSql.selectOneActiveMember(group.id, user.id)
+          check(q, s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE gm.group_id=? AND gm.user_id=? AND gm.leaved_at IS NULL $memberOrderBy")
+        }
       }
     }
   }
 }
 
 object GroupRepoSqlSpec {
-  val table = "groups"
-  val fields = "id, slug, name, contact, description, owners, tags, created, created_by, updated, updated_by"
+  val table = "groups g"
+  val fields: String = mapFields("id, slug, name, contact, description, owners, tags, created, created_by, updated, updated_by", "g." + _)
+  val orderBy = "ORDER BY g.name IS NULL, g.name"
+
+  val memberTable = "group_members gm"
+  private val memberFields = mapFields("group_id, user_id, role, presentation, joined_at, leaved_at", "gm." + _)
+  private val memberOrderBy = "ORDER BY gm.joined_at IS NULL, gm.joined_at"
+
+  private val memberTableWithUser = s"$memberTable INNER JOIN $userTable ON gm.user_id=u.id"
+  private val memberFieldsWithUser = s"${memberFields.replaceAll("gm.user_id, ", "")}, $userFields"
+
+  private val tableWithMember = s"$table INNER JOIN $memberTable ON g.id=gm.group_id INNER JOIN $userTable ON gm.user_id=u.id"
+  private val fieldsWithMember = s"$fields, $memberFieldsWithUser"
 }

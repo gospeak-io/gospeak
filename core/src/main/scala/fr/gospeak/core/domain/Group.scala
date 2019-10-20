@@ -1,5 +1,7 @@
 package fr.gospeak.core.domain
 
+import java.time.Instant
+
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.{Info, TemplateData}
 import fr.gospeak.core.services.meetup.domain.MeetupCredentials
@@ -34,6 +36,34 @@ object Group {
   object Slug extends SlugBuilder[Slug]("Group.Slug", new Slug(_))
 
   final case class Name(value: String) extends AnyVal
+
+  final case class Member(group: Group.Id,
+                          role: Member.Role,
+                          presentation: Option[String],
+                          joinedAt: Instant,
+                          leavedAt: Option[Instant],
+                          user: User) {
+    def isActive: Boolean = leavedAt.isEmpty
+  }
+
+  object Member {
+
+    sealed trait Role
+
+    object Role {
+
+      case object Owner extends Role
+
+      case object Member extends Role
+
+      val all: Seq[Role] = Seq(Owner, Member)
+
+      def from(str: String): Either[CustomException, Role] =
+        all.find(_.toString == str).map(Right(_)).getOrElse(Left(CustomException(s"'$str' is not a valid Group.Member.Role")))
+
+    }
+
+  }
 
   final case class Data(slug: Group.Slug,
                         name: Group.Name,
@@ -72,16 +102,6 @@ object Group {
   }
 
   object Settings {
-    val default = Settings(
-      accounts = Accounts(
-        meetup = None,
-        slack = None),
-      // twitter = None,
-      // youtube = None),
-      event = Event(
-        description = TemplateData.Static.eventDescription,
-        templates = Map()),
-      actions = Map())
 
     final case class Accounts(meetup: Option[MeetupCredentials],
                               slack: Option[SlackCredentials])

@@ -2,7 +2,12 @@ package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.Group
+import fr.gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{fields => contactFields, table => contactTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec._
+import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec.{fields => groupFields, table => groupTable, memberTable}
+import fr.gospeak.infra.services.storage.sql.PartnerRepoSqlSpec.{fields => partnerFields, table => partnerTable}
+import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec.{fields => userFields, table => userTable}
+import fr.gospeak.infra.services.storage.sql.VenueRepoSqlSpec.{fields => venueFields, table => venueTable}
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class EventRepoSqlSpec extends RepoSpec {
@@ -31,69 +36,77 @@ class EventRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = EventRepoSql.insert(event)
-        q.sql shouldBe s"INSERT INTO $table ($fields) VALUES (${mapFields(fields, _ => "?")})"
-        check(q)
+        check(q, s"INSERT INTO ${table.stripSuffix(" e")} (${mapFields(fields, _.stripPrefix("e."))}) VALUES (${mapFields(fields, _ => "?")})")
       }
       it("should build update") {
         val q = EventRepoSql.update(group.id, event.slug)(eventData1, user.id, now)
-        q.sql shouldBe s"UPDATE $table SET cfp_id=?, slug=?, name=?, start=?, description=?, venue=?, tags=?, meetupGroup=?, meetupEvent=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
-        check(q)
+        check(q, s"UPDATE $table SET cfp_id=?, slug=?, name=?, start=?, max_attendee=?, description=?, venue=?, tags=?, meetupGroup=?, meetupEvent=?, updated=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
       it("should build updateCfp") {
         val q = EventRepoSql.updateCfp(group.id, event.slug)(cfp.id, user.id, now)
-        q.sql shouldBe s"UPDATE $table SET cfp_id=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
-        check(q)
+        check(q, s"UPDATE $table SET cfp_id=?, updated=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
       it("should build updateTalks") {
         val q = EventRepoSql.updateTalks(group.id, event.slug)(Seq(), user.id, now)
-        q.sql shouldBe s"UPDATE $table SET talks=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
-        check(q)
+        check(q, s"UPDATE $table SET talks=?, updated=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
+      }
+      it("should build updatePublished") {
+        val q = EventRepoSql.updatePublished(group.id, event.slug)(user.id, now)
+        check(q, s"UPDATE $table SET published=?, updated=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
       it("should build selectOne") {
         val q = EventRepoSql.selectOne(group.id, event.slug)
-        q.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? AND slug=?"
-        check(q)
+        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.slug=? $orderBy")
       }
       it("should build selectOnePublished") {
         val q = EventRepoSql.selectOnePublished(group.id, event.slug)
-        q.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? AND e.published IS NOT NULL"
-        check(q)
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? AND e.published IS NOT NULL $orderBy")
       }
       it("should build selectPage") {
-        val (s, c) = EventRepoSql.selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE group_id=? "
-        check(s)
-        check(c)
+        val q = EventRepoSql.selectPage(group.id, params)
+        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectPagePublished") {
-        val (s, c) = EventRepoSql.selectPagePublished(group.id, params)
-        s.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL ORDER BY e.start IS NULL, e.start DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL "
-        check(s)
-        check(c)
-      }
-      it("should build selectAll for venue") {
-        val q = EventRepoSql.selectAll(group.id, venue.id)
-        q.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? AND venue=? "
-        check(q)
-      }
-      it("should build selectAll for partner") {
-        val q = EventRepoSql.selectAll(group.id, partner.id)
-        q.sql shouldBe s"SELECT $fieldsWithVenue FROM $tableWithVenue WHERE e.group_id=? AND v.partner_id=? "
-        check(q)
+        val q = EventRepoSql.selectPagePublished(group.id, params)
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectAll") {
         val q = EventRepoSql.selectAll(NonEmptyList.of(event.id))
-        q.sql shouldBe s"SELECT $fields FROM $table WHERE id IN (?) "
-        check(q)
+        check(q, s"SELECT $fields FROM $table WHERE e.id IN (?)  $orderBy")
       }
-      it("should build selectAllAfter") {
-        val (s, c) = EventRepoSql.selectAllAfter(group.id, now, params)
-        s.sql shouldBe s"SELECT $fields FROM $table WHERE group_id=? AND start > ? ORDER BY start IS NULL, start DESC OFFSET 0 LIMIT 20"
-        c.sql shouldBe s"SELECT count(*) FROM $table WHERE group_id=? AND start > ? "
-        check(s)
-        check(c)
+      it("should build selectAll for venue") {
+        val q = EventRepoSql.selectAll(group.id, venue.id)
+        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.venue=? $orderBy")
+      }
+      it("should build selectAll for partner") {
+        val q = EventRepoSql.selectAll(group.id, partner.id)
+        check(q, s"SELECT $fieldsWithVenue FROM $tableWithVenue WHERE e.group_id=? AND v.partner_id=? $orderBy")
+      }
+      it("should build selectPageAfter") {
+        val q = EventRepoSql.selectPageAfter(group.id, now, params)
+        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.start > ? $orderBy OFFSET 0 LIMIT 20")
+      }
+      it("should build selectPageIncoming") {
+        val q = EventRepoSql.selectPageIncoming(user.id, now, params)
+        check(q, s"SELECT $fieldsFull FROM $tableFullWithMember WHERE gm.user_id=? AND e.start > ? AND e.published IS NOT NULL $orderBy OFFSET 0 LIMIT 20")
+      }
+      it("should build selectTags") {
+        val q = EventRepoSql.selectTags()
+        check(q, s"SELECT e.tags FROM $table")
+      }
+      describe("rsvp") {
+        it("should build insertRsvp") {
+          val q = EventRepoSql.insertRsvp(rsvp)
+          check(q, s"INSERT INTO ${rsvpTable.stripSuffix(" er")} (${mapFields(rsvpFields, _.stripPrefix("er."))}) VALUES (${mapFields(rsvpFields, _ => "?")})")
+        }
+        it("should build selectPageRsvps") {
+          val q = EventRepoSql.selectPageRsvps(event.id, params)
+          check(q, s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? $rsvpOrderBy OFFSET 0 LIMIT 20")
+        }
+        it("should build selectOneRsvp") {
+          val q = EventRepoSql.selectOneRsvp(event.id, user.id)
+          check(q, s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? AND er.user_id=? $rsvpOrderBy")
+        }
       }
     }
   }
@@ -103,12 +116,21 @@ object EventRepoSqlSpec {
 
   import RepoSpec._
 
-  val table = "events"
-  val fields = "id, group_id, cfp_id, slug, name, start, description, venue, talks, tags, published, meetupGroup, meetupEvent, created, created_by, updated, updated_by"
+  val table = "events e"
+  val fields: String = mapFields("id, group_id, cfp_id, slug, name, start, max_attendee, description, venue, talks, tags, published, meetupGroup, meetupEvent, created, created_by, updated, updated_by", "e." + _)
+  val orderBy = "ORDER BY e.start IS NULL, e.start DESC"
 
-  private val tableWithVenue = s"$table e LEFT OUTER JOIN venues v ON e.venue=v.id"
-  private val fieldsWithVenue = s"${mapFields(fields, "e." + _)}, ${mapFields(VenueRepoSqlSpec.fields, "v." + _)}"
+  private val tableWithVenue = s"$table LEFT OUTER JOIN $venueTable ON e.venue=v.id"
+  private val fieldsWithVenue = s"$fields, $venueFields"
 
-  private val tableFull = s"$table e LEFT OUTER JOIN venues v ON e.venue=v.id LEFT OUTER JOIN partners p ON v.partner_id=p.id"
-  private val fieldsFull = s"${mapFields(fields, "e." + _)}, ${mapFields(VenueRepoSqlSpec.fields, "v." + _)}, ${mapFields(PartnerRepoSqlSpec.fields, "p." + _)}"
+  private val tableFull = s"$tableWithVenue LEFT OUTER JOIN $partnerTable ON v.partner_id=pa.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id INNER JOIN $groupTable ON e.group_id=g.id"
+  private val fieldsFull = s"$fieldsWithVenue, $partnerFields, $contactFields, $groupFields"
+
+  private val tableFullWithMember = s"$tableFull INNER JOIN $memberTable ON g.id=gm.group_id"
+
+  private val rsvpTable = "event_rsvps er"
+  private val rsvpFields = mapFields("event_id, user_id, answer, answered_at", "er." + _)
+  private val rsvpOrderBy = "ORDER BY er.answered_at IS NULL, er.answered_at"
+  private val rsvpTableWithUser = s"$rsvpTable INNER JOIN $userTable ON er.user_id=u.id"
+  private val rsvpFieldsWithUser = s"${rsvpFields.replaceAll("er.user_id, ", "")}, $userFields"
 }

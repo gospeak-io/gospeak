@@ -3,7 +3,7 @@
 
 @(speaker: User)
 <div class="card shadow-sm">
-    <img src="@speaker.avatar.url.value" class="avatar-lg align-self-center mt-1" alt="avatar">
+    <img src="@speaker.avatar.url.value" alt="@speaker.name.value avatar" class="avatar-lg align-self-center mt-1">
     <div class="card-body">
         <h5 class="card-title">@speaker.name.value</h5>
         @speaker.profile.bio.map { b => <p>@markdown(b)</p> }

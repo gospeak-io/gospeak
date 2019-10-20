@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.{User, UserRequest}
+import fr.gospeak.core.domain.{Event, Group, User, UserRequest}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.Extensions._
@@ -24,6 +24,7 @@ class UserCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
                userRepo: UserUserRepo,
                groupRepo: UserGroupRepo,
+               eventRepo: UserEventRepo,
                userRequestRepo: UserUserRequestRepo,
                talkRepo: SpeakerTalkRepo,
                proposalRepo: SpeakerProposalRepo,
@@ -33,11 +34,14 @@ class UserCtrl(cc: ControllerComponents,
   import silhouette._
 
   def index(): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
     (for {
+      incomingEvents <- eventRepo.listIncoming(Page.Params.defaults)(user, now)
+      joinedGroups <- groupRepo.listJoined(user, Page.Params.defaults)
       talks <- talkRepo.list(user, Page.Params.defaults)
       proposals <- proposalRepo.listFull(user, Page.Params.defaults)
       b = breadcrumb(req.identity.user)
-    } yield Ok(html.index(talks, proposals)(b))).unsafeToFuture()
+    } yield Ok(html.index(incomingEvents, joinedGroups, talks, proposals)(b))).unsafeToFuture()
   }
 
   def answerRequest(request: UserRequest.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -83,8 +87,8 @@ class UserCtrl(cc: ControllerComponents,
         proposalFull <- OptionT(proposalRepo.findFull(r.proposal))
         speakerElt <- OptionT(userRepo.find(r.createdBy))
         _ <- OptionT.liftF(userRequestRepo.accept(r, user, now))
-        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalAccepted(r, proposalFull.cfp, proposalFull.talk, proposalFull.proposal, speakerElt, req.identity.user)))
-      } yield s"Invitation to <b>${proposalFull.proposal.title.value}</b> accepted").value
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalAccepted(r, proposalFull, speakerElt, req.identity.user)))
+      } yield s"Invitation to <b>${proposalFull.title.value}</b> accepted").value
       case _ => IO.pure(Some("Request not found or unhandled"))
     }.map(msg => Redirect(routes.UserCtrl.index()).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))
       .recover { case NonFatal(e) => Redirect(routes.UserCtrl.index()).flashing("error" -> s"Unexpected error: ${e.getMessage}") }
@@ -110,8 +114,8 @@ class UserCtrl(cc: ControllerComponents,
         proposalFull <- OptionT(proposalRepo.findFull(r.proposal))
         speakerElt <- OptionT(userRepo.find(r.createdBy))
         _ <- OptionT.liftF(userRequestRepo.reject(r, user, now))
-        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalRejected(r, proposalFull.cfp, proposalFull.talk, proposalFull.proposal, speakerElt, req.identity.user)))
-      } yield s"Invitation to <b>${proposalFull.proposal.title.value}</b> rejected").value
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalRejected(r, proposalFull, speakerElt, req.identity.user)))
+      } yield s"Invitation to <b>${proposalFull.title.value}</b> rejected").value
       case _ => IO.pure(Some("Request not found or unhandled"))
     }.map(msg => Redirect(routes.UserCtrl.index()).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))
       .recover { case NonFatal(e) => Redirect(routes.UserCtrl.index()).flashing("error" -> s"Unexpected error: ${e.getMessage}") }

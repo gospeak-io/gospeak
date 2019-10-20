@@ -10,7 +10,7 @@
 @import fr.gospeak.web.pages.published.cfps.routes.{CfpCtrl => PublicCfpCtrl}
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, cfp: Cfp, proposals: Page[Proposal], speakers: Seq[User], events: Seq[Event], nowLDT: LocalDateTime)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, cfp: Cfp, proposals: Page[Proposal.Full], speakers: Seq[User], nowLDT: LocalDateTime)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(cfp.name.value + " - Gospeak", group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@cfp.name.value</span>
@@ -32,5 +32,5 @@
     <p>@Formats.cfpDates(cfp).capitalize @tags(cfp.tags)</p>
 
     <h2 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h2>
-    @Formats.paginated[Proposal](proposals, CfpCtrl.detail(group.slug, cfp.slug, _), proposalItem(group, cfp, _, speakers, events))
+    @Formats.paginated[Proposal.Full](proposals, CfpCtrl.detail(group.slug, cfp.slug, _), proposalItem(group, _, speakers))
 }()

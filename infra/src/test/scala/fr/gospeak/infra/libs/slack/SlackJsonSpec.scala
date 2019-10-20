@@ -6,11 +6,10 @@ import fr.gospeak.libs.scalautils.FileUtils
 import io.circe.parser.decode
 import org.scalatest.{FunSpec, Matchers}
 
-// TODO enable this test: Right now this test makes sbt testOnly timeout
 class SlackJsonSpec extends FunSpec with Matchers {
-  private val basePath = "infra/src/test/resources/slack"
+  private val basePath = "src/test/resources/slack"
 
-  ignore("SlackJson") {
+  describe("SlackJson") {
     it("should parse auth.test response") {
       decode[SlackTokenInfo](FileUtils.read(basePath + "/auth.test.json").get).toTry.get
     }

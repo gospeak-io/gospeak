@@ -1,14 +1,14 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Cfp, Event, Proposal, Talk}
+@import fr.gospeak.core.domain.{Proposal, Talk}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.speaker.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.speaker.partials.html.{container, proposalItem}
+@import fr.gospeak.web.pages.speaker.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(talk: Talk, proposals: Page[(Proposal, Cfp)], events: Seq[Event])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(talk: Talk, proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(talk.title.value + " - Gospeak", b)() {
     @if(proposals.isEmpty) {
         <div class="jumbotron">
@@ -20,9 +20,6 @@
         </div>
     } else {
         <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") for @talk.title.value</h1>
-        @Formats.paginated[(Proposal, Cfp)](
-            page = proposals,
-            link = ProposalCtrl.list(talk.slug, _),
-            item = i => proposalItem(talk, i._2, i._1, events))
+        @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list(talk.slug, _), proposalItem(_))
     }
 }()
