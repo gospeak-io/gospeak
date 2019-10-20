@@ -84,13 +84,25 @@ class GroupRepoSqlSpec extends RepoSpec {
           val q = GroupRepoSql.insertMember(member)
           check(q, s"INSERT INTO ${memberTable.stripSuffix(" gm")} (${mapFields(memberFields, _.stripPrefix("gm."))}) VALUES (${mapFields(memberFields, _ => "?")})")
         }
-        it("should build selectPageMembers") {
-          val q = GroupRepoSql.selectPageMembers(group.id, params)
-          check(q, s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE gm.group_id=? $memberOrderBy OFFSET 0 LIMIT 20")
+        it("should build disableMember") {
+          val q = GroupRepoSql.disableMember(member, now)
+          check(q, s"UPDATE $memberTable SET gm.leaved_at=? WHERE gm.group_id=? AND gm.user_id=?")
+        }
+        it("should build enableMember") {
+          val q = GroupRepoSql.enableMember(member, now)
+          check(q, s"UPDATE $memberTable SET gm.joined_at=?, gm.leaved_at=? WHERE gm.group_id=? AND gm.user_id=?")
+        }
+        it("should build selectPageActiveMembers") {
+          val q = GroupRepoSql.selectPageActiveMembers(group.id, params)
+          check(q, s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE gm.group_id=? AND gm.leaved_at IS NULL $memberOrderBy OFFSET 0 LIMIT 20")
         }
         it("should build selectOneMember") {
           val q = GroupRepoSql.selectOneMember(group.id, user.id)
           check(q, s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE gm.group_id=? AND gm.user_id=? $memberOrderBy")
+        }
+        it("should build selectOneActiveMember") {
+          val q = GroupRepoSql.selectOneActiveMember(group.id, user.id)
+          check(q, s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE gm.group_id=? AND gm.user_id=? AND gm.leaved_at IS NULL $memberOrderBy")
         }
       }
     }
@@ -103,7 +115,7 @@ object GroupRepoSqlSpec {
   val orderBy = "ORDER BY g.name IS NULL, g.name"
 
   private val memberTable = "group_members gm"
-  private val memberFields = mapFields("group_id, user_id, role, presentation, joined_at", "gm." + _)
+  private val memberFields = mapFields("group_id, user_id, role, presentation, joined_at, leaved_at", "gm." + _)
   private val memberOrderBy = "ORDER BY gm.joined_at IS NULL, gm.joined_at"
   private val memberTableWithUser = s"$memberTable INNER JOIN $userTable ON gm.user_id=u.id"
   private val memberFieldsWithUser = s"${memberFields.replaceAll("gm.user_id, ", "")}, $userFields"

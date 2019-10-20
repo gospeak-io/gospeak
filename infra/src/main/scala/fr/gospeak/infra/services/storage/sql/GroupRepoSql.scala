@@ -9,9 +9,9 @@ import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.GroupRepo
 import fr.gospeak.infra.services.storage.sql.GroupRepoSql._
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils._
+import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
 
@@ -71,6 +71,18 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def exists(group: Group.Slug): IO[Boolean] = selectOne(group).runExists(xa)
 
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
+
+  override def join(group: Group.Id)(user: User, now: Instant): IO[Done] =
+    selectOneMember(group, user.id).runOption(xa).flatMap {
+      case Some(m) => if (m.isActive) IO.pure(Done) else enableMember(m, now).run(xa)
+      case None => insertMember(Group.Member(group, Group.Member.Role.Member, None, now, None, user)).run(xa).map(_ => Done)
+    }
+
+  override def leave(member: Group.Member)(user: User.Id, now: Instant): IO[Done] =
+    if (member.user.id == user) disableMember(member, now).run(xa)
+    else IO.raiseError(CustomException("Internal error: authenticated user is not the member one"))
+
+  override def findActiveMember(group: Group.Id, user: User.Id): IO[Option[Group.Member]] = selectOneActiveMember(group, user).runOption(xa)
 }
 
 object GroupRepoSql {
@@ -114,11 +126,20 @@ object GroupRepoSql {
     table.select[Seq[Tag]](Seq(Field("tags", "g")), Seq())
 
   private[sql] def insertMember(m: Group.Member): Insert[Group.Member] =
-    memberTable.insert[Group.Member](m, e => fr0"${e.group}, ${e.user.id}, ${e.role}, ${e.presentation}, ${e.joinedAt}")
+    memberTable.insert[Group.Member](m, e => fr0"${e.group}, ${e.user.id}, ${e.role}, ${e.presentation}, ${e.joinedAt}, ${e.leavedAt}")
 
-  private[sql] def selectPageMembers(group: Group.Id, params: Page.Params): SelectPage[Group.Member] =
-    memberTableWithUser.selectPage(params, fr0"WHERE gm.group_id=$group")
+  private[sql] def disableMember(m: Group.Member, now: Instant): Update =
+    memberTable.update(fr0"gm.leaved_at=$now", fr0"WHERE gm.group_id=${m.group} AND gm.user_id=${m.user.id}")
+
+  private[sql] def enableMember(m: Group.Member, now: Instant): Update =
+    memberTable.update(fr0"gm.joined_at=$now, gm.leaved_at=${Option.empty[Instant]}", fr0"WHERE gm.group_id=${m.group} AND gm.user_id=${m.user.id}")
+
+  private[sql] def selectPageActiveMembers(group: Group.Id, params: Page.Params): SelectPage[Group.Member] =
+    memberTableWithUser.selectPage(params, fr0"WHERE gm.group_id=$group AND gm.leaved_at IS NULL")
 
   private[sql] def selectOneMember(group: Group.Id, user: User.Id): Select[Group.Member] =
     memberTableWithUser.select(fr0"WHERE gm.group_id=$group AND gm.user_id=$user")
+
+  private[sql] def selectOneActiveMember(group: Group.Id, user: User.Id): Select[Group.Member] =
+    memberTableWithUser.select(fr0"WHERE gm.group_id=$group AND gm.user_id=$user AND gm.leaved_at IS NULL")
 }

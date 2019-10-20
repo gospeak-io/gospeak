@@ -48,6 +48,12 @@ trait PublicGroupRepo {
   def find(group: Group.Slug): IO[Option[Group]]
 
   def find(group: Group.Id): IO[Option[Group]]
+
+  def findActiveMember(group: Group.Id, user: User.Id): IO[Option[Group.Member]]
+
+  def join(group: Group.Id)(user: User, now: Instant): IO[Done]
+
+  def leave(member: Group.Member)(user: User.Id, now: Instant): IO[Done]
 }
 
 trait SuggestGroupRepo {

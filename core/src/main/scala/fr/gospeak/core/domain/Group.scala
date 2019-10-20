@@ -41,7 +41,10 @@ object Group {
                           role: Member.Role,
                           presentation: Option[String],
                           joinedAt: Instant,
-                          user: User)
+                          leavedAt: Option[Instant],
+                          user: User) {
+    def isActive: Boolean = leavedAt.isEmpty
+  }
 
   object Member {
 
