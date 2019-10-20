@@ -100,6 +100,7 @@ object UserRepoSql {
     credentialsTable.update(fields, where)
   }
 
+
   private[sql] def deleteCredentials(login: User.Login): Delete =
     credentialsTable.delete(fr0"WHERE cd.provider_id=${login.providerId} AND cd.provider_key=${login.providerKey}")
 

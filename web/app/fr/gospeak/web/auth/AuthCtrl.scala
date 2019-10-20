@@ -64,7 +64,7 @@ class AuthCtrl(cc: ControllerComponents,
   def login(redirect: Option[String]): Action[AnyContent] = UserAwareActionIO { implicit req =>
     IO.pure(req.user
       .map(_ => loginRedirect(redirect).flashing(req.flash))
-      .getOrElse(Ok(html.login(AuthForms.login, envConf, redirect))))
+      .getOrElse(Ok(html.login(AuthForms.login, envConf, redirect, authSrv.socialProviders()))))
   }
 
   def doLogin(redirect: Option[String]): Action[AnyContent] = UserAwareActionIO { implicit req =>

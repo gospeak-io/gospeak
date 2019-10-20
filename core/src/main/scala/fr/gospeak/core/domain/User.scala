@@ -67,6 +67,10 @@ object User {
 
   final case class Login(providerId: ProviderId, providerKey: ProviderKey)
 
+  object Login {
+    def apply(providerId: ProviderId, providerKey: ProviderKey): Login = new Login(providerId, providerKey)
+  }
+
   final case class Password(hasher: Hasher, password: PasswordValue, salt: Option[Salt])
 
   final case class LoginRef(login: Login, user: User.Id)

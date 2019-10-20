@@ -1,12 +1,17 @@
 package fr.gospeak.web
 
+import java.util.concurrent.TimeUnit
+
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions._
 import com.mohiva.play.silhouette.api.crypto.{Base64AuthenticatorEncoder, Crypter, CrypterAuthenticatorEncoder, Signer}
 import com.mohiva.play.silhouette.api.services.AuthenticatorService
-import com.mohiva.play.silhouette.api.util.{Clock, FingerprintGenerator}
+import com.mohiva.play.silhouette.api.util.{Clock, FingerprintGenerator, HTTPLayer, PlayHTTPLayer}
 import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaSigner}
 import com.mohiva.play.silhouette.impl.authenticators._
+import com.mohiva.play.silhouette.impl.providers.{DefaultSocialStateHandler, OAuth2Settings, SocialProviderRegistry}
+import com.mohiva.play.silhouette.impl.providers.oauth2.GoogleProvider
+import com.mohiva.play.silhouette.impl.providers.state.{CsrfStateItemHandler, CsrfStateSettings}
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.softwaremill.macwire.wire
 import fr.gospeak.core.domain.utils.GospeakMessage
@@ -25,7 +30,7 @@ import fr.gospeak.infra.services.{EmailSrv, GravatarSrv, TemplateSrv}
 import fr.gospeak.libs.scalautils.{BasicMessageBus, MessageBus}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
-import fr.gospeak.web.auth.{AuthConf, AuthCtrl}
+import fr.gospeak.web.auth.{AuthConf, AuthCtrl, SocialAuthCtrl}
 import fr.gospeak.web.domain.{GospeakMessageBus, MessageBuilder}
 import fr.gospeak.web.pages._
 import fr.gospeak.web.pages.published.HomeCtrl
@@ -34,6 +39,7 @@ import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.services.EventSrv
 import org.slf4j.LoggerFactory
 import play.api.libs.ws.ahc.AhcWSComponents
+import play.api.mvc.Cookie.SameSite
 import play.api.mvc.{BodyParsers, CookieHeaderEncoding, DefaultCookieHeaderEncoding}
 import play.api.routing.Router
 import play.api.{Environment => _, _}
@@ -124,10 +130,43 @@ class GospeakComponents(context: ApplicationLoader.Context)
     new CookieAuthenticatorService(conf.auth.cookie.authenticator.toConf, None, signer, cookieHeaderEncoding, authenticatorEncoder, fingerprintGenerator, idGenerator, clock)
   }
 
-  // lazy val socialProviderRegistry = SocialProviderRegistry(List())
 
   lazy val eventBus: EventBus = new EventBus()
   lazy val bodyParsers: BodyParsers.Default = new BodyParsers.Default(playBodyParsers)
+
+
+  // Google Provider config
+
+  val googleSettings: OAuth2Settings = OAuth2Settings(
+    authorizationURL = Some(configuration.underlying.getString("silhouette.google.authorizationURL")),
+    accessTokenURL = configuration.underlying.getString("silhouette.google.accessTokenURL"),
+    redirectURL = Some(configuration.underlying.getString("silhouette.google.redirectURL")),
+    clientID = configuration.underlying.getString("silhouette.google.clientID"),
+    clientSecret = configuration.underlying.getString("silhouette.google.clientSecret"),
+    scope = Some(configuration.underlying.getString("silhouette.google.scope"))
+  )
+
+  val signer = new JcaSigner(conf.auth.cookie.signer)
+
+  val csrfStateSettings = CsrfStateSettings(
+    configuration.underlying.getString("silhouette.csrfStateItemHandler.cookieName"),
+    configuration.underlying.getString("silhouette.csrfStateItemHandler.cookiePath"),
+    None,
+    configuration.underlying.getBoolean("silhouette.csrfStateItemHandler.secureCookie"),
+    configuration.underlying.getBoolean("silhouette.csrfStateItemHandler.httpOnlyCookie"),
+    SameSite.parse(configuration.underlying.getString("silhouette.csrfStateItemHandler.sameSite")),
+    new FiniteDuration(configuration.underlying.getDuration("silhouette.csrfStateItemHandler.expirationTime").getSeconds, TimeUnit.SECONDS))
+
+
+  val csrfStateItemHandler = new CsrfStateItemHandler(csrfStateSettings, idGenerator, signer)
+  val httpLayer: HTTPLayer = new PlayHTTPLayer(wsClient)
+
+  val socialStateHandler = new DefaultSocialStateHandler(Set(csrfStateItemHandler), signer)
+
+  val googleProvider = new GoogleProvider(httpLayer,
+    socialStateHandler,
+    googleSettings)
+  val socialProviderRegistry = SocialProviderRegistry(Seq(googleProvider))
 
   // lazy val silhouette: Silhouette[JwtEnv] = wire[SilhouetteProvider[JwtEnv]]
   lazy val silhouette: Silhouette[CookieEnv] = {
@@ -148,7 +187,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
   // end:Silhouette conf
 
-  lazy val authSrv: AuthSrv = AuthSrv(authConf, silhouette, userRepo, userRequestRepo, groupRepo, authRepo, clock, gravatarSrv)
+  lazy val authSrv: AuthSrv = AuthSrv(authConf, silhouette, userRepo, userRequestRepo, groupRepo, authRepo, clock, socialProviderRegistry, gravatarSrv)
 
   lazy val homeCtrl = wire[HomeCtrl]
   lazy val cfpCtrl = wire[published.cfps.CfpCtrl]
@@ -179,6 +218,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val apiGroupCtrl = wire[api.published.GroupCtrl]
   lazy val apiCfpCtrl = wire[api.published.CfpCtrl]
   lazy val apiSpeakerCtrl = wire[api.published.SpeakerCtrl]
+  lazy val socialAuthCtrl = wire[SocialAuthCtrl]
 
   override lazy val router: Router = {
     val prefix = "/"
