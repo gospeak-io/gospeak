@@ -16,7 +16,9 @@ case class SocialProfile(loginInfo: LoginInfo,
     for {
       socialProvider <- SocialProvider.from(loginInfo.providerID)
       source <- socialProvider.toSource
-      slug <- User.Slug.from(StringUtils.slugify(firstName.getOrElse("firstName")))
+      //FIXME slug by default ??
+      slug <- User.Slug.from(StringUtils.slugify(firstName.getOrElse("")))
+      // FIXME avatar by default ??
       avatar <- Url.from(avatarURL.getOrElse("https://api.adorable.io/avatars/285/abott@adorable.png"))
       email <- email.map(EmailAddress.from) match {
         case None => Left(CustomException("Email is missing ! Sorry, we cannot go further."))
@@ -24,6 +26,7 @@ case class SocialProfile(loginInfo: LoginInfo,
       }
     } yield User.Data(
       slug,
+      //FIXME firstName by default ??
       firstName.getOrElse(""),
       lastName.getOrElse(""),
       email,
