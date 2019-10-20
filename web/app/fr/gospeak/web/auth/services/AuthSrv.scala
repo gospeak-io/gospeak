@@ -114,25 +114,28 @@ class AuthSrv(userRepo: AuthUserRepo,
   }
 
   def createOrEdit(socialProfile: CommonSocialProfile): IO[AuthUser] = {
-    def authUser(optUser: Option[User], login: Login): IO[AuthUser] = {
+    def create(login: Login): IO[AuthUser] = {
       val now = Instant.now()
-      optUser.fold(
-        for {
-          data <- SocialProfile.from(socialProfile).toUserData.toIO
-          u <- userRepo.create(data, now)
-          request <- userRequestRepo.createAccountValidationRequest(u.email, u.id, now)
-          _ <- userRequestRepo.validateAccount(request.id, u.email, now)
-          _ <- userRepo.createLoginRef(login, u.id)
-        } yield AuthUser(socialProfile.loginInfo, u, Seq())
-      )(u =>
-        for {
-          groups <- groupRepo.list(u.id)
-          u <- userRepo.edit(u.copy(
-            firstName = socialProfile.firstName.getOrElse(u.firstName),
-            lastName = socialProfile.lastName.getOrElse(u.lastName)),
-            now = now)
-        } yield AuthUser(socialProfile.loginInfo, u, groups)
-      )
+      for {
+        data <- SocialProfile.from(socialProfile).toUserData.toIO
+        u <- userRepo.create(data, now)
+        request <- userRequestRepo.createAccountValidationRequest(u.email, u.id, now)
+        _ <- userRequestRepo.validateAccount(request.id, u.email, now)
+        _ <- userRepo.createLoginRef(login, u.id)
+      } yield AuthUser(socialProfile.loginInfo, u, Seq())
+    }
+
+    def edit(user: User, login: Login): IO[AuthUser] = {
+      val now = Instant.now()
+      for {
+        groups <- groupRepo.list(user.id)
+        email <- EmailAddress.from(socialProfile.email.getOrElse(user.email.value)).toIO
+        u <- userRepo.edit(user.copy(
+          firstName = socialProfile.firstName.getOrElse(user.firstName),
+          lastName = socialProfile.lastName.getOrElse(user.lastName),
+          email = email),
+          now = now)
+      } yield AuthUser(socialProfile.loginInfo, u, groups)
     }
 
     val login = Login(ProviderId(socialProfile.loginInfo.providerID),
@@ -140,14 +143,14 @@ class AuthSrv(userRepo: AuthUserRepo,
 
     for {
       optUser <- userRepo.find(login)
-      authUser <- authUser(optUser, login)
+      authUser <- optUser.fold(create(login))(u => edit(u, login))
     } yield authUser
   }
 
 
-  def socialProviders(): Seq[SocialProvider] = socialProviderRegistry.providers
+  def socialProviders: Seq[SocialProvider] = socialProviderRegistry.providers
 
-  def provider(providerID: String): Option[SocialProvider] = socialProviders().find(_.id == providerID)
+  def provider(providerID: String): Option[SocialProvider] = socialProviders.find(_.id == providerID)
 
   private def toDomain(loginInfo: LoginInfo): User.Login = User.Login(User.ProviderId(loginInfo.providerID), User.ProviderKey(loginInfo.providerKey))
 
