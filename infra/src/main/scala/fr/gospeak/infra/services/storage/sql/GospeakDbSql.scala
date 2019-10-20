@@ -14,9 +14,9 @@ import fr.gospeak.core.domain.utils.{Info, TemplateData}
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.core.services.storage.GospeakDb
 import fr.gospeak.infra.services.GravatarSrv
-import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.Queries
-import fr.gospeak.infra.utils.{DoobieUtils, FlywayUtils}
+import fr.gospeak.infra.services.storage.sql.utils.{DoobieUtils, FlywayUtils}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Queries
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.StringUtils
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}

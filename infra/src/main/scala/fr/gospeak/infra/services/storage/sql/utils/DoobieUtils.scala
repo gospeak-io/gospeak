@@ -1,13 +1,13 @@
-package fr.gospeak.infra.utils
+package fr.gospeak.infra.services.storage.sql.utils
 
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import cats.data.NonEmptyList
 import cats.effect.{ContextShift, IO}
-import doobie.Transactor
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
+import doobie.util.transactor.Transactor
 import doobie.util.{Meta, Read, Write}
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.TemplateData
@@ -259,8 +259,11 @@ object DoobieUtils {
     implicit val videoMeta: Meta[Video] = Meta[String].timap(Video.from(_).get)(_.value)
     implicit val currencyMeta: Meta[Price.Currency] = Meta[String].timap(Price.Currency.from(_).get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
+
     implicit def mustacheMarkdownTemplateMeta[A: TypeTag]: Meta[MustacheMarkdownTmpl[A]] = Meta[String].timap(MustacheMarkdownTmpl[A])(_.value)
+
     implicit def mustacheTextTemplateMeta[A: TypeTag]: Meta[MustacheTextTmpl[A]] = Meta[String].timap(MustacheTextTmpl[A])(_.value)
+
     implicit val avatarSourceMeta: Meta[Avatar.Source] = Meta[String].timap(Avatar.Source.from(_).get)(_.toString)
     implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))
     implicit val gMapPlaceMeta: Meta[GMapPlace] = {

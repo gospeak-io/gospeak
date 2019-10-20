@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services.storage.sql
 
-import fr.gospeak.infra.utils.DoobieUtils.Table
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Table
 import fr.gospeak.libs.scalautils.Extensions._
 
 object Tables {

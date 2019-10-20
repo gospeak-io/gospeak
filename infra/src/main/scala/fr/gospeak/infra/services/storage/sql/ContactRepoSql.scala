@@ -10,8 +10,8 @@ import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.ContactRepo
 import fr.gospeak.infra.services.storage.sql.ContactRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.{Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ContactRepo {

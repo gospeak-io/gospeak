@@ -1,8 +1,8 @@
-package fr.gospeak.infra.utils
+package fr.gospeak.infra.services.storage.sql.utils
 
 import doobie.implicits._
-import fr.gospeak.infra.utils.DoobieUtils._
-import fr.gospeak.infra.utils.DoobieUtilsSpec.Entity
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtilsSpec.Entity
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
 import org.scalatest.{FunSpec, Matchers}

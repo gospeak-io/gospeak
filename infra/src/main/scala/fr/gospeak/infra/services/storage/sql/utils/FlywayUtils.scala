@@ -1,4 +1,4 @@
-package fr.gospeak.infra.utils
+package fr.gospeak.infra.services.storage.sql.utils
 
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import fr.gospeak.infra.services.storage.sql.DatabaseConf

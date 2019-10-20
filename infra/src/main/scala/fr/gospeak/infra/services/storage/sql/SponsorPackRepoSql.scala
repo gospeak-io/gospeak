@@ -12,8 +12,8 @@ import fr.gospeak.core.domain.{Group, SponsorPack, User}
 import fr.gospeak.core.services.storage.SponsorPackRepo
 import fr.gospeak.infra.services.storage.sql.SponsorPackRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.{Insert, Select, Update}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Insert, Select, Update}
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done}
 
 class SponsorPackRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SponsorPackRepo {

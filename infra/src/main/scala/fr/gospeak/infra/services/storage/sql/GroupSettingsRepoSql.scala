@@ -14,8 +14,8 @@ import fr.gospeak.core.services.slack.domain.SlackCredentials
 import fr.gospeak.core.services.storage.GroupSettingsRepo
 import fr.gospeak.infra.services.storage.sql.GroupSettingsRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.{Field, Insert, Select, Update}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, Update}
 import fr.gospeak.libs.scalautils.domain.Done
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 
