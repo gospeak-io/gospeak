@@ -40,19 +40,19 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = EventRepoSql.update(group.id, event.slug)(eventData1, user.id, now)
-        check(q, s"UPDATE $table SET e.cfp_id=?, e.slug=?, e.name=?, e.start=?, e.max_attendee=?, e.description=?, e.venue=?, e.tags=?, e.meetupGroup=?, e.meetupEvent=?, e.updated=?, e.updated_by=? WHERE e.group_id=? AND e.slug=?")
+        check(q, s"UPDATE $table SET cfp_id=?, slug=?, name=?, start=?, max_attendee=?, description=?, venue=?, tags=?, meetupGroup=?, meetupEvent=?, updated=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
       it("should build updateCfp") {
         val q = EventRepoSql.updateCfp(group.id, event.slug)(cfp.id, user.id, now)
-        check(q, s"UPDATE $table SET e.cfp_id=?, e.updated=?, e.updated_by=? WHERE e.group_id=? AND e.slug=?")
+        check(q, s"UPDATE $table SET cfp_id=?, updated=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
       it("should build updateTalks") {
         val q = EventRepoSql.updateTalks(group.id, event.slug)(Seq(), user.id, now)
-        check(q, s"UPDATE $table SET e.talks=?, e.updated=?, e.updated_by=? WHERE e.group_id=? AND e.slug=?")
+        check(q, s"UPDATE $table SET talks=?, updated=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
       it("should build updatePublished") {
         val q = EventRepoSql.updatePublished(group.id, event.slug)(user.id, now)
-        check(q, s"UPDATE $table SET e.published=?, e.updated=?, e.updated_by=? WHERE e.group_id=? AND e.slug=?")
+        check(q, s"UPDATE $table SET published=?, updated=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
       it("should build selectOne") {
         val q = EventRepoSql.selectOne(group.id, event.slug)

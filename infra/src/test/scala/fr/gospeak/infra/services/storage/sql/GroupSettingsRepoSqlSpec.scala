@@ -13,7 +13,7 @@ class GroupSettingsRepoSqlSpec extends RepoSpec {
       }
       it("should build update group settings") {
         val q = GroupSettingsRepoSql.update(group.id, groupSettings, user.id, now)
-        check(q, s"UPDATE $table SET ${fields.split(", ").drop(1).map(_ + "=?").mkString(", ")} WHERE gs.group_id=?")
+        check(q, s"UPDATE $table SET ${fields.split(", ").drop(1).map(_.stripPrefix("gs.") + "=?").mkString(", ")} WHERE gs.group_id=?")
       }
       it("should build selectOne group settings") {
         val q = GroupSettingsRepoSql.selectOne(group.id)

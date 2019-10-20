@@ -95,21 +95,21 @@ object TalkRepoSql {
   }
 
   private[sql] def update(talk: Talk.Slug)(data: Talk.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"t.slug=${data.slug}, t.title=${data.title}, t.duration=${data.duration}, t.description=${data.description}, t.slides=${data.slides}, t.video=${data.video}, t.tags=${data.tags}, t.updated=$now, t.updated_by=$by"
+    val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$by"
     table.update(fields, where(by, talk))
   }
 
   private[sql] def updateStatus(talk: Talk.Slug)(status: Talk.Status, by: User.Id): Update =
-    table.update(fr0"t.status=$status", where(by, talk))
+    table.update(fr0"status=$status", where(by, talk))
 
   private[sql] def updateSlides(talk: Talk.Slug)(slides: Slides, by: User.Id, now: Instant): Update =
-    table.update(fr0"t.slides=$slides, t.updated=$now, t.updated_by=$by", where(by, talk))
+    table.update(fr0"slides=$slides, updated=$now, updated_by=$by", where(by, talk))
 
   private[sql] def updateVideo(talk: Talk.Slug)(video: Video, by: User.Id, now: Instant): Update =
-    table.update(fr0"t.video=$video, t.updated=$now, t.updated_by=$by", where(by, talk))
+    table.update(fr0"video=$video, updated=$now, updated_by=$by", where(by, talk))
 
   private[sql] def updateSpeakers(talk: Talk.Slug)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
-    table.update(fr0"t.speakers=$speakers, t.updated=$now, t.updated_by=$by", where(by, talk))
+    table.update(fr0"speakers=$speakers, updated=$now, updated_by=$by", where(by, talk))
 
   private[sql] def selectOne(talk: Talk.Id): Select[Talk] =
     table.select[Talk](fr0"WHERE t.id=$talk")

@@ -15,7 +15,7 @@ class SponsorRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = SponsorRepoSql.update(group.id, sponsor.id)(sponsor.data, user.id, now)
-        check(q, s"UPDATE $table SET s.partner_id=?, s.sponsor_pack_id=?, s.contact_id=?, s.start=?, s.finish=?, s.paid=?, s.price=?, s.currency=?, s.updated=?, s.updated_by=? WHERE s.group_id=? AND s.id=?")
+        check(q, s"UPDATE $table SET partner_id=?, sponsor_pack_id=?, contact_id=?, start=?, finish=?, paid=?, price=?, currency=?, updated=?, updated_by=? WHERE s.group_id=? AND s.id=?")
       }
       it("should build delete") {
         val q = SponsorRepoSql.delete(group.id, sponsor.id)

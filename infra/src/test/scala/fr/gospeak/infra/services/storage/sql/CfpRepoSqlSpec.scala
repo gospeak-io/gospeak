@@ -43,7 +43,7 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = CfpRepoSql.update(group.id, cfp.slug)(cfpData1, user.id, now)
-        check(q, s"UPDATE $table SET c.slug=?, c.name=?, c.begin=?, c.close=?, c.description=?, c.tags=?, c.updated=?, c.updated_by=? WHERE c.group_id=? AND c.slug=?")
+        check(q, s"UPDATE $table SET slug=?, name=?, begin=?, close=?, description=?, tags=?, updated=?, updated_by=? WHERE c.group_id=? AND c.slug=?")
       }
       it("should build selectOne for cfp id") {
         val q = CfpRepoSql.selectOne(cfp.id)

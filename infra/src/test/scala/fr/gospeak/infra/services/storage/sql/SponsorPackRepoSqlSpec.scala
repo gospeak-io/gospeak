@@ -14,11 +14,11 @@ class SponsorPackRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = SponsorPackRepoSql.update(group.id, sponsorPack.slug)(sponsorPack.data, user.id, now)
-        check(q, s"UPDATE $table SET sp.slug=?, sp.name=?, sp.description=?, sp.price=?, sp.currency=?, sp.duration=?, sp.updated=?, sp.updated_by=? WHERE sp.group_id=? AND sp.slug=?")
+        check(q, s"UPDATE $table SET slug=?, name=?, description=?, price=?, currency=?, duration=?, updated=?, updated_by=? WHERE sp.group_id=? AND sp.slug=?")
       }
       it("should build setActive") {
         val q = SponsorPackRepoSql.setActive(group.id, sponsorPack.slug)(active = true, user.id, now)
-        check(q, s"UPDATE $table SET sp.active=?, sp.updated=?, sp.updated_by=? WHERE sp.group_id=? AND sp.slug=?")
+        check(q, s"UPDATE $table SET active=?, updated=?, updated_by=? WHERE sp.group_id=? AND sp.slug=?")
       }
       it("should build selectOne") {
         val q = SponsorPackRepoSql.selectOne(group.id, sponsorPack.slug)

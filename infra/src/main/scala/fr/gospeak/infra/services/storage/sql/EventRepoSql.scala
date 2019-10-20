@@ -84,18 +84,18 @@ object EventRepoSql {
   }
 
   private[sql] def update(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"e.cfp_id=${data.cfp}, e.slug=${data.slug}, e.name=${data.name}, e.start=${data.start}, e.max_attendee=${data.maxAttendee}, e.description=${data.description}, e.venue=${data.venue}, e.tags=${data.tags}, e.meetupGroup=${data.refs.meetup.map(_.group)}, e.meetupEvent=${data.refs.meetup.map(_.event)}, e.updated=$now, e.updated_by=$by"
+    val fields = fr0"cfp_id=${data.cfp}, slug=${data.slug}, name=${data.name}, start=${data.start}, max_attendee=${data.maxAttendee}, description=${data.description}, venue=${data.venue}, tags=${data.tags}, meetupGroup=${data.refs.meetup.map(_.group)}, meetupEvent=${data.refs.meetup.map(_.event)}, updated=$now, updated_by=$by"
     table.update(fields, where(group, event))
   }
 
   private[sql] def updateCfp(group: Group.Id, event: Event.Slug)(cfp: Cfp.Id, by: User.Id, now: Instant): Update =
-    table.update(fr0"e.cfp_id=$cfp, e.updated=$now, e.updated_by=$by", where(group, event))
+    table.update(fr0"cfp_id=$cfp, updated=$now, updated_by=$by", where(group, event))
 
   private[sql] def updateTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): Update =
-    table.update(fr0"e.talks=$talks, e.updated=$now, e.updated_by=$by", where(group, event))
+    table.update(fr0"talks=$talks, updated=$now, updated_by=$by", where(group, event))
 
   private[sql] def updatePublished(group: Group.Id, event: Event.Slug)(by: User.Id, now: Instant): Update =
-    table.update(fr0"e.published=$now, e.updated=$now, e.updated_by=$by", where(group, event))
+    table.update(fr0"published=$now, updated=$now, updated_by=$by", where(group, event))
 
   private[sql] def selectOne(group: Group.Id, event: Event.Slug): Select[Event] =
     table.select[Event](where(group, event))

@@ -102,12 +102,12 @@ object GroupRepoSql {
   }
 
   private[sql] def update(group: Group.Slug)(data: Group.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"g.slug=${data.slug}, g.name=${data.name}, g.contact=${data.contact}, g.description=${data.description}, g.tags=${data.tags}, g.updated=$now, g.updated_by=$by"
+    val fields = fr0"slug=${data.slug}, name=${data.name}, contact=${data.contact}, description=${data.description}, tags=${data.tags}, updated=$now, updated_by=$by"
     table.update(fields, fr0"WHERE g.slug=$group")
   }
 
   private[sql] def updateOwners(group: Group.Id)(owners: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
-    table.update(fr0"g.owners=$owners, g.updated=$now, g.updated_by=$by", fr0"WHERE g.id=$group")
+    table.update(fr0"owners=$owners, updated=$now, updated_by=$by", fr0"WHERE g.id=$group")
 
   private[sql] def selectPage(params: Page.Params): SelectPage[Group] =
     table.selectPage[Group](params)

@@ -14,7 +14,7 @@ class PartnerRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = PartnerRepoSql.update(group.id, partner.slug)(partner.data, user.id, now)
-        check(q, s"UPDATE $table SET pa.slug=?, pa.name=?, pa.notes=?, pa.description=?, pa.logo=?, pa.twitter=?, pa.updated=?, pa.updated_by=? WHERE pa.group_id=? AND pa.slug=?")
+        check(q, s"UPDATE $table SET slug=?, name=?, notes=?, description=?, logo=?, twitter=?, updated=?, updated_by=? WHERE pa.group_id=? AND pa.slug=?")
       }
       it("should build selectPage") {
         val q = PartnerRepoSql.selectPage(group.id, params)

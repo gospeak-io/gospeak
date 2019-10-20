@@ -66,10 +66,10 @@ object GroupSettingsRepoSql {
   }
 
   private[sql] def update(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): Update = {
-    val fields = fr0"gs.meetup_access_token=${settings.accounts.meetup.map(_.accessToken)}, gs.meetup_refresh_token=${settings.accounts.meetup.map(_.refreshToken)}, gs.meetup_group_slug=${settings.accounts.meetup.map(_.group)}, gs.meetup_logged_user_id=${settings.accounts.meetup.map(_.loggedUserId)}, gs.meetup_logged_user_name=${settings.accounts.meetup.map(_.loggedUserName)}, " ++
-      fr0"gs.slack_token=${settings.accounts.slack.map(_.token)}, gs.slack_bot_name=${settings.accounts.slack.map(_.name)}, gs.slack_bot_avatar=${settings.accounts.slack.flatMap(_.avatar)}, " ++
-      fr0"gs.event_description=${settings.event.description}, gs.event_templates=${settings.event.templates}, " ++
-      fr0"gs.actions=${settings.actions}, gs.updated=$now, gs.updated_by=$by"
+    val fields = fr0"meetup_access_token=${settings.accounts.meetup.map(_.accessToken)}, meetup_refresh_token=${settings.accounts.meetup.map(_.refreshToken)}, meetup_group_slug=${settings.accounts.meetup.map(_.group)}, meetup_logged_user_id=${settings.accounts.meetup.map(_.loggedUserId)}, meetup_logged_user_name=${settings.accounts.meetup.map(_.loggedUserName)}, " ++
+      fr0"slack_token=${settings.accounts.slack.map(_.token)}, slack_bot_name=${settings.accounts.slack.map(_.name)}, slack_bot_avatar=${settings.accounts.slack.flatMap(_.avatar)}, " ++
+      fr0"event_description=${settings.event.description}, event_templates=${settings.event.templates}, " ++
+      fr0"actions=${settings.actions}, updated=$now, updated_by=$by"
     table.update(fields, where(group))
   }
 

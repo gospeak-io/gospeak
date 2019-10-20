@@ -33,7 +33,7 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         }
         it("should build accept") {
           val q = UserRequestRepoSql.AccountValidation.accept(req.id, now)
-          check(q, s"UPDATE $table SET r.accepted=? WHERE r.id=? AND r.kind=? AND r.deadline > ? AND r.accepted IS NULL")
+          check(q, s"UPDATE $table SET accepted=? WHERE r.id=? AND r.kind=? AND r.deadline > ? AND r.accepted IS NULL")
         }
         it("should build selectPending with id") {
           val q = UserRequestRepoSql.AccountValidation.selectPending(req.id, now)
@@ -54,7 +54,7 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         }
         it("should build accept") {
           val q = UserRequestRepoSql.PasswordReset.accept(req.id, now)
-          check(q, s"UPDATE $table SET r.accepted=? WHERE r.id=? AND r.kind=? AND r.deadline > ? AND r.accepted IS NULL")
+          check(q, s"UPDATE $table SET accepted=? WHERE r.id=? AND r.kind=? AND r.deadline > ? AND r.accepted IS NULL")
         }
         it("should build selectPending with id") {
           val q = UserRequestRepoSql.PasswordReset.selectPending(req.id, now)
@@ -75,15 +75,15 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         }
         it("should build accept") {
           val q = UserRequestRepoSql.UserAskToJoinAGroup.accept(req.id, user.id, now)
-          check(q, s"UPDATE $table SET r.accepted=?, r.accepted_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+          check(q, s"UPDATE $table SET accepted=?, accepted_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
         }
         it("should build reject") {
           val q = UserRequestRepoSql.UserAskToJoinAGroup.reject(req.id, user.id, now)
-          check(q, s"UPDATE $table SET r.rejected=?, r.rejected_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+          check(q, s"UPDATE $table SET rejected=?, rejected_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
         }
         it("should build cancel") {
           val q = UserRequestRepoSql.UserAskToJoinAGroup.cancel(req.id, user.id, now)
-          check(q, s"UPDATE $table SET r.canceled=?, r.canceled_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+          check(q, s"UPDATE $table SET canceled=?, canceled_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
         }
         it("should build selectOnePending") {
           val q = UserRequestRepoSql.UserAskToJoinAGroup.selectOnePending(group.id, userRequest.id)
@@ -104,15 +104,15 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         }
         it("should build accept") {
           val q = UserRequestRepoSql.GroupInviteQueries.accept(req.id, user.id, now)
-          check(q, s"UPDATE $table SET r.accepted=?, r.accepted_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+          check(q, s"UPDATE $table SET accepted=?, accepted_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
         }
         it("should build reject") {
           val q = UserRequestRepoSql.GroupInviteQueries.reject(req.id, user.id, now)
-          check(q, s"UPDATE $table SET r.rejected=?, r.rejected_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+          check(q, s"UPDATE $table SET rejected=?, rejected_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
         }
         it("should build cancel") {
           val q = UserRequestRepoSql.GroupInviteQueries.cancel(req.id, user.id, now)
-          check(q, s"UPDATE $table SET r.canceled=?, r.canceled_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+          check(q, s"UPDATE $table SET canceled=?, canceled_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
         }
         it("should build selectOne") {
           val q = UserRequestRepoSql.GroupInviteQueries.selectOne(req.id)
@@ -133,15 +133,15 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         }
         it("should build accept") {
           val q = UserRequestRepoSql.TalkInviteQueries.accept(req.id, user.id, now)
-          check(q, s"UPDATE $table SET r.accepted=?, r.accepted_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+          check(q, s"UPDATE $table SET accepted=?, accepted_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
         }
         it("should build reject") {
           val q = UserRequestRepoSql.TalkInviteQueries.reject(req.id, user.id, now)
-          check(q, s"UPDATE $table SET r.rejected=?, r.rejected_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+          check(q, s"UPDATE $table SET rejected=?, rejected_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
         }
         it("should build cancel") {
           val q = UserRequestRepoSql.TalkInviteQueries.cancel(req.id, user.id, now)
-          check(q, s"UPDATE $table SET r.canceled=?, r.canceled_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+          check(q, s"UPDATE $table SET canceled=?, canceled_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
         }
         it("should build selectOne") {
           val q = UserRequestRepoSql.TalkInviteQueries.selectOne(req.id)
@@ -162,15 +162,15 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         }
         it("should build accept") {
           val q = UserRequestRepoSql.ProposalInviteQueries.accept(req.id, user.id, now)
-          check(q, s"UPDATE $table SET r.accepted=?, r.accepted_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+          check(q, s"UPDATE $table SET accepted=?, accepted_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
         }
         it("should build reject") {
           val q = UserRequestRepoSql.ProposalInviteQueries.reject(req.id, user.id, now)
-          check(q, s"UPDATE $table SET r.rejected=?, r.rejected_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+          check(q, s"UPDATE $table SET rejected=?, rejected_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
         }
         it("should build cancel") {
           val q = UserRequestRepoSql.ProposalInviteQueries.cancel(req.id, user.id, now)
-          check(q, s"UPDATE $table SET r.canceled=?, r.canceled_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+          check(q, s"UPDATE $table SET canceled=?, canceled_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
         }
         it("should build selectOne") {
           val q = UserRequestRepoSql.ProposalInviteQueries.selectOne(req.id)

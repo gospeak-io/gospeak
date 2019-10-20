@@ -58,7 +58,7 @@ class UserRepoSqlSpec extends RepoSpec {
         }
         it("should build updateCredentials") {
           val q = UserRepoSql.updateCredentials(login)(pass)
-          check(q, s"UPDATE $credentialsTable SET cd.hasher=?, cd.password=?, cd.salt=? WHERE cd.provider_id=? AND cd.provider_key=?")
+          check(q, s"UPDATE $credentialsTable SET hasher=?, password=?, salt=? WHERE cd.provider_id=? AND cd.provider_key=?")
         }
         it("should build deleteCredentials") {
           val q = UserRepoSql.deleteCredentials(login)
@@ -75,11 +75,11 @@ class UserRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = UserRepoSql.update(user)
-        check(q, s"UPDATE $table SET u.slug=?, u.first_name=?, u.last_name=?, u.email=?, u.status=?, u.bio=?, u.company=?, u.location=?, u.twitter=?, u.linkedin=?, u.phone=?, u.website=?, u.updated=? WHERE u.id=?")
+        check(q, s"UPDATE $table SET slug=?, first_name=?, last_name=?, email=?, status=?, bio=?, company=?, location=?, twitter=?, linkedin=?, phone=?, website=?, updated=? WHERE u.id=?")
       }
       it("should build validateAccount") {
         val q = UserRepoSql.validateAccount(user.email, now)
-        check(q, s"UPDATE $table SET u.email_validated=? WHERE u.email=?")
+        check(q, s"UPDATE $table SET email_validated=? WHERE u.email=?")
       }
       it("should build selectOne with login") {
         val q = UserRepoSql.selectOne(login)

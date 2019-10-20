@@ -50,7 +50,7 @@ object PartnerRepoSql {
   }
 
   private[sql] def update(group: Group.Id, slug: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"pa.slug=${data.slug}, pa.name=${data.name}, pa.notes=${data.notes}, pa.description=${data.description}, pa.logo=${data.logo}, pa.twitter=${data.twitter}, pa.updated=$now, pa.updated_by=$by"
+    val fields = fr0"slug=${data.slug}, name=${data.name}, notes=${data.notes}, description=${data.description}, logo=${data.logo}, twitter=${data.twitter}, updated=$now, updated_by=$by"
     table.update(fields, where(group, slug))
   }
 

@@ -38,7 +38,7 @@ object ContactRepoSql {
   }
 
   private[sql] def update(contact: Contact.Id, data: Contact.Data)(by: User.Id, now: Instant): Update = {
-    val fields = fr0"ct.first_name=${data.firstName}, ct.last_name=${data.lastName}, ct.email=${data.email}, ct.description=${data.description}, ct.updated=$now, ct.updated_by=$by"
+    val fields = fr0"first_name=${data.firstName}, last_name=${data.lastName}, email=${data.email}, description=${data.description}, updated=$now, updated_by=$by"
     table.update(fields, where(contact))
   }
 

@@ -283,8 +283,8 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
 
     val event1 = event(humanTalks, Some(cfp2), "2018-06", "HumanTalks Day #1", "2018-06-01", userDemo, Some(100), venue = None, description = groupDefaultSettings.event.description)
     val event2 = event(humanTalks, None, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, Some(120), venue = None, description = groupDefaultSettings.event.description)
-    val event3 = event(humanTalks, Some(cfp1), "2019-02", "HumanTalks Paris Fevrier 2019", "2019-02-12", userOrga, Some(50),  venue = Some(venue1))
-    val event4 = event(humanTalks, Some(cfp1), "2019-11", "HumanTalks Paris Novembre 2019", "2019-11-12", userDemo,  Some(100), venue = Some(venue1), description = groupDefaultSettings.event.description)
+    val event3 = event(humanTalks, Some(cfp1), "2019-02", "HumanTalks Paris Fevrier 2019", "2019-02-12", userOrga, Some(50), venue = Some(venue1))
+    val event4 = event(humanTalks, Some(cfp1), "2019-11", "HumanTalks Paris Novembre 2019", "2019-11-12", userDemo, Some(100), venue = Some(venue1), description = groupDefaultSettings.event.description)
     val event5 = event(parisJs, Some(cfp4), "2019-04", "Paris.Js Avril", "2019-04-01", userOrga, None)
     val event6 = event(dataGov, None, "2019-03", "Nouveaux modeles de gouvenance", "2019-03-15", userDemo, Some(100), tags = Seq("Data Gouv"))
     val events = NonEmptyList.of(event1, event2, event3, event4, event5, event6)
@@ -330,7 +330,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       _ <- run(Queries.insertMany(SponsorPackRepoSql.insert(_: SponsorPack).fr.update)(packs))
       _ <- run(Queries.insertMany(SponsorRepoSql.insert(_: Sponsor).fr.update)(sponsors))
       _ <- run(Queries.insertMany(EventRepoSql.insert(_: Event).fr.update)(events ++ generated.map(_._3)))
-      _ <- IO(eventTalks.map { case (c, e, p, u) => addTalk(c, e, p, u, now) }.map(_.unsafeRunSync()))
+      _ <- eventTalks.toList.map { case (c, e, p, u) => addTalk(c, e, p, u, now) }.sequence
       _ <- groupSettings.set(humanTalks.id, humanTalksSettings, userDemo.id, now)
     } yield Done
   }
@@ -525,7 +525,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
 
   private def addTalk(cfp: Cfp, event: Event, proposals: Seq[Proposal], by: User.Id, now: Instant): IO[Done] = for {
     _ <- EventRepoSql.updateTalks(event.group, event.slug)(proposals.map(_.id), by, now).run(xa)
-    _ <- IO(proposals.map(p => ProposalRepoSql.updateStatus(cfp.slug, p.id)(Proposal.Status.Accepted, Some(event.id)).run(xa)).map(_.unsafeRunSync()))
+    _ <- proposals.map(p => ProposalRepoSql.updateStatus(cfp.slug, p.id)(Proposal.Status.Accepted, Some(event.id)).run(xa)).sequence
   } yield Done
 
   private def run(i: => doobie.Update0): IO[Done] =

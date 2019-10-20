@@ -45,11 +45,11 @@ class GroupRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = GroupRepoSql.update(group.slug)(group.data, user.id, now)
-        check(q, s"UPDATE $table SET g.slug=?, g.name=?, g.contact=?, g.description=?, g.tags=?, g.updated=?, g.updated_by=? WHERE g.slug=?")
+        check(q, s"UPDATE $table SET slug=?, name=?, contact=?, description=?, tags=?, updated=?, updated_by=? WHERE g.slug=?")
       }
       it("should build updateOwners") {
         val q = GroupRepoSql.updateOwners(group.id)(NonEmptyList.of(user.id), user.id, now)
-        check(q, s"UPDATE $table SET g.owners=?, g.updated=?, g.updated_by=? WHERE g.id=?")
+        check(q, s"UPDATE $table SET owners=?, updated=?, updated_by=? WHERE g.id=?")
       }
       it("should build selectPage") {
         val q = GroupRepoSql.selectPage(params)

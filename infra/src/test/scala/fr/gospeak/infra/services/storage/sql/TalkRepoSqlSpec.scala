@@ -57,23 +57,23 @@ class TalkRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = TalkRepoSql.update(talk.slug)(talkData1, user.id, now)
-        check(q, s"UPDATE $table SET t.slug=?, t.title=?, t.duration=?, t.description=?, t.slides=?, t.video=?, t.tags=?, t.updated=?, t.updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
+        check(q, s"UPDATE $table SET slug=?, title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
       }
       it("should build updateStatus") {
         val q = TalkRepoSql.updateStatus(talk.slug)(Talk.Status.Public, user.id)
-        check(q, s"UPDATE $table SET t.status=? WHERE t.speakers LIKE ? AND t.slug=?")
+        check(q, s"UPDATE $table SET status=? WHERE t.speakers LIKE ? AND t.slug=?")
       }
       it("should build updateSlides") {
         val q = TalkRepoSql.updateSlides(talk.slug)(slides, user.id, now)
-        check(q, s"UPDATE $table SET t.slides=?, t.updated=?, t.updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
+        check(q, s"UPDATE $table SET slides=?, updated=?, updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
       }
       it("should build updateVideo") {
         val q = TalkRepoSql.updateVideo(talk.slug)(video, user.id, now)
-        check(q, s"UPDATE $table SET t.video=?, t.updated=?, t.updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
+        check(q, s"UPDATE $table SET video=?, updated=?, updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
       }
       it("should build updateSpeakers") {
         val q = TalkRepoSql.updateSpeakers(talk.slug)(talk.speakers, user.id, now)
-        check(q, s"UPDATE $table SET t.speakers=?, t.updated=?, t.updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
+        check(q, s"UPDATE $table SET speakers=?, updated=?, updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
       }
       it("should build selectOne by id") {
         val q = TalkRepoSql.selectOne(talk.id)

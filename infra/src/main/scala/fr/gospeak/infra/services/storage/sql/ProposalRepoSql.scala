@@ -135,32 +135,32 @@ object ProposalRepoSql {
   }
 
   private[sql] def update(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.Data, now: Instant): Update = {
-    val fields = fr0"p.title=${data.title}, p.duration=${data.duration}, p.description=${data.description}, p.slides=${data.slides}, p.video=${data.video}, p.tags=${data.tags}, p.updated=$now, p.updated_by=$orga"
+    val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$orga"
     table.update(fields, where(orga, group, cfp, proposal))
   }
 
   private[sql] def update(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): Update = {
-    val fields = fr0"p.title=${data.title}, p.duration=${data.duration}, p.description=${data.description}, p.slides=${data.slides}, p.video=${data.video}, p.tags=${data.tags}, p.updated=$now, p.updated_by=$speaker"
+    val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$speaker"
     table.update(fields, where(speaker, talk, cfp))
   }
 
   private[sql] def updateStatus(cfp: Cfp.Slug, id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): Update =
-    table.update(fr0"p.status=$status, p.event_id=$event", where(cfp, id))
+    table.update(fr0"status=$status, event_id=$event", where(cfp, id))
 
   private[sql] def updateSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Slides, by: User.Id, now: Instant): Update =
-    table.update(fr0"p.slides=$slides, p.updated=$now, p.updated_by=$by", where(cfp, id))
+    table.update(fr0"slides=$slides, updated=$now, updated_by=$by", where(cfp, id))
 
   private[sql] def updateSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, by: User.Id, now: Instant): Update =
-    table.update(fr0"p.slides=$slides, p.updated=$now, p.updated_by=$by", where(speaker, talk, cfp))
+    table.update(fr0"slides=$slides, updated=$now, updated_by=$by", where(speaker, talk, cfp))
 
   private[sql] def updateVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, by: User.Id, now: Instant): Update =
-    table.update(fr0"p.video=$video, p.updated=$now, p.updated_by=$by", where(cfp, id))
+    table.update(fr0"video=$video, updated=$now, updated_by=$by", where(cfp, id))
 
   private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, by: User.Id, now: Instant): Update =
-    table.update(fr0"p.video=$video, p.updated=$now, p.updated_by=$by", where(speaker, talk, cfp))
+    table.update(fr0"video=$video, updated=$now, updated_by=$by", where(speaker, talk, cfp))
 
   private[sql] def updateSpeakers(id: Proposal.Id)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
-    table.update(fr0"p.speakers=$speakers, p.updated=$now, p.updated_by=$by", fr0"WHERE p.id=$id")
+    table.update(fr0"speakers=$speakers, updated=$now, updated_by=$by", fr0"WHERE p.id=$id")
 
   private[sql] def selectOne(id: Proposal.Id): Select[Proposal] =
     table.select[Proposal](where(id))

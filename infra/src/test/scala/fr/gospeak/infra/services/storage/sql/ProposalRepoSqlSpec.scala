@@ -43,35 +43,35 @@ class ProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build update for orga, group, cfp and proposal") {
         val q = ProposalRepoSql.update(user.id, group.slug, cfp.slug, proposal.id)(proposal.data, now)
-        check(q, s"UPDATE $table SET p.title=?, p.duration=?, p.description=?, p.slides=?, p.video=?, p.tags=?, p.updated=?, p.updated_by=? WHERE p.id=$whereGroupAndCfp")
+        check(q, s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE p.id=$whereGroupAndCfp")
       }
       it("should build update for speaker, talk and cfp") {
         val q = ProposalRepoSql.update(user.id, talk.slug, cfp.slug)(proposal.data, now)
-        check(q, s"UPDATE $table SET p.title=?, p.duration=?, p.description=?, p.slides=?, p.video=?, p.tags=?, p.updated=?, p.updated_by=? WHERE p.id=$whereCfpAndTalk")
+        check(q, s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE p.id=$whereCfpAndTalk")
       }
       it("should build updateStatus") {
         val q = ProposalRepoSql.updateStatus(cfp.slug, proposal.id)(proposal.status, None)
-        check(q, s"UPDATE $table SET p.status=?, p.event_id=? WHERE p.id=$whereCfp")
+        check(q, s"UPDATE $table SET status=?, event_id=? WHERE p.id=$whereCfp")
       }
       it("should build updateSlides by cfp and proposal") {
         val q = ProposalRepoSql.updateSlides(cfp.slug, proposal.id)(slides, user.id, now)
-        check(q, s"UPDATE $table SET p.slides=?, p.updated=?, p.updated_by=? WHERE p.id=$whereCfp")
+        check(q, s"UPDATE $table SET slides=?, updated=?, updated_by=? WHERE p.id=$whereCfp")
       }
       it("should build updateSlides by speaker, talk and cfp") {
         val q = ProposalRepoSql.updateSlides(user.id, talk.slug, cfp.slug)(slides, user.id, now)
-        check(q, s"UPDATE $table SET p.slides=?, p.updated=?, p.updated_by=? WHERE p.id=$whereCfpAndTalk")
+        check(q, s"UPDATE $table SET slides=?, updated=?, updated_by=? WHERE p.id=$whereCfpAndTalk")
       }
       it("should build updateVideo by cfp and proposal") {
         val q = ProposalRepoSql.updateVideo(cfp.slug, proposal.id)(video, user.id, now)
-        check(q, s"UPDATE $table SET p.video=?, p.updated=?, p.updated_by=? WHERE p.id=$whereCfp")
+        check(q, s"UPDATE $table SET video=?, updated=?, updated_by=? WHERE p.id=$whereCfp")
       }
       it("should build updateVideo by speaker, talk and cfp") {
         val q = ProposalRepoSql.updateVideo(user.id, talk.slug, cfp.slug)(video, user.id, now)
-        check(q, s"UPDATE $table SET p.video=?, p.updated=?, p.updated_by=? WHERE p.id=$whereCfpAndTalk")
+        check(q, s"UPDATE $table SET video=?, updated=?, updated_by=? WHERE p.id=$whereCfpAndTalk")
       }
       it("should build updateSpeakers by id") {
         val q = ProposalRepoSql.updateSpeakers(proposal.id)(proposal.speakers, user.id, now)
-        check(q, s"UPDATE $table SET p.speakers=?, p.updated=?, p.updated_by=? WHERE p.id=?")
+        check(q, s"UPDATE $table SET speakers=?, updated=?, updated_by=? WHERE p.id=?")
       }
       it("should build selectOne for proposal id") {
         val q = ProposalRepoSql.selectOne(proposal.id)

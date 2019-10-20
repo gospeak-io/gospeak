@@ -46,7 +46,7 @@ class ContactRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = ContactRepoSql.update(contact.id, contactData1)(user.id, now)
-        check(q, s"UPDATE $table SET ct.first_name=?, ct.last_name=?, ct.email=?, ct.description=?, ct.updated=?, ct.updated_by=? WHERE ct.id=?")
+        check(q, s"UPDATE $table SET first_name=?, last_name=?, email=?, description=?, updated=?, updated_by=? WHERE ct.id=?")
       }
       it("should build selectPage") {
         val q = ContactRepoSql.selectPage(partner.id, params)

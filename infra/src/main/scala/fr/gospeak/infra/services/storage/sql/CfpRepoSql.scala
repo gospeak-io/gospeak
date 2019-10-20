@@ -68,7 +68,7 @@ object CfpRepoSql {
   }
 
   private[sql] def update(group: Group.Id, slug: Cfp.Slug)(data: Cfp.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"c.slug=${data.slug}, c.name=${data.name}, c.begin=${data.begin}, c.close=${data.close}, c.description=${data.description}, c.tags=${data.tags}, c.updated=$now, c.updated_by=$by"
+    val fields = fr0"slug=${data.slug}, name=${data.name}, begin=${data.begin}, close=${data.close}, description=${data.description}, tags=${data.tags}, updated=$now, updated_by=$by"
     table.update(fields, where(group, slug))
   }
 
