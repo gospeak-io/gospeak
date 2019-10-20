@@ -59,6 +59,10 @@ class GroupRepoSqlSpec extends RepoSpec {
         val q = GroupRepoSql.selectPageJoinable(user.id, params)
         check(q, s"SELECT $fields FROM $table WHERE g.owners NOT LIKE ? $orderBy OFFSET 0 LIMIT 20")
       }
+      it("should build selectPageJoined") {
+        val q = GroupRepoSql.selectPageJoined(user.id, params)
+        check(q, s"SELECT $fieldsWithMember FROM $tableWithMember WHERE gm.user_id=? $orderBy OFFSET 0 LIMIT 20")
+      }
       it("should build selectAll") {
         val q = GroupRepoSql.selectAll(user.id)
         check(q, s"SELECT $fields FROM $table WHERE g.owners LIKE ? $orderBy")
@@ -114,9 +118,13 @@ object GroupRepoSqlSpec {
   val fields: String = mapFields("id, slug, name, contact, description, owners, tags, created, created_by, updated, updated_by", "g." + _)
   val orderBy = "ORDER BY g.name IS NULL, g.name"
 
-  private val memberTable = "group_members gm"
+  val memberTable = "group_members gm"
   private val memberFields = mapFields("group_id, user_id, role, presentation, joined_at, leaved_at", "gm." + _)
   private val memberOrderBy = "ORDER BY gm.joined_at IS NULL, gm.joined_at"
+
   private val memberTableWithUser = s"$memberTable INNER JOIN $userTable ON gm.user_id=u.id"
   private val memberFieldsWithUser = s"${memberFields.replaceAll("gm.user_id, ", "")}, $userFields"
+
+  private val tableWithMember = s"$table INNER JOIN $memberTable ON g.id=gm.group_id INNER JOIN $userTable ON gm.user_id=u.id"
+  private val fieldsWithMember = s"$fields, $memberFieldsWithUser"
 }

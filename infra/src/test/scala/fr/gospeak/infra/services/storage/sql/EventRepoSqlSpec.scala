@@ -4,6 +4,7 @@ import cats.data.NonEmptyList
 import fr.gospeak.core.domain.Group
 import fr.gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{fields => contactFields, table => contactTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec._
+import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec.{fields => groupFields, table => groupTable, memberTable}
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSqlSpec.{fields => partnerFields, table => partnerTable}
 import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec.{fields => userFields, table => userTable}
 import fr.gospeak.infra.services.storage.sql.VenueRepoSqlSpec.{fields => venueFields, table => venueTable}
@@ -85,6 +86,10 @@ class EventRepoSqlSpec extends RepoSpec {
         val q = EventRepoSql.selectPageAfter(group.id, now, params)
         check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.start > ? $orderBy OFFSET 0 LIMIT 20")
       }
+      it("should build selectPageIncoming") {
+        val q = EventRepoSql.selectPageIncoming(user.id, now, params)
+        check(q, s"SELECT $fieldsFull FROM $tableFullWithMember WHERE gm.user_id=? AND e.start > ? AND e.published IS NOT NULL $orderBy OFFSET 0 LIMIT 20")
+      }
       it("should build selectTags") {
         val q = EventRepoSql.selectTags()
         check(q, s"SELECT e.tags FROM $table")
@@ -118,8 +123,10 @@ object EventRepoSqlSpec {
   private val tableWithVenue = s"$table LEFT OUTER JOIN $venueTable ON e.venue=v.id"
   private val fieldsWithVenue = s"$fields, $venueFields"
 
-  private val tableFull = s"$tableWithVenue LEFT OUTER JOIN $partnerTable ON v.partner_id=pa.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id"
-  private val fieldsFull = s"$fieldsWithVenue, $partnerFields, $contactFields"
+  private val tableFull = s"$tableWithVenue LEFT OUTER JOIN $partnerTable ON v.partner_id=pa.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id INNER JOIN $groupTable ON e.group_id=g.id"
+  private val fieldsFull = s"$fieldsWithVenue, $partnerFields, $contactFields, $groupFields"
+
+  private val tableFullWithMember = s"$tableFull INNER JOIN $memberTable ON g.id=gm.group_id"
 
   private val rsvpTable = "event_rsvps er"
   private val rsvpFields = mapFields("event_id, user_id, answer, answered_at", "er." + _)

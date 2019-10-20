@@ -34,6 +34,8 @@ trait UserGroupRepo {
   def find(group: Group.Id): IO[Option[Group]]
 
   def list(user: User.Id): IO[Seq[Group]]
+
+  def listJoined(user: User.Id, params: Page.Params): IO[Page[(Group, Group.Member)]]
 }
 
 trait AuthGroupRepo {

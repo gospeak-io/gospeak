@@ -75,7 +75,7 @@ object Event {
 
   }
 
-  final case class Full(event: Event, venue: Option[Venue.Full]) {
+  final case class Full(event: Event, venue: Option[Venue.Full], group: Group) {
     def slug: Slug = event.slug
 
     def name: Name = event.name

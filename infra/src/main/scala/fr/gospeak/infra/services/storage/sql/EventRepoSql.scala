@@ -58,6 +58,8 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]] = selectPageAfter(group, now.truncatedTo(ChronoUnit.DAYS), params).run(xa)
 
+  override def listIncoming(params: Page.Params)(user: User.Id, now: Instant): IO[Page[Event.Full]] = selectPageIncoming(user, now, params).run(xa)
+
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 }
 
@@ -69,6 +71,9 @@ object EventRepoSql {
   private val tableFull = tableWithVenue
     .joinOpt(Tables.partners, _.field("partner_id", "v"), _.field("id")).get
     .joinOpt(Tables.contacts, _.field("contact_id", "v"), _.field("id")).get
+    .join(Tables.groups, _.field("group_id", "e"), _.field("id")).get
+  private val tableFullWithMember = tableFull
+    .join(Tables.groupMembers, _.field("id", "g"), _.field("group_id")).map(_.dropFields(_.prefix == "gm")).get
   private val rsvpTable = Tables.eventRsvps
   private val rsvpTableWithUser = rsvpTable
     .join(Tables.users, _.field("user_id"), _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
@@ -115,6 +120,9 @@ object EventRepoSql {
 
   private[sql] def selectPageAfter(group: Group.Id, now: Instant, params: Page.Params): SelectPage[Event] =
     table.selectPage[Event](params, fr0"WHERE e.group_id=$group AND e.start > $now")
+
+  private[sql] def selectPageIncoming(user: User.Id, now: Instant, params: Page.Params): SelectPage[Event.Full] =
+    tableFullWithMember.selectPage[Event.Full](params, fr0"WHERE gm.user_id=$user AND e.start > $now AND e.published IS NOT NULL")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
     table.select[Seq[Tag]](Seq(Field("tags", "e")), Seq())

@@ -62,6 +62,8 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def list(user: User.Id): IO[Seq[Group]] = selectAll(user).runList(xa)
 
+  override def listJoined(user: User.Id, params: Page.Params): IO[Page[(Group, Group.Member)]] = selectPageJoined(user, params).run(xa)
+
   override def find(user: User.Id, slug: Group.Slug): IO[Option[Group]] = selectOne(user, slug).runOption(xa)
 
   override def find(group: Group.Id): IO[Option[Group]] = selectOne(group).runOption(xa)
@@ -89,7 +91,10 @@ object GroupRepoSql {
   private val _ = groupIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.groups
   private val memberTable = Tables.groupMembers
-  private val memberTableWithUser = Tables.groupMembers.join(Tables.users, _.field("user_id"), _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
+  private val memberTableWithUser = Tables.groupMembers
+    .join(Tables.users, _.field("user_id"), _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
+  private val tableWithMember = table
+    .join(memberTableWithUser, _.field("id"), _.field("group_id")).get
 
   private[sql] def insert(e: Group): Insert[Group] = {
     val values = fr0"${e.id}, ${e.slug}, ${e.name}, ${e.contact}, ${e.description}, ${e.owners}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
@@ -109,6 +114,9 @@ object GroupRepoSql {
 
   private[sql] def selectPageJoinable(user: User.Id, params: Page.Params): SelectPage[Group] =
     table.selectPage[Group](params, fr0"WHERE g.owners NOT LIKE ${"%" + user.value + "%"}")
+
+  private[sql] def selectPageJoined(user: User.Id, params: Page.Params): SelectPage[(Group, Group.Member)] =
+    tableWithMember.selectPage[(Group, Group.Member)](params, fr0"WHERE gm.user_id=$user")
 
   private[sql] def selectAll(user: User.Id): Select[Group] =
     table.select[Group](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"}")
