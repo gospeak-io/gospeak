@@ -43,99 +43,99 @@ class ProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build update for orga, group, cfp and proposal") {
         val q = ProposalRepoSql.update(user.id, group.slug, cfp.slug, proposal.id)(proposal.data, now)
-        check(q, s"UPDATE $table SET p.title=?, p.duration=?, p.description=?, p.slides=?, p.video=?, p.tags=?, p.updated=?, p.updated_by=? WHERE p.id=$whereGroupAndCfp")
+        check(q, s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE p.id=$whereGroupAndCfp")
       }
       it("should build update for speaker, talk and cfp") {
         val q = ProposalRepoSql.update(user.id, talk.slug, cfp.slug)(proposal.data, now)
-        check(q, s"UPDATE $table SET p.title=?, p.duration=?, p.description=?, p.slides=?, p.video=?, p.tags=?, p.updated=?, p.updated_by=? WHERE p.id=$whereCfpAndTalk")
+        check(q, s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE p.id=$whereCfpAndTalk")
       }
       it("should build updateStatus") {
         val q = ProposalRepoSql.updateStatus(cfp.slug, proposal.id)(proposal.status, None)
-        check(q, s"UPDATE $table SET p.status=?, p.event_id=? WHERE p.id=$whereCfp")
+        check(q, s"UPDATE $table SET status=?, event_id=? WHERE p.id=$whereCfp")
       }
       it("should build updateSlides by cfp and proposal") {
         val q = ProposalRepoSql.updateSlides(cfp.slug, proposal.id)(slides, user.id, now)
-        check(q, s"UPDATE $table SET p.slides=?, p.updated=?, p.updated_by=? WHERE p.id=$whereCfp")
+        check(q, s"UPDATE $table SET slides=?, updated=?, updated_by=? WHERE p.id=$whereCfp")
       }
       it("should build updateSlides by speaker, talk and cfp") {
         val q = ProposalRepoSql.updateSlides(user.id, talk.slug, cfp.slug)(slides, user.id, now)
-        check(q, s"UPDATE $table SET p.slides=?, p.updated=?, p.updated_by=? WHERE p.id=$whereCfpAndTalk")
+        check(q, s"UPDATE $table SET slides=?, updated=?, updated_by=? WHERE p.id=$whereCfpAndTalk")
       }
       it("should build updateVideo by cfp and proposal") {
         val q = ProposalRepoSql.updateVideo(cfp.slug, proposal.id)(video, user.id, now)
-        check(q, s"UPDATE $table SET p.video=?, p.updated=?, p.updated_by=? WHERE p.id=$whereCfp")
+        check(q, s"UPDATE $table SET video=?, updated=?, updated_by=? WHERE p.id=$whereCfp")
       }
       it("should build updateVideo by speaker, talk and cfp") {
         val q = ProposalRepoSql.updateVideo(user.id, talk.slug, cfp.slug)(video, user.id, now)
-        check(q, s"UPDATE $table SET p.video=?, p.updated=?, p.updated_by=? WHERE p.id=$whereCfpAndTalk")
+        check(q, s"UPDATE $table SET video=?, updated=?, updated_by=? WHERE p.id=$whereCfpAndTalk")
       }
       it("should build updateSpeakers by id") {
         val q = ProposalRepoSql.updateSpeakers(proposal.id)(proposal.speakers, user.id, now)
-        check(q, s"UPDATE $table SET p.speakers=?, p.updated=?, p.updated_by=? WHERE p.id=?")
+        check(q, s"UPDATE $table SET speakers=?, updated=?, updated_by=? WHERE p.id=?")
       }
       it("should build selectOne for proposal id") {
         val q = ProposalRepoSql.selectOne(proposal.id)
-        check(q, s"SELECT $fields FROM $table WHERE p.id=?")
+        check(q, s"SELECT $fields FROM $table WHERE p.id=? $orderBy")
       }
       it("should build selectOne for cfp and proposal id") {
         val q = ProposalRepoSql.selectOne(cfp.slug, proposal.id)
-        check(q, s"SELECT $fields FROM $table WHERE p.id=$whereCfp")
+        check(q, s"SELECT $fields FROM $table WHERE p.id=$whereCfp $orderBy")
       }
       it("should build selectOne for speaker, talk and cfp") {
         val q = ProposalRepoSql.selectOne(user.id, talk.slug, cfp.slug)
-        check(q, s"SELECT $fields FROM $table WHERE p.id=$whereCfpAndTalk")
+        check(q, s"SELECT $fields FROM $table WHERE p.id=$whereCfpAndTalk $orderBy")
       }
       it("should build selectOneFull for id") {
         val q = ProposalRepoSql.selectOneFull(proposal.id)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.id=?")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.id=? $orderBy")
       }
       it("should build selectOneFull for talk, cfp and speaker") {
         val q = ProposalRepoSql.selectOneFull(talk.slug, cfp.slug, user.id)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE t.slug=? AND c.slug=? AND p.speakers LIKE ?")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE t.slug=? AND c.slug=? AND p.speakers LIKE ? $orderBy")
       }
       it("should build selectOnePublicFull for id") {
         val q = ProposalRepoSql.selectOnePublicFull(group.id, proposal.id)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? AND p.id=? AND e.published IS NOT NULL")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? AND p.id=? AND e.published IS NOT NULL $orderBy")
       }
       it("should build selectPage for a cfp and status") {
         val q = ProposalRepoSql.selectPage(cfp.id, Proposal.Status.Pending, params)
-        check(q, s"SELECT $fields FROM $table WHERE p.cfp_id=? AND p.status=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE p.cfp_id=? AND p.status=? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectPageFull for a cfp") {
         val q = ProposalRepoSql.selectPageFull(cfp.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.cfp_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.cfp_id=? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectPageFull for a group") {
         val q = ProposalRepoSql.selectPageFull(group.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectPageFull for a group and speaker") {
         val q = ProposalRepoSql.selectPageFull(group.id, user.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? AND p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? AND p.speakers LIKE ? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectPageFull for a talk") {
         val q = ProposalRepoSql.selectPageFull(talk.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.talk_id=? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.talk_id=? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectPageFull for a speaker") {
         val q = ProposalRepoSql.selectPageFull(user.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectPagePublicFull for a speaker") {
         val q = ProposalRepoSql.selectPagePublicFull(user.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectPagePublicFull for a group") {
         val q = ProposalRepoSql.selectPagePublicFull(group.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL ORDER BY p.created IS NULL, p.created DESC OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectAll") {
         val q = ProposalRepoSql.selectAll(NonEmptyList.of(proposal.id))
-        check(q, s"SELECT $fields FROM $table WHERE id IN (?) ")
+        check(q, s"SELECT $fields FROM $table WHERE id IN (?)  $orderBy")
       }
       it("should build selectAllPublicFull") {
         val q = ProposalRepoSql.selectAllPublicFull(NonEmptyList.of(proposal.id))
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.id IN (?) AND e.published IS NOT NULL")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.id IN (?) AND e.published IS NOT NULL $orderBy")
       }
       it("should build selectTags") {
         val q = ProposalRepoSql.selectTags()
@@ -151,6 +151,7 @@ object ProposalRepoSqlSpec {
 
   val table = "proposals p"
   val fields: String = mapFields("id, talk_id, cfp_id, event_id, status, title, duration, description, speakers, slides, video, tags, created, created_by, updated, updated_by", "p." + _)
+  val orderBy = "ORDER BY p.created IS NULL, p.created DESC"
 
   private val whereCfp = s"(SELECT p.id FROM $table INNER JOIN $cfpTable ON p.cfp_id=c.id WHERE p.id=? AND c.slug=?)"
   private val whereCfpAndTalk = s"(SELECT p.id FROM $table INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $talkTable ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND p.speakers LIKE ?)"

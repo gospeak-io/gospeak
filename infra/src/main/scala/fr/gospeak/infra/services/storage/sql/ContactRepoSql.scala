@@ -10,8 +10,8 @@ import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.ContactRepo
 import fr.gospeak.infra.services.storage.sql.ContactRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.{Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ContactRepo {
@@ -38,7 +38,7 @@ object ContactRepoSql {
   }
 
   private[sql] def update(contact: Contact.Id, data: Contact.Data)(by: User.Id, now: Instant): Update = {
-    val fields = fr0"ct.first_name=${data.firstName}, ct.last_name=${data.lastName}, ct.email=${data.email}, ct.description=${data.description}, ct.updated=$now, ct.updated_by=$by"
+    val fields = fr0"first_name=${data.firstName}, last_name=${data.lastName}, email=${data.email}, description=${data.description}, updated=$now, updated_by=$by"
     table.update(fields, where(contact))
   }
 

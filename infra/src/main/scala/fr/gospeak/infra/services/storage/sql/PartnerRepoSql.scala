@@ -12,8 +12,8 @@ import fr.gospeak.core.domain.{Group, Partner, User}
 import fr.gospeak.core.services.storage.PartnerRepo
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.{Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page}
 
 class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with PartnerRepo {
@@ -50,7 +50,7 @@ object PartnerRepoSql {
   }
 
   private[sql] def update(group: Group.Id, slug: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"pa.slug=${data.slug}, pa.name=${data.name}, pa.notes=${data.notes}, pa.description=${data.description}, pa.logo=${data.logo}, pa.twitter=${data.twitter}, pa.updated=$now, pa.updated_by=$by"
+    val fields = fr0"slug=${data.slug}, name=${data.name}, notes=${data.notes}, description=${data.description}, logo=${data.logo}, twitter=${data.twitter}, updated=$now, updated_by=$by"
     table.update(fields, where(group, slug))
   }
 
@@ -58,10 +58,10 @@ object PartnerRepoSql {
     table.selectPage[Partner](params, fr0"WHERE pa.group_id=$group")
 
   private[sql] def selectAll(group: Group.Id): Select[Partner] =
-    table.select[Partner](fr"WHERE pa.group_id=$group")
+    table.select[Partner](fr0"WHERE pa.group_id=$group")
 
   private[sql] def selectAll(ids: NonEmptyList[Partner.Id]): Select[Partner] =
-    table.select[Partner](fr"WHERE" ++ Fragments.in(fr"pa.id", ids))
+    table.select[Partner](fr0"WHERE " ++ Fragments.in(fr"pa.id", ids))
 
   private[sql] def selectOne(group: Group.Id, slug: Partner.Slug): Select[Partner] =
     table.select[Partner](where(group, slug))

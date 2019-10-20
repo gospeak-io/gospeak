@@ -58,7 +58,7 @@ class UserRepoSqlSpec extends RepoSpec {
         }
         it("should build updateCredentials") {
           val q = UserRepoSql.updateCredentials(login)(pass)
-          check(q, s"UPDATE $credentialsTable SET cd.hasher=?, cd.password=?, cd.salt=? WHERE cd.provider_id=? AND cd.provider_key=?")
+          check(q, s"UPDATE $credentialsTable SET hasher=?, password=?, salt=? WHERE cd.provider_id=? AND cd.provider_key=?")
         }
         it("should build deleteCredentials") {
           val q = UserRepoSql.deleteCredentials(login)
@@ -75,43 +75,43 @@ class UserRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = UserRepoSql.update(user)
-        check(q, s"UPDATE $table SET u.slug=?, u.first_name=?, u.last_name=?, u.email=?, u.status=?, u.bio=?, u.company=?, u.location=?, u.twitter=?, u.linkedin=?, u.phone=?, u.website=?, u.updated=? WHERE u.id=?")
+        check(q, s"UPDATE $table SET slug=?, first_name=?, last_name=?, email=?, status=?, bio=?, company=?, location=?, twitter=?, linkedin=?, phone=?, website=?, updated=? WHERE u.id=?")
       }
       it("should build validateAccount") {
         val q = UserRepoSql.validateAccount(user.email, now)
-        check(q, s"UPDATE $table SET u.email_validated=? WHERE u.email=?")
+        check(q, s"UPDATE $table SET email_validated=? WHERE u.email=?")
       }
       it("should build selectOne with login") {
         val q = UserRepoSql.selectOne(login)
-        check(q, s"SELECT $fields FROM $tableWithLogin WHERE lg.provider_id=? AND lg.provider_key=?")
+        check(q, s"SELECT $fields FROM $tableWithLogin WHERE lg.provider_id=? AND lg.provider_key=? $orderBy")
       }
       it("should build selectOne with email") {
         val q = UserRepoSql.selectOne(user.email)
-        check(q, s"SELECT $fields FROM $table WHERE u.email=?")
+        check(q, s"SELECT $fields FROM $table WHERE u.email=? $orderBy")
       }
       it("should build selectOne with slug") {
         val q = UserRepoSql.selectOne(user.slug)
-        check(q, s"SELECT $fields FROM $table WHERE u.slug=?")
+        check(q, s"SELECT $fields FROM $table WHERE u.slug=? $orderBy")
       }
       it("should build selectOne with id") {
         val q = UserRepoSql.selectOne(user.id)
-        check(q, s"SELECT $fields FROM $table WHERE u.id=?")
+        check(q, s"SELECT $fields FROM $table WHERE u.id=? $orderBy")
       }
       it("should build selectOnePublic with slug") {
         val q = UserRepoSql.selectOnePublic(user.slug)
-        check(q, s"SELECT $fields FROM $table WHERE u.status=? AND u.slug=?")
+        check(q, s"SELECT $fields FROM $table WHERE u.status=? AND u.slug=? $orderBy")
       }
       it("should build selectPagePublic") {
         val q = UserRepoSql.selectPagePublic(params)
-        check(q, s"SELECT $fields FROM $table WHERE u.status=?  ORDER BY u.first_name IS NULL, u.first_name OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE u.status=? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectPage") {
         val q = UserRepoSql.selectPage(NonEmptyList.of(user.id), params)
-        check(q, s"SELECT $fields FROM $table WHERE u.id IN (?)  ORDER BY u.first_name IS NULL, u.first_name OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE u.id IN (?)  $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectAll with ids") {
         val q = UserRepoSql.selectAll(NonEmptyList.of(user.id, user.id))
-        check(q, s"SELECT $fields FROM $table WHERE u.id IN (?, ?) ")
+        check(q, s"SELECT $fields FROM $table WHERE u.id IN (?, ?)  $orderBy")
       }
     }
   }
@@ -126,6 +126,7 @@ object UserRepoSqlSpec {
 
   val table = "users u"
   val fields: String = mapFields("id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, status, bio, company, location, twitter, linkedin, phone, website, created, updated", "u." + _)
+  val orderBy = "ORDER BY u.first_name IS NULL, u.first_name"
 
   val tableWithLogin = s"$table INNER JOIN $loginsTable ON u.id=lg.user_id"
 }

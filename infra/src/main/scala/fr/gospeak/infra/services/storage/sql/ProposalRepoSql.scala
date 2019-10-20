@@ -12,8 +12,8 @@ import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.ProposalRepo
 import fr.gospeak.infra.services.storage.sql.ProposalRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
 
@@ -135,32 +135,32 @@ object ProposalRepoSql {
   }
 
   private[sql] def update(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.Data, now: Instant): Update = {
-    val fields = fr0"p.title=${data.title}, p.duration=${data.duration}, p.description=${data.description}, p.slides=${data.slides}, p.video=${data.video}, p.tags=${data.tags}, p.updated=$now, p.updated_by=$orga"
+    val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$orga"
     table.update(fields, where(orga, group, cfp, proposal))
   }
 
   private[sql] def update(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): Update = {
-    val fields = fr0"p.title=${data.title}, p.duration=${data.duration}, p.description=${data.description}, p.slides=${data.slides}, p.video=${data.video}, p.tags=${data.tags}, p.updated=$now, p.updated_by=$speaker"
+    val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$speaker"
     table.update(fields, where(speaker, talk, cfp))
   }
 
   private[sql] def updateStatus(cfp: Cfp.Slug, id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): Update =
-    table.update(fr0"p.status=$status, p.event_id=$event", where(cfp, id))
+    table.update(fr0"status=$status, event_id=$event", where(cfp, id))
 
   private[sql] def updateSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Slides, by: User.Id, now: Instant): Update =
-    table.update(fr0"p.slides=$slides, p.updated=$now, p.updated_by=$by", where(cfp, id))
+    table.update(fr0"slides=$slides, updated=$now, updated_by=$by", where(cfp, id))
 
   private[sql] def updateSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, by: User.Id, now: Instant): Update =
-    table.update(fr0"p.slides=$slides, p.updated=$now, p.updated_by=$by", where(speaker, talk, cfp))
+    table.update(fr0"slides=$slides, updated=$now, updated_by=$by", where(speaker, talk, cfp))
 
   private[sql] def updateVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, by: User.Id, now: Instant): Update =
-    table.update(fr0"p.video=$video, p.updated=$now, p.updated_by=$by", where(cfp, id))
+    table.update(fr0"video=$video, updated=$now, updated_by=$by", where(cfp, id))
 
   private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, by: User.Id, now: Instant): Update =
-    table.update(fr0"p.video=$video, p.updated=$now, p.updated_by=$by", where(speaker, talk, cfp))
+    table.update(fr0"video=$video, updated=$now, updated_by=$by", where(speaker, talk, cfp))
 
   private[sql] def updateSpeakers(id: Proposal.Id)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
-    table.update(fr0"p.speakers=$speakers, p.updated=$now, p.updated_by=$by", fr0"WHERE p.id=$id")
+    table.update(fr0"speakers=$speakers, updated=$now, updated_by=$by", fr0"WHERE p.id=$id")
 
   private[sql] def selectOne(id: Proposal.Id): Select[Proposal] =
     table.select[Proposal](where(id))
@@ -205,29 +205,29 @@ object ProposalRepoSql {
     tableFull.selectPage[Proposal.Full](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")
 
   private[sql] def selectAll(ids: NonEmptyList[Proposal.Id]): Select[Proposal] =
-    table.select[Proposal](fr"WHERE" ++ Fragments.in(fr"id", ids))
+    table.select[Proposal](fr0"WHERE " ++ Fragments.in(fr"id", ids))
 
   private[sql] def selectAllPublicFull(ids: NonEmptyList[Proposal.Id]): Select[Proposal.Full] =
-    tableFull.select[Proposal.Full](fr"WHERE" ++ Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
+    tableFull.select[Proposal.Full](fr0"WHERE " ++ Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "p")))
+    table.select[Seq[Tag]](Seq(Field("tags", "p")), Seq())
 
   private def where(id: Proposal.Id): Fragment =
     fr0"WHERE p.id=$id"
 
   private def where(cfp: Cfp.Slug, id: Proposal.Id): Fragment =
     fr0"WHERE p.id=(SELECT p.id FROM " ++
-      Fragment.const0(s"${table.name} INNER JOIN ${Tables.cfps.name} ON p.cfp_id=c.id ") ++
-      fr0"WHERE p.id=$id AND c.slug=$cfp" ++ fr0")"
+      Fragment.const0(s"${table.value} INNER JOIN ${Tables.cfps.value} ON p.cfp_id=c.id") ++
+      fr0" WHERE p.id=$id AND c.slug=$cfp" ++ fr0")"
 
   private def where(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Fragment =
     fr0"WHERE p.id=(SELECT p.id FROM " ++
-      Fragment.const0(s"${table.name} INNER JOIN ${Tables.cfps.name} ON p.cfp_id=c.id INNER JOIN ${Tables.groups.name} ON c.group_id=g.id ") ++
-      fr0"WHERE p.id=$proposal AND c.slug=$cfp AND g.slug=$group AND g.owners LIKE ${"%" + orga.value + "%"}" ++ fr0")"
+      Fragment.const0(s"${table.value} INNER JOIN ${Tables.cfps.value} ON p.cfp_id=c.id INNER JOIN ${Tables.groups.value} ON c.group_id=g.id") ++
+      fr0" WHERE p.id=$proposal AND c.slug=$cfp AND g.slug=$group AND g.owners LIKE ${"%" + orga.value + "%"}" ++ fr0")"
 
   private def where(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Fragment =
     fr0"WHERE p.id=(SELECT p.id FROM " ++
-      Fragment.const0(s"${table.name} INNER JOIN ${Tables.cfps.name} ON p.cfp_id=c.id INNER JOIN ${Tables.talks.name} ON p.talk_id=t.id ") ++
-      fr0"WHERE c.slug=$cfp AND t.slug=$talk AND p.speakers LIKE ${"%" + speaker.value + "%"}" ++ fr0")"
+      Fragment.const0(s"${table.value} INNER JOIN ${Tables.cfps.value} ON p.cfp_id=c.id INNER JOIN ${Tables.talks.value} ON p.talk_id=t.id") ++
+      fr0" WHERE c.slug=$cfp AND t.slug=$talk AND p.speakers LIKE ${"%" + speaker.value + "%"}" ++ fr0")"
 }

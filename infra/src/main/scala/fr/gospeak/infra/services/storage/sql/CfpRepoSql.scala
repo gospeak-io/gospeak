@@ -12,8 +12,8 @@ import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.CfpRepo
 import fr.gospeak.infra.services.storage.sql.CfpRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
 
@@ -68,7 +68,7 @@ object CfpRepoSql {
   }
 
   private[sql] def update(group: Group.Id, slug: Cfp.Slug)(data: Cfp.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"c.slug=${data.slug}, c.name=${data.name}, c.begin=${data.begin}, c.close=${data.close}, c.description=${data.description}, c.tags=${data.tags}, c.updated=$now, c.updated_by=$by"
+    val fields = fr0"slug=${data.slug}, name=${data.name}, begin=${data.begin}, close=${data.close}, description=${data.description}, tags=${data.tags}, updated=$now, updated_by=$by"
     table.update(fields, where(group, slug))
   }
 
@@ -91,7 +91,7 @@ object CfpRepoSql {
     table.selectPage[Cfp](params, fr0"WHERE c.group_id=$group")
 
   private[sql] def selectPage(talk: Talk.Id, params: Page.Params): SelectPage[Cfp] = {
-    val talkCfps = Tables.proposals.select(Seq(Field("cfp_id", "p")), fr0"WHERE p.talk_id=$talk")
+    val talkCfps = Tables.proposals.select(Seq(Field("cfp_id", "p")), fr0"WHERE p.talk_id=$talk", Seq())
     table.selectPage[Cfp](params, fr0"WHERE c.id NOT IN (" ++ talkCfps.fr ++ fr0")")
   }
 
@@ -102,13 +102,13 @@ object CfpRepoSql {
     table.select[Cfp](fr0"WHERE c.group_id=$group")
 
   private[sql] def selectAll(ids: NonEmptyList[Cfp.Id]): Select[Cfp] =
-    table.select[Cfp](fr"WHERE" ++ Fragments.in(fr"c.id", ids))
+    table.select[Cfp](fr0"WHERE " ++ Fragments.in(fr"c.id", ids))
 
   private[sql] def selectAll(group: Group.Id, now: Instant): Select[Cfp] =
     table.select[Cfp](where(group, now))
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "c")))
+    table.select[Seq[Tag]](Seq(Field("tags", "c")), Seq())
 
   private def where(group: Group.Id, slug: Cfp.Slug): Fragment =
     fr0"WHERE c.group_id=$group AND c.slug=$slug"

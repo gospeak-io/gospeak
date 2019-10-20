@@ -43,51 +43,51 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = CfpRepoSql.update(group.id, cfp.slug)(cfpData1, user.id, now)
-        check(q, s"UPDATE $table SET c.slug=?, c.name=?, c.begin=?, c.close=?, c.description=?, c.tags=?, c.updated=?, c.updated_by=? WHERE c.group_id=? AND c.slug=?")
+        check(q, s"UPDATE $table SET slug=?, name=?, begin=?, close=?, description=?, tags=?, updated=?, updated_by=? WHERE c.group_id=? AND c.slug=?")
       }
       it("should build selectOne for cfp id") {
         val q = CfpRepoSql.selectOne(cfp.id)
-        check(q, s"SELECT $fields FROM $table WHERE c.id=?")
+        check(q, s"SELECT $fields FROM $table WHERE c.id=? $orderBy")
       }
       it("should build selectOne for cfp slug") {
         val q = CfpRepoSql.selectOne(cfp.slug)
-        check(q, s"SELECT $fields FROM $table WHERE c.slug=?")
+        check(q, s"SELECT $fields FROM $table WHERE c.slug=? $orderBy")
       }
       it("should build selectOne for group id and cfp slug") {
         val q = CfpRepoSql.selectOne(group.id, cfp.slug)
-        check(q, s"SELECT $fields FROM $table WHERE c.group_id=? AND c.slug=?")
+        check(q, s"SELECT $fields FROM $table WHERE c.group_id=? AND c.slug=? $orderBy")
       }
       it("should build selectOne for event id") {
         val q = CfpRepoSql.selectOne(event.id)
-        check(q, s"SELECT $fields FROM $table INNER JOIN $eventTable ON c.id=e.cfp_id WHERE e.id=?")
+        check(q, s"SELECT $fields FROM $table INNER JOIN $eventTable ON c.id=e.cfp_id WHERE e.id=? $orderBy")
       }
       it("should build selectOne for cfp slug id and date") {
         val q = CfpRepoSql.selectOne(cfp.slug, now)
-        check(q, s"SELECT $fields FROM $table WHERE (c.begin IS NULL OR c.begin < ?) AND (c.close IS NULL OR c.close > ?) AND c.slug=?")
+        check(q, s"SELECT $fields FROM $table WHERE (c.begin IS NULL OR c.begin < ?) AND (c.close IS NULL OR c.close > ?) AND c.slug=? $orderBy")
       }
       it("should build selectPage for a group") {
         val q = CfpRepoSql.selectPage(group.id, params)
-        check(q, s"SELECT $fields FROM $table WHERE c.group_id=? ORDER BY c.close IS NULL, c.close DESC, c.name IS NULL, c.name OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE c.group_id=? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectPage for a talk") {
         val q = CfpRepoSql.selectPage(talk.id, params)
-        check(q, s"SELECT $fields FROM $table WHERE c.id NOT IN (SELECT p.cfp_id FROM proposals p WHERE p.talk_id=?) ORDER BY c.close IS NULL, c.close DESC, c.name IS NULL, c.name OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE c.id NOT IN (SELECT p.cfp_id FROM proposals p WHERE p.talk_id=?) $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectPage for a date") {
         val q = CfpRepoSql.selectPage(now, params)
-        check(q, s"SELECT $fields FROM $table WHERE (c.begin IS NULL OR c.begin < ?) AND (c.close IS NULL OR c.close > ?) ORDER BY c.close IS NULL, c.close DESC, c.name IS NULL, c.name OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE (c.begin IS NULL OR c.begin < ?) AND (c.close IS NULL OR c.close > ?) $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectAll for group id") {
         val q = CfpRepoSql.selectAll(group.id)
-        check(q, s"SELECT $fields FROM $table WHERE c.group_id=?")
+        check(q, s"SELECT $fields FROM $table WHERE c.group_id=? $orderBy")
       }
       it("should build selectAll for cfp ids") {
         val q = CfpRepoSql.selectAll(NonEmptyList.of(cfp.id, cfp.id, cfp.id))
-        check(q, s"SELECT $fields FROM $table WHERE c.id IN (?, ?, ?) ")
+        check(q, s"SELECT $fields FROM $table WHERE c.id IN (?, ?, ?)  $orderBy")
       }
       it("should build selectAll for group and date") {
         val q = CfpRepoSql.selectAll(group.id, now)
-        check(q, s"SELECT $fields FROM $table WHERE (c.begin IS NULL OR c.begin < ?) AND (c.close IS NULL OR c.close > ?) AND c.group_id=?")
+        check(q, s"SELECT $fields FROM $table WHERE (c.begin IS NULL OR c.begin < ?) AND (c.close IS NULL OR c.close > ?) AND c.group_id=? $orderBy")
       }
       it("should build selectTags") {
         val q = CfpRepoSql.selectTags()
@@ -100,4 +100,5 @@ class CfpRepoSqlSpec extends RepoSpec {
 object CfpRepoSqlSpec {
   val table = "cfps c"
   val fields: String = mapFields("id, group_id, slug, name, begin, close, description, tags, created, created_by, updated, updated_by", "c." + _)
+  val orderBy = "ORDER BY c.close IS NULL, c.close DESC, c.name IS NULL, c.name"
 }

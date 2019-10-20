@@ -9,9 +9,9 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.SponsorRepo
 import fr.gospeak.infra.services.storage.sql.SponsorRepoSql._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update, orderByFragment}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
@@ -49,7 +49,7 @@ object SponsorRepoSql {
   }
 
   private[sql] def update(group: Group.Id, sponsor: Sponsor.Id)(data: Sponsor.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"s.partner_id=${data.partner}, s.sponsor_pack_id=${data.pack}, s.contact_id=${data.contact}, s.start=${data.start}, s.finish=${data.finish}, s.paid=${data.paid}, s.price=${data.price.amount}, s.currency=${data.price.currency}, s.updated=$now, s.updated_by=$by"
+    val fields = fr0"partner_id=${data.partner}, sponsor_pack_id=${data.pack}, contact_id=${data.contact}, start=${data.start}, finish=${data.finish}, paid=${data.paid}, price=${data.price.amount}, currency=${data.price.currency}, updated=$now, updated_by=$by"
     table.update(fields, where(group, sponsor))
   }
 
@@ -69,7 +69,7 @@ object SponsorRepoSql {
     table.select[Sponsor](fr0"WHERE s.group_id=$group")
 
   private[sql] def selectAllFull(group: Group.Id, partner: Partner.Id): Select[Sponsor.Full] =
-    tableFull.select[Sponsor.Full](fr"WHERE s.group_id=$group AND s.partner_id=$partner" ++ orderByFragment(Page.OrderBy("-start"), Some("s")))
+    tableFull.select[Sponsor.Full](fr0"WHERE s.group_id=$group AND s.partner_id=$partner")
 
   private def where(group: Group.Id, sponsor: Sponsor.Id): Fragment =
     fr0"WHERE s.group_id=$group AND s.id=$sponsor"

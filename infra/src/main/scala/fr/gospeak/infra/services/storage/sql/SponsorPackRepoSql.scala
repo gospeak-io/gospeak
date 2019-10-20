@@ -12,8 +12,8 @@ import fr.gospeak.core.domain.{Group, SponsorPack, User}
 import fr.gospeak.core.services.storage.SponsorPackRepo
 import fr.gospeak.infra.services.storage.sql.SponsorPackRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.{Insert, Select, Update}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Insert, Select, Update}
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done}
 
 class SponsorPackRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SponsorPackRepo {
@@ -56,18 +56,18 @@ object SponsorPackRepoSql {
   }
 
   private[sql] def update(group: Group.Id, pack: SponsorPack.Slug)(data: SponsorPack.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"sp.slug=${data.slug}, sp.name=${data.name}, sp.description=${data.description}, sp.price=${data.price.amount}, sp.currency=${data.price.currency}, sp.duration=${data.duration}, sp.updated=$now, sp.updated_by=$by"
+    val fields = fr0"slug=${data.slug}, name=${data.name}, description=${data.description}, price=${data.price.amount}, currency=${data.price.currency}, duration=${data.duration}, updated=$now, updated_by=$by"
     table.update(fields, where(group, pack))
   }
 
   private[sql] def setActive(group: Group.Id, pack: SponsorPack.Slug)(active: Boolean, by: User.Id, now: Instant): Update =
-    table.update(fr0"sp.active=$active, sp.updated=$now, sp.updated_by=$by", where(group, pack))
+    table.update(fr0"active=$active, updated=$now, updated_by=$by", where(group, pack))
 
   private[sql] def selectOne(group: Group.Id, pack: SponsorPack.Slug): Select[SponsorPack] =
     table.select[SponsorPack](where(group, pack))
 
   private[sql] def selectAll(ids: NonEmptyList[SponsorPack.Id]): Select[SponsorPack] =
-    table.select[SponsorPack](fr"WHERE" ++ Fragments.in(fr"sp.id", ids))
+    table.select[SponsorPack](fr0"WHERE " ++ Fragments.in(fr"sp.id", ids))
 
   private[sql] def selectAll(group: Group.Id): Select[SponsorPack] =
     table.select[SponsorPack](where(group))

@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services.storage.sql
 
-import fr.gospeak.infra.utils.DoobieUtils.Table
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Table
 import fr.gospeak.libs.scalautils.Extensions._
 
 object Tables {
@@ -112,7 +112,7 @@ object Tables {
   val groupMembers: Table = Table.from(
     name = "group_members",
     prefix = "gm",
-    fields = Seq("group_id", "user_id", "role", "presentation", "joined_at"),
+    fields = Seq("group_id", "user_id", "role", "presentation", "joined_at", "leaved_at"),
     sort = Seq("joined_at"),
     search = Seq("role", "presentation")).get
 

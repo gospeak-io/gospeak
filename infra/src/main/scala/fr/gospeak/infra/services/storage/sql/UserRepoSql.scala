@@ -10,8 +10,8 @@ import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.UserRepo
 import fr.gospeak.infra.services.storage.sql.UserRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
@@ -55,9 +55,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   // FIXME should be done in only one query: joining on speakers array or splitting speakers string
   override def speakers(group: Group.Id, params: Page.Params): IO[Page[User]] = {
-    val speakerIdsQuery = Tables.proposals
-      .join(Tables.cfps, _.field("cfp_id"), _.field("id")).get
-      .select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group")
+    val speakerIdsQuery = proposalsWithCfps.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group")
     for {
       speakerIds <- speakerIdsQuery.runList(xa).map(_.flatMap(_.toList).distinct)
       res <- NonEmptyList.fromList(speakerIds).map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User]))
@@ -75,6 +73,7 @@ object UserRepoSql {
   private val credentialsTable = Tables.credentials
   private val loginsTable = Tables.logins
   private val tableWithLogin = table.join(loginsTable, _.field("id"), _.field("user_id")).get
+  private val proposalsWithCfps = Tables.proposals.join(Tables.cfps, _.field("cfp_id"), _.field("id")).get
 
   private[sql] def insert(e: User): Insert[User] = {
     val values = fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.profile.status}, ${e.profile.bio}, ${e.profile.company}, ${e.profile.location}, ${e.profile.twitter}, ${e.profile.linkedin}, ${e.profile.phone}, ${e.profile.website}, ${e.created}, ${e.updated}"
@@ -82,12 +81,12 @@ object UserRepoSql {
   }
 
   private[sql] def update(elt: User): Update = {
-    val fields = fr0"u.slug=${elt.slug}, u.first_name=${elt.firstName}, u.last_name=${elt.lastName}, u.email=${elt.email}, u.status=${elt.profile.status}, u.bio=${elt.profile.bio}, u.company=${elt.profile.company}, u.location=${elt.profile.location}, u.twitter=${elt.profile.twitter}, u.linkedin=${elt.profile.linkedin}, u.phone=${elt.profile.phone}, u.website=${elt.profile.website}, u.updated=${elt.updated}"
+    val fields = fr0"slug=${elt.slug}, first_name=${elt.firstName}, last_name=${elt.lastName}, email=${elt.email}, status=${elt.profile.status}, bio=${elt.profile.bio}, company=${elt.profile.company}, location=${elt.profile.location}, twitter=${elt.profile.twitter}, linkedin=${elt.profile.linkedin}, phone=${elt.profile.phone}, website=${elt.profile.website}, updated=${elt.updated}"
     table.update(fields, fr0"WHERE u.id=${elt.id}")
   }
 
   private[sql] def validateAccount(email: EmailAddress, now: Instant): Update =
-    table.update(fr0"u.email_validated=$now", fr0"WHERE u.email=$email")
+    table.update(fr0"email_validated=$now", fr0"WHERE u.email=$email")
 
   private[sql] def insertLoginRef(i: User.LoginRef): Insert[User.LoginRef] =
     loginsTable.insert[User.LoginRef](i, _ => fr0"${i.login.providerId}, ${i.login.providerKey}, ${i.user}")
@@ -96,7 +95,7 @@ object UserRepoSql {
     credentialsTable.insert[User.Credentials](i, _ => fr0"${i.login.providerId}, ${i.login.providerKey}, ${i.pass.hasher}, ${i.pass.password}, ${i.pass.salt}")
 
   private[sql] def updateCredentials(login: User.Login)(pass: User.Password): Update = {
-    val fields = fr0"cd.hasher=${pass.hasher}, cd.password=${pass.password}, cd.salt=${pass.salt}"
+    val fields = fr0"hasher=${pass.hasher}, password=${pass.password}, salt=${pass.salt}"
     val where = fr0"WHERE cd.provider_id=${login.providerId} AND cd.provider_key=${login.providerKey}"
     credentialsTable.update(fields, where)
   }
@@ -132,12 +131,12 @@ object UserRepoSql {
 
   private[sql] def selectPagePublic(params: Page.Params): SelectPage[User] = {
     val public: User.Profile.Status = User.Profile.Status.Public
-    table.selectPage[User](params, fr"WHERE u.status=$public")
+    table.selectPage[User](params, fr0"WHERE u.status=$public")
   }
 
   private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params): SelectPage[User] =
-    table.selectPage[User](params, fr"WHERE" ++ Fragments.in(fr"u.id", ids))
+    table.selectPage[User](params, fr0"WHERE " ++ Fragments.in(fr"u.id", ids))
 
   private[sql] def selectAll(ids: NonEmptyList[User.Id]): Select[User] =
-    table.select[User](fr"WHERE" ++ Fragments.in(fr"u.id", ids))
+    table.select[User](fr0"WHERE " ++ Fragments.in(fr"u.id", ids))
 }

@@ -57,47 +57,47 @@ class TalkRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = TalkRepoSql.update(talk.slug)(talkData1, user.id, now)
-        check(q, s"UPDATE $table SET t.slug=?, t.title=?, t.duration=?, t.description=?, t.slides=?, t.video=?, t.tags=?, t.updated=?, t.updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
+        check(q, s"UPDATE $table SET slug=?, title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
       }
       it("should build updateStatus") {
         val q = TalkRepoSql.updateStatus(talk.slug)(Talk.Status.Public, user.id)
-        check(q, s"UPDATE $table SET t.status=? WHERE t.speakers LIKE ? AND t.slug=?")
+        check(q, s"UPDATE $table SET status=? WHERE t.speakers LIKE ? AND t.slug=?")
       }
       it("should build updateSlides") {
         val q = TalkRepoSql.updateSlides(talk.slug)(slides, user.id, now)
-        check(q, s"UPDATE $table SET t.slides=?, t.updated=?, t.updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
+        check(q, s"UPDATE $table SET slides=?, updated=?, updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
       }
       it("should build updateVideo") {
         val q = TalkRepoSql.updateVideo(talk.slug)(video, user.id, now)
-        check(q, s"UPDATE $table SET t.video=?, t.updated=?, t.updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
+        check(q, s"UPDATE $table SET video=?, updated=?, updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
       }
       it("should build updateSpeakers") {
         val q = TalkRepoSql.updateSpeakers(talk.slug)(talk.speakers, user.id, now)
-        check(q, s"UPDATE $table SET t.speakers=?, t.updated=?, t.updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
+        check(q, s"UPDATE $table SET speakers=?, updated=?, updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
       }
       it("should build selectOne by id") {
         val q = TalkRepoSql.selectOne(talk.id)
-        check(q, s"SELECT $fields FROM $table WHERE t.id=?")
+        check(q, s"SELECT $fields FROM $table WHERE t.id=? $orderBy")
       }
       it("should build selectOne by slug") {
         val q = TalkRepoSql.selectOne(talk.slug)
-        check(q, s"SELECT $fields FROM $table WHERE t.slug=?")
+        check(q, s"SELECT $fields FROM $table WHERE t.slug=? $orderBy")
       }
       it("should build selectOne by user and slug") {
         val q = TalkRepoSql.selectOne(user.id, talk.slug)
-        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.slug=?")
+        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.slug=? $orderBy")
       }
       it("should build selectPage for user") {
         val q = TalkRepoSql.selectPage(user.id, params)
-        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? ORDER BY t.title IS NULL, t.title OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectPage for user and status") {
         val q = TalkRepoSql.selectPage(user.id, talk.status, params)
-        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.status=? ORDER BY t.title IS NULL, t.title OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.status=? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectPage for user, cfp and status") {
         val q = TalkRepoSql.selectPage(user.id, cfp.id, Talk.Status.active, params)
-        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.id NOT IN (SELECT p.talk_id FROM $proposalTable WHERE p.cfp_id=?) AND t.status IN (?, ?, ?, ?)  ORDER BY t.title IS NULL, t.title OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.id NOT IN (SELECT p.talk_id FROM $proposalTable WHERE p.cfp_id=?) AND t.status IN (?, ?, ?, ?)  $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectTags") {
         val q = TalkRepoSql.selectTags()
@@ -110,4 +110,5 @@ class TalkRepoSqlSpec extends RepoSpec {
 object TalkRepoSqlSpec {
   val table = "talks t"
   val fields: String = mapFields("id, slug, status, title, duration, description, speakers, slides, video, tags, created, created_by, updated, updated_by", "t." + _)
+  val orderBy = "ORDER BY t.title IS NULL, t.title"
 }

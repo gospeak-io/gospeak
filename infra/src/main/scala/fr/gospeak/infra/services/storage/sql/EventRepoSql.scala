@@ -13,8 +13,8 @@ import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.EventRepo
 import fr.gospeak.infra.services.storage.sql.EventRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
 
@@ -58,6 +58,8 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]] = selectPageAfter(group, now.truncatedTo(ChronoUnit.DAYS), params).run(xa)
 
+  override def listIncoming(params: Page.Params)(user: User.Id, now: Instant): IO[Page[Event.Full]] = selectPageIncoming(user, now, params).run(xa)
+
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 }
 
@@ -69,6 +71,9 @@ object EventRepoSql {
   private val tableFull = tableWithVenue
     .joinOpt(Tables.partners, _.field("partner_id", "v"), _.field("id")).get
     .joinOpt(Tables.contacts, _.field("contact_id", "v"), _.field("id")).get
+    .join(Tables.groups, _.field("group_id", "e"), _.field("id")).get
+  private val tableFullWithMember = tableFull
+    .join(Tables.groupMembers, _.field("id", "g"), _.field("group_id")).map(_.dropFields(_.prefix == "gm")).get
   private val rsvpTable = Tables.eventRsvps
   private val rsvpTableWithUser = rsvpTable
     .join(Tables.users, _.field("user_id"), _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
@@ -79,18 +84,18 @@ object EventRepoSql {
   }
 
   private[sql] def update(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"e.cfp_id=${data.cfp}, e.slug=${data.slug}, e.name=${data.name}, e.start=${data.start}, e.max_attendee=${data.maxAttendee}, e.description=${data.description}, e.venue=${data.venue}, e.tags=${data.tags}, e.meetupGroup=${data.refs.meetup.map(_.group)}, e.meetupEvent=${data.refs.meetup.map(_.event)}, e.updated=$now, e.updated_by=$by"
+    val fields = fr0"cfp_id=${data.cfp}, slug=${data.slug}, name=${data.name}, start=${data.start}, max_attendee=${data.maxAttendee}, description=${data.description}, venue=${data.venue}, tags=${data.tags}, meetupGroup=${data.refs.meetup.map(_.group)}, meetupEvent=${data.refs.meetup.map(_.event)}, updated=$now, updated_by=$by"
     table.update(fields, where(group, event))
   }
 
   private[sql] def updateCfp(group: Group.Id, event: Event.Slug)(cfp: Cfp.Id, by: User.Id, now: Instant): Update =
-    table.update(fr0"e.cfp_id=$cfp, e.updated=$now, e.updated_by=$by", where(group, event))
+    table.update(fr0"cfp_id=$cfp, updated=$now, updated_by=$by", where(group, event))
 
   private[sql] def updateTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): Update =
-    table.update(fr0"e.talks=$talks, e.updated=$now, e.updated_by=$by", where(group, event))
+    table.update(fr0"talks=$talks, updated=$now, updated_by=$by", where(group, event))
 
   private[sql] def updatePublished(group: Group.Id, event: Event.Slug)(by: User.Id, now: Instant): Update =
-    table.update(fr0"e.published=$now, e.updated=$now, e.updated_by=$by", where(group, event))
+    table.update(fr0"published=$now, updated=$now, updated_by=$by", where(group, event))
 
   private[sql] def selectOne(group: Group.Id, event: Event.Slug): Select[Event] =
     table.select[Event](where(group, event))
@@ -105,19 +110,22 @@ object EventRepoSql {
     tableFull.selectPage[Event.Full](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")
 
   private[sql] def selectAll(ids: NonEmptyList[Event.Id]): Select[Event] =
-    table.select[Event](fr"WHERE" ++ Fragments.in(fr"e.id", ids))
+    table.select[Event](fr0"WHERE " ++ Fragments.in(fr"e.id", ids))
 
   private[sql] def selectAll(group: Group.Id, venue: Venue.Id): Select[Event] =
-    table.select[Event](fr"WHERE e.group_id=$group AND e.venue=$venue")
+    table.select[Event](fr0"WHERE e.group_id=$group AND e.venue=$venue")
 
   private[sql] def selectAll(group: Group.Id, partner: Partner.Id): Select[(Event, Venue)] =
-    tableWithVenue.select[(Event, Venue)](fr"WHERE e.group_id=$group AND v.partner_id=$partner")
+    tableWithVenue.select[(Event, Venue)](fr0"WHERE e.group_id=$group AND v.partner_id=$partner")
 
   private[sql] def selectPageAfter(group: Group.Id, now: Instant, params: Page.Params): SelectPage[Event] =
     table.selectPage[Event](params, fr0"WHERE e.group_id=$group AND e.start > $now")
 
+  private[sql] def selectPageIncoming(user: User.Id, now: Instant, params: Page.Params): SelectPage[Event.Full] =
+    tableFullWithMember.selectPage[Event.Full](params, fr0"WHERE gm.user_id=$user AND e.start > $now AND e.published IS NOT NULL")
+
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "e")))
+    table.select[Seq[Tag]](Seq(Field("tags", "e")), Seq())
 
   private def where(group: Group.Id, event: Event.Slug): Fragment = fr0"WHERE e.group_id=$group AND e.slug=$event"
 

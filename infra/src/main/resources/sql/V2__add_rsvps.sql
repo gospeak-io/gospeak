@@ -8,6 +8,7 @@ CREATE TABLE group_members
     role         VARCHAR(10) NOT NULL, -- Owner, Member
     presentation VARCHAR(4096),
     joined_at    TIMESTAMP   NOT NULL,
+    leaved_at    TIMESTAMP,
     PRIMARY KEY (group_id, user_id)
 );
 
