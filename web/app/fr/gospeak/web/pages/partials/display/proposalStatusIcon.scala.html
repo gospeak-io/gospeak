@@ -2,12 +2,12 @@
 @(s: Proposal.Status)
 @s match {
     case Proposal.Status.Pending => {
-        <span class="text-primary" title="@s.toString"><i class="fas fa-clock"></i></span>
+        <span class="text-primary" title="@s.value"><i class="fas fa-clock"></i></span>
     }
     case Proposal.Status.Accepted => {
-        <span class="text-success" title="@s.toString"><i class="fas fa-check"></i></span>
+        <span class="text-success" title="@s.value"><i class="fas fa-check"></i></span>
     }
     case Proposal.Status.Declined => {
-        <span class="text-danger" title="@s.toString"><i class="far fa-times-circle"></i></span>
+        <span class="text-danger" title="@s.value"><i class="far fa-times-circle"></i></span>
     }
 }

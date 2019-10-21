@@ -10,6 +10,7 @@ import fr.gospeak.infra.libs.meetup.domain._
 import fr.gospeak.infra.services.meetup.MeetupSrvImpl._
 import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.TimeUtils
 import fr.gospeak.libs.scalautils.domain.{Avatar, CustomException, Markdown, Url}
 
 import scala.util.Try
@@ -90,7 +91,7 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
     MeetupEvent.Create(
       name = event.name.value,
       description = toSimpleHtml(description),
-      time = toInstant(event.start, venue.map(_.address.timezone).getOrElse(ZoneOffset.UTC)).toEpochMilli,
+      time = TimeUtils.toInstant(event.start, venue.map(_.address.timezone).getOrElse(ZoneOffset.UTC)).toEpochMilli,
       publish_status = if (isDraft) "draft" else "published",
       announce = !isDraft,
       // duration = 10800000,
@@ -136,8 +137,6 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
       link = link,
       city = group.city,
       country = group.country)
-
-  private def toInstant(date: LocalDateTime, zone: ZoneId): Instant = date.toInstant(zone.getRules.getOffset(date))
 }
 
 object MeetupSrvImpl {

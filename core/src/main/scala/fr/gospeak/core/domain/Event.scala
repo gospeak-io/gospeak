@@ -2,9 +2,10 @@ package fr.gospeak.core.domain
 
 import java.time.{Instant, LocalDateTime}
 
-import fr.gospeak.core.domain.utils.{Info, TemplateData}
+import fr.gospeak.core.domain.utils.{Constants, Info, TemplateData}
 import fr.gospeak.core.services.meetup.domain.MeetupEvent
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.TimeUtils
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain._
 
@@ -57,9 +58,11 @@ object Event {
 
   object Rsvp {
 
-    sealed trait Answer
+    sealed trait Answer extends StringEnum with Product with Serializable {
+      def value: String = toString
+    }
 
-    object Answer {
+    object Answer extends EnumBuilder[Answer]("Event.Rsvp.Answer") {
 
       case object Yes extends Answer
 
@@ -68,14 +71,13 @@ object Event {
       case object Wait extends Answer
 
       val all: Seq[Answer] = Seq(Yes, No, Wait)
-
-      def from(str: String): Either[CustomException, Answer] =
-        all.find(_.toString == str).map(Right(_)).getOrElse(Left(CustomException(s"'$str' is not a valid Event.Rsvp.Answer")))
     }
 
   }
 
   final case class Full(event: Event, venue: Option[Venue.Full], group: Group) {
+    def id: Event.Id = event.id
+
     def slug: Slug = event.slug
 
     def name: Name = event.name
@@ -85,6 +87,10 @@ object Event {
     def talks: Seq[Proposal.Id] = event.talks
 
     def refs: ExtRefs = event.refs
+
+    def isPast(now: Instant): Boolean = TimeUtils.toInstant(start, venue.map(_.timezone).getOrElse(Constants.defaultZoneId)).isBefore(now)
+
+    def isFull(yesRsvps: Long): Boolean = event.maxAttendee.exists(_ <= yesRsvps.toInt)
   }
 
   final case class Data(cfp: Option[Cfp.Id],

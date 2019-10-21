@@ -10,7 +10,7 @@ import fr.gospeak.core.domain.Contact.{FirstName, LastName}
 import fr.gospeak.core.domain.User.Profile
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.TemplateData.EventInfo
-import fr.gospeak.core.domain.utils.{Info, TemplateData}
+import fr.gospeak.core.domain.utils.{Constants, Info, TemplateData}
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.core.services.storage.GospeakDb
 import fr.gospeak.infra.services.GravatarSrv
@@ -76,8 +76,8 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     def proposal(talk: Talk, cfp: Cfp, status: Proposal.Status = Proposal.Status.Pending): Proposal =
       Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, status, talk.title, talk.duration, talk.description, talk.speakers, talk.slides, talk.video, talk.tags, talk.info)
 
-    def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, maxAttendee: Option[Int], venue: Option[Venue] = None, description: MustacheMarkdownTmpl[EventInfo] = MustacheMarkdownTmpl[EventInfo](""), tags: Seq[String] = Seq()): Event =
-      Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), maxAttendee, description, venue.map(_.id), Seq(), tags.map(Tag(_)), Some(now).filter(_.isAfter(Instant.parse(date + "T06:06:24.074Z"))), Event.ExtRefs(), Info(by.id, now))
+    def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, maxAttendee: Option[Int], venue: Option[Venue] = None, description: MustacheMarkdownTmpl[EventInfo] = MustacheMarkdownTmpl[EventInfo](""), tags: Seq[String] = Seq(), published: Boolean = true): Event =
+      Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), maxAttendee, description, venue.map(_.id), Seq(), tags.map(Tag(_)), if (published) Some(Instant.parse(date + "T06:06:24.074Z")) else None, Event.ExtRefs(), Info(by.id, now))
 
     def partner(g: Group, name: String, notes: String, description: Option[String], logo: Int, by: User): Partner =
       Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(notes), description.map(Markdown), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").get, None, Info(by.id, now))
@@ -182,7 +182,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       website = Some("https://www.zeenea.com/"),
       phone = None,
       utcOffset = 120,
-      timezone = ZoneId.of("Europe/Paris"))
+      timezone = Constants.defaultZoneId)
     val venue1 = venue(zeenea, zeeneaPlace, userDemo, contact = Some(zeeneaNina), roomSize = Some(80))
     val venues = NonEmptyList.of(venue1)
 
@@ -190,9 +190,10 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val event2 = event(humanTalks, None, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, Some(120), venue = None, description = groupDefaultSettings.event.description)
     val event3 = event(humanTalks, Some(cfp1), "2019-02", "HumanTalks Paris Fevrier 2019", "2019-02-12", userOrga, Some(50), venue = Some(venue1))
     val event4 = event(humanTalks, Some(cfp1), "2019-11", "HumanTalks Paris Novembre 2019", "2019-11-12", userDemo, Some(100), venue = Some(venue1), description = groupDefaultSettings.event.description)
+    val event7 = event(humanTalks, Some(cfp1), "2019-12", "HumanTalks Paris Decembre 2019", "2019-12-10", userDemo, Some(100), venue = Some(venue1), description = groupDefaultSettings.event.description, published = false)
     val event5 = event(parisJs, Some(cfp4), "2019-04", "Paris.Js Avril", "2019-04-01", userOrga, None)
     val event6 = event(dataGov, None, "2019-03", "Nouveaux modeles de gouvenance", "2019-03-15", userDemo, Some(100), tags = Seq("Data Gouv"))
-    val events = NonEmptyList.of(event1, event2, event3, event4, event5, event6)
+    val events = NonEmptyList.of(event1, event2, event3, event4, event5, event6, event7)
 
     val eventTalks = NonEmptyList.of(
       (cfp1, event4, Seq(proposal1), humanTalks.owners.head),
