@@ -38,7 +38,8 @@ a.card:hover {
   margin-bottom: 0;
 }
 
-.list-group-item ul, .list-group-item ol {
+.list-group-item ul,
+.list-group-item ol {
   margin-bottom: 0;
 }
 
@@ -46,7 +47,8 @@ a.card:hover {
   color: #6c757d;
 }
 
-.form-row.is-invalid ~ .invalid-feedback, .is-invalid .invalid-feedback {
+.is-invalid .invalid-feedback,
+.form-row.is-invalid ~ .invalid-feedback {
   display: block;
 }
 
@@ -60,10 +62,10 @@ a.card:hover {
 }
 
 .btn-xs {
-  padding: .15rem .4rem;
-  font-size: .7rem;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.7rem;
   line-height: 1.4;
-  border-radius: .2rem;
+  border-radius: 0.2rem;
 }
 
 .select2-container--bootstrap .select2-selection--single {
@@ -126,7 +128,7 @@ span.twitter-typeahead .tt-suggestion.tt-cursor:hover {
 .avatar {
   height: 31px;
   min-width: 31px;
-  border-radius: .25em;
+  border-radius: 0.25em;
 }
 
 .avatar.avatar-lg {
@@ -171,7 +173,6 @@ span.twitter-typeahead .tt-suggestion.tt-cursor:hover {
   border-left: 7px;
   border-left-color: #e9ecef;
   border-left-style: solid;
-
   margin-left: 5px;
   padding-left: 10px;
 }
@@ -202,7 +203,8 @@ a.no-style {
   padding: 0;
 }
 
-.event-item, .proposal-item {
+.event-item,
+.proposal-item {
   padding: 10px;
 }
 
