@@ -8,13 +8,14 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
+import fr.gospeak.core.domain.Event.Rsvp.Answer
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.EventRepo
 import fr.gospeak.infra.services.storage.sql.EventRepoSql._
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
 
@@ -59,6 +60,15 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def listAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]] = selectPageAfter(group, now.truncatedTo(ChronoUnit.DAYS), params).run(xa)
 
   override def listIncoming(params: Page.Params)(user: User.Id, now: Instant): IO[Page[Event.Full]] = selectPageIncoming(user, now, params).run(xa)
+
+  override def countYesRsvp(event: Event.Id): IO[Long] = countRsvp(event, Event.Rsvp.Answer.Yes).runOption(xa).map(_.getOrElse(0))
+
+  override def findRsvp(event: Event.Id, user: User.Id): IO[Option[Event.Rsvp]] = selectOneRsvp(event, user).runOption(xa)
+
+  override def createRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done] =
+    insertRsvp(Event.Rsvp(event, answer, now, user)).run(xa).map(_ => Done)
+
+  override def editRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done] = updateRsvp(event, user.id, answer, now).run(xa)
 
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 }
@@ -129,8 +139,14 @@ object EventRepoSql {
 
   private def where(group: Group.Id, event: Event.Slug): Fragment = fr0"WHERE e.group_id=$group AND e.slug=$event"
 
+  private[sql] def countRsvp(event: Event.Id, answer: Event.Rsvp.Answer): Select[Long] =
+    rsvpTable.select[Long](Seq(Field("count(*)", "")), fr0"WHERE er.event_id=$event AND er.answer=$answer GROUP BY er.event_id, er.answer")
+
   private[sql] def insertRsvp(e: Event.Rsvp): Insert[Event.Rsvp] =
     rsvpTable.insert[Event.Rsvp](e, _ => fr0"${e.event}, ${e.user.id}, ${e.answer}, ${e.answeredAt}")
+
+  private[sql] def updateRsvp(event: Event.Id, user: User.Id, answer: Answer, now: Instant): Update =
+    rsvpTable.update(fr0"answer=$answer, answered_at=$now", fr0"WHERE er.event_id=$event AND er.user_id=$user")
 
   private[sql] def selectPageRsvps(event: Event.Id, params: Page.Params): SelectPage[Event.Rsvp] =
     rsvpTableWithUser.selectPage[Event.Rsvp](params, fr0"WHERE er.event_id=$event")

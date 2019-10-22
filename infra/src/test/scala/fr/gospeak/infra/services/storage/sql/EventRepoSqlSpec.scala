@@ -95,9 +95,17 @@ class EventRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT e.tags FROM $table")
       }
       describe("rsvp") {
+        it("should build countRsvp") {
+          val q = EventRepoSql.countRsvp(event.id, rsvp.answer)
+          check(q, s"SELECT count(*) FROM $rsvpTable WHERE er.event_id=? AND er.answer=? GROUP BY er.event_id, er.answer ORDER BY er.answered_at IS NULL, er.answered_at")
+        }
         it("should build insertRsvp") {
           val q = EventRepoSql.insertRsvp(rsvp)
           check(q, s"INSERT INTO ${rsvpTable.stripSuffix(" er")} (${mapFields(rsvpFields, _.stripPrefix("er."))}) VALUES (${mapFields(rsvpFields, _ => "?")})")
+        }
+        it("should build updateRsvp") {
+          val q = EventRepoSql.updateRsvp(event.id, user.id, rsvp.answer, now)
+          check(q, s"UPDATE $rsvpTable SET answer=?, answered_at=? WHERE er.event_id=? AND er.user_id=?")
         }
         it("should build selectPageRsvps") {
           val q = EventRepoSql.selectPageRsvps(event.id, params)

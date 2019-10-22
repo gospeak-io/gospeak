@@ -8,7 +8,7 @@ import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.{Event, Group, Proposal}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.libs.scalautils.domain.{Done, Page}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.published.HomeCtrl
@@ -45,9 +45,9 @@ class GroupCtrl(cc: ControllerComponents,
       events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, Page.Params.defaults))
       sponsors <- OptionT.liftF(sponsorRepo.listCurrentFull(groupElt.id, now))
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
-      member <- OptionT.liftF(userOpt.map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
+      userMembership <- OptionT.liftF(userOpt.map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
       b = breadcrumb(groupElt)
-      res = Ok(html.detail(groupElt, cfps, events, sponsors, packs, member)(b))
+      res = Ok(html.detail(groupElt, cfps, events, sponsors, packs, userMembership)(b))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
   }
 
@@ -55,8 +55,8 @@ class GroupCtrl(cc: ControllerComponents,
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(group))
-      member <- OptionT.liftF(groupRepo.findActiveMember(groupElt.id, user))
-      msg <- OptionT.liftF(member.swap.map(_ => groupRepo.join(groupElt.id)(req.identity.user, now)
+      userMembership <- OptionT.liftF(groupRepo.findActiveMember(groupElt.id, user))
+      msg <- OptionT.liftF(userMembership.swap.map(_ => groupRepo.join(groupElt.id)(req.identity.user, now)
         .map(_ => "success" -> s"You are now a member of <b>${groupElt.name.value}</b>")
         .recover { case NonFatal(e) => "error" -> s"Can't join <b>${groupElt.name.value}</b>: ${e.getMessage}" })
         .getOrElse(IO.pure("success" -> s"You are already a member of <b>${groupElt.name.value}</b>")))
@@ -68,8 +68,8 @@ class GroupCtrl(cc: ControllerComponents,
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(group))
-      member <- OptionT.liftF(groupRepo.findActiveMember(groupElt.id, user))
-      msg <- OptionT.liftF(member.map(groupRepo.leave(_)(user, now)
+      userMembership <- OptionT.liftF(groupRepo.findActiveMember(groupElt.id, user))
+      msg <- OptionT.liftF(userMembership.map(groupRepo.leave(_)(user, now)
         .map(_ => "success" -> s"You have leaved <b>${groupElt.name.value}</b>")
         .recover { case NonFatal(e) => "error" -> s"Can't leave <b>${groupElt.name.value}</b>, error: ${e.getMessage}" })
         .getOrElse(IO.pure("error" -> s"You are not a member of <b>${groupElt.name.value}</b>")))
@@ -87,14 +87,46 @@ class GroupCtrl(cc: ControllerComponents,
   }
 
   def event(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction.async { implicit req =>
+    val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
       proposals <- OptionT.liftF(proposalRepo.listPublicFull(eventElt.talks))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.speakers.toList).distinct))
+      yesRsvp <- OptionT.liftF(eventRepo.countYesRsvp(eventElt.id))
+      userRsvp <- OptionT.liftF(userOpt.map(eventRepo.findRsvp(eventElt.id, _)).sequence.map(_.flatten))
       b = breadcrumbEvent(groupElt, eventElt)
-      res = Ok(html.event(groupElt, eventElt, proposals, speakers)(b))
+      res = Ok(html.event(groupElt, eventElt, proposals, speakers, yesRsvp, userRsvp, now)(b))
     } yield res).value.map(_.getOrElse(publicEventNotFound(group, event))).unsafeToFuture()
+  }
+
+  def doRsvp(group: Group.Slug, event: Event.Slug, answer: Event.Rsvp.Answer): Action[AnyContent] = SecuredAction.async { implicit req =>
+    import Event.Rsvp.Answer.{No, Wait, Yes}
+    val now = Instant.now()
+    val waitMsg = "warning" -> "Thanks but this event is already full. You are on waiting list, your place will be reserved as soon as there is more places"
+    val yesMsg = "success" -> "You seat is booked!"
+    val noMsg = "success" -> "Thanks for answering, see you an other time"
+    (for {
+      groupElt <- OptionT(groupRepo.find(group))
+      eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
+      yesRsvp <- OptionT.liftF(eventRepo.countYesRsvp(eventElt.id))
+      userMembership <- OptionT.liftF(groupRepo.findActiveMember(groupElt.id, user))
+      _ <- OptionT.liftF(userMembership.map(_ => IO.pure(Done)).getOrElse(groupRepo.join(groupElt.id)(req.identity.user, now)))
+      userRsvp <- OptionT.liftF(eventRepo.findRsvp(eventElt.id, user))
+      msg <- OptionT.liftF((userRsvp.map(_.answer), answer) match {
+        case (_, Wait) => IO.pure("error" -> "Can't answer Wait on Rsvp")
+        case (None, No) => eventRepo.createRsvp(eventElt.id, No)(req.identity.user, now).map(_ => noMsg)
+        case (None, Yes) =>
+          if (eventElt.isFull(yesRsvp)) eventRepo.createRsvp(eventElt.id, Wait)(req.identity.user, now).map(_ => waitMsg)
+          else eventRepo.createRsvp(eventElt.id, Yes)(req.identity.user, now).map(_ => yesMsg)
+        case (Some(Yes), Yes) | (Some(Wait), Yes) | (Some(No), No) => IO.pure("success" -> "Thanks")
+        case (Some(Yes), No) | (Some(Wait), No) => eventRepo.editRsvp(eventElt.id, No)(req.identity.user, now).map(_ => noMsg)
+        case (Some(No), Yes) =>
+          if (eventElt.isFull(yesRsvp)) eventRepo.editRsvp(eventElt.id, Wait)(req.identity.user, now).map(_ => waitMsg)
+          else eventRepo.editRsvp(eventElt.id, Yes)(req.identity.user, now).map(_ => yesMsg)
+      })
+      next = Redirect(routes.GroupCtrl.event(group, event)).flashing(msg)
+    } yield next).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
   }
 
   def talks(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>

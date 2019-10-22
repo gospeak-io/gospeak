@@ -113,7 +113,9 @@ object Group {
 
     object Action {
 
-      sealed abstract class Trigger(val name: String) {
+      sealed abstract class Trigger(val name: String) extends StringEnum {
+        def value: String = toString
+
         def getClassName: String = getClass.getName.split("[.$]").toList.last
       }
 

@@ -46,6 +46,14 @@ trait PublicEventRepo {
   def listPublished(group: Group.Id, params: Page.Params): IO[Page[Event.Full]]
 
   def findPublished(group: Group.Id, event: Event.Slug): IO[Option[Event.Full]]
+
+  def countYesRsvp(event: Event.Id): IO[Long]
+
+  def findRsvp(event: Event.Id, user: User.Id): IO[Option[Event.Rsvp]]
+
+  def createRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done]
+
+  def editRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done]
 }
 
 trait SuggestEventRepo {
