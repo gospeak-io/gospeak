@@ -22,6 +22,11 @@ class ApiCtrl(cc: ControllerComponents) extends AbstractController(cc) {
     res.map(_.map(r => Ok(Json.toJson(PublicApiResponse(r, start)))).getOrElse(NotFound)).unsafeToFuture()
   }
 
+  protected def responseT[A](res: => OptionT[IO, A])(implicit w: Writes[A]): Future[Result] = {
+    val start = Instant.now()
+    res.value.map(_.map(r => Ok(Json.toJson(PublicApiResponse(r, start)))).getOrElse(NotFound)).unsafeToFuture()
+  }
+
   protected def responsePage[A](res: => IO[Page[A]])(implicit w: Writes[A]): Future[Result] = {
     val start = Instant.now()
     res.map(r => Ok(Json.toJson(PublicApiResponse(r, start)))).unsafeToFuture()

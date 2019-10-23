@@ -22,5 +22,17 @@ object PublicApiGroup {
       tags = group.tags.map(_.value),
       created = group.info.created)
 
+  case class Embedded(slug: String,
+                      name: String)
+
+  object Embedded {
+    def apply(group: Group): Embedded =
+      new Embedded(
+        slug = group.slug.value,
+        name = group.name.value)
+
+    implicit val embeddedWrites: Writes[Embedded] = Json.writes[Embedded]
+  }
+
   implicit val writes: Writes[PublicApiGroup] = Json.writes[PublicApiGroup]
 }

@@ -63,7 +63,11 @@ class GroupRepoSqlSpec extends RepoSpec {
         val q = GroupRepoSql.selectPageJoined(user.id, params)
         check(q, s"SELECT $fieldsWithMember FROM $tableWithMember WHERE gm.user_id=? $orderBy OFFSET 0 LIMIT 20")
       }
-      it("should build selectAll") {
+      it("should build selectAll by ids") {
+        val q = GroupRepoSql.selectAll(NonEmptyList.of(group.id))
+        check(q, s"SELECT $fields FROM $table WHERE g.id IN (?)  $orderBy")
+      }
+      it("should build selectAll by user") {
         val q = GroupRepoSql.selectAll(user.id)
         check(q, s"SELECT $fields FROM $table WHERE g.owners LIKE ? $orderBy")
       }
