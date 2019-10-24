@@ -186,6 +186,14 @@ POST        /ui/utils/render-template                                           
 
 GET         /api/groups                                                                    fr.gospeak.web.api.published.GroupCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /api/groups/:group                                                             fr.gospeak.web.api.published.GroupCtrl.detail(group: Group.Slug)
+GET         /api/groups/:group/events                                                      fr.gospeak.web.api.published.GroupCtrl.events(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /api/groups/:group/events/:event                                               fr.gospeak.web.api.published.GroupCtrl.event(group: Group.Slug, event: Event.Slug)
 GET         /api/groups/:group/talks                                                       fr.gospeak.web.api.published.GroupCtrl.talks(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /api/groups/:group/talks/:talk                                                 fr.gospeak.web.api.published.GroupCtrl.talk(group: Group.Slug, talk: Proposal.Id)
+GET         /api/groups/:group/speakers                                                    fr.gospeak.web.api.published.GroupCtrl.speakers(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /api/cfps                                                                      fr.gospeak.web.api.published.CfpCtrl.list(params: Page.Params ?= Page.Params.defaults)
+GET         /api/cfps/:cfp                                                                 fr.gospeak.web.api.published.CfpCtrl.detail(cfp: Cfp.Slug)
+GET         /api/speakers                                                                  fr.gospeak.web.api.published.SpeakerCtrl.list(params: Page.Params ?= Page.Params.defaults)
+GET         /api/speakers/:speaker                                                         fr.gospeak.web.api.published.SpeakerCtrl.detail(speaker: User.Slug)
 
 GET         /assets/*file                                                                  controllers.Assets.versioned(path="/public", file: Asset)

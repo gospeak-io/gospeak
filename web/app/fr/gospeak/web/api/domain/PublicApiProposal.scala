@@ -11,10 +11,10 @@ case class PublicApiProposal(id: String,
                              duration: FiniteDuration,
                              slides: Option[String],
                              video: Option[String],
-                             speakers: Seq[PublicApiSpeaker],
+                             speakers: Seq[PublicApiSpeaker.Embedded],
                              tags: Seq[String],
-                             event: Option[PublicApiEvent],
-                             venue: Option[PublicApiVenue])
+                             event: Option[PublicApiEvent.Embedded],
+                             venue: Option[PublicApiVenue.Embedded])
 
 object PublicApiProposal {
   def apply(p: Proposal.Full, speakers: Seq[User], venues: Seq[Venue.Full]): PublicApiProposal =
@@ -25,10 +25,34 @@ object PublicApiProposal {
       duration = p.duration,
       slides = p.slides.map(_.value),
       video = p.video.map(_.value),
-      speakers = p.speakers.toList.map(id => speakers.find(_.id == id).map(PublicApiSpeaker(_)).getOrElse(PublicApiSpeaker.unknown)),
+      speakers = p.speakers.toList.map(id => speakers.find(_.id == id).map(PublicApiSpeaker.Embedded(_)).getOrElse(PublicApiSpeaker.Embedded.unknown)),
       tags = p.tags.map(_.value),
-      event = p.event.map(PublicApiEvent(_)),
-      venue = p.event.flatMap(_.venue).flatMap(id => venues.find(_.id == id)).map(PublicApiVenue(_)))
+      event = p.event.map(PublicApiEvent.Embedded(_)),
+      venue = p.event.flatMap(_.venue).flatMap(id => venues.find(_.id == id)).map(PublicApiVenue.Embedded(_)))
+
+  case class Embedded(id: String,
+                      title: String,
+                      description: String,
+                      duration: FiniteDuration,
+                      slides: Option[String],
+                      video: Option[String],
+                      speakers: Seq[PublicApiSpeaker.Embedded],
+                      tags: Seq[String])
+
+  object Embedded {
+    def apply(p: Proposal.Full, speakers: Seq[User]): Embedded =
+      new Embedded(
+        id = p.id.value,
+        title = p.title.value,
+        description = p.description.value,
+        duration = p.duration,
+        slides = p.slides.map(_.value),
+        video = p.video.map(_.value),
+        speakers = p.speakers.toList.map(id => speakers.find(_.id == id).map(PublicApiSpeaker.Embedded(_)).getOrElse(PublicApiSpeaker.Embedded.unknown)),
+        tags = p.tags.map(_.value))
+
+    implicit val embeddedWrites: Writes[Embedded] = Json.writes[Embedded]
+  }
 
   implicit val durationWrites: Writes[FiniteDuration] = (o: FiniteDuration) => JsNumber(o.toMinutes)
   implicit val writes: Writes[PublicApiProposal] = Json.writes[PublicApiProposal]

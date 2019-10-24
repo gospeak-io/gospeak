@@ -47,6 +47,8 @@ trait PublicGroupRepo {
 
   def list(user: User.Id): IO[Seq[Group]]
 
+  def list(ids: Seq[Group.Id]): IO[Seq[Group]]
+
   def find(group: Group.Slug): IO[Option[Group]]
 
   def find(group: Group.Id): IO[Option[Group]]

@@ -4,6 +4,7 @@ import java.time.Instant
 
 import cats.data.NonEmptyList
 import cats.effect.IO
+import doobie.Fragments
 import doobie.implicits._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain.{Group, User}
@@ -61,6 +62,8 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def listJoinable(user: User.Id, params: Page.Params): IO[Page[Group]] = selectPageJoinable(user, params).run(xa)
 
   override def list(user: User.Id): IO[Seq[Group]] = selectAll(user).runList(xa)
+
+  override def list(ids: Seq[Group.Id]): IO[Seq[Group]] = runNel(selectAll, ids)
 
   override def listJoined(user: User.Id, params: Page.Params): IO[Page[(Group, Group.Member)]] = selectPageJoined(user, params).run(xa)
 
@@ -120,6 +123,9 @@ object GroupRepoSql {
 
   private[sql] def selectAll(user: User.Id): Select[Group] =
     table.select[Group](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"}")
+
+  private[sql] def selectAll(ids: NonEmptyList[Group.Id]): Select[Group] =
+    table.select[Group](fr0"WHERE " ++ Fragments.in(fr"g.id", ids))
 
   private[sql] def selectOne(user: User.Id, slug: Group.Slug): Select[Group] =
     table.select[Group](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"} AND g.slug=$slug")
