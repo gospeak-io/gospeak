@@ -23,13 +23,19 @@ object PublicApiGroup {
       created = group.info.created)
 
   case class Embedded(slug: String,
-                      name: String)
+                      name: String,
+                      contact: Option[String],
+                      description: String,
+                      tags: Seq[String])
 
   object Embedded {
     def apply(group: Group): Embedded =
       new Embedded(
         slug = group.slug.value,
-        name = group.name.value)
+        name = group.name.value,
+        contact = group.contact.map(_.value),
+        description = group.description.value,
+        tags = group.tags.map(_.value))
 
     implicit val embeddedWrites: Writes[Embedded] = Json.writes[Embedded]
   }
