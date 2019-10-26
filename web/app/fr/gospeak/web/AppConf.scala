@@ -62,9 +62,8 @@ object AppConf {
     private implicit val authConfRememberMeReader: ConfigReader[AuthConf.RememberMe] = deriveReader[AuthConf.RememberMe]
     private implicit val authConfCookieConfReader: ConfigReader[AuthConf.CookieConf] = deriveReader[AuthConf.CookieConf]
 
-    private implicit val databaseConfH2Reader: ConfigReader[DatabaseConf.H2] = deriveReader[DatabaseConf.H2]
-    private implicit val databaseConfPostgreSQLReader: ConfigReader[DatabaseConf.PostgreSQL] = deriveReader[DatabaseConf.PostgreSQL]
-    private implicit val databaseConfReader: ConfigReader[DatabaseConf] = deriveReader[DatabaseConf]
+    private implicit val databaseConfReader: ConfigReader[DatabaseConf] = (cur: ConfigCursor) => cur.asString
+      .flatMap(DatabaseConf.from(_).leftMap(_ => ConfigReaderFailures(ConvertFailure(CannotConvert(cur.toString, "DatabaseConf", "Invalid value"), cur.location, cur.path))))
 
     private implicit val emailSrvConfConsoleReader: ConfigReader[EmailSrv.Conf.Console] = deriveReader[EmailSrv.Conf.Console]
     private implicit val emailSrvConfInMemoryReader: ConfigReader[EmailSrv.Conf.InMemory] = deriveReader[EmailSrv.Conf.InMemory]
