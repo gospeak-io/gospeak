@@ -62,7 +62,6 @@ class GospeakComponents(context: ApplicationLoader.Context)
 
   // unsafe init should be done at the beginning
   lazy val conf: AppConf = AppConf.load(configuration).get
-  logger.info(s"Configuration loaded: $conf")
   lazy val timeShape: TimeShape = TimeShape.create().get
 
   lazy val appConf: ApplicationConf = conf.application

@@ -1,7 +1,7 @@
 package fr.gospeak.web
 
 import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 import fr.gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.infra.libs.meetup.MeetupClient
 import fr.gospeak.infra.services.EmailSrv
@@ -33,15 +33,11 @@ object AppConf {
     }
   }
 
-  def load(conf: Configuration): Try[AppConf] =
-    load(conf.underlying)
+  def load(conf: Configuration): Try[AppConf] = load(conf.underlying)
 
-  def load(): Try[AppConf] = load(ConfigFactory.load())
+  private def format(f: ConfigReaderFailure): String = "  - " + f.description + f.location.map(" " + _.description).getOrElse("")
 
-  private def format(f: ConfigReaderFailure): String =
-    "  - " + f.description + f.location.map(" " + _.description).getOrElse("")
-
-  object Readers {
+  private object Readers {
 
     import pureconfig.generic.semiauto._
 
