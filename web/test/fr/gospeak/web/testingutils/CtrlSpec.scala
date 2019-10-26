@@ -15,10 +15,10 @@ import fr.gospeak.infra.services.storage.sql.{DatabaseConf, GospeakDbSql}
 import fr.gospeak.infra.services.{GravatarSrv, InMemoryEmailSrv}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv}
-import fr.gospeak.web.{AppConf, GospeakComponents}
+import fr.gospeak.web.{AppConf, AppConfSpec, GospeakComponents}
 import org.scalatest.{FunSpec, Matchers}
 import org.scalatestplus.play.components.OneAppPerSuiteWithComponents
-import play.api.BuiltInComponents
+import play.api.{BuiltInComponents, Configuration}
 import play.api.mvc._
 import play.api.test.CSRFTokenHelper._
 import play.api.test.{FakeRequest, Helpers, NoMaterializer}
@@ -26,7 +26,7 @@ import play.api.test.{FakeRequest, Helpers, NoMaterializer}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 trait CtrlSpec extends FunSpec with Matchers with RandomDataGenerator with OneAppPerSuiteWithComponents {
-  override def components: BuiltInComponents = new GospeakComponents(context)
+  override def components: BuiltInComponents = new GospeakComponents(context.copy(initialConfiguration = context.initialConfiguration ++ Configuration(AppConfSpec.local)))
 
   // play
   protected val cc: ControllerComponents = Helpers.stubControllerComponents()
@@ -49,7 +49,7 @@ trait CtrlSpec extends FunSpec with Matchers with RandomDataGenerator with OneAp
   protected implicit val mat: Materializer = NoMaterializer
 
   // app
-  protected val conf: AppConf = AppConf.load(ConfigFactory.load()).get
+  protected val conf: AppConf = AppConf.load(ConfigFactory.load().withFallback(AppConfSpec.local)).get
   protected val db: GospeakDbSql = new GospeakDbSql(DatabaseConf.H2(s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"), conf.gospeak)
   private val authRepo = new AuthRepo(db.user, db.group)
   protected val emailSrv = new InMemoryEmailSrv()

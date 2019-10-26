@@ -9,7 +9,7 @@ import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import com.mohiva.play.silhouette.test._
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
-import fr.gospeak.web.GospeakApplicationLoader
+import fr.gospeak.web.{AppConfSpec, GospeakApplicationLoader}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.domain.Breadcrumb
@@ -17,7 +17,7 @@ import org.scalatest.{FunSpec, Matchers}
 import play.api.i18n.{Lang, Messages}
 import play.api.mvc.{AnyContent, Request}
 import play.api.test.{CSRFTokenHelper, FakeRequest}
-import play.api.{ApplicationLoader, Environment}
+import play.api.{ApplicationLoader, Configuration, Environment}
 import play.i18n.{Messages => JavaMessages}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -36,7 +36,7 @@ trait TwirlSpec extends FunSpec with Matchers with RandomDataGenerator {
   private val playEnv = Environment.simple()
   private val context = ApplicationLoader.Context.create(playEnv)
   private val loader = new GospeakApplicationLoader()
-  private val application = loader.load(context)
+  private val application = loader.load(context.copy(initialConfiguration = context.initialConfiguration ++ Configuration(AppConfSpec.local)))
 
   protected implicit val messages: Messages = new Messages {
     override def lang: Lang = Lang(Locale.ENGLISH)
