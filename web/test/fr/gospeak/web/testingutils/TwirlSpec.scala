@@ -36,7 +36,7 @@ trait TwirlSpec extends FunSpec with Matchers with RandomDataGenerator {
   private val playEnv = Environment.simple()
   private val context = ApplicationLoader.Context.create(playEnv)
   private val loader = new GospeakApplicationLoader()
-  private val application = loader.load(context.copy(initialConfiguration = context.initialConfiguration ++ Configuration(AppConfSpec.local)))
+  private val application = loader.load(context)
 
   protected implicit val messages: Messages = new Messages {
     override def lang: Lang = Lang(Locale.ENGLISH)
