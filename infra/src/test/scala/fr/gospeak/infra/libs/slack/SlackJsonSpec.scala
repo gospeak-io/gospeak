@@ -7,7 +7,7 @@ import io.circe.parser.decode
 import org.scalatest.{FunSpec, Matchers}
 
 class SlackJsonSpec extends FunSpec with Matchers {
-  private val basePath = "src/test/resources/slack"
+  private val basePath = "infra/src/test/resources/slack"
 
   describe("SlackJson") {
     it("should parse auth.test response") {
