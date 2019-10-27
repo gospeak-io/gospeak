@@ -12,6 +12,9 @@
 @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Describe your group, you should make people want to participate")) { (field, args) =>
     @inputMarkdown(field, args)
 }
+@fieldHorizontal(form("location"), Seq("label" -> "Location", "help" -> "The city of your group, it will be used to show nearest groups to users")) { (field, args) =>
+    @inputGMapPlace(field, args)
+}
 @fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your group")) { (field, args) =>
     @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
 }

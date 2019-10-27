@@ -17,6 +17,7 @@ final case class Group(id: Group.Id,
                        name: Group.Name,
                        contact: Option[EmailAddress],
                        description: Markdown,
+                       location: Option[GMapPlace],
                        owners: NonEmptyList[User.Id],
                        tags: Seq[Tag],
                        info: Info) {
@@ -25,7 +26,7 @@ final case class Group(id: Group.Id,
 
 object Group {
   def apply(data: Data, owners: NonEmptyList[User.Id], info: Info): Group =
-    new Group(Id.generate(), data.slug, data.name, data.contact, data.description, owners, data.tags, info)
+    new Group(Id.generate(), data.slug, data.name, data.contact, data.description, data.location, owners, data.tags, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -69,10 +70,11 @@ object Group {
                         name: Group.Name,
                         contact: Option[EmailAddress],
                         description: Markdown,
+                        location: Option[GMapPlace],
                         tags: Seq[Tag])
 
   object Data {
-    def apply(group: Group): Data = new Data(group.slug, group.name, group.contact, group.description, group.tags)
+    def apply(group: Group): Data = new Data(group.slug, group.name, group.contact, group.description, group.location, group.tags)
   }
 
 

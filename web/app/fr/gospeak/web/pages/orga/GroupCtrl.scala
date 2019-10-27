@@ -8,6 +8,7 @@ import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, User, UserRequest}
 import fr.gospeak.core.services.storage._
+import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -34,17 +35,18 @@ class GroupCtrl(cc: ControllerComponents,
                 sponsorPackRepo: OrgaSponsorPackRepo,
                 partnerRepo: OrgaPartnerRepo,
                 userRequestRepo: OrgaUserRequestRepo,
-                emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
+                emailSrv: EmailSrv,
+                timeShape: TimeShape) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
   def create(): Action[AnyContent] = SecuredAction.async { implicit req =>
-    createForm(GroupForms.create).unsafeToFuture()
+    createForm(GroupForms.create(timeShape)).unsafeToFuture()
   }
 
   def doCreate(): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
-    GroupForms.create.bindFromRequest.fold(
+    GroupForms.create(timeShape).bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
       data => for {
         // TODO check if slug not already exist
@@ -98,19 +100,19 @@ class GroupCtrl(cc: ControllerComponents,
   }
 
   def edit(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    editForm(group, GroupForms.create).unsafeToFuture()
+    editForm(group, GroupForms.create(timeShape)).unsafeToFuture()
   }
 
   def doEdit(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
-    GroupForms.create.bindFromRequest.fold(
+    GroupForms.create(timeShape).bindFromRequest.fold(
       formWithErrors => editForm(group, formWithErrors),
       data => (for {
         _ <- OptionT(groupRepo.find(user, group)) // to check that user is a group owner
         newSlugExits <- OptionT.liftF(groupRepo.exists(data.slug))
         res <- OptionT.liftF(
           if (newSlugExits && data.slug != group) {
-            editForm(group, GroupForms.create.fillAndValidate(data).withError("slug", s"Slug ${data.slug.value} already taken by an other group"))
+            editForm(group, GroupForms.create(timeShape).fillAndValidate(data).withError("slug", s"Slug ${data.slug.value} already taken by an other group"))
           } else {
             groupRepo.edit(group)(data, by, now).map { _ => Redirect(SettingsRoutes.settings(data.slug)) }
           })

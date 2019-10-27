@@ -125,7 +125,7 @@ object ProposalRepoSql {
   private val table = Tables.proposals
   private val tableFull = table
     .join(Tables.cfps, _.field("cfp_id") -> _.field("id")).get
-    .join(Tables.groups, _.field("group_id", "c") -> _.field("id")).get
+    .join(Tables.groups.dropFields(_.name.startsWith("location_")), _.field("group_id", "c") -> _.field("id")).get
     .join(Tables.talks, _.field("talk_id", "p") -> _.field("id")).get
     .joinOpt(Tables.events, _.field("event_id", "p") -> _.field("id")).get
 

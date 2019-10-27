@@ -93,19 +93,20 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 object GroupRepoSql {
   private val _ = groupIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.groups
+  private val tableSelect = table.dropFields(_.name.startsWith("location_"))
   private val memberTable = Tables.groupMembers
   private val memberTableWithUser = Tables.groupMembers
     .join(Tables.users, _.field("user_id") -> _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
-  private val tableWithMember = table
+  private val tableWithMember = tableSelect
     .join(memberTableWithUser, _.field("id") -> _.field("group_id")).get
 
   private[sql] def insert(e: Group): Insert[Group] = {
-    val values = fr0"${e.id}, ${e.slug}, ${e.name}, ${e.contact}, ${e.description}, ${e.owners}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    val values = fr0"${e.id}, ${e.slug}, ${e.name}, ${e.contact}, ${e.description}, ${e.location}, ${e.location.map(_.geo.lat)}, ${e.location.map(_.geo.lng)}, ${e.location.map(_.country)}, ${e.owners}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
     table.insert[Group](e, _ => values)
   }
 
   private[sql] def update(group: Group.Slug)(data: Group.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"slug=${data.slug}, name=${data.name}, contact=${data.contact}, description=${data.description}, tags=${data.tags}, updated=$now, updated_by=$by"
+    val fields = fr0"slug=${data.slug}, name=${data.name}, contact=${data.contact}, description=${data.description}, location=${data.location}, location_lat=${data.location.map(_.geo.lat)}, location_lng=${data.location.map(_.geo.lng)}, location_country=${data.location.map(_.country)}, tags=${data.tags}, updated=$now, updated_by=$by"
     table.update(fields, fr0"WHERE g.slug=$group")
   }
 
@@ -113,31 +114,31 @@ object GroupRepoSql {
     table.update(fr0"owners=$owners, updated=$now, updated_by=$by", fr0"WHERE g.id=$group")
 
   private[sql] def selectPage(params: Page.Params): SelectPage[Group] =
-    table.selectPage[Group](params)
+    tableSelect.selectPage[Group](params)
 
   private[sql] def selectPageJoinable(user: User.Id, params: Page.Params): SelectPage[Group] =
-    table.selectPage[Group](params, fr0"WHERE g.owners NOT LIKE ${"%" + user.value + "%"}")
+    tableSelect.selectPage[Group](params, fr0"WHERE g.owners NOT LIKE ${"%" + user.value + "%"}")
 
   private[sql] def selectPageJoined(user: User.Id, params: Page.Params): SelectPage[(Group, Group.Member)] =
     tableWithMember.selectPage[(Group, Group.Member)](params, fr0"WHERE gm.user_id=$user")
 
   private[sql] def selectAll(user: User.Id): Select[Group] =
-    table.select[Group](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"}")
+    tableSelect.select[Group](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"}")
 
   private[sql] def selectAll(ids: NonEmptyList[Group.Id]): Select[Group] =
-    table.select[Group](fr0"WHERE " ++ Fragments.in(fr"g.id", ids))
+    tableSelect.select[Group](fr0"WHERE " ++ Fragments.in(fr"g.id", ids))
 
   private[sql] def selectOne(user: User.Id, slug: Group.Slug): Select[Group] =
-    table.select[Group](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"} AND g.slug=$slug")
+    tableSelect.select[Group](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"} AND g.slug=$slug")
 
   private[sql] def selectOne(group: Group.Id): Select[Group] =
-    table.select[Group](fr0"WHERE g.id=$group")
+    tableSelect.select[Group](fr0"WHERE g.id=$group")
 
   private[sql] def selectOne(group: Group.Slug): Select[Group] =
-    table.select[Group](fr0"WHERE g.slug=$group")
+    tableSelect.select[Group](fr0"WHERE g.slug=$group")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "g")), Seq())
+    tableSelect.select[Seq[Tag]](Seq(Field("tags", "g")), Seq())
 
   private[sql] def insertMember(m: Group.Member): Insert[Group.Member] =
     memberTable.insert[Group.Member](m, e => fr0"${e.group}, ${e.user.id}, ${e.role}, ${e.presentation}, ${e.joinedAt}, ${e.leavedAt}")

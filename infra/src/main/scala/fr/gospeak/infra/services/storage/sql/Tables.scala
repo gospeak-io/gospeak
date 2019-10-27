@@ -35,9 +35,9 @@ object Tables {
   val groups: Table = Table.from(
     name = "groups",
     prefix = "g",
-    fields = Seq("id", "slug", "name", "contact", "description", "owners", "tags", "created", "created_by", "updated", "updated_by"),
+    fields = Seq("id", "slug", "name", "contact", "description", "location", "location_lat", "location_lng", "location_country", "owners", "tags", "created", "created_by", "updated", "updated_by"),
     sort = Seq("name"),
-    search = Seq("id", "slug", "name", "contact", "description", "tags")).get
+    search = Seq("id", "slug", "name", "contact", "description", "location_country", "tags")).get
 
   val cfps: Table = Table.from(
     name = "cfps",

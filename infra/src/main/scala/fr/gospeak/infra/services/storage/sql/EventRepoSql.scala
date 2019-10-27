@@ -79,11 +79,12 @@ object EventRepoSql {
   private val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.events
   private val tableWithVenue = table
-    .joinOpt(Tables.venues, _.field("venue") -> _.field("id")).get.dropFields(_.name.startsWith("address_"))
+    .joinOpt(Tables.venues, _.field("venue") -> _.field("id")).get
+    .dropFields(_.name.startsWith("address_"))
   private val tableFull = tableWithVenue
     .joinOpt(Tables.partners, _.field("partner_id", "v") -> _.field("id")).get
     .joinOpt(Tables.contacts, _.field("contact_id", "v") -> _.field("id")).get
-    .join(Tables.groups, _.field("group_id", "e") -> _.field("id")).get
+    .join(Tables.groups.dropFields(_.name.startsWith("location_")), _.field("group_id", "e") -> _.field("id")).get
   private val rsvpTable = Tables.eventRsvps
   private val rsvpTableWithUser = rsvpTable
     .join(Tables.users, _.field("user_id") -> _.field("id")).flatMap(_.dropField(_.field("user_id"))).get

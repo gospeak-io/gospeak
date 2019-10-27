@@ -41,11 +41,11 @@ class GroupRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       it("should build insert") {
         val q = GroupRepoSql.insert(group)
-        check(q, s"INSERT INTO ${table.stripSuffix(" g")} (${mapFields(fields, _.stripPrefix("g."))}) VALUES (${mapFields(fields, _ => "?")})")
+        check(q, s"INSERT INTO ${table.stripSuffix(" g")} (${mapFields(fieldsInsert, _.stripPrefix("g."))}) VALUES (${mapFields(fieldsInsert, _ => "?")})")
       }
       it("should build update") {
         val q = GroupRepoSql.update(group.slug)(group.data, user.id, now)
-        check(q, s"UPDATE $table SET slug=?, name=?, contact=?, description=?, tags=?, updated=?, updated_by=? WHERE g.slug=?")
+        check(q, s"UPDATE $table SET slug=?, name=?, contact=?, description=?, location=?, location_lat=?, location_lng=?, location_country=?, tags=?, updated=?, updated_by=? WHERE g.slug=?")
       }
       it("should build updateOwners") {
         val q = GroupRepoSql.updateOwners(group.id)(NonEmptyList.of(user.id), user.id, now)
@@ -119,7 +119,8 @@ class GroupRepoSqlSpec extends RepoSpec {
 
 object GroupRepoSqlSpec {
   val table = "groups g"
-  val fields: String = mapFields("id, slug, name, contact, description, owners, tags, created, created_by, updated, updated_by", "g." + _)
+  val fieldsInsert: String = mapFields("id, slug, name, contact, description, location, location_lat, location_lng, location_country, owners, tags, created, created_by, updated, updated_by", "g." + _)
+  val fields: String = mapFields("id, slug, name, contact, description, location, owners, tags, created, created_by, updated, updated_by", "g." + _)
   val orderBy = "ORDER BY g.name IS NULL, g.name"
 
   val memberTable = "group_members gm"

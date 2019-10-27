@@ -1,3 +1,12 @@
+ALTER TABLE groups
+    ADD COLUMN location VARCHAR(4096);
+ALTER TABLE groups
+    ADD COLUMN location_lat DOUBLE PRECISION;
+ALTER TABLE groups
+    ADD COLUMN location_lng DOUBLE PRECISION;
+ALTER TABLE groups
+    ADD COLUMN location_country VARCHAR(30);
+
 ALTER TABLE events
     ADD COLUMN max_attendee INT;
 

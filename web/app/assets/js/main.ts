@@ -14,7 +14,7 @@ declare const autosize;
 (function () {
     $('[data-toggle="tooltip"]').tooltip();
     $('[data-toggle="popover"]').popover();
-    $('[data-toggle="html-popover"]').each(() => {
+    $('[data-toggle="html-popover"]').each(function () {
         const $el = $(this);
         const $content = $el.find('.content');
         $el.popover({html: true, content: $content});
@@ -25,7 +25,7 @@ declare const autosize;
 
 // confirm actions
 (function () {
-    $('[confirm]').click(e => {
+    $('[confirm]').click(function (e) {
         const text = $(this).attr('confirm') || $(this).attr('title') || 'Confirm?';
         if (!confirm(text)) {
             e.preventDefault();
@@ -35,7 +35,7 @@ declare const autosize;
 
 // autofocus when a modal opens
 (function () {
-    $('.modal').on('shown.bs.modal', () => {
+    $('.modal').on('shown.bs.modal', function () {
         const $modal = $(this);
         $modal.find('input[autofocus], textarea[autofocus]').focus();
         autosize.update($modal.find('textarea'));
@@ -66,7 +66,7 @@ declare const autosize;
             .join('-');
     };
 
-    $('input[slug-for]').each(() => {
+    $('input[slug-for]').each(function () {
         const slugInput = $(this);
         const srcInputs = slugInput.attr('slug-for').split(',').map(id => $('#' + id));
         srcInputs.forEach(srcInput => {
@@ -85,7 +85,7 @@ declare const autosize;
 
 // remote input validation
 (function () {
-    $('input[remote-validate]').each(() => {
+    $('input[remote-validate]').each(function () {
         const $input = $(this);
         const url = $input.attr('remote-validate');
         if (url) {
@@ -94,7 +94,7 @@ declare const autosize;
         }
     });
 
-    const update = ($input, url): void => {
+    function update($input, url): void {
         const value = $input.val();
         if (value) {
             $.getJSON(url.replace('%7B%7Binput%7D%7D', value), res => {
@@ -110,30 +110,30 @@ declare const autosize;
         } else {
             removeFeedback($input);
         }
-    };
+    }
 
-    const removeFeedback = ($input): void => {
+    function removeFeedback($input): void {
         $input.removeClass('is-valid');
         $input.removeClass('is-invalid');
         const $next = $input.next();
         if ($next.hasClass('valid-feedback') || $next.hasClass('invalid-feedback')) {
             $next.remove();
         }
-    };
+    }
 
-    const addValidFeedback = ($input, res): void => {
+    function addValidFeedback($input, res): void {
         $input.addClass('is-valid');
         if (res.message) {
             $input.after('<span class="valid-feedback">' + res.message + '</span>');
         }
-    };
+    }
 
-    const addInvalidFeedback = ($input, res): void => {
+    function addInvalidFeedback($input, res): void {
         $input.addClass('is-invalid');
         if (res.message) {
             $input.after('<span class="invalid-feedback">' + res.message + '</span>');
         }
-    };
+    }
 })();
 
 // https://select2.org/ & https://github.com/select2/select2-bootstrap-theme
@@ -142,14 +142,14 @@ declare const autosize;
         theme: 'bootstrap',
         allowClear: true
     };
-    $('select.select2').each(() => {
+    $('select.select2').each(function () {
         const $select = $(this);
         $select.select2(Object.assign({}, defaultOpts, {
             placeholder: $select.attr('placeholder')
         }));
         addRemoteOptions($select);
     });
-    $('select.tags').each(() => {
+    $('select.tags').each(function () {
         const $select = $(this);
         $select.select2(Object.assign({}, defaultOpts, {
             placeholder: $select.attr('placeholder'),
@@ -158,7 +158,7 @@ declare const autosize;
         addRemoteOptions($select);
     });
 
-    const addRemoteOptions = ($select): void => {
+    function addRemoteOptions($select): void {
         const remote = $select.attr('remote');
         const remoteReplace = $select.attr('remote-replace');
         if (remote) { // $select input should be populated using remote call response
@@ -170,9 +170,9 @@ declare const autosize;
                 fetchAndSetOptions($select, remote);
             }
         }
-    };
+    }
 
-    const fetchAndSetOptions = ($select, url): void => {
+    function fetchAndSetOptions($select, url): void {
         $.getJSON(url, res => {
             const values = ($select.attr('value') || '').split(',').filter(v => v.length > 0);
             $select.find('option[value]').remove(); // remove non empty existing options before adding new ones
@@ -207,7 +207,7 @@ declare const autosize;
         todayHighlight: true,
         toggleActive: true
     };
-    $('input.input-date').each(() => {
+    $('input.input-date').each(function () {
         $(this).datepicker(Object.assign({}, defaultConfig, {
             defaultViewDate: $(this).attr('startDate')
         }));
@@ -217,7 +217,7 @@ declare const autosize;
 // https://unmanner.github.io/imaskjs/
 declare const IMask;
 (function () {
-    $('input.input-time').each(() => {
+    $('input.input-time').each(function () {
         IMask(this, {
             mask: 'HH:mm',
             lazy: false,
@@ -229,7 +229,7 @@ declare const IMask;
     });
     // clear empty input-time so backend will get empty values instead of placeholder ones
     $('form').submit(e => {
-        $(e.target).find('input.input-time').each(() => {
+        $(e.target).find('input.input-time').each(function () {
             const $input = $(this);
             if ($input.val() === '__:__') {
                 $input.val('');
@@ -240,7 +240,7 @@ declare const IMask;
 
 // http://cloudfour.github.io/hideShowPassword/
 /* (function () {
-    $('input[type="password"]').each(() => {
+    $('input[type="password"]').each(function ()> {
         $(this).hideShowPassword({
             show: false,
             innerToggle: true,
@@ -251,7 +251,7 @@ declare const IMask;
 
 // inputImageUrl
 (function () {
-    $('.input-imageurl').each(() => {
+    $('.input-imageurl').each(function () {
         const $elt = $(this);
         const $input = $elt.find('input[type="text"]');
         const $preview = $elt.find('.preview');
@@ -259,25 +259,19 @@ declare const IMask;
         $input.change(() => update($input, $preview));
     });
 
-    const update = ($input, $preview): void => {
+    function update($input, $preview): void {
         if ($input.val() === '') {
             $preview.hide();
         } else {
             $preview.attr('src', $input.val());
             $preview.show();
         }
-    };
+    }
 })();
 
 // markdown input
 (function () {
-    const fetchHtml = (md) => {
-        return fetch('/ui/utils/markdown-to-html', {method: 'POST', body: md}).then(function (res) {
-            return res.text();
-        });
-    };
-
-    $('.markdown-editor').each(() => {
+    $('.markdown-editor').each(function () {
         const previewTab = $(this).find('a[data-toggle="tab"].preview');
         const textarea = $(this).find('textarea');
         const previewPane = $(this).find('.tab-pane.preview');
@@ -292,11 +286,17 @@ declare const IMask;
             previewPane.html(loadingHtml);
         });
     });
+
+    function fetchHtml(md) {
+        return fetch('/ui/utils/markdown-to-html', {method: 'POST', body: md}).then(function (res) {
+            return res.text();
+        });
+    }
 })();
 
 // template input & data
 (function () {
-    $('.template-data').each(() => {
+    $('.template-data').each(function () {
         const $elt = $(this);
         const ref = $elt.attr('data-ref');
         const target = $elt.attr('data-target');
@@ -306,7 +306,7 @@ declare const IMask;
             $target.change(() => updateData($elt, $target.val()));
         }
     });
-    $('.template-editor').each(() => {
+    $('.template-editor').each(function () {
         const $elt = $(this);
         const ref = $elt.attr('data-ref');
         const target = $elt.attr('data-target');
@@ -332,7 +332,7 @@ declare const IMask;
         }
     });
 
-    const updateData = ($elt, ref): void => {
+    function updateData($elt, ref): void {
         if (ref) {
             fetchData(ref).then(res => {
                 $elt.find('.json-viewer').html(JSON.stringify(res.data, null, 2));
@@ -341,9 +341,9 @@ declare const IMask;
         } else {
             $elt.hide();
         }
-    };
+    }
 
-    const updateTemplate = ($input, ref, markdown, previewPane): void => {
+    function updateTemplate($input, ref, markdown, previewPane): void {
         const tmpl = $input.val();
         fetchTemplate(tmpl, ref, markdown).then(tmpl => {
             if (tmpl.error) {
@@ -351,29 +351,43 @@ declare const IMask;
             }
             previewPane.html(tmpl.result);
         });
-    };
+    }
 
-    const fetchData = (ref) => fetch('/ui/utils/template-data/' + ref).then(res => res.json());
+    function fetchData(ref) {
+        return fetch('/ui/utils/template-data/' + ref).then(res => res.json());
+    }
 
-    const fetchTemplate = (tmpl, ref, markdown) => fetch('/ui/utils/render-template', {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            template: tmpl,
-            ref: ref,
-            markdown: markdown
-        })
-    }).then(res => res.json());
+    function fetchTemplate(tmpl, ref, markdown) {
+        return fetch('/ui/utils/render-template', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                template: tmpl,
+                ref: ref,
+                markdown: markdown
+            })
+        }).then(res => res.json());
+    }
 })();
 
 // embed input & display
 (function () {
-    const fetchEmbedCode = (url) => fetch('/ui/utils/embed?url=' + url).then(res => res.text());
+    $('.embed-editor').each(function () {
+        const input = $(this).find('input');
+        const embed = $(this).find('.embed');
+        inputFetchEmbedCode(input, embed);
+        input.change(() => inputFetchEmbedCode(input, embed));
+    });
+    $('.embed-display').each(function () {
+        const embed = $(this);
+        const url = embed.attr('data-url');
+        fetchEmbedCode(url).then(html => embed.html(html));
+    });
 
-    const inputFetchEmbedCode = (input, target) => {
+    function inputFetchEmbedCode(input, target): void {
         const url = input.val();
         if (!!url) {
             target.html('<div class="d-flex justify-content-center m-5"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>');
@@ -390,46 +404,40 @@ declare const IMask;
         } else {
             target.html('');
         }
-    };
+    }
 
-    $('.embed-editor').each(() => {
-        const input = $(this).find('input');
-        const embed = $(this).find('.embed');
-        inputFetchEmbedCode(input, embed);
-        input.change(() => inputFetchEmbedCode(input, embed));
-    });
-    $('.embed-display').each(() => {
-        const embed = $(this);
-        const url = embed.attr('data-url');
-        fetchEmbedCode(url).then(html => embed.html(html));
-    });
+    function fetchEmbedCode(url) {
+        return fetch('/ui/utils/embed?url=' + url).then(res => res.text());
+    }
 })();
 
 // omni-search with https://twitter.github.io/typeahead.js/
 declare const Bloodhound;
 (function () {
-    $('[data-omni-search]').each(() => {
+    $('[data-omni-search]').each(function () {
         const $search = $(this);
         const baseUrl = $search.attr('data-omni-search');
-        const datasetBuilder = (url, title) => ({
-            name: url,
-            limit: 20,
-            source: new Bloodhound({
-                datumTokenizer: Bloodhound.tokenizers.whitespace,
-                queryTokenizer: Bloodhound.tokenizers.whitespace,
-                remote: {
-                    wildcard: '%QUERY',
-                    url: baseUrl + '/' + url + '?q=%QUERY'
+        function datasetBuilder(url, title) {
+            return {
+                name: url,
+                limit: 20,
+                source: new Bloodhound({
+                    datumTokenizer: Bloodhound.tokenizers.whitespace,
+                    queryTokenizer: Bloodhound.tokenizers.whitespace,
+                    remote: {
+                        wildcard: '%QUERY',
+                        url: baseUrl + '/' + url + '?q=%QUERY'
+                    }
+                }),
+                display: item => item.text, // will be set in the input
+                templates: {
+                    header: '<b class="tt-header">' + title + '</b>',
+                    suggestion: item => '<a href="' + item.url + '">' + item.text + '</a>',
+                    pending: '<b class="tt-header">' + title + ' <i class="fas fa-circle-notch fa-spin"></i></b>',
+                    notFound: '<b class="tt-header">' + title + '</b>'
                 }
-            }),
-            display: item => item.text, // will be set in the input
-            templates: {
-                header: '<b class="tt-header">' + title + '</b>',
-                suggestion: item => '<a href="' + item.url + '">' + item.text + '</a>',
-                pending: '<b class="tt-header">' + title + ' <i class="fas fa-circle-notch fa-spin"></i></b>',
-                notFound: '<b class="tt-header">' + title + '</b>'
-            }
-        });
+            };
+        }
 
         $search.typeahead(
             {minLength: 2, hint: true, highlight: true},
@@ -449,7 +457,7 @@ declare const Bloodhound;
 // https://craig.is/killing/mice
 declare const Mousetrap;
 (function () {
-    $('[data-hotkey]').each(() => {
+    $('[data-hotkey]').each(function () {
         const $hotkey = $(this);
         if ($hotkey.hasClass('tt-hint')) return; // 'tt-hint' is a duplicated field from omni-search, so it's ignored
         const keys = $hotkey.attr('data-hotkey');
@@ -474,7 +482,7 @@ declare const Mousetrap;
 // GMapPlace picker (https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete?hl=fr)
 declare const google;
 const GMapPlacePicker = (function () {
-    const initMap = ($map) => {
+    function initMap($map) {
         const map = new google.maps.Map($map.get(0), {
             center: {lat: -33.8688, lng: 151.2195},
             zoom: 13
@@ -490,17 +498,17 @@ const GMapPlacePicker = (function () {
             marker: marker,
             infowindow: infowindow
         };
-    };
+    }
 
-    const toggleMap = (mapData, location): void => {
+    function toggleMap(mapData, location): void {
         if (location && location.lat && location.lng) {
             showMap(mapData, location);
         } else {
             hideMap(mapData);
         }
-    };
+    }
 
-    const showMap = (mapData, location): void => {
+    function showMap(mapData, location): void {
         const point = {lat: parseFloat(location.lat), lng: parseFloat(location.lng)};
         mapData.$map.show();
         google.maps.event.trigger(mapData.map, 'resize');
@@ -516,34 +524,38 @@ const GMapPlacePicker = (function () {
             location.postalCode + ' ' + location.locality + ', ' + location.country
         );
         mapData.infowindow.open(mapData.map, mapData.marker);
-    };
+    }
 
-    const hideMap = (mapData): void => mapData.$map.hide();
+    function hideMap(mapData): void {
+        mapData.$map.hide();
+    }
 
     const fields = ['id', 'name', 'streetNo', 'street', 'postalCode', 'locality', 'country', 'formatted', 'lat', 'lng', 'url', 'website', 'phone', 'utcOffset'];
 
-    const writeForm = ($elt, location): void => {
+    function writeForm($elt, location): void {
         fields.forEach(field => {
             $elt.find('input.gmapplace-' + field).val(location ? location[field] : '');
         });
-    };
+    }
 
-    const readForm = ($elt) => {
+    function readForm($elt) {
         const location = {};
         fields.forEach(field => {
             location[field] = $elt.find('input.gmapplace-' + field).val();
         });
         return location;
-    };
+    }
 
-    const toLocation = (place) => {
-        const getSafe = (elt, field) => elt && elt[field] ? elt[field] : '';
+    function toLocation(place) {
+        function getSafe(elt, field) {
+            return elt && elt[field] ? elt[field] : '';
+        }
 
-        const toAddress = (components) => {
-            const getByType = (components, type) => {
+        function toAddress(components) {
+            function getByType(components, type) {
                 const c = components.find(e => e.types.indexOf(type) >= 0);
                 return c && c.long_name;
-            };
+            }
 
             return {
                 streetNumber: getByType(components, 'street_number'),
@@ -566,7 +578,7 @@ const GMapPlacePicker = (function () {
                     level5: getByType(components, 'sublocality_level_5')
                 }
             };
-        };
+        }
 
         const address = toAddress(place.address_components);
         const loc = place && place.geometry && place.geometry.location;
@@ -586,9 +598,9 @@ const GMapPlacePicker = (function () {
             phone: getSafe(place, 'international_phone_number'),
             utcOffset: getSafe(place, 'utc_offset').toString()
         };
-    };
+    }
 
-    const initAutocomplete = ($elt, $input, mapData): void => {
+    function initAutocomplete($elt, $input, mapData): void {
         const autocomplete = new google.maps.places.Autocomplete($input.get(0));
         autocomplete.addListener('place_changed', function () {
             const place = autocomplete.getPlace(); // cf https://developers.google.com/maps/documentation/javascript/reference/places-service?hl=fr#PlaceResult
@@ -596,7 +608,7 @@ const GMapPlacePicker = (function () {
             writeForm($elt, location);
             toggleMap(mapData, location);
         });
-    };
+    }
 
     return {
         init: () => {

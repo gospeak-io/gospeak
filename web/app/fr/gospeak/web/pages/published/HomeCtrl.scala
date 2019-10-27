@@ -68,6 +68,7 @@ class HomeCtrl(cc: ControllerComponents,
         |- beer
         |- pizzas ^^
       """.stripMargin),
+    location = None,
     owners = NonEmptyList.of(user.id),
     tags = Seq("tag").map(Tag(_)),
     info = Info(user.id, now))
