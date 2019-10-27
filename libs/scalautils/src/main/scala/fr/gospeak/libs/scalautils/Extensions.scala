@@ -138,6 +138,22 @@ object Extensions {
     }
   }
 
+  implicit class NonEmptyListTryExtension[A](val in: NonEmptyList[Try[A]]) extends AnyVal {
+    def sequence: Try[NonEmptyList[A]] = in.toList.sequence.map(NonEmptyList.fromListUnsafe)
+  }
+
+  implicit class NonEmptyListEitherExtension[E, A](val in: NonEmptyList[Either[E, A]]) extends AnyVal {
+    def sequence: Either[E, NonEmptyList[A]] = in.toList.sequence.map(NonEmptyList.fromListUnsafe)
+  }
+
+  implicit class NonEmptyListFutureExtension[A](val in: NonEmptyList[Future[A]]) extends AnyVal {
+    def sequence(implicit ec: ExecutionContext): Future[NonEmptyList[A]] = in.toList.sequence.map(NonEmptyList.fromListUnsafe)
+  }
+
+  implicit class NonEmptyListIOExtension[A](val in: NonEmptyList[IO[A]]) extends AnyVal {
+    def sequence: IO[NonEmptyList[A]] = in.toList.sequence.map(NonEmptyList.fromListUnsafe)
+  }
+
   implicit class OptionExtension[A](val in: Option[A]) extends AnyVal {
     def toTry(e: => Throwable): Try[A] = in match {
       case Some(v) => Success(v)

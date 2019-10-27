@@ -124,10 +124,10 @@ object ProposalRepoSql {
   private val _ = proposalIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.proposals
   private val tableFull = table
-    .join(Tables.cfps, _.field("cfp_id"), _.field("id")).get
-    .join(Tables.groups, _.field("group_id", "c"), _.field("id")).get
-    .join(Tables.talks, _.field("talk_id", "p"), _.field("id")).get
-    .joinOpt(Tables.events, _.field("event_id", "p"), _.field("id")).get
+    .join(Tables.cfps, _.field("cfp_id") -> _.field("id")).get
+    .join(Tables.groups, _.field("group_id", "c") -> _.field("id")).get
+    .join(Tables.talks, _.field("talk_id", "p") -> _.field("id")).get
+    .joinOpt(Tables.events, _.field("event_id", "p") -> _.field("id")).get
 
   private[sql] def insert(e: Proposal): Insert[Proposal] = {
     val values = fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"

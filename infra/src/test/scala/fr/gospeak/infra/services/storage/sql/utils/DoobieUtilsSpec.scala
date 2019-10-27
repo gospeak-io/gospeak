@@ -50,7 +50,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
       }
       describe("join") {
         it("should build a joined table") {
-          val table = table1.join(table2, _.field("id"), _.field("ref1")).get
+          val table = table1.join(table2, _.field("id") -> _.field("ref1")).get
           table.value shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1"
           table.prefix shouldBe "t1"
           table.fields shouldBe table1.fields ++ table2.fields
@@ -59,21 +59,21 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
         }
         it("should join multiple tables") {
           val table = table1
-            .join(table2, _.field("id"), _.field("ref1")).get
-            .join(table3, _.field("id", "t2"), _.field("ref2")).get
+            .join(table2, _.field("id") -> _.field("ref1")).get
+            .join(table3, _.field("id", "t2") -> _.field("ref2")).get
           table.value shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1 INNER JOIN table3 t3 ON t2.id=t3.ref2"
         }
         it("should be associative") {
-          val t23 = table2.join(table3, _.field("id"), _.field("ref2")).get
+          val t23 = table2.join(table3, _.field("id") -> _.field("ref2")).get
           t23.value shouldBe "table2 t2 INNER JOIN table3 t3 ON t2.id=t3.ref2"
 
-          val t123A = table1.join(t23, _.field("id"), _.field("ref1")).get
+          val t123A = table1.join(t23, _.field("id") -> _.field("ref1")).get
           t123A.value shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1 INNER JOIN table3 t3 ON t2.id=t3.ref2"
 
-          val t12 = table1.join(table2, _.field("id"), _.field("ref1")).get
+          val t12 = table1.join(table2, _.field("id") -> _.field("ref1")).get
           t12.value shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1"
 
-          val t123B = t12.join(table3, _.field("id", "t2"), _.field("ref2")).get
+          val t123B = t12.join(table3, _.field("id", "t2") -> _.field("ref2")).get
           t123B.value shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1 INNER JOIN table3 t3 ON t2.id=t3.ref2"
 
           t123A shouldBe t123B
@@ -104,8 +104,8 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
     describe("Select") {
       it("should build a select") {
         val e = Entity(1, "n")
-        val sql = Select("table t", Seq(Field("id", "t"), Field("name", "t")), Some(fr0" WHERE t.id=${e.id}"), Seq(Field("name", "t"))).fr.update.sql
-        sql shouldBe "SELECT t.id, t.name FROM table t WHERE t.id=? ORDER BY t.name IS NULL, t.name"
+        val sql = Select("table t", Seq(Field("id", "t"), Field("name", "t")), Some(fr0" WHERE t.id=${e.id}"), Seq(Field("name", "t")), Some(3)).fr.update.sql
+        sql shouldBe "SELECT t.id, t.name FROM table t WHERE t.id=? ORDER BY t.name IS NULL, t.name LIMIT 3"
       }
     }
     describe("SelectPage") {

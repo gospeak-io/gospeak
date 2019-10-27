@@ -95,9 +95,9 @@ object GroupRepoSql {
   private val table = Tables.groups
   private val memberTable = Tables.groupMembers
   private val memberTableWithUser = Tables.groupMembers
-    .join(Tables.users, _.field("user_id"), _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
+    .join(Tables.users, _.field("user_id") -> _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
   private val tableWithMember = table
-    .join(memberTableWithUser, _.field("id"), _.field("group_id")).get
+    .join(memberTableWithUser, _.field("id") -> _.field("group_id")).get
 
   private[sql] def insert(e: Group): Insert[Group] = {
     val values = fr0"${e.id}, ${e.slug}, ${e.name}, ${e.contact}, ${e.description}, ${e.owners}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"

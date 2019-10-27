@@ -59,7 +59,7 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]] = selectPageAfter(group, now.truncatedTo(ChronoUnit.DAYS), params).run(xa)
 
-  override def listIncoming(params: Page.Params)(user: User.Id, now: Instant): IO[Page[Event.Full]] = selectPageIncoming(user, now, params).run(xa)
+  override def listIncoming(params: Page.Params)(user: User.Id, now: Instant): IO[Page[(Event.Full, Option[Event.Rsvp])]] = selectPageIncoming(user, now, params).run(xa)
 
   override def countYesRsvp(event: Event.Id): IO[Long] = countRsvp(event, Event.Rsvp.Answer.Yes).runOption(xa).map(_.getOrElse(0))
 
@@ -79,16 +79,22 @@ object EventRepoSql {
   private val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.events
   private val tableWithVenue = table
-    .joinOpt(Tables.venues, _.field("venue"), _.field("id")).get.dropFields(_.name.startsWith("address_"))
+    .joinOpt(Tables.venues, _.field("venue") -> _.field("id")).get.dropFields(_.name.startsWith("address_"))
   private val tableFull = tableWithVenue
-    .joinOpt(Tables.partners, _.field("partner_id", "v"), _.field("id")).get
-    .joinOpt(Tables.contacts, _.field("contact_id", "v"), _.field("id")).get
-    .join(Tables.groups, _.field("group_id", "e"), _.field("id")).get
-  private val tableFullWithMember = tableFull
-    .join(Tables.groupMembers, _.field("id", "g"), _.field("group_id")).map(_.dropFields(_.prefix == "gm")).get
+    .joinOpt(Tables.partners, _.field("partner_id", "v") -> _.field("id")).get
+    .joinOpt(Tables.contacts, _.field("contact_id", "v") -> _.field("id")).get
+    .join(Tables.groups, _.field("group_id", "e") -> _.field("id")).get
   private val rsvpTable = Tables.eventRsvps
   private val rsvpTableWithUser = rsvpTable
-    .join(Tables.users, _.field("user_id"), _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
+    .join(Tables.users, _.field("user_id") -> _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
+  private val tableFullWithMemberAndRsvp = tableFull
+    .join(Tables.groupMembers, _.field("id", "g") -> _.field("group_id")).get
+    .joinOpt(rsvpTable,
+      _.field("id", "e") -> _.field("event_id"),
+      _.field("user_id", "gm") -> _.field("user_id", "er")).get
+    .joinOpt(Tables.users, _.field("user_id", "er") -> _.field("id")).get
+    .dropField(_.field("user_id", "er")).get
+    .dropFields(_.prefix == "gm")
 
   private[sql] def insert(e: Event): Insert[Event] = {
     val values = fr0"${e.id}, ${e.group}, ${e.cfp}, ${e.slug}, ${e.name}, ${e.start}, ${e.maxAttendee}, ${e.description}, ${e.venue}, ${e.talks}, ${e.tags}, ${e.published}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.event)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
@@ -133,8 +139,8 @@ object EventRepoSql {
   private[sql] def selectPageAfter(group: Group.Id, now: Instant, params: Page.Params): SelectPage[Event] =
     table.selectPage[Event](params, fr0"WHERE e.group_id=$group AND e.start > $now")
 
-  private[sql] def selectPageIncoming(user: User.Id, now: Instant, params: Page.Params): SelectPage[Event.Full] =
-    tableFullWithMember.selectPage[Event.Full](params, fr0"WHERE gm.user_id=$user AND e.start > $now AND e.published IS NOT NULL")
+  private[sql] def selectPageIncoming(user: User.Id, now: Instant, params: Page.Params): SelectPage[(Event.Full, Option[Event.Rsvp])] =
+    tableFullWithMemberAndRsvp.selectPage[(Event.Full, Option[Event.Rsvp])](params, fr0"WHERE e.start > $now AND e.published IS NOT NULL AND gm.user_id=$user")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
     table.select[Seq[Tag]](Seq(Field("tags", "e")), Seq())
@@ -142,7 +148,7 @@ object EventRepoSql {
   private def where(group: Group.Id, event: Event.Slug): Fragment = fr0"WHERE e.group_id=$group AND e.slug=$event"
 
   private[sql] def countRsvp(event: Event.Id, answer: Event.Rsvp.Answer): Select[Long] =
-    rsvpTable.select[Long](Seq(Field("count(*)", "")), fr0"WHERE er.event_id=$event AND er.answer=$answer GROUP BY er.event_id, er.answer")
+    rsvpTable.select[Long](Seq(Field("count(*)", "")), fr0"WHERE er.event_id=$event AND er.answer=$answer GROUP BY er.event_id, er.answer", Seq())
 
   private[sql] def insertRsvp(e: Event.Rsvp): Insert[Event.Rsvp] =
     rsvpTable.insert[Event.Rsvp](e, _ => fr0"${e.event}, ${e.user.id}, ${e.answer}, ${e.answeredAt}")
@@ -157,5 +163,5 @@ object EventRepoSql {
     rsvpTableWithUser.select[Event.Rsvp](fr0"WHERE er.event_id=$event AND er.user_id=$user")
 
   private[sql] def selectFirstRsvp(event: Event.Id, answer: Answer): Select[Event.Rsvp] =
-    rsvpTableWithUser.select[Event.Rsvp](fr0"WHERE er.event_id=$event AND er.answer=$answer", sort = Seq(Field("answered_at", "er")))
+    rsvpTableWithUser.selectOne[Event.Rsvp](fr0"WHERE er.event_id=$event AND er.answer=$answer", sort = Seq(Field("answered_at", "er")))
 }

@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.{Event, Group, User, UserRequest}
+import fr.gospeak.core.domain.{User, UserRequest}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.Extensions._

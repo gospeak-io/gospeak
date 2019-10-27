@@ -88,7 +88,7 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPageIncoming") {
         val q = EventRepoSql.selectPageIncoming(user.id, now, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFullWithMember WHERE gm.user_id=? AND e.start > ? AND e.published IS NOT NULL $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fieldsFullWithMemberAndRsvp FROM $tableFullWithMemberAndRsvp WHERE e.start > ? AND e.published IS NOT NULL AND gm.user_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectTags") {
         val q = EventRepoSql.selectTags()
@@ -97,7 +97,7 @@ class EventRepoSqlSpec extends RepoSpec {
       describe("rsvp") {
         it("should build countRsvp") {
           val q = EventRepoSql.countRsvp(event.id, rsvp.answer)
-          check(q, s"SELECT count(*) FROM $rsvpTable WHERE er.event_id=? AND er.answer=? GROUP BY er.event_id, er.answer ORDER BY er.answered_at IS NULL, er.answered_at")
+          check(q, s"SELECT count(*) FROM $rsvpTable WHERE er.event_id=? AND er.answer=? GROUP BY er.event_id, er.answer")
         }
         it("should build insertRsvp") {
           val q = EventRepoSql.insertRsvp(rsvp)
@@ -117,7 +117,7 @@ class EventRepoSqlSpec extends RepoSpec {
         }
         it("should build selectFirstRsvp") {
           val q = EventRepoSql.selectFirstRsvp(event.id, Event.Rsvp.Answer.Wait)
-          check(q, s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? AND er.answer=? ORDER BY er.answered_at IS NULL, er.answered_at")
+          check(q, s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? AND er.answer=? ORDER BY er.answered_at IS NULL, er.answered_at LIMIT 1")
         }
       }
     }
@@ -138,11 +138,12 @@ object EventRepoSqlSpec {
   private val tableFull = s"$tableWithVenue LEFT OUTER JOIN $partnerTable ON v.partner_id=pa.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id INNER JOIN $groupTable ON e.group_id=g.id"
   private val fieldsFull = s"$fieldsWithVenue, $partnerFields, $contactFields, $groupFields"
 
-  private val tableFullWithMember = s"$tableFull INNER JOIN $memberTable ON g.id=gm.group_id"
-
   private val rsvpTable = "event_rsvps er"
   private val rsvpFields = mapFields("event_id, user_id, answer, answered_at", "er." + _)
   private val rsvpOrderBy = "ORDER BY er.answered_at IS NULL, er.answered_at"
   private val rsvpTableWithUser = s"$rsvpTable INNER JOIN $userTable ON er.user_id=u.id"
   private val rsvpFieldsWithUser = s"${rsvpFields.replaceAll("er.user_id, ", "")}, $userFields"
+
+  private val tableFullWithMemberAndRsvp = s"$tableFull INNER JOIN $memberTable ON g.id=gm.group_id LEFT OUTER JOIN $rsvpTable ON e.id=er.event_id AND gm.user_id=er.user_id LEFT OUTER JOIN $userTable ON er.user_id=u.id"
+  private val fieldsFullWithMemberAndRsvp = s"$fieldsFull, $rsvpFieldsWithUser"
 }

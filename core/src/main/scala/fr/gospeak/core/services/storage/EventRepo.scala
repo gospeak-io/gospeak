@@ -37,7 +37,7 @@ trait SpeakerEventRepo {
 }
 
 trait UserEventRepo {
-  def listIncoming(params: Page.Params)(user: User.Id, now: Instant): IO[Page[Event.Full]]
+  def listIncoming(params: Page.Params)(user: User.Id, now: Instant): IO[Page[(Event.Full, Option[Event.Rsvp])]]
 }
 
 trait AuthEventRepo

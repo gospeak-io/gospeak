@@ -14,7 +14,7 @@
 @import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(incomingEvents: Page[Event.Full], joinedGroups: Page[(Group, Group.Member)], talks: Page[Talk], proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(incomingEvents: Page[(Event.Full, Option[Event.Rsvp])], joinedGroups: Page[(Group, Group.Member)], talks: Page[Talk], proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", b)() {
     @if(talks.nonEmpty && req.identity.user.profile.status.isUndefined) {
         <div class="alert alert-info" role="alert">
@@ -52,8 +52,15 @@
                     </div>
                 } else {
                     <div class="list-group list-group-flush">
-                        @incomingEvents.items.map { e =>
-                            <a href="@PublicGroupCtrl.event(e.group.slug, e.event.slug)" class="list-group-item list-group-item-action">@e.event.name.value</a>
+                        @incomingEvents.items.map { case (e, r) =>
+                            <a href="@PublicGroupCtrl.event(e.group.slug, e.event.slug)" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                @e.event.name.value
+                                @r.map(_.answer).map {
+                                    case Event.Rsvp.Answer.Yes => {<span class="badge badge-success">Yes</span>}
+                                    case Event.Rsvp.Answer.Wait => {<span class="badge badge-warning">Wait list</span>}
+                                    case Event.Rsvp.Answer.No => {<span class="badge badge-danger">No</span>}
+                                }
+                            </a>
                         }
                     </div>
                 }

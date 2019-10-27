@@ -1,10 +1,9 @@
 package fr.gospeak.infra.services.storage.sql
 
-import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
+import java.time.{Instant, LocalDate, LocalDateTime}
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import doobie.implicits._
 import fr.gospeak.core.GospeakConf
 import fr.gospeak.core.domain.Contact.{FirstName, LastName}
 import fr.gospeak.core.domain.User.Profile
@@ -14,9 +13,8 @@ import fr.gospeak.core.domain.utils.{Constants, Info, TemplateData}
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.core.services.storage.GospeakDb
 import fr.gospeak.infra.services.GravatarSrv
-import fr.gospeak.infra.services.storage.sql.utils.{DoobieUtils, FlywayUtils}
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Queries
+import fr.gospeak.infra.services.storage.sql.utils.{DoobieUtils, FlywayUtils}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.StringUtils
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
@@ -94,6 +92,10 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     def sponsor(group: Group, partner: Partner, pack: SponsorPack, by: User, start: String, finish: String, contact: Option[Contact] = None): Sponsor =
       Sponsor(Sponsor.Id.generate(), group.id, partner.id, pack.id, contact.map(_.id), LocalDate.parse(start), LocalDate.parse(finish), Some(LocalDate.parse(start)), Price(1500, Price.Currency.EUR), Info(by.id, now))
 
+    def member(group: Group, user: User): Group.Member = Group.Member(group.id, Group.Member.Role.Member, None, now, None, user)
+
+    def rsvp(event: Event, user: User, answer: Event.Rsvp.Answer = Event.Rsvp.Answer.Yes): Event.Rsvp = Event.Rsvp(event.id, answer, now, user)
+
     val groupDefaultSettings = conf.defaultGroupSettings
 
     val userDemoProfil = User.Profile(User.Profile.Status.Public, Some(Markdown("Entrepreneur, functional programmer, OSS contributor, speaker, author.\nWork hard, stay positive, and live fearlessly.")),
@@ -102,7 +104,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val userSpeaker = user("speaker", "speaker@mail.com", "Speaker", "User")
     val userOrga = user("orga", "orga@mail.com", "Orga", "User")
     val userEmpty = user("empty", "empty@mail.com", "Empty", "User")
-    val users = NonEmptyList.of(userDemo, userSpeaker, userOrga, userEmpty)
+    val users = Seq(userDemo, userSpeaker, userOrga, userEmpty)
 
     val credentials = users.map(u => User.Credentials("credentials", u.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None)) // pwd: demo
     val loginRefs = users.map(u => User.LoginRef("credentials", u.email.value, u.id))
@@ -123,13 +125,13 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val talk5 = talk(userSpeaker, "gagner-1-million", "Gagner 1 Million au BlackJack avec Akka", status = Talk.Status.Private, duration = 15)
     val talk6 = talk(userSpeaker, "demarrer-avec-spark", "7 conseils pour demarrer avec Spark", duration = 45)
     val talk7 = talk(userSpeaker, "big-talk", "Big Talk")
-    val talks = NonEmptyList.of(talk1, talk2, talk3, talk4, talk5, talk6, talk7)
+    val talks = Seq(talk1, talk2, talk3, talk4, talk5, talk6, talk7)
 
     val humanTalks = group("ht-paris", "HumanTalks Paris", Seq("tech"), userDemo, Seq(userOrga), Some("paris@humantalks.com"))
     val parisJs = group("paris-js", "Paris.Js", Seq("JavaScript"), userOrga)
     val dataGov = group("data-gov", "Data governance", Seq(), userDemo)
     val bigGroup = group("big-group", "Big Group", Seq("BigData"), userOrga)
-    val groups = NonEmptyList.of(humanTalks, parisJs, dataGov, bigGroup)
+    val groups = Seq(humanTalks, parisJs, dataGov, bigGroup)
 
     val humanTalksSettings = groupDefaultSettings.copy(
       actions = Map(
@@ -147,25 +149,25 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val cfp2 = cfp(humanTalks, "ht-paris-day-1", "HumanTalks Paris Day - Edition 1", None, Some("2018-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
     val cfp3 = cfp(humanTalks, "ht-paris-day-2", "HumanTalks Paris Day - Edition 2", Some("2019-03-01"), Some("2019-12-31"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
     val cfp4 = cfp(parisJs, "paris-js", "Paris.Js", None, Some("2019-05-21"), "Submit your talk to exchange with the Paris JS community", Seq(), userOrga)
-    val cfps = NonEmptyList.of(cfp1, cfp2, cfp3, cfp4)
+    val cfps = Seq(cfp1, cfp2, cfp3, cfp4)
 
     val proposal1 = proposal(talk1, cfp1)
     val proposal2 = proposal(talk2, cfp1)
     val proposal3 = proposal(talk2, cfp4)
     val proposal4 = proposal(talk3, cfp1, status = Proposal.Status.Declined)
     val proposal5 = proposal(talk4, cfp3)
-    val proposals = NonEmptyList.of(proposal1, proposal2, proposal3, proposal4, proposal5)
+    val proposals = Seq(proposal1, proposal2, proposal3, proposal4, proposal5)
 
     val zeenea = partner(humanTalks, "Zeenea", "Recrute des devs Scala et Angular", Some("A startup building a data catalog"), 1, userDemo)
     val criteo = partner(humanTalks, "Criteo", "", None, 2, userDemo)
     val nexeo = partner(humanTalks, "Nexeo", "", None, 3, userDemo)
     val google = partner(humanTalks, "Google", "", None, 4, userDemo)
-    val partners = NonEmptyList.of(zeenea, criteo, nexeo, google)
+    val partners = Seq(zeenea, criteo, nexeo, google)
 
     val zeeneaNina = contact(zeenea, "nina@zeenea.com", "Nina", "Truc", userDemo)
     val zeeneaJean = contact(zeenea, "jean@zeenea.com", "Jean", "Machin", userDemo)
     val criteoClaude = contact(criteo, "claude@criteo.com", "Claude", "Bidule", userDemo)
-    val contacts = NonEmptyList.of(zeeneaNina, zeeneaJean, criteoClaude)
+    val contacts = Seq(zeeneaNina, zeeneaJean, criteoClaude)
 
     val zeeneaPlace = GMapPlace(
       id = "ChIJ0wnrwMdv5kcRuOvv_dXYoy4",
@@ -184,7 +186,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       utcOffset = 120,
       timezone = Constants.defaultZoneId)
     val venue1 = venue(zeenea, zeeneaPlace, userDemo, contact = Some(zeeneaNina), roomSize = Some(80))
-    val venues = NonEmptyList.of(venue1)
+    val venues = Seq(venue1)
 
     val event1 = event(humanTalks, Some(cfp2), "2018-06", "HumanTalks Day #1", "2018-06-01", userDemo, Some(100), venue = None, description = groupDefaultSettings.event.description)
     val event2 = event(humanTalks, None, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, Some(120), venue = None, description = groupDefaultSettings.event.description)
@@ -193,9 +195,9 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val event7 = event(humanTalks, Some(cfp1), "2019-12", "HumanTalks Paris Decembre 2019", "2019-12-10", userDemo, Some(100), venue = Some(venue1), description = groupDefaultSettings.event.description, published = false)
     val event5 = event(parisJs, Some(cfp4), "2019-04", "Paris.Js Avril", "2019-04-01", userOrga, None)
     val event6 = event(dataGov, None, "2019-03", "Nouveaux modeles de gouvenance", "2019-03-15", userDemo, Some(100), tags = Seq("Data Gouv"))
-    val events = NonEmptyList.of(event1, event2, event3, event4, event5, event6, event7)
+    val events = Seq(event1, event2, event3, event4, event5, event6, event7)
 
-    val eventTalks = NonEmptyList.of(
+    val eventTalks = Seq(
       (cfp1, event4, Seq(proposal1), humanTalks.owners.head),
       (cfp1, event3, Seq(proposal2), humanTalks.owners.head),
       (cfp4, event5, Seq(proposal3), parisJs.owners.head))
@@ -203,14 +205,19 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val base = sponsorPack(humanTalks, "Base", 500, userDemo, "Description of the pack")
     val premium = sponsorPack(humanTalks, "Premium", 1500, userDemo)
     val old = sponsorPack(humanTalks, "Old", 100, userDemo, active = false)
-    val packs = NonEmptyList.of(base, premium, old)
+    val packs = Seq(base, premium, old)
 
     val sponsor1 = sponsor(humanTalks, zeenea, base, userDemo, "2018-01-01", "2019-01-01", Some(zeeneaJean))
     val sponsor2 = sponsor(humanTalks, zeenea, premium, userDemo, "2019-01-01", "2020-01-01")
     val sponsor3 = sponsor(humanTalks, nexeo, base, userDemo, "2018-01-01", "2019-01-01")
-    val sponsors = NonEmptyList.of(sponsor1, sponsor2, sponsor3)
+    val sponsors = Seq(sponsor1, sponsor2, sponsor3)
 
-    val generated = (1 to 25).toList.map { i =>
+    val groupMembers = Seq(
+      member(humanTalks, userDemo))
+
+    val eventRsvps = Seq(rsvp(event4, userDemo))
+
+    val generated = (1 to 25).map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
       val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), None, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userOrga.id), Seq(), Info(userOrga.id, now))
@@ -222,24 +229,30 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     }
 
     for {
-      _ <- run(Queries.insertMany(UserRepoSql.insert(_: User).fr.update)(users))
-      _ <- run(Queries.insertMany(UserRepoSql.insertCredentials(_: User.Credentials).fr.update)(credentials))
-      _ <- run(Queries.insertMany(UserRepoSql.insertLoginRef(_: User.LoginRef).fr.update)(loginRefs))
-      _ <- run(Queries.insertMany(TalkRepoSql.insert(_: Talk).fr.update)(talks ++ generated.map(_._4)))
-      _ <- run(Queries.insertMany(GroupRepoSql.insert(_: Group).fr.update)(groups ++ generated.map(_._1)))
-      _ <- run(Queries.insertMany(CfpRepoSql.insert(_: Cfp).fr.update)(cfps ++ generated.map(_._2)))
-      _ <- run(Queries.insertMany(ProposalRepoSql.insert(_: Proposal).fr.update)(proposals ++ generated.map(_._5)))
-      _ <- run(Queries.insertMany(PartnerRepoSql.insert(_: Partner).fr.update)(partners))
-      _ <- run(Queries.insertMany(ContactRepoSql.insert(_: Contact).fr.update)(contacts))
-      // _ <- run(Queries.insertMany(VenueRepoSql.insert)(venues)) // fail with: JdbcSQLException: Parameter "#10" is not set :(
-      _ <- IO(venues.toList.map(venue => run(Queries.insertOne(VenueRepoSql.insert(_: Venue).fr.update)(venue)).unsafeRunSync()))
-      _ <- run(Queries.insertMany(SponsorPackRepoSql.insert(_: SponsorPack).fr.update)(packs))
-      _ <- run(Queries.insertMany(SponsorRepoSql.insert(_: Sponsor).fr.update)(sponsors))
-      _ <- run(Queries.insertMany(EventRepoSql.insert(_: Event).fr.update)(events ++ generated.map(_._3)))
-      _ <- eventTalks.toList.map { case (c, e, p, u) => addTalk(c, e, p, u, now) }.sequence
+      _ <- users.map(UserRepoSql.insert(_).run(xa)).sequence
+      _ <- credentials.map(UserRepoSql.insertCredentials(_).run(xa)).sequence
+      _ <- loginRefs.map(UserRepoSql.insertLoginRef(_).run(xa)).sequence
+      _ <- (talks ++ generated.map(_._4)).map(TalkRepoSql.insert(_).run(xa)).sequence
+      _ <- (groups ++ generated.map(_._1)).map(GroupRepoSql.insert(_).run(xa)).sequence
+      _ <- (cfps ++ generated.map(_._2)).map(CfpRepoSql.insert(_).run(xa)).sequence
+      _ <- (proposals ++ generated.map(_._5)).map(ProposalRepoSql.insert(_).run(xa)).sequence
+      _ <- partners.map(PartnerRepoSql.insert(_).run(xa)).sequence
+      _ <- contacts.map(ContactRepoSql.insert(_).run(xa)).sequence
+      _ <- venues.map(VenueRepoSql.insert(_).run(xa)).sequence
+      _ <- packs.map(SponsorPackRepoSql.insert(_).run(xa)).sequence
+      _ <- sponsors.map(SponsorRepoSql.insert(_).run(xa)).sequence
+      _ <- (events ++ generated.map(_._3)).map(EventRepoSql.insert(_).run(xa)).sequence
+      _ <- eventTalks.map { case (c, e, p, u) => addTalk(c, e, p, u, now) }.sequence
       _ <- groupSettings.set(humanTalks.id, humanTalksSettings, userDemo.id, now)
+      _ <- groupMembers.map(GroupRepoSql.insertMember(_).run(xa)).sequence
+      _ <- eventRsvps.map(EventRepoSql.insertRsvp(_).run(xa)).sequence
     } yield Done
   }
+
+  private def addTalk(cfp: Cfp, event: Event, proposals: Seq[Proposal], by: User.Id, now: Instant): IO[Done] = for {
+    _ <- EventRepoSql.updateTalks(event.group, event.slug)(proposals.map(_.id), by, now).run(xa)
+    _ <- proposals.map(p => ProposalRepoSql.updateStatus(cfp.slug, p.id)(Proposal.Status.Accepted, Some(event.id)).run(xa)).sequence
+  } yield Done
 
   private val humanTalksRoti =
     s"""<!doctype html>
@@ -428,18 +441,4 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
        |</body>
        |</html>
     """.stripMargin
-
-  private def addTalk(cfp: Cfp, event: Event, proposals: Seq[Proposal], by: User.Id, now: Instant): IO[Done] = for {
-    _ <- EventRepoSql.updateTalks(event.group, event.slug)(proposals.map(_.id), by, now).run(xa)
-    _ <- proposals.map(p => ProposalRepoSql.updateStatus(cfp.slug, p.id)(Proposal.Status.Accepted, Some(event.id)).run(xa)).sequence
-  } yield Done
-
-  private def run(i: => doobie.Update0): IO[Done] =
-    i.run.transact(xa).flatMap {
-      case 1 => IO.pure(Done)
-      case code => IO.raiseError(CustomException(s"Failed to update $i (code: $code)"))
-    }
-
-  private def run[A](v: doobie.ConnectionIO[A]): IO[A] =
-    v.transact(xa)
 }

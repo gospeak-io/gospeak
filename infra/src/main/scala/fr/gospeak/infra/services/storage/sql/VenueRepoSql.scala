@@ -37,8 +37,8 @@ object VenueRepoSql {
   private val _ = venueIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.venues
   private val tableFull = table.dropFields(_.name.startsWith("address_"))
-    .join(Tables.partners, _.field("partner_id"), _.field("id")).get
-    .joinOpt(Tables.contacts, _.field("contact_id"), _.field("id")).get
+    .join(Tables.partners, _.field("partner_id") -> _.field("id")).get
+    .joinOpt(Tables.contacts, _.field("contact_id") -> _.field("id")).get
 
   private[sql] def insert(e: Venue): Insert[Venue] = {
     val values = fr0"${e.id}, ${e.partner}, ${e.contact}, ${e.address}, ${e.address.geo.lat}, ${e.address.geo.lng}, ${e.address.country}, ${e.description}, ${e.roomSize}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.venue)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"

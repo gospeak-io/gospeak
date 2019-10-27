@@ -8,7 +8,7 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
 import doobie.util.transactor.Transactor
-import doobie.util.{Meta, Read, Write}
+import doobie.util.{Meta, Read}
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup}
@@ -38,9 +38,8 @@ object DoobieUtils {
   final case class TableJoin(kind: String,
                              name: String,
                              prefix: String,
-                             left: Field,
-                             right: Field) {
-    def value: String = s"$kind $name $prefix ON ${left.value}=${right.value}"
+                             on: NonEmptyList[(Field, Field)]) {
+    def value: String = s"$kind $name $prefix ON ${on.map { case (l, r) => s"${l.value}=${r.value}" }.toList.mkString(" AND ")}"
   }
 
   final case class Table(name: String,
@@ -58,26 +57,27 @@ object DoobieUtils {
     def field(name: String): Either[CustomException, Field] =
       fields.findOne(_.name == name).leftMap(e => CustomException(s"Unable to get field '$name' in table '${this.value}'", Seq(CustomError(e.message))))
 
+    def dropFields(p: Field => Boolean): Table = copy(fields = fields.filterNot(p), search = search.filterNot(p))
+
     def dropField(field: Field): Either[CustomException, Table] =
-      this.field(field).map(_ => copy(fields = fields.filterNot(f => f.name == field.name && f.prefix == field.prefix)))
+      this.field(field).map(_ => dropFields(f => f.name == field.name && f.prefix == field.prefix))
 
     def dropField(f: Table => Either[CustomException, Field]): Either[CustomException, Table] = f(this).flatMap(dropField)
 
-    def dropFields(p: Field => Boolean): Table = copy(fields = fields.filterNot(p))
+    def join(rightTable: Table, on: Table.BuildJoinFields, more: Table.BuildJoinFields*): Either[CustomException, Table] =
+      doJoin("INNER JOIN", rightTable, NonEmptyList.of(on, more: _*))
 
-    def join(rightTable: Table, leftField: Table => Either[CustomException, Field], rightField: Table => Either[CustomException, Field]): Either[CustomException, Table] =
-      join("INNER JOIN", rightTable, leftField, rightField)
+    def joinOpt(rightTable: Table, on: Table.BuildJoinFields, more: Table.BuildJoinFields*): Either[CustomException, Table] =
+      doJoin("LEFT OUTER JOIN", rightTable, NonEmptyList.of(on, more: _*))
 
-    def joinOpt(rightTable: Table, leftField: Table => Either[CustomException, Field], rightField: Table => Either[CustomException, Field]): Either[CustomException, Table] =
-      join("LEFT OUTER JOIN", rightTable, leftField, rightField)
-
-    private def join(kind: String, rightTable: Table, leftField: Table => Either[CustomException, Field], rightField: Table => Either[CustomException, Field]): Either[CustomException, Table] = for {
-      left <- leftField(this)
-      right <- rightField(rightTable)
+    private def doJoin(kind: String, rightTable: Table, on: NonEmptyList[Table.BuildJoinFields]): Either[CustomException, Table] = for {
+      joinFields <- on
+        .map(f => f(this, rightTable))
+        .map { case (leftField, rightField) => leftField.flatMap(lf => rightField.map(rf => (lf, rf))) }.sequence
       res <- Table.from(
         name = name,
         prefix = prefix,
-        joins = joins ++ Seq(TableJoin(kind, rightTable.name, rightTable.prefix, left, right)) ++ rightTable.joins,
+        joins = joins ++ Seq(TableJoin(kind, rightTable.name, rightTable.prefix, joinFields)) ++ rightTable.joins,
         fields = fields ++ rightTable.fields,
         sort = sort,
         search = search ++ rightTable.search)
@@ -91,17 +91,17 @@ object DoobieUtils {
 
     def delete(where: Fragment): Delete = Delete(value, fr0" " ++ where)
 
-    def select[A: Read](where: Fragment): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort)
+    def select[A: Read](where: Fragment): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort, None)
 
-    def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](value, fields, None, sort)
+    def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](value, fields, None, sort, None)
 
-    def select[A: Read](fields: Seq[Field], sort: Seq[Field]): Select[A] = Select[A](value, fields, None, sort)
+    def select[A: Read](fields: Seq[Field], sort: Seq[Field]): Select[A] = Select[A](value, fields, None, sort, None)
 
-    def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort)
+    def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort, None)
 
-    def select[A: Read](where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort)
+    def select[A: Read](fields: Seq[Field], where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort, None)
 
-    def select[A: Read](fields: Seq[Field], where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort)
+    def selectOne[A: Read](where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort, Some(1))
 
     def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, None, params, sort, search)
 
@@ -109,6 +109,8 @@ object DoobieUtils {
   }
 
   object Table {
+    private type BuildJoinFields = (Table, Table) => (Either[CustomException, Field], Either[CustomException, Field])
+
     def from(name: String, prefix: String, fields: Seq[String], sort: Seq[String], search: Seq[String]): Either[CustomException, Table] =
       from(
         name = name,
@@ -167,12 +169,12 @@ object DoobieUtils {
       }
   }
 
-  final case class Select[A: Read](table: String, fields: Seq[Field], whereOpt: Option[Fragment], sort: Seq[Field]) {
+  final case class Select[A: Read](table: String, fields: Seq[Field], whereOpt: Option[Fragment], sort: Seq[Field], limit: Option[Int]) {
     def fr: Fragment = {
       val select = const0(s"SELECT ${fields.map(_.value).mkString(", ")} FROM $table")
       val where = whereOpt.getOrElse(fr0"")
       val orderBy = NonEmptyList.fromList(sort.toList).map(orderByFragment(_)).getOrElse(fr0"")
-      select ++ where ++ orderBy
+      select ++ where ++ orderBy ++ limit.map(l => const0(s" LIMIT $l")).getOrElse(fr0"")
     }
 
     def query: doobie.Query0[A] = fr.query[A]
@@ -193,11 +195,11 @@ object DoobieUtils {
                                        params: Page.Params,
                                        defaultSort: Seq[Field],
                                        searchFields: Seq[Field]) {
-    def fr: Fragment = Select[A](table, fields, Some(paginationFragment(prefix, whereOpt, params, searchFields, defaultSort)), Seq()).fr
+    def fr: Fragment = Select[A](table, fields, Some(paginationFragment(prefix, whereOpt, params, searchFields, defaultSort)), Seq(), None).fr
 
     def query: doobie.Query0[A] = fr.query[A]
 
-    def countFr: Fragment = Select[A](table, Seq(Field("count(*)", "")), whereFragment(whereOpt, params.search, searchFields), Seq()).fr
+    def countFr: Fragment = Select[A](table, Seq(Field("count(*)", "")), whereFragment(whereOpt, params.search, searchFields), Seq(), None).fr
 
     def countQuery: doobie.Query0[Long] = countFr.query[Long]
 
@@ -235,14 +237,6 @@ object DoobieUtils {
     val orderBy = NonEmptyList.fromList(sortFields.toList).map(orderByFragment(_, params.nullsFirst)).getOrElse(fr0"")
     val limit = limitFragment(params.pageSize, params.offset)
     Seq(where, orderBy, limit).reduce(_ ++ _)
-  }
-
-  object Queries {
-    def insertOne[A](insert: A => doobie.Update0)(elt: A)(implicit w: Write[A]): doobie.ConnectionIO[Int] =
-      insert(elt).run
-
-    def insertMany[A](insert: A => doobie.Update0)(elts: NonEmptyList[A])(implicit w: Write[A]): doobie.ConnectionIO[Int] =
-      doobie.util.update.Update[A](insert(elts.head).sql).updateMany(elts)
   }
 
   object Mappings {

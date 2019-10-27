@@ -72,8 +72,8 @@ object UserRepoSql {
   private val table = Tables.users
   private val credentialsTable = Tables.credentials
   private val loginsTable = Tables.logins
-  private val tableWithLogin = table.join(loginsTable, _.field("id"), _.field("user_id")).get
-  private val proposalsWithCfps = Tables.proposals.join(Tables.cfps, _.field("cfp_id"), _.field("id")).get
+  private val tableWithLogin = table.join(loginsTable, _.field("id") -> _.field("user_id")).get
+  private val proposalsWithCfps = Tables.proposals.join(Tables.cfps, _.field("cfp_id") -> _.field("id")).get
 
   private[sql] def insert(e: User): Insert[User] = {
     val values = fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.profile.status}, ${e.profile.bio}, ${e.profile.company}, ${e.profile.location}, ${e.profile.twitter}, ${e.profile.linkedin}, ${e.profile.phone}, ${e.profile.website}, ${e.created}, ${e.updated}"
