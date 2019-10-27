@@ -9,12 +9,12 @@ import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaSigner}
 import com.mohiva.play.silhouette.impl.authenticators._
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.softwaremill.macwire.wire
-import fr.gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.core.domain.utils.GospeakMessage
 import fr.gospeak.core.services._
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.storage._
+import fr.gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.infra.libs.meetup.MeetupClient
 import fr.gospeak.infra.libs.slack.SlackClient
 import fr.gospeak.infra.libs.timeshape.TimeShape
@@ -185,9 +185,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
 
   def onStart(): Unit = {
     if (envConf.isProd) {
-      // db.dropTables().unsafeRunSync()
       db.migrate().unsafeRunSync()
-      // db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync()
     } else {
       db.dropTables().unsafeRunSync()
       db.migrate().unsafeRunSync()
