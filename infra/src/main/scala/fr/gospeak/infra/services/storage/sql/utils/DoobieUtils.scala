@@ -22,6 +22,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.language.dynamics
 
 object DoobieUtils {
   private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
@@ -47,15 +48,23 @@ object DoobieUtils {
                          joins: Seq[TableJoin],
                          fields: Seq[Field],
                          sort: Seq[Field],
-                         search: Seq[Field]) {
+                         search: Seq[Field]) extends Dynamic {
     def value: String = s"$name $prefix" + joins.map(" " + _.value).mkString
 
-    private def field(field: Field): Either[CustomException, Field] = fields.find(_ == field).toEither(CustomException(s"Missing field '${field.value}' in table '$value'"))
+    private def field(field: Field): Either[CustomException, Field] = fields.find(_ == field).toEither(CustomException(s"Unable to find field '${field.value}' in table '$value'"))
 
     def field(name: String, prefix: String): Either[CustomException, Field] = field(Field(name, prefix))
 
     def field(name: String): Either[CustomException, Field] =
-      fields.findOne(_.name == name).leftMap(e => CustomException(s"Unable to get field '$name' in table '${this.value}'", Seq(CustomError(e.message))))
+      fields.filter(_.name == name) match {
+        case Seq() => Left(CustomException(s"Unable to find field '$name' in table '$value'"))
+        case Seq(f) => Right(f)
+        case l => Left(CustomException(s"Ambiguous field '$name' (possible values: ${l.map(f => s"'${f.value}'").mkString(", ")}) in table '$value'"))
+      }
+
+    def selectDynamic(name: String): Either[CustomException, Field] = field(name)
+
+    def applyDynamic(name: String)(prefix: String): Either[CustomException, Field] = field(name, prefix)
 
     def dropFields(p: Field => Boolean): Table = copy(fields = fields.filterNot(p), search = search.filterNot(p))
 

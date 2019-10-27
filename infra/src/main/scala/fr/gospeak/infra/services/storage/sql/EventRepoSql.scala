@@ -79,22 +79,22 @@ object EventRepoSql {
   private val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.events
   private val tableWithVenue = table
-    .joinOpt(Tables.venues, _.field("venue") -> _.field("id")).get
+    .joinOpt(Tables.venues, _.venue -> _.id).get
     .dropFields(_.name.startsWith("address_"))
   private val tableFull = tableWithVenue
-    .joinOpt(Tables.partners, _.field("partner_id", "v") -> _.field("id")).get
-    .joinOpt(Tables.contacts, _.field("contact_id", "v") -> _.field("id")).get
-    .join(Tables.groups.dropFields(_.name.startsWith("location_")), _.field("group_id", "e") -> _.field("id")).get
+    .joinOpt(Tables.partners, _.partner_id("v") -> _.id).get
+    .joinOpt(Tables.contacts, _.contact_id("v") -> _.id).get
+    .join(Tables.groups.dropFields(_.name.startsWith("location_")), _.group_id("e") -> _.id).get
   private val rsvpTable = Tables.eventRsvps
   private val rsvpTableWithUser = rsvpTable
-    .join(Tables.users, _.field("user_id") -> _.field("id")).flatMap(_.dropField(_.field("user_id"))).get
+    .join(Tables.users, _.user_id -> _.id).flatMap(_.dropField(_.user_id)).get
   private val tableFullWithMemberAndRsvp = tableFull
-    .join(Tables.groupMembers, _.field("id", "g") -> _.field("group_id")).get
+    .join(Tables.groupMembers, _.id("g") -> _.group_id).get
     .joinOpt(rsvpTable,
-      _.field("id", "e") -> _.field("event_id"),
-      _.field("user_id", "gm") -> _.field("user_id", "er")).get
-    .joinOpt(Tables.users, _.field("user_id", "er") -> _.field("id")).get
-    .dropField(_.field("user_id", "er")).get
+      _.id("e") -> _.event_id,
+      _.user_id("gm") -> _.user_id).get
+    .joinOpt(Tables.users, _.user_id("er") -> _.id).get
+    .dropField(_.user_id("er")).get
     .dropFields(_.prefix == "gm")
 
   private[sql] def insert(e: Event): Insert[Event] = {

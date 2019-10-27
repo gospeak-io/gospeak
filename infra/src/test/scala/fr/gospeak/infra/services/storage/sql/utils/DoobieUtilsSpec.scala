@@ -79,6 +79,12 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
           t123A shouldBe t123B
         }
       }
+      describe("Dynamic") {
+        it("should select a field") {
+          table1.id shouldBe Right(Field("id", "t1"))
+          table1.miss shouldBe a[Left[_, _]]
+        }
+      }
     }
     describe("Insert") {
       it("should build an insert") {

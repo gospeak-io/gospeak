@@ -41,13 +41,12 @@ object Extensions {
   }
 
   implicit class TraversableOnceExtension[A, M[X] <: TraversableOnce[X]](val in: M[A]) extends AnyVal {
-    def one: Either[CustomException, A] = in.toList match {
-      case Nil => Left(CustomException(s"Expect 1 item but is empty"))
+    def one: Either[Int, A] = in.toList match {
       case head :: Nil => Right(head)
-      case list => Left(CustomException(s"Expect 1 item but has ${list.length}"))
+      case list => Left(list.length)
     }
 
-    def findOne(p: A => Boolean): Either[CustomException, A] = in.filter(p).one
+    def findOne(p: A => Boolean): Either[Int, A] = in.filter(p).one
 
     // move targeted element one place before (or after) in the collection
     def swap(elt: A, before: Boolean = true)(implicit cbf: CanBuildFrom[M[A], A, M[A]]): M[A] = {

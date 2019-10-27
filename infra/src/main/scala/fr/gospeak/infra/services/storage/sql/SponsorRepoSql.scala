@@ -39,9 +39,9 @@ object SponsorRepoSql {
   private val _ = sponsorIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.sponsors
   private val tableFull = table
-    .join(Tables.sponsorPacks, _.field("sponsor_pack_id") -> _.field("id")).get
-    .join(Tables.partners, _.field("partner_id") -> _.field("id")).get
-    .joinOpt(Tables.contacts, _.field("contact_id") -> _.field("id")).get
+    .join(Tables.sponsorPacks, _.sponsor_pack_id -> _.id).get
+    .join(Tables.partners, _.partner_id -> _.id).get
+    .joinOpt(Tables.contacts, _.contact_id -> _.id).get
 
   private[sql] def insert(e: Sponsor): Insert[Sponsor] = {
     val values = fr0"${e.id}, ${e.group}, ${e.partner}, ${e.pack}, ${e.contact}, ${e.start}, ${e.finish}, ${e.paid}, ${e.price.amount}, ${e.price.currency}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"

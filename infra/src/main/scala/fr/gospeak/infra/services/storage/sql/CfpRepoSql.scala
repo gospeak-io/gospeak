@@ -60,7 +60,7 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
 object CfpRepoSql {
   private val _ = cfpIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.cfps
-  private val tableWithEvent = table.join(Tables.events, _.field("id") -> _.field("cfp_id")).get
+  private val tableWithEvent = table.join(Tables.events, _.id -> _.cfp_id).get
 
   private[sql] def insert(e: Cfp): Insert[Cfp] = {
     val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.begin}, ${e.close}, ${e.description}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
