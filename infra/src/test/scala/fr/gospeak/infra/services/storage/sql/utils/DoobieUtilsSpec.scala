@@ -137,7 +137,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
     }
     describe("limitFragment") {
       it("should build the limit fragment") {
-        limitFragment(12, Page.Size(20)).query.sql shouldBe " OFFSET 12 LIMIT 20"
+        limitFragment(Page.Size(20), 12).query.sql shouldBe " LIMIT 20 OFFSET 12"
       }
     }
     describe("paginationFragment") {
@@ -148,16 +148,16 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
       val defaultSort = Seq(Field("created", "t"))
       val prefix = "t"
       it("should build pagination") {
-        paginationFragment(prefix, None, p, fields, defaultSort).query.sql shouldBe " ORDER BY t.created IS NULL, t.created OFFSET 0 LIMIT 20"
-        paginationFragment(prefix, Some(where), p, fields, defaultSort).query.sql shouldBe "WHERE t.id=? ORDER BY t.created IS NULL, t.created OFFSET 0 LIMIT 20"
+        paginationFragment(prefix, None, p, fields, defaultSort).query.sql shouldBe " ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
+        paginationFragment(prefix, Some(where), p, fields, defaultSort).query.sql shouldBe "WHERE t.id=? ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
       }
       it("should build pagination with search") {
-        paginationFragment(prefix, None, p.search("q"), fields, defaultSort).query.sql shouldBe "WHERE t.name ILIKE ? OR t.desc ILIKE ? ORDER BY t.created IS NULL, t.created OFFSET 0 LIMIT 20"
-        paginationFragment(prefix, Some(where), p.search("q"), fields, defaultSort).query.sql shouldBe "WHERE t.id=? AND (t.name ILIKE ? OR t.desc ILIKE ?) ORDER BY t.created IS NULL, t.created OFFSET 0 LIMIT 20"
+        paginationFragment(prefix, None, p.search("q"), fields, defaultSort).query.sql shouldBe "WHERE t.name ILIKE ? OR t.desc ILIKE ? ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
+        paginationFragment(prefix, Some(where), p.search("q"), fields, defaultSort).query.sql shouldBe "WHERE t.id=? AND (t.name ILIKE ? OR t.desc ILIKE ?) ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
       }
       it("should build pagination with sort") {
-        paginationFragment(prefix, None, p.orderBy("name"), fields, defaultSort).query.sql shouldBe " ORDER BY t.name IS NULL, t.name OFFSET 0 LIMIT 20"
-        paginationFragment(prefix, Some(where), p.orderBy("name"), fields, defaultSort).query.sql shouldBe "WHERE t.id=? ORDER BY t.name IS NULL, t.name OFFSET 0 LIMIT 20"
+        paginationFragment(prefix, None, p.orderBy("name"), fields, defaultSort).query.sql shouldBe " ORDER BY t.name IS NULL, t.name LIMIT 20 OFFSET 0"
+        paginationFragment(prefix, Some(where), p.orderBy("name"), fields, defaultSort).query.sql shouldBe "WHERE t.id=? ORDER BY t.name IS NULL, t.name LIMIT 20 OFFSET 0"
       }
     }
   }

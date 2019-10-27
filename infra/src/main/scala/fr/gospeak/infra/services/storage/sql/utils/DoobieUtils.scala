@@ -224,14 +224,14 @@ object DoobieUtils {
     fr0" ORDER BY " ++ const0(fields.toList.mkString(", "))
   }
 
-  def limitFragment(start: Int, size: Page.Size): Fragment =
-    fr0" OFFSET " ++ const0(start.toString + " ") ++ fr0"LIMIT " ++ const0(size.value.toString)
+  def limitFragment(size: Page.Size, start: Int): Fragment =
+    fr0" LIMIT " ++ const0(size.value.toString) ++ fr0" OFFSET " ++ const0(start.toString)
 
   def paginationFragment(prefix: String, whereOpt: Option[Fragment], params: Page.Params, searchFields: Seq[Field], defaultSort: Seq[Field]): Fragment = {
     val where = whereFragment(whereOpt, params.search, searchFields).getOrElse(fr0"")
     val sortFields = params.orderBy.map(_.values.map(f => Field(f, prefix))).getOrElse(defaultSort)
     val orderBy = NonEmptyList.fromList(sortFields.toList).map(orderByFragment(_, params.nullsFirst)).getOrElse(fr0"")
-    val limit = limitFragment(params.offsetStart, params.pageSize)
+    val limit = limitFragment(params.pageSize, params.offsetStart)
     Seq(where, orderBy, limit).reduce(_ ++ _)
   }
 

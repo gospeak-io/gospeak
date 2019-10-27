@@ -18,7 +18,7 @@ class PartnerRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage") {
         val q = PartnerRepoSql.selectPage(group.id, params)
-        check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectAll") {
         val q = PartnerRepoSql.selectAll(group.id)

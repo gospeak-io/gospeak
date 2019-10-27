@@ -50,7 +50,7 @@ class ContactRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage") {
         val q = ContactRepoSql.selectPage(partner.id, params)
-        check(q, s"SELECT $fields FROM $table WHERE ct.partner_id=? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE ct.partner_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectAll") {
         val q = ContactRepoSql.selectAll(partner.id)

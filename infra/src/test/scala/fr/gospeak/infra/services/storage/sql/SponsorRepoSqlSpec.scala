@@ -27,7 +27,7 @@ class SponsorRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage") {
         val q = SponsorRepoSql.selectPage(group.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE s.group_id=? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE s.group_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectCurrent") {
         val q = SponsorRepoSql.selectCurrent(group.id, now)

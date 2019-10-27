@@ -99,35 +99,35 @@ class ProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage for a cfp and status") {
         val q = ProposalRepoSql.selectPage(cfp.id, Proposal.Status.Pending, params)
-        check(q, s"SELECT $fields FROM $table WHERE p.cfp_id=? AND p.status=? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE p.cfp_id=? AND p.status=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull for a cfp") {
         val q = ProposalRepoSql.selectPageFull(cfp.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.cfp_id=? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.cfp_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull for a group") {
         val q = ProposalRepoSql.selectPageFull(group.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull for a group and speaker") {
         val q = ProposalRepoSql.selectPageFull(group.id, user.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? AND p.speakers LIKE ? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? AND p.speakers LIKE ? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull for a talk") {
         val q = ProposalRepoSql.selectPageFull(talk.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.talk_id=? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.talk_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull for a speaker") {
         val q = ProposalRepoSql.selectPageFull(user.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPagePublicFull for a speaker") {
         val q = ProposalRepoSql.selectPagePublicFull(user.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPagePublicFull for a group") {
         val q = ProposalRepoSql.selectPagePublicFull(group.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectAll") {
         val q = ProposalRepoSql.selectAll(NonEmptyList.of(proposal.id))

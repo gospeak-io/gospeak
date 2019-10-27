@@ -19,7 +19,7 @@ class UserRequestRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage for user") {
         val q = UserRequestRepoSql.selectPage(user.id, params)
-        check(q, s"SELECT $fields FROM $table WHERE r.created_by=? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE r.created_by=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectAllPending for group") {
         val q = UserRequestRepoSql.selectAllPending(group.id, now)

@@ -103,11 +103,11 @@ class UserRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPagePublic") {
         val q = UserRepoSql.selectPagePublic(params)
-        check(q, s"SELECT $fields FROM $table WHERE u.status=? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE u.status=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPage") {
         val q = UserRepoSql.selectPage(NonEmptyList.of(user.id), params)
-        check(q, s"SELECT $fields FROM $table WHERE u.id IN (?)  $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE u.id IN (?)  $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectAll with ids") {
         val q = UserRepoSql.selectAll(NonEmptyList.of(user.id, user.id))

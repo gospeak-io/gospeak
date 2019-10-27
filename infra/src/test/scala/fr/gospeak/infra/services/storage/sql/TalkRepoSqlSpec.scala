@@ -89,15 +89,15 @@ class TalkRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage for user") {
         val q = TalkRepoSql.selectPage(user.id, params)
-        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPage for user and status") {
         val q = TalkRepoSql.selectPage(user.id, talk.status, params)
-        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.status=? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.status=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPage for user, cfp and status") {
         val q = TalkRepoSql.selectPage(user.id, cfp.id, Talk.Status.active, params)
-        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.id NOT IN (SELECT p.talk_id FROM $proposalTable WHERE p.cfp_id=?) AND t.status IN (?, ?, ?, ?)  $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.id NOT IN (SELECT p.talk_id FROM $proposalTable WHERE p.cfp_id=?) AND t.status IN (?, ?, ?, ?)  $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectTags") {
         val q = TalkRepoSql.selectTags()

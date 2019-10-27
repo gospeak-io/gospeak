@@ -64,11 +64,11 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage") {
         val q = EventRepoSql.selectPage(group.id, params)
-        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPagePublished") {
         val q = EventRepoSql.selectPagePublished(group.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectAll") {
         val q = EventRepoSql.selectAll(NonEmptyList.of(event.id))
@@ -84,11 +84,11 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPageAfter") {
         val q = EventRepoSql.selectPageAfter(group.id, now, params)
-        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.start > ? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.start > ? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPageIncoming") {
         val q = EventRepoSql.selectPageIncoming(user.id, now, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFullWithMember WHERE gm.user_id=? AND e.start > ? AND e.published IS NOT NULL $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFullWithMember WHERE gm.user_id=? AND e.start > ? AND e.published IS NOT NULL $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectTags") {
         val q = EventRepoSql.selectTags()
@@ -109,7 +109,7 @@ class EventRepoSqlSpec extends RepoSpec {
         }
         it("should build selectPageRsvps") {
           val q = EventRepoSql.selectPageRsvps(event.id, params)
-          check(q, s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? $rsvpOrderBy OFFSET 0 LIMIT 20")
+          check(q, s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? $rsvpOrderBy LIMIT 20 OFFSET 0")
         }
         it("should build selectOneRsvp") {
           val q = EventRepoSql.selectOneRsvp(event.id, user.id)

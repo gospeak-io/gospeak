@@ -23,7 +23,7 @@ class VenueRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPageFull") {
         val q = VenueRepoSql.selectPageFull(group.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectAllFull for group id") {
         val q = VenueRepoSql.selectAllFull(group.id)

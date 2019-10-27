@@ -53,15 +53,15 @@ class GroupRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage") {
         val q = GroupRepoSql.selectPage(params)
-        check(q, s"SELECT $fields FROM $table $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPageJoinable") {
         val q = GroupRepoSql.selectPageJoinable(user.id, params)
-        check(q, s"SELECT $fields FROM $table WHERE g.owners NOT LIKE ? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fields FROM $table WHERE g.owners NOT LIKE ? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPageJoined") {
         val q = GroupRepoSql.selectPageJoined(user.id, params)
-        check(q, s"SELECT $fieldsWithMember FROM $tableWithMember WHERE gm.user_id=? $orderBy OFFSET 0 LIMIT 20")
+        check(q, s"SELECT $fieldsWithMember FROM $tableWithMember WHERE gm.user_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectAll by ids") {
         val q = GroupRepoSql.selectAll(NonEmptyList.of(group.id))
@@ -102,7 +102,7 @@ class GroupRepoSqlSpec extends RepoSpec {
         }
         it("should build selectPageActiveMembers") {
           val q = GroupRepoSql.selectPageActiveMembers(group.id, params)
-          check(q, s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE gm.group_id=? AND gm.leaved_at IS NULL $memberOrderBy OFFSET 0 LIMIT 20")
+          check(q, s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE gm.group_id=? AND gm.leaved_at IS NULL $memberOrderBy LIMIT 20 OFFSET 0")
         }
         it("should build selectOneMember") {
           val q = GroupRepoSql.selectOneMember(group.id, user.id)
