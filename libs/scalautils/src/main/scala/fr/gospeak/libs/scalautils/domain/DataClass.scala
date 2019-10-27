@@ -86,5 +86,5 @@ abstract class EnumBuilder[A <: StringEnum](clazz: String) {
   val all: Seq[A]
 
   def from(str: String): Either[CustomException, A] =
-    all.find(_.value == str).toEither(CustomException(s"$str in an invalid $clazz"))
+    all.find(_.value == str).toEither(CustomException(s"'$str' in not a valid $clazz"))
 }

@@ -2,9 +2,10 @@ package fr.gospeak.core.domain
 
 import java.time.{Instant, LocalDateTime}
 
-import fr.gospeak.core.domain.utils.{Info, TemplateData}
+import fr.gospeak.core.domain.utils.{Constants, Info, TemplateData}
 import fr.gospeak.core.services.meetup.domain.MeetupEvent
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.TimeUtils
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain._
 
@@ -14,6 +15,7 @@ final case class Event(id: Event.Id,
                        slug: Event.Slug,
                        name: Event.Name,
                        start: LocalDateTime,
+                       maxAttendee: Option[Int],
                        // duration: Option[Duration]
                        description: MustacheMarkdownTmpl[TemplateData.EventInfo],
                        venue: Option[Venue.Id],
@@ -35,7 +37,7 @@ final case class Event(id: Event.Id,
 
 object Event {
   def create(group: Group.Id, data: Data, info: Info): Event =
-    new Event(Id.generate(), group, data.cfp, data.slug, data.name, data.start, data.description, data.venue, Seq(), data.tags, None, ExtRefs(), info)
+    new Event(Id.generate(), group, data.cfp, data.slug, data.name, data.start, data.maxAttendee, data.description, data.venue, Seq(), data.tags, None, ExtRefs(), info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -49,17 +51,60 @@ object Event {
 
   final case class ExtRefs(meetup: Option[MeetupEvent.Ref] = None)
 
+  final case class Rsvp(event: Event.Id,
+                        answer: Rsvp.Answer,
+                        answeredAt: Instant,
+                        user: User)
+
+  object Rsvp {
+
+    sealed trait Answer extends StringEnum with Product with Serializable {
+      def value: String = toString
+    }
+
+    object Answer extends EnumBuilder[Answer]("Event.Rsvp.Answer") {
+
+      case object Yes extends Answer
+
+      case object No extends Answer
+
+      case object Wait extends Answer
+
+      val all: Seq[Answer] = Seq(Yes, No, Wait)
+    }
+
+  }
+
+  final case class Full(event: Event, venue: Option[Venue.Full], group: Group) {
+    def id: Event.Id = event.id
+
+    def slug: Slug = event.slug
+
+    def name: Name = event.name
+
+    def start: LocalDateTime = event.start
+
+    def talks: Seq[Proposal.Id] = event.talks
+
+    def refs: ExtRefs = event.refs
+
+    def isPast(now: Instant): Boolean = TimeUtils.toInstant(start, venue.map(_.timezone).getOrElse(Constants.defaultZoneId)).isBefore(now)
+
+    def isFull(yesRsvps: Long): Boolean = event.maxAttendee.exists(_ <= yesRsvps.toInt)
+  }
+
   final case class Data(cfp: Option[Cfp.Id],
                         slug: Slug,
                         name: Name,
                         start: LocalDateTime,
+                        maxAttendee: Option[Int],
                         venue: Option[Venue.Id],
                         description: MustacheMarkdownTmpl[TemplateData.EventInfo],
                         tags: Seq[Tag],
                         refs: Event.ExtRefs)
 
   object Data {
-    def apply(event: Event): Data = new Data(event.cfp, event.slug, event.name, event.start, event.venue, event.description, event.tags, event.refs)
+    def apply(event: Event): Data = new Data(event.cfp, event.slug, event.name, event.start, event.maxAttendee, event.venue, event.description, event.tags, event.refs)
   }
 
 }

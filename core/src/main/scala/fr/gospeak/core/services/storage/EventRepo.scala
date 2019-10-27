@@ -6,9 +6,7 @@ import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
 
-// TODO: take full object as parameter instead of Id/slug to guarantee it exists
-// TODO: remove list(Seq[Id]) methods as they are dangerous (right wise) and pack them with previous one (listProposalsWithSpeakers)
-trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with SuggestEventRepo
+trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with PublicEventRepo with SuggestEventRepo
 
 trait OrgaEventRepo {
   def create(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event]
@@ -23,6 +21,10 @@ trait OrgaEventRepo {
 
   def list(group: Group.Id, params: Page.Params): IO[Page[Event]]
 
+  def list(group: Group.Id, venue: Venue.Id): IO[Seq[Event]]
+
+  def list(group: Group.Id, partner: Partner.Id): IO[Seq[(Event, Venue)]]
+
   def list(ids: Seq[Event.Id]): IO[Seq[Event]]
 
   def listAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]]
@@ -34,10 +36,28 @@ trait SpeakerEventRepo {
   def list(ids: Seq[Event.Id]): IO[Seq[Event]]
 }
 
-trait UserEventRepo
+trait UserEventRepo {
+  def listIncoming(params: Page.Params)(user: User.Id, now: Instant): IO[Page[Event.Full]]
+}
 
 trait AuthEventRepo
 
+trait PublicEventRepo {
+  def listPublished(group: Group.Id, params: Page.Params): IO[Page[Event.Full]]
+
+  def findPublished(group: Group.Id, event: Event.Slug): IO[Option[Event.Full]]
+
+  def countYesRsvp(event: Event.Id): IO[Long]
+
+  def findRsvp(event: Event.Id, user: User.Id): IO[Option[Event.Rsvp]]
+
+  def createRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done]
+
+  def editRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done]
+}
+
 trait SuggestEventRepo {
+  def list(group: Group.Id, params: Page.Params): IO[Page[Event]]
+
   def listTags(): IO[Seq[Tag]]
 }

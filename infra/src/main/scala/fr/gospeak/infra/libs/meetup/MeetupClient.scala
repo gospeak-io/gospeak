@@ -7,7 +7,7 @@ import fr.gospeak.infra.libs.meetup.domain._
 import fr.gospeak.infra.utils.HttpClient
 import fr.gospeak.infra.utils.HttpClient.Response
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Secret, Url}
+import fr.gospeak.libs.scalautils.domain.{Geo, Secret, Url}
 import io.circe.parser.decode
 import io.circe.{Decoder, Encoder}
 
@@ -81,7 +81,7 @@ class MeetupClient(conf: Conf) {
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events#create
   def createEvent(groupSlug: String, event: MeetupEvent.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
     if (conf.safeMode) {
-      IO.pure(Right(event.fakeCreate(groupSlug, "222974232")))
+      IO.pure(Left(MeetupError("safe_mode_enabled", Some("Unable to create an event when safe mode is enabled"))))
     } else {
       post[MeetupEvent](s"$baseUrl/$groupSlug/events", event.toMap)
     }
@@ -93,7 +93,7 @@ class MeetupClient(conf: Conf) {
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#edit
   def updateEvent(groupSlug: String, eventId: String, event: MeetupEvent.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
     if (conf.safeMode) {
-      IO.pure(Right(event.fakeCreate(groupSlug, eventId)))
+      IO.pure(Left(MeetupError("safe_mode_enabled", Some("Unable to update an event when safe mode is enabled"))))
     } else {
       patch[MeetupEvent](s"$baseUrl/$groupSlug/events/$eventId", event.toMap)
     }
@@ -114,7 +114,7 @@ class MeetupClient(conf: Conf) {
   // no doc :(
   def createVenue(groupSlug: String, venue: MeetupVenue.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupVenue]] =
     if (conf.safeMode) {
-      IO.pure(Right(venue.fakeCreate(groupSlug, 222974232L)))
+      IO.pure(Left(MeetupError("safe_mode_enabled", Some("Unable to create a venue when safe mode is enabled"))))
     } else {
       post[MeetupVenue](s"$baseUrl/$groupSlug/venues", venue.toMap)
     }
@@ -126,7 +126,7 @@ class MeetupClient(conf: Conf) {
   // no doc, does not work :(
   def updateVenue(groupSlug: String, venueId: Long, venue: domain.MeetupVenue.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupVenue]] =
     if (conf.safeMode) {
-      IO.pure(Right(venue.fakeCreate(groupSlug, venueId)))
+      IO.pure(Left(MeetupError("safe_mode_enabled", Some("Unable to update a venue when safe mode is enabled"))))
     } else {
       patch[MeetupVenue](s"$baseUrl/$groupSlug/venues/$venueId", venue.toMap)
     }
@@ -138,6 +138,10 @@ class MeetupClient(conf: Conf) {
     } else {
       delete[Unit](s"$baseUrl/$groupSlug/venues/$venueId", Map())
     }
+
+  // cf https://www.meetup.com/fr-FR/meetup_api/docs/find/locations
+  def getLocations(geo: Geo)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupLocation]]] =
+    get[Seq[MeetupLocation]](s"$baseUrl/find/locations", Map("lat" -> geo.lat.toString, "lon" -> geo.lng.toString))
 
   private def get[A](url: String, query: Map[String, String] = Map())(implicit accessToken: MeetupToken.Access, d: Decoder[A]): IO[Either[MeetupError, A]] =
     HttpClient.get(url, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])

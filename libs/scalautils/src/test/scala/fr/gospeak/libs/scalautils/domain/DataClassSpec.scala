@@ -63,7 +63,7 @@ class DataClassSpec extends FunSpec with Matchers {
     }
     it("should parse and serialize all Status") {
       builder.all.foreach { status =>
-        val str = status.toString
+        val str = status.value
         val parsed = builder.from(str)
         parsed shouldBe Right(status)
       }

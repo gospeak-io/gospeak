@@ -6,16 +6,19 @@ import java.util.concurrent.TimeUnit
 
 import fr.gospeak.core.domain._
 import fr.gospeak.core.testingutils.Generators._
+import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.utils.Mappings._
-import org.scalatest.prop.PropertyChecks
 import org.scalatest.{FunSpec, Matchers}
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.data.FormError
 
 import scala.concurrent.duration.FiniteDuration
 
-class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
+class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
+  private val timeshape = TimeShape.create().get
+
   describe("Mappings") {
     it("should bind & unbind a Double") {
       forAll { v: Double =>
@@ -147,9 +150,13 @@ class MappingsSpec extends FunSpec with Matchers with PropertyChecks {
       price.bind(Map("amount" -> "5.8", "currency" -> "EUR")) shouldBe Right(Price(5.8, Price.Currency.EUR))
     }
     it("should bind & unbind a GMapPlace") {
-      forAll { v: GMapPlace =>
-        val data = gMapPlace.unbind(v)
-        gMapPlace.bind(data) shouldBe Right(v)
+      forAll { in: GMapPlace =>
+        val timezone = timeshape.getZoneId(in.geo)
+        whenever(timezone.isDefined) {
+          val v = in.copy(timezone = timezone.get)
+          val data = gMapPlace(timeshape).unbind(v)
+          gMapPlace(timeshape).bind(data) shouldBe Right(v)
+        }
       }
     }
     it("should bind & unbind a User.Slug") {

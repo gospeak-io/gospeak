@@ -25,9 +25,9 @@
                         <div class="col-7">
                         @defining(addAction("action")) { field =>
                             @navVertical(Seq(
-                                (field, "Email-Send", "Send an email", _ => Html("TODO")),
-                                (field, "Slack-PostMessage", "Post Slack message", fieldsSlackPostMessage(_, addAction("trigger").id)),
-                                (field, "Twitter-PostMessage", "Post a Twitt", _ => Html("TODO"))
+                                /* (field, "Email-Send", "Send an email", _ => Html("TODO")), */
+                                (field, "Slack-PostMessage", "Post Slack message", fieldsSlackPostMessage(_, addAction("trigger").id))
+                                /* (field, "Twitter-PostMessage", "Post a Twitt", _ => Html("TODO")) */
                             ), 4)
                         }
                         </div>

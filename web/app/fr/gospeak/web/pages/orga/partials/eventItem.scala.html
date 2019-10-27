@@ -1,5 +1,5 @@
 @import java.time.LocalDateTime
-@import fr.gospeak.core.domain.{Event, Group, Proposal, User, Cfp, Venue, Partner}
+@import fr.gospeak.core.domain.{Event, Group, Proposal, User, Cfp, Venue}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
@@ -7,7 +7,7 @@
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 
-@(group: Group, event: Event, cfp: Option[Cfp], venues: Seq[(Partner, Venue)], proposals: Seq[Proposal], speakers: Seq[User])
+@(group: Group, event: Event, cfp: Option[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User])
 <div class="list-group-item list-group-item-action @if(event.start.isAfter(LocalDateTime.now())) {list-group-item-secondary}">
     <h5 class="mb-1">
         <a href="@EventCtrl.detail(group.slug, event.slug)">@event.name.value</a>
@@ -15,7 +15,7 @@
     </h5>
     @if(!event.isPublic) {<span class="badge badge-dark">Draft</span>}
     @Formats.date(event.start),
-    @event.venue.map { v => at @venue(venues, v, Some(_ => VenueCtrl.detail(group.slug, v))) }.getOrElse { <b class="text-danger">Missing venue</b>, }
+    @event.venue.map { id => at @venue(venues, id, v => Some(VenueCtrl.detail(group.slug, v.id))) }.getOrElse { <b class="text-danger">Missing venue</b>, }
     @Formats.plural(event.talks.length, "planned talk")
     @tags(event.tags)
     @if(event.talks.nonEmpty) {
@@ -24,10 +24,11 @@
             <li>
                 @proposals.find(_.id == pId).map { p =>
                     @cfp.map { c => <a href="@ProposalCtrl.detail(group.slug, c.slug, p.id)">@p.title.value</a> }.getOrElse{<span>@p.title.value</span>}
-                    @p.speakers.toList.map { uId => @speaker(speakers, uId, Some(s => SpeakerCtrl.detail(group.slug, s.slug))) }
+                    @p.speakers.toList.map { uId => @speaker(speakers, uId, s => Some(SpeakerCtrl.detail(group.slug, s.slug))) }
                 }.getOrElse { Unknown (@pId.value) }
             </li>
         }
         </ol>
     }
+    @event.maxAttendee.map { max =>  @Formats.plural(max, "place") }
 </div>

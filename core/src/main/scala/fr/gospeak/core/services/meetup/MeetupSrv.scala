@@ -4,7 +4,7 @@ import cats.effect.IO
 import fr.gospeak.core.domain.{Event, Partner, User, Venue}
 import fr.gospeak.core.services.meetup.domain._
 import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
-import fr.gospeak.libs.scalautils.domain.Url
+import fr.gospeak.libs.scalautils.domain.{Markdown, Url}
 
 import scala.util.Try
 
@@ -20,8 +20,8 @@ trait MeetupSrv {
   def getGroup(group: MeetupGroup.Slug, key: AesSecretKey)(implicit token: MeetupToken): IO[MeetupGroup]
 
   def publish(event: Event,
-              venue: Option[(Partner, Venue)],
-              description: String,
+              venue: Option[Venue.Full],
+              description: Markdown,
               draft: Boolean,
               key: AesSecretKey, creds: MeetupCredentials): IO[(MeetupEvent.Ref, Option[MeetupVenue.Ref])]
 }

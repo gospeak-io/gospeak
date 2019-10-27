@@ -6,7 +6,7 @@ import cats.effect.IO
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
-trait UserRepo extends OrgaUserRepo with SpeakerUserRepo with UserUserRepo with AuthUserRepo with PublicUserRepo
+trait UserRepo extends OrgaUserRepo with SpeakerUserRepo with UserUserRepo with AuthUserRepo with PublicUserRepo with SuggestUserRepo
 
 trait OrgaUserRepo {
   def find(slug: User.Slug): IO[Option[User]]
@@ -19,10 +19,16 @@ trait OrgaUserRepo {
 }
 
 trait SpeakerUserRepo {
+  def find(email: EmailAddress): IO[Option[User]]
+
+  def find(slug: User.Slug): IO[Option[User]]
+
   def list(ids: Seq[User.Id]): IO[Seq[User]]
 }
 
 trait UserUserRepo {
+  def find(id: User.Id): IO[Option[User]]
+
   def edit(user: User, profile: User.EditableFields, now: Instant): IO[User]
 
   def editStatus(user: User.Id)(status: User.Profile.Status): IO[Done]
@@ -55,7 +61,15 @@ trait AuthUserRepo {
 }
 
 trait PublicUserRepo {
+  def speakers(group: Group.Id, params: Page.Params): IO[Page[User]]
+
   def listPublic(params: Page.Params): IO[Page[User]]
 
+  def list(ids: Seq[User.Id]): IO[Seq[User]]
+
   def findPublic(user: User.Slug): IO[Option[User]]
+}
+
+trait SuggestUserRepo {
+  def speakers(group: Group.Id, params: Page.Params): IO[Page[User]]
 }

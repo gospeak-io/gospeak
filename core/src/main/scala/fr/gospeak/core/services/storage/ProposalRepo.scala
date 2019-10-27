@@ -26,13 +26,13 @@ trait OrgaProposalRepo {
 
   def editVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, by: User.Id, now: Instant): IO[Done]
 
-  def list(group: Group.Id, params: Page.Params): IO[Page[Proposal]]
+  def removeSpeaker(cfp: Cfp.Slug, id: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
 
-  def list(group: Group.Id, speaker: User.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
+  def listFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
-  def list(speaker: User.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
+  def listFull(group: Group.Id, speaker: User.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
-  def list(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal]]
+  def listFull(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
   def list(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal]]
 
@@ -50,27 +50,43 @@ trait SpeakerProposalRepo {
 
   def editVideo(talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, by: User.Id, now: Instant): IO[Done]
 
-  def list(talk: Talk.Id, params: Page.Params): IO[Page[(Cfp, Proposal)]]
+  def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
+
+  def find(proposal: Proposal.Id): IO[Option[Proposal]]
+
+  def findFull(proposal: Proposal.Id): IO[Option[Proposal.Full]]
+
+  def findFull(talk: Talk.Slug, cfp: Cfp.Slug)(by: User.Id): IO[Option[Proposal.Full]]
+
+  def listFull(user: User.Id, params: Page.Params): IO[Page[Proposal.Full]]
+
+  def listFull(talk: Talk.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
   def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]]
 }
 
 trait UserProposalRepo {
-  def list(user: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Cfp, Proposal)]]
+  def addSpeaker(proposal: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
 
-  def listWithEvent(user: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Option[Event], Proposal)]]
+  def listFull(user: User.Id, params: Page.Params): IO[Page[Proposal.Full]]
 }
 
 trait AuthProposalRepo
 
 trait PublicProposalRepo {
-  def list(user: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Cfp, Proposal)]]
+  def listPublicFull(speaker: User.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
-  def listWithEvent(speaker: User.Id, status: Proposal.Status, params: Page.Params): IO[Page[(Option[Event], Proposal)]]
+  def listPublicFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]]
+
+  def listPublicFull(ids: Seq[Proposal.Id]): IO[Seq[Proposal.Full]]
+
+  def findPublicFull(group: Group.Id, proposal: Proposal.Id): IO[Option[Proposal.Full]]
 }
 
 trait SuggestProposalRepo {
   def listTags(): IO[Seq[Tag]]
+
+  def listFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]]
 }
 
 object ProposalFields {

@@ -1,27 +1,39 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Group, Partner, User, Venue}
+@import fr.gospeak.core.domain.{Event, Group, Partner, User, Venue}
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import fr.gospeak.web.pages.orga.partners.contacts.routes.ContactCtrl
+@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.partials.display.html._
 
-@(group: Group, partner: Partner, venue: Venue, speakers: Seq[User], edit: Call)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@container(partner.name.value + " - Gospeak", group, b)() {
+@(group: Group, venue: Venue.Full, events: Seq[Event], speakers: Seq[User], edit: Call)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container(venue.partner.name.value + " - Gospeak", group, b)() {
     <div class="d-flex justify-content-between align-items-start">
         <div class="media">
-            <img src="@partner.logo.value" class="avatar align-self-start mr-3" alt="avatar">
+            <img src="@venue.partner.logo.value" alt="@venue.partner.name.value logo" class="avatar align-self-start mr-3">
             <div class="media-body">
-                <h1 class="mt-0"><a href="@PartnerCtrl.detail(group.slug, partner.slug)">@partner.name.value</a></h1>
-                <p>@venue.address.value</p>
-                @venue.roomSize.map { s => <p>@s places in the room</p> }
+                <h1 class="mt-0"><a href="@PartnerCtrl.detail(group.slug, venue.partner.slug)">@venue.partner.name.value</a></h1>
+                <p>@venue.venue.address.value</p>
+                @venue.contact.map { c => <p>Contact: <a href="@ContactCtrl.detail(group.slug, venue.partner.slug, c.id)">@c.name.value</a></p> }
+                @venue.venue.roomSize.map { s => <p>@s places in the room</p> }
             </div>
         </div>
         <a class="btn btn-outline-secondary" href="@edit" title="edit"><i class="fas fa-edit"></i></a>
     </div>
-    <p>@markdown(venue.description)</p>
+    <p>@markdown(venue.venue.description)</p>
 
-    <p>@info(venue.info, speakers, Some(u => SpeakerCtrl.detail(group.slug, u.slug)))</p>
+    @if(events.nonEmpty) {
+        <h5>Hosted events</h5>
+        <ul>
+            @events.map { event =>
+                <li><a href="@EventCtrl.detail(group.slug, event.slug)">@event.name.value</a></li>
+            }
+        </ul>
+    }
+
+    <p>@info(venue.venue.info, speakers, Some(u => SpeakerCtrl.detail(group.slug, u.slug)))</p>
 }()

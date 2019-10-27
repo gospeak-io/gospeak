@@ -9,6 +9,6 @@
 
 @(groups: Page[Group])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak - groups", b)() {
-    <h1>Groups (TODO)</h1>
+    <h1>Groups</h1>
     @Formats.paginated[Group](groups, GroupCtrl.list, groupItem(_))
 }()

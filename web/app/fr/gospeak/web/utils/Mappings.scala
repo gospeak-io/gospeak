@@ -9,6 +9,7 @@ import cats.implicits._
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup, MeetupVenue}
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
+import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
@@ -45,7 +46,7 @@ object Mappings {
     "time" -> localTime("HH:mm")
   )({ case (d, t) => LocalDateTime.of(d, t) })(dt => Some(dt.toLocalDate -> dt.toLocalTime))
   val chronoUnit: Mapping[ChronoUnit] = stringEitherMapping(d => Try(ChronoUnit.valueOf(d)).toEither, _.name(), formatError)
-  val periodUnit: Mapping[TimePeriod.PeriodUnit] = stringEitherMapping(d => TimePeriod.PeriodUnit.all.find(_.toString == d).toEither, _.toString, formatError)
+  val periodUnit: Mapping[TimePeriod.PeriodUnit] = stringEitherMapping(d => TimePeriod.PeriodUnit.all.find(_.value == d).toEither, _.value, formatError)
   val period: Mapping[TimePeriod] = mapping(
     "length" -> longNumber,
     "unit" -> periodUnit
@@ -70,7 +71,28 @@ object Mappings {
     "amount" -> double,
     "currency" -> currency
   )(Price.apply)(Price.unapply)
-  val gMapPlace: Mapping[GMapPlace] = of(new Formatter[GMapPlace] {
+
+  def gMapPlace(timeShape: TimeShape): Mapping[GMapPlace] = of(new Formatter[GMapPlace] {
+    private def buildGMapPlace(key: String)(id: String,
+                                            name: String,
+                                            streetNo: Option[String],
+                                            street: Option[String],
+                                            postalCode: Option[String],
+                                            locality: Option[String],
+                                            country: String,
+                                            formatted: String,
+                                            input: String,
+                                            lat: Double,
+                                            lng: Double,
+                                            url: String,
+                                            website: Option[String],
+                                            phone: Option[String],
+                                            utcOffset: Int): Either[List[FormError], GMapPlace] = {
+      timeShape.getZoneId(Geo(lat, lng)).map { timezone =>
+        GMapPlace(id, name, streetNo, street, postalCode, locality, country, formatted, input, Geo(lat, lng), url, website, phone, utcOffset, timezone)
+      }.toEither(List(FormError(s"$key.timezone", s"Unable to get timezone for Geo($lat, $lng) :(")))
+    }
+
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], GMapPlace] = (
       data.eitherGet(s"$key.id").toValidatedNec,
       data.eitherGet(s"$key.name").toValidatedNec,
@@ -87,7 +109,7 @@ object Mappings {
       data.get(s"$key.website").validNec[FormError],
       data.get(s"$key.phone").validNec[FormError],
       data.eitherGetAndParse(s"$key.utcOffset", _.tryInt, numberError).toValidatedNec
-      ).mapN(GMapPlace.apply).toEither.left.map(_.toList)
+      ).mapN(buildGMapPlace(key)).toEither.left.map(_.toList).flatten
 
     override def unbind(key: String, value: GMapPlace): Map[String, String] =
       Seq(
@@ -100,14 +122,15 @@ object Mappings {
         s"$key.country" -> Some(value.country),
         s"$key.formatted" -> Some(value.formatted),
         s"$key.input" -> Some(value.input),
-        s"$key.lat" -> Some(value.lat.toString),
-        s"$key.lng" -> Some(value.lng.toString),
+        s"$key.lat" -> Some(value.geo.lat.toString),
+        s"$key.lng" -> Some(value.geo.lng.toString),
         s"$key.url" -> Some(value.url),
         s"$key.website" -> value.website,
         s"$key.phone" -> value.phone,
         s"$key.utcOffset" -> Some(value.utcOffset.toString)
       ).collect { case (k, Some(v)) => (k, v) }.toMap
   })
+
   private val tag: Mapping[Tag] = WrappedMapping[String, Tag](text(1, Tag.maxSize), s => Tag(s.trim), _.value)
   val tags: Mapping[Seq[Tag]] = seq(tag).verifying(s"Can't add more than ${Tag.maxNumber} tags", _.length <= Tag.maxNumber)
 
@@ -125,6 +148,7 @@ object Mappings {
   val partnerId: Mapping[Partner.Id] = idMapping(Partner.Id)
   val partnerSlug: Mapping[Partner.Slug] = slugMapping(Partner.Slug)
   val partnerName: Mapping[Partner.Name] = nonEmptyTextMapping(Partner.Name, _.value, Constraints.maxLength(Values.maxLength.title))
+  val contactId: Mapping[Contact.Id] = idMapping(Contact.Id)
   val venueId: Mapping[Venue.Id] = idMapping(Venue.Id)
   val sponsorPackId: Mapping[SponsorPack.Id] = idMapping(SponsorPack.Id)
   val sponsorPackSlug: Mapping[SponsorPack.Slug] = slugMapping(SponsorPack.Slug)
@@ -167,7 +191,7 @@ object Mappings {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action.Trigger] =
       data.eitherGetAndParse(key, v => Group.Settings.Action.Trigger.from(v).toTry(CustomException(v)), formatError).left.map(Seq(_))
 
-    override def unbind(key: String, value: Group.Settings.Action.Trigger): Map[String, String] = Map(key -> value.toString)
+    override def unbind(key: String, trigger: Group.Settings.Action.Trigger): Map[String, String] = Map(key -> trigger.value)
   })
 
   val groupSettingsAction: Mapping[Group.Settings.Action] = of(new Formatter[Group.Settings.Action] {

@@ -2,6 +2,7 @@
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.published.partials.html.container
+@import fr.gospeak.web.pages.published.routes.HomeCtrl
 
 @()(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", b)() {
@@ -46,4 +47,6 @@
             </div>
         </div>
     </div>
+
+    <h4 class="mt-5 mb-3 text-center">Still need to be convinced? Read our <a href="@HomeCtrl.why()">Why use Gospeak?</a> page.</h4>
 }()

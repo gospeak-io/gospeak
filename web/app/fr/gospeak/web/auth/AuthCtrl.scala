@@ -14,9 +14,9 @@ import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
 import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.auth.emails.Emails
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
+import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages
 import fr.gospeak.web.utils.{HttpUtils, UICtrl}
 import play.api.data.Form

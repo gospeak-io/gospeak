@@ -1,0 +1,29 @@
+@import java.time.Instant
+
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Group, User, UserRequest}
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.partials.display.html.markdown
+@import fr.gospeak.web.pages.partials.form.html.formBtn
+@import fr.gospeak.web.pages.speaker.partials.html.container
+@import fr.gospeak.web.pages.user.routes.UserCtrl
+
+@(invite: UserRequest.GroupInvite, group: Group, orga: User, now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container("Gospeak", b, hideAlert = true)() {
+    @if(invite.isPending(now)) {
+        <h1>Nice!!! You have been invited to join a group <i class="far fa-thumbs-up"></i></h1>
+        <h3>@group.name.value</h3>
+        <p>@markdown(group.description)</p>
+        @formBtn(UserCtrl.rejectRequest(invite.id), Seq("class" -> "btn-danger")) {Do not join}
+        @formBtn(UserCtrl.acceptRequest(invite.id), Seq("class" -> "btn-success")) {Join <b>@orga.name.value</b> in the <b>@group.name.value</b> group}
+    } else {
+        <h1>Invitation to the @group.name.value group by @orga.name.value</h1>
+        <h3 class="text-danger">Oups, this invite is expired</h3>
+        <p>
+            If it is strange, please contact the person who invated you (<a href="mailto:@orga.email.value">@orga.name.value</a>) to check if everything is alright
+            and inform the <a href="mailto:contact@@gospeak.fr">gospeak team</a>
+        </p>
+        <a href="@UserCtrl.index()" class="btn btn-primary">Go to home page</a>
+    }
+}()

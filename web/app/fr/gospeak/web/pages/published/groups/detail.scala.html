@@ -1,32 +1,77 @@
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
-@import fr.gospeak.core.domain.{Cfp, Group}
+@import fr.gospeak.core.domain.{Cfp, Event, Group, Sponsor, SponsorPack}
+@import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.partials.html._
 @import fr.gospeak.web.pages.partials.display.html.markdown
-@import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
+@import fr.gospeak.web.pages.published.partials.html.container
+@import fr.gospeak.web.utils.Formats
 
-@(group: Group, cfps: Seq[Cfp])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @container(group.name.value + " - Gospeak", b)() {
-    <h1 class="d-flex justify-content-between align-items-center">
-        <span>@group.name.value</span>
-        @cfps.length match {
-            case 0 => {}
-            case 1 => {
-                <a class="btn btn-primary" href="@CfpCtrl.propose(cfps.head.slug)">Propose a talk</a>
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>@group.name.value</h1>
+        <div>
+            @userMembership.map { _ =>
+                <a class="btn btn-danger" href="@GroupCtrl.doLeave(group.slug)">Leave this group</a>
+            }.getOrElse {
+                <a class="btn btn-primary" href="@GroupCtrl.doJoin(group.slug)">Join this group</a>
             }
-            case _ => {
-                <div class="dropdown d-flex">
-                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownTalkProposal" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Propose a talk</button>
-                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownTalkProposal">
-                    @cfps.map { cfp =>
-                        <a class="dropdown-item" href="@CfpCtrl.propose(cfp.slug)">@cfp.name.value</a>
-                    }
+            @cfps.length match {
+                case 0 => {}
+                case 1 => {
+                    <a class="btn btn-primary" href="@CfpCtrl.propose(cfps.head.slug)">Propose a talk</a>
+                }
+                case _ => {
+                    <div class="btn-group">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownTalkProposal" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Propose a talk</button>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownTalkProposal">
+                        @cfps.map { cfp =>
+                            <a class="dropdown-item" href="@CfpCtrl.propose(cfp.slug)">@cfp.name.value</a>
+                        }
+                        </div>
                     </div>
-                </div>
+                }
             }
-        }
-    </h1>
-    <blockquote class="blockquote">@markdown(group.description)</blockquote>
+        </div>
+    </div>
+    <p>
+        <a href="@GroupCtrl.events(group.slug)">Events</a> -
+        <a href="@GroupCtrl.talks(group.slug)">Talks</a> -
+        <a href="@GroupCtrl.speakers(group.slug)">Speakers</a>
+    </p>
+    <div class="row">
+        <div class="col">
+            <h3>Last events</h3>
+            @events.items.map { e =>
+                <a class="card mb-3" href="@GroupCtrl.event(group.slug, e.slug)">
+                    <div class="card-body">
+                        <h5 class="card-title">@e.name.value</h5>
+                        <p class="card-text d-flex justify-content-between align-items-center">
+                            <small class="text-muted">@Formats.date(e.start)</small>
+                            @e.venue.map { v => <small class="text-muted">at @v.partner.name.value</small> }
+@*                          @e.event.maxAttendee.map { max =>  @Formats.plural(max, "place") }*@
+                        </p>
+                    </div>
+                </a>
+            }
+            @if(!events.isLast) {
+                <a href="@GroupCtrl.events(group.slug, Page.Params.no(2))">Previous events</a>
+            }
+        </div>
+        <div class="col">
+            <h3>About</h3>
+            <blockquote class="blockquote">@markdown(group.description)</blockquote>
+            <h3>Sponsors</h3>
+            @sponsors.sortBy(-_.price.amount).map { sponsor =>
+                <img src="@sponsor.partner.logo.value"
+                    alt="@sponsor.partner.name.value logo"
+                    title="@sponsor.pack.name.value sponsoring by @sponsor.partner.name.value"
+                    class="rounded"
+                    style="height: 100px; padding: 5px">
+            }
+        </div>
+    </div>
 }()

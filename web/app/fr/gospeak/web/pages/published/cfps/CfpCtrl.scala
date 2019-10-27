@@ -12,12 +12,12 @@ import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.auth.emails.Emails
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus}
-import fr.gospeak.web.pages.published.cfps.CfpCtrl._
+import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.published.HomeCtrl
+import fr.gospeak.web.pages.published.cfps.CfpCtrl._
 import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form

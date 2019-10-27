@@ -17,6 +17,7 @@ object SponsorForms {
   val create: Form[Sponsor.Data] = Form(mapping(
     "partner" -> partnerId,
     "pack" -> sponsorPackId,
+    "contact" -> optional(contactId),
     "start" -> localDate(localDateFormat),
     "finish" -> localDate(localDateFormat),
     "paid" -> optional(localDate(localDateFormat)),

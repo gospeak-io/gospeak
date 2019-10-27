@@ -6,7 +6,7 @@ import cats.effect.IO
 import fr.gospeak.core.domain.{Group, SponsorPack, User}
 import fr.gospeak.libs.scalautils.domain.Done
 
-trait SponsorPackRepo extends OrgaSponsorPackRepo with SuggestSponsorPackRepo
+trait SponsorPackRepo extends OrgaSponsorPackRepo with PublicSponsorPackRepo with SuggestSponsorPackRepo
 
 trait OrgaSponsorPackRepo {
   def create(group: Group.Id, data: SponsorPack.Data, by: User.Id, now: Instant): IO[SponsorPack]
@@ -23,6 +23,10 @@ trait OrgaSponsorPackRepo {
 
   def listAll(group: Group.Id): IO[Seq[SponsorPack]]
 
+  def listActives(group: Group.Id): IO[Seq[SponsorPack]]
+}
+
+trait PublicSponsorPackRepo {
   def listActives(group: Group.Id): IO[Seq[SponsorPack]]
 }
 

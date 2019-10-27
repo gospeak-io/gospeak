@@ -1,16 +1,14 @@
 @import java.time.Instant
-@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
-@import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
+
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Group, Proposal}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.speaker.partials.html.container
-@import fr.gospeak.web.pages.partials.html.speakerCard
-@import fr.gospeak.web.pages.published.partials.html.{groupItem, proposalItem}
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.web.pages.speaker.partials.html.{container, groupItem, proposalItemForProfile, speakerCard}
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
 
-@(acceptedProposals: Page[(Option[Event], Proposal)], ownedGroups: Page[Group], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(proposals: Page[Proposal.Full], ownedGroups: Seq[Group], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(req.identity.user.name.value + " - Gospeak", b)() {
     <div class="row">
         <div class="col">
@@ -23,18 +21,18 @@
         @speakerCard(req.identity.user)
         </div>
         <div class="col-8">
-            @if(acceptedProposals.nonEmpty) {
+            @if(proposals.nonEmpty) {
                 <h2 class="mt-0 mb-3">Accepted talks</h2>
                 <div>
-                @acceptedProposals.items.map { proposal =>
-                    @proposalItem(proposal, now)
+                @proposals.items.map { proposal =>
+                    @proposalItemForProfile(proposal, now)
                 }
                 </div>
             }
             @if(ownedGroups.nonEmpty) {
                 <h2 class="mt-0 mb-3 mt-3">Organises</h2>
                 <div>
-                @ownedGroups.items.map { group =>
+                @ownedGroups.map { group =>
                     @groupItem(group)
                 }
                 </div>

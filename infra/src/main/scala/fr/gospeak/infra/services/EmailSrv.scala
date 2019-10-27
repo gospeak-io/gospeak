@@ -22,6 +22,8 @@ object EmailSrv {
   }
 
   object Contact {
+    def apply(email: EmailAddress): Contact = new Contact(email, None)
+
     def apply(user: User): Contact = new Contact(user.email, Some(user.name.value))
   }
 
@@ -43,7 +45,7 @@ object EmailSrv {
 
     final case class Console() extends Conf
 
-    final case class InMemery() extends Conf
+    final case class InMemory() extends Conf
 
     final case class SendGrid(apiKey: Secret) extends Conf
 
@@ -51,7 +53,7 @@ object EmailSrv {
 
   def from(conf: Conf): EmailSrv = conf match {
     case _: Conf.Console => new ConsoleEmailSrv()
-    case _: Conf.InMemery => new InMemoryEmailSrv()
+    case _: Conf.InMemory => new InMemoryEmailSrv()
     case conf: Conf.SendGrid => SendGridEmailSrv(conf)
   }
 

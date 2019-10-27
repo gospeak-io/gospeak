@@ -8,15 +8,13 @@
 
 @(group: Group, partner: Partner, contact: Contact)
 <div class="list-group-item list-group-item-action">
-    <h5 class="mb-1">
-        @if(contact.description.isEmpty) {
-            <a href="@ContactCtrl.detail(group.slug, partner.slug, contact.id)">@contact.name.value</a>
-        } else {
-            <a href="@ContactCtrl.detail(group.slug, partner.slug, contact.id)" data-toggle="html-popover" data-trigger="hover">
-                <div class="content">@markdown(contact.description)</div>
-                @contact.name.value
-            </a>
-        }
-        <small>(@emailLink(contact.email))</small>
-    </h5>
+    @if(contact.description.isEmpty) {
+        <a href="@ContactCtrl.detail(group.slug, partner.slug, contact.id)">@contact.name.value</a>
+    } else {
+        <a href="@ContactCtrl.detail(group.slug, partner.slug, contact.id)" data-toggle="html-popover" data-trigger="hover">
+            <div class="content">@markdown(contact.description)</div>
+            @contact.name.value
+        </a>
+    }
+    (@emailLink(contact.email))
 </div>
