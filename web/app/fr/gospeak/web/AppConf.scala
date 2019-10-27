@@ -14,7 +14,7 @@ import fr.gospeak.web.auth.AuthConf
 import play.api.Configuration
 import play.api.mvc.Cookie.SameSite
 import pureconfig.error.{CannotConvert, ConfigReaderFailure, ConfigReaderFailures, ConvertFailure}
-import pureconfig.{ConfigCursor, ConfigReader, Derivation}
+import pureconfig.{ConfigCursor, ConfigReader, ConfigSource, Derivation}
 
 import scala.util.{Failure, Success, Try}
 
@@ -27,7 +27,7 @@ final case class AppConf(application: ApplicationConf,
 
 object AppConf {
   def load(conf: Config): Try[AppConf] = {
-    pureconfig.loadConfig[AppConf](conf)(Readers.reader) match {
+    ConfigSource.fromConfig(conf).load[AppConf](Readers.reader) match {
       case Right(appConf) => Success(appConf)
       case Left(failures) => Failure(new IllegalArgumentException("Unable to load AppConf:\n" + failures.toList.map(format).mkString("\n")))
     }
