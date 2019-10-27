@@ -43,7 +43,7 @@ val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.12.1")
 val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
-  "com.pepegar" %% "hammock-apache-http").map(_ % "0.9.0")
+  "com.pepegar" %% "hammock-apache-http").map(_ % "0.9.2")
 val flyway = Seq("org.flywaydb" % "flyway-core" % "6.0.7")
 val silhouetteVersion = "6.1.0"
 val silhouette = Seq(
