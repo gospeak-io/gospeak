@@ -39,12 +39,12 @@ val doobie = Seq(
   "org.tpolecat" %% "doobie-hikari").map(_ % doobieVersion)
 val doobieTest = Seq(
   "org.tpolecat" %% "doobie-scalatest" % doobieVersion).map(_ % Test)
-val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.11.1")
+val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.12.1")
 val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
   "com.pepegar" %% "hammock-apache-http").map(_ % "0.9.0")
-val flyway = Seq("org.flywaydb" % "flyway-core" % "6.0.1")
+val flyway = Seq("org.flywaydb" % "flyway-core" % "6.0.7")
 val silhouetteVersion = "6.1.0"
 val silhouette = Seq(
   "com.mohiva" %% "play-silhouette",
@@ -60,7 +60,7 @@ val play = Seq(
 val playTest = Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3").map(_ % Test)
 val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.40.34")
-val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.5.1")
+val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.6.1")
 val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.3.0")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
   "org.webjars.npm" % "jquery" % "3.4.1",
@@ -80,7 +80,7 @@ val logback = Seq(
 val scalaTest = Seq(
   "org.scalatest" %% "scalatest" % "3.0.8").map(_ % Test)
 val scalaCheck = Seq(
-  "org.scalacheck" %% "scalacheck" % "1.14.0",
+  "org.scalacheck" %% "scalacheck" % "1.14.2",
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.3",
   "com.danielasfregola" %% "random-data-generator" % "2.7").map(_ % Test)
 val timeshape = Seq("net.iakovlev" % "timeshape" % "2018d.6")
