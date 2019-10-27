@@ -1,13 +1,14 @@
 package fr.gospeak.web
 
 import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
-import com.typesafe.config.{Config, ConfigFactory}
-import fr.gospeak.core.ApplicationConf
+import com.typesafe.config.Config
+import fr.gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.infra.libs.meetup.MeetupClient
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.infra.services.storage.sql.DatabaseConf
 import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain.Secret
 import fr.gospeak.web.auth.AuthConf
 import play.api.Configuration
@@ -21,7 +22,8 @@ final case class AppConf(application: ApplicationConf,
                          auth: AuthConf,
                          database: DatabaseConf,
                          emailService: EmailSrv.Conf,
-                         meetup: MeetupClient.Conf)
+                         meetup: MeetupClient.Conf,
+                         gospeak: GospeakConf)
 
 object AppConf {
   def load(conf: Config): Try[AppConf] = {
@@ -31,15 +33,11 @@ object AppConf {
     }
   }
 
-  def load(conf: Configuration): Try[AppConf] =
-    load(conf.underlying)
+  def load(conf: Configuration): Try[AppConf] = load(conf.underlying)
 
-  def load(): Try[AppConf] = load(ConfigFactory.load())
+  private def format(f: ConfigReaderFailure): String = "  - " + f.description + f.location.map(" " + _.description).getOrElse("")
 
-  private def format(f: ConfigReaderFailure): String =
-    "  - " + f.description + f.location.map(" " + _.description).getOrElse("")
-
-  object Readers {
+  private object Readers {
 
     import pureconfig.generic.semiauto._
 
@@ -60,18 +58,21 @@ object AppConf {
     private implicit val authConfRememberMeReader: ConfigReader[AuthConf.RememberMe] = deriveReader[AuthConf.RememberMe]
     private implicit val authConfCookieConfReader: ConfigReader[AuthConf.CookieConf] = deriveReader[AuthConf.CookieConf]
 
-    private implicit val databaseConfH2Reader: ConfigReader[DatabaseConf.H2] = deriveReader[DatabaseConf.H2]
-    private implicit val databaseConfPostgreSQLReader: ConfigReader[DatabaseConf.PostgreSQL] = deriveReader[DatabaseConf.PostgreSQL]
-    private implicit val databaseConfReader: ConfigReader[DatabaseConf] = deriveReader[DatabaseConf]
+    private implicit val databaseConfReader: ConfigReader[DatabaseConf] = (cur: ConfigCursor) => cur.asString
+      .flatMap(DatabaseConf.from(_).leftMap(_ => ConfigReaderFailures(ConvertFailure(CannotConvert(cur.toString, "DatabaseConf", "Invalid value"), cur.location, cur.path))))
 
     private implicit val emailSrvConfConsoleReader: ConfigReader[EmailSrv.Conf.Console] = deriveReader[EmailSrv.Conf.Console]
     private implicit val emailSrvConfInMemoryReader: ConfigReader[EmailSrv.Conf.InMemory] = deriveReader[EmailSrv.Conf.InMemory]
     private implicit val emailSrvConfSendGridReader: ConfigReader[EmailSrv.Conf.SendGrid] = deriveReader[EmailSrv.Conf.SendGrid]
 
+    private implicit def markdownTmplReader[A]: ConfigReader[MustacheMarkdownTmpl[A]] = (cur: ConfigCursor) => cur.asString.map(_.stripPrefix("\n")).map(MustacheMarkdownTmpl[A])
+    private implicit val gospeakEventConfReader: ConfigReader[GospeakConf.EventConf] = deriveReader[GospeakConf.EventConf]
+
     private implicit val applicationConfReader: ConfigReader[ApplicationConf] = deriveReader[ApplicationConf]
     private implicit val authConfReader: ConfigReader[AuthConf] = deriveReader[AuthConf]
     private implicit val meetupClientConfReader: ConfigReader[MeetupClient.Conf] = deriveReader[MeetupClient.Conf]
     private implicit val emailSrvConfReader: ConfigReader[EmailSrv.Conf] = deriveReader[EmailSrv.Conf]
+    private implicit val gospeakConfReader: ConfigReader[GospeakConf] = deriveReader[GospeakConf]
 
     private implicit val appConfReader: ConfigReader[AppConf] = deriveReader[AppConf]
 

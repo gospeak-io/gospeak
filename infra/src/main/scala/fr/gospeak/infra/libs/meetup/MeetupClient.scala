@@ -7,7 +7,7 @@ import fr.gospeak.infra.libs.meetup.domain._
 import fr.gospeak.infra.utils.HttpClient
 import fr.gospeak.infra.utils.HttpClient.Response
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Secret, Url}
+import fr.gospeak.libs.scalautils.domain.{Geo, Secret, Url}
 import io.circe.parser.decode
 import io.circe.{Decoder, Encoder}
 
@@ -140,8 +140,8 @@ class MeetupClient(conf: Conf) {
     }
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/find/locations
-  def getLocations(lat: Double, lon: Double)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupLocation]]] =
-    get[Seq[MeetupLocation]](s"$baseUrl/find/locations", Map("lat" -> lat.toString, "lon" -> lon.toString))
+  def getLocations(geo: Geo)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupLocation]]] =
+    get[Seq[MeetupLocation]](s"$baseUrl/find/locations", Map("lat" -> geo.lat.toString, "lon" -> geo.lng.toString))
 
   private def get[A](url: String, query: Map[String, String] = Map())(implicit accessToken: MeetupToken.Access, d: Decoder[A]): IO[Either[MeetupError, A]] =
     HttpClient.get(url, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])

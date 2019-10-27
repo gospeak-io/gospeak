@@ -6,7 +6,7 @@ import java.time.temporal.ChronoUnit
 import fr.gospeak.infra.libs.meetup.MeetupClient.Conf
 import fr.gospeak.infra.libs.meetup.domain.{MeetupEvent, MeetupToken, MeetupVenue}
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.Secret
+import fr.gospeak.libs.scalautils.domain.{Geo, Secret}
 import org.scalatest.{FunSpec, Matchers}
 
 class MeetupClientSpec extends FunSpec with Matchers {
@@ -109,7 +109,7 @@ class MeetupClientSpec extends FunSpec with Matchers {
     }
     describe("locations") {
       it("should fetch locations") {
-        val locations = client.getLocations(48.8716827, 2.3070390000000316).unsafeRunSync().get
+        val locations = client.getLocations(Geo(48.8716827, 2.3070390000000316)).unsafeRunSync().get
         println(s"locations (${locations.length}):\n${locations.mkString("\n")}")
       }
     }

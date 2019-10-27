@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, Partner, Venue}
-import fr.gospeak.core.services.storage.{GroupSettingsRepo, OrgaGroupRepo, OrgaPartnerRepo, OrgaUserRepo, OrgaVenueRepo}
+import fr.gospeak.core.services.storage.{GroupSettingsRepo, OrgaEventRepo, OrgaGroupRepo, OrgaPartnerRepo, OrgaUserRepo, OrgaVenueRepo}
 import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
@@ -23,6 +23,7 @@ class VenueCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
                 userRepo: OrgaUserRepo,
                 groupRepo: OrgaGroupRepo,
+                eventRepo: OrgaEventRepo,
                 partnerRepo: OrgaPartnerRepo,
                 venueRepo: OrgaVenueRepo,
                 groupSettingsRepo: GroupSettingsRepo,
@@ -58,11 +59,13 @@ class VenueCtrl(cc: ControllerComponents,
   def detail(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
-      (partnerElt, venueElt) <- OptionT(venueRepo.find(groupElt.id, venue))
-      users <- OptionT.liftF(userRepo.list((partnerElt.users ++ venueElt.users).distinct))
-      b = breadcrumb(groupElt, partnerElt, venueElt)
+      venueElt <- OptionT(venueRepo.findFull(groupElt.id, venue))
+      events <- OptionT.liftF(eventRepo.list(groupElt.id, venue))
+      users <- OptionT.liftF(userRepo.list(venueElt.users))
+      b = breadcrumb(groupElt, venueElt)
       edit = routes.VenueCtrl.edit(group, partner, venue)
-    } yield Ok(html.detail(groupElt, partnerElt, venueElt, users, edit)(b))).value.map(_.getOrElse(venueNotFound(group, partner, venue))).unsafeToFuture()
+      res = Ok(html.detail(groupElt, venueElt, events, users, edit)(b))
+    } yield res).value.map(_.getOrElse(venueNotFound(group, partner, venue))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -84,11 +87,11 @@ class VenueCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup(groupElt.id))
-      (partnerElt, venueElt) <- OptionT(venueRepo.find(groupElt.id, venue))
-      b = breadcrumb(groupElt, partnerElt, venueElt).add("Edit" -> routes.VenueCtrl.edit(group, partner, venue))
+      venueElt <- OptionT(venueRepo.findFull(groupElt.id, venue))
+      b = breadcrumb(groupElt, venueElt).add("Edit" -> routes.VenueCtrl.edit(group, partner, venue))
       filledForm = if (form.hasErrors) form else form.fill(venueElt.data)
       call = routes.VenueCtrl.doEdit(group, partner, venue)
-    } yield Ok(html.edit(groupElt, meetupAccount.isDefined, partnerElt, venueElt, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
+    } yield Ok(html.edit(groupElt, meetupAccount.isDefined, venueElt, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
   }
 }
 
@@ -96,6 +99,6 @@ object VenueCtrl {
   def listBreadcrumb(group: Group, partner: Partner): Breadcrumb =
     PartnerCtrl.breadcrumb(group, partner).add("Venues" -> PartnerRoutes.detail(group.slug, partner.slug))
 
-  def breadcrumb(group: Group, partner: Partner, venue: Venue): Breadcrumb =
-    listBreadcrumb(group, partner).add(venue.address.value -> routes.VenueCtrl.detail(group.slug, partner.slug, venue.id))
+  def breadcrumb(group: Group, venue: Venue.Full): Breadcrumb =
+    listBreadcrumb(group, venue.partner).add(venue.address.value -> routes.VenueCtrl.detail(group.slug, venue.partner.slug, venue.id))
 }

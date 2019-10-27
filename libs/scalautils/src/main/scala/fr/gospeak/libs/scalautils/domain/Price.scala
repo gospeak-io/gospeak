@@ -19,7 +19,7 @@ object Price {
     val all: Seq[Currency] = Seq(EUR, USD)
 
     def from(str: String): Option[Currency] =
-      all.find(_.toString == str)
+      all.find(_.value == str)
   }
 
 }

@@ -19,9 +19,9 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav">
-                    @navbarLink(CfpCtrl.list()) {Call For Proposals}
-                    @navbarLink(GroupCtrl.list()) {Groups}
-                    @navbarLink(SpeakerCtrl.list()) {Speakers}
+                    @navbarLink(CfpCtrl.list(), "data-hotkey" -> "1") {Call For Proposals}
+                    @navbarLink(GroupCtrl.list(), "data-hotkey" -> "2") {Groups}
+                    @navbarLink(SpeakerCtrl.list(), "data-hotkey" -> "3") {Speakers}
                 </div>
             </div>
             <div class="navbar-nav">
@@ -38,4 +38,11 @@
         @flash(req.flash)
         @content
     </div>
+    <footer class="footer">
+        <p>
+            <b>Gospeak</b> is an
+            <a href="https://github.com/loicknuchel/gospeak" target="_blank">Open Source project</a>,
+            feel free to create an issue if you think about any possible improvement :)
+        </p>
+    </footer>
 }

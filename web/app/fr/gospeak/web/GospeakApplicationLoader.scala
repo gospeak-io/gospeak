@@ -9,12 +9,12 @@ import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaSigner}
 import com.mohiva.play.silhouette.impl.authenticators._
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.softwaremill.macwire.wire
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.utils.GospeakMessage
 import fr.gospeak.core.services._
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.storage._
+import fr.gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.infra.libs.meetup.MeetupClient
 import fr.gospeak.infra.libs.slack.SlackClient
 import fr.gospeak.infra.libs.timeshape.TimeShape
@@ -62,7 +62,6 @@ class GospeakComponents(context: ApplicationLoader.Context)
 
   // unsafe init should be done at the beginning
   lazy val conf: AppConf = AppConf.load(configuration).get
-  logger.info(s"Configuration loaded: $conf")
   lazy val timeShape: TimeShape = TimeShape.create().get
 
   lazy val appConf: ApplicationConf = conf.application
@@ -70,6 +69,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val authConf: AuthConf = conf.auth
   lazy val dbConf: DatabaseConf = conf.database
   lazy val meetupConf: MeetupClient.Conf = conf.meetup
+  lazy val gsConf: GospeakConf = conf.gospeak
 
   lazy val db: GospeakDbSql = wire[GospeakDbSql]
   lazy val userRepo: UserRepo = db.user
@@ -162,6 +162,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val userGroupSpeakerCtrl = wire[orga.speakers.SpeakerCtrl]
   lazy val userGroupPartnerCtrl = wire[orga.partners.PartnerCtrl]
   lazy val userGroupPartnersVenueCtrl = wire[orga.partners.venues.VenueCtrl]
+  lazy val userGroupPartnersContactCtrl = wire[orga.partners.contacts.ContactCtrl]
   lazy val userGroupVenueCtrl = wire[orga.venues.VenueCtrl]
   lazy val userGroupSponsorCtrl = wire[orga.sponsors.SponsorCtrl]
   lazy val userGroupSettingsCtrl = wire[orga.settings.SettingsCtrl]
@@ -173,7 +174,9 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val apiStatusCtrl = wire[api.StatusCtrl]
   lazy val apiUiSuggestCtrl = wire[api.ui.SuggestCtrl]
   lazy val apiUiUtilsCtrl = wire[api.ui.UtilsCtrl]
-  lazy val contactCtrl = wire[orga.partners.contacts.ContactCtrl]
+  lazy val apiGroupCtrl = wire[api.published.GroupCtrl]
+  lazy val apiCfpCtrl = wire[api.published.CfpCtrl]
+  lazy val apiSpeakerCtrl = wire[api.published.SpeakerCtrl]
 
   override lazy val router: Router = {
     val prefix = "/"
@@ -181,13 +184,12 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
 
   def onStart(): Unit = {
-    // FIXME update when really deploy on prod
-    db.dropTables().unsafeRunSync()
-    db.migrate().unsafeRunSync()
     if (envConf.isProd) {
-      db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync()
+      db.migrate().unsafeRunSync()
     } else {
-      db.insertMockData().unsafeRunSync()
+      db.dropTables().unsafeRunSync()
+      db.migrate().unsafeRunSync()
+      db.insertMockData(conf.gospeak).unsafeRunSync()
     }
 
     messageBus.subscribe(messageHandler.handle)

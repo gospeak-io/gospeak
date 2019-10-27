@@ -21,6 +21,7 @@ class PartnerCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
                   userRepo: OrgaUserRepo,
                   groupRepo: OrgaGroupRepo,
+                  eventRepo: OrgaEventRepo,
                   partnerRepo: OrgaPartnerRepo,
                   contactRepo: ContactRepo,
                   venueRepo: OrgaVenueRepo,
@@ -60,16 +61,19 @@ class PartnerCtrl(cc: ControllerComponents,
   }
 
   def detail(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
       contacts <- OptionT.liftF(contactRepo.list(partnerElt.id))
-      venues <- OptionT.liftF(venueRepo.list(partnerElt.id))
+      venues <- OptionT.liftF(venueRepo.listFull(partnerElt.id))
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
-      sponsors <- OptionT.liftF(sponsorRepo.listAll(groupElt.id, partnerElt.id))
+      sponsors <- OptionT.liftF(sponsorRepo.listAllFull(groupElt.id, partnerElt.id))
+      events <- OptionT.liftF(eventRepo.list(groupElt.id, partnerElt.id))
       users <- OptionT.liftF(userRepo.list((partnerElt.users ++ venues.flatMap(_.users)).distinct))
       b = breadcrumb(groupElt, partnerElt)
-    } yield Ok(html.detail(groupElt, partnerElt, venues, contacts, users, sponsors, packs)(b))).value.map(_.getOrElse(partnerNotFound(group, partner))).unsafeToFuture()
+      res = Ok(html.detail(groupElt, partnerElt, venues, contacts, users, sponsors, packs, events, now)(b))
+    } yield res).value.map(_.getOrElse(partnerNotFound(group, partner))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>

@@ -15,19 +15,17 @@ import scala.util.{Failure, Success, Try}
 final case class Group(id: Group.Id,
                        slug: Group.Slug,
                        name: Group.Name,
+                       contact: Option[EmailAddress],
                        description: Markdown,
                        owners: NonEmptyList[User.Id],
                        tags: Seq[Tag],
-                       published: Option[Instant],
                        info: Info) {
   def data: Group.Data = Group.Data(this)
-
-  def isPublic: Boolean = published.isDefined
 }
 
 object Group {
   def apply(data: Data, owners: NonEmptyList[User.Id], info: Info): Group =
-    new Group(Id.generate(), data.slug, data.name, data.description, owners, data.tags, None, info) // FIXME add public in form
+    new Group(Id.generate(), data.slug, data.name, data.contact, data.description, owners, data.tags, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -39,13 +37,42 @@ object Group {
 
   final case class Name(value: String) extends AnyVal
 
+  final case class Member(group: Group.Id,
+                          role: Member.Role,
+                          presentation: Option[String],
+                          joinedAt: Instant,
+                          leavedAt: Option[Instant],
+                          user: User) {
+    def isActive: Boolean = leavedAt.isEmpty
+  }
+
+  object Member {
+
+    sealed trait Role
+
+    object Role {
+
+      case object Owner extends Role
+
+      case object Member extends Role
+
+      val all: Seq[Role] = Seq(Owner, Member)
+
+      def from(str: String): Either[CustomException, Role] =
+        all.find(_.toString == str).map(Right(_)).getOrElse(Left(CustomException(s"'$str' is not a valid Group.Member.Role")))
+
+    }
+
+  }
+
   final case class Data(slug: Group.Slug,
                         name: Group.Name,
+                        contact: Option[EmailAddress],
                         description: Markdown,
                         tags: Seq[Tag])
 
   object Data {
-    def apply(group: Group): Data = new Data(group.slug, group.name, group.description, group.tags)
+    def apply(group: Group): Data = new Data(group.slug, group.name, group.contact, group.description, group.tags)
   }
 
 
@@ -75,27 +102,20 @@ object Group {
   }
 
   object Settings {
-    val default = Settings(
-      accounts = Accounts(
-        meetup = None,
-        slack = None),
-        // twitter = None,
-        // youtube = None),
-      event = Event(
-        defaultDescription = TemplateData.Static.defaultEventDescription,
-        templates = Map()),
-      actions = Map())
 
     final case class Accounts(meetup: Option[MeetupCredentials],
                               slack: Option[SlackCredentials])
-                              // twitter: Option[String],
-                              // youtube: Option[String])
+
+    // twitter: Option[String],
+    // youtube: Option[String])
 
     sealed trait Action
 
     object Action {
 
-      sealed abstract class Trigger(val name: String) {
+      sealed abstract class Trigger(val name: String) extends StringEnum {
+        def value: String = toString
+
         def getClassName: String = getClass.getName.split("[.$]").toList.last
       }
 
@@ -120,36 +140,38 @@ object Group {
 
     }
 
-    final case class Event(defaultDescription: MustacheMarkdownTmpl[TemplateData.EventInfo],
+    final case class Event(description: MustacheMarkdownTmpl[TemplateData.EventInfo],
                            templates: Map[String, MustacheTextTmpl[TemplateData.EventInfo]]) {
-      def defaultTemplates: Seq[(String, MustacheMarkdownTmpl[TemplateData.EventInfo])] =
-        Seq((Event.defaultDescriptionId, defaultDescription))
+      private def defaultTemplates: Map[String, MustacheTmpl[TemplateData.EventInfo]] = Map(
+        Event.descriptionTmplId -> Some(description),
+      ).collect { case (id, Some(tmpl)) => (id, tmpl) }
 
       def allTemplates: Seq[(String, Boolean, MustacheTmpl[TemplateData.EventInfo])] =
-        defaultTemplates.map { case (id, t) => (id, true, t) } ++
+        defaultTemplates.toSeq.map { case (id, t) => (id, true, t) } ++
           templates.toSeq.map { case (id, t) => (id, false, t) }.sortBy(_._1)
 
       def getTemplate(id: String): Option[MustacheTmpl[TemplateData.EventInfo]] =
-        if (id == Event.defaultDescriptionId) Some(defaultDescription)
-        else templates.get(id)
+        defaultTemplates.get(id).orElse(templates.get(id))
 
       def removeTemplate(id: String): Try[Event] =
         if (templates.contains(id)) Success(copy(templates = templates - id))
-        else if (id == Event.defaultDescriptionId) Failure(new IllegalArgumentException(s"Template '$id' is a default one, unable to remove it"))
+        else if (Event.defaultTmplIds.contains(id)) Failure(new IllegalArgumentException(s"Template '$id' is a default one, unable to remove it"))
         else Failure(new IllegalArgumentException(s"Template '$id' does not exists, unable to remove it"))
 
       def addTemplate(id: String, tmpl: MustacheTextTmpl[TemplateData.EventInfo]): Try[Event] =
-        if (templates.contains(id) || id == Event.defaultDescriptionId) Failure(new IllegalArgumentException(s"Template '$id' already exists, unable to add it"))
+        if (templates.contains(id) || Event.defaultTmplIds.contains(id)) Failure(new IllegalArgumentException(s"Template '$id' already exists, unable to add it"))
         else Success(copy(templates = templates ++ Map(id -> tmpl)))
 
-      def updateTemplate(oldId: String, newId: String, tmpl: MustacheMarkdownTmpl[TemplateData.EventInfo]): Try[Event] =
-        if (newId == Event.defaultDescriptionId) Success(copy(defaultDescription = tmpl))
+      def updateTemplate(oldId: String, newId: String, tmpl: MustacheTmpl[TemplateData.EventInfo]): Try[Event] =
+        if (newId == Event.descriptionTmplId) Success(copy(description = tmpl.asMarkdown))
         else removeTemplate(oldId).mapFailure(e => new IllegalArgumentException(s"Template '$oldId' does not exists, unable to update it", e))
           .flatMap(_.addTemplate(newId, tmpl.asText).mapFailure(e => new IllegalArgumentException(s"Template '$newId' already exists, unable to rename to it", e)))
     }
 
     object Event {
-      val defaultDescriptionId = "Default description"
+      val descriptionTmplId = "Event description"
+
+      val defaultTmplIds: Seq[String] = Seq(descriptionTmplId)
     }
 
   }

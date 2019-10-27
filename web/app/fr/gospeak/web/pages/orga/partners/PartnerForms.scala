@@ -9,7 +9,8 @@ object PartnerForms {
   val create: Form[Partner.Data] = Form(mapping(
     "slug" -> partnerSlug,
     "name" -> partnerName,
-    "description" -> markdown,
+    "notes" -> markdown,
+    "description" -> optional(markdown),
     "logo" -> url,
     "twitter" -> optional(url)
   )(Partner.Data.apply)(Partner.Data.unapply))

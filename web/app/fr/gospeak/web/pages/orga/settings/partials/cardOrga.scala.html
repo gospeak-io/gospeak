@@ -1,0 +1,60 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Group, User, UserRequest}
+@import fr.gospeak.libs.scalautils.domain.EmailAddress
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import fr.gospeak.web.pages.partials.form.html._
+
+@(group: Group, orgas: Seq[User], invites: Seq[UserRequest.GroupInvite], inviteOrgaForm: Form[EmailAddress])(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Organizers</span>
+        <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#inviteOrgaModal">Invite orga</button>
+    </div>
+    <ul class="list-group list-group-flush">
+        @orgas.map { orga =>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>@orga.name.value</span>
+                <span>
+                    @formBtn(SettingsCtrl.doRemoveOrga(group.slug, orga.slug), Seq(
+                        "class" -> "btn btn-danger btn-xs",
+                        "title" -> "Remove this orga",
+                        "confirm" -> s"Remove ${orga.name.value} from ${group.name.value} group?")) {Remove}
+                </span>
+            </li>
+        }
+        @invites.map { invite =>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span class="text-muted">@invite.email.value</span>
+                <span>
+                    @formBtn(SettingsCtrl.cancelInviteOrga(group.slug, invite.id), Seq(
+                        "class" -> "btn btn-danger btn-xs",
+                        "title" -> "Cancel this invite",
+                        "confirm" -> s"Cancel invite for ${invite.email.value} to ${group.name.value} group?")) {Cancel}
+                </span>
+            </li>
+        }
+    </ul>
+
+    <div class="modal fade" id="inviteOrgaModal" tabindex="-1" role="dialog" aria-labelledby="inviteOrgaModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            @formElt(inviteOrgaForm, SettingsCtrl.inviteOrga(group.slug)) {
+                <div class="modal-header">
+                    <h5 class="modal-title" id="inviteOrgaModalLabel">Invite an organizer to the <b>@group.name.value</b> group</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                @fieldVertical(inviteOrgaForm("email"), Seq("label" -> "Email", "help" -> "Email of your co-organizer")) { (field, args) =>
+                    @inputText(field, Seq("placeholder" -> "ex: the-orga@mail.com", "autofocus" -> "true") ++ args)
+                }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    @btnSubmit("Invite as orga")
+                </div>
+            }
+            </div>
+        </div>
+    </div>
+</div>

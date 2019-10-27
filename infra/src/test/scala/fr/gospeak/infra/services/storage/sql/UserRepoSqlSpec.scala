@@ -2,9 +2,9 @@ package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.User._
-import fr.gospeak.infra.services.storage.sql.UserRepoSql._
 import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
+import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 
 class UserRepoSqlSpec extends RepoSpec {
   private val login = Login(ProviderId("providerId"), ProviderKey("providerKey"))
@@ -47,96 +47,86 @@ class UserRepoSqlSpec extends RepoSpec {
     describe("Queries") {
       describe("logins") {
         it("should build insertLoginRef") {
-          val q = insertLoginRef(loginRef)
-          q.sql shouldBe "INSERT INTO logins (provider_id, provider_key, user_id) VALUES (?, ?, ?)"
-          check(q)
+          val q = UserRepoSql.insertLoginRef(loginRef)
+          check(q, s"INSERT INTO ${loginsTable.stripSuffix(" lg")} (${mapFields(loginsFields, _.stripPrefix("lg."))}) VALUES (${mapFields(loginsFields, _ => "?")})")
         }
       }
       describe("credentials") {
         it("should build insertCredentials") {
-          val q = insertCredentials(credentials)
-          q.sql shouldBe "INSERT INTO credentials (provider_id, provider_key, hasher, password, salt) VALUES (?, ?, ?, ?, ?)"
-          check(q)
+          val q = UserRepoSql.insertCredentials(credentials)
+          check(q, s"INSERT INTO ${credentialsTable.stripSuffix(" cd")} (${mapFields(credentialsFields, _.stripPrefix("cd."))}) VALUES (${mapFields(credentialsFields, _ => "?")})")
         }
         it("should build updateCredentials") {
-          val q = updateCredentials(login)(pass)
-          q.sql shouldBe "UPDATE credentials SET hasher=?, password=?, salt=? WHERE provider_id=? AND provider_key=?"
-          check(q)
+          val q = UserRepoSql.updateCredentials(login)(pass)
+          check(q, s"UPDATE $credentialsTable SET hasher=?, password=?, salt=? WHERE cd.provider_id=? AND cd.provider_key=?")
         }
         it("should build deleteCredentials") {
-          val q = deleteCredentials(login)
-          q.sql shouldBe "DELETE FROM credentials WHERE provider_id=? AND provider_key=?"
-          check(q)
+          val q = UserRepoSql.deleteCredentials(login)
+          check(q, s"DELETE FROM $credentialsTable WHERE cd.provider_id=? AND cd.provider_key=?")
         }
         it("should build selectCredentials") {
-          val q = selectCredentials(login)
-          q.sql shouldBe "SELECT provider_id, provider_key, hasher, password, salt FROM credentials WHERE provider_id=? AND provider_key=?"
-          check(q)
+          val q = UserRepoSql.selectCredentials(login)
+          check(q, s"SELECT $credentialsFields FROM $credentialsTable WHERE cd.provider_id=? AND cd.provider_key=?")
         }
       }
       it("should build insert") {
-        val q = insert(user)
-        q.sql shouldBe s"INSERT INTO users ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        check(q)
+        val q = UserRepoSql.insert(user)
+        check(q, s"INSERT INTO ${table.stripSuffix(" u")} (${mapFields(fields, _.stripPrefix("u."))}) VALUES (${mapFields(fields, _ => "?")})")
       }
       it("should build update") {
-        val q = update(user)
-        q.sql shouldBe "UPDATE users SET slug=?, first_name=?, last_name=?, email=?, status=?, description=?, company=?, location=?, twitter=?, linkedin=?, phone=?, website=?, updated=? WHERE id=?"
-        check(q)
+        val q = UserRepoSql.update(user)
+        check(q, s"UPDATE $table SET slug=?, first_name=?, last_name=?, email=?, status=?, bio=?, company=?, location=?, twitter=?, linkedin=?, phone=?, website=?, updated=? WHERE u.id=?")
       }
       it("should build validateAccount") {
-        val q = validateAccount(user.email, now)
-        q.sql shouldBe "UPDATE users SET email_validated=? WHERE email=?"
-        check(q)
+        val q = UserRepoSql.validateAccount(user.email, now)
+        check(q, s"UPDATE $table SET email_validated=? WHERE u.email=?")
       }
       it("should build selectOne with login") {
-        val q = selectOne(login)
-        q.sql shouldBe s"SELECT ${fieldList.split(", ").map("u." + _).mkString(", ")} FROM users u INNER JOIN logins l ON u.id=l.user_id WHERE l.provider_id=? AND l.provider_key=?"
-        check(q)
+        val q = UserRepoSql.selectOne(login)
+        check(q, s"SELECT $fields FROM $tableWithLogin WHERE lg.provider_id=? AND lg.provider_key=? $orderBy")
       }
       it("should build selectOne with email") {
-        val q = selectOne(user.email)
-        q.sql shouldBe s"SELECT $fieldList FROM users WHERE email=?"
-        check(q)
+        val q = UserRepoSql.selectOne(user.email)
+        check(q, s"SELECT $fields FROM $table WHERE u.email=? $orderBy")
       }
       it("should build selectOne with slug") {
-        val q = selectOne(user.slug)
-        q.sql shouldBe s"SELECT $fieldList FROM users WHERE slug=?"
-        check(q)
+        val q = UserRepoSql.selectOne(user.slug)
+        check(q, s"SELECT $fields FROM $table WHERE u.slug=? $orderBy")
       }
       it("should build selectOne with id") {
-        val q = selectOne(user.id)
-        q.sql shouldBe s"SELECT $fieldList FROM users WHERE id=?"
-        check(q)
+        val q = UserRepoSql.selectOne(user.id)
+        check(q, s"SELECT $fields FROM $table WHERE u.id=? $orderBy")
       }
       it("should build selectOnePublic with slug") {
-        val q = selectOnePublic(user.slug)
-        q.sql shouldBe s"SELECT $fieldList FROM users WHERE status=? AND slug=?"
-        check(q)
-      }
-      it("should build selectPage") {
-        val (s, c) = selectPage(NonEmptyList.of(user.id), params)
-        s.sql shouldBe s"SELECT $fieldList FROM users WHERE id IN (?)  ORDER BY first_name IS NULL, first_name OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM users WHERE id IN (?)  "
-        check(s)
-        check(c)
+        val q = UserRepoSql.selectOnePublic(user.slug)
+        check(q, s"SELECT $fields FROM $table WHERE u.status=? AND u.slug=? $orderBy")
       }
       it("should build selectPagePublic") {
-        val (s, c) = selectPagePublic(params)
-        s.sql shouldBe s"SELECT $fieldList FROM users WHERE status=?  ORDER BY first_name IS NULL, first_name OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM users WHERE status=?  "
-        check(s)
-        check(c)
+        val q = UserRepoSql.selectPagePublic(params)
+        check(q, s"SELECT $fields FROM $table WHERE u.status=? $orderBy OFFSET 0 LIMIT 20")
+      }
+      it("should build selectPage") {
+        val q = UserRepoSql.selectPage(NonEmptyList.of(user.id), params)
+        check(q, s"SELECT $fields FROM $table WHERE u.id IN (?)  $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectAll with ids") {
-        val q = selectAll(NonEmptyList.of(user.id, user.id))
-        q.sql shouldBe s"SELECT $fieldList FROM users WHERE id IN (?, ?) "
-        check(q)
+        val q = UserRepoSql.selectAll(NonEmptyList.of(user.id, user.id))
+        check(q, s"SELECT $fields FROM $table WHERE u.id IN (?, ?)  $orderBy")
       }
     }
   }
 }
 
 object UserRepoSqlSpec {
-  val fieldList = "id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, status, description, company, location, twitter, linkedin, phone, website, created, updated"
+  val loginsTable = "logins lg"
+  val loginsFields: String = mapFields("provider_id, provider_key, user_id", "lg." + _)
+
+  val credentialsTable = "credentials cd"
+  val credentialsFields: String = mapFields("provider_id, provider_key, hasher, password, salt", "cd." + _)
+
+  val table = "users u"
+  val fields: String = mapFields("id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, status, bio, company, location, twitter, linkedin, phone, website, created, updated", "u." + _)
+  val orderBy = "ORDER BY u.first_name IS NULL, u.first_name"
+
+  val tableWithLogin = s"$table INNER JOIN $loginsTable ON u.id=lg.user_id"
 }

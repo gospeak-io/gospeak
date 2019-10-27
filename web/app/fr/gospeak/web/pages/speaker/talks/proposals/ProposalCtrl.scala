@@ -42,10 +42,9 @@ class ProposalCtrl(cc: ControllerComponents,
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(user, talk))
-      proposals <- OptionT.liftF(proposalRepo.list(talkElt.id, params))
-      events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_._2.event)))
+      proposals <- OptionT.liftF(proposalRepo.listFull(talkElt.id, params))
       b = listBreadcrumb(req.identity.user, talkElt)
-    } yield Ok(html.list(talkElt, proposals, events)(b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
+    } yield Ok(html.list(talkElt, proposals)(b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 
   def create(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -84,11 +83,12 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def detail(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     (for {
-      (cfpElt, talkElt, proposalElt, eventEltOpt) <- OptionT(proposalRepo.findWithCfpTalkEvent(talk, cfp)(user))
-      invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposalElt.id))
-      speakers <- OptionT.liftF(userRepo.list(proposalElt.users))
-      b = breadcrumb(req.identity.user, talkElt, cfpElt)
-    } yield Ok(html.detail(cfpElt, talkElt, proposalElt, eventEltOpt, speakers, invites, ProposalForms.addSpeaker, GenericForm.embed)(b))).value.map(_.getOrElse(proposalNotFound(talk, cfp))).unsafeToFuture()
+      proposalFull <- OptionT(proposalRepo.findFull(talk, cfp)(user))
+      invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposalFull.id))
+      speakers <- OptionT.liftF(userRepo.list(proposalFull.users))
+      b = breadcrumb(req.identity.user, proposalFull)
+      res = Ok(html.detail(proposalFull, speakers, invites, ProposalForms.addSpeaker, GenericForm.embed)(b))
+    } yield res).value.map(_.getOrElse(proposalNotFound(talk, cfp))).unsafeToFuture()
   }
 
   def edit(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -105,10 +105,10 @@ class ProposalCtrl(cc: ControllerComponents,
 
   private def editForm(talk: Talk.Slug, cfp: Cfp.Slug, form: Form[Proposal.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
-      (cfpElt, talkElt, proposalElt, _) <- OptionT(proposalRepo.findWithCfpTalkEvent(talk, cfp)(user))
-      b = breadcrumb(req.identity.user, talkElt, cfpElt).add("Edit" -> routes.ProposalCtrl.edit(talk, cfp))
-      filledForm = if (form.hasErrors) form else form.fill(proposalElt.data)
-    } yield Ok(html.edit(filledForm, talkElt, cfpElt, proposalElt)(b))).value.map(_.getOrElse(talkNotFound(talk)))
+      proposalFull <- OptionT(proposalRepo.findFull(talk, cfp)(user))
+      b = breadcrumb(req.identity.user, proposalFull).add("Edit" -> routes.ProposalCtrl.edit(talk, cfp))
+      filledForm = if (form.hasErrors) form else form.fill(proposalFull.data)
+    } yield Ok(html.edit(filledForm, proposalFull)(b))).value.map(_.getOrElse(talkNotFound(talk)))
   }
 
   def inviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -142,7 +142,7 @@ class ProposalCtrl(cc: ControllerComponents,
       speakerElt <- OptionT(userRepo.find(speaker))
       res <- OptionT.liftF {
         proposalRepo.removeSpeaker(talk, cfp)(speakerElt.id, user, now).flatMap { _ =>
-          if (speakerElt.id == user) IO.pure(Redirect(UserRoutes.index()).flashing("success" -> s"You removed yourself from <b>$talk</b> talk"))
+          if (speakerElt.id == user) IO.pure(Redirect(UserRoutes.index()).flashing("success" -> s"You removed yourself from <b>$talk</b> proposal"))
           else emailSrv.send(Emails.speakerRemovedFromProposal(proposalElt, speakerElt, req.identity.user))
             .map(_ => next.flashing("success" -> s"<b>${speakerElt.name.value}</b> removed from speakers"))
         }.recover { case NonFatal(e) => next.flashing("error" -> s"<b>${speakerElt.name.value}</b> not removed: ${e.getMessage}") }
@@ -179,6 +179,6 @@ object ProposalCtrl {
   def listBreadcrumb(user: User, talk: Talk): Breadcrumb =
     TalkCtrl.breadcrumb(user, talk).addOpt("Proposals" -> Some(routes.ProposalCtrl.list(talk.slug)).filter(_ => talk.hasSpeaker(user.id)))
 
-  def breadcrumb(user: User, talk: Talk, cfp: Cfp): Breadcrumb =
-    listBreadcrumb(user, talk).add(cfp.name.value -> CfpRoutes.list(talk.slug))
+  def breadcrumb(user: User, proposal: Proposal.Full): Breadcrumb =
+    listBreadcrumb(user, proposal.talk).add(proposal.cfp.name.value -> CfpRoutes.list(proposal.talk.slug))
 }

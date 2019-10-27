@@ -1,6 +1,6 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
-@import fr.gospeak.libs.scalautils.domain.Url
+@import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User, UserRequest}
+@import fr.gospeak.libs.scalautils.domain.{EmailAddress, Url}
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
@@ -11,7 +11,7 @@
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.html.{slidesFields, videoFields}
 
-@(group: Group, cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event], embedForm: Form[Url])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, cfp: Cfp, proposal: Proposal, speakers: Seq[User], invites: Seq[UserRequest.ProposalInvite], events: Seq[Event], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(proposal.title.value + " - Gospeak", group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@proposalStatusIcon(proposal.status) @proposal.title.value</span>
@@ -35,12 +35,54 @@
     </h1>
 
     @proposal.event.map { id => <h2>Added to @event(events, id, Some(e => EventCtrl.detail(group.slug, e.slug)))</h2> }
-    <p>@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video) @tags(proposal.tags)</p>
-    <p>Speakers: @proposal.speakers.toList.map { id => @speaker(speakers, id, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }</p>
+    <p class="mb-0">@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video) @tags(proposal.tags)</p>
+    <div>
+        Speakers:
+        @proposal.speakers.toList.map(id => speakers.find(_.id == id)).map {
+            case Some(speaker) => {
+                <span class="badge badge-pill badge-primary">
+                    <a href="@SpeakerCtrl.detail(group.slug, speaker.slug)">@speaker.name.value</a>
+                    @if(speaker.id != proposal.info.createdBy) {
+                        @formBtn(ProposalCtrl.removeSpeaker(group.slug, cfp.slug, proposal.id, speaker.slug), Seq("class" -> "no-style", "title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
+                    }
+                </span>
+            }
+            case None => { <span class="badge badge-pill badge-primary">Unknown user</span> }
+        }
+        @invites.map { i =>
+            <span class="badge badge-pill badge-secondary" title="Speaker invitation, still not a speaker">
+                @i.email.value
+                @formBtn(ProposalCtrl.cancelInviteSpeaker(group.slug, cfp.slug, proposal.id, i.id), Seq("class" -> "no-style", "title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
+            </span>
+        }
+        <a href="#" class="badge badge-pill badge-primary" data-toggle="modal" data-target="#inviteSpeakerModal"><i class="fas fa-plus"></i></a>
+    </div>
     <p>@markdown(proposal.description)</p>
 
     @if(proposal.slides.isEmpty) { @slidesFields(embedForm, ProposalCtrl.doAddSlides(group.slug, cfp.slug, proposal.id)) }
     @if(proposal.video.isEmpty) { @videoFields(embedForm, ProposalCtrl.doAddVideo(group.slug, cfp.slug, proposal.id)) }
 
     <p>@info(proposal.info, speakers, Some(u => SpeakerCtrl.detail(group.slug, u.slug)))</p>
+
+    <div class="modal fade" id="inviteSpeakerModal" tabindex="-1" role="dialog" aria-labelledby="inviteSpeakerModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                @formElt(inviteSpeakerForm, ProposalCtrl.inviteSpeaker(group.slug, cfp.slug, proposal.id)) {
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="inviteSpeakerModalLabel">Add a speaker to <b>@proposal.title.value</b> proposal</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div class="modal-body">
+                        @fieldVertical(inviteSpeakerForm("email"), Seq("label" -> "Email", "help" -> "Email of your co-speaker")) {(field, args) =>
+                            @inputText(field, Seq("placeholder" -> "ex: the-speaker@mail.com", "autofocus" -> "true") ++ args)
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        @btnSubmit("Invite as speaker")
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 }()

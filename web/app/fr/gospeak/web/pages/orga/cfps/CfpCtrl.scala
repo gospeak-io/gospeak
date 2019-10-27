@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.orga.cfps
 
-import java.time.Instant
+import java.time.{Instant, LocalDateTime}
 
 import cats.data.OptionT
 import cats.effect.IO
@@ -68,14 +68,14 @@ class CfpCtrl(cc: ControllerComponents,
   }
 
   def detail(group: Group.Slug, cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val nowLDT = LocalDateTime.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
-      proposals <- OptionT.liftF(proposalRepo.list(cfpElt.id, params))
+      proposals <- OptionT.liftF(proposalRepo.listFull(cfpElt.id, params))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
-      events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_.event.toList).distinct))
       b = breadcrumb(groupElt, cfpElt)
-    } yield Ok(html.detail(groupElt, cfpElt, proposals, speakers, events)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, cfpElt, proposals, speakers, nowLDT)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>

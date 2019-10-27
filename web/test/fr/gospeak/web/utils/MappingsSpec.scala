@@ -150,9 +150,13 @@ class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
       price.bind(Map("amount" -> "5.8", "currency" -> "EUR")) shouldBe Right(Price(5.8, Price.Currency.EUR))
     }
     it("should bind & unbind a GMapPlace") {
-      forAll { v: GMapPlace =>
-        val data = gMapPlace(timeshape).unbind(v)
-        gMapPlace(timeshape).bind(data) shouldBe Right(v)
+      forAll { in: GMapPlace =>
+        val timezone = timeshape.getZoneId(in.geo)
+        whenever(timezone.isDefined) {
+          val v = in.copy(timezone = timezone.get)
+          val data = gMapPlace(timeshape).unbind(v)
+          gMapPlace(timeshape).bind(data) shouldBe Right(v)
+        }
       }
     }
     it("should bind & unbind a User.Slug") {

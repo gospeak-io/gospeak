@@ -17,8 +17,4 @@ object TalkForms {
     "tags" -> tags
   )(Talk.Data.apply)(Talk.Data.unapply)
   val create: Form[Talk.Data] = Form(talkMappings)
-
-  val addSpeaker: Form[EmailAddress] = Form(single(
-    "email" -> emailAddress
-  ))
 }

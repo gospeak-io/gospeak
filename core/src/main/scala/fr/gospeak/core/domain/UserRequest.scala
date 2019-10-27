@@ -59,6 +59,15 @@ object UserRequest {
                                               rejected: Option[Meta],
                                               canceled: Option[Meta]) extends StdUserRequest
 
+  final case class GroupInvite(id: Id,
+                               group: Group.Id,
+                               email: EmailAddress,
+                               created: Instant,
+                               createdBy: User.Id,
+                               accepted: Option[Meta],
+                               rejected: Option[Meta],
+                               canceled: Option[Meta]) extends StdUserRequest
+
   final case class TalkInvite(id: Id,
                               talk: Talk.Id,
                               email: EmailAddress,

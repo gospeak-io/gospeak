@@ -1,43 +1,43 @@
 package fr.gospeak.infra.services.storage.sql
 
-import fr.gospeak.infra.services.storage.sql.PartnerRepoSql._
+import cats.data.NonEmptyList
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
+import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 
 class PartnerRepoSqlSpec extends RepoSpec {
   describe("PartnerRepoSql") {
     describe("Queries") {
       it("should build insert") {
-        val q = insert(partner)
-        q.sql shouldBe s"INSERT INTO partners ($fieldList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        check(q)
+        val q = PartnerRepoSql.insert(partner)
+        check(q, s"INSERT INTO ${table.stripSuffix(" pa")} (${mapFields(fields, _.stripPrefix("pa."))}) VALUES (${mapFields(fields, _ => "?")})")
       }
       it("should build update") {
-        val q = update(group.id, partner.slug)(partner.data, user.id, now)
-        q.sql shouldBe "UPDATE partners SET slug=?, name=?, description=?, logo=?, twitter=?, updated=?, updated_by=? WHERE group_id=? AND slug=?"
-        check(q)
+        val q = PartnerRepoSql.update(group.id, partner.slug)(partner.data, user.id, now)
+        check(q, s"UPDATE $table SET slug=?, name=?, notes=?, description=?, logo=?, twitter=?, updated=?, updated_by=? WHERE pa.group_id=? AND pa.slug=?")
       }
       it("should build selectPage") {
-        val (s, c) = selectPage(group.id, params)
-        s.sql shouldBe s"SELECT $fieldList FROM partners WHERE group_id=? ORDER BY name IS NULL, name OFFSET 0 LIMIT 20"
-        c.sql shouldBe "SELECT count(*) FROM partners WHERE group_id=? "
-        check(s)
-        check(c)
+        val q = PartnerRepoSql.selectPage(group.id, params)
+        check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy OFFSET 0 LIMIT 20")
       }
       it("should build selectAll") {
-        val q = selectAll(group.id)
-        q.sql shouldBe s"SELECT $fieldList FROM partners WHERE group_id=? "
-        check(q)
+        val q = PartnerRepoSql.selectAll(group.id)
+        check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy")
+      }
+      it("should build selectAll with partner ids") {
+        val q = PartnerRepoSql.selectAll(NonEmptyList.of(partner.id))
+        check(q, s"SELECT $fields FROM $table WHERE pa.id IN (?)  $orderBy")
       }
       it("should build selectOne") {
-        val q = selectOne(group.id, partner.slug)
-        q.sql shouldBe s"SELECT $fieldList FROM partners WHERE group_id=? AND slug=?"
-        check(q)
+        val q = PartnerRepoSql.selectOne(group.id, partner.slug)
+        check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? AND pa.slug=? $orderBy")
       }
     }
   }
 }
 
 object PartnerRepoSqlSpec {
-  val fieldList = "id, group_id, slug, name, description, logo, twitter, created, created_by, updated, updated_by"
+  val table = "partners pa"
+  val fields: String = mapFields("id, group_id, slug, name, notes, description, logo, twitter, created, created_by, updated, updated_by", "pa." + _)
+  val orderBy = "ORDER BY pa.name IS NULL, pa.name"
 }

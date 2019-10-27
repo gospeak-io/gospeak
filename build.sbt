@@ -2,6 +2,10 @@ ThisBuild / version := "0.1-SNAPSHOT"
 ThisBuild / scalaVersion := "2.12.8"
 ThisBuild / organization := "fr.gospeak"
 
+ThisBuild / fork := true
+ThisBuild / javaOptions += "-Xmx2G"
+
+
 /**
  * Global settings
  */
@@ -35,14 +39,13 @@ val doobie = Seq(
   "org.tpolecat" %% "doobie-hikari").map(_ % doobieVersion)
 val doobieTest = Seq(
   "org.tpolecat" %% "doobie-scalatest" % doobieVersion).map(_ % Test)
-val mongo = Seq("org.reactivemongo" %% "reactivemongo" % "0.16.5")
-val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.11.1")
+val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.12.1")
 val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
   "com.pepegar" %% "hammock-apache-http").map(_ % "0.9.0")
-val flyway = Seq("org.flywaydb" % "flyway-core" % "6.0.1")
-val silhouetteVersion = "6.1.1"
+val flyway = Seq("org.flywaydb" % "flyway-core" % "6.0.7")
+val silhouetteVersion = "6.1.0"
 val silhouette = Seq(
   "com.mohiva" %% "play-silhouette",
   "com.mohiva" %% "play-silhouette-password-bcrypt",
@@ -57,7 +60,7 @@ val play = Seq(
 val playTest = Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3").map(_ % Test)
 val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.40.34")
-val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.5.1")
+val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.6.1")
 val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.3.0")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
   "org.webjars.npm" % "jquery" % "3.4.1",
@@ -68,14 +71,16 @@ val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib f
   "org.webjars.npm" % "select2-bootstrap-theme" % "0.1.0-beta.10",
   "org.webjars.npm" % "bootstrap-datepicker" % "1.9.0",
   "org.webjars.npm" % "imask" % "5.2.1",
-  "org.webjars.npm" % "hideshowpassword" % "2.1.1")
+  "org.webjars.npm" % "github-com-twitter-typeahead-js" % "0.11.1",
+  "org.webjars.npm" % "typeahead.js-bootstrap4-css" % "1.0.0",
+  "org.webjars.npm" % "mousetrap" % "1.6.3")
 val logback = Seq(
   "org.slf4j" % "slf4j-api" % "1.7.28",
   "ch.qos.logback" % "logback-classic" % "1.2.3")
 val scalaTest = Seq(
   "org.scalatest" %% "scalatest" % "3.0.8").map(_ % Test)
 val scalaCheck = Seq(
-  "org.scalacheck" %% "scalacheck" % "1.14.0",
+  "org.scalacheck" %% "scalacheck" % "1.14.2",
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.3",
   "com.danielasfregola" %% "random-data-generator" % "2.7").map(_ % Test)
 val timeshape = Seq("net.iakovlev" % "timeshape" % "2018d.6")
@@ -83,7 +88,6 @@ val timeshape = Seq("net.iakovlev" % "timeshape" % "2018d.6")
 val scalautilsDependencies = cats ++ scalaTest ++ scalaCheck
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
 val infraDependencies = timeshape ++ hammock ++ flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
-val migrationDependencies = mongo ++ logback ++ scalaTest ++ scalaCheck
 val webDependencies = play ++ silhouette ++ pureconfig ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
 
 
@@ -105,16 +109,8 @@ val core = (project in file("core"))
     commonSettings
   )
 
-val migration = (project in file("migration"))
-  .dependsOn(core % "compile->compile;test->test")
-  .settings(
-    name := "migration",
-    libraryDependencies ++= migrationDependencies,
-    commonSettings
-  )
-
 val infra = (project in file("infra"))
-  .dependsOn(core % "compile->compile;test->test", migration)
+  .dependsOn(core % "compile->compile;test->test")
   .settings(
     name := "infra",
     libraryDependencies ++= infraDependencies,

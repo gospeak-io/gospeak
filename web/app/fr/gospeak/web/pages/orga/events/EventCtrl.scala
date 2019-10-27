@@ -46,7 +46,7 @@ class EventCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(user, group))
       events <- OptionT.liftF(eventRepo.list(groupElt.id, params))
       cfps <- OptionT.liftF(cfpRepo.list(events.items.flatMap(_.cfp)))
-      venues <- OptionT.liftF(venueRepo.list(groupElt.id, events.items.flatMap(_.venue)))
+      venues <- OptionT.liftF(venueRepo.listFull(groupElt.id, events.items.flatMap(_.venue)))
       proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.users)))
       b = listBreadcrumb(groupElt)
@@ -214,13 +214,12 @@ class EventCtrl(cc: ControllerComponents,
         meetup <- OptionT.liftF((for {
           creds <- meetupAccount
           info <- data.meetup if info.publish
-        } yield meetupSrv.publish(e.event, e.venueOpt, description.value, info.draft, appConf.aesKey, creds)).sequence)
+        } yield meetupSrv.publish(e.event, e.venueOpt, description, info.draft, appConf.aesKey, creds)).sequence)
         _ <- OptionT.liftF(meetup.map(_._1).filter(_ => e.event.refs.meetup.isEmpty)
           .map(ref => e.event.copy(refs = e.event.refs.copy(meetup = Some(ref))))
           .map(eventElt => eventRepo.edit(e.group.id, event)(eventElt.data, user, now)).sequence)
-        _ <- OptionT.liftF(meetup.flatMap(m => m._2.flatMap(r => e.venueOpt.map(v => (r, v._2)))).filter { case (_, v) => v.refs.meetup.isEmpty }
-          .map { case (ref, venue) => venue.copy(refs = venue.refs.copy(meetup = Some(ref))) }
-          .map(venueElt => venueRepo.edit(e.group.id, venueElt.id)(venueElt.data, user, now)).sequence)
+        _ <- OptionT.liftF(meetup.flatMap(m => m._2.flatMap(r => e.venueOpt.map(v => (r, v)))).filter { case (_, v) => v.refs.meetup.isEmpty }
+          .map { case (ref, venue) => venueRepo.edit(e.group.id, venue.id)(venue.data.copy(refs = venue.refs.copy(meetup = Some(ref))), user, now) }.sequence)
         _ <- OptionT.liftF(eventRepo.publish(e.group.id, event, user, now))
       } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event)))).unsafeToFuture()
   }

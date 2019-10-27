@@ -31,6 +31,11 @@ class HomeCtrl(cc: ControllerComponents,
     Ok(html.index()(b))
   }
 
+  def why(): Action[AnyContent] = UserAwareAction { implicit req =>
+    val b = breadcrumb().add("Why use Gospeak" -> routes.HomeCtrl.why())
+    Ok(html.why()(b))
+  }
+
   private val now = Instant.now()
   private val dt = new DateTime()
   private val ldt = LocalDateTime.now()
@@ -55,6 +60,7 @@ class HomeCtrl(cc: ControllerComponents,
     id = Group.Id.generate(),
     slug = Group.Slug.from("group-slug").get,
     name = Group.Name("A group"),
+    contact = Some(EmailAddress.from("contact@gospeak.fr").get),
     description = Markdown(
       """This is an **awesome** group, you should come and see us.
         |
@@ -63,7 +69,6 @@ class HomeCtrl(cc: ControllerComponents,
         |- pizzas ^^
       """.stripMargin),
     owners = NonEmptyList.of(user.id),
-    published = Some(now),
     tags = Seq("tag").map(Tag(_)),
     info = Info(user.id, now))
   private val cfp = Cfp(
@@ -87,6 +92,7 @@ class HomeCtrl(cc: ControllerComponents,
     slug = Event.Slug.from("event-slug").get,
     name = Event.Name("Best Event in April \\o/"),
     start = ldt,
+    maxAttendee = Some(100),
     description = MustacheMarkdownTmpl(""),
     venue = None,
     talks = Seq(),
@@ -129,7 +135,8 @@ class HomeCtrl(cc: ControllerComponents,
     implicit val secured = SecuredRequest[CookieEnv, AnyContent](identity, authenticator, req)
     implicit val userAware = UserAwareRequest[CookieEnv, AnyContent](Some(identity), Some(authenticator), req)
     implicit val messages = req.messages
-    Ok(html.styleguide(user, group, cfp, event, talk, proposal, Instant.now(), params))
+    val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event))
+    Ok(html.styleguide(user, group, cfp, event, talk, proposal, proposalFull, Instant.now(), params))
   }
 }
 

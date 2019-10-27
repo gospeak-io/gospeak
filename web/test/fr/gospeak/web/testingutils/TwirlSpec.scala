@@ -9,7 +9,7 @@ import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import com.mohiva.play.silhouette.test._
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
-import fr.gospeak.web.GospeakApplicationLoader
+import fr.gospeak.web.{AppConfSpec, GospeakApplicationLoader}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.domain.Breadcrumb
@@ -17,7 +17,7 @@ import org.scalatest.{FunSpec, Matchers}
 import play.api.i18n.{Lang, Messages}
 import play.api.mvc.{AnyContent, Request}
 import play.api.test.{CSRFTokenHelper, FakeRequest}
-import play.api.{ApplicationLoader, Environment}
+import play.api.{ApplicationLoader, Configuration, Environment}
 import play.i18n.{Messages => JavaMessages}
 
 import scala.concurrent.ExecutionContext.Implicits.global

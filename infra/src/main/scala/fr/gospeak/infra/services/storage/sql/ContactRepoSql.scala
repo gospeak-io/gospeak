@@ -5,78 +5,58 @@ import java.time.Instant
 import cats.effect.IO
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.Contact.Id
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.ContactRepo
 import fr.gospeak.infra.services.storage.sql.ContactRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.infra.utils.DoobieUtils.Fragments._
-import fr.gospeak.infra.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.utils.DoobieUtils.Queries
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ContactRepo {
+  override def create(data: Contact.Data, by: User.Id, now: Instant): IO[Contact] = insert(Contact(data, Info(by, now))).run(xa)
 
-  override def create(data: Contact.Data, by: User.Id, now: Instant): IO[Contact] =
-    run(insert, Contact(data, Info(by, now)))
+  override def edit(contact: Contact.Id, data: Contact.Data)(by: User.Id, now: Instant): IO[Done] = update(contact, data)(by, now).run(xa)
 
-  override def edit(contact: Contact.Id, data: Contact.Data)(by: User.Id, now: Instant): IO[Done] = run(update(contact, data)(by, now))
+  override def find(id: Contact.Id): IO[Option[Contact]] = selectOne(id).runOption(xa)
 
-  override def find(id: Contact.Id): IO[Option[Contact]] = run(selectOne(id).option)
+  override def list(partner: Partner.Id): IO[Seq[Contact]] = selectAll(partner).runList(xa)
 
-  override def list(partner: Partner.Id): IO[Seq[Contact]] = run(selectAll(partner).to[List])
+  override def list(partner: Partner.Id, params: Page.Params): IO[Page[Contact]] = selectPage(partner, params).run(xa)
 
-  override def list(partner: Partner.Id, params: Page.Params): IO[Page[Contact]] = run(Queries.selectPage(selectPage(partner, _), params))
-
-  override def exists(partner: Partner.Id, email: EmailAddress): IO[Boolean] = run(selectOne(partner, email).option.map(_.isDefined))
+  override def exists(partner: Partner.Id, email: EmailAddress): IO[Boolean] = selectOne(partner, email).runExists(xa)
 }
 
 object ContactRepoSql {
   private val _ = contactIdMeta // for intellij not remove DoobieUtils.Mappings import
-  private[sql] val table = "contacts"
-  private[sql] val fields = Seq("id", "partner_id", "first_name", "last_name", "email", "description", "created", "created_by", "updated", "updated_by")
-  private val tableFr: Fragment = Fragment.const0(table)
-  private val fieldsFr: Fragment = Fragment.const0(fields.mkString(", "))
-  private val partnerAndContactTables = Fragment.const0(s"$table c INNER JOIN ${PartnerRepoSql.table} p ON c.partner_id=p.id")
-  private val partnerAndContactFields = Fragment.const0((PartnerRepoSql.fields.map("p." + _) ++ fields.map("c." + _)).mkString(", "))
-  private val searchFields = Seq("id", "first_name", "last_name", "email")
-  private val defaultSort = Page.OrderBy("c.created")
-  private val prefixedFields = Fragment.const0(fields.map("c." + _).mkString(", "))
+  private val table = Tables.contacts
 
-  private def values(c: Contact): Fragment =
-    fr0"${c.id}, ${c.partner}, ${c.firstName}, ${c.lastName}, ${c.email}, ${c.description}, ${c.info.created}, ${c.info.createdBy}, ${c.info.updated}, ${c.info.updatedBy}"
+  private[sql] def insert(e: Contact): Insert[Contact] = {
+    val values = fr0"${e.id}, ${e.partner}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.description}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    table.insert[Contact](e, _ => values)
+  }
 
-  private[sql] def insert(elt: Contact): doobie.Update0 = buildInsert(tableFr, fieldsFr, values(elt)).update
-
-  private[sql] def select(c: Contact.Id): doobie.Query0[Contact] = buildSelect(tableFr, fieldsFr, where(c)).query[Contact]
-
-  private[sql] def selectBy(partner: Partner.Id): doobie.Query0[Contact] =
-    buildSelect(tableFr, fieldsFr, where(partner)).query[Contact]
-
-  private[sql] def update(contact: Contact.Id, data: Contact.Data)(by: User.Id, now: Instant): doobie.Update0 = {
+  private[sql] def update(contact: Contact.Id, data: Contact.Data)(by: User.Id, now: Instant): Update = {
     val fields = fr0"first_name=${data.firstName}, last_name=${data.lastName}, email=${data.email}, description=${data.description}, updated=$now, updated_by=$by"
-    buildUpdate(tableFr, fields, where(contact)).update
+    table.update(fields, where(contact))
   }
 
-  private[sql] def selectPage(partner: Partner.Id, params: Page.Params): (doobie.Query0[Contact], doobie.Query0[Long]) = {
-    val page = paginate(params, searchFields, defaultSort, Some(fr0"WHERE p.id=$partner"))
-    (buildSelect(partnerAndContactTables, prefixedFields, page.all).query[Contact], buildSelect(partnerAndContactTables, fr0"COUNT(*)", page.where).query[Long])
-  }
+  private[sql] def selectPage(partner: Partner.Id, params: Page.Params): SelectPage[Contact] =
+    table.selectPage[Contact](params, where(partner))
 
-  private[sql] def selectAll(partner: Partner.Id): doobie.Query0[Contact] = {
-    buildSelect(partnerAndContactTables, prefixedFields, fr0"WHERE p.id=$partner").query[Contact]
-  }
+  private[sql] def selectAll(partner: Partner.Id): Select[Contact] =
+    table.select[Contact](where(partner))
 
-  private[sql] def selectOne(id: Contact.Id): doobie.Query0[Contact] =
-    buildSelect(tableFr, fieldsFr, fr0"WHERE id=$id").query[Contact]
+  private[sql] def selectOne(id: Contact.Id): Select[Contact] =
+    table.select[Contact](where(id))
 
-  private[sql] def selectOne(partner: Partner.Id, email: EmailAddress): doobie.Query0[Contact] =
-    buildSelect(partnerAndContactTables, prefixedFields, where(partner, email)).query[Contact]
+  private[sql] def selectOne(partner: Partner.Id, email: EmailAddress): Select[Contact] =
+    table.select[Contact](where(partner, email))
 
-  private[sql] def where(partner: Partner.Id, email: EmailAddress): Fragment = fr0"WHERE p.id=$partner AND c.email=$email"
+  private def where(partner: Partner.Id): Fragment = fr0"WHERE ct.partner_id=$partner"
 
-  private[sql] def where(id: Id): Fragment = fr0"WHERE id=$id"
+  private def where(partner: Partner.Id, email: EmailAddress): Fragment = fr0"WHERE ct.partner_id=$partner AND ct.email=$email"
 
-  private[sql] def where(partner: Partner.Id) = fr0"WHERE partner_id=$partner"
+  private def where(id: Contact.Id): Fragment = fr0"WHERE ct.id=$id"
 }

@@ -1,0 +1,10 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Group, User, UserRequest}
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.orga.routes.GroupCtrl
+
+@(invite: UserRequest.GroupInvite, group: Group, orga: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+<p>Hi @orga.name.value,</p>
+<p><a href="mailto:@by.email.value">@by.name.value</a> has <b>rejected</b> your invitation to <a href="@GroupCtrl.detail(group.slug).absoluteURL()">@group.name.value</a>.</p>
+<p>It's juste a small inconvenience, keep going with your group ;)</p>
+<p>The Gospeak team</p>

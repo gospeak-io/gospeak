@@ -48,6 +48,41 @@ object Emails {
       subject = s"Your application to ${group.name.value} group was rejected :(",
       content = HtmlContent(html.joinGroupRejected(rejectedUser, acceptingOrga, group).body))
 
+  def inviteOrgaToGroup(invite: UserRequest.GroupInvite, group: Group, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(invite.email)),
+      subject = s"You have been invited to join ${by.name.value} in the ${group.name.value} group",
+      content = HtmlContent(html.inviteOrgaToGroup(invite, group, by).body))
+
+  def inviteOrgaToGroupCanceled(invite: UserRequest.GroupInvite, group: Group, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(invite.email)),
+      subject = s"Your invitation for the group ${group.name.value} has been canceled :(",
+      content = HtmlContent(html.inviteOrgaToGroupCanceled(invite, group, by).body))
+
+  def inviteOrgaToGroupAccepted(invite: UserRequest.GroupInvite, group: Group, orga: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(group.contact.getOrElse(orga.email))),
+      subject = s"${by.name.value} has accepted your invitation for the ${group.name.value} group",
+      content = HtmlContent(html.inviteOrgaToGroupAccepted(invite, group, orga, by).body))
+
+  def inviteOrgaToGroupRejected(invite: UserRequest.GroupInvite, group: Group, orga: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(group.contact.getOrElse(orga.email))),
+      subject = s"Oups, ${by.name.value} rejected your invitation in the ${group.name.value} group :(",
+      content = HtmlContent(html.inviteOrgaToGroupRejected(invite, group, orga, by).body))
+
+  def orgaRemovedFromGroup(group: Group, orga: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(Contact(orga)),
+      subject = s"${by.name.value} removed you from the organizers of ${group.name.value} :(",
+      content = HtmlContent(html.orgaRemovedFromGroup(group, orga, by).body))
+
   def inviteSpeakerToTalk(invite: UserRequest.TalkInvite, talk: Talk, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
     Email(
       from = sender,
@@ -97,19 +132,19 @@ object Emails {
       subject = s"Your invitation for speaking about '${proposal.title.value}' has been canceled :(",
       content = HtmlContent(html.inviteSpeakerToProposalCanceled(invite, proposal, by).body))
 
-  def inviteSpeakerToProposalAccepted(invite: UserRequest.ProposalInvite, cfp: Cfp, talk: Talk, proposal: Proposal, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+  def inviteSpeakerToProposalAccepted(invite: UserRequest.ProposalInvite, proposal: Proposal.Full, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
     Email(
       from = sender,
       to = Seq(Contact(speaker)),
       subject = s"${by.name.value} has accepted your invitation to speak about '${proposal.title.value}'",
-      content = HtmlContent(html.inviteSpeakerToProposalAccepted(invite, cfp, talk, proposal, speaker, by).body))
+      content = HtmlContent(html.inviteSpeakerToProposalAccepted(invite, proposal, speaker, by).body))
 
-  def inviteSpeakerToProposalRejected(invite: UserRequest.ProposalInvite, cfp: Cfp, talk: Talk, proposal: Proposal, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+  def inviteSpeakerToProposalRejected(invite: UserRequest.ProposalInvite, proposal: Proposal.Full, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
     Email(
       from = sender,
       to = Seq(Contact(speaker)),
       subject = s"Oups, ${by.name.value} rejected your invitation to speak about '${proposal.title.value}' :(",
-      content = HtmlContent(html.inviteSpeakerToProposalRejected(invite, cfp, talk, proposal, speaker, by).body))
+      content = HtmlContent(html.inviteSpeakerToProposalRejected(invite, proposal, speaker, by).body))
 
   def speakerRemovedFromProposal(proposal: Proposal, speaker: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
     Email(

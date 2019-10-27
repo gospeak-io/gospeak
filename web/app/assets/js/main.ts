@@ -1,22 +1,20 @@
 declare const $;
-declare const autosize;
-declare const IMask;
-declare const google;
 
-function slugify(str: string): string {
+const slugify = (str: string): string => {
     return (str || '')
         .trim()
         .toLowerCase()
         .replace(/[ _+'"]/g, '-')
         .replace(/--/g, '-')
         .normalize('NFD').replace(/[^a-z0-9-]/g, '');
-}
+};
 
 // enable global features
+declare const autosize;
 (function () {
     $('[data-toggle="tooltip"]').tooltip();
     $('[data-toggle="popover"]').popover();
-    $('[data-toggle="html-popover"]').each(function () {
+    $('[data-toggle="html-popover"]').each(() => {
         const $el = $(this);
         const $content = $el.find('.content');
         $el.popover({html: true, content: $content});
@@ -27,7 +25,7 @@ function slugify(str: string): string {
 
 // confirm actions
 (function () {
-    $('[confirm]').click(function (e) {
+    $('[confirm]').click(e => {
         const text = $(this).attr('confirm') || $(this).attr('title') || 'Confirm?';
         if (!confirm(text)) {
             e.preventDefault();
@@ -37,7 +35,7 @@ function slugify(str: string): string {
 
 // autofocus when a modal opens
 (function () {
-    $('.modal').on('shown.bs.modal', function () {
+    $('.modal').on('shown.bs.modal', () => {
         const $modal = $(this);
         $modal.find('input[autofocus], textarea[autofocus]').focus();
         autosize.update($modal.find('textarea'));
@@ -50,7 +48,7 @@ function slugify(str: string): string {
     $('.tab-pane.radio:not(.show)').find('input, textarea, select').attr('disabled', true);
 
     // enable input inside shown tab
-    $('a.radio[data-toggle="tab"], a.radio[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+    $('a.radio[data-toggle="tab"], a.radio[data-toggle="pill"]').on('shown.bs.tab', e => {
         $(e.target.getAttribute('href')).find('input, textarea, select').attr('disabled', false);
         if (e.relatedTarget) {
             $(e.relatedTarget.getAttribute('href')).find('input, textarea, select').attr('disabled', true);
@@ -60,23 +58,19 @@ function slugify(str: string): string {
 
 // build slug from an other field
 (function () {
-    function buildSlug(inputs, prev?: string) {
-        return inputs.map(function (input) {
-            return prev && input.attr('id') === prev ? input.data('prev') : input.val();
-        }).filter(function (value) {
-            return !!value;
-        }).map(function (value) {
-            return slugify(value);
-        }).join('-');
-    }
+    const buildSlug = (inputs, prev?: string) => {
+        return inputs
+            .map(input => prev && input.attr('id') === prev ? input.data('prev') : input.val())
+            .filter(value => !!value)
+            .map(input => slugify(input))
+            .join('-');
+    };
 
-    $('input[slug-for]').each(function () {
+    $('input[slug-for]').each(() => {
         const slugInput = $(this);
-        const srcInputs = slugInput.attr('slug-for').split(',').map(function (id) {
-            return $('#' + id);
-        });
-        srcInputs.forEach(function (srcInput) {
-            srcInput.change(function () {
+        const srcInputs = slugInput.attr('slug-for').split(',').map(id => $('#' + id));
+        srcInputs.forEach(srcInput => {
+            srcInput.change(() => {
                 const newSlug = buildSlug(srcInputs);
                 const oldSlug = buildSlug(srcInputs, srcInput.attr('id'));
                 srcInput.data('prev', srcInput.val());
@@ -91,21 +85,19 @@ function slugify(str: string): string {
 
 // remote input validation
 (function () {
-    $('input[remote-validate]').each(function () {
+    $('input[remote-validate]').each(() => {
         const $input = $(this);
         const url = $input.attr('remote-validate');
         if (url) {
             update($input, url); // run on page load
-            $input.change(function () {
-                update($input, url);
-            });
+            $input.change(() => update($input, url));
         }
     });
 
-    function update($input, url) {
+    const update = ($input, url): void => {
         const value = $input.val();
         if (value) {
-            $.getJSON(url.replace('%7B%7Binput%7D%7D', value), function (res) {
+            $.getJSON(url.replace('%7B%7Binput%7D%7D', value), res => {
                 if ($input.val() === value) {
                     removeFeedback($input);
                     if (res.valid) {
@@ -118,30 +110,30 @@ function slugify(str: string): string {
         } else {
             removeFeedback($input);
         }
-    }
+    };
 
-    function removeFeedback($input) {
+    const removeFeedback = ($input): void => {
         $input.removeClass('is-valid');
         $input.removeClass('is-invalid');
         const $next = $input.next();
         if ($next.hasClass('valid-feedback') || $next.hasClass('invalid-feedback')) {
             $next.remove();
         }
-    }
+    };
 
-    function addValidFeedback($input, res) {
+    const addValidFeedback = ($input, res): void => {
         $input.addClass('is-valid');
         if (res.message) {
             $input.after('<span class="valid-feedback">' + res.message + '</span>');
         }
-    }
+    };
 
-    function addInvalidFeedback($input, res) {
+    const addInvalidFeedback = ($input, res): void => {
         $input.addClass('is-invalid');
         if (res.message) {
             $input.after('<span class="invalid-feedback">' + res.message + '</span>');
         }
-    }
+    };
 })();
 
 // https://select2.org/ & https://github.com/select2/select2-bootstrap-theme
@@ -150,60 +142,50 @@ function slugify(str: string): string {
         theme: 'bootstrap',
         allowClear: true
     };
-    $('select.select2').each(function () {
-        addRemoteOptions2($(this), function ($select) {
-            $select.select2(Object.assign({}, defaultOpts, {
-                placeholder: $select.attr('placeholder')
-            }));
-        });
+    $('select.select2').each(() => {
+        const $select = $(this);
+        $select.select2(Object.assign({}, defaultOpts, {
+            placeholder: $select.attr('placeholder')
+        }));
+        addRemoteOptions($select);
     });
-    $('select.tags').each(function () {
-        addRemoteOptions2($(this), function ($select) {
-            $select.select2(Object.assign({}, defaultOpts, {
-                placeholder: $select.attr('placeholder'),
-                tags: true
-            }));
-        });
+    $('select.tags').each(() => {
+        const $select = $(this);
+        $select.select2(Object.assign({}, defaultOpts, {
+            placeholder: $select.attr('placeholder'),
+            tags: true
+        }));
+        addRemoteOptions($select);
     });
 
-    function addRemoteOptions($select) {
+    const addRemoteOptions = ($select): void => {
         const remote = $select.attr('remote');
-        if (remote) {
-            $.getJSON(remote, function (res) {
-                const values = ($select.attr('value') || '').split(',').filter(function (v) {
-                    return v.length > 0;
-                });
-                res.map(function (item) {
-                    if ($select.find('option[value="' + item.id + '"]').length === 0) { // do not add item if it already exists
-                        $select.append(new Option(item.text, item.id, false, values.indexOf(item.id) > -1));
-                    }
-                });
-                $select.trigger('change');
-            });
+        const remoteReplace = $select.attr('remote-replace');
+        if (remote) { // $select input should be populated using remote call response
+            if (remoteReplace) { // remote url depends on the value of an other field ("$placeholder:$fieldId")
+                const [placeholder, fieldId] = remoteReplace.split(':');
+                const $input = $('#' + fieldId);
+                $input.change(() => fetchAndSetOptions($select, remote.replace(placeholder, $input.val())));
+            } else {
+                fetchAndSetOptions($select, remote);
+            }
         }
-    }
+    };
 
-    function addRemoteOptions2($select, callback) {
-        const remote = $select.attr('remote');
-        if (remote) {
-            $.getJSON(remote, function (res) {
-                const values = ($select.attr('value') || '').split(',').filter(function (v) {
-                    return v.length > 0;
-                });
-                res.map(function (item) {
-                    if ($select.find('option[value="' + item.id + '"]').length === 0) { // do not add item if it already exists
-                        if (values.indexOf(item.id) > -1) {
-                            $select.append('<option value="' + item.id + '" selected>' + item.text + '</option>');
-                        } else {
-                            $select.append('<option value="' + item.id + '">' + item.text + '</option>');
-                        }
+    const fetchAndSetOptions = ($select, url): void => {
+        $.getJSON(url, res => {
+            const values = ($select.attr('value') || '').split(',').filter(v => v.length > 0);
+            $select.find('option[value]').remove(); // remove non empty existing options before adding new ones
+            res.map(item => {
+                if ($select.find('option[value="' + item.id + '"]').length === 0) { // do not add item if it already exists
+                    if (values.indexOf(item.id) > -1) {
+                        $select.append('<option value="' + item.id + '" selected>' + item.text + '</option>');
+                    } else {
+                        $select.append('<option value="' + item.id + '">' + item.text + '</option>');
                     }
-                });
-                callback($select);
+                }
             });
-        } else {
-            callback($select);
-        }
+        });
     }
 })();
 
@@ -225,7 +207,7 @@ function slugify(str: string): string {
         todayHighlight: true,
         toggleActive: true
     };
-    $('input.input-date').each(function () {
+    $('input.input-date').each(() => {
         $(this).datepicker(Object.assign({}, defaultConfig, {
             defaultViewDate: $(this).attr('startDate')
         }));
@@ -233,8 +215,9 @@ function slugify(str: string): string {
 })();
 
 // https://unmanner.github.io/imaskjs/
+declare const IMask;
 (function () {
-    $('input.input-time').each(function () {
+    $('input.input-time').each(() => {
         IMask(this, {
             mask: 'HH:mm',
             lazy: false,
@@ -245,10 +228,10 @@ function slugify(str: string): string {
         });
     });
     // clear empty input-time so backend will get empty values instead of placeholder ones
-    $('form').submit(function (e) {
-        $(e.target).find('input.input-time').each(function() {
+    $('form').submit(e => {
+        $(e.target).find('input.input-time').each(() => {
             const $input = $(this);
-            if($input.val() === '__:__') {
+            if ($input.val() === '__:__') {
                 $input.val('');
             }
         });
@@ -257,7 +240,7 @@ function slugify(str: string): string {
 
 // http://cloudfour.github.io/hideShowPassword/
 /* (function () {
-    $('input[type="password"]').each(function () {
+    $('input[type="password"]').each(() => {
         $(this).hideShowPassword({
             show: false,
             innerToggle: true,
@@ -268,46 +251,44 @@ function slugify(str: string): string {
 
 // inputImageUrl
 (function () {
-    $('.input-imageurl').each(function () {
+    $('.input-imageurl').each(() => {
         const $elt = $(this);
         const $input = $elt.find('input[type="text"]');
         const $preview = $elt.find('.preview');
         update($input, $preview); // run on page load
-        $input.change(function () {
-            update($input, $preview);
-        });
+        $input.change(() => update($input, $preview));
     });
 
-    function update($input, $preview) {
+    const update = ($input, $preview): void => {
         if ($input.val() === '') {
             $preview.hide();
         } else {
             $preview.attr('src', $input.val());
             $preview.show();
         }
-    }
+    };
 })();
 
 // markdown input
 (function () {
-    function fetchHtml(md) {
+    const fetchHtml = (md) => {
         return fetch('/ui/utils/markdown-to-html', {method: 'POST', body: md}).then(function (res) {
             return res.text();
         });
-    }
+    };
 
-    $('.markdown-editor').each(function () {
+    $('.markdown-editor').each(() => {
         const previewTab = $(this).find('a[data-toggle="tab"].preview');
         const textarea = $(this).find('textarea');
         const previewPane = $(this).find('.tab-pane.preview');
         const loadingHtml = previewPane.html();
-        previewTab.on('show.bs.tab', function () {
+        previewTab.on('show.bs.tab', () => {
             const md = textarea.val();
-            fetchHtml(md).then(function (html) {
+            fetchHtml(md).then(html => {
                 previewPane.html(html);
             });
         });
-        previewTab.on('hidden.bs.tab', function () {
+        previewTab.on('hidden.bs.tab', () => {
             previewPane.html(loadingHtml);
         });
     });
@@ -315,19 +296,17 @@ function slugify(str: string): string {
 
 // template input & data
 (function () {
-    $('.template-data').each(function () {
+    $('.template-data').each(() => {
         const $elt = $(this);
         const ref = $elt.attr('data-ref');
         const target = $elt.attr('data-target');
         const $target = target ? $('#' + target) : undefined;
         updateData($elt, ref);
         if ($target) {
-            $target.change(function () {
-                updateData($elt, $target.val());
-            });
+            $target.change(() => updateData($elt, $target.val()));
         }
     });
-    $('.template-editor').each(function () {
+    $('.template-editor').each(() => {
         const $elt = $(this);
         const ref = $elt.attr('data-ref');
         const target = $elt.attr('data-target');
@@ -337,15 +316,15 @@ function slugify(str: string): string {
         const previewPane = $elt.find('.tab-pane.preview');
         const loadingHtml = previewPane.html();
         const markdown = $elt.attr('data-markdown') === 'true';
-        previewTab.on('show.bs.tab', function () {
+        previewTab.on('show.bs.tab', () => {
             const r = $target ? $target.val() : ref;
             updateTemplate($input, r, markdown, previewPane);
         });
-        previewTab.on('hidden.bs.tab', function () {
+        previewTab.on('hidden.bs.tab', () => {
             previewPane.html(loadingHtml);
         });
         if ($target) {
-            $target.change(function () {
+            $target.change(() => {
                 if (previewPane.hasClass('active')) {
                     updateTemplate($input, $target.val(), markdown, previewPane);
                 }
@@ -353,69 +332,57 @@ function slugify(str: string): string {
         }
     });
 
-    function updateData($elt, ref) {
+    const updateData = ($elt, ref): void => {
         if (ref) {
-            fetchData(ref).then(function (res) {
+            fetchData(ref).then(res => {
                 $elt.find('.json-viewer').html(JSON.stringify(res.data, null, 2));
                 $elt.show();
             });
         } else {
             $elt.hide();
         }
-    }
+    };
 
-    function updateTemplate($input, ref, markdown, previewPane) {
+    const updateTemplate = ($input, ref, markdown, previewPane): void => {
         const tmpl = $input.val();
-        fetchTemplate(tmpl, ref, markdown).then(function (tmpl) {
+        fetchTemplate(tmpl, ref, markdown).then(tmpl => {
             if (tmpl.error) {
                 console.warn('Template error', tmpl.error);
             }
             previewPane.html(tmpl.result);
         });
-    }
+    };
 
-    function fetchData(ref) {
-        return fetch('/ui/utils/template-data/' + ref).then(function (res) {
-            return res.json();
-        });
-    }
+    const fetchData = (ref) => fetch('/ui/utils/template-data/' + ref).then(res => res.json());
 
-    function fetchTemplate(tmpl, ref, markdown) {
-        return fetch('/ui/utils/render-template', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                template: tmpl,
-                ref: ref,
-                markdown: markdown
-            })
-        }).then(function (res) {
-            return res.json();
-        });
-    }
+    const fetchTemplate = (tmpl, ref, markdown) => fetch('/ui/utils/render-template', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            template: tmpl,
+            ref: ref,
+            markdown: markdown
+        })
+    }).then(res => res.json());
 })();
 
 // embed input & display
 (function () {
-    function fetchEmbedCode(url) {
-        return fetch('/ui/utils/embed?url=' + url).then(function (res) {
-            return res.text();
-        });
-    }
+    const fetchEmbedCode = (url) => fetch('/ui/utils/embed?url=' + url).then(res => res.text());
 
-    function inputFetchEmbedCode(input, target) {
+    const inputFetchEmbedCode = (input, target) => {
         const url = input.val();
         if (!!url) {
             target.html('<div class="d-flex justify-content-center m-5"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>');
-            fetchEmbedCode(url).then(function (html) {
+            fetchEmbedCode(url).then(html => {
                 // verify that input value haven't changed since the start of the query
                 if (input.val() === url) {
                     target.html(html);
                 }
-            }, function () {
+            }, () => {
                 if (input.val() === url) {
                     target.html('');
                 }
@@ -423,28 +390,91 @@ function slugify(str: string): string {
         } else {
             target.html('');
         }
-    }
+    };
 
-    $('.embed-editor').each(function () {
+    $('.embed-editor').each(() => {
         const input = $(this).find('input');
         const embed = $(this).find('.embed');
         inputFetchEmbedCode(input, embed);
-        input.change(function () {
-            inputFetchEmbedCode(input, embed);
-        });
+        input.change(() => inputFetchEmbedCode(input, embed));
     });
-    $('.embed-display').each(function () {
+    $('.embed-display').each(() => {
         const embed = $(this);
         const url = embed.attr('data-url');
-        fetchEmbedCode(url).then(function (html) {
-            embed.html(html);
+        fetchEmbedCode(url).then(html => embed.html(html));
+    });
+})();
+
+// omni-search with https://twitter.github.io/typeahead.js/
+declare const Bloodhound;
+(function () {
+    $('[data-omni-search]').each(() => {
+        const $search = $(this);
+        const baseUrl = $search.attr('data-omni-search');
+        const datasetBuilder = (url, title) => ({
+            name: url,
+            limit: 20,
+            source: new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.whitespace,
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: {
+                    wildcard: '%QUERY',
+                    url: baseUrl + '/' + url + '?q=%QUERY'
+                }
+            }),
+            display: item => item.text, // will be set in the input
+            templates: {
+                header: '<b class="tt-header">' + title + '</b>',
+                suggestion: item => '<a href="' + item.url + '">' + item.text + '</a>',
+                pending: '<b class="tt-header">' + title + ' <i class="fas fa-circle-notch fa-spin"></i></b>',
+                notFound: '<b class="tt-header">' + title + '</b>'
+            }
+        });
+
+        $search.typeahead(
+            {minLength: 2, hint: true, highlight: true},
+            datasetBuilder('speakers', 'Speakers'),
+            datasetBuilder('proposals', 'Proposals'),
+            datasetBuilder('partners', 'Partners'),
+            datasetBuilder('events', 'Events')
+        );
+        $search.bind('typeahead:select', (evt, item) => {
+            if (item.url) {
+                window.location.href = item.url; // navigate to url when item is selected (with keyboard)
+            }
+        });
+    });
+})();
+
+// https://craig.is/killing/mice
+declare const Mousetrap;
+(function () {
+    $('[data-hotkey]').each(() => {
+        const $hotkey = $(this);
+        if ($hotkey.hasClass('tt-hint')) return; // 'tt-hint' is a duplicated field from omni-search, so it's ignored
+        const keys = $hotkey.attr('data-hotkey');
+        Mousetrap.bind(keys.split(','), (event, key) => {
+            const tagName = $hotkey.prop('tagName');
+            if (tagName === 'INPUT') {
+                $hotkey.focus();
+                return false;
+            } else if (tagName === 'A' && $hotkey.attr('href')) {
+                window.location.href = $hotkey.attr('href'); // to prevent opening in new tab when "_blank" attribute
+                return false;
+            } else if (tagName === 'DIV' && $hotkey.hasClass('modal')) {
+                $hotkey.modal('toggle');
+                return false;
+            } else {
+                console.warn('"' + keys + '" was pressed by no default binding for ' + tagName, $hotkey);
+            }
         });
     });
 })();
 
 // GMapPlace picker (https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete?hl=fr)
+declare const google;
 const GMapPlacePicker = (function () {
-    function initMap($map) {
+    const initMap = ($map) => {
         const map = new google.maps.Map($map.get(0), {
             center: {lat: -33.8688, lng: 151.2195},
             zoom: 13
@@ -460,17 +490,17 @@ const GMapPlacePicker = (function () {
             marker: marker,
             infowindow: infowindow
         };
-    }
+    };
 
-    function toggleMap(mapData, location) {
+    const toggleMap = (mapData, location): void => {
         if (location && location.lat && location.lng) {
             showMap(mapData, location);
         } else {
             hideMap(mapData);
         }
-    }
+    };
 
-    function showMap(mapData, location) {
+    const showMap = (mapData, location): void => {
         const point = {lat: parseFloat(location.lat), lng: parseFloat(location.lng)};
         mapData.$map.show();
         google.maps.event.trigger(mapData.map, 'resize');
@@ -486,40 +516,34 @@ const GMapPlacePicker = (function () {
             location.postalCode + ' ' + location.locality + ', ' + location.country
         );
         mapData.infowindow.open(mapData.map, mapData.marker);
-    }
+    };
 
-    function hideMap(mapData) {
-        mapData.$map.hide();
-    }
+    const hideMap = (mapData): void => mapData.$map.hide();
 
     const fields = ['id', 'name', 'streetNo', 'street', 'postalCode', 'locality', 'country', 'formatted', 'lat', 'lng', 'url', 'website', 'phone', 'utcOffset'];
 
-    function writeForm($elt, location) {
-        fields.forEach(function (field) {
+    const writeForm = ($elt, location): void => {
+        fields.forEach(field => {
             $elt.find('input.gmapplace-' + field).val(location ? location[field] : '');
         });
-    }
+    };
 
-    function readForm($elt) {
+    const readForm = ($elt) => {
         const location = {};
-        fields.forEach(function (field) {
+        fields.forEach(field => {
             location[field] = $elt.find('input.gmapplace-' + field).val();
         });
         return location;
-    }
+    };
 
-    function toLocation(place) {
-        function getSafe(elt, field) {
-            return elt && elt[field] ? elt[field] : '';
-        }
+    const toLocation = (place) => {
+        const getSafe = (elt, field) => elt && elt[field] ? elt[field] : '';
 
-        function toAddress(components) {
-            function getByType(components, type) {
-                const c = components.find(function (e) {
-                    return e.types.indexOf(type) >= 0;
-                });
+        const toAddress = (components) => {
+            const getByType = (components, type) => {
+                const c = components.find(e => e.types.indexOf(type) >= 0);
                 return c && c.long_name;
-            }
+            };
 
             return {
                 streetNumber: getByType(components, 'street_number'),
@@ -542,7 +566,7 @@ const GMapPlacePicker = (function () {
                     level5: getByType(components, 'sublocality_level_5')
                 }
             };
-        }
+        };
 
         const address = toAddress(place.address_components);
         const loc = place && place.geometry && place.geometry.location;
@@ -562,9 +586,9 @@ const GMapPlacePicker = (function () {
             phone: getSafe(place, 'international_phone_number'),
             utcOffset: getSafe(place, 'utc_offset').toString()
         };
-    }
+    };
 
-    function initAutocomplete($elt, $input, mapData) {
+    const initAutocomplete = ($elt, $input, mapData): void => {
         const autocomplete = new google.maps.places.Autocomplete($input.get(0));
         autocomplete.addListener('place_changed', function () {
             const place = autocomplete.getPlace(); // cf https://developers.google.com/maps/documentation/javascript/reference/places-service?hl=fr#PlaceResult
@@ -572,10 +596,10 @@ const GMapPlacePicker = (function () {
             writeForm($elt, location);
             toggleMap(mapData, location);
         });
-    }
+    };
 
     return {
-        init: function () {
+        init: () => {
             $('.gmapplace-input').each(function () {
                 const $elt = $(this);
                 const $input = $elt.find('input[type="text"]');

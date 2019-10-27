@@ -68,10 +68,9 @@ class TalkCtrl(cc: ControllerComponents,
       talkElt <- OptionT(talkRepo.find(user, talk))
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(talkElt.id))
       speakers <- OptionT.liftF(userRepo.list(talkElt.users))
-      proposals <- OptionT.liftF(proposalRepo.list(talkElt.id, Page.Params.defaults))
-      events <- OptionT.liftF(eventRepo.list(proposals.items.flatMap(_._2.event)))
+      proposals <- OptionT.liftF(proposalRepo.listFull(talkElt.id, Page.Params.defaults))
       b = breadcrumb(req.identity.user, talkElt)
-    } yield Ok(html.detail(talkElt, speakers, invites, proposals, events, TalkForms.addSpeaker, GenericForm.embed)(b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
+    } yield Ok(html.detail(talkElt, speakers, invites, proposals, GenericForm.invite, GenericForm.embed)(b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
   }
 
   def edit(talk: Talk.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -105,7 +104,7 @@ class TalkCtrl(cc: ControllerComponents,
   def inviteSpeaker(talk: Talk.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     val next = Redirect(routes.TalkCtrl.detail(talk))
-    TalkForms.addSpeaker.bindFromRequest.fold(
+    GenericForm.invite.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
       email => (for {
         talkElt <- OptionT(talkRepo.find(user, talk))

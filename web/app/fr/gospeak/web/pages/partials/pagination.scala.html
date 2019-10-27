@@ -16,7 +16,7 @@
     <nav aria-label="pagination">
         <ul class="pagination">
             <li class="page-item @if(page.isFirst) {disabled}">
-                <a class="page-link" href="@link(page.previous)">Previous</a>
+                <a class="page-link" href="@link(page.previous)" @if(!page.isFirst) {data-hotkey="shift+left"}>Previous</a>
             </li>
             @page.firstPages.map { pages =>
                 @pages.map { n => @pageLink(n) }
@@ -28,7 +28,7 @@
                 @pages.map { n => @pageLink(n) }
             }
             <li class="page-item @if(page.isLast) {disabled}">
-                <a class="page-link" href="@link(page.next)">Next</a>
+                <a class="page-link" href="@link(page.next)" @if(!page.isLast) {data-hotkey="shift+right"}>Next</a>
             </li>
         </ul>
     </nav>
