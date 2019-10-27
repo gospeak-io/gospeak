@@ -5,7 +5,7 @@ import java.net.URLEncoder
 import cats.effect.IO
 import fr.gospeak.libs.scalautils.domain.CustomException
 import hammock.apache.ApacheInterpreter
-import hammock.{Encoder, Entity, Hammock, HttpResponse, Method, Uri}
+import hammock.{Encoder, Entity, Hammock, HttpResponse, InterpTrans, Method, Uri}
 
 object HttpClient {
 
@@ -25,7 +25,7 @@ object HttpClient {
         body = res.entity.content.toString)
   }
 
-  private implicit val interpreter: ApacheInterpreter[IO] = ApacheInterpreter[IO]
+  private implicit val interpreter: InterpTrans[IO] = ApacheInterpreter.instance[IO]
   private implicit val stringEncoder: Encoder[String] = (value: String) => Entity.StringEntity(value)
 
   def get(url: String, query: Map[String, String] = Map(), headers: Map[String, String] = Map()): IO[Response] =

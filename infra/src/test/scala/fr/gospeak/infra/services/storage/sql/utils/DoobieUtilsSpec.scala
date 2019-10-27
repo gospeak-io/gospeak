@@ -137,7 +137,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
     }
     describe("limitFragment") {
       it("should build the limit fragment") {
-        limitFragment(Page.Size(20), 12).query.sql shouldBe " LIMIT 20 OFFSET 12"
+        limitFragment(Page.Size(20), Page.Offset(12)).query.sql shouldBe " LIMIT 20 OFFSET 12"
       }
     }
     describe("paginationFragment") {

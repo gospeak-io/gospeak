@@ -14,7 +14,7 @@ class ListSpec extends TwirlSpec {
       html.list(talk, Page.empty[Proposal.Full])(b).toString should include("""<div class="jumbotron">""")
     }
     it("should display a list when non empty page") {
-      val res = html.list(talk, Page.from(proposals))(b).toString
+      val res = html.list(talk, Page(proposals, Page.Params.defaults, Page.Total(proposals.length)))(b).toString
       res should not include """<div class="jumbotron">"""
       res should include("""<div class="list-group mt-3 mb-3">""")
       res should include(proposals.head.title.value)

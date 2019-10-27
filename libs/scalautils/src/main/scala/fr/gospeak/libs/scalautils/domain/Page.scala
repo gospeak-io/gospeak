@@ -42,9 +42,6 @@ object Page {
 
   def empty[A](params: Params): Page[A] = Page[A](Seq(), params, Total(0))
 
-  def from[A](items: Seq[A], params: Params = Params.defaults): Page[A] =
-    Page[A](items.slice(params.offsetStart, params.offsetEnd), params, Total(items.length))
-
   final case class Search(value: String) extends AnyVal {
     def key: String = Search.key
 
@@ -115,6 +112,8 @@ object Page {
     }
   }
 
+  final case class Offset(value: Int)
+
   final case class Total(value: Long) extends AnyVal
 
   final case class Params(page: No = Params.defaults.page,
@@ -122,7 +121,7 @@ object Page {
                           search: Option[Search] = Params.defaults.search,
                           orderBy: Option[OrderBy] = Params.defaults.orderBy,
                           nullsFirst: Boolean = Params.defaults.nullsFirst) {
-    val offsetStart: Int = (page.value - 1) * pageSize.value
+    val offset: Offset = Offset((page.value - 1) * pageSize.value)
     val offsetEnd: Int = page.value * pageSize.value
 
     def defaultSize(size: Int): Params = if (pageSize == Params.defaults.pageSize) copy(pageSize = Size(size)) else this

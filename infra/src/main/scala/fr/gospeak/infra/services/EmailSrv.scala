@@ -80,6 +80,8 @@ class InMemoryEmailSrv extends EmailSrv {
 
 class SendGridEmailSrv private(client: com.sendgrid.SendGrid) extends EmailSrv {
 
+  import com.sendgrid.helpers.mail.{objects => sgO}
+  import com.sendgrid.helpers.{mail => sgM}
   import com.{sendgrid => sg}
 
   override def send(email: Email): IO[Unit] = {
@@ -95,25 +97,25 @@ class SendGridEmailSrv private(client: com.sendgrid.SendGrid) extends EmailSrv {
     } yield ()
   }
 
-  private def buildMail(email: Email): sg.Mail = {
-    val mail = new sg.Mail()
+  private def buildMail(email: Email): sgM.Mail = {
+    val mail = new sgM.Mail()
     mail.setFrom(buildEmail(email.from))
-    val personalization = new sg.Personalization()
+    val personalization = new sgO.Personalization()
     email.to.foreach(to => personalization.addTo(buildEmail(to)))
     mail.addPersonalization(personalization)
     mail.setSubject(email.subject)
     email.content match {
-      case TextContent(text) => mail.addContent(new sg.Content("text/plain", text))
-      case HtmlContent(html) => mail.addContent(new sg.Content("text/html", html))
+      case TextContent(text) => mail.addContent(new sgO.Content("text/plain", text))
+      case HtmlContent(html) => mail.addContent(new sgO.Content("text/html", html))
     }
     mail
   }
 
-  private def buildEmail(contact: Contact): sg.Email =
+  private def buildEmail(contact: Contact): sgO.Email =
     contact.name.map { name =>
-      new sg.Email(contact.address.value, name)
+      new sgO.Email(contact.address.value, name)
     }.getOrElse {
-      new sg.Email(contact.address.value)
+      new sgO.Email(contact.address.value)
     }
 }
 
