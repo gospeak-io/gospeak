@@ -1,2 +1,2 @@
-@(url: Call)(name: Html)(implicit req: Request[AnyContent])
-<a class="nav-item nav-link @if(req.uri.startsWith(url.toString)) {active}" href="@url">@name</a>
+@(url: Call, attrs: (String, String)*)(name: Html)(implicit req: Request[AnyContent])
+<a class="nav-item nav-link @if(req.uri.startsWith(url.toString)) {active}" href="@url" @attrs.map { case (k, v) => @k="@v" }>@name</a>

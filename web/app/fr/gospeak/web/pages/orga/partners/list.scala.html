@@ -11,7 +11,7 @@
 @container(group.name.value + " - Gospeak", group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span class="text-capitalize">@Formats.plural(partners.total.value, "partner")</span>
-        <a class="btn btn-primary" href="@PartnerCtrl.create(group.slug)">Create a partner</a>
+        <a class="btn btn-primary" href="@PartnerCtrl.create(group.slug)" data-hotkey="+">Create a partner</a>
     </h1>
     @Formats.paginated[Partner](partners, PartnerCtrl.list(group.slug, _), partnerItem(group, _))
 }()

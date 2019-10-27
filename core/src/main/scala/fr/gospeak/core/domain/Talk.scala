@@ -19,6 +19,8 @@ final case class Talk(id: Talk.Id,
                       info: Info) {
   def data: Talk.Data = Talk.Data(this)
 
+  def hasSpeaker(user: User.Id): Boolean = speakers.toList.contains(user)
+
   def users: Seq[User.Id] = (info.createdBy :: info.updatedBy :: speakers.toList).distinct
 }
 

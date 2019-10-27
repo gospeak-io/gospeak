@@ -1,5 +1,5 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Cfp, Event, Group, Partner, Proposal, User, Venue}
+@import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User, Venue}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
@@ -7,11 +7,11 @@
 @import fr.gospeak.web.pages.orga.partials.html.{container, eventItem}
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, events: Page[Event], cfps: Seq[Cfp], venues: Seq[(Partner, Venue)], proposals: Seq[Proposal], speakers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, events: Page[Event], cfps: Seq[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span class="text-capitalize">@Formats.plural(events.total.value, "event")</span>
-        <a class="btn btn-primary" href="@EventCtrl.create(group.slug)">Create an event</a>
+        <a class="btn btn-primary" href="@EventCtrl.create(group.slug)" data-hotkey="+">Create an event</a>
     </h1>
     @Formats.paginated[Event](events, EventCtrl.list(group.slug, _), e => eventItem(group, e, cfps.find(c => e.cfp.contains(c.id)), venues, proposals, speakers))
 }()

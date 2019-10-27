@@ -1,26 +1,20 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Group, Talk, User}
+@import fr.gospeak.core.domain.{Event, Group, Proposal, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
 @import fr.gospeak.web.pages.speaker.partials.html.container
+@import fr.gospeak.web.pages.speaker.proposals.routes.{ProposalCtrl => ProposalListCtrl}
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
+@import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
-@import fr.gospeak.web.pages.user.routes.UserCtrl
+@import fr.gospeak.web.utils.Formats
 
-@(groups: Page[Group], talks: Page[Talk])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@cardItem(url: Call, text: String, badge: Int, badgeTooltip: String) = {
-@if(badge > 1) {
-    <a href="@url" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-        @text
-        <span class="badge badge-primary badge-pill" title="@badgeTooltip" data-toggle="tooltip" data-placement="left">@badge</span>
-    </a>
-} else {
-    <a href="@url" class="list-group-item list-group-item-action">@text</a>
-}
-}
+@(incomingEvents: Page[Event.Full], joinedGroups: Page[(Group, Group.Member)], talks: Page[Talk], proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container("Gospeak", b)() {
     @if(talks.nonEmpty && req.identity.user.profile.status.isUndefined) {
         <div class="alert alert-info" role="alert">
@@ -48,63 +42,100 @@
     }
     <div class="row">
         <div class="col-6">
-        @if(groups.isEmpty) {
-            <div class="card">
-                <h5 class="card-header">Groups</h5>
-                <div class="card-body text-center">
-                    <h5 class="card-title">Organizing conferences or meetups?<br>Let Gospeak help you</h5>
-                    <p class="card-text">
-                        Create events, receive talk proposal with a CFP, manages sponsors, slack & meetup integration
-                    </p>
-                    <a href="@UserCtrl.joinGroup()" class="btn btn-success">Join an existing group</a>
-                    or
-                    <a href="@UserCtrl.createGroup()" class="btn btn-success">Create your own group</a>
-                </div>
-            </div>
-        } else {
-            <div class="card">
-                <h5 class="card-header d-flex justify-content-between align-items-center">
-                    <span>Your groups</span>
-                    <span>
-                        <a class="btn btn-primary btn-sm" href="@UserCtrl.joinGroup()">Join a group</a>
-                        <a class="btn btn-primary btn-sm" href="@UserCtrl.createGroup()">Create a group</a>
-                    </span>
-                </h5>
-                <ul class="list-group list-group-flush">
-                @groups.items.map { g => @cardItem(GroupCtrl.detail(g.slug), g.name.value, g.owners.length, "Number of organizers") }
-                </ul>
-                @if(!groups.isLast) {
-                    <div class="card-footer"><a href="@UserCtrl.listGroup()">More...</a></div>
+            <div class="event-card card mb-3">
+                <h5 class="card-header">Incoming events</h5>
+                @if(incomingEvents.isEmpty) {
+                    <div class="card-body text-center">
+                        <h5 class="card-title">No incoming event</h5>
+                        <p class="card-text">Follow more groups to discover interesting events near you</p>
+                        <a href="@PublicGroupCtrl.list()" class="btn btn-success">Discover new groups</a>
+                    </div>
+                } else {
+                    <div class="list-group list-group-flush">
+                        @incomingEvents.items.map { e =>
+                            <a href="@PublicGroupCtrl.event(e.group.slug, e.event.slug)" class="list-group-item list-group-item-action">@e.event.name.value</a>
+                        }
+                    </div>
                 }
             </div>
-        }
+            <div class="group-card card mb-3">
+                @if(joinedGroups.isEmpty) {
+                    <h5 class="card-header">Groups</h5>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Join groups to participate to their events</h5>
+                        <p class="card-text">Joining a group will allows you to be notified of their events and participate to them</p>
+                        <a href="@PublicGroupCtrl.list()" class="btn btn-success">Find interesting groups</a>
+                    </div>
+                } else {
+                    <h5 class="card-header d-flex justify-content-between align-items-center">
+                        <span>Your groups</span>
+                        <a class="btn btn-primary btn-sm" href="@PublicGroupCtrl.list()">Browse groups</a>
+                    </h5>
+                    <div class="list-group list-group-flush">
+                    @joinedGroups.items.map { case (g, m) =>
+                        <a href="@PublicGroupCtrl.detail(g.slug)" class="list-group-item list-group-item-action">@g.name.value</a>
+                    }
+                    </div>
+                }
+            </div>
         </div>
         <div class="col-6">
-        @if(talks.isEmpty) {
-            <div class="card">
-                <h5 class="card-header">Talks</h5>
-                <div class="card-body text-center">
-                    <h5 class="card-title">Manage your talks with Gospeak!<br>&nbsp;</h5>
-                    <p class="card-text">
-                        Create your talks, find groups to submit them, allow organizers to contact you to speak, show them publicly
-                    </p>
-                    <a href="@TalkCtrl.create()" class="btn btn-success">Create your first talk</a>
-                </div>
-            </div>
-        } else {
-            <div class="card">
-                <h5 class="card-header d-flex justify-content-between align-items-center">
-                    <span>Your talks</span>
-                    <a class="btn btn-primary btn-sm" href="@TalkCtrl.create()">Create a talk</a>
-                </h5>
-                <div class="list-group list-group-flush">
-                @talks.items.map { t => @cardItem(TalkCtrl.detail(t.slug), t.title.value, t.speakers.length, "Number of speakers") }
-                </div>
-                @if(!talks.isLast) {
-                    <div class="card-footer"><a href="@TalkCtrl.list()">More...</a></div>
+            <div class="talk-card card mb-3">
+                @if(talks.isEmpty) {
+                    <h5 class="card-header">Talks</h5>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Manage your talks with Gospeak!<br>&nbsp;</h5>
+                        <p class="card-text">Create your talks, find groups to submit them, allow organizers to contact you to speak, show them publicly</p>
+                        <a href="@TalkCtrl.create()" class="btn btn-success">Create your first talk</a>
+                    </div>
+                } else {
+                    <h5 class="card-header d-flex justify-content-between align-items-center">
+                        <span>Your talks</span>
+                        <a class="btn btn-primary btn-sm" href="@TalkCtrl.create()">Create a talk</a>
+                    </h5>
+                    <div class="list-group list-group-flush">
+                    @talks.items.map { t =>
+                        <a href="@TalkCtrl.detail(t.slug)" class="list-group-item list-group-item-action">@t.title.value @tags(t.tags)</a>
+                    }
+                    </div>
+                    @if(!talks.isLast) {
+                        <div class="card-footer"><a href="@TalkCtrl.list()">More...</a></div>
+                    }
                 }
             </div>
-        }
+            <div class="proposal-card card mb-3">
+                @if(proposals.isEmpty) {
+                    <h5 class="card-header">Proposals</h5>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Propose your talks to CFPs and manage them here<br>&nbsp;</h5>
+                        <p class="card-text">Follow the status of your proposals here</p>
+                        <a href="@CfpCtrl.list()" class="btn btn-success">Find a CFP to propose a talk</a>
+                    </div>
+                } else {
+                    <h5 class="card-header d-flex justify-content-between align-items-center">
+                        <span>Your proposals</span>
+                        <a class="btn btn-primary btn-sm" href="@CfpCtrl.list()">Find a CFP</a>
+                    </h5>
+                    <div class="list-group list-group-flush">
+                    @proposals.items.map { p =>
+                        <a href="@ProposalCtrl.detail(p.talk.slug, p.cfp.slug)" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <span>
+                                @p.status match {
+                                    case Proposal.Status.Pending => {<span class="badge badge-primary" title="since @Formats.date(p.info.created)">@p.status.toString</span>}
+                                    case Proposal.Status.Accepted => {<span class="badge badge-success"@p.event.map{e => title="for the @Formats.date(e.start) event of @e.name.value"}>@p.status.toString</span>}
+                                    case Proposal.Status.Declined => {<span class="badge badge-danger">@p.status.toString</span>}
+                                }
+                                @p.title.value
+                            </span>
+                            <span class="badge badge-primary badge-pill" title="proposed on @Formats.date(p.info.created)">@p.cfp.name.value</span>
+                        </a>
+                    }
+                    </div>
+                    @if(!proposals.isLast) {
+                        <div class="card-footer"><a href="@ProposalListCtrl.list()">More...</a></div>
+                    }
+                }
+            </div>
         </div>
     </div>
 }()

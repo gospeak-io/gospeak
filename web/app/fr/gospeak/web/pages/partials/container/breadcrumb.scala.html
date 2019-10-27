@@ -5,7 +5,7 @@
     <div class="container">
         <ol class="breadcrumb">
             @b.links.dropRight(1).map { l =>
-                <li class="breadcrumb-item"><a href="@l.link">@l.name</a></li>
+                @l.link.map { url => <li class="breadcrumb-item"><a href="@url">@l.name</a></li> }.getOrElse{<li class="breadcrumb-item active">@l.name</li>}
             }
             @b.links.lastOption.map { l =>
                 <li class="breadcrumb-item active" aria-current="page">@l.name</li>

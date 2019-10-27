@@ -8,8 +8,15 @@
     @inputHidden(form("partner"), Seq("value" -> p.id.value))
 }.getOrElse {
     @fieldHorizontal(form("partner"), Seq("label" -> "Partner", "help" -> "The sponsoring partner")) { (field, args) =>
-        @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.partners(group.slug).toString) ++ args)
+        @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.suggestPartners(group.slug).toString) ++ args)
     }
+}
+@fieldHorizontal(form("contact"), Seq("label" -> "Contact", "help" -> "The contact for this sponsoring")) { (field, args) =>
+    @inputSelect(field, Seq(), Seq(
+        "placeholder" -> "",
+        "optional" -> "true",
+        "remote" -> SuggestCtrl.suggestContacts(group.slug, partner.map(_.id).getOrElse(Partner.Id.empty)).toString,
+        "remote-replace" -> partner.map(_ => "").getOrElse(Partner.Id.empty.value + ":partner")) ++ args)
 }
 @fieldHorizontal(form("start"), Seq("label" -> "Period", "help" -> "Sponsoring period")) { (field, args) =>
     <div class="row">

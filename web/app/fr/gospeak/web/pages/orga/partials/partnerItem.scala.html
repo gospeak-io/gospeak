@@ -8,5 +8,5 @@
         <h5 class="mb-1"><a href="@PartnerCtrl.detail(group.slug, partner.slug)">@partner.name.value</a></h5>
         @partner.twitter.map { t => @twitterLink(t) }
     </div>
-    <img src="@partner.logo.value" alt="logo" class="avatar avatar-lg">
+    <img src="@partner.logo.value" alt="@partner.name.value logo" class="avatar avatar-lg">
 </div>

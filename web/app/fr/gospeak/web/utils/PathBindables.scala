@@ -25,11 +25,14 @@ object PathBindables {
   implicit def eventSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Event.Slug] =
     stringEitherPathBindable[Event.Slug](Event.Slug.from, _.value)
 
+  implicit def eventRsvpAnswerPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Event.Rsvp.Answer] =
+    stringEitherPathBindable[Event.Rsvp.Answer](Event.Rsvp.Answer.from, _.value)
+
   implicit def talkSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Talk.Slug] =
     stringEitherPathBindable[Talk.Slug](Talk.Slug.from, _.value)
 
   implicit def talkStatusPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Talk.Status] =
-    stringEitherPathBindable[Talk.Status](Talk.Status.from, _.toString)
+    stringEitherPathBindable[Talk.Status](Talk.Status.from, _.value)
 
   implicit def cfpSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Cfp.Slug] =
     stringEitherPathBindable[Cfp.Slug](Cfp.Slug.from, _.value)
@@ -41,7 +44,10 @@ object PathBindables {
     stringEitherPathBindable[User.Slug](User.Slug.from, _.value)
 
   implicit def userProfileStatusPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[User.Profile.Status] =
-    stringEitherPathBindable[User.Profile.Status](User.Profile.Status.from, _.toString)
+    stringEitherPathBindable[User.Profile.Status](User.Profile.Status.from, _.value)
+
+  implicit def partnerIdPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Partner.Id] =
+    stringEitherPathBindable[Partner.Id](Partner.Id.from, _.value)
 
   implicit def partnerSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Partner.Slug] =
     stringEitherPathBindable[Partner.Slug](Partner.Slug.from, _.value)

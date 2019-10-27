@@ -20,7 +20,7 @@ abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv
 
   // orga redirects
   protected def groupNotFound(group: Group.Slug): Result =
-    Redirect(pages.user.routes.UserCtrl.listGroup()).flashing("warning" -> s"Unable to find group with slug '${group.value}'")
+    Redirect(pages.user.routes.UserCtrl.index()).flashing("warning" -> s"Unable to find group with slug '${group.value}'")
 
   protected def eventNotFound(group: Group.Slug, event: Event.Slug): Result =
     Redirect(pages.orga.events.routes.EventCtrl.list(group)).flashing("warning" -> s"Unable to find event with slug '${event.value}'")
@@ -68,6 +68,12 @@ abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv
 
   protected def publicGroupNotFound(group: Group.Slug): Result =
     Redirect(pages.published.groups.routes.GroupCtrl.list()).flashing("warning" -> s"Unable to find group with slug '${group.value}'")
+
+  protected def publicEventNotFound(group: Group.Slug, event: Event.Slug): Result =
+    Redirect(pages.published.groups.routes.GroupCtrl.events(group)).flashing("warning" -> s"Unable to find event with slug '${event.value}'")
+
+  protected def publicProposalNotFound(group: Group.Slug, proposal: Proposal.Id): Result =
+    Redirect(pages.published.groups.routes.GroupCtrl.talks(group)).flashing("warning" -> s"Unable to find talk with id '${proposal.value}'")
 
   protected def publicCfpNotFound(group: Group.Slug, cfp: Cfp.Slug): Result =
     Redirect(pages.published.groups.routes.GroupCtrl.detail(group)).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")

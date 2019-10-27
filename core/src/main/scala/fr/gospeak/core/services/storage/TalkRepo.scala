@@ -13,24 +13,30 @@ trait OrgaTalkRepo
 trait SpeakerTalkRepo {
   def create(data: Talk.Data, by: User.Id, now: Instant): IO[Talk]
 
-  def edit(user: User.Id, slug: Talk.Slug)(data: Talk.Data, now: Instant): IO[Done]
+  def edit(talk: Talk.Slug)(data: Talk.Data, by: User.Id, now: Instant): IO[Done]
 
-  def editStatus(user: User.Id, slug: Talk.Slug)(status: Talk.Status): IO[Done]
+  def editStatus(talk: Talk.Slug)(status: Talk.Status, by: User.Id): IO[Done]
 
-  def editSlides(user: User.Id, slug: Talk.Slug)(slides: Slides, now: Instant): IO[Done]
+  def editSlides(talk: Talk.Slug)(slides: Slides, by: User.Id, now: Instant): IO[Done]
 
-  def editVideo(user: User.Id, slug: Talk.Slug)(video: Video, now: Instant): IO[Done]
+  def editVideo(talk: Talk.Slug)(video: Video, by: User.Id, now: Instant): IO[Done]
+
+  def removeSpeaker(talk: Talk.Slug)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
+
+  def find(talk: Talk.Id): IO[Option[Talk]]
 
   def list(user: User.Id, params: Page.Params): IO[Page[Talk]]
 
   def listActive(user: User.Id, cfp: Cfp.Id, params: Page.Params): IO[Page[Talk]]
 
-  def find(user: User.Id, slug: Talk.Slug): IO[Option[Talk]]
+  def find(user: User.Id, talk: Talk.Slug): IO[Option[Talk]]
 
-  def exists(slug: Talk.Slug): IO[Boolean]
+  def exists(talk: Talk.Slug): IO[Boolean]
 }
 
 trait UserTalkRepo {
+  def addSpeaker(talk: Talk.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
+
   def list(user: User.Id, params: Page.Params): IO[Page[Talk]]
 }
 

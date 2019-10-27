@@ -4,7 +4,7 @@
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.display.html._
 
-@(form: Form[Event.Data], group: Group, settings: Group.Settings)(implicit messages: Messages)
+@(form: Form[Event.Data], group: Group, hasMeetupAccount: Boolean)(implicit messages: Messages)
 @fieldVertical(form("name"), Seq("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "Event name", "autofocus" -> "true") ++ args)
 }
@@ -12,13 +12,16 @@
     @inputLocalDatetime(field, args)
 }
 @fieldVertical(form("venue"), Seq("label" -> "Venue", "help" -> "Where your event will take place")) { (field, args) =>
-    @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.venues(group.slug).toString, "optional" -> "") ++ args)
+    @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.suggestVenues(group.slug).toString, "optional" -> "") ++ args)
+}
+@fieldVertical(form("max-attendee"), Seq("label" -> "max attendee", "help" -> "What is the capacity of this event")) { (field, args) =>
+    @inputNumber(field, Seq("placeholder" -> "50", "optional" -> "") ++ args)
 }
 @fieldVertical(form("cfp"), Seq("label" -> "CFP", "help" -> "You will be able to add proposals from the CFP to the event")) { (field, args) =>
-    @inputSelect(field, Seq(), Seq("placeholder" -> "-- Attach a CFP to this event", "remote" -> SuggestCtrl.cfps(group.slug).toString, "optional" -> "") ++ args)
+    @inputSelect(field, Seq(), Seq("placeholder" -> "-- Attach a CFP to this event", "remote" -> SuggestCtrl.suggestCfps(group.slug).toString, "optional" -> "") ++ args)
 }
 @fieldVertical(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of the event")) { (field, args) =>
-    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.tags().toString))
+    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
 }
 @fieldVertical(form("description"), Seq("label" -> "Description", "help" -> "Description of your event")) { (field, args) =>
     <div class="row">
@@ -33,7 +36,7 @@
 @fieldVertical(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the event (in urls for example)")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "Event slug", "slug-for" -> form("name").id) ++ args)
 }
-@if(settings.accounts.meetup.isDefined) {
+@if(hasMeetupAccount) {
     @fieldVertical(form("refs.meetup"), Seq("label" -> "Meetup reference", "help" -> "References of this event in Meetup.com")) { (field, args) =>
         <div class="row">
             <div class="col-6">@inputText(field("group"), Seq("placeholder" -> "Group url name name", "optional" -> "true") ++ args)</div>

@@ -1,4 +1,5 @@
 @import "variables";
+
 h5.test {
   color: $primary-color;
 }
@@ -17,13 +18,28 @@ h5.test {
   background-color: #e9ecef;
 }
 
+a.card {
+  color: inherit;
+}
+
+a.card:hover {
+  text-decoration: inherit;
+}
+
 .card-header .btn-sm,
 .card-header .input-group-sm {
   margin-top: -3px;
   margin-bottom: -4px;
 }
 
-.list-group-item ul, .list-group-item ol {
+.card-body p:last-child,
+.card-body h5:last-child,
+.card-body .markdown:last-child {
+  margin-bottom: 0;
+}
+
+.list-group-item ul,
+.list-group-item ol {
   margin-bottom: 0;
 }
 
@@ -31,7 +47,8 @@ h5.test {
   color: #6c757d;
 }
 
-.form-row.is-invalid ~ .invalid-feedback, .is-invalid .invalid-feedback {
+.is-invalid .invalid-feedback,
+.form-row.is-invalid ~ .invalid-feedback {
   display: block;
 }
 
@@ -45,10 +62,10 @@ h5.test {
 }
 
 .btn-xs {
-  padding: .15rem .4rem;
-  font-size: .7rem;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.7rem;
   line-height: 1.4;
-  border-radius: .2rem;
+  border-radius: 0.2rem;
 }
 
 .select2-container--bootstrap .select2-selection--single {
@@ -63,6 +80,16 @@ h5.test {
 
 .popover {
   max-width: 600px;
+}
+
+.tt-header {
+  padding: 3px 10px;
+}
+
+span.twitter-typeahead .tt-suggestion.tt-cursor,
+span.twitter-typeahead .tt-suggestion.tt-cursor:hover {
+  color: inherit;
+  background-color: #f5f5f5;
 }
 
 /* My styles */
@@ -80,16 +107,34 @@ h5.test {
   display: inline;
 }
 
+.btn-form .btn.no-style {
+  display: inline;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 1;
+  color: inherit;
+  font-size: inherit;
+}
+
+.badge a {
+  color: inherit;
+}
+
+.badge a:hover {
+  text-decoration: none;
+}
+
 .avatar {
   height: 31px;
   min-width: 31px;
-  border-radius: .25em;
+  border-radius: 0.25em;
 }
 
 .avatar.avatar-lg {
-  height: 50px;
-  min-width: 50px;
+  max-width: 50px;
 }
+
 .avatar.avatar-list {
   height: 70px;
   min-width: 71px;
@@ -97,8 +142,8 @@ h5.test {
 }
 
 .card .avatar-lg {
-  height: 200px;
-  min-width: 100px;
+  max-width: 200px;
+  width: 100%;
   border-radius: 50%;
 }
 
@@ -108,15 +153,15 @@ h5.test {
 }
 
 .dropdown .avatar {
-  height: 21px;
-  min-width: 21px;
+  max-width: 21px;
 }
 
 .markdown {
-  margin-bottom: 0;
+  margin-bottom: 1rem;
 }
 
-.markdown p:last-child {
+.markdown p:last-child,
+.markdown ul:last-child {
   margin-bottom: 0;
 }
 
@@ -128,7 +173,6 @@ h5.test {
   border-left: 7px;
   border-left-color: #e9ecef;
   border-left-style: solid;
-
   margin-left: 5px;
   padding-left: 10px;
 }
@@ -159,7 +203,8 @@ a.no-style {
   padding: 0;
 }
 
-.event-item, .proposal-item {
+.event-item,
+.proposal-item {
   padding: 10px;
 }
 

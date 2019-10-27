@@ -35,7 +35,7 @@
             @inputText(field, Seq("placeholder" -> "ex: Intro slides") ++ args)
         }
         @actionsVertical() {
-            @btnCancel(SettingsCtrl.list(group.slug))
+            @btnCancel(SettingsCtrl.settings(group.slug))
             @btnSubmit(templateId.map(id => s"Update template event '$id'").getOrElse("Create new template"))
         }
     }

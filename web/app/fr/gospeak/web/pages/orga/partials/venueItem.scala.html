@@ -1,11 +1,11 @@
-@import fr.gospeak.core.domain.{Group, Partner, Venue}
+@import fr.gospeak.core.domain.{Group, Venue}
 @import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 
-@(group: Group, partner: Partner, venue: Venue)
+@(group: Group, venue: Venue.Full)
 <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="@VenueCtrl.detail(group.slug, venue.id)">
     <div>
-        <h5 class="mb-1">@partner.name.value</h5>
+        <h5 class="mb-1">@venue.partner.name.value</h5>
         <p class="mb-1">@venue.address.value</p>
     </div>
-    <img src="@partner.logo.value" alt="logo" class="avatar avatar-lg">
+    <img src="@venue.partner.logo.value" alt="@venue.partner.name.value logo" class="avatar avatar-lg">
 </a>

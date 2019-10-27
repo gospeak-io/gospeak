@@ -5,6 +5,7 @@ trait GospeakDb {
   val userRequest: UserRequestRepo
   val talk: TalkRepo
   val group: GroupRepo
+  val groupSettings: GroupSettingsRepo
   val cfp: CfpRepo
   val partner: PartnerRepo
   val venue: VenueRepo
@@ -12,6 +13,5 @@ trait GospeakDb {
   val sponsor: SponsorRepo
   val event: EventRepo
   val proposal: ProposalRepo
-  val settings: SettingsRepo
   val contact: ContactRepo
 }

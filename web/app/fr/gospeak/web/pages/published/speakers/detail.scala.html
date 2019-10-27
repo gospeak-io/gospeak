@@ -5,10 +5,9 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.partials.html.speakerCard
-@import fr.gospeak.web.pages.published.partials.html.{container, groupItem, proposalItem, talkItem}
+@import fr.gospeak.web.pages.published.partials.html.{container, speakerCard, groupItem, proposalItem, talkItem}
 
-@(speaker: User, publicTalks: Page[Talk], acceptedProposals: Page[(Option[Event], Proposal)], ownedGroups: Page[Group], now: Instant)(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(speaker: User, publicTalks: Page[Talk], proposals: Page[Proposal.Full], ownedGroups: Seq[Group], now: Instant)(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @container(speaker.name.value + " - Gospeak", b)() {
     <div class="row">
         <div class="col-4">
@@ -23,10 +22,10 @@
                     }
                 </div>
             }
-            @if(acceptedProposals.nonEmpty) {
+            @if(proposals.nonEmpty) {
                 <div class="mb-3">
                     <h2>Planned talks</h2>
-                    @acceptedProposals.items.map { proposal =>
+                    @proposals.items.map { proposal =>
                         @proposalItem(proposal, now)
                     }
                 </div>
@@ -34,7 +33,7 @@
             @if(ownedGroups.nonEmpty) {
                 <div class="mb-3">
                     <h2>Organises</h2>
-                    @ownedGroups.items.map { group =>
+                    @ownedGroups.map { group =>
                         @groupItem(group)
                     }
                 </div>

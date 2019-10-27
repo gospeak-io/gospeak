@@ -19,5 +19,5 @@
     @inputMarkdown(field, args)
 }
 @fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your CFP")) { (field, args) =>
-    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.tags().toString))
+    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
 }

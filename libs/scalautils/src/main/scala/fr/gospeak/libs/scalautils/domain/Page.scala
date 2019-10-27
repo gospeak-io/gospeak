@@ -56,6 +56,11 @@ object Page {
   }
 
   final case class OrderBy(values: Seq[String]) extends AnyVal {
+    def prefix(p: String): OrderBy = OrderBy(values.map(v =>
+      if (v.startsWith("-")) s"-$p.${v.stripPrefix("-")}"
+      else s"$p.$v"
+    ))
+
     def key: String = OrderBy.key
 
     def nonEmpty: Boolean = values.nonEmpty
@@ -75,7 +80,7 @@ object Page {
   }
 
   // should be at least 1
-  final case class No(value: Int) extends AnyVal {
+  final case class No(value: Int) {
     def key: String = No.key
 
     def nonEmpty: Boolean = value > Params.defaults.page.value
@@ -90,7 +95,7 @@ object Page {
   }
 
   // should be at least 1
-  final case class Size(value: Int) extends AnyVal {
+  final case class Size(value: Int) {
     def key: String = Size.key
 
     def nonEmpty: Boolean = value != Params.defaults.pageSize.value
@@ -98,6 +103,16 @@ object Page {
 
   object Size {
     val key = "page-size"
+
+    def from(i: Int): Either[String, Size] = {
+      if (i < 1) {
+        Left(s"$key should be greater than 1")
+      } else if (i > 200) {
+        Left(s"$key should be lesser than 200")
+      } else {
+        Right(Size(i))
+      }
+    }
   }
 
   final case class Total(value: Long) extends AnyVal
@@ -116,6 +131,8 @@ object Page {
 
     def orderBy(field: String*): Params = copy(orderBy = Some(OrderBy(field)))
 
+    def search(q: String): Params = copy(search = Some(Search(q)))
+
     def withNullsFirst: Params = copy(nullsFirst = true)
 
     def withNullsLast: Params = copy(nullsFirst = false)
@@ -123,6 +140,11 @@ object Page {
 
   object Params {
     val defaults = Params(No(1), Size(20), None, None, nullsFirst = false)
+
+    def no(n: Int): Params = defaults.copy(page = No(n))
+
+    def apply(page: Int, pageSize: Int, search: Option[String], orderBy: Option[Seq[String]], nullsFirst: Boolean): Params =
+      new Params(No(page), Size(pageSize), search.map(Search(_)), orderBy.map(OrderBy(_)), nullsFirst)
   }
 
 }

@@ -1,11 +1,12 @@
 package fr.gospeak.libs.scalautils
 
 import java.time.Instant
+import java.util.Optional
 
 import cats.MonadError
 import cats.data.NonEmptyList
 import cats.effect.IO
-import fr.gospeak.libs.scalautils.domain.MultiException
+import fr.gospeak.libs.scalautils.domain.{CustomException, MultiException}
 
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
@@ -40,6 +41,14 @@ object Extensions {
   }
 
   implicit class TraversableOnceExtension[A, M[X] <: TraversableOnce[X]](val in: M[A]) extends AnyVal {
+    def one: Either[CustomException, A] = in.toList match {
+      case Nil => Left(CustomException(s"Expect 1 item but is empty"))
+      case head :: Nil => Right(head)
+      case list => Left(CustomException(s"Expect 1 item but has ${list.length}"))
+    }
+
+    def findOne(p: A => Boolean): Either[CustomException, A] = in.filter(p).one
+
     // move targeted element one place before (or after) in the collection
     def swap(elt: A, before: Boolean = true)(implicit cbf: CanBuildFrom[M[A], A, M[A]]): M[A] = {
       val coll = cbf(in)
@@ -87,6 +96,19 @@ object Extensions {
             .recover { case NonFatal(error) => (results, error +: errors) }
         }
       }.flatMap(sequenceResult[A, M])
+    }
+  }
+
+  implicit class TraversableOnceEitherExtension[E, A, M[X] <: TraversableOnce[X]](val in: M[Either[E, A]]) extends AnyVal {
+    def sequence(implicit cbf: CanBuildFrom[M[Either[E, A]], A, M[A]]): Either[E, M[A]] = {
+      val init = cbf(in) -> Seq.empty[E]
+      sequenceResultEither[E, A, M](in.foldLeft(init) { (acc, cur) =>
+        val (results, errors) = acc
+        cur match {
+          case Right(result) => (results += result, errors)
+          case Left(error) => (results, error +: errors)
+        }
+      }).leftMap(_.head)
     }
   }
 
@@ -153,6 +175,10 @@ object Extensions {
     }
   }
 
+  implicit class OptionalExtension[A](val in: Optional[A]) extends AnyVal {
+    def asScala: Option[A] = if (in.isPresent) Some(in.get()) else None
+  }
+
   implicit class TryExtension[A](val in: Try[A]) extends AnyVal {
     def mapFailure(f: Throwable => Throwable): Try[A] =
       in.recoverWith { case NonFatal(e) => Failure(f(e)) }
@@ -192,6 +218,11 @@ object Extensions {
         case Right(a) => Right(a)
         case Left(_) => Left(e)
       }
+    }
+
+    def asTry(f: E => Throwable): Try[A] = in match {
+      case Right(a) => Success(a)
+      case Left(e) => Failure(f(e))
     }
 
     def toIO(implicit ev: E <:< Throwable): IO[A] = in match {
@@ -234,14 +265,17 @@ object Extensions {
   }
 
   private def sequenceResult[A, M[X] <: TraversableOnce[X]](in: (mutable.Builder[A, M[A]], Seq[Throwable])): Try[M[A]] = {
+    sequenceResultEither(in).leftMap(_.flatMap {
+      case MultiException(errs) => errs
+      case e => NonEmptyList.of(e)
+    }).asTry(errs => if (errs.length == 1) errs.head else MultiException(errs))
+  }
+
+  private def sequenceResultEither[E, A, M[X] <: TraversableOnce[X]](in: (mutable.Builder[A, M[A]], Seq[E])): Either[NonEmptyList[E], M[A]] = {
     val (results, errors) = in
     NonEmptyList.fromList(errors.reverse.toList)
-      .map(_.flatMap {
-        case MultiException(errs) => errs
-        case e => NonEmptyList.of(e)
-      })
-      .map(errs => if (errs.length == 1) Failure(errs.head) else Failure(MultiException(errs)))
-      .getOrElse(Success(results.result()))
+      .map(errs => Left(errs))
+      .getOrElse(Right(results.result()))
   }
 
 }

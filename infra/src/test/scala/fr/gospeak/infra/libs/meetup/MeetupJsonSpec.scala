@@ -7,7 +7,7 @@ import io.circe.parser.decode
 import org.scalatest.{FunSpec, Matchers}
 
 class MeetupJsonSpec extends FunSpec with Matchers {
-  private val basePath = "infra/src/test/resources/meetup"
+  private val basePath = "src/test/resources/meetup"
 
   it("should parse access token response") {
     decode[MeetupToken](FileUtils.read(basePath + "/accessToken.json").get).toTry.get
@@ -25,6 +25,9 @@ class MeetupJsonSpec extends FunSpec with Matchers {
   }
   it("should parse venues response") {
     decode[Seq[MeetupVenue]](FileUtils.read(basePath + "/venues.json").get).toTry.get
+  }
+  it("should parse locations response") {
+    decode[Seq[MeetupLocation]](FileUtils.read(basePath + "/locations.json").get).toTry.get
   }
   it("should parse error responses") {
     decode[MeetupError.NotAuthorized](FileUtils.read(basePath + "/errors/not_authorized.json").get).toTry.get

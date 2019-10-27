@@ -5,7 +5,7 @@
 @(group: Group, speaker: User)
 <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
     <div>
-        <img src="@speaker.avatar.url.value" class="avatar avatar-list" alt="avatar">
+        <img src="@speaker.avatar.url.value" alt="@speaker.name.value avatar" class="avatar avatar-list">
     </div>
     <div class="col-11">
         <a href="@SpeakerCtrl.detail(group.slug, speaker.slug)" class="no-style"><h5 class="mb-0">@speaker.name.value</h5></a>

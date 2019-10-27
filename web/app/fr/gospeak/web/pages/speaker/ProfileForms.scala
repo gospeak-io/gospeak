@@ -12,7 +12,7 @@ object ProfileForms {
     "last-name" -> text(1, 30),
     "email" -> emailAddress,
     "status" -> userProfileStatus,
-    "description" -> optional(text),
+    "bio" -> optional(markdown),
     "company" -> optional(text),
     "location" -> optional(text),
     "twitter" -> optional(url),
