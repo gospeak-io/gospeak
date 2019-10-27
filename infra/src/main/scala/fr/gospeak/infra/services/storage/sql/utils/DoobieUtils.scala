@@ -99,6 +99,8 @@ object DoobieUtils {
 
     def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort)
 
+    def select[A: Read](where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort)
+
     def select[A: Read](fields: Seq[Field], where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort)
 
     def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, None, params, sort, search)

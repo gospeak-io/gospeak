@@ -1,0 +1,10 @@
+@import fr.gospeak.core.domain.{Event, Group, User}
+@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
+
+@(group: Group, event: Event, attendee: User)(implicit req: Request[AnyContent], messages: Messages)
+<p>Hello @attendee.firstName,</p>
+<p>Someone withdrew and you were the first on the waiting list for <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a>.</p>
+<p>Good news, you are now on the guest list :)</p>
+<p>If you can't come, please change your status so other people can come.</p>
+<p>We hope you will enjoy this event</p>
+<p>The Gospeak team</p>

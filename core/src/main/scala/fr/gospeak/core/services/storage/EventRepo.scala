@@ -51,6 +51,8 @@ trait PublicEventRepo {
 
   def findRsvp(event: Event.Id, user: User.Id): IO[Option[Event.Rsvp]]
 
+  def findFirstWait(event: Event.Id): IO[Option[Event.Rsvp]]
+
   def createRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done]
 
   def editRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done]

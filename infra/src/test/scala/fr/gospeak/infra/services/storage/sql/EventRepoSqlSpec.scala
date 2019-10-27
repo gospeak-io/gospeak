@@ -1,10 +1,10 @@
 package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
-import fr.gospeak.core.domain.Group
+import fr.gospeak.core.domain.{Event, Group}
 import fr.gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{fields => contactFields, table => contactTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec._
-import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec.{fields => groupFields, table => groupTable, memberTable}
+import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec.{memberTable, fields => groupFields, table => groupTable}
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSqlSpec.{fields => partnerFields, table => partnerTable}
 import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec.{fields => userFields, table => userTable}
 import fr.gospeak.infra.services.storage.sql.VenueRepoSqlSpec.{fields => venueFields, table => venueTable}
@@ -114,6 +114,10 @@ class EventRepoSqlSpec extends RepoSpec {
         it("should build selectOneRsvp") {
           val q = EventRepoSql.selectOneRsvp(event.id, user.id)
           check(q, s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? AND er.user_id=? $rsvpOrderBy")
+        }
+        it("should build selectFirstRsvp") {
+          val q = EventRepoSql.selectFirstRsvp(event.id, Event.Rsvp.Answer.Wait)
+          check(q, s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? AND er.answer=? ORDER BY er.answered_at IS NULL, er.answered_at")
         }
       }
     }

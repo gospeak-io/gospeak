@@ -4,13 +4,13 @@ import cats.effect.IO
 import fr.gospeak.core.domain.User
 import fr.gospeak.infra.services.EmailSrv._
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{EmailAddress, Secret}
+import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Secret}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 trait EmailSrv {
-  def send(email: Email): IO[Unit]
+  def send(email: Email): IO[Done]
 }
 
 object EmailSrv {
@@ -61,21 +61,27 @@ object EmailSrv {
 
 // useful for dev
 class ConsoleEmailSrv extends EmailSrv {
-  override def send(email: Email): IO[Unit] = IO(println(
-    s"""EmailSrv.send(
-       |  from: ${email.from.format},
-       |  to: ${email.to.map(_.format).mkString(", ")},
-       |  subject: ${email.subject},
-       |  content:
-       |${email.content.value}
-       |)""".stripMargin))
+  override def send(email: Email): IO[Done] = IO {
+    println(
+      s"""EmailSrv.send(
+         |  from: ${email.from.format},
+         |  to: ${email.to.map(_.format).mkString(", ")},
+         |  subject: ${email.subject},
+         |  content:
+         |${email.content.value}
+         |)""".stripMargin)
+    Done
+  }
 }
 
 // useful for tests
 class InMemoryEmailSrv extends EmailSrv {
   val sentEmails: ArrayBuffer[Email] = mutable.ArrayBuffer[Email]()
 
-  override def send(email: Email): IO[Unit] = IO(sentEmails.prepend(email))
+  override def send(email: Email): IO[Done] = IO {
+    sentEmails.prepend(email)
+    Done
+  }
 }
 
 class SendGridEmailSrv private(client: com.sendgrid.SendGrid) extends EmailSrv {
@@ -84,7 +90,7 @@ class SendGridEmailSrv private(client: com.sendgrid.SendGrid) extends EmailSrv {
   import com.sendgrid.helpers.{mail => sgM}
   import com.{sendgrid => sg}
 
-  override def send(email: Email): IO[Unit] = {
+  override def send(email: Email): IO[Done] = {
     // https://github.com/sendgrid/sendgrid-java/blob/master/examples/helpers/mail/Example.java#L30
     val mail = buildMail(email)
     val request = new sg.Request()
@@ -94,7 +100,7 @@ class SendGridEmailSrv private(client: com.sendgrid.SendGrid) extends EmailSrv {
       body <- IO(mail.build)
       _ = request.setBody(body)
       _ <- IO(client.api(request)).filter(_.getStatusCode == 202)
-    } yield ()
+    } yield Done
   }
 
   private def buildMail(email: Email): sgM.Mail = {

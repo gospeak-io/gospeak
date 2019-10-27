@@ -65,6 +65,8 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def findRsvp(event: Event.Id, user: User.Id): IO[Option[Event.Rsvp]] = selectOneRsvp(event, user).runOption(xa)
 
+  override def findFirstWait(event: Event.Id): IO[Option[Event.Rsvp]] = selectFirstRsvp(event, Answer.Wait).runOption(xa)
+
   override def createRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done] =
     insertRsvp(Event.Rsvp(event, answer, now, user)).run(xa).map(_ => Done)
 
@@ -153,4 +155,7 @@ object EventRepoSql {
 
   private[sql] def selectOneRsvp(event: Event.Id, user: User.Id): Select[Event.Rsvp] =
     rsvpTableWithUser.select[Event.Rsvp](fr0"WHERE er.event_id=$event AND er.user_id=$user")
+
+  private[sql] def selectFirstRsvp(event: Event.Id, answer: Answer): Select[Event.Rsvp] =
+    rsvpTableWithUser.select[Event.Rsvp](fr0"WHERE er.event_id=$event AND er.answer=$answer", sort = Seq(Field("answered_at", "er")))
 }

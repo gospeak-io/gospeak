@@ -7,10 +7,12 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.{Event, Group, Proposal}
 import fr.gospeak.core.services.storage._
+import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
+import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.pages.published.groups.GroupCtrl._
 import fr.gospeak.web.utils.UICtrl
@@ -26,7 +28,8 @@ class GroupCtrl(cc: ControllerComponents,
                 eventRepo: PublicEventRepo,
                 proposalRepo: PublicProposalRepo,
                 sponsorRepo: PublicSponsorRepo,
-                sponsorPackRepo: PublicSponsorPackRepo) extends UICtrl(cc, silhouette) {
+                sponsorPackRepo: PublicSponsorPackRepo,
+                emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
 
   import silhouette._
 
@@ -120,7 +123,15 @@ class GroupCtrl(cc: ControllerComponents,
           if (eventElt.isFull(yesRsvp)) eventRepo.createRsvp(eventElt.id, Wait)(req.identity.user, now).map(_ => waitMsg)
           else eventRepo.createRsvp(eventElt.id, Yes)(req.identity.user, now).map(_ => yesMsg)
         case (Some(Yes), Yes) | (Some(Wait), Yes) | (Some(No), No) => IO.pure("success" -> "Thanks")
-        case (Some(Yes), No) | (Some(Wait), No) => eventRepo.editRsvp(eventElt.id, No)(req.identity.user, now).map(_ => noMsg)
+        case (Some(Yes), No) => for {
+          _ <- eventRepo.editRsvp(eventElt.id, No)(req.identity.user, now)
+          firstWait <- eventRepo.findFirstWait(eventElt.id)
+          _ <- firstWait.map { r =>
+            eventRepo.editRsvp(eventElt.id, Yes)(r.user, now)
+              .flatMap(_ => emailSrv.send(Emails.movedFromWaitingListToAttendees(groupElt, eventElt.event, r.user)))
+          }.getOrElse(IO.pure(Done))
+        } yield noMsg
+        case (Some(Wait), No) => eventRepo.editRsvp(eventElt.id, No)(req.identity.user, now).map(_ => noMsg)
         case (Some(No), Yes) =>
           if (eventElt.isFull(yesRsvp)) eventRepo.editRsvp(eventElt.id, Wait)(req.identity.user, now).map(_ => waitMsg)
           else eventRepo.editRsvp(eventElt.id, Yes)(req.identity.user, now).map(_ => yesMsg)
