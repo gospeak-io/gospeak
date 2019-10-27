@@ -25,12 +25,12 @@ val cats = Seq(
   "org.typelevel" %% "cats-core" % "1.6.1",
   "org.typelevel" %% "cats-effect" % "1.4.0")
 val circe = Seq(
-  "io.circe" %% "circe-core",
-  "io.circe" %% "circe-generic",
-  "io.circe" %% "circe-parser",
-  "io.circe" %% "circe-literal",
-  "io.circe" %% "circe-generic-extras",
-  "io.circe" %% "circe-java8").map(_ % "0.11.1")
+  "io.circe" %% "circe-core" % "0.12.3",
+  "io.circe" %% "circe-generic" % "0.12.3",
+  "io.circe" %% "circe-parser" % "0.12.3",
+  "io.circe" %% "circe-literal" % "0.12.3",
+  "io.circe" %% "circe-generic-extras" % "0.12.2",
+  "io.circe" %% "circe-java8" % "0.11.1")
 val doobieVersion = "0.6.0"
 val doobie = Seq(
   "org.tpolecat" %% "doobie-core",

@@ -5,7 +5,7 @@ import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Markdown
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import io.circe.generic.extras.Configuration
-import io.circe.generic.extras.semiauto.deriveEncoder
+import io.circe.generic.extras.semiauto.deriveConfiguredEncoder
 import io.circe.{Encoder, Json, JsonNumber, JsonObject}
 
 class TemplateSrv {
@@ -26,25 +26,25 @@ class TemplateSrv {
 
 object TemplateSrv {
   private implicit val circeConfiguration: Configuration = Configuration.default.withDiscriminator("type")
-  private implicit val strDateTimeEncoder: Encoder[TemplateData.StrDateTime] = deriveEncoder[TemplateData.StrDateTime]
-  private implicit val descriptionEncoder: Encoder[TemplateData.Description] = deriveEncoder[TemplateData.Description]
-  private implicit val userEncoder: Encoder[TemplateData.User] = deriveEncoder[TemplateData.User]
-  private implicit val groupEncoder: Encoder[TemplateData.Group] = deriveEncoder[TemplateData.Group]
-  private implicit val cfpEncoder: Encoder[TemplateData.Cfp] = deriveEncoder[TemplateData.Cfp]
-  private implicit val eventEncoder: Encoder[TemplateData.Event] = deriveEncoder[TemplateData.Event]
-  private implicit val proposalEncoder: Encoder[TemplateData.Proposal] = deriveEncoder[TemplateData.Proposal]
-  private implicit val eventVenueEncoder: Encoder[TemplateData.EventVenue] = deriveEncoder[TemplateData.EventVenue]
-  private implicit val talkSpeakerEncoder: Encoder[TemplateData.TalkSpeaker] = deriveEncoder[TemplateData.TalkSpeaker]
-  private implicit val eventTalkEncoder: Encoder[TemplateData.EventTalk] = deriveEncoder[TemplateData.EventTalk]
+  private implicit val strDateTimeEncoder: Encoder[TemplateData.StrDateTime] = deriveConfiguredEncoder[TemplateData.StrDateTime]
+  private implicit val descriptionEncoder: Encoder[TemplateData.Description] = deriveConfiguredEncoder[TemplateData.Description]
+  private implicit val userEncoder: Encoder[TemplateData.User] = deriveConfiguredEncoder[TemplateData.User]
+  private implicit val groupEncoder: Encoder[TemplateData.Group] = deriveConfiguredEncoder[TemplateData.Group]
+  private implicit val cfpEncoder: Encoder[TemplateData.Cfp] = deriveConfiguredEncoder[TemplateData.Cfp]
+  private implicit val eventEncoder: Encoder[TemplateData.Event] = deriveConfiguredEncoder[TemplateData.Event]
+  private implicit val proposalEncoder: Encoder[TemplateData.Proposal] = deriveConfiguredEncoder[TemplateData.Proposal]
+  private implicit val eventVenueEncoder: Encoder[TemplateData.EventVenue] = deriveConfiguredEncoder[TemplateData.EventVenue]
+  private implicit val talkSpeakerEncoder: Encoder[TemplateData.TalkSpeaker] = deriveConfiguredEncoder[TemplateData.TalkSpeaker]
+  private implicit val eventTalkEncoder: Encoder[TemplateData.EventTalk] = deriveConfiguredEncoder[TemplateData.EventTalk]
 
-  private implicit val eventCreatedEncoder: Encoder[TemplateData.EventCreated] = deriveEncoder[TemplateData.EventCreated]
-  private implicit val talkAddedEncoder: Encoder[TemplateData.TalkAdded] = deriveEncoder[TemplateData.TalkAdded]
-  private implicit val talkRemovedEncoder: Encoder[TemplateData.TalkRemoved] = deriveEncoder[TemplateData.TalkRemoved]
-  private implicit val eventPublishedEncoder: Encoder[TemplateData.EventPublished] = deriveEncoder[TemplateData.EventPublished]
-  private implicit val proposalCreatedEncoder: Encoder[TemplateData.ProposalCreated] = deriveEncoder[TemplateData.ProposalCreated]
-  private implicit val eventInfoEncoder: Encoder[TemplateData.EventInfo] = deriveEncoder[TemplateData.EventInfo]
+  private implicit val eventCreatedEncoder: Encoder[TemplateData.EventCreated] = deriveConfiguredEncoder[TemplateData.EventCreated]
+  private implicit val talkAddedEncoder: Encoder[TemplateData.TalkAdded] = deriveConfiguredEncoder[TemplateData.TalkAdded]
+  private implicit val talkRemovedEncoder: Encoder[TemplateData.TalkRemoved] = deriveConfiguredEncoder[TemplateData.TalkRemoved]
+  private implicit val eventPublishedEncoder: Encoder[TemplateData.EventPublished] = deriveConfiguredEncoder[TemplateData.EventPublished]
+  private implicit val proposalCreatedEncoder: Encoder[TemplateData.ProposalCreated] = deriveConfiguredEncoder[TemplateData.ProposalCreated]
+  private implicit val eventInfoEncoder: Encoder[TemplateData.EventInfo] = deriveConfiguredEncoder[TemplateData.EventInfo]
 
-  private implicit val templateDataEncoder: Encoder[TemplateData] = deriveEncoder[TemplateData]
+  private implicit val templateDataEncoder: Encoder[TemplateData] = deriveConfiguredEncoder[TemplateData]
 }
 
 // cf https://github.com/eikek/yamusca
