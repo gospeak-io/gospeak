@@ -1,4 +1,4 @@
-@(id: String)(content: Html)
-<div class="tab-pane radio fade" id="@id" role="tabpanel" aria-labelledby="@id-tab">
+@(id: String, active: Boolean)(content: Html)
+<div class="tab-pane radio fade@if(active){ active show}" id="@id" role="tabpanel" aria-labelledby="@id-tab">
     @content
 </div>

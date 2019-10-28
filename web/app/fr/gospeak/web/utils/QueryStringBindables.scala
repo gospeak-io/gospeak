@@ -52,15 +52,6 @@ object QueryStringBindables {
         stringBinder.unbind(key, value.value)
     }
 
-  implicit def groupSettingsEventQueryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[Group.Settings.Action.Trigger] =
-    new QueryStringBindable[Group.Settings.Action.Trigger] {
-      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Group.Settings.Action.Trigger]] =
-        stringBinder.bind(key, params).map(_.flatMap(e => Group.Settings.Action.Trigger.from(e).toEither(s"Invalid event '$e'")))
-
-      override def unbind(key: String, value: Group.Settings.Action.Trigger): String =
-        stringBinder.unbind(key, value.toString)
-    }
-
   implicit def partnerSlugQueryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[Partner.Slug] =
     new QueryStringBindable[Partner.Slug] {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Partner.Slug]] =

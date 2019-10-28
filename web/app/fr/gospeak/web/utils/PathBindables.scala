@@ -22,6 +22,9 @@ object PathBindables {
   implicit def groupSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Group.Slug] =
     stringEitherPathBindable[Group.Slug](Group.Slug.from, _.value)
 
+  implicit def groupActionTriggerPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Group.Settings.Action.Trigger] =
+    stringEitherPathBindable[Group.Settings.Action.Trigger](Group.Settings.Action.Trigger.from, _.value)
+
   implicit def eventSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Event.Slug] =
     stringEitherPathBindable[Event.Slug](Event.Slug.from, _.value)
 

@@ -1,0 +1,23 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.Group
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.orga.settings.SettingsForms.AddAction
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.partials.form.html._
+
+@(actionForm: Form[AddAction])(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@fieldHorizontal(actionForm("trigger"), Seq("label" -> "Trigger", "help" -> "Choose the trigger you want for your action")) { (field, args) =>
+    @inputSelect(field, Group.Settings.Action.Trigger.all.map(t => (t.toString, t.name)), Seq("placeholder" -> "") ++ args)
+}
+<div class="row">
+    <div class="col-7">
+        @navVertical(actionForm("action"), field => Seq(
+            /* (field, "Email-Send", "Send an email", _ => Html("TODO")), */
+            (field, "Slack-PostMessage", "Post Slack message", actionFieldsSlackPostMessage(_, actionForm("trigger").id))
+            /* (field, "Twitter-PostMessage", "Post a Twitt", _ => Html("TODO")) */
+        ), 4)
+    </div>
+    <div class="col-5">
+    @displayTemplateData(target = Some(actionForm("trigger").id))
+    </div>
+</div>

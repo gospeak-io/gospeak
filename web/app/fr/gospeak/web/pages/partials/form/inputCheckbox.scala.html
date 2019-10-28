@@ -5,7 +5,7 @@
     @Utils.typeAttr("checkbox")
     @Utils.idAttr(field, args)
     @Utils.nameAttr(field, args)
-    @Utils.valueAttr(field, args, "true")
+    @Utils.attr("value", Utils.getArg(args, "value", "true"))
     @Utils.classAttr(field, args, "custom-control-input")
     @Utils.checkedAttr(field, args)>
 <label class="custom-control-label" for="@Utils.id(field, args)">@Utils.label(field, args)</label>

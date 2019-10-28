@@ -1,15 +1,16 @@
-@(tabs: Seq[(Field, String, String, Field => Html)], size: Int = 3)
+@import fr.gospeak.web.pages.orga.settings.partials.html.navTab
+@import fr.gospeak.web.pages.orga.settings.partials.html.navPane
+
+@(field: Field, tabs: Field => Seq[(Field, String, String, Field => Html)], size: Int = 3)
 <div class="row">
     <div class="col-@size">
         <div class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
-        @tabs.map { case (field, id, name, _) => @navTab(id, name) }
+        @tabs(field).map { case (field, id, name, _) => @navTab(id, name, field("kind").value.contains(id.replace("-", "."))) }
         </div>
     </div>
-    <div class="col-@{
-        12 - size
-    }">
+    <div class="col-@{12 - size}">
         <div class="tab-content">
-        @tabs.map { case (field, id, _, content) => @navPane(id)(content(field)) }
+        @tabs(field).map { case (field, id, _, content) => @navPane(id, field("kind").value.contains(id.replace("-", ".")))(content(field)) }
         </div>
     </div>
 </div>

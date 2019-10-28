@@ -5,6 +5,7 @@
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.core.domain.utils.Constants
 
 @(id: String, group: Group, slackForm: Form[SlackCredentials])(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 <div class="modal fade" id="@id" tabindex="-1" role="dialog">
@@ -49,10 +50,10 @@
                     </ul>
                 }
                 @fieldHorizontal(slackForm("name"), Seq("label" -> "Bot name", "help" -> "The name that will be used in Slack")) { (field, args) =>
-                    @inputText(field, Seq("placeholder" -> "ex: Gospeak bot") ++ args)
+                    @inputText(field, Seq("placeholder" -> "ex: Gospeak bot", "value" -> Constants.Slack.defaultBotName) ++ args)
                 }
                 @fieldHorizontal(slackForm("avatar"), Seq("label" -> "Bot avatar", "help" -> "The bot avatar in Slack")) { (field, args) =>
-                    @inputImg(field, Seq("placeholder" -> "ex: https://secure.gravatar.com/avatar/fa64969431e3d540ef30d06860d64958?size=100&default=wavatar", "optional" -> "") ++ args)
+                    @inputImg(field, Seq("placeholder" -> "ex: https://secure.gravatar.com/avatar/fa64969431e3d540ef30d06860d64958?size=100&default=wavatar", "value" -> Constants.Slack.defaultBotAvatar, "optional" -> "") ++ args)
                 }
             </div>
             <div class="modal-footer">

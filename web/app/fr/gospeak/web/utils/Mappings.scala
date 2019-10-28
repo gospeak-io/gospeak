@@ -189,7 +189,7 @@ object Mappings {
 
   val groupSettingsEvent: Mapping[Group.Settings.Action.Trigger] = of(new Formatter[Group.Settings.Action.Trigger] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action.Trigger] =
-      data.eitherGetAndParse(key, v => Group.Settings.Action.Trigger.from(v).toTry(CustomException(v)), formatError).left.map(Seq(_))
+      data.eitherGetAndParse(key, v => Group.Settings.Action.Trigger.from(v).asTry(identity), formatError).left.map(Seq(_))
 
     override def unbind(key: String, trigger: Group.Settings.Action.Trigger): Map[String, String] = Map(key -> trigger.value)
   })

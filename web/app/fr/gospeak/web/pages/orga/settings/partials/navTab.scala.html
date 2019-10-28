@@ -1,10 +1,10 @@
 @import fr.gospeak.web.pages.partials.form.Utils
-@(id: String, name: String)
+@(id: String, name: String, active: Boolean)
 <a
-class="nav-link radio"
-id="@id-tab"
-data-toggle="pill"
-href="#@id"
-role="tab"
-aria-controls="@id"
-aria-selected="false">@name</a>
+    class="nav-link radio@if(active){ active}"
+    id="@id-tab"
+    data-toggle="pill"
+    href="#@id"
+    role="tab"
+    aria-controls="@id"
+    aria-selected="@active">@name</a>

@@ -49,19 +49,17 @@ object Group {
 
   object Member {
 
-    sealed trait Role
+    sealed trait Role extends StringEnum with Product with Serializable {
+      override def value: String = toString
+    }
 
-    object Role {
+    object Role extends EnumBuilder[Role]("Group.Member.Role") {
 
       case object Owner extends Role
 
       case object Member extends Role
 
       val all: Seq[Role] = Seq(Owner, Member)
-
-      def from(str: String): Either[CustomException, Role] =
-        all.find(_.toString == str).map(Right(_)).getOrElse(Left(CustomException(s"'$str' is not a valid Group.Member.Role")))
-
     }
 
   }
@@ -121,7 +119,7 @@ object Group {
         def getClassName: String = getClass.getName.split("[.$]").toList.last
       }
 
-      object Trigger {
+      object Trigger extends EnumBuilder[Trigger]("Group.Settings.Action.Trigger") {
 
         case object OnEventCreated extends Trigger("When an Event is created")
 
@@ -134,8 +132,6 @@ object Group {
         case object OnProposalCreated extends Trigger("When a Proposal is submitted to a CFP")
 
         val all: Seq[Trigger] = Seq(OnEventCreated, OnEventAddTalk, OnEventRemoveTalk, OnEventPublish, OnProposalCreated)
-
-        def from(str: String): Option[Trigger] = all.find(_.toString == str)
       }
 
       final case class Slack(value: SlackAction) extends Action

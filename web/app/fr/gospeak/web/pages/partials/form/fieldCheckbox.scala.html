@@ -2,13 +2,7 @@
 
 @(field: Field, args: Seq[(String, String)] = Seq())(implicit messages: Messages)
 <div class="custom-control custom-checkbox @Utils.getArg(args, "class")">
-    <input
-        @Utils.typeAttr("checkbox")
-        @Utils.idAttr(field, args)
-        @Utils.nameAttr(field, args)
-        @Utils.valueAttr(field, args, "true")
-        @Utils.classAttr(field, args, "custom-control-input")>
-    <label for="@Utils.id(field, args)" class="custom-control-label">@Utils.getArg(args, "label", field.name)</label>
+    @inputCheckbox(field, args)
     @if(Utils.hasErrors(field)) {
         <div class="invalid-feedback">
             @Utils.getArg(args, "help").map { help => @helpText(field, args, help) }
