@@ -18,7 +18,7 @@
 @import fr.gospeak.web.pages.partials.html.{pagination, search}
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], attachCfp: Form[Cfp.Slug], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Slug], notesForm: Form[Option[String]], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(event.name.value + " - Gospeak", group, b)() {
     @if(!event.isPublic) {
         <div class="alert alert-info" role="alert">
@@ -65,6 +65,17 @@
             case (false, _, _) => {}
         }
     </p>
+
+    @formElt(notesForm, EventCtrl.doEditNotes(group.slug, event.slug)) {
+        <div class="form-group">
+            <label for="notes" class="d-flex justify-content-between align-items-center">
+                <span class="lead">Orga notes:</span>
+                @btnSubmit("Save notes", "btn btn-outline-primary btn-sm")
+            </label>
+            @inputTextarea(notesForm("notes"), Seq("placeholder" -> "Notes and reminders about your event...", "optional" -> ""))
+            <small class="form-text text-muted">Use theses not as a reminder between orgas</small>
+        </div>
+    }
 
     @if(event.talks.isEmpty) {
         @if(cfpOpt.isDefined) {
@@ -138,8 +149,8 @@
             <h5 class="card-header">No attached CFP</h5>
             <div class="card-body mx-auto text-center">
                 <p class="card-text">Your event has no attached CFP, so you will not be able to add talk proposals</p>
-                @formElt(attachCfp, EventCtrl.attachCfp(group.slug, event.slug), Seq("class" -> "form-inline")) {
-                    @inputSelect(attachCfp("cfp"), Seq(), Seq(
+                @formElt(cfpForm, EventCtrl.attachCfp(group.slug, event.slug), Seq("class" -> "form-inline")) {
+                    @inputSelect(cfpForm("cfp"), Seq(), Seq(
                         "placeholder" -> "-- Attach a CFP to this event",
                         "remote" -> SuggestCtrl.suggestCfps(group.slug).toString,
                         "optional" -> ""))

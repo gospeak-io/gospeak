@@ -20,7 +20,9 @@ object EventForms {
     "refs" -> eventRefs
   )(Event.Data.apply)(Event.Data.unapply))
 
-  val attachCfp: Form[Cfp.Slug] = Form(single("cfp" -> cfpSlug))
+  val notes: Form[Option[String]] = Form(single("notes" -> optional(nonEmptyText)))
+
+  val cfp: Form[Cfp.Slug] = Form(single("cfp" -> cfpSlug))
 
   final case class MeetupOptions(publish: Boolean, draft: Boolean)
 

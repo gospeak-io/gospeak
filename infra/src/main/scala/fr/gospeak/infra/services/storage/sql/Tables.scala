@@ -70,7 +70,7 @@ object Tables {
   val events: Table = Table.from(
     name = "events",
     prefix = "e",
-    fields = Seq("id", "group_id", "cfp_id", "slug", "name", "start", "max_attendee", "allow_rsvp", "description", "venue", "talks", "tags", "published", "meetupGroup", "meetupEvent", "created", "created_by", "updated", "updated_by"),
+    fields = Seq("id", "group_id", "cfp_id", "slug", "name", "start", "max_attendee", "allow_rsvp", "description", "orga_notes", "venue", "talks", "tags", "published", "meetupGroup", "meetupEvent", "created", "created_by", "updated", "updated_by"),
     sort = Seq("-start"),
     search = Seq("id", "slug", "name", "description", "tags")).get
 

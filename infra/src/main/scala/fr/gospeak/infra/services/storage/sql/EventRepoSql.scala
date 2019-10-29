@@ -34,6 +34,9 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
     }
   }
 
+  override def editNotes(group: Group.Id, event: Event.Slug)(notes: Option[String], by: User.Id, now: Instant): IO[Done] =
+    updateNotes(group, event)(notes, by, now).run(xa)
+
   override def attachCfp(group: Group.Id, event: Event.Slug)(cfp: Cfp.Id, by: User.Id, now: Instant): IO[Done] =
     updateCfp(group, event)(cfp, by, now).run(xa)
 
@@ -98,7 +101,7 @@ object EventRepoSql {
     .dropFields(_.prefix == "gm")
 
   private[sql] def insert(e: Event): Insert[Event] = {
-    val values = fr0"${e.id}, ${e.group}, ${e.cfp}, ${e.slug}, ${e.name}, ${e.start}, ${e.maxAttendee}, ${e.allowRsvp}, ${e.description}, ${e.venue}, ${e.talks}, ${e.tags}, ${e.published}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.event)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    val values = fr0"${e.id}, ${e.group}, ${e.cfp}, ${e.slug}, ${e.name}, ${e.start}, ${e.maxAttendee}, ${e.allowRsvp}, ${e.description}, ${e.orgaNotes}, ${e.venue}, ${e.talks}, ${e.tags}, ${e.published}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.event)}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
     table.insert(e, _ => values)
   }
 
@@ -106,6 +109,9 @@ object EventRepoSql {
     val fields = fr0"cfp_id=${d.cfp}, slug=${d.slug}, name=${d.name}, start=${d.start}, max_attendee=${d.maxAttendee}, allow_rsvp=${d.allowRsvp}, description=${d.description}, venue=${d.venue}, tags=${d.tags}, meetupGroup=${d.refs.meetup.map(_.group)}, meetupEvent=${d.refs.meetup.map(_.event)}, updated=$now, updated_by=$by"
     table.update(fields, where(group, event))
   }
+
+  private[sql] def updateNotes(group: Group.Id, event: Event.Slug)(notes: Option[String], by: User.Id, now: Instant): Update =
+    table.update(fr0"orga_notes=$notes, updated=$now, updated_by=$by", where(group, event))
 
   private[sql] def updateCfp(group: Group.Id, event: Event.Slug)(cfp: Cfp.Id, by: User.Id, now: Instant): Update =
     table.update(fr0"cfp_id=$cfp, updated=$now, updated_by=$by", where(group, event))

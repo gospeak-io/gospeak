@@ -19,6 +19,7 @@ final case class Event(id: Event.Id,
                        allowRsvp: Boolean,
                        // duration: Option[Duration]
                        description: MustacheMarkdownTmpl[TemplateData.EventInfo],
+                       orgaNotes: Option[String],
                        venue: Option[Venue.Id],
                        talks: Seq[Proposal.Id],
                        tags: Seq[Tag],
@@ -44,7 +45,7 @@ final case class Event(id: Event.Id,
 
 object Event {
   def create(group: Group.Id, d: Data, info: Info): Event =
-    new Event(Id.generate(), group, d.cfp, d.slug, d.name, d.start, d.maxAttendee, d.allowRsvp, d.description, d.venue, Seq(), d.tags, None, ExtRefs(), info)
+    new Event(Id.generate(), group, d.cfp, d.slug, d.name, d.start, d.maxAttendee, d.allowRsvp, d.description, None, d.venue, Seq(), d.tags, None, ExtRefs(), info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 

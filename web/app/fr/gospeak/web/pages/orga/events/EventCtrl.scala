@@ -91,7 +91,7 @@ class EventCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
       desc = eventSrv.buildDescription(e, nowLDT)
       b = breadcrumb(e.group, e.event)
-      res = Ok(html.detail(e.group, e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, eventTemplates, EventForms.attachCfp, now)(b))
+      res = Ok(html.detail(e.group, e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, eventTemplates, EventForms.cfp, EventForms.notes.fill(e.event.orgaNotes), now)(b))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 
@@ -139,9 +139,20 @@ class EventCtrl(cc: ControllerComponents,
     } yield Ok(html.edit(groupElt, meetupAccount.isDefined, eventElt, filledForm)(b))).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
+  def doEditNotes(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    EventForms.notes.bindFromRequest.fold(
+      formWithErrors => IO.pure(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Unable to edit notes: ${formWithErrors.errors.map(_.format).mkString(", ")}")),
+      notes => (for {
+        groupElt <- OptionT(groupRepo.find(user, group))
+        _ <- OptionT.liftF(eventRepo.editNotes(groupElt.id, event)(notes, by, now))
+      } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event)))
+    ).unsafeToFuture()
+  }
+
   def attachCfp(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
-    EventForms.attachCfp.bindFromRequest.fold(
+    EventForms.cfp.bindFromRequest.fold(
       formWithErrors => IO.pure(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Unable to attach CFP: ${formWithErrors.errors.map(_.format).mkString(", ")}")),
       cfp => (for {
         groupElt <- OptionT(groupRepo.find(user, group))
