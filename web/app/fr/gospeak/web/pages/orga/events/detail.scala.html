@@ -18,7 +18,7 @@
 @import fr.gospeak.web.pages.partials.html.{pagination, search}
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Slug], notesForm: Form[Option[String]], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Slug], notesForm: Form[String], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(event.name.value + " - Gospeak", group, b)() {
     @if(!event.isPublic) {
         <div class="alert alert-info" role="alert">
@@ -73,7 +73,10 @@
                 @btnSubmit("Save notes", "btn btn-outline-primary btn-sm")
             </label>
             @inputTextarea(notesForm("notes"), Seq("placeholder" -> "Notes and reminders about your event...", "optional" -> ""))
-            <small class="form-text text-muted">Use theses not as a reminder between orgas</small>
+            <small class="form-text text-muted d-flex justify-content-between align-items-center">
+                <span>Use theses not as a reminder between orgas</span>
+                <span>Last update: @timeAgo(event.orgaNotes.updatedAt)</span>
+            </small>
         </div>
     }
 

@@ -7,12 +7,25 @@ ALTER TABLE groups
 ALTER TABLE groups
     ADD COLUMN location_country VARCHAR(30);
 
+
 ALTER TABLE events
     ADD COLUMN max_attendee INT;
 ALTER TABLE events
     ADD COLUMN allow_rsvp BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE events
-    ADD COLUMN orga_notes VARCHAR(4096);
+    ADD COLUMN orga_notes VARCHAR(4096) NOT NULL default '';
+ALTER TABLE events
+    ADD COLUMN orga_notes_updated_at TIMESTAMP;
+ALTER TABLE events
+    ADD COLUMN orga_notes_updated_by CHAR(36) REFERENCES users (id);
+
+UPDATE events SET orga_notes_updated_at=updated, orga_notes_updated_by=updated_by;
+
+ALTER TABLE events
+    ALTER COLUMN orga_notes_updated_at TIMESTAMP NOT NULL;
+ALTER TABLE events
+    ALTER COLUMN orga_notes_updated_by CHAR(36) NOT NULL;
+
 
 CREATE TABLE group_members
 (

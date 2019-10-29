@@ -34,9 +34,9 @@ object Formats {
 
   def timeAgo(d: Duration): String = {
     val res =
-      if (math.abs(d.toNanos) < 1000) displayDuration(d.toNanos, "nanosecond")
-      else if (math.abs(d.toMicros) < 1000) displayDuration(d.toMicros, "microsecond")
-      else if (math.abs(d.toMillis) < 1000) displayDuration(d.toMillis, "millisecond")
+      if (math.abs(d.toNanos) < 1000) "just now" // displayDuration(d.toNanos, "nanosecond")
+      else if (math.abs(d.toMicros) < 1000) "just now" // displayDuration(d.toMicros, "microsecond")
+      else if (math.abs(d.toMillis) < 1000) "just now" // displayDuration(d.toMillis, "millisecond")
       else if (math.abs(d.toSeconds) < 60) displayDuration(d.toSeconds, "second")
       else if (math.abs(d.toMinutes) < 60) displayDuration(d.toMinutes, "minute")
       else if (math.abs(d.toHours) < 24) displayDuration(d.toHours, "hour")
@@ -44,7 +44,8 @@ object Formats {
       else if (math.abs(d.toDays) < 30) displayDuration(d.toDays / 7, "week")
       else if (math.abs(d.toDays) < 365) displayDuration(d.toDays / 30, "month")
       else displayDuration(d.toDays / 365, "year")
-    if (res.startsWith("-")) res.stripPrefix("-") + " ago"
+    if (res == "just now") res
+    else if (res.startsWith("-")) res.stripPrefix("-") + " ago"
     else "in " + res
   }
 

@@ -2,6 +2,7 @@ package fr.gospeak.core.domain
 
 import java.time.{Instant, LocalDateTime}
 
+import fr.gospeak.core.domain.Event.Notes
 import fr.gospeak.core.domain.utils.{Constants, Info, TemplateData}
 import fr.gospeak.core.services.meetup.domain.MeetupEvent
 import fr.gospeak.libs.scalautils.Extensions._
@@ -19,7 +20,7 @@ final case class Event(id: Event.Id,
                        allowRsvp: Boolean,
                        // duration: Option[Duration]
                        description: MustacheMarkdownTmpl[TemplateData.EventInfo],
-                       orgaNotes: Option[String],
+                       orgaNotes: Notes,
                        venue: Option[Venue.Id],
                        talks: Seq[Proposal.Id],
                        tags: Seq[Tag],
@@ -45,7 +46,7 @@ final case class Event(id: Event.Id,
 
 object Event {
   def create(group: Group.Id, d: Data, info: Info): Event =
-    new Event(Id.generate(), group, d.cfp, d.slug, d.name, d.start, d.maxAttendee, d.allowRsvp, d.description, None, d.venue, Seq(), d.tags, None, ExtRefs(), info)
+    new Event(Id.generate(), group, d.cfp, d.slug, d.name, d.start, d.maxAttendee, d.allowRsvp, d.description, Notes("", info.updated, info.updatedBy), d.venue, Seq(), d.tags, None, ExtRefs(), info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -56,6 +57,10 @@ object Event {
   object Slug extends SlugBuilder[Slug]("Event.Slug", new Slug(_))
 
   final case class Name(value: String) extends AnyVal
+
+  final case class Notes(text: String,
+                         updatedAt: Instant,
+                         updatedBy: User.Id)
 
   final case class ExtRefs(meetup: Option[MeetupEvent.Ref] = None)
 

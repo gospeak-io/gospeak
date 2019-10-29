@@ -91,7 +91,7 @@ class EventCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
       desc = eventSrv.buildDescription(e, nowLDT)
       b = breadcrumb(e.group, e.event)
-      res = Ok(html.detail(e.group, e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, eventTemplates, EventForms.cfp, EventForms.notes.fill(e.event.orgaNotes), now)(b))
+      res = Ok(html.detail(e.group, e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, eventTemplates, EventForms.cfp, EventForms.notes.fill(e.event.orgaNotes.text), now)(b))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 

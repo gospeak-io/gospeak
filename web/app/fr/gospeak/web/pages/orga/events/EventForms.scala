@@ -20,7 +20,7 @@ object EventForms {
     "refs" -> eventRefs
   )(Event.Data.apply)(Event.Data.unapply))
 
-  val notes: Form[Option[String]] = Form(single("notes" -> optional(nonEmptyText)))
+  val notes: Form[String] = Form(single("notes" -> text))
 
   val cfp: Form[Cfp.Slug] = Form(single("cfp" -> cfpSlug))
 

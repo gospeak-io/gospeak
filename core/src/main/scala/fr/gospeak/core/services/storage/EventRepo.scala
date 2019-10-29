@@ -13,7 +13,7 @@ trait OrgaEventRepo {
 
   def edit(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): IO[Done]
 
-  def editNotes(group: Group.Id, event: Event.Slug)(notes: Option[String], by: User.Id, now: Instant): IO[Done]
+  def editNotes(group: Group.Id, event: Event.Slug)(notes: String, by: User.Id, now: Instant): IO[Done]
 
   def attachCfp(group: Group.Id, event: Event.Slug)(cfp: Cfp.Id, by: User.Id, now: Instant): IO[Done]
 

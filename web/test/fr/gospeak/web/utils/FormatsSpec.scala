@@ -22,9 +22,9 @@ class FormatsSpec extends FunSpec with Matchers {
     }
     describe("timeAgo") {
       it("should display time for any unit") {
-        Formats.timeAgo(Duration(5, NANOSECONDS)) shouldBe "in 5 nanoseconds"
-        Formats.timeAgo(Duration(5, MICROSECONDS)) shouldBe "in 5 microseconds"
-        Formats.timeAgo(Duration(5, MILLISECONDS)) shouldBe "in 5 milliseconds"
+        Formats.timeAgo(Duration(5, NANOSECONDS)) shouldBe "just now"
+        Formats.timeAgo(Duration(5, MICROSECONDS)) shouldBe "just now"
+        Formats.timeAgo(Duration(5, MILLISECONDS)) shouldBe "just now"
         Formats.timeAgo(Duration(5, SECONDS)) shouldBe "in 5 seconds"
         Formats.timeAgo(Duration(5, MINUTES)) shouldBe "in 5 minutes"
         Formats.timeAgo(Duration(5, HOURS)) shouldBe "in 5 hours"
@@ -36,7 +36,7 @@ class FormatsSpec extends FunSpec with Matchers {
       it("should manage singular/plural and positive/negative durations") {
         Formats.timeAgo(Duration(-2, SECONDS)) shouldBe "2 seconds ago"
         Formats.timeAgo(Duration(-1, SECONDS)) shouldBe "1 second ago"
-        Formats.timeAgo(Duration(0, SECONDS)) shouldBe "in 0 nanoseconds"
+        Formats.timeAgo(Duration(0, SECONDS)) shouldBe "just now"
         Formats.timeAgo(Duration(1, SECONDS)) shouldBe "in 1 second"
         Formats.timeAgo(Duration(2, SECONDS)) shouldBe "in 2 seconds"
       }
