@@ -16,6 +16,7 @@ final case class Event(id: Event.Id,
                        name: Event.Name,
                        start: LocalDateTime,
                        maxAttendee: Option[Int],
+                       allowRsvp: Boolean,
                        // duration: Option[Duration]
                        description: MustacheMarkdownTmpl[TemplateData.EventInfo],
                        venue: Option[Venue.Id],
@@ -33,11 +34,17 @@ final case class Event(id: Event.Id,
   def move(talk: Proposal.Id, up: Boolean): Event = copy(talks = talks.swap(talk, up))
 
   def isPublic: Boolean = published.isDefined
+
+  def isPast(venue: Option[Venue.Full], now: Instant): Boolean = startInstant(venue).isBefore(now)
+
+  def canRsvp(venue: Option[Venue.Full], now: Instant): Boolean = allowRsvp && isPublic && startInstant(venue).isAfter(now)
+
+  private def startInstant(venue: Option[Venue.Full]) = TimeUtils.toInstant(start, venue.map(_.timezone).getOrElse(Constants.defaultZoneId))
 }
 
 object Event {
-  def create(group: Group.Id, data: Data, info: Info): Event =
-    new Event(Id.generate(), group, data.cfp, data.slug, data.name, data.start, data.maxAttendee, data.description, data.venue, Seq(), data.tags, None, ExtRefs(), info)
+  def create(group: Group.Id, d: Data, info: Info): Event =
+    new Event(Id.generate(), group, d.cfp, d.slug, d.name, d.start, d.maxAttendee, d.allowRsvp, d.description, d.venue, Seq(), d.tags, None, ExtRefs(), info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -86,11 +93,15 @@ object Event {
 
     def talks: Seq[Proposal.Id] = event.talks
 
+    def allowRsvp: Boolean = event.allowRsvp
+
     def refs: ExtRefs = event.refs
 
-    def isPast(now: Instant): Boolean = TimeUtils.toInstant(start, venue.map(_.timezone).getOrElse(Constants.defaultZoneId)).isBefore(now)
-
     def isFull(yesRsvps: Long): Boolean = event.maxAttendee.exists(_ <= yesRsvps.toInt)
+
+    def isPast(now: Instant): Boolean = event.isPast(venue, now)
+
+    def canRsvp(now: Instant): Boolean = event.canRsvp(venue, now)
   }
 
   final case class Data(cfp: Option[Cfp.Id],
@@ -98,13 +109,14 @@ object Event {
                         name: Name,
                         start: LocalDateTime,
                         maxAttendee: Option[Int],
+                        allowRsvp: Boolean,
                         venue: Option[Venue.Id],
                         description: MustacheMarkdownTmpl[TemplateData.EventInfo],
                         tags: Seq[Tag],
                         refs: Event.ExtRefs)
 
   object Data {
-    def apply(event: Event): Data = new Data(event.cfp, event.slug, event.name, event.start, event.maxAttendee, event.venue, event.description, event.tags, event.refs)
+    def apply(e: Event): Data = new Data(e.cfp, e.slug, e.name, e.start, e.maxAttendee, e.allowRsvp, e.venue, e.description, e.tags, e.refs)
   }
 
 }

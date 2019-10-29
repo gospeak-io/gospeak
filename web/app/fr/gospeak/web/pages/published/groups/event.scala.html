@@ -14,30 +14,32 @@
 @container(event.name.value + " - Gospeak", b)() {
     <div class="d-flex justify-content-between align-items-center">
         <h1>@event.name.value@event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }</h1>
-        <div>
-            @(event.isPast(now), userRsvp.map(_.answer)) match {
-                case (true, Some(Event.Rsvp.Answer.Yes)) => {You were there}
-                case (true, Some(Event.Rsvp.Answer.No)) => {Event is past}
-                case (true, Some(Event.Rsvp.Answer.Wait)) => {You were on waiting list}
-                case (true, None) => {Event is past}
-                case (false, Some(Event.Rsvp.Answer.Yes)) => {
-                    <a href="#" class="btn btn-success">Yes</a>
-                    <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)" class="btn btn-secondary">No</a>
+        @if(event.allowRsvp) {
+            <div>
+                @(event.isPast(now), userRsvp.map(_.answer)) match {
+                    case (true, Some(Event.Rsvp.Answer.Yes)) => {You were there}
+                    case (true, Some(Event.Rsvp.Answer.No)) => {Event is past}
+                    case (true, Some(Event.Rsvp.Answer.Wait)) => {You were on waiting list}
+                    case (true, None) => {}
+                    case (false, Some(Event.Rsvp.Answer.Yes)) => {
+                        <a href="#" class="btn btn-success">Yes</a>
+                        <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)" class="btn btn-secondary">No</a>
+                    }
+                    case (false, Some(Event.Rsvp.Answer.No)) => {
+                        <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.Yes)" class="btn btn-secondary">Yes</a>
+                        <a href="#" class="btn btn-danger">No</a>
+                    }
+                    case (false, Some(Event.Rsvp.Answer.Wait)) => {
+                        <a href="#" class="btn btn-primary">Waiting list</a>
+                        <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)" class="btn btn-secondary">No</a>
+                    }
+                    case (false, None) => {
+                        <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.Yes)" class="btn btn-primary">Yes</a>
+                        <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)" class="btn btn-primary">No</a>
+                    }
                 }
-                case (false, Some(Event.Rsvp.Answer.No)) => {
-                    <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.Yes)" class="btn btn-secondary">Yes</a>
-                    <a href="#" class="btn btn-danger">No</a>
-                }
-                case (false, Some(Event.Rsvp.Answer.Wait)) => {
-                    <a href="#" class="btn btn-primary">Waiting list</a>
-                    <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)" class="btn btn-secondary">No</a>
-                }
-                case (false, None) => {
-                    <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.Yes)" class="btn btn-primary">Yes</a>
-                    <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)" class="btn btn-primary">No</a>
-                }
-            }
-        </div>
+            </div>
+        }
     </div>
     <p>@event.venue.map { v => Hosted by @v.partner.name.value, }@Formats.date(event.start),
     @yesRsvp yes RSVP @event.event.maxAttendee.map { max => on @Formats.plural(max, "place") }</p>

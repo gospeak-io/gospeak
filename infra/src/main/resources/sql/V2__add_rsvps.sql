@@ -9,6 +9,8 @@ ALTER TABLE groups
 
 ALTER TABLE events
     ADD COLUMN max_attendee INT;
+ALTER TABLE events
+    ADD COLUMN allow_rsvp BOOLEAN NOT NULL DEFAULT false;
 
 CREATE TABLE group_members
 (

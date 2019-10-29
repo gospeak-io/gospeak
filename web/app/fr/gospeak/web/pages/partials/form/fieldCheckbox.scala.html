@@ -1,8 +1,8 @@
 @import fr.gospeak.web.pages.partials.form.Utils
 
-@(field: Field, args: Seq[(String, String)] = Seq())(implicit messages: Messages)
-<div class="custom-control custom-checkbox @Utils.getArg(args, "class")">
-    @inputCheckbox(field, args)
+@(field: Field, args: Seq[(String, String)] = Seq())(input: (Field, Seq[(String, String)]) => Html)(implicit messages: Messages)
+<div class="form-group custom-control custom-checkbox @Utils.getArg(args, "class")">
+    @input(field, args)
     @if(Utils.hasErrors(field)) {
         <div class="invalid-feedback">
             @Utils.getArg(args, "help").map { help => @helpText(field, args, help) }

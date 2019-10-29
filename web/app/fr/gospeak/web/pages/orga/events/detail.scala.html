@@ -1,3 +1,4 @@
+@import java.time.Instant
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.utils.TemplateData
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User, Venue}
@@ -9,7 +10,6 @@
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partials.html.container
-@import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.orga.partners.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
@@ -18,7 +18,7 @@
 @import fr.gospeak.web.pages.partials.html.{pagination, search}
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], attachCfp: Form[Cfp.Slug])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], attachCfp: Form[Cfp.Slug], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(event.name.value + " - Gospeak", group, b)() {
     @if(!event.isPublic) {
         <div class="alert alert-info" role="alert">
@@ -58,6 +58,12 @@
         @event.venue.map { id => @venue(venueOpt.toList, id, v => Some(VenueCtrl.detail(group.slug, v.partner.slug, v.id))) }.getOrElse{ <b class="text-danger">Missing venue</b>, }
         @Formats.datetime(event.start)
         @tags(event.tags)
+        @(event.allowRsvp, event.isPublic, event.isPast(venueOpt, now)) match {
+            case (true, true, true) => {<span class="badge badge-secondary" title="RSVP disabled because event is past" data-toggle="tooltip" data-placement="top">RSVP active</span>}
+            case (true, true, false) => {<span class="badge badge-success" title="Users will be able to RSVP when event is published and before it starts" data-toggle="tooltip" data-placement="top">RSVP active</span>}
+            case (true, false, _) => {<span class="badge badge-secondary" title="RSVP will be active once the event is published" data-toggle="tooltip" data-placement="top">RSVP active</span>}
+            case (false, _, _) => {}
+        }
     </p>
 
     @if(event.talks.isEmpty) {

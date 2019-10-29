@@ -7,5 +7,9 @@
 @fieldVertical(field("message"), Seq("label" -> "Message", "help" -> "What message to send")) { (field, args) =>
     @inputTemplate(field, target = Some(templateTarget))
 }
-@fieldCheckbox(field("createdChannelIfNotExist"), Seq("label" -> "Create channel if it does not exist"))
-@fieldCheckbox(field("inviteEverybody"), Seq("label" -> "Invite everyone when create the channel"))
+@fieldCheckbox(field("createdChannelIfNotExist"), Seq("label" -> "Create channel if it does not exist")) { (field, args) =>
+    @inputCheckbox(field, args)
+}
+@fieldCheckbox(field("inviteEverybody"), Seq("label" -> "Invite everyone when create the channel")) { (field, args) =>
+    @inputCheckbox(field, args)
+}

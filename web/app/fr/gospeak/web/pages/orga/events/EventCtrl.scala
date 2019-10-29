@@ -82,6 +82,7 @@ class EventCtrl(cc: ControllerComponents,
 
   def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     val customParams = params.defaultSize(40).defaultOrderBy(proposalRepo.fields.created)
+    val now  = Instant.now()
     val nowLDT = LocalDateTime.now()
     (for {
       e <- OptionT(eventSrv.getFullEvent(group, event, user))
@@ -90,7 +91,7 @@ class EventCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
       desc = eventSrv.buildDescription(e, nowLDT)
       b = breadcrumb(e.group, e.event)
-      res = Ok(html.detail(e.group, e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, eventTemplates, EventForms.attachCfp)(b))
+      res = Ok(html.detail(e.group, e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, eventTemplates, EventForms.attachCfp, now)(b))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event))).unsafeToFuture()
   }
 

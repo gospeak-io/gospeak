@@ -9,7 +9,7 @@ import fr.gospeak.core.domain.{Event, Group, Proposal}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Done, Page}
+import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.emails.Emails
@@ -112,6 +112,7 @@ class GroupCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
+      _ <- OptionT.liftF(if (eventElt.canRsvp(now)) IO.pure(Done) else IO.raiseError(CustomException("Can't RSVP for now")))
       yesRsvp <- OptionT.liftF(eventRepo.countYesRsvp(eventElt.id))
       userMembership <- OptionT.liftF(groupRepo.findActiveMember(groupElt.id, user))
       _ <- OptionT.liftF(userMembership.map(_ => IO.pure(Done)).getOrElse(groupRepo.join(groupElt.id)(req.identity.user, now)))
@@ -137,7 +138,10 @@ class GroupCtrl(cc: ControllerComponents,
           else eventRepo.editRsvp(eventElt.id, Yes)(req.identity.user, now).map(_ => yesMsg)
       })
       next = Redirect(routes.GroupCtrl.event(group, event)).flashing(msg)
-    } yield next).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
+    } yield next).value.map(_.getOrElse(publicGroupNotFound(group))).recover {
+      case e: CustomException => Redirect(routes.GroupCtrl.event(group, event)).flashing("error" -> e.message)
+      case NonFatal(e) => Redirect(routes.GroupCtrl.event(group, event)).flashing("error" -> s"Unexpected error: ${e.getMessage}")
+    }.unsafeToFuture()
   }
 
   def talks(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>

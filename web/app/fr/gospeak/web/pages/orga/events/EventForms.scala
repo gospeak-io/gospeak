@@ -13,6 +13,7 @@ object EventForms {
     "name" -> eventName,
     "start" -> myLocalDateTime,
     "max-attendee" -> optional(number),
+    "allow-rsvp" -> boolean,
     "venue" -> optional(venueId),
     "description" -> template[TemplateData.EventInfo],
     "tags" -> tags,

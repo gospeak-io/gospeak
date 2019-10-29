@@ -14,8 +14,11 @@
 @fieldVertical(form("venue"), Seq("label" -> "Venue", "help" -> "Where your event will take place")) { (field, args) =>
     @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.suggestVenues(group.slug).toString, "optional" -> "") ++ args)
 }
-@fieldVertical(form("max-attendee"), Seq("label" -> "max attendee", "help" -> "What is the capacity of this event")) { (field, args) =>
+@fieldVertical(form("max-attendee"), Seq("label" -> "Max attendees", "help" -> "What is the capacity of this event")) { (field, args) =>
     @inputNumber(field, Seq("placeholder" -> "50", "optional" -> "") ++ args)
+}
+@fieldCheckbox(form("allow-rsvp"), Seq("label" -> "Allow RSVP", "help" -> "Choose if users can RSVP to this event")) { (field, args) =>
+    @inputCheckbox(field, args)
 }
 @fieldVertical(form("cfp"), Seq("label" -> "CFP", "help" -> "You will be able to add proposals from the CFP to the event")) { (field, args) =>
     @inputSelect(field, Seq(), Seq("placeholder" -> "-- Attach a CFP to this event", "remote" -> SuggestCtrl.suggestCfps(group.slug).toString, "optional" -> "") ++ args)
