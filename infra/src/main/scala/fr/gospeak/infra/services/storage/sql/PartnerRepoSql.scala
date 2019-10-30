@@ -13,31 +13,33 @@ import fr.gospeak.core.services.storage.PartnerRepo
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page}
 
 class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with PartnerRepo {
   override def create(group: Group.Id, data: Partner.Data, by: User.Id, now: Instant): IO[Partner] =
     insert(Partner(group, data, Info(by, now))).run(xa)
 
-  override def edit(group: Group.Id, slug: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): IO[Done] = {
-    if (data.slug != slug) {
+  override def edit(group: Group.Id, partner: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): IO[Done] = {
+    if (data.slug != partner) {
       find(group, data.slug).flatMap {
-        case None => update(group, slug)(data, by, now).run(xa)
+        case None => update(group, partner)(data, by, now).run(xa)
         case _ => IO.raiseError(CustomException(s"You already have a partner with slug ${data.slug}"))
       }
     } else {
-      update(group, slug)(data, by, now).run(xa)
+      update(group, partner)(data, by, now).run(xa)
     }
   }
+
+  override def remove(group: Group.Id, partner: Partner.Slug)(by: User.Id, now: Instant): IO[Done] = delete(group, partner).run(xa)
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[Partner]] = selectPage(group, params).run(xa)
 
   override def list(group: Group.Id): IO[Seq[Partner]] = selectAll(group).runList(xa)
 
-  override def list(ids: Seq[Partner.Id]): IO[Seq[Partner]] = runNel(selectAll, ids)
+  override def list(partners: Seq[Partner.Id]): IO[Seq[Partner]] = runNel(selectAll, partners)
 
-  override def find(group: Group.Id, slug: Partner.Slug): IO[Option[Partner]] = selectOne(group, slug).runOption(xa)
+  override def find(group: Group.Id, partner: Partner.Slug): IO[Option[Partner]] = selectOne(group, partner).runOption(xa)
 }
 
 object PartnerRepoSql {
@@ -49,10 +51,13 @@ object PartnerRepoSql {
     table.insert[Partner](e, _ => values)
   }
 
-  private[sql] def update(group: Group.Id, slug: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): Update = {
+  private[sql] def update(group: Group.Id, partner: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): Update = {
     val fields = fr0"slug=${data.slug}, name=${data.name}, notes=${data.notes}, description=${data.description}, logo=${data.logo}, twitter=${data.twitter}, updated=$now, updated_by=$by"
-    table.update(fields, where(group, slug))
+    table.update(fields, where(group, partner))
   }
+
+  private[sql] def delete(group: Group.Id, partner: Partner.Slug): Delete =
+    table.delete(where(group, partner))
 
   private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[Partner] =
     table.selectPage[Partner](params, fr0"WHERE pa.group_id=$group")

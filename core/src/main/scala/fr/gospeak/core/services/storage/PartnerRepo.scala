@@ -11,11 +11,13 @@ trait PartnerRepo extends OrgaPartnerRepo with SuggestPartnerRepo
 trait OrgaPartnerRepo {
   def create(group: Group.Id, data: Partner.Data, by: User.Id, now: Instant): IO[Partner]
 
-  def edit(group: Group.Id, cfp: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): IO[Done]
+  def edit(group: Group.Id, partner: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): IO[Done]
+
+  def remove(group: Group.Id, partner: Partner.Slug)(by: User.Id, now: Instant): IO[Done]
 
   def list(group: Group.Id, params: Page.Params): IO[Page[Partner]]
 
-  def list(ids: Seq[Partner.Id]): IO[Seq[Partner]]
+  def list(partners: Seq[Partner.Id]): IO[Seq[Partner]]
 
   def find(group: Group.Id, slug: Partner.Slug): IO[Option[Partner]]
 }

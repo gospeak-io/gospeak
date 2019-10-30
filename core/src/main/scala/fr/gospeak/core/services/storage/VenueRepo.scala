@@ -11,21 +11,21 @@ trait VenueRepo extends OrgaVenueRepo with PublicVenueRepo with SuggestVenueRepo
 trait OrgaVenueRepo {
   def create(group: Group.Id, data: Venue.Data, by: User.Id, now: Instant): IO[Venue]
 
-  def edit(group: Group.Id, id: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): IO[Done]
+  def edit(group: Group.Id, venue: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): IO[Done]
 
-  def remove(group: Group.Id, id: Venue.Id)(by: User.Id, now: Instant): IO[Done]
+  def remove(group: Group.Id, venue: Venue.Id)(by: User.Id, now: Instant): IO[Done]
 
   def listFull(group: Group.Id, params: Page.Params): IO[Page[Venue.Full]]
 
   def listFull(partner: Partner.Id): IO[Seq[Venue.Full]]
 
-  def listFull(group: Group.Id, ids: Seq[Venue.Id]): IO[Seq[Venue.Full]]
+  def listFull(group: Group.Id, venues: Seq[Venue.Id]): IO[Seq[Venue.Full]]
 
-  def findFull(group: Group.Id, id: Venue.Id): IO[Option[Venue.Full]]
+  def findFull(group: Group.Id, venue: Venue.Id): IO[Option[Venue.Full]]
 }
 
 trait PublicVenueRepo {
-  def listFull(group: Group.Id, ids: Seq[Venue.Id]): IO[Seq[Venue.Full]]
+  def listFull(group: Group.Id, venues: Seq[Venue.Id]): IO[Seq[Venue.Full]]
 }
 
 trait SuggestVenueRepo {

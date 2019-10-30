@@ -20,9 +20,9 @@ import fr.gospeak.libs.scalautils.domain.{Done, Page}
 class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with VenueRepo {
   override def create(group: Group.Id, data: Venue.Data, by: User.Id, now: Instant): IO[Venue] = insert(Venue(group, data, Info(by, now))).run(xa)
 
-  override def edit(group: Group.Id, id: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): IO[Done] = update(group, id)(data, by, now).run(xa)
+  override def edit(group: Group.Id, venue: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): IO[Done] = update(group, venue)(data, by, now).run(xa)
 
-  override def remove(group: Group.Id, id: Venue.Id)(by: User.Id, now: Instant): IO[Done] = delete(group, id).run(xa)
+  override def remove(group: Group.Id, venue: Venue.Id)(by: User.Id, now: Instant): IO[Done] = delete(group, venue).run(xa)
 
   override def listFull(group: Group.Id, params: Page.Params): IO[Page[Venue.Full]] = selectPageFull(group, params).run(xa)
 
@@ -30,9 +30,9 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listFull(partner: Partner.Id): IO[Seq[Venue.Full]] = selectAllFull(partner).runList(xa)
 
-  override def listFull(group: Group.Id, ids: Seq[Venue.Id]): IO[Seq[Venue.Full]] = runNel[Venue.Id, Venue.Full](selectAllFull(group, _), ids)
+  override def listFull(group: Group.Id, venues: Seq[Venue.Id]): IO[Seq[Venue.Full]] = runNel[Venue.Id, Venue.Full](selectAllFull(group, _), venues)
 
-  override def findFull(group: Group.Id, id: Venue.Id): IO[Option[Venue.Full]] = selectOneFull(group, id).runOption(xa)
+  override def findFull(group: Group.Id, venue: Venue.Id): IO[Option[Venue.Full]] = selectOneFull(group, venue).runOption(xa)
 }
 
 object VenueRepoSql {

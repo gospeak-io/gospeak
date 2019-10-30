@@ -16,6 +16,10 @@ class PartnerRepoSqlSpec extends RepoSpec {
         val q = PartnerRepoSql.update(group.id, partner.slug)(partner.data, user.id, now)
         check(q, s"UPDATE $table SET slug=?, name=?, notes=?, description=?, logo=?, twitter=?, updated=?, updated_by=? WHERE pa.group_id=? AND pa.slug=?")
       }
+      it("should build delete") {
+        val q = PartnerRepoSql.delete(group.id, partner.slug)
+        check(q, s"DELETE FROM $table WHERE pa.group_id=? AND pa.slug=?")
+      }
       it("should build selectPage") {
         val q = PartnerRepoSql.selectPage(group.id, params)
         check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy LIMIT 20 OFFSET 0")

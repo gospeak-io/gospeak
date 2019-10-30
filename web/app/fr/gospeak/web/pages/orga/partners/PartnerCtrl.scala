@@ -105,6 +105,14 @@ class PartnerCtrl(cc: ControllerComponents,
       filledForm = if (form.hasErrors) form else form.fill(partnerElt.data)
     } yield Ok(html.edit(groupElt, partnerElt, filledForm)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
   }
+
+  def doRemove(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      _ <- OptionT.liftF(partnerRepo.remove(groupElt.id, partner)(user, now))
+    } yield Redirect(routes.PartnerCtrl.list(group))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+  }
 }
 
 object PartnerCtrl {

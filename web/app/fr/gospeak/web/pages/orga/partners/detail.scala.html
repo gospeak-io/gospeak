@@ -31,6 +31,11 @@
             </button>
             <span class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" href="@PartnerCtrl.edit(group.slug, partner.slug)">Edit</a>
+                @if(venues.isEmpty && sponsors.isEmpty && contacts.isEmpty) {
+                    @formBtn(PartnerCtrl.doRemove(group.slug, partner.slug), Seq("class" -> "dropdown-item")) {Delete}
+                } else {
+                    <span class="dropdown-item text-muted" title="This partner has venues, sponsors or contacts" data-toggle="tooltip" data-placement="left">Can't delete</span>
+                }
             </span>
         </span>
     </div>
