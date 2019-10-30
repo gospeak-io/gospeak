@@ -22,9 +22,9 @@ ALTER TABLE events
 UPDATE events SET orga_notes_updated_at=updated, orga_notes_updated_by=updated_by;
 
 ALTER TABLE events
-    ALTER COLUMN orga_notes_updated_at TIMESTAMP NOT NULL;
+    ALTER COLUMN orga_notes_updated_at SET NOT NULL;
 ALTER TABLE events
-    ALTER COLUMN orga_notes_updated_by CHAR(36) NOT NULL;
+    ALTER COLUMN orga_notes_updated_by SET NOT NULL;
 
 
 CREATE TABLE group_members
