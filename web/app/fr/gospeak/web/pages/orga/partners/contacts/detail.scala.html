@@ -21,6 +21,13 @@
                 <p><a href="@PartnerCtrl.detail(group.slug, partner.slug)">@partner.name.value</a> contact</p>
             </div>
         </div>
-        <a class="btn btn-outline-secondary" href="@ContactCtrl.edit(group.slug, partner.slug, contact.id)" title="edit"><i class="fas fa-edit"></i></a>
+        <span class="btn-group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-cog"></i>
+            </button>
+            <span class="dropdown-menu dropdown-menu-right">
+                <a class="dropdown-item" href="@ContactCtrl.edit(group.slug, partner.slug, contact.id)">Edit</a>
+            </span>
+        </span>
     </div>
 }()

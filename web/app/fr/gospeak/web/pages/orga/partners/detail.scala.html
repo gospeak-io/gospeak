@@ -25,7 +25,14 @@
                 @partner.twitter.map { t => @twitterLink(t) }
             </div>
         </div>
-        <a class="btn btn-outline-secondary" href="@PartnerCtrl.edit(group.slug, partner.slug)" title="edit"><i class="fas fa-edit"></i></a>
+        <span class="btn-group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-cog"></i>
+            </button>
+            <span class="dropdown-menu dropdown-menu-right">
+                <a class="dropdown-item" href="@PartnerCtrl.edit(group.slug, partner.slug)">Edit</a>
+            </span>
+        </span>
     </div>
     <p>@markdown(partner.notes)</p>
 

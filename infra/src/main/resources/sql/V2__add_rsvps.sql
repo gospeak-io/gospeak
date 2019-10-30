@@ -19,7 +19,9 @@ ALTER TABLE events
 ALTER TABLE events
     ADD COLUMN orga_notes_updated_by CHAR(36) REFERENCES users (id);
 
-UPDATE events SET orga_notes_updated_at=updated, orga_notes_updated_by=updated_by;
+UPDATE events
+SET orga_notes_updated_at=updated,
+    orga_notes_updated_by=updated_by;
 
 ALTER TABLE events
     ALTER COLUMN orga_notes_updated_at SET NOT NULL;

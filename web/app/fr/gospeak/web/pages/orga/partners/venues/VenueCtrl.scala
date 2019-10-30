@@ -63,8 +63,9 @@ class VenueCtrl(cc: ControllerComponents,
       events <- OptionT.liftF(eventRepo.list(groupElt.id, venue))
       users <- OptionT.liftF(userRepo.list(venueElt.users))
       b = breadcrumb(groupElt, venueElt)
-      edit = routes.VenueCtrl.edit(group, partner, venue)
-      res = Ok(html.detail(groupElt, venueElt, events, users, edit)(b))
+      editCall = routes.VenueCtrl.edit(group, partner, venue)
+      removeCall = routes.VenueCtrl.doRemove(group, partner, venue)
+      res = Ok(html.detail(groupElt, venueElt, events, users, editCall, removeCall)(b))
     } yield res).value.map(_.getOrElse(venueNotFound(group, partner, venue))).unsafeToFuture()
   }
 
@@ -92,6 +93,14 @@ class VenueCtrl(cc: ControllerComponents,
       filledForm = if (form.hasErrors) form else form.fill(venueElt.data)
       call = routes.VenueCtrl.doEdit(group, partner, venue)
     } yield Ok(html.edit(groupElt, meetupAccount.isDefined, venueElt, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
+  }
+
+  def doRemove(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      _ <- OptionT.liftF(venueRepo.remove(groupElt.id, venue)(user, now))
+    } yield Redirect(PartnerRoutes.detail(group, partner))).value.map(_.getOrElse(partnerNotFound(group, partner))).unsafeToFuture()
   }
 }
 

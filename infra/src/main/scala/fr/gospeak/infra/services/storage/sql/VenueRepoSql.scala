@@ -13,7 +13,7 @@ import fr.gospeak.core.services.storage.VenueRepo
 import fr.gospeak.infra.services.storage.sql.VenueRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
@@ -21,6 +21,8 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def create(group: Group.Id, data: Venue.Data, by: User.Id, now: Instant): IO[Venue] = insert(Venue(group, data, Info(by, now))).run(xa)
 
   override def edit(group: Group.Id, id: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): IO[Done] = update(group, id)(data, by, now).run(xa)
+
+  override def remove(group: Group.Id, id: Venue.Id)(by: User.Id, now: Instant): IO[Done] = delete(group, id).run(xa)
 
   override def listFull(group: Group.Id, params: Page.Params): IO[Page[Venue.Full]] = selectPageFull(group, params).run(xa)
 
@@ -45,10 +47,13 @@ object VenueRepoSql {
     table.insert[Venue](e, _ => values)
   }
 
-  private[sql] def update(group: Group.Id, id: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): Update = {
+  private[sql] def update(group: Group.Id, venue: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): Update = {
     val fields = fr0"contact_id=${data.contact}, address=${data.address}, address_lat=${data.address.geo.lat}, address_lng=${data.address.geo.lng}, address_country=${data.address.country}, description=${data.description}, room_size=${data.roomSize}, meetupGroup=${data.refs.meetup.map(_.group)}, meetupVenue=${data.refs.meetup.map(_.venue)}, updated=$now, updated_by=$by"
-    table.update(fields, where(group, id))
+    table.update(fields, where(group, venue))
   }
+
+  private[sql] def delete(group: Group.Id, venue: Venue.Id): Delete =
+    table.delete(where(group, venue))
 
   private[sql] def selectOneFull(group: Group.Id, id: Venue.Id): Select[Venue.Full] =
     tableFull.select[Venue.Full](fr0"WHERE pa.group_id=$group AND v.id=$id")

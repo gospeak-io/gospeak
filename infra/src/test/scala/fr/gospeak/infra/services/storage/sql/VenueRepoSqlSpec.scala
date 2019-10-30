@@ -17,6 +17,10 @@ class VenueRepoSqlSpec extends RepoSpec {
         val q = VenueRepoSql.update(group.id, venue.id)(venue.data, user.id, now)
         check(q, s"UPDATE $table SET contact_id=?, address=?, address_lat=?, address_lng=?, address_country=?, description=?, room_size=?, meetupGroup=?, meetupVenue=?, updated=?, updated_by=? WHERE v.id=(SELECT v.id FROM $tableFull WHERE pa.group_id=? AND v.id=?)")
       }
+      it("should build delete") {
+        val q = VenueRepoSql.delete(group.id, venue.id)
+        check(q, s"DELETE FROM $table WHERE v.id=(SELECT v.id FROM $tableFull WHERE pa.group_id=? AND v.id=?)")
+      }
       it("should build selectOneFull") {
         val q = VenueRepoSql.selectOneFull(group.id, venue.id)
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? AND v.id=? $orderBy")

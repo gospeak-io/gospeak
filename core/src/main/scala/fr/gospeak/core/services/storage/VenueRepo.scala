@@ -13,6 +13,8 @@ trait OrgaVenueRepo {
 
   def edit(group: Group.Id, id: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): IO[Done]
 
+  def remove(group: Group.Id, id: Venue.Id)(by: User.Id, now: Instant): IO[Done]
+
   def listFull(group: Group.Id, params: Page.Params): IO[Page[Venue.Full]]
 
   def listFull(partner: Partner.Id): IO[Seq[Venue.Full]]
