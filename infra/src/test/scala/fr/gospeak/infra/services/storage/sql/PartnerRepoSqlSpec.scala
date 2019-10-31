@@ -32,7 +32,11 @@ class PartnerRepoSqlSpec extends RepoSpec {
         val q = PartnerRepoSql.selectAll(NonEmptyList.of(partner.id))
         check(q, s"SELECT $fields FROM $table WHERE pa.id IN (?)  $orderBy")
       }
-      it("should build selectOne") {
+      it("should build selectOne by id") {
+        val q = PartnerRepoSql.selectOne(group.id, partner.id)
+        check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? AND pa.id=? $orderBy")
+      }
+      it("should build selectOne by slug") {
         val q = PartnerRepoSql.selectOne(group.id, partner.slug)
         check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? AND pa.slug=? $orderBy")
       }

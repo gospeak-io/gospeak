@@ -62,13 +62,13 @@ class SponsorCtrl(cc: ControllerComponents,
   }
 
   def create(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug]): Action[AnyContent] = SecuredAction.async { implicit req =>
-    createForm(group, pack, SponsorForms.create, partner).unsafeToFuture()
+    createView(group, pack, SponsorForms.create, partner).unsafeToFuture()
   }
 
   def doCreate(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug]): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     SponsorForms.create.bindFromRequest.fold(
-      formWithErrors => createForm(group, pack, formWithErrors, partner),
+      formWithErrors => createView(group, pack, formWithErrors, partner),
       data => (for {
         groupElt <- OptionT(groupRepo.find(user, group))
         _ <- OptionT.liftF(sponsorRepo.create(groupElt.id, data, by, now))
@@ -77,7 +77,7 @@ class SponsorCtrl(cc: ControllerComponents,
     ).unsafeToFuture()
   }
 
-  private def createForm(group: Group.Slug, pack: SponsorPack.Slug, form: Form[Sponsor.Data], partner: Option[Partner.Slug])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+  private def createView(group: Group.Slug, pack: SponsorPack.Slug, form: Form[Sponsor.Data], partner: Option[Partner.Slug])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     val nowLD = LocalDate.now()
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
@@ -100,6 +100,32 @@ class SponsorCtrl(cc: ControllerComponents,
       packElt <- OptionT(sponsorPackRepo.find(groupElt.id, pack))
       b = breadcrumb(groupElt, packElt)
     } yield Ok(html.detail(groupElt, packElt)(b))).value.map(_.getOrElse(packNotFound(group, pack))).unsafeToFuture()
+  }
+
+  def edit(group: Group.Slug, sponsor: Sponsor.Id, partner: Option[Partner.Slug]): Action[AnyContent] = SecuredAction.async { implicit req =>
+    updateView(group, sponsor, SponsorForms.create, partner).unsafeToFuture()
+  }
+
+  def doEdit(group: Group.Slug, sponsor: Sponsor.Id, partner: Option[Partner.Slug]): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    SponsorForms.create.bindFromRequest.fold(
+      formWithErrors => updateView(group, sponsor, formWithErrors, partner),
+      data => (for {
+        groupElt <- OptionT(groupRepo.find(user, group))
+        _ <- OptionT.liftF(sponsorRepo.edit(groupElt.id, sponsor)(data, by, now))
+        next = partner.map(p => PartnerRoutes.detail(group, p)).getOrElse(routes.SponsorCtrl.list(group))
+      } yield Redirect(next)).value.map(_.getOrElse(groupNotFound(group)))
+    ).unsafeToFuture()
+  }
+
+  private def updateView(group: Group.Slug, sponsor: Sponsor.Id, form: Form[Sponsor.Data], partner: Option[Partner.Slug])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      sponsorElt <- OptionT(sponsorRepo.find(groupElt.id, sponsor))
+      partnerElt <- OptionT(partnerRepo.find(groupElt.id, sponsorElt.partner))
+      b = listBreadcrumb(groupElt).add("Edit" -> routes.SponsorCtrl.edit(group, sponsor, partner))
+      filledForm = if (form.hasErrors) form else form.fill(sponsorElt.data)
+    } yield Ok(html.edit(groupElt, partnerElt, sponsorElt, filledForm, partner)(b))).value.map(_.getOrElse(sponsorNotFound(group, sponsor)))
   }
 
   def disablePack(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>

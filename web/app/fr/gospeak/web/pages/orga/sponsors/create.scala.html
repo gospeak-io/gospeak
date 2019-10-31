@@ -12,7 +12,7 @@
     <h1 class="page-header">Add a @pack.name.value sponsor @partner.map { p => for @p.name.value}</h1>
 
     @formElt(form, SponsorCtrl.doCreate(group.slug, pack.slug, partner.map(_.slug))) {
-        @sponsorFields(form, group, pack, partner)
+        @sponsorFields(form, group, partner, Some(pack))
         @actionsHorizontal() {
             @btnCancel(partner.map(p => PartnerCtrl.detail(group.slug, p.slug)).getOrElse(SponsorCtrl.list(group.slug)))
             @btnSubmit("Create")

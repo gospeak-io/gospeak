@@ -86,7 +86,7 @@ class SuggestCtrl(cc: ControllerComponents,
   }
 
   def suggestSponsorPacks(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    makeSuggest[SponsorPack](sponsorPackRepo.listAll, sp => SuggestedItem(sp.id.value, sp.name.value + " (" + sp.price.value + ")"))(group)
+    makeSuggest[SponsorPack](sponsorPackRepo.listAll, sp => SuggestedItem(sp.id.value, sp.name.value + " (" + sp.price.value + ")" + (if (sp.active) "" else " (not active)")))(group)
   }
 
   private def makeSuggest[A](list: Group.Id => IO[Seq[A]], format: A => SuggestedItem)
@@ -95,7 +95,7 @@ class SuggestCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       results <- OptionT.liftF(list(groupElt.id))
-      res = Ok(Json.toJson(results.map(format).sortBy(_.text)))
+      res = Ok(Json.toJson(results.map(format)))
     } yield res).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem])))).unsafeToFuture()
   }
 

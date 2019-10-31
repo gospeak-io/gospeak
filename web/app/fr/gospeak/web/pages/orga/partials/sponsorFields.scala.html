@@ -2,13 +2,19 @@
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 
-@(form: Form[Sponsor.Data], group: Group, pack: SponsorPack, partner: Option[Partner])(implicit messages: Messages)
-@inputHidden(form("pack"), Seq("value" -> pack.id.value))
+@(form: Form[Sponsor.Data], group: Group, partner: Option[Partner], pack: Option[SponsorPack])(implicit messages: Messages)
 @partner.map { p =>
     @inputHidden(form("partner"), Seq("value" -> p.id.value))
 }.getOrElse {
     @fieldHorizontal(form("partner"), Seq("label" -> "Partner", "help" -> "The sponsoring partner")) { (field, args) =>
         @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.suggestPartners(group.slug).toString) ++ args)
+    }
+}
+@pack.map { p =>
+    @inputHidden(form("pack"), Seq("value" -> p.id.value))
+}.getOrElse {
+    @fieldHorizontal(form("pack"), Seq("label" -> "Sponsor pack", "help" -> "What sponsoring pack was choosen")) { (field, args) =>
+        @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.suggestSponsorPacks(group.slug).toString) ++ args)
     }
 }
 @fieldHorizontal(form("contact"), Seq("label" -> "Contact", "help" -> "The contact for this sponsoring")) { (field, args) =>
