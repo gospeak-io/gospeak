@@ -113,6 +113,7 @@
                         @if(sponsor.paid.isEmpty) {
                             @formBtn(SponsorCtrl.paid(group.slug, sponsor.id), Seq("class" -> "btn-primary btn-sm", "confirm" -> "Mark this sponsoring as paid ?")) {Mark as paid}
                         }
+                        <a href="@SponsorCtrl.edit(group.slug, sponsor.id, Some(partner.slug))" class="btn btn-primary btn-sm">Update</a>
                         @formBtn(SponsorCtrl.remove(group.slug, sponsor.id), Seq("class" -> "btn-danger btn-sm", "confirm" -> "Remove this sponsoring ?")) {Remove}
                     </span>
                 </span>

@@ -11,9 +11,9 @@ import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain.{Group, Partner, User}
 import fr.gospeak.core.services.storage.PartnerRepo
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSql._
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page}
 
 class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with PartnerRepo {
@@ -38,6 +38,8 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
   override def list(group: Group.Id): IO[Seq[Partner]] = selectAll(group).runList(xa)
 
   override def list(partners: Seq[Partner.Id]): IO[Seq[Partner]] = runNel(selectAll, partners)
+
+  override def find(group: Group.Id, partner: Partner.Id): IO[Option[Partner]] = selectOne(group, partner).runOption(xa)
 
   override def find(group: Group.Id, partner: Partner.Slug): IO[Option[Partner]] = selectOne(group, partner).runOption(xa)
 }
@@ -68,9 +70,15 @@ object PartnerRepoSql {
   private[sql] def selectAll(ids: NonEmptyList[Partner.Id]): Select[Partner] =
     table.select[Partner](fr0"WHERE " ++ Fragments.in(fr"pa.id", ids))
 
-  private[sql] def selectOne(group: Group.Id, slug: Partner.Slug): Select[Partner] =
-    table.select[Partner](where(group, slug))
+  private[sql] def selectOne(group: Group.Id, partner: Partner.Id): Select[Partner] =
+    table.select[Partner](where(group, partner))
 
-  private def where(group: Group.Id, slug: Partner.Slug): Fragment =
-    fr0"WHERE pa.group_id=$group AND pa.slug=$slug"
+  private[sql] def selectOne(group: Group.Id, partner: Partner.Slug): Select[Partner] =
+    table.select[Partner](where(group, partner))
+
+  private def where(group: Group.Id, partner: Partner.Id): Fragment =
+    fr0"WHERE pa.group_id=$group AND pa.id=$partner"
+
+  private def where(group: Group.Id, partner: Partner.Slug): Fragment =
+    fr0"WHERE pa.group_id=$group AND pa.slug=$partner"
 }

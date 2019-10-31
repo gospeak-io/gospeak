@@ -19,7 +19,9 @@ trait OrgaPartnerRepo {
 
   def list(partners: Seq[Partner.Id]): IO[Seq[Partner]]
 
-  def find(group: Group.Id, slug: Partner.Slug): IO[Option[Partner]]
+  def find(group: Group.Id, partner: Partner.Id): IO[Option[Partner]]
+
+  def find(group: Group.Id, partner: Partner.Slug): IO[Option[Partner]]
 }
 
 trait SuggestPartnerRepo {

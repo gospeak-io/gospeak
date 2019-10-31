@@ -49,6 +49,9 @@ abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv
   protected def packNotFound(group: Group.Slug, pack: SponsorPack.Slug): Result =
     Redirect(pages.orga.sponsors.routes.SponsorCtrl.list(group)).flashing("warning" -> s"Unable to find sponsoring pack with slug '${pack.value}'")
 
+  protected def sponsorNotFound(group: Group.Slug, sponsor: Sponsor.Id): Result =
+    Redirect(pages.orga.sponsors.routes.SponsorCtrl.list(group)).flashing("warning" -> s"Unable to find sponsor with id '${sponsor.value}'")
+
   protected def contactNotFound(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Result =
     Redirect(pages.orga.partners.routes.PartnerCtrl.detail(group, partner)).flashing("warning" -> s"Unable to find contact with id '${contact.value}'")
 

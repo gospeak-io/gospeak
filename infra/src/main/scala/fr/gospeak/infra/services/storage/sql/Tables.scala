@@ -85,7 +85,7 @@ object Tables {
     name = "sponsor_packs",
     prefix = "sp",
     fields = Seq("id", "group_id", "slug", "name", "description", "price", "currency", "duration", "active", "created", "created_by", "updated", "updated_by"),
-    sort = Seq("active", "-price"),
+    sort = Seq("-active", "-price"),
     search = Seq("id", "slug", "name", "description")).get
 
   val sponsors: Table = Table.from(
