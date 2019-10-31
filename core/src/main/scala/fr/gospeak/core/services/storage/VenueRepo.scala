@@ -3,7 +3,7 @@ package fr.gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.{Group, Partner, User, Venue}
+import fr.gospeak.core.domain.{Contact, Group, Partner, User, Venue}
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
 trait VenueRepo extends OrgaVenueRepo with PublicVenueRepo with SuggestVenueRepo
@@ -22,6 +22,8 @@ trait OrgaVenueRepo {
   def listFull(group: Group.Id, venues: Seq[Venue.Id]): IO[Seq[Venue.Full]]
 
   def findFull(group: Group.Id, venue: Venue.Id): IO[Option[Venue.Full]]
+
+  def listAll(group: Group.Id, contact: Contact.Id): IO[Seq[Venue]]
 }
 
 trait PublicVenueRepo {

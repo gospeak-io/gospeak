@@ -34,11 +34,15 @@ class SponsorRepoSqlSpec extends RepoSpec {
         q.fr.query.sql shouldBe s"SELECT $fieldsFull FROM $tableFull WHERE s.group_id=? AND s.start < ? AND s.finish > ? $orderBy"
         // check(q, s"SELECT $fieldsFull FROM $tableFull WHERE s.group_id=? AND s.start < ? AND s.finish > ?")
       }
-      it("should build selectAll group") {
+      it("should build selectAll for group") {
         val q = SponsorRepoSql.selectAll(group.id)
         check(q, s"SELECT $fields FROM $table WHERE s.group_id=? $orderBy")
       }
-      it("should build selectAllFull partner") {
+      it("should build selectAll for group and contact") {
+        val q = SponsorRepoSql.selectAll(group.id, contact.id)
+        check(q, s"SELECT $fields FROM $table WHERE s.group_id=? AND s.contact_id=? $orderBy")
+      }
+      it("should build selectAllFull for partner") {
         val q = SponsorRepoSql.selectAllFull(group.id, partner.id)
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE s.group_id=? AND s.partner_id=? $orderBy")
       }

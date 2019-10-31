@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Contact, Group, Partner}
-import fr.gospeak.core.services.storage.{ContactRepo, OrgaGroupRepo, OrgaPartnerRepo, OrgaUserRepo}
+import fr.gospeak.core.services.storage.{ContactRepo, OrgaGroupRepo, OrgaPartnerRepo, OrgaSponsorRepo, OrgaUserRepo, OrgaVenueRepo}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -15,6 +15,7 @@ import fr.gospeak.web.auth.exceptions.DuplicateEmailException
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.partners.PartnerCtrl
 import fr.gospeak.web.pages.orga.partners.contacts.ContactCtrl._
+import fr.gospeak.web.pages.orga.partners.routes.{PartnerCtrl => PartnerRoutes}
 import fr.gospeak.web.utils.Mappings._
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
@@ -28,7 +29,9 @@ class ContactCtrl(cc: ControllerComponents,
                   contactRepo: ContactRepo,
                   userRepo: OrgaUserRepo,
                   groupRepo: OrgaGroupRepo,
-                  partnerRepo: OrgaPartnerRepo
+                  partnerRepo: OrgaPartnerRepo,
+                  venueRepo: OrgaVenueRepo,
+                  sponsorRepo: OrgaSponsorRepo
                  ) extends UICtrl(cc, silhouette) {
 
   import silhouette._
@@ -86,8 +89,11 @@ class ContactCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(user, group))
       partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
       contactElt <- OptionT(contactRepo.find(contact))
+      contactVenues <- OptionT.liftF(venueRepo.listAll(groupElt.id, contactElt.id))
+      contactSponsors <- OptionT.liftF(sponsorRepo.listAll(groupElt.id, contactElt.id))
       b = breadcrumb(groupElt, partnerElt, contactElt)
-    } yield Ok(html.detail(groupElt, partnerElt, contactElt)(b))).value.map(_.getOrElse(contactNotFound(group, partner, contact))).unsafeToFuture()
+      res = Ok(html.detail(groupElt, partnerElt, contactElt, contactVenues, contactSponsors)(b))
+    } yield res).value.map(_.getOrElse(contactNotFound(group, partner, contact))).unsafeToFuture()
   }
 
   def edit(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
@@ -120,6 +126,15 @@ class ContactCtrl(cc: ControllerComponents,
       b = breadcrumb(groupElt, partnerElt, contactElt).add("Edit" -> routes.ContactCtrl.edit(group, partner, contact))
       filledForm = if (form.hasErrors) form else form.fill(contactElt.data)
     } yield Ok(html.edit(groupElt, partnerElt, contactElt, filledForm)(b))).value.map(_.getOrElse(contactNotFound(group, partner, contact)))
+  }
+
+  def doRemove(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
+      _ <- OptionT.liftF(contactRepo.remove(groupElt.id, partnerElt.id, contact)(user, now))
+    } yield Redirect(PartnerRoutes.detail(group, partner))).value.map(_.getOrElse(contactNotFound(group, partner, contact))).unsafeToFuture()
   }
 }
 

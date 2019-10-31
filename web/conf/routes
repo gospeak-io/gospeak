@@ -103,6 +103,7 @@ POST        /u/groups/:group/partners/:partner/contacts/create                  
 GET         /u/groups/:group/partners/:partner/contacts/:contact                           fr.gospeak.web.pages.orga.partners.contacts.ContactCtrl.detail(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id)
 GET         /u/groups/:group/partners/:partner/contacts/:contact/edit                      fr.gospeak.web.pages.orga.partners.contacts.ContactCtrl.edit(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id)
 POST        /u/groups/:group/partners/:partner/contacts/:contact/edit                      fr.gospeak.web.pages.orga.partners.contacts.ContactCtrl.doEdit(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id)
+POST        /u/groups/:group/partners/:partner/contacts/:contact/remove                    fr.gospeak.web.pages.orga.partners.contacts.ContactCtrl.doRemove(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id)
 GET         /u/groups/:group/venues                                                        fr.gospeak.web.pages.orga.venues.VenueCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/venues/create                                                 fr.gospeak.web.pages.orga.venues.VenueCtrl.create(group: Group.Slug)
 POST        /u/groups/:group/venues/create                                                 fr.gospeak.web.pages.orga.venues.VenueCtrl.doCreate(group: Group.Slug)

@@ -48,6 +48,10 @@ class ContactRepoSqlSpec extends RepoSpec {
         val q = ContactRepoSql.update(contact.id, contactData1)(user.id, now)
         check(q, s"UPDATE $table SET first_name=?, last_name=?, email=?, description=?, updated=?, updated_by=? WHERE ct.id=?")
       }
+      it("should build delete") {
+        val q = ContactRepoSql.delete(group.id, partner.id, contact.id)(user.id, now)
+        check(q, s"DELETE FROM $table WHERE ct.id=?")
+      }
       it("should build selectPage") {
         val q = ContactRepoSql.selectPage(partner.id, params)
         check(q, s"SELECT $fields FROM $table WHERE ct.partner_id=? $orderBy LIMIT 20 OFFSET 0")

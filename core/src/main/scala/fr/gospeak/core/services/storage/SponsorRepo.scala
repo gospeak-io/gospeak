@@ -21,6 +21,8 @@ trait OrgaSponsorRepo {
 
   def listAll(group: Group.Id): IO[Seq[Sponsor]]
 
+  def listAll(group: Group.Id, contact: Contact.Id): IO[Seq[Sponsor]]
+
   def listAllFull(group: Group.Id, partner: Partner.Id): IO[Seq[Sponsor.Full]]
 }
 

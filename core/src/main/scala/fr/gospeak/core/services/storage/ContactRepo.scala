@@ -11,11 +11,13 @@ trait ContactRepo extends SuggestContactRepo {
 
   def create(data: Contact.Data, by: User.Id, now: Instant): IO[Contact]
 
+  def edit(contact: Contact.Id, data: Contact.Data)(by: User.Id, now: Instant): IO[Done]
+
+  def remove(group: Group.Id, partner: Partner.Id, contact: Contact.Id)(by: User.Id, now: Instant): IO[Done]
+
   def list(partner: Partner.Id, params: Page.Params): IO[Page[Contact]]
 
   def find(id: Contact.Id): IO[Option[Contact]]
-
-  def edit(contact: Contact.Id, data: Contact.Data)(by: User.Id, now: Instant): IO[Done]
 
   def exists(partner: Partner.Id, email: EmailAddress): IO[Boolean]
 }

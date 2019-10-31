@@ -41,6 +41,10 @@ class VenueRepoSqlSpec extends RepoSpec {
         val q = VenueRepoSql.selectAllFull(group.id, NonEmptyList.of(venue.id))
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? AND v.id IN (?)  $orderBy")
       }
+      it("should build selectAll for contact") {
+        val q = VenueRepoSql.selectAll(group.id, contact.id)
+        check(q, s"SELECT $fields FROM $table WHERE v.contact_id=? $orderBy")
+      }
     }
   }
 }

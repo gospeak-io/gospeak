@@ -32,6 +32,8 @@ class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def listAll(group: Group.Id): IO[Seq[Sponsor]] = selectAll(group).runList(xa)
 
+  override def listAll(group: Group.Id, contact: Contact.Id): IO[Seq[Sponsor]] = selectAll(group, contact).runList(xa)
+
   override def listAllFull(group: Group.Id, partner: Partner.Id): IO[Seq[Sponsor.Full]] = selectAllFull(group, partner).runList(xa)
 }
 
@@ -67,6 +69,9 @@ object SponsorRepoSql {
 
   private[sql] def selectAll(group: Group.Id): Select[Sponsor] =
     table.select[Sponsor](fr0"WHERE s.group_id=$group")
+
+  private[sql] def selectAll(group: Group.Id, contact: Contact.Id): Select[Sponsor] =
+    table.select[Sponsor](fr0"WHERE s.group_id=$group AND s.contact_id=$contact")
 
   private[sql] def selectAllFull(group: Group.Id, partner: Partner.Id): Select[Sponsor.Full] =
     tableFull.select[Sponsor.Full](fr0"WHERE s.group_id=$group AND s.partner_id=$partner")

@@ -11,13 +11,15 @@ import fr.gospeak.core.services.storage.ContactRepo
 import fr.gospeak.infra.services.storage.sql.ContactRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ContactRepo {
   override def create(data: Contact.Data, by: User.Id, now: Instant): IO[Contact] = insert(Contact(data, Info(by, now))).run(xa)
 
   override def edit(contact: Contact.Id, data: Contact.Data)(by: User.Id, now: Instant): IO[Done] = update(contact, data)(by, now).run(xa)
+
+  override def remove(group: Group.Id, partner: Partner.Id, contact: Contact.Id)(by: User.Id, now: Instant): IO[Done] = delete(group, partner, contact)(by, now).run(xa)
 
   override def find(id: Contact.Id): IO[Option[Contact]] = selectOne(id).runOption(xa)
 
@@ -41,6 +43,9 @@ object ContactRepoSql {
     val fields = fr0"first_name=${data.firstName}, last_name=${data.lastName}, email=${data.email}, description=${data.description}, updated=$now, updated_by=$by"
     table.update(fields, where(contact))
   }
+
+  private[sql] def delete(group: Group.Id, partner: Partner.Id, contact: Contact.Id)(by: User.Id, now: Instant): Delete =
+    table.delete(where(contact))
 
   private[sql] def selectPage(partner: Partner.Id, params: Page.Params): SelectPage[Contact] =
     table.selectPage[Contact](params, where(partner))

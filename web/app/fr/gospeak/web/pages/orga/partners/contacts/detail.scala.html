@@ -1,13 +1,16 @@
 @import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Contact, Group, Partner}
+@import fr.gospeak.core.domain.{Contact, Group, Partner, Venue, Sponsor}
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.partners.contacts.routes.ContactCtrl
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import fr.gospeak.web.pages.orga.partners.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.utils.Formats
 
-@(group: Group, partner: Partner, contact: Contact)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, partner: Partner, contact: Contact, contactVenues: Seq[Venue], contactSponsors: Seq[Sponsor])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
 @container(partner.name.value + " - Gospeak", group, b)() {
     <div class="d-flex justify-content-between align-items-start">
         <div class="media">
@@ -27,7 +30,23 @@
             </button>
             <span class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" href="@ContactCtrl.edit(group.slug, partner.slug, contact.id)">Edit</a>
+                @if(contactVenues.isEmpty && contactSponsors.isEmpty) {
+                    @formBtn(ContactCtrl.doRemove(group.slug, partner.slug, contact.id), Seq("class" -> "dropdown-item")) {Delete}
+                } else {
+                    <span class="dropdown-item text-muted" title="This contact is linked to venues or sponsors" data-toggle="tooltip" data-placement="left">Can't delete</span>
+                }
             </span>
         </span>
     </div>
+
+    @if(contactVenues.nonEmpty || contactSponsors.nonEmpty) {
+        <ul>
+        @contactVenues.map { v =>
+            <li>Contact for venue at <a href="@VenueCtrl.detail(group.slug, partner.slug, v.id)">@v.address.formatted</a></li>
+        }
+        @contactSponsors.map { s =>
+            <li>Sponsor contact from @Formats.date(s.start) to @Formats.date(s.finish)</li>
+        }
+        </ul>
+    }
 }()
