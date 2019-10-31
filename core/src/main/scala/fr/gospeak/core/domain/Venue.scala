@@ -36,6 +36,8 @@ object Venue {
 
     def address: GMapPlace = venue.address
 
+    def description: Markdown = venue.description
+
     def roomSize: Option[Int] = venue.roomSize
 
     def timezone: ZoneId = venue.address.timezone
@@ -43,6 +45,8 @@ object Venue {
     def refs: ExtRefs = venue.refs
 
     def data: Data = venue.data
+
+    def info: Info = venue.info
   }
 
   final case class Data(partner: Partner.Id,

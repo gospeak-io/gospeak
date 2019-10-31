@@ -17,9 +17,9 @@
             <img src="@venue.partner.logo.value" alt="@venue.partner.name.value logo" class="avatar align-self-start mr-3">
             <div class="media-body">
                 <h1 class="mt-0"><a href="@PartnerCtrl.detail(group.slug, venue.partner.slug)">@venue.partner.name.value</a></h1>
-                <p>@venue.venue.address.value</p>
+                <p>@venue.address.value</p>
                 @venue.contact.map { c => <p>Contact: <a href="@ContactCtrl.detail(group.slug, venue.partner.slug, c.id)">@c.name.value</a></p> }
-                @venue.venue.roomSize.map { s => <p>@s places in the room</p> }
+                @venue.roomSize.map { s => <p>@s places in the room</p> }
             </div>
         </div>
         <span class="btn-group">
@@ -29,14 +29,14 @@
             <span class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" href="@editCall">Edit</a>
                 @if(events.isEmpty) {
-                    @formBtn(removeCall, Seq("class" -> "dropdown-item")) {Delete}
+                    @formBtn(removeCall, Seq("class" -> "dropdown-item", "confirm" -> s"Delete venue ${venue.address.value} of ${venue.partner.name.value}?")) {Delete}
                 } else {
                     <span class="dropdown-item text-muted" title="This venue is linked to some events" data-toggle="tooltip" data-placement="left">Can't delete</span>
                 }
             </span>
         </span>
     </div>
-    <p>@markdown(venue.venue.description)</p>
+    <p>@markdown(venue.description)</p>
 
     @if(events.nonEmpty) {
         <h5>Hosted events</h5>
@@ -47,5 +47,5 @@
         </ul>
     }
 
-    <p>@info(venue.venue.info, speakers, Some(u => SpeakerCtrl.detail(group.slug, u.slug)))</p>
+    <p>@info(venue.info, speakers, Some(u => SpeakerCtrl.detail(group.slug, u.slug)))</p>
 }()

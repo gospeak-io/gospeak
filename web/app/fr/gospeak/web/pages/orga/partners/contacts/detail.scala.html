@@ -31,7 +31,7 @@
             <span class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" href="@ContactCtrl.edit(group.slug, partner.slug, contact.id)">Edit</a>
                 @if(contactVenues.isEmpty && contactSponsors.isEmpty) {
-                    @formBtn(ContactCtrl.doRemove(group.slug, partner.slug, contact.id), Seq("class" -> "dropdown-item")) {Delete}
+                    @formBtn(ContactCtrl.doRemove(group.slug, partner.slug, contact.id), Seq("class" -> "dropdown-item", "confirm" -> s"Delete contact ${contact.name.value} of ${partner.name.value}?")) {Delete}
                 } else {
                     <span class="dropdown-item text-muted" title="This contact is linked to venues or sponsors" data-toggle="tooltip" data-placement="left">Can't delete</span>
                 }
