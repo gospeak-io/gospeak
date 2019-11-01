@@ -3,7 +3,7 @@ ThisBuild / scalaVersion := "2.12.8"
 ThisBuild / organization := "fr.gospeak"
 
 ThisBuild / parallelExecution := false
-ThisBuild / fork := false
+ThisBuild / fork := true
 ThisBuild / javaOptions += "-Xmx500M"
 
 /**

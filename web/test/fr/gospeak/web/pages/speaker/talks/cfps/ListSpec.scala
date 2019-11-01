@@ -5,7 +5,7 @@ import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.testingutils.TwirlSpec
 
-class ListSpec extends TwirlSpec {
+class ListSpec /* extends TwirlSpec {
   private val talk = random[Talk]
   private val cfps = random[Cfp](10)
 
@@ -20,4 +20,4 @@ class ListSpec extends TwirlSpec {
       res should include(cfps.head.name.value)
     }
   }
-}
+} */

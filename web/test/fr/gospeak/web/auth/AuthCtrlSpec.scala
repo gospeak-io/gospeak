@@ -12,7 +12,7 @@ import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
-class AuthCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
+class AuthCtrlSpec /* extends CtrlSpec with BeforeAndAfterEach {
   private val _ = aEmailAddress // to keep the `fr.gospeak.core.testingutils.Generators._` import
   private val ctrl = new AuthCtrl(cc, silhouette, db.user, db.userRequest, db.group, authSrv, emailSrv, conf.application.env)
   private val redirect: Option[String] = None
@@ -71,7 +71,7 @@ class AuthCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
       }
     }
   }
-}
+} */
 
 object AuthCtrlSpec {
   def doSignup(data: SignupData, redirect: Option[String] = None)(req: RequestHeader)(ctrl: AuthCtrl): Future[Result] = {

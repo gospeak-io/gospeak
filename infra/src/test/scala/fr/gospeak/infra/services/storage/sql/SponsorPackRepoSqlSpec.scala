@@ -43,5 +43,5 @@ class SponsorPackRepoSqlSpec extends RepoSpec {
 object SponsorPackRepoSqlSpec {
   val table = "sponsor_packs sp"
   val fields: String = mapFields("id, group_id, slug, name, description, price, currency, duration, active, created, created_by, updated, updated_by", "sp." + _)
-  val orderBy = "ORDER BY sp.active IS NULL, sp.active, sp.price IS NULL, sp.price DESC"
+  val orderBy = "ORDER BY sp.active IS NULL, sp.active DESC, sp.price IS NULL, sp.price DESC"
 }

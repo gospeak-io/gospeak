@@ -9,6 +9,9 @@ object FileUtils {
   def parent(path: String): String =
     path.split("/").dropRight(1).mkString("/")
 
+  def exists(path: String): Boolean =
+    Files.exists(Paths.get(path))
+
   def mkdirs(path: String): Try[Unit] =
     Try(Files.createDirectories(Paths.get(path)))
 
