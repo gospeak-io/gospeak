@@ -48,6 +48,9 @@ object Utils {
   def valueAttr(field: Field, args: Args, default: => String = ""): Html =
     attr("value", value(field, args, default))
 
+  def valuesAttr(field: Field, args: Args, default: => String = ""): Html =
+    attr("value", values(field, args, default))
+
   def classAttr(field: Field, args: Args, classes: String): Html =
     attr("class", s"""$classes ${getArg(args, "class", "")}${if (hasErrors(field)) " is-invalid" else ""}""")
 
@@ -97,6 +100,9 @@ object Utils {
 
   def value(field: Field, args: Args, default: => String = ""): String =
     getArg(args, "value", field.value.getOrElse(default))
+
+  def values(field: Field, args: Args, default: => String = ""): String =
+    getArg(args, "value", field.indexes.flatMap(i => field(s"[$i]").value).mkString(","))
 
   def label(field: Field, args: Args): String =
     getArg(args, "label", field.name)
