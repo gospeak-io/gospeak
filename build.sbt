@@ -44,7 +44,7 @@ val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
   "com.pepegar" %% "hammock-apache-http").map(_ % "0.10.0")
-val flyway = Seq("org.flywaydb" % "flyway-core" % "6.0.7")
+val flyway = Seq("org.flywaydb" % "flyway-core" % "6.0.8")
 val silhouetteVersion = "6.1.1"
 val silhouette = Seq(
   "com.mohiva" %% "play-silhouette",
@@ -75,14 +75,14 @@ val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib f
   "org.webjars.npm" % "typeahead.js-bootstrap4-css" % "1.0.0",
   "org.webjars.npm" % "mousetrap" % "1.6.3")
 val logback = Seq(
-  "org.slf4j" % "slf4j-api" % "1.7.28",
+  "org.slf4j" % "slf4j-api" % "1.7.29",
   "ch.qos.logback" % "logback-classic" % "1.2.3")
 val scalaTest = Seq(
   "org.scalatest" %% "scalatest" % "3.0.8").map(_ % Test)
 val scalaCheck = Seq(
   "org.scalacheck" %% "scalacheck" % "1.14.2",
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.3",
-  "com.danielasfregola" %% "random-data-generator" % "2.7").map(_ % Test)
+  "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
 val timeshape = Seq("net.iakovlev" % "timeshape" % "2018d.6")
 
 val scalautilsDependencies = cats ++ scalaTest ++ scalaCheck
