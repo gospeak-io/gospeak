@@ -1,10 +1,10 @@
 package fr.gospeak.web.pages.partials.form
 
 import fr.gospeak.web.testingutils.TwirlSpec
-import play.api.data.{Field, Form}
 import play.api.data.Forms._
+import play.api.data.{Field, Form}
 
-class InputLocalTimeSpec /* extends TwirlSpec {
+class InputLocalTimeSpec extends TwirlSpec {
   private val form: Form[String] = Form(mapping(
     "text" -> text
   )(identity)(Some(_)))
@@ -16,4 +16,4 @@ class InputLocalTimeSpec /* extends TwirlSpec {
       res should include("input-time")
     }
   }
-} */
+}

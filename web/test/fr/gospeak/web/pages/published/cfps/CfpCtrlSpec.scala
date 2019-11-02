@@ -7,9 +7,9 @@ import fr.gospeak.web.domain.{GospeakMessageBus, MessageBuilder}
 import fr.gospeak.web.testingutils.CtrlSpec
 import org.scalatest.BeforeAndAfterEach
 import play.api.http.Status
-import play.api.test.Helpers.{status, _}
+import play.api.test.Helpers._
 
-class CfpCtrlSpec /* extends CtrlSpec with BeforeAndAfterEach {
+class CfpCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
   private val params = Page.Params()
   private val messageBuilder = new MessageBuilder()
   private val messageBus = new BasicMessageBus[GospeakMessage]()
@@ -27,4 +27,4 @@ class CfpCtrlSpec /* extends CtrlSpec with BeforeAndAfterEach {
       status(res) shouldBe Status.OK
     }
   }
-} */
+}

@@ -1,11 +1,12 @@
 package fr.gospeak.web.pages.speaker.talks.cfps
 
+import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import fr.gospeak.core.domain.{Cfp, Talk}
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.testingutils.TwirlSpec
 
-class ListSpec /* extends TwirlSpec {
+class ListSpec extends TwirlSpec with RandomDataGenerator {
   private val talk = random[Talk]
   private val cfps = random[Cfp](10)
 
@@ -20,4 +21,4 @@ class ListSpec /* extends TwirlSpec {
       res should include(cfps.head.name.value)
     }
   }
-} */
+}
