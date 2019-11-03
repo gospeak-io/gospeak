@@ -1,16 +1,17 @@
 @import java.time.Instant
 
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
-@import fr.gospeak.core.domain.{Event, Group, Proposal, User}
+@import fr.gospeak.core.domain.{Event, Group, Proposal, User, Comment}
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.partials.html._
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, event: Event.Full, proposals: Seq[Proposal.Full], speakers: Seq[User], yesRsvp: Long, userRsvp: Option[Event.Rsvp], now: Instant)(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, event: Event.Full, proposals: Seq[Proposal.Full], speakers: Seq[User], comments: Seq[Comment.Full], commentForm: Form[Comment.Data], yesRsvp: Long, userRsvp: Option[Event.Rsvp], now: Instant)(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @container(event.name.value + " - Gospeak", b)() {
     <div class="d-flex justify-content-between align-items-center">
         <h1>@event.name.value@event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }</h1>
@@ -59,6 +60,12 @@
                     </div>
                 </div>
             }
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            @commentSection(comments, commentForm, GroupCtrl.doSendComment(group.slug, event.slug), GroupCtrl.event(group.slug, event.slug))
         </div>
     </div>
 }()

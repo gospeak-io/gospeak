@@ -2,7 +2,6 @@ package fr.gospeak.core.services.storage
 
 trait GospeakDb {
   val user: UserRepo
-  val userRequest: UserRequestRepo
   val talk: TalkRepo
   val group: GroupRepo
   val groupSettings: GroupSettingsRepo
@@ -14,4 +13,6 @@ trait GospeakDb {
   val event: EventRepo
   val proposal: ProposalRepo
   val contact: ContactRepo
+  val comment: CommentRepo
+  val userRequest: UserRequestRepo
 }

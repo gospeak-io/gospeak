@@ -123,5 +123,12 @@ object Tables {
     sort = Seq("answered_at"),
     search = Seq("answer")).get
 
-  val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, cfps, partners, contacts, venues, events, proposals, sponsorPacks, sponsors, requests, groupSettings, groupMembers, eventRsvps)
+  val comments: Table = Table.from(
+    name = "comments",
+    prefix = "co",
+    fields = Seq("event_id", "proposal_id", "id", "kind", "answers", "text", "created_by", "created_at"),
+    sort = Seq("created_at"),
+    search = Seq("id", "kind", "answers", "text", "created_by")).get
+
+  val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, cfps, partners, contacts, venues, events, proposals, sponsorPacks, sponsors, requests, groupSettings, groupMembers, eventRsvps, comments)
 }

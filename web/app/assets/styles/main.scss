@@ -214,3 +214,25 @@ a.no-style {
 .talk-item h5 a:not(.btn) {
   color: inherit;
 }
+
+.comment-section {
+  .avatar {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+
+  .comment-list {
+    .comment {
+      border: 1px solid rgba(0, 0, 0, .125);
+      border-radius: .25rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+
+      .text {
+        white-space: pre-line;
+      }
+    }
+  }
+}

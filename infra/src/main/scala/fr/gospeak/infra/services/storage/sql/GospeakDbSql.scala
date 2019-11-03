@@ -43,6 +43,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
   override val event = new EventRepoSql(xa)
   override val proposal = new ProposalRepoSql(xa)
   override val contact = new ContactRepoSql(xa)
+  override val comment = new CommentRepoSql(xa)
   override val userRequest = new UserRequestRepoSql(group, talk, proposal, xa)
 
   def insertMockData(conf: GospeakConf): IO[Done] = {

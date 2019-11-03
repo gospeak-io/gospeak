@@ -45,6 +45,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val slides: Slides = random[Slides]
   protected val video: Video = random[Video]
   protected val contact: Contact = random[Contact]
+  protected val comment: Comment = random[Comment]
   protected val accountValidationRequest: AccountValidationRequest = random[AccountValidationRequest]
   protected val passwordResetRequest: PasswordResetRequest = random[PasswordResetRequest]
   protected val userAskToJoinAGroupRequest: UserAskToJoinAGroupRequest = random[UserAskToJoinAGroupRequest]

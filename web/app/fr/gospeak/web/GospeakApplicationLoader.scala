@@ -85,6 +85,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val sponsorPackRepo: SponsorPackRepo = db.sponsorPack
   lazy val sponsorRepo: SponsorRepo = db.sponsor
   lazy val contactRepo: ContactRepo = db.contact
+  lazy val commentRepo: CommentRepo = db.comment
   lazy val authRepo: AuthRepo = wire[AuthRepo]
 
   lazy val eventSrv: EventSrv = wire[EventSrv]

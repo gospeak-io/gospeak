@@ -1,0 +1,46 @@
+@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.core.domain.Comment
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.auth.routes.AuthCtrl
+@import fr.gospeak.web.utils.Formats
+
+@(comments: Seq[Comment.Full], commentForm: Form[Comment.Data], sendComment: Call, pageUrl: Call)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+<div class="comment-section">
+    <div class="comment-submit">
+    @req.identity.map(_.user).map { user =>
+        @formElt(commentForm, sendComment) {
+            <div class="media">
+                <img src="@user.avatar.url.value" alt="@user.name.value avatar" class="mr-3 avatar">
+                <div class="media-body">
+                    <h5 class="mt-0 d-flex justify-content-between align-items-center">
+                        @user.name.value
+                        <button type="submit" class="btn btn-primary btn-sm" tabindex="11">Send</button>
+                    </h5>
+                    @inputTextarea(commentForm("text"), Seq("placeholder" -> "Add comment...", "tabindex" -> "10"))
+                </div>
+            </div>
+        }
+    }.getOrElse {
+        <a href="@AuthCtrl.login(redirect = Some(pageUrl.toString))" class="btn btn-success">Login to comment</a>
+    }
+    </div>
+    @if(comments.nonEmpty) {
+        <div class="comment-list">
+            <h3 class="mt-3">@Formats.plural(comments.length, "comment"):</h3>
+            @comments.map { comment =>
+                <div class="media comment">
+                    <img src="@comment.user.avatar.url.value" alt="@comment.user.name.value avatar" class="mr-3 avatar">
+                    <div class="media-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="m-0">@comment.user.name.value</h5>
+                            <small class="text-muted">@timeAgo(comment.createdAt)</small>
+                        </div>
+                        <div class="text">@comment.text</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

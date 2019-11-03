@@ -5,7 +5,8 @@ import java.time.Instant
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.{Event, Group, Proposal}
+import com.mohiva.play.silhouette.api.actions.UserAwareRequest
+import fr.gospeak.core.domain.{Comment, Event, Group, Proposal}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.Extensions._
@@ -15,7 +16,9 @@ import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.pages.published.groups.GroupCtrl._
-import fr.gospeak.web.utils.UICtrl
+import fr.gospeak.web.utils.Extensions._
+import fr.gospeak.web.utils.{GenericForm, UICtrl}
+import play.api.data.Form
 import play.api.mvc._
 
 import scala.util.control.NonFatal
@@ -29,6 +32,7 @@ class GroupCtrl(cc: ControllerComponents,
                 proposalRepo: PublicProposalRepo,
                 sponsorRepo: PublicSponsorRepo,
                 sponsorPackRepo: PublicSponsorPackRepo,
+                commentRepo: PublicCommentRepo,
                 emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
 
   import silhouette._
@@ -91,17 +95,34 @@ class GroupCtrl(cc: ControllerComponents,
   }
 
   def event(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction.async { implicit req =>
+    eventView(group, event, GenericForm.comment).unsafeToFuture()
+  }
+
+  def doSendComment(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    GenericForm.comment.bindFromRequest.fold(
+      formWithErrors => eventView(group, event, formWithErrors)(req.asUserAware),
+      data => (for {
+        groupElt <- OptionT(groupRepo.find(group))
+        eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
+        _ <- OptionT.liftF(commentRepo.addComment(eventElt.id, data, user, now))
+      } yield Redirect(routes.GroupCtrl.event(group, event))).value.map(_.getOrElse(publicEventNotFound(group, event)))
+    ).unsafeToFuture()
+  }
+
+  private def eventView(group: Group.Slug, event: Event.Slug, commentForm: Form[Comment.Data])(implicit req: UserAwareRequest[CookieEnv, AnyContent]): IO[Result] = {
     val now = Instant.now()
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
       proposals <- OptionT.liftF(proposalRepo.listPublicFull(eventElt.talks))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.speakers.toList).distinct))
+      comments <- OptionT.liftF(commentRepo.getComments(eventElt.id))
       yesRsvp <- OptionT.liftF(eventRepo.countYesRsvp(eventElt.id))
       userRsvp <- OptionT.liftF(userOpt.map(eventRepo.findRsvp(eventElt.id, _)).sequence.map(_.flatten))
       b = breadcrumbEvent(groupElt, eventElt)
-      res = Ok(html.event(groupElt, eventElt, proposals, speakers, yesRsvp, userRsvp, now)(b))
-    } yield res).value.map(_.getOrElse(publicEventNotFound(group, event))).unsafeToFuture()
+      res = Ok(html.event(groupElt, eventElt, proposals, speakers, comments, commentForm, yesRsvp, userRsvp, now)(b))
+    } yield res).value.map(_.getOrElse(publicEventNotFound(group, event)))
   }
 
   def doRsvp(group: Group.Slug, event: Event.Slug, answer: Event.Rsvp.Answer): Action[AnyContent] = SecuredAction.async { implicit req =>
