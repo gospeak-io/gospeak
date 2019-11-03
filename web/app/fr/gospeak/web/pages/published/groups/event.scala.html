@@ -65,7 +65,7 @@
 
     <div class="row">
         <div class="col">
-            @commentSection(comments, commentForm, GroupCtrl.doSendComment(group.slug, event.slug), GroupCtrl.event(group.slug, event.slug))
+            @commentSection(comments, commentForm, req.identity.map(_.user), GroupCtrl.doSendComment(group.slug, event.slug), GroupCtrl.event(group.slug, event.slug))
         </div>
     </div>
 }()

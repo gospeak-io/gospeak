@@ -34,6 +34,7 @@ class ProposalCtrl(cc: ControllerComponents,
                    eventRepo: SpeakerEventRepo,
                    talkRepo: SpeakerTalkRepo,
                    proposalRepo: SpeakerProposalRepo,
+                   commentRepo: SpeakerCommentRepo,
                    emailSrv: EmailSrv,
                    mb: GospeakMessageBus) extends UICtrl(cc, silhouette) {
 
@@ -82,13 +83,29 @@ class ProposalCtrl(cc: ControllerComponents,
   }
 
   def detail(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    proposalView(talk, cfp, GenericForm.comment).unsafeToFuture()
+  }
+
+  def doSendComment(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    GenericForm.comment.bindFromRequest.fold(
+      formWithErrors => proposalView(talk, cfp, formWithErrors),
+      data => (for {
+        proposalElt <- OptionT(proposalRepo.find(user, talk, cfp))
+        _ <- OptionT.liftF(commentRepo.addComment(proposalElt.id, data, user, now))
+      } yield Redirect(routes.ProposalCtrl.detail(talk, cfp))).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
+    ).unsafeToFuture()
+  }
+
+  private def proposalView(talk: Talk.Slug, cfp: Cfp.Slug, commentForm: Form[Comment.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
       proposalFull <- OptionT(proposalRepo.findFull(talk, cfp)(user))
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposalFull.id))
       speakers <- OptionT.liftF(userRepo.list(proposalFull.users))
+      comments <- OptionT.liftF(commentRepo.getComments(proposalFull.id))
       b = breadcrumb(req.identity.user, proposalFull)
-      res = Ok(html.detail(proposalFull, speakers, invites, ProposalForms.addSpeaker, GenericForm.embed)(b))
-    } yield res).value.map(_.getOrElse(proposalNotFound(talk, cfp))).unsafeToFuture()
+      res = Ok(html.detail(proposalFull, speakers, comments, invites, ProposalForms.addSpeaker, GenericForm.embed, commentForm)(b))
+    } yield res).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
   }
 
   def edit(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>

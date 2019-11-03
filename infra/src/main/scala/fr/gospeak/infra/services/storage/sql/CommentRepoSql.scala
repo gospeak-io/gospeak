@@ -14,9 +14,19 @@ import fr.gospeak.libs.scalautils.Extensions._
 
 class CommentRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with CommentRepo {
   override def addComment(event: Event.Id, data: Comment.Data, by: User.Id, now: Instant): IO[Comment] =
-    insert(Comment.create(event, data, by, now)).run(xa).map(_._2)
+    insert(event, Comment.create(data, Comment.Kind.Event, by, now)).run(xa)
 
-  override def getComments(event: Event.Id): IO[Seq[Comment.Full]] = selectAll(event).runList(xa)
+  override def addComment(proposal: Proposal.Id, data: Comment.Data, by: User.Id, now: Instant): IO[Comment] =
+    insert(proposal, Comment.create(data, Comment.Kind.Proposal, by, now)).run(xa)
+
+  override def addOrgaComment(proposal: Proposal.Id, data: Comment.Data, by: User.Id, now: Instant): IO[Comment] =
+    insert(proposal, Comment.create(data, Comment.Kind.ProposalOrga, by, now)).run(xa)
+
+  override def getComments(event: Event.Id): IO[Seq[Comment.Full]] = selectAll(event, Comment.Kind.Event).runList(xa)
+
+  override def getComments(proposal: Proposal.Id): IO[Seq[Comment.Full]] = selectAll(proposal, Comment.Kind.Proposal).runList(xa)
+
+  override def getOrgaComments(proposal: Proposal.Id): IO[Seq[Comment.Full]] = selectAll(proposal, Comment.Kind.ProposalOrga).runList(xa)
 }
 
 object CommentRepoSql {
@@ -27,14 +37,19 @@ object CommentRepoSql {
     .flatMap(_.dropField(_.event_id))
     .flatMap(_.dropField(_.proposal_id)).get
 
-
-  private[sql] def insert(e: (Event.Id, Comment)): Insert[(Event.Id, Comment)] = {
-    val c = e._2
-    val values = fr0"${e._1}, ${Option.empty[Proposal.Id]}, ${c.id}, ${c.kind}, ${c.answers}, ${c.text}, ${c.createdBy}, ${c.createdAt}"
-    table.insert(e, _ => values)
+  private[sql] def insert(e: Event.Id, c: Comment): Insert[Comment] = {
+    val values = fr0"$e, ${Option.empty[Proposal.Id]}, ${c.id}, ${c.kind}, ${c.answers}, ${c.text}, ${c.createdBy}, ${c.createdAt}"
+    table.insert(c, _ => values)
   }
 
-  private[sql] def selectAll(event: Event.Id): Select[Comment.Full] =
-    tableFull.select[Comment.Full](fr0"WHERE co.event_id=$event")
+  private[sql] def insert(e: Proposal.Id, c: Comment): Insert[Comment] = {
+    val values = fr0"${Option.empty[Event.Id]}, $e, ${c.id}, ${c.kind}, ${c.answers}, ${c.text}, ${c.createdBy}, ${c.createdAt}"
+    table.insert(c, _ => values)
+  }
 
+  private[sql] def selectAll(event: Event.Id, kind: Comment.Kind): Select[Comment.Full] =
+    tableFull.select[Comment.Full](fr0"WHERE co.event_id=$event AND co.kind=$kind")
+
+  private[sql] def selectAll(proposal: Proposal.Id, kind: Comment.Kind): Select[Comment.Full] =
+    tableFull.select[Comment.Full](fr0"WHERE co.proposal_id=$proposal AND co.kind=$kind")
 }

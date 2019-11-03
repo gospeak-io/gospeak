@@ -31,6 +31,7 @@ class ProposalCtrl(cc: ControllerComponents,
                    cfpRepo: OrgaCfpRepo,
                    eventRepo: OrgaEventRepo,
                    proposalRepo: OrgaProposalRepo,
+                   commentRepo: OrgaCommentRepo,
                    emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
 
   import silhouette._
@@ -46,16 +47,33 @@ class ProposalCtrl(cc: ControllerComponents,
   }
 
   def detail(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+    proposalView(group, cfp, proposal, GenericForm.comment, GenericForm.comment).unsafeToFuture()
+  }
+
+  def doSendComment(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, orga: Boolean): Action[AnyContent] = SecuredAction.async { implicit req =>
+    val now = Instant.now()
+    GenericForm.comment.bindFromRequest.fold(
+      formWithErrors => proposalView(group, cfp, proposal, if (orga) GenericForm.comment else formWithErrors, if (orga) formWithErrors else GenericForm.comment),
+      data => (for {
+        proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
+        _ <- OptionT.liftF(if (orga) commentRepo.addOrgaComment(proposalElt.id, data, user, now) else commentRepo.addComment(proposalElt.id, data, user, now))
+      } yield Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
+    ).unsafeToFuture()
+  }
+
+  private def proposalView(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, commentForm: Form[Comment.Data], orgaCommentForm: Form[Comment.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(user, group))
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       speakers <- OptionT.liftF(userRepo.list(proposalElt.users))
+      comments <- OptionT.liftF(commentRepo.getComments(proposalElt.id))
+      orgaComments <- OptionT.liftF(commentRepo.getOrgaComments(proposalElt.id))
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposal))
       events <- OptionT.liftF(eventRepo.list(proposalElt.event.toList))
       b = breadcrumb(groupElt, cfpElt, proposalElt)
-      res = Ok(html.detail(groupElt, cfpElt, proposalElt, speakers, invites, events, ProposalForms.addSpeaker, GenericForm.embed)(b))
-    } yield res).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal))).unsafeToFuture()
+      res = Ok(html.detail(groupElt, cfpElt, proposalElt, speakers, comments, orgaComments, invites, events, ProposalForms.addSpeaker, GenericForm.embed, commentForm, orgaCommentForm)(b))
+    } yield res).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
   def edit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>

@@ -14,8 +14,8 @@ case class Comment(id: Comment.Id,
 }
 
 object Comment {
-  def create(event: Event.Id, d: Data, by: User.Id, now: Instant): (Event.Id, Comment) =
-    (event, Comment(Id.generate(), Kind.Event, d.answers, d.text, by, now))
+  def create(d: Data, kind: Kind, by: User.Id, now: Instant): Comment =
+    Comment(Id.generate(), kind, d.answers, d.text, by, now)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
