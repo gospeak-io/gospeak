@@ -49,6 +49,7 @@
                 @eventTemplates.keys.map { id =>
                     <a class="dropdown-item" href="@EventCtrl.showTemplate(group.slug, event.slug, id)">Show @id template</a>
                 }
+                <a class="dropdown-item" href="@EventCtrl.contactRsvps(group.slug, event.slug)">Contact attendees</a>
             </span>
         </span>
     </h1>

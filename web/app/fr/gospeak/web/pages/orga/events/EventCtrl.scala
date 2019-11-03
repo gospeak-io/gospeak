@@ -215,14 +215,14 @@ class EventCtrl(cc: ControllerComponents,
 
   def publish(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val nowLDT = LocalDateTime.now()
-    publishForm(group, event, EventForms.publish.fill(PublishOptions.default), nowLDT).unsafeToFuture()
+    publishView(group, event, EventForms.publish.fill(PublishOptions.default), nowLDT).unsafeToFuture()
   }
 
   def doPublish(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
     val now = Instant.now()
     val nowLDT = LocalDateTime.now()
     EventForms.publish.bindFromRequest.fold(
-      formWithErrors => publishForm(group, event, formWithErrors, nowLDT),
+      formWithErrors => publishView(group, event, formWithErrors, nowLDT),
       data => (for {
         e <- OptionT(eventSrv.getFullEvent(group, event, user))
         description = eventSrv.buildDescription(e, nowLDT)
@@ -249,7 +249,7 @@ class EventCtrl(cc: ControllerComponents,
       }.unsafeToFuture()
   }
 
-  private def publishForm(group: Group.Slug, event: Event.Slug, form: Form[PublishOptions], nowLDT: LocalDateTime)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+  private def publishView(group: Group.Slug, event: Event.Slug, form: Form[PublishOptions], nowLDT: LocalDateTime)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
     (for {
       e <- OptionT(eventSrv.getFullEvent(group, event, user))
       description = eventSrv.buildDescription(e, nowLDT)
@@ -257,6 +257,36 @@ class EventCtrl(cc: ControllerComponents,
       b = breadcrumb(e.group, e.event).add("Publish" -> routes.EventCtrl.publish(group, event))
       res = Ok(html.publish(e.group, e.event, description, form, meetupAccount.isDefined)(b))
     } yield res).value.map(_.getOrElse(groupNotFound(group)))
+  }
+
+
+  def contactRsvps(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    contactRsvpsView(group, event, EventForms.contactAttendees).unsafeToFuture()
+  }
+
+  def doContactRsvps(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    EventForms.contactAttendees.bindFromRequest.fold(
+      formWithErrors => contactRsvpsView(group, event, formWithErrors),
+      data => (for {
+        groupElt <- OptionT(groupRepo.find(user, group))
+        eventElt <- OptionT(eventRepo.find(groupElt.id, event))
+        sender <- OptionT(IO.pure(groupElt.senders(req.identity.user).find(_.address == data.from)))
+        rsvps <- OptionT.liftF(eventRepo.listRsvps(eventElt.id, data.to.answers))
+        _ <- OptionT.liftF(rsvps.map(r => emailSrv.send(Emails.eventMessage(groupElt, eventElt, sender, data.subject, data.content, r))).sequence)
+        next = Redirect(routes.EventCtrl.detail(group, event))
+      } yield next.flashing("success" -> "Message sent to event attendees")).value.map(_.getOrElse(groupNotFound(group)))
+    ).recover {
+      case NonFatal(e) => Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"An error happened: ${e.getMessage}")
+    }.unsafeToFuture()
+  }
+
+  private def contactRsvpsView(group: Group.Slug, event: Event.Slug, form: Form[EventForms.ContactAttendees])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      eventElt <- OptionT(eventRepo.find(groupElt.id, event))
+      senders = groupElt.senders(req.identity.user)
+      b = breadcrumb(groupElt, eventElt).add("Contact attendees" -> routes.EventCtrl.contactRsvps(group, event))
+    } yield Ok(html.contactRsvps(groupElt, eventElt, senders, form)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 }
 

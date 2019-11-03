@@ -115,6 +115,14 @@ class EventRepoSqlSpec extends RepoSpec {
           val q = EventRepoSql.selectPageRsvps(event.id, params)
           check(q, s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? $rsvpOrderBy LIMIT 20 OFFSET 0")
         }
+        it("should build selectAllRsvp") {
+          val q = EventRepoSql.selectAllRsvp(event.id)
+          check(q, s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? $rsvpOrderBy")
+        }
+        it("should build selectAllRsvp with answers") {
+          val q = EventRepoSql.selectAllRsvp(event.id, NonEmptyList.of(rsvp.answer))
+          check(q, s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? AND er.answer IN (?)  $rsvpOrderBy")
+        }
         it("should build selectOneRsvp") {
           val q = EventRepoSql.selectOneRsvp(event.id, user.id)
           check(q, s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? AND er.user_id=? $rsvpOrderBy")

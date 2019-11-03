@@ -1,0 +1,43 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.{Event, Group}
+@import fr.gospeak.libs.scalautils.domain.EmailAddress
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.orga.events.EventForms
+@import fr.gospeak.web.pages.orga.partials.html.container
+@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
+@import fr.gospeak.web.pages.partials.form.html._
+
+@(group: Group, event: Event, senders: Seq[EmailAddress.Contact], form: Form[EventForms.ContactAttendees])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container(group.name.value + " - Gospeak", group, b)() {
+    <h1>Contact attendees of @event.name.value</h1>
+
+    @formElt(form, EventCtrl.doContactRsvps(group.slug, event.slug)) {
+        @fieldHorizontal(form("from"), Seq("label" -> "Sender")) { (field, args) =>
+            @senders.zipWithIndex.map { case (contact, i) =>
+                <div class="custom-control custom-radio">
+                    <input type="radio" class="custom-control-input" id="@field.id-@i" name="@field.name" value="@contact.address.value"@if(i == 0){ checked} required>
+                    <label class="custom-control-label" for="@field.id-@i">@contact.format</label>
+                </div>
+            }
+        }
+        @fieldHorizontal(form("to"), Seq("label" -> "Recipients")) { (field, args) =>
+            @EventForms.To.all.zipWithIndex.map { case (to, i) =>
+                <div class="custom-control custom-radio">
+                    <input type="radio" class="custom-control-input" id="@field.id-@i" name="@field.name" value="@to.value"@if(i == 0){ checked} required>
+                    <label class="custom-control-label" for="@field.id-@i">@to.description</label>
+                </div>
+            }
+        }
+        @fieldHorizontal(form("subject"), Seq("label" -> "Subject")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "ex: Hey, what's up friends?", "autofocus" -> "true") ++ args)
+        }
+        @fieldHorizontal(form("content"), Seq("label" -> "Message")) { (field, args) =>
+            @inputMarkdown(field, args)
+        }
+        @actionsHorizontal() {
+            @btnCancel(EventCtrl.detail(group.slug, event.slug))
+            @btnSubmit("Send message")
+        }
+    }
+}()

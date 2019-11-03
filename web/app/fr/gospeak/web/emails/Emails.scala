@@ -176,4 +176,11 @@ object Emails {
       to = Seq(member.user.asContact),
       subject = subject,
       content = HtmlContent(html.groupMessage(group, text, member).body))
+
+  def eventMessage(group: Group, event: Event, sender: EmailAddress.Contact, subject: String, text: Markdown, rsvp: Event.Rsvp)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = sender,
+      to = Seq(rsvp.user.asContact),
+      subject = subject,
+      content = HtmlContent(html.eventMessage(group, event, text, rsvp).body))
 }

@@ -66,6 +66,10 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def countYesRsvp(event: Event.Id): IO[Long] = countRsvp(event, Event.Rsvp.Answer.Yes).runOption(xa).map(_.getOrElse(0))
 
+  override def listRsvps(event: Event.Id): IO[Seq[Event.Rsvp]] = selectAllRsvp(event).runList(xa)
+
+  override def listRsvps(event: Event.Id, answers: NonEmptyList[Event.Rsvp.Answer]): IO[Seq[Event.Rsvp]] = selectAllRsvp(event, answers).runList(xa)
+
   override def findRsvp(event: Event.Id, user: User.Id): IO[Option[Event.Rsvp]] = selectOneRsvp(event, user).runOption(xa)
 
   override def findFirstWait(event: Event.Id): IO[Option[Event.Rsvp]] = selectFirstRsvp(event, Answer.Wait).runOption(xa)
@@ -165,6 +169,12 @@ object EventRepoSql {
 
   private[sql] def selectPageRsvps(event: Event.Id, params: Page.Params): SelectPage[Event.Rsvp] =
     rsvpTableWithUser.selectPage[Event.Rsvp](params, fr0"WHERE er.event_id=$event")
+
+  private[sql] def selectAllRsvp(event: Event.Id): Select[Event.Rsvp] =
+    rsvpTableWithUser.select[Event.Rsvp](fr0"WHERE er.event_id=$event")
+
+  private[sql] def selectAllRsvp(event: Event.Id, answers: NonEmptyList[Event.Rsvp.Answer]): Select[Event.Rsvp] =
+    rsvpTableWithUser.select[Event.Rsvp](fr0"WHERE er.event_id=$event AND " ++ Fragments.in(fr"er.answer", answers))
 
   private[sql] def selectOneRsvp(event: Event.Id, user: User.Id): Select[Event.Rsvp] =
     rsvpTableWithUser.select[Event.Rsvp](fr0"WHERE er.event_id=$event AND er.user_id=$user")

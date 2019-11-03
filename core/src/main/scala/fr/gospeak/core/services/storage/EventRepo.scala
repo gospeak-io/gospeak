@@ -2,6 +2,7 @@ package fr.gospeak.core.services.storage
 
 import java.time.Instant
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
@@ -32,6 +33,10 @@ trait OrgaEventRepo {
   def listAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]]
 
   def find(group: Group.Id, event: Event.Slug): IO[Option[Event]]
+
+  def listRsvps(event: Event.Id): IO[Seq[Event.Rsvp]]
+
+  def listRsvps(event: Event.Id, answers: NonEmptyList[Event.Rsvp.Answer]): IO[Seq[Event.Rsvp]]
 }
 
 trait SpeakerEventRepo {
