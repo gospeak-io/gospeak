@@ -1,0 +1,13 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.Group
+@import fr.gospeak.libs.scalautils.domain.Markdown
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.pages.partials.display.html.markdown
+
+@(group: Group, text: Markdown, member: Group.Member)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+<p>Hi @member.user.firstName,</p>
+<p>Here is a message from your <b>@group.name.value</b> group organizer:</p>
+<div>
+    @markdown(text)
+</div>
+<p>The Gospeak team</p>

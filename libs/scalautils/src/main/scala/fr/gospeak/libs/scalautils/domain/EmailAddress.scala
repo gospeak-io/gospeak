@@ -14,4 +14,13 @@ object EmailAddress {
     Seq(
       if (in.contains("@")) None else Some("Missing @")
     ).flatten.map(CustomError)
+
+  final case class Contact(address: EmailAddress, name: Option[String]) {
+    def format: String = name.map(n => s"$n<${address.value}>").getOrElse(address.value)
+  }
+
+  object Contact {
+    def apply(email: EmailAddress): Contact = new Contact(email, None)
+  }
+
 }

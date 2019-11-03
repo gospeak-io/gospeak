@@ -10,6 +10,7 @@ import fr.gospeak.core.domain.{Group, User, UserRequest}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.infra.services.EmailSrv
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain._
@@ -22,6 +23,8 @@ import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import fr.gospeak.web.utils.{HttpUtils, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
+
+import scala.util.control.NonFatal
 
 class GroupCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
@@ -152,6 +155,33 @@ class GroupCtrl(cc: ControllerComponents,
       _ <- OptionT.liftF(emailSrv.send(Emails.joinGroupRejected(userElt, req.identity, groupElt)))
       msg = s"You refused to <b>${userElt.name.value}</b> to join ${groupElt.name.value} as an organizer"
     } yield next.flashing("error" -> msg)).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+  }
+
+  def contactMembers(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    contactMembersView(group, GroupForms.contactMembers).unsafeToFuture()
+  }
+
+  def doContactMembers(group: Group.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
+    GroupForms.contactMembers.bindFromRequest.fold(
+      formWithErrors => contactMembersView(group, formWithErrors),
+      data => (for {
+        groupElt <- OptionT(groupRepo.find(user, group))
+        sender <- OptionT(IO.pure(groupElt.senders(req.identity.user).find(_.address == data.from)))
+        members <- OptionT.liftF(groupRepo.listMembers(groupElt.id))
+        _ <- OptionT.liftF(members.map(m => emailSrv.send(Emails.groupMessage(groupElt, sender, data.subject, data.content, m))).sequence)
+        next = Redirect(routes.GroupCtrl.detail(group))
+      } yield next.flashing("success" -> "Message sent to group members")).value.map(_.getOrElse(groupNotFound(group)))
+    ).recover {
+      case NonFatal(e) => Redirect(routes.GroupCtrl.detail(group)).flashing("error" -> s"An error happened: ${e.getMessage}")
+    }.unsafeToFuture()
+  }
+
+  private def contactMembersView(group: Group.Slug, form: Form[GroupForms.ContactMembers])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+    (for {
+      groupElt <- OptionT(groupRepo.find(user, group))
+      senders = groupElt.senders(req.identity.user)
+      b = breadcrumb(groupElt).add("Contact members" -> routes.GroupCtrl.contactMembers(group))
+    } yield Ok(html.contactMembers(groupElt, senders, form)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 }
 

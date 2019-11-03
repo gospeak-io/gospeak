@@ -1,10 +1,10 @@
 package fr.gospeak.infra.services
 
 import cats.effect.IO
-import fr.gospeak.core.domain.User
 import fr.gospeak.infra.services.EmailSrv._
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Secret}
+import fr.gospeak.libs.scalautils.domain.EmailAddress.Contact
+import fr.gospeak.libs.scalautils.domain.{Done, Secret}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -16,16 +16,6 @@ trait EmailSrv {
 object EmailSrv {
 
   final case class Email(from: Contact, to: Seq[Contact], subject: String, content: Content)
-
-  final case class Contact(address: EmailAddress, name: Option[String]) {
-    def format: String = name.map(n => s"$n<${address.value}>").getOrElse(address.value)
-  }
-
-  object Contact {
-    def apply(email: EmailAddress): Contact = new Contact(email, None)
-
-    def apply(user: User): Contact = new Contact(user.email, Some(user.name.value))
-  }
 
   sealed trait Content {
     def value: String

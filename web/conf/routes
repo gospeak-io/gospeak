@@ -50,6 +50,8 @@ GET         /u/groups/:group/edit                                               
 POST        /u/groups/:group/edit                                                          fr.gospeak.web.pages.orga.GroupCtrl.doEdit(group: Group.Slug)
 GET         /u/groups/:group/accept-join/:request                                          fr.gospeak.web.pages.orga.GroupCtrl.acceptJoin(group: Group.Slug, request: UserRequest.Id)
 GET         /u/groups/:group/reject-join/:request                                          fr.gospeak.web.pages.orga.GroupCtrl.rejectJoin(group: Group.Slug, request: UserRequest.Id)
+GET         /u/groups/:group/contact-members                                               fr.gospeak.web.pages.orga.GroupCtrl.contactMembers(group: Group.Slug)
+POST        /u/groups/:group/contact-members                                               fr.gospeak.web.pages.orga.GroupCtrl.doContactMembers(group: Group.Slug)
 GET         /u/groups/:group/events                                                        fr.gospeak.web.pages.orga.events.EventCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/events/create                                                 fr.gospeak.web.pages.orga.events.EventCtrl.create(group: Group.Slug)
 POST        /u/groups/:group/events/create                                                 fr.gospeak.web.pages.orga.events.EventCtrl.doCreate(group: Group.Slug)

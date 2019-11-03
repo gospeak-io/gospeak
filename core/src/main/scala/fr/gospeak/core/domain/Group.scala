@@ -3,7 +3,7 @@ package fr.gospeak.core.domain
 import java.time.Instant
 
 import cats.data.NonEmptyList
-import fr.gospeak.core.domain.utils.{Info, TemplateData}
+import fr.gospeak.core.domain.utils.{Constants, Info, TemplateData}
 import fr.gospeak.core.services.meetup.domain.MeetupCredentials
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackCredentials}
 import fr.gospeak.libs.scalautils.Extensions._
@@ -22,6 +22,11 @@ final case class Group(id: Group.Id,
                        tags: Seq[Tag],
                        info: Info) {
   def data: Group.Data = Group.Data(this)
+
+  def senders(user: User): Seq[EmailAddress.Contact] = Seq(
+    contact.map(email => EmailAddress.Contact(email, Some(name.value))),
+    Some(EmailAddress.Contact(user.email, Some(user.name.value))),
+    Some(Constants.defaultContact)).flatten
 }
 
 object Group {

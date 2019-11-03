@@ -1,0 +1,35 @@
+@import com.mohiva.play.silhouette.api.actions.SecuredRequest
+@import fr.gospeak.core.domain.Group
+@import fr.gospeak.libs.scalautils.domain.EmailAddress
+@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.orga.GroupForms.ContactMembers
+@import fr.gospeak.web.pages.orga.partials.html.container
+@import fr.gospeak.web.pages.orga.routes.GroupCtrl
+@import fr.gospeak.web.pages.partials.form.html._
+
+@(group: Group, senders: Seq[EmailAddress.Contact], form: Form[ContactMembers])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@container(group.name.value + " - Gospeak", group, b)() {
+    <h1>Contact @group.name.value members</h1>
+
+    @formElt(form, GroupCtrl.doContactMembers(group.slug)) {
+        @fieldHorizontal(form("from"), Seq("label" -> "Sender")) { (field, args) =>
+            @senders.zipWithIndex.map { case (contact, i) =>
+                <div class="custom-control custom-radio">
+                    <input type="radio" class="custom-control-input" id="@field.id-@i" name="@field.name" value="@contact.address.value"@if(i == 0){ checked} required>
+                    <label class="custom-control-label" for="@field.id-@i">@contact.format</label>
+                </div>
+            }
+        }
+        @fieldHorizontal(form("subject"), Seq("label" -> "Subject")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "ex: Hey, what's up friends?", "autofocus" -> "true") ++ args)
+        }
+        @fieldHorizontal(form("content"), Seq("label" -> "Message")) { (field, args) =>
+            @inputMarkdown(field, args)
+        }
+        @actionsHorizontal() {
+            @btnCancel(GroupCtrl.detail(group.slug))
+            @btnSubmit("Send message")
+        }
+    }
+}()

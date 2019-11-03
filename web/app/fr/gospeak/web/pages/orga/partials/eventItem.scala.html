@@ -14,8 +14,9 @@
         @event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }
     </h5>
     @if(!event.isPublic) {<span class="badge badge-dark">Draft</span>}
+    @event.venue.map { id => @venue(venues, id, v => Some(VenueCtrl.detail(group.slug, v.id))) }.getOrElse { <b class="text-danger">Missing venue</b> }
     @Formats.date(event.start),
-    @event.venue.map { id => at @venue(venues, id, v => Some(VenueCtrl.detail(group.slug, v.id))) }.getOrElse { <b class="text-danger">Missing venue</b>, }
+    @event.maxAttendee.map { max =>  @Formats.plural(max, "place"), }
     @Formats.plural(event.talks.length, "planned talk")
     @tags(event.tags)
     @if(event.talks.nonEmpty) {
@@ -30,5 +31,4 @@
         }
         </ol>
     }
-    @event.maxAttendee.map { max =>  @Formats.plural(max, "place") }
 </div>
