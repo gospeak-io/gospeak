@@ -3,7 +3,7 @@
 
 @(group: Group, event: Event, attendee: User)(implicit req: Request[AnyContent], messages: Messages)
 <p>Hello @attendee.firstName,</p>
-<p>Someone withdrew and you were the first on the waiting list for <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a>.</p>
+<p>Someone withdrew and you were the first on the waiting list for <a href="@GroupCtrl.event(group.slug, event.slug).absoluteURL()">@event.name.value</a>.</p>
 <p>Good news, you are now on the guest list :)</p>
 <p>If you can't come, please change your status so other people can come.</p>
 <p>We hope you will enjoy this event</p>

@@ -104,6 +104,10 @@ class GroupRepoSqlSpec extends RepoSpec {
           val q = GroupRepoSql.selectPageActiveMembers(group.id, params)
           check(q, s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE gm.group_id=? AND gm.leaved_at IS NULL $memberOrderBy LIMIT 20 OFFSET 0")
         }
+        it("should build selectAllActiveMembers") {
+          val q = GroupRepoSql.selectAllActiveMembers(group.id)
+          check(q, s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE gm.group_id=? AND gm.leaved_at IS NULL $memberOrderBy")
+        }
         it("should build selectOneMember") {
           val q = GroupRepoSql.selectOneMember(group.id, user.id)
           check(q, s"SELECT $memberFieldsWithUser FROM $memberTableWithUser WHERE gm.group_id=? AND gm.user_id=? $memberOrderBy")

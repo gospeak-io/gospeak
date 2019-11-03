@@ -87,6 +87,8 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
     if (member.user.id == user) disableMember(member, now).run(xa)
     else IO.raiseError(CustomException("Internal error: authenticated user is not the member one"))
 
+  override def listMembers(group: Group.Id): IO[Seq[Group.Member]] = selectAllActiveMembers(group).runList(xa)
+
   override def findActiveMember(group: Group.Id, user: User.Id): IO[Option[Group.Member]] = selectOneActiveMember(group, user).runOption(xa)
 }
 
@@ -151,6 +153,9 @@ object GroupRepoSql {
 
   private[sql] def selectPageActiveMembers(group: Group.Id, params: Page.Params): SelectPage[Group.Member] =
     memberTableWithUser.selectPage(params, fr0"WHERE gm.group_id=$group AND gm.leaved_at IS NULL")
+
+  private[sql] def selectAllActiveMembers(group: Group.Id): Select[Group.Member] =
+    memberTableWithUser.select(fr0"WHERE gm.group_id=$group AND gm.leaved_at IS NULL")
 
   private[sql] def selectOneMember(group: Group.Id, user: User.Id): Select[Group.Member] =
     memberTableWithUser.select(fr0"WHERE gm.group_id=$group AND gm.user_id=$user")

@@ -54,10 +54,10 @@
     </h1>
 
     <p>
-        @event.maxAttendee.map { max =>  @Formats.plural(max, "place") }
         @event.venue.map { id => @venue(venueOpt.toList, id, v => Some(VenueCtrl.detail(group.slug, v.partner.slug, v.id))) }.getOrElse{ <b class="text-danger">Missing venue</b>, }
         @Formats.datetime(event.start)
         @tags(event.tags)
+        @event.maxAttendee.map { max =>  @Formats.plural(max, "place") }
         @(event.allowRsvp, event.isPublic, event.isPast(venueOpt, now)) match {
             case (true, true, true) => {<span class="badge badge-secondary" title="RSVP disabled because event is past" data-toggle="tooltip" data-placement="top">RSVP active</span>}
             case (true, true, false) => {<span class="badge badge-success" title="Users will be able to RSVP when event is published and before it starts" data-toggle="tooltip" data-placement="top">RSVP active</span>}

@@ -26,14 +26,17 @@ object EventForms {
 
   final case class MeetupOptions(publish: Boolean, draft: Boolean)
 
-  final case class PublishOptions(meetup: Option[MeetupOptions])
+  final case class PublishOptions(notifyMembers: Boolean,
+                                  meetup: Option[MeetupOptions])
 
   object PublishOptions {
     val default = PublishOptions(
+      notifyMembers = true,
       meetup = Some(MeetupOptions(publish = true, draft = true)))
   }
 
   val publish: Form[PublishOptions] = Form(mapping(
+    "notifyMembers" -> boolean,
     "meetup" -> optional(mapping(
       "publish" -> boolean,
       "draft" -> boolean

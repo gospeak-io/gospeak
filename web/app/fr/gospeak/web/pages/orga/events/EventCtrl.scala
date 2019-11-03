@@ -10,11 +10,12 @@ import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.infra.services.TemplateSrv
+import fr.gospeak.infra.services.{EmailSrv, TemplateSrv}
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Html, Page}
+import fr.gospeak.libs.scalautils.domain.{Done, Html, Page}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus, MessageBuilder}
+import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.events.EventCtrl._
 import fr.gospeak.web.pages.orga.events.EventForms.PublishOptions
@@ -22,6 +23,8 @@ import fr.gospeak.web.services.EventSrv
 import fr.gospeak.web.utils.UICtrl
 import play.api.data.Form
 import play.api.mvc._
+
+import scala.util.control.NonFatal
 
 class EventCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
@@ -37,6 +40,7 @@ class EventCtrl(cc: ControllerComponents,
                 templateSrv: TemplateSrv,
                 eventSrv: EventSrv,
                 meetupSrv: MeetupSrv,
+                emailSrv: EmailSrv,
                 mb: GospeakMessageBus) extends UICtrl(cc, silhouette) {
 
   import silhouette._
@@ -82,7 +86,7 @@ class EventCtrl(cc: ControllerComponents,
 
   def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
     val customParams = params.defaultSize(40).defaultOrderBy(proposalRepo.fields.created)
-    val now  = Instant.now()
+    val now = Instant.now()
     val nowLDT = LocalDateTime.now()
     (for {
       e <- OptionT(eventSrv.getFullEvent(group, event, user))
@@ -233,7 +237,16 @@ class EventCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(meetup.flatMap(m => m._2.flatMap(r => e.venueOpt.map(v => (r, v)))).filter { case (_, v) => v.refs.meetup.isEmpty }
           .map { case (ref, venue) => venueRepo.edit(e.group.id, venue.id)(venue.data.copy(refs = venue.refs.copy(meetup = Some(ref))), user, now) }.sequence)
         _ <- OptionT.liftF(eventRepo.publish(e.group.id, event, user, now))
-      } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event)))).unsafeToFuture()
+        _ <- if (data.notifyMembers) {
+          OptionT.liftF(groupRepo.listMembers(e.group.id)
+            .flatMap(members => members.map(m => emailSrv.send(Emails.eventPublished(e.group, e.event, e.venueOpt, m))).sequence))
+        } else {
+          OptionT.liftF(IO.pure(Seq.empty[Done]))
+        }
+      } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))))
+      .recover {
+        case NonFatal(e) => Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"An error happened: ${e.getMessage}")
+      }.unsafeToFuture()
   }
 
   private def publishForm(group: Group.Slug, event: Event.Slug, form: Form[PublishOptions], nowLDT: LocalDateTime)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {

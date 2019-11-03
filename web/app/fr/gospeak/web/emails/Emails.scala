@@ -159,4 +159,11 @@ object Emails {
       to = Seq(Contact(attendee)),
       subject = s"You are now on the ${event.name.value} guest list",
       content = HtmlContent(html.movedFromWaitingListToAttendees(group, event, attendee).body))
+
+  def eventPublished(group: Group, event: Event, venueOpt: Option[Venue.Full], member: Group.Member)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages): Email =
+    Email(
+      from = gospeakNoReply,
+      to = Seq(Contact(member.user)),
+      subject = s"New event from ${group.name.value}: ${event.name.value}",
+      content = HtmlContent(html.eventPublished(group, event, venueOpt, member).body))
 }
