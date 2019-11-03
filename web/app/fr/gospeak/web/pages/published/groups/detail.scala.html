@@ -1,5 +1,5 @@
 @import com.mohiva.play.silhouette.api.actions.UserAwareRequest
-@import fr.gospeak.core.domain.{Cfp, Event, Group, Sponsor, SponsorPack}
+@import fr.gospeak.core.domain.{Cfp, Event, Group, Sponsor, SponsorPack, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
@@ -9,7 +9,7 @@
 @import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.utils.Formats
 
-@(group: Group, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
 @container(group.name.value + " - Gospeak", b)() {
     <div class="d-flex justify-content-between align-items-center">
         <h1>@group.name.value</h1>
@@ -40,7 +40,8 @@
     <p>
         <a href="@GroupCtrl.events(group.slug)">Events</a> -
         <a href="@GroupCtrl.talks(group.slug)">Talks</a> -
-        <a href="@GroupCtrl.speakers(group.slug)">Speakers</a>
+        <a href="@GroupCtrl.speakers(group.slug)">Speakers</a> -
+        <a href="@GroupCtrl.members(group.slug)">Members</a>
     </p>
     <div class="row">
         <div class="col">
@@ -52,7 +53,6 @@
                         <p class="card-text d-flex justify-content-between align-items-center">
                             <small class="text-muted">@Formats.date(e.start)</small>
                             @e.venue.map { v => <small class="text-muted">at @v.partner.name.value</small> }
-@*                          @e.event.maxAttendee.map { max =>  @Formats.plural(max, "place") }*@
                         </p>
                     </div>
                 </a>
@@ -64,6 +64,16 @@
         <div class="col">
             <h3>About</h3>
             <blockquote class="blockquote">@markdown(group.description)</blockquote>
+            <h3>Organizers</h3>
+            @group.owners.toList.flatMap(id => orgas.find(_.id == id)).map { orga =>
+                <img src="@orga.avatar.url.value"
+                    alt="@orga.name.value avatar"
+                    title="@orga.name.value"
+                    data-toggle="tooltip"
+                    data-placement="top"
+                    class="rounded-circle"
+                    style="height: 50px; padding: 5px">
+            }
             <h3>Sponsors</h3>
             @sponsors.sortBy(-_.price.amount).map { sponsor =>
                 <img src="@sponsor.partner.logo.value"

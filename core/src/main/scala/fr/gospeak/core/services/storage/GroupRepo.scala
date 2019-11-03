@@ -55,6 +55,8 @@ trait PublicGroupRepo {
 
   def find(group: Group.Id): IO[Option[Group]]
 
+  def listMembers(group: Group.Id, params: Page.Params): IO[Page[Group.Member]]
+
   def findActiveMember(group: Group.Id, user: User.Id): IO[Option[Group.Member]]
 
   def join(group: Group.Id)(user: User, now: Instant): IO[Done]

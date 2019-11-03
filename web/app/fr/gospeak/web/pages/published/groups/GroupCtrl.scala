@@ -48,9 +48,10 @@ class GroupCtrl(cc: ControllerComponents,
       events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, Page.Params.defaults))
       sponsors <- OptionT.liftF(sponsorRepo.listCurrentFull(groupElt.id, now))
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
+      orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(userOpt.map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
       b = breadcrumb(groupElt)
-      res = Ok(html.detail(groupElt, cfps, events, sponsors, packs, userMembership)(b))
+      res = Ok(html.detail(groupElt, cfps, events, sponsors, packs, orgas, userMembership)(b))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
   }
 
@@ -172,6 +173,15 @@ class GroupCtrl(cc: ControllerComponents,
       res = Ok(html.speakers(groupElt, speakers)(b))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
   }
+
+  def members(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(group))
+      members <- OptionT.liftF(groupRepo.listMembers(groupElt.id, params))
+      b = breadcrumbMembers(groupElt)
+      res = Ok(html.members(groupElt, members)(b))
+    } yield res).value.map(_.getOrElse(publicGroupNotFound(group))).unsafeToFuture()
+  }
 }
 
 object GroupCtrl {
@@ -195,4 +205,7 @@ object GroupCtrl {
 
   def breadcrumbSpeakers(group: Group): Breadcrumb =
     breadcrumb(group).add("Speakers" -> routes.GroupCtrl.speakers(group.slug))
+
+  def breadcrumbMembers(group: Group): Breadcrumb =
+    breadcrumb(group).add("Members" -> routes.GroupCtrl.members(group.slug))
 }

@@ -89,6 +89,8 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listMembers(group: Group.Id): IO[Seq[Group.Member]] = selectAllActiveMembers(group).runList(xa)
 
+  override def listMembers(group: Group.Id, params: Page.Params): IO[Page[Group.Member]] = selectPageActiveMembers(group, params).run(xa)
+
   override def findActiveMember(group: Group.Id, user: User.Id): IO[Option[Group.Member]] = selectOneActiveMember(group, user).runOption(xa)
 }
 

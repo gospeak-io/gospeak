@@ -44,6 +44,14 @@ object Group {
                           joinedAt: Instant,
                           leavedAt: Option[Instant],
                           user: User) {
+    def name: User.Name = user.name
+
+    def avatar: Avatar = user.avatar
+
+    def profile: User.Profile = user.profile
+
+    def isPublic: Boolean = user.isPublic
+
     def isActive: Boolean = leavedAt.isEmpty
   }
 
