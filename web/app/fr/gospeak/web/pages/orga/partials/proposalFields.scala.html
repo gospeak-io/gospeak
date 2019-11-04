@@ -1,9 +1,9 @@
 @import fr.gospeak.core.domain.Proposal
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.GsRequest
 
-@(form: Form[Proposal.Data])(implicit req: SecuredReq[AnyContent])
+@(form: Form[Proposal.Data])(implicit req: GsRequest[AnyContent])
 @fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title for your proposal (you can adapt your talk title)")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
 }

@@ -1,22 +1,34 @@
 package fr.gospeak.web.utils
 
+import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import fr.gospeak.core.domain._
-import fr.gospeak.libs.scalautils.domain.EmailAddress
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.pages
-import fr.gospeak.web.pages.orga.partners.contacts.routes
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 
+import scala.util.control.NonFatal
+
 abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv]) extends AbstractController(cc) with I18nSupport {
-  protected def userOpt(implicit req: UserAwareRequest[CookieEnv, AnyContent]): Option[User.Id] = req.identity.map(_.user.id)
+  protected def UserAwareActionIO(block: UserAwareReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.UserAwareAction.async { r =>
+    val req = UserAwareReq[AnyContent](r, messagesApi.preferred(r.request))
+    block(req).recover {
+      case NonFatal(e) =>
+        val url = HttpUtils.getReferer(req).getOrElse(fr.gospeak.web.pages.published.routes.HomeCtrl.index().toString)
+        Redirect(url).flashing("error" -> s"Unexpected error: ${e.getMessage}")
+    }.unsafeToFuture()
+  }
 
-  protected def user(implicit req: SecuredRequest[CookieEnv, AnyContent]): User.Id = req.identity.user.id
-
-  // same as user method by with different semantic name
-  protected def by(implicit req: SecuredRequest[CookieEnv, AnyContent]): User.Id = req.identity.user.id
+  protected def SecuredActionIO(block: SecuredReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.SecuredAction.async { r =>
+    val req = SecuredReq[AnyContent](r, messagesApi.preferred(r.request))
+    block(req).recover {
+      case NonFatal(e) =>
+        val url = HttpUtils.getReferer(req).getOrElse(fr.gospeak.web.pages.published.routes.HomeCtrl.index().toString)
+        Redirect(url).flashing("error" -> s"Unexpected error: ${e.getMessage}")
+    }.unsafeToFuture()
+  }
 
   // orga redirects
   protected def groupNotFound(group: Group.Slug): Result =
@@ -84,6 +96,6 @@ abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv
   protected def publicUserNotFound(user: User.Slug): Result =
     Redirect(pages.published.speakers.routes.SpeakerCtrl.list()).flashing("warning" -> s"Unable to find speaker with slug '${user.value}'")
 
-  protected def notFound()(implicit req: Request[AnyContent]): Result =
+  protected def notFound()(implicit req: UserAwareReq[AnyContent]): Result =
     NotFound("Not found :(")
 }

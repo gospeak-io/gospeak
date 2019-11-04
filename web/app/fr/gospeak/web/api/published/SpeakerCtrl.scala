@@ -9,17 +9,13 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class SpeakerCtrl(cc: ControllerComponents,
                   userRepo: PublicUserRepo) extends ApiCtrl(cc) {
-  def list(params: Page.Params): Action[AnyContent] = Action.async { implicit req =>
-    responsePage {
-      // TODO add proposals, talks, groups member and owners
-      userRepo.listPublic(params).map(_.map(PublicApiSpeaker(_)))
-    }
+  def list(params: Page.Params): Action[AnyContent] = ApiActionPage { implicit req =>
+    // TODO add proposals, talks, groups member and owners
+    userRepo.listPublic(params).map(_.map(PublicApiSpeaker(_)))
   }
 
-  def detail(speaker: User.Slug): Action[AnyContent] = Action.async { implicit req =>
-    response {
-      // TODO add proposals, talks, groups member and owners
-      userRepo.findPublic(speaker).map(_.map(PublicApiSpeaker(_)))
-    }
+  def detail(speaker: User.Slug): Action[AnyContent] = ApiActionOpt { implicit req =>
+    // TODO add proposals, talks, groups member and owners
+    userRepo.findPublic(speaker).map(_.map(PublicApiSpeaker(_)))
   }
 }

@@ -4,7 +4,6 @@ import java.util.concurrent.TimeUnit
 
 import fr.gospeak.web.utils.Mappings
 import play.api.data.{Field, FormError}
-import play.api.i18n.Messages
 import play.twirl.api.Html
 
 import scala.util.matching.Regex
@@ -121,17 +120,8 @@ object Utils {
 
   def pattern(field: Field): Option[String] =
     hasPattern(field).map(_._2.head).flatMap {
-      case r: Regex => Some(r.toString())
-      case f: (() => Regex) => Some(f().toString())
+      case r: Regex => Some(r.toString)
+      case f: Function0[_] => Some(f().toString)
       case _ => None
-    }
-
-  def format(c: Constraint)(implicit messages: Messages): String =
-    c match {
-      case (message, args) => messages(message, args.map {
-        case r: Regex => r.toString()
-        case f: (() => Regex) => f().toString()
-        case arg => arg.toString
-      }: _*)
     }
 }

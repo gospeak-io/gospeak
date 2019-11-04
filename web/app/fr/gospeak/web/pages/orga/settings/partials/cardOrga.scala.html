@@ -1,11 +1,10 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Group, User, UserRequest}
 @import fr.gospeak.libs.scalautils.domain.EmailAddress
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, orgas: Seq[User], invites: Seq[UserRequest.GroupInvite], inviteOrgaForm: Form[EmailAddress])(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, orgas: Seq[User], invites: Seq[UserRequest.GroupInvite], inviteOrgaForm: Form[EmailAddress])(implicit req: SecuredReq[AnyContent])
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>Organizers</span>

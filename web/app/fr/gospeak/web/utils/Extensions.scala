@@ -1,7 +1,5 @@
 package fr.gospeak.web.utils
 
-import com.mohiva.play.silhouette.api.Env
-import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import play.api.data.FormError
 import play.api.libs.json.{JsError, JsResult, JsSuccess}
 import play.twirl.api.Html
@@ -32,13 +30,6 @@ object Extensions {
     def mkHtml(sep: String): Html = Formats.mkHtml(in, Html(sep))
 
     def mkHtml: Html = Formats.mkHtml(in, Html(""))
-  }
-
-  implicit class SecuredRequestExtension[E <: Env, B](val in: SecuredRequest[E, B]) extends AnyVal {
-    def asUserAware: UserAwareRequest[E, B] = UserAwareRequest(
-      identity = Some(in.identity),
-      authenticator = Some(in.authenticator),
-      request = in.request)
   }
 
 }

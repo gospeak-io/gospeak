@@ -1,15 +1,14 @@
-@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Sponsor, SponsorPack, User}
 @import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html.markdown
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.UserAwareReq
 
-@(group: Group, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(group.name.value + " - Gospeak", b)() {
     <div class="d-flex justify-content-between align-items-center">
         <h1>@group.name.value</h1>

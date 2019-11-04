@@ -1,7 +1,5 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Proposal, Talk, User, UserRequest}
 @import fr.gospeak.libs.scalautils.domain.{EmailAddress, Page, Url}
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
@@ -12,8 +10,9 @@
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.SecuredReq
 
-@(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Page[Proposal.Full], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Page[Proposal.Full], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container(talk.title.value + " - Gospeak", b)() {
     @if(talk.status == Talk.Status.Draft) {
         <div class="alert alert-info" role="alert">

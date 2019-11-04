@@ -1,15 +1,12 @@
-@import java.time.Instant
-
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Group, Proposal}
 @import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.speaker.partials.html.{container, groupItem, proposalItemForProfile, speakerCard}
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
+@import fr.gospeak.web.utils.SecuredReq
 
-@(proposals: Page[Proposal.Full], ownedGroups: Seq[Group], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
-@container(req.identity.user.name.value + " - Gospeak", b)() {
+@(proposals: Page[Proposal.Full], ownedGroups: Seq[Group])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@container(req.user.name.value + " - Gospeak", b)() {
     <div class="row">
         <div class="col">
             <a class="btn btn-primary float-right" href="@SpeakerCtrl.getProfile()">Update Profile</a>
@@ -18,14 +15,14 @@
 
     <div class="row">
         <div class="col-4">
-        @speakerCard(req.identity.user)
+        @speakerCard(req.user)
         </div>
         <div class="col-8">
             @if(proposals.nonEmpty) {
                 <h2 class="mt-0 mb-3">Accepted talks</h2>
                 <div>
                 @proposals.items.map { proposal =>
-                    @proposalItemForProfile(proposal, now)
+                    @proposalItemForProfile(proposal, req.now)
                 }
                 </div>
             }

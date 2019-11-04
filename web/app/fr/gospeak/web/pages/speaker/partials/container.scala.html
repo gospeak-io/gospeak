@@ -1,5 +1,3 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.core.domain.User
 @import fr.gospeak.web.domain.Breadcrumb
@@ -10,8 +8,9 @@
 @import fr.gospeak.web.pages.speaker.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.user.routes.UserCtrl
 @import fr.gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublicSpeakerCtrl}
+@import fr.gospeak.web.utils.SecuredReq
 
-@(title: String, b: Breadcrumb, hideAlert: Boolean = false)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(title: String, b: Breadcrumb, hideAlert: Boolean = false)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: SecuredReq[AnyContent])
 @main(title, style, script) {
     <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
         <div class="container">
@@ -28,18 +27,18 @@
                 </div>
             </div>
             <div class="navbar-nav">
-                @req.identity.user.profile.status match {
-                    case User.Profile.Status.Public => {<a class="nav-item nav-link" href="@PublicSpeakerCtrl.detail(req.identity.user.slug)" target="_blank" title="Your profile is public, see it here" data-toggle="tooltip" data-placement="bottom" data-hotkey="g p"><i class="fas fa-eye"></i></a>}
+                @req.user.profile.status match {
+                    case User.Profile.Status.Public => {<a class="nav-item nav-link" href="@PublicSpeakerCtrl.detail(req.user.slug)" target="_blank" title="Your profile is public, see it here" data-toggle="tooltip" data-placement="bottom" data-hotkey="g p"><i class="fas fa-eye"></i></a>}
                     case User.Profile.Status.Private => {<span title="Your profile is private, you can make it public by editing your profile" data-toggle="tooltip" data-placement="bottom"><span class="nav-item nav-link disabled"><i class="fas fa-eye-slash"></i></span></span>}
                     case User.Profile.Status.Undefined => {}
                 }
-                @userDropdown(req.identity)
+                @userDropdown(req.user, req.groups)
             </div>
         </div>
     </nav>
     @breadcrumb(b)
     <div class="container">
-        @if(!hideAlert && req.identity.user.emailValidated.isEmpty) {
+        @if(!hideAlert && req.user.emailValidated.isEmpty) {
             @alert("warning", "d-flex justify-content-between align-items-center") {
                 <span class="align-self-center">
                     Your email is not validated, please click on the validation link in the signup email</span>

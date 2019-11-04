@@ -1,15 +1,14 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Group, User, UserRequest}
 @import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.partials.display.html.{markdown, speaker, timeAgo}
 @import fr.gospeak.web.pages.partials.form.html.formBtn
 @import fr.gospeak.web.pages.speaker.partials.html.container
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.SecuredReq
 
-@(groups: Page[Group], owners: Seq[User], pendingRequests: Seq[UserRequest.UserAskToJoinAGroupRequest])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(groups: Page[Group], owners: Seq[User], pendingRequests: Seq[UserRequest.UserAskToJoinAGroupRequest])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @groupItem(group: Group) = {
     <div class="list-group-item d-flex justify-content-between align-items-center">
         <div>
@@ -17,8 +16,8 @@
             @markdown(group.description)
             <p class="mb-0">Owners: @group.owners.toList.map { id => @speaker(owners, id) }</p>
         </div>
-        @pendingRequests.find(_.group == group.id).map { req =>
-            <a href="#" class="btn btn-success disabled">Asked @timeAgo(req.created)</a>
+        @pendingRequests.find(_.group == group.id).map { userReq =>
+            <a href="#" class="btn btn-success disabled">Asked @timeAgo(userReq.created)</a>
         }.getOrElse {
             @formBtn(GroupCtrl.doJoin(group.slug, groups.params), Seq("class" -> "btn-primary")){Ask to join}
         }

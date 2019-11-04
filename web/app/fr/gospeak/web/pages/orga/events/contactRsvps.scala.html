@@ -1,14 +1,13 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Event, Group}
 @import fr.gospeak.libs.scalautils.domain.EmailAddress
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.EventForms
 @import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, event: Event, senders: Seq[EmailAddress.Contact], form: Form[EventForms.ContactAttendees])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, event: Event, senders: Seq[EmailAddress.Contact], form: Form[EventForms.ContactAttendees])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container(group.name.value + " - Gospeak", group, b)() {
     <h1>Contact attendees of @event.name.value</h1>
 

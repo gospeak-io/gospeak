@@ -1,9 +1,11 @@
-@(form: Form[_])(implicit messages: Messages)
+@import fr.gospeak.web.utils.GsRequest
+
+@(form: Form[_])(implicit req: GsRequest[AnyContent])
 @form.globalErrors match {
     case Seq() => {}
     case Seq(error) => {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @error.format
+            @req.format(error)
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
@@ -14,7 +16,7 @@
             Oups, many things went wrong:
             <ul>
             @errors.map { e =>
-                <li>@e.format</li>
+                <li>@req.format(e)</li>
             }
             </ul>
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">

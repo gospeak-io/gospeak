@@ -1,17 +1,14 @@
-@import java.time.Instant
-
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Talk, User, UserRequest}
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html.markdown
 @import fr.gospeak.web.pages.partials.form.html.formBtn
 @import fr.gospeak.web.pages.speaker.partials.html.container
 @import fr.gospeak.web.pages.user.routes.UserCtrl
+@import fr.gospeak.web.utils.SecuredReq
 
-@(invite: UserRequest.TalkInvite, talk: Talk, speaker: User, now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(invite: UserRequest.TalkInvite, talk: Talk, speaker: User)(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container("Gospeak", b, hideAlert = true)() {
-    @if(invite.isPending(now)) {
+    @if(invite.isPending(req.now)) {
         <h1>Nice!!! You have been invited to join a talk <i class="far fa-thumbs-up"></i></h1>
         <h3>@talk.title.value</h3>
         <p>@markdown(talk.description)</p>

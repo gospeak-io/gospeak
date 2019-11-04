@@ -1,11 +1,9 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.Group
-@import fr.gospeak.core.domain.utils.TemplateData
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, settings: Group.Settings.Event)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, settings: Group.Settings.Event)(implicit req: SecuredReq[AnyContent])
 <div class="card mb-3">
     <div class="card-header">Event settings</div>
     <div class="card-body">

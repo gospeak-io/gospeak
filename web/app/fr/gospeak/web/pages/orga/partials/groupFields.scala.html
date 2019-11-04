@@ -1,8 +1,9 @@
 @import fr.gospeak.core.domain.Group
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.utils.SecuredReq
 
-@(form: Form[Group.Data])(implicit messages: Messages)
+@(form: Form[Group.Data])(implicit req: SecuredReq[AnyContent])
 @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the group")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "ex: Scala coding talks", "autofocus" -> "true") ++ args)
 }

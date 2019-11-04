@@ -1,7 +1,5 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, Comment, User, UserRequest}
 @import fr.gospeak.libs.scalautils.domain.{EmailAddress, Url}
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
@@ -11,8 +9,9 @@
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.html._
 @import fr.gospeak.web.pages.partials.html.{slidesFields, videoFields}
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, cfp: Cfp, proposal: Proposal, speakers: Seq[User], comments: Seq[Comment.Full], orgaComments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite], events: Seq[Event], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url], commentForm: Form[Comment.Data], orgaCommentForm: Form[Comment.Data])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, cfp: Cfp, proposal: Proposal, speakers: Seq[User], comments: Seq[Comment.Full], orgaComments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite], events: Seq[Event], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url], commentForm: Form[Comment.Data], orgaCommentForm: Form[Comment.Data])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container(proposal.title.value + " - Gospeak", group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@proposalStatusIcon(proposal.status) @proposal.title.value</span>
@@ -66,11 +65,11 @@
     <div class="row">
         <div class="col pt-3 pb-3">
             <h3>Discussion with speakers:</h3>
-            @commentSection(comments, commentForm, Some(req.identity.user), ProposalCtrl.doSendComment(group.slug, cfp.slug, proposal.id, false), ProposalCtrl.detail(group.slug, cfp.slug, proposal.id), 8)
+            @commentSection(comments, commentForm, ProposalCtrl.doSendComment(group.slug, cfp.slug, proposal.id, orga = false), ProposalCtrl.detail(group.slug, cfp.slug, proposal.id), 8)(req.userAware)
         </div>
         <div class="col pt-3 pb-3 bg-light">
             <h3>Discussion between orgas:</h3>
-            @commentSection(orgaComments, orgaCommentForm, Some(req.identity.user), ProposalCtrl.doSendComment(group.slug, cfp.slug, proposal.id, true), ProposalCtrl.detail(group.slug, cfp.slug, proposal.id))
+            @commentSection(orgaComments, orgaCommentForm, ProposalCtrl.doSendComment(group.slug, cfp.slug, proposal.id, orga = true), ProposalCtrl.detail(group.slug, cfp.slug, proposal.id))(req.userAware)
         </div>
     </div>
 

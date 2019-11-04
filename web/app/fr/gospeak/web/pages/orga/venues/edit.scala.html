@@ -1,12 +1,11 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Group, Venue}
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.{container, venueFields}
 @import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, hasMeetupAccount: Boolean, venue: Venue.Full, form: Form[Venue.Data], doEdit: Call)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, hasMeetupAccount: Boolean, venue: Venue.Full, form: Form[Venue.Data], doEdit: Call)(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container("Gospeak", group, b)() {
     <div class="page-header">
         <h1>Edit @venue.partner.name.value venue</h1>

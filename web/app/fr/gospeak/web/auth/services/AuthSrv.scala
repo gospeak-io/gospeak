@@ -1,12 +1,10 @@
 package fr.gospeak.web.auth.services
 
-import java.time.Instant
-
-import cats.effect.IO
+import cats.effect.{ContextShift, IO}
 import com.mohiva.play.silhouette.api._
-import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import com.mohiva.play.silhouette.api.services.AuthenticatorResult
 import com.mohiva.play.silhouette.api.util._
+import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import com.mohiva.play.silhouette.impl.exceptions.IdentityNotFoundException
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import com.mohiva.play.silhouette.password.BCryptPasswordHasher
@@ -22,10 +20,11 @@ import fr.gospeak.web.auth.AuthConf
 import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
-import play.api.mvc.{AnyContent, Request, Result}
+import fr.gospeak.web.utils.{SecuredReq, UserAwareReq}
+import play.api.mvc.{AnyContent, Result}
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class AuthSrv(userRepo: AuthUserRepo,
               userRequestRepo: AuthUserRequestRepo,
@@ -37,7 +36,9 @@ class AuthSrv(userRepo: AuthUserRepo,
               passwordHasherRegistry: PasswordHasherRegistry,
               credentialsProvider: CredentialsProvider,
               gravatarSrv: GravatarSrv) {
-  def createIdentity(data: SignupData, now: Instant)(implicit req: Request[AnyContent]): IO[AuthUser] = {
+  implicit private val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
+
+  def createIdentity(data: SignupData)(implicit req: UserAwareReq[AnyContent]): IO[AuthUser] = {
     val loginInfo = AuthSrv.loginInfo(data.email)
     val login = toDomain(loginInfo)
     val password = toDomain(passwordHasherRegistry.current.hash(data.password.decode))
@@ -50,9 +51,9 @@ class AuthSrv(userRepo: AuthUserRepo,
       _ <- slugOpt.forall(s => emailOpt.exists(_.id == s.id)).toIO(DuplicateSlugException(data.slug)) // fail if slug exists for a different user from email
       avatar = gravatarSrv.getAvatar(data.email)
       user <- emailOpt.map { user =>
-        userRepo.edit(user.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), now)
+        userRepo.edit(user.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), req.now)
       }.getOrElse {
-        userRepo.create(data.data(avatar), now)
+        userRepo.create(data.data(avatar), req.now)
       }
       _ <- userRepo.createLoginRef(login, user.id)
       _ <- userRepo.createCredentials(credentials)
@@ -62,48 +63,48 @@ class AuthSrv(userRepo: AuthUserRepo,
     } yield authUser
   }
 
-  def getIdentity(data: LoginData): Future[AuthUser] = {
+  def getIdentity(data: LoginData): IO[AuthUser] = {
     for {
-      loginInfo <- credentialsProvider.authenticate(Credentials(data.email.value, data.password.decode))
-      userOpt <- authRepo.retrieve(loginInfo)
-      user <- userOpt.toFuture(new IdentityNotFoundException(s"User could not be found with info $loginInfo"))
+      loginInfo <- IO.fromFuture(IO(credentialsProvider.authenticate(Credentials(data.email.value, data.password.decode))))
+      userOpt <- IO.fromFuture(IO(authRepo.retrieve(loginInfo)))
+      user <- userOpt.toIO(new IdentityNotFoundException(s"User could not be found with info $loginInfo"))
     } yield user
   }
 
-  def login(user: AuthUser, rememberMe: Boolean, redirect: Result)(implicit req: Request[AnyContent]): Future[AuthenticatorResult] = {
+  def login(user: AuthUser, rememberMe: Boolean, redirect: Result)(implicit req: UserAwareReq[AnyContent]): IO[(CookieAuthenticator, AuthenticatorResult)] = {
     for {
-      _ <- if (user.shouldValidateEmail()) Future.failed(AccountValidationRequiredException(user)) else Future.successful(())
-      authenticator <- silhouette.env.authenticatorService.create(user.loginInfo).map {
+      _ <- if (user.shouldValidateEmail()) IO.raiseError(AccountValidationRequiredException(user)) else IO.pure(())
+      authenticator <- IO.fromFuture(IO(silhouette.env.authenticatorService.create(user.loginInfo))).map {
         case auth if rememberMe => auth.copy(
           expirationDateTime = clock.now.plus(authConf.cookie.rememberMe.authenticatorExpiry.toMillis),
           idleTimeout = Some(authConf.cookie.rememberMe.authenticatorIdleTimeout),
           cookieMaxAge = Some(authConf.cookie.rememberMe.cookieMaxAge))
         case auth => auth
       }
-      cookie <- silhouette.env.authenticatorService.init(authenticator)
-      result <- silhouette.env.authenticatorService.embed(cookie, redirect)
+      cookie <- IO.fromFuture(IO(silhouette.env.authenticatorService.init(authenticator)))
+      result <- IO.fromFuture(IO(silhouette.env.authenticatorService.embed(cookie, redirect)))
       _ = silhouette.env.eventBus.publish(LoginEvent(user, req))
-    } yield result
+    } yield (authenticator, result)
   }
 
-  def logout(redirect: Result)(implicit req: SecuredRequest[CookieEnv, AnyContent]): Future[AuthenticatorResult] = {
-    silhouette.env.eventBus.publish(LogoutEvent(req.identity, req))
-    silhouette.env.authenticatorService.discard(req.authenticator, redirect)
+  def logout(redirect: Result)(implicit req: SecuredReq[AnyContent]): IO[AuthenticatorResult] = {
+    silhouette.env.eventBus.publish(LogoutEvent(req.underlying.identity, req))
+    IO.fromFuture(IO(silhouette.env.authenticatorService.discard(req.underlying.authenticator, redirect)))
   }
 
-  def logout(identity: AuthUser, redirect: Result)(implicit req: UserAwareRequest[CookieEnv, AnyContent]): Future[Result] = {
+  def logout(identity: AuthUser, redirect: Result)(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     silhouette.env.eventBus.publish(LogoutEvent(identity, req))
-    req.authenticator.map(silhouette.env.authenticatorService.discard(_, redirect)).getOrElse(Future.successful(redirect))
+    req.underlying.authenticator.map(auth => IO.fromFuture(IO(silhouette.env.authenticatorService.discard(auth, redirect)))).getOrElse(IO.pure(redirect))
   }
 
-  def updateIdentity(data: ResetPasswordData, passwordReset: PasswordResetRequest, now: Instant)(implicit req: Request[AnyContent]): IO[AuthUser] = {
+  def updateIdentity(data: ResetPasswordData, passwordReset: PasswordResetRequest)(implicit req: UserAwareReq[AnyContent]): IO[AuthUser] = {
     val loginInfo = AuthSrv.loginInfo(passwordReset.email)
     val login = toDomain(loginInfo)
     val password = toDomain(passwordHasherRegistry.current.hash(data.password.decode))
     val credentials = User.Credentials(login, password)
     for {
       _ <- userRepo.find(login).flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user for ${login.providerId}")))
-      _ <- userRequestRepo.resetPassword(passwordReset, credentials, now)
+      _ <- userRequestRepo.resetPassword(passwordReset, credentials, req.now)
       updatedUser <- userRepo.find(login).flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user for ${login.providerId}")))
       groups <- groupRepo.list(updatedUser.id)
       authUser = AuthUser(loginInfo, updatedUser, groups)

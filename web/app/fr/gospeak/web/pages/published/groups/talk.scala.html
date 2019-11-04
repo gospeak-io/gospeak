@@ -1,15 +1,13 @@
-@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 @import fr.gospeak.core.domain.{Group, Proposal, User}
-@import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.UserAwareReq
 
-@(group: Group, talk: Proposal.Full, speakers: Seq[User])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, talk: Proposal.Full, speakers: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(talk.title.value + " at " + group.name.value + " - Gospeak", b)() {
     <h1>@slidesIcon(talk.slides)@videoIcon(talk.video)@talk.title.value</h1>
     <p>By @talk.speakers.toList.map { id => @speaker(speakers, id, s => Some(SpeakerCtrl.detail(s.slug)).filter(_ => s.isPublic)) }</p>

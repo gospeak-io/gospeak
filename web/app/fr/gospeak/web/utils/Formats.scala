@@ -7,7 +7,7 @@ import java.util.Locale
 import fr.gospeak.core.domain.Cfp
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.pages.partials.html.{pagination, search}
-import play.api.mvc.Call
+import play.api.mvc.{AnyContent, Call}
 import play.twirl.api.Html
 
 import scala.concurrent.duration._
@@ -72,11 +72,11 @@ object Formats {
       case _ => s"$n $plural"
     }
 
-  def cfpDates(cfp: Cfp, now: LocalDateTime = LocalDateTime.now()): String = (cfp.begin, cfp.close) match {
+  def cfpDates(cfp: Cfp)(implicit req: SecuredReq[AnyContent]): String = (cfp.begin, cfp.close) match {
     case (Some(start), Some(end)) => s"from ${date(start)} to ${date(end)}"
-    case (Some(start), None) if start.isAfter(now) => s"starting ${date(start)}"
+    case (Some(start), None) if start.isAfter(req.nowLDT) => s"starting ${date(start)}"
     case (Some(start), None) => s"started ${date(start)}"
-    case (None, Some(end)) if end.isAfter(now) => s"closing ${date(end)}"
+    case (None, Some(end)) if end.isAfter(req.nowLDT) => s"closing ${date(end)}"
     case (None, Some(end)) => s"closed ${date(end)}"
     case (None, None) => "always open"
   }

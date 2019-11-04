@@ -1,16 +1,13 @@
-@import java.time.Instant
-
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.User.EditableFields
 @import fr.gospeak.core.domain.{Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.speaker.partials.html.{container, groupItem, proposalItemForProfile}
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
+@import fr.gospeak.web.utils.SecuredReq
 
-@(form: Form[EditableFields], proposals: Page[Proposal.Full], ownedGroups: Seq[Group], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(form: Form[EditableFields], proposals: Page[Proposal.Full], ownedGroups: Seq[Group])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container("Gospeak", b)() {
     @formElt(form, SpeakerCtrl.editProfile()) {
         <div class="row">
@@ -24,9 +21,9 @@
         <div class="row">
             <div class="col-4">
                 <div class="card shadow-sm">
-                    <img src="@req.identity.user.avatar.url.value" alt="@req.identity.user.name.value avatar" class="avatar-lg align-self-center mt-1">
+                    <img src="@req.user.avatar.url.value" alt="@req.user.name.value avatar" class="avatar-lg align-self-center mt-1">
                     <div class="card-body">
-                        <div class="form-group @if(form("first-name").errors.nonEmpty || form("last-name").errors.nonEmpty) {is-invalid}">
+                        <div class="form-group @if(form("first-name").hasErrors || form("last-name").hasErrors) {is-invalid}">
                             <div class="input-group input-group-sm">
                                 <div class="input-group-prepend" title="First name & Last name">
                                     <span class="input-group-text"><i class="fas fa-user"></i></span>
@@ -35,8 +32,8 @@
                                 @inputText(form("last-name"), Seq("placeholder" -> "Last Name"))
                             </div>
                             <div class="row">
-                                <div class="col invalid-feedback">@form("first-name").errors.map(_.format).mkString(", ")</div>
-                                <div class="col invalid-feedback">@form("last-name").errors.map(_.format).mkString(", ")</div>
+                                <div class="col invalid-feedback">@req.formatErrors(form("first-name"))</div>
+                                <div class="col invalid-feedback">@req.formatErrors(form("last-name"))</div>
                             </div>
                         </div>
                         <div class="form-group">
@@ -58,7 +55,7 @@
                                 @inputText(form("twitter"))
                             </div>
                             <div class="row">
-                                <div class="col invalid-feedback">@form("twitter").errors.map(_.format).mkString(", ")</div>
+                                <div class="col invalid-feedback">@req.formatErrors(form("twitter"))</div>
                             </div>
                         </div>
                         <div class="form-group">
@@ -69,17 +66,17 @@
                                 @inputText(form("linkedin"))
                             </div>
                             <div class="row">
-                                <div class="col invalid-feedback">@form("linkedin").errors.map(_.format).mkString(", ")</div>
+                                <div class="col invalid-feedback">@req.formatErrors(form("linkedin"))</div>
                             </div>
                         </div>
-                        <div class="form-group @if(form("email").errors.nonEmpty) {is-invalid}">
+                        <div class="form-group @if(form("email").hasErrors) {is-invalid}">
                             <div class="input-group input-group-sm">
                                 <div class="input-group-prepend" title="Email">
                                     <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                                 </div>
                                 @inputEmail(form("email"), Seq("placeholder" -> "Email"))
                             </div>
-                            <div class="invalid-feedback">@form("email").errors.map(_.format).mkString(", ")</div>
+                            <div class="invalid-feedback">@req.formatErrors(form("email"))</div>
                         </div>
                         <div class="form-group">
                             <div class="input-group input-group-sm">
@@ -117,7 +114,7 @@
                     <h2 class="mt-0 mb-3">Accepted talks</h2>
                     <div>
                     @proposals.items.map { proposal =>
-                        @proposalItemForProfile(proposal, now)
+                        @proposalItemForProfile(proposal, req.now)
                     }
                     </div>
                 }

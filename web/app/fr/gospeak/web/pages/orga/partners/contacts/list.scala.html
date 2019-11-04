@@ -1,13 +1,12 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Contact, Group, Partner}
 @import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.{contactItem, container}
 @import fr.gospeak.web.pages.orga.partners.contacts.routes.ContactCtrl
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, partner: Partner, contacts: Page[Contact])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, partner: Partner, contacts: Page[Contact])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container(group.name.value + " - Gospeak", group, b)() {
     <h1 class="text-capitalize">@Formats.plural(contacts.total.value, "contact")</h1>
     @Formats.paginated[Contact](contacts, ContactCtrl.list(group.slug, partner.slug, _), contactItem(group, partner, _))

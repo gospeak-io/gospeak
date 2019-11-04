@@ -1,26 +1,28 @@
 @import fr.gospeak.web.pages.partials.form.html._
-@(form: Field)(implicit messages: Messages)
-<div class="form-group @if(form("email").errors.nonEmpty){is-invalid}">
+@import fr.gospeak.web.utils.UserAwareReq
+
+@(form: Field)(implicit req: UserAwareReq[AnyContent])
+<div class="form-group @if(form("email").hasErrors){is-invalid}">
     <div class="input-group">
         <div class="input-group-prepend">
             <span class="input-group-text"><i class="fas fa-envelope"></i></span>
         </div>
         @inputEmail(form("email"), Seq("placeholder" -> "Email", "autofocus" -> "true"))
     </div>
-    <div class="invalid-feedback">@form("email").errors.map(_.format).mkString(", ")</div>
+    <div class="invalid-feedback">@req.formatErrors(form("email"))</div>
 </div>
 
-<div class="form-group @if(form("password").errors.nonEmpty){is-invalid}">
+<div class="form-group @if(form("password").hasErrors){is-invalid}">
     <div class="input-group">
         <div class="input-group-prepend">
             <span class="input-group-text"><i class="fas fa-key"></i></span>
         </div>
         @inputPassword(form("password"), Seq("placeholder" -> "Password"))
     </div>
-    <div class="invalid-feedback">@form("password").errors.map(_.format).mkString(", ")</div>
+    <div class="invalid-feedback">@req.formatErrors(form("password"))</div>
 </div>
 
-<div class="form-group custom-control custom-checkbox @if(form("rememberMe").errors.nonEmpty){is-invalid}">
+<div class="form-group custom-control custom-checkbox @if(form("rememberMe").hasErrors){is-invalid}">
     @inputCheckbox(form("rememberMe"), Seq("label" -> "Remember me"))
-    <div class="invalid-feedback">@form("rememberMe").errors.map(_.format).mkString(", ")</div>
+    <div class="invalid-feedback">@req.formatErrors(form("rememberMe"))</div>
 </div>

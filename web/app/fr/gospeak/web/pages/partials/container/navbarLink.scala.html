@@ -1,2 +1,4 @@
-@(url: Call, attrs: (String, String)*)(name: Html)(implicit req: Request[AnyContent])
+@import fr.gospeak.web.utils.GsRequest
+
+@(url: Call, attrs: (String, String)*)(name: Html)(implicit req: GsRequest[AnyContent])
 <a class="nav-item nav-link @if(req.uri.startsWith(url.toString)) {active}" href="@url" @attrs.map { case (k, v) => @k="@v" }>@name</a>

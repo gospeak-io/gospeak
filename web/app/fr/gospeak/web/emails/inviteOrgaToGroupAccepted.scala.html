@@ -1,10 +1,9 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Group, User, UserRequest}
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
+@import fr.gospeak.web.utils.SecuredReq
 
-@(invite: UserRequest.GroupInvite, group: Group, orga: User, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(invite: UserRequest.GroupInvite, group: Group, orga: User)(implicit req: SecuredReq[AnyContent])
 <p>Hi @orga.name.value,</p>
-<p><a href="mailto:@by.email.value">@by.name.value</a> has <b>accepted</b> your invitation to <a href="@GroupCtrl.detail(group.slug).absoluteURL()">@group.name.value</a>.</p>
+<p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has <b>accepted</b> your invitation to <a href="@GroupCtrl.detail(group.slug).absoluteURL()">@group.name.value</a>.</p>
 <p>Together you are stronger, keep going!</p>
 <p>The Gospeak team</p>

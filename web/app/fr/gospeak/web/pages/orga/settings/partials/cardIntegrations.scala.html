@@ -1,11 +1,10 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.Group
 @import fr.gospeak.core.services.slack.domain.SlackCredentials
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.MeetupAccount
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, accounts: Group.Settings.Accounts, meetupForm: Form[MeetupAccount], slackForm: Form[SlackCredentials])(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, accounts: Group.Settings.Accounts, meetupForm: Form[MeetupAccount], slackForm: Form[SlackCredentials])(implicit req: SecuredReq[AnyContent])
 <div class="card mb-3">
     <div class="card-header">Integrations</div>
     <div class="list-group list-group-flush">

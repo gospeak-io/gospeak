@@ -1,5 +1,6 @@
 @import java.time.Instant
+@import fr.gospeak.web.utils.GsRequest
 @import fr.gospeak.web.utils.Formats
 
-@(i: Instant)
-<span title="@Formats.datetime(i)">@Formats.timeAgo(i, Instant.now())</span>
+@(i: Instant)(implicit req: GsRequest[AnyContent])
+<span title="@Formats.datetime(i)">@Formats.timeAgo(i, req.now)</span>

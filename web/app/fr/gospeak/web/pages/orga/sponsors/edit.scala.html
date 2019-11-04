@@ -1,14 +1,13 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Group, Sponsor, Partner}
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.{container, sponsorFields}
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, partner: Partner, sponsor: Sponsor, form: Form[Sponsor.Data], slug: Option[Partner.Slug])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, partner: Partner, sponsor: Sponsor, form: Form[Sponsor.Data], slug: Option[Partner.Slug])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container("Gospeak", group, b)() {
     <h1 class="page-header">Update @partner.name.value from @Formats.date(sponsor.start) to @Formats.date(sponsor.finish)</h1>
 

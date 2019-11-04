@@ -2,8 +2,7 @@ package fr.gospeak.web.pages.speaker.talks.cfps
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.{Cfp, Talk, User}
-import fr.gospeak.core.services._
+import fr.gospeak.core.domain.{Talk, User}
 import fr.gospeak.core.services.storage.{SpeakerCfpRepo, SpeakerProposalRepo, SpeakerTalkRepo}
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -18,15 +17,12 @@ class CfpCtrl(cc: ControllerComponents,
               cfpRepo: SpeakerCfpRepo,
               talkRepo: SpeakerTalkRepo,
               proposalRepo: SpeakerProposalRepo) extends UICtrl(cc, silhouette) {
-
-  import silhouette._
-
-  def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
-      talkElt <- OptionT(talkRepo.find(user, talk))
+      talkElt <- OptionT(talkRepo.find(req.user.id, talk))
       cfps <- OptionT.liftF(cfpRepo.availableFor(talkElt.id, params))
-      b = listBreadcrumb(req.identity.user, talkElt)
-    } yield Ok(html.list(talkElt, cfps)(b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
+      b = listBreadcrumb(req.user, talkElt)
+    } yield Ok(html.list(talkElt, cfps)(b))).value.map(_.getOrElse(talkNotFound(talk)))
   }
 }
 

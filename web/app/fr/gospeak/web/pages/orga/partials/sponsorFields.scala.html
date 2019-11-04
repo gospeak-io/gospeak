@@ -1,8 +1,9 @@
 @import fr.gospeak.core.domain.{Group, Sponsor, SponsorPack, Partner}
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.utils.SecuredReq
 
-@(form: Form[Sponsor.Data], group: Group, partner: Option[Partner], pack: Option[SponsorPack])(implicit messages: Messages)
+@(form: Form[Sponsor.Data], group: Group, partner: Option[Partner], pack: Option[SponsorPack])(implicit req: SecuredReq[AnyContent])
 @partner.map { p =>
     @inputHidden(form("partner"), Seq("value" -> p.id.value))
 }.getOrElse {

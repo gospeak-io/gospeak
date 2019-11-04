@@ -1,4 +1,5 @@
 @import fr.gospeak.web.utils.HttpUtils
+@import fr.gospeak.web.utils.GsRequest
 
-@(call: => Call, name: String = "Cancel", classes: String = "btn btn-secondary")(implicit req: Request[AnyContent])
+@(call: => Call, name: String = "Cancel", classes: String = "btn btn-secondary")(implicit req: GsRequest[AnyContent])
 <a href="@HttpUtils.cancelUrl(req, call)" class="@classes">@name</a>

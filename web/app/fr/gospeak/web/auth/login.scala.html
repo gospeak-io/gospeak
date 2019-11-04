@@ -3,8 +3,9 @@
 @import fr.gospeak.core.ApplicationConf
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.utils.UserAwareReq
 
-@(form: Form[LoginData], envConf: ApplicationConf.Env, redirect: Option[String])(implicit req: Request[AnyContent], messages: Messages)
+@(form: Form[LoginData], envConf: ApplicationConf.Env, redirect: Option[String])(implicit req: UserAwareReq[AnyContent])
 @container("Gospeak - login")() {
     <div class="login">
         <div class="card bg-light shadow">

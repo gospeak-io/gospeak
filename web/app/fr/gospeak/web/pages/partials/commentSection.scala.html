@@ -3,11 +3,12 @@
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.UserAwareReq
 
-@(comments: Seq[Comment.Full], commentForm: Form[Comment.Data], userOpt: Option[User], sendComment: Call, pageUrl: Call, tabindex: Int = 10)(implicit req: Request[AnyContent], messages: Messages)
+@(comments: Seq[Comment.Full], commentForm: Form[Comment.Data], sendComment: Call, pageUrl: Call, tabindex: Int = 10)(implicit req: UserAwareReq[AnyContent])
 <div class="comment-section">
     <div class="comment-submit">
-    @userOpt.map { user =>
+    @req.user.map { user =>
         @formElt(commentForm, sendComment) {
             <div class="media">
                 <img src="@user.avatar.url.value" alt="@user.name.value avatar" class="mr-3 avatar">

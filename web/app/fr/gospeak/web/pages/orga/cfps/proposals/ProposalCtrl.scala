@@ -1,11 +1,8 @@
 package fr.gospeak.web.pages.orga.cfps.proposals
 
-import java.time.Instant
-
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
@@ -17,7 +14,7 @@ import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.orga.cfps.CfpCtrl
 import fr.gospeak.web.pages.orga.cfps.proposals.ProposalCtrl._
 import fr.gospeak.web.pages.speaker.talks.proposals.ProposalForms
-import fr.gospeak.web.utils.{GenericForm, HttpUtils, UICtrl}
+import fr.gospeak.web.utils.{GenericForm, HttpUtils, SecuredReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -33,37 +30,33 @@ class ProposalCtrl(cc: ControllerComponents,
                    proposalRepo: OrgaProposalRepo,
                    commentRepo: OrgaCommentRepo,
                    emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
-
-  import silhouette._
-
-  def list(group: Group.Slug, cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def list(group: Group.Slug, cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
-      groupElt <- OptionT(groupRepo.find(user, group))
+      groupElt <- OptionT(groupRepo.find(req.user.id, group))
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
       proposals <- OptionT.liftF(proposalRepo.listFull(cfpElt.id, params))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
       b = listBreadcrumb(groupElt, cfpElt)
-    } yield Ok(html.list(groupElt, cfpElt, proposals, speakers)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp))).unsafeToFuture()
+    } yield Ok(html.list(groupElt, cfpElt, proposals, speakers)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
   }
 
-  def detail(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    proposalView(group, cfp, proposal, GenericForm.comment, GenericForm.comment).unsafeToFuture()
+  def detail(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
+    proposalView(group, cfp, proposal, GenericForm.comment, GenericForm.comment)
   }
 
-  def doSendComment(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, orga: Boolean): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def doSendComment(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, orga: Boolean): Action[AnyContent] = SecuredActionIO { implicit req =>
     GenericForm.comment.bindFromRequest.fold(
       formWithErrors => proposalView(group, cfp, proposal, if (orga) GenericForm.comment else formWithErrors, if (orga) formWithErrors else GenericForm.comment),
       data => (for {
         proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
-        _ <- OptionT.liftF(if (orga) commentRepo.addOrgaComment(proposalElt.id, data, user, now) else commentRepo.addComment(proposalElt.id, data, user, now))
+        _ <- OptionT.liftF(if (orga) commentRepo.addOrgaComment(proposalElt.id, data, req.user.id, req.now) else commentRepo.addComment(proposalElt.id, data, req.user.id, req.now))
       } yield Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
-    ).unsafeToFuture()
+    )
   }
 
-  private def proposalView(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, commentForm: Form[Comment.Data], orgaCommentForm: Form[Comment.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+  private def proposalView(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, commentForm: Form[Comment.Data], orgaCommentForm: Form[Comment.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
     (for {
-      groupElt <- OptionT(groupRepo.find(user, group))
+      groupElt <- OptionT(groupRepo.find(req.user.id, group))
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       speakers <- OptionT.liftF(userRepo.list(proposalElt.users))
@@ -76,21 +69,20 @@ class ProposalCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
-  def edit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    editForm(group, cfp, proposal, ProposalForms.create).unsafeToFuture()
+  def edit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
+    editView(group, cfp, proposal, ProposalForms.create)
   }
 
-  def doEdit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def doEdit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
     ProposalForms.create.bindFromRequest.fold(
-      formWithErrors => editForm(group, cfp, proposal, formWithErrors),
-      data => proposalRepo.edit(user, group, cfp, proposal)(data, now).map { _ => Redirect(routes.ProposalCtrl.detail(group, cfp, proposal)) }
-    ).unsafeToFuture()
+      formWithErrors => editView(group, cfp, proposal, formWithErrors),
+      data => proposalRepo.edit(req.user.id, group, cfp, proposal)(data, req.now).map { _ => Redirect(routes.ProposalCtrl.detail(group, cfp, proposal)) }
+    )
   }
 
-  private def editForm(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, form: Form[Proposal.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+  private def editView(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, form: Form[Proposal.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
     (for {
-      groupElt <- OptionT(groupRepo.find(by, group))
+      groupElt <- OptionT(groupRepo.find(req.user.id, group))
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       b = breadcrumb(groupElt, cfpElt, proposalElt).add("Edit" -> routes.ProposalCtrl.edit(group, cfp, proposal))
@@ -98,89 +90,82 @@ class ProposalCtrl(cc: ControllerComponents,
     } yield Ok(html.edit(groupElt, cfpElt, proposalElt, filledForm)(b))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
-  def inviteSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def inviteSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
     ProposalForms.addSpeaker.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       email => (for {
         proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
-        invite <- OptionT.liftF(userRequestRepo.invite(proposalElt.id, email, user, now))
-        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposal(invite, proposalElt, req.identity.user)))
+        invite <- OptionT.liftF(userRequestRepo.invite(proposalElt.id, email, req.user.id, req.now))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposal(invite, proposalElt)))
       } yield next.flashing("success" -> s"<b>$email</b> is invited as speaker")).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
-    ).unsafeToFuture()
+    )
   }
 
-  def cancelInviteSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, request: UserRequest.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def cancelInviteSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, request: UserRequest.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
-      invite <- OptionT.liftF(userRequestRepo.cancelProposalInvite(request, user, now))
-      _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalCanceled(invite, proposalElt, req.identity.user)))
+      invite <- OptionT.liftF(userRequestRepo.cancelProposalInvite(request, req.user.id, req.now))
+      _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalCanceled(invite, proposalElt)))
       next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal)).flashing("success" -> s"Invitation to <b>${invite.email.value}</b> has been canceled")
-    } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal))).unsafeToFuture()
+    } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
-  def removeSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, speaker: User.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def removeSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, speaker: User.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
     (for {
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       speakerElt <- OptionT(userRepo.find(speaker))
       res <- OptionT.liftF {
-        proposalRepo.removeSpeaker(cfp, proposal)(speakerElt.id, user, now).flatMap { _ =>
-          if (speakerElt.id == user) IO.pure(next.flashing("success" -> s"You removed yourself from this proposal"))
-          else emailSrv.send(Emails.speakerRemovedFromProposal(proposalElt, speakerElt, req.identity.user))
+        proposalRepo.removeSpeaker(cfp, proposal)(speakerElt.id, req.user.id, req.now).flatMap { _ =>
+          if (speakerElt.id == req.user.id) IO.pure(next.flashing("success" -> s"You removed yourself from this proposal"))
+          else emailSrv.send(Emails.speakerRemovedFromProposal(proposalElt, speakerElt))
             .map(_ => next.flashing("success" -> s"<b>${speakerElt.name.value}</b> removed from speakers"))
         }.recover { case NonFatal(e) => next.flashing("error" -> s"<b>${speakerElt.name.value}</b> not removed: ${e.getMessage}") }
       }
-    } yield res).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal))).unsafeToFuture()
+    } yield res).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
-  def doAddSlides(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def doAddSlides(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
     GenericForm.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       data => Slides.from(data) match {
-        case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(slides) => proposalRepo.editSlides(cfp, proposal)(slides, by, now).map(_ => next)
+        case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
+        case Right(slides) => proposalRepo.editSlides(cfp, proposal)(slides, req.user.id, req.now).map(_ => next)
       }
-    ).unsafeToFuture()
+    )
   }
 
-  def doAddVideo(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def doAddVideo(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
     GenericForm.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       data => Video.from(data) match {
-        case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(video) => proposalRepo.editVideo(cfp, proposal)(video, by, now).map(_ => next)
+        case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
+        case Right(video) => proposalRepo.editVideo(cfp, proposal)(video, req.user.id, req.now).map(_ => next)
       }
-    ).unsafeToFuture()
+    )
   }
 
-  def reject(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def reject(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
     val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.ProposalCtrl.detail(group, cfp, proposal).toString))
     (for {
-      groupElt <- OptionT(groupRepo.find(by, group))
+      groupElt <- OptionT(groupRepo.find(req.user.id, group))
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
-      _ <- OptionT.liftF(proposalRepo.reject(cfp, proposal, by, now))
-    } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal))).unsafeToFuture()
+      _ <- OptionT.liftF(proposalRepo.reject(cfp, proposal, req.user.id, req.now))
+    } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
-  def cancelRejection(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def cancelRejection(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
     val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.ProposalCtrl.detail(group, cfp, proposal).toString))
     (for {
-      groupElt <- OptionT(groupRepo.find(by, group))
+      groupElt <- OptionT(groupRepo.find(req.user.id, group))
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
-      _ <- OptionT.liftF(proposalRepo.cancelReject(cfp, proposal, by, now))
-    } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal))).unsafeToFuture()
+      _ <- OptionT.liftF(proposalRepo.cancelReject(cfp, proposal, req.user.id, req.now))
+    } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 }
 

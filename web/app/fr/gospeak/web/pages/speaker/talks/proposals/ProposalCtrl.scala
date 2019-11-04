@@ -1,11 +1,8 @@
 package fr.gospeak.web.pages.speaker.talks.proposals
 
-import java.time.{Instant, LocalDateTime}
-
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
@@ -19,7 +16,7 @@ import fr.gospeak.web.pages.speaker.talks.cfps.CfpCtrl
 import fr.gospeak.web.pages.speaker.talks.cfps.routes.{CfpCtrl => CfpRoutes}
 import fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl._
 import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import fr.gospeak.web.utils.{GenericForm, UICtrl}
+import fr.gospeak.web.utils.{GenericForm, SecuredReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -37,158 +34,146 @@ class ProposalCtrl(cc: ControllerComponents,
                    commentRepo: SpeakerCommentRepo,
                    emailSrv: EmailSrv,
                    mb: GospeakMessageBus) extends UICtrl(cc, silhouette) {
-
-  import silhouette._
-
-  def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
-      talkElt <- OptionT(talkRepo.find(user, talk))
+      talkElt <- OptionT(talkRepo.find(req.user.id, talk))
       proposals <- OptionT.liftF(proposalRepo.listFull(talkElt.id, params))
-      b = listBreadcrumb(req.identity.user, talkElt)
-    } yield Ok(html.list(talkElt, proposals)(b))).value.map(_.getOrElse(talkNotFound(talk))).unsafeToFuture()
+      b = listBreadcrumb(req.user, talkElt)
+    } yield Ok(html.list(talkElt, proposals)(b))).value.map(_.getOrElse(talkNotFound(talk)))
   }
 
-  def create(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    createForm(ProposalForms.create, talk, cfp).unsafeToFuture()
+  def create(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+    createForm(ProposalForms.create, talk, cfp)
   }
 
-  def doCreate(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
-    val nowLDT = LocalDateTime.now()
+  def doCreate(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
     ProposalForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors, talk, cfp),
       data => {
         (for {
-          talkElt <- OptionT(talkRepo.find(user, talk))
+          talkElt <- OptionT(talkRepo.find(req.user.id, talk))
           cfpElt <- OptionT(cfpRepo.find(cfp))
-          proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data, talkElt.speakers, by, now))
+          proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data, talkElt.speakers, req.user.id, req.now))
           groupElt <- OptionT(groupRepo.find(cfpElt.group))
-          _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt, nowLDT))
+          _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt))
           msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
         } yield Redirect(routes.ProposalCtrl.detail(talk, cfp)).flashing("success" -> msg)).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }
-    ).unsafeToFuture()
+    )
   }
 
-  private def createForm(form: Form[Proposal.Data], talk: Talk.Slug, cfp: Cfp.Slug)(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+  private def createForm(form: Form[Proposal.Data], talk: Talk.Slug, cfp: Cfp.Slug)(implicit req: SecuredReq[AnyContent]): IO[Result] = {
     (for {
-      talkElt <- OptionT(talkRepo.find(user, talk))
+      talkElt <- OptionT(talkRepo.find(req.user.id, talk))
       cfpElt <- OptionT(cfpRepo.find(cfp))
-      proposalOpt <- OptionT.liftF(proposalRepo.find(user, talk, cfp))
+      proposalOpt <- OptionT.liftF(proposalRepo.find(req.user.id, talk, cfp))
       filledForm = if (form.hasErrors) form else form.fill(Proposal.Data(talkElt))
-      b = CfpCtrl.listBreadcrumb(req.identity.user, talkElt).add(cfpElt.name.value -> CfpRoutes.list(talkElt.slug))
+      b = CfpCtrl.listBreadcrumb(req.user, talkElt).add(cfpElt.name.value -> CfpRoutes.list(talkElt.slug))
     } yield proposalOpt
       .map(_ => Redirect(routes.ProposalCtrl.detail(talk, cfp)))
       .getOrElse(Ok(html.create(filledForm, talkElt, cfpElt)(b)))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
   }
 
-  def detail(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    proposalView(talk, cfp, GenericForm.comment).unsafeToFuture()
+  def detail(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+    proposalView(talk, cfp, GenericForm.comment)
   }
 
-  def doSendComment(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def doSendComment(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
     GenericForm.comment.bindFromRequest.fold(
       formWithErrors => proposalView(talk, cfp, formWithErrors),
       data => (for {
-        proposalElt <- OptionT(proposalRepo.find(user, talk, cfp))
-        _ <- OptionT.liftF(commentRepo.addComment(proposalElt.id, data, user, now))
+        proposalElt <- OptionT(proposalRepo.find(req.user.id, talk, cfp))
+        _ <- OptionT.liftF(commentRepo.addComment(proposalElt.id, data, req.user.id, req.now))
       } yield Redirect(routes.ProposalCtrl.detail(talk, cfp))).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
-    ).unsafeToFuture()
+    )
   }
 
-  private def proposalView(talk: Talk.Slug, cfp: Cfp.Slug, commentForm: Form[Comment.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+  private def proposalView(talk: Talk.Slug, cfp: Cfp.Slug, commentForm: Form[Comment.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
     (for {
-      proposalFull <- OptionT(proposalRepo.findFull(talk, cfp)(user))
+      proposalFull <- OptionT(proposalRepo.findFull(talk, cfp)(req.user.id))
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposalFull.id))
       speakers <- OptionT.liftF(userRepo.list(proposalFull.users))
       comments <- OptionT.liftF(commentRepo.getComments(proposalFull.id))
-      b = breadcrumb(req.identity.user, proposalFull)
+      b = breadcrumb(req.user, proposalFull)
       res = Ok(html.detail(proposalFull, speakers, comments, invites, ProposalForms.addSpeaker, GenericForm.embed, commentForm)(b))
     } yield res).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
   }
 
-  def edit(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    editForm(talk, cfp, ProposalForms.create).unsafeToFuture()
+  def edit(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+    editView(talk, cfp, ProposalForms.create)
   }
 
-  def doEdit(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def doEdit(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
     ProposalForms.create.bindFromRequest.fold(
-      formWithErrors => editForm(talk, cfp, formWithErrors),
-      data => proposalRepo.edit(talk, cfp)(data, by, now).map { _ => Redirect(routes.ProposalCtrl.detail(talk, cfp)) }
-    ).unsafeToFuture()
+      formWithErrors => editView(talk, cfp, formWithErrors),
+      data => proposalRepo.edit(talk, cfp)(data, req.user.id, req.now).map(_ => Redirect(routes.ProposalCtrl.detail(talk, cfp)))
+    )
   }
 
-  private def editForm(talk: Talk.Slug, cfp: Cfp.Slug, form: Form[Proposal.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+  private def editView(talk: Talk.Slug, cfp: Cfp.Slug, form: Form[Proposal.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
     (for {
-      proposalFull <- OptionT(proposalRepo.findFull(talk, cfp)(user))
-      b = breadcrumb(req.identity.user, proposalFull).add("Edit" -> routes.ProposalCtrl.edit(talk, cfp))
+      proposalFull <- OptionT(proposalRepo.findFull(talk, cfp)(req.user.id))
+      b = breadcrumb(req.user, proposalFull).add("Edit" -> routes.ProposalCtrl.edit(talk, cfp))
       filledForm = if (form.hasErrors) form else form.fill(proposalFull.data)
     } yield Ok(html.edit(filledForm, proposalFull)(b))).value.map(_.getOrElse(talkNotFound(talk)))
   }
 
-  def inviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def inviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     ProposalForms.addSpeaker.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       email => (for {
-        proposalElt <- OptionT(proposalRepo.find(user, talk, cfp))
-        invite <- OptionT.liftF(userRequestRepo.invite(proposalElt.id, email, user, now))
-        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposal(invite, proposalElt, req.identity.user)))
+        proposalElt <- OptionT(proposalRepo.find(req.user.id, talk, cfp))
+        invite <- OptionT.liftF(userRequestRepo.invite(proposalElt.id, email, req.user.id, req.now))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposal(invite, proposalElt)))
       } yield next.flashing("success" -> s"<b>$email</b> is invited as speaker")).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
-    ).unsafeToFuture()
+    )
   }
 
-  def cancelInviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, request: UserRequest.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def cancelInviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, request: UserRequest.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
-      proposalElt <- OptionT(proposalRepo.find(user, talk, cfp))
-      invite <- OptionT.liftF(userRequestRepo.cancelProposalInvite(request, user, now))
-      _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalCanceled(invite, proposalElt, req.identity.user)))
+      proposalElt <- OptionT(proposalRepo.find(req.user.id, talk, cfp))
+      invite <- OptionT.liftF(userRequestRepo.cancelProposalInvite(request, req.user.id, req.now))
+      _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalCanceled(invite, proposalElt)))
       next = Redirect(routes.ProposalCtrl.detail(talk, cfp)).flashing("success" -> s"Invitation to <b>${invite.email.value}</b> has been canceled")
-    } yield next).value.map(_.getOrElse(proposalNotFound(talk, cfp))).unsafeToFuture()
+    } yield next).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
   }
 
-  def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, speaker: User.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, speaker: User.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     (for {
-      proposalElt <- OptionT(proposalRepo.find(user, talk, cfp))
+      proposalElt <- OptionT(proposalRepo.find(req.user.id, talk, cfp))
       speakerElt <- OptionT(userRepo.find(speaker))
       res <- OptionT.liftF {
-        proposalRepo.removeSpeaker(talk, cfp)(speakerElt.id, user, now).flatMap { _ =>
-          if (speakerElt.id == user) IO.pure(Redirect(UserRoutes.index()).flashing("success" -> s"You removed yourself from <b>$talk</b> proposal"))
-          else emailSrv.send(Emails.speakerRemovedFromProposal(proposalElt, speakerElt, req.identity.user))
+        proposalRepo.removeSpeaker(talk, cfp)(speakerElt.id, req.user.id, req.now).flatMap { _ =>
+          if (speakerElt.id == req.user.id) IO.pure(Redirect(UserRoutes.index()).flashing("success" -> s"You removed yourself from <b>$talk</b> proposal"))
+          else emailSrv.send(Emails.speakerRemovedFromProposal(proposalElt, speakerElt))
             .map(_ => next.flashing("success" -> s"<b>${speakerElt.name.value}</b> removed from speakers"))
         }.recover { case NonFatal(e) => next.flashing("error" -> s"<b>${speakerElt.name.value}</b> not removed: ${e.getMessage}") }
       }
-    } yield res).value.map(_.getOrElse(proposalNotFound(talk, cfp))).unsafeToFuture()
+    } yield res).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
   }
 
-  def doAddSlides(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def doAddSlides(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     GenericForm.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       data => Slides.from(data) match {
-        case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(slides) => proposalRepo.editSlides(talk, cfp)(slides, by, now).map(_ => next)
+        case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
+        case Right(slides) => proposalRepo.editSlides(talk, cfp)(slides, req.user.id, req.now).map(_ => next)
       }
-    ).unsafeToFuture()
+    )
   }
 
-  def doAddVideo(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def doAddVideo(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     GenericForm.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing(formWithErrors.errors.map(e => "error" -> e.format): _*)),
+      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       data => Video.from(data) match {
-        case Left(err) => IO.pure(next.flashing(err.errors.map(e => "error" -> e.value): _*))
-        case Right(video) => proposalRepo.editVideo(talk, cfp)(video, by, now).map(_ => next)
+        case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
+        case Right(video) => proposalRepo.editVideo(talk, cfp)(video, req.user.id, req.now).map(_ => next)
       }
-    ).unsafeToFuture()
+    )
   }
 }
 

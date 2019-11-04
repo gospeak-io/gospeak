@@ -1,13 +1,10 @@
-@import java.time.Instant
-
-@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
-@import fr.gospeak.core.domain.{Event, Group, Proposal, Talk, User}
+@import fr.gospeak.core.domain.{Group, Proposal, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.published.partials.html.{container, speakerCard, groupItem, proposalItem, talkItem}
+@import fr.gospeak.web.utils.UserAwareReq
 
-@(speaker: User, publicTalks: Page[Talk], proposals: Page[Proposal.Full], ownedGroups: Seq[Group], now: Instant)(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(speaker: User, publicTalks: Page[Talk], proposals: Page[Proposal.Full], ownedGroups: Seq[Group])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(speaker.name.value + " - Gospeak", b)() {
     <div class="row">
         <div class="col-4">
@@ -26,7 +23,7 @@
                 <div class="mb-3">
                     <h2>Planned talks</h2>
                     @proposals.items.map { proposal =>
-                        @proposalItem(proposal, now)
+                        @proposalItem(proposal, req.now)
                     }
                 </div>
             }

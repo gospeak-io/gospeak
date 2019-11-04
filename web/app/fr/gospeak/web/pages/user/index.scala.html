@@ -1,7 +1,5 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Event, Group, Proposal, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.display.html._
@@ -13,10 +11,11 @@
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.SecuredReq
 
-@(incomingEvents: Page[(Event.Full, Option[Event.Rsvp])], joinedGroups: Page[(Group, Group.Member)], talks: Page[Talk], proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(incomingEvents: Page[(Event.Full, Option[Event.Rsvp])], joinedGroups: Page[(Group, Group.Member)], talks: Page[Talk], proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container("Gospeak", b)() {
-    @if(talks.nonEmpty && req.identity.user.profile.status.isUndefined) {
+    @if(talks.nonEmpty && req.user.profile.status.isUndefined) {
         <div class="alert alert-info" role="alert">
             <h4 class="alert-heading d-flex justify-content-between align-items-center">
                 <span>Hi speaker!</span>

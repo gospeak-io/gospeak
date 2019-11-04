@@ -1,14 +1,13 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.Proposal
 @import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.speaker.partials.html.{container, proposalItem}
 @import fr.gospeak.web.pages.speaker.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.SecuredReq
 
-@(proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container("Gospeak", b)() {
     @if(proposals.isEmpty) {
         <div class="jumbotron">

@@ -1,7 +1,8 @@
 @import fr.gospeak.web.pages.partials.container.html.{flash, main}
 @import fr.gospeak.web.pages.published.routes.HomeCtrl
+@import fr.gospeak.web.utils.UserAwareReq
 
-@(title: String)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: Request[AnyContent], messages: Messages)
+@(title: String)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
 @main(title, style, script) {
     <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
         <div class="container">

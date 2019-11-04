@@ -1,13 +1,10 @@
 package fr.gospeak.web.pages.orga.partners.venues
 
-import java.time.Instant
-
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain.{Group, Partner, Venue}
-import fr.gospeak.core.services.storage.{GroupSettingsRepo, OrgaEventRepo, OrgaGroupRepo, OrgaPartnerRepo, OrgaUserRepo, OrgaVenueRepo}
+import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
@@ -15,7 +12,7 @@ import fr.gospeak.web.pages.orga.partners.PartnerCtrl
 import fr.gospeak.web.pages.orga.partners.routes.{PartnerCtrl => PartnerRoutes}
 import fr.gospeak.web.pages.orga.partners.venues.VenueCtrl._
 import fr.gospeak.web.pages.orga.venues.{VenueForms, html}
-import fr.gospeak.web.utils.UICtrl
+import fr.gospeak.web.utils.{SecuredReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -28,27 +25,23 @@ class VenueCtrl(cc: ControllerComponents,
                 venueRepo: OrgaVenueRepo,
                 groupSettingsRepo: GroupSettingsRepo,
                 timeShape: TimeShape) extends UICtrl(cc, silhouette) {
-
-  import silhouette._
-
-  def create(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    createForm(group, partner, VenueForms.create(timeShape)).unsafeToFuture()
+  def create(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+    createView(group, partner, VenueForms.create(timeShape))
   }
 
-  def doCreate(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def doCreate(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
     VenueForms.create(timeShape).bindFromRequest.fold(
-      formWithErrors => createForm(group, partner, formWithErrors),
+      formWithErrors => createView(group, partner, formWithErrors),
       data => (for {
-        groupElt <- OptionT(groupRepo.find(user, group))
-        _ <- OptionT.liftF(venueRepo.create(groupElt.id, data, by, now))
+        groupElt <- OptionT(groupRepo.find(req.user.id, group))
+        _ <- OptionT.liftF(venueRepo.create(groupElt.id, data, req.user.id, req.now))
       } yield Redirect(PartnerRoutes.detail(group, partner))).value.map(_.getOrElse(partnerNotFound(group, partner)))
-    ).unsafeToFuture()
+    )
   }
 
-  private def createForm(group: Group.Slug, partner: Partner.Slug, form: Form[Venue.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+  private def createView(group: Group.Slug, partner: Partner.Slug, form: Form[Venue.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
     (for {
-      groupElt <- OptionT(groupRepo.find(user, group))
+      groupElt <- OptionT(groupRepo.find(req.user.id, group))
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup(groupElt.id))
       partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
       b = listBreadcrumb(groupElt, partnerElt).add("New" -> routes.VenueCtrl.create(group, partner))
@@ -56,9 +49,9 @@ class VenueCtrl(cc: ControllerComponents,
     } yield Ok(html.create(groupElt, meetupAccount.isDefined, Some(partnerElt), form, call)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
   }
 
-  def detail(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def detail(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
-      groupElt <- OptionT(groupRepo.find(user, group))
+      groupElt <- OptionT(groupRepo.find(req.user.id, group))
       venueElt <- OptionT(venueRepo.findFull(groupElt.id, venue))
       events <- OptionT.liftF(eventRepo.list(groupElt.id, venue))
       users <- OptionT.liftF(userRepo.list(venueElt.users))
@@ -66,27 +59,26 @@ class VenueCtrl(cc: ControllerComponents,
       editCall = routes.VenueCtrl.edit(group, partner, venue)
       removeCall = routes.VenueCtrl.doRemove(group, partner, venue)
       res = Ok(html.detail(groupElt, venueElt, events, users, editCall, removeCall)(b))
-    } yield res).value.map(_.getOrElse(venueNotFound(group, partner, venue))).unsafeToFuture()
+    } yield res).value.map(_.getOrElse(venueNotFound(group, partner, venue)))
   }
 
-  def edit(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    editForm(group, partner, venue, VenueForms.create(timeShape)).unsafeToFuture()
+  def edit(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
+    editView(group, partner, venue, VenueForms.create(timeShape))
   }
 
-  def doEdit(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def doEdit(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
     VenueForms.create(timeShape).bindFromRequest.fold(
-      formWithErrors => editForm(group, partner, venue, formWithErrors),
+      formWithErrors => editView(group, partner, venue, formWithErrors),
       data => (for {
-        groupElt <- OptionT(groupRepo.find(user, group))
-        _ <- OptionT.liftF(venueRepo.edit(groupElt.id, venue)(data, by, now))
+        groupElt <- OptionT(groupRepo.find(req.user.id, group))
+        _ <- OptionT.liftF(venueRepo.edit(groupElt.id, venue)(data, req.user.id, req.now))
       } yield Redirect(routes.VenueCtrl.detail(group, partner, venue))).value.map(_.getOrElse(partnerNotFound(group, partner)))
-    ).unsafeToFuture()
+    )
   }
 
-  private def editForm(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id, form: Form[Venue.Data])(implicit req: SecuredRequest[CookieEnv, AnyContent]): IO[Result] = {
+  private def editView(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id, form: Form[Venue.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
     (for {
-      groupElt <- OptionT(groupRepo.find(user, group))
+      groupElt <- OptionT(groupRepo.find(req.user.id, group))
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup(groupElt.id))
       venueElt <- OptionT(venueRepo.findFull(groupElt.id, venue))
       b = breadcrumb(groupElt, venueElt).add("Edit" -> routes.VenueCtrl.edit(group, partner, venue))
@@ -95,12 +87,11 @@ class VenueCtrl(cc: ControllerComponents,
     } yield Ok(html.edit(groupElt, meetupAccount.isDefined, venueElt, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
   }
 
-  def doRemove(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = SecuredAction.async { implicit req =>
-    val now = Instant.now()
+  def doRemove(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
-      groupElt <- OptionT(groupRepo.find(user, group))
-      _ <- OptionT.liftF(venueRepo.remove(groupElt.id, venue)(user, now))
-    } yield Redirect(PartnerRoutes.detail(group, partner))).value.map(_.getOrElse(partnerNotFound(group, partner))).unsafeToFuture()
+      groupElt <- OptionT(groupRepo.find(req.user.id, group))
+      _ <- OptionT.liftF(venueRepo.remove(groupElt.id, venue)(req.user.id, req.now))
+    } yield Redirect(PartnerRoutes.detail(group, partner))).value.map(_.getOrElse(partnerNotFound(group, partner)))
   }
 }
 

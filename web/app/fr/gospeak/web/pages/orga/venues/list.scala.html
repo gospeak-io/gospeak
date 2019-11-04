@@ -1,13 +1,12 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Group, Venue, Partner}
+@import fr.gospeak.core.domain.{Group, Venue}
 @import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.{container, venueItem}
 @import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, venues: Page[Venue.Full])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, venues: Page[Venue.Full])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container(group.name.value + " - Gospeak", group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span class="text-capitalize">@Formats.plural(venues.total.value, "venue")</span>

@@ -1,17 +1,14 @@
 package fr.gospeak.web.services
 
-import java.time.LocalDateTime
-
 import cats.data.OptionT
 import cats.effect.IO
-import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.TemplateSrv
 import fr.gospeak.libs.scalautils.domain.Markdown
-import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.MessageBuilder
 import fr.gospeak.web.services.EventSrv.EventFull
+import fr.gospeak.web.utils.SecuredReq
 import play.api.mvc.AnyContent
 
 class EventSrv(groupRepo: OrgaGroupRepo,
@@ -34,8 +31,8 @@ class EventSrv(groupRepo: OrgaGroupRepo,
     } yield EventFull(groupElt, eventElt, cfpOpt, venueOpt, talks, speakers)).value
   }
 
-  def buildDescription(event: EventFull, nowLDT: LocalDateTime)(implicit req: SecuredRequest[CookieEnv, AnyContent]): Markdown = {
-    val data = builder.buildEventInfo(event, nowLDT)
+  def buildDescription(event: EventFull)(implicit req: SecuredReq[AnyContent]): Markdown = {
+    val data = builder.buildEventInfo(event)
     templateSrv.render(event.event.description, data).getOrElse(Markdown(event.event.description.value))
   }
 }

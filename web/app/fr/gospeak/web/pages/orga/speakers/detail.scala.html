@@ -1,14 +1,13 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User}
+@import fr.gospeak.core.domain.{Group, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.{container, speakerCard, proposalItem}
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, speaker: User, proposals: Page[Proposal.Full], speakers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, speaker: User, proposals: Page[Proposal.Full], speakers: Seq[User])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container(speaker.name.value + " - Gospeak", group, b)() {
     <div class="row">
         <div class="col-4">

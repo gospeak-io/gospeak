@@ -14,14 +14,11 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 class ProposalCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
                    proposalRepo: SpeakerProposalRepo) extends UICtrl(cc, silhouette) {
-
-  import silhouette._
-
-  def list(params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
-    (for {
-      proposals <- proposalRepo.listFull(user, params)
-      b = listBreadcrumb(req.identity.user)
-    } yield Ok(html.list(proposals)(b))).unsafeToFuture()
+  def list(params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
+    for {
+      proposals <- proposalRepo.listFull(req.user.id, params)
+      b = listBreadcrumb(req.user)
+    } yield Ok(html.list(proposals)(b))
   }
 }
 

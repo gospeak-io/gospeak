@@ -1,9 +1,5 @@
-@import java.time.Instant
-
-@import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.pages.orga.partials.{html => orga}
 @import fr.gospeak.web.pages.partials.container.{html => container}
 @import fr.gospeak.web.pages.partials.display.{html => display}
@@ -13,8 +9,10 @@
 @import fr.gospeak.web.pages.published.routes.HomeCtrl
 @import fr.gospeak.web.pages.speaker.partials.{html => speaker}
 @import fr.gospeak.web.utils.GenericForm
+@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserAwareReq
 
-@(user: User, group: Group, cfp: Cfp, event: Event, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, now: Instant, params: Page.Params)(implicit secured: SecuredRequest[CookieEnv, AnyContent], userAware: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(user: User, group: Group, cfp: Cfp, event: Event, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, params: Page.Params)(implicit secured: SecuredReq[AnyContent], userAware: UserAwareReq[AnyContent])
 @section(id: String, title: String, localization: String)(display: String => Html) = {
     <div id="@id" class="section">
         <h2>@title: <code style="font-size: 1rem">@localization</code></h2>
@@ -104,7 +102,7 @@
                 @example(s"$name with title") { _ => @display.duration(talk.duration, Some("Talk duration")) }
             }
             @component("timeAgo", "@timeAgo(talk.info.created)") { name =>
-                @example(s"$name") { _ => @display.timeAgo(talk.info.created) }
+                @example(s"$name") { _ => @display.timeAgo(talk.info.created)(secured) }
             }
             @component("event", "@event(talk.duration, Some(e => MyCtrl.detail(e.slug)))") { name =>
                 @example(s"$name") { _ => @display.event(Seq(event), event.id, Some(_ => HomeCtrl.styleguide(params))) }
@@ -184,7 +182,7 @@
                 @example(s"$name") { _ => @published.groupItem(group) }
             }
             @component("cfpItem", "@cfpItem(cfp)") { name =>
-                @example(s"$name") { _ => @published.cfpItem(cfp, now) }
+                @example(s"$name") { _ => @published.cfpItem(cfp, secured.now) }
             }
             @component("speakerItem", "@speakerItem(speaker)") { name =>
                 @example(s"$name") { _ => @published.speakerItem(user) }

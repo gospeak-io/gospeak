@@ -1,10 +1,9 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Group, User}
-@import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
+@import fr.gospeak.web.utils.SecuredReq
 
-@(rejectedUser: User, rejectingOrga: AuthUser, group: Group)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(rejectedUser: User, group: Group)(implicit req: SecuredReq[AnyContent])
 <p>Hello @rejectedUser.firstName,</p>
 <p>We are embarrassed but it seems that you will not be able to help organizing the @group.name.value group :(</p>
-<p>You can send an email to <a href="mailto:@rejectingOrga.user.email.value">@rejectingOrga.user.name.value</a> if you want an explanation.</p>
+<p>You can send an email to <a href="mailto:@req.user.email.value">@req.user.name.value</a> if you want an explanation.</p>
 <p>Please keep enjoying Gospeak ;)</p>
 <p>The Gospeak team</p>

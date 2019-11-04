@@ -1,8 +1,5 @@
-@import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 @import fr.gospeak.core.domain.{Cfp, Talk}
-@import fr.gospeak.libs.scalautils.domain.TimePeriod
 @import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
@@ -13,8 +10,9 @@
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 @import java.util.concurrent.TimeUnit
+@import fr.gospeak.web.utils.UserAwareReq
 
-@(cfp: Cfp, talks: Page[Talk], form: Form[Create])(b: Breadcrumb)(implicit req: UserAwareRequest[CookieEnv, AnyContent], messages: Messages)
+@(cfp: Cfp, talks: Page[Talk], form: Form[Create])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @talkItem(talk: Talk) = {
     <a href="@ProposalCtrl.create(talk.slug, cfp.slug)" class="list-group-item list-group-item-action">
         <h5 class="mb-0">@talk.title.value</h5>
@@ -25,7 +23,7 @@
     <h1>Propose a talk to @cfp.name.value</h1>
     <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
 
-    @req.identity.map { identity =>
+    @req.user.map { _ =>
         @if(talks.nonEmpty) {
             <h3>Choose an existing one</h3>
 
@@ -54,16 +52,16 @@
             @inputText(field, Seq("placeholder" -> "Talk slug", "slug-for" -> form("talk.title").id) ++ args)
         }
         @actionsHorizontal() {
-            @req.identity.map { identity =>
+            @req.user.map { user =>
                 <h4>Logged as:</h4>
                 <div class="card mb-3" style="max-width: 300px">
                     <div class="row no-gutters">
                         <div class="col-md-4">
-                            <img src="@identity.user.avatar.url" alt="@identity.user.name.value avatar" class="card-img" style="border-radius: 0">
+                            <img src="@user.avatar.url" alt="@user.name.value avatar" class="card-img" style="border-radius: 0">
                         </div>
                         <div class="col-md-8">
                             <div class="card-body">
-                                <h5 class="card-title" style="margin-bottom: 0">@identity.user.name.value</h5>
+                                <h5 class="card-title" style="margin-bottom: 0">@user.name.value</h5>
                             </div>
                         </div>
                     </div>
@@ -71,7 +69,7 @@
             }
             @btnCancel(CfpCtrl.detail(cfp.slug))
             @btnSubmit("Propose your talk")
-            @if(req.identity.isEmpty) {
+            @if(req.user.isEmpty) {
                 or
                 <a class="btn btn-primary" href="@AuthCtrl.login(Some(CfpCtrl.propose(cfp.slug).toString))">
                     Login to choose an existing one</a>

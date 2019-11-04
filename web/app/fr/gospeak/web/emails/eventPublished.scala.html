@@ -1,10 +1,9 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Event, Group, Venue}
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, event: Event, venueOpt: Option[Venue.Full], member: Group.Member)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, event: Event, venueOpt: Option[Venue.Full], member: Group.Member)(implicit req: SecuredReq[AnyContent])
 <p>Hi @member.user.firstName,</p>
 <p>The <b>@group.name.value</b> have published a new event: <a href="@GroupCtrl.event(group.slug, event.slug).absoluteURL()">@event.name.value</a>.</p>
 <p>It's the @Formats.datetime(event.start)@venueOpt.map { v => at @v.address.formatted}.</p>

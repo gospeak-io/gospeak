@@ -19,17 +19,14 @@ class ProposalCtrl(cc: ControllerComponents,
                    cfpRepo: OrgaCfpRepo,
                    eventRepo: OrgaEventRepo,
                    proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette) {
-
-  import silhouette._
-
-  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     val customParams = params.defaultOrderBy(proposalRepo.fields.title)
     (for {
-      groupElt <- OptionT(groupRepo.find(user, group))
+      groupElt <- OptionT(groupRepo.find(req.user.id, group))
       proposals <- OptionT.liftF(proposalRepo.listFull(groupElt.id, customParams))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users)))
       b = listBreadcrumb(groupElt)
-    } yield Ok(html.list(groupElt, proposals, speakers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+    } yield Ok(html.list(groupElt, proposals, speakers)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 }
 

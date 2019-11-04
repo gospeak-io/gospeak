@@ -1,8 +1,4 @@
-@import java.time.Instant
-
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Contact, Event, Group, Partner, Sponsor, SponsorPack, User, Venue}
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partials.html._
@@ -14,8 +10,9 @@
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, partner: Partner, venues: Seq[Venue.Full], contacts: Seq[Contact], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], events: Seq[(Event, Venue)], now: Instant)(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, partner: Partner, venues: Seq[Venue.Full], contacts: Seq[Contact], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], events: Seq[(Event, Venue)])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container(partner.name.value + " - Gospeak", group, b)() {
     <div class="d-flex justify-content-between align-items-start">
         <div class="media">
@@ -100,7 +97,7 @@
             @sponsors.map { sponsor =>
                 <span class="list-group-item d-flex justify-content-between align-items-center">
                     <span>
-                        @if(sponsor.isCurrent(now)) {
+                        @if(sponsor.isCurrent(req.now)) {
                             <b><a href="@SponsorCtrl.detail(group.slug, sponsor.pack.slug)">@sponsor.pack.name.value pack</a></b>
                         } else {
                             <b><a href="@SponsorCtrl.detail(group.slug, sponsor.pack.slug)"><s class="text-muted">@sponsor.pack.name.value pack</s></a></b>

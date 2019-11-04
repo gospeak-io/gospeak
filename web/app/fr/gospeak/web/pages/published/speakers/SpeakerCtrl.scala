@@ -1,7 +1,5 @@
 package fr.gospeak.web.pages.published.speakers
 
-import java.time.Instant
-
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.{Talk, User}
@@ -20,24 +18,21 @@ class SpeakerCtrl(cc: ControllerComponents,
                   talkRepo: PublicTalkRepo,
                   proposalRepo: PublicProposalRepo,
                   groupRepo: PublicGroupRepo) extends UICtrl(cc, silhouette) {
-
-  import silhouette._
-
-  def list(params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
+  def list(params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
     (for {
       speakers <- userRepo.listPublic(params)
       b = listBreadcrumb()
-    } yield Ok(html.list(speakers)(b))).unsafeToFuture()
+    } yield Ok(html.list(speakers)(b)))
   }
 
-  def detail(user: User.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction.async { implicit req =>
+  def detail(user: User.Slug, params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
     (for {
       speakerElt <- OptionT(userRepo.findPublic(user))
       publicTalks <- OptionT.liftF(talkRepo.list(speakerElt.id, Talk.Status.Public, params))
       acceptedProposals <- OptionT.liftF(proposalRepo.listPublicFull(speakerElt.id, params))
       groups <- OptionT.liftF(groupRepo.list(speakerElt.id))
       b = breadcrumb(speakerElt)
-    } yield Ok(html.detail(speakerElt, publicTalks, acceptedProposals, groups, Instant.now())(b))).value.map(_.getOrElse(publicUserNotFound(user))).unsafeToFuture()
+    } yield Ok(html.detail(speakerElt, publicTalks, acceptedProposals, groups)(b))).value.map(_.getOrElse(publicUserNotFound(user)))
   }
 }
 

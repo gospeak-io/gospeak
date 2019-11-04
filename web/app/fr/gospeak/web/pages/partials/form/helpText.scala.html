@@ -1,9 +1,10 @@
 @import fr.gospeak.web.pages.partials.form.Utils
+@import fr.gospeak.web.utils.GsRequest
 
-@(field: Field, args: Seq[(String, String)], help: String)(implicit messages: Messages)
+@(field: Field, args: Seq[(String, String)], help: String)(implicit req: GsRequest[AnyContent])
 <span id="@Utils.helpId(args, field)" class="text-muted">
 @Seq(
     Some(help),
-    Utils.hasPattern(field).map(Utils.format(_))
+    Utils.hasPattern(field).map(req.format)
 ).flatten.mkString(", ")
 </span>

@@ -3,7 +3,7 @@ package fr.gospeak.web.pages.published
 import java.time.{Instant, LocalDateTime}
 
 import cats.data.NonEmptyList
-import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
+import cats.effect.IO
 import com.mohiva.play.silhouette.api.{LoginInfo, Silhouette}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import fr.gospeak.core.domain._
@@ -15,7 +15,7 @@ import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.published.HomeCtrl._
-import fr.gospeak.web.utils.UICtrl
+import fr.gospeak.web.utils.{SecuredReq, UICtrl}
 import org.joda.time.DateTime
 import play.api.mvc._
 
@@ -23,17 +23,14 @@ import scala.concurrent.duration._
 
 class HomeCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv]) extends UICtrl(cc, silhouette) {
-
-  import silhouette._
-
-  def index(): Action[AnyContent] = UserAwareAction { implicit req =>
+  def index(): Action[AnyContent] = UserAwareActionIO { implicit req =>
     val b = breadcrumb()
-    Ok(html.index()(b))
+    IO.pure(Ok(html.index()(b)))
   }
 
-  def why(): Action[AnyContent] = UserAwareAction { implicit req =>
+  def why(): Action[AnyContent] = UserAwareActionIO { implicit req =>
     val b = breadcrumb().add("Why use Gospeak" -> routes.HomeCtrl.why())
-    Ok(html.why()(b))
+    IO.pure(Ok(html.why()(b)))
   }
 
   private val now = Instant.now()
@@ -134,12 +131,10 @@ class HomeCtrl(cc: ControllerComponents,
     tags = Seq("tag").map(Tag(_)),
     info = Info(user.id, now))
 
-  def styleguide(params: Page.Params): Action[AnyContent] = Action { implicit req: Request[AnyContent] =>
-    implicit val secured = SecuredRequest[CookieEnv, AnyContent](identity, authenticator, req)
-    implicit val userAware = UserAwareRequest[CookieEnv, AnyContent](Some(identity), Some(authenticator), req)
-    implicit val messages = req.messages
+  def styleguide(params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
+    implicit val secured: SecuredReq[AnyContent] = req.secured(identity, authenticator)
     val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event))
-    Ok(html.styleguide(user, group, cfp, event, talk, proposal, proposalFull, Instant.now(), params))
+    IO.pure(Ok(html.styleguide(user, group, cfp, event, talk, proposal, proposalFull, params)))
   }
 }
 

@@ -1,10 +1,9 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Event, Group}
 @import fr.gospeak.libs.scalautils.domain.Markdown
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.pages.partials.display.html.markdown
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, event: Event, text: Markdown, rsvp: Event.Rsvp)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, event: Event, text: Markdown, rsvp: Event.Rsvp)(implicit req: SecuredReq[AnyContent])
 <p>Hi @rsvp.user.firstName,</p>
 <p>Here is a message from <b>@event.name.value</b> organizer:</p>
 <div>

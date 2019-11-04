@@ -1,9 +1,7 @@
 @import java.time.LocalDate
 
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Partner, Proposal, Sponsor, SponsorPack, User, UserRequest, Venue}
 @import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partials.html.{container, eventItem}
@@ -13,8 +11,9 @@
 @import fr.gospeak.web.pages.partials.display.html.emailLink
 @import fr.gospeak.web.pages.partials.form.html.formBtn
 @import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, events: Page[Event], cfps: Seq[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User], currentSponsors: Seq[(Partner, (Sponsor, Int))], pastSponsors: Seq[(Partner, Seq[Sponsor])], packs: Seq[SponsorPack], requests: Seq[UserRequest], requestUsers: Seq[User])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, events: Page[Event], cfps: Seq[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User], currentSponsors: Seq[(Partner, (Sponsor, Int))], pastSponsors: Seq[(Partner, Seq[Sponsor])], packs: Seq[SponsorPack], requests: Seq[UserRequest], requestUsers: Seq[User])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @addSponsorBtn() = {
 @defining(packs.filter(_.active)) { activePacks: Seq[SponsorPack] =>
     @if(activePacks.nonEmpty) {
@@ -79,9 +78,9 @@
             Until @Formats.date(sp._1.finish):
             <a href="@PartnerCtrl.detail(group.slug, partner.slug)">@partner.name.value</a>
             @packs.find(_.id == sp._1.pack).map(_.name.value) pack
-            @if(sp._1.finish.minusMonths(1).isBefore(LocalDate.now())) {
+            @if(sp._1.finish.minusMonths(1).isBefore(req.nowLD)) {
                 <span class="text-danger">Will finish very soon</span>
-            } else if(sp._1.finish.minusMonths(3).isBefore(LocalDate.now())) {
+            } else if(sp._1.finish.minusMonths(3).isBefore(req.nowLD)) {
                 <span class="text-warning">Will finish soon</span>
             }
             (@sp._2 times sponsor)

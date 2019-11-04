@@ -1,12 +1,13 @@
 @import fr.gospeak.web.pages.partials.form.Utils
+@import fr.gospeak.web.utils.GsRequest
 
-@(field: Field, args: Seq[(String, String)] = Seq())(input: (Field, Seq[(String, String)]) => Html)(implicit messages: Messages)
+@(field: Field, args: Seq[(String, String)] = Seq())(input: (Field, Seq[(String, String)]) => Html)(implicit req: GsRequest[AnyContent])
 <div class="form-group custom-control custom-checkbox @Utils.getArg(args, "class")">
     @input(field, args)
     @if(Utils.hasErrors(field)) {
         <div class="invalid-feedback">
             @Utils.getArg(args, "help").map { help => @helpText(field, args, help) }
-            @field.errors.map(_.format).mkString(", ")
+            @req.formatErrors(field)
         </div>
     } else {
         @Utils.getArg(args, "help").map { help => <small class="form-text">@helpText(field, args, help)</small> }

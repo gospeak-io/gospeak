@@ -1,15 +1,14 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.Group
 @import fr.gospeak.core.domain.utils.TemplateData
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.EventTemplateItem
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, templateId: Option[String], settings: Group.Settings, form: Form[EventTemplateItem])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, templateId: Option[String], settings: Group.Settings, form: Form[EventTemplateItem])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container(group.name.value + " settings - Gospeak", group, b)() {
     @templateId match {
         case Some(id) => {

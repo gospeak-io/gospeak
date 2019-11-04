@@ -1,10 +1,9 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
-@import fr.gospeak.core.domain.{Proposal, User, UserRequest}
-@import fr.gospeak.web.auth.domain.CookieEnv
+@import fr.gospeak.core.domain.{Proposal, UserRequest}
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import fr.gospeak.web.utils.SecuredReq
 
-@(invite: UserRequest.ProposalInvite, proposal: Proposal, by: User)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(invite: UserRequest.ProposalInvite, proposal: Proposal)(implicit req: SecuredReq[AnyContent])
 <p>Hi,</p>
-<p><a href="mailto:@by.email.value">@by.name.value</a> has canceled your invitation to speak about <b>@proposal.title.value</b>.</p>
+<p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has canceled your invitation to speak about <b>@proposal.title.value</b>.</p>
 <p>We hope everything is alright, you can <a href="@CfpCtrl.list().absoluteURL()">propose a new talk</a> at any time ;)</p>
 <p>The Gospeak team</p>

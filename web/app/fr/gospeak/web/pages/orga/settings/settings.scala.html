@@ -1,15 +1,14 @@
-@import com.mohiva.play.silhouette.api.actions.SecuredRequest
 @import fr.gospeak.core.domain.{Group, User, UserRequest}
 @import fr.gospeak.core.services.slack.domain.SlackCredentials
 @import fr.gospeak.libs.scalautils.domain.EmailAddress
-@import fr.gospeak.web.auth.domain.CookieEnv
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.MeetupAccount
 @import fr.gospeak.web.pages.orga.settings.partials.html._
+@import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, settings: Group.Settings, orgas: Seq[User], invites: Seq[UserRequest.GroupInvite], meetupForm: Form[MeetupAccount], slackForm: Form[SlackCredentials], inviteOrgaForm: Form[EmailAddress])(b: Breadcrumb)(implicit req: SecuredRequest[CookieEnv, AnyContent], messages: Messages)
+@(group: Group, settings: Group.Settings, orgas: Seq[User], invites: Seq[UserRequest.GroupInvite], meetupForm: Form[MeetupAccount], slackForm: Form[SlackCredentials], inviteOrgaForm: Form[EmailAddress])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container(group.name.value + " settings - Gospeak", group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>Settings</span>

@@ -18,25 +18,22 @@ class SpeakerCtrl(cc: ControllerComponents,
                   groupRepo: OrgaGroupRepo,
                   eventRepo: OrgaEventRepo,
                   proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette) {
-
-  import silhouette._
-
-  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
-      groupElt <- OptionT(groupRepo.find(user, group))
+      groupElt <- OptionT(groupRepo.find(req.user.id, group))
       speakers <- OptionT.liftF(userRepo.speakers(groupElt.id, params))
       b = listBreadcrumb(groupElt)
-    } yield Ok(html.list(groupElt, speakers)(b))).value.map(_.getOrElse(groupNotFound(group))).unsafeToFuture()
+    } yield Ok(html.list(groupElt, speakers)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
-  def detail(group: Group.Slug, speaker: User.Slug, params: Page.Params): Action[AnyContent] = SecuredAction.async { implicit req =>
+  def detail(group: Group.Slug, speaker: User.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
-      groupElt <- OptionT(groupRepo.find(user, group))
+      groupElt <- OptionT(groupRepo.find(req.user.id, group))
       speakerElt <- OptionT(userRepo.find(speaker))
       proposals <- OptionT.liftF(proposalRepo.listFull(groupElt.id, speakerElt.id, params))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users)))
       b = breadcrumb(groupElt, speakerElt)
-    } yield Ok(html.detail(groupElt, speakerElt, proposals, speakers)(b))).value.map(_.getOrElse(speakerNotFound(group, speaker))).unsafeToFuture()
+    } yield Ok(html.detail(groupElt, speakerElt, proposals, speakers)(b))).value.map(_.getOrElse(speakerNotFound(group, speaker)))
   }
 }
 

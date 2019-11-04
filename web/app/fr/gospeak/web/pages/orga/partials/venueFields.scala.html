@@ -1,8 +1,9 @@
 @import fr.gospeak.core.domain.{Group, Partner, Venue}
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.utils.SecuredReq
 
-@(form: Form[Venue.Data], group: Group, hasMeetupAccount: Boolean, partner: Option[Partner])(implicit messages: Messages)
+@(form: Form[Venue.Data], group: Group, hasMeetupAccount: Boolean, partner: Option[Partner])(implicit req: SecuredReq[AnyContent])
 @fieldHorizontal(form("address"), Seq("label" -> "Address", "help" -> "Address of the venue")) { (field, args) =>
     @inputGMapPlace(field, Seq("autofocus" -> "true") ++ args)
 }
@@ -34,4 +35,3 @@
         </div>
     }
 }
-

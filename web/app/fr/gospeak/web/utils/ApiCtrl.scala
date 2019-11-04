@@ -1,39 +1,57 @@
 package fr.gospeak.web.utils
 
-import java.time.Instant
-
 import cats.data.OptionT
 import cats.effect.IO
-import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import fr.gospeak.core.domain.User
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
-import fr.gospeak.web.api.domain.PublicApiResponse
-import fr.gospeak.web.auth.domain.CookieEnv
+import fr.gospeak.web.api.domain.utils.{PublicApiError, PublicApiResponse}
 import play.api.libs.json.{Json, Writes}
-import play.api.mvc.{AbstractController, AnyContent, ControllerComponents, Result}
+import play.api.mvc._
 
-import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 class ApiCtrl(cc: ControllerComponents) extends AbstractController(cc) {
-  protected def user(implicit req: SecuredRequest[CookieEnv, AnyContent]): User.Id = req.identity.user.id
-
-  protected def response[A](res: => IO[Option[A]])(implicit w: Writes[A]): Future[Result] = {
-    val start = Instant.now()
-    res.map(_.map(r => Ok(Json.toJson(PublicApiResponse(r, start)))).getOrElse(NotFound)).unsafeToFuture()
+  protected def ActionIO[A](bodyParser: BodyParser[A])(block: BasicReq[A] => IO[Result]): Action[A] = Action(bodyParser).async { req =>
+    block(BasicReq[A](req, messagesApi.preferred(req))).recover {
+      case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage)))
+    }.unsafeToFuture()
   }
 
-  protected def responseT[A](res: => OptionT[IO, A])(implicit w: Writes[A]): Future[Result] = {
-    val start = Instant.now()
-    res.value.map(_.map(r => Ok(Json.toJson(PublicApiResponse(r, start)))).getOrElse(NotFound)).unsafeToFuture()
-  }
+  protected def ActionIO(block: BasicReq[AnyContent] => IO[Result]): Action[AnyContent] =
+    ActionIO(parse.anyContent)(block)
 
-  protected def responsePage[A](res: => IO[Page[A]])(implicit w: Writes[A]): Future[Result] = {
-    val start = Instant.now()
-    res.map(r => Ok(Json.toJson(PublicApiResponse(r, start)))).unsafeToFuture()
-  }
 
-  protected def responsePageT[A](res: => OptionT[IO, Page[A]])(implicit w: Writes[A]): Future[Result] = {
-    val start = Instant.now()
-    res.value.map(_.map(r => Ok(Json.toJson(PublicApiResponse(r, start)))).getOrElse(NotFound)).unsafeToFuture()
-  }
+  protected def ApiAction[R, A](bodyParser: BodyParser[R])(block: BasicReq[R] => IO[PublicApiResponse[A]])(implicit w: Writes[A]): Action[R] =
+    ActionIO(bodyParser)(req => block(req).map(b => Ok(Json.toJson(b))))
+
+  protected def ApiAction[A](block: BasicReq[AnyContent] => IO[PublicApiResponse[A]])(implicit w: Writes[A]): Action[AnyContent] =
+    ApiAction(parse.anyContent)(block)
+
+
+  protected def ApiActionOpt[R, A](bodyParser: BodyParser[R])(block: BasicReq[R] => IO[Option[A]])(implicit w: Writes[A]): Action[R] =
+    ActionIO(bodyParser)(req => block(req).map(_.map(b => Ok(Json.toJson(PublicApiResponse(b, req.now)))).getOrElse(NotFound)))
+
+  protected def ApiActionOpt[A](block: BasicReq[AnyContent] => IO[Option[A]])(implicit w: Writes[A]): Action[AnyContent] =
+    ApiActionOpt(parse.anyContent)(block)
+
+
+  protected def ApiActionPage[R, A](bodyParser: BodyParser[R])(block: BasicReq[R] => IO[Page[A]])(implicit w: Writes[A]): Action[R] =
+    ApiAction(bodyParser)(req => block(req).map(p => PublicApiResponse(p, req.now)))
+
+  protected def ApiActionPage[A](block: BasicReq[AnyContent] => IO[Page[A]])(implicit w: Writes[A]): Action[AnyContent] =
+    ApiActionPage(parse.anyContent)(block)
+
+
+  protected def ApiActionOptT[R, A](bodyParser: BodyParser[R])(block: BasicReq[R] => OptionT[IO, A])(implicit w: Writes[A]): Action[R] =
+    ApiActionOpt(bodyParser)(block(_).value)
+
+  protected def ApiActionOptT[A](block: BasicReq[AnyContent] => OptionT[IO, A])(implicit w: Writes[A]): Action[AnyContent] =
+    ApiActionOptT(parse.anyContent)(block)
+
+
+  protected def ApiActionPageT[R, A](bodyParser: BodyParser[R])(block: BasicReq[R] => OptionT[IO, Page[A]])(implicit w: Writes[A]): Action[R] =
+    ApiActionOpt(bodyParser)(req => block(req).value.map(_.map(p => PublicApiResponse(p, req.now))))
+
+  protected def ApiActionPageT[A](block: BasicReq[AnyContent] => OptionT[IO, Page[A]])(implicit w: Writes[A]): Action[AnyContent] =
+    ApiActionPageT(parse.anyContent)(block)
 }
