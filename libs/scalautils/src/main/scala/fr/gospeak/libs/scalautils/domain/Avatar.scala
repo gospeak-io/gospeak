@@ -17,11 +17,15 @@ object Avatar {
 
     case object LinkedIn extends Source
 
+    case object Facebook extends Source
+
+    case object Github extends Source
+
     case object Meetup extends Source
 
     case object UserDefined extends Source
 
-    val all: Seq[Source] = Seq(Gravatar, Twitter, LinkedIn, Meetup, Google, UserDefined)
+    val all: Seq[Source] = Seq(Gravatar, Twitter, Google, LinkedIn, Facebook, Github, Meetup, UserDefined)
 
     def from(in: String): Either[CustomException, Source] =
       all.find(_.toString == in).map(Right(_)).getOrElse(Left(CustomException(s"'$in' is not a valid Avatar.Source")))

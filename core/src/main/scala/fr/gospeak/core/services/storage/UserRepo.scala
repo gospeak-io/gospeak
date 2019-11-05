@@ -39,6 +39,8 @@ trait UserUserRepo {
 trait AuthUserRepo {
   def create(data: User.Data, now: Instant): IO[User]
 
+  def create(user: User): IO[User]
+
   def edit(user: User, now: Instant): IO[User]
 
   def createLoginRef(login: User.Login, user: User.Id): IO[Done]

@@ -1,5 +1,7 @@
 package fr.gospeak.web.auth.domain
 
+import java.time.Instant
+
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
 import fr.gospeak.core.domain.User
@@ -12,25 +14,37 @@ case class SocialProfile(loginInfo: LoginInfo,
                          fullName: Option[String],
                          email: Option[String],
                          avatarURL: Option[String]) {
-  def toUserData: Either[CustomException, User.Data] = {
+  def toUserWith(f: EmailAddress => Avatar): Either[CustomException, User] = {
+    val now = Instant.now()
     for {
       socialProvider <- SocialProvider.from(loginInfo.providerID)
       source <- socialProvider.toSource
-      //FIXME slug by default ??
-      slug <- User.Slug.from(StringUtils.slugify(firstName.getOrElse("")))
-      // FIXME avatar by default ??
-      avatar <- Url.from(avatarURL.getOrElse("https://api.adorable.io/avatars/285/abott@adorable.png"))
       email <- email.map(EmailAddress.from) match {
-        case None => Left(CustomException("Email is missing ! Sorry, we cannot go further :("))
+        case None => Left(CustomException(
+          s"""The email is missing from the social provider response!
+          Add the email on your social provider and please try again.
+          Otherwise, we cannot go further :(""".stripMargin))
         case Some(p) => p
       }
-    } yield User.Data(
+      slug <- User.Slug.from(StringUtils.slugify(firstName.getOrElse(email.nickName)))
+      avatar <- avatarURL.map(Url.from) match {
+        case None => Right(f(email))
+        case Some(p) => p.map(Avatar(_, source))
+      }
+    } yield User(
+      User.Id.generate(),
       slug,
-      //FIXME firstName by default ??
+      // Not sure if missing firstName or lastName should fail the authentication,
+      // so i'm using empty string by default for now
       firstName.getOrElse(""),
       lastName.getOrElse(""),
       email,
-      Avatar(avatar, source))
+      Some(now),
+      avatar,
+      User.emptyProfile,
+      now,
+      now
+    )
   }
 }
 

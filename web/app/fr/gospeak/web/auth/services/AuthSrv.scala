@@ -16,7 +16,7 @@ import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.EmailAddress
+import fr.gospeak.libs.scalautils.domain.{CustomException, EmailAddress, Url}
 import fr.gospeak.web.auth.AuthConf
 import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv, SocialProfile}
@@ -114,13 +114,12 @@ class AuthSrv(userRepo: AuthUserRepo,
   }
 
   def createOrEdit(socialProfile: CommonSocialProfile): IO[AuthUser] = {
+
     def create(login: Login): IO[AuthUser] = {
-      val now = Instant.now()
       for {
-        data <- SocialProfile.from(socialProfile).toUserData.toIO
-        u <- userRepo.create(data, now)
-        request <- userRequestRepo.createAccountValidationRequest(u.email, u.id, now)
-        _ <- userRequestRepo.validateAccount(request.id, u.email, now)
+        user <- SocialProfile.from(socialProfile).toUserWith(gravatarSrv.getAvatar(_)).toIO
+        exists <- userRepo.find(user.email)
+        u <- exists.fold(userRepo.create(user))(u => userRepo.edit(user.copy(u.id), Instant.now()))
         _ <- userRepo.createLoginRef(login, u.id)
       } yield AuthUser(socialProfile.loginInfo, u, Seq())
     }

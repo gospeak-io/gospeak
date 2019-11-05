@@ -1,6 +1,8 @@
 package fr.gospeak.libs.scalautils.domain
 
-final class EmailAddress private(value: String) extends DataClass(value)
+final class EmailAddress private(value: String) extends DataClass(value) {
+  def nickName: String = value.substring(0, value.indexOf("@"))
+}
 
 object EmailAddress {
   def from(in: String): Either[CustomException, EmailAddress] = {

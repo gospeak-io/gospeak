@@ -29,7 +29,7 @@ object User {
   def apply(data: Data, profile: Profile, now: Instant): User =
     new User(Id.generate(), data.slug, data.firstName, data.lastName, data.email, None, data.avatar, profile, now, now)
 
-  val emptyProfile = Profile(Profile.Status.Undefined, None, None, None, None, None, None, None)
+  val emptyProfile: Profile = Profile(Profile.Status.Undefined, None, None, None, None, None, None, None)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -66,10 +66,6 @@ object User {
   final case class Salt(value: String) extends AnyVal
 
   final case class Login(providerId: ProviderId, providerKey: ProviderKey)
-
-  object Login {
-    def apply(providerId: ProviderId, providerKey: ProviderKey): Login = new Login(providerId, providerKey)
-  }
 
   final case class Password(hasher: Hasher, password: PasswordValue, salt: Option[Salt])
 

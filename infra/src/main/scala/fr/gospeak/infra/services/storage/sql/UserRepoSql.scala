@@ -65,6 +65,9 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
   override def listPublic(params: Page.Params): IO[Page[User]] = selectPagePublic(params).run(xa)
 
   override def list(ids: Seq[User.Id]): IO[Seq[User]] = runNel(selectAll, ids)
+
+  override def create(user: User): IO[User] =  insert(user).run(xa)
+
 }
 
 object UserRepoSql {

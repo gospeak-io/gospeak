@@ -9,8 +9,11 @@ import com.mohiva.play.silhouette.api.services.AuthenticatorService
 import com.mohiva.play.silhouette.api.util.{Clock, FingerprintGenerator, HTTPLayer, PlayHTTPLayer}
 import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaSigner}
 import com.mohiva.play.silhouette.impl.authenticators._
-import com.mohiva.play.silhouette.impl.providers.{DefaultSocialStateHandler, OAuth2Settings, SocialProviderRegistry}
-import com.mohiva.play.silhouette.impl.providers.oauth2.GoogleProvider
+import com.mohiva.play.silhouette.impl.providers.oauth1.TwitterProvider
+import com.mohiva.play.silhouette.impl.providers.oauth1.secrets.CookieSecretProvider
+import com.mohiva.play.silhouette.impl.providers.oauth1.services.PlayOAuth1Service
+import com.mohiva.play.silhouette.impl.providers.{DefaultSocialStateHandler, OAuth1Settings, OAuth2Settings, SocialProviderRegistry}
+import com.mohiva.play.silhouette.impl.providers.oauth2.{FacebookProvider, GitHubProvider, GoogleProvider, LinkedInProvider}
 import com.mohiva.play.silhouette.impl.providers.state.{CsrfStateItemHandler, CsrfStateSettings}
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.softwaremill.macwire.wire
@@ -111,6 +114,9 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val clock: Clock = Clock()
   lazy val idGenerator: SecureRandomIDGenerator = new SecureRandomIDGenerator()
 
+  lazy val eventBus: EventBus = new EventBus()
+  lazy val bodyParsers: BodyParsers.Default = new BodyParsers.Default(playBodyParsers)
+
   lazy val jwtAuth: AuthenticatorService[JWTAuthenticator] = {
     lazy val authenticatorDecoder: Base64AuthenticatorEncoder = new Base64AuthenticatorEncoder()
     val duration = configuration.underlying.getString("silhouette.jwt.authenticator.authenticatorExpiry")
@@ -121,34 +127,18 @@ class GospeakComponents(context: ApplicationLoader.Context)
       sharedSecret = configuration.underlying.getString("silhouette.jwt.authenticator.sharedSecret"))
     new JWTAuthenticatorService(config, None, authenticatorDecoder, idGenerator, clock)
   }
+  val signer: Signer = new JcaSigner(conf.auth.cookie.signer)
+  val crypter: Crypter = new JcaCrypter(conf.auth.cookie.crypter)
+
+
   lazy val cookieAuth: AuthenticatorService[CookieAuthenticator] = {
-    val signer: Signer = new JcaSigner(conf.auth.cookie.signer)
-    val crypter: Crypter = new JcaCrypter(conf.auth.cookie.crypter)
     val authenticatorEncoder = new CrypterAuthenticatorEncoder(crypter)
     val cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding()
     val fingerprintGenerator: FingerprintGenerator = new DefaultFingerprintGenerator(false)
     new CookieAuthenticatorService(conf.auth.cookie.authenticator.toConf, None, signer, cookieHeaderEncoding, authenticatorEncoder, fingerprintGenerator, idGenerator, clock)
   }
 
-
-  lazy val eventBus: EventBus = new EventBus()
-  lazy val bodyParsers: BodyParsers.Default = new BodyParsers.Default(playBodyParsers)
-
-
-  // Google Provider config
-
-  val googleSettings: OAuth2Settings = OAuth2Settings(
-    authorizationURL = Some(configuration.underlying.getString("silhouette.google.authorizationURL")),
-    accessTokenURL = configuration.underlying.getString("silhouette.google.accessTokenURL"),
-    redirectURL = Some(configuration.underlying.getString("silhouette.google.redirectURL")),
-    clientID = configuration.underlying.getString("silhouette.google.clientID"),
-    clientSecret = configuration.underlying.getString("silhouette.google.clientSecret"),
-    scope = Some(configuration.underlying.getString("silhouette.google.scope"))
-  )
-
-  val signer = new JcaSigner(conf.auth.cookie.signer)
-
-  val csrfStateSettings = CsrfStateSettings(
+  lazy val csrfStateSettings = CsrfStateSettings(
     configuration.underlying.getString("silhouette.csrfStateItemHandler.cookieName"),
     configuration.underlying.getString("silhouette.csrfStateItemHandler.cookiePath"),
     None,
@@ -158,15 +148,19 @@ class GospeakComponents(context: ApplicationLoader.Context)
     new FiniteDuration(configuration.underlying.getDuration("silhouette.csrfStateItemHandler.expirationTime").getSeconds, TimeUnit.SECONDS))
 
 
-  val csrfStateItemHandler = new CsrfStateItemHandler(csrfStateSettings, idGenerator, signer)
-  val httpLayer: HTTPLayer = new PlayHTTPLayer(wsClient)
+  lazy val csrfStateItemHandler = new CsrfStateItemHandler(csrfStateSettings, idGenerator, signer)
+  lazy val httpLayer: HTTPLayer = new PlayHTTPLayer(wsClient)
 
-  val socialStateHandler = new DefaultSocialStateHandler(Set(csrfStateItemHandler), signer)
+  lazy val socialStateHandler = new DefaultSocialStateHandler(Set(csrfStateItemHandler), signer)
 
-  val googleProvider = new GoogleProvider(httpLayer,
-    socialStateHandler,
-    googleSettings)
-  val socialProviderRegistry = SocialProviderRegistry(Seq(googleProvider))
+  lazy val googleProvider = new GoogleProvider(httpLayer, socialStateHandler, conf.auth.google)
+  lazy val linkedInProvider = new LinkedInProvider(httpLayer, socialStateHandler, conf.auth.linkedIn)
+  lazy val githubProvider = new GitHubProvider(httpLayer, socialStateHandler, conf.auth.github)
+  lazy val facebookProvider = new FacebookProvider(httpLayer, socialStateHandler, conf.auth.facebook)
+
+  lazy val twitterProvider = new TwitterProvider(httpLayer, new PlayOAuth1Service(conf.auth.twitter), cookieSecretProvider, conf.auth.twitter)
+  lazy val cookieSecretProvider = new CookieSecretProvider(conf.auth.cookie.authenticator.toCookieSecretSettings, signer, crypter, clock)
+  lazy val socialProviderRegistry = SocialProviderRegistry(Seq(googleProvider, twitterProvider, facebookProvider, githubProvider, linkedInProvider))
 
   // lazy val silhouette: Silhouette[JwtEnv] = wire[SilhouetteProvider[JwtEnv]]
   lazy val silhouette: Silhouette[CookieEnv] = {

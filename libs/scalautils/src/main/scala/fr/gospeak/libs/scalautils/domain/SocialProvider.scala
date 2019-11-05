@@ -17,7 +17,9 @@ object SocialProvider {
 
   case object Facebook extends SocialProvider
 
-  val all: Seq[SocialProvider] = Seq(Google, Twitter, LinkedIn, Facebook)
+  case object Github extends SocialProvider
+
+  val all: Seq[SocialProvider] = Seq(Google, Twitter, LinkedIn, Facebook, Github)
 
   def from(in: String): Either[CustomException, SocialProvider] =
     all.find(_.toString.toLowerCase == in.toLowerCase())
