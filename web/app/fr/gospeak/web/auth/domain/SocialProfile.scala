@@ -14,7 +14,7 @@ case class SocialProfile(loginInfo: LoginInfo,
                          fullName: Option[String],
                          email: Option[String],
                          avatarURL: Option[String]) {
-  def toUserWith(f: EmailAddress => Avatar): Either[CustomException, User] = {
+  def toUserWith(getAvatar: EmailAddress => Avatar): Either[CustomException, User] = {
     val now = Instant.now()
     for {
       socialProvider <- SocialProvider.from(loginInfo.providerID)
@@ -28,7 +28,7 @@ case class SocialProfile(loginInfo: LoginInfo,
       }
       slug <- User.Slug.from(StringUtils.slugify(firstName.getOrElse(email.nickName)))
       avatar <- avatarURL.map(Url.from) match {
-        case None => Right(f(email))
+        case None => Right(getAvatar(email))
         case Some(p) => p.map(Avatar(_, source))
       }
     } yield User(
