@@ -4,20 +4,21 @@ import java.time.Instant
 
 import cats.effect.IO
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.OrgaReqCtx
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
 trait SponsorRepo extends OrgaSponsorRepo with PublicSponsorRepo
 
 trait OrgaSponsorRepo {
-  def create(group: Group.Id, data: Sponsor.Data, by: User.Id, now: Instant): IO[Sponsor]
+  def create(data: Sponsor.Data)(implicit ctx: OrgaReqCtx): IO[Sponsor]
 
-  def edit(group: Group.Id, sponsor: Sponsor.Id)(data: Sponsor.Data, by: User.Id, now: Instant): IO[Done]
+  def edit(sponsor: Sponsor.Id, data: Sponsor.Data)(implicit ctx: OrgaReqCtx): IO[Done]
 
-  def remove(group: Group.Id, sponsor: Sponsor.Id): IO[Done]
+  def remove(sponsor: Sponsor.Id)(implicit ctx: OrgaReqCtx): IO[Done]
 
-  def find(group: Group.Id, sponsor: Sponsor.Id): IO[Option[Sponsor]]
+  def find(sponsor: Sponsor.Id)(implicit ctx: OrgaReqCtx): IO[Option[Sponsor]]
 
-  def listFull(group: Group.Id, params: Page.Params): IO[Page[Sponsor.Full]]
+  def listFull(params: Page.Params)(implicit ctx: OrgaReqCtx): IO[Page[Sponsor.Full]]
 
   def listAll(group: Group.Id): IO[Seq[Sponsor]]
 

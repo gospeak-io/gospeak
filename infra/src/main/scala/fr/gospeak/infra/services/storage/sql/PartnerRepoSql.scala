@@ -7,7 +7,7 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.{Info, OrgaReqCtx}
 import fr.gospeak.core.domain.{Group, Partner, User}
 import fr.gospeak.core.services.storage.PartnerRepo
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSql._
@@ -39,7 +39,9 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def list(partners: Seq[Partner.Id]): IO[Seq[Partner]] = runNel(selectAll, partners)
 
-  override def find(group: Group.Id, partner: Partner.Id): IO[Option[Partner]] = selectOne(group, partner).runOption(xa)
+  override def find(partner: Partner.Id)(implicit ctx: OrgaReqCtx): IO[Option[Partner]] = selectOne(ctx.group.id, partner).runOption(xa)
+
+  override def find(partner: Partner.Slug)(implicit ctx: OrgaReqCtx): IO[Option[Partner]] = selectOne(ctx.group.id, partner).runOption(xa)
 
   override def find(group: Group.Id, partner: Partner.Slug): IO[Option[Partner]] = selectOne(group, partner).runOption(xa)
 }

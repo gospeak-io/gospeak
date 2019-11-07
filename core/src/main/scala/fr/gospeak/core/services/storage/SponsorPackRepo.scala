@@ -1,27 +1,26 @@
 package fr.gospeak.core.services.storage
 
-import java.time.Instant
-
 import cats.effect.IO
-import fr.gospeak.core.domain.{Group, SponsorPack, User}
+import fr.gospeak.core.domain.utils.OrgaReqCtx
+import fr.gospeak.core.domain.{Group, SponsorPack}
 import fr.gospeak.libs.scalautils.domain.Done
 
 trait SponsorPackRepo extends OrgaSponsorPackRepo with PublicSponsorPackRepo with SuggestSponsorPackRepo
 
 trait OrgaSponsorPackRepo {
-  def create(group: Group.Id, data: SponsorPack.Data, by: User.Id, now: Instant): IO[SponsorPack]
+  def create(data: SponsorPack.Data)(implicit ctx: OrgaReqCtx): IO[SponsorPack]
 
-  def edit(group: Group.Id, pack: SponsorPack.Slug)(data: SponsorPack.Data, by: User.Id, now: Instant): IO[Done]
+  def edit(pack: SponsorPack.Slug, data: SponsorPack.Data)(implicit ctx: OrgaReqCtx): IO[Done]
 
-  def disable(group: Group.Id, pack: SponsorPack.Slug)(by: User.Id, now: Instant): IO[Done]
+  def disable(pack: SponsorPack.Slug)(implicit ctx: OrgaReqCtx): IO[Done]
 
-  def enable(group: Group.Id, pack: SponsorPack.Slug)(by: User.Id, now: Instant): IO[Done]
+  def enable(pack: SponsorPack.Slug)(implicit ctx: OrgaReqCtx): IO[Done]
 
-  def find(group: Group.Id, pack: SponsorPack.Slug): IO[Option[SponsorPack]]
-
-  def list(ids: Seq[SponsorPack.Id]): IO[Seq[SponsorPack]]
+  def find(pack: SponsorPack.Slug)(implicit ctx: OrgaReqCtx): IO[Option[SponsorPack]]
 
   def listAll(group: Group.Id): IO[Seq[SponsorPack]]
+
+  def listAll(implicit ctx: OrgaReqCtx): IO[Seq[SponsorPack]]
 
   def listActives(group: Group.Id): IO[Seq[SponsorPack]]
 }

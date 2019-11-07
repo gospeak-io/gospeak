@@ -4,6 +4,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.ApplicationConf
+import fr.gospeak.core.domain.utils.OrgaReqCtx
 import fr.gospeak.core.domain.{Group, Partner, Sponsor, SponsorPack}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
@@ -12,7 +13,7 @@ import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.partners.routes.{PartnerCtrl => PartnerRoutes}
 import fr.gospeak.web.pages.orga.sponsors.SponsorCtrl._
-import fr.gospeak.web.utils.{HttpUtils, Mappings, SecuredReq, UICtrl}
+import fr.gospeak.web.utils._
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -24,57 +25,47 @@ class SponsorCtrl(cc: ControllerComponents,
                   sponsorRepo: OrgaSponsorRepo,
                   groupRepo: OrgaGroupRepo,
                   partnerRepo: OrgaPartnerRepo,
-                  venueRepo: OrgaVenueRepo) extends UICtrl(cc, silhouette, env) {
-  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      sponsorPacks <- OptionT.liftF(sponsorPackRepo.listAll(groupElt.id))
-      sponsors <- OptionT.liftF(sponsorRepo.listFull(groupElt.id, params))
-      b = listBreadcrumb(groupElt)
-    } yield Ok(html.list(groupElt, sponsorPacks, sponsors)(b))).value.map(_.getOrElse(groupNotFound(group)))
-  }
+                  venueRepo: OrgaVenueRepo) extends UICtrlOrga(cc, silhouette, env, groupRepo) {
+  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    for {
+      sponsorPacks <- sponsorPackRepo.listAll
+      sponsors <- sponsorRepo.listFull(params)
+      b = listBreadcrumb(ctx.group)
+    } yield Ok(html.list(ctx.group, sponsorPacks, sponsors)(b))
+  })
 
-  def createPack(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
-    createPackView(group, SponsorForms.createPack)
-  }
+  def createPack(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    createPackView(SponsorForms.createPack)
+  })
 
-  def doCreatePack(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doCreatePack(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     SponsorForms.createPack.bindFromRequest.fold(
-      formWithErrors => createPackView(group, formWithErrors),
-      data => (for {
-        groupElt <- OptionT(groupRepo.find(req.user.id, group))
-        _ <- OptionT.liftF(sponsorPackRepo.create(groupElt.id, data, req.user.id, req.now))
-      } yield Redirect(routes.SponsorCtrl.list(group))).value.map(_.getOrElse(groupNotFound(group)))
+      formWithErrors => createPackView(formWithErrors),
+      data => sponsorPackRepo.create(data).map(_ => Redirect(routes.SponsorCtrl.list(group)))
     )
+  })
+
+  private def createPackView(form: Form[SponsorPack.Data])(implicit req: SecuredReq[AnyContent], ctx: OrgaReqCtx): IO[Result] = {
+    val b = listBreadcrumb(ctx.group).add("New pack" -> routes.SponsorCtrl.createPack(ctx.group.slug))
+    IO.pure(Ok(html.createPack(ctx.group, form)(b)))
   }
 
-  private def createPackView(group: Group.Slug, form: Form[SponsorPack.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      b = listBreadcrumb(groupElt).add("New pack" -> routes.SponsorCtrl.createPack(group))
-    } yield Ok(html.createPack(groupElt, form)(b))).value.map(_.getOrElse(groupNotFound(group)))
-  }
+  def create(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    createView(pack, SponsorForms.create, partner)
+  })
 
-  def create(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug]): Action[AnyContent] = SecuredActionIO { implicit req =>
-    createView(group, pack, SponsorForms.create, partner)
-  }
-
-  def doCreate(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug]): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doCreate(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    val next = partner.map(p => PartnerRoutes.detail(group, p)).getOrElse(routes.SponsorCtrl.list(group))
     SponsorForms.create.bindFromRequest.fold(
-      formWithErrors => createView(group, pack, formWithErrors, partner),
-      data => (for {
-        groupElt <- OptionT(groupRepo.find(req.user.id, group))
-        _ <- OptionT.liftF(sponsorRepo.create(groupElt.id, data, req.user.id, req.now))
-        next = partner.map(p => PartnerRoutes.detail(group, p)).getOrElse(routes.SponsorCtrl.list(group))
-      } yield Redirect(next)).value.map(_.getOrElse(groupNotFound(group)))
+      formWithErrors => createView(pack, formWithErrors, partner),
+      data => sponsorRepo.create(data).map(_ => Redirect(next))
     )
-  }
+  })
 
-  private def createView(group: Group.Slug, pack: SponsorPack.Slug, form: Form[Sponsor.Data], partner: Option[Partner.Slug])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def createView(pack: SponsorPack.Slug, form: Form[Sponsor.Data], partner: Option[Partner.Slug])(implicit req: SecuredReq[AnyContent], ctx: OrgaReqCtx): IO[Result] = {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      packElt <- OptionT(sponsorPackRepo.find(groupElt.id, pack))
-      partnerElt <- partner.map(p => OptionT.liftF(partnerRepo.find(groupElt.id, p))).getOrElse(OptionT.liftF(IO.pure(None)))
+      packElt <- OptionT(sponsorPackRepo.find(pack))
+      partnerElt <- OptionT.liftF(partner.map(p => partnerRepo.find(p)).getOrElse(IO.pure(None)))
       filledForm = if (form.hasErrors) form else form.bind(Map(
         "pack" -> packElt.id.value,
         "price.amount" -> packElt.price.amount.toString,
@@ -82,75 +73,60 @@ class SponsorCtrl(cc: ControllerComponents,
         "start" -> Mappings.localDateFormatter.format(req.nowLD),
         "finish" -> Mappings.localDateFormatter.format(packElt.duration.unit.chrono.addTo(req.nowLD, packElt.duration.length))
       )).discardingErrors
-      b = listBreadcrumb(groupElt).add("New" -> routes.SponsorCtrl.create(group, packElt.slug))
-    } yield Ok(html.create(groupElt, packElt, filledForm, partnerElt)(b))).value.map(_.getOrElse(groupNotFound(group)))
+      b = listBreadcrumb(ctx.group).add("New" -> routes.SponsorCtrl.create(ctx.group.slug, packElt.slug))
+    } yield Ok(html.create(ctx.group, packElt, filledForm, partnerElt)(b))).value.map(_.getOrElse(packNotFound(ctx.group.slug, pack)))
   }
 
-  def detail(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      packElt <- OptionT(sponsorPackRepo.find(groupElt.id, pack))
-      b = breadcrumb(groupElt, packElt)
-    } yield Ok(html.detail(groupElt, packElt)(b))).value.map(_.getOrElse(packNotFound(group, pack)))
-  }
+  def detail(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    sponsorPackRepo.find(pack).map {
+      case Some(packElt) => Ok(html.detail(ctx.group, packElt)(breadcrumb(ctx.group, packElt)))
+      case None => packNotFound(group, pack)
+    }
+  })
 
-  def edit(group: Group.Slug, sponsor: Sponsor.Id, partner: Option[Partner.Slug]): Action[AnyContent] = SecuredActionIO { implicit req =>
-    updateView(group, sponsor, SponsorForms.create, partner)
-  }
+  def edit(group: Group.Slug, sponsor: Sponsor.Id, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    updateView(sponsor, SponsorForms.create, partner)
+  })
 
-  def doEdit(group: Group.Slug, sponsor: Sponsor.Id, partner: Option[Partner.Slug]): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doEdit(group: Group.Slug, sponsor: Sponsor.Id, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    val next = partner.map(p => PartnerRoutes.detail(group, p)).getOrElse(routes.SponsorCtrl.list(group))
     SponsorForms.create.bindFromRequest.fold(
-      formWithErrors => updateView(group, sponsor, formWithErrors, partner),
-      data => (for {
-        groupElt <- OptionT(groupRepo.find(req.user.id, group))
-        _ <- OptionT.liftF(sponsorRepo.edit(groupElt.id, sponsor)(data, req.user.id, req.now))
-        next = partner.map(p => PartnerRoutes.detail(group, p)).getOrElse(routes.SponsorCtrl.list(group))
-      } yield Redirect(next)).value.map(_.getOrElse(groupNotFound(group)))
+      formWithErrors => updateView(sponsor, formWithErrors, partner),
+      data => sponsorRepo.edit(sponsor, data).map(_ => Redirect(next))
     )
-  }
+  })
 
-  private def updateView(group: Group.Slug, sponsor: Sponsor.Id, form: Form[Sponsor.Data], partner: Option[Partner.Slug])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def updateView(sponsor: Sponsor.Id, form: Form[Sponsor.Data], partner: Option[Partner.Slug])(implicit req: SecuredReq[AnyContent], ctx: OrgaReqCtx): IO[Result] = {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      sponsorElt <- OptionT(sponsorRepo.find(groupElt.id, sponsor))
-      partnerElt <- OptionT(partnerRepo.find(groupElt.id, sponsorElt.partner))
-      b = listBreadcrumb(groupElt).add("Edit" -> routes.SponsorCtrl.edit(group, sponsor, partner))
+      sponsorElt <- OptionT(sponsorRepo.find(sponsor))
+      partnerElt <- OptionT(partnerRepo.find(sponsorElt.partner))
+      b = listBreadcrumb(ctx.group).add("Edit" -> routes.SponsorCtrl.edit(ctx.group.slug, sponsor, partner))
       filledForm = if (form.hasErrors) form else form.fill(sponsorElt.data)
-    } yield Ok(html.edit(groupElt, partnerElt, sponsorElt, filledForm, partner)(b))).value.map(_.getOrElse(sponsorNotFound(group, sponsor)))
+    } yield Ok(html.edit(ctx.group, partnerElt, sponsorElt, filledForm, partner)(b))).value.map(_.getOrElse(sponsorNotFound(ctx.group.slug, sponsor)))
   }
 
-  def disablePack(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def disablePack(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.SponsorCtrl.list(group).toString))
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      _ <- OptionT.liftF(sponsorPackRepo.disable(groupElt.id, pack)(req.user.id, req.now))
-    } yield next).value.map(_.getOrElse(next.flashing("error" -> s"Unable to disable sponsor pack ${pack.value} of group ${group.value}")))
-  }
+    sponsorPackRepo.disable(pack).map(_ => next)
+  })
 
-  def enablePack(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def enablePack(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.SponsorCtrl.list(group).toString))
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      _ <- OptionT.liftF(sponsorPackRepo.enable(groupElt.id, pack)(req.user.id, req.now))
-    } yield next).value.map(_.getOrElse(next.flashing("error" -> s"Unable to disable sponsor pack ${pack.value} of group ${group.value}")))
-  }
+    sponsorPackRepo.enable(pack).map(_ => next)
+  })
 
-  def paid(group: Group.Slug, sponsor: Sponsor.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def paid(group: Group.Slug, sponsor: Sponsor.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.SponsorCtrl.list(group).toString))
     (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      sponsorElt <- OptionT(sponsorRepo.find(groupElt.id, sponsor))
-      _ <- OptionT.liftF(sponsorRepo.edit(groupElt.id, sponsor)(sponsorElt.data.copy(paid = Some(req.nowLD)), req.user.id, req.now))
+      sponsorElt <- OptionT(sponsorRepo.find(sponsor))
+      _ <- OptionT.liftF(sponsorRepo.edit(sponsor, sponsorElt.data.copy(paid = Some(req.nowLD))))
     } yield next).value.map(_.getOrElse(next.flashing("error" -> s"Unable to mark sponsor ${sponsor.value} of group ${group.value} as paid :(")))
-  }
+  })
 
-  def remove(group: Group.Slug, sponsor: Sponsor.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def remove(group: Group.Slug, sponsor: Sponsor.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.SponsorCtrl.list(group).toString))
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      _ <- OptionT.liftF(sponsorRepo.remove(groupElt.id, sponsor))
-    } yield next).value.map(_.getOrElse(next.flashing("error" -> s"Unable to mark remove ${sponsor.value} of group ${group.value} :(")))
-  }
+    sponsorRepo.remove(sponsor).map(_ => next)
+  })
 }
 
 object SponsorCtrl {
