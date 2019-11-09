@@ -32,7 +32,7 @@ object CommentRepoSqlSpec {
   import RepoSpec._
 
   val table = "comments co"
-  val selectFields: String = mapFields("id, kind, answers, text, created_by, created_at", "co." + _)
+  val selectFields: String = mapFields("id, kind, answers, text, created_at, created_by", "co." + _)
   val fields: String = mapFields("event_id, proposal_id", "co." + _) + ", " + selectFields
   val orderBy = "ORDER BY co.created_at IS NULL, co.created_at"
 

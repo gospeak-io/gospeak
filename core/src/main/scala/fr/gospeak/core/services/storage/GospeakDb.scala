@@ -14,5 +14,6 @@ trait GospeakDb {
   val proposal: ProposalRepo
   val contact: ContactRepo
   val comment: CommentRepo
+  val externalCfp: ExternalCfpRepo
   val userRequest: UserRequestRepo
 }

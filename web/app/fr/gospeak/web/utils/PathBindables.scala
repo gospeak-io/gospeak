@@ -1,6 +1,5 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.core.domain
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.meetup.domain.MeetupGroup
@@ -72,6 +71,9 @@ object PathBindables {
 
   implicit def meetupGroupUrlNamePathBinder(implicit stringBinder: PathBindable[String]): PathBindable[MeetupGroup.Slug] =
     stringEitherPathBindable[MeetupGroup.Slug](MeetupGroup.Slug.from, _.value)
+
+  implicit def externalCfpPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[ExternalCfp.Id] =
+    stringEitherPathBindable[ExternalCfp.Id](ExternalCfp.Id.from, _.value)
 
   private def stringEitherPathBindable[A](from: String => Either[CustomException, A], to: A => String)(implicit pb: PathBindable[String]): PathBindable[A] =
     new PathBindable[A] {

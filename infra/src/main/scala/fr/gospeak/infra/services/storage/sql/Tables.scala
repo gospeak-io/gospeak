@@ -126,9 +126,16 @@ object Tables {
   val comments: Table = Table.from(
     name = "comments",
     prefix = "co",
-    fields = Seq("event_id", "proposal_id", "id", "kind", "answers", "text", "created_by", "created_at"),
+    fields = Seq("event_id", "proposal_id", "id", "kind", "answers", "text", "created_at", "created_by"),
     sort = Seq("created_at"),
     search = Seq("id", "kind", "answers", "text", "created_by")).get
 
-  val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, cfps, partners, contacts, venues, events, proposals, sponsorPacks, sponsors, requests, groupSettings, groupMembers, eventRsvps, comments)
+  val externalCfps: Table = Table.from(
+    name = "external_cfps",
+    prefix = "ec",
+    fields = Seq("id", "name", "logo", "description", "begin", "close", "url", "event_start", "event_finish", "event_url", "address", "address_lat", "address_lng", "address_locality", "address_country", "tickets_url", "videos_url", "twitter_account", "twitter_hashtag", "tags", "created_at", "created_by", "updated_at", "updated_by"),
+    sort = Seq("close", "name"),
+    search = Seq("id", "name", "description", "url", "event_url", "address", "twitter_account", "twitter_hashtag", "tags")).get
+
+  val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, cfps, partners, contacts, venues, events, proposals, sponsorPacks, sponsors, requests, groupSettings, groupMembers, eventRsvps, comments, externalCfps)
 }

@@ -1,7 +1,6 @@
 package fr.gospeak.web.pages.speaker.talks
 
 import fr.gospeak.core.domain.Talk
-import fr.gospeak.libs.scalautils.domain.EmailAddress
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.{Form, Mapping}
 import play.api.data.Forms._

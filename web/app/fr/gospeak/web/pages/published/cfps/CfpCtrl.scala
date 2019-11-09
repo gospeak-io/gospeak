@@ -4,8 +4,9 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
-import fr.gospeak.core.domain.{Cfp, Talk}
+import fr.gospeak.core.domain.{Cfp, ExternalCfp, Talk}
 import fr.gospeak.core.services.storage._
+import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -16,7 +17,7 @@ import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.pages.published.cfps.CfpCtrl._
 import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
-import fr.gospeak.web.utils.{UICtrl, UserAwareReq}
+import fr.gospeak.web.utils.{SecuredReq, UICtrl, UserAwareReq}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -29,27 +30,65 @@ class CfpCtrl(cc: ControllerComponents,
               talkRepo: SpeakerTalkRepo,
               proposalRepo: SpeakerProposalRepo,
               userRequestRepo: AuthUserRequestRepo,
+              externalCfpRepo: PublicExternalCfpRepo,
               authSrv: AuthSrv,
               emailSrv: EmailSrv,
-              mb: GospeakMessageBus) extends UICtrl(cc, silhouette) {
+              mb: GospeakMessageBus,
+              timeShape: TimeShape) extends UICtrl(cc, silhouette) {
+  def list(params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
+    externalCfpRepo.listOpen(req.now, params)
+      .map(cfps => Ok(html.list(cfps)(listBreadcrumb())))
+  }
+
   def gettingStarted(): Action[AnyContent] = UserAwareActionIO { implicit req =>
-    val b = gettingStartedBreadcrumb()
+    val b = listBreadcrumb().add("Getting Started" -> routes.CfpCtrl.gettingStarted)
     IO.pure(Ok(html.gettingStarted()(b)))
   }
 
-  def list(params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
-    val customParams = params.defaultOrderBy(cfpRepo.fields.close, cfpRepo.fields.name)
-    for {
-      cfps <- cfpRepo.listOpen(req.now, customParams)
-      b = listBreadcrumb()
-    } yield Ok(html.list(cfps)(b))
+  def add(): Action[AnyContent] = SecuredActionIO { implicit req =>
+    IO.pure(Ok(html.create(CfpForms.external(timeShape))(listBreadcrumb().add("Add" -> routes.CfpCtrl.add))))
+  }
+
+  def doAdd(): Action[AnyContent] = SecuredActionIO { implicit req =>
+    CfpForms.external(timeShape).bindFromRequest.fold(
+      formWithErrors => IO.pure(Ok(html.create(formWithErrors)(listBreadcrumb().add("Add" -> routes.CfpCtrl.add)))),
+      data => externalCfpRepo.create(data, req.user.id, req.now).map(cfp => Redirect(routes.CfpCtrl.detailExt(cfp.id)))
+    )
+  }
+
+  def detailExt(cfp: ExternalCfp.Id): Action[AnyContent] = UserAwareActionIO { implicit req =>
+    (for {
+      cfpElt <- OptionT(externalCfpRepo.find(cfp))
+      b = breadcrumb(cfpElt)
+    } yield Ok(html.detailExt(cfpElt)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
   }
 
   def detail(cfp: Cfp.Slug): Action[AnyContent] = UserAwareActionIO { implicit req =>
     (for {
       cfpElt <- OptionT(cfpRepo.find(cfp))
+      groupElt <- OptionT(groupRepo.find(cfpElt.group))
       b = breadcrumb(cfpElt)
-    } yield Ok(html.detail(cfpElt)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
+    } yield Ok(html.detail(groupElt, cfpElt)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
+  }
+
+  def edit(cfp: ExternalCfp.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
+    editView(cfp, CfpForms.external(timeShape))
+  }
+
+  def doEdit(cfp: ExternalCfp.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
+    CfpForms.external(timeShape).bindFromRequest.fold(
+      formWithErrors => editView(cfp, formWithErrors),
+      data => externalCfpRepo.edit(cfp)(data, req.user.id, req.now)
+        .map(_ => Redirect(routes.CfpCtrl.detailExt(cfp)).flashing("success" -> "CFP updated"))
+    )
+  }
+
+  private def editView(cfp: ExternalCfp.Id, form: Form[ExternalCfp.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+    (for {
+      cfpElt <- OptionT(externalCfpRepo.find(cfp))
+      b = breadcrumb(cfpElt).add("Edit" -> routes.CfpCtrl.edit(cfp))
+      filledForm = if (form.hasErrors) form else form.fill(cfpElt.data)
+    } yield Ok(html.edit(cfpElt, filledForm)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
   }
 
   def propose(cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
@@ -66,7 +105,6 @@ class CfpCtrl(cc: ControllerComponents,
           proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers, secured.user.id, req.now))
           groupElt <- OptionT(groupRepo.find(cfpElt.group))
           _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt)(secured))
-          b = listBreadcrumb() // replace
           msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
         } yield Redirect(ProposalCtrl.detail(talkElt.slug, cfp)).flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp)))
       }.getOrElse {
@@ -150,13 +188,13 @@ class CfpCtrl(cc: ControllerComponents,
 
 object CfpCtrl {
   def listBreadcrumb(): Breadcrumb =
-    HomeCtrl.breadcrumb().add("Cfps" -> routes.CfpCtrl.list())
+    HomeCtrl.breadcrumb().add("CFPs" -> routes.CfpCtrl.list())
 
   def breadcrumb(cfp: Cfp): Breadcrumb =
     listBreadcrumb().add(cfp.name.value -> routes.CfpCtrl.detail(cfp.slug))
 
-  def gettingStartedBreadcrumb(): Breadcrumb =
-    listBreadcrumb().add("Getting Started" -> routes.CfpCtrl.gettingStarted())
+  def breadcrumb(cfp: ExternalCfp): Breadcrumb =
+    listBreadcrumb().add(cfp.name.value -> routes.CfpCtrl.detailExt(cfp.id))
 
   def proposeTalkBreadcrumb(cfp: Cfp): Breadcrumb =
     breadcrumb(cfp).add("Proposing a talk" -> routes.CfpCtrl.propose(cfp.slug))

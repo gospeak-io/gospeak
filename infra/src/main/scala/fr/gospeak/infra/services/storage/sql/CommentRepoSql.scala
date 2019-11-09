@@ -38,12 +38,12 @@ object CommentRepoSql {
     .flatMap(_.dropField(_.proposal_id)).get
 
   private[sql] def insert(e: Event.Id, c: Comment): Insert[Comment] = {
-    val values = fr0"$e, ${Option.empty[Proposal.Id]}, ${c.id}, ${c.kind}, ${c.answers}, ${c.text}, ${c.createdBy}, ${c.createdAt}"
+    val values = fr0"$e, ${Option.empty[Proposal.Id]}, ${c.id}, ${c.kind}, ${c.answers}, ${c.text}, ${c.createdAt}, ${c.createdBy}"
     table.insert(c, _ => values)
   }
 
   private[sql] def insert(e: Proposal.Id, c: Comment): Insert[Comment] = {
-    val values = fr0"${Option.empty[Event.Id]}, $e, ${c.id}, ${c.kind}, ${c.answers}, ${c.text}, ${c.createdBy}, ${c.createdAt}"
+    val values = fr0"${Option.empty[Event.Id]}, $e, ${c.id}, ${c.kind}, ${c.answers}, ${c.text}, ${c.createdAt}, ${c.createdBy}"
     table.insert(c, _ => values)
   }
 

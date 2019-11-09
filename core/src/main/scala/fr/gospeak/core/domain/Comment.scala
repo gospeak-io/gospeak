@@ -8,14 +8,14 @@ case class Comment(id: Comment.Id,
                    kind: Comment.Kind,
                    answers: Option[Comment.Id],
                    text: String,
-                   createdBy: User.Id,
-                   createdAt: Instant) {
+                   createdAt: Instant,
+                   createdBy: User.Id) {
   def data: Comment.Data = Comment.Data(this)
 }
 
 object Comment {
   def create(d: Data, kind: Kind, by: User.Id, now: Instant): Comment =
-    Comment(Id.generate(), kind, d.answers, d.text, by, now)
+    Comment(Id.generate(), kind, d.answers, d.text, now, by)
 
   final class Id private(value: String) extends DataClass(value) with IId
 

@@ -81,6 +81,9 @@ abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv
   protected def publicCfpNotFound(cfp: Cfp.Slug): Result =
     Redirect(pages.published.cfps.routes.CfpCtrl.list()).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")
 
+  protected def publicCfpNotFound(cfp: ExternalCfp.Id): Result =
+    Redirect(pages.published.cfps.routes.CfpCtrl.list()).flashing("warning" -> s"Unable to find CFP")
+
   protected def publicGroupNotFound(group: Group.Slug): Result =
     Redirect(pages.published.groups.routes.GroupCtrl.list()).flashing("warning" -> s"Unable to find group with slug '${group.value}'")
 

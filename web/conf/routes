@@ -3,6 +3,11 @@ GET         /why                                                                
 
 GET         /cfps                                                                          fr.gospeak.web.pages.published.cfps.CfpCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /cfps/getting-started                                                          fr.gospeak.web.pages.published.cfps.CfpCtrl.gettingStarted()
+GET         /cfps/add                                                                      fr.gospeak.web.pages.published.cfps.CfpCtrl.add()
+POST        /cfps/add                                                                      fr.gospeak.web.pages.published.cfps.CfpCtrl.doAdd()
+GET         /cfps/ext/:cfp                                                                 fr.gospeak.web.pages.published.cfps.CfpCtrl.detailExt(cfp: ExternalCfp.Id)
+GET         /cfps/ext/:cfp/edit                                                            fr.gospeak.web.pages.published.cfps.CfpCtrl.edit(cfp: ExternalCfp.Id)
+POST        /cfps/ext/:cfp/edit                                                            fr.gospeak.web.pages.published.cfps.CfpCtrl.doEdit(cfp: ExternalCfp.Id)
 GET         /cfps/:cfp                                                                     fr.gospeak.web.pages.published.cfps.CfpCtrl.detail(cfp: Cfp.Slug)
 GET         /cfps/:cfp/propose                                                             fr.gospeak.web.pages.published.cfps.CfpCtrl.propose(cfp: Cfp.Slug, params: Page.Params ?= Page.Params.defaults)
 POST        /cfps/:cfp/propose                                                             fr.gospeak.web.pages.published.cfps.CfpCtrl.doPropose(cfp: Cfp.Slug, params: Page.Params ?= Page.Params.defaults)

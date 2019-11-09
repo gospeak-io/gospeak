@@ -1,9 +1,13 @@
 package fr.gospeak.web.pages.published.cfps
 
-import fr.gospeak.core.domain.{Proposal, Talk}
+import java.time.LocalDateTime
+
+import fr.gospeak.core.domain.{ExternalCfp, Proposal, Talk}
+import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.web.auth.AuthForms
 import fr.gospeak.web.auth.AuthForms.{LoginData, SignupData}
 import fr.gospeak.web.pages.speaker.talks.TalkForms
+import fr.gospeak.web.utils.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
 
@@ -36,4 +40,24 @@ object CfpForms {
     "talk" -> TalkForms.talkMappings,
     "user" -> AuthForms.loginMapping
   )(ProposalLoginData.apply)(ProposalLoginData.unapply))
+
+  def external(timeShape: TimeShape): Form[ExternalCfp.Data] = Form(mapping(
+    "name" -> externalCfpName,
+    "logo" -> optional(logo),
+    "description" -> markdown,
+    "begin" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),
+    "close" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),
+    "url" -> url,
+    "event" -> mapping(
+      "start" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),
+      "finish" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),
+      "url" -> optional(url),
+      "address" -> optional(gMapPlace(timeShape)),
+      "tickets" -> optional(url),
+      "videos" -> optional(url),
+      "twitterAccount" -> optional(twitterAccount),
+      "twitterHashtag" -> optional(twitterHashtag)
+    )(ExternalCfp.Event.apply)(ExternalCfp.Event.unapply),
+    "tags" -> tags
+  )(ExternalCfp.Data.apply)(ExternalCfp.Data.unapply))
 }

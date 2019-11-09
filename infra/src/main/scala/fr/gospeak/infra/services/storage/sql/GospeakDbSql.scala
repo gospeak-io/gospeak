@@ -44,6 +44,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
   override val proposal = new ProposalRepoSql(xa)
   override val contact = new ContactRepoSql(xa)
   override val comment = new CommentRepoSql(xa)
+  override val externalCfp = new ExternalCfpRepoSql(xa)
   override val userRequest = new UserRequestRepoSql(group, talk, proposal, xa)
 
   def insertMockData(conf: GospeakConf): IO[Done] = {
@@ -63,8 +64,8 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       User(User.Id.generate(), User.Slug.from(slug).get, firstName, lastName, emailAddr, Some(now), avatar, profile, now, now)
     }
 
-    def group(slug: String, name: String, tags: Seq[String], by: User, owners: Seq[User] = Seq(), email: Option[String] = None): Group =
-      Group(Group.Id.generate(), Group.Slug.from(slug).get, Group.Name(name), email.map(EmailAddress.from(_).get), description = Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), None, owners = NonEmptyList.of(by.id) ++ owners.map(_.id).toList, tags = tags.map(Tag(_)), info = Info(by.id, now))
+    def group(slug: String, name: String, tags: Seq[String], by: User, location: Option[GMapPlace] = None, owners: Seq[User] = Seq(), email: Option[String] = None): Group =
+      Group(Group.Id.generate(), Group.Slug.from(slug).get, Group.Name(name), email.map(EmailAddress.from(_).get), description = Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), location, owners = NonEmptyList.of(by.id) ++ owners.map(_.id).toList, tags = tags.map(Tag(_)), info = Info(by.id, now))
 
     def cfp(group: Group, slug: String, name: String, start: Option[String], end: Option[String], description: String, tags: Seq[String], by: User): Cfp =
       Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).get, Cfp.Name(name), start.map(d => LocalDateTime.parse(d + "T00:00:00")), end.map(d => LocalDateTime.parse(d + "T00:00:00")), Markdown(description), tags.map(Tag(_)), Info(by.id, now))
@@ -97,7 +98,59 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
 
     def rsvp(event: Event, user: User, answer: Event.Rsvp.Answer = Event.Rsvp.Answer.Yes): Event.Rsvp = Event.Rsvp(event.id, answer, now, user)
 
+    def cfpExt(name: String, url: String, logo: Option[String] = None, begin: Option[String] = None, close: Option[String] = None, start: Option[String] = None, finish: Option[String] = None, eventUrl: Option[String] = None, address: Option[GMapPlace] = None, ticketsUrl: Option[String] = None, videosUrl: Option[String] = None, twitterAccount: Option[String] = None, twitterHashtag: Option[String] = None, tags: Seq[String] = Seq(), description: String = "", by: User): ExternalCfp =
+      ExternalCfp(ExternalCfp.Id.generate(), ExternalCfp.Name(name), logo.map(Url.from(_).get).map(Logo), Markdown(description), begin.map(d => LocalDateTime.parse(d + "T00:00:00")), close.map(d => LocalDateTime.parse(d + "T00:00:00")), Url.from(url).get, ExternalCfp.Event(start.map(d => LocalDateTime.parse(d + "T00:00:00")), finish.map(d => LocalDateTime.parse(d + "T00:00:00")), eventUrl.map(Url.from(_).get), address, ticketsUrl.map(Url.from(_).get), videosUrl.map(Url.from(_).get), twitterAccount.map(a => Url.from("https://twitter.com/" + a).get).map(TwitterAccount), twitterHashtag.map(TwitterHashtag.from(_).get)), tags.map(Tag(_)), Info(by.id, now))
+
     val groupDefaultSettings = conf.defaultGroupSettings
+
+    val parisPlace = GMapPlace(
+      id = "ChIJD7fiBh9u5kcRYJSMaMOCCwQ",
+      name = "Paris",
+      streetNo = None,
+      street = None,
+      postalCode = None,
+      locality = Some("Paris"),
+      country = "France",
+      formatted = "Paris, France",
+      input = "Paris, France",
+      geo = Geo(48.85661400000001, 2.3522219000000177),
+      url = "https://maps.google.com/?q=Paris,+France&ftid=0x47e66e1f06e2b70f:0x40b82c3688c9460",
+      website = Some("http://www.paris.fr/"),
+      phone = None,
+      utcOffset = 60,
+      timezone = Constants.defaultZoneId)
+    val zeeneaPlace = GMapPlace(
+      id = "ChIJ0wnrwMdv5kcRuOvv_dXYoy4",
+      name = "Zeenea Data Catalog",
+      streetNo = Some("48"),
+      street = Some("Rue de Ponthieu"),
+      postalCode = Some("75008"),
+      locality = Some("Paris"),
+      country = "France",
+      formatted = "48 Rue de Ponthieu, 75008 Paris, France",
+      input = "Zeenea Data Catalog, Rue de Ponthieu, Paris, France",
+      geo = Geo(48.8716827, 2.3070390000000316),
+      url = "https://maps.google.com/?cid=3360768160548514744",
+      website = Some("https://www.zeenea.com/"),
+      phone = None,
+      utcOffset = 60,
+      timezone = Constants.defaultZoneId)
+    val palaisDesCongres = GMapPlace(
+      id = "ChIJKW6JQItv5kcRbVSjqnRf9jA",
+      name = "Palais Des Congrès",
+      streetNo = None,
+      street = None,
+      postalCode = Some("75017"),
+      locality = Some("Paris"),
+      country = "France",
+      formatted = "75017 Paris, France",
+      input = "Palais Des Congrès, Paris, France",
+      geo = Geo(48.8786842, 2.2831416000000218),
+      url = "https://maps.google.com/?cid=3528112312775038061",
+      website = None,
+      phone = None,
+      utcOffset = 60,
+      timezone = Constants.defaultZoneId)
 
     val userDemoProfil = User.Profile(User.Profile.Status.Public, Some(Markdown("Entrepreneur, functional programmer, OSS contributor, speaker, author.\nWork hard, stay positive, and live fearlessly.")),
       Some("Zeenea"), Some("Paris"), Some(Url.from("https://twitter.com/HumanTalks").get), Some(Url.from("https://www.linkedin.com/in/loicknuchel").get), None, Some(Url.from("https://humantalks.com").get))
@@ -128,7 +181,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val talk7 = talk(userSpeaker, "big-talk", "Big Talk")
     val talks = Seq(talk1, talk2, talk3, talk4, talk5, talk6, talk7)
 
-    val humanTalks = group("ht-paris", "HumanTalks Paris", Seq("tech"), userDemo, Seq(userOrga), Some("paris@humantalks.com"))
+    val humanTalks = group("ht-paris", "HumanTalks Paris", Seq("tech"), userDemo, Some(parisPlace), Seq(userOrga), Some("paris@humantalks.com"))
     val parisJs = group("paris-js", "Paris.Js", Seq("JavaScript"), userOrga)
     val dataGov = group("data-gov", "Data governance", Seq(), userDemo)
     val bigGroup = group("big-group", "Big Group", Seq("BigData"), userOrga)
@@ -170,22 +223,6 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val criteoClaude = contact(criteo, "claude@criteo.com", "Claude", "Bidule", userDemo)
     val contacts = Seq(zeeneaNina, zeeneaJean, criteoClaude)
 
-    val zeeneaPlace = GMapPlace(
-      id = "ChIJ0wnrwMdv5kcRuOvv_dXYoy4",
-      name = "Zeenea Data Catalog",
-      streetNo = Some("48"),
-      street = Some("Rue de Ponthieu"),
-      postalCode = Some("75008"),
-      locality = Some("Paris"),
-      country = "France",
-      formatted = "48 Rue de Ponthieu, 75008 Paris, France",
-      input = "Zeenea Data Catalog, Rue de Ponthieu, Paris, France",
-      geo = Geo(48.8716827, 2.3070390000000316),
-      url = "https://maps.google.com/?cid=3360768160548514744",
-      website = Some("https://www.zeenea.com/"),
-      phone = None,
-      utcOffset = 120,
-      timezone = Constants.defaultZoneId)
     val venue1 = venue(zeenea, zeeneaPlace, userDemo, contact = Some(zeeneaNina), roomSize = Some(80))
     val venues = Seq(venue1)
 
@@ -218,6 +255,9 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
 
     val eventRsvps = Seq(rsvp(event4, userDemo))
 
+    val devoxx2020 = cfpExt("Devoxx France 2020", "https://cfp.devoxx.fr", Some("https://cfp.devoxx.fr/favicon.ico"), Some("2019-11-01"), Some("2020-01-16"), Some("2020-04-15"), Some("2020-04-17"), Some("https://devoxx.fr"), Some(palaisDesCongres), Some("https://www.devoxx.fr/tickets/"), Some("https://www.youtube.com/channel/UCsVPQfo5RZErDL41LoWvk0A"), Some("DevoxxFR"), Some("DevoxxFR"), Seq("Tech", "Java"), "Initialement très orienté Java, Devoxx France est maintenant une conférence généraliste", userDemo)
+    val cfpExts = Seq(devoxx2020)
+
     val generated = (1 to 25).map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
@@ -247,6 +287,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       _ <- groupSettings.set(humanTalks.id, humanTalksSettings, userDemo.id, now)
       _ <- groupMembers.map(GroupRepoSql.insertMember(_).run(xa)).sequence
       _ <- eventRsvps.map(EventRepoSql.insertRsvp(_).run(xa)).sequence
+      _ <- cfpExts.map(ExternalCfpRepoSql.insert(_).run(xa)).sequence
     } yield Done
   }
 

@@ -174,9 +174,10 @@ declare const autosize;
 
     function fetchAndSetOptions($select, url): void {
         $.getJSON(url, res => {
-            const values = ($select.attr('value') || '').split(',').filter(v => v.length > 0);
+            const values = ($select.attr('value') || '').split(',').filter(v => v.length > 0); // currently selected values
+            const options = res.concat(values.map(v => ({id: v, text: v}))).filter((v, i) => options.indexOf(v) === i); // add values not in suggestions
             $select.find('option[value]').remove(); // remove non empty existing options before adding new ones
-            res.map(item => {
+            options.map(item => {
                 if ($select.find('option[value="' + item.id + '"]').length === 0) { // do not add item if it already exists
                     if (values.indexOf(item.id) > -1) {
                         $select.append('<option value="' + item.id + '" selected>' + item.text + '</option>');
@@ -417,6 +418,7 @@ declare const Bloodhound;
     $('[data-omni-search]').each(function () {
         const $search = $(this);
         const baseUrl = $search.attr('data-omni-search');
+
         function datasetBuilder(url, title) {
             return {
                 name: url,

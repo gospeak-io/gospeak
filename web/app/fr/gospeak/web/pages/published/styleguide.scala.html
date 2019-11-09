@@ -1,4 +1,4 @@
-@import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, Talk, User}
+@import fr.gospeak.core.domain.{Cfp, CommonCfp, Event, Group, Proposal, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 @import fr.gospeak.web.pages.orga.partials.{html => orga}
 @import fr.gospeak.web.pages.partials.container.{html => container}
@@ -182,7 +182,7 @@
                 @example(s"$name") { _ => @published.groupItem(group) }
             }
             @component("cfpItem", "@cfpItem(cfp)") { name =>
-                @example(s"$name") { _ => @published.cfpItem(cfp, secured.now) }
+                @example(s"$name") { _ => @published.cfpItem(CommonCfp(cfp), secured.now) }
             }
             @component("speakerItem", "@speakerItem(speaker)") { name =>
                 @example(s"$name") { _ => @published.speakerItem(user) }
