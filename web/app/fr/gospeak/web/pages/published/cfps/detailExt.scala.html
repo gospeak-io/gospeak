@@ -25,7 +25,7 @@
         <b>Conference</b>:<br>
         @cfp.event.start.map { s => from @Formats.date(s.toLocalDate) @cfp.event.finish.map { f => to @Formats.date(f.toLocalDate)} }<br>
 
-        @cfp.event.address.map { a => <a href="@a.url" target="_blank"><i class="fas fa-map-marked-alt"></i></a> @a.value<br> }
+        @cfp.event.location.map { a => <a href="@a.url" target="_blank"><i class="fas fa-map-marked-alt"></i></a> @a.value<br> }
 
         @cfp.event.tickets.map { t => <a href="@t" class="badge badge-primary" target="_blank">tickets</a> }
         @cfp.event.videos.map { v => <a href="@v" class="badge badge-primary" target="_blank">videos</a> }

@@ -10,6 +10,7 @@
         @Utils.requiredAttr(field, args)
         @Utils.autofocusAttr(args)
         @Utils.multipleAttr()
+        @Utils.placeholderAttr(args)
         @Utils.otherAttrs(args)>
         @values.map { value => <option value="@value" selected="selected">@value</option> }
     </select>

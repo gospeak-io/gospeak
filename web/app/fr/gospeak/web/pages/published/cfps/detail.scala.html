@@ -2,6 +2,7 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
@@ -9,7 +10,7 @@
 @(group: Group, cfp: Cfp)(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(cfp.name.value + " - Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
-        <span>@cfp.name.value</span>
+        <span>@cfp.name.value <span class="xx-small">by <a href="@GroupCtrl.detail(group.slug)">@group.name.value</a></span></span>
         <a class="btn btn-primary" href="@CfpCtrl.propose(cfp.slug)">Propose a talk</a>
     </h1>
     <p>
@@ -18,7 +19,7 @@
         @cfp.close.map { c => closes: @Formats.date(c.toLocalDate) }
     </p>
     <p>
-        @group.location.map { a => <a href="@a.url" target="_blank"><i class="fas fa-map-marked-alt"></i></a> @a.value<br> }
+        @group.location.map { l => <a href="@l.url" target="_blank"><i class="fas fa-map-marked-alt"></i></a> @l.value<br> }
     </p>
     <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
 }()

@@ -133,9 +133,9 @@ object Tables {
   val externalCfps: Table = Table.from(
     name = "external_cfps",
     prefix = "ec",
-    fields = Seq("id", "name", "logo", "description", "begin", "close", "url", "event_start", "event_finish", "event_url", "address", "address_lat", "address_lng", "address_locality", "address_country", "tickets_url", "videos_url", "twitter_account", "twitter_hashtag", "tags", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "name", "logo", "description", "begin", "close", "url", "event_start", "event_finish", "event_url", "location", "location_lat", "location_lng", "location_locality", "location_country", "tickets_url", "videos_url", "twitter_account", "twitter_hashtag", "tags", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("close", "name"),
-    search = Seq("id", "name", "description", "url", "event_url", "address", "twitter_account", "twitter_hashtag", "tags")).get
+    search = Seq("id", "name", "description", "url", "event_url", "location", "twitter_account", "twitter_hashtag", "tags")).get
 
   val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, cfps, partners, contacts, venues, events, proposals, sponsorPacks, sponsors, requests, groupSettings, groupMembers, eventRsvps, comments, externalCfps)
 }

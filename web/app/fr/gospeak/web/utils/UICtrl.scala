@@ -6,6 +6,7 @@ import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.pages
+import org.h2.jdbc.JdbcSQLSyntaxErrorException
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 
@@ -14,20 +15,21 @@ import scala.util.control.NonFatal
 abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv]) extends AbstractController(cc) with I18nSupport {
   protected def UserAwareActionIO(block: UserAwareReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.UserAwareAction.async { r =>
     val req = UserAwareReq[AnyContent](r, messagesApi.preferred(r.request))
-    block(req).recover {
-      case NonFatal(e) =>
-        val url = HttpUtils.getReferer(req).getOrElse(fr.gospeak.web.pages.published.routes.HomeCtrl.index().toString)
-        Redirect(url).flashing("error" -> s"Unexpected error: ${e.getMessage}")
-    }.unsafeToFuture()
+    recoverFailedAction(block(req))(r.request).unsafeToFuture()
   }
 
   protected def SecuredActionIO(block: SecuredReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.SecuredAction.async { r =>
     val req = SecuredReq[AnyContent](r, messagesApi.preferred(r.request))
-    block(req).recover {
-      case NonFatal(e) =>
-        val url = HttpUtils.getReferer(req).getOrElse(fr.gospeak.web.pages.published.routes.HomeCtrl.index().toString)
-        Redirect(url).flashing("error" -> s"Unexpected error: ${e.getMessage}")
-    }.unsafeToFuture()
+    recoverFailedAction(block(req))(r.request).unsafeToFuture()
+  }
+
+  private def recoverFailedAction(result: IO[Result])(implicit req: Request[AnyContent]): IO[Result] = {
+    val back = HttpUtils.getReferer(req.headers).getOrElse(fr.gospeak.web.pages.published.routes.HomeCtrl.index().toString)
+    // FIXME better error handling (send email or notif?)
+    result.recover {
+      case _: JdbcSQLSyntaxErrorException => Redirect(back).flashing("error" -> s"Unexpected SQL error")
+      case NonFatal(e) => Redirect(back).flashing("error" -> s"Unexpected error: ${e.getMessage} (${e.getClass.getSimpleName})")
+    }
   }
 
   // orga redirects

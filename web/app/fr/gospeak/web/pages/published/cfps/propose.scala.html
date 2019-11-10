@@ -16,7 +16,7 @@
 @talkItem(talk: Talk) = {
     <a href="@ProposalCtrl.create(talk.slug, cfp.slug)" class="list-group-item list-group-item-action">
         <h5 class="mb-0">@talk.title.value</h5>
-        <span>@talkStatus(talk.status) @duration(talk.duration) @slidesIcon(talk.slides) @videoIcon(talk.video)</span>
+        <span>@talkStatus(talk.status) @duration(talk.duration)</span>
     </a>
 }
 @container(cfp.name.value + " - Talk proposal - Gospeak", b)() {

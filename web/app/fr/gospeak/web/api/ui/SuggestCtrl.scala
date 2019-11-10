@@ -52,6 +52,7 @@ class SuggestCtrl(cc: ControllerComponents,
                   contactRepo: SuggestContactRepo,
                   venueRepo: SuggestVenueRepo,
                   sponsorPackRepo: SuggestSponsorPackRepo,
+                  externalCfpRepo: SuggestExternalCfpRepo,
                   templateSrv: TemplateSrv,
                   slackSrv: SlackSrv) extends ApiCtrl(cc) {
   private def SecuredActionIO(block: SecuredReq[AnyContent] => IO[Result]): Action[AnyContent] = SecuredActionIO(parse.anyContent)(block)
@@ -69,7 +70,8 @@ class SuggestCtrl(cc: ControllerComponents,
       eTags <- eventRepo.listTags()
       tTags <- talkRepo.listTags()
       pTags <- proposalRepo.listTags()
-      suggestItems = (gTags ++ cTags ++ eTags ++ tTags ++ pTags).distinct.map(tag => SuggestedItem(tag.value, tag.value))
+      ecTags <- externalCfpRepo.listTags()
+      suggestItems = (gTags ++ cTags ++ eTags ++ tTags ++ pTags ++ ecTags).distinct.map(tag => SuggestedItem(tag.value, tag.value))
     } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))
   }
 

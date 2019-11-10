@@ -31,7 +31,7 @@ object ExternalCfp {
   final case class Event(start: Option[LocalDateTime],
                          finish: Option[LocalDateTime],
                          url: Option[Url],
-                         address: Option[GMapPlace],
+                         location: Option[GMapPlace],
                          tickets: Option[Url],
                          videos: Option[Url],
                          twitterAccount: Option[TwitterAccount],

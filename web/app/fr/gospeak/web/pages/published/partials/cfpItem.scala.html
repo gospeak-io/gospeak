@@ -25,5 +25,6 @@
         }
     </div>
     @tags(cfp.tags)
+    @cfp.location.map { l => @l.formatted }
     @* TODO event location, event date (if available), isBeginnerFriendly *@
 </a>
