@@ -3,6 +3,7 @@ package fr.gospeak.web.pages.orga.cfps.proposals
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
@@ -22,6 +23,7 @@ import scala.util.control.NonFatal
 
 class ProposalCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
+                   env: ApplicationConf.Env,
                    userRepo: OrgaUserRepo,
                    userRequestRepo: OrgaUserRequestRepo,
                    groupRepo: OrgaGroupRepo,
@@ -29,7 +31,7 @@ class ProposalCtrl(cc: ControllerComponents,
                    eventRepo: OrgaEventRepo,
                    proposalRepo: OrgaProposalRepo,
                    commentRepo: OrgaCommentRepo,
-                   emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
+                   emailSrv: EmailSrv) extends UICtrl(cc, silhouette, env) {
   def list(group: Group.Slug, cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))

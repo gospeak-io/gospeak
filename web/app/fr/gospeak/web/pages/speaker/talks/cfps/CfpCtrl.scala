@@ -2,6 +2,7 @@ package fr.gospeak.web.pages.speaker.talks.cfps
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Talk, User}
 import fr.gospeak.core.services.storage.{SpeakerCfpRepo, SpeakerProposalRepo, SpeakerTalkRepo}
 import fr.gospeak.libs.scalautils.domain.Page
@@ -14,9 +15,10 @@ import play.api.mvc._
 
 class CfpCtrl(cc: ControllerComponents,
               silhouette: Silhouette[CookieEnv],
+              env: ApplicationConf.Env,
               cfpRepo: SpeakerCfpRepo,
               talkRepo: SpeakerTalkRepo,
-              proposalRepo: SpeakerProposalRepo) extends UICtrl(cc, silhouette) {
+              proposalRepo: SpeakerProposalRepo) extends UICtrl(cc, silhouette, env) {
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(req.user.id, talk))

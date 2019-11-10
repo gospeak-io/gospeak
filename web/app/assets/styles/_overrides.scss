@@ -1,0 +1,92 @@
+/* Bootstrap overrides/extensions */
+
+.text-capitalize {
+  text-transform: none !important;
+}
+
+.text-capitalize::first-letter {
+  text-transform: uppercase;
+}
+
+.breadcrumb-container {
+  background-color: #e9ecef;
+}
+
+a.card {
+  color: inherit;
+}
+
+a.card:hover {
+  text-decoration: inherit;
+}
+
+.card-header .btn-sm,
+.card-header .input-group-sm {
+  margin-top: -3px;
+  margin-bottom: -4px;
+}
+
+.card-body p:last-child,
+.card-body h5:last-child,
+.card-body .markdown:last-child,
+.card-body .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.list-group-item ul,
+.list-group-item ol {
+  margin-bottom: 0;
+}
+
+.list-group-item.inactive a {
+  color: #6c757d;
+}
+
+.is-invalid .invalid-feedback,
+.form-row.is-invalid ~ .invalid-feedback {
+  display: block;
+}
+
+.pagination {
+  margin-bottom: 0;
+}
+
+.navbar-nav .nav-item i.fas {
+  font-size: 1.3em;
+  vertical-align: middle;
+}
+
+.btn-xs {
+  padding: 0.15rem 0.4rem;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  border-radius: 0.2rem;
+}
+
+.select2-container--bootstrap .select2-selection--single {
+  height: 38px;
+  padding: 8px 24px 8px 12px;
+}
+
+.input-group > .input-group-prepend ~ .hideShowPassword-wrapper > .form-control {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.popover {
+  max-width: 600px;
+}
+
+.tt-header {
+  padding: 3px 10px;
+}
+
+span.twitter-typeahead .tt-suggestion.tt-cursor,
+span.twitter-typeahead .tt-suggestion.tt-cursor:hover {
+  color: inherit;
+  background-color: #f5f5f5;
+}
+
+[data-toggle="collapse"] {
+  cursor: pointer;
+}

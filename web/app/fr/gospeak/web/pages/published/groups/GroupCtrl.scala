@@ -3,6 +3,7 @@ package fr.gospeak.web.pages.published.groups
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Comment, Event, Group, Proposal}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
@@ -21,6 +22,7 @@ import scala.util.control.NonFatal
 
 class GroupCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
+                env: ApplicationConf.Env,
                 userRepo: PublicUserRepo,
                 groupRepo: PublicGroupRepo,
                 cfpRepo: PublicCfpRepo,
@@ -29,7 +31,7 @@ class GroupCtrl(cc: ControllerComponents,
                 sponsorRepo: PublicSponsorRepo,
                 sponsorPackRepo: PublicSponsorPackRepo,
                 commentRepo: PublicCommentRepo,
-                emailSrv: EmailSrv) extends UICtrl(cc, silhouette) {
+                emailSrv: EmailSrv) extends UICtrl(cc, silhouette, env) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
     for {
       groups <- groupRepo.list(params)

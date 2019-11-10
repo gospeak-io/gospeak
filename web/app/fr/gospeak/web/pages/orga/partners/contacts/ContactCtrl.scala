@@ -3,6 +3,7 @@ package fr.gospeak.web.pages.orga.partners.contacts
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Contact, Group, Partner}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.Extensions._
@@ -23,13 +24,14 @@ import scala.util.control.NonFatal
 
 class ContactCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
+                  env: ApplicationConf.Env,
                   contactRepo: ContactRepo,
                   userRepo: OrgaUserRepo,
                   groupRepo: OrgaGroupRepo,
                   partnerRepo: OrgaPartnerRepo,
                   venueRepo: OrgaVenueRepo,
                   sponsorRepo: OrgaSponsorRepo
-                 ) extends UICtrl(cc, silhouette) {
+                 ) extends UICtrl(cc, silhouette, env) {
 
   private val createForm: Form[Contact.Data] = Form(mapping(
     "partner" -> partnerId,

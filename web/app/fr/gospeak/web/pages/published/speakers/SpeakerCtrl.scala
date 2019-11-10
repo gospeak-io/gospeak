@@ -2,6 +2,7 @@ package fr.gospeak.web.pages.published.speakers
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Talk, User}
 import fr.gospeak.core.services.storage.{PublicGroupRepo, PublicProposalRepo, PublicTalkRepo, PublicUserRepo}
 import fr.gospeak.libs.scalautils.domain.Page
@@ -14,10 +15,11 @@ import play.api.mvc._
 
 class SpeakerCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
+                  env: ApplicationConf.Env,
                   userRepo: PublicUserRepo,
                   talkRepo: PublicTalkRepo,
                   proposalRepo: PublicProposalRepo,
-                  groupRepo: PublicGroupRepo) extends UICtrl(cc, silhouette) {
+                  groupRepo: PublicGroupRepo) extends UICtrl(cc, silhouette, env) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
     (for {
       speakers <- userRepo.listPublic(params)

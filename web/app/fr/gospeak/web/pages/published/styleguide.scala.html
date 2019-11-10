@@ -31,7 +31,7 @@
         <div class="col-10">@display(label)</div>
     </div>
 }
-@container.main("Gospeak styleguide", Html(
+@container.main("Gospeak styleguide", "user.css", Html(
     """<style>
       |.section {
       |  padding-top: 56px;
@@ -42,7 +42,7 @@
     """<script>
       |  $('body').scrollspy({ target: '#menu' })
       |</script>
-    """.stripMargin)) {
+    """.stripMargin), secured.env) {
     <nav id="menu" class="navbar sticky-top navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="#">Gospeak styleguide</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">

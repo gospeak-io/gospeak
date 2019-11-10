@@ -4,6 +4,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Cfp, ExternalCfp, Talk}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.libs.timeshape.TimeShape
@@ -25,6 +26,7 @@ import scala.util.control.NonFatal
 
 class CfpCtrl(cc: ControllerComponents,
               silhouette: Silhouette[CookieEnv],
+              env: ApplicationConf.Env,
               groupRepo: PublicGroupRepo,
               cfpRepo: PublicCfpRepo,
               talkRepo: SpeakerTalkRepo,
@@ -34,7 +36,7 @@ class CfpCtrl(cc: ControllerComponents,
               authSrv: AuthSrv,
               emailSrv: EmailSrv,
               mb: GospeakMessageBus,
-              timeShape: TimeShape) extends UICtrl(cc, silhouette) {
+              timeShape: TimeShape) extends UICtrl(cc, silhouette, env) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
     externalCfpRepo.listOpen(req.now, params)
       .map(cfps => Ok(html.list(cfps)(listBreadcrumb())))

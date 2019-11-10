@@ -17,7 +17,7 @@
 @import fr.gospeak.web.utils.SecuredReq
 
 @(title: String, group: Group, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: SecuredReq[AnyContent])
-@main(title, style, script) {
+@main(title, "orga.css", style, script, req.env) {
     <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
         <div class="container">
             <a class="navbar-brand" href="@GroupCtrl.detail(group.slug)">@group.name.value</a>

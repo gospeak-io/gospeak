@@ -2,6 +2,7 @@ package fr.gospeak.web.pages.orga.proposals
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
@@ -14,11 +15,12 @@ import play.api.mvc._
 
 class ProposalCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
+                   env: ApplicationConf.Env,
                    userRepo: OrgaUserRepo,
                    groupRepo: OrgaGroupRepo,
                    cfpRepo: OrgaCfpRepo,
                    eventRepo: OrgaEventRepo,
-                   proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette) {
+                   proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette, env) {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     val customParams = params.defaultOrderBy(proposalRepo.fields.title)
     (for {

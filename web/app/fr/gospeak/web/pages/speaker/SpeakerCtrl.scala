@@ -2,6 +2,7 @@ package fr.gospeak.web.pages.speaker
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Group, Proposal, User}
 import fr.gospeak.core.services.storage.{UserGroupRepo, UserProposalRepo, UserTalkRepo, UserUserRepo}
 import fr.gospeak.libs.scalautils.domain.Page
@@ -15,10 +16,11 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
 class SpeakerCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
+                  env: ApplicationConf.Env,
                   groupRepo: UserGroupRepo,
                   proposalRepo: UserProposalRepo,
                   talkRepo: UserTalkRepo,
-                  userRepo: UserUserRepo) extends UICtrl(cc, silhouette) {
+                  userRepo: UserUserRepo) extends UICtrl(cc, silhouette, env) {
   def profile(params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     for {
       proposals <- proposalRepo.listFull(req.user.id, params)

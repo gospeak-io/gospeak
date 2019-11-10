@@ -3,6 +3,7 @@ package fr.gospeak.web.pages.orga.venues
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Group, Venue}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.libs.timeshape.TimeShape
@@ -17,12 +18,13 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
 class VenueCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
+                env: ApplicationConf.Env,
                 userRepo: OrgaUserRepo,
                 groupRepo: OrgaGroupRepo,
                 eventRepo: OrgaEventRepo,
                 venueRepo: OrgaVenueRepo,
                 groupSettingsRepo: GroupSettingsRepo,
-                timeShape: TimeShape) extends UICtrl(cc, silhouette) {
+                timeShape: TimeShape) extends UICtrl(cc, silhouette, env) {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))

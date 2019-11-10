@@ -2,6 +2,7 @@ package fr.gospeak.web.utils
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -12,14 +13,16 @@ import play.api.mvc._
 
 import scala.util.control.NonFatal
 
-abstract class UICtrl(cc: ControllerComponents, silhouette: Silhouette[CookieEnv]) extends AbstractController(cc) with I18nSupport {
+abstract class UICtrl(cc: ControllerComponents,
+                      silhouette: Silhouette[CookieEnv],
+                      env: ApplicationConf.Env) extends AbstractController(cc) with I18nSupport {
   protected def UserAwareActionIO(block: UserAwareReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.UserAwareAction.async { r =>
-    val req = UserAwareReq[AnyContent](r, messagesApi.preferred(r.request))
+    val req = UserAwareReq[AnyContent](r, messagesApi.preferred(r.request), env)
     recoverFailedAction(block(req))(r.request).unsafeToFuture()
   }
 
   protected def SecuredActionIO(block: SecuredReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.SecuredAction.async { r =>
-    val req = SecuredReq[AnyContent](r, messagesApi.preferred(r.request))
+    val req = SecuredReq[AnyContent](r, messagesApi.preferred(r.request), env)
     recoverFailedAction(block(req))(r.request).unsafeToFuture()
   }
 

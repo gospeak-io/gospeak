@@ -41,6 +41,7 @@ case class TemplateResponse(result: Option[Html], error: Option[String])
 
 class SuggestCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
+                  env: ApplicationConf.Env,
                   appConf: ApplicationConf,
                   groupRepo: SuggestGroupRepo,
                   userRepo: SuggestUserRepo,
@@ -54,11 +55,11 @@ class SuggestCtrl(cc: ControllerComponents,
                   sponsorPackRepo: SuggestSponsorPackRepo,
                   externalCfpRepo: SuggestExternalCfpRepo,
                   templateSrv: TemplateSrv,
-                  slackSrv: SlackSrv) extends ApiCtrl(cc) {
+                  slackSrv: SlackSrv) extends ApiCtrl(cc, env) {
   private def SecuredActionIO(block: SecuredReq[AnyContent] => IO[Result]): Action[AnyContent] = SecuredActionIO(parse.anyContent)(block)
 
   private def SecuredActionIO[A](bodyParser: BodyParser[A])(block: SecuredReq[A] => IO[Result]): Action[A] = silhouette.SecuredAction(bodyParser).async { req =>
-    block(SecuredReq[A](req, messagesApi.preferred(req.request))).recover {
+    block(SecuredReq[A](req, messagesApi.preferred(req.request), env)).recover {
       case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage)))
     }.unsafeToFuture()
   }

@@ -3,6 +3,7 @@ package fr.gospeak.web.pages.orga
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Group, User, UserRequest}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.libs.timeshape.TimeShape
@@ -25,6 +26,7 @@ import scala.util.control.NonFatal
 
 class GroupCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
+                env: ApplicationConf.Env,
                 userRepo: OrgaUserRepo,
                 groupRepo: OrgaGroupRepo,
                 cfpRepo: OrgaCfpRepo,
@@ -36,7 +38,7 @@ class GroupCtrl(cc: ControllerComponents,
                 partnerRepo: OrgaPartnerRepo,
                 userRequestRepo: OrgaUserRequestRepo,
                 emailSrv: EmailSrv,
-                timeShape: TimeShape) extends UICtrl(cc, silhouette) {
+                timeShape: TimeShape) extends UICtrl(cc, silhouette, env) {
   def create(): Action[AnyContent] = SecuredActionIO { implicit req =>
     createForm(GroupForms.create(timeShape))
   }

@@ -10,6 +10,7 @@ import com.mohiva.play.silhouette.api.{LoginInfo, Silhouette, SilhouetteProvider
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import com.mohiva.play.silhouette.test._
 import com.typesafe.config.ConfigFactory
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.libs.timeshape.TimeShape
@@ -64,8 +65,8 @@ object Values extends RandomDataGenerator {
   val userAwareReq: UserAwareRequest[CookieEnv, AnyContent] = UserAwareRequest[CookieEnv, AnyContent](Some(identity), Some(authenticator), req)
   val securedReq: SecuredRequest[CookieEnv, AnyContent] = SecuredRequest[CookieEnv, AnyContent](identity, authenticator, req)
   val messages: Messages = messagesApi.preferred(securedReq)
-  val secured: SecuredReq[AnyContent] = SecuredReq[AnyContent](securedReq, messages)
-  val userAware: UserAwareReq[AnyContent] = UserAwareReq[AnyContent](userAwareReq, messages)
+  val secured: SecuredReq[AnyContent] = SecuredReq[AnyContent](securedReq, messages, conf.application.env)
+  val userAware: UserAwareReq[AnyContent] = UserAwareReq[AnyContent](userAwareReq, messages, conf.application.env)
   val b: Breadcrumb = Breadcrumb(Seq())
 
   // domain

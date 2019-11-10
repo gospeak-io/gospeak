@@ -1,6 +1,7 @@
 package fr.gospeak.web.api.published
 
 import cats.data.OptionT
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Event, Group, Proposal}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
@@ -9,11 +10,12 @@ import fr.gospeak.web.utils.ApiCtrl
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class GroupCtrl(cc: ControllerComponents,
+                env: ApplicationConf.Env,
                 groupRepo: PublicGroupRepo,
                 eventRepo: PublicEventRepo,
                 proposalRepo: PublicProposalRepo,
                 venueRepo: PublicVenueRepo,
-                userRepo: PublicUserRepo) extends ApiCtrl(cc) {
+                userRepo: PublicUserRepo) extends ApiCtrl(cc, env) {
   def list(params: Page.Params): Action[AnyContent] = ApiActionPage { implicit req =>
     groupRepo.list(params).map(_.map(PublicApiGroup(_)))
   }

@@ -28,6 +28,7 @@ import scala.util.control.NonFatal
 
 class SettingsCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
+                   env: ApplicationConf.Env,
                    appConf: ApplicationConf,
                    groupRepo: OrgaGroupRepo,
                    groupSettingsRepo: GroupSettingsRepo,
@@ -35,7 +36,7 @@ class SettingsCtrl(cc: ControllerComponents,
                    userRequestRepo: OrgaUserRequestRepo,
                    emailSrv: EmailSrv,
                    meetupSrv: MeetupSrv,
-                   slackSrv: SlackSrv) extends UICtrl(cc, silhouette) {
+                   slackSrv: SlackSrv) extends UICtrl(cc, silhouette, env) {
   def settings(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))

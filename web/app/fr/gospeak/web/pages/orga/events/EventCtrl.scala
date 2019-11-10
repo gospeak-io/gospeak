@@ -25,6 +25,7 @@ import scala.util.control.NonFatal
 
 class EventCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
+                env: ApplicationConf.Env,
                 appConf: ApplicationConf,
                 userRepo: OrgaUserRepo,
                 groupRepo: OrgaGroupRepo,
@@ -38,7 +39,7 @@ class EventCtrl(cc: ControllerComponents,
                 eventSrv: EventSrv,
                 meetupSrv: MeetupSrv,
                 emailSrv: EmailSrv,
-                mb: GospeakMessageBus) extends UICtrl(cc, silhouette) {
+                mb: GospeakMessageBus) extends UICtrl(cc, silhouette, env) {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))

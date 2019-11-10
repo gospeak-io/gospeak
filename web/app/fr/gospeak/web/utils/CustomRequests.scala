@@ -4,6 +4,7 @@ import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
 
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import play.api.data.{Field, Form, FormError}
@@ -16,6 +17,7 @@ sealed trait GsRequest[A] extends WrappedRequest[A] {
   protected val request: Request[A]
   protected val messages: Messages
   val now: Instant
+  val env: ApplicationConf.Env
 
   def nowLDT: LocalDateTime = LocalDateTime.ofInstant(now, ZoneId.systemDefault) // Constants.defaultZoneId)
 
@@ -48,11 +50,12 @@ sealed trait GsRequest[A] extends WrappedRequest[A] {
 
 class BasicReq[A](protected val request: Request[A],
                   protected val messages: Messages,
-                  val now: Instant) extends WrappedRequest[A](request) with GsRequest[A]
+                  val now: Instant,
+                  val env: ApplicationConf.Env) extends WrappedRequest[A](request) with GsRequest[A]
 
 object BasicReq {
-  def apply[A](req: Request[A], messages: Messages): BasicReq[A] =
-    new BasicReq(req, messages, Instant.now())
+  def apply[A](req: Request[A], messages: Messages, env: ApplicationConf.Env): BasicReq[A] =
+    new BasicReq(req, messages, Instant.now(), env)
 }
 
 
@@ -60,21 +63,22 @@ class UserAwareReq[A](protected val request: Request[A],
                       protected val messages: Messages,
                       val underlying: UserAwareRequest[CookieEnv, A],
                       val now: Instant,
+                      val env: ApplicationConf.Env,
                       val user: Option[User]) extends WrappedRequest[A](request) with GsRequest[A] {
-  def basic: BasicReq[A] = new BasicReq(request, messages, now)
+  def basic: BasicReq[A] = new BasicReq(request, messages, now, env)
 
   def secured: Option[SecuredReq[A]] = for {
     identity <- underlying.identity
     authenticator <- underlying.authenticator
-  } yield new SecuredReq(request, messages, SecuredRequest(identity, authenticator, request), now, identity.user, identity.groups)
+  } yield new SecuredReq(request, messages, SecuredRequest(identity, authenticator, request), now, env, identity.user, identity.groups)
 
   def secured(i: AuthUser, authenticator: CookieAuthenticator): SecuredReq[A] =
-    new SecuredReq(request, messages, SecuredRequest(underlying.identity.getOrElse(i), underlying.authenticator.getOrElse(authenticator), request), now, user.getOrElse(i.user), i.groups)
+    new SecuredReq(request, messages, SecuredRequest(underlying.identity.getOrElse(i), underlying.authenticator.getOrElse(authenticator), request), now, env, user.getOrElse(i.user), i.groups)
 }
 
 object UserAwareReq {
-  def apply[A](req: UserAwareRequest[CookieEnv, A], messages: Messages): UserAwareReq[A] =
-    new UserAwareReq(req.request, messages, req, Instant.now(), req.identity.map(_.user))
+  def apply[A](req: UserAwareRequest[CookieEnv, A], messages: Messages, env: ApplicationConf.Env): UserAwareReq[A] =
+    new UserAwareReq(req.request, messages, req, Instant.now(), env, req.identity.map(_.user))
 }
 
 
@@ -82,14 +86,15 @@ class SecuredReq[A](protected val request: Request[A],
                     protected val messages: Messages,
                     val underlying: SecuredRequest[CookieEnv, A],
                     val now: Instant,
+                    val env: ApplicationConf.Env,
                     val user: User,
                     val groups: Seq[Group]) extends WrappedRequest[A](request) with GsRequest[A] {
-  def basic: BasicReq[A] = new BasicReq(request, messages, now)
+  def basic: BasicReq[A] = new BasicReq(request, messages, now, env)
 
-  def userAware: UserAwareReq[A] = new UserAwareReq(request, messages, UserAwareRequest(Some(underlying.identity), Some(underlying.authenticator), request), now, Some(user))
+  def userAware: UserAwareReq[A] = new UserAwareReq(request, messages, UserAwareRequest(Some(underlying.identity), Some(underlying.authenticator), request), now, env, Some(user))
 }
 
 object SecuredReq {
-  def apply[A](req: SecuredRequest[CookieEnv, A], messages: Messages): SecuredReq[A] =
-    new SecuredReq(req.request, messages, req, Instant.now(), req.identity.user, req.identity.groups)
+  def apply[A](req: SecuredRequest[CookieEnv, A], messages: Messages, env: ApplicationConf.Env): SecuredReq[A] =
+    new SecuredReq(req.request, messages, req, Instant.now(), env, req.identity.user, req.identity.groups)
 }

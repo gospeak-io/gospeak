@@ -2,6 +2,7 @@ package fr.gospeak.web.utils
 
 import cats.data.OptionT
 import cats.effect.IO
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.api.domain.utils.{PublicApiError, PublicApiResponse}
@@ -10,9 +11,9 @@ import play.api.mvc._
 
 import scala.util.control.NonFatal
 
-class ApiCtrl(cc: ControllerComponents) extends AbstractController(cc) {
+class ApiCtrl(cc: ControllerComponents, env: ApplicationConf.Env) extends AbstractController(cc) {
   protected def ActionIO[A](bodyParser: BodyParser[A])(block: BasicReq[A] => IO[Result]): Action[A] = Action(bodyParser).async { req =>
-    block(BasicReq[A](req, messagesApi.preferred(req))).recover {
+    block(BasicReq[A](req, messagesApi.preferred(req), env)).recover {
       case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage)))
     }.unsafeToFuture()
   }

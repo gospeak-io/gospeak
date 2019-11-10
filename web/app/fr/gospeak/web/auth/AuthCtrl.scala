@@ -25,12 +25,13 @@ import scala.util.control.NonFatal
 // TODO JWT Auth for API
 class AuthCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
+               env: ApplicationConf.Env,
                userRepo: AuthUserRepo,
                userRequestRepo: AuthUserRequestRepo,
                groupRepo: AuthGroupRepo,
                authSrv: AuthSrv,
                emailSrv: EmailSrv,
-               envConf: ApplicationConf.Env) extends UICtrl(cc, silhouette) {
+               envConf: ApplicationConf.Env) extends UICtrl(cc, silhouette, env) {
   private val loginRedirect = (redirect: Option[String]) => Redirect(redirect.getOrElse(pages.user.routes.UserCtrl.index().path()))
   private val logoutRedirect = Redirect(pages.published.routes.HomeCtrl.index())
 

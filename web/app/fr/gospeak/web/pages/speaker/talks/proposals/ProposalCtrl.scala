@@ -3,6 +3,7 @@ package fr.gospeak.web.pages.speaker.talks.proposals
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
@@ -24,6 +25,7 @@ import scala.util.control.NonFatal
 
 class ProposalCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
+                   env: ApplicationConf.Env,
                    userRepo: SpeakerUserRepo,
                    userRequestRepo: SpeakerUserRequestRepo,
                    groupRepo: SpeakerGroupRepo,
@@ -33,7 +35,7 @@ class ProposalCtrl(cc: ControllerComponents,
                    proposalRepo: SpeakerProposalRepo,
                    commentRepo: SpeakerCommentRepo,
                    emailSrv: EmailSrv,
-                   mb: GospeakMessageBus) extends UICtrl(cc, silhouette) {
+                   mb: GospeakMessageBus) extends UICtrl(cc, silhouette, env) {
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(req.user.id, talk))

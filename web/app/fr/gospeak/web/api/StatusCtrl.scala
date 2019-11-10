@@ -3,6 +3,7 @@ package fr.gospeak.web.api
 import java.time.Instant
 
 import cats.effect.IO
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.StatusCtrl._
 import fr.gospeak.web.utils.ApiCtrl
@@ -13,7 +14,8 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import scala.util.Try
 
 class StatusCtrl(cc: ControllerComponents,
-                 conf: AppConf) extends ApiCtrl(cc) {
+                 env: ApplicationConf.Env,
+                 conf: AppConf) extends ApiCtrl(cc, env) {
   private val startedAt = Instant.now()
 
   def getStatus: Action[AnyContent] = ActionIO { implicit req =>

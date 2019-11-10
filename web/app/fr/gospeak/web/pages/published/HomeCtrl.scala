@@ -6,6 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.{LoginInfo, Silhouette}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.infra.services.GravatarSrv
@@ -22,7 +23,8 @@ import play.api.mvc._
 import scala.concurrent.duration._
 
 class HomeCtrl(cc: ControllerComponents,
-               silhouette: Silhouette[CookieEnv]) extends UICtrl(cc, silhouette) {
+               silhouette: Silhouette[CookieEnv],
+               env: ApplicationConf.Env) extends UICtrl(cc, silhouette, env) {
   def index(): Action[AnyContent] = UserAwareActionIO { implicit req =>
     val b = breadcrumb()
     IO.pure(Ok(html.index()(b)))

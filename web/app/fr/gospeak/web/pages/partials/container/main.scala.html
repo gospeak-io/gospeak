@@ -1,6 +1,7 @@
-@(title: String, style: Html, script: Html)(content: Html)
+@import fr.gospeak.core.ApplicationConf
+@(title: String, stylesheet: String, style: Html, script: Html, env: ApplicationConf.Env)(content: Html)
 <!doctype html>
-<html lang="en">
+<html lang="en"@if(!env.isProd){ class="@env"}>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -10,7 +11,7 @@
         <link rel="stylesheet" href="@routes.Assets.versioned("lib/select2-bootstrap-theme/dist/select2-bootstrap.min.css")">
         <link rel="stylesheet" href="@routes.Assets.versioned("lib/bootstrap-datepicker/dist/css/bootstrap-datepicker3.min.css")">
         <link rel="stylesheet" href="@routes.Assets.versioned("lib/typeahead.js-bootstrap4-css/typeaheadjs.css")">
-        <link rel="stylesheet" href="@routes.Assets.versioned("lib/web/styles/main.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned(s"lib/web/styles/$stylesheet")">
         @style
         <title>@title</title>
     </head>

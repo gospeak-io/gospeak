@@ -3,6 +3,7 @@ package fr.gospeak.web.pages.orga.partners
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Group, Partner}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
@@ -16,6 +17,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
 class PartnerCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
+                  env: ApplicationConf.Env,
                   userRepo: OrgaUserRepo,
                   groupRepo: OrgaGroupRepo,
                   eventRepo: OrgaEventRepo,
@@ -23,7 +25,7 @@ class PartnerCtrl(cc: ControllerComponents,
                   contactRepo: ContactRepo,
                   venueRepo: OrgaVenueRepo,
                   sponsorPackRepo: OrgaSponsorPackRepo,
-                  sponsorRepo: OrgaSponsorRepo) extends UICtrl(cc, silhouette) {
+                  sponsorRepo: OrgaSponsorRepo) extends UICtrl(cc, silhouette, env) {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
