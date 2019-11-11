@@ -41,7 +41,7 @@ GET         /forgot-password                                                    
 POST        /forgot-password                                                               fr.gospeak.web.auth.AuthCtrl.doForgotPassword(redirect: Option[String] ?= None)
 GET         /reset-password                                                                fr.gospeak.web.auth.AuthCtrl.resetPassword(id: UserRequest.Id)
 POST        /reset-password                                                                fr.gospeak.web.auth.AuthCtrl.doResetPassword(id: UserRequest.Id)
-GET         /authenticate/:provider                                             fr.gospeak.web.auth.SocialAuthCtrl.authenticate(provider)
+GET         /authenticate/:provider                                                        fr.gospeak.web.auth.SocialAuthCtrl.authenticate(provider)
 
 GET         /u                                                                             fr.gospeak.web.pages.user.UserCtrl.index
 GET         /u/answer/:request                                                             fr.gospeak.web.pages.user.UserCtrl.answerRequest(request: UserRequest.Id)

@@ -6,6 +6,7 @@ import fr.gospeak.core.ApplicationConf
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.CustomException
 import fr.gospeak.web.auth.domain.CookieEnv
+import fr.gospeak.web.auth.routes.AuthCtrl
 import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.pages
 import fr.gospeak.web.utils.UICtrl
@@ -31,15 +32,15 @@ class SocialAuthCtrl(cc: ControllerComponents,
         case Right(authInfo) =>
           for {
             profile <- provider.retrieveProfile(authInfo)
-            socialProfile <- Try(profile.asInstanceOf[CommonSocialProfile]).toFuture
+            socialProfile <- Try(profile.asInstanceOf[CommonSocialProfile]).mapFailure(_ => CustomException("Oops. Something went wrong. Cannot retrieve the social profile.")).toFuture
             authUser <- authSrv.createOrEdit(socialProfile).unsafeToFuture()
-            redirect = Redirect(pages.user.routes.UserCtrl.index()).flashing("success" -> s"Well done! You are now authenticated.")
+            redirect = Redirect(pages.user.routes.UserCtrl.index()).flashing("success" -> s"Hi ${authUser.user.name.value}, welcome to Gospeak!")
             authenticatorResult <- authSrv.login(authUser, rememberMe = true, redirect)
           } yield authenticatorResult
       }
     } yield result).recover {
-      case CustomException(msg, _) => BadRequest(html.login(AuthForms.login.withGlobalError(msg), envConf, None, authSrv.socialProviders))
-      case NonFatal(e) => BadRequest(html.login(AuthForms.login.withGlobalError(e.getMessage), envConf, None, authSrv.socialProviders))
+      case CustomException(msg, _) => Redirect(AuthCtrl.login()).flashing("error" -> msg)
+      case NonFatal(e) => Redirect(AuthCtrl.login()).flashing("error" -> e.getMessage)
     }
   }
 }

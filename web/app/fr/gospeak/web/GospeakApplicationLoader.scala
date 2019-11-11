@@ -154,13 +154,14 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val socialStateHandler = new DefaultSocialStateHandler(Set(csrfStateItemHandler), signer)
 
   lazy val googleProvider = new GoogleProvider(httpLayer, socialStateHandler, conf.auth.google)
-  lazy val linkedInProvider = new LinkedInProvider(httpLayer, socialStateHandler, conf.auth.linkedIn)
+  // LinkedInProvider needs a little hack to get working with silhouette
+  //  lazy val linkedInProvider = new LinkedInProvider(httpLayer, socialStateHandler, conf.auth.linkedIn)
   lazy val githubProvider = new GitHubProvider(httpLayer, socialStateHandler, conf.auth.github)
   lazy val facebookProvider = new FacebookProvider(httpLayer, socialStateHandler, conf.auth.facebook)
 
   lazy val twitterProvider = new TwitterProvider(httpLayer, new PlayOAuth1Service(conf.auth.twitter), cookieSecretProvider, conf.auth.twitter)
   lazy val cookieSecretProvider = new CookieSecretProvider(conf.auth.cookie.authenticator.toCookieSecretSettings, signer, crypter, clock)
-  lazy val socialProviderRegistry = SocialProviderRegistry(Seq(googleProvider, twitterProvider, facebookProvider, githubProvider, linkedInProvider))
+  lazy val socialProviderRegistry = SocialProviderRegistry(Seq(googleProvider, twitterProvider, facebookProvider, githubProvider))
 
   // lazy val silhouette: Silhouette[JwtEnv] = wire[SilhouetteProvider[JwtEnv]]
   lazy val silhouette: Silhouette[CookieEnv] = {
