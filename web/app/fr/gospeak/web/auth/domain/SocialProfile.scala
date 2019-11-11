@@ -32,7 +32,7 @@ case class SocialProfile(loginInfo: LoginInfo,
         case Some(p) => p.map(Avatar(_, source))
       }
     } yield {
-      // Not sure if missing firstName or lastName should fail the authentication
+      // try to guess firstName & lastName from the nickname
       val (first, last) = email.nickName.split('.').toList match {
         case Nil => (email.nickName, "Anonymous")
         case firstName :: Nil => (firstName, "Anonymous")
