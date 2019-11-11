@@ -113,19 +113,18 @@ class AuthSrv(userRepo: AuthUserRepo,
     } yield authUser
   }
 
-  def createOrEdit(socialProfile: CommonSocialProfile): IO[AuthUser] = {
+  def createOrEdit(socialProfile: CommonSocialProfile)(implicit req: UserAwareReq[AnyContent]): IO[AuthUser] = {
 
     def create(login: Login): IO[AuthUser] = {
       for {
         user <- SocialProfile.from(socialProfile).toUserWith(gravatarSrv.getAvatar(_)).toIO
         exists <- userRepo.find(user.email)
-        u <- exists.fold(userRepo.create(user))(u => userRepo.edit(user.copy(u.id), Instant.now()))
+        u <- exists.fold(userRepo.create(user))(u => userRepo.edit(user.copy(u.id), req.now))
         _ <- userRepo.createLoginRef(login, u.id)
       } yield AuthUser(socialProfile.loginInfo, u, Seq())
     }
 
     def edit(user: User, login: Login): IO[AuthUser] = {
-      val now = Instant.now()
       for {
         groups <- groupRepo.list(user.id)
         email <- EmailAddress.from(socialProfile.email.getOrElse(user.email.value)).toIO
@@ -133,7 +132,7 @@ class AuthSrv(userRepo: AuthUserRepo,
           firstName = socialProfile.firstName.getOrElse(user.firstName),
           lastName = socialProfile.lastName.getOrElse(user.lastName),
           email = email),
-          now = now)
+          now = req.now)
       } yield AuthUser(socialProfile.loginInfo, u, groups)
     }
 

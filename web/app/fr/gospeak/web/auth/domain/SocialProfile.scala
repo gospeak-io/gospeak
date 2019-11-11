@@ -6,7 +6,7 @@ import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
 import fr.gospeak.core.domain.User
 import fr.gospeak.libs.scalautils.StringUtils
-import fr.gospeak.libs.scalautils.domain.{Avatar, CustomException, EmailAddress, SocialProvider, Url}
+import fr.gospeak.libs.scalautils.domain._
 
 case class SocialProfile(loginInfo: LoginInfo,
                          firstName: Option[String],
@@ -31,20 +31,26 @@ case class SocialProfile(loginInfo: LoginInfo,
         case None => Right(getAvatar(email))
         case Some(p) => p.map(Avatar(_, source))
       }
-    } yield User(
-      User.Id.generate(),
-      slug,
-      // Not sure if missing firstName or lastName should fail the authentication,
-      // so i'm using empty string by default for now
-      firstName.getOrElse(""),
-      lastName.getOrElse(""),
-      email,
-      Some(now),
-      avatar,
-      User.emptyProfile,
-      now,
-      now
-    )
+    } yield {
+      // Not sure if missing firstName or lastName should fail the authentication
+      val (first, last) = email.nickName.split('.').toList match {
+        case Nil => (email.nickName, "Anonymous")
+        case firstName :: Nil => (firstName, "Anonymous")
+        case firstName :: lastName :: _ => (firstName, lastName)
+      }
+      User(
+        User.Id.generate(),
+        slug,
+        firstName.getOrElse(first),
+        lastName.getOrElse(last),
+        email,
+        Some(now),
+        avatar,
+        User.emptyProfile,
+        now,
+        now
+      )
+    }
   }
 }
 
