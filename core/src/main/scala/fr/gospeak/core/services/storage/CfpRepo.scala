@@ -41,6 +41,8 @@ trait PublicCfpRepo {
 
   def listAllOpen(group: Group.Id, now: Instant): IO[Seq[Cfp]]
 
+  def find(id: Cfp.Id): IO[Option[Cfp]]
+
   def find(cfp: Cfp.Slug): IO[Option[Cfp]]
 
   def findOpen(cfp: Cfp.Slug, now: Instant): IO[Option[Cfp]]

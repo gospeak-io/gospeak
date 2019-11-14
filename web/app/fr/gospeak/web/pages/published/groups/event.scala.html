@@ -1,4 +1,5 @@
 @import fr.gospeak.core.domain.{Event, Group, Proposal, User, Comment}
+@import fr.gospeak.libs.scalautils.domain.Markdown
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.html._
@@ -8,7 +9,7 @@
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 
-@(group: Group, event: Event.Full, proposals: Seq[Proposal.Full], speakers: Seq[User], comments: Seq[Comment.Full], commentForm: Form[Comment.Data], yesRsvp: Long, userRsvp: Option[Event.Rsvp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(group: Group, event: Event.Full, description: Markdown, proposals: Seq[Proposal.Full], speakers: Seq[User], comments: Seq[Comment.Full], commentForm: Form[Comment.Data], yesRsvp: Long, userRsvp: Option[Event.Rsvp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(event.name.value + " - Gospeak", b)() {
     <div class="d-flex justify-content-between align-items-center">
         <h1>@event.name.value@event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }</h1>
@@ -43,21 +44,26 @@
     @yesRsvp yes RSVP @event.event.maxAttendee.map { max => on @Formats.plural(max, "place") }</p>
     <div class="row">
         <div class="col">
-            @event.talks.toList.flatMap(id => proposals.find(_.id == id)).map { talk =>
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            @slidesIcon(talk.slides)
-                            @videoIcon(talk.video)
-                            <a href="@GroupCtrl.talk(group.slug, talk.id)">@talk.title.value</a>
-                        </h5>
-                        <p>By @talk.speakers.toList.map { id => @speaker(speakers, id, s => Some(SpeakerCtrl.detail(s.slug)).filter(_ => s.isPublic)) }</p>
-                        @markdown(talk.description)
-                        @if(talk.tags.nonEmpty) { <p class="mb-0">@tags(talk.tags)</p> }
-                    </div>
-                </div>
-            }
+            @markdown(description)
         </div>
+        @if(event.talks.nonEmpty) {
+            <div class="col">
+                @event.talks.toList.flatMap(id => proposals.find(_.id == id)).map { talk =>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                @slidesIcon(talk.slides)
+                                @videoIcon(talk.video)
+                                <a href="@GroupCtrl.talk(group.slug, talk.id)">@talk.title.value</a>
+                            </h5>
+                            <p>By @talk.speakers.toList.map { id => @speaker(speakers, id, s => Some(SpeakerCtrl.detail(s.slug)).filter(_ => s.isPublic)) }</p>
+                            @markdown(talk.description)
+                            @if(talk.tags.nonEmpty) { <p class="mb-0">@tags(talk.tags)</p> }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
     </div>
 
     <div class="row">

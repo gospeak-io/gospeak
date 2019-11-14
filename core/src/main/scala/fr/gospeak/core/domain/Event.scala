@@ -95,11 +95,15 @@ object Event {
 
     def name: Name = event.name
 
+    def description: MustacheMarkdownTmpl[TemplateData.EventInfo] = event.description
+
     def start: LocalDateTime = event.start
 
     def talks: Seq[Proposal.Id] = event.talks
 
     def allowRsvp: Boolean = event.allowRsvp
+
+    def cfp: Option[Cfp.Id] = event.cfp
 
     def refs: ExtRefs = event.refs
 

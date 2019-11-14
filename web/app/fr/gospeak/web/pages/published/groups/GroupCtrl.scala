@@ -6,11 +6,11 @@ import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Comment, Event, Group, Proposal}
 import fr.gospeak.core.services.storage._
-import fr.gospeak.infra.services.EmailSrv
+import fr.gospeak.infra.services.{EmailSrv, TemplateSrv}
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page}
+import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Markdown, Page}
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.Breadcrumb
+import fr.gospeak.web.domain.{Breadcrumb, MessageBuilder}
 import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.pages.published.groups.GroupCtrl._
@@ -31,7 +31,9 @@ class GroupCtrl(cc: ControllerComponents,
                 sponsorRepo: PublicSponsorRepo,
                 sponsorPackRepo: PublicSponsorPackRepo,
                 commentRepo: PublicCommentRepo,
-                emailSrv: EmailSrv) extends UICtrl(cc, silhouette, env) {
+                emailSrv: EmailSrv,
+                builder: MessageBuilder,
+                templateSrv: TemplateSrv) extends UICtrl(cc, silhouette, env) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
     for {
       groups <- groupRepo.list(params)
@@ -105,13 +107,16 @@ class GroupCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
+      cfpElt <- eventElt.cfp.map(id => OptionT(cfpRepo.find(id)).map(Option(_))).getOrElse(OptionT(IO.pure(Option(None))))
       proposals <- OptionT.liftF(proposalRepo.listPublicFull(eventElt.talks))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.speakers.toList).distinct))
       comments <- OptionT.liftF(commentRepo.getComments(eventElt.id))
       yesRsvp <- OptionT.liftF(eventRepo.countYesRsvp(eventElt.id))
       userRsvp <- OptionT.liftF(req.user.map(_.id).map(eventRepo.findRsvp(eventElt.id, _)).sequence.map(_.flatten))
+      data = builder.buildEventInfo(eventElt, cfpElt, proposals.map(_.proposal), speakers)
+      description = templateSrv.render(eventElt.description, data).getOrElse(Markdown(eventElt.description.value))
       b = breadcrumbEvent(groupElt, eventElt)
-      res = Ok(html.event(groupElt, eventElt, proposals, speakers, comments, commentForm, yesRsvp, userRsvp)(b))
+      res = Ok(html.event(groupElt, eventElt, description, proposals, speakers, comments, commentForm, yesRsvp, userRsvp)(b))
     } yield res).value.map(_.getOrElse(publicEventNotFound(group, event)))
   }
 
