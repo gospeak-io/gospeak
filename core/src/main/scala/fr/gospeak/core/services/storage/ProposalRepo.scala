@@ -39,6 +39,12 @@ trait OrgaProposalRepo {
   def list(ids: Seq[Proposal.Id]): IO[Seq[Proposal]]
 
   def find(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal]]
+
+  def firstVote(id: Proposal.Id, userId: User.Id, rating: Proposal.Vote.Rating, now: Instant): IO[Done]
+
+  def updateVote(id: Proposal.Id, userId: User.Id, rating: Proposal.Vote.Rating, now: Instant): IO[Done]
+
+  def countVotes(id: Proposal.Id): IO[Seq[Proposal.Vote.Rating]]
 }
 
 trait SpeakerProposalRepo {

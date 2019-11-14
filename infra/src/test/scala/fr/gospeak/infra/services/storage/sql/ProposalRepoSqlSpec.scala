@@ -141,6 +141,19 @@ class ProposalRepoSqlSpec extends RepoSpec {
         val q = ProposalRepoSql.selectTags()
         check(q, s"SELECT p.tags FROM $table")
       }
+      it("should build insert for Proposal.Vote") {
+        val q = ProposalRepoSql.insertVote(vote)
+        check(q, s"INSERT INTO ${ratingTable.stripSuffix(" vp")} (${mapFields(voteFields, _.stripPrefix("vp."))}) VALUES (${mapFields(voteFields, _ => "?")})")
+      }
+      it("should build an update for Proposal.Vote") {
+        val updatedVote = vote.copy(rating = Proposal.Vote.Rating.Dislike)
+        val q = ProposalRepoSql.update(updatedVote)
+        check(q, s"UPDATE $ratingTable SET vote=?, voted_at=?  WHERE vp.proposal_id=? AND vp.user_id=?")
+      }
+      it("should build a count for Proposal.Vote") {
+        val q = ProposalRepoSql.selectVotes(proposal.id)
+        check(q, s"SELECT vp.vote FROM vote_proposals vp WHERE vp.proposal_id=? ORDER BY vp.voted_at IS NULL, vp.voted_at")
+      }
     }
   }
 }
@@ -156,6 +169,9 @@ object ProposalRepoSqlSpec {
   private val whereCfp = s"(SELECT p.id FROM $table INNER JOIN $cfpTable ON p.cfp_id=c.id WHERE p.id=? AND c.slug=?)"
   private val whereCfpAndTalk = s"(SELECT p.id FROM $table INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $talkTable ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND p.speakers LIKE ?)"
   private val whereGroupAndCfp = s"(SELECT p.id FROM $table INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $groupTable ON c.group_id=g.id WHERE p.id=? AND c.slug=? AND g.slug=? AND g.owners LIKE ?)"
+
+  private val ratingTable = "proposal_ratings pr"
+  private val voteFields = mapFields("proposal_id, rating, created, created_by" , "pr." + _)
 
   private val tableFull = s"$table INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $groupTable ON c.group_id=g.id INNER JOIN $talkTable ON p.talk_id=t.id LEFT OUTER JOIN $eventTable ON p.event_id=e.id"
   private val fieldsFull = s"$fields, $cfpFields, $groupFields, $talkFields, $eventFields"
