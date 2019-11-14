@@ -38,6 +38,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val event: Event = random[Event].copy(cfp = None)
   protected val talk: Talk = random[Talk]
   protected val proposal: Proposal = random[Proposal]
+  protected val vote: Proposal.Vote = random[Proposal.Vote]
   protected val partner: Partner = random[Partner]
   protected val venue: Venue = random[Venue]
   protected val sponsorPack: SponsorPack = random[SponsorPack]

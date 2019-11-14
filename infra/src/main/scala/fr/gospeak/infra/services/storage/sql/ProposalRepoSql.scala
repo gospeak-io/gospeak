@@ -7,13 +7,14 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
+import fr.gospeak.core.domain.Proposal.Vote
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.ProposalRepo
 import fr.gospeak.infra.services.storage.sql.ProposalRepoSql._
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
 
@@ -118,6 +119,15 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def listPublicFull(ids: Seq[Proposal.Id]): IO[Seq[Proposal.Full]] = runNel(selectAllPublicFull, ids)
 
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
+
+  override def firstVote(id: Proposal.Id, user: User.Id, rating: Vote.Rating, now: Instant): IO[Done] =
+    insertVote(Proposal.Vote(id, user, rating, now)).run(xa).map(_ => Done)
+
+  override def updateVote(id: Proposal.Id, userId: User.Id, rating: Vote.Rating, now: Instant): IO[Done] =
+    update(Proposal.Vote(id, userId, rating, now)).run(xa).map(_ => Done)
+
+  override def countVotes(id: Proposal.Id): IO[Seq[Proposal.Vote.Rating]] = selectVotes(id).runList(xa)
+
 }
 
 object ProposalRepoSql {
@@ -128,11 +138,15 @@ object ProposalRepoSql {
     .join(Tables.groups.dropFields(_.name.startsWith("location_")), _.group_id("c") -> _.id).get
     .join(Tables.talks, _.talk_id("p") -> _.id).get
     .joinOpt(Tables.events, _.event_id("p") -> _.id).get
+  private val ratingTable = Tables.proposalRatingTable
 
   private[sql] def insert(e: Proposal): Insert[Proposal] = {
     val values = fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
     table.insert[Proposal](e, _ => values)
   }
+
+  private[sql] def insertVote(e: Proposal.Vote): Insert[Proposal.Vote] =
+    ratingTable.insert[Proposal.Vote](e, _ => fr0"${e.proposal}, ${e.rating.value}, ${e.user}, ${e.voted}")
 
   private[sql] def update(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.Data, now: Instant): Update = {
     val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$orga"
@@ -143,6 +157,9 @@ object ProposalRepoSql {
     val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$speaker"
     table.update(fields, where(speaker, talk, cfp))
   }
+
+  private[sql] def update(e: Proposal.Vote): Update =
+    ratingTable.update(fr"rating=${e.rating.value}, created=${e.voted}", fr0"WHERE vp.proposal_id=${e.proposal} AND vp.created_by=${e.user}")
 
   private[sql] def updateStatus(cfp: Cfp.Slug, id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): Update =
     table.update(fr0"status=$status, event_id=$event", where(cfp, id))
@@ -212,6 +229,9 @@ object ProposalRepoSql {
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
     table.select[Seq[Tag]](Seq(Field("tags", "p")), Seq())
+
+  private[sql] def selectVotes(id: Proposal.Id): Select[Proposal.Vote.Rating] =
+    ratingTable.select[Proposal.Vote.Rating](Seq(Field("rating", "pr")), fr0"WHERE vp.proposal_id=$id")
 
   private def where(id: Proposal.Id): Fragment =
     fr0"WHERE p.id=$id"

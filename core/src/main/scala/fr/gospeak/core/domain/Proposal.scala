@@ -1,5 +1,7 @@
 package fr.gospeak.core.domain
 
+import java.time.Instant
+
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.libs.scalautils.domain._
@@ -79,6 +81,36 @@ object Proposal {
     def data: Data = proposal.data
 
     def users: Seq[User.Id] = proposal.users
+  }
+
+  final case class Vote(proposal: Proposal.Id,
+                        user: User.Id,
+                        rating: Vote.Rating,
+                        voted: Instant)
+
+  object Vote {
+
+    sealed trait Rating extends Product with Serializable {
+      def value: Int
+    }
+
+    object Rating {
+
+      case object Like extends Rating {
+        val value = 1
+      }
+
+      case object Dislike extends Rating {
+        val value = 0
+      }
+
+      val all: Seq[Rating] = Seq(Like, Dislike)
+
+      def from(int: Int): Either[CustomException, Rating] =
+        all.find(_.value == int).map(Right(_)).getOrElse(Left(CustomException(s"'$int' is not a valid rating for Proposal.Vote.Rating")))
+
+    }
+
   }
 
   final case class Data(title: Talk.Title,
