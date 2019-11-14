@@ -6,7 +6,7 @@
 @import fr.gospeak.web.pages.partials.form.{html => form}
 @import fr.gospeak.web.pages.partials.{html => global}
 @import fr.gospeak.web.pages.published.partials.{html => published}
-@import fr.gospeak.web.pages.published.routes.HomeCtrl
+@import fr.gospeak.web.pages.styleguide.routes.StyleguideCtrl
 @import fr.gospeak.web.pages.speaker.partials.{html => speaker}
 @import fr.gospeak.web.utils.GenericForm
 @import fr.gospeak.web.utils.SecuredReq
@@ -65,31 +65,87 @@
             Most of the components are not showcased as they come from <a href="https://getbootstrap.com/docs/4.3/getting-started/introduction" target="_blank">
             Bootstrap</a>.
         </p>
+        <h2>Pages</h2>
+        <ul>
+            <li>
+                Requests
+                <ul>
+                    <li><a href="@StyleguideCtrl.answers("GroupInvite")">answerGroupInvite</a></li>
+                    <li><a href="@StyleguideCtrl.answers("TalkInvite")">answerTalkInvite</a></li>
+                    <li><a href="@StyleguideCtrl.answers("ProposalInvite")">answerProposalInvite</a></li>
+                    <li><a href="@StyleguideCtrl.answers("ProposalCreation")">answerProposalCreation</a></li>
+                </ul>
+            </li>
+            <li>
+                Emails
+                <ul>
+                    <li>
+                        <a href="@StyleguideCtrl.emails("signup")">signup</a> -
+                        <a href="@StyleguideCtrl.emails("accountValidation")">accountValidation</a> -
+                        <a href="@StyleguideCtrl.emails("forgotPassword")">forgotPassword</a>
+                    </li>
+                    <li>
+                        <a href="@StyleguideCtrl.emails("inviteOrgaToGroup")">inviteOrgaToGroup</a> -
+                        <a href="@StyleguideCtrl.emails("inviteOrgaToGroupCanceled")">canceled</a> -
+                        <a href="@StyleguideCtrl.emails("inviteOrgaToGroupAccepted")">accepted</a> -
+                        <a href="@StyleguideCtrl.emails("inviteOrgaToGroupRejected")">rejected</a>
+                    </li>
+                    <li>
+                        <a href="@StyleguideCtrl.emails("joinGroupAccepted")">joinGroupAccepted</a> -
+                        <a href="@StyleguideCtrl.emails("joinGroupRejected")">joinGroupRejected</a>
+                    </li>
+                    <li><a href="@StyleguideCtrl.emails("orgaRemovedFromGroup")">orgaRemovedFromGroup</a></li>
+                    <li>
+                        <a href="@StyleguideCtrl.emails("inviteSpeakerToTalk")">inviteSpeakerToTalk</a> -
+                        <a href="@StyleguideCtrl.emails("inviteSpeakerToTalkCanceled")">canceled</a> -
+                        <a href="@StyleguideCtrl.emails("inviteSpeakerToTalkAccepted")">accepted</a> -
+                        <a href="@StyleguideCtrl.emails("inviteSpeakerToTalkRejected")">rejected</a> -
+                        <a href="@StyleguideCtrl.emails("speakerRemovedFromTalk")">remove</a>
+                    </li>
+                    <li>
+                        <a href="@StyleguideCtrl.emails("inviteSpeakerToProposal")">inviteSpeakerToProposal</a> -
+                        <a href="@StyleguideCtrl.emails("inviteSpeakerToProposalCanceled")">canceled</a> -
+                        <a href="@StyleguideCtrl.emails("inviteSpeakerToProposalAccepted")">accepted</a> -
+                        <a href="@StyleguideCtrl.emails("inviteSpeakerToProposalRejected")">rejected</a> -
+                        <a href="@StyleguideCtrl.emails("speakerRemovedFromProposal")">remove</a>
+                    </li>
+                    <li><a href="@StyleguideCtrl.emails("movedFromWaitingListToAttendees")">movedFromWaitingListToAttendees</a></li>
+                    <li>
+                        <a href="@StyleguideCtrl.emails("proposalCreationRequested")">proposalCreationRequested</a> -
+                        <a href="@StyleguideCtrl.emails("proposalCreationCanceled")">canceled</a> -
+                        <a href="@StyleguideCtrl.emails("proposalCreationAccepted")">accepted</a> -
+                        <a href="@StyleguideCtrl.emails("proposalCreationRejected")">rejected</a>
+                    </li>
+                    <li><a href="@StyleguideCtrl.emails("eventPublished")">eventPublished</a></li>
+                    <li><a href="@StyleguideCtrl.emails("groupMessage")">groupMessage</a> - <a href="@StyleguideCtrl.emails("eventMessage")">eventMessage</a></li>
+                </ul>
+            </li>
+        </ul>
         @section("global", "Global components", "@import fr.gospeak.web.pages.partials.html._") { _ =>
             @component("pagination", "@pagination(page, MyCtrl.list)") { name =>
-                @example(s"$name with no element") { _ => @global.pagination(Page(Seq.empty[Int], params, Page.Total(0), Seq()), HomeCtrl.styleguide) }
-                @example(s"$name with 5 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(5), Seq()), HomeCtrl.styleguide) }
-                @example(s"$name with 15 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(15), Seq()), HomeCtrl.styleguide) }
-                @example(s"$name with 30 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(30), Seq()), HomeCtrl.styleguide) }
-                @example(s"$name with 100 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(100), Seq()), HomeCtrl.styleguide) }
-                @example(s"$name with 200 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(200), Seq()), HomeCtrl.styleguide) }
-                @example(s"$name with 1000 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(1000), Seq()), HomeCtrl.styleguide) }
+                @example(s"$name with no element") { _ => @global.pagination(Page(Seq.empty[Int], params, Page.Total(0), Seq()), StyleguideCtrl.index) }
+                @example(s"$name with 5 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(5), Seq()), StyleguideCtrl.index) }
+                @example(s"$name with 15 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(15), Seq()), StyleguideCtrl.index) }
+                @example(s"$name with 30 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(30), Seq()), StyleguideCtrl.index) }
+                @example(s"$name with 100 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(100), Seq()), StyleguideCtrl.index) }
+                @example(s"$name with 200 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(200), Seq()), StyleguideCtrl.index) }
+                @example(s"$name with 1000 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(1000), Seq()), StyleguideCtrl.index) }
                 @example("") { _ =>
                     <div>
                         Try to change page size:
-                        <a href="@HomeCtrl.styleguide(params.copy(pageSize = Page.Size(10)))">set page-size to 10</a>,
-                        <a href="@HomeCtrl.styleguide(params.copy(pageSize = Page.Size(100)))">set page-size to 100</a>
+                        <a href="@StyleguideCtrl.index(params.copy(pageSize = Page.Size(10)))">set page-size to 10</a>,
+                        <a href="@StyleguideCtrl.index(params.copy(pageSize = Page.Size(100)))">set page-size to 100</a>
                     </div>
                 }
             }
             @component("Search", "@search(page, MyCtrl.list(params))") { name =>
-                @example(name) { _ => @global.search(Page(1 to params.pageSize.value, params, Page.Total(200), Seq()), HomeCtrl.styleguide(params)) }
+                @example(name) { _ => @global.search(Page(1 to params.pageSize.value, params, Page.Total(200), Seq()), StyleguideCtrl.index(params)) }
             }
             @component("Add slides form", "@slidesFields(embedForm, MyCtrl.doAddSlides(talk.slug))") { name =>
-                @example(name) { _ => @global.slidesFields(GenericForm.embed, HomeCtrl.styleguide(params)) }
+                @example(name) { _ => @global.slidesFields(GenericForm.embed, StyleguideCtrl.index(params)) }
             }
             @component("Add video form", "@videoFields(embedForm, MyCtrl.doAddVideo(talk.slug))") { name =>
-                @example(name) { _ => @global.videoFields(GenericForm.embed, HomeCtrl.styleguide(params)) }
+                @example(name) { _ => @global.videoFields(GenericForm.embed, StyleguideCtrl.index(params)) }
             }
         }
 
@@ -105,12 +161,12 @@
                 @example(s"$name") { _ => @display.timeAgo(talk.info.created)(secured) }
             }
             @component("event", "@event(talk.duration, Some(e => MyCtrl.detail(e.slug)))") { name =>
-                @example(s"$name") { _ => @display.event(Seq(event), event.id, Some(_ => HomeCtrl.styleguide(params))) }
+                @example(s"$name") { _ => @display.event(Seq(event), event.id, Some(_ => StyleguideCtrl.index(params))) }
                 @example(s"$name without link") { _ => @display.event(Seq(event), event.id) }
                 @example(s"$name not found") { _ => @display.event(Seq(), event.id) }
             }
             @component("info", "@info(talk.info, users, Some(u => MyCtrl.detail(u.slug)))") { name =>
-                @example(s"$name") { _ => @display.info(talk.info, Seq(user), Some(_ => HomeCtrl.styleguide(params))) }
+                @example(s"$name") { _ => @display.info(talk.info, Seq(user), Some(_ => StyleguideCtrl.index(params))) }
                 @example(s"$name without link") { _ => @display.info(talk.info, Seq(user)) }
                 @example(s"$name not found") { _ => @display.info(talk.info, Seq()) }
                 @example(s"$name with different update date") { _ => @display.info(talk.info.copy(updated = talk.info.updated.plusSeconds(60)), Seq(user)) }
@@ -139,12 +195,12 @@
                 @example(s"$name when filled") { _ => @display.videoIcon(Some(Video.from("http://video.com/here").right.get)) }
             }
             @component("speaker", "@speaker(users, user.id, u => Some(MyCtrl.detail(u.slug)))") { name =>
-                @example(s"$name") { _ => @display.speaker(Seq(user), user.id, _ => Some(HomeCtrl.styleguide(params))) }
+                @example(s"$name") { _ => @display.speaker(Seq(user), user.id, _ => Some(StyleguideCtrl.index(params))) }
                 @example(s"$name without link") { _ => @display.speaker(Seq(user), user.id) }
                 @example(s"$name not found") { _ => @display.speaker(Seq(), user.id) }
             }
             @component("speakerAvatar", "@speakerAvatar(users, user.id, Some(u => MyCtrl.detail(u.slug)))") { name =>
-                @example(s"$name") { _ => @display.speakerAvatar(Seq(user), user.id, Some(_ => HomeCtrl.styleguide(params))) }
+                @example(s"$name") { _ => @display.speakerAvatar(Seq(user), user.id, Some(_ => StyleguideCtrl.index(params))) }
                 @example(s"$name without link") { _ => @display.speakerAvatar(Seq(user), user.id) }
                 @example(s"$name not found") { _ => @display.speakerAvatar(Seq(), user.id) }
             }

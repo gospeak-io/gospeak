@@ -1,6 +1,7 @@
 package fr.gospeak.infra.services.storage.sql.utils
 
 import java.time.{Instant, LocalDateTime, ZoneOffset}
+import java.util.concurrent.TimeUnit
 
 import cats.data.NonEmptyList
 import cats.effect.{ContextShift, IO}
@@ -332,30 +333,15 @@ object DoobieUtils {
     implicit val avatarSourceMeta: Meta[Avatar.Source] = Meta[String].timap(Avatar.Source.from(_).get)(_.toString)
     implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))
     implicit val gMapPlaceMeta: Meta[GMapPlace] = {
-      implicit val geoDecoder: Decoder[Geo] = deriveDecoder[Geo]
-      implicit val geoEncoder: Encoder[Geo] = deriveEncoder[Geo]
-      implicit val gMapPlaceDecoder: Decoder[GMapPlace] = deriveDecoder[GMapPlace]
-      implicit val gMapPlaceEncoder: Encoder[GMapPlace] = deriveEncoder[GMapPlace]
+      import JsonEncoders.{gMapPlaceDecoder, gMapPlaceEncoder}
       Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
     }
     implicit val groupSettingsEventTemplatesMeta: Meta[Map[String, MustacheTextTmpl[TemplateData.EventInfo]]] = {
-      implicit val textTemplateDecoder: Decoder[MustacheTextTmpl[TemplateData.EventInfo]] = deriveDecoder[MustacheTextTmpl[TemplateData.EventInfo]]
-      implicit val textTemplateEncoder: Encoder[MustacheTextTmpl[TemplateData.EventInfo]] = deriveEncoder[MustacheTextTmpl[TemplateData.EventInfo]]
+      import JsonEncoders.{textTemplateDecoder, textTemplateEncoder}
       Meta[String].timap(fromJson[Map[String, MustacheTextTmpl[TemplateData.EventInfo]]](_).get)(toJson)
     }
     implicit val groupSettingsActionsMeta: Meta[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]] = {
-      implicit val markdownTemplateDecoder: Decoder[MustacheMarkdownTmpl[TemplateData]] = deriveDecoder[MustacheMarkdownTmpl[TemplateData]]
-      implicit val markdownTemplateEncoder: Encoder[MustacheMarkdownTmpl[TemplateData]] = deriveEncoder[MustacheMarkdownTmpl[TemplateData]]
-      implicit val slackActionPostMessageDecoder: Decoder[SlackAction.PostMessage] = deriveDecoder[SlackAction.PostMessage]
-      implicit val slackActionPostMessageEncoder: Encoder[SlackAction.PostMessage] = deriveEncoder[SlackAction.PostMessage]
-      implicit val slackActionDecoder: Decoder[SlackAction] = deriveDecoder[SlackAction]
-      implicit val slackActionEncoder: Encoder[SlackAction] = deriveEncoder[SlackAction]
-      implicit val groupSettingsActionSlackDecoder: Decoder[Group.Settings.Action.Slack] = deriveDecoder[Group.Settings.Action.Slack]
-      implicit val groupSettingsActionSlackEncoder: Encoder[Group.Settings.Action.Slack] = deriveEncoder[Group.Settings.Action.Slack]
-      implicit val groupSettingsActionDecoder: Decoder[Group.Settings.Action] = deriveDecoder[Group.Settings.Action]
-      implicit val groupSettingsActionEncoder: Encoder[Group.Settings.Action] = deriveEncoder[Group.Settings.Action]
-      implicit val groupSettingsActionTriggerDecoder: KeyDecoder[Group.Settings.Action.Trigger] = (key: String) => Group.Settings.Action.Trigger.from(key).toOption
-      implicit val groupSettingsActionTriggerEncoder: KeyEncoder[Group.Settings.Action.Trigger] = (e: Group.Settings.Action.Trigger) => e.toString
+      import JsonEncoders.{groupSettingsActionDecoder, groupSettingsActionEncoder, groupSettingsActionTriggerKeyDecoder, groupSettingsActionTriggerKeyEncoder}
       Meta[String].timap(fromJson[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]](_).get)(toJson)
     }
 
@@ -367,6 +353,7 @@ object DoobieUtils {
     implicit val userSlugMeta: Meta[User.Slug] = Meta[String].timap(User.Slug.from(_).get)(_.value)
     implicit val userProfileStatusMeta: Meta[User.Profile.Status] = Meta[String].timap(User.Profile.Status.from(_).get)(_.value)
     implicit val userRequestIdMeta: Meta[UserRequest.Id] = Meta[String].timap(UserRequest.Id.from(_).get)(_.value)
+    implicit val userRequestProposalCreationPayloadMeta: Meta[UserRequest.ProposalCreation.Payload] = Meta[String].timap(parser.parse(_).flatMap(JsonEncoders.payloadDecoder.decodeJson).get)(JsonEncoders.payloadEncoder(_).noSpaces)
     implicit val talkIdMeta: Meta[Talk.Id] = Meta[String].timap(Talk.Id.from(_).get)(_.value)
     implicit val talkSlugMeta: Meta[Talk.Slug] = Meta[String].timap(Talk.Slug.from(_).get)(_.value)
     implicit val talkTitleMeta: Meta[Talk.Title] = Meta[String].timap(Talk.Title)(_.value)
@@ -410,38 +397,86 @@ object DoobieUtils {
       _.map(_.value).mkString(","))
 
     implicit val userRequestRead: Read[UserRequest] =
-      Read[(UserRequest.Id, String, Option[Group.Id], Option[Talk.Id], Option[Proposal.Id], Option[EmailAddress], Option[Instant], Instant, Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id])].map {
-        case (id, "AccountValidation", _, _, _, Some(email), Some(deadline), created, Some(createdBy), accepted, _, _, _, _, _) =>
+      Read[(UserRequest.Id, String, Option[Group.Id], Option[Cfp.Id], Option[Event.Id], Option[Talk.Id], Option[Proposal.Id], Option[EmailAddress], Option[String], Option[Instant], Instant, Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id])].map {
+        case (id, "AccountValidation", _, _, _, _, _, Some(email), _, Some(deadline), created, Some(createdBy), accepted, _, _, _, _, _) =>
           UserRequest.AccountValidationRequest(id, email, deadline, created, createdBy, accepted)
-        case (id, "PasswordReset", _, _, _, Some(email), Some(deadline), created, _, accepted, _, _, _, _, _) =>
+        case (id, "PasswordReset", _, _, _, _, _, Some(email), _, Some(deadline), created, _, accepted, _, _, _, _, _) =>
           UserRequest.PasswordResetRequest(id, email, deadline, created, accepted)
-        case (id, "UserAskToJoinAGroup", Some(groupId), _, _, _, _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+        case (id, "UserAskToJoinAGroup", Some(groupId), _, _, _, _, _, _, _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
           UserRequest.UserAskToJoinAGroupRequest(id, groupId, created, createdBy,
             accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
             rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
             canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
-        case (id, "GroupInvite", Some(groupId), _, _, Some(email), _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+        case (id, "GroupInvite", Some(groupId), _, _, _, _, Some(email), _, _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
           UserRequest.GroupInvite(id, groupId, email, created, createdBy,
             accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
             rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
             canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
-        case (id, "TalkInvite", _, Some(talkId), _, Some(email), _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+        case (id, "TalkInvite", _, _, _, Some(talkId), _, Some(email), _, _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
           UserRequest.TalkInvite(id, talkId, email, created, createdBy,
             accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
             rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
             canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
-        case (id, "ProposalInvite", _, _, Some(proposalId), Some(email), _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+        case (id, "ProposalInvite", _, _, _, _, Some(proposalId), Some(email), _, _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
           UserRequest.ProposalInvite(id, proposalId, email, created, createdBy,
             accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
             rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
             canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
-        case (id, kind, group, talk, proposal, email, deadline, created, createdBy, accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
-          throw new Exception(s"Unable to read UserRequest with ($id, $kind, group=$group, talk=$talk, proposal=$proposal, $email, $deadline, created=($created, $createdBy), accepted=($accepted, $acceptedBy), rejected=($rejected, $rejectedBy), canceled=($canceled, $canceledBy))")
+        case (id, "ProposalCreation", _, Some(cfp), event, _, _, Some(email), Some(payload), _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+          import JsonEncoders.payloadDecoder
+          UserRequest.ProposalCreation(id, cfp, event, email, fromJson[UserRequest.ProposalCreation.Payload](payload).get, created, createdBy,
+            accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
+            rejected.map(date => UserRequest.MetaAnon(date, rejectedBy)),
+            canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
+        case (id, kind, group, cfp, event, talk, proposal, email, payload, deadline, created, createdBy, accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+          throw new Exception(s"Unable to read UserRequest with ($id, $kind, group=$group, cfp=$cfp, event=$event, talk=$talk, proposal=$proposal, email=$email, payload=$payload, deadline=$deadline, created=($created, $createdBy), accepted=($accepted, $acceptedBy), rejected=($rejected, $rejectedBy), canceled=($canceled, $canceledBy))")
       }
 
     private def toJson[A](v: A)(implicit e: Encoder[A]): String = e.apply(v).noSpaces
 
     private def fromJson[A](s: String)(implicit d: Decoder[A]): util.Try[A] = parser.parse(s).flatMap(d.decodeJson).toTry
+  }
+
+  object JsonEncoders {
+    implicit val geoDecoder: Decoder[Geo] = deriveDecoder[Geo]
+    implicit val geoEncoder: Encoder[Geo] = deriveEncoder[Geo]
+    implicit val gMapPlaceDecoder: Decoder[GMapPlace] = deriveDecoder[GMapPlace]
+    implicit val gMapPlaceEncoder: Encoder[GMapPlace] = deriveEncoder[GMapPlace]
+
+    implicit val textTemplateDecoder: Decoder[MustacheTextTmpl[TemplateData.EventInfo]] = deriveDecoder[MustacheTextTmpl[TemplateData.EventInfo]]
+    implicit val textTemplateEncoder: Encoder[MustacheTextTmpl[TemplateData.EventInfo]] = deriveEncoder[MustacheTextTmpl[TemplateData.EventInfo]]
+
+    implicit val markdownTemplateDecoder: Decoder[MustacheMarkdownTmpl[TemplateData]] = deriveDecoder[MustacheMarkdownTmpl[TemplateData]]
+    implicit val markdownTemplateEncoder: Encoder[MustacheMarkdownTmpl[TemplateData]] = deriveEncoder[MustacheMarkdownTmpl[TemplateData]]
+    implicit val slackActionPostMessageDecoder: Decoder[SlackAction.PostMessage] = deriveDecoder[SlackAction.PostMessage]
+    implicit val slackActionPostMessageEncoder: Encoder[SlackAction.PostMessage] = deriveEncoder[SlackAction.PostMessage]
+    implicit val slackActionDecoder: Decoder[SlackAction] = deriveDecoder[SlackAction]
+    implicit val slackActionEncoder: Encoder[SlackAction] = deriveEncoder[SlackAction]
+    implicit val groupSettingsActionSlackDecoder: Decoder[Group.Settings.Action.Slack] = deriveDecoder[Group.Settings.Action.Slack]
+    implicit val groupSettingsActionSlackEncoder: Encoder[Group.Settings.Action.Slack] = deriveEncoder[Group.Settings.Action.Slack]
+    implicit val groupSettingsActionDecoder: Decoder[Group.Settings.Action] = deriveDecoder[Group.Settings.Action]
+    implicit val groupSettingsActionEncoder: Encoder[Group.Settings.Action] = deriveEncoder[Group.Settings.Action]
+    implicit val groupSettingsActionTriggerKeyDecoder: KeyDecoder[Group.Settings.Action.Trigger] = (key: String) => Group.Settings.Action.Trigger.from(key).toOption
+    implicit val groupSettingsActionTriggerKeyEncoder: KeyEncoder[Group.Settings.Action.Trigger] = (e: Group.Settings.Action.Trigger) => e.toString
+
+    implicit val userSlugDecoder: Decoder[User.Slug] = (c: HCursor) => c.as[String].flatMap(User.Slug.from(_).leftMap(e => DecodingFailure(e.getMessage, List())))
+    implicit val userSlugEncoder: Encoder[User.Slug] = (a: User.Slug) => Json.fromString(a.value)
+    implicit val talkSlugDecoder: Decoder[Talk.Slug] = (c: HCursor) => c.as[String].flatMap(Talk.Slug.from(_).leftMap(e => DecodingFailure(e.getMessage, List())))
+    implicit val talkSlugEncoder: Encoder[Talk.Slug] = (a: Talk.Slug) => Json.fromString(a.value)
+    implicit val talkTitleDecoder: Decoder[Talk.Title] = (c: HCursor) => c.as[String].map(Talk.Title)
+    implicit val talkTitleEncoder: Encoder[Talk.Title] = (a: Talk.Title) => Json.fromString(a.value)
+    implicit val markdownDecoder: Decoder[Markdown] = (c: HCursor) => c.as[String].map(Markdown)
+    implicit val markdownEncoder: Encoder[Markdown] = (a: Markdown) => Json.fromString(a.value)
+    implicit val tagDecoder: Decoder[Tag] = (c: HCursor) => c.as[String].map(Tag(_))
+    implicit val tagEncoder: Encoder[Tag] = (a: Tag) => Json.fromString(a.value)
+    implicit val finiteDurationDecoder: Decoder[FiniteDuration] = (c: HCursor) => c.downField("length").as[Long].flatMap(length => c.downField("unit").as[String].map(unit => FiniteDuration(length, TimeUnit.valueOf(unit))))
+    implicit val finiteDurationEncoder: Encoder[FiniteDuration] = (a: FiniteDuration) => Json.obj("length" -> Json.fromLong(a.length), "unit" -> Json.fromString(a.unit.name()))
+    implicit val submissionDecoder: Decoder[UserRequest.ProposalCreation.Submission] = deriveDecoder[UserRequest.ProposalCreation.Submission]
+    implicit val submissionEncoder: Encoder[UserRequest.ProposalCreation.Submission] = deriveEncoder[UserRequest.ProposalCreation.Submission]
+    implicit val accountDecoder: Decoder[UserRequest.ProposalCreation.Account] = deriveDecoder[UserRequest.ProposalCreation.Account]
+    implicit val accountEncoder: Encoder[UserRequest.ProposalCreation.Account] = deriveEncoder[UserRequest.ProposalCreation.Account]
+    implicit val payloadDecoder: Decoder[UserRequest.ProposalCreation.Payload] = deriveDecoder[UserRequest.ProposalCreation.Payload]
+    implicit val payloadEncoder: Encoder[UserRequest.ProposalCreation.Payload] = deriveEncoder[UserRequest.ProposalCreation.Payload]
   }
 
 }

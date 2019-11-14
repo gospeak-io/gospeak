@@ -98,7 +98,7 @@ object Tables {
   val requests: Table = Table.from(
     name = "requests",
     prefix = "r",
-    fields = Seq("id", "kind", "group_id", "talk_id", "proposal_id", "email", "deadline", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by", "canceled", "canceled_by"),
+    fields = Seq("id", "kind", "group_id", "cfp_id", "event_id", "talk_id", "proposal_id", "email", "payload", "deadline", "created", "created_by", "accepted", "accepted_by", "rejected", "rejected_by", "canceled", "canceled_by"),
     sort = Seq("-created"),
     search = Seq("id", "email", "group_id", "created_by")).get
 

@@ -1,5 +1,5 @@
 @import fr.gospeak.core.domain.utils.TemplateData
-@import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User, Venue}
+@import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, User, UserRequest, Venue}
 @import fr.gospeak.libs.scalautils.domain.{Markdown, MustacheTmpl, Page}
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.domain.Breadcrumb
@@ -16,7 +16,7 @@
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Slug], notesForm: Form[String])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], proposalRequests: Seq[UserRequest.ProposalCreation], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Slug], notesForm: Form[String])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container(event.name.value + " - Gospeak", group, b)() {
     @if(!event.isPublic) {
         <div class="alert alert-info" role="alert">
@@ -79,36 +79,48 @@
         </div>
     }
 
-    @if(event.talks.isEmpty) {
-        @if(cfpOpt.isDefined) {
-            <h3 class="text-danger">No talk added!</h3>
-        }
-    } else {
-        <div class="card mb-3">
-            <h5 class="card-header d-flex justify-content-between align-items-center">
-                <span class="text-capitalize">@Formats.plural(event.talks.length, "planned talk")</span>
-            </h5>
-            <div class="list-group list-group-flush">
-            @event.talks.map { tId =>
-                <div class="list-group-item p-1 d-flex justify-content-between align-items-center">
-                    @talks.find(_.id == tId).map { talk =>
-                        <div>
-                            @formBtn(EventCtrl.cancelTalk(group.slug, event.slug, talk.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Remove this talk from the event")) { <i class="fas fa-minus"></i> }
-                            @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, true, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk up")) { <i class="fas fa-arrow-up"></i> }
-                            @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, false, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk down")) { <i class="fas fa-arrow-down"></i> }
-                            @duration(talk.duration)
-                            @slidesIcon(talk.slides)
-                            @videoIcon(talk.video)
-                            @cfpOpt.map { cfp => <a href="@ProposalCtrl.detail(group.slug, cfp.slug, talk.id)">@talk.title.value</a> }.getOrElse { <span>@talk.title.value</span> }
-                            @tags(talk.tags)
-                        </div>
-                        <div>@talk.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }</div>
-                    }.getOrElse { Unknown (@tId.value) }
+    <div class="card mb-3">
+        <h5 class="card-header d-flex justify-content-between align-items-center">
+            <span class="text-capitalize">@Formats.plural(event.talks.length, "planned talk")</span>
+            @cfpOpt.map { _ => <a href="@EventCtrl.proposalRequest(group.slug, event.slug)" class="btn btn-primary btn-sm">Proposal request</a> }
+        </h5>
+        <div class="list-group list-group-flush">
+            @proposalRequests.map { p =>
+                <div class="list-group-item p-1 d-flex justify-content-between align-items-center list-group-item-secondary">
+                    <div>
+                        @formBtn(EventCtrl.cancelProposalRequest(group.slug, event.slug, p.id), Seq("class" -> "btn-link btn-sm", "title" -> "Cancel this proposal request", "data-toggle" -> "tooltip")) { <i class="far fa-trash-alt"></i> }
+                        @duration(p.payload.submission.duration)
+                        @p.payload.submission.title.value
+                        @tags(p.payload.submission.tags)
+                    </div>
+                    <a href="mailto:@p.email.value">@p.payload.account.name</a>
                 </div>
             }
-            </div>
+            @if(event.talks.isEmpty) {
+                @if(cfpOpt.isDefined) {
+                    <h3 class="text-danger text-center m-3">No talk added!</h3>
+                }
+            } else {
+                @event.talks.map { tId =>
+                    <div class="list-group-item p-1 d-flex justify-content-between align-items-center">
+                        @talks.find(_.id == tId).map { talk =>
+                            <div>
+                                @formBtn(EventCtrl.cancelTalk(group.slug, event.slug, talk.id, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Remove this talk from the event", "data-toggle" -> "tooltip")) { <i class="fas fa-minus"></i> }
+                                @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, true, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk up", "data-toggle" -> "tooltip")) { <i class="fas fa-arrow-up"></i> }
+                                @formBtn(EventCtrl.moveTalk(group.slug, event.slug, talk.id, false, proposals.params), Seq("class" -> "btn-link btn-sm", "title" -> "Move this talk down", "data-toggle" -> "tooltip")) { <i class="fas fa-arrow-down"></i> }
+                                @duration(talk.duration)
+                                @slidesIcon(talk.slides)
+                                @videoIcon(talk.video)
+                                @cfpOpt.map { cfp => <a href="@ProposalCtrl.detail(group.slug, cfp.slug, talk.id)">@talk.title.value</a> }.getOrElse { <span>@talk.title.value</span> }
+                                @tags(talk.tags)
+                            </div>
+                            <div>@talk.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }</div>
+                        }.getOrElse { Unknown (@tId.value) }
+                    </div>
+                }
+            }
         </div>
-    }
+    </div>
 
     @cfpOpt.map { cfp =>
         @if(proposals.isEmpty && proposals.params.search.isEmpty) {

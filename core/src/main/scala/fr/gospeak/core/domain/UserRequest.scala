@@ -2,13 +2,14 @@ package fr.gospeak.core.domain
 
 import java.time.Instant
 
-import fr.gospeak.libs.scalautils.domain.{DataClass, EmailAddress, IId, UuidIdBuilder}
+import fr.gospeak.libs.scalautils.domain._
 
 import scala.concurrent.duration._
 
 sealed trait UserRequest {
   val id: UserRequest.Id
   val created: Instant
+  // FIXME add deadline to all
 
   def users: Seq[User.Id] = Seq()
 
@@ -86,7 +87,48 @@ object UserRequest {
                                   rejected: Option[Meta],
                                   canceled: Option[Meta]) extends StdUserRequest
 
+  final case class ProposalCreation(id: Id,
+                                    cfp: Cfp.Id,
+                                    event: Option[Event.Id],
+                                    email: EmailAddress,
+                                    payload: ProposalCreation.Payload,
+                                    created: Instant,
+                                    createdBy: User.Id,
+                                    accepted: Option[Meta],
+                                    rejected: Option[MetaAnon],
+                                    canceled: Option[Meta]) extends UserRequest {
+    override def users: Seq[User.Id] = Seq(createdBy) ++ accepted.map(_.by).toList ++ rejected.flatMap(_.by).toList ++ canceled.map(_.by).toList
+
+    override def isPending(now: Instant): Boolean = accepted.isEmpty && rejected.isEmpty && canceled.isEmpty
+  }
+
+  object ProposalCreation {
+
+    final case class Payload(account: Account,
+                             submission: Submission)
+
+    object Payload {
+      def apply(user: User.Slug, firstName: String, lastName: String, slug: Talk.Slug, title: Talk.Title, duration: FiniteDuration, description: Markdown, tags: Seq[Tag]): Payload =
+        new Payload(Account(user, firstName, lastName), Submission(slug, title, duration, description, tags))
+    }
+
+    final case class Account(slug: User.Slug,
+                             firstName: String,
+                             lastName: String) {
+      def name: String = s"$firstName $lastName"
+    }
+
+    final case class Submission(slug: Talk.Slug,
+                                title: Talk.Title,
+                                duration: FiniteDuration,
+                                description: Markdown,
+                                tags: Seq[Tag])
+
+  }
+
   final case class Meta(date: Instant, by: User.Id)
+
+  final case class MetaAnon(date: Instant, by: Option[User.Id])
 
   object Timeout {
     val accountValidation: FiniteDuration = 1.day

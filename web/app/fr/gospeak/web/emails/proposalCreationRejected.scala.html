@@ -1,0 +1,8 @@
+@import fr.gospeak.core.domain.{Cfp, Event, Group, UserRequest}
+@import fr.gospeak.web.utils.UserAwareReq
+
+@(group: Group, cfp: Cfp, event: Option[Event], r: UserRequest.ProposalCreation)(implicit req: UserAwareReq[AnyContent])
+<p>Hi,</p>
+<p>Badws! @req.user.map(_.name.value).getOrElse("Anonymous") has rejected your invitation to talk about <b>@r.payload.submission.title.value</b> by at <b>@event.map(_.name.value).getOrElse(cfp.name.value)</b>.</p>
+<p>Have a nice day,</p>
+<p>The Gospeak team</p>

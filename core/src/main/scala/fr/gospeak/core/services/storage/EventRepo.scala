@@ -44,6 +44,8 @@ trait SpeakerEventRepo {
 }
 
 trait UserEventRepo {
+  def find(event: Event.Id): IO[Option[Event]]
+
   def listIncoming(params: Page.Params)(user: User.Id, now: Instant): IO[Page[(Event.Full, Option[Event.Rsvp])]]
 }
 

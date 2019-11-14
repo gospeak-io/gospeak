@@ -35,20 +35,6 @@ object Emails {
       subject = "Reset your password!",
       content = HtmlContent(html.forgotPassword(user, passwordReset).body))
 
-  def joinGroupAccepted(acceptedUser: User, group: Group)(implicit req: SecuredReq[AnyContent]): Email =
-    Email(
-      from = Constants.Contact.noReply,
-      to = Seq(acceptedUser.asContact),
-      subject = s"Welcome to ${group.name.value} group!",
-      content = HtmlContent(html.joinGroupAccepted(acceptedUser, group).body))
-
-  def joinGroupRejected(rejectedUser: User, group: Group)(implicit req: SecuredReq[AnyContent]): Email =
-    Email(
-      from = Constants.Contact.noReply,
-      to = Seq(rejectedUser.asContact),
-      subject = s"Your application to ${group.name.value} group was rejected :(",
-      content = HtmlContent(html.joinGroupRejected(rejectedUser, group).body))
-
   def inviteOrgaToGroup(invite: UserRequest.GroupInvite, group: Group)(implicit req: SecuredReq[AnyContent]): Email =
     Email(
       from = Constants.Contact.noReply,
@@ -76,6 +62,20 @@ object Emails {
       to = Seq(EmailAddress.Contact(group.contact.getOrElse(orga.email))),
       subject = s"Oups, ${req.user.name.value} rejected your invitation in the ${group.name.value} group :(",
       content = HtmlContent(html.inviteOrgaToGroupRejected(invite, group, orga).body))
+
+  def joinGroupAccepted(acceptedUser: User, group: Group)(implicit req: SecuredReq[AnyContent]): Email =
+    Email(
+      from = Constants.Contact.noReply,
+      to = Seq(acceptedUser.asContact),
+      subject = s"Welcome to ${group.name.value} group!",
+      content = HtmlContent(html.joinGroupAccepted(acceptedUser, group).body))
+
+  def joinGroupRejected(rejectedUser: User, group: Group)(implicit req: SecuredReq[AnyContent]): Email =
+    Email(
+      from = Constants.Contact.noReply,
+      to = Seq(rejectedUser.asContact),
+      subject = s"Your application to ${group.name.value} group was rejected :(",
+      content = HtmlContent(html.joinGroupRejected(rejectedUser, group).body))
 
   def orgaRemovedFromGroup(group: Group, orga: User)(implicit req: SecuredReq[AnyContent]): Email =
     Email(
@@ -160,6 +160,34 @@ object Emails {
       to = Seq(attendee.asContact),
       subject = s"You are now on the ${event.name.value} guest list",
       content = HtmlContent(html.movedFromWaitingListToAttendees(group, event, attendee).body))
+
+  def proposalCreationRequested(group: Group, cfp: Cfp, event: Option[Event], r: UserRequest.ProposalCreation)(implicit req: SecuredReq[AnyContent]): Email =
+    Email(
+      from = Constants.Contact.noReply,
+      to = Seq(EmailAddress.Contact(r.email, Some(r.payload.account.name))),
+      subject = s"Speaking proposal at ${event.map(_.name.value).getOrElse(cfp.name.value)}",
+      content = HtmlContent(html.proposalCreationRequested(group, cfp, event, r).body))
+
+  def proposalCreationCanceled(group: Group, cfp: Cfp, event: Option[Event], r: UserRequest.ProposalCreation)(implicit req: SecuredReq[AnyContent]): Email =
+    Email(
+      from = Constants.Contact.noReply,
+      to = Seq(EmailAddress.Contact(r.email, Some(r.payload.account.name))),
+      subject = s"Your speaking proposal at ${event.map(_.name.value).getOrElse(cfp.name.value)} has been canceled",
+      content = HtmlContent(html.proposalCreationCanceled(group, cfp, event, r).body))
+
+  def proposalCreationAccepted(group: Group, cfp: Cfp, event: Option[Event], r: UserRequest.ProposalCreation, orga: User)(implicit req: SecuredReq[AnyContent]): Email =
+    Email(
+      from = Constants.Contact.noReply,
+      to = Seq(group.contact.map(EmailAddress.Contact(_)).getOrElse(orga.asContact)),
+      subject = s"${req.user.name.value} has accepted to speak about ${r.payload.submission.title.value} at ${event.map(_.name.value).getOrElse(cfp.name.value)}",
+      content = HtmlContent(html.proposalCreationAccepted(group, cfp, event, r).body))
+
+  def proposalCreationRejected(group: Group, cfp: Cfp, event: Option[Event], r: UserRequest.ProposalCreation, orga: User)(implicit req: UserAwareReq[AnyContent]): Email =
+    Email(
+      from = Constants.Contact.noReply,
+      to = Seq(EmailAddress.Contact(r.email, Some(r.payload.account.name))),
+      subject = s"${req.user.map(_.name.value).getOrElse("Anonymous")} has rejected to speak about ${r.payload.submission.title.value} at ${event.map(_.name.value).getOrElse(cfp.name.value)}",
+      content = HtmlContent(html.proposalCreationRejected(group, cfp, event, r).body))
 
   def eventPublished(group: Group, event: Event, venueOpt: Option[Venue.Full], member: Group.Member)(implicit req: SecuredReq[AnyContent]): Email =
     Email(

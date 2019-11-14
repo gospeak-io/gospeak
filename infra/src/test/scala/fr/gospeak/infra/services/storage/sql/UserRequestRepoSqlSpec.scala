@@ -8,8 +8,36 @@ import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 
 class UserRequestRepoSqlSpec extends RepoSpec {
   describe("UserRequestRepoSql") {
+    describe("Requests") {
+      it("should create and retrieve a ProposalCreation request") {
+        val u = userRepo.create(user.data, now).unsafeRunSync()
+        val g = groupRepo.create(group.data, u.id, now).unsafeRunSync()
+        val c = cfpRepo.create(g.id, cfp.data, u.id, now).unsafeRunSync()
+        val e = eventRepo.create(g.id, event.data.copy(venue = None), u.id, now).unsafeRunSync()
+        val req = userRequestRepo.createProposal(c.id, Some(e.id), u.email, ProposalCreation.Payload(u.slug, u.firstName, u.lastName, talk.slug, talk.title, talk.duration, talk.description, talk.tags), u.id, now).unsafeRunSync()
+        userRequestRepo.find(req.id).unsafeRunSync() shouldBe Some(req)
+        userRequestRepo.listPendingProposalCreations(event.id).unsafeRunSync() shouldBe Seq(req)
+      }
+    }
     describe("Queries") {
+      it("should build accept") {
+        val q = UserRequestRepoSql.accept(userRequest.id, "kind", user.id, now)
+        check(q, s"UPDATE $table SET accepted=?, accepted_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+      }
+      it("should build reject") {
+        val q = UserRequestRepoSql.reject(userRequest.id, "kind", user.id, now)
+        check(q, s"UPDATE $table SET rejected=?, rejected_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+      }
+      it("should build cancel") {
+        val q = UserRequestRepoSql.cancel(userRequest.id, "kind", user.id, now)
+        check(q, s"UPDATE $table SET canceled=?, canceled_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
+      }
       it("should build selectOne") {
+        val q = UserRequestRepoSql.selectOne(userRequest.id, UserRequestRepoSql.UserAskToJoinAGroup.selectFields)
+        q.fr.update.sql shouldBe s"SELECT $userAskToJoinAGroupFields FROM $table WHERE r.id=? $orderBy"
+        // check(q) // ignored because missing "NOT NULL" on 'proposal_id', 'email' and 'created_by'... due to sealed trait
+      }
+      it("should build selectOne generic") {
         val q = UserRequestRepoSql.selectOne(userRequest.id)
         check(q, s"SELECT $fields FROM $table WHERE r.id=? $orderBy")
       }
@@ -73,18 +101,6 @@ class UserRequestRepoSqlSpec extends RepoSpec {
           val q = UserRequestRepoSql.UserAskToJoinAGroup.insert(req)
           check(q, s"INSERT INTO ${table.replaceAll(" r", "")} (id, kind, group_id, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         }
-        it("should build accept") {
-          val q = UserRequestRepoSql.UserAskToJoinAGroup.accept(req.id, user.id, now)
-          check(q, s"UPDATE $table SET accepted=?, accepted_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
-        }
-        it("should build reject") {
-          val q = UserRequestRepoSql.UserAskToJoinAGroup.reject(req.id, user.id, now)
-          check(q, s"UPDATE $table SET rejected=?, rejected_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
-        }
-        it("should build cancel") {
-          val q = UserRequestRepoSql.UserAskToJoinAGroup.cancel(req.id, user.id, now)
-          check(q, s"UPDATE $table SET canceled=?, canceled_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
-        }
         it("should build selectOnePending") {
           val q = UserRequestRepoSql.UserAskToJoinAGroup.selectOnePending(group.id, userRequest.id)
           q.fr.update.sql shouldBe s"SELECT $userAskToJoinAGroupFields FROM $table WHERE r.id=? AND r.kind=? AND r.group_id=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL $orderBy"
@@ -102,23 +118,6 @@ class UserRequestRepoSqlSpec extends RepoSpec {
           val q = UserRequestRepoSql.GroupInviteQueries.insert(req)
           check(q, s"INSERT INTO ${table.replaceAll(" r", "")} (id, kind, group_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         }
-        it("should build accept") {
-          val q = UserRequestRepoSql.GroupInviteQueries.accept(req.id, user.id, now)
-          check(q, s"UPDATE $table SET accepted=?, accepted_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
-        }
-        it("should build reject") {
-          val q = UserRequestRepoSql.GroupInviteQueries.reject(req.id, user.id, now)
-          check(q, s"UPDATE $table SET rejected=?, rejected_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
-        }
-        it("should build cancel") {
-          val q = UserRequestRepoSql.GroupInviteQueries.cancel(req.id, user.id, now)
-          check(q, s"UPDATE $table SET canceled=?, canceled_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
-        }
-        it("should build selectOne") {
-          val q = UserRequestRepoSql.GroupInviteQueries.selectOne(req.id)
-          q.fr.update.sql shouldBe s"SELECT $groupInviteFields FROM $table WHERE r.id=? $orderBy"
-          // check(q) // ignored because missing "NOT NULL" on 'group_id', 'email' and 'created_by'... due to sealed trait
-        }
         it("should build selectAllPending") {
           val q = UserRequestRepoSql.GroupInviteQueries.selectAllPending(group.id)
           q.fr.update.sql shouldBe s"SELECT $groupInviteFields FROM $table WHERE r.kind=? AND r.group_id=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL $orderBy"
@@ -130,23 +129,6 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         it("should build insert") {
           val q = UserRequestRepoSql.TalkInviteQueries.insert(req)
           check(q, s"INSERT INTO ${table.replaceAll(" r", "")} (id, kind, talk_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-        }
-        it("should build accept") {
-          val q = UserRequestRepoSql.TalkInviteQueries.accept(req.id, user.id, now)
-          check(q, s"UPDATE $table SET accepted=?, accepted_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
-        }
-        it("should build reject") {
-          val q = UserRequestRepoSql.TalkInviteQueries.reject(req.id, user.id, now)
-          check(q, s"UPDATE $table SET rejected=?, rejected_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
-        }
-        it("should build cancel") {
-          val q = UserRequestRepoSql.TalkInviteQueries.cancel(req.id, user.id, now)
-          check(q, s"UPDATE $table SET canceled=?, canceled_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
-        }
-        it("should build selectOne") {
-          val q = UserRequestRepoSql.TalkInviteQueries.selectOne(req.id)
-          q.fr.update.sql shouldBe s"SELECT $talkInviteFields FROM $table WHERE r.id=? $orderBy"
-          // check(q) // ignored because missing "NOT NULL" on 'talk_id', 'email' and 'created_by'... due to sealed trait
         }
         it("should build selectAllPending") {
           val q = UserRequestRepoSql.TalkInviteQueries.selectAllPending(talk.id)
@@ -160,26 +142,26 @@ class UserRequestRepoSqlSpec extends RepoSpec {
           val q = UserRequestRepoSql.ProposalInviteQueries.insert(req)
           check(q, s"INSERT INTO ${table.replaceAll(" r", "")} (id, kind, proposal_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         }
-        it("should build accept") {
-          val q = UserRequestRepoSql.ProposalInviteQueries.accept(req.id, user.id, now)
-          check(q, s"UPDATE $table SET accepted=?, accepted_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
-        }
-        it("should build reject") {
-          val q = UserRequestRepoSql.ProposalInviteQueries.reject(req.id, user.id, now)
-          check(q, s"UPDATE $table SET rejected=?, rejected_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
-        }
-        it("should build cancel") {
-          val q = UserRequestRepoSql.ProposalInviteQueries.cancel(req.id, user.id, now)
-          check(q, s"UPDATE $table SET canceled=?, canceled_by=? WHERE r.id=? AND r.kind=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL")
-        }
-        it("should build selectOne") {
-          val q = UserRequestRepoSql.ProposalInviteQueries.selectOne(req.id)
-          q.fr.update.sql shouldBe s"SELECT $proposalInviteFields FROM $table WHERE r.id=? $orderBy"
-          // check(q) // ignored because missing "NOT NULL" on 'proposal_id', 'email' and 'created_by'... due to sealed trait
-        }
         it("should build selectAllPending") {
           val q = UserRequestRepoSql.ProposalInviteQueries.selectAllPending(proposal.id)
           q.fr.update.sql shouldBe s"SELECT $proposalInviteFields FROM $table WHERE r.kind=? AND r.proposal_id=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL $orderBy"
+          // check(q) // ignored because missing "NOT NULL" on 'proposal_id', 'email' and 'created_by'... due to sealed trait
+        }
+      }
+      describe("ProposalCreationQueries") {
+        val req = ProposalCreation(UserRequest.Id.generate(), cfp.id, Some(event.id), user.email, ProposalCreation.Payload(user.slug, user.firstName, user.lastName, talk.slug, talk.title, talk.duration, talk.description, talk.tags), now, user.id, None, None, None)
+        it("should build insert") {
+          val q = UserRequestRepoSql.ProposalCreationQueries.insert(req)
+          check(q, s"INSERT INTO ${table.replaceAll(" r", "")} (id, kind, cfp_id, event_id, email, payload, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+        }
+        it("should build selectAllPending for cfp") {
+          val q = UserRequestRepoSql.ProposalCreationQueries.selectAllPending(cfp.id)
+          q.fr.update.sql shouldBe s"SELECT $proposalCreationFields FROM $table WHERE r.kind=? AND r.cfp_id=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL $orderBy"
+          // check(q) // ignored because missing "NOT NULL" on 'proposal_id', 'email' and 'created_by'... due to sealed trait
+        }
+        it("should build selectAllPending for event") {
+          val q = UserRequestRepoSql.ProposalCreationQueries.selectAllPending(event.id)
+          q.fr.update.sql shouldBe s"SELECT $proposalCreationFields FROM $table WHERE r.kind=? AND r.event_id=? AND r.accepted IS NULL AND r.rejected IS NULL AND r.canceled IS NULL $orderBy"
           // check(q) // ignored because missing "NOT NULL" on 'proposal_id', 'email' and 'created_by'... due to sealed trait
         }
       }
@@ -189,7 +171,7 @@ class UserRequestRepoSqlSpec extends RepoSpec {
 
 object UserRequestRepoSqlSpec {
   val table = "requests r"
-  val fields: String = mapFields("id, kind, group_id, talk_id, proposal_id, email, deadline, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by", "r." + _)
+  val fields: String = mapFields("id, kind, group_id, cfp_id, event_id, talk_id, proposal_id, email, payload, deadline, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by", "r." + _)
   val orderBy = "ORDER BY r.created IS NULL, r.created DESC"
 
   val accountValidationFields: String = mapFields("id, email, deadline, created, created_by, accepted", "r." + _)
@@ -198,4 +180,5 @@ object UserRequestRepoSqlSpec {
   val groupInviteFields: String = mapFields("id, group_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by", "r." + _)
   val talkInviteFields: String = mapFields("id, talk_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by", "r." + _)
   val proposalInviteFields: String = mapFields("id, proposal_id, email, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by", "r." + _)
+  val proposalCreationFields: String = mapFields("id, cfp_id, event_id, email, payload, created, created_by, accepted, accepted_by, rejected, rejected_by, canceled, canceled_by", "r." + _)
 }

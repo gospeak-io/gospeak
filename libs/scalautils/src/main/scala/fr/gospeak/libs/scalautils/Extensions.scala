@@ -6,7 +6,7 @@ import java.util.Optional
 import cats.MonadError
 import cats.data.NonEmptyList
 import cats.effect.IO
-import fr.gospeak.libs.scalautils.domain.{CustomException, MultiException}
+import fr.gospeak.libs.scalautils.domain.MultiException
 
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
@@ -197,6 +197,16 @@ object Extensions {
   implicit class TryExtension[A](val in: Try[A]) extends AnyVal {
     def mapFailure(f: Throwable => Throwable): Try[A] =
       in.recoverWith { case NonFatal(e) => Failure(f(e)) }
+
+    def toEither: Either[Throwable, A] = in match {
+      case Success(a) => Right(a)
+      case Failure(e) => Left(e)
+    }
+
+    def toEither[E](f: Throwable => E): Either[E, A] = in match {
+      case Success(a) => Right(a)
+      case Failure(e) => Left(f(e))
+    }
 
     def toFuture: Future[A] = Future.fromTry(in)
 

@@ -2,13 +2,18 @@ package fr.gospeak.infra.services.storage.sql.utils
 
 import cats.data.NonEmptyList
 import doobie.implicits._
+import fr.gospeak.core.domain.{Group, UserRequest}
+import fr.gospeak.core.domain.utils.TemplateData
+import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtilsSpec.Entity
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheTextTmpl
+import fr.gospeak.libs.scalautils.domain.{GMapPlace, Page}
 import org.scalatest.{FunSpec, Matchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
-class DoobieUtilsSpec extends FunSpec with Matchers {
+class DoobieUtilsSpec extends FunSpec with Matchers with ScalaCheckDrivenPropertyChecks {
   describe("DoobieUtils") {
     describe("Table") {
       val table1 = Table.from("table1", "t1", Seq("id", "name"), Seq("name"), Seq("name")).get
@@ -176,6 +181,44 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
       it("should build pagination with sort search and where") {
         val (w, o, l) = paginationFragment(prefix, Some(where), p.orderBy("name"), sorts, fields)
         (w ++ o ++ l).query.sql shouldBe "WHERE t.id=? ORDER BY t.name IS NULL, t.name LIMIT 20 OFFSET 0"
+      }
+    }
+    describe("Mappings") {
+
+    }
+    describe("JsonEncoders") {
+      it("should serialize and parse GMapPlace") {
+        forAll { d: GMapPlace =>
+          val json = JsonEncoders.gMapPlaceEncoder(d)
+          JsonEncoders.gMapPlaceDecoder.decodeJson(json) shouldBe Right(d)
+        }
+      }
+      it("should serialize and parse MustacheTextTmpl[TemplateData.EventInfo]") {
+        forAll { d: MustacheTextTmpl[TemplateData.EventInfo] =>
+          val json = JsonEncoders.textTemplateEncoder(d)
+          JsonEncoders.textTemplateDecoder.decodeJson(json) shouldBe Right(d)
+        }
+      }
+      it("should serialize and parse Group.Settings.Action") {
+        forAll { d: Group.Settings.Action =>
+          val json = JsonEncoders.groupSettingsActionEncoder(d)
+          JsonEncoders.groupSettingsActionDecoder.decodeJson(json) shouldBe Right(d)
+        }
+
+      }
+      it("should serialize and parse Group.Settings.Action.Trigger") {
+        forAll { d: Group.Settings.Action.Trigger =>
+          val json = JsonEncoders.groupSettingsActionTriggerKeyEncoder(d)
+          JsonEncoders.groupSettingsActionTriggerKeyDecoder.apply(json) shouldBe Some(d)
+        }
+
+      }
+      it("should serialize and parse UserRequest.ProposalCreation.Payload") {
+        forAll { d: UserRequest.ProposalCreation.Payload =>
+          val json = JsonEncoders.payloadEncoder(d)
+          println(json)
+          JsonEncoders.payloadDecoder.decodeJson(json) shouldBe Right(d)
+        }
       }
     }
   }

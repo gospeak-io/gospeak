@@ -43,6 +43,9 @@ GET         /reset-password                                                     
 POST        /reset-password                                                                fr.gospeak.web.auth.AuthCtrl.doResetPassword(id: UserRequest.Id)
 
 GET         /u                                                                             fr.gospeak.web.pages.user.UserCtrl.index
+GET         /answer/:request                                                               fr.gospeak.web.pages.user.UserCtrl.answerRequestAnon(request: UserRequest.Id)
+POST        /accept/:request                                                               fr.gospeak.web.pages.user.UserCtrl.acceptRequestAnon(request: UserRequest.Id)
+POST        /reject/:request                                                               fr.gospeak.web.pages.user.UserCtrl.rejectRequestAnon(request: UserRequest.Id)
 GET         /u/answer/:request                                                             fr.gospeak.web.pages.user.UserCtrl.answerRequest(request: UserRequest.Id)
 POST        /u/accept/:request                                                             fr.gospeak.web.pages.user.UserCtrl.acceptRequest(request: UserRequest.Id)
 POST        /u/reject/:request                                                             fr.gospeak.web.pages.user.UserCtrl.rejectRequest(request: UserRequest.Id)
@@ -74,6 +77,9 @@ GET         /u/groups/:group/events/:event/publish                              
 POST        /u/groups/:group/events/:event/publish                                         fr.gospeak.web.pages.orga.events.EventCtrl.doPublish(group: Group.Slug, event: Event.Slug)
 GET         /u/groups/:group/events/:event/contact-rsvps                                   fr.gospeak.web.pages.orga.events.EventCtrl.contactRsvps(group: Group.Slug, event: Event.Slug)
 POST        /u/groups/:group/events/:event/contact-rsvps                                   fr.gospeak.web.pages.orga.events.EventCtrl.doContactRsvps(group: Group.Slug, event: Event.Slug)
+GET         /u/groups/:group/events/:event/proposal-request                                fr.gospeak.web.pages.orga.events.EventCtrl.proposalRequest(group: Group.Slug, event: Event.Slug)
+POST        /u/groups/:group/events/:event/proposal-request                                fr.gospeak.web.pages.orga.events.EventCtrl.doProposalRequest(group: Group.Slug, event: Event.Slug)
+POST        /u/groups/:group/events/:event/proposal-request/:id                            fr.gospeak.web.pages.orga.events.EventCtrl.cancelProposalRequest(group: Group.Slug, event: Event.Slug, id: UserRequest.Id)
 GET         /u/groups/:group/events/:event/template/:templateId                            fr.gospeak.web.pages.orga.events.EventCtrl.showTemplate(group: Group.Slug, event: Event.Slug, templateId: String)
 GET         /u/groups/:group/cfps                                                          fr.gospeak.web.pages.orga.cfps.CfpCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/cfps/create                                                   fr.gospeak.web.pages.orga.cfps.CfpCtrl.create(group: Group.Slug, event: Option[Event.Slug] ?= None)
@@ -186,7 +192,9 @@ POST        /u/talks/:talk/proposals/:cfp/slides                                
 POST        /u/talks/:talk/proposals/:cfp/video                                            fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.doAddVideo(talk: Talk.Slug, cfp: Cfp.Slug)
 GET         /u/proposals                                                                   fr.gospeak.web.pages.speaker.proposals.ProposalCtrl.list(params: Page.Params ?= Page.Params.defaults)
 
-GET         /styleguide                                                                    fr.gospeak.web.pages.published.HomeCtrl.styleguide(params: Page.Params ?= Page.Params.defaults)
+GET         /styleguide                                                                    fr.gospeak.web.pages.styleguide.StyleguideCtrl.index(params: Page.Params ?= Page.Params.defaults)
+GET         /styleguide/answers/:id                                                        fr.gospeak.web.pages.styleguide.StyleguideCtrl.answers(id: String)
+GET         /styleguide/emails/:id                                                         fr.gospeak.web.pages.styleguide.StyleguideCtrl.emails(id: String)
 GET         /status                                                                        fr.gospeak.web.api.StatusCtrl.getStatus
 
 + nocsrf

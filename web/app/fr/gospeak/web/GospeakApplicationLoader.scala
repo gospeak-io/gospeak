@@ -30,6 +30,7 @@ import fr.gospeak.web.domain.{GospeakMessageBus, MessageBuilder}
 import fr.gospeak.web.pages._
 import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.pages.speaker.talks.TalkCtrl
+import fr.gospeak.web.pages.styleguide.StyleguideCtrl
 import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.services.EventSrv
 import org.slf4j.LoggerFactory
@@ -150,6 +151,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
 
   lazy val authSrv: AuthSrv = AuthSrv(authConf, silhouette, userRepo, userRequestRepo, groupRepo, authRepo, clock, gravatarSrv)
 
+  lazy val styleguideCtrl = wire[StyleguideCtrl]
   lazy val homeCtrl = wire[HomeCtrl]
   lazy val cfpCtrl = wire[published.cfps.CfpCtrl]
   lazy val groupCtrl = wire[published.groups.GroupCtrl]

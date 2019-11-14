@@ -1,0 +1,65 @@
+@import fr.gospeak.core.domain.{Cfp, Event, Group, User, UserRequest}
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.partials.display.html.markdown
+@import fr.gospeak.web.pages.partials.form.html.formBtn
+@import fr.gospeak.web.pages.published.partials.html.container
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.user.routes.UserCtrl
+@import fr.gospeak.web.api.ui.routes.SuggestCtrl
+@import fr.gospeak.web.utils.UserAwareReq
+@import java.util.concurrent.TimeUnit
+
+@(invite: UserRequest.ProposalCreation, group: Group, cfp: Cfp, eventOpt: Option[Event], orga: User, submissionForm: Form[UserRequest.ProposalCreation.Submission])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container("Gospeak", b)() {
+    @if(invite.isPending(req.now)) {
+        <h1>Nice!!! You have been invited to talk <i class="far fa-thumbs-up"></i></h1>
+        <h3>@orga.name.value invited you to @eventOpt.map(_.name.value).getOrElse(cfp.name.value)</h3>
+        @req.user.map { user =>
+            @formElt(submissionForm, UserCtrl.acceptRequest(invite.id)) {
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Talk infos</span>
+                        <span>
+                            @formBtn(UserCtrl.rejectRequest(invite.id), Seq("class" -> "btn-danger btn-sm")) {Deny}
+                            @btnSubmit("Accept", "btn btn-success btn-sm")
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        @fieldHorizontal(submissionForm("title"), Seq("label" -> "Title")) { (field, args) =>
+                            @inputText(field, Seq("placeholder" -> "ex: An awesome talk about kindness <3") ++ args)
+                        }
+                        @fieldHorizontal(submissionForm("description"), Seq("label" -> "Description")) { (field, args) =>
+                            @inputMarkdown(field, Seq() ++ args)
+                        }
+                        @fieldHorizontal(submissionForm("duration"), Seq("label" -> "Duration")) { (field, args) =>
+                            @inputDuration(field, Seq(TimeUnit.MINUTES), Seq("required" -> "true") ++ args)
+                        }
+                        @fieldHorizontal(submissionForm("tags"), Seq("label" -> "Tags")) { (field, args) =>
+                            @inputTags(field, Seq("placeholder" -> "Main topics of this talk", "remote" -> SuggestCtrl.suggestTags().toString) ++ args)
+                        }
+                        @fieldHorizontal(submissionForm("slug"), Seq("label" -> "Slug")) { (field, args) =>
+                            @inputText(field, Seq("placeholder" -> "Talk slug", "slug-for" -> submissionForm("title").id) ++ args)
+                        }
+                    </div>
+                </div>
+            }
+        }.getOrElse {
+
+        }
+
+
+
+        @* <h3>@invite.payload.submission.title.value</h3>
+        <p>@markdown(invite.payload.submission.description)</p>
+        @formBtn(UserCtrl.rejectRequestAnon(invite.id), Seq("class" -> "btn-danger")) {Refuse}
+        @formBtn(UserCtrl.acceptRequestAnon(invite.id), Seq("class" -> "btn-success")) {Accept} *@
+    } else {
+        <h1>Invitation to talk about '@invite.payload.submission.title.value' by @orga.name.value</h1>
+        <h3 class="text-danger">Oups, this invite is expired</h3>
+        <p>
+            If it is strange, please contact the person who invited you (<a href="mailto:@orga.email.value">@orga.name.value</a>) to check if everything is alright
+            and inform the <a href="mailto:contact@@gospeak.fr">gospeak team</a>
+        </p>
+        <a href="@UserCtrl.index()" class="btn btn-primary">Go to home page</a>
+    }
+}()

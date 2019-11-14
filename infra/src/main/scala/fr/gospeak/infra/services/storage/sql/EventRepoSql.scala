@@ -48,6 +48,8 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def find(group: Group.Id, event: Event.Slug): IO[Option[Event]] = selectOne(group, event).runOption(xa)
 
+  override def find(event: Event.Id): IO[Option[Event]] = selectOne(event).runOption(xa)
+
   override def findPublished(group: Group.Id, event: Event.Slug): IO[Option[Event.Full]] = selectOnePublished(group, event).runOption(xa)
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[Event]] = selectPage(group, params).run(xa)
@@ -129,6 +131,9 @@ object EventRepoSql {
   private[sql] def selectOne(group: Group.Id, event: Event.Slug): Select[Event] =
     table.select[Event](where(group, event))
 
+  private[sql] def selectOne(event: Event.Id): Select[Event] =
+    table.select[Event](where(event))
+
   private[sql] def selectOnePublished(group: Group.Id, event: Event.Slug): Select[Event.Full] =
     tableFull.select[Event.Full](fr0"WHERE e.group_id=$group AND e.slug=$event AND e.published IS NOT NULL")
 
@@ -157,6 +162,8 @@ object EventRepoSql {
     table.select[Seq[Tag]](Seq(Field("tags", "e")), Seq())
 
   private def where(group: Group.Id, event: Event.Slug): Fragment = fr0"WHERE e.group_id=$group AND e.slug=$event"
+
+  private def where(event: Event.Id): Fragment = fr0"WHERE e.id=$event"
 
   private[sql] def countRsvp(event: Event.Id, answer: Event.Rsvp.Answer): Select[Long] =
     rsvpTable.select[Long](Seq(Field("count(*)", "")), fr0"WHERE er.event_id=$event AND er.answer=$answer GROUP BY er.event_id, er.answer", Seq())
