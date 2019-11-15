@@ -73,13 +73,15 @@
                     class="rounded-circle"
                     style="height: 50px; padding: 5px">
             }
-            <h3>Sponsors</h3>
-            @sponsors.sortBy(-_.price.amount).map { sponsor =>
-                <img src="@sponsor.partner.logo.value"
-                    alt="@sponsor.partner.name.value logo"
-                    title="@sponsor.pack.name.value sponsoring by @sponsor.partner.name.value"
-                    class="rounded"
-                    style="height: 100px; padding: 5px">
+            @if(sponsors.nonEmpty) {
+                <h3>Sponsors</h3>
+                @sponsors.sortBy(-_.price.amount).map { sponsor =>
+                    <img src="@sponsor.partner.logo.value"
+                        alt="@sponsor.partner.name.value logo"
+                        title="@sponsor.pack.name.value sponsoring by @sponsor.partner.name.value"
+                        class="rounded"
+                        style="height: 100px; padding: 5px">
+                }
             }
         </div>
     </div>

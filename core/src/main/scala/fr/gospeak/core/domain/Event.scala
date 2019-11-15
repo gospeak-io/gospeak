@@ -41,7 +41,7 @@ final case class Event(id: Event.Id,
 
   def canRsvp(venue: Option[Venue.Full], now: Instant): Boolean = allowRsvp && isPublic && startInstant(venue).isAfter(now)
 
-  private def startInstant(venue: Option[Venue.Full]) = TimeUtils.toInstant(start, venue.map(_.timezone).getOrElse(Constants.defaultZoneId))
+  private def startInstant(venue: Option[Venue.Full]): Instant = TimeUtils.toInstant(start, venue.map(_.timezone).getOrElse(Constants.defaultZoneId))
 }
 
 object Event {

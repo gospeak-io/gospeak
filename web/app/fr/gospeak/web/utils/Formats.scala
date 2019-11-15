@@ -16,6 +16,10 @@ object Formats {
   private val df = DateTimeFormatter.ofPattern("dd MMM YYYY").withZone(ZoneOffset.UTC.normalized()).withLocale(Locale.ENGLISH)
   private val dtf = DateTimeFormatter.ofPattern("dd MMM YYYY 'at' HH:mm:ss.SSS '(UTC)'").withZone(ZoneOffset.UTC.normalized()).withLocale(Locale.ENGLISH)
   private val ldtf = DateTimeFormatter.ofPattern("dd MMM YYYY 'at' HH:mm:ss").withLocale(Locale.ENGLISH)
+  private val dateFull = DateTimeFormatter.ofPattern("EEEE dd MMMM YYYY").withLocale(Locale.ENGLISH)
+  private val time = DateTimeFormatter.ofPattern("HH:mm").withLocale(Locale.ENGLISH)
+
+  def time(d: LocalDateTime): String = time.format(d)
 
   def date(i: Instant): String = df.format(i)
 
@@ -26,6 +30,8 @@ object Formats {
   def datetime(i: Instant): String = dtf.format(i)
 
   def datetime(d: LocalDateTime): String = ldtf.format(d)
+
+  def dateFull(d: LocalDateTime): String = dateFull.format(d)
 
   def timeAgo(i: Instant, now: Instant): String = {
     val diffMilli = i.toEpochMilli - now.toEpochMilli
