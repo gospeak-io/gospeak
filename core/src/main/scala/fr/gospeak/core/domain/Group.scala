@@ -26,7 +26,7 @@ final case class Group(id: Group.Id,
   def senders(user: User): Seq[EmailAddress.Contact] = Seq(
     contact.map(email => EmailAddress.Contact(email, Some(name.value))),
     Some(EmailAddress.Contact(user.email, Some(user.name.value))),
-    Some(Constants.defaultContact)).flatten
+    Some(Constants.Contact.noReply)).flatten
 }
 
 object Group {

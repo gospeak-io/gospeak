@@ -38,7 +38,7 @@ class UserRequestRepoSql(groupRepo: GroupRepoSql,
     _ <- UserRepoSql.validateAccount(email, now).run(xa)
   } yield Done
 
-  override def findPendingAccountValidationRequest(id: UserRequest.Id, now: Instant): IO[Option[AccountValidationRequest]] = AccountValidation.selectPending(id, now).runOption(xa)
+  override def findAccountValidationRequest(id: UserRequest.Id): IO[Option[AccountValidationRequest]] = AccountValidation.selectOne(id).runOption(xa)
 
   override def findPendingAccountValidationRequest(id: User.Id, now: Instant): IO[Option[AccountValidationRequest]] = AccountValidation.selectPending(id, now).runOption(xa)
 
@@ -145,7 +145,7 @@ object UserRequestRepoSql {
 
     private[sql] def accept(id: UserRequest.Id, now: Instant): Update = table.update(fr0"accepted=$now", where(id, now))
 
-    private[sql] def selectPending(id: UserRequest.Id, now: Instant): Select[AccountValidationRequest] = table.select[AccountValidationRequest](fields.filter(_.name != "kind"), where(id, now))
+    private[sql] def selectOne(id: UserRequest.Id): Select[AccountValidationRequest] = table.select[AccountValidationRequest](fields.filter(_.name != "kind"), fr0"WHERE r.id=$id AND r.kind=$kind")
 
     private[sql] def selectPending(id: User.Id, now: Instant): Select[AccountValidationRequest] = table.select[AccountValidationRequest](fields.filter(_.name != "kind"), where(id, now))
 

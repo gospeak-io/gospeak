@@ -8,13 +8,15 @@ import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, In
 import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.UserRequest
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
+import fr.gospeak.core.domain.utils.Constants
 import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.pages
+import fr.gospeak.web.pages.published.routes.{HomeCtrl => HomeRoutes}
+import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import fr.gospeak.web.utils.{HttpUtils, UICtrl, UserAwareReq}
 import play.api.data.Form
 import play.api.mvc._
@@ -32,8 +34,8 @@ class AuthCtrl(cc: ControllerComponents,
                authSrv: AuthSrv,
                emailSrv: EmailSrv,
                envConf: ApplicationConf.Env) extends UICtrl(cc, silhouette, env) {
-  private val loginRedirect = (redirect: Option[String]) => Redirect(redirect.getOrElse(pages.user.routes.UserCtrl.index().path()))
-  private val logoutRedirect = Redirect(pages.published.routes.HomeCtrl.index())
+  private val loginRedirect = (redirect: Option[String]) => Redirect(redirect.getOrElse(UserRoutes.index().path()))
+  private val logoutRedirect = Redirect(HomeRoutes.index())
 
   def signup(redirect: Option[String]): Action[AnyContent] = UserAwareActionIO { implicit req =>
     IO.pure(req.user
@@ -94,13 +96,18 @@ class AuthCtrl(cc: ControllerComponents,
 
   def doValidateAccount(id: UserRequest.Id): Action[AnyContent] = UserAwareActionIO { implicit req =>
     (for {
-      validation <- OptionT(userRequestRepo.findPendingAccountValidationRequest(id, req.now))
-      _ <- OptionT.liftF(userRequestRepo.validateAccount(id, validation.email, req.now))
-      user <- OptionT(userRepo.find(validation.email))
-      groups <- OptionT.liftF(groupRepo.list(user.id))
-      redirect = Redirect(routes.AuthCtrl.login()).flashing("success" -> s"Well done! You validated your email.")
-      (_, result) <- OptionT.liftF(authSrv.login(AuthSrv.authUser(user, groups), rememberMe = false, redirect))
-    } yield result).value.map(_.getOrElse(notFound()))
+      validation <- OptionT(userRequestRepo.findAccountValidationRequest(id))
+      msg <- if (validation.isPending(req.now)) {
+        OptionT.liftF(userRequestRepo.validateAccount(id, validation.email, req.now).map(_ => "success" -> s"Well done! You validated your email."))
+      } else if(validation.deadline.isBefore(req.now)) {
+        OptionT.liftF(IO.pure("error" -> "Expired deadline for email validation. Please ask to resend the validation email."))
+      } else if(validation.accepted.nonEmpty) {
+        OptionT.liftF(IO.pure("error" -> s"This validation was already used. Please contact <b>${Constants.Contact.admin.address.value}</b> if this is not expected."))
+      } else {
+        OptionT.liftF(IO.pure("error" -> "Can't validate your email, please ask to resend the validation email."))
+      }
+      res = Redirect(UserRoutes.index()).flashing(msg)
+    } yield res).value.map(_.getOrElse(notFound()))
   }
 
   def forgotPassword(redirect: Option[String]): Action[AnyContent] = UserAwareActionIO { implicit req =>

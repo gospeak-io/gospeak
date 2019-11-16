@@ -35,9 +35,9 @@ class UserRequestRepoSqlSpec extends RepoSpec {
           val q = UserRequestRepoSql.AccountValidation.accept(req.id, now)
           check(q, s"UPDATE $table SET accepted=? WHERE r.id=? AND r.kind=? AND r.deadline > ? AND r.accepted IS NULL")
         }
-        it("should build selectPending with id") {
-          val q = UserRequestRepoSql.AccountValidation.selectPending(req.id, now)
-          q.fr.update.sql shouldBe s"SELECT $accountValidationFields FROM $table WHERE r.id=? AND r.kind=? AND r.deadline > ? AND r.accepted IS NULL $orderBy"
+        it("should build selectOne with id") {
+          val q = UserRequestRepoSql.AccountValidation.selectOne(req.id)
+          q.fr.update.sql shouldBe s"SELECT $accountValidationFields FROM $table WHERE r.id=? AND r.kind=? $orderBy"
           // check(q) // ignored because of missing "NOT NULL" due to sealed trait
         }
         it("should build selectPending with user") {
