@@ -8,14 +8,19 @@
 
 @(cfps: Page[CommonCfp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container_theme("Gospeak - CFPs", b)() {
-    <h1 class="d-flex justify-content-between align-items-center">
-        <span>Open Call For Proposals</span>
-        <a class="btn btn-primary" href="@CfpCtrl.add">Add a CFP</a>
-    </h1>
-    <p>
-        Have something interesting to share? Find a corresponding CFP and propose a talk!<br>
-        Afraid of speaking? Take a look at theses
-        <a href="@CfpCtrl.gettingStarted">getting started and helpful articles and testimonials</a>.
-    </p>
-    @Formats.paginated[CommonCfp](cfps, CfpCtrl.list, cfpItem(_, req.now))
+
+    <div id="listCFPs" class="container space-2 space-top-md-3">
+            <!-- Title -->
+        <div class="w-md-80 w-lg-80 text-center mx-md-auto mb-5">
+            <h2 class="text-primary">Open
+                <span class="font-weight-semi-bold">Call For Proposals</span>
+            </h2>
+            <p>Have something interesting to share? Find a corresponding CFP and propose a talk!<br>
+                Afraid of speaking? Take a look at theses <a href="@CfpCtrl.gettingStarted">getting started and helpful articles and testimonials</a>.<br>
+                A Conference is missing?
+                <a class="btn btn-text btn-text-success" href="@CfpCtrl.add"> You can add it here</a></p>
+        </div>
+        @Formats.paginated[CommonCfp](cfps, CfpCtrl.list, cfpItem(_, req.now))
+    </div>
 }()
+
