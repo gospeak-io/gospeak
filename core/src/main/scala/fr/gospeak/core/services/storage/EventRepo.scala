@@ -63,6 +63,8 @@ trait PublicEventRepo {
   def createRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done]
 
   def editRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done]
+
+  def listRsvps(event: Event.Id): IO[Seq[Event.Rsvp]]
 }
 
 trait SuggestEventRepo {

@@ -9,7 +9,7 @@
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 
-@(group: Group, event: Event.Full, description: Markdown, proposals: Seq[Proposal.Full], speakers: Seq[User], comments: Seq[Comment.Full], commentForm: Form[Comment.Data], yesRsvp: Long, userRsvp: Option[Event.Rsvp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(group: Group, event: Event.Full, description: Markdown, proposals: Seq[Proposal.Full], speakers: Seq[User], comments: Seq[Comment.Full], commentForm: Form[Comment.Data], yesRsvp: Long, userRsvp: Option[Event.Rsvp], rsvps: Seq[Event.Rsvp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(event.name.value + " - Gospeak", b)() {
     <div class="d-flex justify-content-between align-items-center">
         <h1>@event.name.value@event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }</h1>
@@ -46,9 +46,6 @@
             @markdown(description)
         </div>
         <div class="col">
-            @if(event.allowRsvp) {
-                <p><i class="fas fa-users"></i> @yesRsvp reserved their seat</p>
-            }
             <p>
                 <i class="fas fa-calendar-day"></i> @Formats.dateFull(event.start)<br>
                 <i class="fas fa-clock"></i> @Formats.time(event.start)
@@ -58,6 +55,21 @@
                     <i class="fas fa-map-marker-alt"></i> <b>@v.partner.name.value</b><br>
                     @address(v.address)
                 </p>
+            }
+            @if(event.allowRsvp) {
+                <p><i class="fas fa-users"></i> @yesRsvp people reserved their seat</p>
+                @if(rsvps.nonEmpty) {
+                    @rsvps.sortBy(_.answer).map { rsvp =>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><img src="@rsvp.user.avatar.url.value" alt="" class="avatar"/> @rsvp.user.name.value</span>
+                            @rsvp.answer match {
+                                case Event.Rsvp.Answer.Yes => {<span class="badge badge-success">Yes</span>}
+                                case Event.Rsvp.Answer.No => {<span class="badge badge-danger">No</span>}
+                                case Event.Rsvp.Answer.Wait => {<span class="badge badge-secondary">List d'attente</span>}
+                            }
+                        </div>
+                    }
+                }
             }
         </div>
     </div>

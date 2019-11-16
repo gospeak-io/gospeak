@@ -113,10 +113,11 @@ class GroupCtrl(cc: ControllerComponents,
       comments <- OptionT.liftF(commentRepo.getComments(eventElt.id))
       yesRsvp <- OptionT.liftF(eventRepo.countYesRsvp(eventElt.id))
       userRsvp <- OptionT.liftF(req.user.map(_.id).map(eventRepo.findRsvp(eventElt.id, _)).sequence.map(_.flatten))
+      rsvps <- OptionT.liftF(eventRepo.listRsvps(eventElt.id))
       data = builder.buildEventInfo(eventElt, cfpElt, proposals.map(_.proposal), speakers)
       description = templateSrv.render(eventElt.description, data).getOrElse(Markdown(eventElt.description.value))
       b = breadcrumbEvent(groupElt, eventElt)
-      res = Ok(html.event(groupElt, eventElt, description, proposals, speakers, comments, commentForm, yesRsvp, userRsvp)(b))
+      res = Ok(html.event(groupElt, eventElt, description, proposals, speakers, comments, commentForm, yesRsvp, userRsvp, rsvps)(b))
     } yield res).value.map(_.getOrElse(publicEventNotFound(group, event)))
   }
 

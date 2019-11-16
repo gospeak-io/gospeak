@@ -84,6 +84,16 @@ object Event {
       case object Wait extends Answer
 
       val all: Seq[Answer] = Seq(Yes, No, Wait)
+
+      implicit val ordering: Ordering[Answer] = new Ordering[Answer] {
+        override def compare(x: Answer, y: Answer): Int = toVal(x) - toVal(y)
+
+        private def toVal(v: Answer): Int = v match {
+          case Yes => 1
+          case Wait => 2
+          case No => 3
+        }
+      }
     }
 
   }
