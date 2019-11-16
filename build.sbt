@@ -31,7 +31,7 @@ val circe = Seq(
   "io.circe" %% "circe-literal" % "0.12.3",
   "io.circe" %% "circe-generic-extras" % "0.12.2",
   "io.circe" %% "circe-java8" % "0.11.1")
-val doobieVersion = "0.8.4"
+val doobieVersion = "0.8.6"
 val doobie = Seq(
   "org.tpolecat" %% "doobie-core",
   "org.tpolecat" %% "doobie-h2",
@@ -59,7 +59,7 @@ val play = Seq(
   "com.softwaremill.macwire" %% "macrosakka" % macwireVersion % Provided)
 val playTest = Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3").map(_ % Test)
-val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.50.42")
+val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.50.44")
 val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.6.1")
 val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.4.1")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
