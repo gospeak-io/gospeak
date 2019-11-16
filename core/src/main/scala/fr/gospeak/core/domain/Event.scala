@@ -111,6 +111,8 @@ object Event {
 
     def talks: Seq[Proposal.Id] = event.talks
 
+    def maxAttendee: Option[Int] = event.maxAttendee
+
     def allowRsvp: Boolean = event.allowRsvp
 
     def cfp: Option[Cfp.Id] = event.cfp

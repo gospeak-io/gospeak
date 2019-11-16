@@ -21,18 +21,22 @@
                     case (true, Some(Event.Rsvp.Answer.Wait)) => {You were on waiting list}
                     case (true, None) => {}
                     case (false, Some(Event.Rsvp.Answer.Yes)) => {
+                        @event.maxAttendee.map { nb => <b>@Formats.plural(nb - yesRsvp, "remaining place")</b> }
                         <a href="#" class="btn btn-success">Yes</a>
                         <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)" class="btn btn-secondary">No</a>
                     }
                     case (false, Some(Event.Rsvp.Answer.No)) => {
+                        @event.maxAttendee.map { nb => <b>@Formats.plural(nb - yesRsvp, "remaining place")</b> }
                         <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.Yes)" class="btn btn-secondary">Yes</a>
                         <a href="#" class="btn btn-danger">No</a>
                     }
                     case (false, Some(Event.Rsvp.Answer.Wait)) => {
+                        <b>No remaining place</b>
                         <a href="#" class="btn btn-primary">Waiting list</a>
                         <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)" class="btn btn-secondary">No</a>
                     }
                     case (false, None) => {
+                        @event.maxAttendee.map { nb => <b>@Formats.plural(nb - yesRsvp, "remaining place")</b> }
                         <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.Yes)" class="btn btn-primary">Yes</a>
                         <a href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)" class="btn btn-primary">No</a>
                     }
