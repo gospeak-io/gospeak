@@ -1,0 +1,21 @@
+/*------------------------------------
+  Got to Section - Vertical Arrow
+------------------------------------*/
+
+.u-go-to-ver-arrow {
+	display: inline-block;
+	color: $go-to-ver-arrow-color;
+	background-color: $go-to-ver-arrow-bg-color;
+	padding: 2rem 1rem;
+	@include border-radius($go-to-ver-arrow-border-radius);
+
+	&:hover {
+		.u-go-to-ver-arrow__inner {
+			transform: translateY(3px);
+		}
+	}
+
+	&__inner {
+		transition: $go-to-ver-arrow-transition;
+	}
+}

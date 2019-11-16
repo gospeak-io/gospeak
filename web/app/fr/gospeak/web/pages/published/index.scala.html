@@ -1,51 +1,83 @@
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.published.partials.html.container
+@import fr.gospeak.web.pages.published.partials.html.container_theme
 @import fr.gospeak.web.pages.published.routes.HomeCtrl
 @import fr.gospeak.web.utils.UserAwareReq
+@import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 
 @()(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container_theme("Gospeak", b)() {
-    <h1 class="home-title">Gospeak</h1>
 
-    <div class="card-deck">
-        <div class="card">
-            <img src="@routes.Assets.versioned("lib/web/img/speaking.jpg")" class="card-img-top" alt="Card image cap">
-            <div class="card-body">
-                <h5 class="card-title">For meetup orga</h5>
-                <div class="card-text">
-                    <ul class="mb-0">
-                        <li>Create and publish events</li>
-                        <li>Use a CFP and manage talks</li>
-                    </ul>
+    <div class="d-lg-flex position-relative">
+        <div class="container d-lg-flex align-items-lg-center space-top-2 space-top-md-5 space-lg-0 min-height-lg-100vh">
+                <!-- Content -->
+            <div class="row w-100">
+                <div class="col-lg-5">
+                    <h1 class="display-4 font-size-md-down-5 mb-3">Introducing Gospeak</h1>
+                    <p>
+                        A plateform for
+                        <span class="text-primary">
+                            <strong class="u-text-animation u-text-animation--typing"></strong>
+                        </span>
+                        <br> An Open Source project to helps organizers to find speakers.
+                    </p>
+
+                    <div class="d-flex align-items-center flex-wrap">
+                        <a class="btn btn-soft-primary btn-wide transition-3d-hover" href="@CfpCtrl.list()">Find a place to talk!</a>
+
+
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="card">
-            <img src="@routes.Assets.versioned("lib/web/img/speaking.jpg")" class="card-img-top" alt="Card image cap">
-            <div class="card-body">
-                <h5 class="card-title">For speakers</h5>
-                <div class="card-text">
-                    <ul class="mb-0">
-                        <li>Manage your talks and propose them</li>
-                        <li>Let organizers find your talks</li>
-                        <li>Build your public profile</li>
-                    </ul>
-                </div>
+                <!-- End Content -->
+
+                <!-- SVG Background -->
+            <div id="SVGMainHero" class="col-lg-9 col-xl-7 svg-preloader d-none d-lg-block position-absolute top-0 right-0 pr-0" style="margin-top: 105.6px;">
+                <figure class="ie-main-hero">
+                    <img class="js-svg-injector" src="@routes.Assets.versioned("lib/web/img/main-hero.svg")" alt="Image Description" data-img-paths='[
+                   {"targetId": "#SVGMainHeroImg1", "newPath": "@routes.Assets.versioned("lib/web/img/micro.jpg")"}
+                 ]' data-parent="#SVGMainHero">
+                </figure>
             </div>
-        </div>
-        <div class="card">
-            <img src="@routes.Assets.versioned("lib/web/img/speaking.jpg")" class="card-img-top" alt="Card image cap">
-            <div class="card-body">
-                <h5 class="card-title">For everybody</h5>
-                <div class="card-text">
-                    <ul class="mb-0">
-                        <li>Find events to attend</li>
-                        <li>Watch recorded talks</li>
-                    </ul>
-                </div>
-            </div>
+                <!-- End SVG Background -->
         </div>
     </div>
 
-    <h4 class="mt-5 mb-3 text-center">Still need to be convinced? Read our <a href="@HomeCtrl.why()">Why use Gospeak?</a> page.</h4>
-}()
+}{
+          <script>
+            $(window).on('load', function() {
+                // initialization of HSMegaMenu component
+                $('.js-mega-menu').HSMegaMenu({
+                    event: 'hover',
+                    pageContainer: $('.container'),
+                    breakpoint: 767.98,
+                    hideTimeOut: 0
+                });
+
+                // initialization of svg injector module
+                $.HSCore.components.HSSVGIngector.init('.js-svg-injector');
+            });
+
+            $(document).on('ready', function() {
+                // initialization of header
+                $.HSCore.components.HSHeader.init($('#header'));
+
+                // initialization of unfold component
+                $.HSCore.components.HSUnfold.init($('[data-unfold-target]'));
+
+                // initialization of fancybox
+                $.HSCore.components.HSFancyBox.init('.js-fancybox');
+
+                // initialization of text animation (typing)
+                var typed = new Typed(".u-text-animation.u-text-animation--typing", {
+                    strings: ["speakers.", "organizers.", "attendees."],
+                    typeSpeed: 60,
+                    loop: true,
+                    backSpeed: 25,
+                    backDelay: 1500
+                });
+
+                // initialization of go to
+                $.HSCore.components.HSGoTo.init('.js-go-to');
+            });
+        </script>
+}

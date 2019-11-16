@@ -2,12 +2,12 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.published.partials.html.{container, speakerItem}
+@import fr.gospeak.web.pages.published.partials.html.{container_theme, speakerItem}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 
 @(speakers: Page[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container("Gospeak - speakers", b)() {
+@container_theme("Gospeak - speakers", b)() {
     <h1>Speakers</h1>
     @Formats.paginated[User](speakers, SpeakerCtrl.list, speakerItem(_))
 }()

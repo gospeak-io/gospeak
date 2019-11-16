@@ -1,0 +1,20 @@
+/*------------------------------------
+  Indicator Vertical Line
+------------------------------------*/
+
+.u-indicator-vertical-line {
+  position: relative;
+
+  @include media-breakpoint-up(md) {
+    &::after {
+      position: absolute;
+      right: -.9375rem;
+      top: 50%;
+      height: $indicator-ver-line-height;
+      border-left: $indicator-ver-line-border-width $indicator-ver-line-border-type $indicator-ver-line-border-color;
+      content: "";
+      margin-top: -2rem;
+      transform: $indicator-ver-line-transform-rotate;
+    }
+  }
+}

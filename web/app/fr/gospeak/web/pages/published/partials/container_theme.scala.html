@@ -1,6 +1,6 @@
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.partials.container.html.{breadcrumb, flash, main, navbarLink, userDropdown}
+@import fr.gospeak.web.pages.partials.container.html.{breadcrumb, flash, main_theme, navbarLink_theme, userDropdown}
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.pages.published.routes.HomeCtrl
@@ -8,40 +8,76 @@
 @import fr.gospeak.web.utils.UserAwareReq
 
 @(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
-@main_theme(title, "published.css", style, script, req.env) {
-    <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="@HomeCtrl.index()">Gospeak</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
-            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                <div class="navbar-nav">
-                    @navbarLink(CfpCtrl.list(), "data-hotkey" -> "1") {Call For Proposals}
-                    @navbarLink(GroupCtrl.list(), "data-hotkey" -> "2") {Groups}
-                    @navbarLink(SpeakerCtrl.list(), "data-hotkey" -> "3") {Speakers}
-                </div>
-            </div>
-            <div class="navbar-nav">
-            @req.secured.map { r =>
-                @userDropdown(r.user, r.groups)
-            }.getOrElse {
-                <a class="nav-item nav-link" href="@AuthCtrl.login()">Login</a>
-            }
+@main_theme(title, "published_theme.css", style, script, req.env) {
+
+    <header id="header" class="u-header u-header--abs-top-md u-header--bg-transparent u-header--show-hide-md" data-header-fix-moment="500" data-header-fix-effect="slide">
+        <div class="u-header__section">
+
+            <!-- End Topbar -->
+
+            <div id="logoAndNav" class="container">
+                <!-- Nav -->
+                <nav class="js-mega-menu navbar navbar-expand-md u-header__navbar u-header__navbar--no-space">
+                    <!-- Logo -->
+                    <a class="navbar-brand u-header__navbar-brand u-header__navbar-brand-center" href="@HomeCtrl.index()" aria-label="Gospeak">
+                        <span class="u-header__navbar-brand-text">Gospeak</span>
+                    </a>
+                    <!-- End Logo -->
+
+                    <!-- Responsive Toggle Button -->
+                    <button type="button" class="navbar-toggler btn u-hamburger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navBar" data-toggle="collapse" data-target="#navBar">
+                        <span id="hamburgerTrigger" class="u-hamburger__box">
+                            <span class="u-hamburger__inner"></span>
+                        </span>
+                    </button>
+                    <!-- End Responsive Toggle Button -->
+
+                    <!-- Navigation -->
+                    <div id="navBar" class="collapse navbar-collapse u-header__navbar-collapse">
+                        <ul class="navbar-nav u-header__navbar-nav">
+                            <!-- CFPS -->
+                            <li class="nav-item  u-header__nav-item" data-event="hover" data-animation-in="slideInUp" data-animation-out="fadeOut" data-position="left">
+                                @navbarLink_theme(CfpCtrl.list(), "data-hotkey" -> "1") {Call For Proposals}
+                            </li>
+                            <!-- End CFPS -->
+
+                            <!-- GROUPS -->
+                            <li class="nav-item  u-header__nav-item" data-event="hover" data-animation-in="slideInUp" data-animation-out="fadeOut">
+                                @navbarLink_theme(GroupCtrl.list(), "data-hotkey" -> "2") {Groups}
+
+                            </li>
+                            <!-- End GROUPS -->
+
+                            <!-- SPEAKERS -->
+                            <li class="nav-item  u-header__nav-item" data-event="hover" data-animation-in="slideInUp" data-animation-out="fadeOut">
+                                @navbarLink_theme(SpeakerCtrl.list(), "data-hotkey" -> "3") {Speakers}
+                            </li>
+                            <!-- End SPEAKERS -->
+
+                            <!-- LOGIN -->
+                            <li class="nav-item u-header__nav-last-item">
+                                @req.secured.map { r =>
+                                    @userDropdown(r.user, r.groups)
+                                    }.getOrElse {
+                                    <a class="btn btn-sm btn-primary transition-3d-hover" href="@AuthCtrl.login()">Login</a>
+                                }
+                            </li>
+                            <!-- End LOGIN -->
+                        </ul>
+                    </div>
+                    <!-- End Navigation -->
+                </nav>
+                <!-- End Nav -->
             </div>
         </div>
-    </nav>
-    @breadcrumb(b)
-    <div class="container">
+    </header>
+
+
+    <main id="content" role="main">
         @flash(req.flash)
         @content
-    </div>
-    <footer class="footer">
-        <p>
-            <b>Gospeak</b> is an
-            <a href="https://github.com/loicknuchel/gospeak" target="_blank">Open Source project</a>,
-            feel free to create an issue if you think about any possible improvement :)
-        </p>
-    </footer>
+    </main>
+
+
 }
+

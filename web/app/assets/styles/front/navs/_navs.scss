@@ -1,0 +1,158 @@
+/*------------------------------------
+  Navs
+------------------------------------*/
+
+.nav {
+	&-classic {
+		border-bottom: $nav-classic-border-width $nav-classic-border-type $nav-classic-border-color;
+
+		.nav-link {
+			color: $nav-classic-nav-link-color;
+			border-bottom: $nav-classic-nav-link-border-width $nav-classic-nav-link-border-type $nav-classic-nav-link-border-color;
+			@include border-radius(0);
+			padding: 1rem 1.5rem;
+			margin-bottom: -.125rem;
+			transition: $nav-classic-nav-link-transition-timing;
+
+			&:hover {
+				color: $nav-classic-nav-link-state-color;
+			}
+
+			&.active {
+				color: $nav-classic-nav-link-state-color;
+				border-bottom-color: $nav-classic-nav-link-state-color;
+			}
+		}
+	}
+
+	&-borderless {
+		border-color: transparent;
+	}
+
+	&-rounded {
+		@include border-radius($nav-rounded-border-radius);
+
+		.nav-item {
+			&:first-child {
+				.nav-link {
+					@include border-bottom-left-radius($nav-rounded-border-radius);
+				}
+			}
+
+			&:last-child {
+				.nav-link {
+					@include border-bottom-right-radius($nav-rounded-border-radius);
+				}
+			}
+		}
+	}
+
+	&-shadow {
+		box-shadow: $nav-shadow;
+	}
+
+	.nav-item {
+		&:not(:first-child) {
+			margin-left: .25rem;
+		}
+
+		&:not(:last-child) {
+			margin-right: .25rem;
+		}
+	}
+}
+
+/* White Color */
+.nav-white {
+	.nav-link {
+		color: $nav-white-nav-link-color;
+
+		&.active {
+			color: $nav-white-nav-link-active-color;
+			background-color: $nav-white-nav-link-active-bg-color;
+		}
+
+		&:not(.active):hover {
+			color: $nav-white-nav-link-hover-color;
+		}
+	}
+}
+
+/* White Border Color */
+.nav-border-white {
+	.nav-link {
+		color: $nav-border-white-nav-link-color;
+		border-bottom: $nav-border-white-nav-link-border-width $nav-border-white-nav-link-border-type $nav-border-white-nav-link-border-color;
+
+		&.active {
+			color: $nav-border-white-nav-link-active-color;
+			border-bottom-color: $nav-border-white-nav-link-border-active-color;
+		}
+
+		&:not(.active):hover {
+			color: $nav-border-white-nav-link-hover-color;
+		}
+	}
+}
+
+/* Box */
+.nav-box {
+	.nav-link {
+		color: $nav-box-nav-link-color;
+		border: $nav-box-border-width $nav-box-border-type $nav-box-border-color;
+		@include border-radius($nav-box-border-radius);
+
+		&.active {
+			color: $nav-box-nav-link-active-color;
+			background-color: $nav-box-nav-link-active-bg-color;
+			border-color: $nav-box-nav-link-active-border-color;
+			box-shadow: $nav-box-nav-link-active-box-shadow;
+		}
+
+		&:hover {
+			border-color: $nav-box-nav-link-hover-color;
+			box-shadow: $nav-box-nav-link-hover-box-shadow;
+		}
+	}
+}
+
+/* Nav Steps */
+.nav-icon {
+	.nav-item {
+		color: $nav-icon-nav-item-color;
+
+		&.active {
+			color: $nav-icon-nav-item-active-color;
+
+			.nav-icon-action {
+				color: $nav-icon-nav-item-active-nia-color;
+				background-color: $nav-icon-nav-item-active-nia-bg-color;
+				transform: scale(1);
+			}
+		}
+	}
+
+	&-action {
+		position: relative;
+	  display: block;
+	  vertical-align: middle;
+	  text-align: center;
+	  z-index: $nav-icon-z-index;
+	  line-height: $nav-icon-line-height;
+	  width: $nav-icon-width;
+	  height: $nav-icon-height;
+	  font-size: $nav-icon-font-size;
+	  color: $nav-icon-action-color;
+	  background-color: $nav-icon-action-bg-color;
+	  @include border-radius($nav-icon-action-border-radius);
+	  margin-right: auto;
+	  margin-left: auto;
+	  margin-bottom: .5rem;
+		transition: $nav-transition;
+		transform: scale(.8);
+
+		&-inner {
+	  	@include content-centered;
+	  }
+	}
+}
