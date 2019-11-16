@@ -4,7 +4,7 @@
 @import fr.gospeak.web.utils.UserAwareReq
 
 @()(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container("Gospeak", b)() {
+@container_theme("Gospeak", b)() {
     <h1 class="home-title">Gospeak</h1>
 
     <div class="card-deck">

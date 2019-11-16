@@ -1,0 +1,33 @@
+@import fr.gospeak.core.ApplicationConf
+@(title: String, stylesheet: String, style: Html, script: Html, env: ApplicationConf.Env)(content: Html)
+<!doctype html>
+<html lang="en"@if(!env.isProd){ class="@env"}>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="@routes.Assets.versioned("lib/bootstrap/dist/css/bootstrap.min.css")">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
+        <link rel="stylesheet" href="@routes.Assets.versioned("lib/select2/dist/css/select2.min.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("lib/select2-bootstrap-theme/dist/select2-bootstrap.min.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("lib/bootstrap-datepicker/dist/css/bootstrap-datepicker3.min.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("lib/typeahead.js-bootstrap4-css/typeaheadjs.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned(s"lib/web/styles/$stylesheet")">
+        @style
+        <title>@title</title>
+    </head>
+    <body>
+        @content
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/jquery/dist/jquery.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/bootstrap/dist/js/bootstrap.bundle.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/autosize/dist/autosize.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/select2/dist/js/select2.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/bootstrap-datepicker/dist/locales/bootstrap-datepicker.fr.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/imask/dist/imask.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/github-com-twitter-typeahead-js/typeahead.bundle.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/mousetrap/mousetrap.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/main.js")"></script>
+        <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAyBrYxVFLX8Vl8ClH9wp-eNK_o2vzUBdA&libraries=places&language=en&callback=googleMapsInit" async defer></script>
+        @script
+    </body>
+</html>

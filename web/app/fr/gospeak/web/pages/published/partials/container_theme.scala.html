@@ -1,0 +1,47 @@
+@import fr.gospeak.web.auth.routes.AuthCtrl
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.partials.container.html.{breadcrumb, flash, main, navbarLink, userDropdown}
+@import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
+@import fr.gospeak.web.pages.published.routes.HomeCtrl
+@import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.utils.UserAwareReq
+
+@(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
+@main_theme(title, "published.css", style, script, req.env) {
+    <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="@HomeCtrl.index()">Gospeak</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav">
+                    @navbarLink(CfpCtrl.list(), "data-hotkey" -> "1") {Call For Proposals}
+                    @navbarLink(GroupCtrl.list(), "data-hotkey" -> "2") {Groups}
+                    @navbarLink(SpeakerCtrl.list(), "data-hotkey" -> "3") {Speakers}
+                </div>
+            </div>
+            <div class="navbar-nav">
+            @req.secured.map { r =>
+                @userDropdown(r.user, r.groups)
+            }.getOrElse {
+                <a class="nav-item nav-link" href="@AuthCtrl.login()">Login</a>
+            }
+            </div>
+        </div>
+    </nav>
+    @breadcrumb(b)
+    <div class="container">
+        @flash(req.flash)
+        @content
+    </div>
+    <footer class="footer">
+        <p>
+            <b>Gospeak</b> is an
+            <a href="https://github.com/loicknuchel/gospeak" target="_blank">Open Source project</a>,
+            feel free to create an issue if you think about any possible improvement :)
+        </p>
+    </footer>
+}
