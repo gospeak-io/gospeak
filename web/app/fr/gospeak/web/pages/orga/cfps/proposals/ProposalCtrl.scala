@@ -46,6 +46,15 @@ class ProposalCtrl(cc: ControllerComponents,
     proposalView(group, cfp, proposal, GenericForm.comment, GenericForm.comment)
   }
 
+  def doRate(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, grade: Proposal.Rating.Grade): Action[AnyContent] = SecuredActionIO { implicit req =>
+    (for {
+      _ <- OptionT(groupRepo.find(req.user.id, group)) // to ensure user is an orga
+      proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
+      _ <- OptionT.liftF(proposalRepo.rate(cfp, proposalElt.id, grade, req.user.id, req.now))
+      next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal)).flashing("success" -> "Rating saved")
+    } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
+  }
+
   def doSendComment(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, orga: Boolean): Action[AnyContent] = SecuredActionIO { implicit req =>
     GenericForm.comment.bindFromRequest.fold(
       formWithErrors => proposalView(group, cfp, proposal, if (orga) GenericForm.comment else formWithErrors, if (orga) formWithErrors else GenericForm.comment),
@@ -62,12 +71,13 @@ class ProposalCtrl(cc: ControllerComponents,
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       speakers <- OptionT.liftF(userRepo.list(proposalElt.users))
+      ratings <- OptionT.liftF(proposalRepo.listRatings(proposalElt.id))
       comments <- OptionT.liftF(commentRepo.getComments(proposalElt.id))
       orgaComments <- OptionT.liftF(commentRepo.getOrgaComments(proposalElt.id))
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposal))
       events <- OptionT.liftF(eventRepo.list(proposalElt.event.toList))
       b = breadcrumb(groupElt, cfpElt, proposalElt)
-      res = Ok(html.detail(groupElt, cfpElt, proposalElt, speakers, comments, orgaComments, invites, events, ProposalForms.addSpeaker, GenericForm.embed, commentForm, orgaCommentForm)(b))
+      res = Ok(html.detail(groupElt, cfpElt, proposalElt, speakers, ratings, comments, orgaComments, invites, events, ProposalForms.addSpeaker, GenericForm.embed, commentForm, orgaCommentForm)(b))
     } yield res).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 

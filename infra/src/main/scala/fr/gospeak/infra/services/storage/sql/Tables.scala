@@ -126,9 +126,9 @@ object Tables {
   val proposalRatingTable: Table = Table.from(
     name = "proposal_ratings",
     prefix = "pr",
-    fields = Seq("proposal_id", "rating", "created", "created_by"),
-    sort = Seq("rating"),
-    search = Seq("proposal_id")).get
+    fields = Seq("proposal_id", "grade", "created_at", "created_by"),
+    sort = Seq("created_at"),
+    search = Seq("proposal_id", "grade", "created_by")).get
 
   val comments: Table = Table.from(
     name = "comments",

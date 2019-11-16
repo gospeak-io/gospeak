@@ -42,6 +42,9 @@ object PathBindables {
   implicit def proposalIdPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Proposal.Id] =
     stringEitherPathBindable[Proposal.Id](Proposal.Id.from, _.value)
 
+  implicit def proposalRatingGradePathBinder(implicit intBinder: PathBindable[Int]): PathBindable[Proposal.Rating.Grade] =
+    intEitherPathBindable[Proposal.Rating.Grade](Proposal.Rating.Grade.from, _.value)
+
   implicit def userSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[User.Slug] =
     stringEitherPathBindable[User.Slug](User.Slug.from, _.value)
 
@@ -80,5 +83,12 @@ object PathBindables {
       override def bind(key: String, value: String): Either[String, A] = pb.bind(key, value).flatMap(from(_).left.map(_.getMessage))
 
       override def unbind(key: String, value: A): String = to(value)
+    }
+
+  private def intEitherPathBindable[A](from: Int => Either[CustomException, A], to: A => Int)(implicit pb: PathBindable[Int]): PathBindable[A] =
+    new PathBindable[A] {
+      override def bind(key: String, value: String): Either[String, A] = pb.bind(key, value).flatMap(from(_).left.map(_.getMessage))
+
+      override def unbind(key: String, value: A): String = to(value).toString
     }
 }

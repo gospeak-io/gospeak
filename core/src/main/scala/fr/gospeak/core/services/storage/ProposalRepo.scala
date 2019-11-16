@@ -22,6 +22,8 @@ trait OrgaProposalRepo {
 
   def cancelReject(cfp: Cfp.Slug, id: Proposal.Id, by: User.Id, now: Instant): IO[Done]
 
+  def rate(cfp: Cfp.Slug, id: Proposal.Id, grade: Proposal.Rating.Grade, by: User.Id, now: Instant): IO[Done]
+
   def editSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Slides, by: User.Id, now: Instant): IO[Done]
 
   def editVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, by: User.Id, now: Instant): IO[Done]
@@ -40,11 +42,7 @@ trait OrgaProposalRepo {
 
   def find(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal]]
 
-  def firstVote(id: Proposal.Id, userId: User.Id, rating: Proposal.Vote.Rating, now: Instant): IO[Done]
-
-  def updateVote(id: Proposal.Id, userId: User.Id, rating: Proposal.Vote.Rating, now: Instant): IO[Done]
-
-  def countVotes(id: Proposal.Id): IO[Seq[Proposal.Vote.Rating]]
+  def listRatings(id: Proposal.Id): IO[Seq[Proposal.Rating.Full]]
 }
 
 trait SpeakerProposalRepo {

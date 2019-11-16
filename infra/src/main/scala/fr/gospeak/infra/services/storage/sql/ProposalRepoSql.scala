@@ -7,7 +7,6 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.Proposal.Vote
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.storage.ProposalRepo
@@ -86,6 +85,12 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def cancelReject(cfp: Cfp.Slug, id: Proposal.Id, by: User.Id, now: Instant): IO[Done] =
     updateStatus(cfp, id)(Proposal.Status.Pending, None).run(xa) // FIXME track user & date
 
+  override def rate(cfp: Cfp.Slug, id: Proposal.Id, grade: Proposal.Rating.Grade, by: User.Id, now: Instant): IO[Done] =
+    selectOneRating(id, by).runOption(xa).flatMap {
+      case Some(_) => update(Proposal.Rating(id, grade, now, by)).run(xa)
+      case None => insert(Proposal.Rating(id, grade, now, by)).run(xa).map(_ => Done)
+    }
+
   override def find(proposal: Proposal.Id): IO[Option[Proposal]] = selectOne(proposal).runOption(xa)
 
   override def find(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal]] = selectOne(cfp, id).runOption(xa)
@@ -120,14 +125,7 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 
-  override def firstVote(id: Proposal.Id, user: User.Id, rating: Vote.Rating, now: Instant): IO[Done] =
-    insertVote(Proposal.Vote(id, user, rating, now)).run(xa).map(_ => Done)
-
-  override def updateVote(id: Proposal.Id, userId: User.Id, rating: Vote.Rating, now: Instant): IO[Done] =
-    update(Proposal.Vote(id, userId, rating, now)).run(xa).map(_ => Done)
-
-  override def countVotes(id: Proposal.Id): IO[Seq[Proposal.Vote.Rating]] = selectVotes(id).runList(xa)
-
+  override def listRatings(id: Proposal.Id): IO[Seq[Proposal.Rating.Full]] = selectAllRatings(id).runList(xa)
 }
 
 object ProposalRepoSql {
@@ -139,14 +137,16 @@ object ProposalRepoSql {
     .join(Tables.talks, _.talk_id("p") -> _.id).get
     .joinOpt(Tables.events, _.event_id("p") -> _.id).get
   private val ratingTable = Tables.proposalRatingTable
+  private val ratingTableFull = ratingTable
+    .join(Tables.users, _.created_by -> _.id).get
 
   private[sql] def insert(e: Proposal): Insert[Proposal] = {
     val values = fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
     table.insert[Proposal](e, _ => values)
   }
 
-  private[sql] def insertVote(e: Proposal.Vote): Insert[Proposal.Vote] =
-    ratingTable.insert[Proposal.Vote](e, _ => fr0"${e.proposal}, ${e.rating.value}, ${e.user}, ${e.voted}")
+  private[sql] def insert(e: Proposal.Rating): Insert[Proposal.Rating] =
+    ratingTable.insert[Proposal.Rating](e, _ => fr0"${e.proposal}, ${e.grade.value}, ${e.createdAt}, ${e.createdBy}")
 
   private[sql] def update(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.Data, now: Instant): Update = {
     val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$orga"
@@ -158,8 +158,8 @@ object ProposalRepoSql {
     table.update(fields, where(speaker, talk, cfp))
   }
 
-  private[sql] def update(e: Proposal.Vote): Update =
-    ratingTable.update(fr"rating=${e.rating.value}, created=${e.voted}", fr0"WHERE vp.proposal_id=${e.proposal} AND vp.created_by=${e.user}")
+  private[sql] def update(e: Proposal.Rating): Update =
+    ratingTable.update(fr"grade=${e.grade.value}, created_at=${e.createdAt}", fr0"WHERE pr.proposal_id=${e.proposal} AND pr.created_by=${e.createdBy}")
 
   private[sql] def updateStatus(cfp: Cfp.Slug, id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): Update =
     table.update(fr0"status=$status, event_id=$event", where(cfp, id))
@@ -230,8 +230,11 @@ object ProposalRepoSql {
   private[sql] def selectTags(): Select[Seq[Tag]] =
     table.select[Seq[Tag]](Seq(Field("tags", "p")), Seq())
 
-  private[sql] def selectVotes(id: Proposal.Id): Select[Proposal.Vote.Rating] =
-    ratingTable.select[Proposal.Vote.Rating](Seq(Field("rating", "pr")), fr0"WHERE vp.proposal_id=$id")
+  private[sql] def selectOneRating(id: Proposal.Id, user: User.Id): Select[Proposal.Rating] =
+    ratingTable.select[Proposal.Rating](fr0"WHERE pr.proposal_id=$id AND pr.created_by=$user")
+
+  private[sql] def selectAllRatings(id: Proposal.Id): Select[Proposal.Rating.Full] =
+    ratingTableFull.select[Proposal.Rating.Full](fr0"WHERE pr.proposal_id=$id")
 
   private def where(id: Proposal.Id): Fragment =
     fr0"WHERE p.id=$id"

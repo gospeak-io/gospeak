@@ -83,32 +83,37 @@ object Proposal {
     def users: Seq[User.Id] = proposal.users
   }
 
-  final case class Vote(proposal: Proposal.Id,
-                        user: User.Id,
-                        rating: Vote.Rating,
-                        voted: Instant)
+  final case class Rating(proposal: Id,
+                          grade: Rating.Grade,
+                          createdAt: Instant,
+                          createdBy: User.Id)
 
-  object Vote {
+  object Rating {
 
-    sealed trait Rating extends Product with Serializable {
-      def value: Int
+    sealed abstract class Grade(val value: Int) extends Product with Serializable
+
+    object Grade {
+
+      case object Like extends Grade(1)
+
+      case object Dislike extends Grade(0)
+
+      val all: Seq[Grade] = Seq(Like, Dislike)
+
+      def from(value: Int): Either[CustomException, Grade] =
+        all.find(_.value == value).map(Right(_)).getOrElse(Left(CustomException(s"'$value' is not a valid Proposal.Rating.Grade")))
+
+      implicit val ordering: Ordering[Grade] = (x: Grade, y: Grade) => x.value - y.value
     }
 
-    object Rating {
+    final case class Full(rating: Rating, user: User) {
+      def proposal: Id = rating.proposal
 
-      case object Like extends Rating {
-        val value = 1
-      }
+      def grade: Grade = rating.grade
 
-      case object Dislike extends Rating {
-        val value = 0
-      }
+      def createdAt: Instant = rating.createdAt
 
-      val all: Seq[Rating] = Seq(Like, Dislike)
-
-      def from(int: Int): Either[CustomException, Rating] =
-        all.find(_.value == int).map(Right(_)).getOrElse(Left(CustomException(s"'$int' is not a valid rating for Proposal.Vote.Rating")))
-
+      def createdBy: User.Id = rating.createdBy
     }
 
   }
