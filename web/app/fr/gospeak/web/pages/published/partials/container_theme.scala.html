@@ -9,14 +9,9 @@
 
 @(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
 @main_theme(title, "published_theme.css", style, script, req.env) {
-
     <header id="header" class="u-header u-header--abs-top-md u-header--bg-transparent u-header--show-hide-md" data-header-fix-moment="500" data-header-fix-effect="slide">
         <div class="u-header__section">
-
-            <!-- End Topbar -->
-
             <div id="logoAndNav" class="container">
-                <!-- Nav -->
                 <nav class="js-mega-menu navbar navbar-expand-md u-header__navbar u-header__navbar--no-space">
                     <!-- Logo -->
                     <a class="navbar-brand u-header__navbar-brand u-header__navbar-brand-center" href="@HomeCtrl.index()" aria-label="Gospeak">
@@ -71,13 +66,9 @@
             </div>
         </div>
     </header>
-
-
     <main id="content" role="main">
         @flash(req.flash)
         @content
     </main>
-
-
 }
 

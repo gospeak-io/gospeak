@@ -4,19 +4,16 @@
 
 
 @(speaker: User)
-<div class="card-deck d-block d-lg-flex card-lg-gutters-2">
-    <a class="card card-frame mb-3" href="@SpeakerCtrl.detail(speaker.slug)">
-        <div class="card-body">
-            <div class="media">
-                <div class="u-avatar mr-3">
-                    <img class="img-fluid rounded-circle" src="@speaker.avatar.url.value" alt="@speaker.avatar.url.value avatar">
-                </div>
-                <div class="media-body">
-                    <h4 class="h6 text-dark mb-0">@speaker.name.value</h4>
-                    <span>@speaker.profile.website.map { url => @websiteLink(url) }</span>
-                    <span>@speaker.profile.twitter.map { url => @twitterLink(url) }</span>
-                </div>
+<div class="card card-frame mb-3">
+    <div class="card-body">
+        <div class="media">
+            <div class="u-avatar mr-3">
+                <img class="img-fluid rounded-circle" src="@speaker.avatar.url.value" alt="@speaker.name.value avatar">
+            </div>
+            <div class="media-body">
+                <a href="@SpeakerCtrl.detail(speaker.slug)" ><h4 class="h6 text-dark mb-0">@speaker.name.value</h4></a>
+                <span><small> @speaker.profile.twitter.map { url => @twitterLink(url)<br> }</small></span>
             </div>
         </div>
-    </a>
+    </div>
 </div>
