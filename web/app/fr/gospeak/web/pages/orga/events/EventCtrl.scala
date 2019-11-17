@@ -83,11 +83,12 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       e <- OptionT(eventSrv.getFullEvent(group, event, req.user.id))
       eventTemplates <- OptionT.liftF(groupSettingsRepo.findEventTemplates(e.group.id))
-      proposals <- OptionT.liftF(e.cfpOpt.map(cfp => proposalRepo.list(cfp.id, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal])))
+      proposals <- OptionT.liftF(e.cfpOpt.map(cfp => proposalRepo.listFull(cfp.id, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal.Full])))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
+      userRatings <- OptionT.liftF(proposalRepo.listRatings(req.user.id, proposals.items.map(_.id)))
       desc = eventSrv.buildDescription(e)
       b = breadcrumb(e.group, e.event)
-      res = Ok(html.detail(e.group, e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, eventTemplates, EventForms.cfp, EventForms.notes.fill(e.event.orgaNotes.text))(b))
+      res = Ok(html.detail(e.group, e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, userRatings, eventTemplates, EventForms.cfp, EventForms.notes.fill(e.event.orgaNotes.text))(b))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 

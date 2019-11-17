@@ -19,20 +19,7 @@
             @duration(proposal.duration)
             @slidesIcon(proposal.slides)
             @videoIcon(proposal.video)
-            @userRatings.find(_.proposal == proposal.id).map(_.grade) match {
-                case Some(Proposal.Rating.Grade.Like) => {
-                    @formBtn(ProposalCtrl.doRate(group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), Seq("class" -> "btn-secondary btn-xs")) {@proposal.dislikes <i class="far fa-thumbs-down"></i>}
-                    @formBtn(ProposalCtrl.doRate(group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Like), Seq("class" -> "btn-success btn-xs")) {@proposal.likes <i class="far fa-thumbs-up"></i>}
-                }
-                case Some(Proposal.Rating.Grade.Dislike) => {
-                    @formBtn(ProposalCtrl.doRate(group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), Seq("class" -> "btn-danger btn-xs")) {@proposal.dislikes <i class="far fa-thumbs-down"></i>}
-                    @formBtn(ProposalCtrl.doRate(group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Like), Seq("class" -> "btn-secondary btn-xs")) {@proposal.likes <i class="far fa-thumbs-up"></i>}
-                }
-                case None => {
-                    @formBtn(ProposalCtrl.doRate(group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), Seq("class" -> "btn-danger btn-xs")) {@proposal.dislikes <i class="far fa-thumbs-down"></i>}
-                    @formBtn(ProposalCtrl.doRate(group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Like), Seq("class" -> "btn-success btn-xs")) {@proposal.likes <i class="far fa-thumbs-up"></i>}
-                }
-            }
+            @proposalRating(proposal, userRatings.find(_.proposal == proposal.id).map(_.grade))
             @tags(proposal.tags)
             <small>Proposed on @date(proposal.info.created)</small>
         </span>

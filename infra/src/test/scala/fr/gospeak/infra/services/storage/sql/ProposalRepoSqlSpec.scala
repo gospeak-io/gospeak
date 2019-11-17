@@ -106,6 +106,10 @@ class ProposalRepoSqlSpec extends RepoSpec {
         val q = ProposalRepoSql.selectPageFull(cfp.id, params)
         check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE p.cfp_id=? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
+      it("should build selectPageFull for a cfp and status") {
+        val q = ProposalRepoSql.selectPageFull(cfp.id, Proposal.Status.Pending, params)
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE p.cfp_id=? AND p.status=? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
+      }
       it("should build selectPageFull for a group") {
         val q = ProposalRepoSql.selectPageFull(group.id, params)
         check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE c.group_id=? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")

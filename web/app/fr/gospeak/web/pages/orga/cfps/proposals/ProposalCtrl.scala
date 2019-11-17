@@ -48,12 +48,12 @@ class ProposalCtrl(cc: ControllerComponents,
   }
 
   def doRate(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, grade: Proposal.Rating.Grade): Action[AnyContent] = SecuredActionIO { implicit req =>
-    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.ProposalCtrl.detail(group, cfp, proposal).toString)).flashing("success" -> "Rating saved")
+    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.ProposalCtrl.detail(group, cfp, proposal).toString))
     (for {
       _ <- OptionT(groupRepo.find(req.user.id, group)) // to ensure user is an orga
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       _ <- OptionT.liftF(proposalRepo.rate(cfp, proposalElt.id, grade, req.user.id, req.now))
-    } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
+    } yield next.flashing("success" -> s"$grade saved on <b>${proposalElt.title.value}</b>")).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
   def doSendComment(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, orga: Boolean): Action[AnyContent] = SecuredActionIO { implicit req =>

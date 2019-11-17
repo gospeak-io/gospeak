@@ -36,6 +36,8 @@ trait OrgaProposalRepo {
 
   def listFull(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
+  def listFull(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal.Full]]
+
   def list(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal]]
 
   def list(ids: Seq[Proposal.Id]): IO[Seq[Proposal]]

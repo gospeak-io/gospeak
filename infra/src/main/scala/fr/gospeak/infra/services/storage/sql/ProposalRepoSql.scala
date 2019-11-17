@@ -107,6 +107,8 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def listFull(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(cfp, params).run(xa)
 
+  override def listFull(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(cfp, status, params).run(xa)
+
   override def listFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(group, params).run(xa)
 
   override def listFull(talk: Talk.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(talk, params).run(xa)
@@ -220,6 +222,9 @@ object ProposalRepoSql {
 
   private[sql] def selectPageFull(cfp: Cfp.Id, params: Page.Params): SelectPage[Proposal.Full] =
     tableFull.selectPage[Proposal.Full](params, fr0"WHERE p.cfp_id=$cfp")
+
+  private[sql] def selectPageFull(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): SelectPage[Proposal.Full] =
+    tableFull.selectPage[Proposal.Full](params, fr0"WHERE p.cfp_id=$cfp AND p.status=$status")
 
   private[sql] def selectPageFull(group: Group.Id, params: Page.Params): SelectPage[Proposal.Full] =
     tableFull.selectPage[Proposal.Full](params, fr0"WHERE c.group_id=$group")
