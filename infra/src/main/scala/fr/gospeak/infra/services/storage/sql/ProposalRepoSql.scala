@@ -131,12 +131,17 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 object ProposalRepoSql {
   private val _ = proposalIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.proposals
+  private val ratingTable = Tables.proposalRatingTable
   private val tableFull = table
     .join(Tables.cfps, _.cfp_id -> _.id).get
     .join(Tables.groups.dropFields(_.name.startsWith("location_")), _.group_id("c") -> _.id).get
     .join(Tables.talks, _.talk_id("p") -> _.id).get
     .joinOpt(Tables.events, _.event_id("p") -> _.id).get
-  private val ratingTable = Tables.proposalRatingTable
+    .joinOpt(ratingTable, _.id("p") -> _.proposal_id).get.dropFields(_.prefix == ratingTable.prefix)
+    .aggregate("COALESCE(SUM(pr.grade), 0)", "score")
+    .aggregate("COALESCE((COUNT(pr.grade) + SUM(pr.grade)) / 2, 0)", "likes")
+    .aggregate("COALESCE((COUNT(pr.grade) - SUM(pr.grade)) / 2, 0)", "dislikes")
+    .copy(sort = Seq(Field("-COALESCE(SUM(pr.grade), 0)", ""), Field("-COALESCE(COUNT(pr.grade), 0)", ""), Field("-created", "p")))
   private val ratingTableFull = ratingTable
     .join(Tables.users, _.created_by -> _.id).get
 

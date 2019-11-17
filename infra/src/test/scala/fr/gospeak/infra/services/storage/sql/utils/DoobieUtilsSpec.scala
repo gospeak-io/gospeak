@@ -110,7 +110,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
     describe("Select") {
       it("should build a select") {
         val e = Entity(1, "n")
-        val sql = Select("table t", Seq(Field("id", "t"), Field("name", "t")), Some(fr0" WHERE t.id=${e.id}"), Seq(Field("name", "t")), Some(3)).fr.update.sql
+        val sql = Select("table t", Seq(Field("id", "t"), Field("name", "t")), Seq(), Some(fr0" WHERE t.id=${e.id}"), Seq(Field("name", "t")), Some(3)).fr.update.sql
         sql shouldBe "SELECT t.id, t.name FROM table t WHERE t.id=? ORDER BY t.name IS NULL, t.name LIMIT 3"
       }
     }
@@ -154,16 +154,28 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
       val defaultSort = Seq(Field("created", "t"))
       val prefix = "t"
       it("should build pagination") {
-        paginationFragment(prefix, None, p, fields, defaultSort).query.sql shouldBe " ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
-        paginationFragment(prefix, Some(where), p, fields, defaultSort).query.sql shouldBe "WHERE t.id=? ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
+        val (w, o, l) = paginationFragment(prefix, None, p, fields, defaultSort)
+        (w ++ o ++ l).query.sql shouldBe " ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
+      }
+      it("should build pagination with where") {
+        val (w, o, l) = paginationFragment(prefix, Some(where), p, fields, defaultSort)
+        (w ++ o ++ l).query.sql shouldBe "WHERE t.id=? ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
       }
       it("should build pagination with search") {
-        paginationFragment(prefix, None, p.search("q"), fields, defaultSort).query.sql shouldBe "WHERE t.name ILIKE ? OR t.desc ILIKE ? ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
-        paginationFragment(prefix, Some(where), p.search("q"), fields, defaultSort).query.sql shouldBe "WHERE t.id=? AND (t.name ILIKE ? OR t.desc ILIKE ?) ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
+        val (w, o, l) = paginationFragment(prefix, None, p.search("q"), fields, defaultSort)
+        (w ++ o ++ l).query.sql shouldBe "WHERE t.name ILIKE ? OR t.desc ILIKE ? ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
+      }
+      it("should build pagination with search and where") {
+        val (w, o, l) = paginationFragment(prefix, Some(where), p.search("q"), fields, defaultSort)
+        (w ++ o ++ l).query.sql shouldBe "WHERE t.id=? AND (t.name ILIKE ? OR t.desc ILIKE ?) ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
       }
       it("should build pagination with sort") {
-        paginationFragment(prefix, None, p.orderBy("name"), fields, defaultSort).query.sql shouldBe " ORDER BY t.name IS NULL, t.name LIMIT 20 OFFSET 0"
-        paginationFragment(prefix, Some(where), p.orderBy("name"), fields, defaultSort).query.sql shouldBe "WHERE t.id=? ORDER BY t.name IS NULL, t.name LIMIT 20 OFFSET 0"
+        val (w, o, l) = paginationFragment(prefix, None, p.orderBy("name"), fields, defaultSort)
+        (w ++ o ++ l).query.sql shouldBe " ORDER BY t.name IS NULL, t.name LIMIT 20 OFFSET 0"
+      }
+      it("should build pagination with sort search and where") {
+        val (w, o, l) = paginationFragment(prefix, Some(where), p.orderBy("name"), fields, defaultSort)
+        (w ++ o ++ l).query.sql shouldBe "WHERE t.id=? ORDER BY t.name IS NULL, t.name LIMIT 20 OFFSET 0"
       }
     }
   }

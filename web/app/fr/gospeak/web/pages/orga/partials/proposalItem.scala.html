@@ -17,6 +17,8 @@
             @duration(proposal.duration)
             @slidesIcon(proposal.slides)
             @videoIcon(proposal.video)
+            <span class="badge badge-success">@proposal.likes <i class="far fa-thumbs-up"></i></span>
+            <span class="badge badge-danger">@proposal.dislikes <i class="far fa-thumbs-down"></i></span>
             @tags(proposal.tags)
             <small>Proposed on @date(proposal.info.created)</small>
         </span>

@@ -135,7 +135,7 @@ class HomeCtrl(cc: ControllerComponents,
 
   def styleguide(params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
     implicit val secured: SecuredReq[AnyContent] = req.secured(identity, authenticator)
-    val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event))
+    val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event), 0L, 0L, 0L)
     IO.pure(Ok(html.styleguide(user, group, cfp, event, talk, proposal, proposalFull, params)))
   }
 }

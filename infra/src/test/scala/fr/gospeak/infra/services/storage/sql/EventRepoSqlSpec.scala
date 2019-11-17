@@ -88,11 +88,11 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPageAfter") {
         val q = EventRepoSql.selectPageAfter(group.id, now, params)
-        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.start > ? $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.start > ? $orderBy LIMIT 20 OFFSET 0", checkCount = false)
       }
       it("should build selectPageIncoming") {
         val q = EventRepoSql.selectPageIncoming(user.id, now, params)
-        check(q, s"SELECT $fieldsFullWithMemberAndRsvp FROM $tableFullWithMemberAndRsvp WHERE e.start > ? AND e.published IS NOT NULL AND gm.user_id=? $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fieldsFullWithMemberAndRsvp FROM $tableFullWithMemberAndRsvp WHERE e.start > ? AND e.published IS NOT NULL AND gm.user_id=? $orderBy LIMIT 20 OFFSET 0", checkCount = false)
       }
       it("should build selectTags") {
         val q = EventRepoSql.selectTags()

@@ -17,8 +17,8 @@ class ProposalRepoSqlSpec extends RepoSpec {
       proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe Seq()
       proposalRepo.listFull(cfp.id, params).unsafeRunSync().items shouldBe Seq()
       val proposal = proposalRepo.create(talk.id, cfp.id, proposalData1, speakers, user.id, now).unsafeRunSync()
-      proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None))
-      proposalRepo.listFull(cfp.id, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None))
+      proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None, 0L, 0L, 0L))
+      proposalRepo.listFull(cfp.id, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None, 0L, 0L, 0L))
       proposalRepo.find(cfp.slug, proposal.id).unsafeRunSync() shouldBe Some(proposal)
     }
     it("should fail to create a proposal when talk does not exists") {
@@ -88,15 +88,15 @@ class ProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOneFull for id") {
         val q = ProposalRepoSql.selectOneFull(proposal.id)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.id=? $orderBy")
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE p.id=? GROUP BY $fieldsFull $orderByFull")
       }
       it("should build selectOneFull for talk, cfp and speaker") {
         val q = ProposalRepoSql.selectOneFull(talk.slug, cfp.slug, user.id)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE t.slug=? AND c.slug=? AND p.speakers LIKE ? $orderBy")
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE t.slug=? AND c.slug=? AND p.speakers LIKE ? GROUP BY $fieldsFull $orderByFull")
       }
       it("should build selectOnePublicFull for id") {
         val q = ProposalRepoSql.selectOnePublicFull(group.id, proposal.id)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? AND p.id=? AND e.published IS NOT NULL $orderBy")
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE c.group_id=? AND p.id=? AND e.published IS NOT NULL GROUP BY $fieldsFull $orderByFull")
       }
       it("should build selectPage for a cfp and status") {
         val q = ProposalRepoSql.selectPage(cfp.id, Proposal.Status.Pending, params)
@@ -104,31 +104,31 @@ class ProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPageFull for a cfp") {
         val q = ProposalRepoSql.selectPageFull(cfp.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.cfp_id=? $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE p.cfp_id=? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull for a group") {
         val q = ProposalRepoSql.selectPageFull(group.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE c.group_id=? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull for a group and speaker") {
         val q = ProposalRepoSql.selectPageFull(group.id, user.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE c.group_id=? AND p.speakers LIKE ? $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE c.group_id=? AND p.speakers LIKE ? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull for a talk") {
         val q = ProposalRepoSql.selectPageFull(talk.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.talk_id=? $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE p.talk_id=? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull for a speaker") {
         val q = ProposalRepoSql.selectPageFull(user.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE p.speakers LIKE ? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectPagePublicFull for a speaker") {
         val q = ProposalRepoSql.selectPagePublicFull(user.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectPagePublicFull for a group") {
         val q = ProposalRepoSql.selectPagePublicFull(group.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectAll") {
         val q = ProposalRepoSql.selectAll(NonEmptyList.of(proposal.id))
@@ -136,7 +136,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build selectAllPublicFull") {
         val q = ProposalRepoSql.selectAllPublicFull(NonEmptyList.of(proposal.id))
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE p.id IN (?) AND e.published IS NOT NULL $orderBy")
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE p.id IN (?) AND e.published IS NOT NULL GROUP BY $fieldsFull $orderByFull")
       }
       it("should build selectTags") {
         val q = ProposalRepoSql.selectTags()
@@ -174,12 +174,14 @@ object ProposalRepoSqlSpec {
   private val whereCfpAndTalk = s"(SELECT p.id FROM $table INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $talkTable ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND p.speakers LIKE ?)"
   private val whereGroupAndCfp = s"(SELECT p.id FROM $table INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $groupTable ON c.group_id=g.id WHERE p.id=? AND c.slug=? AND g.slug=? AND g.owners LIKE ?)"
 
-  private val tableFull = s"$table INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $groupTable ON c.group_id=g.id INNER JOIN $talkTable ON p.talk_id=t.id LEFT OUTER JOIN $eventTable ON p.event_id=e.id"
-  private val fieldsFull = s"$fields, $cfpFields, $groupFields, $talkFields, $eventFields"
-
   private val ratingTable = "proposal_ratings pr"
   private val ratingFields = mapFields("proposal_id, grade, created_at, created_by" , "pr." + _)
   private val ratingOrderBy = "ORDER BY pr.created_at IS NULL, pr.created_at"
+
+  private val tableFull = s"$table INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $groupTable ON c.group_id=g.id INNER JOIN $talkTable ON p.talk_id=t.id LEFT OUTER JOIN $eventTable ON p.event_id=e.id LEFT OUTER JOIN $ratingTable ON p.id=pr.proposal_id"
+  private val fieldsFull = s"$fields, $cfpFields, $groupFields, $talkFields, $eventFields"
+  private val fieldsAggFull = "COALESCE(SUM(pr.grade), 0) as score, COALESCE((COUNT(pr.grade) + SUM(pr.grade)) / 2, 0) as likes, COALESCE((COUNT(pr.grade) - SUM(pr.grade)) / 2, 0) as dislikes"
+  private val orderByFull = "ORDER BY COALESCE(SUM(pr.grade), 0) IS NULL, COALESCE(SUM(pr.grade), 0) DESC, COALESCE(COUNT(pr.grade), 0) IS NULL, COALESCE(COUNT(pr.grade), 0) DESC, p.created IS NULL, p.created DESC"
 
   private val ratingTableFull = s"$ratingTable INNER JOIN $userTable ON pr.created_by=u.id"
   private val ratingFieldsFull = s"$ratingFields, $userFields"
