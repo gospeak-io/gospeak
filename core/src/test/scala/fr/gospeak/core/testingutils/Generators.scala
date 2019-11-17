@@ -5,14 +5,15 @@ import java.time._
 import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount._
 import fr.gospeak.core.services.meetup.domain.MeetupGroup
 import fr.gospeak.libs.scalautils.Crypto
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain.TimePeriod.PeriodUnit
 import fr.gospeak.libs.scalautils.domain._
 import org.scalacheck.ScalacheckShapeless._
 import org.scalacheck.{Arbitrary, Gen}
-import fr.gospeak.libs.scalautils.Extensions._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.{FiniteDuration, TimeUnit}
@@ -46,8 +47,17 @@ object Generators {
   implicit val aEmailAddress: Arbitrary[EmailAddress] = Arbitrary(nonEmptyStringGen.map(slug => EmailAddress.from(slug.take(110) + "e@mail.com").get)) // TODO improve
   implicit val aUrl: Arbitrary[Url] = Arbitrary(stringGen.map(_ => Url.from("https://www.youtube.com/watch").get)) // TODO improve
   implicit val aLogo: Arbitrary[Logo] = Arbitrary(aUrl.arbitrary.map(Logo))
+  implicit val aBanner: Arbitrary[Banner] = Arbitrary(aUrl.arbitrary.map(Banner))
   implicit val aAvatar: Arbitrary[Avatar] = Arbitrary(aEmailAddress.arbitrary.map(e => Avatar(Url.from(s"https://secure.gravatar.com/avatar/${Crypto.md5(e.value)}").get, Avatar.Source.Gravatar))) // TODO improve
+  implicit val aFacebookAccount: Arbitrary[FacebookAccount] = Arbitrary(aUrl.arbitrary.map(FacebookAccount))
+  implicit val aInstagramAccount: Arbitrary[InstagramAccount] = Arbitrary(aUrl.arbitrary.map(InstagramAccount))
   implicit val aTwitterAccount: Arbitrary[TwitterAccount] = Arbitrary(aUrl.arbitrary.map(TwitterAccount))
+  implicit val aLinkedInAccount: Arbitrary[LinkedInAccount] = Arbitrary(aUrl.arbitrary.map(LinkedInAccount))
+  implicit val aYoutubeAccount: Arbitrary[YoutubeAccount] = Arbitrary(aUrl.arbitrary.map(YoutubeAccount))
+  implicit val aMeetupAccount: Arbitrary[MeetupAccount] = Arbitrary(aUrl.arbitrary.map(MeetupAccount))
+  implicit val aEventbriteAccount: Arbitrary[EventbriteAccount] = Arbitrary(aUrl.arbitrary.map(EventbriteAccount))
+  implicit val aSlackAccount: Arbitrary[SlackAccount] = Arbitrary(aUrl.arbitrary.map(SlackAccount))
+  implicit val aDiscordAccount: Arbitrary[DiscordAccount] = Arbitrary(aUrl.arbitrary.map(DiscordAccount))
   implicit val aTwitterHashtag: Arbitrary[TwitterHashtag] = Arbitrary(nonEmptyStringGen.map(e => TwitterHashtag.from(e.replaceAll(" ", "")).get))
   implicit val aTag: Arbitrary[Tag] = Arbitrary(nonEmptyStringGen.map(str => Tag(str.take(Tag.maxSize))))
   implicit val aTags: Arbitrary[Seq[Tag]] = Arbitrary(Gen.listOf(aTag.arbitrary).map(_.take(Tag.maxNumber)))

@@ -6,6 +6,7 @@ import fr.gospeak.libs.scalautils.domain.EmailAddress
 
 object Constants {
   val defaultZoneId: ZoneId = ZoneId.of("Europe/Paris")
+  val gravatarStyle = "identicon"
 
   object Contact {
     val admin: EmailAddress.Contact = EmailAddress.Contact(EmailAddress.from("contact@gospeak.fr").right.get, Some("Gospeak"))

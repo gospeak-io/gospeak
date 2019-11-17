@@ -1,6 +1,8 @@
 package fr.gospeak.libs.scalautils.domain
 
-final class Video private(value: Url) extends DataClass(value.value)
+final class Video private(value: Url) extends DataClass(value.value) {
+  def url: Url = value
+}
 
 object Video {
   def from(in: String): Either[CustomException, Video] =

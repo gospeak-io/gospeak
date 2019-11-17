@@ -52,7 +52,7 @@
                     @inputText(field, Seq("placeholder" -> "ex: Gospeak bot", "value" -> Constants.Slack.defaultBotName) ++ args)
                 }
                 @fieldHorizontal(slackForm("avatar"), Seq("label" -> "Bot avatar", "help" -> "The bot avatar in Slack")) { (field, args) =>
-                    @inputImg(field, Seq("placeholder" -> "ex: https://secure.gravatar.com/avatar/fa64969431e3d540ef30d06860d64958?size=100&default=wavatar", "value" -> Constants.Slack.defaultBotAvatar, "optional" -> "") ++ args)
+                    @inputImg(field, Seq("placeholder" -> s"ex: https://secure.gravatar.com/avatar/fa64969431e3d540ef30d06860d64958?size=100&default=${Constants.gravatarStyle}", "value" -> Constants.Slack.defaultBotAvatar, "optional" -> "") ++ args)
                 }
             </div>
             <div class="modal-footer">

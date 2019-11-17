@@ -1,6 +1,7 @@
 package fr.gospeak.web.api.domain
 
 import fr.gospeak.core.domain.User
+import fr.gospeak.core.domain.utils.Constants
 import play.api.libs.json.{Json, Writes}
 
 case class PublicApiSpeaker(slug: String,
@@ -45,7 +46,7 @@ object PublicApiSpeaker {
         linkedin = user.profile.linkedin.map(_.value),
         website = user.profile.website.map(_.value))
 
-    val unknown = Embedded("missing", "Missing", "Speaker", "https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=wavatar", None, None, None, None)
+    val unknown = Embedded("missing", "Missing", "Speaker", s"https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=${Constants.gravatarStyle}", None, None, None, None)
 
     implicit val embeddedWrites: Writes[Embedded] = Json.writes[Embedded]
   }

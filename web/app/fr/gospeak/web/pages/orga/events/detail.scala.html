@@ -6,7 +6,7 @@
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.partials.html.container
+@import fr.gospeak.web.pages.orga.partials.html.{container, proposalRating}
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.orga.partners.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
@@ -16,7 +16,7 @@
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal], speakers: Seq[User], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Slug], notesForm: Form[String])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Slug], notesForm: Form[String])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container(event.name.value + " - Gospeak", group, b)() {
     @if(!event.isPublic) {
         <div class="alert alert-info" role="alert">
@@ -134,6 +134,7 @@
                             @slidesIcon(proposal.slides)
                             @videoIcon(proposal.video)
                             <a href="@ProposalCtrl.detail(group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
+                            @proposalRating(proposal, userRatings.find(_.proposal == proposal.id).map(_.grade))
                             @tags(proposal.tags)
                             <small title="Proposal date">(since @Formats.date(proposal.info.created))</small>
                         </div>

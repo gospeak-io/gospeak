@@ -7,7 +7,7 @@
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, speaker: User, proposals: Page[Proposal.Full], speakers: Seq[User])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, speaker: User, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container(speaker.name.value + " - Gospeak", group, b)() {
     <div class="row">
         <div class="col-4">
@@ -15,7 +15,7 @@
         </div>
         <div class="col-8">
             <h2 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h2>
-            @Formats.paginated[Proposal.Full](proposals, SpeakerCtrl.detail(group.slug, speaker.slug, _), proposalItem(group, _, speakers))
+            @Formats.paginated[Proposal.Full](proposals, SpeakerCtrl.detail(group.slug, speaker.slug, _), proposalItem(group, _, speakers, userRatings))
         </div>
     </div>
 }()

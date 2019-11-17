@@ -3,7 +3,7 @@ package fr.gospeak.core.domain
 import java.time.Instant
 
 import cats.data.NonEmptyList
-import fr.gospeak.core.domain.utils.{Constants, Info, TemplateData}
+import fr.gospeak.core.domain.utils.{Constants, Info, SocialAccounts, TemplateData}
 import fr.gospeak.core.services.meetup.domain.MeetupCredentials
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackCredentials}
 import fr.gospeak.libs.scalautils.Extensions._
@@ -15,11 +15,16 @@ import scala.util.{Failure, Success, Try}
 final case class Group(id: Group.Id,
                        slug: Group.Slug,
                        name: Group.Name,
+                       logo: Option[Logo],
+                       banner: Option[Banner],
                        contact: Option[EmailAddress],
+                       website: Option[Url],
                        description: Markdown,
                        location: Option[GMapPlace],
                        owners: NonEmptyList[User.Id],
+                       social: SocialAccounts,
                        tags: Seq[Tag],
+                       status: Group.Status,
                        info: Info) {
   def data: Group.Data = Group.Data(this)
 
@@ -30,8 +35,8 @@ final case class Group(id: Group.Id,
 }
 
 object Group {
-  def apply(data: Data, owners: NonEmptyList[User.Id], info: Info): Group =
-    new Group(Id.generate(), data.slug, data.name, data.contact, data.description, data.location, owners, data.tags, info)
+  def apply(d: Data, owners: NonEmptyList[User.Id], info: Info): Group =
+    new Group(Id.generate(), d.slug, d.name, d.logo, d.banner, d.contact, d.website, d.description, d.location, owners, d.social, d.tags, Status.Active, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -62,7 +67,7 @@ object Group {
 
   object Member {
 
-    sealed trait Role extends StringEnum with Product with Serializable {
+    sealed trait Role extends StringEnum {
       override def value: String = toString
     }
 
@@ -77,15 +82,32 @@ object Group {
 
   }
 
+  sealed trait Status extends StringEnum {
+    def value: String = toString
+  }
+
+  object Status extends EnumBuilder[Status]("Group.Status") {
+
+    case object Active extends Status
+
+    case object Disabled extends Status
+
+    val all: Seq[Status] = Seq(Active, Disabled)
+  }
+
   final case class Data(slug: Group.Slug,
                         name: Group.Name,
+                        logo: Option[Logo],
+                        banner: Option[Banner],
                         contact: Option[EmailAddress],
+                        website: Option[Url],
                         description: Markdown,
                         location: Option[GMapPlace],
+                        social: SocialAccounts,
                         tags: Seq[Tag])
 
   object Data {
-    def apply(group: Group): Data = new Data(group.slug, group.name, group.contact, group.description, group.location, group.tags)
+    def apply(g: Group): Data = new Data(g.slug, g.name, g.logo, g.banner, g.contact, g.website, g.description, g.location, g.social, g.tags)
   }
 
 

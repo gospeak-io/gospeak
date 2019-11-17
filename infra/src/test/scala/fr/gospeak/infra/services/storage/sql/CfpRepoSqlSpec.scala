@@ -75,7 +75,7 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage for a date") {
         val q = CfpRepoSql.selectPage(now, params)
-        check(q, s"SELECT $fields FROM $table WHERE (c.begin IS NULL OR c.begin < ?) AND (c.close IS NULL OR c.close > ?) $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fields FROM $table WHERE (c.begin IS NULL OR c.begin < ?) AND (c.close IS NULL OR c.close > ?) $orderBy LIMIT 20 OFFSET 0", checkCount = false)
       }
       it("should build selectAll for group id") {
         val q = CfpRepoSql.selectAll(group.id)

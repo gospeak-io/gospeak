@@ -94,7 +94,7 @@ object User {
 
   object Profile {
 
-    sealed trait Status extends StringEnum with Product with Serializable {
+    sealed trait Status extends StringEnum {
       def value: String = toString
 
       def isUndefined: Boolean = this == Status.Undefined

@@ -9,13 +9,14 @@
 
 @(form: Form[Group.Data])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container("Gospeak", b)() {
-    <h1 class="page-header">Create your group</h1>
-
     @formElt(form, GroupCtrl.doCreate()) {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Create your group</h1>
+            <div>
+                @btnCancel(UserCtrl.index())
+                @btnSubmit("Create")
+            </div>
+        </div>
         @groupFields(form)
-        @actionsHorizontal() {
-            @btnCancel(UserCtrl.index())
-            @btnSubmit("Create")
-        }
     }
 }()

@@ -10,6 +10,7 @@ import doobie.util.fragment.Fragment.const0
 import doobie.util.transactor.Transactor
 import doobie.util.{Meta, Read}
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount._
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup}
 import fr.gospeak.core.services.slack.domain.SlackAction
@@ -36,6 +37,10 @@ object DoobieUtils {
     def value: String = if (prefix.isEmpty) name else s"$prefix.$name"
   }
 
+  final case class AggregateField(formula: String, name: String) {
+    def value: String = s"$formula as $name"
+  }
+
   final case class TableJoin(kind: String,
                              name: String,
                              prefix: String,
@@ -43,11 +48,33 @@ object DoobieUtils {
     def value: String = s"$kind $name $prefix ON ${on.map { case (l, r) => s"${l.value}=${r.value}" }.toList.mkString(" AND ")}"
   }
 
+  final case class Sorts(default: Seq[Field],
+                         other: Map[String, Seq[Field]]) {
+    def all: Seq[Seq[Field]] = default :: other.values.toList
+
+    def names: Seq[String] = other.keySet.toList
+
+    def get(orderBy: Option[Page.OrderBy], prefix: String): Seq[Field] = {
+      orderBy.map { o =>
+        o.values.flatMap { sort =>
+          other.get(sort.stripPrefix("-")).map(_.map { field =>
+            (sort.startsWith("-"), field.name.startsWith("-")) match {
+              case (true, true) => field.copy(name = field.name.stripPrefix("-"))
+              case (true, false) => field.copy(name = "-" + field.name)
+              case (false, _) => field
+            }
+          }).getOrElse(Seq(Field(sort, prefix)))
+        }
+      }.getOrElse(default)
+    }
+  }
+
   final case class Table(name: String,
                          prefix: String,
                          joins: Seq[TableJoin],
                          fields: Seq[Field],
-                         sort: Seq[Field],
+                         aggFields: Seq[AggregateField],
+                         sorts: Sorts,
                          search: Seq[Field]) extends Dynamic {
     def value: String = s"$name $prefix" + joins.map(" " + _.value).mkString
 
@@ -88,9 +115,14 @@ object DoobieUtils {
         prefix = prefix,
         joins = joins ++ Seq(TableJoin(kind, rightTable.name, rightTable.prefix, joinFields)) ++ rightTable.joins,
         fields = fields ++ rightTable.fields,
-        sort = sort,
+        aggFields = aggFields ++ rightTable.aggFields,
+        sorts = sorts,
         search = search ++ rightTable.search)
     } yield res
+
+    def aggregate(formula: String, name: String): Table = copy(aggFields = aggFields :+ AggregateField(formula, name))
+
+    def setSorts(default: (String, Seq[Field]), other: (String, Seq[Field])*): Table = copy(sorts = Sorts(default._2, (default +: other).toMap))
 
     def insert[A](elt: A, build: A => Fragment): Insert[A] = Insert[A](name, fields, elt, build)
 
@@ -100,21 +132,21 @@ object DoobieUtils {
 
     def delete(where: Fragment): Delete = Delete(value, fr0" " ++ where)
 
-    def select[A: Read](where: Fragment): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort, None)
+    def select[A: Read](where: Fragment): Select[A] = Select[A](value, fields, aggFields, Some(fr0" " ++ where), sorts, None)
 
-    def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](value, fields, None, sort, None)
+    def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, None, sorts, None)
 
-    def select[A: Read](fields: Seq[Field], sort: Seq[Field]): Select[A] = Select[A](value, fields, None, sort, None)
+    def select[A: Read](fields: Seq[Field], sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, None, Sorts(sort, Map()), None)
 
-    def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort, None)
+    def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, aggFields, Some(fr0" " ++ where), sorts, None)
 
-    def select[A: Read](fields: Seq[Field], where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort, None)
+    def select[A: Read](fields: Seq[Field], where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, Some(fr0" " ++ where), Sorts(sort, Map()), None)
 
-    def selectOne[A: Read](where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, Some(fr0" " ++ where), sort, Some(1))
+    def selectOne[A: Read](where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, Some(fr0" " ++ where), Sorts(sort, Map()), Some(1))
 
-    def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, None, params, sort, search)
+    def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, None, params, sorts, search)
 
-    def selectPage[A: Read](params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, Some(fr0" " ++ where), params, sort, search)
+    def selectPage[A: Read](params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, Some(fr0" " ++ where), params, sorts, search)
   }
 
   object Table {
@@ -126,12 +158,13 @@ object DoobieUtils {
         prefix = prefix,
         joins = Seq(),
         fields = fields.map(f => Field(f, prefix)),
-        sort = sort.map(f => Field(f, prefix)),
+        aggFields = Seq(),
+        sorts = Sorts(sort.map(f => Field(f, prefix)), Map()),
         search = search.map(f => Field(f, prefix)))
 
-    def from(name: String, prefix: String, joins: Seq[TableJoin], fields: Seq[Field], sort: Seq[Field], search: Seq[Field]): Either[CustomException, Table] = {
+    private def from(name: String, prefix: String, joins: Seq[TableJoin], fields: Seq[Field], aggFields: Seq[AggregateField], sorts: Sorts, search: Seq[Field]): Either[CustomException, Table] = {
       val duplicateFields = fields.diff(fields.distinct).distinct
-      val invalidSort = sort.map(s => s.copy(name = s.name.stripPrefix("-")).value).diff(fields.map(_.value))
+      val invalidSort = sorts.all.flatten.map(s => s.copy(name = s.name.stripPrefix("-")).value).diff(fields.map(_.value) ++ aggFields.map(_.formula))
       val invalidSearch = search.diff(fields)
       val errors = Seq(
         duplicateFields.headOption.map(_ => s"fields ${duplicateFields.map(s"'" + _.value + "'").mkString(", ")} are duplicated"),
@@ -143,7 +176,8 @@ object DoobieUtils {
         prefix = prefix,
         joins = joins,
         fields = fields,
-        sort = sort,
+        aggFields = aggFields,
+        sorts = sorts,
         search = search)))
     }
   }
@@ -178,12 +212,18 @@ object DoobieUtils {
       }
   }
 
-  final case class Select[A: Read](table: String, fields: Seq[Field], whereOpt: Option[Fragment], sort: Seq[Field], limit: Option[Int]) {
+  final case class Select[A: Read](table: String,
+                                   fields: Seq[Field],
+                                   aggFields: Seq[AggregateField],
+                                   whereOpt: Option[Fragment],
+                                   sorts: Sorts,
+                                   limit: Option[Int]) {
     def fr: Fragment = {
-      val select = const0(s"SELECT ${fields.map(_.value).mkString(", ")} FROM $table")
+      val select = const0(s"SELECT ${(fields.map(_.value) ++ aggFields.map(_.value)).mkString(", ")} FROM $table")
       val where = whereOpt.getOrElse(fr0"")
-      val orderBy = NonEmptyList.fromList(sort.toList).map(orderByFragment(_)).getOrElse(fr0"")
-      select ++ where ++ orderBy ++ limit.map(l => const0(s" LIMIT $l")).getOrElse(fr0"")
+      val groupBy = aggFields.headOption.map(_ => const0(s" GROUP BY ${fields.map(_.value).mkString(", ")}")).getOrElse(fr0"")
+      val orderBy = NonEmptyList.fromList(sorts.default.toList).map(orderByFragment(_)).getOrElse(fr0"")
+      select ++ where ++ groupBy ++ orderBy ++ limit.map(l => const0(s" LIMIT $l")).getOrElse(fr0"")
     }
 
     def query: doobie.Query0[A] = fr.query[A]
@@ -200,22 +240,33 @@ object DoobieUtils {
   final case class SelectPage[A: Read](table: String,
                                        prefix: String,
                                        fields: Seq[Field],
+                                       aggFields: Seq[AggregateField],
                                        whereOpt: Option[Fragment],
                                        params: Page.Params,
-                                       defaultSort: Seq[Field],
+                                       sorts: Sorts,
                                        searchFields: Seq[Field]) {
-    def fr: Fragment = Select[A](table, fields, Some(paginationFragment(prefix, whereOpt, params, searchFields, defaultSort)), Seq(), None).fr
+    private val select: Fragment = const0(s"SELECT ${(fields.map(_.value) ++ aggFields.map(_.value)).mkString(", ")} FROM $table")
+    private val groupBy: Fragment = aggFields.headOption.map(_ => const0(s" GROUP BY ${fields.map(_.value).mkString(", ")}")).getOrElse(fr0"")
+
+    def fr: Fragment = {
+      val (where, orderBy, limit) = paginationFragment(prefix, whereOpt, params, sorts, searchFields)
+      select ++ where ++ groupBy ++ orderBy ++ limit
+    }
+
+    def countFr: Fragment = {
+      val select = const0(s"SELECT ${fields.headOption.map(_.value).getOrElse("*")} FROM $table")
+      val where = whereFragment(whereOpt, params.search, searchFields).getOrElse(fr0"")
+      fr0"SELECT count(*) FROM (" ++ select ++ where ++ groupBy ++ fr0") as cnt"
+    }
 
     def query: doobie.Query0[A] = fr.query[A]
-
-    def countFr: Fragment = Select[A](table, Seq(Field("count(*)", "")), whereFragment(whereOpt, params.search, searchFields), Seq(), None).fr
 
     def countQuery: doobie.Query0[Long] = countFr.query[Long]
 
     def run(xa: doobie.Transactor[IO]): IO[Page[A]] = (for {
       elts <- query.to[List]
       total <- countQuery.unique
-    } yield Page(elts, params, Page.Total(total))).transact(xa)
+    } yield Page(elts, params, Page.Total(total), sorts.names)).transact(xa)
   }
 
   def whereFragment(whereOpt: Option[Fragment], search: Option[Page.Search], fields: Seq[Field]): Option[Fragment] = {
@@ -240,12 +291,12 @@ object DoobieUtils {
   def limitFragment(size: Page.Size, start: Page.Offset): Fragment =
     fr0" LIMIT " ++ const0(size.value.toString) ++ fr0" OFFSET " ++ const0(start.value.toString)
 
-  def paginationFragment(prefix: String, whereOpt: Option[Fragment], params: Page.Params, searchFields: Seq[Field], defaultSort: Seq[Field]): Fragment = {
+  def paginationFragment(prefix: String, whereOpt: Option[Fragment], params: Page.Params, sorts: Sorts, searchFields: Seq[Field]): (Fragment, Fragment, Fragment) = {
     val where = whereFragment(whereOpt, params.search, searchFields).getOrElse(fr0"")
-    val sortFields = params.orderBy.map(_.values.map(f => Field(f, prefix))).getOrElse(defaultSort)
+    val sortFields = sorts.get(params.orderBy, prefix)
     val orderBy = NonEmptyList.fromList(sortFields.toList).map(orderByFragment(_, params.nullsFirst)).getOrElse(fr0"")
     val limit = limitFragment(params.pageSize, params.offset)
-    Seq(where, orderBy, limit).reduce(_ ++ _)
+    (where, orderBy, limit)
   }
 
   object Mappings {
@@ -257,10 +308,20 @@ object DoobieUtils {
     implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Instant].timap(LocalDateTime.ofInstant(_, ZoneOffset.UTC))(_.toInstant(ZoneOffset.UTC))
     implicit val emailAddressMeta: Meta[EmailAddress] = Meta[String].timap(EmailAddress.from(_).get)(_.value)
     implicit val urlMeta: Meta[Url] = Meta[String].timap(Url.from(_).get)(_.value)
-    implicit val twitterAccountMeta: Meta[TwitterAccount] = Meta[String].timap(Url.from(_).map(TwitterAccount).get)(_.value.value)
+    implicit val logoMeta: Meta[Logo] = urlMeta.timap(Logo)(_.url)
+    implicit val bannerMeta: Meta[Banner] = urlMeta.timap(Banner)(_.url)
+    implicit val facebookAccountMeta: Meta[FacebookAccount] = urlMeta.timap(FacebookAccount)(_.url)
+    implicit val instagramAccountMeta: Meta[InstagramAccount] = urlMeta.timap(InstagramAccount)(_.url)
+    implicit val twitterAccountMeta: Meta[TwitterAccount] = urlMeta.timap(TwitterAccount)(_.url)
+    implicit val linkedInAccountMeta: Meta[LinkedInAccount] = urlMeta.timap(LinkedInAccount)(_.url)
+    implicit val youtubeAccountMeta: Meta[YoutubeAccount] = urlMeta.timap(YoutubeAccount)(_.url)
+    implicit val meetupAccountMeta: Meta[MeetupAccount] = urlMeta.timap(MeetupAccount)(_.url)
+    implicit val eventbriteAccountMeta: Meta[EventbriteAccount] = urlMeta.timap(EventbriteAccount)(_.url)
+    implicit val slackAccountMeta: Meta[SlackAccount] = urlMeta.timap(SlackAccount)(_.url)
+    implicit val discordAccountMeta: Meta[DiscordAccount] = urlMeta.timap(DiscordAccount)(_.url)
+    implicit val slidesMeta: Meta[Slides] = urlMeta.timap(Slides.from(_).get)(_.url)
+    implicit val videoMeta: Meta[Video] = urlMeta.timap(Video.from(_).get)(_.url)
     implicit val twitterHashtagMeta: Meta[TwitterHashtag] = Meta[String].timap(TwitterHashtag.from(_).get)(_.value)
-    implicit val slidesMeta: Meta[Slides] = Meta[String].timap(Slides.from(_).get)(_.value)
-    implicit val videoMeta: Meta[Video] = Meta[String].timap(Video.from(_).get)(_.value)
     implicit val currencyMeta: Meta[Price.Currency] = Meta[String].timap(Price.Currency.from(_).get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
 
@@ -268,7 +329,6 @@ object DoobieUtils {
 
     implicit def mustacheTextTemplateMeta[A: TypeTag]: Meta[MustacheTextTmpl[A]] = Meta[String].timap(MustacheTextTmpl[A])(_.value)
 
-    implicit val logoMeta: Meta[Logo] = Meta[String].timap(Url.from(_).map(Logo).get)(_.url.value)
     implicit val avatarSourceMeta: Meta[Avatar.Source] = Meta[String].timap(Avatar.Source.from(_).get)(_.toString)
     implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))
     implicit val gMapPlaceMeta: Meta[GMapPlace] = {
@@ -313,6 +373,7 @@ object DoobieUtils {
     implicit val talkStatusMeta: Meta[Talk.Status] = Meta[String].timap(Talk.Status.from(_).get)(_.value)
     implicit val groupIdMeta: Meta[Group.Id] = Meta[String].timap(Group.Id.from(_).get)(_.value)
     implicit val groupSlugMeta: Meta[Group.Slug] = Meta[String].timap(Group.Slug.from(_).get)(_.value)
+    implicit val groupStatusMeta: Meta[Group.Status] = Meta[String].timap(Group.Status.from(_).get)(_.value)
     implicit val groupNameMeta: Meta[Group.Name] = Meta[String].timap(Group.Name)(_.value)
     implicit val eventIdMeta: Meta[Event.Id] = Meta[String].timap(Event.Id.from(_).get)(_.value)
     implicit val eventSlugMeta: Meta[Event.Slug] = Meta[String].timap(Event.Slug.from(_).get)(_.value)

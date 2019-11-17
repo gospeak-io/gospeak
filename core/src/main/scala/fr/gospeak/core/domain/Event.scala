@@ -71,7 +71,7 @@ object Event {
 
   object Rsvp {
 
-    sealed trait Answer extends StringEnum with Product with Serializable {
+    sealed trait Answer extends StringEnum {
       def value: String = toString
     }
 

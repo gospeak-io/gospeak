@@ -107,6 +107,8 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def listFull(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(cfp, params).run(xa)
 
+  override def listFull(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(cfp, status, params).run(xa)
+
   override def listFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(group, params).run(xa)
 
   override def listFull(talk: Talk.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(talk, params).run(xa)
@@ -126,19 +128,37 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 
   override def listRatings(id: Proposal.Id): IO[Seq[Proposal.Rating.Full]] = selectAllRatings(id).runList(xa)
+
+  override def listRatings(cfp: Cfp.Slug, user: User.Id): IO[Seq[Proposal.Rating]] = selectAllRatings(cfp, user).runList(xa)
+
+  override def listRatings(user: User.Id, proposals: Seq[Proposal.Id]): IO[Seq[Proposal.Rating]] =
+    NonEmptyList.fromList(proposals.toList).map(selectAllRatings(user, _).runList(xa)).getOrElse(IO.pure(Seq()))
 }
 
 object ProposalRepoSql {
   private val _ = proposalIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.proposals
+  private val ratingTable = Tables.proposalRatingTable
   private val tableFull = table
     .join(Tables.cfps, _.cfp_id -> _.id).get
     .join(Tables.groups.dropFields(_.name.startsWith("location_")), _.group_id("c") -> _.id).get
     .join(Tables.talks, _.talk_id("p") -> _.id).get
     .joinOpt(Tables.events, _.event_id("p") -> _.id).get
-  private val ratingTable = Tables.proposalRatingTable
+    .joinOpt(ratingTable, _.id("p") -> _.proposal_id).get.dropFields(_.prefix == ratingTable.prefix)
+    .aggregate("COALESCE(SUM(pr.grade), 0)", "score")
+    .aggregate("COALESCE((COUNT(pr.grade) + SUM(pr.grade)) / 2, 0)", "likes")
+    .aggregate("COALESCE((COUNT(pr.grade) - SUM(pr.grade)) / 2, 0)", "dislikes")
+    .setSorts(
+      "score" -> Seq(Field("-COALESCE(SUM(pr.grade), 0)", ""), Field("-COALESCE(COUNT(pr.grade), 0)", ""), Field("-created", "p")),
+      "created" -> Seq(Field("created", "p")),
+      "title" -> Seq(Field("LOWER(p.title)", "")))
   private val ratingTableFull = ratingTable
     .join(Tables.users, _.created_by -> _.id).get
+  private val ratingTableWithProposalCfp = ratingTable
+    .join(table, _.proposal_id -> _.id).get
+    .join(Tables.cfps, _.cfp_id -> _.id).get
+    .dropFields(_.prefix == table.prefix)
+    .dropFields(_.prefix == Tables.cfps.prefix)
 
   private[sql] def insert(e: Proposal): Insert[Proposal] = {
     val values = fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
@@ -203,6 +223,9 @@ object ProposalRepoSql {
   private[sql] def selectPageFull(cfp: Cfp.Id, params: Page.Params): SelectPage[Proposal.Full] =
     tableFull.selectPage[Proposal.Full](params, fr0"WHERE p.cfp_id=$cfp")
 
+  private[sql] def selectPageFull(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): SelectPage[Proposal.Full] =
+    tableFull.selectPage[Proposal.Full](params, fr0"WHERE p.cfp_id=$cfp AND p.status=$status")
+
   private[sql] def selectPageFull(group: Group.Id, params: Page.Params): SelectPage[Proposal.Full] =
     tableFull.selectPage[Proposal.Full](params, fr0"WHERE c.group_id=$group")
 
@@ -235,6 +258,12 @@ object ProposalRepoSql {
 
   private[sql] def selectAllRatings(id: Proposal.Id): Select[Proposal.Rating.Full] =
     ratingTableFull.select[Proposal.Rating.Full](fr0"WHERE pr.proposal_id=$id")
+
+  private[sql] def selectAllRatings(cfp: Cfp.Slug, user: User.Id): Select[Proposal.Rating] =
+    ratingTableWithProposalCfp.select[Proposal.Rating](fr0"WHERE c.slug=$cfp AND pr.created_by=$user")
+
+  private[sql] def selectAllRatings(user: User.Id, proposals: NonEmptyList[Proposal.Id]): Select[Proposal.Rating] =
+    ratingTable.select[Proposal.Rating](fr0"WHERE " ++ Fragments.in(fr"pr.proposal_id", proposals) ++ fr0"AND pr.created_by=$user")
 
   private def where(id: Proposal.Id): Fragment =
     fr0"WHERE p.id=$id"

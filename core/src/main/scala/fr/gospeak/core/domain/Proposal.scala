@@ -40,7 +40,7 @@ object Proposal {
 
   object Id extends UuidIdBuilder[Id]("Proposal.Id", new Id(_))
 
-  sealed trait Status extends StringEnum with Product with Serializable {
+  sealed trait Status extends StringEnum {
     def value: String = toString
   }
 
@@ -57,7 +57,7 @@ object Proposal {
     val all: Seq[Status] = Seq(Pending, Accepted, Declined)
   }
 
-  final case class Full(proposal: Proposal, cfp: Cfp, group: Group, talk: Talk, event: Option[Event]) {
+  final case class Full(proposal: Proposal, cfp: Cfp, group: Group, talk: Talk, event: Option[Event], score: Long, likes: Long, dislikes: Long) {
     def id: Id = proposal.id
 
     def status: Status = proposal.status
@@ -96,7 +96,7 @@ object Proposal {
 
       case object Like extends Grade(1)
 
-      case object Dislike extends Grade(0)
+      case object Dislike extends Grade(-1)
 
       val all: Seq[Grade] = Seq(Like, Dislike)
 

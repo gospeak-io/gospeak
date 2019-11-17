@@ -1,4 +1,4 @@
-@import fr.gospeak.core.domain.Group
+@import fr.gospeak.core.domain.{Group, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
@@ -6,8 +6,8 @@
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 
-@(groups: Page[Group])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(groups: Page[Group], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container("Gospeak - groups", b)() {
     <h1>Groups</h1>
-    @Formats.paginated[Group](groups, GroupCtrl.list, groupItem(_))
+    @Formats.paginated[Group](groups, GroupCtrl.list, groupItem(_, orgas))
 }()

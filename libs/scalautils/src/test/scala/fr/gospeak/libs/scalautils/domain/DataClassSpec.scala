@@ -6,7 +6,7 @@ class DataClassSpec extends FunSpec with Matchers {
 
   class Id(value: String) extends DataClass(value) with IId
 
-  sealed trait Status extends StringEnum with Product with Serializable {
+  sealed trait Status extends StringEnum {
     def value: String = toString
   }
 

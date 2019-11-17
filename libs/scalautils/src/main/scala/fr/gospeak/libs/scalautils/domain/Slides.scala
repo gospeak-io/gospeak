@@ -1,6 +1,8 @@
 package fr.gospeak.libs.scalautils.domain
 
-final class Slides private(value: Url) extends DataClass(value.value)
+final class Slides private(value: Url) extends DataClass(value.value) {
+  def url: Url = value
+}
 
 object Slides {
   def from(in: String): Either[CustomException, Slides] =

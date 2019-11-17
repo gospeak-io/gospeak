@@ -38,8 +38,9 @@ class ProposalCtrl(cc: ControllerComponents,
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
       proposals <- OptionT.liftF(proposalRepo.listFull(cfpElt.id, params))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
+      userRatings <- OptionT.liftF(proposalRepo.listRatings(cfp, req.user.id))
       b = listBreadcrumb(groupElt, cfpElt)
-    } yield Ok(html.list(groupElt, cfpElt, proposals, speakers)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
+    } yield Ok(html.list(groupElt, cfpElt, proposals, speakers, userRatings)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
   }
 
   def detail(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
@@ -47,12 +48,12 @@ class ProposalCtrl(cc: ControllerComponents,
   }
 
   def doRate(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, grade: Proposal.Rating.Grade): Action[AnyContent] = SecuredActionIO { implicit req =>
+    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.ProposalCtrl.detail(group, cfp, proposal).toString))
     (for {
       _ <- OptionT(groupRepo.find(req.user.id, group)) // to ensure user is an orga
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       _ <- OptionT.liftF(proposalRepo.rate(cfp, proposalElt.id, grade, req.user.id, req.now))
-      next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal)).flashing("success" -> "Rating saved")
-    } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
+    } yield next.flashing("success" -> s"$grade saved on <b>${proposalElt.title.value}</b>")).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
   def doSendComment(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, orga: Boolean): Action[AnyContent] = SecuredActionIO { implicit req =>

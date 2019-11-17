@@ -1,6 +1,6 @@
 package fr.gospeak.libs.scalautils.domain
 
-final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total) {
+final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total, sorts: Seq[String]) {
   assert(items.length <= params.pageSize.value, s"Page can't have more items (${items.length}) than its size (${params.pageSize.value})")
   private val last: Int = math.ceil(total.value.toDouble / params.pageSize.value).toInt
 
@@ -20,7 +20,7 @@ final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total)
 
   def isCurrent(i: Page.Params): Boolean = params.page == i.page
 
-  def map[B](f: A => B): Page[B] = Page(items.map(f), params, total)
+  def map[B](f: A => B): Page[B] = Page(items.map(f), params, total, sorts)
 
   private val width = 3
   private val middleStart: Int = (params.page.value - width).max(1)
@@ -38,9 +38,9 @@ final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total)
 }
 
 object Page {
-  def empty[A]: Page[A] = Page[A](Seq(), Params.defaults, Total(0))
+  def empty[A]: Page[A] = Page[A](Seq(), Params.defaults, Total(0), Seq())
 
-  def empty[A](params: Params): Page[A] = Page[A](Seq(), params, Total(0))
+  def empty[A](params: Params): Page[A] = Page[A](Seq(), params, Total(0), Seq())
 
   final case class Search(value: String) extends AnyVal {
     def key: String = Search.key
@@ -135,6 +135,8 @@ object Page {
     def withNullsFirst: Params = copy(nullsFirst = true)
 
     def withNullsLast: Params = copy(nullsFirst = false)
+
+    def hasOrderBy(o: String): Boolean = orderBy.exists(_.values == Seq(o))
   }
 
   object Params {

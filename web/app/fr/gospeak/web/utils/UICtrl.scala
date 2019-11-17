@@ -30,8 +30,8 @@ abstract class UICtrl(cc: ControllerComponents,
     val back = HttpUtils.getReferer(req.headers).getOrElse(fr.gospeak.web.pages.published.routes.HomeCtrl.index().toString)
     // FIXME better error handling (send email or notif?)
     result.recover {
-      case _: JdbcSQLSyntaxErrorException => Redirect(back).flashing("error" -> s"Unexpected SQL error")
-      case NonFatal(e) => Redirect(back).flashing("error" -> s"Unexpected error: ${e.getMessage} (${e.getClass.getSimpleName})")
+      case e: JdbcSQLSyntaxErrorException => e.printStackTrace(); Redirect(back).flashing("error" -> s"Unexpected SQL error")
+      case NonFatal(e) => e.printStackTrace(); Redirect(back).flashing("error" -> s"Unexpected error: ${e.getMessage} (${e.getClass.getSimpleName})")
     }
   }
 

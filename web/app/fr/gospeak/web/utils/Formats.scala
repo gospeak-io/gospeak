@@ -6,7 +6,7 @@ import java.util.Locale
 
 import fr.gospeak.core.domain.Cfp
 import fr.gospeak.libs.scalautils.domain.Page
-import fr.gospeak.web.pages.partials.html.{pagination, search}
+import fr.gospeak.web.pages.partials.html.{pagination, search, sort}
 import play.api.mvc.{AnyContent, Call}
 import play.twirl.api.Html
 
@@ -97,19 +97,20 @@ object Formats {
                    link: Page.Params => Call,
                    item: A => Html): Html = {
     val header =
-      s"""<div class="d-flex justify-content-between">
+      s"""<div class="d-flex justify-content-between mt-2"${if (page.hasManyPages) "" else " style=\"display: none !important;\""}>
          |  ${search(page, link(Page.Params.defaults))}
          |  ${pagination(page, link)}
          |</div>
+         |${sort(page, link)}
        """.stripMargin
-    val footer = s"""<div class="d-flex justify-content-end">${pagination(page, link)}</div>"""
+    val footer = s"""<div class="d-flex justify-content-end mt-2">${pagination(page, link)}</div>"""
     val body = if (page.isEmpty) {
-      """<div class="jumbotron text-center mt-3">
+      """<div class="jumbotron text-center mt-2">
         |  <h2>No results <i class="far fa-sad-tear"></i></h2>
         |</div>
       """.stripMargin
     } else {
-      s"""<div class="list-group mt-3 mb-3">
+      s"""<div class="list-group mt-2">
          |  ${page.items.map(item).mkString("\n")}
          |</div>
        """.stripMargin

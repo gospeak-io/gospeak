@@ -110,10 +110,18 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
     check(q.query)
   }
 
-  protected def check[A](q: SelectPage[A], req: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
+  protected def check[A](q: SelectPage[A], req: String, checkCount: Boolean = true)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
     q.fr.query.sql shouldBe req
     check(q.query)
-    check(q.countQuery)
+    if (checkCount) {
+      // checkCount is here to avoid test errors with Timestamp type when in sub-query
+      // ex: SELECT count(*) FROM (SELECT e.id FROM events e WHERE e.group_id=? AND e.start > ?) as cnt
+      // => ✕ P02 Timestamp  →  VARCHAR (VARCHAR)
+      //    Timestamp is not coercible to VARCHAR (VARCHAR) according to the
+      //    JDBC specification. Expected schema type was TIMESTAMP.
+      // => but e.start IS a TIMESTAMP type, it's just not recognized by doobie type-checker :(
+      check(q.countQuery)
+    }
   }
 }
 

@@ -9,7 +9,7 @@ import fr.gospeak.core.domain.{CommonCfp, ExternalCfp, User}
 import fr.gospeak.core.services.storage.ExternalCfpRepo
 import fr.gospeak.infra.services.storage.sql.ExternalCfpRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Table, Update}
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Sorts, Table, Update}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.domain.{Done, GMapPlace, Page, Tag}
 
@@ -37,7 +37,8 @@ object ExternalCfpRepoSql {
     prefix = "c",
     joins = Seq(),
     fields = Seq("id", "slug", "name", "logo", "begin", "close", "location", "description", "tags").map(Field(_, "c")),
-    sort = Seq("close", "name").map(Field(_, "c")),
+    aggFields = Seq(),
+    sorts = Sorts(Seq("close", "name").map(Field(_, "c")), Map()),
     search = Seq("name", "description", "tags").map(Field(_, "c")))
 
   private[sql] def insert(e: ExternalCfp): Insert[ExternalCfp] = {
