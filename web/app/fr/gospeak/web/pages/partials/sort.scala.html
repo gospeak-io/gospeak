@@ -1,0 +1,17 @@
+@import fr.gospeak.libs.scalautils.domain.Page
+
+@(page: Page[_], link: Page.Params => Call)
+@if(page.sorts.nonEmpty) {
+    <p class="mt-2 mb-0">
+        sort:
+        @page.sorts.map { s =>
+            @if(page.params.hasOrderBy(s)) {
+                <a class="badge badge-primary" href="@link(page.params.orderBy("-" + s))">@s</a>
+            } else if(page.params.hasOrderBy("-" + s)) {
+                <a class="badge badge-danger" href="@link(page.params.orderBy(s))">@s</a>
+            } else {
+                <a class="badge badge-secondary" href="@link(page.params.orderBy(s))">@s</a>
+            }
+        }
+    </p>
+}

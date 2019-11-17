@@ -23,5 +23,5 @@ class SearchSpec extends FunSpec with Matchers {
   }
 
   def buildPage(no: Int = 2, size: Int = 20, search: Option[String] = None, orderBy: Option[String] = None, total: Int = 25): Page[Int] =
-    Page(Seq(123, 2, 83, 1, 30), Params(No(no), Size(size), search.map(Search(_)), orderBy.map(OrderBy(_))), Total(total))
+    Page(Seq(123, 2, 83, 1, 30), Params(No(no), Size(size), search.map(Search(_)), orderBy.map(OrderBy(_))), Total(total), Seq())
 }

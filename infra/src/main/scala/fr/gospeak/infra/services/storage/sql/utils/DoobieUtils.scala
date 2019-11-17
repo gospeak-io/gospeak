@@ -47,12 +47,33 @@ object DoobieUtils {
     def value: String = s"$kind $name $prefix ON ${on.map { case (l, r) => s"${l.value}=${r.value}" }.toList.mkString(" AND ")}"
   }
 
+  final case class Sorts(default: Seq[Field],
+                         other: Map[String, Seq[Field]]) {
+    def all: Seq[Seq[Field]] = default :: other.values.toList
+
+    def names: Seq[String] = other.keySet.toList
+
+    def get(orderBy: Option[Page.OrderBy], prefix: String): Seq[Field] = {
+      orderBy.map { o =>
+        o.values.flatMap { sort =>
+          other.get(sort.stripPrefix("-")).map(_.map { field =>
+            (sort.startsWith("-"), field.name.startsWith("-")) match {
+              case (true, true) => field.copy(name = field.name.stripPrefix("-"))
+              case (true, false) => field.copy(name = "-" + field.name)
+              case (false, _) => field
+            }
+          }).getOrElse(Seq(Field(sort, prefix)))
+        }
+      }.getOrElse(default)
+    }
+  }
+
   final case class Table(name: String,
                          prefix: String,
                          joins: Seq[TableJoin],
                          fields: Seq[Field],
                          aggFields: Seq[AggregateField],
-                         sort: Seq[Field],
+                         sorts: Sorts,
                          search: Seq[Field]) extends Dynamic {
     def value: String = s"$name $prefix" + joins.map(" " + _.value).mkString
 
@@ -94,11 +115,13 @@ object DoobieUtils {
         joins = joins ++ Seq(TableJoin(kind, rightTable.name, rightTable.prefix, joinFields)) ++ rightTable.joins,
         fields = fields ++ rightTable.fields,
         aggFields = aggFields ++ rightTable.aggFields,
-        sort = sort,
+        sorts = sorts,
         search = search ++ rightTable.search)
     } yield res
 
     def aggregate(formula: String, name: String): Table = copy(aggFields = aggFields :+ AggregateField(formula, name))
+
+    def setSorts(default: (String, Seq[Field]), other: (String, Seq[Field])*): Table = copy(sorts = Sorts(default._2, (default +: other).toMap))
 
     def insert[A](elt: A, build: A => Fragment): Insert[A] = Insert[A](name, fields, elt, build)
 
@@ -108,21 +131,21 @@ object DoobieUtils {
 
     def delete(where: Fragment): Delete = Delete(value, fr0" " ++ where)
 
-    def select[A: Read](where: Fragment): Select[A] = Select[A](value, fields, aggFields, Some(fr0" " ++ where), sort, None)
+    def select[A: Read](where: Fragment): Select[A] = Select[A](value, fields, aggFields, Some(fr0" " ++ where), sorts, None)
 
-    def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, None, sort, None)
+    def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, None, sorts, None)
 
-    def select[A: Read](fields: Seq[Field], sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, None, sort, None)
+    def select[A: Read](fields: Seq[Field], sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, None, Sorts(sort, Map()), None)
 
-    def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, aggFields, Some(fr0" " ++ where), sort, None)
+    def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, aggFields, Some(fr0" " ++ where), sorts, None)
 
-    def select[A: Read](fields: Seq[Field], where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, Some(fr0" " ++ where), sort, None)
+    def select[A: Read](fields: Seq[Field], where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, Some(fr0" " ++ where), Sorts(sort, Map()), None)
 
-    def selectOne[A: Read](where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, Some(fr0" " ++ where), sort, Some(1))
+    def selectOne[A: Read](where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, Some(fr0" " ++ where), Sorts(sort, Map()), Some(1))
 
-    def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, None, params, sort, search)
+    def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, None, params, sorts, search)
 
-    def selectPage[A: Read](params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, Some(fr0" " ++ where), params, sort, search)
+    def selectPage[A: Read](params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, Some(fr0" " ++ where), params, sorts, search)
   }
 
   object Table {
@@ -135,12 +158,12 @@ object DoobieUtils {
         joins = Seq(),
         fields = fields.map(f => Field(f, prefix)),
         aggFields = Seq(),
-        sort = sort.map(f => Field(f, prefix)),
+        sorts = Sorts(sort.map(f => Field(f, prefix)), Map()),
         search = search.map(f => Field(f, prefix)))
 
-    private def from(name: String, prefix: String, joins: Seq[TableJoin], fields: Seq[Field], aggFields: Seq[AggregateField], sort: Seq[Field], search: Seq[Field]): Either[CustomException, Table] = {
+    private def from(name: String, prefix: String, joins: Seq[TableJoin], fields: Seq[Field], aggFields: Seq[AggregateField], sorts: Sorts, search: Seq[Field]): Either[CustomException, Table] = {
       val duplicateFields = fields.diff(fields.distinct).distinct
-      val invalidSort = sort.map(s => s.copy(name = s.name.stripPrefix("-")).value).diff(fields.map(_.value))
+      val invalidSort = sorts.all.flatten.map(s => s.copy(name = s.name.stripPrefix("-")).value).diff(fields.map(_.value) ++ aggFields.map(_.formula))
       val invalidSearch = search.diff(fields)
       val errors = Seq(
         duplicateFields.headOption.map(_ => s"fields ${duplicateFields.map(s"'" + _.value + "'").mkString(", ")} are duplicated"),
@@ -153,7 +176,7 @@ object DoobieUtils {
         joins = joins,
         fields = fields,
         aggFields = aggFields,
-        sort = sort,
+        sorts = sorts,
         search = search)))
     }
   }
@@ -192,13 +215,13 @@ object DoobieUtils {
                                    fields: Seq[Field],
                                    aggFields: Seq[AggregateField],
                                    whereOpt: Option[Fragment],
-                                   sort: Seq[Field],
+                                   sorts: Sorts,
                                    limit: Option[Int]) {
     def fr: Fragment = {
       val select = const0(s"SELECT ${(fields.map(_.value) ++ aggFields.map(_.value)).mkString(", ")} FROM $table")
       val where = whereOpt.getOrElse(fr0"")
       val groupBy = aggFields.headOption.map(_ => const0(s" GROUP BY ${fields.map(_.value).mkString(", ")}")).getOrElse(fr0"")
-      val orderBy = NonEmptyList.fromList(sort.toList).map(orderByFragment(_)).getOrElse(fr0"")
+      val orderBy = NonEmptyList.fromList(sorts.default.toList).map(orderByFragment(_)).getOrElse(fr0"")
       select ++ where ++ groupBy ++ orderBy ++ limit.map(l => const0(s" LIMIT $l")).getOrElse(fr0"")
     }
 
@@ -219,13 +242,13 @@ object DoobieUtils {
                                        aggFields: Seq[AggregateField],
                                        whereOpt: Option[Fragment],
                                        params: Page.Params,
-                                       defaultSort: Seq[Field],
+                                       sorts: Sorts,
                                        searchFields: Seq[Field]) {
     private val select: Fragment = const0(s"SELECT ${(fields.map(_.value) ++ aggFields.map(_.value)).mkString(", ")} FROM $table")
     private val groupBy: Fragment = aggFields.headOption.map(_ => const0(s" GROUP BY ${fields.map(_.value).mkString(", ")}")).getOrElse(fr0"")
 
     def fr: Fragment = {
-      val (where, orderBy, limit) = paginationFragment(prefix, whereOpt, params, searchFields, defaultSort)
+      val (where, orderBy, limit) = paginationFragment(prefix, whereOpt, params, sorts, searchFields)
       select ++ where ++ groupBy ++ orderBy ++ limit
     }
 
@@ -242,7 +265,7 @@ object DoobieUtils {
     def run(xa: doobie.Transactor[IO]): IO[Page[A]] = (for {
       elts <- query.to[List]
       total <- countQuery.unique
-    } yield Page(elts, params, Page.Total(total))).transact(xa)
+    } yield Page(elts, params, Page.Total(total), sorts.names)).transact(xa)
   }
 
   def whereFragment(whereOpt: Option[Fragment], search: Option[Page.Search], fields: Seq[Field]): Option[Fragment] = {
@@ -267,9 +290,9 @@ object DoobieUtils {
   def limitFragment(size: Page.Size, start: Page.Offset): Fragment =
     fr0" LIMIT " ++ const0(size.value.toString) ++ fr0" OFFSET " ++ const0(start.value.toString)
 
-  def paginationFragment(prefix: String, whereOpt: Option[Fragment], params: Page.Params, searchFields: Seq[Field], defaultSort: Seq[Field]): (Fragment, Fragment, Fragment) = {
+  def paginationFragment(prefix: String, whereOpt: Option[Fragment], params: Page.Params, sorts: Sorts, searchFields: Seq[Field]): (Fragment, Fragment, Fragment) = {
     val where = whereFragment(whereOpt, params.search, searchFields).getOrElse(fr0"")
-    val sortFields = params.orderBy.map(_.values.map(f => Field(f, prefix))).getOrElse(defaultSort)
+    val sortFields = sorts.get(params.orderBy, prefix)
     val orderBy = NonEmptyList.fromList(sortFields.toList).map(orderByFragment(_, params.nullsFirst)).getOrElse(fr0"")
     val limit = limitFragment(params.pageSize, params.offset)
     (where, orderBy, limit)

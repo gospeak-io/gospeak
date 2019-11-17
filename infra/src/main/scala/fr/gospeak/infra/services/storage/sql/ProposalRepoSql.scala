@@ -141,7 +141,10 @@ object ProposalRepoSql {
     .aggregate("COALESCE(SUM(pr.grade), 0)", "score")
     .aggregate("COALESCE((COUNT(pr.grade) + SUM(pr.grade)) / 2, 0)", "likes")
     .aggregate("COALESCE((COUNT(pr.grade) - SUM(pr.grade)) / 2, 0)", "dislikes")
-    .copy(sort = Seq(Field("-COALESCE(SUM(pr.grade), 0)", ""), Field("-COALESCE(COUNT(pr.grade), 0)", ""), Field("-created", "p")))
+    .setSorts(
+      "score" -> Seq(Field("-COALESCE(SUM(pr.grade), 0)", ""), Field("-COALESCE(COUNT(pr.grade), 0)", ""), Field("-created", "p")),
+      "created" -> Seq(Field("created", "p")),
+      "title" -> Seq(Field("LOWER(p.title)", "")))
   private val ratingTableFull = ratingTable
     .join(Tables.users, _.created_by -> _.id).get
 

@@ -14,9 +14,9 @@ class ListSpec extends TwirlSpec with RandomDataGenerator {
       html.list(Page.empty[Talk])(b).toString should include("""<div class="jumbotron">""")
     }
     it("should display a list when non empty page") {
-      val res = html.list(Page(talks, Page.Params.defaults, Page.Total(talks.length)))(b).toString
+      val res = html.list(Page(talks, Page.Params.defaults, Page.Total(talks.length), Seq()))(b).toString
       res should not include """<div class="jumbotron">"""
-      res should include("""<div class="list-group mt-3 mb-3">""")
+      res should include("""<div class="list-group mt-2">""")
       res should include(talks.head.title.value)
     }
   }
