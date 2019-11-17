@@ -1,0 +1,76 @@
+$google-color: #c32f10;
+$twitter-color: #00aced;
+$facebook-color: #3b5998;
+$github-color: #444444;
+
+@mixin socialBtn($color) {
+  background-color: $color !important;
+  border: $color !important;
+  color: white !important;
+  box-shadow: none !important;
+}
+
+.social-login {
+  margin-bottom: 2em;
+
+  .btn-google::first-letter,
+  .btn-twitter::first-letter,
+  .btn-facebook::first-letter,
+  .btn-github::first-letter {
+    text-transform: capitalize;
+  }
+
+  .btn-google {
+    @include socialBtn($google-color);
+
+    &:hover, &:active, &:focus {
+      @include socialBtn($google-color);
+    }
+  }
+
+  .btn-twitter {
+    @include socialBtn($twitter-color);
+
+    &:hover, &:active, &:focus {
+      @include socialBtn($twitter-color);
+    }
+  }
+
+  .btn-facebook {
+    @include socialBtn($facebook-color);
+
+    &:hover, &:active, &:focus {
+      @include socialBtn($facebook-color);
+    }
+  }
+
+  .btn-github {
+    @include socialBtn($github-color);
+
+    &:hover, &:active, &:focus {
+      @include socialBtn($github-color);
+    }
+  }
+
+  .or-block {
+    position: relative;
+    margin: 2em 0;
+    font-size: 1.5em;
+    color: #aaa;
+
+    hr {
+      height: 1px;
+      margin: 0;
+    }
+
+    div {
+      position: absolute;
+      left: 50%;
+      top: -0.8em;
+      width: 3em;
+      margin-left: -1.5em;
+      background-color: #f8f9fa !important;
+      text-align: center;
+    }
+  }
+}

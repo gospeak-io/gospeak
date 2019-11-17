@@ -190,6 +190,14 @@ object Extensions {
     }
   }
 
+  implicit class OptionEitherExtension[A, E](val in: Option[Either[E, A]]) extends AnyVal {
+    def sequence: Either[E, Option[A]] = in match {
+      case Some(Right(a)) => Right(Some(a))
+      case Some(Left(e)) => Left(e)
+      case None => Right(None)
+    }
+  }
+
   implicit class OptionalExtension[A](val in: Optional[A]) extends AnyVal {
     def asScala: Option[A] = if (in.isPresent) Some(in.get()) else None
   }
@@ -248,6 +256,13 @@ object Extensions {
     def toIO(f: E => Throwable): IO[A] = in match {
       case Right(a) => IO.pure(a)
       case Left(e) => IO.raiseError(f(e))
+    }
+  }
+
+  implicit class EitherIOExtension[E, A](val in: Either[E, IO[A]]) extends AnyVal {
+    def sequence: IO[Either[E, A]] = in match {
+      case Left(e) => IO.pure(Left(e))
+      case Right(io) => io.map(Right(_))
     }
   }
 

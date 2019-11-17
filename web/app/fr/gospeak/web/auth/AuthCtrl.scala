@@ -11,6 +11,7 @@ import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
 import fr.gospeak.core.domain.utils.Constants
 import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.EmailSrv
+import fr.gospeak.libs.scalautils.domain.CustomException
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
@@ -64,22 +65,36 @@ class AuthCtrl(cc: ControllerComponents,
   def login(redirect: Option[String]): Action[AnyContent] = UserAwareActionIO { implicit req =>
     IO.pure(req.user
       .map(_ => loginRedirect(redirect).flashing(req.flash))
-      .getOrElse(Ok(html.login(AuthForms.login, envConf, redirect, authSrv.socialProviders))))
+      .getOrElse(Ok(html.login(AuthForms.login, envConf, redirect, authSrv.providerIds))))
   }
 
   def doLogin(redirect: Option[String]): Action[AnyContent] = UserAwareActionIO { implicit req =>
     AuthForms.login.bindFromRequest.fold(
-      formWithErrors => IO.pure(BadRequest(html.login(formWithErrors, envConf, redirect))),
+      formWithErrors => IO.pure(BadRequest(html.login(formWithErrors, envConf, redirect, authSrv.providerIds))),
       data => (for {
         user <- authSrv.getIdentity(data)
         (_, result) <- authSrv.login(user, data.rememberMe, loginRedirect(redirect))
       } yield result: Result).recover {
-        case _: AccountValidationRequiredException => Ok(html.login(AuthForms.login.fill(data).withGlobalError("You need to validate your account by clicking on the email validation link"), envConf, redirect))
-        case _: IdentityNotFoundException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), envConf, redirect))
-        case _: InvalidPasswordException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), envConf, redirect))
-        case NonFatal(e) => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), envConf, redirect))
+        case _: AccountValidationRequiredException => Ok(html.login(AuthForms.login.fill(data).withGlobalError("You need to validate your account by clicking on the email validation link"), envConf, redirect, authSrv.providerIds))
+        case _: IdentityNotFoundException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), envConf, redirect, authSrv.providerIds))
+        case _: InvalidPasswordException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), envConf, redirect, authSrv.providerIds))
+        case NonFatal(e) => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), envConf, redirect, authSrv.providerIds))
       }
     )
+  }
+
+  def authenticate(providerID: String): Action[AnyContent] = UserAwareActionIO { implicit req =>
+    (for {
+      profileE <- authSrv.authenticate(providerID)
+      result <- profileE.fold(IO.pure, profile => for {
+        authUser <- authSrv.createOrEdit(profile)
+        next = Redirect(UserRoutes.index()).flashing("success" -> s"Hi ${authUser.user.name.value}, welcome to Gospeak!")
+        (_, authenticatorResult) <- authSrv.login(authUser, rememberMe = true, next)
+      } yield authenticatorResult)
+    } yield result).recover {
+      case CustomException(msg, _) => Redirect(routes.AuthCtrl.login()).flashing("error" -> msg)
+      case NonFatal(e) => Redirect(routes.AuthCtrl.login()).flashing("error" -> e.getMessage)
+    }
   }
 
   def doLogout(): Action[AnyContent] = SecuredActionIO { implicit req =>

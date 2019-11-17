@@ -11,7 +11,7 @@ import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain.Secret
-import fr.gospeak.web.auth.{AuthConf}
+import fr.gospeak.web.auth.AuthConf
 import play.api.Configuration
 import play.api.mvc.Cookie.SameSite
 import pureconfig.error.{CannotConvert, ConfigReaderFailure, ConfigReaderFailures, ConvertFailure}

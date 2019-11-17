@@ -2,67 +2,40 @@ package fr.gospeak.web.auth.domain
 
 import java.time.Instant
 
-import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
 import fr.gospeak.core.domain.User
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.StringUtils
 import fr.gospeak.libs.scalautils.domain._
 
-case class SocialProfile(loginInfo: LoginInfo,
-                         firstName: Option[String],
-                         lastName: Option[String],
-                         fullName: Option[String],
-                         email: Option[String],
-                         avatarURL: Option[String]) {
-  def toUserWith(getAvatar: EmailAddress => Avatar): Either[CustomException, User] = {
-    val now = Instant.now()
-    for {
-      socialProvider <- SocialProvider.from(loginInfo.providerID)
-      source <- socialProvider.toSource
-      email <- email.map(EmailAddress.from) match {
-        case None => Left(CustomException(
-          s"""The email is missing from the social provider response!
-          Add the email on your social provider and please try again.
-          Otherwise, we cannot go further :(""".stripMargin))
-        case Some(p) => p
-      }
-      slug <- User.Slug.from(StringUtils.slugify(firstName.getOrElse(email.nickName)))
-      avatar <- avatarURL.map(Url.from) match {
-        case None => Right(getAvatar(email))
-        case Some(p) => p.map(Avatar(_, source))
-      }
-    } yield {
-      // try to guess firstName & lastName from the nickname
-      val (first, last) = email.nickName.split('.').toList match {
-        case Nil => (email.nickName, "Anonymous")
-        case firstName :: Nil => (firstName, "Anonymous")
-        case firstName :: lastName :: _ => (firstName, lastName)
-      }
-      User(
-        User.Id.generate(),
-        slug,
-        firstName.getOrElse(first),
-        lastName.getOrElse(last),
-        email,
-        Some(now),
-        avatar,
-        User.emptyProfile,
-        now,
-        now
-      )
-    }
-  }
-}
-
 object SocialProfile {
-  def from(socialProfile: CommonSocialProfile): SocialProfile = {
-    SocialProfile(socialProfile.loginInfo,
-      socialProfile.firstName,
-      socialProfile.lastName,
-      socialProfile.fullName,
-      socialProfile.email,
-      socialProfile.avatarURL)
-  }
+  val setEmailUrls: Map[String, String] = Map(
+    "twitter" -> "https://twitter.com/settings/email")
 
+  def toUser(profile: CommonSocialProfile, defaultAvatar: EmailAddress => Avatar, now: Instant): Either[CustomException, User] =
+    for {
+      email <- profile.email.map(EmailAddress.from)
+        .getOrElse(Left(CustomException(s"<b>No email available from your ${profile.loginInfo.providerID} account.</b><br>" +
+          s"${setEmailUrls.get(profile.loginInfo.providerID).map(url => "<a href=\"" + url + "\" target=\"_blank\">Add your email</a>").getOrElse("Add your email")} " +
+          s"and try again or choose an other login option.")))
+      avatarOpt <- getAvatar(profile)
+      slug <- User.Slug.from(StringUtils.slugify(profile.firstName.getOrElse(email.nickName)))
+      (first, last) = email.guessNames
+    } yield User(
+      id = User.Id.generate(),
+      slug = slug,
+      firstName = profile.firstName.getOrElse(first),
+      lastName = profile.lastName.getOrElse(last),
+      email = email,
+      emailValidated = Some(now),
+      avatar = avatarOpt.getOrElse(defaultAvatar(email)),
+      profile = User.emptyProfile,
+      created = now,
+      updated = now)
+
+  def getAvatar(profile: CommonSocialProfile): Either[CustomException, Option[Avatar]] = for {
+    source <- Avatar.Source.all.find(_.toString.toLowerCase == profile.loginInfo.providerID)
+      .toEither(CustomException(s"No Avatar.Source for providerID: ${profile.loginInfo.providerID}"))
+    avatar <- profile.avatarURL.map(Url.from(_).map(Avatar(_, source))).sequence
+  } yield avatar
 }
-

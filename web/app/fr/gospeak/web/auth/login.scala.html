@@ -1,15 +1,12 @@
 @import fr.gospeak.web.auth.AuthForms.LoginData
 @import fr.gospeak.core.ApplicationConf
 @import fr.gospeak.web.auth.routes.AuthCtrl
-@import fr.gospeak.web.auth.routes.SocialAuthCtrl
-@import com.mohiva.play.silhouette.impl.providers.SocialProvider
 @import fr.gospeak.web.auth.partials.html.container
 @import fr.gospeak.web.auth.partials.html.loginFields
 @import fr.gospeak.web.pages.partials.form.html.formElt
 @import fr.gospeak.web.utils.UserAwareReq
 
-
-@(form: Form[LoginData], envConf: ApplicationConf.Env, redirect: Option[String], socialProviders: Seq[SocialProvider] = Seq())(implicit req: UserAwareReq[AnyContent])
+@(form: Form[LoginData], envConf: ApplicationConf.Env, redirect: Option[String], providerIds: Seq[String])(implicit req: UserAwareReq[AnyContent])
 @container("Gospeak - login")() {
     <div class="login">
         <div class="card bg-light shadow">
@@ -28,27 +25,23 @@
                     @loginFields(form(""))
                     <button type="submit" class="btn btn-primary btn-lg btn-block">Login</button>
                 }
+                @if(providerIds.nonEmpty) {
+                    <div class="social-login">
+                        <div class="or-block"><hr><div>or</div></div>
+                        <div class="row">
+                        @for(id <- providerIds) {
+                            <div class="col">
+                                <a href="@AuthCtrl.authenticate(id)" class="btn btn-outline-primary btn-block btn-@id">@id</a>
+                            </div>
+                        }
+                        </div>
+                    </div>
+                }
             </div>
         </div>
         <div class="mt-2 d-flex justify-content-between align-items-center">
             <a href="@AuthCtrl.forgotPassword(redirect)" class="text-muted">Forgot password ?</a>
             <a href="@AuthCtrl.signup(redirect)" class="text-muted">Create new account</a>
-        </div>
-
-        <div class="align-items-cente">
-        @if(socialProviders.nonEmpty) {
-            <div class="alert-info">Or use your existing account on one of the following services to sign in:</div>
-            <div class="mt-2 d-flex col-md-6 col-md-offset-3 align-items-center" style="margin-left: auto;  margin-right: auto;">
-                <div>
-                @for(p <- socialProviders) {
-                    <a href="@SocialAuthCtrl.authenticate(p.id)">
-                        <img src="@routes.Assets.versioned(s"lib/web/img/providers/${p.id}.png")"
-                        style="width: 40px;  height: 40px;" alt="@p.id"/>
-                    </a>
-                }
-                </div>
-            </div>
-        }
         </div>
     </div>
 }()

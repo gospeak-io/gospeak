@@ -2,6 +2,11 @@ package fr.gospeak.libs.scalautils.domain
 
 final class EmailAddress private(value: String) extends DataClass(value) {
   def nickName: String = value.substring(0, value.indexOf("@"))
+
+  def guessNames: (String, String) = nickName.split('.').toList match {
+    case firstName :: lastName :: _ => (firstName, lastName)
+    case _ => (nickName, "Anonymous")
+  }
 }
 
 object EmailAddress {

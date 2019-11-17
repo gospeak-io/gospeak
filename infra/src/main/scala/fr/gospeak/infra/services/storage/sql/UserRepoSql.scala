@@ -16,11 +16,11 @@ import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRepo {
-  override def create(data: User.Data, now: Instant): IO[User] =
-    insert(User(data, User.emptyProfile, now)).run(xa)
+  override def create(data: User.Data, now: Instant): IO[User] = insert(User(data, User.emptyProfile, now)).run(xa)
 
-  override def edit(user: User, now: Instant): IO[User] =
-    update(user.copy(updated = now)).run(xa).map(_ => user.copy(updated = now))
+  override def create(user: User): IO[User] = insert(user).run(xa)
+
+  override def edit(user: User, now: Instant): IO[User] = update(user.copy(updated = now)).run(xa).map(_ => user.copy(updated = now))
 
   override def edit(user: User, editable: User.EditableFields, now: Instant): IO[User] =
     update(user.copy(firstName = editable.firstName, lastName = editable.lastName, email = editable.email, profile = editable.profile, updated = now)).run(xa).map(_ => user.copy(updated = now))
@@ -65,9 +65,6 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
   override def listPublic(params: Page.Params): IO[Page[User]] = selectPagePublic(params).run(xa)
 
   override def list(ids: Seq[User.Id]): IO[Seq[User]] = runNel(selectAll, ids)
-
-  override def create(user: User): IO[User] =  insert(user).run(xa)
-
 }
 
 object UserRepoSql {
