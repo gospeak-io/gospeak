@@ -230,9 +230,9 @@ object DoobieUtils {
     }
 
     def countFr: Fragment = {
-      val where = whereFragment(whereOpt, params.search, searchFields).getOrElse(fr0"")
       val select = const0(s"SELECT ${fields.headOption.map(_.value).getOrElse("*")} FROM $table")
-      fr0"SELECT count(*) FROM (" ++ select ++ where ++ fr0") as cnt"
+      val where = whereFragment(whereOpt, params.search, searchFields).getOrElse(fr0"")
+      fr0"SELECT count(*) FROM (" ++ select ++ where ++ groupBy ++ fr0") as cnt"
     }
 
     def query: doobie.Query0[A] = fr.query[A]
