@@ -179,7 +179,7 @@
 
         @section("published", "Published components", "@import fr.gospeak.web.pages.published.partials.html._") { _ =>
             @component("groupItem", "@groupItem(group)") { name =>
-                @example(s"$name") { _ => @published.groupItem(group) }
+                @example(s"$name") { _ => @published.groupItem(group, Seq()) }
             }
             @component("cfpItem", "@cfpItem(cfp)") { name =>
                 @example(s"$name") { _ => @published.cfpItem(CommonCfp(group, cfp), secured.now) }

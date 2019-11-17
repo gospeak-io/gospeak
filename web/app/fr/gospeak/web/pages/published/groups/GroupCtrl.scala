@@ -37,8 +37,9 @@ class GroupCtrl(cc: ControllerComponents,
   def list(params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
     for {
       groups <- groupRepo.list(params)
+      orgas <- userRepo.list(groups.items.flatMap(_.owners.toList))
       b = listBreadcrumb()
-    } yield Ok(html.list(groups)(b))
+    } yield Ok(html.list(groups, orgas)(b))
   }
 
   def detail(group: Group.Slug): Action[AnyContent] = UserAwareActionIO { implicit req =>

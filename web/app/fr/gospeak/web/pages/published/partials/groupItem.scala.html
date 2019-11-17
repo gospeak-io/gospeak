@@ -1,9 +1,17 @@
-@import fr.gospeak.core.domain.Group
+@import fr.gospeak.core.domain.{Group, User}
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 
-@(group: Group)
+@(group: Group, orgas: Seq[User])
 <a class="list-group-item list-group-item-action" href="@GroupCtrl.detail(group.slug)">
     <h5 class="mb-0">@group.name.value</h5>
     @tags(group.tags)
+    Orgas:
+    @group.owners.toList.map { id =>
+        @orgas.find(_.id == id).map { user =>
+            <img src="@user.avatar.url.value" alt="@user.name.value avatar" class="avatar" title="@user.name.value">
+        }.getOrElse {
+            <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp" alt="Unknown" class="avatar" title="Unknown">
+        }
+    }
 </a>
