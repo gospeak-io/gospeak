@@ -86,6 +86,10 @@ class ProposalRepoSqlSpec extends RepoSpec {
         val q = ProposalRepoSql.selectOne(user.id, talk.slug, cfp.slug)
         check(q, s"SELECT $fields FROM $table WHERE p.id=$whereCfpAndTalk $orderBy")
       }
+      it("should build selectOneFull for cfp and proposal id") {
+        val q = ProposalRepoSql.selectOneFull(cfp.slug, proposal.id)
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE p.id=$whereCfp GROUP BY $fieldsFull $orderByFull")
+      }
       it("should build selectOneFull for id") {
         val q = ProposalRepoSql.selectOneFull(proposal.id)
         check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE p.id=? GROUP BY $fieldsFull $orderByFull")

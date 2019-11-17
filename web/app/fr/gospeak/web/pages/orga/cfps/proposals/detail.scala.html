@@ -3,16 +3,15 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.partials.html.container
+@import fr.gospeak.web.pages.orga.partials.html.{container, proposalRating}
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.html._
 @import fr.gospeak.web.pages.partials.html.{slidesFields, videoFields}
-@import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.SecuredReq
 
-@(group: Group, cfp: Cfp, proposal: Proposal, speakers: Seq[User], ratings: Seq[Proposal.Rating.Full], comments: Seq[Comment.Full], orgaComments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite], events: Seq[Event], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url], commentForm: Form[Comment.Data], orgaCommentForm: Form[Comment.Data])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, proposal: Proposal.Full, speakers: Seq[User], ratings: Seq[Proposal.Rating.Full], comments: Seq[Comment.Full], orgaComments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite], events: Seq[Event], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url], commentForm: Form[Comment.Data], orgaCommentForm: Form[Comment.Data])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container(proposal.title.value + " - Gospeak", group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@proposalStatusIcon(proposal.status) @proposal.title.value</span>
@@ -21,15 +20,15 @@
                 <i class="fas fa-cog"></i>
             </button>
             <span class="dropdown-menu dropdown-menu-right">
-                <a class="dropdown-item" href="@ProposalCtrl.edit(group.slug, cfp.slug, proposal.id)">Edit</a>
+                <a class="dropdown-item" href="@ProposalCtrl.edit(group.slug, proposal.cfp.slug, proposal.id)">Edit</a>
                 @if(proposal.status != Proposal.Status.Declined) {
-                    @formBtn(ProposalCtrl.reject(group.slug, cfp.slug, proposal.id), Seq(
+                    @formBtn(ProposalCtrl.reject(group.slug, proposal.cfp.slug, proposal.id), Seq(
                         "class" -> "dropdown-item",
                         "title" -> Proposal.Status.Declined.description,
                         "data-toggle" -> "tooltip",
                         "data-placement" -> "left")) {Reject this proposal}
                 } else {
-                    @formBtn(ProposalCtrl.cancelRejection(group.slug, cfp.slug, proposal.id), Seq("class" -> "dropdown-item")) {Cancel proposal rejection}
+                    @formBtn(ProposalCtrl.cancelRejection(group.slug, proposal.cfp.slug, proposal.id), Seq("class" -> "dropdown-item")) {Cancel proposal rejection}
                 }
             </span>
         </span>
@@ -37,7 +36,7 @@
 
     <div class="row">
         <div class="col-9">
-            @proposal.event.map { id => <h2>Added to @event(events, id, Some(e => EventCtrl.detail(group.slug, e.slug)))</h2> }
+            @proposal.event.map { evt => <h2>Added to @event(events, evt.id, Some(e => EventCtrl.detail(group.slug, e.slug)))</h2> }
             <p class="mb-0">@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video) @tags(proposal.tags)</p>
             <div>
                 Speakers:
@@ -46,7 +45,7 @@
                         <span class="badge badge-pill badge-primary">
                             <a href="@SpeakerCtrl.detail(group.slug, speaker.slug)">@speaker.name.value</a>
                             @if(speaker.id != proposal.info.createdBy) {
-                                @formBtn(ProposalCtrl.removeSpeaker(group.slug, cfp.slug, proposal.id, speaker.slug), Seq("class" -> "no-style", "title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
+                                @formBtn(ProposalCtrl.removeSpeaker(group.slug, proposal.cfp.slug, proposal.id, speaker.slug), Seq("class" -> "no-style", "title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
                             }
                         </span>
                     }
@@ -55,39 +54,21 @@
                 @invites.map { i =>
                     <span class="badge badge-pill badge-secondary" title="Speaker invitation, still not a speaker">
                         @i.email.value
-                        @formBtn(ProposalCtrl.cancelInviteSpeaker(group.slug, cfp.slug, proposal.id, i.id), Seq("class" -> "no-style", "title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
+                        @formBtn(ProposalCtrl.cancelInviteSpeaker(group.slug, proposal.cfp.slug, proposal.id, i.id), Seq("class" -> "no-style", "title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
                     </span>
                 }
                 <a href="#" class="badge badge-pill badge-primary" data-toggle="modal" data-target="#inviteSpeakerModal"><i class="fas fa-plus"></i></a>
             </div>
             <p>@markdown(proposal.description)</p>
 
-            @if(proposal.slides.isEmpty) { @slidesFields(embedForm, ProposalCtrl.doAddSlides(group.slug, cfp.slug, proposal.id)) }
-            @if(proposal.video.isEmpty) { @videoFields(embedForm, ProposalCtrl.doAddVideo(group.slug, cfp.slug, proposal.id)) }
+            @if(proposal.slides.isEmpty) { @slidesFields(embedForm, ProposalCtrl.doAddSlides(group.slug, proposal.cfp.slug, proposal.id)) }
+            @if(proposal.video.isEmpty) { @videoFields(embedForm, ProposalCtrl.doAddVideo(group.slug, proposal.cfp.slug, proposal.id)) }
         </div>
         <div class="col">
             <h3 class="d-flex justify-content-between align-items-center">
                 <span>Ratings</span>
-                <div>
-                    @ratings.find(_.createdBy == req.user.id).map(_.grade) match {
-                        case Some(Proposal.Rating.Grade.Like) => {
-                            @formBtn(ProposalCtrl.doRate(group.slug, cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), Seq("class" -> "btn-secondary")) {<i class="far fa-thumbs-down"></i>}
-                            @formBtn(ProposalCtrl.doRate(group.slug, cfp.slug, proposal.id, Proposal.Rating.Grade.Like), Seq("class" -> "btn-success")) {<i class="far fa-thumbs-up"></i>}
-                        }
-                        case Some(Proposal.Rating.Grade.Dislike) => {
-                            @formBtn(ProposalCtrl.doRate(group.slug, cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), Seq("class" -> "btn-danger")) {<i class="far fa-thumbs-down"></i>}
-                            @formBtn(ProposalCtrl.doRate(group.slug, cfp.slug, proposal.id, Proposal.Rating.Grade.Like), Seq("class" -> "btn-secondary")) {<i class="far fa-thumbs-up"></i>}
-                        }
-                        case None => {
-                            @formBtn(ProposalCtrl.doRate(group.slug, cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), Seq("class" -> "btn-danger")) {<i class="far fa-thumbs-down"></i>}
-                            @formBtn(ProposalCtrl.doRate(group.slug, cfp.slug, proposal.id, Proposal.Rating.Grade.Like), Seq("class" -> "btn-success")) {<i class="far fa-thumbs-up"></i>}
-                        }
-                    }
-                </div>
+                <div>@proposalRating(proposal, ratings.find(_.createdBy == req.user.id).map(_.grade))</div>
             </h3>
-            @if(ratings.nonEmpty) {
-                <b>Global grade: @math.round(100 * ratings.map(_.grade.value).sum.toDouble / ratings.length)% (@Formats.plural(ratings.length, "rating"))</b>
-            }
             @ratings.sortBy(_.grade).map { rating =>
                 <div>
                     @if(rating.grade == Proposal.Rating.Grade.Like) {
@@ -104,11 +85,11 @@
     <div class="row">
         <div class="col pt-3 pb-3">
             <h3>Discussion with speakers:</h3>
-            @commentSection(comments, commentForm, ProposalCtrl.doSendComment(group.slug, cfp.slug, proposal.id, orga = false), ProposalCtrl.detail(group.slug, cfp.slug, proposal.id), 8)(req.userAware)
+            @commentSection(comments, commentForm, ProposalCtrl.doSendComment(group.slug, proposal.cfp.slug, proposal.id, orga = false), ProposalCtrl.detail(group.slug, proposal.cfp.slug, proposal.id), 8)(req.userAware)
         </div>
         <div class="col pt-3 pb-3 bg-light">
             <h3>Discussion between orgas:</h3>
-            @commentSection(orgaComments, orgaCommentForm, ProposalCtrl.doSendComment(group.slug, cfp.slug, proposal.id, orga = true), ProposalCtrl.detail(group.slug, cfp.slug, proposal.id))(req.userAware)
+            @commentSection(orgaComments, orgaCommentForm, ProposalCtrl.doSendComment(group.slug, proposal.cfp.slug, proposal.id, orga = true), ProposalCtrl.detail(group.slug, proposal.cfp.slug, proposal.id))(req.userAware)
         </div>
     </div>
 
@@ -117,7 +98,7 @@
     <div class="modal fade" id="inviteSpeakerModal" tabindex="-1" role="dialog" aria-labelledby="inviteSpeakerModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-                @formElt(inviteSpeakerForm, ProposalCtrl.inviteSpeaker(group.slug, cfp.slug, proposal.id)) {
+                @formElt(inviteSpeakerForm, ProposalCtrl.inviteSpeaker(group.slug, proposal.cfp.slug, proposal.id)) {
                     <div class="modal-header">
                         <h5 class="modal-title" id="inviteSpeakerModalLabel">Add a speaker to <b>@proposal.title.value</b> proposal</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>

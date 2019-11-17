@@ -97,6 +97,8 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]] = selectOne(speaker, talk, cfp).runOption(xa)
 
+  override def findFull(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal.Full]] = selectOneFull(cfp, id).runOption(xa)
+
   override def findFull(proposal: Proposal.Id): IO[Option[Proposal.Full]] = selectOneFull(proposal).runOption(xa)
 
   override def findFull(talk: Talk.Slug, cfp: Cfp.Slug)(by: User.Id): IO[Option[Proposal.Full]] = selectOneFull(talk, cfp, by).runOption(xa)
@@ -207,6 +209,9 @@ object ProposalRepoSql {
 
   private[sql] def selectOne(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Select[Proposal] =
     table.select[Proposal](where(speaker, talk, cfp))
+
+  private[sql] def selectOneFull(cfp: Cfp.Slug, id: Proposal.Id): Select[Proposal.Full] =
+    tableFull.select[Proposal.Full](where(cfp, id))
 
   private[sql] def selectOneFull(id: Proposal.Id): Select[Proposal.Full] =
     tableFull.select[Proposal.Full](fr0"WHERE p.id=$id")
