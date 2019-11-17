@@ -34,8 +34,9 @@ class SpeakerCtrl(cc: ControllerComponents,
       speakerElt <- OptionT(userRepo.find(speaker))
       proposals <- OptionT.liftF(proposalRepo.listFull(groupElt.id, speakerElt.id, params))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users)))
+      userRatings <- OptionT.liftF(proposalRepo.listRatings(req.user.id, proposals.items.map(_.id)))
       b = breadcrumb(groupElt, speakerElt)
-    } yield Ok(html.detail(groupElt, speakerElt, proposals, speakers)(b))).value.map(_.getOrElse(speakerNotFound(group, speaker)))
+    } yield Ok(html.detail(groupElt, speakerElt, proposals, speakers, userRatings)(b))).value.map(_.getOrElse(speakerNotFound(group, speaker)))
   }
 }
 

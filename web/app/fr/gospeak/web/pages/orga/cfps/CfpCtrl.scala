@@ -68,8 +68,9 @@ class CfpCtrl(cc: ControllerComponents,
       cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
       proposals <- OptionT.liftF(proposalRepo.listFull(cfpElt.id, params))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
+      userRatings <- OptionT.liftF(proposalRepo.listRatings(cfp, req.user.id))
       b = breadcrumb(groupElt, cfpElt)
-    } yield Ok(html.detail(groupElt, cfpElt, proposals, speakers)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
+    } yield Ok(html.detail(groupElt, cfpElt, proposals, speakers, userRatings)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
   }
 
   def edit(group: Group.Slug, cfp: Cfp.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>

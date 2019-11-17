@@ -154,9 +154,20 @@ class ProposalRepoSqlSpec extends RepoSpec {
         val q = ProposalRepoSql.selectOneRating(proposal.id, user.id)
         check(q, s"SELECT $ratingFields FROM $ratingTable WHERE pr.proposal_id=? AND pr.created_by=? $ratingOrderBy")
       }
-      it("should build selectAllRatings") {
+      it("should build selectAllRatings for a proposal") {
         val q = ProposalRepoSql.selectAllRatings(proposal.id)
         check(q, s"SELECT $ratingFieldsFull FROM $ratingTableFull WHERE pr.proposal_id=? $ratingOrderBy")
+      }
+      it("should build selectAllRatings for an orga in a cfp") {
+        val q = ProposalRepoSql.selectAllRatings(cfp.slug, user.id)
+        check(q, s"SELECT $ratingFields FROM $ratingTable " +
+          s"INNER JOIN $table ON pr.proposal_id=p.id " +
+          s"INNER JOIN $cfpTable ON p.cfp_id=c.id " +
+          s"WHERE c.slug=? AND pr.created_by=? $ratingOrderBy")
+      }
+      it("should build selectAllRatings for an orga in a list") {
+        val q = ProposalRepoSql.selectAllRatings(user.id, NonEmptyList.of(proposal.id))
+        check(q, s"SELECT $ratingFields FROM $ratingTable WHERE pr.proposal_id IN (?) AND pr.created_by=? $ratingOrderBy")
       }
     }
   }
@@ -175,7 +186,7 @@ object ProposalRepoSqlSpec {
   private val whereGroupAndCfp = s"(SELECT p.id FROM $table INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $groupTable ON c.group_id=g.id WHERE p.id=? AND c.slug=? AND g.slug=? AND g.owners LIKE ?)"
 
   private val ratingTable = "proposal_ratings pr"
-  private val ratingFields = mapFields("proposal_id, grade, created_at, created_by" , "pr." + _)
+  private val ratingFields = mapFields("proposal_id, grade, created_at, created_by", "pr." + _)
   private val ratingOrderBy = "ORDER BY pr.created_at IS NULL, pr.created_at"
 
   private val tableFull = s"$table INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $groupTable ON c.group_id=g.id INNER JOIN $talkTable ON p.talk_id=t.id LEFT OUTER JOIN $eventTable ON p.event_id=e.id LEFT OUTER JOIN $ratingTable ON p.id=pr.proposal_id"

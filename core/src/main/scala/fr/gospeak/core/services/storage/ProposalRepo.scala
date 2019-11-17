@@ -43,6 +43,10 @@ trait OrgaProposalRepo {
   def find(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal]]
 
   def listRatings(id: Proposal.Id): IO[Seq[Proposal.Rating.Full]]
+
+  def listRatings(cfp: Cfp.Slug, user: User.Id): IO[Seq[Proposal.Rating]]
+
+  def listRatings(user: User.Id, proposals: Seq[Proposal.Id]): IO[Seq[Proposal.Rating]]
 }
 
 trait SpeakerProposalRepo {
