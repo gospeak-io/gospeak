@@ -8,6 +8,13 @@
 
 @(speakers: Page[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container_theme("Gospeak - speakers", b)() {
-    <h1>Speakers</h1>
-    @Formats.paginated[User](speakers, SpeakerCtrl.list, speakerItem(_))
+    <div class="container space-2">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-8 mb-3 mb-md-0">
+                <h2 class="h5 mb-0">Speakers</h2>
+                <p class="mb-0">blablabla.</p>
+            </div>
+        </div>
+        @Formats.paginated[User](speakers, SpeakerCtrl.list, speakerItem(_))
+    </div>
 }()
