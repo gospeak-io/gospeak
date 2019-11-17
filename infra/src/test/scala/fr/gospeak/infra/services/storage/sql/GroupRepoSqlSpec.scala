@@ -45,7 +45,8 @@ class GroupRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = GroupRepoSql.update(group.slug)(group.data, user.id, now)
-        check(q, s"UPDATE $table SET slug=?, name=?, contact=?, description=?, location=?, location_lat=?, location_lng=?, location_country=?, tags=?, updated=?, updated_by=? WHERE g.slug=?")
+        check(q, s"UPDATE $table SET slug=?, name=?, logo=?, banner=?, contact=?, website=?, description=?, location=?, location_lat=?, location_lng=?, location_country=?, " +
+          s"social_facebook=?, social_instagram=?, social_twitter=?, social_linkedIn=?, social_youtube=?, social_meetup=?, social_eventbrite=?, social_slack=?, social_discord=?, tags=?, updated=?, updated_by=? WHERE g.slug=?")
       }
       it("should build updateOwners") {
         val q = GroupRepoSql.updateOwners(group.id)(NonEmptyList.of(user.id), user.id, now)
@@ -123,8 +124,9 @@ class GroupRepoSqlSpec extends RepoSpec {
 
 object GroupRepoSqlSpec {
   val table = "groups g"
-  val fieldsInsert: String = mapFields("id, slug, name, contact, description, location, location_lat, location_lng, location_country, owners, tags, created, created_by, updated, updated_by", "g." + _)
-  val fields: String = mapFields("id, slug, name, contact, description, location, owners, tags, created, created_by, updated, updated_by", "g." + _)
+  private val socialFields = Seq("facebook", "instagram", "twitter", "linkedIn", "youtube", "meetup", "eventbrite", "slack", "discord").map("social_" + _).mkString(", ")
+  val fieldsInsert: String = mapFields(s"id, slug, name, logo, banner, contact, website, description, location, location_lat, location_lng, location_country, owners, $socialFields, tags, status, created, created_by, updated, updated_by", "g." + _)
+  val fields: String = fieldsInsert.split(", ").filterNot(_.contains("location_")).mkString(", ")
   val orderBy = "ORDER BY g.name IS NULL, g.name"
 
   val memberTable = "group_members gm"

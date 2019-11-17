@@ -8,13 +8,14 @@
 
 @(group: Group, form: Form[Group.Data])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container("Gospeak", group, b)() {
-    <h1 class="page-header">Edit @group.name.value</h1>
-
     @formElt(form, GroupCtrl.doEdit(group.slug)) {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Edit @group.name.value infos</h1>
+            <div>
+                @btnCancel(SettingsCtrl.settings(group.slug))
+                @btnSubmit("Save")
+            </div>
+        </div>
         @groupFields(form)
-        @actionsHorizontal() {
-            @btnCancel(SettingsCtrl.settings(group.slug))
-            @btnSubmit("Edit")
-        }
     }
 }()

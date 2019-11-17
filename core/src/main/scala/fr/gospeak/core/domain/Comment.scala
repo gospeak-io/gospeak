@@ -21,7 +21,7 @@ object Comment {
 
   object Id extends UuidIdBuilder[Id]("Comment.Id", new Id(_))
 
-  sealed trait Kind extends StringEnum with Product with Serializable {
+  sealed trait Kind extends StringEnum {
     override def value: String = toString
   }
 

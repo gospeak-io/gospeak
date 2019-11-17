@@ -78,7 +78,7 @@ object SlugBuilder {
   val pattern: Regex = "[a-z0-9-_]+".r
 }
 
-trait StringEnum {
+trait StringEnum extends Product with Serializable {
   def value: String
 }
 

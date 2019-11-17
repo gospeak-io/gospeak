@@ -10,6 +10,7 @@ import doobie.util.fragment.Fragment.const0
 import doobie.util.transactor.Transactor
 import doobie.util.{Meta, Read}
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount._
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup}
 import fr.gospeak.core.services.slack.domain.SlackAction
@@ -307,10 +308,20 @@ object DoobieUtils {
     implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Instant].timap(LocalDateTime.ofInstant(_, ZoneOffset.UTC))(_.toInstant(ZoneOffset.UTC))
     implicit val emailAddressMeta: Meta[EmailAddress] = Meta[String].timap(EmailAddress.from(_).get)(_.value)
     implicit val urlMeta: Meta[Url] = Meta[String].timap(Url.from(_).get)(_.value)
-    implicit val twitterAccountMeta: Meta[TwitterAccount] = Meta[String].timap(Url.from(_).map(TwitterAccount).get)(_.value.value)
+    implicit val logoMeta: Meta[Logo] = urlMeta.timap(Logo)(_.url)
+    implicit val bannerMeta: Meta[Banner] = urlMeta.timap(Banner)(_.url)
+    implicit val facebookAccountMeta: Meta[FacebookAccount] = urlMeta.timap(FacebookAccount)(_.url)
+    implicit val instagramAccountMeta: Meta[InstagramAccount] = urlMeta.timap(InstagramAccount)(_.url)
+    implicit val twitterAccountMeta: Meta[TwitterAccount] = urlMeta.timap(TwitterAccount)(_.url)
+    implicit val linkedInAccountMeta: Meta[LinkedInAccount] = urlMeta.timap(LinkedInAccount)(_.url)
+    implicit val youtubeAccountMeta: Meta[YoutubeAccount] = urlMeta.timap(YoutubeAccount)(_.url)
+    implicit val meetupAccountMeta: Meta[MeetupAccount] = urlMeta.timap(MeetupAccount)(_.url)
+    implicit val eventbriteAccountMeta: Meta[EventbriteAccount] = urlMeta.timap(EventbriteAccount)(_.url)
+    implicit val slackAccountMeta: Meta[SlackAccount] = urlMeta.timap(SlackAccount)(_.url)
+    implicit val discordAccountMeta: Meta[DiscordAccount] = urlMeta.timap(DiscordAccount)(_.url)
+    implicit val slidesMeta: Meta[Slides] = urlMeta.timap(Slides.from(_).get)(_.url)
+    implicit val videoMeta: Meta[Video] = urlMeta.timap(Video.from(_).get)(_.url)
     implicit val twitterHashtagMeta: Meta[TwitterHashtag] = Meta[String].timap(TwitterHashtag.from(_).get)(_.value)
-    implicit val slidesMeta: Meta[Slides] = Meta[String].timap(Slides.from(_).get)(_.value)
-    implicit val videoMeta: Meta[Video] = Meta[String].timap(Video.from(_).get)(_.value)
     implicit val currencyMeta: Meta[Price.Currency] = Meta[String].timap(Price.Currency.from(_).get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
 
@@ -318,7 +329,6 @@ object DoobieUtils {
 
     implicit def mustacheTextTemplateMeta[A: TypeTag]: Meta[MustacheTextTmpl[A]] = Meta[String].timap(MustacheTextTmpl[A])(_.value)
 
-    implicit val logoMeta: Meta[Logo] = Meta[String].timap(Url.from(_).map(Logo).get)(_.url.value)
     implicit val avatarSourceMeta: Meta[Avatar.Source] = Meta[String].timap(Avatar.Source.from(_).get)(_.toString)
     implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))
     implicit val gMapPlaceMeta: Meta[GMapPlace] = {
@@ -363,6 +373,7 @@ object DoobieUtils {
     implicit val talkStatusMeta: Meta[Talk.Status] = Meta[String].timap(Talk.Status.from(_).get)(_.value)
     implicit val groupIdMeta: Meta[Group.Id] = Meta[String].timap(Group.Id.from(_).get)(_.value)
     implicit val groupSlugMeta: Meta[Group.Slug] = Meta[String].timap(Group.Slug.from(_).get)(_.value)
+    implicit val groupStatusMeta: Meta[Group.Status] = Meta[String].timap(Group.Status.from(_).get)(_.value)
     implicit val groupNameMeta: Meta[Group.Name] = Meta[String].timap(Group.Name)(_.value)
     implicit val eventIdMeta: Meta[Event.Id] = Meta[String].timap(Event.Id.from(_).get)(_.value)
     implicit val eventSlugMeta: Meta[Event.Slug] = Meta[String].timap(Event.Slug.from(_).get)(_.value)

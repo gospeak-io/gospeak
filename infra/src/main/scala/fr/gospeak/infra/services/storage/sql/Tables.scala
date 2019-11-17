@@ -35,7 +35,7 @@ object Tables {
   val groups: Table = Table.from(
     name = "groups",
     prefix = "g",
-    fields = Seq("id", "slug", "name", "contact", "description", "location", "location_lat", "location_lng", "location_country", "owners", "tags", "created", "created_by", "updated", "updated_by"),
+    fields = Seq("id", "slug", "name", "logo", "banner", "contact", "website", "description", "location", "location_lat", "location_lng", "location_country", "owners") ++ Seq("facebook", "instagram", "twitter", "linkedIn", "youtube", "meetup", "eventbrite", "slack", "discord").map("social_" + _) ++ Seq("tags", "status", "created", "created_by", "updated", "updated_by"),
     sort = Seq("name"),
     search = Seq("id", "slug", "name", "contact", "description", "location_country", "tags")).get
 

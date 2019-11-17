@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit
 
 import cats.implicits._
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
 import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup, MeetupVenue}
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import fr.gospeak.infra.libs.timeshape.TimeShape
@@ -56,13 +57,14 @@ object Mappings {
     "length" -> longNumber,
     "unit" -> timeUnit
   )(new FiniteDuration(_, _))(d => Some(d.length -> d.unit))
-  val emailAddress: Mapping[EmailAddress] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(Values.maxLength.title)), (s: String) => EmailAddress.from(s).get, _.value)
-  val url: Mapping[Url] = stringEitherMapping(Url.from, _.value, formatError, Constraints.maxLength(Values.maxLength.title))
-  val logo: Mapping[Logo] = stringEitherMapping(Url.from(_).map(Logo), _.url.value, formatError, Constraints.maxLength(Values.maxLength.title))
-  val twitterAccount: Mapping[TwitterAccount] = stringEitherMapping(Url.from(_).map(TwitterAccount), _.value.value, formatError, Constraints.maxLength(Values.maxLength.title))
+  val emailAddress: Mapping[EmailAddress] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(Values.maxLength.email)), (s: String) => EmailAddress.from(s).get, _.value)
+  val url: Mapping[Url] = stringEitherMapping(Url.from, _.value, formatError, Constraints.maxLength(Values.maxLength.url))
+  val logo: Mapping[Logo] = url.transform(Logo, _.url)
+  val banner: Mapping[Banner] = url.transform(Banner, _.url)
+  val slides: Mapping[Slides] = url.transform(Slides.from(_).get, _.url)
+  val video: Mapping[Video] = url.transform(Video.from(_).get, _.url)
+  val twitterAccount: Mapping[TwitterAccount] = url.transform(TwitterAccount, _.url)
   val twitterHashtag: Mapping[TwitterHashtag] = stringEitherMapping(TwitterHashtag.from, _.value, formatError, Constraints.maxLength(Values.maxLength.title))
-  val slides: Mapping[Slides] = stringEitherMapping(Slides.from, _.value, formatError, Constraints.maxLength(Values.maxLength.title))
-  val video: Mapping[Video] = stringEitherMapping(Video.from, _.value, formatError, Constraints.maxLength(Values.maxLength.title))
   val secret: Mapping[Secret] = textMapping(Secret, _.decode)
   val password: Mapping[Secret] = secret.verifying(Constraint[Secret](passwordConstraint) { o =>
     if (o.decode.length >= 8) PlayValid

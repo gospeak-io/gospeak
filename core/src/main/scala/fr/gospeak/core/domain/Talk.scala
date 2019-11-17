@@ -41,7 +41,7 @@ object Talk {
 
   final case class Title(value: String) extends AnyVal
 
-  sealed trait Status extends StringEnum with Product with Serializable {
+  sealed trait Status extends StringEnum {
     def value: String = toString
   }
 

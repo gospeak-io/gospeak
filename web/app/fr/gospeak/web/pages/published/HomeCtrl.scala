@@ -8,7 +8,7 @@ import com.mohiva.play.silhouette.api.{LoginInfo, Silhouette}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.{Info, SocialAccounts}
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
@@ -59,7 +59,10 @@ class HomeCtrl(cc: ControllerComponents,
     id = Group.Id.generate(),
     slug = Group.Slug.from("group-slug").get,
     name = Group.Name("A group"),
+    logo = None,
+    banner = None,
     contact = Some(EmailAddress.from("contact@gospeak.fr").get),
+    website = None,
     description = Markdown(
       """This is an **awesome** group, you should come and see us.
         |
@@ -69,7 +72,9 @@ class HomeCtrl(cc: ControllerComponents,
       """.stripMargin),
     location = None,
     owners = NonEmptyList.of(user.id),
+    social = SocialAccounts(),
     tags = Seq("tag").map(Tag(_)),
+    status = Group.Status.Active,
     info = Info(user.id, now))
   private val cfp = Cfp(
     id = Cfp.Id.generate(),

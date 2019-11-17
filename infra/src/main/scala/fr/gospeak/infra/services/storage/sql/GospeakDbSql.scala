@@ -8,8 +8,9 @@ import fr.gospeak.core.GospeakConf
 import fr.gospeak.core.domain.Contact.{FirstName, LastName}
 import fr.gospeak.core.domain.User.Profile
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
 import fr.gospeak.core.domain.utils.TemplateData.EventInfo
-import fr.gospeak.core.domain.utils.{Constants, Info, TemplateData}
+import fr.gospeak.core.domain.utils.{Constants, Info, SocialAccounts, TemplateData}
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.core.services.storage.GospeakDb
 import fr.gospeak.infra.services.GravatarSrv
@@ -65,7 +66,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     }
 
     def group(slug: String, name: String, tags: Seq[String], by: User, location: Option[GMapPlace] = None, owners: Seq[User] = Seq(), email: Option[String] = None): Group =
-      Group(Group.Id.generate(), Group.Slug.from(slug).get, Group.Name(name), email.map(EmailAddress.from(_).get), description = Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), location, owners = NonEmptyList.of(by.id) ++ owners.map(_.id).toList, tags = tags.map(Tag(_)), info = Info(by.id, now))
+      Group(Group.Id.generate(), Group.Slug.from(slug).get, Group.Name(name), None, None, email.map(EmailAddress.from(_).get), None, description = Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), location, owners = NonEmptyList.of(by.id) ++ owners.map(_.id).toList, SocialAccounts(), tags = tags.map(Tag(_)), Group.Status.Active, info = Info(by.id, now))
 
     def cfp(group: Group, slug: String, name: String, start: Option[String], end: Option[String], description: String, tags: Seq[String], by: User): Cfp =
       Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).get, Cfp.Name(name), start.map(d => LocalDateTime.parse(d + "T00:00:00")), end.map(d => LocalDateTime.parse(d + "T00:00:00")), Markdown(description), tags.map(Tag(_)), Info(by.id, now))
@@ -261,7 +262,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val generated = (1 to 25).map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
-      val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), None, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), None, NonEmptyList.of(userOrga.id), Seq(), Info(userOrga.id, now))
+      val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), None, None, None, None, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), None, NonEmptyList.of(userOrga.id), SocialAccounts(), Seq(), Group.Status.Active, Info(userOrga.id, now))
       val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), None, None, Markdown("Only your best talks !"), Seq(), Info(userOrga.id, now))
       val e = Event(Event.Id.generate(), bigGroup.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), Some(100), allowRsvp = false, MustacheMarkdownTmpl(""), Event.Notes("", now, userOrga.id), None, Seq(), Seq(), Some(now), Event.ExtRefs(), Info(userOrga.id, now))
       val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Status.Draft, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Info(userSpeaker.id, now))
