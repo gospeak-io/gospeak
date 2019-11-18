@@ -1,0 +1,14 @@
+@import fr.gospeak.web.domain.Breadcrumb
+
+@(b: Breadcrumb)
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb breadcrumb-no-gutter font-size-1 space-1">
+
+        @b.links.dropRight(1).map { l =>
+            @l.link.map { url => <li class="breadcrumb-item"><a href="@url">@l.name</a></li> }.getOrElse{<li class="breadcrumb-item active">@l.name</li>}
+        }
+        @b.links.lastOption.map { l =>
+            <li class="breadcrumb-item active" aria-current="page">@l.name</li>
+        }
+    </ol>
+</nav>

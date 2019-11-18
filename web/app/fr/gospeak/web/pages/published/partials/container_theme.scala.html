@@ -1,12 +1,11 @@
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.partials.container.html.{breadcrumb, flash, main_theme, navbarLink_theme, userDropdown}
+@import fr.gospeak.web.pages.partials.container.html.{flash_theme, main_theme, navbarLink_theme, userDropdown_theme}
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.pages.published.routes.HomeCtrl
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.UserAwareReq
-
 @(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
 @main_theme(title, "published_theme.css", style, script, req.env) {
     <header id="header" class="u-header u-header--abs-top-md u-header--bg-transparent u-header--show-hide-md" data-header-fix-moment="500" data-header-fix-effect="slide">
@@ -52,7 +51,7 @@
                             <!-- LOGIN -->
                             <li class="nav-item u-header__nav-last-item">
                                 @req.secured.map { r =>
-                                    @userDropdown(r.user, r.groups)
+                                    @userDropdown_theme(r.user, r.groups)
                                     }.getOrElse {
                                     <a class="btn btn-sm btn-primary transition-3d-hover" href="@AuthCtrl.login()">Login</a>
                                 }
@@ -67,7 +66,7 @@
         </div>
     </header>
     <main id="content" role="main">
-        @flash(req.flash)
+            @flash_theme(req.flash)
         @content
     </main>
 }

@@ -1,0 +1,5 @@
+@(flash: Flash)
+@flash.get("success").map { msg => @alert_theme("success")(Html(msg)) }
+@flash.get("info").map { msg => @alert_theme("info")(Html(msg)) }
+@flash.get("warning").map { msg => @alert_theme("warning")(Html(msg)) }
+@flash.get("error").map { msg => @alert_theme("danger")(Html(msg)) }
