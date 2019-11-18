@@ -10,10 +10,11 @@
 @container_theme("Gospeak - speakers", b)() {
     <main id="content" role="main">
 
-    <div id="SVGHero" class="svg-preloader position-relative bg-img-hero pt-40" style="background-image: url(@routes.Assets.versioned("lib/web/img/banner-speaker2.jpg"));">
+    <div id="SVGHero" class="svg-preloader position-relative bg-img-hero pt-40" style="background-image: url(@routes.Assets.versioned("lib/web/img/banner-speaker3.jpg"));">
         <div class="container space-top-0 space-bottom-3 space-md-3 space-bottom-lg-4">
             <div class="w-md-65 w-lg-50">
-                <h2 class="h1">Our speakers</h2>
+                <h1 class="h1 font-weight-medium text-white">Speaker</h1>
+                <h2 class="h1 text-primary font-weight-medium">Community</h2>
             </div>
         </div>
             <!-- SVG Background -->
@@ -98,7 +99,13 @@
         <!-- End Stories Section -->
 
     </main>
+    <style>
+            .u-sidebar--account__toggle-text{
+                text-color: white;
+            }
+    </style>
 }{
+
 <script>
         $(window).on('load', function() {
             // initialization of HSMegaMenu component
