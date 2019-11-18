@@ -23,14 +23,14 @@ class ApiCtrl(cc: ControllerComponents, env: ApplicationConf.Env) extends Abstra
 
 
   protected def ApiAction[R, A](bodyParser: BodyParser[R])(block: BasicReq[R] => IO[PublicApiResponse[A]])(implicit w: Writes[A]): Action[R] =
-    ActionIO(bodyParser)(req => block(req).map(b => Ok(Json.toJson(b))))
+    ActionIO(bodyParser)(req => block(req).map(okResult(_)))
 
   protected def ApiAction[A](block: BasicReq[AnyContent] => IO[PublicApiResponse[A]])(implicit w: Writes[A]): Action[AnyContent] =
     ApiAction(parse.anyContent)(block)
 
 
   protected def ApiActionOpt[R, A](bodyParser: BodyParser[R])(block: BasicReq[R] => IO[Option[A]])(implicit w: Writes[A]): Action[R] =
-    ActionIO(bodyParser)(req => block(req).map(_.map(b => Ok(Json.toJson(PublicApiResponse(b, req.now)))).getOrElse(NotFound)))
+    ActionIO(bodyParser)(req => block(req).map(_.map(b => okResult(PublicApiResponse(b, req.now))).getOrElse(NotFound)))
 
   protected def ApiActionOpt[A](block: BasicReq[AnyContent] => IO[Option[A]])(implicit w: Writes[A]): Action[AnyContent] =
     ApiActionOpt(parse.anyContent)(block)
@@ -51,8 +51,10 @@ class ApiCtrl(cc: ControllerComponents, env: ApplicationConf.Env) extends Abstra
 
 
   protected def ApiActionPageT[R, A](bodyParser: BodyParser[R])(block: BasicReq[R] => OptionT[IO, Page[A]])(implicit w: Writes[A]): Action[R] =
-    ApiActionOpt(bodyParser)(req => block(req).value.map(_.map(p => PublicApiResponse(p, req.now))))
+    ActionIO(bodyParser)(req => block(req).value.map(_.map(b => okResult(PublicApiResponse(b, req.now))).getOrElse(NotFound)))
 
   protected def ApiActionPageT[A](block: BasicReq[AnyContent] => OptionT[IO, Page[A]])(implicit w: Writes[A]): Action[AnyContent] =
     ApiActionPageT(parse.anyContent)(block)
+
+  private def okResult[A](r: PublicApiResponse[A])(implicit w: Writes[A]) = Ok(Json.toJson(r))
 }
