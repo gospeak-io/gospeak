@@ -2,13 +2,10 @@
 @import fr.gospeak.web.pages.partials.display.html._
 
 @(speaker: User)
-
-
 <div class="card shadow-sm p-5 mb-5">
     <div class="mb-3 mx-auto">
         <img src="@speaker.avatar.url.value" alt="@speaker.name.value avatar" class="img-fluid rounded-circle" width="110" height="110" >
     </div>
-
     <div class="card-body">
         <h5 class="card-title">@speaker.name.value</h5>
         @speaker.profile.bio.map { b => <p>@markdown(b)</p> }

@@ -6,32 +6,32 @@
 
 @(speaker: User, publicTalks: Page[Talk], proposals: Page[Proposal.Full], ownedGroups: Seq[Group], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container_theme(speaker.name.value + " - Gospeak", b)() {
-    <div class="container container space-3">
-        <div class="row">
-            <div class="col-4">
-                @speakerCard(speaker)
-            </div>
-            <div class="col-8">
-                @if(publicTalks.nonEmpty) {
-                    <div class="mb-3">
-                        <h2>Actual talks</h2>
-                        @publicTalks.items.map { talk => @talkItem(talk) }
-                    </div>
-                }
-                @if(proposals.nonEmpty) {
-                    <div class="mb-3">
-                        <h2>Planned talks</h2>
-                        @proposals.items.map { proposal => @proposalItem(proposal, req.now) }
-                    </div>
-                }
-                @if(ownedGroups.nonEmpty) {
-                    <div class="mb-3">
-                        <h2>Organises</h2>
-                        @ownedGroups.map { group => @groupItem_theme(group, orgas) }
-                    </div>
-                }
-            </div>
+<div class="container container space-3">
+    <div class="row">
+        <div class="col-4">
+            @speakerCard(speaker)
+        </div>
+        <div class="col-8">
+            @if(publicTalks.nonEmpty) {
+                <div class="mb-3">
+                    <h2>Actual talks</h2>
+                    @publicTalks.items.map { talk => @talkItem(talk) }
+                </div>
+            }
+            @if(proposals.nonEmpty) {
+                <div class="mb-3">
+                    <h2>Planned talks</h2>
+                    @proposals.items.map { proposal => @proposalItem(proposal, req.now) }
+                </div>
+            }
+            @if(ownedGroups.nonEmpty) {
+                <div class="mb-3">
+                    <h2>Organises</h2>
+                    @ownedGroups.map { group => @groupItem_theme(group, orgas) }
+                </div>
+            }
         </div>
     </div>
+</div>
 
 }()

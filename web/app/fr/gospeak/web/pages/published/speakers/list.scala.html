@@ -62,7 +62,9 @@
             <div class="container space-2">
                 <div class="row align-items-center mb-4">
                     <div class="card-deck d-block d-lg-flex card-lg-gutters-2">
-                        @Formats.paginated[User](speakers, SpeakerCtrl.list, speakerItem(_))
+                        <div class="d-flex justify-content-between mt-2">
+                            @Formats.paginated[User](speakers, SpeakerCtrl.list, speakerItem(_))
+                        </div>
                     </div>
                 </div>
             </div>
