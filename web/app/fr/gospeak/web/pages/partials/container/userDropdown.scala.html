@@ -4,18 +4,22 @@
 @import fr.gospeak.web.pages.user.routes.UserCtrl
 
 @(user: User, groups: Seq[Group], group: Option[Group] = None)
-<div class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" id="dropdown-user" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <img src="@user.avatar.url.value" alt="@user.name.value avatar" class="avatar">
+
+<div class="nav-item dropdown list-inline-item">
+    <a id="dropdown-user" data-toggle="dropdown" class="btn btn-xs btn-text-secondary u-sidebar--account__toggle-bg nav-link dropdown-toggle" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+        <span class="position-relative">
+            <span class="u-sidebar--account__toggle-text">@user.name.value</span>
+            <img class="u-sidebar--account__toggle-img" src="@user.avatar.url.value" alt="@user.name.value avatar">
+        </span>
     </a>
     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-user">
         <a class="dropdown-item" href="@UserCtrl.index()" data-hotkey="g h">Home</a>
         <div class="dropdown-divider"></div>
         <h6 class="dropdown-header">My groups</h6>
         <a class="dropdown-item" href="@GroupCtrl.create()">&nbsp;&nbsp;<b>Create a group</b></a>
-        <!-- <a class="dropdown-item" href="@GroupCtrl.join()">&nbsp;&nbsp;<b>Join a group</b></a> -->
+            <!-- <a class="dropdown-item" href="@GroupCtrl.join()">&nbsp;&nbsp;<b>Join a group</b></a> -->
         @groups.zipWithIndex.map { case (g, i) =>
-            <a class="dropdown-item @if(group.exists(_.id == g.id)) {active}" href="@GroupCtrl.detail(g.slug)" @if(i == 0){data-hotkey="g g"}>&nbsp;&nbsp;@g.name.value</a>
+        <a class="dropdown-item @if(group.exists(_.id == g.id)) {active}" href="@GroupCtrl.detail(g.slug)" @if(i == 0){data-hotkey="g g"}>&nbsp;&nbsp;@g.name.value</a>
         }
         <div class="dropdown-divider"></div>
         <a class="dropdown-item" href="@AuthCtrl.doLogout()">Logout</a>
