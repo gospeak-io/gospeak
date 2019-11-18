@@ -1,0 +1,39 @@
+@import fr.gospeak.core.domain.{Group, User}
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
+
+@(group: Group, orgas: Seq[User])
+<a class="card card-frame mb-3" href="@GroupCtrl.detail(group.slug)">
+    <div class="card-body p-4">
+        <div class="media">
+            @group.logo.map { logo => <img src="@logo.url.value" alt="@group.name.value logo" class="img-fluid rounded-circle" width="110" height="110"/> }
+            <div class="media-body pl-5">
+                <h2 class="h5">@group.name.value</h2>
+                <p class="font-size-1">@tags(group.tags)</p>
+                <div class="media">
+                    <div class="media-body">
+                        <small class="d-block text-dark">7800 members</small>
+                        <small class="d-block text-dark">79 events</small>
+                    </div>
+                    <ul class="list-inline mr-2 mb-0">
+                    @group.owners.toList.map { id =>
+                        @orgas.find(_.id == id).map { user =>
+                        <li class="list-inline-item ml-n3 mr-0">
+                            <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
+                                <img src="@user.avatar.url.value" alt="@user.name.value avatar" class="img-fluid rounded-circle" title="@user.name.value">
+                            </div>
+                        </li>
+                        }.getOrElse {
+                            <li class="list-inline-item ml-n3 mr-0">
+                                <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
+                                    <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp" alt="avatar" class="img-fluid rounded-circle" title="unknow avatar">
+                                </div>
+                            </li>
+                        }
+                    }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</a>
