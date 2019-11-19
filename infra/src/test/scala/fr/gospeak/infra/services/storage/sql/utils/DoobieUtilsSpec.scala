@@ -216,7 +216,6 @@ class DoobieUtilsSpec extends FunSpec with Matchers with ScalaCheckDrivenPropert
       it("should serialize and parse UserRequest.ProposalCreation.Payload") {
         forAll { d: UserRequest.ProposalCreation.Payload =>
           val json = JsonEncoders.payloadEncoder(d)
-          println(json)
           JsonEncoders.payloadDecoder.decodeJson(json) shouldBe Right(d)
         }
       }

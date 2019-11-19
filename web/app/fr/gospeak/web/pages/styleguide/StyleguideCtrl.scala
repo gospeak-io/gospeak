@@ -267,6 +267,23 @@ class StyleguideCtrl(cc: ControllerComponents,
     IO.pure(Ok(html.styleguide(user, group, cfp, event, talk, proposal, proposalFull, params)))
   }
 
+  def published(id: String): Action[AnyContent] = SecuredActionIO { implicit req =>
+    implicit val userAware: UserAwareReq[AnyContent] = req.userAware
+    val res = id match {
+      case "index" => pages.published.html.index()(Breadcrumb(Seq()))
+      case "why" => pages.published.html.why()(Breadcrumb(Seq()))
+    }
+    IO.pure(Ok(res))
+  }
+
+  def speaker(id: String): Action[AnyContent] = SecuredActionIO { implicit req =>
+    ???
+  }
+
+  def orga(id: String): Action[AnyContent] = SecuredActionIO { implicit req =>
+    ???
+  }
+
   def answers(id: String): Action[AnyContent] = SecuredActionIO { implicit req =>
     implicit val userAware: UserAwareReq[AnyContent] = req.userAware
     val res = id match {

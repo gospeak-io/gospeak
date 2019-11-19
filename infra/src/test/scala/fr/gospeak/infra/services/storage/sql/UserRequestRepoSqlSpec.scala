@@ -16,7 +16,7 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         val e = eventRepo.create(g.id, event.data.copy(venue = None), u.id, now).unsafeRunSync()
         val req = userRequestRepo.createProposal(c.id, Some(e.id), u.email, ProposalCreation.Payload(u.slug, u.firstName, u.lastName, talk.slug, talk.title, talk.duration, talk.description, talk.tags), u.id, now).unsafeRunSync()
         userRequestRepo.find(req.id).unsafeRunSync() shouldBe Some(req)
-        userRequestRepo.listPendingProposalCreations(event.id).unsafeRunSync() shouldBe Seq(req)
+        userRequestRepo.listPendingProposalCreations(e.id).unsafeRunSync() shouldBe Seq(req)
       }
     }
     describe("Queries") {
