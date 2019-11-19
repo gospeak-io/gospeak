@@ -1,0 +1,26 @@
+@import fr.gospeak.infra.services.EmailSrv
+@(email: EmailSrv.Email, id: String)
+<html>
+    <head>
+        <title>@id</title>
+    </head>
+    <body>
+        <p><b>From</b>: @email.from.format</p>
+        <p><b>To</b>: @email.to.map(_.format).mkString(", ")</p>
+        <p><b>Subject</b>: @email.subject</p>
+        @email.content match {
+            case EmailSrv.TextContent(text) => {
+                <p>
+                    <b>Text content</b>:<br>
+                    <span style="white-space: pre-wrap">@text</span>
+                </p>
+            }
+            case EmailSrv.HtmlContent(html) => {
+                <p>
+                    <b>Html content</b>:<br>
+                @Html(html)
+                </p>
+            }
+        }
+    </body>
+</html>

@@ -4,12 +4,12 @@ import java.time._
 
 import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount._
+import fr.gospeak.core.domain.utils.{Info, TemplateData}
 import fr.gospeak.core.services.meetup.domain.MeetupGroup
 import fr.gospeak.libs.scalautils.Crypto
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import fr.gospeak.libs.scalautils.domain.TimePeriod.PeriodUnit
 import fr.gospeak.libs.scalautils.domain._
 import org.scalacheck.ScalacheckShapeless._
@@ -121,4 +121,6 @@ object Generators {
   implicit val aTemplate = implicitly[Arbitrary[MustacheMarkdownTmpl[Any]]]
   implicit val aGroupSettingsActionTrigger = implicitly[Arbitrary[Group.Settings.Action.Trigger]]
   implicit val aGroupSettingsAction = implicitly[Arbitrary[Group.Settings.Action]]
+  implicit val aMustacheTextTmplTemplateDataEventInfo = implicitly[Arbitrary[MustacheTextTmpl[TemplateData.EventInfo]]]
+  implicit val aUserRequestProposalCreationPayload = implicitly[Arbitrary[UserRequest.ProposalCreation.Payload]]
 }

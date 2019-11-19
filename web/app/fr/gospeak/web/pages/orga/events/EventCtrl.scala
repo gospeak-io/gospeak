@@ -15,7 +15,7 @@ import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus, MessageBuilder}
 import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.events.EventCtrl._
-import fr.gospeak.web.pages.orga.events.EventForms.PublishOptions
+import fr.gospeak.web.pages.orga.events.EventForms.{ProposalCreationData, PublishOptions}
 import fr.gospeak.web.services.EventSrv
 import fr.gospeak.web.utils.{SecuredReq, UICtrl}
 import play.api.data.Form
@@ -34,6 +34,7 @@ class EventCtrl(cc: ControllerComponents,
                 venueRepo: OrgaVenueRepo,
                 proposalRepo: OrgaProposalRepo,
                 groupSettingsRepo: GroupSettingsRepo,
+                userRequestRepo: OrgaUserRequestRepo,
                 builder: MessageBuilder,
                 templateSrv: TemplateSrv,
                 eventSrv: EventSrv,
@@ -86,9 +87,44 @@ class EventCtrl(cc: ControllerComponents,
       proposals <- OptionT.liftF(e.cfpOpt.map(cfp => proposalRepo.listFull(cfp.id, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal.Full])))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
       userRatings <- OptionT.liftF(proposalRepo.listRatings(req.user.id, proposals.items.map(_.id)))
+      proposalRequests <- OptionT.liftF(userRequestRepo.listPendingProposalCreations(e.event.id))
       desc = eventSrv.buildDescription(e)
       b = breadcrumb(e.group, e.event)
-      res = Ok(html.detail(e.group, e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, userRatings, eventTemplates, EventForms.cfp, EventForms.notes.fill(e.event.orgaNotes.text))(b))
+      res = Ok(html.detail(e.group, e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, userRatings, proposalRequests, eventTemplates, EventForms.cfp, EventForms.notes.fill(e.event.orgaNotes.text))(b))
+    } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
+  }
+
+  def proposalRequest(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+    proposalRequestView(group, event, EventForms.proposalCreation)
+  }
+
+  def doProposalRequest(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+    EventForms.proposalCreation.bindFromRequest.fold(
+      formWithErrors => proposalRequestView(group, event, formWithErrors),
+      data => (for {
+        groupElt <- OptionT(groupRepo.find(req.user.id, group))
+        eventElt <- OptionT(eventRepo.find(groupElt.id, event))
+        cfpElt <- OptionT(cfpRepo.find(eventElt.id))
+        r <- OptionT.liftF(userRequestRepo.createProposal(data.cfp, data.event, data.email, data.payload, req.user.id, req.now))
+        _ <- OptionT.liftF(emailSrv.send(Emails.proposalCreationRequested(groupElt, cfpElt, Some(eventElt), r)))
+        res = Redirect(routes.EventCtrl.detail(group, event)).flashing("success" -> s"Email with talk invitation sent to <b>${r.email.value}</b>")
+      } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
+    )
+  }
+
+  private def proposalRequestView(group: Group.Slug, event: Event.Slug, form: Form[ProposalCreationData])(implicit req: SecuredReq[AnyContent]) = {
+    (for {
+      e <- OptionT(eventSrv.getFullEvent(group, event, req.user.id))
+      b = breadcrumb(e.group, e.event).add("Request for proposal" -> routes.EventCtrl.proposalRequest(group, event))
+      res = Ok(html.proposalRequest(e.group, e.event, form)(b))
+    } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
+  }
+
+  def cancelProposalRequest(group: Group.Slug, event: Event.Slug, id: UserRequest.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
+    (for {
+      _ <- OptionT(groupRepo.find(req.user.id, group)) // to check user has the rights on the group
+      r <- OptionT.liftF(userRequestRepo.cancelProposalCreation(id, req.user.id, req.now))
+      res = Redirect(routes.EventCtrl.detail(group, event)).flashing("success" -> s"Proposal request '${r.payload.submission.title.value}' canceled")
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 

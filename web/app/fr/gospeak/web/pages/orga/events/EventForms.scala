@@ -1,6 +1,7 @@
 package fr.gospeak.web.pages.orga.events
 
 import cats.data.NonEmptyList
+import fr.gospeak.core.domain.UserRequest.ProposalCreation
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.domain.{Cfp, Event}
 import fr.gospeak.libs.scalautils.Extensions._
@@ -50,6 +51,32 @@ object EventForms {
                            val answers: NonEmptyList[Event.Rsvp.Answer]) extends StringEnum {
     override def value: String = toString
   }
+
+  final case class ProposalCreationData(cfp: Cfp.Id,
+                                        event: Option[Event.Id],
+                                        email: EmailAddress,
+                                        payload: ProposalCreation.Payload)
+
+  val submissionMapping: Mapping[ProposalCreation.Submission] = mapping(
+    "slug" -> talkSlug,
+    "title" -> talkTitle,
+    "duration" -> duration,
+    "description" -> markdown,
+    "tags" -> tags
+  )(ProposalCreation.Submission.apply)(ProposalCreation.Submission.unapply)
+  val proposalCreation: Form[ProposalCreationData] = Form(mapping(
+    "cfp" -> cfpId,
+    "event" -> optional(eventId),
+    "email" -> emailAddress,
+    "payload" -> mapping(
+      "account" -> mapping(
+        "slug" -> userSlug,
+        "firstName" -> nonEmptyText,
+        "lastName" -> nonEmptyText
+      )(ProposalCreation.Account.apply)(ProposalCreation.Account.unapply),
+      "submission" -> submissionMapping
+    )(ProposalCreation.Payload.apply)(ProposalCreation.Payload.unapply))
+  (ProposalCreationData.apply)(ProposalCreationData.unapply))
 
   object To extends EnumBuilder[To]("EventForms.To") {
 

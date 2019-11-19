@@ -1,0 +1,8 @@
+@import fr.gospeak.core.domain.{Cfp, Event, Group, UserRequest}
+@import fr.gospeak.web.utils.SecuredReq
+
+@(group: Group, cfp: Cfp, event: Option[Event], r: UserRequest.ProposalCreation)(implicit req: SecuredReq[AnyContent])
+<p>Hi @r.payload.account.firstName,</p>
+<p>Your invitation to talk about <b>@r.payload.submission.title.value</b> at <b>@event.map(_.name.value).getOrElse(cfp.name.value)</b> has been canceled by <a href="mailto:@req.user.email.value">@req.user.name.value</a>.</p>
+<p>Have a nice day,</p>
+<p>The Gospeak team</p>

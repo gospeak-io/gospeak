@@ -1,0 +1,9 @@
+@import fr.gospeak.core.domain.{Cfp, Event, Group, UserRequest}
+@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.pages.user.routes.UserCtrl
+
+@(group: Group, cfp: Cfp, event: Option[Event], r: UserRequest.ProposalCreation)(implicit req: SecuredReq[AnyContent])
+<p>Hi @r.payload.account.firstName,</p>
+<p>You are invited to talk about <b>@r.payload.submission.title.value</b> by <a href="mailto:@req.user.email.value">@req.user.name.value</a> at <b>@event.map(_.name.value).getOrElse(cfp.name.value)</b>.</p>
+<p>Please answer to this invitation on <a href="@UserCtrl.answerRequestAnon(r.id).absoluteURL()">Gospeak</a> to validate your participation.</p>
+<p>The Gospeak team</p>

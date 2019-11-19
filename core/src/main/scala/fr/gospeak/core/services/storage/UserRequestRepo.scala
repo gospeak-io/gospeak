@@ -3,8 +3,8 @@ package fr.gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, GroupInvite, PasswordResetRequest, ProposalInvite, TalkInvite, UserAskToJoinAGroupRequest}
-import fr.gospeak.core.domain.{Group, Proposal, Talk, User, UserRequest}
+import fr.gospeak.core.domain.UserRequest._
+import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 trait UserRequestRepo extends OrgaUserRequestRepo with SpeakerUserRequestRepo with UserUserRequestRepo with AuthUserRequestRepo
@@ -36,6 +36,15 @@ trait OrgaUserRequestRepo {
   def cancelProposalInvite(id: UserRequest.Id, by: User.Id, now: Instant): IO[ProposalInvite]
 
   def listPendingInvites(proposal: Proposal.Id): IO[Seq[ProposalInvite]]
+
+
+  def createProposal(cfp: Cfp.Id, event: Option[Event.Id], email: EmailAddress, payload: ProposalCreation.Payload, by: User.Id, now: Instant): IO[ProposalCreation]
+
+  def cancelProposalCreation(id: UserRequest.Id, by: User.Id, now: Instant): IO[ProposalCreation]
+
+  def listPendingProposalCreations(cfp: Cfp.Id): IO[Seq[ProposalCreation]]
+
+  def listPendingProposalCreations(event: Event.Id): IO[Seq[ProposalCreation]]
 }
 
 trait SpeakerUserRequestRepo {
@@ -72,6 +81,11 @@ trait UserUserRequestRepo {
   def accept(invite: UserRequest.ProposalInvite, by: User.Id, now: Instant): IO[Done]
 
   def reject(invite: UserRequest.ProposalInvite, by: User.Id, now: Instant): IO[Done]
+
+
+  def accept(invite: UserRequest.ProposalCreation, by: User.Id, now: Instant): IO[Done]
+
+  def reject(invite: UserRequest.ProposalCreation, by: Option[User.Id], now: Instant): IO[Done]
 }
 
 trait AuthUserRequestRepo {

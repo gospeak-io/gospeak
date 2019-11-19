@@ -5,11 +5,12 @@
     position: relative;
     color: $color;
 
-    &:hover, &:focus {
+    &:hover,
+    &:focus {
       color: darken($color, 20%);
     }
 
-    &:after {
+    &::after {
       position: absolute;
       top: -10px;
       left: 0;

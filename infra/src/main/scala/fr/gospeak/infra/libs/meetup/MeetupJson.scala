@@ -1,8 +1,8 @@
 package fr.gospeak.infra.libs.meetup
 
 import fr.gospeak.infra.libs.meetup.domain._
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.{Decoder, Encoder}
+import io.circe.Decoder
+import io.circe.generic.semiauto.deriveDecoder
 
 object MeetupJson {
   implicit val meetupTokenDecoder: Decoder[MeetupToken] = deriveDecoder[MeetupToken]

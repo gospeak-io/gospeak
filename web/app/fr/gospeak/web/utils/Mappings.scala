@@ -57,7 +57,7 @@ object Mappings {
     "length" -> longNumber,
     "unit" -> timeUnit
   )(new FiniteDuration(_, _))(d => Some(d.length -> d.unit))
-  val emailAddress: Mapping[EmailAddress] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(Values.maxLength.email)), (s: String) => EmailAddress.from(s).get, _.value)
+  val emailAddress: Mapping[EmailAddress] = WrappedMapping(nonEmptyText.verifying(Constraints.emailAddress(), Constraints.maxLength(Values.maxLength.email)), (s: String) => EmailAddress.from(s).get, _.value)
   val url: Mapping[Url] = stringEitherMapping(Url.from, _.value, formatError, Constraints.maxLength(Values.maxLength.url))
   val logo: Mapping[Logo] = url.transform(Logo, _.url)
   val banner: Mapping[Banner] = url.transform(Banner, _.url)
@@ -143,6 +143,7 @@ object Mappings {
   val userProfileStatus: Mapping[User.Profile.Status] = stringEitherMapping(User.Profile.Status.from, _.value, formatError)
   val groupSlug: Mapping[Group.Slug] = slugMapping(Group.Slug)
   val groupName: Mapping[Group.Name] = nonEmptyTextMapping(Group.Name, _.value, Constraints.maxLength(Values.maxLength.title))
+  val eventId: Mapping[Event.Id] = idMapping(Event.Id)
   val eventSlug: Mapping[Event.Slug] = slugMapping(Event.Slug)
   val eventName: Mapping[Event.Name] = nonEmptyTextMapping(Event.Name, _.value, Constraints.maxLength(Values.maxLength.title))
   val cfpId: Mapping[Cfp.Id] = idMapping(Cfp.Id)

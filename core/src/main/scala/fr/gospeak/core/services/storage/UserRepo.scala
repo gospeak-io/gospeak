@@ -51,6 +51,8 @@ trait AuthUserRepo {
 
   def findCredentials(login: User.Login): IO[Option[User.Credentials]]
 
+  def find(id: User.Id): IO[Option[User]]
+
   def find(login: User.Login): IO[Option[User]]
 
   def find(credentials: User.Credentials): IO[Option[User]]

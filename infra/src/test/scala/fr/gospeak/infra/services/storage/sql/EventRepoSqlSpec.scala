@@ -62,6 +62,10 @@ class EventRepoSqlSpec extends RepoSpec {
         val q = EventRepoSql.selectOne(group.id, event.slug)
         check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.slug=? $orderBy")
       }
+      it("should build selectOne by id") {
+        val q = EventRepoSql.selectOne(event.id)
+        check(q, s"SELECT $fields FROM $table WHERE e.id=? $orderBy")
+      }
       it("should build selectOnePublished") {
         val q = EventRepoSql.selectOnePublished(group.id, event.slug)
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? AND e.published IS NOT NULL $orderBy")

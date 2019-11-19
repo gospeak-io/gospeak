@@ -1,0 +1,77 @@
+@import fr.gospeak.core.domain.{Event, Group}
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
+@import fr.gospeak.web.api.ui.routes.SuggestCtrl
+@import java.util.concurrent.TimeUnit
+@import fr.gospeak.web.pages.orga.events.EventForms.ProposalCreationData
+@import fr.gospeak.web.pages.orga.partials.html.container
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.utils.SecuredReq
+
+@(group: Group, event: Event, form: Form[ProposalCreationData])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@container(event.name.value + " - Gospeak", group, b)() {
+    <h1>Proposal request</h1>
+
+    <div class="row">
+        <div class="col-8">
+            @formElt(form, EventCtrl.doProposalRequest(group.slug, event.slug)) {
+                @event.cfp.map { id => @inputHidden(form("cfp"), Seq("value" -> id.value)) }
+                @inputHidden(form("event"), Seq("value" -> event.id.value))
+
+                <div class="card mb-3">
+                    <div class="card-header" data-toggle="collapse" data-target="#speakerCollapse">Speaker infos</div>
+                    <div class="card-body collapse show" id="speakerCollapse">
+                        @fieldHorizontal(form("payload.account.firstName"), Seq("label" -> "Name")) { (field, args) =>
+                            <div class="row">
+                                <div class="col">@inputText(field, Seq("placeholder" -> "First name", "autofocus" -> "true") ++ args)</div>
+                                <div class="col">@inputText(form("payload.account.lastName"), Seq("placeholder" -> "Last name") ++ args)</div>
+                            </div>
+                        }
+                        @fieldHorizontal(form("email"), Seq("label" -> "Email")) { (field, args) =>
+                            @inputEmail(field, Seq("placeholder" -> "ex: john.doe@mail.com") ++ args)
+                        }
+                        @fieldHorizontal(form("payload.account.slug"), Seq("label" -> "Username")) { (field, args) =>
+                            @inputText(field, Seq("placeholder" -> "ex: john-doe", "slug-for" -> Seq(form("payload.account.firstName"), form("payload.account.lastName")).map(_.id).mkString(",")) ++ args)
+                        }
+                    </div>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-header" data-toggle="collapse" data-target="#talkCollapse">Talk infos</div>
+                    <div class="card-body collapse show" id="talkCollapse">
+                        @fieldHorizontal(form("payload.submission.title"), Seq("label" -> "Title")) { (field, args) =>
+                            @inputText(field, Seq("placeholder" -> "ex: An awesome talk about kindness <3") ++ args)
+                        }
+                        @fieldHorizontal(form("payload.submission.description"), Seq("label" -> "Description")) { (field, args) =>
+                            @inputMarkdown(field, Seq() ++ args)
+                        }
+                        @fieldHorizontal(form("payload.submission.duration"), Seq("label" -> "Duration")) { (field, args) =>
+                            @inputDuration(field, Seq(TimeUnit.MINUTES), Seq("required" -> "true") ++ args)
+                        }
+                        @fieldHorizontal(form("payload.submission.tags"), Seq("label" -> "Tags")) { (field, args) =>
+                            @inputTags(field, Seq("placeholder" -> "Main topics of this talk", "remote" -> SuggestCtrl.suggestTags().toString) ++ args)
+                        }
+                        @fieldHorizontal(form("payload.submission.slug"), Seq("label" -> "Slug")) { (field, args) =>
+                            @inputText(field, Seq("placeholder" -> "Talk slug", "slug-for" -> form("payload.submission.title").id) ++ args)
+                        }
+                    </div>
+                </div>
+
+                @actionsVertical() {
+                    @btnCancel(EventCtrl.detail(group.slug, event.slug))
+                    @btnSubmit("Invite speaker")
+                }
+            }
+        </div>
+        <div class="col">
+            Invite a speaker to submit a proposal for this event.<br>
+            Using theses data gospeak will send and email to the speaker so it can accept.<br>
+            This will allow to perform in just one click:
+            <ul>
+                <li>create the account (or login with existing)</li>
+                <li>create a talk for the user</li>
+                <li>submit a proposal for the CFP</li>
+                <li>add the proposal to this event</li>
+            </ul>
+        </div>
+    </div>
+}()

@@ -94,6 +94,7 @@ class AuthCtrl(cc: ControllerComponents,
     } yield loginRedirect(HttpUtils.getReferer(req)).flashing("success" -> "Email validation sent!")
   }
 
+  // not SecuredActionIO because some user can't connect before validating their email
   def doValidateAccount(id: UserRequest.Id): Action[AnyContent] = UserAwareActionIO { implicit req =>
     (for {
       validation <- OptionT(userRequestRepo.findAccountValidationRequest(id))

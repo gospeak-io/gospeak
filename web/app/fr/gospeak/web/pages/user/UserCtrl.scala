@@ -4,25 +4,23 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.ApplicationConf
-import fr.gospeak.core.domain.{User, UserRequest}
+import fr.gospeak.core.domain.{Event, User, UserRequest}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.services.EmailSrv
-import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain._
 import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.orga.routes.{GroupCtrl => GroupRoutes}
+import fr.gospeak.web.pages.published.routes.{HomeCtrl => HomeRoutes}
 import fr.gospeak.web.pages.user.UserCtrl._
 import fr.gospeak.web.utils.UICtrl
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
-import scala.util.control.NonFatal
-
 class UserCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
                env: ApplicationConf.Env,
-               userRepo: UserUserRepo,
+               userRepo: AuthUserRepo,
                groupRepo: UserGroupRepo,
                eventRepo: UserEventRepo,
                userRequestRepo: UserUserRequestRepo,
@@ -38,6 +36,52 @@ class UserCtrl(cc: ControllerComponents,
       proposals <- proposalRepo.listFull(req.user.id, Page.Params.defaults)
       b = breadcrumb(req.user)
     } yield Ok(html.index(incomingEvents, joinedGroups, talks, proposals)(b))
+  }
+
+  def answerRequestAnon(request: UserRequest.Id): Action[AnyContent] = UserAwareActionIO { implicit req =>
+    userRequestRepo.find(request).flatMap {
+      case Some(r: UserRequest.ProposalCreation) => (for {
+        cfpElt <- OptionT(cfpRepo.find(r.cfp))
+        eventElt <- r.event.map(e => OptionT(eventRepo.find(e)).map(Option(_))).getOrElse(OptionT(IO.pure(Option(Option.empty[Event]))))
+        groupElt <- OptionT(groupRepo.find(cfpElt.group))
+        orgaElt <- OptionT(userRepo.find(r.createdBy))
+        res = Ok(html.answerProposalCreation(r, groupElt, cfpElt, eventElt, orgaElt, UserRequestForms.loggedProposalInvite)(req.user.map(breadcrumb).getOrElse(Breadcrumb(Seq()))))
+      } yield res).value.map(_.getOrElse(Redirect(routes.UserCtrl.index())))
+      case _ =>
+        // TODO: add log here
+        IO.pure(Redirect(routes.UserCtrl.index()).flashing("error" -> "Invalid request"))
+    }
+  }
+
+  def acceptRequestAnon(request: UserRequest.Id): Action[AnyContent] = UserAwareActionIO { implicit req =>
+    /* val next = req.user.map(_ => routes.UserCtrl.index()).getOrElse(HomeRoutes.index())
+    userRequestRepo.find(request).map(_.filter(_.isPending(req.now))).flatMap {
+      case Some(r: UserRequest.ProposalCreation) => (for {
+        eventElt <- r.event.map(id => OptionT(eventRepo.find(id)).map(Option(_))).getOrElse(OptionT(IO.pure(Option(None))))
+        cfpElt <- OptionT(cfpRepo.find(r.cfp))
+        groupElt <- OptionT(groupRepo.find(cfpElt.group))
+        orgaElt <- OptionT(userRepo.find(r.createdBy))
+        _ <- OptionT.liftF(userRequestRepo.accept(r, req.user.map(_.id), req.now))
+        _ <- OptionT.liftF(emailSrv.send(Emails.proposalCreationRejected(groupElt, cfpElt, eventElt, r, orgaElt)))
+      } yield s"Invitation to <b>${eventElt.map(_.name.value).getOrElse(cfpElt.name.value)}</b> rejected").value
+      case _ => IO.pure(Some("Request not found or unhandled"))
+    }.map(msg => Redirect(next).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :("))) */
+    ???
+  }
+
+  def rejectRequestAnon(request: UserRequest.Id): Action[AnyContent] = UserAwareActionIO { implicit req =>
+    val next = req.user.map(_ => routes.UserCtrl.index()).getOrElse(HomeRoutes.index())
+    userRequestRepo.find(request).map(_.filter(_.isPending(req.now))).flatMap {
+      case Some(r: UserRequest.ProposalCreation) => (for {
+        eventElt <- r.event.map(id => OptionT(eventRepo.find(id)).map(Option(_))).getOrElse(OptionT(IO.pure(Option(None))))
+        cfpElt <- OptionT(cfpRepo.find(r.cfp))
+        groupElt <- OptionT(groupRepo.find(cfpElt.group))
+        orgaElt <- OptionT(userRepo.find(r.createdBy))
+        _ <- OptionT.liftF(userRequestRepo.reject(r, req.user.map(_.id), req.now))
+        _ <- OptionT.liftF(emailSrv.send(Emails.proposalCreationRejected(groupElt, cfpElt, eventElt, r, orgaElt)))
+      } yield s"Invitation to <b>${eventElt.map(_.name.value).getOrElse(cfpElt.name.value)}</b> rejected").value
+      case _ => IO.pure(Some("Request not found or unhandled"))
+    }.map(msg => Redirect(next).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))
   }
 
   def answerRequest(request: UserRequest.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
@@ -85,7 +129,6 @@ class UserCtrl(cc: ControllerComponents,
       } yield s"Invitation to <b>${proposalFull.title.value}</b> accepted").value
       case _ => IO.pure(Some("Request not found or unhandled"))
     }.map(msg => Redirect(routes.UserCtrl.index()).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))
-      .recover { case NonFatal(e) => Redirect(routes.UserCtrl.index()).flashing("error" -> s"Unexpected error: ${e.getMessage}") }
   }
 
   def rejectRequest(request: UserRequest.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
@@ -110,7 +153,6 @@ class UserCtrl(cc: ControllerComponents,
       } yield s"Invitation to <b>${proposalFull.title.value}</b> rejected").value
       case _ => IO.pure(Some("Request not found or unhandled"))
     }.map(msg => Redirect(routes.UserCtrl.index()).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))
-      .recover { case NonFatal(e) => Redirect(routes.UserCtrl.index()).flashing("error" -> s"Unexpected error: ${e.getMessage}") }
   }
 }
 

@@ -1,8 +1,8 @@
 @import fr.gospeak.web.pages.partials.form.Utils
 @import fr.gospeak.web.utils.FormUtils
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.GsRequest
 
-@(call: Call, args: Seq[(String, String)] = Seq())(content: Html)(implicit req: SecuredReq[AnyContent])
+@(call: Call, args: Seq[(String, String)] = Seq())(content: Html)(implicit req: GsRequest[AnyContent])
 @formElt(FormUtils.empty[Int], call, Seq("class" -> "btn-form")) {
     <button
         @Utils.typeAttr(args, "submit")
