@@ -1,30 +1,3 @@
---
---            user<---login/credentials
---             ^
---             |
---  +----------+-------------+
---  |          |             |
---  |          |           group
---  |          |             ^
---  |          |             |
---  |          |      +------+--------------+-----------+
---  |          |      |      |              |           |
---  |          +---->cfp     |           partner   sponsor_pack
---  |          |      ^      |              ^           ^
---  |          |      |      |              |           |
---  |          |      |      |      +-------+-----+     |
---  |          |      |      |      |       |     |     |
---  |          |      |      |    venue  contact  |     |
---  |          |      |      |      ^       ^     |     |
---  |          |      |      |      |       |     |     |
---  |          |      +------+------+       +-----+-----+
---  |          |             |                    |
--- talk <-- proposal <---> event               sponsor
---
--- others:
---   - requests
---   - settings
-
 CREATE TABLE users
 (
     id              CHAR(36)      NOT NULL PRIMARY KEY,
@@ -85,17 +58,52 @@ CREATE TABLE talks
 
 CREATE TABLE groups
 (
-    id          CHAR(36)      NOT NULL PRIMARY KEY,
-    slug        VARCHAR(120)  NOT NULL UNIQUE,
-    name        VARCHAR(120)  NOT NULL,
-    contact     VARCHAR(120),           -- group email address
-    description VARCHAR(4096) NOT NULL,
-    owners      VARCHAR(369)  NOT NULL, -- 10 owners max
-    tags        VARCHAR(150)  NOT NULL, -- 5 tags max
-    created     TIMESTAMP     NOT NULL,
-    created_by  CHAR(36)      NOT NULL REFERENCES users (id),
-    updated     TIMESTAMP     NOT NULL,
-    updated_by  CHAR(36)      NOT NULL REFERENCES users (id)
+    id                CHAR(36)      NOT NULL PRIMARY KEY,
+    slug              VARCHAR(120)  NOT NULL UNIQUE,
+    name              VARCHAR(120)  NOT NULL,
+    logo              VARCHAR(1024),
+    banner            VARCHAR(1024),
+    contact           VARCHAR(120),           -- group email address
+    website           VARCHAR(1024),
+    description       VARCHAR(4096) NOT NULL,
+    location          VARCHAR(4096),
+    location_lat      DOUBLE PRECISION,
+    location_lng      DOUBLE PRECISION,
+    location_country  VARCHAR(30),
+    owners            VARCHAR(369)  NOT NULL, -- 10 owners max
+    social_facebook   VARCHAR(1024),
+    social_instagram  VARCHAR(1024),
+    social_twitter    VARCHAR(1024),
+    social_linkedIn   VARCHAR(1024),
+    social_youtube    VARCHAR(1024),
+    social_meetup     VARCHAR(1024),
+    social_eventbrite VARCHAR(1024),
+    social_slack      VARCHAR(1024),
+    social_discord    VARCHAR(1024),
+    tags              VARCHAR(150)  NOT NULL, -- 5 tags max
+    status            VARCHAR(10)   NOT NULL,
+    created           TIMESTAMP     NOT NULL,
+    created_by        CHAR(36)      NOT NULL REFERENCES users (id),
+    updated           TIMESTAMP     NOT NULL,
+    updated_by        CHAR(36)      NOT NULL REFERENCES users (id)
+);
+
+CREATE TABLE group_settings
+(
+    group_id                CHAR(36) PRIMARY KEY REFERENCES groups (id),
+    meetup_access_token     VARCHAR(200),       -- encrypted
+    meetup_refresh_token    VARCHAR(200),       -- encrypted
+    meetup_group_slug       VARCHAR(120),
+    meetup_logged_user_id   BIGINT,
+    meetup_logged_user_name VARCHAR(120),
+    slack_token             VARCHAR(200),       -- encrypted
+    slack_bot_name          VARCHAR(120),
+    slack_bot_avatar        VARCHAR(1024),
+    event_description       VARCHAR   NOT NULL,
+    event_templates         VARCHAR   NOT NULL, -- json serialized Map[String, MustacheTextTmpl[TemplateData.EventInfo]]
+    actions                 VARCHAR   NOT NULL, -- json serialized Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]
+    updated                 TIMESTAMP NOT NULL,
+    updated_by              CHAR(36)  NOT NULL REFERENCES users (id)
 );
 
 CREATE TABLE cfps
@@ -166,23 +174,28 @@ CREATE TABLE venues
 
 CREATE TABLE events
 (
-    id          CHAR(36)      NOT NULL PRIMARY KEY,
-    group_id    CHAR(36)      NOT NULL REFERENCES groups (id),
-    cfp_id      CHAR(36) REFERENCES cfps (id),
-    slug        VARCHAR(120)  NOT NULL,
-    name        VARCHAR(120)  NOT NULL,
-    start       TIMESTAMP     NOT NULL,
-    description VARCHAR(4096) NOT NULL,
-    venue       CHAR(36) REFERENCES venues (id),
-    talks       VARCHAR(258)  NOT NULL, -- 7 talks max
-    tags        VARCHAR(150)  NOT NULL, -- 5 tags max
-    published   TIMESTAMP,
-    meetupGroup VARCHAR(80),
-    meetupEvent BIGINT,
-    created     TIMESTAMP     NOT NULL,
-    created_by  CHAR(36)      NOT NULL REFERENCES users (id),
-    updated     TIMESTAMP     NOT NULL,
-    updated_by  CHAR(36)      NOT NULL REFERENCES users (id),
+    id                    CHAR(36)      NOT NULL PRIMARY KEY,
+    group_id              CHAR(36)      NOT NULL REFERENCES groups (id),
+    cfp_id                CHAR(36) REFERENCES cfps (id),
+    slug                  VARCHAR(120)  NOT NULL,
+    name                  VARCHAR(120)  NOT NULL,
+    start                 TIMESTAMP     NOT NULL,
+    max_attendee          INT,
+    allow_rsvp            BOOLEAN       NOT NULL,
+    description           VARCHAR(4096) NOT NULL,
+    orga_notes            VARCHAR(4096) NOT NULL,
+    orga_notes_updated_at TIMESTAMP     NOT NULL,
+    orga_notes_updated_by CHAR(36)      NOT NULL REFERENCES users (id),
+    venue                 CHAR(36) REFERENCES venues (id),
+    talks                 VARCHAR(258)  NOT NULL, -- 7 talks max
+    tags                  VARCHAR(150)  NOT NULL, -- 5 tags max
+    published             TIMESTAMP,
+    meetupGroup           VARCHAR(80),
+    meetupEvent           BIGINT,
+    created               TIMESTAMP     NOT NULL,
+    created_by            CHAR(36)      NOT NULL REFERENCES users (id),
+    updated               TIMESTAMP     NOT NULL,
+    updated_by            CHAR(36)      NOT NULL REFERENCES users (id),
     UNIQUE (group_id, slug)
 );
 
@@ -205,6 +218,15 @@ CREATE TABLE proposals
     updated     TIMESTAMP     NOT NULL,
     updated_by  CHAR(36)      NOT NULL REFERENCES users (id),
     UNIQUE (talk_id, cfp_id)
+);
+
+CREATE TABLE proposal_ratings
+(
+    proposal_id CHAR(36)  NOT NULL REFERENCES proposals (id),
+    grade       INT       NOT NULL,
+    created_at  TIMESTAMP NOT NULL,
+    created_by  CHAR(36)  NOT NULL REFERENCES users (id),
+    UNIQUE (proposal_id, created_by)
 );
 
 CREATE TABLE sponsor_packs
@@ -243,6 +265,40 @@ CREATE TABLE sponsors
     updated_by      CHAR(36)         NOT NULL REFERENCES users (id)
 );
 
+CREATE TABLE group_members
+(
+    group_id     CHAR(36)    NOT NULL REFERENCES groups (id),
+    user_id      CHAR(36)    NOT NULL REFERENCES users (id),
+    role         VARCHAR(10) NOT NULL, -- Owner, Member
+    presentation VARCHAR(4096),
+    joined_at    TIMESTAMP   NOT NULL,
+    leaved_at    TIMESTAMP,
+    PRIMARY KEY (group_id, user_id)
+);
+
+CREATE TABLE event_rsvps
+(
+    event_id    CHAR(36)    NOT NULL REFERENCES events (id),
+    user_id     CHAR(36)    NOT NULL REFERENCES users (id),
+    answer      VARCHAR(10) NOT NULL, -- Yes, No, Wait
+    answered_at TIMESTAMP   NOT NULL,
+    PRIMARY KEY (event_id, user_id)
+);
+
+CREATE TABLE comments
+(
+    event_id    CHAR(36) REFERENCES events (id),
+    proposal_id CHAR(36) REFERENCES proposals (id),
+    id          CHAR(36)      NOT NULL PRIMARY KEY,
+    kind        VARCHAR(15)   NOT NULL, -- Event, Proposal, ProposalOrga
+    answers     CHAR(36) REFERENCES comments (id),
+    text        VARCHAR(4096) NOT NULL,
+    created_at  TIMESTAMP     NOT NULL,
+    created_by  CHAR(36)      NOT NULL REFERENCES users (id)
+);
+CREATE INDEX comments_event_idx ON comments (event_id);
+CREATE INDEX comments_proposal_idx ON comments (proposal_id);
+
 CREATE TABLE requests
 (
     id          CHAR(36)    NOT NULL,
@@ -262,20 +318,33 @@ CREATE TABLE requests
     canceled_by CHAR(36) REFERENCES users (id)
 );
 
-CREATE TABLE group_settings
+CREATE TABLE external_cfps
 (
-    group_id                CHAR(36) PRIMARY KEY REFERENCES groups (id),
-    meetup_access_token     VARCHAR(200), -- encrypted
-    meetup_refresh_token    VARCHAR(200), -- encrypted
-    meetup_group_slug       VARCHAR(120),
-    meetup_logged_user_id   BIGINT,
-    meetup_logged_user_name VARCHAR(120),
-    slack_token             VARCHAR(200), -- encrypted
-    slack_bot_name          VARCHAR(120),
-    slack_bot_avatar        VARCHAR(1024),
-    event_description       VARCHAR   NOT NULL,
-    event_templates         VARCHAR   NOT NULL, -- json serialized Map[String, MustacheTextTmpl[TemplateData.EventInfo]]
-    actions                 VARCHAR   NOT NULL, -- json serialized Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]
-    updated                 TIMESTAMP NOT NULL,
-    updated_by              CHAR(36)  NOT NULL REFERENCES users (id)
+    id                CHAR(36)      NOT NULL PRIMARY KEY,
+    name              VARCHAR(120)  NOT NULL,
+    logo              VARCHAR(1024),
+    description       VARCHAR(4096) NOT NULL,
+    begin             TIMESTAMP,
+    close             TIMESTAMP,
+    url               VARCHAR(1024) NOT NULL,
+    event_start       TIMESTAMP,
+    event_finish      TIMESTAMP,
+    event_url         VARCHAR(1024),
+    location          VARCHAR(4096),
+    location_lat      DOUBLE PRECISION,
+    location_lng      DOUBLE PRECISION,
+    location_locality VARCHAR(30),
+    location_country  VARCHAR(30),
+    tickets_url       VARCHAR(1024),
+    videos_url        VARCHAR(1024),
+    twitter_account   VARCHAR(120),
+    twitter_hashtag   VARCHAR(120),
+    tags              VARCHAR(150)  NOT NULL, -- 5 tags max
+    created_at        TIMESTAMP     NOT NULL,
+    created_by        CHAR(36)      NOT NULL REFERENCES users (id),
+    updated_at        TIMESTAMP     NOT NULL,
+    updated_by        CHAR(36)      NOT NULL REFERENCES users (id)
 );
+CREATE INDEX external_cfps_close_idx ON external_cfps (close);
+CREATE INDEX external_cfps_location_lat_idx ON external_cfps (location_lat);
+CREATE INDEX external_cfps_location_lng_idx ON external_cfps (location_lng);
