@@ -29,7 +29,6 @@
 }
 @container_theme(group.name.value + " - Gospeak", b)() {
     <div class="container space-2 mt-5">
-        <h1>@Formats.plural(members.total.value, "member") in @group.name.value</h1>
         <div class="row">
             <div class="col-lg-4 mb-9 mb-lg-0">
                 <div class="card shadow-sm p-5 mb-5">
@@ -38,6 +37,7 @@
             </div>
 
             <div class="col-lg-8 m">
+                <h3>@Formats.plural(members.total.value, "member") in @group.name.value</h3>
                 @Formats.paginated[Group.Member](members, GroupCtrl.members(group.slug, _), m => memberItem(group, m))
             </div>
         </div>
