@@ -60,13 +60,25 @@
                 <button class="btn btn-xs btn-soft-success mb-2" href="/add">Add your talk</button>
             </div>
             <div class="container space-2">
-                <div class="row align-items-center mb-4">
-                    <div class="card-deck d-block d-lg-flex card-lg-gutters-2">
-                        <div class="d-flex justify-content-between mt-2">
-                            @Formats.paginated[User](speakers, SpeakerCtrl.list, speakerItem(_))
-                        </div>
+                @Formats.paginationHeader[User](speakers, SpeakerCtrl.list)
+                @if(speakers.isEmpty) {
+                    <div class="jumbotron text-center mt-2">
+                        <h2>No results <i class="far fa-sad-tear"></i></h2>
                     </div>
-                </div>
+                } else {
+                    @speakers.items.grouped(3).map { row =>
+                        <div class="row align-items-center mb-4">
+                            @row.map { s =>
+                                <div class="card-deck d-block d-lg-flex card-lg-gutters-2">
+                                    <div class="d-flex justify-content-between mt-2">
+                                        @speakerItem(s)
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                @Formats.paginationFooter[User](speakers, SpeakerCtrl.list)
             </div>
         </div>
     </main>
