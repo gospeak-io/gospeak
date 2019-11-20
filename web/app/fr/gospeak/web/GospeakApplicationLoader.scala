@@ -191,7 +191,9 @@ class GospeakComponents(context: ApplicationLoader.Context)
     } else {
       db.dropTables().unsafeRunSync()
       db.migrate().unsafeRunSync()
-      db.insertMockData(conf.gospeak).unsafeRunSync()
+      configuration.getOptional[String]("mongo").map(db.insertHTData)
+        .getOrElse(db.insertMockData(conf.gospeak)).unsafeRunSync()
+      // db.insertMockData(conf.gospeak).unsafeRunSync()
     }
 
     messageBus.subscribe(messageHandler.handle)
