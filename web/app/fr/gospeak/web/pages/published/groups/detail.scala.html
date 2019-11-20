@@ -4,131 +4,16 @@
 @import fr.gospeak.web.pages.partials.display.html.markdown
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
-@import fr.gospeak.web.pages.published.partials.html.container_theme
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
+@import fr.gospeak.web.pages.published.partials.html.{container_theme, groupCard}
+
 
 @(group: Group, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container_theme(group.name.value + " - Gospeak", b)() {
     <div class="container space-2 mt-5">
         <div class="row">
-            <div class="col-lg-4 mb-9 mb-lg-0">
-                <div class="card shadow-sm p-5 mb-5">
-                    <div class="border-bottom text-center pb-5 mb-5">
-                        <div class="mb-3 mx-auto">
-                            @group.logo.map { logo => <img src="@logo.url.value" alt="@group.name.value logo" class="img-fluid rounded-circle" width="110" height="110"/> }
-                        </div>
-
-                        <h1 class="h5">@group.name.value</h1>
-
-
-                        <div class="mb-4">
-                            <a class="font-size-1" href="@group.website">@group.website</a>
-                        </div>
-
-
-                        <div class="mb-4">
-                            @cfps.length match {
-                                case 0 => {}
-                                case _ => {
-                                    <a class="btn btn-sm btn-soft-primary transition-3d-hover" href="@CfpCtrl.propose(cfps.head.slug)">Propose a talk</a>
-                                }
-                            }
-
-
-                        </div>
-
-                        <div class="mb-4">
-                            @userMembership.map { _ =>
-                                <a class="text-muted small" href="@GroupCtrl.doLeave(group.slug)">
-                                    <small class="fas fa-flag mr-1"></small> Leave the group
-                                </a>
-                            }.getOrElse {
-                                <a class="btn btn-sm btn-soft-success transition-3d-hover mr-1" href="@GroupCtrl.doJoin(group.slug)">Join this group</a>
-                            }
-
-                        </div>
-
-                        <div class="mt-2">
-                            @group.owners.toList.map { id =>
-                                @orgas.find(_.id == id).map { user =>
-                                <li class="list-inline-item ml-n3 mr-0">
-                                        <img src="@user.avatar.url.value" alt="@user.name.value avatar"
-                                        title="@user.name.value"
-                                        data-toggle="tooltip"
-                                        data-placement="top" class="u-sm-avatar u-sm-avatar--bordered rounded-circle img-fluid rounded-circle" title="@user.name.value">
-                                </li>
-                                }.getOrElse {
-                                    <li class="list-inline-item ml-n3 mr-0">
-                                        <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
-                                            <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp" alt="avatar" class="img-fluid rounded-circle" title="unknow avatar">
-                                        </div>
-                                    </li>
-                                }
-                            }
-                        </div>
-                    </div>
-
-                    <div class="row border-bottom pb-5 mb-5">
-                        <div class="col-6 mb-5">
-                                <!-- Stats -->
-                            <div class="text-center">
-                                <a href="@GroupCtrl.members(group.slug)">
-                                    <img class="ie-height-56 max-width-8 mx-auto" src="@routes.Assets.versioned("lib/web/img/icon_member.svg")" alt="Members" data-parent="#icon7">
-                                    <span class="h6 d-block font-weight-medium mb-0 mt-1">12,000+</span>
-                                    <span class="d-block text-secondary font-size-1">Members</span>
-                                </a>
-                            </div>
-                                <!-- End Stats -->
-                        </div>
-                        <div class="col-6 mb-5">
-                                <!-- Stats -->
-                            <div class="text-center">
-                                <a href="@GroupCtrl.events(group.slug)">
-                                    <img class="ie-height-56 max-width-8 mx-auto" src="@routes.Assets.versioned("lib/web/img/icon_events.svg")" alt="Events" data-parent="#icon7">
-                                    <span class="h6 d-block font-weight-medium mb-0 mt-1">79</span>
-                                    <span class="d-block text-secondary font-size-1">Events</span>
-                                </a>
-                            </div>
-                                <!-- End Stats -->
-                        </div>
-                        <div class="col-6 mb-5">
-                                <!-- Stats -->
-                            <div class="text-center">
-                                <a href="@GroupCtrl.speakers(group.slug)">
-                                    <span class="h6 d-block font-weight-medium mb-0">893</span>
-                                    <span class="d-block text-secondary font-size-1">Speakers</span>
-                                </a>
-                            </div>
-                                <!-- End Stats -->
-                        </div>
-                        <div class="col-6 mb-5">
-                                <!-- Stats -->
-                            <div class="text-center">
-                                <a href="@GroupCtrl.talks(group.slug)">
-                                    <span class="h6 d-block font-weight-medium mb-0">399</span>
-                                    <span class="d-block text-secondary font-size-1">Talks</span>
-                                </a>
-                            </div>
-                                <!-- End Stats -->
-                        </div>
-                    </div>
-
-                    <div class="pb-5 mb-5">
-                        <h4 class="font-size-1 font-weight-semi-bold text-uppercase mb-3">Linked accounts</h4>
-
-                        <a class="media align-items-center" href="#">
-                            <div class="u-sm-avatar mr-3">
-                                <i class="fab fa-youtube"></i>
-                            </div>
-                            <div class="media-body">
-                                <h4 class="font-size-1 text-dark mb-0">Youtube</h4>
-                                <small class="d-block text-secondary">https://youtube.com/xxx</small>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            </div>
+            @groupCard(group, cfps, events, sponsors, packs, orgas, userMembership)(b)
 
             <div class="col-lg-8">
                 <div class="pl-lg-4">
