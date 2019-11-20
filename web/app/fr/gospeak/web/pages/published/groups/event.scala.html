@@ -11,9 +11,8 @@
 
 @(group: Group, event: Event.Full, description: Markdown, proposals: Seq[Proposal.Full], speakers: Seq[User], comments: Seq[Comment.Full], commentForm: Form[Comment.Data], yesRsvp: Long, userRsvp: Option[Event.Rsvp], rsvps: Seq[Event.Rsvp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container_theme(event.name.value + " - Gospeak", b)() {
-    <div class="container space-2 mt-5">
         <div class="container">
-            <div class="border-bottom space-top-2">
+            <div class="border-bottom">
                 <div class="media mb-5">
                     <div class="u-lg-avatar mr-4">
                         @group.logo.map { logo => <img src="@logo.url.value" alt="@group.name.value logo" class="img-fluid rounded-circle" width="160" height="160"/> }
@@ -231,5 +230,4 @@
 
             </div>
         </div>
-    </div>
 }()

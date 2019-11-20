@@ -11,7 +11,6 @@
 
 @(group: Group, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container_theme(group.name.value + " - Gospeak", b)() {
-    <div class="container space-2 mt-5">
         <div class="row">
             @groupCard(group, cfps, events, sponsors, packs, orgas, userMembership)(b)
 
@@ -63,5 +62,4 @@
                 </div>
             </div>
         </div>
-    </div>
 }()

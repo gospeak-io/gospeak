@@ -66,10 +66,8 @@
         </div>
     </header>
     <main id="content" role="main">
-        <div class="container space-2 mt-5">
-            @flash_theme(req.flash)
-            @content
-        </div>
+        @flash_theme(req.flash)
+        @content
     </main>
 }
 

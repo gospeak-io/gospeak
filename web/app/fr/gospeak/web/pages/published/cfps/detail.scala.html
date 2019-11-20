@@ -9,7 +9,6 @@
 
 @(group: Group, cfp: Cfp)(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container_theme(cfp.name.value + " - Gospeak", b)() {
-    <div class="container container space-2 space-top-md-3">
         <div class="w-lg-80 mx-lg-auto">
             <div class="card shadow-sm p-5 mb-5">
                 <div class="text-center pb-5 mb-5">
@@ -90,5 +89,4 @@
                 </div>
             </div>
         </div>
-    </div>
 }()
