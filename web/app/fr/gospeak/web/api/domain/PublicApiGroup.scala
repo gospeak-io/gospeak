@@ -23,7 +23,7 @@ object PublicApiGroup {
       description = group.description.value,
       location = group.location.map(Place(_)),
       tags = group.tags.map(_.value),
-      created = group.info.created)
+      created = group.info.createdAt)
 
   case class Embedded(slug: String,
                       name: String,

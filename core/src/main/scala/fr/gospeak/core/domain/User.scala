@@ -12,8 +12,8 @@ final case class User(id: User.Id,
                       emailValidated: Option[Instant],
                       avatar: Avatar,
                       profile: User.Profile,
-                      created: Instant,
-                      updated: Instant) {
+                      createdAt: Instant,
+                      updatedAt: Instant) {
   def data: User.Data = User.Data(this)
 
   def name: User.Name = User.Name(firstName, lastName)

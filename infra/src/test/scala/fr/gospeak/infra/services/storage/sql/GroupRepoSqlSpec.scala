@@ -45,12 +45,12 @@ class GroupRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = GroupRepoSql.update(group.slug)(group.data, user.id, now)
-        check(q, s"UPDATE $table SET slug=?, name=?, logo=?, banner=?, contact=?, website=?, description=?, location=?, location_lat=?, location_lng=?, location_country=?, " +
-          s"social_facebook=?, social_instagram=?, social_twitter=?, social_linkedIn=?, social_youtube=?, social_meetup=?, social_eventbrite=?, social_slack=?, social_discord=?, tags=?, updated=?, updated_by=? WHERE g.slug=?")
+        check(q, s"UPDATE $table SET slug=?, name=?, logo=?, banner=?, contact=?, website=?, description=?, location=?, location_lat=?, location_lng=?, location_locality=?, location_country=?, " +
+          s"social_facebook=?, social_instagram=?, social_twitter=?, social_linkedIn=?, social_youtube=?, social_meetup=?, social_eventbrite=?, social_slack=?, social_discord=?, tags=?, updated_at=?, updated_by=? WHERE g.slug=?")
       }
       it("should build updateOwners") {
         val q = GroupRepoSql.updateOwners(group.id)(NonEmptyList.of(user.id), user.id, now)
-        check(q, s"UPDATE $table SET owners=?, updated=?, updated_by=? WHERE g.id=?")
+        check(q, s"UPDATE $table SET owners=?, updated_at=?, updated_by=? WHERE g.id=?")
       }
       it("should build selectPage") {
         val q = GroupRepoSql.selectPage(params)
@@ -125,7 +125,7 @@ class GroupRepoSqlSpec extends RepoSpec {
 object GroupRepoSqlSpec {
   val table = "groups g"
   private val socialFields = Seq("facebook", "instagram", "twitter", "linkedIn", "youtube", "meetup", "eventbrite", "slack", "discord").map("social_" + _).mkString(", ")
-  val fieldsInsert: String = mapFields(s"id, slug, name, logo, banner, contact, website, description, location, location_lat, location_lng, location_country, owners, $socialFields, tags, status, created, created_by, updated, updated_by", "g." + _)
+  val fieldsInsert: String = mapFields(s"id, slug, name, logo, banner, contact, website, description, location, location_lat, location_lng, location_locality, location_country, owners, $socialFields, tags, status, created_at, created_by, updated_at, updated_by", "g." + _)
   val fields: String = fieldsInsert.split(", ").filterNot(_.contains("location_")).mkString(", ")
   val orderBy = "ORDER BY g.name IS NULL, g.name"
 

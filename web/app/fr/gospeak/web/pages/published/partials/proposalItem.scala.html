@@ -16,5 +16,5 @@
     @slidesIcon(proposal.slides)
     @videoIcon(proposal.video)
     @tags(proposal.tags)
-    <small>@tense(proposal.event.map(_.start).getOrElse(LocalDateTime.ofInstant(proposal.info.created, ZoneOffset.UTC)))</small>
+    <small>@tense(proposal.event.map(_.start).getOrElse(LocalDateTime.ofInstant(proposal.info.createdAt, ZoneOffset.UTC)))</small>
 </div>

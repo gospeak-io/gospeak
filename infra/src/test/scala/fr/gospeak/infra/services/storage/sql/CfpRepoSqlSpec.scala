@@ -43,7 +43,7 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = CfpRepoSql.update(group.id, cfp.slug)(cfpData1, user.id, now)
-        check(q, s"UPDATE $table SET slug=?, name=?, begin=?, close=?, description=?, tags=?, updated=?, updated_by=? WHERE c.group_id=? AND c.slug=?")
+        check(q, s"UPDATE $table SET slug=?, name=?, begin=?, close=?, description=?, tags=?, updated_at=?, updated_by=? WHERE c.group_id=? AND c.slug=?")
       }
       it("should build selectOne for cfp id") {
         val q = CfpRepoSql.selectOne(cfp.id)
@@ -99,6 +99,6 @@ class CfpRepoSqlSpec extends RepoSpec {
 
 object CfpRepoSqlSpec {
   val table = "cfps c"
-  val fields: String = mapFields("id, group_id, slug, name, begin, close, description, tags, created, created_by, updated, updated_by", "c." + _)
+  val fields: String = mapFields("id, group_id, slug, name, begin, close, description, tags, created_at, created_by, updated_at, updated_by", "c." + _)
   val orderBy = "ORDER BY c.close IS NULL, c.close DESC, c.name IS NULL, c.name"
 }

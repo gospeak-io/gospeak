@@ -32,7 +32,7 @@ case class Event(id: String, // Event.Id
       maxAttendee = Some(100),
       allowRsvp = false,
       description = MustacheMarkdownTmpl(data.description.getOrElse("")),
-      orgaNotes = Notes("", info.created, info.createdBy),
+      orgaNotes = Notes("", info.createdAt, info.createdBy),
       venue = data.venue.map(v => venues.find(_.partner.value == v).getOrElse(throw new Exception(s"Missing venue $v")).id),
       talks = data.talks.map(t => proposals.find(_.talk.value == t).getOrElse(throw new Exception(s"Missing proposal $t")).id),
       tags = Seq(),

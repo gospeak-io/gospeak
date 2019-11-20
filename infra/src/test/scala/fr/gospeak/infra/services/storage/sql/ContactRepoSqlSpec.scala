@@ -44,7 +44,7 @@ class ContactRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = ContactRepoSql.update(contact.id, contactData1)(user.id, now)
-        check(q, s"UPDATE $table SET first_name=?, last_name=?, email=?, description=?, updated=?, updated_by=? WHERE ct.id=?")
+        check(q, s"UPDATE $table SET first_name=?, last_name=?, email=?, description=?, updated_at=?, updated_by=? WHERE ct.id=?")
       }
       it("should build delete") {
         val q = ContactRepoSql.delete(group.id, partner.id, contact.id)(user.id, now)
@@ -72,6 +72,6 @@ class ContactRepoSqlSpec extends RepoSpec {
 
 object ContactRepoSqlSpec {
   val table = "contacts ct"
-  val fields: String = mapFields("id, partner_id, first_name, last_name, email, description, created, created_by, updated, updated_by", "ct." + _)
+  val fields: String = mapFields("id, partner_id, first_name, last_name, email, description, created_at, created_by, updated_at, updated_by", "ct." + _)
   val orderBy = "ORDER BY ct.last_name IS NULL, ct.last_name, ct.first_name IS NULL, ct.first_name"
 }

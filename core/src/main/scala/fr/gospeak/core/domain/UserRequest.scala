@@ -8,7 +8,7 @@ import scala.concurrent.duration._
 
 sealed trait UserRequest {
   val id: UserRequest.Id
-  val created: Instant
+  val createdAt: Instant
 
   def users: Seq[User.Id] = Seq()
 
@@ -35,25 +35,25 @@ object UserRequest {
   final case class AccountValidationRequest(id: Id,
                                             email: EmailAddress,
                                             deadline: Instant,
-                                            created: Instant,
+                                            createdAt: Instant,
                                             createdBy: User.Id,
-                                            accepted: Option[Instant]) extends UserRequest {
+                                            acceptedAt: Option[Instant]) extends UserRequest {
     override def users: Seq[User.Id] = Seq(createdBy)
 
-    override def isPending(now: Instant): Boolean = deadline.isAfter(now) && accepted.isEmpty
+    override def isPending(now: Instant): Boolean = deadline.isAfter(now) && acceptedAt.isEmpty
   }
 
   final case class PasswordResetRequest(id: Id,
                                         email: EmailAddress,
                                         deadline: Instant,
-                                        created: Instant,
-                                        accepted: Option[Instant]) extends UserRequest {
-    override def isPending(now: Instant): Boolean = deadline.isAfter(now) && accepted.isEmpty
+                                        createdAt: Instant,
+                                        acceptedAt: Option[Instant]) extends UserRequest {
+    override def isPending(now: Instant): Boolean = deadline.isAfter(now) && acceptedAt.isEmpty
   }
 
   final case class UserAskToJoinAGroupRequest(id: Id,
                                               group: Group.Id,
-                                              created: Instant,
+                                              createdAt: Instant,
                                               createdBy: User.Id,
                                               accepted: Option[Meta],
                                               rejected: Option[Meta],
@@ -62,7 +62,7 @@ object UserRequest {
   final case class GroupInvite(id: Id,
                                group: Group.Id,
                                email: EmailAddress,
-                               created: Instant,
+                               createdAt: Instant,
                                createdBy: User.Id,
                                accepted: Option[Meta],
                                rejected: Option[Meta],
@@ -71,7 +71,7 @@ object UserRequest {
   final case class TalkInvite(id: Id,
                               talk: Talk.Id,
                               email: EmailAddress,
-                              created: Instant,
+                              createdAt: Instant,
                               createdBy: User.Id,
                               accepted: Option[Meta],
                               rejected: Option[Meta],
@@ -80,7 +80,7 @@ object UserRequest {
   final case class ProposalInvite(id: Id,
                                   proposal: Proposal.Id,
                                   email: EmailAddress,
-                                  created: Instant,
+                                  createdAt: Instant,
                                   createdBy: User.Id,
                                   accepted: Option[Meta],
                                   rejected: Option[Meta],

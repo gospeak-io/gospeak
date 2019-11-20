@@ -38,8 +38,8 @@ case class Person(id: String, // Person.Id,
       emailValidated = None,
       avatar = avatar,
       profile = profile,
-      created = Instant.ofEpochMilli(meta.created),
-      updated = Instant.ofEpochMilli(meta.updated))).mapFailure(e => new Exception(s"toUser error for $this ", e)).get
+      createdAt = Instant.ofEpochMilli(meta.created),
+      updatedAt = Instant.ofEpochMilli(meta.updated))).mapFailure(e => new Exception(s"toUser error for $this ", e)).get
   }
 
   def toContact(partner: Partner): (String, gs.Contact) = {

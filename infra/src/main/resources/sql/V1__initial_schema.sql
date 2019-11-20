@@ -16,8 +16,8 @@ CREATE TABLE users
     linkedin        VARCHAR(1024),
     phone           VARCHAR(36),
     website         VARCHAR(1024),
-    created         TIMESTAMP     NOT NULL,
-    updated         TIMESTAMP     NOT NULL
+    created_at      TIMESTAMP     NOT NULL,
+    updated_at      TIMESTAMP     NOT NULL
 );
 
 CREATE TABLE credentials
@@ -50,9 +50,9 @@ CREATE TABLE talks
     slides      VARCHAR(1024),
     video       VARCHAR(1024),
     tags        VARCHAR(150)  NOT NULL, -- 5 tags max
-    created     TIMESTAMP     NOT NULL,
+    created_at  TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
-    updated     TIMESTAMP     NOT NULL,
+    updated_at  TIMESTAMP     NOT NULL,
     updated_by  CHAR(36)      NOT NULL REFERENCES users (id)
 );
 
@@ -69,6 +69,7 @@ CREATE TABLE groups
     location          VARCHAR(4096),
     location_lat      DOUBLE PRECISION,
     location_lng      DOUBLE PRECISION,
+    location_locality VARCHAR(50),
     location_country  VARCHAR(30),
     owners            VARCHAR(369)  NOT NULL, -- 10 owners max
     social_facebook   VARCHAR(1024),
@@ -82,9 +83,9 @@ CREATE TABLE groups
     social_discord    VARCHAR(1024),
     tags              VARCHAR(150)  NOT NULL, -- 5 tags max
     status            VARCHAR(10)   NOT NULL,
-    created           TIMESTAMP     NOT NULL,
+    created_at        TIMESTAMP     NOT NULL,
     created_by        CHAR(36)      NOT NULL REFERENCES users (id),
-    updated           TIMESTAMP     NOT NULL,
+    updated_at        TIMESTAMP     NOT NULL,
     updated_by        CHAR(36)      NOT NULL REFERENCES users (id)
 );
 
@@ -102,8 +103,19 @@ CREATE TABLE group_settings
     event_description       VARCHAR   NOT NULL,
     event_templates         VARCHAR   NOT NULL, -- json serialized Map[String, MustacheTextTmpl[TemplateData.EventInfo]]
     actions                 VARCHAR   NOT NULL, -- json serialized Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]
-    updated                 TIMESTAMP NOT NULL,
+    updated_at              TIMESTAMP NOT NULL,
     updated_by              CHAR(36)  NOT NULL REFERENCES users (id)
+);
+
+CREATE TABLE group_members
+(
+    group_id     CHAR(36)    NOT NULL REFERENCES groups (id),
+    user_id      CHAR(36)    NOT NULL REFERENCES users (id),
+    role         VARCHAR(10) NOT NULL, -- Owner, Member
+    presentation VARCHAR(4096),
+    joined_at    TIMESTAMP   NOT NULL,
+    leaved_at    TIMESTAMP,
+    PRIMARY KEY (group_id, user_id)
 );
 
 CREATE TABLE cfps
@@ -116,9 +128,9 @@ CREATE TABLE cfps
     close       TIMESTAMP,
     description VARCHAR(4096) NOT NULL,
     tags        VARCHAR(150)  NOT NULL, -- 5 tags max
-    created     TIMESTAMP     NOT NULL,
+    created_at  TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
-    updated     TIMESTAMP     NOT NULL,
+    updated_at  TIMESTAMP     NOT NULL,
     updated_by  CHAR(36)      NOT NULL REFERENCES users (id)
 );
 
@@ -132,9 +144,9 @@ CREATE TABLE partners
     description VARCHAR(4096),
     logo        VARCHAR(1024) NOT NULL,
     twitter     VARCHAR(1024),
-    created     TIMESTAMP     NOT NULL,
+    created_at  TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
-    updated     TIMESTAMP     NOT NULL,
+    updated_at  TIMESTAMP     NOT NULL,
     updated_by  CHAR(36)      NOT NULL REFERENCES users (id),
     UNIQUE (group_id, slug)
 );
@@ -147,9 +159,9 @@ CREATE TABLE contacts
     last_name   VARCHAR(120)  NOT NULL,
     email       VARCHAR(120)  NOT NULL,
     description VARCHAR(4096) NOT NULL,
-    created     TIMESTAMP     NOT NULL,
+    created_at  TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
-    updated     TIMESTAMP     NOT NULL,
+    updated_at  TIMESTAMP     NOT NULL,
     updated_by  CHAR(36)      NOT NULL REFERENCES users (id)
 );
 
@@ -166,9 +178,9 @@ CREATE TABLE venues
     room_size       INT,
     meetupGroup     VARCHAR(80),
     meetupVenue     BIGINT,
-    created         TIMESTAMP        NOT NULL,
+    created_at      TIMESTAMP        NOT NULL,
     created_by      CHAR(36)         NOT NULL REFERENCES users (id),
-    updated         TIMESTAMP        NOT NULL,
+    updated_at      TIMESTAMP        NOT NULL,
     updated_by      CHAR(36)         NOT NULL REFERENCES users (id)
 );
 
@@ -192,11 +204,20 @@ CREATE TABLE events
     published             TIMESTAMP,
     meetupGroup           VARCHAR(80),
     meetupEvent           BIGINT,
-    created               TIMESTAMP     NOT NULL,
+    created_at            TIMESTAMP     NOT NULL,
     created_by            CHAR(36)      NOT NULL REFERENCES users (id),
-    updated               TIMESTAMP     NOT NULL,
+    updated_at            TIMESTAMP     NOT NULL,
     updated_by            CHAR(36)      NOT NULL REFERENCES users (id),
     UNIQUE (group_id, slug)
+);
+
+CREATE TABLE event_rsvps
+(
+    event_id    CHAR(36)    NOT NULL REFERENCES events (id),
+    user_id     CHAR(36)    NOT NULL REFERENCES users (id),
+    answer      VARCHAR(10) NOT NULL, -- Yes, No, Wait
+    answered_at TIMESTAMP   NOT NULL,
+    PRIMARY KEY (event_id, user_id)
 );
 
 CREATE TABLE proposals
@@ -213,9 +234,9 @@ CREATE TABLE proposals
     slides      VARCHAR(1024),
     video       VARCHAR(1024),
     tags        VARCHAR(150)  NOT NULL, -- 5 tags max
-    created     TIMESTAMP     NOT NULL,
+    created_at  TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
-    updated     TIMESTAMP     NOT NULL,
+    updated_at  TIMESTAMP     NOT NULL,
     updated_by  CHAR(36)      NOT NULL REFERENCES users (id),
     UNIQUE (talk_id, cfp_id)
 );
@@ -240,9 +261,9 @@ CREATE TABLE sponsor_packs
     currency    VARCHAR(10)      NOT NULL,
     duration    VARCHAR(20)      NOT NULL,
     active      BOOLEAN          NOT NULL,
-    created     TIMESTAMP        NOT NULL,
+    created_at  TIMESTAMP        NOT NULL,
     created_by  CHAR(36)         NOT NULL REFERENCES users (id),
-    updated     TIMESTAMP        NOT NULL,
+    updated_at  TIMESTAMP        NOT NULL,
     updated_by  CHAR(36)         NOT NULL REFERENCES users (id),
     UNIQUE (group_id, slug)
 );
@@ -259,30 +280,10 @@ CREATE TABLE sponsors
     paid            DATE,
     price           DOUBLE PRECISION NOT NULL,
     currency        VARCHAR(10)      NOT NULL,
-    created         TIMESTAMP        NOT NULL,
+    created_at      TIMESTAMP        NOT NULL,
     created_by      CHAR(36)         NOT NULL REFERENCES users (id),
-    updated         TIMESTAMP        NOT NULL,
+    updated_at      TIMESTAMP        NOT NULL,
     updated_by      CHAR(36)         NOT NULL REFERENCES users (id)
-);
-
-CREATE TABLE group_members
-(
-    group_id     CHAR(36)    NOT NULL REFERENCES groups (id),
-    user_id      CHAR(36)    NOT NULL REFERENCES users (id),
-    role         VARCHAR(10) NOT NULL, -- Owner, Member
-    presentation VARCHAR(4096),
-    joined_at    TIMESTAMP   NOT NULL,
-    leaved_at    TIMESTAMP,
-    PRIMARY KEY (group_id, user_id)
-);
-
-CREATE TABLE event_rsvps
-(
-    event_id    CHAR(36)    NOT NULL REFERENCES events (id),
-    user_id     CHAR(36)    NOT NULL REFERENCES users (id),
-    answer      VARCHAR(10) NOT NULL, -- Yes, No, Wait
-    answered_at TIMESTAMP   NOT NULL,
-    PRIMARY KEY (event_id, user_id)
 );
 
 CREATE TABLE comments
@@ -308,13 +309,13 @@ CREATE TABLE requests
     proposal_id CHAR(36) REFERENCES proposals (id),
     email       VARCHAR(120),
     deadline    TIMESTAMP,
-    created     TIMESTAMP   NOT NULL,
+    created_at  TIMESTAMP   NOT NULL,
     created_by  CHAR(36) REFERENCES users (id),
-    accepted    TIMESTAMP,
+    accepted_at TIMESTAMP,
     accepted_by CHAR(36) REFERENCES users (id),
-    rejected    TIMESTAMP,
+    rejected_at TIMESTAMP,
     rejected_by CHAR(36) REFERENCES users (id),
-    canceled    TIMESTAMP,
+    canceled_at TIMESTAMP,
     canceled_by CHAR(36) REFERENCES users (id)
 );
 
@@ -333,7 +334,7 @@ CREATE TABLE external_cfps
     location          VARCHAR(4096),
     location_lat      DOUBLE PRECISION,
     location_lng      DOUBLE PRECISION,
-    location_locality VARCHAR(30),
+    location_locality VARCHAR(50),
     location_country  VARCHAR(30),
     tickets_url       VARCHAR(1024),
     videos_url        VARCHAR(1024),

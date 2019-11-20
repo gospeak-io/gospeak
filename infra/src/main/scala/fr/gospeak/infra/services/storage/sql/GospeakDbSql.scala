@@ -144,7 +144,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
         _ <- sponsors.map(SponsorRepoSql.insert(_).run(xa)).sequence
         _ <- venues.map(VenueRepoSql.insert(_).run(xa)).sequence
         _ <- events.map(EventRepoSql.insert(_).run(xa)).sequence
-        _ <- IO(events.map(event => addTalk(cfpHt, event, proposals.filter(p => event.talks.contains(p.id)), event.info.createdBy, event.info.updated)).map(_.unsafeRunSync()))
+        _ <- IO(events.map(event => addTalk(cfpHt, event, proposals.filter(p => event.talks.contains(p.id)), event.info.createdBy, event.info.updatedAt)).map(_.unsafeRunSync()))
       } yield Done
     } { mongo => IO(mongo.close()) }
   }

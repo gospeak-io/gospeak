@@ -15,7 +15,7 @@ class SponsorRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = SponsorRepoSql.update(group.id, sponsor.id)(sponsor.data, user.id, now)
-        check(q, s"UPDATE $table SET partner_id=?, sponsor_pack_id=?, contact_id=?, start=?, finish=?, paid=?, price=?, currency=?, updated=?, updated_by=? WHERE s.group_id=? AND s.id=?")
+        check(q, s"UPDATE $table SET partner_id=?, sponsor_pack_id=?, contact_id=?, start=?, finish=?, paid=?, price=?, currency=?, updated_at=?, updated_by=? WHERE s.group_id=? AND s.id=?")
       }
       it("should build delete") {
         val q = SponsorRepoSql.delete(group.id, sponsor.id)
@@ -55,7 +55,7 @@ object SponsorRepoSqlSpec {
   import RepoSpec._
 
   val table = "sponsors s"
-  val fields: String = mapFields("id, group_id, partner_id, sponsor_pack_id, contact_id, start, finish, paid, price, currency, created, created_by, updated, updated_by", "s." + _)
+  val fields: String = mapFields("id, group_id, partner_id, sponsor_pack_id, contact_id, start, finish, paid, price, currency, created_at, created_by, updated_at, updated_by", "s." + _)
   val orderBy = "ORDER BY s.start IS NULL, s.start DESC"
 
   private val tableFull = s"$table INNER JOIN $sponsorPackTable ON s.sponsor_pack_id=sp.id INNER JOIN $partnerTable ON s.partner_id=pa.id LEFT OUTER JOIN $contactTable ON s.contact_id=ct.id"

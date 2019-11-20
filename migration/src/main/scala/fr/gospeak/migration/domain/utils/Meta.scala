@@ -11,9 +11,9 @@ case class Meta(created: Long, // DateTime,
                 updatedBy: String) {
   lazy val toInfo: Info = {
     Info(
-      created = Instant.ofEpochMilli(created),
+      createdAt = Instant.ofEpochMilli(created),
       createdBy = User.Id.from(createdBy).right.get,
-      updated = Instant.ofEpochMilli(updated),
+      updatedAt = Instant.ofEpochMilli(updated),
       updatedBy = User.Id.from(updatedBy).right.get)
   }
 }

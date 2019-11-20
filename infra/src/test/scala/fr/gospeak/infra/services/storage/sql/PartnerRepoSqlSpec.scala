@@ -14,7 +14,7 @@ class PartnerRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = PartnerRepoSql.update(group.id, partner.slug)(partner.data, user.id, now)
-        check(q, s"UPDATE $table SET slug=?, name=?, notes=?, description=?, logo=?, twitter=?, updated=?, updated_by=? WHERE pa.group_id=? AND pa.slug=?")
+        check(q, s"UPDATE $table SET slug=?, name=?, notes=?, description=?, logo=?, twitter=?, updated_at=?, updated_by=? WHERE pa.group_id=? AND pa.slug=?")
       }
       it("should build delete") {
         val q = PartnerRepoSql.delete(group.id, partner.slug)
@@ -46,6 +46,6 @@ class PartnerRepoSqlSpec extends RepoSpec {
 
 object PartnerRepoSqlSpec {
   val table = "partners pa"
-  val fields: String = mapFields("id, group_id, slug, name, notes, description, logo, twitter, created, created_by, updated, updated_by", "pa." + _)
+  val fields: String = mapFields("id, group_id, slug, name, notes, description, logo, twitter, created_at, created_by, updated_at, updated_by", "pa." + _)
   val orderBy = "ORDER BY pa.name IS NULL, pa.name"
 }

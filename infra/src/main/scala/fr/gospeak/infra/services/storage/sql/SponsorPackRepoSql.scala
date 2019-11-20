@@ -51,17 +51,17 @@ object SponsorPackRepoSql {
   private val table = Tables.sponsorPacks
 
   private[sql] def insert(e: SponsorPack): Insert[SponsorPack] = {
-    val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.description}, ${e.price.amount}, ${e.price.currency}, ${e.duration}, ${e.active}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.description}, ${e.price.amount}, ${e.price.currency}, ${e.duration}, ${e.active}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert(e, _ => values)
   }
 
   private[sql] def update(group: Group.Id, pack: SponsorPack.Slug)(data: SponsorPack.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"slug=${data.slug}, name=${data.name}, description=${data.description}, price=${data.price.amount}, currency=${data.price.currency}, duration=${data.duration}, updated=$now, updated_by=$by"
+    val fields = fr0"slug=${data.slug}, name=${data.name}, description=${data.description}, price=${data.price.amount}, currency=${data.price.currency}, duration=${data.duration}, updated_at=$now, updated_by=$by"
     table.update(fields, where(group, pack))
   }
 
   private[sql] def setActive(group: Group.Id, pack: SponsorPack.Slug)(active: Boolean, by: User.Id, now: Instant): Update =
-    table.update(fr0"active=$active, updated=$now, updated_by=$by", where(group, pack))
+    table.update(fr0"active=$active, updated_at=$now, updated_by=$by", where(group, pack))
 
   private[sql] def selectOne(group: Group.Id, pack: SponsorPack.Slug): Select[SponsorPack] =
     table.select[SponsorPack](where(group, pack))

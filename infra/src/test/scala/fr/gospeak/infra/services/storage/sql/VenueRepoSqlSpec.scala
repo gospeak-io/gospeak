@@ -15,7 +15,7 @@ class VenueRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = VenueRepoSql.update(group.id, venue.id)(venue.data, user.id, now)
-        check(q, s"UPDATE $table SET contact_id=?, address=?, address_lat=?, address_lng=?, address_country=?, description=?, room_size=?, meetupGroup=?, meetupVenue=?, updated=?, updated_by=? WHERE v.id=(SELECT v.id FROM $tableFull WHERE pa.group_id=? AND v.id=?)")
+        check(q, s"UPDATE $table SET contact_id=?, address=?, address_lat=?, address_lng=?, address_country=?, description=?, room_size=?, meetupGroup=?, meetupVenue=?, updated_at=?, updated_by=? WHERE v.id=(SELECT v.id FROM $tableFull WHERE pa.group_id=? AND v.id=?)")
       }
       it("should build delete") {
         val q = VenueRepoSql.delete(group.id, venue.id)
@@ -54,9 +54,9 @@ object VenueRepoSqlSpec {
   import RepoSpec._
 
   val table = "venues v"
-  val fieldsInsert: String = mapFields("id, partner_id, contact_id, address, address_lat, address_lng, address_country, description, room_size, meetupGroup, meetupVenue, created, created_by, updated, updated_by", "v." + _)
-  val fields: String = mapFields("id, partner_id, contact_id, address, description, room_size, meetupGroup, meetupVenue, created, created_by, updated, updated_by", "v." + _)
-  val orderBy = "ORDER BY v.created IS NULL, v.created"
+  val fieldsInsert: String = mapFields("id, partner_id, contact_id, address, address_lat, address_lng, address_country, description, room_size, meetupGroup, meetupVenue, created_at, created_by, updated_at, updated_by", "v." + _)
+  val fields: String = mapFields("id, partner_id, contact_id, address, description, room_size, meetupGroup, meetupVenue, created_at, created_by, updated_at, updated_by", "v." + _)
+  val orderBy = "ORDER BY v.created_at IS NULL, v.created_at"
 
   private val tableFull = s"$table INNER JOIN $partnerTable ON v.partner_id=pa.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id"
   private val fieldsFull = s"$fields, $partnerFields, $contactFields"

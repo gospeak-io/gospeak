@@ -20,10 +20,10 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
     insert(User(data, User.emptyProfile, now)).run(xa)
 
   override def edit(user: User, now: Instant): IO[User] =
-    update(user.copy(updated = now)).run(xa).map(_ => user.copy(updated = now))
+    update(user.copy(updatedAt = now)).run(xa).map(_ => user.copy(updatedAt = now))
 
   override def edit(user: User, editable: User.EditableFields, now: Instant): IO[User] =
-    update(user.copy(firstName = editable.firstName, lastName = editable.lastName, email = editable.email, profile = editable.profile, updated = now)).run(xa).map(_ => user.copy(updated = now))
+    update(user.copy(firstName = editable.firstName, lastName = editable.lastName, email = editable.email, profile = editable.profile, updatedAt = now)).run(xa).map(_ => user.copy(updatedAt = now))
 
   override def editStatus(user: User.Id)(status: User.Profile.Status): IO[Done] =
     selectOne(user).runOption(xa).flatMap {
@@ -76,12 +76,12 @@ object UserRepoSql {
   private val proposalsWithCfps = Tables.proposals.join(Tables.cfps, _.cfp_id -> _.id).get
 
   private[sql] def insert(e: User): Insert[User] = {
-    val values = fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.profile.status}, ${e.profile.bio}, ${e.profile.company}, ${e.profile.location}, ${e.profile.twitter}, ${e.profile.linkedin}, ${e.profile.phone}, ${e.profile.website}, ${e.created}, ${e.updated}"
+    val values = fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.profile.status}, ${e.profile.bio}, ${e.profile.company}, ${e.profile.location}, ${e.profile.twitter}, ${e.profile.linkedin}, ${e.profile.phone}, ${e.profile.website}, ${e.createdAt}, ${e.updatedAt}"
     table.insert(e, _ => values)
   }
 
   private[sql] def update(elt: User): Update = {
-    val fields = fr0"slug=${elt.slug}, first_name=${elt.firstName}, last_name=${elt.lastName}, email=${elt.email}, status=${elt.profile.status}, bio=${elt.profile.bio}, company=${elt.profile.company}, location=${elt.profile.location}, twitter=${elt.profile.twitter}, linkedin=${elt.profile.linkedin}, phone=${elt.profile.phone}, website=${elt.profile.website}, updated=${elt.updated}"
+    val fields = fr0"slug=${elt.slug}, first_name=${elt.firstName}, last_name=${elt.lastName}, email=${elt.email}, status=${elt.profile.status}, bio=${elt.profile.bio}, company=${elt.profile.company}, location=${elt.profile.location}, twitter=${elt.profile.twitter}, linkedin=${elt.profile.linkedin}, phone=${elt.profile.phone}, website=${elt.profile.website}, updated_at=${elt.updatedAt}"
     table.update(fields, fr0"WHERE u.id=${elt.id}")
   }
 

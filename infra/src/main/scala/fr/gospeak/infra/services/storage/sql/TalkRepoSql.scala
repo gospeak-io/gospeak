@@ -90,12 +90,12 @@ object TalkRepoSql {
   private val table = Tables.talks
 
   private[sql] def insert(e: Talk): Insert[Talk] = {
-    val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert(e, _ => values)
   }
 
   private[sql] def update(talk: Talk.Slug)(data: Talk.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$by"
+    val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated_at=$now, updated_by=$by"
     table.update(fields, where(by, talk))
   }
 
@@ -103,13 +103,13 @@ object TalkRepoSql {
     table.update(fr0"status=$status", where(by, talk))
 
   private[sql] def updateSlides(talk: Talk.Slug)(slides: Slides, by: User.Id, now: Instant): Update =
-    table.update(fr0"slides=$slides, updated=$now, updated_by=$by", where(by, talk))
+    table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by", where(by, talk))
 
   private[sql] def updateVideo(talk: Talk.Slug)(video: Video, by: User.Id, now: Instant): Update =
-    table.update(fr0"video=$video, updated=$now, updated_by=$by", where(by, talk))
+    table.update(fr0"video=$video, updated_at=$now, updated_by=$by", where(by, talk))
 
   private[sql] def updateSpeakers(talk: Talk.Slug)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
-    table.update(fr0"speakers=$speakers, updated=$now, updated_by=$by", where(by, talk))
+    table.update(fr0"speakers=$speakers, updated_at=$now, updated_by=$by", where(by, talk))
 
   private[sql] def selectOne(talk: Talk.Id): Select[Talk] =
     table.select[Talk](fr0"WHERE t.id=$talk")

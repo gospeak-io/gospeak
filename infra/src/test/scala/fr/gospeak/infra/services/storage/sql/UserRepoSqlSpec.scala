@@ -75,7 +75,7 @@ class UserRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = UserRepoSql.update(user)
-        check(q, s"UPDATE $table SET slug=?, first_name=?, last_name=?, email=?, status=?, bio=?, company=?, location=?, twitter=?, linkedin=?, phone=?, website=?, updated=? WHERE u.id=?")
+        check(q, s"UPDATE $table SET slug=?, first_name=?, last_name=?, email=?, status=?, bio=?, company=?, location=?, twitter=?, linkedin=?, phone=?, website=?, updated_at=? WHERE u.id=?")
       }
       it("should build validateAccount") {
         val q = UserRepoSql.validateAccount(user.email, now)
@@ -125,7 +125,7 @@ object UserRepoSqlSpec {
   val credentialsFields: String = mapFields("provider_id, provider_key, hasher, password, salt", "cd." + _)
 
   val table = "users u"
-  val fields: String = mapFields("id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, status, bio, company, location, twitter, linkedin, phone, website, created, updated", "u." + _)
+  val fields: String = mapFields("id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, status, bio, company, location, twitter, linkedin, phone, website, created_at, updated_at", "u." + _)
   val orderBy = "ORDER BY u.first_name IS NULL, u.first_name"
 
   val tableWithLogin = s"$table INNER JOIN $loginsTable ON u.id=lg.user_id"

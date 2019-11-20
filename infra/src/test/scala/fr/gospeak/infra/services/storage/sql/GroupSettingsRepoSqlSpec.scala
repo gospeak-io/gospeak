@@ -53,6 +53,6 @@ object GroupSettingsRepoSqlSpec {
   val eventFields: String = mapFields("event_description, event_templates", "gs." + _)
 
   val table = "group_settings gs"
-  val fields = s"gs.group_id, $meetupFields, $slackFields, $eventFields, gs.actions, gs.updated, gs.updated_by"
+  val fields = s"gs.group_id, $meetupFields, $slackFields, $eventFields, gs.actions, gs.updated_at, gs.updated_by"
   val fieldsSelect = s"$meetupFields, $slackFields, $eventFields, gs.actions"
 }

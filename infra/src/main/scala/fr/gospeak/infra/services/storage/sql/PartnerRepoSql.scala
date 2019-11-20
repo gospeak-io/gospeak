@@ -49,12 +49,12 @@ object PartnerRepoSql {
   private val table = Tables.partners
 
   private[sql] def insert(e: Partner): Insert[Partner] = {
-    val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.notes}, ${e.description}, ${e.logo}, ${e.twitter}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.notes}, ${e.description}, ${e.logo}, ${e.twitter}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert[Partner](e, _ => values)
   }
 
   private[sql] def update(group: Group.Id, partner: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"slug=${data.slug}, name=${data.name}, notes=${data.notes}, description=${data.description}, logo=${data.logo}, twitter=${data.twitter}, updated=$now, updated_by=$by"
+    val fields = fr0"slug=${data.slug}, name=${data.name}, notes=${data.notes}, description=${data.description}, logo=${data.logo}, twitter=${data.twitter}, updated_at=$now, updated_by=$by"
     table.update(fields, where(group, partner))
   }
 
