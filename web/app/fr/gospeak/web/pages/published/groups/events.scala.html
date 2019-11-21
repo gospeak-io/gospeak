@@ -6,7 +6,8 @@
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 
-@(group: Group, events: Page[Event.Full])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(group: Group, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@* @(group: Group, events: Page[Event.Full])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent]) *@
 @eventItem(group: Group, e: Event.Full) = {
     <a class="card mb-3" href="@GroupCtrl.event(group.slug, e.slug)">
         <div class="card-body">
@@ -20,11 +21,7 @@
 }
 @container_theme(group.name.value + " - Gospeak", b)() {
         <div class="row">
-            <div class="col-lg-4 mb-9 mb-lg-0">
-                <div class="card shadow-sm p-5 mb-5">
-                    todo : importer groupCard
-                </div>
-            </div>
+            @groupCard(group, cfps, events, sponsors, packs, orgas, userMembership)(b)
 
             <div class="col-lg-8 m">
                 <h3>@Formats.plural(events.total.value, "event") planned by @group.name.value</h3>
