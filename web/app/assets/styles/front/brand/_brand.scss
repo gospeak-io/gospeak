@@ -1,0 +1,33 @@
+/*------------------------------------
+  Brand
+------------------------------------*/
+
+.brand {
+  font-size: $brand-font-size;
+  font-weight: $brand-font-weight-bold;
+  margin-left: .5rem;
+}
+
+.brand-primary {
+  &,
+  &:focus,
+  &:hover {
+    color: $brand-primary-color;
+  }
+}
+
+.brand-light {
+  &,
+  &:focus,
+  &:hover {
+    color: $brand-white-color;
+  }
+}
+
+.brand-dark {
+  &,
+  &:focus,
+  &:hover {
+    color: $brand-dark-color;
+  }
+}

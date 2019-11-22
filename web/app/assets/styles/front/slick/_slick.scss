@@ -1,0 +1,21 @@
+/*------------------------------------
+  Slick
+------------------------------------*/
+
+.u-slick {
+	position: relative;
+}
+
+// Disable transform effect
+.u-slick--transform-off {
+	&.slick-transform-off .slick-track {
+		transform: none !important;
+	}
+}
+
+// Thumb Progress
+.u-slick-thumb-progress {
+  width: 110%;
+  height: 110%;
+  @include content-centered;
+}

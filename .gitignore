@@ -3,3 +3,5 @@
 target/
 run_coverage.sh
 web/conf/local.conf
+.DS_Store
+/node_modules/

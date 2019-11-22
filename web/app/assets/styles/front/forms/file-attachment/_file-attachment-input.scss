@@ -1,0 +1,31 @@
+/*------------------------------------
+  File Attachment Input
+------------------------------------*/
+
+.file-attachment-input {
+  position: relative;
+  display: block;
+  background-color: $file-attachment-bg-color;
+  border: $file-attachment-border-width $file-attachment-border-type $file-attachment-border-color;
+  text-align: center;
+  overflow: hidden;
+  cursor: pointer;
+  @include border-radius($file-attachment-border-radius);
+  padding: 4rem;
+  margin-bottom: 0;
+
+  &__label {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: block;
+    min-width: 100%;
+    min-height: 100%;
+    cursor: inherit;
+    opacity: 0;
+  }
+
+  &:hover {
+    background-color: $file-attachment-bg-hover-color;
+  }
+}
