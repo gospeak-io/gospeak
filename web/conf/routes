@@ -155,10 +155,10 @@ POST        /u/groups/:group/settings/orgas                                     
 POST        /u/groups/:group/settings/orgas/cancel/:request                                fr.gospeak.web.pages.orga.settings.SettingsCtrl.cancelInviteOrga(group: Group.Slug, request: UserRequest.Id)
 POST        /u/groups/:group/settings/orgas/:user/remove                                   fr.gospeak.web.pages.orga.settings.SettingsCtrl.doRemoveOrga(group: Group.Slug, user: User.Slug)
 
-GET         /u/profile                                                                     fr.gospeak.web.pages.speaker.SpeakerCtrl.profile(params: Page.Params ?= Page.Params.defaults)
-GET         /u/edit-profile                                                                fr.gospeak.web.pages.speaker.SpeakerCtrl.getProfile(params: Page.Params ?= Page.Params.defaults)
-POST        /u/profile                                                                     fr.gospeak.web.pages.speaker.SpeakerCtrl.editProfile()
-POST        /u/profile/status/:status                                                      fr.gospeak.web.pages.speaker.SpeakerCtrl.changeStatus(status: User.Profile.Status)
+GET         /u/profile                                                                     fr.gospeak.web.pages.speaker.SpeakerCtrl.detail(params: Page.Params ?= Page.Params.defaults)
+GET         /u/profile/edit                                                                fr.gospeak.web.pages.speaker.SpeakerCtrl.edit
+POST        /u/profile/edit                                                                fr.gospeak.web.pages.speaker.SpeakerCtrl.doEdit
+POST        /u/profile/status/:status                                                      fr.gospeak.web.pages.speaker.SpeakerCtrl.doEditStatus(status: User.Status)
 GET         /u/talks                                                                       fr.gospeak.web.pages.speaker.talks.TalkCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /u/talks/create                                                                fr.gospeak.web.pages.speaker.talks.TalkCtrl.create
 POST        /u/talks/create                                                                fr.gospeak.web.pages.speaker.talks.TalkCtrl.doCreate

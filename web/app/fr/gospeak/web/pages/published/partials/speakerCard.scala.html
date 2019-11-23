@@ -8,13 +8,12 @@
     </div>
     <div class="card-body">
         <h5 class="card-title">@speaker.name.value</h5>
-        @speaker.profile.bio.map { b => <p>@markdown(b)</p> }
+        @speaker.bio.map { b => <p>@markdown(b)</p> }
         <p class="text-secondary font-italic no-margin">
-            @speaker.profile.twitter.map { url => @twitterLink(url)<br> }
-            @speaker.profile.linkedin.map { url => @linkedinLink(url)<br> }
-            @speaker.profile.website.map { url => @websiteLink(url) <br> }
-            @speaker.profile.location.map { location => @locationDisplay(location)<br> }
-            @speaker.profile.company.map { company => @companyDisplay(company)<br> }
+            @speaker.website.map { url => @websiteLink(url) <br> }
+            @speaker.location.map { location => @locationDisplay(location)<br> }
+            @speaker.company.map { company => @companyDisplay(company)<br> }
+            @socialIcons(speaker.social)
         </p>
     </div>
 </div>

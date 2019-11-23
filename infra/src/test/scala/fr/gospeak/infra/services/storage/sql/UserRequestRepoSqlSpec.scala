@@ -189,7 +189,7 @@ class UserRequestRepoSqlSpec extends RepoSpec {
 
 object UserRequestRepoSqlSpec {
   val table = "requests r"
-  val fields: String = mapFields("id, kind, group_id, talk_id, proposal_id, email, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "r." + _)
+  val fields: String = mapFields("id, kind, group_id, cfp_id, event_id, talk_id, proposal_id, email, payload, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "r." + _)
   val orderBy = "ORDER BY r.created_at IS NULL, r.created_at DESC"
 
   val accountValidationFields: String = mapFields("id, email, deadline, created_at, created_by, accepted_at", "r." + _)

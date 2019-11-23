@@ -6,7 +6,7 @@ import java.util.Optional
 import cats.MonadError
 import cats.data.NonEmptyList
 import cats.effect.IO
-import fr.gospeak.libs.scalautils.domain.{CustomException, MultiException}
+import fr.gospeak.libs.scalautils.domain.MultiException
 
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
@@ -187,6 +187,14 @@ object Extensions {
       case Some(Success(a)) => Success(Some(a))
       case Some(Failure(e)) => Failure(e)
       case None => Success(None)
+    }
+  }
+
+  implicit class OptionEitherExtension[A, E](val in: Option[Either[E, A]]) extends AnyVal {
+    def sequence: Either[E, Option[A]] = in match {
+      case Some(Right(a)) => Right(Some(a))
+      case Some(Left(e)) => Left(e)
+      case None => Right(None)
     }
   }
 

@@ -15,9 +15,8 @@
                 <div>
                     <h5 class="card-title">@member.name.value</h5>
                     <p class="mb-0">
-                        @member.profile.twitter.map { url => @twitterLink(url) }
-                        @member.profile.linkedin.map { url => @linkedinLink(url) }
-                        @member.profile.website.map { url => @websiteLink(url) }
+                        @member.website.map { url => @websiteLink(url) }
+                        @socialIcons(member.social)
                     </p>
                 </div>
             } else {

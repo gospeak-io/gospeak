@@ -15,7 +15,7 @@ import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.EmailAddress
+import fr.gospeak.libs.scalautils.domain.{CustomException, EmailAddress}
 import fr.gospeak.web.auth.AuthConf
 import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
@@ -51,7 +51,8 @@ class AuthSrv(userRepo: AuthUserRepo,
       _ <- slugOpt.forall(s => emailOpt.exists(_.id == s.id)).toIO(DuplicateSlugException(data.slug)) // fail if slug exists for a different user from email
       avatar = gravatarSrv.getAvatar(data.email)
       user <- emailOpt.map { user =>
-        userRepo.edit(user.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), req.now)
+        userRepo.edit(user.id)(user.data.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), req.now)
+          .flatMap(_ => userRepo.find(data.email).flatMap(_.toIO(CustomException(s"Illegal state: can't find user with email ${data.email.value}"))))
       }.getOrElse {
         userRepo.create(data.data(avatar), req.now)
       }

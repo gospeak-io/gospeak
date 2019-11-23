@@ -4,10 +4,12 @@ import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Table
 import fr.gospeak.libs.scalautils.Extensions._
 
 object Tables {
+  private val socialFields = Seq("facebook", "instagram", "twitter", "linkedIn", "youtube", "meetup", "eventbrite", "slack", "discord", "github").map("social_" + _)
+
   val users: Table = Table.from(
     name = "users",
     prefix = "u",
-    fields = Seq("id", "slug", "first_name", "last_name", "email", "email_validated", "avatar", "avatar_source", "status", "bio", "company", "location", "twitter", "linkedin", "phone", "website", "created_at", "updated_at"),
+    fields = Seq("id", "slug", "status", "first_name", "last_name", "email", "email_validated", "avatar", "bio", "company", "location", "phone", "website") ++ socialFields ++ Seq("created_at", "updated_at"),
     sort = Seq("first_name"),
     search = Seq("id", "slug", "first_name", "last_name", "email")).get
 
@@ -35,7 +37,7 @@ object Tables {
   val groups: Table = Table.from(
     name = "groups",
     prefix = "g",
-    fields = Seq("id", "slug", "name", "logo", "banner", "contact", "website", "description", "location", "location_lat", "location_lng", "location_locality", "location_country", "owners") ++ Seq("facebook", "instagram", "twitter", "linkedIn", "youtube", "meetup", "eventbrite", "slack", "discord").map("social_" + _) ++ Seq("tags", "status", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "slug", "name", "logo", "banner", "contact", "website", "description", "location", "location_lat", "location_lng", "location_locality", "location_country", "owners") ++ socialFields ++ Seq("tags", "status", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("name"),
     search = Seq("id", "slug", "name", "contact", "description", "location_locality", "location_country", "tags")).get
 
@@ -63,7 +65,7 @@ object Tables {
   val partners: Table = Table.from(
     name = "partners",
     prefix = "pa",
-    fields = Seq("id", "group_id", "slug", "name", "notes", "description", "logo", "twitter", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "group_id", "slug", "name", "notes", "description", "logo") ++ socialFields ++ Seq("created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("name"),
     search = Seq("id", "slug", "name", "notes", "description")).get
 
@@ -133,7 +135,7 @@ object Tables {
   val requests: Table = Table.from(
     name = "requests",
     prefix = "r",
-    fields = Seq("id", "kind", "group_id", "talk_id", "proposal_id", "email", "deadline", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by"),
+    fields = Seq("id", "kind", "group_id", "cfp_id", "event_id", "talk_id", "proposal_id", "email", "payload", "deadline", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by"),
     sort = Seq("-created_at"),
     search = Seq("id", "email", "group_id", "created_by")).get
 

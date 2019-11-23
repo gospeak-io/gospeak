@@ -63,6 +63,10 @@ a.card:hover {
   border-radius: 0.2rem;
 }
 
+.form-control::placeholder {
+  color: rgba(0, 0, 0, 0.3);
+}
+
 .select2-container--bootstrap .select2-selection--single {
   height: 38px;
   padding: 8px 24px 8px 12px;

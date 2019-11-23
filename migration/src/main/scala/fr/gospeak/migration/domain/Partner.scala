@@ -2,6 +2,7 @@ package fr.gospeak.migration.domain
 
 import java.time.LocalDate
 
+import fr.gospeak.core.domain.utils.SocialAccounts
 import fr.gospeak.core.services.meetup.domain.{MeetupGroup, MeetupVenue}
 import fr.gospeak.core.{domain => gs}
 import fr.gospeak.libs.scalautils.Extensions._
@@ -24,7 +25,8 @@ case class Partner(id: String, // Partner.Id
     notes = Markdown(data.comment.getOrElse("")),
     description = None,
     logo = Url.from(data.logo.getOrElse("https://img.icons8.com/bubbles/2x/company.png")).get,
-    twitter = data.twitter.map(t => Url.from("https://twitter.com/" + t).get),
+    social = SocialAccounts.fromUrls(
+      twitter = data.twitter.map(t => Url.from("https://twitter.com/" + t).get)),
     info = meta.toInfo)
 
   def toVenue(contacts: Seq[(String, gs.Contact)]): Option[gs.Venue] = data.venue.map(venue => gs.Venue(

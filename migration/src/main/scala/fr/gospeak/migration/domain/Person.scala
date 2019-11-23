@@ -2,6 +2,7 @@ package fr.gospeak.migration.domain
 
 import java.time.Instant
 
+import fr.gospeak.core.domain.utils.SocialAccounts
 import fr.gospeak.core.{domain => gs}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.StringUtils
@@ -19,25 +20,23 @@ case class Person(id: String, // Person.Id,
     val (firstName, lastName) = getNames
     val email = getEmail
     val avatar = AvatarUtils.buildAvatarQuick(data.avatar, email)
-    val profile: gs.User.Profile = gs.User.Profile(
-      status = gs.User.Profile.Status.Undefined,
-      bio = data.description.map(Markdown),
-      company = data.company,
-      location = data.location,
-      twitter = data.twitter.map(t => Url.from("https://twitter.com/" + t).get),
-      linkedin = data.linkedin.map(Url.from(_).get),
-      phone = data.phone,
-      website = data.webSite.map(Url.from(_).get))
-
     Try(gs.User(
       id = gs.User.Id.from(id).get,
       slug = gs.User.Slug.from(StringUtils.slugify(data.name)).get,
+      status = gs.User.Status.Undefined,
       firstName = firstName,
       lastName = lastName,
       email = email,
       emailValidated = None,
       avatar = avatar,
-      profile = profile,
+      bio = data.description.map(Markdown),
+      company = data.company,
+      location = data.location,
+      phone = data.phone,
+      website = data.webSite.map(Url.from(_).get),
+      social = SocialAccounts.fromUrls(
+        twitter = data.twitter.map(t => Url.from("https://twitter.com/" + t).get),
+        linkedIn = data.linkedin.map(Url.from(_).get)),
       createdAt = Instant.ofEpochMilli(meta.created),
       updatedAt = Instant.ofEpochMilli(meta.updated))).mapFailure(e => new Exception(s"toUser error for $this ", e)).get
   }

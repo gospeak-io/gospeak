@@ -15,19 +15,19 @@
 
 @(incomingEvents: Page[(Event.Full, Option[Event.Rsvp])], joinedGroups: Page[(Group, Group.Member)], talks: Page[Talk], proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
 @container("Gospeak", b)() {
-    @if(talks.nonEmpty && req.user.profile.status.isUndefined) {
+    @if(talks.nonEmpty && req.user.status.isUndefined) {
         <div class="alert alert-info" role="alert">
             <h4 class="alert-heading d-flex justify-content-between align-items-center">
                 <span>Hi speaker!</span>
                 <span>
-                    @formBtn(SpeakerCtrl.changeStatus(User.Profile.Status.Private), Seq(
+                    @formBtn(SpeakerCtrl.doEditStatus(User.Status.Private), Seq(
                         "class" -> "btn-sm btn-secondary",
-                        "title" -> User.Profile.Status.Private.description,
+                        "title" -> User.Status.Private.description,
                         "data-toggle" -> "tooltip",
                         "data-placement" -> "bottom")) {Make it private}
-                    @formBtn(SpeakerCtrl.changeStatus(User.Profile.Status.Public), Seq(
+                    @formBtn(SpeakerCtrl.doEditStatus(User.Status.Public), Seq(
                         "class" -> "btn-sm btn-primary",
-                        "title" -> User.Profile.Status.Public.description,
+                        "title" -> User.Status.Public.description,
                         "data-toggle" -> "tooltip",
                         "data-placement" -> "bottom")) {Make it public}
                 </span>

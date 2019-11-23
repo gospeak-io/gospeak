@@ -1,6 +1,6 @@
 package fr.gospeak.core.domain
 
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.{Info, SocialAccounts}
 import fr.gospeak.libs.scalautils.domain._
 
 final case class Partner(id: Partner.Id,
@@ -10,7 +10,7 @@ final case class Partner(id: Partner.Id,
                          notes: Markdown, // private infos for the group
                          description: Option[Markdown], // public description
                          logo: Url,
-                         twitter: Option[Url],
+                         social: SocialAccounts,
                          info: Info) {
   def data: Partner.Data = Partner.Data(this)
 
@@ -19,7 +19,7 @@ final case class Partner(id: Partner.Id,
 
 object Partner {
   def apply(group: Group.Id, data: Data, info: Info): Partner =
-    new Partner(Id.generate(), group, data.slug, data.name, data.notes, data.description, data.logo, data.twitter, info)
+    new Partner(Id.generate(), group, data.slug, data.name, data.notes, data.description, data.logo, data.social, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -38,10 +38,10 @@ object Partner {
                         notes: Markdown,
                         description: Option[Markdown],
                         logo: Url,
-                        twitter: Option[Url])
+                        social: SocialAccounts)
 
   object Data {
-    def apply(p: Partner): Data = new Data(p.slug, p.name, p.notes, p.description, p.logo, p.twitter)
+    def apply(p: Partner): Data = new Data(p.slug, p.name, p.notes, p.description, p.logo, p.social)
   }
 
 }

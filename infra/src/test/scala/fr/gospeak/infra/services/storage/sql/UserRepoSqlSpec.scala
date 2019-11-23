@@ -5,6 +5,7 @@ import fr.gospeak.core.domain.User._
 import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
+import TablesSpec.socialFields
 
 class UserRepoSqlSpec extends RepoSpec {
   private val login = Login(ProviderId("providerId"), ProviderKey("providerKey"))
@@ -74,8 +75,10 @@ class UserRepoSqlSpec extends RepoSpec {
         check(q, s"INSERT INTO ${table.stripSuffix(" u")} (${mapFields(fields, _.stripPrefix("u."))}) VALUES (${mapFields(fields, _ => "?")})")
       }
       it("should build update") {
-        val q = UserRepoSql.update(user)
-        check(q, s"UPDATE $table SET slug=?, first_name=?, last_name=?, email=?, status=?, bio=?, company=?, location=?, twitter=?, linkedin=?, phone=?, website=?, updated_at=? WHERE u.id=?")
+        val q = UserRepoSql.update(user.id)(user.data, now)
+        check(q, s"UPDATE $table SET slug=?, status=?, first_name=?, last_name=?, email=?, avatar=?, bio=?, company=?, location=?, phone=?, website=?, " +
+          s"social_facebook=?, social_instagram=?, social_twitter=?, social_linkedIn=?, social_youtube=?, social_meetup=?, social_eventbrite=?, social_slack=?, social_discord=?, social_github=?, " +
+          s"updated_at=? WHERE u.id=?")
       }
       it("should build validateAccount") {
         val q = UserRepoSql.validateAccount(user.email, now)
@@ -125,7 +128,7 @@ object UserRepoSqlSpec {
   val credentialsFields: String = mapFields("provider_id, provider_key, hasher, password, salt", "cd." + _)
 
   val table = "users u"
-  val fields: String = mapFields("id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, status, bio, company, location, twitter, linkedin, phone, website, created_at, updated_at", "u." + _)
+  val fields: String = mapFields(s"id, slug, status, first_name, last_name, email, email_validated, avatar, bio, company, location, phone, website, $socialFields, created_at, updated_at", "u." + _)
   val orderBy = "ORDER BY u.first_name IS NULL, u.first_name"
 
   val tableWithLogin = s"$table INNER JOIN $loginsTable ON u.id=lg.user_id"

@@ -16,9 +16,8 @@
                 <div>
                     <h5 class="card-title"><a href="@SpeakerCtrl.detail(speaker.slug)">@speaker.name.value</a></h5>
                     <p class="mb-0">
-                        @speaker.profile.twitter.map { url => @twitterLink(url) }
-                        @speaker.profile.linkedin.map { url => @linkedinLink(url) }
-                        @speaker.profile.website.map { url => @websiteLink(url) }
+                        @speaker.website.map { url => @websiteLink(url) }
+                        @socialIcons(speaker.social)
                     </p>
                 </div>
             } else {

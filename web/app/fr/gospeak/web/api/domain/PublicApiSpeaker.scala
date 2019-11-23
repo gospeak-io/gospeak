@@ -20,10 +20,10 @@ object PublicApiSpeaker {
       firstName = user.firstName,
       lastName = user.lastName,
       avatar = user.avatar.url.value,
-      bio = user.profile.bio.map(_.value),
-      twitter = user.profile.twitter.map(_.value),
-      linkedin = user.profile.linkedin.map(_.value),
-      website = user.profile.website.map(_.value))
+      bio = user.bio.map(_.value),
+      twitter = user.social.twitter.map(_.link),
+      linkedin = user.social.linkedIn.map(_.link),
+      website = user.website.map(_.value))
 
   case class Embedded(slug: String,
                       firstName: String,
@@ -41,10 +41,10 @@ object PublicApiSpeaker {
         firstName = user.firstName,
         lastName = user.lastName,
         avatar = user.avatar.url.value,
-        bio = user.profile.bio.map(_.value),
-        twitter = user.profile.twitter.map(_.value),
-        linkedin = user.profile.linkedin.map(_.value),
-        website = user.profile.website.map(_.value))
+        bio = user.bio.map(_.value),
+        twitter = user.social.twitter.map(_.link),
+        linkedin = user.social.linkedIn.map(_.link),
+        website = user.website.map(_.value))
 
     val unknown = Embedded("missing", "Missing", "Speaker", s"https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=${Constants.gravatarStyle}", None, None, None, None)
 

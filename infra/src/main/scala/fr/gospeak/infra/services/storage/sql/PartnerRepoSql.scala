@@ -49,12 +49,16 @@ object PartnerRepoSql {
   private val table = Tables.partners
 
   private[sql] def insert(e: Partner): Insert[Partner] = {
-    val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.notes}, ${e.description}, ${e.logo}, ${e.twitter}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
+    val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.notes}, ${e.description}, ${e.logo}, " ++
+      fr0"${e.social.facebook}, ${e.social.instagram}, ${e.social.twitter}, ${e.social.linkedIn}, ${e.social.youtube}, ${e.social.meetup}, ${e.social.eventbrite}, ${e.social.slack}, ${e.social.discord}, ${e.social.github}, " ++
+      fr0"${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert[Partner](e, _ => values)
   }
 
-  private[sql] def update(group: Group.Id, partner: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"slug=${data.slug}, name=${data.name}, notes=${data.notes}, description=${data.description}, logo=${data.logo}, twitter=${data.twitter}, updated_at=$now, updated_by=$by"
+  private[sql] def update(group: Group.Id, partner: Partner.Slug)(d: Partner.Data, by: User.Id, now: Instant): Update = {
+    val fields = fr0"slug=${d.slug}, name=${d.name}, notes=${d.notes}, description=${d.description}, logo=${d.logo}, " ++
+      fr0"social_facebook=${d.social.facebook}, social_instagram=${d.social.instagram}, social_twitter=${d.social.twitter}, social_linkedIn=${d.social.linkedIn}, social_youtube=${d.social.youtube}, social_meetup=${d.social.meetup}, social_eventbrite=${d.social.eventbrite}, social_slack=${d.social.slack}, social_discord=${d.social.discord}, social_github=${d.social.github}, " ++
+      fr0"updated_at=$now, updated_by=$by"
     table.update(fields, where(group, partner))
   }
 

@@ -12,3 +12,7 @@ class TablesSpec extends FunSpec with Matchers {
     }
   }
 }
+
+object TablesSpec {
+  val socialFields: String = Seq("facebook", "instagram", "twitter", "linkedIn", "youtube", "meetup", "eventbrite", "slack", "discord", "github").map("social_" + _).mkString(", ")
+}

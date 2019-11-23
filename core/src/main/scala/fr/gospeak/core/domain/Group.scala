@@ -58,7 +58,9 @@ object Group {
 
     def avatar: Avatar = user.avatar
 
-    def profile: User.Profile = user.profile
+    def website: Option[Url] = user.website
+
+    def social: SocialAccounts = user.social
 
     def isPublic: Boolean = user.isPublic
 

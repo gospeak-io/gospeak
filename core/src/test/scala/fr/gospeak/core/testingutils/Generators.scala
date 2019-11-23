@@ -48,7 +48,7 @@ object Generators {
   implicit val aUrl: Arbitrary[Url] = Arbitrary(stringGen.map(_ => Url.from("https://www.youtube.com/watch").get)) // TODO improve
   implicit val aLogo: Arbitrary[Logo] = Arbitrary(aUrl.arbitrary.map(Logo))
   implicit val aBanner: Arbitrary[Banner] = Arbitrary(aUrl.arbitrary.map(Banner))
-  implicit val aAvatar: Arbitrary[Avatar] = Arbitrary(aEmailAddress.arbitrary.map(e => Avatar(Url.from(s"https://secure.gravatar.com/avatar/${Crypto.md5(e.value)}").get, Avatar.Source.Gravatar))) // TODO improve
+  implicit val aAvatar: Arbitrary[Avatar] = Arbitrary(aEmailAddress.arbitrary.map(e => Avatar(Url.from(s"https://secure.gravatar.com/avatar/${Crypto.md5(e.value)}").get))) // TODO improve
   implicit val aFacebookAccount: Arbitrary[FacebookAccount] = Arbitrary(aUrl.arbitrary.map(FacebookAccount))
   implicit val aInstagramAccount: Arbitrary[InstagramAccount] = Arbitrary(aUrl.arbitrary.map(InstagramAccount))
   implicit val aTwitterAccount: Arbitrary[TwitterAccount] = Arbitrary(aUrl.arbitrary.map(TwitterAccount))
@@ -58,6 +58,7 @@ object Generators {
   implicit val aEventbriteAccount: Arbitrary[EventbriteAccount] = Arbitrary(aUrl.arbitrary.map(EventbriteAccount))
   implicit val aSlackAccount: Arbitrary[SlackAccount] = Arbitrary(aUrl.arbitrary.map(SlackAccount))
   implicit val aDiscordAccount: Arbitrary[DiscordAccount] = Arbitrary(aUrl.arbitrary.map(DiscordAccount))
+  implicit val aGithubAccount: Arbitrary[GithubAccount] = Arbitrary(aUrl.arbitrary.map(GithubAccount))
   implicit val aTwitterHashtag: Arbitrary[TwitterHashtag] = Arbitrary(nonEmptyStringGen.map(e => TwitterHashtag.from(e.replaceAll(" ", "")).get))
   implicit val aTag: Arbitrary[Tag] = Arbitrary(nonEmptyStringGen.map(str => Tag(str.take(Tag.maxSize))))
   implicit val aTags: Arbitrary[Seq[Tag]] = Arbitrary(Gen.listOf(aTag.arbitrary).map(_.take(Tag.maxNumber)))

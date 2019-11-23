@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services.meetup
 
-import java.time.{Instant, LocalDateTime, ZoneId, ZoneOffset}
+import java.time.ZoneOffset
 
 import cats.effect.IO
 import fr.gospeak.core.domain.{Event, Venue}
@@ -120,7 +120,7 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
       gs.MeetupUser(
         id = gs.MeetupUser.Id(user.id),
         name = user.name,
-        avatar = Avatar(avatarUrl, Avatar.Source.Meetup))
+        avatar = Avatar(avatarUrl))
     }
 
   private def fromLib(group: MeetupGroup): Either[CustomException, gs.MeetupGroup] =

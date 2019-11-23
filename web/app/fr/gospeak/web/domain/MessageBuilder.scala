@@ -82,9 +82,9 @@ class MessageBuilder {
     val publicLink = if (user.isPublic) {
       Some(fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl.detail(user.slug).absoluteURL())
     } else {
-      user.profile.website.map(_.value)
-        .orElse(user.profile.linkedin.map(_.value))
-        .orElse(user.profile.twitter.map(_.value))
+      user.website.map(_.value)
+        .orElse(user.social.linkedIn.map(_.link))
+        .orElse(user.social.twitter.map(_.link))
     }
     Linked[User](user, link, publicLink)
   }

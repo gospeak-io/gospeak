@@ -29,9 +29,9 @@ trait SpeakerUserRepo {
 trait UserUserRepo {
   def find(id: User.Id): IO[Option[User]]
 
-  def edit(user: User, profile: User.EditableFields, now: Instant): IO[User]
+  def edit(user: User.Id)(data: User.Data, now: Instant): IO[Done]
 
-  def editStatus(user: User.Id)(status: User.Profile.Status): IO[Done]
+  def editStatus(user: User.Id)(status: User.Status, now: Instant): IO[Done]
 
   def list(ids: Seq[User.Id]): IO[Seq[User]]
 }
@@ -39,7 +39,7 @@ trait UserUserRepo {
 trait AuthUserRepo {
   def create(data: User.Data, now: Instant): IO[User]
 
-  def edit(user: User, now: Instant): IO[User]
+  def edit(user: User.Id)(data: User.Data, now: Instant): IO[Done]
 
   def createLoginRef(login: User.Login, user: User.Id): IO[Done]
 

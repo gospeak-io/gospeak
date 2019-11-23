@@ -18,7 +18,7 @@ object PublicApiVenue {
       new Embedded(
         name = v.partner.name.value,
         logo = v.partner.logo.value,
-        twitter = v.partner.twitter.map(_.value),
+        twitter = v.partner.social.twitter.map(_.link),
         description = v.partner.description.map(_.value),
         address = Place(v.address))
 

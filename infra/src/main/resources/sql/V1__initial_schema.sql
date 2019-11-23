@@ -1,23 +1,36 @@
+-- Conventions:
+--  - ids (UUID)  are CHAR(36)
+--  - links       are VARCHAR(1024)
+--  - small texts are VARCHAR(120) (ex: title, name, slug, email...)
+--  - long texts  are VARCHAR(4096) (ex: description, bio...)
+
 CREATE TABLE users
 (
-    id              CHAR(36)      NOT NULL PRIMARY KEY,
-    slug            VARCHAR(120)  NOT NULL UNIQUE,
-    first_name      VARCHAR(120)  NOT NULL,
-    last_name       VARCHAR(120)  NOT NULL,
-    email           VARCHAR(120)  NOT NULL UNIQUE,
-    email_validated TIMESTAMP,
-    avatar          VARCHAR(1024) NOT NULL,
-    avatar_source   VARCHAR(20)   NOT NULL,
-    status          VARCHAR(10)   NOT NULL,
-    bio             VARCHAR(4096),
-    company         VARCHAR(36),
-    location        VARCHAR(36),
-    twitter         VARCHAR(1024),
-    linkedin        VARCHAR(1024),
-    phone           VARCHAR(36),
-    website         VARCHAR(1024),
-    created_at      TIMESTAMP     NOT NULL,
-    updated_at      TIMESTAMP     NOT NULL
+    id                CHAR(36)      NOT NULL PRIMARY KEY,
+    slug              VARCHAR(120)  NOT NULL UNIQUE,
+    status            VARCHAR(10)   NOT NULL,
+    first_name        VARCHAR(120)  NOT NULL,
+    last_name         VARCHAR(120)  NOT NULL,
+    email             VARCHAR(120)  NOT NULL UNIQUE,
+    email_validated   TIMESTAMP,
+    avatar            VARCHAR(1024) NOT NULL,
+    bio               VARCHAR(4096),
+    company           VARCHAR(36),
+    location          VARCHAR(36),
+    phone             VARCHAR(36),
+    website           VARCHAR(1024),
+    social_facebook   VARCHAR(1024),
+    social_instagram  VARCHAR(1024),
+    social_twitter    VARCHAR(1024),
+    social_linkedIn   VARCHAR(1024),
+    social_youtube    VARCHAR(1024),
+    social_meetup     VARCHAR(1024),
+    social_eventbrite VARCHAR(1024),
+    social_slack      VARCHAR(1024),
+    social_discord    VARCHAR(1024),
+    social_github     VARCHAR(1024),
+    created_at        TIMESTAMP     NOT NULL,
+    updated_at        TIMESTAMP     NOT NULL
 );
 
 CREATE TABLE credentials
@@ -81,6 +94,7 @@ CREATE TABLE groups
     social_eventbrite VARCHAR(1024),
     social_slack      VARCHAR(1024),
     social_discord    VARCHAR(1024),
+    social_github     VARCHAR(1024),
     tags              VARCHAR(150)  NOT NULL, -- 5 tags max
     status            VARCHAR(10)   NOT NULL,
     created_at        TIMESTAMP     NOT NULL,
@@ -136,18 +150,27 @@ CREATE TABLE cfps
 
 CREATE TABLE partners
 (
-    id          CHAR(36)      NOT NULL PRIMARY KEY,
-    group_id    CHAR(36)      NOT NULL REFERENCES groups (id),
-    slug        VARCHAR(120)  NOT NULL,
-    name        VARCHAR(120)  NOT NULL,
-    notes       VARCHAR(4096) NOT NULL,
-    description VARCHAR(4096),
-    logo        VARCHAR(1024) NOT NULL,
-    twitter     VARCHAR(1024),
-    created_at  TIMESTAMP     NOT NULL,
-    created_by  CHAR(36)      NOT NULL REFERENCES users (id),
-    updated_at  TIMESTAMP     NOT NULL,
-    updated_by  CHAR(36)      NOT NULL REFERENCES users (id),
+    id                CHAR(36)      NOT NULL PRIMARY KEY,
+    group_id          CHAR(36)      NOT NULL REFERENCES groups (id),
+    slug              VARCHAR(120)  NOT NULL,
+    name              VARCHAR(120)  NOT NULL,
+    notes             VARCHAR(4096) NOT NULL,
+    description       VARCHAR(4096),
+    logo              VARCHAR(1024) NOT NULL,
+    social_facebook   VARCHAR(1024),
+    social_instagram  VARCHAR(1024),
+    social_twitter    VARCHAR(1024),
+    social_linkedIn   VARCHAR(1024),
+    social_youtube    VARCHAR(1024),
+    social_meetup     VARCHAR(1024),
+    social_eventbrite VARCHAR(1024),
+    social_slack      VARCHAR(1024),
+    social_discord    VARCHAR(1024),
+    social_github     VARCHAR(1024),
+    created_at        TIMESTAMP     NOT NULL,
+    created_by        CHAR(36)      NOT NULL REFERENCES users (id),
+    updated_at        TIMESTAMP     NOT NULL,
+    updated_by        CHAR(36)      NOT NULL REFERENCES users (id),
     UNIQUE (group_id, slug)
 );
 
@@ -305,9 +328,12 @@ CREATE TABLE requests
     id          CHAR(36)    NOT NULL,
     kind        VARCHAR(30) NOT NULL,
     group_id    CHAR(36) REFERENCES groups (id),
+    cfp_id      CHAR(36) REFERENCES cfps (id),
+    event_id    CHAR(36) REFERENCES events (id),
     talk_id     CHAR(36) REFERENCES talks (id),
     proposal_id CHAR(36) REFERENCES proposals (id),
     email       VARCHAR(120),
+    payload     VARCHAR(8192),
     deadline    TIMESTAMP,
     created_at  TIMESTAMP   NOT NULL,
     created_by  CHAR(36) REFERENCES users (id),
