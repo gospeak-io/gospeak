@@ -7,8 +7,8 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.utils.{Info, OrgaCtx}
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.services.storage.VenueRepo
 import fr.gospeak.infra.services.storage.sql.VenueRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
@@ -18,11 +18,11 @@ import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
 class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with VenueRepo {
-  override def create(group: Group.Id, data: Venue.Data, by: User.Id, now: Instant): IO[Venue] = insert(Venue(group, data, Info(by, now))).run(xa)
+  override def create(data: Venue.Data)(implicit ctx: OrgaCtx): IO[Venue] = insert(Venue(ctx.group.id, data, ctx.info)).run(xa)
 
   override def edit(venue: Venue.Id, data: Venue.Data)(implicit ctx: OrgaCtx): IO[Done] = update(ctx.group.id, venue)(data, ctx.user.id, ctx.now).run(xa)
 
-  override def remove(group: Group.Id, venue: Venue.Id)(by: User.Id, now: Instant): IO[Done] = delete(group, venue).run(xa)
+  override def remove(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Done] = delete(ctx.group.id, venue).run(xa)
 
   override def listFull(group: Group.Id, params: Page.Params): IO[Page[Venue.Full]] = selectPageFull(group, params).run(xa)
 
@@ -34,7 +34,7 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listFull(venues: Seq[Venue.Id])(implicit ctx: OrgaCtx): IO[Seq[Venue.Full]] = runNel[Venue.Id, Venue.Full](selectAllFull(ctx.group.id, _), venues)
 
-  override def findFull(group: Group.Id, venue: Venue.Id): IO[Option[Venue.Full]] = selectOneFull(group, venue).runOption(xa)
+  override def findFull(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Option[Venue.Full]] = selectOneFull(ctx.group.id, venue).runOption(xa)
 
   override def listAll(contact: Contact.Id)(implicit ctx: OrgaCtx): IO[Seq[Venue]] = selectAll(ctx.group.id, contact).runList(xa)
 }

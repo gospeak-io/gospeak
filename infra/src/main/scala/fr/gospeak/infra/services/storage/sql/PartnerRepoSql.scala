@@ -7,7 +7,7 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.utils.{Info, OrgaCtx}
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, Partner, User}
 import fr.gospeak.core.services.storage.PartnerRepo
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSql._
@@ -17,23 +17,25 @@ import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page}
 
 class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with PartnerRepo {
-  override def create(group: Group.Id, data: Partner.Data, by: User.Id, now: Instant): IO[Partner] =
-    insert(Partner(group, data, Info(by, now))).run(xa)
+  override def create(data: Partner.Data)(implicit ctx: OrgaCtx): IO[Partner] =
+    insert(Partner(ctx.group.id, data, ctx.info)).run(xa)
 
-  override def edit(group: Group.Id, partner: Partner.Slug)(data: Partner.Data, by: User.Id, now: Instant): IO[Done] = {
+  override def edit(partner: Partner.Slug, data: Partner.Data)(implicit ctx: OrgaCtx): IO[Done] = {
     if (data.slug != partner) {
-      find(group, data.slug).flatMap {
-        case None => update(group, partner)(data, by, now).run(xa)
+      find(data.slug).flatMap {
+        case None => update(ctx.group.id, partner)(data, ctx.user.id, ctx.now).run(xa)
         case _ => IO.raiseError(CustomException(s"You already have a partner with slug ${data.slug}"))
       }
     } else {
-      update(group, partner)(data, by, now).run(xa)
+      update(ctx.group.id, partner)(data, ctx.user.id, ctx.now).run(xa)
     }
   }
 
-  override def remove(group: Group.Id, partner: Partner.Slug)(by: User.Id, now: Instant): IO[Done] = delete(group, partner).run(xa)
+  override def remove(partner: Partner.Slug)(implicit ctx: OrgaCtx): IO[Done] = delete(ctx.group.id, partner).run(xa)
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[Partner]] = selectPage(group, params).run(xa)
+
+  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner]] = selectPage(ctx.group.id, params).run(xa)
 
   override def list(group: Group.Id): IO[Seq[Partner]] = selectAll(group).runList(xa)
 

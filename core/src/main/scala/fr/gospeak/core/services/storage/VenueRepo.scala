@@ -10,11 +10,11 @@ import fr.gospeak.libs.scalautils.domain.{Done, Page}
 trait VenueRepo extends OrgaVenueRepo with PublicVenueRepo with SuggestVenueRepo
 
 trait OrgaVenueRepo {
-  def create(group: Group.Id, data: Venue.Data, by: User.Id, now: Instant): IO[Venue]
+  def create(data: Venue.Data)(implicit ctx: OrgaCtx): IO[Venue]
 
   def edit(venue: Venue.Id, data: Venue.Data)(implicit ctx: OrgaCtx): IO[Done]
 
-  def remove(group: Group.Id, venue: Venue.Id)(by: User.Id, now: Instant): IO[Done]
+  def remove(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Done]
 
   def listFull(group: Group.Id, params: Page.Params): IO[Page[Venue.Full]]
 
@@ -22,7 +22,7 @@ trait OrgaVenueRepo {
 
   def listFull(venues: Seq[Venue.Id])(implicit ctx: OrgaCtx): IO[Seq[Venue.Full]]
 
-  def findFull(group: Group.Id, venue: Venue.Id): IO[Option[Venue.Full]]
+  def findFull(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Option[Venue.Full]]
 
   def listAll(contact: Contact.Id)(implicit ctx: OrgaCtx): IO[Seq[Venue]]
 }

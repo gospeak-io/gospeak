@@ -54,9 +54,9 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]] = selectPage(ctx.group.id, params).run(xa)
 
-  override def list(group: Group.Id, venue: Venue.Id): IO[Seq[Event]] = selectAll(group, venue).runList(xa)
+  override def list(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Seq[Event]] = selectAll(ctx.group.id, venue).runList(xa)
 
-  override def list(group: Group.Id, partner: Partner.Id): IO[Seq[(Event, Venue)]] = selectAll(group, partner).runList(xa)
+  override def list(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Seq[(Event, Venue)]] = selectAll(ctx.group.id, partner).runList(xa)
 
   override def listPublished(group: Group.Id, params: Page.Params): IO[Page[Event.Full]] = selectPagePublished(group, params).run(xa)
 
