@@ -1,7 +1,8 @@
 package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
-import fr.gospeak.core.domain.{Event, Group}
+import fr.gospeak.core.domain.Event
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{fields => contactFields, table => contactTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec.{memberTable, fields => groupFields, table => groupTable}
@@ -14,24 +15,27 @@ class EventRepoSqlSpec extends RepoSpec {
   describe("EventRepoSql") {
     it("should create and retrieve an event for a group") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
+      val ctx = new OrgaCtx(now, user, group)
       val (partner, venue) = createPartnerAndVenue(user, group).unsafeRunSync()
       val eventData = eventData1.copy(venue = eventData1.venue.map(_ => venue.id))
-      eventRepo.list(group.id, params).unsafeRunSync().items shouldBe Seq()
-      eventRepo.find(group.id, eventData.slug).unsafeRunSync() shouldBe None
-      val event = eventRepo.create(group.id, eventData, user.id, now).unsafeRunSync()
-      eventRepo.list(group.id, params).unsafeRunSync().items shouldBe Seq(event)
-      eventRepo.find(group.id, eventData.slug).unsafeRunSync() shouldBe Some(event)
+      eventRepo.list(params)(ctx).unsafeRunSync().items shouldBe Seq()
+      eventRepo.find(eventData.slug)(ctx).unsafeRunSync() shouldBe None
+      val event = eventRepo.create(eventData)(ctx).unsafeRunSync()
+      eventRepo.list(params)(ctx).unsafeRunSync().items shouldBe Seq(event)
+      eventRepo.find(eventData.slug)(ctx).unsafeRunSync() shouldBe Some(event)
     }
     it("should fail to create an event when the group does not exists") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
-      an[Exception] should be thrownBy eventRepo.create(Group.Id.generate(), eventData1, user.id, now).unsafeRunSync()
+      val ctx = new OrgaCtx(now, user, group)
+      an[Exception] should be thrownBy eventRepo.create(eventData1)(ctx).unsafeRunSync()
     }
     it("should fail on duplicate slug for the same group") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
       val (partner, venue) = createPartnerAndVenue(user, group).unsafeRunSync()
+      val ctx = new OrgaCtx(now, user, group)
       val eventData = eventData1.copy(venue = eventData1.venue.map(_ => venue.id))
-      eventRepo.create(group.id, eventData, user.id, now).unsafeRunSync()
-      an[Exception] should be thrownBy eventRepo.create(group.id, eventData, user.id, now).unsafeRunSync()
+      eventRepo.create(eventData)(ctx).unsafeRunSync()
+      an[Exception] should be thrownBy eventRepo.create(eventData)(ctx).unsafeRunSync()
     }
     describe("Queries") {
       it("should build insert") {

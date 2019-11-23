@@ -4,18 +4,18 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.GospeakMessage.Linked
 import fr.gospeak.core.domain.utils.{GospeakMessage, TemplateData}
 import fr.gospeak.web.services.EventSrv.EventFull
-import fr.gospeak.web.utils.{BasicReq, UserReq}
+import fr.gospeak.web.utils.{BasicReq, OrgaReq, UserReq}
 import play.api.mvc.AnyContent
 
 class MessageBuilder {
-  def buildEventCreated(group: Group, event: Event)(implicit req: UserReq[AnyContent]): GospeakMessage.EventCreated =
-    GospeakMessage.EventCreated(linked(group), linked(group, event), req.user)
+  def buildEventCreated(event: Event)(implicit req: OrgaReq[AnyContent]): GospeakMessage.EventCreated =
+    GospeakMessage.EventCreated(linked(req.group), linked(req.group, event), req.user)
 
-  def buildTalkAdded(group: Group, event: Event, cfp: Cfp, proposal: Proposal)(implicit req: UserReq[AnyContent]): GospeakMessage.TalkAdded =
-    GospeakMessage.TalkAdded(linked(group), linked(group, event), linked(group, cfp), linked(group, event, cfp, proposal), req.user)
+  def buildTalkAdded(event: Event, cfp: Cfp, proposal: Proposal)(implicit req: OrgaReq[AnyContent]): GospeakMessage.TalkAdded =
+    GospeakMessage.TalkAdded(linked(req.group), linked(req.group, event), linked(req.group, cfp), linked(req.group, event, cfp, proposal), req.user)
 
-  def buildTalkRemoved(group: Group, event: Event, cfp: Cfp, proposal: Proposal)(implicit req: UserReq[AnyContent]): GospeakMessage.TalkRemoved =
-    GospeakMessage.TalkRemoved(linked(group), linked(group, event), linked(group, cfp), linked(group, event, cfp, proposal), req.user)
+  def buildTalkRemoved(event: Event, cfp: Cfp, proposal: Proposal)(implicit req: OrgaReq[AnyContent]): GospeakMessage.TalkRemoved =
+    GospeakMessage.TalkRemoved(linked(req.group), linked(req.group, event), linked(req.group, cfp), linked(req.group, event, cfp, proposal), req.user)
 
   def buildProposalCreated(group: Group, cfp: Cfp, proposal: Proposal)(implicit req: UserReq[AnyContent]): GospeakMessage.ProposalCreated =
     GospeakMessage.ProposalCreated(linked(group), linked(group, cfp), linked(group, cfp, proposal), req.user)

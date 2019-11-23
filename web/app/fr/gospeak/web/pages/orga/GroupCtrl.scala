@@ -18,7 +18,7 @@ import fr.gospeak.web.pages.orga.settings.SettingsCtrl
 import fr.gospeak.web.pages.orga.settings.routes.{SettingsCtrl => SettingsRoutes}
 import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import fr.gospeak.web.utils.{HttpUtils, UserReq, UICtrl}
+import fr.gospeak.web.utils.{HttpUtils, UICtrl, UserReq}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -28,7 +28,7 @@ class GroupCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
                 env: ApplicationConf.Env,
                 userRepo: OrgaUserRepo,
-                groupRepo: OrgaGroupRepo,
+                val groupRepo: OrgaGroupRepo,
                 cfpRepo: OrgaCfpRepo,
                 eventRepo: OrgaEventRepo,
                 venueRepo: OrgaVenueRepo,
@@ -38,7 +38,7 @@ class GroupCtrl(cc: ControllerComponents,
                 partnerRepo: OrgaPartnerRepo,
                 userRequestRepo: OrgaUserRequestRepo,
                 emailSrv: EmailSrv,
-                timeShape: TimeShape) extends UICtrl(cc, silhouette, env) {
+                timeShape: TimeShape) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
   def create(): Action[AnyContent] = SecuredActionIO { implicit req =>
     createForm(GroupForms.create(timeShape))
   }
@@ -75,25 +75,24 @@ class GroupCtrl(cc: ControllerComponents,
       .value.map(_.getOrElse(Redirect(routes.GroupCtrl.join(params)).flashing("error" -> s"Unable to send join request to <b>$group</b>")))
   }
 
-  def detail(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def detail(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      events <- OptionT.liftF(eventRepo.listAfter(groupElt.id, req.now, Page.Params.defaults.orderBy("start")))
+      events <- OptionT.liftF(eventRepo.listAfter(req.group.id, req.now, Page.Params.defaults.orderBy("start")))
       cfps <- OptionT.liftF(cfpRepo.list(events.items.flatMap(_.cfp)))
-      venues <- OptionT.liftF(venueRepo.listFull(groupElt.id, events.items.flatMap(_.venue)))
+      venues <- OptionT.liftF(venueRepo.listFull(events.items.flatMap(_.venue)))
       proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.users).distinct))
-      sponsors <- OptionT.liftF(sponsorRepo.listAll(groupElt.id).map(_.groupBy(_.partner)))
+      sponsors <- OptionT.liftF(sponsorRepo.listAll(req.group.id).map(_.groupBy(_.partner)))
       partners <- OptionT.liftF(partnerRepo.list(sponsors.keys.toSeq))
       currentSponsors = sponsors.flatMap { case (id, ss) => partners.find(_.id == id).flatMap(p => ss.find(_.isCurrent(req.now)).map(s => (p, (s, ss.length)))) }.toSeq.sortBy(_._2._1.finish.toEpochDay)
       pastSponsors = sponsors.filter(_._2.forall(!_.isCurrent(req.now))).flatMap { case (id, s) => partners.find(_.id == id).map(p => (p, s)) }.toSeq.sortBy(s => -s._2.map(_.finish.toEpochDay).max)
-      packs <- OptionT.liftF(sponsorPackRepo.listAll(groupElt.id))
-      requests <- OptionT.liftF(userRequestRepo.listPendingGroupRequests(groupElt.id, req.now))
+      packs <- OptionT.liftF(sponsorPackRepo.listAll(req.group.id))
+      requests <- OptionT.liftF(userRequestRepo.listPendingGroupRequests(req.group.id, req.now))
       requestUsers <- OptionT.liftF(userRepo.list(requests.flatMap(_.users).distinct))
-      b = breadcrumb(groupElt)
-      res = Ok(html.detail(groupElt, events, cfps, venues, proposals, speakers, currentSponsors, pastSponsors, packs, requests, requestUsers)(b))
+      b = breadcrumb(req.group)
+      res = Ok(html.detail(req.group, events, cfps, venues, proposals, speakers, currentSponsors, pastSponsors, packs, requests, requestUsers)(b))
     } yield res).value.map(_.getOrElse(groupNotFound(group)))
-  }
+  })
 
   def edit(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
     editForm(group, GroupForms.create(timeShape))
@@ -151,20 +150,20 @@ class GroupCtrl(cc: ControllerComponents,
     contactMembersView(group, GroupForms.contactMembers)
   }
 
-  def doContactMembers(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doContactMembers(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     GroupForms.contactMembers.bindFromRequest.fold(
       formWithErrors => contactMembersView(group, formWithErrors),
       data => (for {
         groupElt <- OptionT(groupRepo.find(req.user.id, group))
         sender <- OptionT(IO.pure(groupElt.senders(req.user).find(_.address == data.from)))
-        members <- OptionT.liftF(groupRepo.listMembers(groupElt.id))
+        members <- OptionT.liftF(groupRepo.listMembers)
         _ <- OptionT.liftF(members.map(m => emailSrv.send(Emails.groupMessage(groupElt, sender, data.subject, data.content, m))).sequence)
         next = Redirect(routes.GroupCtrl.detail(group))
       } yield next.flashing("success" -> "Message sent to group members")).value.map(_.getOrElse(groupNotFound(group)))
     ).recover {
       case NonFatal(e) => Redirect(routes.GroupCtrl.detail(group)).flashing("error" -> s"An error happened: ${e.getMessage}")
     }
-  }
+  })
 
   private def contactMembersView(group: Group.Slug, form: Form[GroupForms.ContactMembers])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {

@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.{Info, OrgaCtx}
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.GroupRepo
 import fr.gospeak.infra.services.storage.sql.GroupRepoSql._
@@ -87,7 +87,7 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
     if (member.user.id == user) disableMember(member, now).run(xa)
     else IO.raiseError(CustomException("Internal error: authenticated user is not the member one"))
 
-  override def listMembers(group: Group.Id): IO[Seq[Group.Member]] = selectAllActiveMembers(group).runList(xa)
+  override def listMembers(implicit ctx: OrgaCtx): IO[Seq[Group.Member]] = selectAllActiveMembers(ctx.group.id).runList(xa)
 
   override def listMembers(group: Group.Id, params: Page.Params): IO[Page[Group.Member]] = selectPageActiveMembers(group, params).run(xa)
 

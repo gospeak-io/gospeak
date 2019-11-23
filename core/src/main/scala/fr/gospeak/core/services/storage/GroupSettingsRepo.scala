@@ -3,7 +3,7 @@ package fr.gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.utils.TemplateData
+import fr.gospeak.core.domain.utils.{OrgaCtx, TemplateData}
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.meetup.domain.MeetupCredentials
 import fr.gospeak.core.services.slack.domain.SlackCredentials
@@ -15,13 +15,13 @@ trait GroupSettingsRepo {
 
   def findAccounts(group: Group.Id): IO[Group.Settings.Accounts]
 
-  def findMeetup(group: Group.Id): IO[Option[MeetupCredentials]]
+  def findMeetup(implicit ctx: OrgaCtx): IO[Option[MeetupCredentials]]
 
   def findSlack(group: Group.Id): IO[Option[SlackCredentials]]
 
-  def findEventDescription(group: Group.Id): IO[MustacheMarkdownTmpl[TemplateData.EventInfo]]
+  def findEventDescription(implicit ctx: OrgaCtx): IO[MustacheMarkdownTmpl[TemplateData.EventInfo]]
 
-  def findEventTemplates(group: Group.Id): IO[Map[String, MustacheTextTmpl[TemplateData.EventInfo]]]
+  def findEventTemplates(implicit ctx: OrgaCtx): IO[Map[String, MustacheTextTmpl[TemplateData.EventInfo]]]
 
   def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]]
 

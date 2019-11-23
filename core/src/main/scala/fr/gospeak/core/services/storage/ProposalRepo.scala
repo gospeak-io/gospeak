@@ -15,9 +15,9 @@ trait OrgaProposalRepo {
 
   def edit(cfp: Cfp.Slug, proposal: Proposal.Id, data: Proposal.Data)(implicit ctx: OrgaCtx): IO[Done]
 
-  def accept(cfp: Cfp.Slug, id: Proposal.Id, event: Event.Id, by: User.Id, now: Instant): IO[Done]
+  def accept(cfp: Cfp.Slug, id: Proposal.Id, event: Event.Id)(implicit ctx: OrgaCtx): IO[Done]
 
-  def cancel(cfp: Cfp.Slug, id: Proposal.Id, event: Event.Id, by: User.Id, now: Instant): IO[Done]
+  def cancel(cfp: Cfp.Slug, id: Proposal.Id, event: Event.Id)(implicit ctx: OrgaCtx): IO[Done]
 
   def reject(cfp: Cfp.Slug, id: Proposal.Id, by: User.Id, now: Instant): IO[Done]
 
@@ -54,6 +54,8 @@ trait OrgaProposalRepo {
   def listRatings(cfp: Cfp.Slug)(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]]
 
   def listRatings(user: User.Id, proposals: Seq[Proposal.Id]): IO[Seq[Proposal.Rating]]
+
+  def listRatings(proposals: Seq[Proposal.Id])(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]]
 }
 
 trait SpeakerProposalRepo {
