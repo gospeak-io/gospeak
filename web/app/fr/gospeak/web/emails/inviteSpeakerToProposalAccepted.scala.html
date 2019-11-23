@@ -1,8 +1,8 @@
 @import fr.gospeak.core.domain.{Proposal, User, UserRequest}
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(invite: UserRequest.ProposalInvite, proposal: Proposal.Full, speaker: User)(implicit req: SecuredReq[AnyContent])
+@(invite: UserRequest.ProposalInvite, proposal: Proposal.Full, speaker: User)(implicit req: UserReq[AnyContent])
 <p>Hi @speaker.name.value,</p>
 <p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has <b>accepted</b> your invitation to <a href="@ProposalCtrl.detail(proposal.talk.slug, proposal.cfp.slug).absoluteURL()">@proposal.title.value</a> proposal.</p>
 <p>Together you are stronger, keep going!</p>

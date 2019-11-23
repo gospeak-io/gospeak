@@ -3,9 +3,9 @@
 @import fr.gospeak.web.pages.orga.partials.html.{container, venueFields}
 @import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, hasMeetupAccount: Boolean, venue: Venue.Full, form: Form[Venue.Data], doEdit: Call)(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, hasMeetupAccount: Boolean, venue: Venue.Full, form: Form[Venue.Data], doEdit: Call)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Gospeak", group, b)() {
     <div class="page-header">
         <h1>Edit @venue.partner.name.value venue</h1>

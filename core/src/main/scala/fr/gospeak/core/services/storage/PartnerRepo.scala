@@ -3,7 +3,7 @@ package fr.gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.utils.OrgaReqCtx
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, Partner, User}
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
@@ -20,9 +20,9 @@ trait OrgaPartnerRepo {
 
   def list(partners: Seq[Partner.Id]): IO[Seq[Partner]]
 
-  def find(partner: Partner.Id)(implicit ctx: OrgaReqCtx): IO[Option[Partner]]
+  def find(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Option[Partner]]
 
-  def find(partner: Partner.Slug)(implicit ctx: OrgaReqCtx): IO[Option[Partner]]
+  def find(partner: Partner.Slug)(implicit ctx: OrgaCtx): IO[Option[Partner]]
 
   def find(group: Group.Id, partner: Partner.Slug): IO[Option[Partner]]
 }

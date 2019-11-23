@@ -3,9 +3,9 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.speaker.partials.html.{container, groupItem, proposalItemForProfile, speakerCard}
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(proposals: Page[Proposal.Full], ownedGroups: Seq[Group])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(proposals: Page[Proposal.Full], ownedGroups: Seq[Group])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(req.user.name.value + " - Gospeak", b)() {
     <div class="row">
         <div class="col">

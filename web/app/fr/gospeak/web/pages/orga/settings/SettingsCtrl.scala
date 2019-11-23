@@ -19,7 +19,7 @@ import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.settings.SettingsCtrl._
 import fr.gospeak.web.pages.orga.settings.SettingsForms.{AddAction, EventTemplateItem, MeetupAccount}
 import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import fr.gospeak.web.utils.{GenericForm, SecuredReq, UICtrl}
+import fr.gospeak.web.utils.{GenericForm, UserReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
 import play.twirl.api.HtmlFormat
@@ -64,7 +64,7 @@ class SettingsCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(groupNotFound(group)))
   }
 
-  private def createActionView(group: Group, actionForm: Form[AddAction])(implicit req: SecuredReq[AnyContent]): HtmlFormat.Appendable = {
+  private def createActionView(group: Group, actionForm: Form[AddAction])(implicit req: UserReq[AnyContent]): HtmlFormat.Appendable = {
     val b = breadcrumb(group, "Create action" -> routes.SettingsCtrl.createAction(group.slug))
     html.actionCreate(group, actionForm)(b)
   }
@@ -90,7 +90,7 @@ class SettingsCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(groupNotFound(group)))
   }
 
-  private def updateActionView(group: Group, trigger: Group.Settings.Action.Trigger, index: Int, actionForm: Form[AddAction])(implicit req: SecuredReq[AnyContent]): HtmlFormat.Appendable = {
+  private def updateActionView(group: Group, trigger: Group.Settings.Action.Trigger, index: Int, actionForm: Form[AddAction])(implicit req: UserReq[AnyContent]): HtmlFormat.Appendable = {
     val b = breadcrumb(group, "Update action" -> routes.SettingsCtrl.createAction(group.slug))
     html.actionUpdate(group, trigger, index, actionForm)(b)
   }
@@ -238,7 +238,7 @@ class SettingsCtrl(cc: ControllerComponents,
                            settings: Group.Settings,
                            meetup: Option[Form[MeetupAccount]] = None,
                            slack: Option[Form[SlackCredentials]] = None)
-                          (implicit req: SecuredReq[AnyContent]): IO[Result] = {
+                          (implicit req: UserReq[AnyContent]): IO[Result] = {
     for {
       orgas <- userRepo.list(groupElt.owners.toList)
       invites <- userRequestRepo.listPendingInvites(groupElt.id)
@@ -257,7 +257,7 @@ class SettingsCtrl(cc: ControllerComponents,
                                       templateId: Option[String],
                                       settings: Group.Settings,
                                       form: Form[EventTemplateItem])
-                                     (implicit req: SecuredReq[AnyContent]): Result = {
+                                     (implicit req: UserReq[AnyContent]): Result = {
     val b = listBreadcrumb(group).add(
       "Event" -> routes.SettingsCtrl.settings(group.slug),
       "Templates" -> routes.SettingsCtrl.settings(group.slug),

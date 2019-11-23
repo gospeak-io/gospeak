@@ -17,7 +17,7 @@ import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.events.EventCtrl._
 import fr.gospeak.web.pages.orga.events.EventForms.PublishOptions
 import fr.gospeak.web.services.EventSrv
-import fr.gospeak.web.utils.{SecuredReq, UICtrl}
+import fr.gospeak.web.utils.{UserReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -28,7 +28,7 @@ class EventCtrl(cc: ControllerComponents,
                 env: ApplicationConf.Env,
                 appConf: ApplicationConf,
                 userRepo: OrgaUserRepo,
-                groupRepo: OrgaGroupRepo,
+                val groupRepo: OrgaGroupRepo,
                 cfpRepo: OrgaCfpRepo,
                 eventRepo: OrgaEventRepo,
                 venueRepo: OrgaVenueRepo,
@@ -39,7 +39,7 @@ class EventCtrl(cc: ControllerComponents,
                 eventSrv: EventSrv,
                 meetupSrv: MeetupSrv,
                 emailSrv: EmailSrv,
-                mb: GospeakMessageBus) extends UICtrl(cc, silhouette, env) {
+                mb: GospeakMessageBus) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
@@ -68,7 +68,7 @@ class EventCtrl(cc: ControllerComponents,
     )
   }
 
-  private def createView(group: Group.Slug, form: Form[Event.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def createView(group: Group.Slug, form: Form[Event.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup(groupElt.id))
@@ -124,7 +124,7 @@ class EventCtrl(cc: ControllerComponents,
     )
   }
 
-  private def editView(group: Group.Slug, event: Event.Slug, form: Form[Event.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def editView(group: Group.Slug, event: Event.Slug, form: Form[Event.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))
@@ -144,16 +144,15 @@ class EventCtrl(cc: ControllerComponents,
     )
   }
 
-  def attachCfp(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def attachCfp(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     EventForms.cfp.bindFromRequest.fold(
       formWithErrors => IO.pure(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Unable to attach CFP: ${req.formatErrors(formWithErrors)}")),
       cfp => (for {
-        groupElt <- OptionT(groupRepo.find(req.user.id, group))
-        cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
-        _ <- OptionT.liftF(eventRepo.attachCfp(groupElt.id, event)(cfpElt.id, req.user.id, req.now))
+        cfpElt <- OptionT(cfpRepo.find(cfp))
+        _ <- OptionT.liftF(eventRepo.attachCfp(event, cfpElt.id))
       } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(cfpNotFound(group, event, cfp)))
     )
-  }
+  })
 
   def addToTalks(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
     (for {
@@ -229,7 +228,7 @@ class EventCtrl(cc: ControllerComponents,
       }
   }
 
-  private def publishView(group: Group.Slug, event: Event.Slug, form: Form[PublishOptions])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def publishView(group: Group.Slug, event: Event.Slug, form: Form[PublishOptions])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       e <- OptionT(eventSrv.getFullEvent(group, event, req.user.id))
       description = eventSrv.buildDescription(e)
@@ -260,7 +259,7 @@ class EventCtrl(cc: ControllerComponents,
     }
   }
 
-  private def contactRsvpsView(group: Group.Slug, event: Event.Slug, form: Form[EventForms.ContactAttendees])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def contactRsvpsView(group: Group.Slug, event: Event.Slug, form: Form[EventForms.ContactAttendees])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
       eventElt <- OptionT(eventRepo.find(groupElt.id, event))

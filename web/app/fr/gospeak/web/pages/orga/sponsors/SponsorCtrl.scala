@@ -4,7 +4,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.ApplicationConf
-import fr.gospeak.core.domain.utils.OrgaReqCtx
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, Partner, Sponsor, SponsorPack}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
@@ -23,14 +23,14 @@ class SponsorCtrl(cc: ControllerComponents,
                   userRepo: OrgaUserRepo,
                   sponsorPackRepo: OrgaSponsorPackRepo,
                   sponsorRepo: OrgaSponsorRepo,
-                  groupRepo: OrgaGroupRepo,
+                  val groupRepo: OrgaGroupRepo,
                   partnerRepo: OrgaPartnerRepo,
-                  venueRepo: OrgaVenueRepo) extends UICtrlOrga(cc, silhouette, env, groupRepo) {
+                  venueRepo: OrgaVenueRepo) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     for {
       sponsorPacks <- sponsorPackRepo.listAll
       sponsors <- sponsorRepo.listFull(params)
-      b = listBreadcrumb(ctx.group)
+      b = listBreadcrumb
     } yield Ok(html.list(ctx.group, sponsorPacks, sponsors)(b))
   })
 
@@ -45,8 +45,8 @@ class SponsorCtrl(cc: ControllerComponents,
     )
   })
 
-  private def createPackView(form: Form[SponsorPack.Data])(implicit req: SecuredReq[AnyContent], ctx: OrgaReqCtx): IO[Result] = {
-    val b = listBreadcrumb(ctx.group).add("New pack" -> routes.SponsorCtrl.createPack(ctx.group.slug))
+  private def createPackView(form: Form[SponsorPack.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
+    val b = listBreadcrumb.add("New pack" -> routes.SponsorCtrl.createPack(ctx.group.slug))
     IO.pure(Ok(html.createPack(ctx.group, form)(b)))
   }
 
@@ -62,7 +62,7 @@ class SponsorCtrl(cc: ControllerComponents,
     )
   })
 
-  private def createView(pack: SponsorPack.Slug, form: Form[Sponsor.Data], partner: Option[Partner.Slug])(implicit req: SecuredReq[AnyContent], ctx: OrgaReqCtx): IO[Result] = {
+  private def createView(pack: SponsorPack.Slug, form: Form[Sponsor.Data], partner: Option[Partner.Slug])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
       packElt <- OptionT(sponsorPackRepo.find(pack))
       partnerElt <- OptionT.liftF(partner.map(p => partnerRepo.find(p)).getOrElse(IO.pure(None)))
@@ -73,13 +73,13 @@ class SponsorCtrl(cc: ControllerComponents,
         "start" -> Mappings.localDateFormatter.format(req.nowLD),
         "finish" -> Mappings.localDateFormatter.format(packElt.duration.unit.chrono.addTo(req.nowLD, packElt.duration.length))
       )).discardingErrors
-      b = listBreadcrumb(ctx.group).add("New" -> routes.SponsorCtrl.create(ctx.group.slug, packElt.slug))
+      b = listBreadcrumb.add("New" -> routes.SponsorCtrl.create(ctx.group.slug, packElt.slug))
     } yield Ok(html.create(ctx.group, packElt, filledForm, partnerElt)(b))).value.map(_.getOrElse(packNotFound(ctx.group.slug, pack)))
   }
 
   def detail(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     sponsorPackRepo.find(pack).map {
-      case Some(packElt) => Ok(html.detail(ctx.group, packElt)(breadcrumb(ctx.group, packElt)))
+      case Some(packElt) => Ok(html.detail(ctx.group, packElt)(breadcrumb(packElt)))
       case None => packNotFound(group, pack)
     }
   })
@@ -96,11 +96,11 @@ class SponsorCtrl(cc: ControllerComponents,
     )
   })
 
-  private def updateView(sponsor: Sponsor.Id, form: Form[Sponsor.Data], partner: Option[Partner.Slug])(implicit req: SecuredReq[AnyContent], ctx: OrgaReqCtx): IO[Result] = {
+  private def updateView(sponsor: Sponsor.Id, form: Form[Sponsor.Data], partner: Option[Partner.Slug])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
       sponsorElt <- OptionT(sponsorRepo.find(sponsor))
       partnerElt <- OptionT(partnerRepo.find(sponsorElt.partner))
-      b = listBreadcrumb(ctx.group).add("Edit" -> routes.SponsorCtrl.edit(ctx.group.slug, sponsor, partner))
+      b = listBreadcrumb.add("Edit" -> routes.SponsorCtrl.edit(ctx.group.slug, sponsor, partner))
       filledForm = if (form.hasErrors) form else form.fill(sponsorElt.data)
     } yield Ok(html.edit(ctx.group, partnerElt, sponsorElt, filledForm, partner)(b))).value.map(_.getOrElse(sponsorNotFound(ctx.group.slug, sponsor)))
   }
@@ -130,9 +130,9 @@ class SponsorCtrl(cc: ControllerComponents,
 }
 
 object SponsorCtrl {
-  def listBreadcrumb(group: Group): Breadcrumb =
-    GroupCtrl.breadcrumb(group).add("Sponsors" -> routes.SponsorCtrl.list(group.slug))
+  def listBreadcrumb(implicit req: OrgaReq[AnyContent]): Breadcrumb =
+    GroupCtrl.breadcrumb(req.group).add("Sponsors" -> routes.SponsorCtrl.list(req.group.slug))
 
-  def breadcrumb(group: Group, pack: SponsorPack): Breadcrumb =
-    listBreadcrumb(group).add(pack.name.value -> routes.SponsorCtrl.detail(group.slug, pack.slug))
+  def breadcrumb(pack: SponsorPack)(implicit req: OrgaReq[AnyContent]): Breadcrumb =
+    listBreadcrumb.add(pack.name.value -> routes.SponsorCtrl.detail(req.group.slug, pack.slug))
 }

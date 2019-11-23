@@ -78,7 +78,7 @@ object Formats {
       case _ => s"$n $plural"
     }
 
-  def cfpDates(cfp: Cfp)(implicit req: SecuredReq[AnyContent]): String = (cfp.begin, cfp.close) match {
+  def cfpDates(cfp: Cfp)(implicit req: UserReq[AnyContent]): String = (cfp.begin, cfp.close) match {
     case (Some(start), Some(end)) => s"from ${date(start)} to ${date(end)}"
     case (Some(start), None) if start.isAfter(req.nowLDT) => s"starting ${date(start)}"
     case (Some(start), None) => s"started ${date(start)}"

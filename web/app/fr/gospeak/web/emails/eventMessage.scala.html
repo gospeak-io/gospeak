@@ -1,9 +1,9 @@
 @import fr.gospeak.core.domain.{Event, Group}
 @import fr.gospeak.libs.scalautils.domain.Markdown
 @import fr.gospeak.web.pages.partials.display.html.markdown
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, event: Event, text: Markdown, rsvp: Event.Rsvp)(implicit req: SecuredReq[AnyContent])
+@(group: Group, event: Event, text: Markdown, rsvp: Event.Rsvp)(implicit req: UserReq[AnyContent])
 <p>Hi @rsvp.user.firstName,</p>
 <p>Here is a message from <b>@event.name.value</b> organizer:</p>
 <div>

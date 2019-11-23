@@ -15,7 +15,7 @@ import fr.gospeak.web.pages.orga.partners.PartnerCtrl
 import fr.gospeak.web.pages.orga.partners.contacts.ContactCtrl._
 import fr.gospeak.web.pages.orga.partners.routes.{PartnerCtrl => PartnerRoutes}
 import fr.gospeak.web.utils.Mappings._
-import fr.gospeak.web.utils.{SecuredReq, UICtrl}
+import fr.gospeak.web.utils.{UserReq, UICtrl}
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -71,7 +71,7 @@ class ContactCtrl(cc: ControllerComponents,
     )
   }
 
-  private def createView(group: Group.Slug, partner: Partner.Slug, form: Form[Contact.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def createView(group: Group.Slug, partner: Partner.Slug, form: Form[Contact.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
       partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
@@ -113,7 +113,7 @@ class ContactCtrl(cc: ControllerComponents,
     )
   }
 
-  private def editView(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id, form: Form[Contact.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def editView(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id, form: Form[Contact.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
       partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))

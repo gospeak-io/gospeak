@@ -11,7 +11,7 @@ import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.partners.PartnerCtrl._
-import fr.gospeak.web.utils.{SecuredReq, UICtrl}
+import fr.gospeak.web.utils.{UserReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -48,7 +48,7 @@ class PartnerCtrl(cc: ControllerComponents,
     )
   }
 
-  private def createView(group: Group.Slug, form: Form[Partner.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def createView(group: Group.Slug, form: Form[Partner.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
       b = listBreadcrumb(groupElt).add("New" -> routes.PartnerCtrl.create(group))
@@ -90,7 +90,7 @@ class PartnerCtrl(cc: ControllerComponents,
     )
   }
 
-  private def editView(group: Group.Slug, partner: Partner.Slug, form: Form[Partner.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def editView(group: Group.Slug, partner: Partner.Slug, form: Form[Partner.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
       partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))

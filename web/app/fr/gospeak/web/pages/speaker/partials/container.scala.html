@@ -8,9 +8,9 @@
 @import fr.gospeak.web.pages.speaker.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.user.routes.UserCtrl
 @import fr.gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublicSpeakerCtrl}
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(title: String, b: Breadcrumb, hideAlert: Boolean = false)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: SecuredReq[AnyContent])
+@(title: String, b: Breadcrumb, hideAlert: Boolean = false)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserReq[AnyContent])
 @main(title, "user.css", style, script, req.env) {
     <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
         <div class="container">

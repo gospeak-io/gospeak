@@ -5,9 +5,9 @@
 @import fr.gospeak.web.pages.speaker.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(talk: Talk, proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(talk: Talk, proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(talk.title.value + " - Gospeak", b)() {
     @if(proposals.isEmpty) {
         <div class="jumbotron">

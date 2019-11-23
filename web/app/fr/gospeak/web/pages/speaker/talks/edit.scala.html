@@ -3,9 +3,9 @@
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.speaker.partials.html.{container, talkFields}
 @import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(talk: Talk, form: Form[Talk.Data])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(talk: Talk, form: Form[Talk.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Gospeak", b)() {
     <h1 class="page-header">Edit @talk.title.value</h1>
 

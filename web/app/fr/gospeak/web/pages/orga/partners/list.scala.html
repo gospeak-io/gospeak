@@ -4,9 +4,9 @@
 @import fr.gospeak.web.pages.orga.partials.html.{container, partnerItem}
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, partners: Page[Partner])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, partners: Page[Partner])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(group.name.value + " - Gospeak", group, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span class="text-capitalize">@Formats.plural(partners.total.value, "partner")</span>

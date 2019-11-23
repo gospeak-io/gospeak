@@ -5,9 +5,9 @@
 @import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, senders: Seq[EmailAddress.Contact], form: Form[ContactMembers])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, senders: Seq[EmailAddress.Contact], form: Form[ContactMembers])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(group.name.value + " - Gospeak", group, b)() {
     <h1>Contact @group.name.value members</h1>
 

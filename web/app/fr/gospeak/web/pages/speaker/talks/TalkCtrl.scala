@@ -15,7 +15,7 @@ import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.speaker.talks.TalkCtrl._
 import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import fr.gospeak.web.utils.{GenericForm, SecuredReq, UICtrl}
+import fr.gospeak.web.utils.{GenericForm, UserReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -53,7 +53,7 @@ class TalkCtrl(cc: ControllerComponents,
     )
   }
 
-  private def createForm(form: Form[Talk.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def createForm(form: Form[Talk.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     val b = listBreadcrumb(req.user).add("New" -> routes.TalkCtrl.create())
     IO.pure(Ok(html.create(form)(b)))
   }
@@ -84,7 +84,7 @@ class TalkCtrl(cc: ControllerComponents,
     )
   }
 
-  private def editForm(talk: Talk.Slug, form: Form[Talk.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def editForm(talk: Talk.Slug, form: Form[Talk.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     talkRepo.find(req.user.id, talk).map {
       case Some(talkElt) =>
         val b = breadcrumb(req.user, talkElt).add("Edit" -> routes.TalkCtrl.edit(talk))

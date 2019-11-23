@@ -14,9 +14,9 @@
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.html.{pagination, search}
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Slug], notesForm: Form[String])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Slug], notesForm: Form[String])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(event.name.value + " - Gospeak", group, b)() {
     @if(!event.isPublic) {
         <div class="alert alert-info" role="alert">

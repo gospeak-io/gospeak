@@ -3,9 +3,9 @@
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(form: Form[Event.Data], group: Group, hasMeetupAccount: Boolean)(implicit req: SecuredReq[AnyContent])
+@(form: Form[Event.Data], group: Group, hasMeetupAccount: Boolean)(implicit req: UserReq[AnyContent])
 @fieldVertical(form("name"), Seq("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "Event name", "autofocus" -> "true") ++ args)
 }

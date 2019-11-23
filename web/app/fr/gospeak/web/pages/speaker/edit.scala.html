@@ -4,9 +4,9 @@
 @import fr.gospeak.web.pages.speaker.partials.html.container
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublicSpeakerCtrl}
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(form: Form[User.Data])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(form: Form[User.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Gospeak", b)() {
     @formElt(form, SpeakerCtrl.doEdit()) {
         <div class="d-flex justify-content-between align-items-center mb-3">

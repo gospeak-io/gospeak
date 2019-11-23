@@ -1,9 +1,9 @@
 @import fr.gospeak.core.domain.ExternalCfp
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(form: Form[ExternalCfp.Data])(implicit req: SecuredReq[AnyContent])
+@(form: Form[ExternalCfp.Data])(implicit req: UserReq[AnyContent])
 <div class="card mb-3">
     <div class="card-header" data-toggle="collapse" data-target="#cfpCollapse">CFP infos</div>
     <div class="card-body collapse show" id="cfpCollapse">

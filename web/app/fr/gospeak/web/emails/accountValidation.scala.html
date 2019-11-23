@@ -1,8 +1,8 @@
 @import fr.gospeak.core.domain.UserRequest.AccountValidationRequest
 @import fr.gospeak.web.auth.routes.AuthCtrl
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(emailValidation: AccountValidationRequest)(implicit req: SecuredReq[AnyContent])
+@(emailValidation: AccountValidationRequest)(implicit req: UserReq[AnyContent])
 <p>Hello @req.user.firstName,</p>
 <p>It seems you missed the signup email to validate your account ;)</p>
 <p>No worries, here is the <a href="@AuthCtrl.doValidateAccount(emailValidation.id).absoluteURL()">activation link</a> to rescue you.</p>

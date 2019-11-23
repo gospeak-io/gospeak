@@ -1,8 +1,8 @@
 @import fr.gospeak.core.domain.{Group, User}
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(acceptedUser: User, group: Group)(implicit req: SecuredReq[AnyContent])
+@(acceptedUser: User, group: Group)(implicit req: UserReq[AnyContent])
 <p>Hello @acceptedUser.firstName,</p>
 <p>Good news! Your application to <b>@group.name.value</b> was accepted by @req.user.firstName \o/</p>
 <p>You can now <a href="@GroupCtrl.detail(group.slug).absoluteURL()">access</a> to the group and fully participate to it.</p>

@@ -5,6 +5,7 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.libs.scalautils.domain._
 
 trait ProposalRepo extends OrgaProposalRepo with SpeakerProposalRepo with UserProposalRepo with AuthProposalRepo with SuggestProposalRepo with PublicProposalRepo
@@ -12,7 +13,7 @@ trait ProposalRepo extends OrgaProposalRepo with SpeakerProposalRepo with UserPr
 trait OrgaProposalRepo {
   val fields: ProposalFields.type = ProposalFields
 
-  def edit(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.Data, now: Instant): IO[Done]
+  def edit(cfp: Cfp.Slug, proposal: Proposal.Id, data: Proposal.Data)(implicit ctx: OrgaCtx): IO[Done]
 
   def accept(cfp: Cfp.Slug, id: Proposal.Id, event: Event.Id, by: User.Id, now: Instant): IO[Done]
 
@@ -20,15 +21,17 @@ trait OrgaProposalRepo {
 
   def reject(cfp: Cfp.Slug, id: Proposal.Id, by: User.Id, now: Instant): IO[Done]
 
-  def cancelReject(cfp: Cfp.Slug, id: Proposal.Id, by: User.Id, now: Instant): IO[Done]
+  def reject(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): IO[Done]
 
-  def rate(cfp: Cfp.Slug, id: Proposal.Id, grade: Proposal.Rating.Grade, by: User.Id, now: Instant): IO[Done]
+  def cancelReject(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): IO[Done]
 
-  def editSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Slides, by: User.Id, now: Instant): IO[Done]
+  def rate(cfp: Cfp.Slug, id: Proposal.Id, grade: Proposal.Rating.Grade)(implicit ctx: OrgaCtx): IO[Done]
 
-  def editVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, by: User.Id, now: Instant): IO[Done]
+  def editSlides(cfp: Cfp.Slug, id: Proposal.Id, slides: Slides)(implicit ctx: OrgaCtx): IO[Done]
 
-  def removeSpeaker(cfp: Cfp.Slug, id: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
+  def editVideo(cfp: Cfp.Slug, id: Proposal.Id, video: Video)(implicit ctx: OrgaCtx): IO[Done]
+
+  def removeSpeaker(cfp: Cfp.Slug, id: Proposal.Id, speaker: User.Id)(implicit ctx: OrgaCtx): IO[Done]
 
   def listFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
@@ -48,7 +51,7 @@ trait OrgaProposalRepo {
 
   def listRatings(id: Proposal.Id): IO[Seq[Proposal.Rating.Full]]
 
-  def listRatings(cfp: Cfp.Slug, user: User.Id): IO[Seq[Proposal.Rating]]
+  def listRatings(cfp: Cfp.Slug)(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]]
 
   def listRatings(user: User.Id, proposals: Seq[Proposal.Id]): IO[Seq[Proposal.Rating]]
 }

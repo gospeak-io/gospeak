@@ -1,7 +1,7 @@
 @import fr.gospeak.web.utils.Extensions._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(field: Field, args: Seq[(String, String)] = Seq())(implicit req: SecuredReq[AnyContent])
+@(field: Field, args: Seq[(String, String)] = Seq())(implicit req: UserReq[AnyContent])
 @defining(Seq("id", "name", "streetNo", "street", "postalCode", "locality", "country", "formatted", "lat", "lng", "url", "website", "phone", "utcOffset")) { hiddenFields: Seq[String] =>
     @defining(("input" +: hiddenFields).flatMap(f => field(f).errors)) { errors: Seq[FormError] =>
         <div class="gmapplace-input @if(errors.nonEmpty) {is-invalid}">

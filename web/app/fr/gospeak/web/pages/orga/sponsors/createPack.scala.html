@@ -3,9 +3,9 @@
 @import fr.gospeak.web.pages.orga.partials.html.{container, sponsorPackFields}
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, form: Form[SponsorPack.Data])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, form: Form[SponsorPack.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Gospeak", group, b)() {
     <h1 class="page-header">Create a sponsor pack</h1>
 

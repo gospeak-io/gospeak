@@ -7,6 +7,7 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.UserRequest._
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.services.storage.UserRequestRepo
 import fr.gospeak.infra.services.storage.sql.UserRequestRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
@@ -105,8 +106,14 @@ class UserRequestRepoSql(groupRepo: GroupRepoSql,
   override def invite(proposal: Proposal.Id, email: EmailAddress, by: User.Id, now: Instant): IO[ProposalInvite] =
     ProposalInviteQueries.insert(ProposalInvite(UserRequest.Id.generate(), proposal, email, now, by, None, None, None)).run(xa)
 
+  override def invite(proposal: Proposal.Id, email: EmailAddress)(implicit ctx: OrgaCtx): IO[ProposalInvite] =
+    ProposalInviteQueries.insert(ProposalInvite(UserRequest.Id.generate(), proposal, email, ctx.now, ctx.user.id, None, None, None)).run(xa)
+
   override def cancelProposalInvite(id: Id, by: User.Id, now: Instant): IO[ProposalInvite] =
     ProposalInviteQueries.cancel(id, by, now).run(xa).flatMap(_ => ProposalInviteQueries.selectOne(id).runUnique(xa))
+
+  override def cancelProposalInvite(id: Id)(implicit ctx: OrgaCtx): IO[ProposalInvite] =
+    ProposalInviteQueries.cancel(id, ctx.user.id, ctx.now).run(xa).flatMap(_ => ProposalInviteQueries.selectOne(id).runUnique(xa))
 
   override def accept(invite: UserRequest.ProposalInvite, by: User.Id, now: Instant): IO[Done] = for {
     _ <- ProposalInviteQueries.accept(invite.id, by, now).run(xa)

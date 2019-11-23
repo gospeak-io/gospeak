@@ -4,9 +4,9 @@
 @import fr.gospeak.web.pages.orga.partials.html.{container, speakerItem}
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, speakers: Page[User])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, speakers: Page[User])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(group.name.value + " - Gospeak", group, b)() {
     <h1 class="text-capitalize">@Formats.plural(speakers.total.value, "speaker")</h1>
     @Formats.paginated[User](speakers, SpeakerCtrl.list(group.slug, _), speakerItem(group, _))

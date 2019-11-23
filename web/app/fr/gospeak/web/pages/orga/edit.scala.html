@@ -4,9 +4,9 @@
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, form: Form[Group.Data])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, form: Form[Group.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Gospeak", group, b)() {
     @formElt(form, GroupCtrl.doEdit(group.slug)) {
         <div class="d-flex justify-content-between align-items-center mb-3">

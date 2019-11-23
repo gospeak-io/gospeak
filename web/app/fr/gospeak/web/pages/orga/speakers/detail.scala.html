@@ -5,9 +5,9 @@
 @import fr.gospeak.web.pages.orga.partials.html.{container, speakerCard, proposalItem}
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, speaker: User, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, speaker: User, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(speaker.name.value + " - Gospeak", group, b)() {
     <div class="row">
         <div class="col-4">

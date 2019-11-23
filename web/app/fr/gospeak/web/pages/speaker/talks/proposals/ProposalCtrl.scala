@@ -17,7 +17,7 @@ import fr.gospeak.web.pages.speaker.talks.cfps.CfpCtrl
 import fr.gospeak.web.pages.speaker.talks.cfps.routes.{CfpCtrl => CfpRoutes}
 import fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl._
 import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import fr.gospeak.web.utils.{GenericForm, SecuredReq, UICtrl}
+import fr.gospeak.web.utils.{GenericForm, UserReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -54,7 +54,7 @@ class ProposalCtrl(cc: ControllerComponents,
       data => {
         (for {
           talkElt <- OptionT(talkRepo.find(req.user.id, talk))
-          cfpElt <- OptionT(cfpRepo.find(cfp))
+          cfpElt <- OptionT(cfpRepo.findRead(cfp))
           proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data, talkElt.speakers, req.user.id, req.now))
           groupElt <- OptionT(groupRepo.find(cfpElt.group))
           _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt))
@@ -64,10 +64,10 @@ class ProposalCtrl(cc: ControllerComponents,
     )
   }
 
-  private def createForm(form: Form[Proposal.Data], talk: Talk.Slug, cfp: Cfp.Slug)(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def createForm(form: Form[Proposal.Data], talk: Talk.Slug, cfp: Cfp.Slug)(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       talkElt <- OptionT(talkRepo.find(req.user.id, talk))
-      cfpElt <- OptionT(cfpRepo.find(cfp))
+      cfpElt <- OptionT(cfpRepo.findRead(cfp))
       proposalOpt <- OptionT.liftF(proposalRepo.find(req.user.id, talk, cfp))
       filledForm = if (form.hasErrors) form else form.fill(Proposal.Data(talkElt))
       b = CfpCtrl.listBreadcrumb(req.user, talkElt).add(cfpElt.name.value -> CfpRoutes.list(talkElt.slug))
@@ -90,7 +90,7 @@ class ProposalCtrl(cc: ControllerComponents,
     )
   }
 
-  private def proposalView(talk: Talk.Slug, cfp: Cfp.Slug, commentForm: Form[Comment.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def proposalView(talk: Talk.Slug, cfp: Cfp.Slug, commentForm: Form[Comment.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       proposalFull <- OptionT(proposalRepo.findFull(talk, cfp)(req.user.id))
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposalFull.id))
@@ -112,7 +112,7 @@ class ProposalCtrl(cc: ControllerComponents,
     )
   }
 
-  private def editView(talk: Talk.Slug, cfp: Cfp.Slug, form: Form[Proposal.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def editView(talk: Talk.Slug, cfp: Cfp.Slug, form: Form[Proposal.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       proposalFull <- OptionT(proposalRepo.findFull(talk, cfp)(req.user.id))
       b = breadcrumb(req.user, proposalFull).add("Edit" -> routes.ProposalCtrl.edit(talk, cfp))

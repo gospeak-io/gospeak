@@ -3,9 +3,9 @@
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.orga.partials.html.{cfpFields, container}
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, form: Form[Cfp.Data], event: Option[Event.Slug])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, form: Form[Cfp.Data], event: Option[Event.Slug])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Gospeak", group, b)() {
     <h1 class="page-header">Create a CFP</h1>
 

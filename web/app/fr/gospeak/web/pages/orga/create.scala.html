@@ -5,9 +5,9 @@
 @import fr.gospeak.web.pages.speaker.partials.html.container
 @import fr.gospeak.web.pages.user.routes.UserCtrl
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(form: Form[Group.Data])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(form: Form[Group.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Gospeak", b)() {
     @formElt(form, GroupCtrl.doCreate()) {
         <div class="d-flex justify-content-between align-items-center mb-3">

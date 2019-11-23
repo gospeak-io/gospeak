@@ -1,8 +1,8 @@
 @import fr.gospeak.libs.scalautils.domain.Url
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(form: Form[Url], url: Call)(implicit req: SecuredReq[AnyContent])
+@(form: Form[Url], url: Call)(implicit req: UserReq[AnyContent])
 @formElt(form, url, Seq("class" -> "mb-2")) {
     @fieldHorizontal(form("url"), Seq("label" -> "Video")) { (field, _) =>
         @inputEmbed(field, Seq("placeholder" -> "Url of the video"))

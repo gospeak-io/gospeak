@@ -18,7 +18,7 @@ import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.pages.published.cfps.CfpCtrl._
 import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
-import fr.gospeak.web.utils.{SecuredReq, UICtrl, UserAwareReq}
+import fr.gospeak.web.utils.{UserReq, UICtrl, UserAwareReq}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -67,7 +67,7 @@ class CfpCtrl(cc: ControllerComponents,
 
   def detail(cfp: Cfp.Slug): Action[AnyContent] = UserAwareActionIO { implicit req =>
     (for {
-      cfpElt <- OptionT(cfpRepo.find(cfp))
+      cfpElt <- OptionT(cfpRepo.findRead(cfp))
       groupElt <- OptionT(groupRepo.find(cfpElt.group))
       b = breadcrumb(cfpElt)
     } yield Ok(html.detail(groupElt, cfpElt)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
@@ -85,7 +85,7 @@ class CfpCtrl(cc: ControllerComponents,
     )
   }
 
-  private def editView(cfp: ExternalCfp.Id, form: Form[ExternalCfp.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def editView(cfp: ExternalCfp.Id, form: Form[ExternalCfp.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       cfpElt <- OptionT(externalCfpRepo.find(cfp))
       b = breadcrumb(cfpElt).add("Edit" -> routes.CfpCtrl.edit(cfp))
@@ -102,7 +102,7 @@ class CfpCtrl(cc: ControllerComponents,
       formWithErrors => proposeForm(cfp, formWithErrors, params),
       data => req.secured.map { secured =>
         (for {
-          cfpElt <- OptionT(cfpRepo.find(cfp))
+          cfpElt <- OptionT(cfpRepo.findRead(cfp))
           talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData, secured.user.id, req.now))
           proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers, secured.user.id, req.now))
           groupElt <- OptionT(groupRepo.find(cfpElt.group))
@@ -131,7 +131,7 @@ class CfpCtrl(cc: ControllerComponents,
     CfpForms.signup.bindFromRequest.fold(
       formWithErrors => proposeConnectForm(cfp, formWithErrors, CfpForms.login.bindFromRequest),
       data => (for {
-        cfpElt <- OptionT(cfpRepo.find(cfp))
+        cfpElt <- OptionT(cfpRepo.findRead(cfp))
         identity <- OptionT.liftF(authSrv.createIdentity(data.user))
         emailValidation <- OptionT.liftF(userRequestRepo.createAccountValidationRequest(identity.user.email, identity.user.id, req.now))
         (auth, result) <- OptionT.liftF(authSrv.login(identity, data.user.rememberMe, Redirect(ProposalCtrl.detail(data.talk.slug, cfp))))
@@ -156,7 +156,7 @@ class CfpCtrl(cc: ControllerComponents,
     CfpForms.login.bindFromRequest.fold(
       formWithErrors => proposeConnectForm(cfp, CfpForms.signup.bindFromRequest, formWithErrors),
       data => (for {
-        cfpElt <- OptionT(cfpRepo.find(cfp))
+        cfpElt <- OptionT(cfpRepo.findRead(cfp))
         identity <- OptionT.liftF(authSrv.getIdentity(data.user))
         (auth, result) <- OptionT.liftF(authSrv.login(identity, data.user.rememberMe, Redirect(ProposalCtrl.detail(data.talk.slug, cfp))))
         secured = req.secured(identity, auth)

@@ -21,7 +21,7 @@ import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv}
 import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.utils.{SecuredReq, UserAwareReq}
+import fr.gospeak.web.utils.{UserReq, UserAwareReq}
 import play.api.i18n.Messages
 import play.api.mvc._
 import play.api.test.CSRFTokenHelper._
@@ -66,7 +66,7 @@ object Values extends RandomDataGenerator {
   val userAwareReq: UserAwareRequest[CookieEnv, AnyContent] = UserAwareRequest[CookieEnv, AnyContent](Some(identity), Some(authenticator), req)
   val securedReq: SecuredRequest[CookieEnv, AnyContent] = SecuredRequest[CookieEnv, AnyContent](identity, authenticator, req)
   val messages: Messages = messagesApi.preferred(securedReq)
-  val secured: SecuredReq[AnyContent] = SecuredReq[AnyContent](securedReq, messages, conf.application.env)
+  val secured: UserReq[AnyContent] = UserReq[AnyContent](securedReq, messages, conf.application.env)
   val userAware: UserAwareReq[AnyContent] = UserAwareReq[AnyContent](userAwareReq, messages, conf.application.env)
   val b: Breadcrumb = Breadcrumb(Seq())
 

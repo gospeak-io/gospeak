@@ -1,6 +1,7 @@
 package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, Talk}
 import fr.gospeak.infra.services.storage.sql.CfpRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec.{table => eventTable}
@@ -11,30 +12,32 @@ class CfpRepoSqlSpec extends RepoSpec {
   describe("CfpRepoSql") {
     it("should create and retrieve a cfp for a group") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
+      val ctx = new OrgaCtx(now, user, group)
       val talkId = Talk.Id.generate()
-      cfpRepo.find(cfpData1.slug).unsafeRunSync() shouldBe None
-      cfpRepo.list(group.id, params).unsafeRunSync().items shouldBe Seq()
+      cfpRepo.findRead(cfpData1.slug).unsafeRunSync() shouldBe None
+      cfpRepo.list(params)(ctx).unsafeRunSync().items shouldBe Seq()
       cfpRepo.availableFor(talkId, params).unsafeRunSync().items shouldBe Seq()
-      val cfp = cfpRepo.create(group.id, cfpData1, user.id, now).unsafeRunSync()
+      val cfp = cfpRepo.create(cfpData1).unsafeRunSync()
       cfpRepo.find(cfp.id).unsafeRunSync().get shouldBe cfp
-      cfpRepo.find(cfpData1.slug).unsafeRunSync().get shouldBe cfp
-      cfpRepo.list(group.id, params).unsafeRunSync().items shouldBe Seq(cfp)
+      cfpRepo.findRead(cfpData1.slug).unsafeRunSync().get shouldBe cfp
+      cfpRepo.list(params)(ctx).unsafeRunSync().items shouldBe Seq(cfp)
       cfpRepo.availableFor(talkId, params).unsafeRunSync().items shouldBe Seq(cfp)
     }
     it("should fail to create a cfp when the group does not exists") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
-      an[Exception] should be thrownBy cfpRepo.create(Group.Id.generate(), cfpData1, user.id, now).unsafeRunSync()
+      an[Exception] should be thrownBy cfpRepo.create(cfpData1).unsafeRunSync()
     }
     it("should fail to create two cfp for a group") {
       val (user, group) = createUserAndGroup().unsafeRunSync()
-      cfpRepo.create(group.id, cfpData1, user.id, now).unsafeRunSync()
-      an[Exception] should be thrownBy cfpRepo.create(group.id, cfpData1, user.id, now).unsafeRunSync()
+      val ctx = new OrgaCtx(now, user, group)
+      cfpRepo.create(cfpData1)(ctx).unsafeRunSync()
+      an[Exception] should be thrownBy cfpRepo.create(cfpData1)(ctx).unsafeRunSync()
     }
     it("should fail on duplicate slug") {
       val (user, group1) = createUserAndGroup().unsafeRunSync()
       val group2 = groupRepo.create(groupData2, user.id, now).unsafeRunSync()
-      cfpRepo.create(group1.id, cfpData1, user.id, now).unsafeRunSync()
-      an[Exception] should be thrownBy cfpRepo.create(group2.id, cfpData1, user.id, now).unsafeRunSync()
+      cfpRepo.create(cfpData1)(new OrgaCtx(now, user, group1)).unsafeRunSync()
+      an[Exception] should be thrownBy cfpRepo.create(cfpData1)(new OrgaCtx(now, user, group2)).unsafeRunSync()
     }
     describe("Queries") {
       it("should build insert") {

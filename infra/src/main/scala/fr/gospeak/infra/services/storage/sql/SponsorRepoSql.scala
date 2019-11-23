@@ -6,7 +6,7 @@ import cats.effect.IO
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.OrgaReqCtx
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.services.storage.SponsorRepo
 import fr.gospeak.infra.services.storage.sql.SponsorRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
@@ -16,17 +16,17 @@ import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
 class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SponsorRepo {
-  override def create(data: Sponsor.Data)(implicit ctx: OrgaReqCtx): IO[Sponsor] =
+  override def create(data: Sponsor.Data)(implicit ctx: OrgaCtx): IO[Sponsor] =
     insert(Sponsor(ctx.group.id, data, ctx.info)).run(xa)
 
-  override def edit(sponsor: Sponsor.Id, data: Sponsor.Data)(implicit ctx: OrgaReqCtx): IO[Done] =
+  override def edit(sponsor: Sponsor.Id, data: Sponsor.Data)(implicit ctx: OrgaCtx): IO[Done] =
     update(ctx.group.id, sponsor)(data, ctx.user.id, ctx.now).run(xa)
 
-  override def remove(sponsor: Sponsor.Id)(implicit ctx: OrgaReqCtx): IO[Done] = delete(ctx.group.id, sponsor).run(xa)
+  override def remove(sponsor: Sponsor.Id)(implicit ctx: OrgaCtx): IO[Done] = delete(ctx.group.id, sponsor).run(xa)
 
-  override def find(sponsor: Sponsor.Id)(implicit ctx: OrgaReqCtx): IO[Option[Sponsor]] = selectOne(ctx.group.id, sponsor).runOption(xa)
+  override def find(sponsor: Sponsor.Id)(implicit ctx: OrgaCtx): IO[Option[Sponsor]] = selectOne(ctx.group.id, sponsor).runOption(xa)
 
-  override def listFull(params: Page.Params)(implicit ctx: OrgaReqCtx): IO[Page[Sponsor.Full]] = selectPage(ctx.group.id, params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Sponsor.Full]] = selectPage(ctx.group.id, params).run(xa)
 
   override def listCurrentFull(group: Group.Id, now: Instant): IO[Seq[Sponsor.Full]] = selectCurrent(group, now).runList(xa)
 

@@ -16,7 +16,7 @@ import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.published.HomeCtrl._
-import fr.gospeak.web.utils.{SecuredReq, UICtrl}
+import fr.gospeak.web.utils.{UserReq, UICtrl}
 import org.joda.time.DateTime
 import play.api.mvc._
 
@@ -145,7 +145,7 @@ class HomeCtrl(cc: ControllerComponents,
     info = Info(user.id, now))
 
   def styleguide(params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
-    implicit val secured: SecuredReq[AnyContent] = req.secured(identity, authenticator)
+    implicit val secured: UserReq[AnyContent] = req.secured(identity, authenticator)
     val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event), 0L, 0L, 0L)
     IO.pure(Ok(html.styleguide(user, group, cfp, event, talk, proposal, proposalFull, params)))
   }

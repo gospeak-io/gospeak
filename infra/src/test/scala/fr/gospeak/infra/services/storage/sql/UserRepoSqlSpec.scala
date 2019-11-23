@@ -6,6 +6,7 @@ import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 import TablesSpec.socialFields
+import fr.gospeak.core.domain.utils.OrgaCtx
 
 class UserRepoSqlSpec extends RepoSpec {
   private val login = Login(ProviderId("providerId"), ProviderKey("providerKey"))
@@ -40,7 +41,8 @@ class UserRepoSqlSpec extends RepoSpec {
       val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
       val talk1 = talkRepo.create(talkData1, user1.id, now).unsafeRunSync()
       val group1 = groupRepo.create(groupData1, user1.id, now).unsafeRunSync()
-      val cfp1 = cfpRepo.create(group1.id, cfpData1, user1.id, now).unsafeRunSync()
+      val ctx1 = new OrgaCtx(now, user1, group1)
+      val cfp1 = cfpRepo.create(cfpData1)(ctx1).unsafeRunSync()
       val prop1 = proposalRepo.create(talk1.id, cfp1.id, proposalData1, NonEmptyList.of(user1.id, user2.id), user1.id, now).unsafeRunSync()
 
       userRepo.speakers(group1.id, params).unsafeRunSync().items.map(_.id) should contain theSameElementsAs prop1.speakers.toList

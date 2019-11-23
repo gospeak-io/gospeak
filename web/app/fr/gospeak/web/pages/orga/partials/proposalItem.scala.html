@@ -5,9 +5,9 @@
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.Formats._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, proposal: Proposal.Full, speakers: Seq[User], userRatings: Seq[Proposal.Rating])(implicit req: SecuredReq[AnyContent])
+@(group: Group, proposal: Proposal.Full, speakers: Seq[User], userRatings: Seq[Proposal.Rating])(implicit req: UserReq[AnyContent])
 <div class="list-group-item d-flex justify-content-between align-items-center">
     <div>
         <h5 class="mb-1">

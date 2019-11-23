@@ -7,7 +7,7 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.utils.OrgaReqCtx
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, SponsorPack, User}
 import fr.gospeak.core.services.storage.SponsorPackRepo
 import fr.gospeak.infra.services.storage.sql.SponsorPackRepoSql._
@@ -17,10 +17,10 @@ import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done}
 
 class SponsorPackRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SponsorPackRepo {
-  override def create(data: SponsorPack.Data)(implicit ctx: OrgaReqCtx): IO[SponsorPack] =
+  override def create(data: SponsorPack.Data)(implicit ctx: OrgaCtx): IO[SponsorPack] =
     insert(SponsorPack(ctx.group.id, data, ctx.info)).run(xa)
 
-  override def edit(pack: SponsorPack.Slug, data: SponsorPack.Data)(implicit ctx: OrgaReqCtx): IO[Done] = {
+  override def edit(pack: SponsorPack.Slug, data: SponsorPack.Data)(implicit ctx: OrgaCtx): IO[Done] = {
     if (data.slug != pack) {
       find(data.slug).flatMap {
         case None => update(ctx.group.id, pack)(data, ctx.user.id, ctx.now).run(xa)
@@ -31,17 +31,17 @@ class SponsorPackRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
     }
   }
 
-  override def disable(pack: SponsorPack.Slug)(implicit ctx: OrgaReqCtx): IO[Done] =
+  override def disable(pack: SponsorPack.Slug)(implicit ctx: OrgaCtx): IO[Done] =
     setActive(ctx.group.id, pack)(active = false, ctx.user.id, ctx.now).run(xa)
 
-  override def enable(pack: SponsorPack.Slug)(implicit ctx: OrgaReqCtx): IO[Done] =
+  override def enable(pack: SponsorPack.Slug)(implicit ctx: OrgaCtx): IO[Done] =
     setActive(ctx.group.id, pack)(active = true, ctx.user.id, ctx.now).run(xa)
 
-  override def find(pack: SponsorPack.Slug)(implicit ctx: OrgaReqCtx): IO[Option[SponsorPack]] = selectOne(ctx.group.id, pack).runOption(xa)
+  override def find(pack: SponsorPack.Slug)(implicit ctx: OrgaCtx): IO[Option[SponsorPack]] = selectOne(ctx.group.id, pack).runOption(xa)
 
   override def listAll(group: Group.Id): IO[Seq[SponsorPack]] = selectAll(group).runList(xa)
 
-  override def listAll(implicit ctx: OrgaReqCtx): IO[Seq[SponsorPack]] = selectAll(ctx.group.id).runList(xa)
+  override def listAll(implicit ctx: OrgaCtx): IO[Seq[SponsorPack]] = selectAll(ctx.group.id).runList(xa)
 
   override def listActives(group: Group.Id): IO[Seq[SponsorPack]] = selectActives(group).runList(xa)
 }

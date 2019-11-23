@@ -5,9 +5,9 @@
 @import fr.gospeak.web.pages.speaker.partials.html.{proposalFields, container}
 @import fr.gospeak.web.pages.speaker.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(form: Form[Proposal.Data], talk: Talk, cfp: Cfp)(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(form: Form[Proposal.Data], talk: Talk, cfp: Cfp)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Gospeak", b)() {
     <h1 class="page-header">Propose @talk.title.value to @cfp.name.value</h1>
     @tags(cfp.tags)
