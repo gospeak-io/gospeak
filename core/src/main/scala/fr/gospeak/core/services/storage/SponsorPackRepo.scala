@@ -22,7 +22,7 @@ trait OrgaSponsorPackRepo {
 
   def listAll(implicit ctx: OrgaCtx): IO[Seq[SponsorPack]]
 
-  def listActives(group: Group.Id): IO[Seq[SponsorPack]]
+  def listActives(implicit ctx: OrgaCtx): IO[Seq[SponsorPack]]
 }
 
 trait PublicSponsorPackRepo {

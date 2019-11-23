@@ -41,10 +41,7 @@ class VenueCtrl(cc: ControllerComponents,
   def doCreate(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     VenueForms.create(timeShape).bindFromRequest.fold(
       formWithErrors => createView(group, formWithErrors),
-      data => (for {
-        groupElt <- OptionT(groupRepo.find(req.user.id, group))
-        venueElt <- OptionT.liftF(venueRepo.create(groupElt.id, data, req.user.id, req.now))
-      } yield Redirect(routes.VenueCtrl.detail(group, venueElt.id))).value.map(_.getOrElse(groupNotFound(group)))
+      data => venueRepo.create(data).map(venueElt => Redirect(routes.VenueCtrl.detail(group, venueElt.id)))
     )
   })
 
@@ -56,18 +53,17 @@ class VenueCtrl(cc: ControllerComponents,
     } yield Ok(html.create(req.group, meetupAccount.isDefined, None, form, call)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 
-  def detail(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def detail(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      venueElt <- OptionT(venueRepo.findFull(groupElt.id, venue))
-      events <- OptionT.liftF(eventRepo.list(groupElt.id, venue))
+      venueElt <- OptionT(venueRepo.findFull(venue))
+      events <- OptionT.liftF(eventRepo.list(venue))
       users <- OptionT.liftF(userRepo.list(venueElt.users))
-      b = breadcrumb(groupElt, venueElt)
+      b = breadcrumb(req.group, venueElt)
       editCall = routes.VenueCtrl.edit(group, venue)
       removeCall = routes.VenueCtrl.doRemove(group, venue)
-      res = Ok(html.detail(groupElt, venueElt, events, users, editCall, removeCall)(b))
+      res = Ok(html.detail(req.group, venueElt, events, users, editCall, removeCall)(b))
     } yield res).value.map(_.getOrElse(venueNotFound(group, venue)))
-  }
+  })
 
   def edit(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     editView(group, venue, VenueForms.create(timeShape))
@@ -83,19 +79,16 @@ class VenueCtrl(cc: ControllerComponents,
   private def editView(group: Group.Slug, venue: Venue.Id, form: Form[Venue.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup)
-      venueElt <- OptionT(venueRepo.findFull(req.group.id, venue))
+      venueElt <- OptionT(venueRepo.findFull(venue))
       b = breadcrumb(req.group, venueElt).add("Edit" -> routes.VenueCtrl.edit(group, venue))
       filledForm = if (form.hasErrors) form else form.fill(venueElt.data)
       call = routes.VenueCtrl.doEdit(group, venue)
     } yield Ok(html.edit(req.group, meetupAccount.isDefined, venueElt, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
   }
 
-  def doRemove(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      _ <- OptionT.liftF(venueRepo.remove(groupElt.id, venue)(req.user.id, req.now))
-    } yield Redirect(routes.VenueCtrl.list(group))).value.map(_.getOrElse(groupNotFound(group)))
-  }
+  def doRemove(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    venueRepo.remove(venue).map(_ => Redirect(routes.VenueCtrl.list(group)))
+  })
 }
 
 object VenueCtrl {

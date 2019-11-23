@@ -25,9 +25,9 @@ trait OrgaEventRepo {
 
   def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]]
 
-  def list(group: Group.Id, venue: Venue.Id): IO[Seq[Event]]
+  def list(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Seq[Event]]
 
-  def list(group: Group.Id, partner: Partner.Id): IO[Seq[(Event, Venue)]]
+  def list(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Seq[(Event, Venue)]]
 
   def list(ids: Seq[Event.Id]): IO[Seq[Event]]
 

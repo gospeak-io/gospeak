@@ -34,7 +34,7 @@ class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def listAll(contact: Contact.Id)(implicit ctx: OrgaCtx): IO[Seq[Sponsor]] = selectAll(ctx.group.id, contact).runList(xa)
 
-  override def listAllFull(group: Group.Id, partner: Partner.Id): IO[Seq[Sponsor.Full]] = selectAllFull(group, partner).runList(xa)
+  override def listAllFull(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Seq[Sponsor.Full]] = selectAllFull(ctx.group.id, partner).runList(xa)
 }
 
 object SponsorRepoSql {
