@@ -11,19 +11,19 @@ import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
 trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with PublicEventRepo with SuggestEventRepo
 
 trait OrgaEventRepo {
-  def create(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event]
+  def create(data: Event.Data)(implicit ctx: OrgaCtx): IO[Event]
 
-  def edit(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): IO[Done]
+  def edit(event: Event.Slug, data: Event.Data)(implicit ctx: OrgaCtx): IO[Done]
 
-  def editNotes(group: Group.Id, event: Event.Slug)(notes: String, by: User.Id, now: Instant): IO[Done]
+  def editNotes(event: Event.Slug, notes: String)(implicit ctx: OrgaCtx): IO[Done]
 
   def attachCfp(event: Event.Slug, cfp: Cfp.Id)(implicit ctx: OrgaCtx): IO[Done]
 
-  def editTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): IO[Done]
+  def editTalks(event: Event.Slug, talks: Seq[Proposal.Id])(implicit ctx: OrgaCtx): IO[Done]
 
-  def publish(group: Group.Id, event: Event.Slug, by: User.Id, now: Instant): IO[Done]
+  def publish(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Done]
 
-  def list(group: Group.Id, params: Page.Params): IO[Page[Event]]
+  def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]]
 
   def list(group: Group.Id, venue: Venue.Id): IO[Seq[Event]]
 
@@ -33,7 +33,7 @@ trait OrgaEventRepo {
 
   def listAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]]
 
-  def find(group: Group.Id, event: Event.Slug): IO[Option[Event]]
+  def find(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event]]
 
   def listRsvps(event: Event.Id): IO[Seq[Event.Rsvp]]
 

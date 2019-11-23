@@ -10,7 +10,7 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.Event.Rsvp.Answer
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{Info, OrgaCtx}
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.services.storage.EventRepo
 import fr.gospeak.infra.services.storage.sql.EventRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
@@ -20,37 +20,39 @@ import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
 
 class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with EventRepo {
-  override def create(group: Group.Id, data: Event.Data, by: User.Id, now: Instant): IO[Event] =
-    insert(Event.create(group, data, Info(by, now))).run(xa)
+  override def create(data: Event.Data)(implicit ctx: OrgaCtx): IO[Event] =
+    insert(Event.create(ctx.group.id, data, ctx.info)).run(xa)
 
-  override def edit(group: Group.Id, event: Event.Slug)(data: Event.Data, by: User.Id, now: Instant): IO[Done] = {
+  override def edit(event: Event.Slug, data: Event.Data)(implicit ctx: OrgaCtx): IO[Done] = {
     if (data.slug != event) {
-      find(group, data.slug).flatMap {
-        case None => update(group, event)(data, by, now).run(xa)
+      find(data.slug).flatMap {
+        case None => update(ctx.group.id, event)(data, ctx.user.id, ctx.now).run(xa)
         case _ => IO.raiseError(CustomException(s"You already have an event with slug ${data.slug}"))
       }
     } else {
-      update(group, event)(data, by, now).run(xa)
+      update(ctx.group.id, event)(data, ctx.user.id, ctx.now).run(xa)
     }
   }
 
-  override def editNotes(group: Group.Id, event: Event.Slug)(notes: String, by: User.Id, now: Instant): IO[Done] =
-    updateNotes(group, event)(notes, by, now).run(xa)
+  override def editNotes(event: Event.Slug, notes: String)(implicit ctx: OrgaCtx): IO[Done] =
+    updateNotes(ctx.group.id, event)(notes, ctx.user.id, ctx.now).run(xa)
 
   override def attachCfp(event: Event.Slug, cfp: Cfp.Id)(implicit ctx: OrgaCtx): IO[Done] =
     updateCfp(ctx.group.id, event)(cfp, ctx.user.id, ctx.now).run(xa)
 
-  override def editTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): IO[Done] =
-    updateTalks(group, event)(talks, by, now).run(xa)
+  override def editTalks(event: Event.Slug, talks: Seq[Proposal.Id])(implicit ctx: OrgaCtx): IO[Done] =
+    updateTalks(ctx.group.id, event)(talks, ctx.user.id, ctx.now).run(xa)
 
-  override def publish(group: Group.Id, event: Event.Slug, by: User.Id, now: Instant): IO[Done] =
-    updatePublished(group, event)(by, now).run(xa)
+  override def publish(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Done] =
+    updatePublished(ctx.group.id, event)(ctx.user.id, ctx.now).run(xa)
 
-  override def find(group: Group.Id, event: Event.Slug): IO[Option[Event]] = selectOne(group, event).runOption(xa)
+  override def find(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event]] = selectOne(ctx.group.id, event).runOption(xa)
 
   override def findPublished(group: Group.Id, event: Event.Slug): IO[Option[Event.Full]] = selectOnePublished(group, event).runOption(xa)
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[Event]] = selectPage(group, params).run(xa)
+
+  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]] = selectPage(ctx.group.id, params).run(xa)
 
   override def list(group: Group.Id, venue: Venue.Id): IO[Seq[Event]] = selectAll(group, venue).runList(xa)
 

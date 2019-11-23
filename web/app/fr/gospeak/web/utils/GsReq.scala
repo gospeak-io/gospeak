@@ -7,6 +7,7 @@ import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.utils.Constants
 import fr.gospeak.core.domain.{Group, User}
+import fr.gospeak.libs.scalautils.domain.EmailAddress
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import play.api.data.{Field, Form, FormError}
 import play.api.i18n.Messages
@@ -102,4 +103,6 @@ class OrgaReq[A](override protected val request: Request[A],
                  override val underlying: SecuredRequest[CookieEnv, A],
                  override val user: User,
                  override val groups: Seq[Group],
-                 val group: Group) extends UserReq[A](request, messages, now, env, underlying, user, groups)
+                 val group: Group) extends UserReq[A](request, messages, now, env, underlying, user, groups) {
+  def senders: Seq[EmailAddress.Contact] = group.senders(user)
+}

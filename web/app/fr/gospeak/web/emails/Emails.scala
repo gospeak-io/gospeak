@@ -5,7 +5,7 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.Constants
 import fr.gospeak.infra.services.EmailSrv.{Email, HtmlContent}
 import fr.gospeak.libs.scalautils.domain.{EmailAddress, Markdown}
-import fr.gospeak.web.utils.{UserReq, UserAwareReq}
+import fr.gospeak.web.utils.{OrgaReq, UserAwareReq, UserReq}
 import play.api.mvc.AnyContent
 
 object Emails {
@@ -161,12 +161,12 @@ object Emails {
       subject = s"You are now on the ${event.name.value} guest list",
       content = HtmlContent(html.movedFromWaitingListToAttendees(group, event, attendee).body))
 
-  def eventPublished(group: Group, event: Event, venueOpt: Option[Venue.Full], member: Group.Member)(implicit req: UserReq[AnyContent]): Email =
+  def eventPublished(event: Event, venueOpt: Option[Venue.Full], member: Group.Member)(implicit req: OrgaReq[AnyContent]): Email =
     Email(
       from = Constants.Contact.noReply,
       to = Seq(member.user.asContact),
-      subject = s"New event from ${group.name.value}: ${event.name.value}",
-      content = HtmlContent(html.eventPublished(group, event, venueOpt, member).body))
+      subject = s"New event from ${req.group.name.value}: ${event.name.value}",
+      content = HtmlContent(html.eventPublished(event, venueOpt, member).body))
 
   def groupMessage(group: Group, sender: EmailAddress.Contact, subject: String, text: Markdown, member: Group.Member)(implicit req: UserReq[AnyContent]): Email =
     Email(
@@ -175,10 +175,10 @@ object Emails {
       subject = subject,
       content = HtmlContent(html.groupMessage(group, text, member).body))
 
-  def eventMessage(group: Group, event: Event, sender: EmailAddress.Contact, subject: String, text: Markdown, rsvp: Event.Rsvp)(implicit req: UserReq[AnyContent]): Email =
+  def eventMessage(event: Event, sender: EmailAddress.Contact, subject: String, text: Markdown, rsvp: Event.Rsvp)(implicit req: OrgaReq[AnyContent]): Email =
     Email(
       from = sender,
       to = Seq(rsvp.user.asContact),
       subject = subject,
-      content = HtmlContent(html.eventMessage(group, event, text, rsvp).body))
+      content = HtmlContent(html.eventMessage(event, text, rsvp).body))
 }

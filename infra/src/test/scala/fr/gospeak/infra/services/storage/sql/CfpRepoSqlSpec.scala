@@ -1,8 +1,8 @@
 package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
+import fr.gospeak.core.domain.Talk
 import fr.gospeak.core.domain.utils.OrgaCtx
-import fr.gospeak.core.domain.{Group, Talk}
 import fr.gospeak.infra.services.storage.sql.CfpRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec.{table => eventTable}
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
@@ -17,7 +17,7 @@ class CfpRepoSqlSpec extends RepoSpec {
       cfpRepo.findRead(cfpData1.slug).unsafeRunSync() shouldBe None
       cfpRepo.list(params)(ctx).unsafeRunSync().items shouldBe Seq()
       cfpRepo.availableFor(talkId, params).unsafeRunSync().items shouldBe Seq()
-      val cfp = cfpRepo.create(cfpData1).unsafeRunSync()
+      val cfp = cfpRepo.create(cfpData1)(ctx).unsafeRunSync()
       cfpRepo.find(cfp.id).unsafeRunSync().get shouldBe cfp
       cfpRepo.findRead(cfpData1.slug).unsafeRunSync().get shouldBe cfp
       cfpRepo.list(params)(ctx).unsafeRunSync().items shouldBe Seq(cfp)
@@ -25,7 +25,8 @@ class CfpRepoSqlSpec extends RepoSpec {
     }
     it("should fail to create a cfp when the group does not exists") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
-      an[Exception] should be thrownBy cfpRepo.create(cfpData1).unsafeRunSync()
+      val ctx = new OrgaCtx(now, user, group)
+      an[Exception] should be thrownBy cfpRepo.create(cfpData1)(ctx).unsafeRunSync()
     }
     it("should fail to create two cfp for a group") {
       val (user, group) = createUserAndGroup().unsafeRunSync()

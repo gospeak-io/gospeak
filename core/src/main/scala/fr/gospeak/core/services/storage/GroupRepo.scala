@@ -3,6 +3,7 @@ package fr.gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
 
@@ -25,7 +26,7 @@ trait OrgaGroupRepo {
 
   def removeOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done]
 
-  def listMembers(group: Group.Id): IO[Seq[Group.Member]]
+  def listMembers(implicit ctx: OrgaCtx): IO[Seq[Group.Member]]
 }
 
 trait SpeakerGroupRepo {

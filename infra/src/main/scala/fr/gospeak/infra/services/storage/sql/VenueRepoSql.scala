@@ -7,20 +7,20 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.core.domain.{Contact, Group, Partner, User, Venue}
+import fr.gospeak.core.domain.utils.{Info, OrgaCtx}
+import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage.VenueRepo
 import fr.gospeak.infra.services.storage.sql.VenueRepoSql._
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
 class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with VenueRepo {
   override def create(group: Group.Id, data: Venue.Data, by: User.Id, now: Instant): IO[Venue] = insert(Venue(group, data, Info(by, now))).run(xa)
 
-  override def edit(group: Group.Id, venue: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): IO[Done] = update(group, venue)(data, by, now).run(xa)
+  override def edit(venue: Venue.Id, data: Venue.Data)(implicit ctx: OrgaCtx): IO[Done] = update(ctx.group.id, venue)(data, ctx.user.id, ctx.now).run(xa)
 
   override def remove(group: Group.Id, venue: Venue.Id)(by: User.Id, now: Instant): IO[Done] = delete(group, venue).run(xa)
 
@@ -31,6 +31,8 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def listFull(partner: Partner.Id): IO[Seq[Venue.Full]] = selectAllFull(partner).runList(xa)
 
   override def listFull(group: Group.Id, venues: Seq[Venue.Id]): IO[Seq[Venue.Full]] = runNel[Venue.Id, Venue.Full](selectAllFull(group, _), venues)
+
+  override def listFull(venues: Seq[Venue.Id])(implicit ctx: OrgaCtx): IO[Seq[Venue.Full]] = runNel[Venue.Id, Venue.Full](selectAllFull(ctx.group.id, _), venues)
 
   override def findFull(group: Group.Id, venue: Venue.Id): IO[Option[Venue.Full]] = selectOneFull(group, venue).runOption(xa)
 
