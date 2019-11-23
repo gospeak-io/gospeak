@@ -4,9 +4,9 @@
 @import fr.gospeak.web.pages.orga.partials.html.{container, proposalItem}
 @import fr.gospeak.web.pages.orga.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(group.name.value + " - Gospeak", group, b)() {
     <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") <small>(from any CFP)</small></h1>
     @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list(group.slug, _), proposalItem(group, _, speakers, userRatings))

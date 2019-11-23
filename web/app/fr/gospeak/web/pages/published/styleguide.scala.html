@@ -9,10 +9,10 @@
 @import fr.gospeak.web.pages.published.routes.HomeCtrl
 @import fr.gospeak.web.pages.speaker.partials.{html => speaker}
 @import fr.gospeak.web.utils.GenericForm
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 @import fr.gospeak.web.utils.UserAwareReq
 
-@(user: User, group: Group, cfp: Cfp, event: Event, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, params: Page.Params)(implicit secured: SecuredReq[AnyContent], userAware: UserAwareReq[AnyContent])
+@(user: User, group: Group, cfp: Cfp, event: Event, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, params: Page.Params)(implicit secured: UserReq[AnyContent], userAware: UserAwareReq[AnyContent])
 @section(id: String, title: String, localization: String)(display: String => Html) = {
     <div id="@id" class="section">
         <h2>@title: <code style="font-size: 1rem">@localization</code></h2>

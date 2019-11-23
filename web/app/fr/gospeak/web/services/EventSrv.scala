@@ -8,7 +8,7 @@ import fr.gospeak.infra.services.TemplateSrv
 import fr.gospeak.libs.scalautils.domain.Markdown
 import fr.gospeak.web.domain.MessageBuilder
 import fr.gospeak.web.services.EventSrv.EventFull
-import fr.gospeak.web.utils.SecuredReq
+import fr.gospeak.web.utils.UserReq
 import play.api.mvc.AnyContent
 
 class EventSrv(groupRepo: OrgaGroupRepo,
@@ -31,7 +31,7 @@ class EventSrv(groupRepo: OrgaGroupRepo,
     } yield EventFull(groupElt, eventElt, cfpOpt, venueOpt, talks, speakers)).value
   }
 
-  def buildDescription(event: EventFull)(implicit req: SecuredReq[AnyContent]): Markdown = {
+  def buildDescription(event: EventFull)(implicit req: UserReq[AnyContent]): Markdown = {
     val data = builder.buildEventInfo(event)
     templateSrv.render(event.event.description, data).getOrElse(Markdown(event.event.description.value))
   }

@@ -9,10 +9,11 @@ import doobie.scalatest.IOChecker
 import doobie.util.testing.Analyzable
 import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.{BasicCtx, OrgaCtx, UserCtx}
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.services.storage.sql._
-import fr.gospeak.infra.testingutils.Values
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.testingutils.Values
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
@@ -67,6 +68,10 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val speakers: NonEmptyList[User.Id] = NonEmptyList.fromListUnsafe(random[User.Id](3).toList)
   protected val params: Page.Params = Page.Params()
 
+  protected implicit val basicCtx: BasicCtx = new BasicCtx(now)
+  protected implicit val userCtx: UserCtx = new UserCtx(now, user)
+  protected implicit val orgaCtx: OrgaCtx = new OrgaCtx(now, user, group)
+
   override def beforeEach(): Unit = db.migrate().unsafeRunSync()
 
   override def afterEach(): Unit = db.dropTables().unsafeRunSync()
@@ -84,7 +89,8 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
 
   protected def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk)] = for {
     (user, group) <- createUserAndGroup()
-    cfp <- cfpRepo.create(group.id, cfpData1, user.id, now)
+    ctx = new OrgaCtx(now, user, group)
+    cfp <- cfpRepo.create(cfpData1)(ctx)
     talk <- talkRepo.create(talkData1, user.id, now)
   } yield (user, group, cfp, talk)
 

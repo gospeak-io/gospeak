@@ -10,9 +10,9 @@
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Page[Proposal.Full], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Page[Proposal.Full], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(talk.title.value + " - Gospeak", b)() {
     @if(talk.status == Talk.Status.Draft) {
         <div class="alert alert-info" role="alert">

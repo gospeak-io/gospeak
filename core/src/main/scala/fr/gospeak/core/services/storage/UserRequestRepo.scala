@@ -4,6 +4,7 @@ import java.time.Instant
 
 import cats.effect.IO
 import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, GroupInvite, PasswordResetRequest, ProposalInvite, TalkInvite, UserAskToJoinAGroupRequest}
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, Proposal, Talk, User, UserRequest}
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
@@ -31,9 +32,9 @@ trait OrgaUserRequestRepo {
   def listPendingInvites(group: Group.Id): IO[Seq[GroupInvite]]
 
 
-  def invite(talk: Proposal.Id, email: EmailAddress, by: User.Id, now: Instant): IO[ProposalInvite]
+  def invite(proposal: Proposal.Id, email: EmailAddress)(implicit ctx: OrgaCtx): IO[ProposalInvite]
 
-  def cancelProposalInvite(id: UserRequest.Id, by: User.Id, now: Instant): IO[ProposalInvite]
+  def cancelProposalInvite(id: UserRequest.Id)(implicit ctx: OrgaCtx): IO[ProposalInvite]
 
   def listPendingInvites(proposal: Proposal.Id): IO[Seq[ProposalInvite]]
 }

@@ -18,7 +18,7 @@ import fr.gospeak.web.pages.orga.settings.SettingsCtrl
 import fr.gospeak.web.pages.orga.settings.routes.{SettingsCtrl => SettingsRoutes}
 import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import fr.gospeak.web.utils.{HttpUtils, SecuredReq, UICtrl}
+import fr.gospeak.web.utils.{HttpUtils, UserReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -53,7 +53,7 @@ class GroupCtrl(cc: ControllerComponents,
     )
   }
 
-  private def createForm(form: Form[Group.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def createForm(form: Form[Group.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     val b = groupBreadcrumb(req.user).add("New" -> routes.GroupCtrl.create())
     IO.pure(Ok(html.create(form)(b)))
   }
@@ -115,7 +115,7 @@ class GroupCtrl(cc: ControllerComponents,
     )
   }
 
-  private def editForm(group: Group.Slug, form: Form[Group.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def editForm(group: Group.Slug, form: Form[Group.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
       b = SettingsCtrl.listBreadcrumb(groupElt).add("Edit group" -> routes.GroupCtrl.edit(group))
@@ -166,7 +166,7 @@ class GroupCtrl(cc: ControllerComponents,
     }
   }
 
-  private def contactMembersView(group: Group.Slug, form: Form[GroupForms.ContactMembers])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def contactMembersView(group: Group.Slug, form: Form[GroupForms.ContactMembers])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
       senders = groupElt.senders(req.user)

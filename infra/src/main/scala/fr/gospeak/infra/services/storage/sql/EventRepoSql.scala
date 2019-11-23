@@ -10,7 +10,7 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.Event.Rsvp.Answer
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.{Info, OrgaCtx}
 import fr.gospeak.core.services.storage.EventRepo
 import fr.gospeak.infra.services.storage.sql.EventRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
@@ -37,8 +37,8 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def editNotes(group: Group.Id, event: Event.Slug)(notes: String, by: User.Id, now: Instant): IO[Done] =
     updateNotes(group, event)(notes, by, now).run(xa)
 
-  override def attachCfp(group: Group.Id, event: Event.Slug)(cfp: Cfp.Id, by: User.Id, now: Instant): IO[Done] =
-    updateCfp(group, event)(cfp, by, now).run(xa)
+  override def attachCfp(event: Event.Slug, cfp: Cfp.Id)(implicit ctx: OrgaCtx): IO[Done] =
+    updateCfp(ctx.group.id, event)(cfp, ctx.user.id, ctx.now).run(xa)
 
   override def editTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): IO[Done] =
     updateTalks(group, event)(talks, by, now).run(xa)

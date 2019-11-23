@@ -5,9 +5,9 @@
 @import fr.gospeak.web.pages.orga.settings.partials.html._
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, trigger: Group.Settings.Action.Trigger, index: Int, actionForm: Form[AddAction])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, trigger: Group.Settings.Action.Trigger, index: Int, actionForm: Form[AddAction])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Create an action - " + group.name.value + " settings - Gospeak", group, b)() {
     <h1 class="page-header">Create an action for @group.name.value</h1>
 

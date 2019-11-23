@@ -4,6 +4,7 @@ import java.time.Instant
 
 import cats.effect.IO
 import doobie.implicits._
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import fr.gospeak.core.domain.{Comment, Event, Proposal, User}
 import fr.gospeak.core.services.storage.CommentRepo
 import fr.gospeak.infra.services.storage.sql.CommentRepoSql._
@@ -19,8 +20,11 @@ class CommentRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
   override def addComment(proposal: Proposal.Id, data: Comment.Data, by: User.Id, now: Instant): IO[Comment] =
     insert(proposal, Comment.create(data, Comment.Kind.Proposal, by, now)).run(xa)
 
-  override def addOrgaComment(proposal: Proposal.Id, data: Comment.Data, by: User.Id, now: Instant): IO[Comment] =
-    insert(proposal, Comment.create(data, Comment.Kind.ProposalOrga, by, now)).run(xa)
+  override def addComment(proposal: Proposal.Id, data: Comment.Data)(implicit ctx: UserCtx): IO[Comment] =
+    insert(proposal, Comment.create(data, Comment.Kind.Proposal, ctx.user.id, ctx.now)).run(xa)
+
+  override def addOrgaComment(proposal: Proposal.Id, data: Comment.Data)(implicit ctx: OrgaCtx): IO[Comment] =
+    insert(proposal, Comment.create(data, Comment.Kind.ProposalOrga, ctx.user.id, ctx.now)).run(xa)
 
   override def getComments(event: Event.Id): IO[Seq[Comment.Full]] = selectAll(event, Comment.Kind.Event).runList(xa)
 

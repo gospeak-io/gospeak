@@ -1,8 +1,8 @@
 @import fr.gospeak.core.domain.{Group, UserRequest}
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(invite: UserRequest.GroupInvite, group: Group)(implicit req: SecuredReq[AnyContent])
+@(invite: UserRequest.GroupInvite, group: Group)(implicit req: UserReq[AnyContent])
 <p>Hi,</p>
 <p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has canceled your invitation to <b>@group.name.value</b> group.</p>
 <p>We hope everything is alright, you still can <a href="@GroupCtrl.join().absoluteURL()">apply to existing groups</a> or <a href="@GroupCtrl.create().absoluteURL()">create your own</a>.</p>

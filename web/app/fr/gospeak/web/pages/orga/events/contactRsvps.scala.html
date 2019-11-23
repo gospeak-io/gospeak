@@ -5,9 +5,9 @@
 @import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, event: Event, senders: Seq[EmailAddress.Contact], form: Form[EventForms.ContactAttendees])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, event: Event, senders: Seq[EmailAddress.Contact], form: Form[EventForms.ContactAttendees])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(group.name.value + " - Gospeak", group, b)() {
     <h1>Contact attendees of @event.name.value</h1>
 

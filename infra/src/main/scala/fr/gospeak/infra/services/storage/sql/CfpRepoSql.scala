@@ -8,41 +8,41 @@ import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.services.storage.CfpRepo
 import fr.gospeak.infra.services.storage.sql.CfpRepoSql._
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
 
 class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with CfpRepo {
-  override def create(group: Group.Id, data: Cfp.Data, by: User.Id, now: Instant): IO[Cfp] =
-    insert(Cfp(group, data, Info(by, now))).run(xa)
+  override def create(data: Cfp.Data)(implicit ctx: OrgaCtx): IO[Cfp] =
+    insert(Cfp(ctx.group.id, data, ctx.info)).run(xa)
 
-  override def edit(group: Group.Id, cfp: Cfp.Slug)(data: Cfp.Data, by: User.Id, now: Instant): IO[Done] = {
+  override def edit(cfp: Cfp.Slug, data: Cfp.Data)(implicit ctx: OrgaCtx): IO[Done] = {
     if (data.slug != cfp) {
-      find(group, data.slug).flatMap {
-        case None => update(group, cfp)(data, by, now).run(xa)
+      find(data.slug).flatMap {
+        case None => update(ctx.group.id, cfp)(data, ctx.user.id, ctx.now).run(xa)
         case _ => IO.raiseError(CustomException(s"You already have a cfp with slug ${data.slug}"))
       }
     } else {
-      update(group, cfp)(data, by, now).run(xa)
+      update(ctx.group.id, cfp)(data, ctx.user.id, ctx.now).run(xa)
     }
   }
 
   override def find(id: Cfp.Id): IO[Option[Cfp]] = selectOne(id).runOption(xa)
 
-  override def find(slug: Cfp.Slug): IO[Option[Cfp]] = selectOne(slug).runOption(xa)
+  override def findRead(slug: Cfp.Slug): IO[Option[Cfp]] = selectOne(slug).runOption(xa)
 
-  override def find(group: Group.Id, slug: Cfp.Slug): IO[Option[Cfp]] = selectOne(group, slug).runOption(xa)
+  override def find(slug: Cfp.Slug)(implicit ctx: OrgaCtx): IO[Option[Cfp]] = selectOne(ctx.group.id, slug).runOption(xa)
 
   override def find(id: Event.Id): IO[Option[Cfp]] = selectOne(id).runOption(xa)
 
   override def findOpen(slug: Cfp.Slug, now: Instant): IO[Option[Cfp]] = selectOne(slug, now).runOption(xa)
 
-  override def list(group: Group.Id, params: Page.Params): IO[Page[Cfp]] = selectPage(group, params).run(xa)
+  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Cfp]] = selectPage(ctx.group.id, params).run(xa)
 
   override def availableFor(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]] = selectPage(talk, params).run(xa)
 

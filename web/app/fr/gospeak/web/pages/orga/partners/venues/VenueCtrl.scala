@@ -13,7 +13,7 @@ import fr.gospeak.web.pages.orga.partners.PartnerCtrl
 import fr.gospeak.web.pages.orga.partners.routes.{PartnerCtrl => PartnerRoutes}
 import fr.gospeak.web.pages.orga.partners.venues.VenueCtrl._
 import fr.gospeak.web.pages.orga.venues.{VenueForms, html}
-import fr.gospeak.web.utils.{SecuredReq, UICtrl}
+import fr.gospeak.web.utils.{UserReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -41,7 +41,7 @@ class VenueCtrl(cc: ControllerComponents,
     )
   }
 
-  private def createView(group: Group.Slug, partner: Partner.Slug, form: Form[Venue.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def createView(group: Group.Slug, partner: Partner.Slug, form: Form[Venue.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup(groupElt.id))
@@ -78,7 +78,7 @@ class VenueCtrl(cc: ControllerComponents,
     )
   }
 
-  private def editView(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id, form: Form[Venue.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def editView(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id, form: Form[Venue.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup(groupElt.id))

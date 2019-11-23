@@ -4,9 +4,9 @@
 @import fr.gospeak.web.pages.speaker.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.speaker.partials.html.{cfpItem, container}
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(talk: Talk, cfps: Page[Cfp])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(talk: Talk, cfps: Page[Cfp])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Gospeak", b)() {
     @if(cfps.isEmpty) {
         <div class="jumbotron">

@@ -4,6 +4,8 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.OrgaCtx
+import fr.gospeak.core.services.storage.OrgaGroupRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.pages
@@ -21,8 +23,8 @@ abstract class UICtrl(cc: ControllerComponents,
     recoverFailedAction(block(req))(r.request).unsafeToFuture()
   }
 
-  protected def SecuredActionIO(block: SecuredReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.SecuredAction.async { r =>
-    val req = SecuredReq[AnyContent](r, messagesApi.preferred(r.request), env)
+  protected def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.SecuredAction.async { r =>
+    val req = UserReq[AnyContent](r, messagesApi.preferred(r.request), env)
     recoverFailedAction(block(req))(r.request).unsafeToFuture()
   }
 
@@ -106,4 +108,22 @@ abstract class UICtrl(cc: ControllerComponents,
 
   protected def notFound()(implicit req: UserAwareReq[AnyContent]): Result =
     NotFound("Not found :(")
+}
+
+object UICtrl {
+
+  trait OrgaAction {
+    self: UICtrl =>
+    val groupRepo: OrgaGroupRepo
+
+    protected def OrgaAction(group: Group.Slug)(block: OrgaReq[AnyContent] => OrgaCtx => IO[Result]): Action[AnyContent] = {
+      SecuredActionIO { req =>
+        groupRepo.find(req.user.id, group).flatMap {
+          case Some(group) => block(req.orga(group))(new OrgaCtx(req.now, req.user, group))
+          case None => IO.pure(Redirect(pages.user.routes.UserCtrl.index()).flashing("warning" -> s"Unable to find group with slug '${group.value}'"))
+        }
+      }
+    }
+  }
+
 }

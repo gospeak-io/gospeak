@@ -4,9 +4,9 @@
 @import fr.gospeak.web.pages.speaker.partials.html.{container, talkItem}
 @import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(talks: Page[Talk])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(talks: Page[Talk])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Gospeak", b)() {
     @if(talks.isEmpty) {
         <div class="jumbotron">

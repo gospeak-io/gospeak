@@ -5,9 +5,9 @@
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, event: Event, cfp: Option[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User])(implicit req: SecuredReq[AnyContent])
+@(group: Group, event: Event, cfp: Option[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User])(implicit req: UserReq[AnyContent])
 <div class="list-group-item list-group-item-action @if(event.start.isAfter(req.nowLDT)) {list-group-item-secondary}">
     <h5 class="mb-1">
         <a href="@EventCtrl.detail(group.slug, event.slug)">@event.name.value</a>

@@ -2,9 +2,9 @@
 @import fr.gospeak.core.services.slack.domain.SlackAction
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, trigger: Group.Settings.Action.Trigger, index: Int, action: Group.Settings.Action, accounts: Group.Settings.Accounts)(implicit req: SecuredReq[AnyContent])
+@(group: Group, trigger: Group.Settings.Action.Trigger, index: Int, action: Group.Settings.Action, accounts: Group.Settings.Accounts)(implicit req: UserReq[AnyContent])
 @action match {
     case Group.Settings.Action.Slack(a: SlackAction.PostMessage) => {
         <div class="media ml-3 mt-1">

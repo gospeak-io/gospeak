@@ -11,9 +11,9 @@
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(incomingEvents: Page[(Event.Full, Option[Event.Rsvp])], joinedGroups: Page[(Group, Group.Member)], talks: Page[Talk], proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(incomingEvents: Page[(Event.Full, Option[Event.Rsvp])], joinedGroups: Page[(Group, Group.Member)], talks: Page[Talk], proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Gospeak", b)() {
     @if(talks.nonEmpty && req.user.status.isUndefined) {
         <div class="alert alert-info" role="alert">

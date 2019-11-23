@@ -10,9 +10,9 @@
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, partner: Partner, venues: Seq[Venue.Full], contacts: Seq[Contact], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], events: Seq[(Event, Venue)])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, partner: Partner, venues: Seq[Venue.Full], contacts: Seq[Contact], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], events: Seq[(Event, Venue)])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(partner.name.value + " - Gospeak", group, b)() {
     <div class="d-flex justify-content-between align-items-start">
         <div class="media">

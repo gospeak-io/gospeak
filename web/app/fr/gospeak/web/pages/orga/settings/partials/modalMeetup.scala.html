@@ -3,9 +3,9 @@
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.MeetupAccount
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(id: String, group: Group, meetupForm: Form[MeetupAccount], credsOpt: Option[MeetupCredentials])(implicit req: SecuredReq[AnyContent])
+@(id: String, group: Group, meetupForm: Form[MeetupAccount], credsOpt: Option[MeetupCredentials])(implicit req: UserReq[AnyContent])
 <div class="modal fade" id="@id" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">

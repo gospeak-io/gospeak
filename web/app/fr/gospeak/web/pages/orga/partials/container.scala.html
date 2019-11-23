@@ -14,9 +14,9 @@
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.container.html._
 @import fr.gospeak.web.pages.partials.form.html.formBtn
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(title: String, group: Group, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: SecuredReq[AnyContent])
+@(title: String, group: Group, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserReq[AnyContent])
 @main(title, "orga.css", style, script, req.env) {
     <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
         <div class="container">

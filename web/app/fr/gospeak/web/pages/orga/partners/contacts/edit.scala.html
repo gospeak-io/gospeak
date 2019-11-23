@@ -3,9 +3,9 @@
 @import fr.gospeak.web.pages.orga.partials.html._
 @import fr.gospeak.web.pages.orga.partners.contacts.routes.ContactCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, partner: Partner, contact: Contact, form: Form[Contact.Data])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(group: Group, partner: Partner, contact: Contact, form: Form[Contact.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Gospeak", group, b)() {
     <h1 class="page-header">Edit @contact.name.value</h1>
 

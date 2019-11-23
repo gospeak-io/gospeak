@@ -20,7 +20,7 @@ import fr.gospeak.web.auth.AuthConf
 import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv, SocialProfile}
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
-import fr.gospeak.web.utils.{SecuredReq, UserAwareReq}
+import fr.gospeak.web.utils.{UserReq, UserAwareReq}
 import org.apache.http.auth.AuthenticationException
 import play.api.mvc.{AnyContent, Result}
 
@@ -90,7 +90,7 @@ class AuthSrv(userRepo: AuthUserRepo,
     } yield (authenticator, result)
   }
 
-  def logout(redirect: Result)(implicit req: SecuredReq[AnyContent]): IO[AuthenticatorResult] = {
+  def logout(redirect: Result)(implicit req: UserReq[AnyContent]): IO[AuthenticatorResult] = {
     silhouette.env.eventBus.publish(LogoutEvent(req.underlying.identity, req))
     IO.fromFuture(IO(silhouette.env.authenticatorService.discard(req.underlying.authenticator, redirect)))
   }

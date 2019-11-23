@@ -4,9 +4,9 @@
 @import fr.gospeak.web.pages.partials.form.html.formBtn
 @import fr.gospeak.web.pages.speaker.partials.html.container
 @import fr.gospeak.web.pages.user.routes.UserCtrl
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(invite: UserRequest.TalkInvite, talk: Talk, speaker: User)(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@(invite: UserRequest.TalkInvite, talk: Talk, speaker: User)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Gospeak", b, hideAlert = true)() {
     @if(invite.isPending(req.now)) {
         <h1>Nice!!! You have been invited to join a talk <i class="far fa-thumbs-up"></i></h1>

@@ -56,10 +56,10 @@ class SuggestCtrl(cc: ControllerComponents,
                   externalCfpRepo: SuggestExternalCfpRepo,
                   templateSrv: TemplateSrv,
                   slackSrv: SlackSrv) extends ApiCtrl(cc, env) {
-  private def SecuredActionIO(block: SecuredReq[AnyContent] => IO[Result]): Action[AnyContent] = SecuredActionIO(parse.anyContent)(block)
+  private def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = SecuredActionIO(parse.anyContent)(block)
 
-  private def SecuredActionIO[A](bodyParser: BodyParser[A])(block: SecuredReq[A] => IO[Result]): Action[A] = silhouette.SecuredAction(bodyParser).async { req =>
-    block(SecuredReq[A](req, messagesApi.preferred(req.request), env)).recover {
+  private def SecuredActionIO[A](bodyParser: BodyParser[A])(block: UserReq[A] => IO[Result]): Action[A] = silhouette.SecuredAction(bodyParser).async { req =>
+    block(UserReq[A](req, messagesApi.preferred(req.request), env)).recover {
       case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage)))
     }.unsafeToFuture()
   }
@@ -96,7 +96,7 @@ class SuggestCtrl(cc: ControllerComponents,
     makeSuggest[SponsorPack](sponsorPackRepo.listAll, sp => SuggestedItem(sp.id.value, sp.name.value + " (" + sp.price.value + ")" + (if (sp.active) "" else " (not active)")))(group)
   }
 
-  private def makeSuggest[A](list: Group.Id => IO[Seq[A]], format: A => SuggestedItem)(group: Group.Slug)(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def makeSuggest[A](list: Group.Id => IO[Seq[A]], format: A => SuggestedItem)(group: Group.Slug)(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
       results <- OptionT.liftF(list(groupElt.id))
@@ -124,7 +124,7 @@ class SuggestCtrl(cc: ControllerComponents,
     makeSearch[Event](eventRepo.list, e => SearchResultItem(e.name.value, EventCtrl.detail(group, e.slug).toString))(group, q)
   }
 
-  private def makeSearch[A](list: (Group.Id, Page.Params) => IO[Page[A]], format: A => SearchResultItem)(group: Group.Slug, q: String)(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def makeSearch[A](list: (Group.Id, Page.Params) => IO[Page[A]], format: A => SearchResultItem)(group: Group.Slug, q: String)(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
       results <- OptionT.liftF(list(groupElt.id, Page.Params.defaults.search(q)))

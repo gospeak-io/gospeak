@@ -1,9 +1,9 @@
 @import fr.gospeak.core.domain.utils.Info
 @import fr.gospeak.core.domain.User
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(info: Info, users: Seq[User], call: Option[User => Call] = None)(implicit req: SecuredReq[AnyContent])
+@(info: Info, users: Seq[User], call: Option[User => Call] = None)(implicit req: UserReq[AnyContent])
 @username(id: User.Id) = @{
     users.find(_.id == id).map(_.name.value).getOrElse(s"Unknown (${id.value})")
 }

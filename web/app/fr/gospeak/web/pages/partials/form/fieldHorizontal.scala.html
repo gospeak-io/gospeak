@@ -1,7 +1,7 @@
 @import fr.gospeak.web.pages.partials.form.Utils
-@import fr.gospeak.web.utils.GsRequest
+@import fr.gospeak.web.utils.BasicReq
 
-@(field: Field, args: Seq[(String, String)] = Seq())(input: (Field, Seq[(String, String)]) => Html)(implicit req: GsRequest[AnyContent])
+@(field: Field, args: Seq[(String, String)] = Seq())(input: (Field, Seq[(String, String)]) => Html)(implicit req: BasicReq[AnyContent])
 <div class="row form-group @Utils.getArg(args, "class")">
     <label class="col-sm-2 col-form-label" for="@Utils.id(field, args)">@Utils.getArg(args, "label", field.name)</label>
     <div class="col-sm-10">

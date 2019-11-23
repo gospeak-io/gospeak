@@ -22,7 +22,7 @@ class CfpCtrl(cc: ControllerComponents,
 
   def detail(cfp: Cfp.Slug): Action[AnyContent] = ApiActionOptT { implicit req =>
     for {
-      cfpElt <- OptionT(cfpRepo.find(cfp))
+      cfpElt <- OptionT(cfpRepo.findRead(cfp))
       groupElt <- OptionT(groupRepo.find(cfpElt.group))
     } yield PublicApiCfp(cfpElt, Some(groupElt))
   }

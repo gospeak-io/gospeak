@@ -8,7 +8,7 @@ import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.{Info, OrgaCtx}
 import fr.gospeak.core.services.storage.ProposalRepo
 import fr.gospeak.infra.services.storage.sql.ProposalRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
@@ -21,20 +21,20 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal] =
     insert(Proposal(talk, cfp, None, data, Proposal.Status.Pending, speakers, Info(by, now))).run(xa)
 
-  override def edit(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.Data, now: Instant): IO[Done] =
-    update(orga, group, cfp, proposal)(data, now).run(xa)
+  override def edit(cfp: Cfp.Slug, proposal: Proposal.Id, data: Proposal.Data)(implicit ctx: OrgaCtx): IO[Done] =
+    update(ctx.user.id, ctx.group.slug, cfp, proposal)(data, ctx.now).run(xa)
 
   override def edit(talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, by: User.Id, now: Instant): IO[Done] =
     update(by, talk, cfp)(data, now).run(xa)
 
-  override def editSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Slides, by: User.Id, now: Instant): IO[Done] =
-    updateSlides(cfp, id)(slides, by, now).run(xa)
+  override def editSlides(cfp: Cfp.Slug, id: Proposal.Id, slides: Slides)(implicit ctx: OrgaCtx): IO[Done] =
+    updateSlides(cfp, id)(slides, ctx.user.id, ctx.now).run(xa)
 
   override def editSlides(talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, by: User.Id, now: Instant): IO[Done] =
     updateSlides(by, talk, cfp)(slides, by, now).run(xa)
 
-  override def editVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, by: User.Id, now: Instant): IO[Done] =
-    updateVideo(cfp, id)(video, by, now).run(xa)
+  override def editVideo(cfp: Cfp.Slug, id: Proposal.Id, video: Video)(implicit ctx: OrgaCtx): IO[Done] =
+    updateVideo(cfp, id)(video, ctx.user.id, ctx.now).run(xa)
 
   override def editVideo(talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, by: User.Id, now: Instant): IO[Done] =
     updateVideo(by, talk, cfp)(video, by, now).run(xa)
@@ -53,8 +53,8 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug)(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
     removeSpeaker(find(by, talk, cfp))(speaker, by, now)
 
-  override def removeSpeaker(cfp: Cfp.Slug, id: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
-    removeSpeaker(find(cfp, id))(speaker, by, now)
+  override def removeSpeaker(cfp: Cfp.Slug, id: Proposal.Id, speaker: User.Id)(implicit ctx: OrgaCtx): IO[Done] =
+    removeSpeaker(find(cfp, id))(speaker, ctx.user.id, ctx.now)
 
   private def removeSpeaker(proposal: IO[Option[Proposal]])(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
     proposal.flatMap {
@@ -82,13 +82,16 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def reject(cfp: Cfp.Slug, id: Proposal.Id, by: User.Id, now: Instant): IO[Done] =
     updateStatus(cfp, id)(Proposal.Status.Declined, None).run(xa) // FIXME track user & date
 
-  override def cancelReject(cfp: Cfp.Slug, id: Proposal.Id, by: User.Id, now: Instant): IO[Done] =
+  override def reject(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): IO[Done] =
+    updateStatus(cfp, id)(Proposal.Status.Declined, None).run(xa) // FIXME track user & date
+
+  override def cancelReject(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): IO[Done] =
     updateStatus(cfp, id)(Proposal.Status.Pending, None).run(xa) // FIXME track user & date
 
-  override def rate(cfp: Cfp.Slug, id: Proposal.Id, grade: Proposal.Rating.Grade, by: User.Id, now: Instant): IO[Done] =
-    selectOneRating(id, by).runOption(xa).flatMap {
-      case Some(_) => update(Proposal.Rating(id, grade, now, by)).run(xa)
-      case None => insert(Proposal.Rating(id, grade, now, by)).run(xa).map(_ => Done)
+  override def rate(cfp: Cfp.Slug, id: Proposal.Id, grade: Proposal.Rating.Grade)(implicit ctx: OrgaCtx): IO[Done] =
+    selectOneRating(id, ctx.user.id).runOption(xa).flatMap {
+      case Some(_) => update(Proposal.Rating(id, grade, ctx.now, ctx.user.id)).run(xa)
+      case None => insert(Proposal.Rating(id, grade, ctx.now, ctx.user.id)).run(xa).map(_ => Done)
     }
 
   override def find(proposal: Proposal.Id): IO[Option[Proposal]] = selectOne(proposal).runOption(xa)
@@ -131,7 +134,7 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def listRatings(id: Proposal.Id): IO[Seq[Proposal.Rating.Full]] = selectAllRatings(id).runList(xa)
 
-  override def listRatings(cfp: Cfp.Slug, user: User.Id): IO[Seq[Proposal.Rating]] = selectAllRatings(cfp, user).runList(xa)
+  override def listRatings(cfp: Cfp.Slug)(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]] = selectAllRatings(cfp, ctx.user.id).runList(xa)
 
   override def listRatings(user: User.Id, proposals: Seq[Proposal.Id]): IO[Seq[Proposal.Rating]] =
     NonEmptyList.fromList(proposals.toList).map(selectAllRatings(user, _).runList(xa)).getOrElse(IO.pure(Seq()))

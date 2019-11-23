@@ -10,7 +10,7 @@ import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublishedSpeakerRoutes}
 import fr.gospeak.web.pages.user.UserCtrl
-import fr.gospeak.web.utils.{HttpUtils, SecuredReq, UICtrl}
+import fr.gospeak.web.utils.{HttpUtils, UserReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -41,7 +41,7 @@ class SpeakerCtrl(cc: ControllerComponents,
     )
   }
 
-  private def editView(form: Form[User.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
+  private def editView(form: Form[User.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     val b = SpeakerCtrl.editBreadcrumb(req.user)
     val filledForm = if (form.hasErrors) form else form.fill(req.user.data)
     IO(Ok(html.edit(filledForm)(b)))

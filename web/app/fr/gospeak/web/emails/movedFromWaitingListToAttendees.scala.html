@@ -1,8 +1,8 @@
 @import fr.gospeak.core.domain.{Event, Group, User}
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(group: Group, event: Event, attendee: User)(implicit req: SecuredReq[AnyContent])
+@(group: Group, event: Event, attendee: User)(implicit req: UserReq[AnyContent])
 <p>Hello @attendee.firstName,</p>
 <p>Someone withdrew and you were the first on the waiting list for <a href="@GroupCtrl.event(group.slug, event.slug).absoluteURL()">@event.name.value</a>.</p>
 <p>Good news, you are now on the guest list :)</p>

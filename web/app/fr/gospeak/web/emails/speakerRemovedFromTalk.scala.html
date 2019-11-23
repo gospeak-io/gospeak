@@ -1,8 +1,8 @@
 @import fr.gospeak.core.domain.{Talk, User}
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
-@import fr.gospeak.web.utils.SecuredReq
+@import fr.gospeak.web.utils.UserReq
 
-@(talk: Talk, speaker: User)(implicit req: SecuredReq[AnyContent])
+@(talk: Talk, speaker: User)(implicit req: UserReq[AnyContent])
 <p>Hi @speaker.name.value,</p>
 <p>Just to let you know that <a href="mailto:@req.user.email.value">@req.user.name.value</a> removed you from the <b>@talk.title.value</b> talk.</p>
 <p>Keep going and submit <a href="@CfpCtrl.list().absoluteURL()">new talks</a> to spread the world \o/</p>
