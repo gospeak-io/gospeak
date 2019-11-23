@@ -36,7 +36,7 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def findFull(group: Group.Id, venue: Venue.Id): IO[Option[Venue.Full]] = selectOneFull(group, venue).runOption(xa)
 
-  override def listAll(group: Group.Id, contact: Contact.Id): IO[Seq[Venue]] = selectAll(group, contact).runList(xa)
+  override def listAll(contact: Contact.Id)(implicit ctx: OrgaCtx): IO[Seq[Venue]] = selectAll(ctx.group.id, contact).runList(xa)
 }
 
 object VenueRepoSql {

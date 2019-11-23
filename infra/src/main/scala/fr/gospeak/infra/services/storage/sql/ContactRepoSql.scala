@@ -6,20 +6,20 @@ import cats.effect.IO
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.services.storage.ContactRepo
 import fr.gospeak.infra.services.storage.sql.ContactRepoSql._
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ContactRepo {
-  override def create(data: Contact.Data, by: User.Id, now: Instant): IO[Contact] = insert(Contact(data, Info(by, now))).run(xa)
+  override def create(data: Contact.Data)(implicit ctx: OrgaCtx): IO[Contact] = insert(Contact(data, ctx.info)).run(xa)
 
-  override def edit(contact: Contact.Id, data: Contact.Data)(by: User.Id, now: Instant): IO[Done] = update(contact, data)(by, now).run(xa)
+  override def edit(contact: Contact.Id, data: Contact.Data)(implicit ctx: OrgaCtx): IO[Done] = update(contact, data)(ctx.user.id, ctx.now).run(xa)
 
-  override def remove(group: Group.Id, partner: Partner.Id, contact: Contact.Id)(by: User.Id, now: Instant): IO[Done] = delete(group, partner, contact)(by, now).run(xa)
+  override def remove(partner: Partner.Id, contact: Contact.Id)(implicit ctx: OrgaCtx): IO[Done] = delete(ctx.group.id, partner, contact)(ctx.user.id, ctx.now).run(xa)
 
   override def find(id: Contact.Id): IO[Option[Contact]] = selectOne(id).runOption(xa)
 
