@@ -72,7 +72,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   override def afterEach(): Unit = db.dropTables().unsafeRunSync()
 
   protected def createUserAndGroup(): IO[(User, Group)] = for {
-    user <- userRepo.create(userData1, now)
+    user <- userRepo.create(userData1, now, None)
     group <- groupRepo.create(groupData1, user.id, now)
   } yield (user, group)
 

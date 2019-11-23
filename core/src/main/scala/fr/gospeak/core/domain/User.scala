@@ -31,8 +31,8 @@ final case class User(id: User.Id,
 }
 
 object User {
-  def apply(d: Data, now: Instant): User =
-    new User(Id.generate(), d.slug, d.status, d.firstName, d.lastName, d.email, None, d.avatar, d.bio, d.company, d.location, d.phone, d.website, d.social, now, now)
+  def apply(d: Data, now: Instant, emailValidated: Option[Instant] = None): User =
+    new User(Id.generate(), d.slug, d.status, d.firstName, d.lastName, d.email, emailValidated, d.avatar, d.bio, d.company, d.location, d.phone, d.website, d.social, now, now)
 
   final class Id private(value: String) extends DataClass(value) with IId
 

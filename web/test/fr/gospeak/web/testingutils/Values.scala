@@ -8,6 +8,7 @@ import com.mohiva.play.silhouette.api.actions._
 import com.mohiva.play.silhouette.api.util.Clock
 import com.mohiva.play.silhouette.api.{LoginInfo, Silhouette, SilhouetteProvider, Environment => SilhouetteEnvironment}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
+import com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry
 import com.mohiva.play.silhouette.test._
 import com.typesafe.config.ConfigFactory
 import fr.gospeak.core.ApplicationConf
@@ -57,7 +58,7 @@ object Values extends RandomDataGenerator {
   val db: GospeakDbSql = new GospeakDbSql(DatabaseConf.H2(s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"), conf.gospeak)
   private val authRepo = new AuthRepo(db.user, db.group)
   val emailSrv = new InMemoryEmailSrv()
-  val authSrv = AuthSrv(conf.auth, silhouette, db.user, db.userRequest, db.group, authRepo, clock, new GravatarSrv())
+  val authSrv = AuthSrv(conf.auth, silhouette, db.user, db.userRequest, db.group, authRepo, clock, SocialProviderRegistry(Seq()), new GravatarSrv())
 
   // twirl
   private val req: Request[AnyContent] = CSRFTokenHelper.addCSRFToken(FakeRequest().withAuthenticator(identity.loginInfo)(env))

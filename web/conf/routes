@@ -34,6 +34,7 @@ GET         /signup                                                             
 POST        /signup                                                                        fr.gospeak.web.auth.AuthCtrl.doSignup(redirect: Option[String] ?= None)
 GET         /login                                                                         fr.gospeak.web.auth.AuthCtrl.login(redirect: Option[String] ?= None)
 POST        /login                                                                         fr.gospeak.web.auth.AuthCtrl.doLogin(redirect: Option[String] ?= None)
+GET         /authenticate/:provider                                                        fr.gospeak.web.auth.AuthCtrl.authenticate(provider: String)
 GET         /logout                                                                        fr.gospeak.web.auth.AuthCtrl.doLogout
 POST        /account-validation                                                            fr.gospeak.web.auth.AuthCtrl.accountValidation
 GET         /validate-account                                                              fr.gospeak.web.auth.AuthCtrl.doValidateAccount(id: UserRequest.Id)

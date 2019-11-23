@@ -9,7 +9,7 @@ import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 class TalkRepoSqlSpec extends RepoSpec {
   describe("TalkRepoSql") {
     it("should create and retrieve") {
-      val user = userRepo.create(userData1, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now, None).unsafeRunSync()
       talkRepo.list(user.id, params).unsafeRunSync().items shouldBe Seq()
       talkRepo.find(user.id, talkData1.slug).unsafeRunSync() shouldBe None
       val talk = talkRepo.create(talkData1, user.id, now).unsafeRunSync()
@@ -17,20 +17,20 @@ class TalkRepoSqlSpec extends RepoSpec {
       talkRepo.find(user.id, talkData1.slug).unsafeRunSync() shouldBe Some(talk)
     }
     it("should not retrieve not owned talks") {
-      val user = userRepo.create(userData1, now).unsafeRunSync()
-      val user2 = userRepo.create(userData2, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now, None).unsafeRunSync()
+      val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
       val talk = talkRepo.create(talkData1, user2.id, now).unsafeRunSync()
       talkRepo.list(user.id, params).unsafeRunSync().items shouldBe Seq()
       talkRepo.find(user.id, talkData1.slug).unsafeRunSync() shouldBe None
     }
     it("should fail on duplicate slug") {
-      val user = userRepo.create(userData1, now).unsafeRunSync()
-      val user2 = userRepo.create(userData2, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now, None).unsafeRunSync()
+      val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
       talkRepo.create(talkData1, user.id, now).unsafeRunSync()
       an[Exception] should be thrownBy talkRepo.create(talkData1, user2.id, now).unsafeRunSync()
     }
     it("should update talk data") {
-      val user = userRepo.create(userData1, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now, None).unsafeRunSync()
       talkRepo.create(talkData1, user.id, now).unsafeRunSync()
       talkRepo.find(user.id, talkData1.slug).unsafeRunSync().map(_.data) shouldBe Some(talkData1)
       talkRepo.edit(talkData1.slug)(talkData2, user.id, now).unsafeRunSync()
@@ -38,13 +38,13 @@ class TalkRepoSqlSpec extends RepoSpec {
       talkRepo.find(user.id, talkData2.slug).unsafeRunSync().map(_.data) shouldBe Some(talkData2)
     }
     it("should fail to change slug for an existing one") {
-      val user = userRepo.create(userData1, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now, None).unsafeRunSync()
       talkRepo.create(talkData1, user.id, now).unsafeRunSync()
       talkRepo.create(talkData2, user.id, now).unsafeRunSync()
       an[Exception] should be thrownBy talkRepo.edit(talkData1.slug)(talkData1.copy(slug = talkData2.slug), user.id, now).unsafeRunSync()
     }
     it("should update the status") {
-      val user = userRepo.create(userData1, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now, None).unsafeRunSync()
       talkRepo.create(talkData1, user.id, now).unsafeRunSync()
       talkRepo.find(user.id, talkData1.slug).unsafeRunSync().map(_.status) shouldBe Some(Talk.Status.Draft)
       talkRepo.editStatus(talkData1.slug)(Talk.Status.Public, user.id).unsafeRunSync()

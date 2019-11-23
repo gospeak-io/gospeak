@@ -9,18 +9,18 @@ import doobie.implicits._
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.UserRepo
 import fr.gospeak.infra.services.storage.sql.UserRepoSql._
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRepo {
-  override def create(data: User.Data, now: Instant): IO[User] =
-    insert(User(data, now)).run(xa)
+  override def create(data: User.Data, now: Instant, emailValidated: Option[Instant]): IO[User] =
+    insert(User(data, now, emailValidated)).run(xa)
 
-  override def edit(user: User.Id)(data: User.Data, now: Instant): IO[Done] =
-    update(user)(data, now).run(xa)
+  override def edit(user: User.Id)(data: User.Data, now: Instant): IO[User] =
+    update(user)(data, now).run(xa).flatMap(_ => find(user).flatMap(_.toIO(new IllegalArgumentException(s"User $user does not exists"))))
 
   override def editStatus(user: User.Id)(status: User.Status, now: Instant): IO[Done] =
     selectOne(user).runOption(xa).flatMap {
@@ -100,6 +100,7 @@ object UserRepoSql {
     val where = fr0"WHERE cd.provider_id=${login.providerId} AND cd.provider_key=${login.providerKey}"
     credentialsTable.update(fields, where)
   }
+
 
   private[sql] def deleteCredentials(login: User.Login): Delete =
     credentialsTable.delete(fr0"WHERE cd.provider_id=${login.providerId} AND cd.provider_key=${login.providerKey}")

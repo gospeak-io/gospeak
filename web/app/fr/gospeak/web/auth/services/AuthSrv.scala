@@ -6,10 +6,10 @@ import com.mohiva.play.silhouette.api.services.AuthenticatorResult
 import com.mohiva.play.silhouette.api.util._
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import com.mohiva.play.silhouette.impl.exceptions.IdentityNotFoundException
-import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
+import com.mohiva.play.silhouette.impl.providers.{CommonSocialProfile, CredentialsProvider, SocialProviderRegistry}
 import com.mohiva.play.silhouette.password.BCryptPasswordHasher
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
-import fr.gospeak.core.domain.User.{ProviderId, ProviderKey}
+import fr.gospeak.core.domain.User.{Login, ProviderId, ProviderKey}
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
@@ -18,13 +18,15 @@ import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, EmailAddress}
 import fr.gospeak.web.auth.AuthConf
 import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
-import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
+import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv, SocialProfile}
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.utils.{SecuredReq, UserAwareReq}
+import org.apache.http.auth.AuthenticationException
 import play.api.mvc.{AnyContent, Result}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Try
 
 class AuthSrv(userRepo: AuthUserRepo,
               userRequestRepo: AuthUserRequestRepo,
@@ -35,6 +37,7 @@ class AuthSrv(userRepo: AuthUserRepo,
               authConf: AuthConf,
               passwordHasherRegistry: PasswordHasherRegistry,
               credentialsProvider: CredentialsProvider,
+              socialProviderRegistry: SocialProviderRegistry,
               gravatarSrv: GravatarSrv) {
   implicit private val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 
@@ -52,9 +55,8 @@ class AuthSrv(userRepo: AuthUserRepo,
       avatar = gravatarSrv.getAvatar(data.email)
       user <- emailOpt.map { user =>
         userRepo.edit(user.id)(user.data.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), req.now)
-          .flatMap(_ => userRepo.find(data.email).flatMap(_.toIO(CustomException(s"Illegal state: can't find user with email ${data.email.value}"))))
       }.getOrElse {
-        userRepo.create(data.data(avatar), req.now)
+        userRepo.create(data.data(avatar), req.now, None)
       }
       _ <- userRepo.createLoginRef(login, user.id)
       _ <- userRepo.createCredentials(credentials)
@@ -112,18 +114,70 @@ class AuthSrv(userRepo: AuthUserRepo,
     } yield authUser
   }
 
+  def createOrEdit(profile: CommonSocialProfile)(implicit req: UserAwareReq[AnyContent]): IO[AuthUser] = {
+    def create(login: Login): IO[AuthUser] = {
+      for {
+        data <- SocialProfile.toUserData(profile, gravatarSrv.getAvatar(_), req.now).toIO
+        exists <- userRepo.find(data.email)
+        user <- exists.fold(userRepo.create(data, req.now, Some(req.now)))(u => userRepo.edit(u.id)(u.data, req.now))
+        _ <- userRepo.createLoginRef(login, user.id)
+        groups <- groupRepo.list(user.id)
+      } yield AuthUser(profile.loginInfo, user, groups)
+    }
+
+    def edit(login: Login)(user: User): IO[AuthUser] = {
+      for {
+        email <- profile.email.map(EmailAddress.from).getOrElse(Right(user.email)).toIO // should update email address when login with social provider???
+        avatarOpt <- SocialProfile.getAvatar(profile).toIO
+        u <- userRepo.edit(user.id)(user.data.copy(
+          firstName = profile.firstName.getOrElse(user.firstName),
+          lastName = profile.lastName.getOrElse(user.lastName),
+          email = email,
+          avatar = avatarOpt.getOrElse(user.avatar)), now = req.now)
+        groups <- groupRepo.list(user.id)
+      } yield AuthUser(profile.loginInfo, u, groups)
+    }
+
+    val login = Login(ProviderId(profile.loginInfo.providerID), ProviderKey(profile.loginInfo.providerKey))
+    for {
+      optUser <- userRepo.find(login)
+      authUser <- optUser.fold(create(login))(edit(login))
+    } yield authUser
+  }
+
+  def providerIds: Seq[String] = socialProviderRegistry.providers.map(_.id)
+
+  def authenticate(providerID: String)(implicit req: UserAwareReq[AnyContent]): IO[Either[Result, CommonSocialProfile]] = {
+    for {
+      provider <- socialProviderRegistry.providers.find(_.id == providerID)
+        .toIO(new AuthenticationException(s"Cannot authenticate with social provider: $providerID (provider not found)"))
+      res <- IO.fromFuture(IO(provider.authenticate()))
+      profile <- res.map(authInfo => IO.fromFuture(IO(provider.retrieveProfile(authInfo)))).sequence
+      commonProfile <- profile.map(p => Try(p.asInstanceOf[CommonSocialProfile])
+        .mapFailure(_ => CustomException("Oops. Something went wrong. Cannot retrieve the social profile.")).toIO).sequence
+    } yield commonProfile
+  }
+
   private def toDomain(loginInfo: LoginInfo): User.Login = User.Login(User.ProviderId(loginInfo.providerID), User.ProviderKey(loginInfo.providerKey))
 
   private def toDomain(authInfo: PasswordInfo): User.Password = User.Password(User.Hasher(authInfo.hasher), User.PasswordValue(authInfo.password), authInfo.salt.map(User.Salt))
 }
 
 object AuthSrv {
-  def apply(authConf: AuthConf, silhouette: Silhouette[CookieEnv], userRepo: AuthUserRepo, userRequestRepo: AuthUserRequestRepo, groupRepo: AuthGroupRepo, authRepo: AuthRepo, clock: Clock, gravatarSrv: GravatarSrv): AuthSrv = {
+  def apply(authConf: AuthConf,
+            silhouette: Silhouette[CookieEnv],
+            userRepo: AuthUserRepo,
+            userRequestRepo: AuthUserRequestRepo,
+            groupRepo: AuthGroupRepo,
+            authRepo: AuthRepo,
+            clock: Clock,
+            socialProviderRegistry: SocialProviderRegistry,
+            gravatarSrv: GravatarSrv): AuthSrv = {
     val authInfoRepository = new DelegableAuthInfoRepository(authRepo)
     val bCryptPasswordHasher: PasswordHasher = new BCryptPasswordHasher
     val passwordHasherRegistry: PasswordHasherRegistry = PasswordHasherRegistry(bCryptPasswordHasher)
     val credentialsProvider = new CredentialsProvider(authInfoRepository, passwordHasherRegistry)
-    new AuthSrv(userRepo, userRequestRepo, groupRepo, authRepo, silhouette, clock, authConf, passwordHasherRegistry, credentialsProvider, gravatarSrv)
+    new AuthSrv(userRepo, userRequestRepo, groupRepo, authRepo, silhouette, clock, authConf, passwordHasherRegistry, credentialsProvider, socialProviderRegistry, gravatarSrv)
   }
 
   def login(email: EmailAddress): User.Login = User.Login(ProviderId(CredentialsProvider.ID), ProviderKey(email.value))

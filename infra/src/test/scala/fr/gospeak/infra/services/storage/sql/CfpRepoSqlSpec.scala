@@ -22,7 +22,7 @@ class CfpRepoSqlSpec extends RepoSpec {
       cfpRepo.availableFor(talkId, params).unsafeRunSync().items shouldBe Seq(cfp)
     }
     it("should fail to create a cfp when the group does not exists") {
-      val user = userRepo.create(userData1, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now, None).unsafeRunSync()
       an[Exception] should be thrownBy cfpRepo.create(Group.Id.generate(), cfpData1, user.id, now).unsafeRunSync()
     }
     it("should fail to create two cfp for a group") {

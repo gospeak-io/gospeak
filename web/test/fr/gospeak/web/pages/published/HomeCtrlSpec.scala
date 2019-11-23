@@ -11,7 +11,7 @@ class HomeCtrlSpec extends CtrlSpec {
     it("should return 200") {
       val res = ctrl.index().apply(unsecuredReq)
       status(res) shouldBe Status.OK
-      contentAsString(res) should include("""<h1 class="home-title">Gospeak</h1>""")
+      contentAsString(res) should include("Introducing Gospeak")
     }
   }
 }

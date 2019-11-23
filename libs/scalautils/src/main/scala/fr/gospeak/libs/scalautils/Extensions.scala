@@ -259,6 +259,13 @@ object Extensions {
     }
   }
 
+  implicit class EitherIOExtension[E, A](val in: Either[E, IO[A]]) extends AnyVal {
+    def sequence: IO[Either[E, A]] = in match {
+      case Left(e) => IO.pure(Left(e))
+      case Right(io) => io.map(Right(_))
+    }
+  }
+
   implicit class InstantExtension(val in: Instant) extends AnyVal {
     def plus(d: FiniteDuration): Instant = in.plusMillis(d.toMillis)
   }

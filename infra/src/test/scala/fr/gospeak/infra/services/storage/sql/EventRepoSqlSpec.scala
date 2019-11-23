@@ -23,7 +23,7 @@ class EventRepoSqlSpec extends RepoSpec {
       eventRepo.find(group.id, eventData.slug).unsafeRunSync() shouldBe Some(event)
     }
     it("should fail to create an event when the group does not exists") {
-      val user = userRepo.create(userData1, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now, None).unsafeRunSync()
       an[Exception] should be thrownBy eventRepo.create(Group.Id.generate(), eventData1, user.id, now).unsafeRunSync()
     }
     it("should fail on duplicate slug for the same group") {

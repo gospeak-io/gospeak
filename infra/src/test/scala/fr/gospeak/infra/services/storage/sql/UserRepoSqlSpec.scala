@@ -16,28 +16,28 @@ class UserRepoSqlSpec extends RepoSpec {
   describe("UserRepoSql") {
     it("should create and retrieve a user") {
       userRepo.find(userData1.email).unsafeRunSync() shouldBe None
-      userRepo.create(userData1, now).unsafeRunSync()
+      userRepo.create(userData1, now, None).unsafeRunSync()
       userRepo.find(userData1.email).unsafeRunSync().map(_.email) shouldBe Some(userData1.email)
     }
     it("should fail on duplicate slug") {
-      userRepo.create(userData1, now).unsafeRunSync()
-      an[Exception] should be thrownBy userRepo.create(userData2.copy(slug = userData1.slug), now).unsafeRunSync()
+      userRepo.create(userData1, now, None).unsafeRunSync()
+      an[Exception] should be thrownBy userRepo.create(userData2.copy(slug = userData1.slug), now, None).unsafeRunSync()
     }
     it("should fail on duplicate email") {
-      userRepo.create(userData1, now).unsafeRunSync()
-      an[Exception] should be thrownBy userRepo.create(userData2.copy(email = userData1.email), now).unsafeRunSync()
+      userRepo.create(userData1, now, None).unsafeRunSync()
+      an[Exception] should be thrownBy userRepo.create(userData2.copy(email = userData1.email), now, None).unsafeRunSync()
     }
     it("should select users by ids") {
-      val user1 = userRepo.create(userData1, now).unsafeRunSync()
-      val user2 = userRepo.create(userData2, now).unsafeRunSync()
-      userRepo.create(userData3, now).unsafeRunSync()
+      val user1 = userRepo.create(userData1, now, None).unsafeRunSync()
+      val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
+      userRepo.create(userData3, now, None).unsafeRunSync()
       userRepo.list(Seq(user1.id, user2.id)).unsafeRunSync() should contain theSameElementsAs Seq(user1, user2)
     }
     it("should select all speakers for a group") {
       userRepo.speakers(group.id, params).unsafeRunSync().items shouldBe Seq()
 
-      val user1 = userRepo.create(userData1, now).unsafeRunSync()
-      val user2 = userRepo.create(userData2, now).unsafeRunSync()
+      val user1 = userRepo.create(userData1, now, None).unsafeRunSync()
+      val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
       val talk1 = talkRepo.create(talkData1, user1.id, now).unsafeRunSync()
       val group1 = groupRepo.create(groupData1, user1.id, now).unsafeRunSync()
       val cfp1 = cfpRepo.create(group1.id, cfpData1, user1.id, now).unsafeRunSync()

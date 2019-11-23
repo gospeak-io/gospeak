@@ -22,13 +22,13 @@ class ProposalRepoSqlSpec extends RepoSpec {
       proposalRepo.find(cfp.slug, proposal.id).unsafeRunSync() shouldBe Some(proposal)
     }
     it("should fail to create a proposal when talk does not exists") {
-      val user = userRepo.create(userData1, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now, None).unsafeRunSync()
       val group = groupRepo.create(groupData1, user.id, now).unsafeRunSync()
       val cfp = cfpRepo.create(group.id, cfpData1, user.id, now).unsafeRunSync()
       an[Exception] should be thrownBy proposalRepo.create(Talk.Id.generate(), cfp.id, proposalData1, speakers, user.id, now).unsafeRunSync()
     }
     it("should fail to create a proposal when cfp does not exists") {
-      val user = userRepo.create(userData1, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now, None).unsafeRunSync()
       val talk = talkRepo.create(talkData1, user.id, now).unsafeRunSync()
       an[Exception] should be thrownBy proposalRepo.create(talk.id, Cfp.Id.generate(), proposalData1, speakers, user.id, now).unsafeRunSync()
     }

@@ -2,11 +2,20 @@ package fr.gospeak.web.auth
 
 import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticatorSettings
+import com.mohiva.play.silhouette.impl.providers.oauth1.secrets.CookieSecretSettings
+import com.mohiva.play.silhouette.impl.providers.state.CsrfStateSettings
+import com.mohiva.play.silhouette.impl.providers.{OAuth1Settings, OAuth2Settings}
+import fr.gospeak.web.auth.AuthConf.CookieConf
 import play.api.mvc.Cookie
 
 import scala.concurrent.duration._
 
-final case class AuthConf(cookie: AuthConf.CookieConf)
+final case class AuthConf(cookie: CookieConf,
+                          google: OAuth2Settings,
+                          twitter: OAuth1Settings,
+                          facebook: OAuth2Settings,
+                          github: OAuth2Settings,
+                          linkedIn: OAuth2Settings)
 
 object AuthConf {
 
@@ -27,6 +36,12 @@ object AuthConf {
                                   authenticatorExpiry: FiniteDuration) {
     def toConf: CookieAuthenticatorSettings =
       CookieAuthenticatorSettings(cookieName, cookiePath, None, secureCookie, httpOnlyCookie, sameSite, useFingerprinting, None, Some(authenticatorIdleTimeout), authenticatorExpiry)
+
+    def toCookieSecretSettings: CookieSecretSettings =
+      CookieSecretSettings(cookieName, cookiePath, None, secureCookie, httpOnlyCookie, sameSite, authenticatorExpiry)
+
+    def toCsrfStateSettings: CsrfStateSettings =
+      CsrfStateSettings(cookieName, cookiePath, None, secureCookie, httpOnlyCookie, sameSite, authenticatorExpiry)
   }
 
   final case class RememberMe(cookieMaxAge: FiniteDuration,
