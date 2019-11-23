@@ -9,32 +9,32 @@ import fr.gospeak.libs.scalautils.domain.EmailAddress
 class ContactRepoSqlSpec extends RepoSpec {
   describe("ContactRepoSql") {
     it("should create a contact and retrieve it") {
-      val (user, group) = createUserAndGroup().unsafeRunSync()
+      val (user, group, ctx) = createUserAndGroup().unsafeRunSync()
       val partner = partnerRepo.create(group.id, partnerData1, user.id, now).unsafeRunSync()
-      val contact = contactRepo.create(contactData1.copy(partner = partner.id), user.id, now).unsafeRunSync
+      val contact = contactRepo.create(contactData1.copy(partner = partner.id))(ctx).unsafeRunSync
       contactRepo.find(contact.id).unsafeRunSync shouldBe Some(contact)
     }
     it("should update contact") {
-      val (user, group) = createUserAndGroup().unsafeRunSync()
+      val (user, group, ctx) = createUserAndGroup().unsafeRunSync()
       val partner = partnerRepo.create(group.id, partnerData1, user.id, now).unsafeRunSync()
-      val contact = contactRepo.create(contactData1.copy(partner.id), user.id, now).unsafeRunSync
+      val contact = contactRepo.create(contactData1.copy(partner.id))(ctx).unsafeRunSync
       val address = EmailAddress.from("test@gmail.com").right.get
       val data = contactData1.copy(partner = partner.id, firstName = FirstName("newFN"), lastName = LastName("newLN"), email = address)
-      contactRepo.edit(contact.id, data)(user.id, now).unsafeRunSync()
+      contactRepo.edit(contact.id, data)(ctx).unsafeRunSync()
       contactRepo.find(contact.id).unsafeRunSync().map(_.data shouldBe data)
     }
     it("should list all contacts") {
-      val (user, group) = createUserAndGroup().unsafeRunSync()
+      val (user, group, ctx) = createUserAndGroup().unsafeRunSync()
       val partner = partnerRepo.create(group.id, partnerData1, user.id, now).unsafeRunSync()
-      val contact1 = contactRepo.create(contactData1.copy(partner = partner.id, lastName = LastName("contact1")), user.id, now).unsafeRunSync
-      val contact2 = contactRepo.create(contactData1.copy(partner = partner.id, lastName = LastName("contact2")), user.id, now).unsafeRunSync
+      val contact1 = contactRepo.create(contactData1.copy(partner = partner.id, lastName = LastName("contact1")))(ctx).unsafeRunSync
+      val contact2 = contactRepo.create(contactData1.copy(partner = partner.id, lastName = LastName("contact2")))(ctx).unsafeRunSync
       contactRepo.list(partner.id).unsafeRunSync() shouldBe Seq(contact1, contact2)
     }
     it("should find by mail") {
-      val (user, group) = createUserAndGroup().unsafeRunSync()
+      val (user, group, ctx) = createUserAndGroup().unsafeRunSync()
       val partner = partnerRepo.create(group.id, partnerData1, user.id, now).unsafeRunSync()
       val mail = EmailAddress.from("tes@gmail.com").right.get
-      val _ = contactRepo.create(contactData1.copy(partner = partner.id, email = mail), user.id, now).unsafeRunSync
+      val _ = contactRepo.create(contactData1.copy(partner = partner.id, email = mail))(ctx).unsafeRunSync
       contactRepo.exists(partner.id, mail).unsafeRunSync() shouldBe true
     }
     describe("Queries") {

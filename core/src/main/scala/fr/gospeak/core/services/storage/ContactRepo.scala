@@ -1,19 +1,18 @@
 package fr.gospeak.core.services.storage
 
-import java.time.Instant
-
 import cats.effect.IO
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 trait ContactRepo extends SuggestContactRepo {
   def list(partner: Partner.Id): IO[Seq[Contact]]
 
-  def create(data: Contact.Data, by: User.Id, now: Instant): IO[Contact]
+  def create(data: Contact.Data)(implicit ctx: OrgaCtx): IO[Contact]
 
-  def edit(contact: Contact.Id, data: Contact.Data)(by: User.Id, now: Instant): IO[Done]
+  def edit(contact: Contact.Id, data: Contact.Data)(implicit ctx: OrgaCtx): IO[Done]
 
-  def remove(group: Group.Id, partner: Partner.Id, contact: Contact.Id)(by: User.Id, now: Instant): IO[Done]
+  def remove(partner: Partner.Id, contact: Contact.Id)(implicit ctx: OrgaCtx): IO[Done]
 
   def list(partner: Partner.Id, params: Page.Params): IO[Page[Contact]]
 

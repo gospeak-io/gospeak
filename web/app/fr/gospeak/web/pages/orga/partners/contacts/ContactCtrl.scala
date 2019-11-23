@@ -4,6 +4,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.ApplicationConf
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Contact, Group, Partner}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.Extensions._
@@ -15,7 +16,7 @@ import fr.gospeak.web.pages.orga.partners.PartnerCtrl
 import fr.gospeak.web.pages.orga.partners.contacts.ContactCtrl._
 import fr.gospeak.web.pages.orga.partners.routes.{PartnerCtrl => PartnerRoutes}
 import fr.gospeak.web.utils.Mappings._
-import fr.gospeak.web.utils.{UserReq, UICtrl}
+import fr.gospeak.web.utils.{OrgaReq, UICtrl}
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -27,12 +28,10 @@ class ContactCtrl(cc: ControllerComponents,
                   env: ApplicationConf.Env,
                   contactRepo: ContactRepo,
                   userRepo: OrgaUserRepo,
-                  groupRepo: OrgaGroupRepo,
+                  val groupRepo: OrgaGroupRepo,
                   partnerRepo: OrgaPartnerRepo,
                   venueRepo: OrgaVenueRepo,
-                  sponsorRepo: OrgaSponsorRepo
-                 ) extends UICtrl(cc, silhouette, env) {
-
+                  sponsorRepo: OrgaSponsorRepo) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
   private val createForm: Form[Contact.Data] = Form(mapping(
     "partner" -> partnerId,
     "first_name" -> contactFirstName,
@@ -41,101 +40,94 @@ class ContactCtrl(cc: ControllerComponents,
     "description" -> markdown
   )(Contact.Data.apply)(Contact.Data.unapply))
 
-  def list(group: Group.Slug, partner: Partner.Slug, params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def list(group: Group.Slug, partner: Partner.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
+      partnerElt <- OptionT(partnerRepo.find(partner))
       contacts <- OptionT.liftF(contactRepo.list(partnerElt.id, params))
-      b = listBreadcrumb(groupElt, partnerElt)
-    } yield Ok(html.list(groupElt, partnerElt, contacts)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
-  }
+      b = listBreadcrumb(partnerElt)
+    } yield Ok(html.list(req.group, partnerElt, contacts)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
+  })
 
-  def create(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def create(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     createView(group, partner, createForm)
-  }
+  })
 
-  def doCreate(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doCreate(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     createForm.bindFromRequest.fold(
       formWithErrors => createView(group, partner, formWithErrors),
       data => (for {
-        groupElt <- OptionT(groupRepo.find(req.user.id, group))
-        partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
+        partnerElt <- OptionT(partnerRepo.find(partner))
         exists <- OptionT.liftF(contactRepo.exists(partnerElt.id, data.email))
         _ <- OptionT.liftF((!exists).toIO(DuplicateEmailException(data.email)))
-        contact <- OptionT.liftF(contactRepo.create(data, req.user.id, req.now))
+        contact <- OptionT.liftF(contactRepo.create(data))
       } yield Redirect(routes.ContactCtrl.detail(group, partner, contact.id))).value.map(_.getOrElse(partnerNotFound(group, partner)))
         .recoverWith {
           case _: DuplicateEmailException => createView(group, partner, createForm.bindFromRequest().withError("email", "Email already exists"))
           case NonFatal(e) => createView(group, partner, createForm.bindFromRequest().withGlobalError(e.getMessage))
         }
     )
-  }
+  })
 
-  private def createView(group: Group.Slug, partner: Partner.Slug, form: Form[Contact.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
+  private def createView(group: Group.Slug, partner: Partner.Slug, form: Form[Contact.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
-      b = listBreadcrumb(groupElt, partnerElt).add("New" -> routes.ContactCtrl.create(group, partner))
+      partnerElt <- OptionT(partnerRepo.find(partner))
+      b = listBreadcrumb(partnerElt).add("New" -> routes.ContactCtrl.create(group, partner))
       call = routes.ContactCtrl.doCreate(group, partner)
-    } yield Ok(html.create(groupElt, partnerElt, form, call)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
+    } yield Ok(html.create(req.group, partnerElt, form, call)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
   }
 
-  def detail(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def detail(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
+      partnerElt <- OptionT(partnerRepo.find(partner))
       contactElt <- OptionT(contactRepo.find(contact))
-      contactVenues <- OptionT.liftF(venueRepo.listAll(groupElt.id, contactElt.id))
-      contactSponsors <- OptionT.liftF(sponsorRepo.listAll(groupElt.id, contactElt.id))
-      b = breadcrumb(groupElt, partnerElt, contactElt)
-      res = Ok(html.detail(groupElt, partnerElt, contactElt, contactVenues, contactSponsors)(b))
+      contactVenues <- OptionT.liftF(venueRepo.listAll(contactElt.id))
+      contactSponsors <- OptionT.liftF(sponsorRepo.listAll(contactElt.id))
+      b = breadcrumb(partnerElt, contactElt)
+      res = Ok(html.detail(req.group, partnerElt, contactElt, contactVenues, contactSponsors)(b))
     } yield res).value.map(_.getOrElse(contactNotFound(group, partner, contact)))
-  }
+  })
 
-  def edit(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def edit(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     editView(group, partner, contact, createForm)
-  }
+  })
 
-  def doEdit(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doEdit(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     createForm.bindFromRequest.fold(
       formWithErrors => editView(group, partner, contact, formWithErrors),
       data => (for {
-        groupElt <- OptionT(groupRepo.find(req.user.id, group))
-        partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
+        partnerElt <- OptionT(partnerRepo.find(partner))
         exists <- OptionT.liftF(contactRepo.exists(partnerElt.id, data.email))
         _ <- OptionT.liftF((!exists).toIO(DuplicateEmailException(data.email)))
-        _ <- OptionT.liftF(contactRepo.edit(contact, data)(req.user.id, req.now))
+        _ <- OptionT.liftF(contactRepo.edit(contact, data))
       } yield Redirect(routes.ContactCtrl.detail(group, partner, contact))).value.map(_.getOrElse(partnerNotFound(group, partner)))
         .recoverWith {
           case _: DuplicateEmailException => createView(group, partner, createForm.bindFromRequest().withError("email", "Email already exists"))
           case NonFatal(e) => createView(group, partner, createForm.bindFromRequest().withGlobalError(e.getMessage))
         }
     )
-  }
+  })
 
-  private def editView(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id, form: Form[Contact.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
+  private def editView(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id, form: Form[Contact.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
+      partnerElt <- OptionT(partnerRepo.find(partner))
       contactElt <- OptionT(contactRepo.find(contact))
-      b = breadcrumb(groupElt, partnerElt, contactElt).add("Edit" -> routes.ContactCtrl.edit(group, partner, contact))
+      b = breadcrumb(partnerElt, contactElt).add("Edit" -> routes.ContactCtrl.edit(group, partner, contact))
       filledForm = if (form.hasErrors) form else form.fill(contactElt.data)
-    } yield Ok(html.edit(groupElt, partnerElt, contactElt, filledForm)(b))).value.map(_.getOrElse(contactNotFound(group, partner, contact)))
+    } yield Ok(html.edit(req.group, partnerElt, contactElt, filledForm)(b))).value.map(_.getOrElse(contactNotFound(group, partner, contact)))
   }
 
-  def doRemove(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doRemove(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      partnerElt <- OptionT(partnerRepo.find(groupElt.id, partner))
-      _ <- OptionT.liftF(contactRepo.remove(groupElt.id, partnerElt.id, contact)(req.user.id, req.now))
+      partnerElt <- OptionT(partnerRepo.find(partner))
+      _ <- OptionT.liftF(contactRepo.remove(partnerElt.id, contact))
     } yield Redirect(PartnerRoutes.detail(group, partner))).value.map(_.getOrElse(contactNotFound(group, partner, contact)))
-  }
+  })
 }
 
 object ContactCtrl {
-  def listBreadcrumb(group: Group, partner: Partner): Breadcrumb =
-    PartnerCtrl.breadcrumb(group, partner).add("Contacts" -> routes.ContactCtrl.list(group.slug, partner.slug))
+  def listBreadcrumb(partner: Partner)(implicit req: OrgaReq[AnyContent]): Breadcrumb =
+    PartnerCtrl.breadcrumb(req.group, partner).add("Contacts" -> routes.ContactCtrl.list(req.group.slug, partner.slug))
 
-  def breadcrumb(group: Group, partner: Partner, contact: Contact): Breadcrumb =
-    listBreadcrumb(group, partner).add(contact.email.value -> routes.ContactCtrl.detail(group.slug, partner.slug, contact.id))
+  def breadcrumb(partner: Partner, contact: Contact)(implicit req: OrgaReq[AnyContent]): Breadcrumb =
+    listBreadcrumb(partner).add(contact.email.value -> routes.ContactCtrl.detail(req.group.slug, partner.slug, contact.id))
 }

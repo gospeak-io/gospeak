@@ -9,7 +9,7 @@ import doobie.scalatest.IOChecker
 import doobie.util.testing.Analyzable
 import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{BasicCtx, OrgaCtx, UserCtx}
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.services.storage.sql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
@@ -72,20 +72,20 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
 
   override def afterEach(): Unit = db.dropTables().unsafeRunSync()
 
-  protected def createUserAndGroup(): IO[(User, Group)] = for {
+  protected def createUserAndGroup(): IO[(User, Group, OrgaCtx)] = for {
     user <- userRepo.create(userData1, now, None)
     group <- groupRepo.create(groupData1, user.id, now)
-  } yield (user, group)
+    ctx = new OrgaCtx(now, user, group)
+  } yield (user, group, ctx)
 
-  protected def createPartnerAndVenue(user: User, group: Group): IO[(Partner, Venue)] = for {
+  protected def createPartnerAndVenue(user: User, group: Group)(implicit ctx: OrgaCtx): IO[(Partner, Venue)] = for {
     partner <- partnerRepo.create(group.id, partnerData1, user.id, now)
-    contact <- venueData1.contact.map(_ => contactRepo.create(contactData1.copy(partner = partner.id), user.id, now)).sequence
+    contact <- venueData1.contact.map(_ => contactRepo.create(contactData1.copy(partner = partner.id))(ctx)).sequence
     venue <- venueRepo.create(group.id, venueData1.copy(partner = partner.id, contact = contact.map(_.id)), user.id, now)
   } yield (partner, venue)
 
   protected def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk)] = for {
-    (user, group) <- createUserAndGroup()
-    ctx = new OrgaCtx(now, user, group)
+    (user, group, ctx) <- createUserAndGroup()
     cfp <- cfpRepo.create(cfpData1)(ctx)
     talk <- talkRepo.create(talkData1, user.id, now)
   } yield (user, group, cfp, talk)

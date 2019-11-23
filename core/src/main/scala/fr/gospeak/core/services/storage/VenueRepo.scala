@@ -24,7 +24,7 @@ trait OrgaVenueRepo {
 
   def findFull(group: Group.Id, venue: Venue.Id): IO[Option[Venue.Full]]
 
-  def listAll(group: Group.Id, contact: Contact.Id): IO[Seq[Venue]]
+  def listAll(contact: Contact.Id)(implicit ctx: OrgaCtx): IO[Seq[Venue]]
 }
 
 trait PublicVenueRepo {
