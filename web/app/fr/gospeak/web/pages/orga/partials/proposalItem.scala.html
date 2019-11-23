@@ -19,9 +19,9 @@
             @duration(proposal.duration)
             @slidesIcon(proposal.slides)
             @videoIcon(proposal.video)
-            @proposalRating(proposal, userRatings.find(_.proposal == proposal.id).map(_.grade))
+            @proposalRating(proposal, userRatings.find(_.proposal == proposal.id).map(_.grade), "btn-xs")
             @tags(proposal.tags)
-            <small>Proposed on @date(proposal.info.created)</small>
+            <small>Proposed on @date(proposal.info.createdAt)</small>
         </span>
     </div>
     <div style="white-space: nowrap">@proposal.speakers.toList.map { id => @speakerAvatar(speakers, id, Some(s => SpeakerCtrl.detail(group.slug, s.slug))) }</div>

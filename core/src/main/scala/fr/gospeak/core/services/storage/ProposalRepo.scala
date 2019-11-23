@@ -44,6 +44,8 @@ trait OrgaProposalRepo {
 
   def find(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal]]
 
+  def findFull(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal.Full]]
+
   def listRatings(id: Proposal.Id): IO[Seq[Proposal.Rating.Full]]
 
   def listRatings(cfp: Cfp.Slug, user: User.Id): IO[Seq[Proposal.Rating]]

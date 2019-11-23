@@ -16,8 +16,6 @@
     @inputMarkdown(field, args)
 }
 @fieldHorizontal(form("logo"), Seq("label" -> "Logo")) { (field, args) =>
-    @inputText(field, args)
+    @inputImg(field, args)
 }
-@fieldHorizontal(form("twitter"), Seq("label" -> "Twitter profile")) { (field, args) =>
-    @inputText(field, args)
-}
+@socialAccountsFields(form("social"))

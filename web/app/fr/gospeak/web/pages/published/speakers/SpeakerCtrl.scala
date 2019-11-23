@@ -31,11 +31,11 @@ class SpeakerCtrl(cc: ControllerComponents,
     (for {
       speakerElt <- OptionT(userRepo.findPublic(user))
       publicTalks <- OptionT.liftF(talkRepo.list(speakerElt.id, Talk.Status.Public, params))
-      acceptedProposals <- OptionT.liftF(proposalRepo.listPublicFull(speakerElt.id, params))
+      // acceptedProposals <- OptionT.liftF(proposalRepo.listPublicFull(speakerElt.id, params))
       groups <- OptionT.liftF(groupRepo.list(speakerElt.id))
       orgas <- OptionT.liftF(userRepo.list(groups.flatMap(_.owners.toList)))
       b = breadcrumb(speakerElt)
-    } yield Ok(html.detail(speakerElt, publicTalks, acceptedProposals, groups, orgas)(b))).value.map(_.getOrElse(publicUserNotFound(user)))
+    } yield Ok(html.detail(speakerElt, publicTalks, groups, orgas)(b))).value.map(_.getOrElse(publicUserNotFound(user)))
   }
 }
 

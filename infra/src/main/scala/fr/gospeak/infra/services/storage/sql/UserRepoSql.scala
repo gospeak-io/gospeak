@@ -9,25 +9,22 @@ import doobie.implicits._
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.UserRepo
 import fr.gospeak.infra.services.storage.sql.UserRepoSql._
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRepo {
-  override def create(data: User.Data, now: Instant): IO[User] = insert(User(data, User.emptyProfile, now)).run(xa)
+  override def create(data: User.Data, now: Instant, emailValidated: Option[Instant]): IO[User] =
+    insert(User(data, now, emailValidated)).run(xa)
 
-  override def create(user: User): IO[User] = insert(user).run(xa)
+  override def edit(user: User.Id)(data: User.Data, now: Instant): IO[User] =
+    update(user)(data, now).run(xa).flatMap(_ => find(user).flatMap(_.toIO(new IllegalArgumentException(s"User $user does not exists"))))
 
-  override def edit(user: User, now: Instant): IO[User] = update(user.copy(updated = now)).run(xa).map(_ => user.copy(updated = now))
-
-  override def edit(user: User, editable: User.EditableFields, now: Instant): IO[User] =
-    update(user.copy(firstName = editable.firstName, lastName = editable.lastName, email = editable.email, profile = editable.profile, updated = now)).run(xa).map(_ => user.copy(updated = now))
-
-  override def editStatus(user: User.Id)(status: User.Profile.Status): IO[Done] =
+  override def editStatus(user: User.Id)(status: User.Status, now: Instant): IO[Done] =
     selectOne(user).runOption(xa).flatMap {
-      case Some(userElt) => update(userElt.copy(profile = userElt.profile.copy(status = status))).run(xa)
+      case Some(userElt) => update(user)(userElt.data.copy(status = status), now).run(xa)
       case None => IO.raiseError(new IllegalArgumentException(s"User $user does not exists"))
     }
 
@@ -76,13 +73,17 @@ object UserRepoSql {
   private val proposalsWithCfps = Tables.proposals.join(Tables.cfps, _.cfp_id -> _.id).get
 
   private[sql] def insert(e: User): Insert[User] = {
-    val values = fr0"${e.id}, ${e.slug}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.avatar.source}, ${e.profile.status}, ${e.profile.bio}, ${e.profile.company}, ${e.profile.location}, ${e.profile.twitter}, ${e.profile.linkedin}, ${e.profile.phone}, ${e.profile.website}, ${e.created}, ${e.updated}"
+    val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.bio}, ${e.company}, ${e.location}, ${e.phone}, ${e.website}, " ++
+      fr0"${e.social.facebook}, ${e.social.instagram}, ${e.social.twitter}, ${e.social.linkedIn}, ${e.social.youtube}, ${e.social.meetup}, ${e.social.eventbrite}, ${e.social.slack}, ${e.social.discord}, ${e.social.github}, " ++
+      fr0"${e.createdAt}, ${e.updatedAt}"
     table.insert(e, _ => values)
   }
 
-  private[sql] def update(elt: User): Update = {
-    val fields = fr0"slug=${elt.slug}, first_name=${elt.firstName}, last_name=${elt.lastName}, email=${elt.email}, status=${elt.profile.status}, bio=${elt.profile.bio}, company=${elt.profile.company}, location=${elt.profile.location}, twitter=${elt.profile.twitter}, linkedin=${elt.profile.linkedin}, phone=${elt.profile.phone}, website=${elt.profile.website}, updated=${elt.updated}"
-    table.update(fields, fr0"WHERE u.id=${elt.id}")
+  private[sql] def update(user: User.Id)(d: User.Data, now: Instant): Update = {
+    val fields = fr0"slug=${d.slug}, status=${d.status}, first_name=${d.firstName}, last_name=${d.lastName}, email=${d.email}, avatar=${d.avatar.url}, bio=${d.bio}, company=${d.company}, location=${d.location}, phone=${d.phone}, website=${d.website}, " ++
+      fr0"social_facebook=${d.social.facebook}, social_instagram=${d.social.instagram}, social_twitter=${d.social.twitter}, social_linkedIn=${d.social.linkedIn}, social_youtube=${d.social.youtube}, social_meetup=${d.social.meetup}, social_eventbrite=${d.social.eventbrite}, social_slack=${d.social.slack}, social_discord=${d.social.discord}, social_github=${d.social.github}, " ++
+      fr0"updated_at=$now"
+    table.update(fields, fr0"WHERE u.id=$user")
   }
 
   private[sql] def validateAccount(email: EmailAddress, now: Instant): Update =
@@ -120,7 +121,7 @@ object UserRepoSql {
     table.select[User](fr0"WHERE u.id=$id")
 
   private[sql] def selectOnePublic(slug: User.Slug): Select[User] = {
-    val public: User.Profile.Status = User.Profile.Status.Public
+    val public: User.Status = User.Status.Public
     table.select[User](fr0"WHERE u.status=$public AND u.slug=$slug")
   }
 
@@ -131,7 +132,7 @@ object UserRepoSql {
   } */
 
   private[sql] def selectPagePublic(params: Page.Params): SelectPage[User] = {
-    val public: User.Profile.Status = User.Profile.Status.Public
+    val public: User.Status = User.Status.Public
     table.selectPage[User](params, fr0"WHERE u.status=$public")
   }
 

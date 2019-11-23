@@ -17,7 +17,7 @@
             <p class="mb-0">Owners: @group.owners.toList.map { id => @speaker(owners, id) }</p>
         </div>
         @pendingRequests.find(_.group == group.id).map { userReq =>
-            <a href="#" class="btn btn-success disabled">Asked @timeAgo(userReq.created)</a>
+            <a href="#" class="btn btn-success disabled">Asked @timeAgo(userReq.createdAt)</a>
         }.getOrElse {
             @formBtn(GroupCtrl.doJoin(group.slug, groups.params), Seq("class" -> "btn-primary")){Ask to join}
         }

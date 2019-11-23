@@ -10,13 +10,12 @@
     <div class="col-11">
         <a href="@SpeakerCtrl.detail(group.slug, speaker.slug)" class="no-style"><h5 class="mb-0">@speaker.name.value</h5></a>
         <p class="text-secondary font-italic no-margin">
-            @speaker.profile.website.map { url => @websiteLink(url) }
-            @speaker.profile.company.map { company => @companyDisplay(company) }
+            @speaker.website.map { url => @websiteLink(url) }
+            @speaker.company.map { company => @companyDisplay(company) }
         </p>
         <p class="text-secondary font-italic no-margin">
-            @speaker.profile.twitter.map { url => @twitterLink(url) }
-            @speaker.profile.linkedin.map { url => @linkedinLink(url) }
             @emailLink(speaker.email)
+            @socialIcons(speaker.social)
         </p>
     </div>
 </div>

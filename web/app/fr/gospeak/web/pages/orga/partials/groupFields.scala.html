@@ -47,4 +47,9 @@
         }
     </div>
 </div>
-@socialAccountsFields(form("social"))
+<div class="card mb-3">
+    <div class="card-header" data-toggle="collapse" data-target="#socialCollapse">Social accounts</div>
+    <div class="card-body collapse show" id="socialCollapse">
+        @socialAccountsFields(form("social"))
+    </div>
+</div>

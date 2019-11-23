@@ -12,6 +12,6 @@ object PartnerForms {
     "notes" -> markdown,
     "description" -> optional(markdown),
     "logo" -> url,
-    "twitter" -> optional(url)
+    "social" -> socialAccounts
   )(Partner.Data.apply)(Partner.Data.unapply))
 }

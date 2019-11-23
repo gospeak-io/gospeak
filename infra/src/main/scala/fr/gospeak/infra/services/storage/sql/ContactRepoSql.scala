@@ -35,12 +35,12 @@ object ContactRepoSql {
   private val table = Tables.contacts
 
   private[sql] def insert(e: Contact): Insert[Contact] = {
-    val values = fr0"${e.id}, ${e.partner}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.description}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    val values = fr0"${e.id}, ${e.partner}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.description}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert[Contact](e, _ => values)
   }
 
   private[sql] def update(contact: Contact.Id, data: Contact.Data)(by: User.Id, now: Instant): Update = {
-    val fields = fr0"first_name=${data.firstName}, last_name=${data.lastName}, email=${data.email}, description=${data.description}, updated=$now, updated_by=$by"
+    val fields = fr0"first_name=${data.firstName}, last_name=${data.lastName}, email=${data.email}, description=${data.description}, updated_at=$now, updated_by=$by"
     table.update(fields, where(contact))
   }
 

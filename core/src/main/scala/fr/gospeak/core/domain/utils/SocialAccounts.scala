@@ -2,7 +2,8 @@ package fr.gospeak.core.domain.utils
 
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount._
-import fr.gospeak.libs.scalautils.domain.Url
+import fr.gospeak.libs.scalautils.domain.{CustomException, Url}
+import fr.gospeak.libs.scalautils.Extensions._
 
 final case class SocialAccounts(facebook: Option[FacebookAccount],
                                 instagram: Option[InstagramAccount],
@@ -12,21 +13,22 @@ final case class SocialAccounts(facebook: Option[FacebookAccount],
                                 meetup: Option[MeetupAccount],
                                 eventbrite: Option[EventbriteAccount],
                                 slack: Option[SlackAccount],
-                                discord: Option[DiscordAccount]) {
-  def all: Seq[SocialAccount] = Seq(facebook, instagram, twitter, linkedIn, youtube, meetup, eventbrite, slack, discord).flatten
+                                discord: Option[DiscordAccount],
+                                github: Option[GithubAccount]) {
+  def all: Seq[SocialAccount] = Seq(facebook, instagram, twitter, linkedIn, youtube, meetup, eventbrite, slack, discord, github).flatten
 }
 
 object SocialAccounts {
-  def apply(facebook: Option[Url] = None,
-            instagram: Option[Url] = None,
-            twitter: Option[Url] = None,
-            linkedIn: Option[Url] = None,
-            youtube: Option[Url] = None,
-            meetup: Option[Url] = None,
-            eventbrite: Option[Url] = None,
-            slack: Option[Url] = None,
-            discord: Option[Url] = None,
-            a: Boolean = true): SocialAccounts =
+  def fromUrls(facebook: Option[Url] = None,
+               instagram: Option[Url] = None,
+               twitter: Option[Url] = None,
+               linkedIn: Option[Url] = None,
+               youtube: Option[Url] = None,
+               meetup: Option[Url] = None,
+               eventbrite: Option[Url] = None,
+               slack: Option[Url] = None,
+               discord: Option[Url] = None,
+               github: Option[Url] = None): SocialAccounts =
     new SocialAccounts(
       facebook = facebook.map(FacebookAccount),
       instagram = instagram.map(InstagramAccount),
@@ -36,33 +38,78 @@ object SocialAccounts {
       meetup = meetup.map(MeetupAccount),
       eventbrite = eventbrite.map(EventbriteAccount),
       slack = slack.map(SlackAccount),
-      discord = discord.map(DiscordAccount))
+      discord = discord.map(DiscordAccount),
+      github = github.map(GithubAccount))
+
+  def fromStrings(facebook: Option[String] = None,
+                  instagram: Option[String] = None,
+                  twitter: Option[String] = None,
+                  linkedIn: Option[String] = None,
+                  youtube: Option[String] = None,
+                  meetup: Option[String] = None,
+                  eventbrite: Option[String] = None,
+                  slack: Option[String] = None,
+                  discord: Option[String] = None,
+                  github: Option[String] = None): Either[CustomException, SocialAccounts] = for {
+    facebookUrl <- facebook.map(Url.from).sequence
+    instagramUrl <- instagram.map(Url.from).sequence
+    twitterUrl <- twitter.map(Url.from).sequence
+    linkedInUrl <- linkedIn.map(Url.from).sequence
+    youtubeUrl <- youtube.map(Url.from).sequence
+    meetupUrl <- meetup.map(Url.from).sequence
+    eventbriteUrl <- eventbrite.map(Url.from).sequence
+    slackUrl <- slack.map(Url.from).sequence
+    discordUrl <- discord.map(Url.from).sequence
+    githubUrl <- github.map(Url.from).sequence
+  } yield fromUrls(facebookUrl, instagramUrl, twitterUrl, linkedInUrl, youtubeUrl, meetupUrl, eventbriteUrl, slackUrl, discordUrl, githubUrl)
 
   sealed abstract class SocialAccount(url: Url) {
     def link: String = url.value
+
+    def handle: String
   }
 
   object SocialAccount {
 
-    final case class FacebookAccount(url: Url) extends SocialAccount(url)
+    final case class FacebookAccount(url: Url) extends SocialAccount(url) {
+      def handle: String = url.value
+    }
 
-    final case class InstagramAccount(url: Url) extends SocialAccount(url)
+    final case class InstagramAccount(url: Url) extends SocialAccount(url) {
+      def handle: String = url.value
+    }
 
     final case class TwitterAccount(url: Url) extends SocialAccount(url) {
       def handle: String = "@" + url.value.split("/").last
     }
 
-    final case class LinkedInAccount(url: Url) extends SocialAccount(url)
+    final case class LinkedInAccount(url: Url) extends SocialAccount(url) {
+      def handle: String = url.value.split("/").filter(_.nonEmpty).lastOption.getOrElse(url.value)
+    }
 
-    final case class YoutubeAccount(url: Url) extends SocialAccount(url)
+    final case class YoutubeAccount(url: Url) extends SocialAccount(url) {
+      def handle: String = url.value
+    }
 
-    final case class MeetupAccount(url: Url) extends SocialAccount(url)
+    final case class MeetupAccount(url: Url) extends SocialAccount(url) {
+      def handle: String = url.value
+    }
 
-    final case class EventbriteAccount(url: Url) extends SocialAccount(url)
+    final case class EventbriteAccount(url: Url) extends SocialAccount(url) {
+      def handle: String = url.value
+    }
 
-    final case class SlackAccount(url: Url) extends SocialAccount(url)
+    final case class SlackAccount(url: Url) extends SocialAccount(url) {
+      def handle: String = url.value
+    }
 
-    final case class DiscordAccount(url: Url) extends SocialAccount(url)
+    final case class DiscordAccount(url: Url) extends SocialAccount(url) {
+      def handle: String = url.value
+    }
+
+    final case class GithubAccount(url: Url) extends SocialAccount(url) {
+      def handle: String = url.value
+    }
 
   }
 

@@ -1,11 +1,11 @@
-@import fr.gospeak.core.domain.{Group, Proposal, Talk, User}
+@import fr.gospeak.core.domain.{Group, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.published.partials.html.{container, speakerCard, groupItem, proposalItem, talkItem}
+@import fr.gospeak.web.pages.published.partials.html.{container_theme, speakerCard, groupItem_theme, proposalItem, talkItem}
 @import fr.gospeak.web.utils.UserAwareReq
 
-@(speaker: User, publicTalks: Page[Talk], proposals: Page[Proposal.Full], ownedGroups: Seq[Group], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(speaker.name.value + " - Gospeak", b)() {
+@(speaker: User, publicTalks: Page[Talk], ownedGroups: Seq[Group], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container_theme(speaker.name.value + " - Gospeak", b)() {
     <div class="row">
         <div class="col-4">
             @speakerCard(speaker)
@@ -13,20 +13,15 @@
         <div class="col-8">
             @if(publicTalks.nonEmpty) {
                 <div class="mb-3">
-                    <h2>Actual talks</h2>
+                    <h2>Talks</h2>
                     @publicTalks.items.map { talk => @talkItem(talk) }
                 </div>
             }
-            @if(proposals.nonEmpty) {
-                <div class="mb-3">
-                    <h2>Planned talks</h2>
-                    @proposals.items.map { proposal => @proposalItem(proposal, req.now) }
-                </div>
-            }
+
             @if(ownedGroups.nonEmpty) {
                 <div class="mb-3">
                     <h2>Organises</h2>
-                    @ownedGroups.map { group => @groupItem(group, orgas) }
+                    @ownedGroups.map { group => @groupItem_theme(group, orgas) }
                 </div>
             }
         </div>

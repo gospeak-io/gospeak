@@ -3,7 +3,7 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
-@import fr.gospeak.web.pages.published.partials.html.container
+@import fr.gospeak.web.pages.published.partials.html.container_theme
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 
@@ -15,9 +15,8 @@
                 <div>
                     <h5 class="card-title">@member.name.value</h5>
                     <p class="mb-0">
-                        @member.profile.twitter.map { url => @twitterLink(url) }
-                        @member.profile.linkedin.map { url => @linkedinLink(url) }
-                        @member.profile.website.map { url => @websiteLink(url) }
+                        @member.website.map { url => @websiteLink(url) }
+                        @socialIcons(member.social)
                     </p>
                 </div>
             } else {
@@ -27,11 +26,17 @@
         </div>
     </div>
 }
-@container(group.name.value + " - Gospeak", b)() {
-    <h1>@Formats.plural(members.total.value, "member") in @group.name.value</h1>
-    <div class="row">
-        <div class="col">
-            @Formats.paginated[Group.Member](members, GroupCtrl.members(group.slug, _), m => memberItem(group, m))
+@container_theme(group.name.value + " - Gospeak", b)() {
+        <div class="row">
+            <div class="col-lg-4 mb-9 mb-lg-0">
+                <div class="card shadow-sm p-5 mb-5">
+                    todo : importer groupCard
+                </div>
+            </div>
+
+            <div class="col-lg-8 m">
+                <h3>@Formats.plural(members.total.value, "member") in @group.name.value</h3>
+                @Formats.paginated[Group.Member](members, GroupCtrl.members(group.slug, _), m => memberItem(group, m))
+            </div>
         </div>
-    </div>
 }()

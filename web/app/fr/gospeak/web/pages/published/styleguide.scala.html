@@ -102,7 +102,7 @@
                 @example(s"$name with title") { _ => @display.duration(talk.duration, Some("Talk duration")) }
             }
             @component("timeAgo", "@timeAgo(talk.info.created)") { name =>
-                @example(s"$name") { _ => @display.timeAgo(talk.info.created)(secured) }
+                @example(s"$name") { _ => @display.timeAgo(talk.info.createdAt)(secured) }
             }
             @component("event", "@event(talk.duration, Some(e => MyCtrl.detail(e.slug)))") { name =>
                 @example(s"$name") { _ => @display.event(Seq(event), event.id, Some(_ => HomeCtrl.styleguide(params))) }
@@ -113,7 +113,7 @@
                 @example(s"$name") { _ => @display.info(talk.info, Seq(user), Some(_ => HomeCtrl.styleguide(params))) }
                 @example(s"$name without link") { _ => @display.info(talk.info, Seq(user)) }
                 @example(s"$name not found") { _ => @display.info(talk.info, Seq()) }
-                @example(s"$name with different update date") { _ => @display.info(talk.info.copy(updated = talk.info.updated.plusSeconds(60)), Seq(user)) }
+                @example(s"$name with different update date") { _ => @display.info(talk.info.copy(updatedAt = talk.info.updatedAt.plusSeconds(60)), Seq(user)) }
             }
             @component("talkStatus", "@talkStatus(talk.status)") { name =>
                 @Talk.Status.all.map { status =>

@@ -24,4 +24,25 @@ If you have any idea or suggestion about that, we will be happy to discuss it wi
 
 ## Dev
 
-Run coverage: `sbt clean coverage test coverageReport coverageAggregate && xdg-open target/scala-2.12/scoverage-report/index.html`
+### Getting started
+
+- install a scala environment
+    - jdk
+    - sbt
+    - scala (intellij)
+- clone the repo
+- launch `sbt run`
+- open `http://localhost:9000`
+
+### Troubleshooting
+
+- run coverage: `sbt clean coverage test coverageReport coverageAggregate && xdg-open target/scala-2.12/scoverage-report/index.html`
+
+### Architecture
+
+TODO
+
+## Notes
+
+- https://github.com/DavidGregory084/sbt-tpolecat
+- https://github.com/ghik/silencer

@@ -1,0 +1,39 @@
+/*------------------------------------
+  Custom Button Toggle
+------------------------------------*/
+
+.btn-custom-toggle-primary {
+  color: $btn-custom-toggle-primary-color;
+  border-color: $btn-custom-toggle-primary-border-color;
+
+  &:hover {
+    color: $btn-custom-toggle-primary-hover-color;
+    background-color: $btn-custom-toggle-primary-hover-bg-color;
+    border-color: $btn-custom-toggle-primary-hover-border-color;
+  }
+
+  &:not(:disabled):not(.disabled),
+  &:not(:disabled):not(.disabled) {
+    &:active,
+    &.active {
+      color: $btn-custom-toggle-primary-active-color;
+      background-color: $btn-custom-toggle-primary-active-bg-color;
+      border-color: $btn-custom-toggle-primary-active-border-color;
+    }
+  }
+}
+
+.btn-custom-toggle-white {
+  &:hover {
+    color: $btn-custom-toggle-white-hover-color;
+    background-color: $btn-custom-toggle-white-hover-bg-color;
+  }
+
+  &:not(:disabled):not(.disabled),
+  &:not(:disabled):not(.disabled) {
+    &:active,
+    &.active {
+      color: $btn-custom-toggle-white-active-color;
+    }
+  }
+}

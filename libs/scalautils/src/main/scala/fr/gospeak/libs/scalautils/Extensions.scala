@@ -6,7 +6,7 @@ import java.util.Optional
 import cats.MonadError
 import cats.data.NonEmptyList
 import cats.effect.IO
-import fr.gospeak.libs.scalautils.domain.{CustomException, MultiException}
+import fr.gospeak.libs.scalautils.domain.MultiException
 
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable

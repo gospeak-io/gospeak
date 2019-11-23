@@ -4,7 +4,7 @@
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.published.partials.html.container
+@import fr.gospeak.web.pages.published.partials.html.container_theme
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 
@@ -16,9 +16,8 @@
                 <div>
                     <h5 class="card-title"><a href="@SpeakerCtrl.detail(speaker.slug)">@speaker.name.value</a></h5>
                     <p class="mb-0">
-                        @speaker.profile.twitter.map { url => @twitterLink(url) }
-                        @speaker.profile.linkedin.map { url => @linkedinLink(url) }
-                        @speaker.profile.website.map { url => @websiteLink(url) }
+                        @speaker.website.map { url => @websiteLink(url) }
+                        @socialIcons(speaker.social)
                     </p>
                 </div>
             } else {
@@ -28,11 +27,17 @@
         </div>
     </div>
 }
-@container(group.name.value + " - Gospeak", b)() {
-    <h1>@Formats.plural(speakers.total.value, "speaker") came to @group.name.value</h1>
-    <div class="row">
-        <div class="col">
-            @Formats.paginated[User](speakers, GroupCtrl.speakers(group.slug, _), s => speakerItem(group, s))
+@container_theme(group.name.value + " - Gospeak", b)() {
+        <div class="row">
+            <div class="col-lg-4 mb-9 mb-lg-0">
+                <div class="card shadow-sm p-5 mb-5">
+                    todo : importer groupCard
+                </div>
+            </div>
+
+            <div class="col-lg-8 m">
+                <h3>@Formats.plural(speakers.total.value, "speaker") came to @group.name.value</h3>
+                @Formats.paginated[User](speakers, GroupCtrl.speakers(group.slug, _), s => speakerItem(group, s))
+            </div>
         </div>
-    </div>
 }()

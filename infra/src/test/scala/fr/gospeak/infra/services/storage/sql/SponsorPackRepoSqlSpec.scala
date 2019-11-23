@@ -14,11 +14,11 @@ class SponsorPackRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = SponsorPackRepoSql.update(group.id, sponsorPack.slug)(sponsorPack.data, user.id, now)
-        check(q, s"UPDATE $table SET slug=?, name=?, description=?, price=?, currency=?, duration=?, updated=?, updated_by=? WHERE sp.group_id=? AND sp.slug=?")
+        check(q, s"UPDATE $table SET slug=?, name=?, description=?, price=?, currency=?, duration=?, updated_at=?, updated_by=? WHERE sp.group_id=? AND sp.slug=?")
       }
       it("should build setActive") {
         val q = SponsorPackRepoSql.setActive(group.id, sponsorPack.slug)(active = true, user.id, now)
-        check(q, s"UPDATE $table SET active=?, updated=?, updated_by=? WHERE sp.group_id=? AND sp.slug=?")
+        check(q, s"UPDATE $table SET active=?, updated_at=?, updated_by=? WHERE sp.group_id=? AND sp.slug=?")
       }
       it("should build selectOne") {
         val q = SponsorPackRepoSql.selectOne(group.id, sponsorPack.slug)
@@ -42,6 +42,6 @@ class SponsorPackRepoSqlSpec extends RepoSpec {
 
 object SponsorPackRepoSqlSpec {
   val table = "sponsor_packs sp"
-  val fields: String = mapFields("id, group_id, slug, name, description, price, currency, duration, active, created, created_by, updated, updated_by", "sp." + _)
+  val fields: String = mapFields("id, group_id, slug, name, description, price, currency, duration, active, created_at, created_by, updated_at, updated_by", "sp." + _)
   val orderBy = "ORDER BY sp.active IS NULL, sp.active DESC, sp.price IS NULL, sp.price DESC"
 }

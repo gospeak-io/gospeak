@@ -54,9 +54,9 @@ class AuthSrv(userRepo: AuthUserRepo,
       _ <- slugOpt.forall(s => emailOpt.exists(_.id == s.id)).toIO(DuplicateSlugException(data.slug)) // fail if slug exists for a different user from email
       avatar = gravatarSrv.getAvatar(data.email)
       user <- emailOpt.map { user =>
-        userRepo.edit(user.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), req.now)
+        userRepo.edit(user.id)(user.data.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), req.now)
       }.getOrElse {
-        userRepo.create(data.data(avatar), req.now)
+        userRepo.create(data.data(avatar), req.now, None)
       }
       _ <- userRepo.createLoginRef(login, user.id)
       _ <- userRepo.createCredentials(credentials)
@@ -115,22 +115,21 @@ class AuthSrv(userRepo: AuthUserRepo,
   }
 
   def createOrEdit(profile: CommonSocialProfile)(implicit req: UserAwareReq[AnyContent]): IO[AuthUser] = {
-
     def create(login: Login): IO[AuthUser] = {
       for {
-        user <- SocialProfile.toUser(profile, gravatarSrv.getAvatar(_), req.now).toIO
-        exists <- userRepo.find(user.email)
-        u <- exists.fold(userRepo.create(user))(u => userRepo.edit(user.copy(u.id), req.now))
-        _ <- userRepo.createLoginRef(login, u.id)
-        groups <- groupRepo.list(u.id)
-      } yield AuthUser(profile.loginInfo, u, groups)
+        data <- SocialProfile.toUserData(profile, gravatarSrv.getAvatar(_), req.now).toIO
+        exists <- userRepo.find(data.email)
+        user <- exists.fold(userRepo.create(data, req.now, Some(req.now)))(u => userRepo.edit(u.id)(u.data, req.now))
+        _ <- userRepo.createLoginRef(login, user.id)
+        groups <- groupRepo.list(user.id)
+      } yield AuthUser(profile.loginInfo, user, groups)
     }
 
     def edit(login: Login)(user: User): IO[AuthUser] = {
       for {
         email <- profile.email.map(EmailAddress.from).getOrElse(Right(user.email)).toIO // should update email address when login with social provider???
         avatarOpt <- SocialProfile.getAvatar(profile).toIO
-        u <- userRepo.edit(user.copy(
+        u <- userRepo.edit(user.id)(user.data.copy(
           firstName = profile.firstName.getOrElse(user.firstName),
           lastName = profile.lastName.getOrElse(user.lastName),
           email = email,

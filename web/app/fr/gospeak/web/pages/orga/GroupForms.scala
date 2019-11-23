@@ -3,7 +3,6 @@ package fr.gospeak.web.pages.orga
 import fr.gospeak.core.domain.Group
 import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.libs.scalautils.domain.{EmailAddress, Markdown}
-import fr.gospeak.web.utils.GenericForm
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
@@ -18,7 +17,7 @@ object GroupForms {
     "website" -> optional(url),
     "description" -> markdown,
     "location" -> optional(gMapPlace(timeShape)),
-    "social" -> GenericForm.socialAccounts,
+    "social" -> socialAccounts,
     "tags" -> tags
   )(Group.Data.apply)(Group.Data.unapply))
 

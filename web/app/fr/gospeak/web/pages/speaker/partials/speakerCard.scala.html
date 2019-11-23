@@ -5,16 +5,15 @@
 <div class="card shadow-sm">
     <img src="@speaker.avatar.url.value" alt="@speaker.name.value avatar" class="avatar-lg align-self-center mt-1">
     <div class="card-body">
-        <h5 class="card-title"><small>@userProfileStatusIcon(speaker.profile.status)</small> @speaker.name.value</h5>
-        @speaker.profile.bio.map { b => <p>@markdown(b)</p> }
+        <h5 class="card-title"><small>@userProfileStatusIcon(speaker.status)</small> @speaker.name.value</h5>
+        @speaker.bio.map { b => <p>@markdown(b)</p> }
         <p class="text-secondary font-italic no-margin">
-            @speaker.profile.twitter.map { url => @twitterLink(url)<br> }
-            @speaker.profile.linkedin.map { url => @linkedinLink(url)<br> }
             @emailLink(speaker.email)<br>
-            @speaker.profile.phone.map { phone => @phoneLink(phone)<br> }
-            @speaker.profile.website.map { url => @websiteLink(url) <br> }
-            @speaker.profile.location.map { location => @locationDisplay(location)<br> }
-            @speaker.profile.company.map { company => @companyDisplay(company)<br> }
+            @speaker.phone.map { phone => @phoneLink(phone)<br> }
+            @speaker.website.map { url => @websiteLink(url) <br> }
+            @speaker.location.map { location => @locationDisplay(location)<br> }
+            @speaker.company.map { company => @companyDisplay(company)<br> }
+            @socialIcons(speaker.social)
         </p>
     </div>
 </div>

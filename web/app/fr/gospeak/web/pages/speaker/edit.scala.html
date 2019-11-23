@@ -1,0 +1,73 @@
+@import fr.gospeak.core.domain.User
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.speaker.partials.html.container
+@import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
+@import fr.gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublicSpeakerCtrl}
+@import fr.gospeak.web.utils.SecuredReq
+
+@(form: Form[User.Data])(b: Breadcrumb)(implicit req: SecuredReq[AnyContent])
+@container("Gospeak", b)() {
+    @formElt(form, SpeakerCtrl.doEdit()) {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Edit my profile</h1>
+            <div>
+                @btnCancel(SpeakerCtrl.detail())
+                @btnSubmit("Save")
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-header" data-toggle="collapse" data-target="#basicCollapse">Basic infos</div>
+            <div class="card-body collapse show" id="basicCollapse">
+                @fieldHorizontal(form("status"), Seq("label" -> "Status")) { (field, args) =>
+                    @inputSelect(field, User.Status.selectable.map(s => (s.value, s.value)))
+                    <small class="form-text text-muted">
+                        If your profile is <b>Public</b>, it will be listed in <a href="@PublicSpeakerCtrl.list()" target="_blank">Gospeak speakers</a>.
+                        Otherwise, you can stay under the radar.
+                    </small>
+                }
+                @fieldHorizontal(form("first-name"), Seq("label" -> "Name")) { (field, args) =>
+                    <div class="row">
+                        <div class="col">@inputText(field, Seq("placeholder" -> "First Name", "autofocus" -> "true"))</div>
+                        <div class="col">@inputText(form("last-name"), Seq("placeholder" -> "Last Name"))</div>
+                    </div>
+                }
+                @fieldHorizontal(form("email"), Seq("label" -> "Email")) { (field, args) =>
+                    @inputEmail(field, Seq("placeholder" -> "Email"))
+                }
+                @fieldHorizontal(form("avatar"), Seq("label" -> "Avatar")) { (field, args) =>
+                    @inputImg(field, Seq("placeholder" -> "ex: https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=identicon"))
+                }
+                @fieldHorizontal(form("bio"), Seq("label" -> "Bio")) { (field, args) =>
+                    @inputMarkdown(field, Seq("placeholder" -> "Tell people a bit more about you"))
+                }
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-header" data-toggle="collapse" data-target="#socialCollapse">Social accounts</div>
+            <div class="card-body collapse show" id="socialCollapse">
+                @socialAccountsFields(form("social"))
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-header" data-toggle="collapse" data-target="#moreCollapse">More infos</div>
+            <div class="card-body collapse show" id="moreCollapse">
+                @fieldHorizontal(form("company"), Seq("label" -> "Company")) { (field, args) =>
+                    @inputText(field, Seq("placeholder" -> "ex: Zeenea"))
+                }
+                @fieldHorizontal(form("location"), Seq("label" -> "Location")) { (field, args) =>
+                    @inputText(field, Seq("placeholder" -> "ex: Paris"))
+                }
+                @fieldHorizontal(form("phone"), Seq("label" -> "Phone")) { (field, args) =>
+                    @inputText(field, Seq("placeholder" -> "ex: +33 6 12 74 93 56"))
+                }
+                @fieldHorizontal(form("website"), Seq("label" -> "Website")) { (field, args) =>
+                    @inputUrl(field, Seq("placeholder" -> "ex: http://loic.knuchel.org"))
+                }
+                @fieldHorizontal(form("slug"), Seq("label" -> "Username")) { (field, args) =>
+                    @inputText(field, Seq("placeholder" -> "Username", "slug-for" -> Seq(form("first-name"), form("last-name")).map(_.id).mkString(",")))
+                }
+            </div>
+        </div>
+    }
+}()

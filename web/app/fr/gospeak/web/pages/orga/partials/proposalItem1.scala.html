@@ -15,6 +15,6 @@
             @proposal.speakers.toList.map { id => @speaker(speakers, id) }
             @proposal.event.map { id => @event(events, id) }
         </span>
-        <small title="Proposal date">@Formats.date(proposal.info.created)</small>
+        <small title="Proposal date">@Formats.date(proposal.info.createdAt)</small>
     </div>
 </a>

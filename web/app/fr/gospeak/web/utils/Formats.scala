@@ -93,28 +93,37 @@ object Formats {
     case Seq(head, tail@_*) => Html(tail.foldLeft(new StringBuilder(head.body.trim))((b, html) => b.append(sep.body + html.body.trim)).toString())
   }
 
-  def paginated[A](page: Page[A],
-                   link: Page.Params => Call,
-                   item: A => Html): Html = {
-    val header =
+  def paginated[A](page: Page[A], link: Page.Params => Call, item: A => Html): Html = {
+    Html(paginationHeader(page, link).body + paginationBody(page, item).body + paginationFooter(page, link).body)
+  }
+
+  def paginationHeader[A](page: Page[A], link: Page.Params => Call): Html = {
+    Html(
       s"""<div class="d-flex justify-content-between mt-2"${if (page.hasManyPages) "" else " style=\"display: none !important;\""}>
          |  ${search(page, link(Page.Params.defaults))}
          |  ${pagination(page, link)}
          |</div>
          |${sort(page, link)}
-       """.stripMargin
-    val footer = s"""<div class="d-flex justify-content-end mt-2">${pagination(page, link)}</div>"""
-    val body = if (page.isEmpty) {
-      """<div class="jumbotron text-center mt-2">
-        |  <h2>No results <i class="far fa-sad-tear"></i></h2>
-        |</div>
-      """.stripMargin
+       """.stripMargin)
+  }
+
+  def paginationBody[A](page: Page[A], item: A => Html): Html = {
+    if (page.isEmpty) {
+      Html(
+        """<div class="jumbotron text-center mt-2">
+          |  <h2>No results <i class="far fa-sad-tear"></i></h2>
+          |</div>
+      """.stripMargin)
     } else {
-      s"""<div class="list-group mt-2">
-         |  ${page.items.map(item).mkString("\n")}
-         |</div>
-       """.stripMargin
+      Html(
+        s"""<div class="list-group mt-2">
+           |  ${page.items.map(item).mkString("\n")}
+           |</div>
+       """.stripMargin)
     }
-    Html(header + body + footer)
+  }
+
+  def paginationFooter[A](page: Page[A], link: Page.Params => Call): Html = {
+    Html(s"""<div class="d-flex justify-content-end mt-2">${pagination(page, link)}</div>""")
   }
 }

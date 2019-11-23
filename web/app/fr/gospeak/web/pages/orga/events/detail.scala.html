@@ -134,9 +134,9 @@
                             @slidesIcon(proposal.slides)
                             @videoIcon(proposal.video)
                             <a href="@ProposalCtrl.detail(group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
-                            @proposalRating(proposal, userRatings.find(_.proposal == proposal.id).map(_.grade))
+                            @proposalRating(proposal, userRatings.find(_.proposal == proposal.id).map(_.grade), "btn-xs")
                             @tags(proposal.tags)
-                            <small title="Proposal date">(since @Formats.date(proposal.info.created))</small>
+                            <small title="Proposal date">(since @Formats.date(proposal.info.createdAt))</small>
                         </div>
                         <div>
                             @proposal.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(group.slug, u.slug))) }

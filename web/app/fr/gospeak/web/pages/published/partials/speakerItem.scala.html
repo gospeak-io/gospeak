@@ -3,19 +3,16 @@
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 
 @(speaker: User)
-<div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-    <div>
-        <img src="@speaker.avatar.url.value" alt="@speaker.name.value avatar" class="avatar avatar-list">
-    </div>
-    <div class="col-11">
-        <h5 class="mb-0"><a href="@SpeakerCtrl.detail(speaker.slug)" class="no-style">@speaker.name.value</a></h5>
-        <p class="text-secondary font-italic no-margin">
-            @speaker.profile.website.map { url => @websiteLink(url) }
-            @speaker.profile.company.map { company => @companyDisplay(company) }
-        </p>
-        <p class="text-secondary font-italic no-margin">
-            @speaker.profile.twitter.map { url => @twitterLink(url) }
-            @speaker.profile.linkedin.map { url => @linkedinLink(url) }
-        </p>
+<div class="card card-frame mb-3">
+    <div class="card-body">
+        <div class="media">
+            <div class="u-avatar mr-3">
+                <img class="img-fluid rounded-circle" src="@speaker.avatar.url.value" alt="@speaker.name.value avatar">
+            </div>
+            <div class="media-body">
+                <a href="@SpeakerCtrl.detail(speaker.slug)" ><h4 class="h6 text-dark mb-0">@speaker.name.value</h4></a>
+                <span><small>@socialIcons(speaker.social)</small></span>
+            </div>
+        </div>
     </div>
 </div>

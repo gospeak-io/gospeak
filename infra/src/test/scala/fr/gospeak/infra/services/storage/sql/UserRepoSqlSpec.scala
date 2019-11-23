@@ -5,6 +5,7 @@ import fr.gospeak.core.domain.User._
 import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
+import TablesSpec.socialFields
 
 class UserRepoSqlSpec extends RepoSpec {
   private val login = Login(ProviderId("providerId"), ProviderKey("providerKey"))
@@ -15,28 +16,28 @@ class UserRepoSqlSpec extends RepoSpec {
   describe("UserRepoSql") {
     it("should create and retrieve a user") {
       userRepo.find(userData1.email).unsafeRunSync() shouldBe None
-      userRepo.create(userData1, now).unsafeRunSync()
+      userRepo.create(userData1, now, None).unsafeRunSync()
       userRepo.find(userData1.email).unsafeRunSync().map(_.email) shouldBe Some(userData1.email)
     }
     it("should fail on duplicate slug") {
-      userRepo.create(userData1, now).unsafeRunSync()
-      an[Exception] should be thrownBy userRepo.create(userData2.copy(slug = userData1.slug), now).unsafeRunSync()
+      userRepo.create(userData1, now, None).unsafeRunSync()
+      an[Exception] should be thrownBy userRepo.create(userData2.copy(slug = userData1.slug), now, None).unsafeRunSync()
     }
     it("should fail on duplicate email") {
-      userRepo.create(userData1, now).unsafeRunSync()
-      an[Exception] should be thrownBy userRepo.create(userData2.copy(email = userData1.email), now).unsafeRunSync()
+      userRepo.create(userData1, now, None).unsafeRunSync()
+      an[Exception] should be thrownBy userRepo.create(userData2.copy(email = userData1.email), now, None).unsafeRunSync()
     }
     it("should select users by ids") {
-      val user1 = userRepo.create(userData1, now).unsafeRunSync()
-      val user2 = userRepo.create(userData2, now).unsafeRunSync()
-      userRepo.create(userData3, now).unsafeRunSync()
+      val user1 = userRepo.create(userData1, now, None).unsafeRunSync()
+      val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
+      userRepo.create(userData3, now, None).unsafeRunSync()
       userRepo.list(Seq(user1.id, user2.id)).unsafeRunSync() should contain theSameElementsAs Seq(user1, user2)
     }
     it("should select all speakers for a group") {
       userRepo.speakers(group.id, params).unsafeRunSync().items shouldBe Seq()
 
-      val user1 = userRepo.create(userData1, now).unsafeRunSync()
-      val user2 = userRepo.create(userData2, now).unsafeRunSync()
+      val user1 = userRepo.create(userData1, now, None).unsafeRunSync()
+      val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
       val talk1 = talkRepo.create(talkData1, user1.id, now).unsafeRunSync()
       val group1 = groupRepo.create(groupData1, user1.id, now).unsafeRunSync()
       val cfp1 = cfpRepo.create(group1.id, cfpData1, user1.id, now).unsafeRunSync()
@@ -74,8 +75,10 @@ class UserRepoSqlSpec extends RepoSpec {
         check(q, s"INSERT INTO ${table.stripSuffix(" u")} (${mapFields(fields, _.stripPrefix("u."))}) VALUES (${mapFields(fields, _ => "?")})")
       }
       it("should build update") {
-        val q = UserRepoSql.update(user)
-        check(q, s"UPDATE $table SET slug=?, first_name=?, last_name=?, email=?, status=?, bio=?, company=?, location=?, twitter=?, linkedin=?, phone=?, website=?, updated=? WHERE u.id=?")
+        val q = UserRepoSql.update(user.id)(user.data, now)
+        check(q, s"UPDATE $table SET slug=?, status=?, first_name=?, last_name=?, email=?, avatar=?, bio=?, company=?, location=?, phone=?, website=?, " +
+          s"social_facebook=?, social_instagram=?, social_twitter=?, social_linkedIn=?, social_youtube=?, social_meetup=?, social_eventbrite=?, social_slack=?, social_discord=?, social_github=?, " +
+          s"updated_at=? WHERE u.id=?")
       }
       it("should build validateAccount") {
         val q = UserRepoSql.validateAccount(user.email, now)
@@ -125,7 +128,7 @@ object UserRepoSqlSpec {
   val credentialsFields: String = mapFields("provider_id, provider_key, hasher, password, salt", "cd." + _)
 
   val table = "users u"
-  val fields: String = mapFields("id, slug, first_name, last_name, email, email_validated, avatar, avatar_source, status, bio, company, location, twitter, linkedin, phone, website, created, updated", "u." + _)
+  val fields: String = mapFields(s"id, slug, status, first_name, last_name, email, email_validated, avatar, bio, company, location, phone, website, $socialFields, created_at, updated_at", "u." + _)
   val orderBy = "ORDER BY u.first_name IS NULL, u.first_name"
 
   val tableWithLogin = s"$table INNER JOIN $loginsTable ON u.id=lg.user_id"

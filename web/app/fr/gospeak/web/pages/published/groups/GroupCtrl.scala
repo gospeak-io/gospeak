@@ -82,10 +82,16 @@ class GroupCtrl(cc: ControllerComponents,
 
   def events(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
     (for {
+
       groupElt <- OptionT(groupRepo.find(group))
+      cfps <- OptionT.liftF(cfpRepo.listAllOpen(groupElt.id, req.now))
       events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, params))
+      sponsors <- OptionT.liftF(sponsorRepo.listCurrentFull(groupElt.id, req.now))
+      packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
+      orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
+      userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
       b = breadcrumbEvents(groupElt)
-      res = Ok(html.events(groupElt, events)(b))
+      res = Ok(html.events(groupElt, cfps, events, sponsors, packs, orgas, userMembership)(b))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   }
 

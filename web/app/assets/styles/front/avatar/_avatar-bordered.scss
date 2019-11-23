@@ -1,0 +1,11 @@
+/*------------------------------------
+  Avatar Bordered
+------------------------------------*/
+
+.u-sm-avatar--bordered {
+  border: $avatar-sm-border-width $avatar-sm-border-type $avatar-sm-border-color;
+}
+
+.u-xl-avatar--bordered {
+  border: $avatar-xl-border-width $avatar-xl-border-type $avatar-xl-border-color;
+}

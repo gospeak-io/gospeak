@@ -42,7 +42,7 @@ object ExternalCfpRepoSql {
     search = Seq("name", "description", "tags").map(Field(_, "c")))
 
   private[sql] def insert(e: ExternalCfp): Insert[ExternalCfp] = {
-    val values = fr0"${e.id}, ${e.name}, ${e.logo}, ${e.description}, ${e.begin}, ${e.close}, ${e.url}, ${e.event.start}, ${e.event.finish}, ${e.event.url}, " ++ insertLocation(e.event.location) ++ fr0", ${e.event.tickets}, ${e.event.videos}, ${e.event.twitterAccount}, ${e.event.twitterHashtag}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    val values = fr0"${e.id}, ${e.name}, ${e.logo}, ${e.description}, ${e.begin}, ${e.close}, ${e.url}, ${e.event.start}, ${e.event.finish}, ${e.event.url}, " ++ insertLocation(e.event.location) ++ fr0", ${e.event.tickets}, ${e.event.videos}, ${e.event.twitterAccount}, ${e.event.twitterHashtag}, ${e.tags}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert[ExternalCfp](e, _ => values)
   }
 

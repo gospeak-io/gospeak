@@ -4,6 +4,7 @@ import java.time.Instant
 
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
 import fr.gospeak.core.domain.User
+import fr.gospeak.core.domain.utils.SocialAccounts
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.StringUtils
 import fr.gospeak.libs.scalautils.domain._
@@ -12,7 +13,7 @@ object SocialProfile {
   val setEmailUrls: Map[String, String] = Map(
     "twitter" -> "https://twitter.com/settings/email")
 
-  def toUser(profile: CommonSocialProfile, defaultAvatar: EmailAddress => Avatar, now: Instant): Either[CustomException, User] =
+  def toUserData(profile: CommonSocialProfile, defaultAvatar: EmailAddress => Avatar, now: Instant): Either[CustomException, User.Data] =
     for {
       email <- profile.email.map(EmailAddress.from)
         .getOrElse(Left(CustomException(s"<b>No email available from your ${profile.loginInfo.providerID} account.</b><br>" +
@@ -21,21 +22,21 @@ object SocialProfile {
       avatarOpt <- getAvatar(profile)
       slug <- User.Slug.from(StringUtils.slugify(profile.firstName.getOrElse(email.nickName)))
       (first, last) = email.guessNames
-    } yield User(
-      id = User.Id.generate(),
+    } yield User.Data(
       slug = slug,
+      status = User.Status.Undefined,
       firstName = profile.firstName.getOrElse(first),
       lastName = profile.lastName.getOrElse(last),
       email = email,
-      emailValidated = Some(now),
       avatar = avatarOpt.getOrElse(defaultAvatar(email)),
-      profile = User.emptyProfile,
-      created = now,
-      updated = now)
+      bio = None,
+      company = None,
+      location = None,
+      phone = None,
+      website = None,
+      social = SocialAccounts.fromUrls())
 
   def getAvatar(profile: CommonSocialProfile): Either[CustomException, Option[Avatar]] = for {
-    source <- Avatar.Source.all.find(_.toString.toLowerCase == profile.loginInfo.providerID)
-      .toEither(CustomException(s"No Avatar.Source for providerID: ${profile.loginInfo.providerID}"))
-    avatar <- profile.avatarURL.map(Url.from(_).map(Avatar(_, source))).sequence
-  } yield avatar
+    avatar <- profile.avatarURL.map(Url.from).sequence
+  } yield avatar.map(Avatar)
 }

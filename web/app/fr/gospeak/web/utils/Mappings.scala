@@ -7,7 +7,8 @@ import java.util.concurrent.TimeUnit
 
 import cats.implicits._
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
+import fr.gospeak.core.domain.utils.SocialAccounts
+import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount._
 import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup, MeetupVenue}
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import fr.gospeak.infra.libs.timeshape.TimeShape
@@ -59,6 +60,7 @@ object Mappings {
   )(new FiniteDuration(_, _))(d => Some(d.length -> d.unit))
   val emailAddress: Mapping[EmailAddress] = WrappedMapping(text.verifying(Constraints.emailAddress(), Constraints.maxLength(Values.maxLength.email)), (s: String) => EmailAddress.from(s).get, _.value)
   val url: Mapping[Url] = stringEitherMapping(Url.from, _.value, formatError, Constraints.maxLength(Values.maxLength.url))
+  val avatar: Mapping[Avatar] = url.transform(Avatar, _.url)
   val logo: Mapping[Logo] = url.transform(Logo, _.url)
   val banner: Mapping[Banner] = url.transform(Banner, _.url)
   val slides: Mapping[Slides] = url.transform(Slides.from(_).get, _.url)
@@ -135,12 +137,24 @@ object Mappings {
         s"$key.utcOffset" -> Some(value.utcOffset.toString)
       ).collect { case (k, Some(v)) => (k, v) }.toMap
   })
+  val socialAccounts: Mapping[SocialAccounts] = mapping(
+    "facebook" -> optional(url.transform[FacebookAccount](FacebookAccount, _.url)),
+    "instagram" -> optional(url.transform[InstagramAccount](InstagramAccount, _.url)),
+    "twitter" -> optional(url.transform[TwitterAccount](TwitterAccount, _.url)),
+    "linkedIn" -> optional(url.transform[LinkedInAccount](LinkedInAccount, _.url)),
+    "youtube" -> optional(url.transform[YoutubeAccount](YoutubeAccount, _.url)),
+    "meetup" -> optional(url.transform[MeetupAccount](MeetupAccount, _.url)),
+    "eventbrite" -> optional(url.transform[EventbriteAccount](EventbriteAccount, _.url)),
+    "slack" -> optional(url.transform[SlackAccount](SlackAccount, _.url)),
+    "discord" -> optional(url.transform[DiscordAccount](DiscordAccount, _.url)),
+    "github" -> optional(url.transform[GithubAccount](GithubAccount, _.url))
+  )(SocialAccounts.apply)(SocialAccounts.unapply)
 
   private val tag: Mapping[Tag] = WrappedMapping[String, Tag](text(1, Tag.maxSize), s => Tag(s.trim), _.value)
   val tags: Mapping[Seq[Tag]] = seq(tag).verifying(s"Can't add more than ${Tag.maxNumber} tags", _.length <= Tag.maxNumber)
 
   val userSlug: Mapping[User.Slug] = slugMapping(User.Slug)
-  val userProfileStatus: Mapping[User.Profile.Status] = stringEitherMapping(User.Profile.Status.from, _.value, formatError)
+  val userStatus: Mapping[User.Status] = stringEitherMapping(User.Status.from, _.value, formatError)
   val groupSlug: Mapping[Group.Slug] = slugMapping(Group.Slug)
   val groupName: Mapping[Group.Name] = nonEmptyTextMapping(Group.Name, _.value, Constraints.maxLength(Values.maxLength.title))
   val eventSlug: Mapping[Event.Slug] = slugMapping(Event.Slug)

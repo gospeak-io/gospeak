@@ -97,6 +97,8 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]] = selectOne(speaker, talk, cfp).runOption(xa)
 
+  override def findFull(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal.Full]] = selectOneFull(cfp, id).runOption(xa)
+
   override def findFull(proposal: Proposal.Id): IO[Option[Proposal.Full]] = selectOneFull(proposal).runOption(xa)
 
   override def findFull(talk: Talk.Slug, cfp: Cfp.Slug)(by: User.Id): IO[Option[Proposal.Full]] = selectOneFull(talk, cfp, by).runOption(xa)
@@ -138,7 +140,7 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 object ProposalRepoSql {
   private val _ = proposalIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.proposals
-  private val ratingTable = Tables.proposalRatingTable
+  private val ratingTable = Tables.proposalRatings
   private val tableFull = table
     .join(Tables.cfps, _.cfp_id -> _.id).get
     .join(Tables.groups.dropFields(_.name.startsWith("location_")), _.group_id("c") -> _.id).get
@@ -149,8 +151,8 @@ object ProposalRepoSql {
     .aggregate("COALESCE((COUNT(pr.grade) + SUM(pr.grade)) / 2, 0)", "likes")
     .aggregate("COALESCE((COUNT(pr.grade) - SUM(pr.grade)) / 2, 0)", "dislikes")
     .setSorts(
-      "score" -> Seq(Field("-COALESCE(SUM(pr.grade), 0)", ""), Field("-COALESCE(COUNT(pr.grade), 0)", ""), Field("-created", "p")),
-      "created" -> Seq(Field("created", "p")),
+      "score" -> Seq(Field("-COALESCE(SUM(pr.grade), 0)", ""), Field("-COALESCE(COUNT(pr.grade), 0)", ""), Field("-created_at", "p")),
+      "created" -> Seq(Field("created_at", "p")),
       "title" -> Seq(Field("LOWER(p.title)", "")))
   private val ratingTableFull = ratingTable
     .join(Tables.users, _.created_by -> _.id).get
@@ -161,7 +163,7 @@ object ProposalRepoSql {
     .dropFields(_.prefix == Tables.cfps.prefix)
 
   private[sql] def insert(e: Proposal): Insert[Proposal] = {
-    val values = fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.created}, ${e.info.createdBy}, ${e.info.updated}, ${e.info.updatedBy}"
+    val values = fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert[Proposal](e, _ => values)
   }
 
@@ -169,12 +171,12 @@ object ProposalRepoSql {
     ratingTable.insert[Proposal.Rating](e, _ => fr0"${e.proposal}, ${e.grade.value}, ${e.createdAt}, ${e.createdBy}")
 
   private[sql] def update(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.Data, now: Instant): Update = {
-    val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$orga"
+    val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated_at=$now, updated_by=$orga"
     table.update(fields, where(orga, group, cfp, proposal))
   }
 
   private[sql] def update(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): Update = {
-    val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated=$now, updated_by=$speaker"
+    val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated_at=$now, updated_by=$speaker"
     table.update(fields, where(speaker, talk, cfp))
   }
 
@@ -185,19 +187,19 @@ object ProposalRepoSql {
     table.update(fr0"status=$status, event_id=$event", where(cfp, id))
 
   private[sql] def updateSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Slides, by: User.Id, now: Instant): Update =
-    table.update(fr0"slides=$slides, updated=$now, updated_by=$by", where(cfp, id))
+    table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by", where(cfp, id))
 
   private[sql] def updateSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, by: User.Id, now: Instant): Update =
-    table.update(fr0"slides=$slides, updated=$now, updated_by=$by", where(speaker, talk, cfp))
+    table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by", where(speaker, talk, cfp))
 
   private[sql] def updateVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Video, by: User.Id, now: Instant): Update =
-    table.update(fr0"video=$video, updated=$now, updated_by=$by", where(cfp, id))
+    table.update(fr0"video=$video, updated_at=$now, updated_by=$by", where(cfp, id))
 
   private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, by: User.Id, now: Instant): Update =
-    table.update(fr0"video=$video, updated=$now, updated_by=$by", where(speaker, talk, cfp))
+    table.update(fr0"video=$video, updated_at=$now, updated_by=$by", where(speaker, talk, cfp))
 
   private[sql] def updateSpeakers(id: Proposal.Id)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
-    table.update(fr0"speakers=$speakers, updated=$now, updated_by=$by", fr0"WHERE p.id=$id")
+    table.update(fr0"speakers=$speakers, updated_at=$now, updated_by=$by", fr0"WHERE p.id=$id")
 
   private[sql] def selectOne(id: Proposal.Id): Select[Proposal] =
     table.select[Proposal](where(id))
@@ -207,6 +209,9 @@ object ProposalRepoSql {
 
   private[sql] def selectOne(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Select[Proposal] =
     table.select[Proposal](where(speaker, talk, cfp))
+
+  private[sql] def selectOneFull(cfp: Cfp.Slug, id: Proposal.Id): Select[Proposal.Full] =
+    tableFull.select[Proposal.Full](where(cfp, id))
 
   private[sql] def selectOneFull(id: Proposal.Id): Select[Proposal.Full] =
     tableFull.select[Proposal.Full](fr0"WHERE p.id=$id")

@@ -69,16 +69,15 @@ class ProposalCtrl(cc: ControllerComponents,
   private def proposalView(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, commentForm: Form[Comment.Data], orgaCommentForm: Form[Comment.Data])(implicit req: SecuredReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      cfpElt <- OptionT(cfpRepo.find(groupElt.id, cfp))
-      proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
+      proposalElt <- OptionT(proposalRepo.findFull(cfp, proposal))
       speakers <- OptionT.liftF(userRepo.list(proposalElt.users))
       ratings <- OptionT.liftF(proposalRepo.listRatings(proposalElt.id))
       comments <- OptionT.liftF(commentRepo.getComments(proposalElt.id))
       orgaComments <- OptionT.liftF(commentRepo.getOrgaComments(proposalElt.id))
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposal))
-      events <- OptionT.liftF(eventRepo.list(proposalElt.event.toList))
-      b = breadcrumb(groupElt, cfpElt, proposalElt)
-      res = Ok(html.detail(groupElt, cfpElt, proposalElt, speakers, ratings, comments, orgaComments, invites, events, ProposalForms.addSpeaker, GenericForm.embed, commentForm, orgaCommentForm)(b))
+      events <- OptionT.liftF(eventRepo.list(proposalElt.event.map(_.id).toList))
+      b = breadcrumb(groupElt, proposalElt.cfp, proposalElt.proposal)
+      res = Ok(html.detail(groupElt, proposalElt, speakers, ratings, comments, orgaComments, invites, events, ProposalForms.addSpeaker, GenericForm.embed, commentForm, orgaCommentForm)(b))
     } yield res).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 

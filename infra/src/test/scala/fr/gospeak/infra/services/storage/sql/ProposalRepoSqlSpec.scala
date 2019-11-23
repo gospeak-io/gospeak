@@ -22,13 +22,13 @@ class ProposalRepoSqlSpec extends RepoSpec {
       proposalRepo.find(cfp.slug, proposal.id).unsafeRunSync() shouldBe Some(proposal)
     }
     it("should fail to create a proposal when talk does not exists") {
-      val user = userRepo.create(userData1, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now, None).unsafeRunSync()
       val group = groupRepo.create(groupData1, user.id, now).unsafeRunSync()
       val cfp = cfpRepo.create(group.id, cfpData1, user.id, now).unsafeRunSync()
       an[Exception] should be thrownBy proposalRepo.create(Talk.Id.generate(), cfp.id, proposalData1, speakers, user.id, now).unsafeRunSync()
     }
     it("should fail to create a proposal when cfp does not exists") {
-      val user = userRepo.create(userData1, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now, None).unsafeRunSync()
       val talk = talkRepo.create(talkData1, user.id, now).unsafeRunSync()
       an[Exception] should be thrownBy proposalRepo.create(talk.id, Cfp.Id.generate(), proposalData1, speakers, user.id, now).unsafeRunSync()
     }
@@ -44,11 +44,11 @@ class ProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build update for orga, group, cfp and proposal") {
         val q = ProposalRepoSql.update(user.id, group.slug, cfp.slug, proposal.id)(proposal.data, now)
-        check(q, s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE p.id=$whereGroupAndCfp")
+        check(q, s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated_at=?, updated_by=? WHERE p.id=$whereGroupAndCfp")
       }
       it("should build update for speaker, talk and cfp") {
         val q = ProposalRepoSql.update(user.id, talk.slug, cfp.slug)(proposal.data, now)
-        check(q, s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated=?, updated_by=? WHERE p.id=$whereCfpAndTalk")
+        check(q, s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated_at=?, updated_by=? WHERE p.id=$whereCfpAndTalk")
       }
       it("should build updateStatus") {
         val q = ProposalRepoSql.updateStatus(cfp.slug, proposal.id)(proposal.status, None)
@@ -56,23 +56,23 @@ class ProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build updateSlides by cfp and proposal") {
         val q = ProposalRepoSql.updateSlides(cfp.slug, proposal.id)(slides, user.id, now)
-        check(q, s"UPDATE $table SET slides=?, updated=?, updated_by=? WHERE p.id=$whereCfp")
+        check(q, s"UPDATE $table SET slides=?, updated_at=?, updated_by=? WHERE p.id=$whereCfp")
       }
       it("should build updateSlides by speaker, talk and cfp") {
         val q = ProposalRepoSql.updateSlides(user.id, talk.slug, cfp.slug)(slides, user.id, now)
-        check(q, s"UPDATE $table SET slides=?, updated=?, updated_by=? WHERE p.id=$whereCfpAndTalk")
+        check(q, s"UPDATE $table SET slides=?, updated_at=?, updated_by=? WHERE p.id=$whereCfpAndTalk")
       }
       it("should build updateVideo by cfp and proposal") {
         val q = ProposalRepoSql.updateVideo(cfp.slug, proposal.id)(video, user.id, now)
-        check(q, s"UPDATE $table SET video=?, updated=?, updated_by=? WHERE p.id=$whereCfp")
+        check(q, s"UPDATE $table SET video=?, updated_at=?, updated_by=? WHERE p.id=$whereCfp")
       }
       it("should build updateVideo by speaker, talk and cfp") {
         val q = ProposalRepoSql.updateVideo(user.id, talk.slug, cfp.slug)(video, user.id, now)
-        check(q, s"UPDATE $table SET video=?, updated=?, updated_by=? WHERE p.id=$whereCfpAndTalk")
+        check(q, s"UPDATE $table SET video=?, updated_at=?, updated_by=? WHERE p.id=$whereCfpAndTalk")
       }
       it("should build updateSpeakers by id") {
         val q = ProposalRepoSql.updateSpeakers(proposal.id)(proposal.speakers, user.id, now)
-        check(q, s"UPDATE $table SET speakers=?, updated=?, updated_by=? WHERE p.id=?")
+        check(q, s"UPDATE $table SET speakers=?, updated_at=?, updated_by=? WHERE p.id=?")
       }
       it("should build selectOne for proposal id") {
         val q = ProposalRepoSql.selectOne(proposal.id)
@@ -85,6 +85,10 @@ class ProposalRepoSqlSpec extends RepoSpec {
       it("should build selectOne for speaker, talk and cfp") {
         val q = ProposalRepoSql.selectOne(user.id, talk.slug, cfp.slug)
         check(q, s"SELECT $fields FROM $table WHERE p.id=$whereCfpAndTalk $orderBy")
+      }
+      it("should build selectOneFull for cfp and proposal id") {
+        val q = ProposalRepoSql.selectOneFull(cfp.slug, proposal.id)
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE p.id=$whereCfp GROUP BY $fieldsFull $orderByFull")
       }
       it("should build selectOneFull for id") {
         val q = ProposalRepoSql.selectOneFull(proposal.id)
@@ -182,8 +186,8 @@ object ProposalRepoSqlSpec {
   import RepoSpec._
 
   val table = "proposals p"
-  val fields: String = mapFields("id, talk_id, cfp_id, event_id, status, title, duration, description, speakers, slides, video, tags, created, created_by, updated, updated_by", "p." + _)
-  val orderBy = "ORDER BY p.created IS NULL, p.created DESC"
+  val fields: String = mapFields("id, talk_id, cfp_id, event_id, status, title, duration, description, speakers, slides, video, tags, created_at, created_by, updated_at, updated_by", "p." + _)
+  val orderBy = "ORDER BY p.created_at IS NULL, p.created_at DESC"
 
   private val whereCfp = s"(SELECT p.id FROM $table INNER JOIN $cfpTable ON p.cfp_id=c.id WHERE p.id=? AND c.slug=?)"
   private val whereCfpAndTalk = s"(SELECT p.id FROM $table INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $talkTable ON p.talk_id=t.id WHERE c.slug=? AND t.slug=? AND p.speakers LIKE ?)"
@@ -196,7 +200,7 @@ object ProposalRepoSqlSpec {
   private val tableFull = s"$table INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $groupTable ON c.group_id=g.id INNER JOIN $talkTable ON p.talk_id=t.id LEFT OUTER JOIN $eventTable ON p.event_id=e.id LEFT OUTER JOIN $ratingTable ON p.id=pr.proposal_id"
   private val fieldsFull = s"$fields, $cfpFields, $groupFields, $talkFields, $eventFields"
   private val fieldsAggFull = "COALESCE(SUM(pr.grade), 0) as score, COALESCE((COUNT(pr.grade) + SUM(pr.grade)) / 2, 0) as likes, COALESCE((COUNT(pr.grade) - SUM(pr.grade)) / 2, 0) as dislikes"
-  private val orderByFull = "ORDER BY COALESCE(SUM(pr.grade), 0) IS NULL, COALESCE(SUM(pr.grade), 0) DESC, COALESCE(COUNT(pr.grade), 0) IS NULL, COALESCE(COUNT(pr.grade), 0) DESC, p.created IS NULL, p.created DESC"
+  private val orderByFull = "ORDER BY COALESCE(SUM(pr.grade), 0) IS NULL, COALESCE(SUM(pr.grade), 0) DESC, COALESCE(COUNT(pr.grade), 0) IS NULL, COALESCE(COUNT(pr.grade), 0) DESC, p.created_at IS NULL, p.created_at DESC"
 
   private val ratingTableFull = s"$ratingTable INNER JOIN $userTable ON pr.created_by=u.id"
   private val ratingFieldsFull = s"$ratingFields, $userFields"

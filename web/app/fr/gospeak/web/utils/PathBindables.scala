@@ -48,8 +48,8 @@ object PathBindables {
   implicit def userSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[User.Slug] =
     stringEitherPathBindable[User.Slug](User.Slug.from, _.value)
 
-  implicit def userProfileStatusPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[User.Profile.Status] =
-    stringEitherPathBindable[User.Profile.Status](User.Profile.Status.from, _.value)
+  implicit def userStatusPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[User.Status] =
+    stringEitherPathBindable[User.Status](User.Status.from, _.value)
 
   implicit def partnerIdPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Partner.Id] =
     stringEitherPathBindable[Partner.Id](Partner.Id.from, _.value)

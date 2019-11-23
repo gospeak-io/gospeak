@@ -1,0 +1,38 @@
+@import fr.gospeak.core.ApplicationConf
+@(title: String, stylesheet: String, style: Html, script: Html, env: ApplicationConf.Env)(content: Html)
+<!doctype html>
+<html lang="en"@if(!env.isProd){ class="@env"}>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
+        <link rel="stylesheet" href="@routes.Assets.versioned(s"lib/web/styles/$stylesheet")">
+        @style
+        <title>@title</title>
+    </head>
+    <body class="bg-light">
+        @content
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/jquery.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/jquery-migrate.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/popper.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/bootstrap.min.js")"></script>
+
+
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/hs.megamenu.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/svg-injector.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/jquery.fancybox.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/typed.min.js")"></script>
+
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/hs.core.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.header.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.unfold.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.fancybox.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.svg-injector.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.go-to.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.malihu-scrollbar.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.validation.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.focus-state.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.show-animation.js")"></script>
+        @script
+    </body>
+</html>

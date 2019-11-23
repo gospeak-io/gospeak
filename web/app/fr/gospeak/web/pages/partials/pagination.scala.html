@@ -2,15 +2,15 @@
 
 @(page: Page[_], link: Page.Params => Call)
 @pageLink(p: Page.Params) = {
-@if(page.isCurrent(p)) {
-    <li class="page-item active">
-        <a class="page-link" href="@link(p)">@p.page.value <span class="sr-only">(current)</span></a>
-    </li>
-} else {
-    <li class="page-item">
-        <a class="page-link" href="@link(p)">@p.page.value</a>
-    </li>
-}
+    @if(page.isCurrent(p)) {
+        <li class="page-item active">
+            <a class="page-link" href="@link(p)">@p.page.value <span class="sr-only">(current)</span></a>
+        </li>
+    } else {
+        <li class="page-item">
+            <a class="page-link" href="@link(p)">@p.page.value</a>
+        </li>
+    }
 }
 @if(page.hasManyPages) {
     <nav aria-label="pagination">

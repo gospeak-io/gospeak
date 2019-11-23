@@ -18,10 +18,8 @@ object GravatarSrv {
 
   final case class Hash(value: String) extends AnyVal
 
-  def getAvatar(email: EmailAddress, size: Int = 100, default: String = Constants.gravatarStyle): Avatar = {
-    val url = getAvatarUrl(email, size, default)
-    Avatar(url, Avatar.Source.Gravatar)
-  }
+  def getAvatar(email: EmailAddress, size: Int = 100, default: String = Constants.gravatarStyle): Avatar =
+    Avatar(getAvatarUrl(email, size, default))
 
   def getAvatarUrl(email: EmailAddress, size: Int = 100, default: String = Constants.gravatarStyle): Url = {
     val hash = getHash(email)

@@ -4,9 +4,9 @@ import java.time.Instant
 
 import fr.gospeak.core.domain.User
 
-final case class Info(created: Instant,
+final case class Info(createdAt: Instant,
                       createdBy: User.Id,
-                      updated: Instant,
+                      updatedAt: Instant,
                       updatedBy: User.Id) {
   def users: Seq[User.Id] = Seq(createdBy, updatedBy).distinct
 }

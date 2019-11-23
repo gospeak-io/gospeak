@@ -1,0 +1,24 @@
+/*------------------------------------
+  Checkbox Icon
+------------------------------------*/
+
+.checkbox-icon {
+  &__label::after {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: none;
+    font-family: $font-family-font-awesome-icon;
+    content: "\f058";
+    font-weight: 900;
+    color: $primary;
+    font-size: 1.5rem;
+  }
+
+  &__input:checked ~ &__label {
+    &::after {
+      display: block;
+      border-color: $checkbox-outline-input-checked-border-color;
+    }
+  }
+}

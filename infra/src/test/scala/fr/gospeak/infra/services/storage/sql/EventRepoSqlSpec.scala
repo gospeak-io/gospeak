@@ -23,7 +23,7 @@ class EventRepoSqlSpec extends RepoSpec {
       eventRepo.find(group.id, eventData.slug).unsafeRunSync() shouldBe Some(event)
     }
     it("should fail to create an event when the group does not exists") {
-      val user = userRepo.create(userData1, now).unsafeRunSync()
+      val user = userRepo.create(userData1, now, None).unsafeRunSync()
       an[Exception] should be thrownBy eventRepo.create(Group.Id.generate(), eventData1, user.id, now).unsafeRunSync()
     }
     it("should fail on duplicate slug for the same group") {
@@ -40,7 +40,7 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = EventRepoSql.update(group.id, event.slug)(eventData1, user.id, now)
-        check(q, s"UPDATE $table SET cfp_id=?, slug=?, name=?, start=?, max_attendee=?, allow_rsvp=?, description=?, venue=?, tags=?, meetupGroup=?, meetupEvent=?, updated=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
+        check(q, s"UPDATE $table SET cfp_id=?, slug=?, name=?, start=?, max_attendee=?, allow_rsvp=?, description=?, venue=?, tags=?, meetupGroup=?, meetupEvent=?, updated_at=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
       it("should build updateNotes") {
         val q = EventRepoSql.updateNotes(group.id, event.slug)("notes", user.id, now)
@@ -48,15 +48,15 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build updateCfp") {
         val q = EventRepoSql.updateCfp(group.id, event.slug)(cfp.id, user.id, now)
-        check(q, s"UPDATE $table SET cfp_id=?, updated=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
+        check(q, s"UPDATE $table SET cfp_id=?, updated_at=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
       it("should build updateTalks") {
         val q = EventRepoSql.updateTalks(group.id, event.slug)(Seq(), user.id, now)
-        check(q, s"UPDATE $table SET talks=?, updated=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
+        check(q, s"UPDATE $table SET talks=?, updated_at=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
       it("should build updatePublished") {
         val q = EventRepoSql.updatePublished(group.id, event.slug)(user.id, now)
-        check(q, s"UPDATE $table SET published=?, updated=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
+        check(q, s"UPDATE $table SET published=?, updated_at=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
       it("should build selectOne") {
         val q = EventRepoSql.selectOne(group.id, event.slug)
@@ -141,7 +141,7 @@ object EventRepoSqlSpec {
   import RepoSpec._
 
   val table = "events e"
-  val fields: String = mapFields("id, group_id, cfp_id, slug, name, start, max_attendee, allow_rsvp, description, orga_notes, orga_notes_updated_at, orga_notes_updated_by, venue, talks, tags, published, meetupGroup, meetupEvent, created, created_by, updated, updated_by", "e." + _)
+  val fields: String = mapFields("id, group_id, cfp_id, slug, name, start, max_attendee, allow_rsvp, description, orga_notes, orga_notes_updated_at, orga_notes_updated_by, venue, talks, tags, published, meetupGroup, meetupEvent, created_at, created_by, updated_at, updated_by", "e." + _)
   val orderBy = "ORDER BY e.start IS NULL, e.start DESC"
 
   private val tableWithVenue = s"$table LEFT OUTER JOIN $venueTable ON e.venue=v.id"
