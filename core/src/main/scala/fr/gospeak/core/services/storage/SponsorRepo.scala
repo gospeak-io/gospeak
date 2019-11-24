@@ -20,7 +20,7 @@ trait OrgaSponsorRepo {
 
   def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Sponsor.Full]]
 
-  def listAll(group: Group.Id): IO[Seq[Sponsor]]
+  def listAll(implicit ctx: OrgaCtx): IO[Seq[Sponsor]]
 
   def listAll(contact: Contact.Id)(implicit ctx: OrgaCtx): IO[Seq[Sponsor]]
 

@@ -95,7 +95,7 @@ class PartnerCtrl(cc: ControllerComponents,
 
 object PartnerCtrl {
   def listBreadcrumb(implicit req: OrgaReq[AnyContent]): Breadcrumb =
-    GroupCtrl.breadcrumb(req.group).add("Partners" -> routes.PartnerCtrl.list(req.group.slug))
+    GroupCtrl.breadcrumb.add("Partners" -> routes.PartnerCtrl.list(req.group.slug))
 
   def breadcrumb(partner: Partner)(implicit req: OrgaReq[AnyContent]): Breadcrumb =
     listBreadcrumb.add(partner.name.value -> routes.PartnerCtrl.detail(req.group.slug, partner.slug))

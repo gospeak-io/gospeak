@@ -257,7 +257,7 @@ class EventCtrl(cc: ControllerComponents,
 
 object EventCtrl {
   def listBreadcrumb(implicit req: OrgaReq[AnyContent]): Breadcrumb =
-    GroupCtrl.breadcrumb(req.group).add("Events" -> routes.EventCtrl.list(req.group.slug))
+    GroupCtrl.breadcrumb.add("Events" -> routes.EventCtrl.list(req.group.slug))
 
   def breadcrumb(event: Event)(implicit req: OrgaReq[AnyContent]): Breadcrumb =
     listBreadcrumb.add(event.name.value -> routes.EventCtrl.detail(req.group.slug, event.slug))

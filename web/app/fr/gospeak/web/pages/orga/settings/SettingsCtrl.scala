@@ -258,7 +258,7 @@ class SettingsCtrl(cc: ControllerComponents,
 
 object SettingsCtrl {
   def listBreadcrumb(implicit req: OrgaReq[AnyContent]): Breadcrumb =
-    GroupCtrl.breadcrumb(req.group).add("Settings" -> routes.SettingsCtrl.settings(req.group.slug))
+    GroupCtrl.breadcrumb.add("Settings" -> routes.SettingsCtrl.settings(req.group.slug))
 
   def breadcrumb(setting: (String, Call))(implicit req: OrgaReq[AnyContent]): Breadcrumb =
     listBreadcrumb.add(setting._1 -> setting._2)

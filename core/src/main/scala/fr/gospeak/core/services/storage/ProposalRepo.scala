@@ -35,7 +35,7 @@ trait OrgaProposalRepo {
 
   def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]]
 
-  def listFull(group: Group.Id, speaker: User.Id, params: Page.Params): IO[Page[Proposal.Full]]
+  def listFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]]
 
   def listFull(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
@@ -52,8 +52,6 @@ trait OrgaProposalRepo {
   def listRatings(id: Proposal.Id): IO[Seq[Proposal.Rating.Full]]
 
   def listRatings(cfp: Cfp.Slug)(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]]
-
-  def listRatings(user: User.Id, proposals: Seq[Proposal.Id]): IO[Seq[Proposal.Rating]]
 
   def listRatings(proposals: Seq[Proposal.Id])(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]]
 }

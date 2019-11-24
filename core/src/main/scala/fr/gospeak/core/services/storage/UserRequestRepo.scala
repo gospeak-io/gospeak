@@ -3,26 +3,26 @@ package fr.gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, GroupInvite, PasswordResetRequest, ProposalInvite, TalkInvite, UserAskToJoinAGroupRequest}
-import fr.gospeak.core.domain.utils.OrgaCtx
-import fr.gospeak.core.domain.{Group, Proposal, Talk, User, UserRequest}
+import fr.gospeak.core.domain.UserRequest._
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import fr.gospeak.core.domain._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
 trait UserRequestRepo extends OrgaUserRequestRepo with SpeakerUserRequestRepo with UserUserRequestRepo with AuthUserRequestRepo
 
 trait OrgaUserRequestRepo {
-  def listPendingGroupRequests(group: Group.Id, now: Instant): IO[Seq[UserRequest]]
+  def listPendingGroupRequests(implicit ctx: OrgaCtx): IO[Seq[UserRequest]]
 
 
-  def listPendingUserToJoinAGroupRequests(user: User.Id): IO[Seq[UserAskToJoinAGroupRequest]]
+  def listPendingUserToJoinAGroupRequests(implicit ctx: UserCtx): IO[Seq[UserAskToJoinAGroupRequest]]
 
-  def findPendingUserToJoinAGroup(group: Group.Id, req: UserRequest.Id): IO[Option[UserAskToJoinAGroupRequest]]
+  def findPendingUserToJoinAGroup(req: UserRequest.Id)(implicit ctx: OrgaCtx): IO[Option[UserAskToJoinAGroupRequest]]
 
-  def createUserAskToJoinAGroup(user: User.Id, group: Group.Id, now: Instant): IO[UserAskToJoinAGroupRequest]
+  def createUserAskToJoinAGroup(group: Group.Id)(implicit ctx: UserCtx): IO[UserAskToJoinAGroupRequest]
 
-  def acceptUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done]
+  def acceptUserToJoinAGroup(req: UserAskToJoinAGroupRequest)(implicit ctx: OrgaCtx): IO[Done]
 
-  def rejectUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done]
+  def rejectUserToJoinAGroup(req: UserAskToJoinAGroupRequest)(implicit ctx: OrgaCtx): IO[Done]
 
 
   def invite(email: EmailAddress)(implicit ctx: OrgaCtx): IO[GroupInvite]

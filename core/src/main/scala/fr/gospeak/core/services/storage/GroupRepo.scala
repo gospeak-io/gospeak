@@ -3,7 +3,7 @@ package fr.gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.utils.OrgaCtx
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
 
@@ -14,13 +14,13 @@ trait OrgaGroupRepo {
 
   def find(group: Group.Slug): IO[Option[Group]]
 
-  def listJoinable(user: User.Id, params: Page.Params): IO[Page[Group]]
+  def listJoinable(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Group]]
 
   def exists(slug: Group.Slug): IO[Boolean]
 
-  def create(data: Group.Data, by: User.Id, now: Instant): IO[Group]
+  def create(data: Group.Data)(implicit ctx: UserCtx): IO[Group]
 
-  def edit(slug: Group.Slug)(data: Group.Data, by: User.Id, now: Instant): IO[Done]
+  def edit(data: Group.Data)(implicit ctx: OrgaCtx): IO[Done]
 
   def addOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done]
 

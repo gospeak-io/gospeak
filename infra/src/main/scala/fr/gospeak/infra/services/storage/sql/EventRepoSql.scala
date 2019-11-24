@@ -62,7 +62,7 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def list(ids: Seq[Event.Id]): IO[Seq[Event]] = runNel(selectAll, ids)
 
-  override def listAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]] = selectPageAfter(group, now.truncatedTo(ChronoUnit.DAYS), params).run(xa)
+  override def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]] = selectPageAfter(ctx.group.id, ctx.now.truncatedTo(ChronoUnit.DAYS), params).run(xa)
 
   override def listIncoming(params: Page.Params)(user: User.Id, now: Instant): IO[Page[(Event.Full, Option[Event.Rsvp])]] = selectPageIncoming(user, now, params).run(xa)
 

@@ -30,7 +30,7 @@ class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def listCurrentFull(group: Group.Id, now: Instant): IO[Seq[Sponsor.Full]] = selectCurrent(group, now).runList(xa)
 
-  override def listAll(group: Group.Id): IO[Seq[Sponsor]] = selectAll(group).runList(xa)
+  override def listAll(implicit ctx: OrgaCtx): IO[Seq[Sponsor]] = selectAll(ctx.group.id).runList(xa)
 
   override def listAll(contact: Contact.Id)(implicit ctx: OrgaCtx): IO[Seq[Sponsor]] = selectAll(ctx.group.id, contact).runList(xa)
 

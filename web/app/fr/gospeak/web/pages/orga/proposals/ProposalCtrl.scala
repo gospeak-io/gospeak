@@ -32,5 +32,5 @@ class ProposalCtrl(cc: ControllerComponents,
 
 object ProposalCtrl {
   def listBreadcrumb(implicit req: OrgaReq[AnyContent]): Breadcrumb =
-    GroupCtrl.breadcrumb(req.group).add("Proposals" -> routes.ProposalCtrl.list(req.group.slug))
+    GroupCtrl.breadcrumb.add("Proposals" -> routes.ProposalCtrl.list(req.group.slug))
 }

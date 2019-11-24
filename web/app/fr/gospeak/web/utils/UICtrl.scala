@@ -4,7 +4,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.OrgaCtx
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import fr.gospeak.core.services.storage.OrgaGroupRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -111,6 +111,16 @@ abstract class UICtrl(cc: ControllerComponents,
 }
 
 object UICtrl {
+
+  trait UserAction {
+    self: UICtrl =>
+
+    protected def UserAction(block: UserReq[AnyContent] => UserCtx => IO[Result]): Action[AnyContent] = {
+      SecuredActionIO { req =>
+        block(req)(new UserCtx(req.now, req.user))
+      }
+    }
+  }
 
   trait OrgaAction {
     self: UICtrl =>

@@ -1,9 +1,9 @@
-@import fr.gospeak.core.domain.{Group, User}
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.core.domain.User
+@import fr.gospeak.web.utils.OrgaReq
 
-@(rejectedUser: User, group: Group)(implicit req: UserReq[AnyContent])
+@(rejectedUser: User)(implicit req: OrgaReq[AnyContent])
 <p>Hello @rejectedUser.firstName,</p>
-<p>We are embarrassed but it seems that you will not be able to help organizing the @group.name.value group :(</p>
+<p>We are embarrassed but it seems that you will not be able to help organizing the @req.group.name.value group :(</p>
 <p>You can send an email to <a href="mailto:@req.user.email.value">@req.user.name.value</a> if you want an explanation.</p>
 <p>Please keep enjoying Gospeak ;)</p>
 <p>The Gospeak team</p>

@@ -31,7 +31,7 @@ trait OrgaEventRepo {
 
   def list(ids: Seq[Event.Id]): IO[Seq[Event]]
 
-  def listAfter(group: Group.Id, now: Instant, params: Page.Params): IO[Page[Event]]
+  def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]]
 
   def find(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event]]
 

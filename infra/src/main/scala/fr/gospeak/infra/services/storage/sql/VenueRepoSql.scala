@@ -24,7 +24,7 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def remove(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Done] = delete(ctx.group.id, venue).run(xa)
 
-  override def listFull(group: Group.Id, params: Page.Params): IO[Page[Venue.Full]] = selectPageFull(group, params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Full]] = selectPageFull(ctx.group.id, params).run(xa)
 
   override def listFull(group: Group.Id): IO[Seq[Venue.Full]] = selectAllFull(group).runList(xa)
 

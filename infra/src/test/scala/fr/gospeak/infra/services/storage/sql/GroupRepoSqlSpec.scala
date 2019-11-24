@@ -1,6 +1,7 @@
 package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
+import fr.gospeak.core.domain.utils.UserCtx
 import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.TablesSpec.socialFields
 import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec.{fields => userFields, table => userTable}
@@ -11,28 +12,32 @@ class GroupRepoSqlSpec extends RepoSpec {
   describe("GroupRepoSql") {
     it("should create and retrieve a group") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
+      val ctx = new UserCtx(now, user)
       groupRepo.list(user.id).unsafeRunSync() shouldBe Seq()
       groupRepo.find(user.id, groupData1.slug).unsafeRunSync() shouldBe None
-      val group = groupRepo.create(groupData1, user.id, now).unsafeRunSync()
+      val group = groupRepo.create(groupData1)(ctx).unsafeRunSync()
       groupRepo.list(user.id).unsafeRunSync() shouldBe Seq(group)
       groupRepo.find(user.id, groupData1.slug).unsafeRunSync() shouldBe Some(group)
     }
     it("should not retrieve not owned groups") {
       val user1 = userRepo.create(userData1, now, None).unsafeRunSync()
       val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
-      groupRepo.create(groupData1, user2.id, now).unsafeRunSync()
+      val ctx2 = new UserCtx(now, user2)
+      groupRepo.create(groupData1)(ctx2).unsafeRunSync()
       groupRepo.list(user1.id).unsafeRunSync() shouldBe Seq()
       groupRepo.find(user1.id, groupData1.slug).unsafeRunSync() shouldBe None
     }
     it("should fail on duplicate slug") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
-      groupRepo.create(groupData1, user.id, now).unsafeRunSync()
-      an[Exception] should be thrownBy groupRepo.create(groupData1, user.id, now).unsafeRunSync()
+      val ctx = new UserCtx(now, user)
+      groupRepo.create(groupData1)(ctx).unsafeRunSync()
+      an[Exception] should be thrownBy groupRepo.create(groupData1)(ctx).unsafeRunSync()
     }
     it("should add an owner") {
       val user1 = userRepo.create(userData1, now, None).unsafeRunSync()
       val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
-      val created = groupRepo.create(groupData1, user1.id, now).unsafeRunSync()
+      val ctx1 = new UserCtx(now, user1)
+      val created = groupRepo.create(groupData1)(ctx1).unsafeRunSync()
       created.owners.toList shouldBe List(user1.id)
 
       groupRepo.addOwner(created.id)(user2.id, user1.id, now).unsafeRunSync()

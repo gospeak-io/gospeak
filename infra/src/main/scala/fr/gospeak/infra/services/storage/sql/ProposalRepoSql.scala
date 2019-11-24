@@ -120,7 +120,7 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def listFull(talk: Talk.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(talk, params).run(xa)
 
-  override def listFull(group: Group.Id, speaker: User.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(group, speaker, params).run(xa)
+  override def listFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(ctx.group.id, speaker, params).run(xa)
 
   override def listFull(speaker: User.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(speaker, params).run(xa)
 
@@ -137,9 +137,6 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def listRatings(id: Proposal.Id): IO[Seq[Proposal.Rating.Full]] = selectAllRatings(id).runList(xa)
 
   override def listRatings(cfp: Cfp.Slug)(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]] = selectAllRatings(cfp, ctx.user.id).runList(xa)
-
-  override def listRatings(user: User.Id, proposals: Seq[Proposal.Id]): IO[Seq[Proposal.Rating]] =
-    NonEmptyList.fromList(proposals.toList).map(selectAllRatings(user, _).runList(xa)).getOrElse(IO.pure(Seq()))
 
   override def listRatings(proposals: Seq[Proposal.Id])(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]] =
     NonEmptyList.fromList(proposals.toList).map(selectAllRatings(ctx.user.id, _).runList(xa)).getOrElse(IO.pure(Seq()))

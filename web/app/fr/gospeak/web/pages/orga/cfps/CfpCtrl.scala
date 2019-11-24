@@ -99,7 +99,7 @@ class CfpCtrl(cc: ControllerComponents,
 
 object CfpCtrl {
   def listBreadcrumb(implicit req: OrgaReq[AnyContent]): Breadcrumb =
-    GroupCtrl.breadcrumb(req.group).add("CFPs" -> routes.CfpCtrl.list(req.group.slug))
+    GroupCtrl.breadcrumb.add("CFPs" -> routes.CfpCtrl.list(req.group.slug))
 
   def breadcrumb(cfp: Cfp)(implicit req: OrgaReq[AnyContent]): Breadcrumb =
     listBreadcrumb.add(cfp.name.value -> routes.CfpCtrl.detail(req.group.slug, cfp.slug))

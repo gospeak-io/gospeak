@@ -30,8 +30,7 @@ class SponsorCtrl(cc: ControllerComponents,
     for {
       sponsorPacks <- sponsorPackRepo.listAll
       sponsors <- sponsorRepo.listFull(params)
-      b = listBreadcrumb
-    } yield Ok(html.list(ctx.group, sponsorPacks, sponsors)(b))
+    } yield Ok(html.list(ctx.group, sponsorPacks, sponsors)(listBreadcrumb))
   })
 
   def createPack(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -100,8 +99,8 @@ class SponsorCtrl(cc: ControllerComponents,
     (for {
       sponsorElt <- OptionT(sponsorRepo.find(sponsor))
       partnerElt <- OptionT(partnerRepo.find(sponsorElt.partner))
-      b = listBreadcrumb.add("Edit" -> routes.SponsorCtrl.edit(ctx.group.slug, sponsor, partner))
       filledForm = if (form.hasErrors) form else form.fill(sponsorElt.data)
+      b = listBreadcrumb.add("Edit" -> routes.SponsorCtrl.edit(ctx.group.slug, sponsor, partner))
     } yield Ok(html.edit(ctx.group, partnerElt, sponsorElt, filledForm, partner)(b))).value.map(_.getOrElse(sponsorNotFound(ctx.group.slug, sponsor)))
   }
 
@@ -131,7 +130,7 @@ class SponsorCtrl(cc: ControllerComponents,
 
 object SponsorCtrl {
   def listBreadcrumb(implicit req: OrgaReq[AnyContent]): Breadcrumb =
-    GroupCtrl.breadcrumb(req.group).add("Sponsors" -> routes.SponsorCtrl.list(req.group.slug))
+    GroupCtrl.breadcrumb.add("Sponsors" -> routes.SponsorCtrl.list(req.group.slug))
 
   def breadcrumb(pack: SponsorPack)(implicit req: OrgaReq[AnyContent]): Breadcrumb =
     listBreadcrumb.add(pack.name.value -> routes.SponsorCtrl.detail(req.group.slug, pack.slug))
