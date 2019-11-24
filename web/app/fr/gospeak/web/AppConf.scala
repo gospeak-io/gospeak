@@ -46,9 +46,9 @@ object AppConf {
     private implicit val aesSecretKeyReader: ConfigReader[AesSecretKey] = (cur: ConfigCursor) => cur.asString.map(AesSecretKey)
 
     private implicit val applicationConfEnvReader: ConfigReader[ApplicationConf.Env] = (cur: ConfigCursor) => cur.asString.flatMap {
-      case "local" => Right(ApplicationConf.Local)
-      case "dev" => Right(ApplicationConf.Dev)
-      case "prod" => Right(ApplicationConf.Prod)
+      case "local" => Right(ApplicationConf.Env.Local)
+      case "dev" => Right(ApplicationConf.Env.Dev)
+      case "prod" => Right(ApplicationConf.Env.Prod)
       case _ => Left(ConfigReaderFailures(ConvertFailure(CannotConvert(cur.toString, "ApplicationConf.Env", "Invalid value"), cur.location, cur.path)))
     }
 

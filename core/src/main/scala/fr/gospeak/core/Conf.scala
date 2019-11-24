@@ -5,13 +5,16 @@ import fr.gospeak.core.domain.Group
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
+import fr.gospeak.libs.scalautils.domain.{EnumBuilder, StringEnum}
 
 final case class ApplicationConf(env: ApplicationConf.Env,
                                  aesKey: AesSecretKey)
 
 object ApplicationConf {
 
-  sealed trait Env {
+  sealed trait Env extends StringEnum {
+    def value: String = toString
+
     def isLocal: Boolean = false
 
     def isDev: Boolean = false
@@ -19,16 +22,21 @@ object ApplicationConf {
     def isProd: Boolean = false
   }
 
-  final case object Local extends Env {
-    override def isLocal: Boolean = true
-  }
+  object Env extends EnumBuilder[Env]("ApplicationConf.Env") {
 
-  final case object Dev extends Env {
-    override def isDev: Boolean = true
-  }
+    final case object Local extends Env {
+      override def isLocal: Boolean = true
+    }
 
-  final case object Prod extends Env {
-    override def isProd: Boolean = true
+    final case object Dev extends Env {
+      override def isDev: Boolean = true
+    }
+
+    final case object Prod extends Env {
+      override def isProd: Boolean = true
+    }
+
+    val all: Seq[Env] = Seq(Local, Dev, Prod)
   }
 
 }

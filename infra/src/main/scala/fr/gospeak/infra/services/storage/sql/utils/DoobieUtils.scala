@@ -9,6 +9,7 @@ import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
 import doobie.util.transactor.Transactor
 import doobie.util.{Meta, Read}
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount._
 import fr.gospeak.core.domain.utils.TemplateData
@@ -303,6 +304,7 @@ object DoobieUtils {
 
     import scala.reflect.runtime.universe._
 
+    implicit val envMeta: Meta[ApplicationConf.Env] = Meta[String].timap(ApplicationConf.Env.from(_).get)(_.value)
     implicit val timePeriodMeta: Meta[TimePeriod] = Meta[String].timap(TimePeriod.from(_).get)(_.value)
     implicit val finiteDurationMeta: Meta[FiniteDuration] = Meta[Long].timap(Duration.fromNanos)(_.toNanos)
     implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Instant].timap(LocalDateTime.ofInstant(_, ZoneOffset.UTC))(_.toInstant(ZoneOffset.UTC))

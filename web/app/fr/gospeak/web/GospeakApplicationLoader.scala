@@ -215,6 +215,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
 
   def onStart(): Unit = {
+    db.checkEnv(envConf).unsafeRunSync()
     if (envConf.isProd) {
       db.migrate().unsafeRunSync()
     } else {

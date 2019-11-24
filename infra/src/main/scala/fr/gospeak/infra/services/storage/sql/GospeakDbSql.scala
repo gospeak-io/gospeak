@@ -4,7 +4,6 @@ import java.time.{Instant, LocalDate, LocalDateTime}
 
 import cats.data.NonEmptyList
 import cats.effect.{ContextShift, IO}
-import fr.gospeak.core.GospeakConf
 import fr.gospeak.core.domain.Contact.{FirstName, LastName}
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
@@ -12,6 +11,7 @@ import fr.gospeak.core.domain.utils.TemplateData.EventInfo
 import fr.gospeak.core.domain.utils.{Constants, Info, SocialAccounts, TemplateData}
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.core.services.storage.GospeakDb
+import fr.gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.{DoobieUtils, FlywayUtils}
@@ -24,10 +24,31 @@ import fr.gospeak.migration.MongoRepo
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb {
   private val flyway = FlywayUtils.build(dbConf)
   private[sql] val xa: doobie.Transactor[IO] = DoobieUtils.transactor(dbConf)
+
+  def checkEnv(appEnv: ApplicationConf.Env): IO[Int] = {
+    import doobie.implicits._
+    def createTable(): IO[Int] = {
+      fr0"CREATE TABLE env (name VARCHAR(10) NOT NULL PRIMARY KEY);".update.run.transact(xa)
+        .flatMap(_ => fr0"INSERT INTO env (name) VALUES ($appEnv);".update.run.transact(xa))
+    }
+
+    fr0"SELECT name FROM env".query[ApplicationConf.Env].unique.transact(xa).flatMap { dbEnv =>
+      if (dbEnv == appEnv) {
+        IO.pure(0)
+      } else {
+        IO.raiseError(new IllegalStateException(s"Can't boot $appEnv app on $dbEnv db"))
+      }
+    }.recoverWith {
+      case e: org.h2.jdbc.JdbcSQLSyntaxErrorException if e.getMessage.startsWith("Table \"env\" not found") => createTable()
+      case e: org.postgresql.util.PSQLException if e.getMessage.startsWith("ERROR: relation \"env\" does not exist") => createTable()
+      case NonFatal(e) => IO.raiseError(new IllegalStateException(s"Unknown error ${e.getClass.getSimpleName}: ${e.getMessage}", e))
+    }
+  }
 
   def migrate(): IO[Int] = IO(flyway.migrate())
 
