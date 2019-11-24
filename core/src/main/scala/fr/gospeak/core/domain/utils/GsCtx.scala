@@ -6,6 +6,9 @@ import fr.gospeak.core.domain.{Group, User}
 
 sealed class BasicCtx(val now: Instant)
 
+class UserAwareCtx(override val now: Instant,
+                   val user: Option[User]) extends BasicCtx(now)
+
 class UserCtx(override val now: Instant,
               val user: User) extends BasicCtx(now) {
   def info: Info = Info(user.id, now)
