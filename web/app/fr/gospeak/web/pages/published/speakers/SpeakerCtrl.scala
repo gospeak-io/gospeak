@@ -19,24 +19,21 @@ class SpeakerCtrl(cc: ControllerComponents,
                   userRepo: PublicUserRepo,
                   talkRepo: PublicTalkRepo,
                   proposalRepo: PublicProposalRepo,
-                  groupRepo: PublicGroupRepo) extends UICtrl(cc, silhouette, env) {
-  def list(params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
-    (for {
-      speakers <- userRepo.listPublic(params)
-      b = listBreadcrumb()
-    } yield Ok(html.list(speakers)(b)))
-  }
+                  groupRepo: PublicGroupRepo) extends UICtrl(cc, silhouette, env) with UICtrl.UserAwareAction {
+  def list(params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+    userRepo.listPublic(params).map(speakers => Ok(html.list(speakers)(listBreadcrumb())))
+  })
 
-  def detail(user: User.Slug, params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def detail(user: User.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
       speakerElt <- OptionT(userRepo.findPublic(user))
       publicTalks <- OptionT.liftF(talkRepo.list(speakerElt.id, Talk.Status.Public, params))
       // acceptedProposals <- OptionT.liftF(proposalRepo.listPublicFull(speakerElt.id, params))
       groups <- OptionT.liftF(groupRepo.list(speakerElt.id))
       orgas <- OptionT.liftF(userRepo.list(groups.flatMap(_.owners.toList)))
-      b = breadcrumb(speakerElt)
-    } yield Ok(html.detail(speakerElt, publicTalks, groups, orgas)(b))).value.map(_.getOrElse(publicUserNotFound(user)))
-  }
+      res = Ok(html.detail(speakerElt, publicTalks, groups, orgas)(breadcrumb(speakerElt)))
+    } yield res).value.map(_.getOrElse(publicUserNotFound(user)))
+  })
 }
 
 object SpeakerCtrl {

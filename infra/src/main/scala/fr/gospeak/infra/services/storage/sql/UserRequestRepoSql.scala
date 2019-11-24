@@ -63,7 +63,7 @@ class UserRequestRepoSql(groupRepo: GroupRepoSql,
 
   override def acceptUserToJoinAGroup(req: UserAskToJoinAGroupRequest)(implicit ctx: OrgaCtx): IO[Done] = for {
     _ <- UserAskToJoinAGroup.accept(req.id, ctx.user.id, ctx.now).run(xa)
-    _ <- groupRepo.addOwner(req.group)(req.createdBy, ctx.user.id, ctx.now)
+    _ <- groupRepo.addOwner(req.group, req.createdBy, ctx.user.id)
   } yield Done
 
   override def rejectUserToJoinAGroup(req: UserAskToJoinAGroupRequest)(implicit ctx: OrgaCtx): IO[Done] = UserAskToJoinAGroup.reject(req.id, ctx.user.id, ctx.now).run(xa)
@@ -77,50 +77,50 @@ class UserRequestRepoSql(groupRepo: GroupRepoSql,
   override def cancelGroupInvite(id: Id)(implicit ctx: OrgaCtx): IO[GroupInvite] =
     GroupInviteQueries.cancel(id, ctx.user.id, ctx.now).run(xa).flatMap(_ => GroupInviteQueries.selectOne(id).runUnique(xa))
 
-  override def accept(invite: UserRequest.GroupInvite, by: User.Id, now: Instant): IO[Done] = for {
-    _ <- GroupInviteQueries.accept(invite.id, by, now).run(xa)
-    _ <- groupRepo.addOwner(invite.group)(by, invite.createdBy, now)
+  override def accept(invite: UserRequest.GroupInvite)(implicit ctx: UserCtx): IO[Done] = for {
+    _ <- GroupInviteQueries.accept(invite.id, ctx.user.id, ctx.now).run(xa)
+    _ <- groupRepo.addOwner(invite.group, ctx.user.id, invite.createdBy)
   } yield Done
 
-  override def reject(invite: UserRequest.GroupInvite, by: User.Id, now: Instant): IO[Done] = GroupInviteQueries.reject(invite.id, by, now).run(xa)
+  override def reject(invite: UserRequest.GroupInvite)(implicit ctx: UserCtx): IO[Done] = GroupInviteQueries.reject(invite.id, ctx.user.id, ctx.now).run(xa)
 
   override def listPendingInvites(implicit ctx: OrgaCtx): IO[Seq[GroupInvite]] = GroupInviteQueries.selectAllPending(ctx.group.id).runList(xa)
 
 
-  override def invite(talk: Talk.Id, email: EmailAddress, by: User.Id, now: Instant): IO[TalkInvite] =
-    TalkInviteQueries.insert(TalkInvite(UserRequest.Id.generate(), talk, email, now, by, None, None, None)).run(xa)
+  override def invite(talk: Talk.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[TalkInvite] =
+    TalkInviteQueries.insert(TalkInvite(UserRequest.Id.generate(), talk, email, ctx.now, ctx.user.id, None, None, None)).run(xa)
 
-  override def cancelTalkInvite(id: UserRequest.Id, by: User.Id, now: Instant): IO[TalkInvite] =
-    TalkInviteQueries.cancel(id, by, now).run(xa).flatMap(_ => TalkInviteQueries.selectOne(id).runUnique(xa))
+  override def cancelTalkInvite(id: UserRequest.Id)(implicit ctx: UserCtx): IO[TalkInvite] =
+    TalkInviteQueries.cancel(id, ctx.user.id, ctx.now).run(xa).flatMap(_ => TalkInviteQueries.selectOne(id).runUnique(xa))
 
-  override def accept(invite: UserRequest.TalkInvite, by: User.Id, now: Instant): IO[Done] = for {
-    _ <- TalkInviteQueries.accept(invite.id, by, now).run(xa)
-    _ <- talkRepo.addSpeaker(invite.talk)(by, invite.createdBy, now)
+  override def accept(invite: UserRequest.TalkInvite)(implicit ctx: UserCtx): IO[Done] = for {
+    _ <- TalkInviteQueries.accept(invite.id, ctx.user.id, ctx.now).run(xa)
+    _ <- talkRepo.addSpeaker(invite.talk, invite.createdBy)
   } yield Done
 
-  override def reject(invite: UserRequest.TalkInvite, by: User.Id, now: Instant): IO[Done] = TalkInviteQueries.reject(invite.id, by, now).run(xa)
+  override def reject(invite: UserRequest.TalkInvite)(implicit ctx: UserCtx): IO[Done] = TalkInviteQueries.reject(invite.id, ctx.user.id, ctx.now).run(xa)
 
   override def listPendingInvites(talk: Talk.Id): IO[Seq[TalkInvite]] = TalkInviteQueries.selectAllPending(talk).runList(xa)
 
 
-  override def invite(proposal: Proposal.Id, email: EmailAddress, by: User.Id, now: Instant): IO[ProposalInvite] =
-    ProposalInviteQueries.insert(ProposalInvite(UserRequest.Id.generate(), proposal, email, now, by, None, None, None)).run(xa)
+  override def invite(proposal: Proposal.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[ProposalInvite] =
+    ProposalInviteQueries.insert(ProposalInvite(UserRequest.Id.generate(), proposal, email, ctx.now, ctx.user.id, None, None, None)).run(xa)
 
   override def invite(proposal: Proposal.Id, email: EmailAddress)(implicit ctx: OrgaCtx): IO[ProposalInvite] =
     ProposalInviteQueries.insert(ProposalInvite(UserRequest.Id.generate(), proposal, email, ctx.now, ctx.user.id, None, None, None)).run(xa)
 
-  override def cancelProposalInvite(id: Id, by: User.Id, now: Instant): IO[ProposalInvite] =
-    ProposalInviteQueries.cancel(id, by, now).run(xa).flatMap(_ => ProposalInviteQueries.selectOne(id).runUnique(xa))
+  override def cancelProposalInvite(id: Id)(implicit ctx: UserCtx): IO[ProposalInvite] =
+    ProposalInviteQueries.cancel(id, ctx.user.id, ctx.now).run(xa).flatMap(_ => ProposalInviteQueries.selectOne(id).runUnique(xa))
 
   override def cancelProposalInvite(id: Id)(implicit ctx: OrgaCtx): IO[ProposalInvite] =
     ProposalInviteQueries.cancel(id, ctx.user.id, ctx.now).run(xa).flatMap(_ => ProposalInviteQueries.selectOne(id).runUnique(xa))
 
-  override def accept(invite: UserRequest.ProposalInvite, by: User.Id, now: Instant): IO[Done] = for {
-    _ <- ProposalInviteQueries.accept(invite.id, by, now).run(xa)
-    _ <- proposalRepo.addSpeaker(invite.proposal)(by, invite.createdBy, now)
+  override def accept(invite: UserRequest.ProposalInvite)(implicit ctx: UserCtx): IO[Done] = for {
+    _ <- ProposalInviteQueries.accept(invite.id, ctx.user.id, ctx.now).run(xa)
+    _ <- proposalRepo.addSpeaker(invite.proposal)(ctx.user.id, invite.createdBy, ctx.now)
   } yield Done
 
-  override def reject(invite: UserRequest.ProposalInvite, by: User.Id, now: Instant): IO[Done] = ProposalInviteQueries.reject(invite.id, by, now).run(xa)
+  override def reject(invite: UserRequest.ProposalInvite)(implicit ctx: UserCtx): IO[Done] = ProposalInviteQueries.reject(invite.id, ctx.user.id, ctx.now).run(xa)
 
   override def listPendingInvites(proposal: Proposal.Id): IO[Seq[ProposalInvite]] = ProposalInviteQueries.selectAllPending(proposal).runList(xa)
 }

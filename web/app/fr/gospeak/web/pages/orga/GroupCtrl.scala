@@ -162,7 +162,7 @@ class GroupCtrl(cc: ControllerComponents,
 
 object GroupCtrl {
   def groupBreadcrumb(implicit req: UserReq[AnyContent]): Breadcrumb =
-    UserCtrl.breadcrumb(req.user).add("Groups" -> UserRoutes.index())
+    UserCtrl.breadcrumb.add("Groups" -> UserRoutes.index())
 
   def breadcrumb(implicit req: OrgaReq[AnyContent]): Breadcrumb =
     Breadcrumb(req.group.name.value -> routes.GroupCtrl.detail(req.group.slug))

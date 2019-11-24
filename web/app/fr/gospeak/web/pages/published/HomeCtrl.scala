@@ -24,16 +24,14 @@ import scala.concurrent.duration._
 
 class HomeCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
-               env: ApplicationConf.Env) extends UICtrl(cc, silhouette, env) {
-  def index(): Action[AnyContent] = UserAwareActionIO { implicit req =>
-    val b = breadcrumb()
-    IO.pure(Ok(html.index()(b)))
-  }
+               env: ApplicationConf.Env) extends UICtrl(cc, silhouette, env) with UICtrl.UserAwareAction {
+  def index(): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+    IO.pure(Ok(html.index()(breadcrumb())))
+  })
 
-  def why(): Action[AnyContent] = UserAwareActionIO { implicit req =>
-    val b = breadcrumb().add("Why use Gospeak" -> routes.HomeCtrl.why())
-    IO.pure(Ok(html.why()(b)))
-  }
+  def why(): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+    IO.pure(Ok(html.why()(breadcrumb().add("Why use Gospeak" -> routes.HomeCtrl.why()))))
+  })
 
   private val now = Instant.now()
   private val dt = new DateTime()
@@ -144,12 +142,12 @@ class HomeCtrl(cc: ControllerComponents,
     tags = Seq("tag").map(Tag(_)),
     info = Info(user.id, now))
 
-  def styleguide(params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def styleguide(params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     implicit val userReq: UserReq[AnyContent] = req.secured(identity, authenticator)
     implicit val orgaReq: OrgaReq[AnyContent] = userReq.orga(group)
     val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event), 0L, 0L, 0L)
     IO.pure(Ok(html.styleguide(user, group, cfp, event, talk, proposal, proposalFull, params)))
-  }
+  })
 }
 
 object HomeCtrl {

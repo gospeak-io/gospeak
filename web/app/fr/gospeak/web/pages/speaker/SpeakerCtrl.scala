@@ -9,8 +9,9 @@ import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublishedSpeakerRoutes}
+import fr.gospeak.web.pages.speaker.SpeakerCtrl._
 import fr.gospeak.web.pages.user.UserCtrl
-import fr.gospeak.web.utils.{HttpUtils, UserReq, UICtrl}
+import fr.gospeak.web.utils.{HttpUtils, UICtrl, UserReq}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -20,34 +21,32 @@ class SpeakerCtrl(cc: ControllerComponents,
                   groupRepo: UserGroupRepo,
                   proposalRepo: UserProposalRepo,
                   talkRepo: UserTalkRepo,
-                  userRepo: UserUserRepo) extends UICtrl(cc, silhouette, env) {
-  def detail(params: Page.Params): Action[AnyContent] = SecuredActionIO { implicit req =>
+                  userRepo: UserUserRepo) extends UICtrl(cc, silhouette, env) with UICtrl.UserAction {
+  def detail(params: Page.Params): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
     for {
-      proposals <- proposalRepo.listFull(req.user.id, params)
-      groups <- groupRepo.list(req.user.id)
-      b = SpeakerCtrl.breadcrumb(req.user)
-    } yield Ok(html.detail(proposals, groups)(b))
-  }
+      proposals <- proposalRepo.listFull(params)
+      groups <- groupRepo.list
+    } yield Ok(html.detail(proposals, groups)(breadcrumb))
+  })
 
-  def edit(): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def edit(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
     editView(ProfileForms.create)
-  }
+  })
 
-  def doEdit(): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doEdit(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
     ProfileForms.create.bindFromRequest.fold(
       formWithErrors => editView(formWithErrors),
-      data => userRepo.edit(req.user.id)(data, req.now)
+      data => userRepo.edit(data)
         .map(_ => Redirect(routes.SpeakerCtrl.detail()).flashing("success" -> "Profile updated"))
     )
-  }
+  })
 
   private def editView(form: Form[User.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
-    val b = SpeakerCtrl.editBreadcrumb(req.user)
     val filledForm = if (form.hasErrors) form else form.fill(req.user.data)
-    IO(Ok(html.edit(filledForm)(b)))
+    IO(Ok(html.edit(filledForm)(editBreadcrumb)))
   }
 
-  def doEditStatus(status: User.Status): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doEditStatus(status: User.Status): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
     val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.SpeakerCtrl.detail().toString))
     val msg = status match {
       case User.Status.Undefined =>
@@ -57,15 +56,14 @@ class SpeakerCtrl(cc: ControllerComponents,
       case User.Status.Public =>
         s"""Nice! You are now officially a public speaker on Gospeak. Here is your <a href="${PublishedSpeakerRoutes.detail(req.user.slug)}" target="_blank">public page</a>."""
     }
-    userRepo.editStatus(req.user.id)(status, req.now)
-      .map(_ => next.flashing("success" -> msg))
-  }
+    userRepo.editStatus(status).map(_ => next.flashing("success" -> msg))
+  })
 }
 
 object SpeakerCtrl {
-  def breadcrumb(user: User): Breadcrumb =
-    UserCtrl.breadcrumb(user).add("Profile" -> routes.SpeakerCtrl.detail())
+  def breadcrumb(implicit req: UserReq[AnyContent]): Breadcrumb =
+    UserCtrl.breadcrumb.add("Profile" -> routes.SpeakerCtrl.detail())
 
-  def editBreadcrumb(user: User): Breadcrumb =
-    breadcrumb(user).add("Edit" -> routes.SpeakerCtrl.edit())
+  def editBreadcrumb(implicit req: UserReq[AnyContent]): Breadcrumb =
+    breadcrumb.add("Edit" -> routes.SpeakerCtrl.edit())
 }

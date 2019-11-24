@@ -11,17 +11,17 @@ class DisplayGlobalErrorsSpec extends TwirlSpec {
 
   describe("pages.partials.form.displayGlobalErrors.scala.html") {
     it("should display nothing when no errors") {
-      val res = html.displayGlobalErrors(form)(secured).body.trim
+      val res = html.displayGlobalErrors(form)(userReq).body.trim
       res shouldBe ""
     }
     it("should display the error text when just one error") {
       val f = form.withGlobalError("error alone")
-      val res = html.displayGlobalErrors(f)(secured).body.trim
+      val res = html.displayGlobalErrors(f)(userReq).body.trim
       res should include("error alone")
     }
     it("should display the list of errors when multiple errors") {
       val f = form.withGlobalError("error 1").withGlobalError("error 2")
-      val res = html.displayGlobalErrors(f)(secured).body.trim
+      val res = html.displayGlobalErrors(f)(userReq).body.trim
       res should include("error 1")
       res should include("error 2")
     }

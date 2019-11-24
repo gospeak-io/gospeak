@@ -22,7 +22,7 @@ trait OrgaGroupRepo {
 
   def edit(data: Group.Data)(implicit ctx: OrgaCtx): IO[Done]
 
-  def addOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done]
+  def addOwner(group: Group.Id, owner: User.Id, by: User.Id)(implicit ctx: UserCtx): IO[Done]
 
   def removeOwner(owner: User.Id)(implicit ctx: OrgaCtx): IO[Done]
 
@@ -36,9 +36,9 @@ trait SpeakerGroupRepo {
 trait UserGroupRepo {
   def find(group: Group.Id): IO[Option[Group]]
 
-  def list(user: User.Id): IO[Seq[Group]]
+  def list(implicit ctx: UserCtx): IO[Seq[Group]]
 
-  def listJoined(user: User.Id, params: Page.Params): IO[Page[(Group, Group.Member)]]
+  def listJoined(params: Page.Params)(implicit ctx: UserCtx): IO[Page[(Group, Group.Member)]]
 }
 
 trait AuthGroupRepo {

@@ -33,16 +33,15 @@ class GroupCtrl(cc: ControllerComponents,
                 commentRepo: PublicCommentRepo,
                 emailSrv: EmailSrv,
                 builder: MessageBuilder,
-                templateSrv: TemplateSrv) extends UICtrl(cc, silhouette, env) {
-  def list(params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
+                templateSrv: TemplateSrv) extends UICtrl(cc, silhouette, env) with UICtrl.UserAction with UICtrl.UserAwareAction {
+  def list(params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     for {
       groups <- groupRepo.list(params)
       orgas <- userRepo.list(groups.items.flatMap(_.owners.toList))
-      b = listBreadcrumb()
-    } yield Ok(html.list(groups, orgas)(b))
-  }
+    } yield Ok(html.list(groups, orgas)(listBreadcrumb()))
+  })
 
-  def detail(group: Group.Slug): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def detail(group: Group.Slug): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       cfps <- OptionT.liftF(cfpRepo.listAllOpen(groupElt.id, req.now))
@@ -51,12 +50,11 @@ class GroupCtrl(cc: ControllerComponents,
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
-      b = breadcrumb(groupElt)
-      res = Ok(html.detail(groupElt, cfps, events, sponsors, packs, orgas, userMembership)(b))
+      res = Ok(html.detail(groupElt, cfps, events, sponsors, packs, orgas, userMembership)(breadcrumb(groupElt)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
-  }
+  })
 
-  def doJoin(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doJoin(group: Group.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       userMembership <- OptionT.liftF(groupRepo.findActiveMember(groupElt.id, req.user.id))
@@ -66,9 +64,9 @@ class GroupCtrl(cc: ControllerComponents,
         .getOrElse(IO.pure("success" -> s"You are already a member of <b>${groupElt.name.value}</b>")))
       next = Redirect(routes.GroupCtrl.detail(group)).flashing(msg)
     } yield next).value.map(_.getOrElse(publicGroupNotFound(group)))
-  }
+  })
 
-  def doLeave(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doLeave(group: Group.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       userMembership <- OptionT.liftF(groupRepo.findActiveMember(groupElt.id, req.user.id))
@@ -78,9 +76,9 @@ class GroupCtrl(cc: ControllerComponents,
         .getOrElse(IO.pure("error" -> s"You are not a member of <b>${groupElt.name.value}</b>")))
       next = Redirect(routes.GroupCtrl.detail(group)).flashing(msg)
     } yield next).value.map(_.getOrElse(publicGroupNotFound(group)))
-  }
+  })
 
-  def events(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def events(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
 
       groupElt <- OptionT(groupRepo.find(group))
@@ -90,25 +88,24 @@ class GroupCtrl(cc: ControllerComponents,
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
-      b = breadcrumbEvents(groupElt)
-      res = Ok(html.events(groupElt, cfps, events, sponsors, packs, orgas, userMembership)(b))
+      res = Ok(html.events(groupElt, cfps, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
-  }
+  })
 
-  def event(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def event(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     eventView(group, event, GenericForm.comment)
-  }
+  })
 
-  def doSendComment(group: Group.Slug, event: Event.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doSendComment(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
     GenericForm.comment.bindFromRequest.fold(
       formWithErrors => eventView(group, event, formWithErrors)(req.userAware),
       data => (for {
         groupElt <- OptionT(groupRepo.find(group))
         eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
-        _ <- OptionT.liftF(commentRepo.addComment(eventElt.id, data, req.user.id, req.now))
+        _ <- OptionT.liftF(commentRepo.addComment(eventElt.id, data))
       } yield Redirect(routes.GroupCtrl.event(group, event))).value.map(_.getOrElse(publicEventNotFound(group, event)))
     )
-  }
+  })
 
   private def eventView(group: Group.Slug, event: Event.Slug, commentForm: Form[Comment.Data])(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     (for {
@@ -128,7 +125,7 @@ class GroupCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(publicEventNotFound(group, event)))
   }
 
-  def doRsvp(group: Group.Slug, event: Event.Slug, answer: Event.Rsvp.Answer): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doRsvp(group: Group.Slug, event: Event.Slug, answer: Event.Rsvp.Answer): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
     import Event.Rsvp.Answer.{No, Wait, Yes}
     val waitMsg = "warning" -> "Thanks but this event is already full. You are on waiting list, your place will be reserved as soon as there is more places"
     val yesMsg = "success" -> "You seat is booked!"
@@ -166,45 +163,41 @@ class GroupCtrl(cc: ControllerComponents,
       case e: CustomException => Redirect(routes.GroupCtrl.event(group, event)).flashing("error" -> e.message)
       case NonFatal(e) => Redirect(routes.GroupCtrl.event(group, event)).flashing("error" -> s"Unexpected error: ${e.getMessage}")
     }
-  }
+  })
 
-  def talks(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def talks(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       proposals <- OptionT.liftF(proposalRepo.listPublicFull(groupElt.id, params.defaultOrderBy("title")))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.speakers.toList).distinct))
-      b = breadcrumbTalks(groupElt)
-      res = Ok(html.talks(groupElt, proposals, speakers)(b))
+      res = Ok(html.talks(groupElt, proposals, speakers)(breadcrumbTalks(groupElt)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
-  }
+  })
 
-  def talk(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def talk(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       proposalElt <- OptionT(proposalRepo.findPublicFull(groupElt.id, proposal))
       speakers <- OptionT.liftF(userRepo.list(proposalElt.speakers.toList))
-      b = breadcrumbTalk(groupElt, proposalElt)
-      res = Ok(html.talk(groupElt, proposalElt, speakers)(b))
+      res = Ok(html.talk(groupElt, proposalElt, speakers)(breadcrumbTalk(groupElt, proposalElt)))
     } yield res).value.map(_.getOrElse(publicProposalNotFound(group, proposal)))
-  }
+  })
 
-  def speakers(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def speakers(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       speakers <- OptionT.liftF(userRepo.speakers(groupElt.id, params))
-      b = breadcrumbSpeakers(groupElt)
-      res = Ok(html.speakers(groupElt, speakers)(b))
+      res = Ok(html.speakers(groupElt, speakers)(breadcrumbSpeakers(groupElt)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
-  }
+  })
 
-  def members(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def members(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       members <- OptionT.liftF(groupRepo.listMembers(groupElt.id, params))
-      b = breadcrumbMembers(groupElt)
-      res = Ok(html.members(groupElt, members)(b))
+      res = Ok(html.members(groupElt, members)(breadcrumbMembers(groupElt)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
-  }
+  })
 }
 
 object GroupCtrl {

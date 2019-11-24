@@ -1,8 +1,7 @@
 package fr.gospeak.core.services.storage
 
-import java.time.Instant
-
 import cats.effect.IO
+import fr.gospeak.core.domain.utils.UserCtx
 import fr.gospeak.core.domain.{Cfp, Talk, User}
 import fr.gospeak.libs.scalautils.domain._
 
@@ -11,33 +10,31 @@ trait TalkRepo extends OrgaTalkRepo with SpeakerTalkRepo with UserTalkRepo with 
 trait OrgaTalkRepo
 
 trait SpeakerTalkRepo {
-  def create(data: Talk.Data, by: User.Id, now: Instant): IO[Talk]
+  def create(data: Talk.Data)(implicit ctx: UserCtx): IO[Talk]
 
-  def edit(talk: Talk.Slug)(data: Talk.Data, by: User.Id, now: Instant): IO[Done]
+  def edit(talk: Talk.Slug, data: Talk.Data)(implicit ctx: UserCtx): IO[Done]
 
-  def editStatus(talk: Talk.Slug)(status: Talk.Status, by: User.Id): IO[Done]
+  def editStatus(talk: Talk.Slug, status: Talk.Status)(implicit ctx: UserCtx): IO[Done]
 
-  def editSlides(talk: Talk.Slug)(slides: Slides, by: User.Id, now: Instant): IO[Done]
+  def editSlides(talk: Talk.Slug, slides: Slides)(implicit ctx: UserCtx): IO[Done]
 
-  def editVideo(talk: Talk.Slug)(video: Video, by: User.Id, now: Instant): IO[Done]
+  def editVideo(talk: Talk.Slug, video: Video)(implicit ctx: UserCtx): IO[Done]
 
-  def removeSpeaker(talk: Talk.Slug)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
+  def removeSpeaker(talk: Talk.Slug, speaker: User.Id)(implicit ctx: UserCtx): IO[Done]
 
   def find(talk: Talk.Id): IO[Option[Talk]]
 
-  def list(user: User.Id, params: Page.Params): IO[Page[Talk]]
+  def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]]
 
   def listActive(user: User.Id, cfp: Cfp.Id, params: Page.Params): IO[Page[Talk]]
 
-  def find(user: User.Id, talk: Talk.Slug): IO[Option[Talk]]
+  def find(talk: Talk.Slug)(implicit ctx: UserCtx): IO[Option[Talk]]
 
   def exists(talk: Talk.Slug): IO[Boolean]
 }
 
 trait UserTalkRepo {
-  def addSpeaker(talk: Talk.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
-
-  def list(user: User.Id, params: Page.Params): IO[Page[Talk]]
+  def addSpeaker(talk: Talk.Id, by: User.Id)(implicit ctx: UserCtx): IO[Done]
 }
 
 trait AuthTalkRepo

@@ -1,5 +1,7 @@
 package fr.gospeak.web.api.ui
 
+import java.time.Instant
+
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
@@ -58,10 +60,9 @@ class SuggestCtrl(cc: ControllerComponents,
                   slackSrv: SlackSrv) extends ApiCtrl(cc, env) {
   private def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = SecuredActionIO(parse.anyContent)(block)
 
-  private def SecuredActionIO[A](bodyParser: BodyParser[A])(block: UserReq[A] => IO[Result]): Action[A] = silhouette.SecuredAction(bodyParser).async { req =>
-    block(UserReq[A](req, messagesApi.preferred(req.request), env)).recover {
-      case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage)))
-    }.unsafeToFuture()
+  private def SecuredActionIO[A](bodyParser: BodyParser[A])(block: UserReq[A] => IO[Result]): Action[A] = silhouette.SecuredAction(bodyParser).async { r =>
+    block(new UserReq[A](r.request, messagesApi.preferred(r.request), Instant.now(), env, r, r.identity.user, r.identity.groups))
+      .recover { case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage))) }.unsafeToFuture()
   }
 
   def suggestTags(): Action[AnyContent] = ActionIO { implicit req =>
