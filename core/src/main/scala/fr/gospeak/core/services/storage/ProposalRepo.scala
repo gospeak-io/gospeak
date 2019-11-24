@@ -33,7 +33,7 @@ trait OrgaProposalRepo {
 
   def removeSpeaker(cfp: Cfp.Slug, id: Proposal.Id, speaker: User.Id)(implicit ctx: OrgaCtx): IO[Done]
 
-  def listFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]]
+  def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]]
 
   def listFull(group: Group.Id, speaker: User.Id, params: Page.Params): IO[Page[Proposal.Full]]
 

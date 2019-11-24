@@ -18,7 +18,7 @@ import fr.gospeak.web.pages.orga.settings.SettingsCtrl
 import fr.gospeak.web.pages.orga.settings.routes.{SettingsCtrl => SettingsRoutes}
 import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import fr.gospeak.web.utils.{HttpUtils, UICtrl, UserReq}
+import fr.gospeak.web.utils.{HttpUtils, OrgaReq, UICtrl, UserReq}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -94,11 +94,11 @@ class GroupCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(groupNotFound(group)))
   })
 
-  def edit(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def edit(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     editForm(group, GroupForms.create(timeShape))
-  }
+  })
 
-  def doEdit(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doEdit(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     GroupForms.create(timeShape).bindFromRequest.fold(
       formWithErrors => editForm(group, formWithErrors),
       data => (for {
@@ -112,12 +112,12 @@ class GroupCtrl(cc: ControllerComponents,
           })
       } yield res).value.map(_.getOrElse(groupNotFound(group)))
     )
-  }
+  })
 
-  private def editForm(group: Group.Slug, form: Form[Group.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
+  private def editForm(group: Group.Slug, form: Form[Group.Data])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      b = SettingsCtrl.listBreadcrumb(groupElt).add("Edit group" -> routes.GroupCtrl.edit(group))
+      b = SettingsCtrl.listBreadcrumb.add("Edit group" -> routes.GroupCtrl.edit(group))
       filledForm = if (form.hasErrors) form else form.fill(groupElt.data)
     } yield Ok(html.edit(groupElt, filledForm)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }

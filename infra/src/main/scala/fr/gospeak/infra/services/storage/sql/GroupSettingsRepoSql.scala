@@ -13,15 +13,15 @@ import fr.gospeak.core.services.meetup.domain.MeetupCredentials
 import fr.gospeak.core.services.slack.domain.SlackCredentials
 import fr.gospeak.core.services.storage.GroupSettingsRepo
 import fr.gospeak.infra.services.storage.sql.GroupSettingsRepoSql._
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, Update}
+import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.domain.Done
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 
 class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: GospeakConf) extends GenericRepo with GroupSettingsRepo {
-  override def find(group: Group.Id): IO[Group.Settings] =
-    selectOne(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings))
+  override def find(implicit ctx: OrgaCtx): IO[Group.Settings] =
+    selectOne(ctx.group.id).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings))
 
   override def findAccounts(group: Group.Id): IO[Group.Settings.Accounts] =
     selectOneAccounts(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.accounts))
@@ -41,12 +41,12 @@ class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: G
   override def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]] =
     selectOneActions(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.actions))
 
-  override def set(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): IO[Done] =
-    selectOne(group).runOption(xa).flatMap { opt =>
+  override def set(settings: Group.Settings)(implicit ctx: OrgaCtx): IO[Done] =
+    selectOne(ctx.group.id).runOption(xa).flatMap { opt =>
       opt.map { _ =>
-        update(group, settings, by, now).run(xa)
+        update(ctx.group.id, settings, ctx.user.id, ctx.now).run(xa)
       }.getOrElse {
-        insert(group, settings, by, now).run(xa).map(_ => Done)
+        insert(ctx.group.id, settings, ctx.user.id, ctx.now).run(xa).map(_ => Done)
       }
     }
 }

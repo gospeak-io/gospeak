@@ -4,6 +4,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.ApplicationConf
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, User, UserRequest}
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.meetup.domain.{MeetupCredentials, MeetupException, MeetupGroup}
@@ -19,7 +20,7 @@ import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.settings.SettingsCtrl._
 import fr.gospeak.web.pages.orga.settings.SettingsForms.{AddAction, EventTemplateItem, MeetupAccount}
 import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import fr.gospeak.web.utils.{GenericForm, UserReq, UICtrl}
+import fr.gospeak.web.utils.{GenericForm, OrgaReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
 import play.twirl.api.HtmlFormat
@@ -30,106 +31,90 @@ class SettingsCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
                    env: ApplicationConf.Env,
                    appConf: ApplicationConf,
-                   groupRepo: OrgaGroupRepo,
+                   val groupRepo: OrgaGroupRepo,
                    groupSettingsRepo: GroupSettingsRepo,
                    userRepo: OrgaUserRepo,
                    userRequestRepo: OrgaUserRequestRepo,
                    emailSrv: EmailSrv,
                    meetupSrv: MeetupSrv,
-                   slackSrv: SlackSrv) extends UICtrl(cc, silhouette, env) {
-  def settings(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
-      res <- OptionT.liftF(settingsView(groupElt, settings))
-    } yield res).value.map(_.getOrElse(groupNotFound(group)))
-  }
+                   slackSrv: SlackSrv) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
+  def settings(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    groupSettingsRepo.find.flatMap(settingsView(_))
+  })
 
-  def createAction(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      res = Ok(createActionView(groupElt, SettingsForms.addAction))
-    } yield res).value.map(_.getOrElse(groupNotFound(group)))
-  }
+  def createAction(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    IO.pure(Ok(createActionView(SettingsForms.addAction)))
+  })
 
-  def doCreateAction(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
-      res <- OptionT.liftF(SettingsForms.addAction.bindFromRequest.fold(
-        formWithErrors => IO.pure(BadRequest(createActionView(groupElt, formWithErrors))),
-        data => groupSettingsRepo.set(groupElt.id, createActionToSettings(settings, data), req.user.id, req.now)
+  def doCreateAction(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    for {
+      settings <- groupSettingsRepo.find
+      res <- SettingsForms.addAction.bindFromRequest.fold(
+        formWithErrors => IO.pure(BadRequest(createActionView(formWithErrors))),
+        data => groupSettingsRepo.set(createActionToSettings(settings, data))
           .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> "Action created"))
-      ))
-    } yield res).value.map(_.getOrElse(groupNotFound(group)))
-  }
-
-  private def createActionView(group: Group, actionForm: Form[AddAction])(implicit req: UserReq[AnyContent]): HtmlFormat.Appendable = {
-    val b = breadcrumb(group, "Create action" -> routes.SettingsCtrl.createAction(group.slug))
-    html.actionCreate(group, actionForm)(b)
-  }
-
-  def updateAction(group: Group.Slug, trigger: Group.Settings.Action.Trigger, index: Int): Action[AnyContent] = SecuredActionIO { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
-      action <- OptionT(IO.pure(settings.actions.get(trigger).flatMap(_.lift(index))))
-      res = Ok(updateActionView(groupElt, trigger, index, SettingsForms.addAction.fill(AddAction(trigger, action))))
-    } yield res).value.map(_.getOrElse(groupNotFound(group)))
-  }
-
-  def doUpdateAction(group: Group.Slug, trigger: Group.Settings.Action.Trigger, index: Int): Action[AnyContent] = SecuredActionIO { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
-      res <- OptionT.liftF(SettingsForms.addAction.bindFromRequest.fold(
-        formWithErrors => IO.pure(BadRequest(updateActionView(groupElt, trigger, index, formWithErrors))),
-        data => groupSettingsRepo.set(groupElt.id, updateActionToSettings(settings, trigger, index, data), req.user.id, req.now)
-          .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> "Action updated"))
-      ))
-    } yield res).value.map(_.getOrElse(groupNotFound(group)))
-  }
-
-  private def updateActionView(group: Group, trigger: Group.Settings.Action.Trigger, index: Int, actionForm: Form[AddAction])(implicit req: UserReq[AnyContent]): HtmlFormat.Appendable = {
-    val b = breadcrumb(group, "Update action" -> routes.SettingsCtrl.createAction(group.slug))
-    html.actionUpdate(group, trigger, index, actionForm)(b)
-  }
-
-  def doRemoveAction(group: Group.Slug, trigger: Group.Settings.Action.Trigger, index: Int): Action[AnyContent] = SecuredActionIO { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
-      res <- OptionT.liftF(groupSettingsRepo.set(groupElt.id, removeActionToSettings(settings, trigger, index), req.user.id, req.now)
-        .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> "Action removed"))
       )
-    } yield res).value.map(_.getOrElse(groupNotFound(group)))
+    } yield res
+  })
+
+  private def createActionView(actionForm: Form[AddAction])(implicit req: OrgaReq[AnyContent]): HtmlFormat.Appendable = {
+    val b = breadcrumb("Create action" -> routes.SettingsCtrl.createAction(req.group.slug))
+    html.actionCreate(req.group, actionForm)(b)
   }
 
-  def meetupAuthorize(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def updateAction(group: Group.Slug, trigger: Group.Settings.Action.Trigger, index: Int): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      res <- OptionT.liftF(SettingsForms.meetupAccount.bindFromRequest.fold(
-        formWithErrors => groupSettingsRepo.find(groupElt.id).flatMap(settingsView(groupElt, _, meetup = Some(formWithErrors))),
-        data => {
-          val redirectUri = routes.SettingsCtrl.meetupCallback(group, data.group).absoluteURL(meetupSrv.hasSecureCallback)
-          meetupSrv.buildAuthorizationUrl(redirectUri).map(url => Redirect(url.value)).toIO
-        }))
+      settings <- OptionT.liftF(groupSettingsRepo.find)
+      action <- OptionT(IO.pure(settings.actions.get(trigger).flatMap(_.lift(index))))
+      res = Ok(updateActionView(trigger, index, SettingsForms.addAction.fill(AddAction(trigger, action))))
     } yield res).value.map(_.getOrElse(groupNotFound(group)))
+  })
+
+  def doUpdateAction(group: Group.Slug, trigger: Group.Settings.Action.Trigger, index: Int): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    for {
+      settings <- groupSettingsRepo.find
+      res <- SettingsForms.addAction.bindFromRequest.fold(
+        formWithErrors => IO.pure(BadRequest(updateActionView(trigger, index, formWithErrors))),
+        data => groupSettingsRepo.set(updateActionToSettings(settings, trigger, index, data))
+          .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> "Action updated"))
+      )
+    } yield res
+  })
+
+  private def updateActionView(trigger: Group.Settings.Action.Trigger, index: Int, actionForm: Form[AddAction])(implicit req: OrgaReq[AnyContent]): HtmlFormat.Appendable = {
+    val b = breadcrumb("Update action" -> routes.SettingsCtrl.createAction(req.group.slug))
+    html.actionUpdate(req.group, trigger, index, actionForm)(b)
   }
 
-  def meetupCallback(group: Group.Slug, meetupGroup: MeetupGroup.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doRemoveAction(group: Group.Slug, trigger: Group.Settings.Action.Trigger, index: Int): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    for {
+      settings <- groupSettingsRepo.find
+      _ <- groupSettingsRepo.set(removeActionToSettings(settings, trigger, index))
+    } yield Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> "Action removed")
+  })
+
+  def meetupAuthorize(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    SettingsForms.meetupAccount.bindFromRequest.fold(
+      formWithErrors => groupSettingsRepo.find.flatMap(settingsView(_, meetup = Some(formWithErrors))),
+      data => {
+        val redirectUri = routes.SettingsCtrl.meetupCallback(group, data.group).absoluteURL(meetupSrv.hasSecureCallback)
+        meetupSrv.buildAuthorizationUrl(redirectUri).map(url => Redirect(url.value)).toIO
+      }
+    )
+  })
+
+  def meetupCallback(group: Group.Slug, meetupGroup: MeetupGroup.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     val redirectUri = routes.SettingsCtrl.meetupCallback(group, meetupGroup).absoluteURL(meetupSrv.hasSecureCallback)
     req.getQueryString("code").map { code =>
       (for {
-        groupElt <- OptionT(groupRepo.find(req.user.id, group))
-        settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
-        token <- OptionT.liftF(meetupSrv.requestAccessToken(redirectUri, code, appConf.aesKey))
-        loggedUser <- OptionT.liftF(meetupSrv.getLoggedUser(appConf.aesKey)(token))
-        meetupGroupElt <- OptionT.liftF(meetupSrv.getGroup(meetupGroup, appConf.aesKey)(token))
+        settings <- groupSettingsRepo.find
+        token <- meetupSrv.requestAccessToken(redirectUri, code, appConf.aesKey)
+        loggedUser <- meetupSrv.getLoggedUser(appConf.aesKey)(token)
+        meetupGroupElt <- meetupSrv.getGroup(meetupGroup, appConf.aesKey)(token)
         creds = MeetupCredentials(token, loggedUser, meetupGroupElt)
-        _ <- OptionT.liftF(groupSettingsRepo.set(groupElt.id, settings.set(creds), req.user.id, req.now))
+        _ <- groupSettingsRepo.set(settings.set(creds))
         next = Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Connected to <b>${loggedUser.name}</b> meetup account")
-      } yield next).value.map(_.getOrElse(groupNotFound(group))).recoverWith {
+      } yield next).recoverWith {
         case e: MeetupException => IO.pure(Redirect(routes.SettingsCtrl.settings(group)).flashing("error" -> e.getMessage))
       }
     }.getOrElse {
@@ -138,131 +123,117 @@ class SettingsCtrl(cc: ControllerComponents,
       val msg = s"Failed to authenticate with meetup${error.map(e => s", reason: $e").getOrElse("")}${state.map(s => s" (state: $s)").getOrElse("")}"
       IO.pure(Redirect(routes.SettingsCtrl.settings(group)).flashing("error" -> msg))
     }
-  }
+  })
 
-  def updateSlackAccount(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
-      res <- OptionT.liftF(SettingsForms.slackAccount(appConf.aesKey).bindFromRequest.fold(
-        formWithErrors => settingsView(groupElt, settings, slack = Some(formWithErrors)),
+  def updateSlackAccount(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    for {
+      settings <- groupSettingsRepo.find
+      res <- SettingsForms.slackAccount(appConf.aesKey).bindFromRequest.fold(
+        formWithErrors => settingsView(settings, slack = Some(formWithErrors)),
         creds => slackSrv.getInfos(creds.token, appConf.aesKey)
-          .flatMap(_ => groupSettingsRepo.set(groupElt.id, settings.set(creds), req.user.id, req.now))
+          .flatMap(_ => groupSettingsRepo.set(settings.set(creds)))
           .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> "Slack account updated"))
           .recover { case NonFatal(e) => Redirect(routes.SettingsCtrl.settings(group)).flashing("error" -> s"Invalid Slack token: ${e.getMessage}") }
-      ))
-    } yield res).value.map(_.getOrElse(groupNotFound(group)))
-  }
-
-  def removeAccount(group: Group.Slug, kind: String): Action[AnyContent] = SecuredActionIO { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
-      updated <- OptionT.liftF(settings.removeAccount(kind).toIO)
-      res <- OptionT.liftF(groupSettingsRepo.set(groupElt.id, updated, req.user.id, req.now)
-        .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"${kind.capitalize} account removed"))
       )
-    } yield res).value.map(_.getOrElse(groupNotFound(group)))
-  }
+    } yield res
+  })
 
-  def updateEventTemplate(group: Group.Slug, templateId: Option[String]): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def removeAccount(group: Group.Slug, kind: String): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    for {
+      settings <- groupSettingsRepo.find
+      updated <- settings.removeAccount(kind).toIO
+      _ <- groupSettingsRepo.set(updated)
+    } yield Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"${kind.capitalize} account removed")
+  })
+
+  def updateEventTemplate(group: Group.Slug, templateId: Option[String]): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
+      settings <- OptionT.liftF(groupSettingsRepo.find)
       template <- templateId.map(id => OptionT.fromOption[IO](settings.event.getTemplate(id)).map(t => Some(EventTemplateItem(id, t.asMarkdown))))
         .getOrElse(OptionT.pure[IO](None))
       form = template.map(SettingsForms.eventTemplateItem.fill).getOrElse(SettingsForms.eventTemplateItem)
-    } yield updateEventTemplateView(groupElt, templateId, settings, form))
+    } yield updateEventTemplateView(templateId, settings, form))
       .value.map(_.getOrElse(groupNotFound(group)))
-  }
+  })
 
-  def doUpdateEventTemplate(group: Group.Slug, templateId: Option[String]): Action[AnyContent] = SecuredActionIO { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
-      res <- OptionT.liftF(SettingsForms.eventTemplateItem.bindFromRequest.fold(
-        formWithErrors => IO.pure(updateEventTemplateView(groupElt, templateId, settings, formWithErrors)),
+  def doUpdateEventTemplate(group: Group.Slug, templateId: Option[String]): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    for {
+      settings <- groupSettingsRepo.find
+      res <- SettingsForms.eventTemplateItem.bindFromRequest.fold(
+        formWithErrors => IO.pure(updateEventTemplateView(templateId, settings, formWithErrors)),
         data => templateId.map(id => settings.updateEventTemplate(id, data.id, data.template)).getOrElse(settings.addEventTemplate(data.id, data.template.asText)).fold(
-          e => IO.pure(updateEventTemplateView(groupElt, templateId, settings, SettingsForms.eventTemplateItem.bindFromRequest.withGlobalError(e.getMessage))),
-          updated => groupSettingsRepo.set(groupElt.id, updated, req.user.id, req.now)
+          e => IO.pure(updateEventTemplateView(templateId, settings, SettingsForms.eventTemplateItem.bindFromRequest.withGlobalError(e.getMessage))),
+          updated => groupSettingsRepo.set(updated)
             .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Template '${data.id}' updated for events"))
         )
-      ))
-    } yield res).value.map(_.getOrElse(groupNotFound(group)))
-  }
+      )
+    } yield res
+  })
 
-  def doRemoveEventTemplate(group: Group.Slug, templateId: String): Action[AnyContent] = SecuredActionIO { implicit req =>
-    val next = Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Template '$templateId' removed for events")
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      settings <- OptionT.liftF(groupSettingsRepo.find(groupElt.id))
-      updated <- OptionT.liftF(settings.removeEventTemplate(templateId).toIO)
-      _ <- OptionT.liftF(groupSettingsRepo.set(groupElt.id, updated, req.user.id, req.now))
-    } yield next).value.map(_.getOrElse(groupNotFound(group)))
-  }
+  def doRemoveEventTemplate(group: Group.Slug, templateId: String): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    for {
+      settings <- groupSettingsRepo.find
+      updated <- settings.removeEventTemplate(templateId).toIO
+      _ <- groupSettingsRepo.set(updated)
+    } yield Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Template '$templateId' removed for events")
+  })
 
-  def inviteOrga(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def inviteOrga(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     val next = Redirect(routes.SettingsCtrl.settings(group))
     GenericForm.invite.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
-      email => (for {
-        groupElt <- OptionT(groupRepo.find(req.user.id, group))
-        invite <- OptionT.liftF(userRequestRepo.invite(groupElt.id, email, req.user.id, req.now))
-        _ <- OptionT.liftF(emailSrv.send(Emails.inviteOrgaToGroup(invite, groupElt)))
-      } yield next.flashing("success" -> s"<b>$email</b> is invited as orga")).value.map(_.getOrElse(groupNotFound(group)))
+      email => for {
+        invite <- userRequestRepo.invite(email)
+        _ <- emailSrv.send(Emails.inviteOrgaToGroup(invite))
+      } yield next.flashing("success" -> s"<b>$email</b> is invited as orga")
     )
-  }
+  })
 
-  def cancelInviteOrga(group: Group.Slug, request: UserRequest.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
-    (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
-      invite <- OptionT.liftF(userRequestRepo.cancelGroupInvite(request, req.user.id, req.now))
-      _ <- OptionT.liftF(emailSrv.send(Emails.inviteOrgaToGroupCanceled(invite, groupElt)))
-      next = Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Invitation to <b>${invite.email.value}</b> has been canceled")
-    } yield next).value.map(_.getOrElse(groupNotFound(group)))
-  }
+  def cancelInviteOrga(group: Group.Slug, request: UserRequest.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    for {
+      invite <- userRequestRepo.cancelGroupInvite(request)
+      _ <- emailSrv.send(Emails.inviteOrgaToGroupCanceled(invite))
+    } yield Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Invitation to <b>${invite.email.value}</b> has been canceled")
+  })
 
-  def doRemoveOrga(group: Group.Slug, orga: User.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doRemoveOrga(group: Group.Slug, orga: User.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     (for {
-      groupElt <- OptionT(groupRepo.find(req.user.id, group))
       orgaElt <- OptionT(userRepo.find(orga))
-      _ <- OptionT.liftF(groupRepo.removeOwner(groupElt.id)(orgaElt.id, req.user.id, req.now))
-      _ <- OptionT.liftF(emailSrv.send(Emails.orgaRemovedFromGroup(groupElt, orgaElt)))
-      next = if (req.user.slug == orga) Redirect(UserRoutes.index()).flashing("success" -> s"You removed yourself from <b>${groupElt.name.value}</b> group")
-      else Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"You removed <b>${orgaElt.name.value}</b> from  <b>${groupElt.name.value}</b> group")
+      _ <- OptionT.liftF(groupRepo.removeOwner(orgaElt.id))
+      _ <- OptionT.liftF(emailSrv.send(Emails.orgaRemovedFromGroup(orgaElt)))
+      next = if (req.user.slug == orga) Redirect(UserRoutes.index()).flashing("success" -> s"You removed yourself from <b>${req.group.name.value}</b> group")
+      else Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"You removed <b>${orgaElt.name.value}</b> from  <b>${req.group.name.value}</b> group")
     } yield next).value.map(_.getOrElse(groupNotFound(group)))
       .recover { case NonFatal(e) => Redirect(routes.SettingsCtrl.settings(group)).flashing("error" -> s"Error: ${e.getMessage}") }
-  }
+  })
 
-  private def settingsView(groupElt: Group,
-                           settings: Group.Settings,
+  private def settingsView(settings: Group.Settings,
                            meetup: Option[Form[MeetupAccount]] = None,
                            slack: Option[Form[SlackCredentials]] = None)
-                          (implicit req: UserReq[AnyContent]): IO[Result] = {
+                          (implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     for {
-      orgas <- userRepo.list(groupElt.owners.toList)
-      invites <- userRequestRepo.listPendingInvites(groupElt.id)
+      orgas <- userRepo.list(req.group.owners.toList)
+      invites <- userRequestRepo.listPendingInvites
     } yield Ok(html.settings(
-      groupElt,
+      req.group,
       settings,
       orgas,
       invites,
       meetup.getOrElse(settings.accounts.meetup.map(s => SettingsForms.meetupAccount.fill(MeetupAccount(s.group))).getOrElse(SettingsForms.meetupAccount)),
       slack.getOrElse(settings.accounts.slack.map(s => SettingsForms.slackAccount(appConf.aesKey).fill(s)).getOrElse(SettingsForms.slackAccount(appConf.aesKey))),
       GenericForm.invite
-    )(listBreadcrumb(groupElt)))
+    )(listBreadcrumb))
   }
 
-  private def updateEventTemplateView(group: Group,
-                                      templateId: Option[String],
+  private def updateEventTemplateView(templateId: Option[String],
                                       settings: Group.Settings,
                                       form: Form[EventTemplateItem])
-                                     (implicit req: UserReq[AnyContent]): Result = {
-    val b = listBreadcrumb(group).add(
-      "Event" -> routes.SettingsCtrl.settings(group.slug),
-      "Templates" -> routes.SettingsCtrl.settings(group.slug),
-      templateId.getOrElse("New") -> routes.SettingsCtrl.updateEventTemplate(group.slug, templateId))
-    Ok(html.updateEventTemplate(group, templateId, settings, form)(b))
+                                     (implicit req: OrgaReq[AnyContent]): Result = {
+    val b = listBreadcrumb.add(
+      "Event" -> routes.SettingsCtrl.settings(req.group.slug),
+      "Templates" -> routes.SettingsCtrl.settings(req.group.slug),
+      templateId.getOrElse("New") -> routes.SettingsCtrl.updateEventTemplate(req.group.slug, templateId))
+    Ok(html.updateEventTemplate(req.group, templateId, settings, form)(b))
   }
 
   private def createActionToSettings(settings: Group.Settings, addAction: SettingsForms.AddAction): Group.Settings = {
@@ -286,9 +257,9 @@ class SettingsCtrl(cc: ControllerComponents,
 }
 
 object SettingsCtrl {
-  def listBreadcrumb(group: Group): Breadcrumb =
-    GroupCtrl.breadcrumb(group).add("Settings" -> routes.SettingsCtrl.settings(group.slug))
+  def listBreadcrumb(implicit req: OrgaReq[AnyContent]): Breadcrumb =
+    GroupCtrl.breadcrumb(req.group).add("Settings" -> routes.SettingsCtrl.settings(req.group.slug))
 
-  def breadcrumb(group: Group, setting: (String, Call)): Breadcrumb =
-    listBreadcrumb(group).add(setting._1 -> setting._2)
+  def breadcrumb(setting: (String, Call))(implicit req: OrgaReq[AnyContent]): Breadcrumb =
+    listBreadcrumb.add(setting._1 -> setting._2)
 }
