@@ -1,16 +1,15 @@
-@import fr.gospeak.core.domain.Group
 @import fr.gospeak.core.services.slack.domain.SlackCredentials
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.core.domain.utils.Constants
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(id: String, group: Group, slackForm: Form[SlackCredentials])(implicit req: UserReq[AnyContent])
+@(id: String, slackForm: Form[SlackCredentials])(implicit req: OrgaReq[AnyContent])
 <div class="modal fade" id="@id" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
-        @formElt(slackForm, SettingsCtrl.updateSlackAccount(group.slug)) {
+        @formElt(slackForm, SettingsCtrl.updateSlackAccount(req.group.slug)) {
             <div class="modal-header">
                 <h5 class="modal-title" id="slackIntegrationModal">Slack integration</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">

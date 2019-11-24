@@ -1,16 +1,16 @@
-@import fr.gospeak.core.domain.{Group, Partner}
+@import fr.gospeak.core.domain.Partner
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.{container, partnerItem}
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, partners: Page[Partner])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(group.name.value + " - Gospeak", group, b)() {
+@(partners: Page[Partner])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(req.group.name.value + " - Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span class="text-capitalize">@Formats.plural(partners.total.value, "partner")</span>
-        <a class="btn btn-primary" href="@PartnerCtrl.create(group.slug)" data-hotkey="+">Create a partner</a>
+        <a class="btn btn-primary" href="@PartnerCtrl.create(req.group.slug)" data-hotkey="+">Create a partner</a>
     </h1>
-    @Formats.paginated[Partner](partners, PartnerCtrl.list(group.slug, _), partnerItem(group, _))
+    @Formats.paginated[Partner](partners, PartnerCtrl.list(req.group.slug, _), partnerItem(_))
 }()

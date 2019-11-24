@@ -1,8 +1,8 @@
 @import fr.gospeak.core.domain.Partner
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(form: Form[Partner.Data])(implicit req: UserReq[AnyContent])
+@(form: Form[Partner.Data])(implicit req: OrgaReq[AnyContent])
 @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the partner")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "Partner name", "autofocus" -> "true") ++ args)
 }

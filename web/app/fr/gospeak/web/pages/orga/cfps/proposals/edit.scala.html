@@ -1,20 +1,20 @@
-@import fr.gospeak.core.domain.{Cfp, Proposal, Group}
+@import fr.gospeak.core.domain.{Cfp, Proposal}
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.orga.partials.html.{container, proposalFields}
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, cfp: Cfp, proposal: Proposal, form: Form[Proposal.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container("Gospeak", group, b)() {
+@(cfp: Cfp, proposal: Proposal, form: Form[Proposal.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container("Gospeak", b)() {
     <h1 class="page-header">Update @proposal.title.value at @cfp.name.value</h1>
     <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
 
-    @formElt(form, ProposalCtrl.doEdit(group.slug, cfp.slug, proposal.id)) {
+    @formElt(form, ProposalCtrl.doEdit(req.group.slug, cfp.slug, proposal.id)) {
         @proposalFields(form)
         @actionsHorizontal() {
-            @btnCancel(ProposalCtrl.detail(group.slug, cfp.slug, proposal.id))
+            @btnCancel(ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id))
             @btnSubmit("Propose your talk")
         }
     }

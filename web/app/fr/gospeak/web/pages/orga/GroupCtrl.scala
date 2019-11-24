@@ -86,7 +86,7 @@ class GroupCtrl(cc: ControllerComponents,
       packs <- sponsorPackRepo.listAll
       requests <- userRequestRepo.listPendingGroupRequests
       requestUsers <- userRepo.list(requests.flatMap(_.users).distinct)
-    } yield Ok(html.detail(req.group, events, cfps, venues, proposals, speakers, currentSponsors, pastSponsors, packs, requests, requestUsers)(breadcrumb))
+    } yield Ok(html.detail(events, cfps, venues, proposals, speakers, currentSponsors, pastSponsors, packs, requests, requestUsers)(breadcrumb))
   })
 
   def edit(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -108,9 +108,9 @@ class GroupCtrl(cc: ControllerComponents,
   })
 
   private def editForm(form: Form[Group.Data])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
-    val b = SettingsCtrl.listBreadcrumb.add("Edit group" -> routes.GroupCtrl.edit(req.group.slug))
     val filledForm = if (form.hasErrors) form else form.fill(req.group.data)
-    IO.pure(Ok(html.edit(req.group, filledForm)(b)))
+    val b = SettingsCtrl.listBreadcrumb.add("Edit group" -> routes.GroupCtrl.edit(req.group.slug))
+    IO.pure(Ok(html.edit(filledForm)(b)))
   }
 
   def acceptJoin(group: Group.Slug, userRequest: UserRequest.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -156,7 +156,7 @@ class GroupCtrl(cc: ControllerComponents,
 
   private def contactMembersView(form: Form[GroupForms.ContactMembers])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
     val b = breadcrumb.add("Contact members" -> routes.GroupCtrl.contactMembers(req.group.slug))
-    IO.pure(Ok(html.contactMembers(req.group, req.senders, form)(b)))
+    IO.pure(Ok(html.contactMembers(form)(b)))
   }
 }
 

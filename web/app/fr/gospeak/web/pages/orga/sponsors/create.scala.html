@@ -1,19 +1,19 @@
-@import fr.gospeak.core.domain.{Group, Sponsor, SponsorPack, Partner}
+@import fr.gospeak.core.domain.{Sponsor, SponsorPack, Partner}
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.{container, sponsorFields}
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, pack: SponsorPack, form: Form[Sponsor.Data], partner: Option[Partner])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container("Gospeak", group, b)() {
+@(pack: SponsorPack, form: Form[Sponsor.Data], partner: Option[Partner])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container("Gospeak", b)() {
     <h1 class="page-header">Add a @pack.name.value sponsor @partner.map { p => for @p.name.value}</h1>
 
-    @formElt(form, SponsorCtrl.doCreate(group.slug, pack.slug, partner.map(_.slug))) {
-        @sponsorFields(form, group, partner, Some(pack))
+    @formElt(form, SponsorCtrl.doCreate(req.group.slug, pack.slug, partner.map(_.slug))) {
+        @sponsorFields(form, partner, Some(pack))
         @actionsHorizontal() {
-            @btnCancel(partner.map(p => PartnerCtrl.detail(group.slug, p.slug)).getOrElse(SponsorCtrl.list(group.slug)))
+            @btnCancel(partner.map(p => PartnerCtrl.detail(req.group.slug, p.slug)).getOrElse(SponsorCtrl.list(req.group.slug)))
             @btnSubmit("Create")
         }
     }

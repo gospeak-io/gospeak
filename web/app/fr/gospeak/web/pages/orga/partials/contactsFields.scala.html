@@ -1,12 +1,12 @@
-@import fr.gospeak.core.domain.{Group, Partner, Contact}
+@import fr.gospeak.core.domain.{Partner, Contact}
 @import fr.gospeak.web.pages.partials.form.html.fieldHorizontal
 @import fr.gospeak.web.pages.partials.form.html.inputHidden
 @import fr.gospeak.web.pages.partials.form.html.inputText
 @import fr.gospeak.web.pages.partials.form.html.inputEmail
 @import fr.gospeak.web.pages.partials.form.html.inputTextarea
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(form: Form[Contact.Data], group: Group, partner: Partner)(implicit req: UserReq[AnyContent])
+@(form: Form[Contact.Data], partner: Partner)(implicit req: OrgaReq[AnyContent])
 @fieldHorizontal(form("first_name"), Seq("label" -> "First name")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "First name", "autofocus" -> "true") ++ args)
 }

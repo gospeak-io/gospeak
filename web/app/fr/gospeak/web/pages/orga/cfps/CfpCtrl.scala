@@ -27,10 +27,7 @@ class CfpCtrl(cc: ControllerComponents,
               proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     val customParams = params.withNullsFirst
-    (for {
-      cfps <- OptionT.liftF(cfpRepo.list(customParams)) // TODO listWithProposalCount
-      b = listBreadcrumb
-    } yield Ok(html.list(req.group, cfps)(b))).value.map(_.getOrElse(groupNotFound(group)))
+    cfpRepo.list(customParams).map(cfps => Ok(html.list(cfps)(listBreadcrumb))) // TODO listWithProposalCount
   })
 
   def create(group: Group.Slug, event: Option[Event.Slug]): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -56,7 +53,7 @@ class CfpCtrl(cc: ControllerComponents,
 
   private def createView(group: Group.Slug, form: Form[Cfp.Data], event: Option[Event.Slug])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
     val b = listBreadcrumb.add("New" -> routes.CfpCtrl.create(group))
-    IO.pure(Ok(html.create(req.group, form, event)(b)))
+    IO.pure(Ok(html.create(form, event)(b)))
   }
 
   def detail(group: Group.Slug, cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -66,7 +63,7 @@ class CfpCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
       userRatings <- OptionT.liftF(proposalRepo.listRatings(cfp))
       b = breadcrumb(cfpElt)
-    } yield Ok(html.detail(req.group, cfpElt, proposals, speakers, userRatings)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
+    } yield Ok(html.detail(cfpElt, proposals, speakers, userRatings)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
   })
 
   def edit(group: Group.Slug, cfp: Cfp.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -91,9 +88,9 @@ class CfpCtrl(cc: ControllerComponents,
   private def editView(group: Group.Slug, cfp: Cfp.Slug, form: Form[Cfp.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
       cfpElt <- OptionT(cfpRepo.find(cfp))
-      b = breadcrumb(cfpElt).add("Edit" -> routes.CfpCtrl.edit(group, cfp))
       filledForm = if (form.hasErrors) form else form.fill(cfpElt.data)
-    } yield Ok(html.edit(req.group, cfpElt, filledForm)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
+      b = breadcrumb(cfpElt).add("Edit" -> routes.CfpCtrl.edit(group, cfp))
+    } yield Ok(html.edit(cfpElt, filledForm)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
   }
 }
 

@@ -1,10 +1,10 @@
-@import fr.gospeak.core.domain.{Group, User, UserRequest}
+@import fr.gospeak.core.domain.{User, UserRequest}
 @import fr.gospeak.libs.scalautils.domain.EmailAddress
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, orgas: Seq[User], invites: Seq[UserRequest.GroupInvite], inviteOrgaForm: Form[EmailAddress])(implicit req: UserReq[AnyContent])
+@(orgas: Seq[User], invites: Seq[UserRequest.GroupInvite], inviteOrgaForm: Form[EmailAddress])(implicit req: OrgaReq[AnyContent])
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>Organizers</span>
@@ -15,10 +15,10 @@
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <span>@orga.name.value</span>
                 <span>
-                    @formBtn(SettingsCtrl.doRemoveOrga(group.slug, orga.slug), Seq(
+                    @formBtn(SettingsCtrl.doRemoveOrga(req.group.slug, orga.slug), Seq(
                         "class" -> "btn btn-danger btn-xs",
                         "title" -> "Remove this orga",
-                        "confirm" -> s"Remove ${orga.name.value} from ${group.name.value} group?")) {Remove}
+                        "confirm" -> s"Remove ${orga.name.value} from ${req.group.name.value} group?")) {Remove}
                 </span>
             </li>
         }
@@ -26,10 +26,10 @@
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <span class="text-muted">@invite.email.value</span>
                 <span>
-                    @formBtn(SettingsCtrl.cancelInviteOrga(group.slug, invite.id), Seq(
+                    @formBtn(SettingsCtrl.cancelInviteOrga(req.group.slug, invite.id), Seq(
                         "class" -> "btn btn-danger btn-xs",
                         "title" -> "Cancel this invite",
-                        "confirm" -> s"Cancel invite for ${invite.email.value} to ${group.name.value} group?")) {Cancel}
+                        "confirm" -> s"Cancel invite for ${invite.email.value} to ${req.group.name.value} group?")) {Cancel}
                 </span>
             </li>
         }
@@ -38,9 +38,9 @@
     <div class="modal fade" id="inviteOrgaModal" tabindex="-1" role="dialog" aria-labelledby="inviteOrgaModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-            @formElt(inviteOrgaForm, SettingsCtrl.inviteOrga(group.slug)) {
+            @formElt(inviteOrgaForm, SettingsCtrl.inviteOrga(req.group.slug)) {
                 <div class="modal-header">
-                    <h5 class="modal-title" id="inviteOrgaModalLabel">Invite an organizer to the <b>@group.name.value</b> group</h5>
+                    <h5 class="modal-title" id="inviteOrgaModalLabel">Invite an organizer to the <b>@req.group.name.value</b> group</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body">

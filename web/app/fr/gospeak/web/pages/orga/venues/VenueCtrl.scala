@@ -27,7 +27,7 @@ class VenueCtrl(cc: ControllerComponents,
                 groupSettingsRepo: GroupSettingsRepo,
                 timeShape: TimeShape) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    venueRepo.listFull(params).map(venues => Ok(html.list(req.group, venues)(listBreadcrumb)))
+    venueRepo.listFull(params).map(venues => Ok(html.list(venues)(listBreadcrumb)))
   })
 
   def create(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -46,7 +46,7 @@ class VenueCtrl(cc: ControllerComponents,
       meetupAccount <- groupSettingsRepo.findMeetup
       call = routes.VenueCtrl.doCreate(req.group.slug)
       b = listBreadcrumb.add("New" -> routes.VenueCtrl.create(req.group.slug))
-    } yield Ok(html.create(req.group, meetupAccount.isDefined, None, form, call)(b))
+    } yield Ok(html.create(meetupAccount.isDefined, None, form, call)(b))
   }
 
   def detail(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -57,7 +57,7 @@ class VenueCtrl(cc: ControllerComponents,
       editCall = routes.VenueCtrl.edit(group, venue)
       removeCall = routes.VenueCtrl.doRemove(group, venue)
       b = breadcrumb(venueElt)
-      res = Ok(html.detail(req.group, venueElt, events, users, editCall, removeCall)(b))
+      res = Ok(html.detail(venueElt, events, users, editCall, removeCall)(b))
     } yield res).value.map(_.getOrElse(venueNotFound(group, venue)))
   })
 
@@ -79,7 +79,7 @@ class VenueCtrl(cc: ControllerComponents,
       filledForm = if (form.hasErrors) form else form.fill(venueElt.data)
       call = routes.VenueCtrl.doEdit(req.group.slug, venue)
       b = breadcrumb(venueElt).add("Edit" -> routes.VenueCtrl.edit(req.group.slug, venue))
-      res = Ok(html.edit(req.group, meetupAccount.isDefined, venueElt, filledForm, call)(b))
+      res = Ok(html.edit(meetupAccount.isDefined, venueElt, filledForm, call)(b))
     } yield res).value.map(_.getOrElse(venueNotFound(req.group.slug, venue)))
   }
 

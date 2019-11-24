@@ -1,9 +1,9 @@
 @import fr.gospeak.core.domain.Cfp
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(form: Form[Cfp.Data])(implicit req: UserReq[AnyContent])
+@(form: Form[Cfp.Data])(implicit req: OrgaReq[AnyContent])
 @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the CFP")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "CFP name", "autofocus" -> "true") ++ args)
 }

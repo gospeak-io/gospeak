@@ -1,18 +1,18 @@
-@import fr.gospeak.core.domain.{Event, Group}
+@import fr.gospeak.core.domain.Event
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partials.html.{container, eventFields}
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, hasMeetupAccount: Boolean, form: Form[Event.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container("New Event - Gospeak", group, b)() {
+@(hasMeetupAccount: Boolean, form: Form[Event.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container("New Event - Gospeak", b)() {
     <h1 class="page-header">Create an event</h1>
 
-    @formElt(form, EventCtrl.doCreate(group.slug)) {
-        @eventFields(form, group, hasMeetupAccount)
+    @formElt(form, EventCtrl.doCreate(req.group.slug)) {
+        @eventFields(form, hasMeetupAccount)
         @actionsVertical() {
-            @btnCancel(EventCtrl.list(group.slug))
+            @btnCancel(EventCtrl.list(req.group.slug))
             @btnSubmit("Create")
         }
     }

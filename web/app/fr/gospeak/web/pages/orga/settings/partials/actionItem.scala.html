@@ -2,9 +2,9 @@
 @import fr.gospeak.core.services.slack.domain.SlackAction
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, trigger: Group.Settings.Action.Trigger, index: Int, action: Group.Settings.Action, accounts: Group.Settings.Accounts)(implicit req: UserReq[AnyContent])
+@(trigger: Group.Settings.Action.Trigger, index: Int, action: Group.Settings.Action, accounts: Group.Settings.Accounts)(implicit req: OrgaReq[AnyContent])
 @action match {
     case Group.Settings.Action.Slack(a: SlackAction.PostMessage) => {
         <div class="media ml-3 mt-1">
@@ -15,8 +15,8 @@
                         @if(accounts.slack.isEmpty) {<span class="badge badge-warning" title="Enable the Slack integration to activate it">Disabled</span>}
                     </span>
                     <span>
-                        <a href="@SettingsCtrl.updateAction(group.slug, trigger, index)" class="btn btn-primary btn-sm">Update</a>
-                        @formBtn(SettingsCtrl.doRemoveAction(group.slug, trigger, index), Seq("class" -> "btn-danger btn-sm")) {Remove}
+                        <a href="@SettingsCtrl.updateAction(req.group.slug, trigger, index)" class="btn btn-primary btn-sm">Update</a>
+                        @formBtn(SettingsCtrl.doRemoveAction(req.group.slug, trigger, index), Seq("class" -> "btn-danger btn-sm")) {Remove}
                     </span>
                 </h5>
                 <p class="mb-0 ml-3">Channel: @a.channel.value</p>

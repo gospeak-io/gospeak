@@ -30,7 +30,7 @@ class SponsorCtrl(cc: ControllerComponents,
     for {
       sponsorPacks <- sponsorPackRepo.listAll
       sponsors <- sponsorRepo.listFull(params)
-    } yield Ok(html.list(ctx.group, sponsorPacks, sponsors)(listBreadcrumb))
+    } yield Ok(html.list(sponsorPacks, sponsors)(listBreadcrumb))
   })
 
   def createPack(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -44,9 +44,9 @@ class SponsorCtrl(cc: ControllerComponents,
     )
   })
 
-  private def createPackView(form: Form[SponsorPack.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
-    val b = listBreadcrumb.add("New pack" -> routes.SponsorCtrl.createPack(ctx.group.slug))
-    IO.pure(Ok(html.createPack(ctx.group, form)(b)))
+  private def createPackView(form: Form[SponsorPack.Data])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
+    val b = listBreadcrumb.add("New pack" -> routes.SponsorCtrl.createPack(req.group.slug))
+    IO.pure(Ok(html.createPack(form)(b)))
   }
 
   def create(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -72,13 +72,13 @@ class SponsorCtrl(cc: ControllerComponents,
         "start" -> Mappings.localDateFormatter.format(req.nowLD),
         "finish" -> Mappings.localDateFormatter.format(packElt.duration.unit.chrono.addTo(req.nowLD, packElt.duration.length))
       )).discardingErrors
-      b = listBreadcrumb.add("New" -> routes.SponsorCtrl.create(ctx.group.slug, packElt.slug))
-    } yield Ok(html.create(ctx.group, packElt, filledForm, partnerElt)(b))).value.map(_.getOrElse(packNotFound(ctx.group.slug, pack)))
+      b = listBreadcrumb.add("New" -> routes.SponsorCtrl.create(req.group.slug, packElt.slug))
+    } yield Ok(html.create(packElt, filledForm, partnerElt)(b))).value.map(_.getOrElse(packNotFound(req.group.slug, pack)))
   }
 
   def detail(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     sponsorPackRepo.find(pack).map {
-      case Some(packElt) => Ok(html.detail(ctx.group, packElt)(breadcrumb(packElt)))
+      case Some(packElt) => Ok(html.detail(packElt)(breadcrumb(packElt)))
       case None => packNotFound(group, pack)
     }
   })
@@ -100,8 +100,8 @@ class SponsorCtrl(cc: ControllerComponents,
       sponsorElt <- OptionT(sponsorRepo.find(sponsor))
       partnerElt <- OptionT(partnerRepo.find(sponsorElt.partner))
       filledForm = if (form.hasErrors) form else form.fill(sponsorElt.data)
-      b = listBreadcrumb.add("Edit" -> routes.SponsorCtrl.edit(ctx.group.slug, sponsor, partner))
-    } yield Ok(html.edit(ctx.group, partnerElt, sponsorElt, filledForm, partner)(b))).value.map(_.getOrElse(sponsorNotFound(ctx.group.slug, sponsor)))
+      b = listBreadcrumb.add("Edit" -> routes.SponsorCtrl.edit(req.group.slug, sponsor, partner))
+    } yield Ok(html.edit(partnerElt, sponsorElt, filledForm, partner)(b))).value.map(_.getOrElse(sponsorNotFound(req.group.slug, sponsor)))
   }
 
   def disablePack(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {

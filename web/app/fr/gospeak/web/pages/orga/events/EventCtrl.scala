@@ -42,14 +42,13 @@ class EventCtrl(cc: ControllerComponents,
                 emailSrv: EmailSrv,
                 mb: GospeakMessageBus) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    (for {
-      events <- OptionT.liftF(eventRepo.list(params))
-      cfps <- OptionT.liftF(cfpRepo.list(events.items.flatMap(_.cfp)))
-      venues <- OptionT.liftF(venueRepo.listFull(events.items.flatMap(_.venue)))
-      proposals <- OptionT.liftF(proposalRepo.list(events.items.flatMap(_.talks)))
-      speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.users)))
-      b = listBreadcrumb
-    } yield Ok(html.list(req.group, events, cfps, venues, proposals, speakers)(b))).value.map(_.getOrElse(groupNotFound(group)))
+    for {
+      events <- eventRepo.list(params)
+      cfps <- cfpRepo.list(events.items.flatMap(_.cfp))
+      venues <- venueRepo.listFull(events.items.flatMap(_.venue))
+      proposals <- proposalRepo.list(events.items.flatMap(_.talks))
+      speakers <- userRepo.list(proposals.flatMap(_.users))
+    } yield Ok(html.list(events, cfps, venues, proposals, speakers)(listBreadcrumb))
   })
 
   def create(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -68,12 +67,12 @@ class EventCtrl(cc: ControllerComponents,
   })
 
   private def createView(group: Group.Slug, form: Form[Event.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
-    (for {
-      meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup)
-      eventDescription <- OptionT.liftF(groupSettingsRepo.findEventDescription)
-      b = listBreadcrumb.add("New" -> routes.EventCtrl.create(group))
+    for {
+      meetupAccount <- groupSettingsRepo.findMeetup
+      eventDescription <- groupSettingsRepo.findEventDescription
       filledForm = if (form.hasErrors) form else form.bind(Map("description.value" -> eventDescription.value)).discardingErrors
-    } yield Ok(html.create(req.group, meetupAccount.isDefined, filledForm)(b))).value.map(_.getOrElse(groupNotFound(group)))
+      b = listBreadcrumb.add("New" -> routes.EventCtrl.create(group))
+    } yield Ok(html.create(meetupAccount.isDefined, filledForm)(b))
   }
 
   def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -86,7 +85,7 @@ class EventCtrl(cc: ControllerComponents,
       userRatings <- OptionT.liftF(proposalRepo.listRatings(proposals.items.map(_.id)))
       desc = eventSrv.buildDescription(e)
       b = breadcrumb(e.event)
-      res = Ok(html.detail(req.group, e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, userRatings, eventTemplates, EventForms.cfp, EventForms.notes.fill(e.event.orgaNotes.text))(b))
+      res = Ok(html.detail(e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, userRatings, eventTemplates, EventForms.cfp, EventForms.notes.fill(e.event.orgaNotes.text))(b))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   })
 
@@ -127,7 +126,7 @@ class EventCtrl(cc: ControllerComponents,
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup)
       b = breadcrumb(eventElt).add("Edit" -> routes.EventCtrl.edit(group, event))
       filledForm = if (form.hasErrors) form else form.fill(eventElt.data)
-    } yield Ok(html.edit(req.group, meetupAccount.isDefined, eventElt, filledForm)(b))).value.map(_.getOrElse(eventNotFound(group, event)))
+    } yield Ok(html.edit(meetupAccount.isDefined, eventElt, filledForm)(b))).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
   def doEditNotes(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -223,7 +222,7 @@ class EventCtrl(cc: ControllerComponents,
       description = eventSrv.buildDescription(e)
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup)
       b = breadcrumb(e.event).add("Publish" -> routes.EventCtrl.publish(group, event))
-      res = Ok(html.publish(req.group, e.event, description, form, meetupAccount.isDefined)(b))
+      res = Ok(html.publish(e.event, description, form, meetupAccount.isDefined)(b))
     } yield res).value.map(_.getOrElse(groupNotFound(group)))
   }
 
@@ -251,7 +250,7 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       eventElt <- OptionT(eventRepo.find(event))
       b = breadcrumb(eventElt).add("Contact attendees" -> routes.EventCtrl.contactRsvps(group, event))
-    } yield Ok(html.contactRsvps(req.group, eventElt, req.senders, form)(b))).value.map(_.getOrElse(groupNotFound(group)))
+    } yield Ok(html.contactRsvps(eventElt, req.senders, form)(b))).value.map(_.getOrElse(groupNotFound(group)))
   }
 }
 

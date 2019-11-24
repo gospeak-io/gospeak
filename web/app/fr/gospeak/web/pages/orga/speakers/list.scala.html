@@ -1,13 +1,13 @@
-@import fr.gospeak.core.domain.{Group, User}
+@import fr.gospeak.core.domain.User
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.{container, speakerItem}
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, speakers: Page[User])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(group.name.value + " - Gospeak", group, b)() {
+@(speakers: Page[User])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(req.group.name.value + " - Gospeak", b)() {
     <h1 class="text-capitalize">@Formats.plural(speakers.total.value, "speaker")</h1>
-    @Formats.paginated[User](speakers, SpeakerCtrl.list(group.slug, _), speakerItem(group, _))
+    @Formats.paginated[User](speakers, SpeakerCtrl.list(req.group.slug, _), speakerItem(_))
 }()

@@ -2,14 +2,14 @@
 @import fr.gospeak.core.services.slack.domain.SlackCredentials
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.MeetupAccount
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, accounts: Group.Settings.Accounts, meetupForm: Form[MeetupAccount], slackForm: Form[SlackCredentials])(implicit req: UserReq[AnyContent])
+@(accounts: Group.Settings.Accounts, meetupForm: Form[MeetupAccount], slackForm: Form[SlackCredentials])(implicit req: OrgaReq[AnyContent])
 <div class="card mb-3">
     <div class="card-header">Integrations</div>
     <div class="list-group list-group-flush">
-        @displayIntegration("Meetup", accounts.meetup, id => modalMeetup(id, group, meetupForm, accounts.meetup), SettingsCtrl.removeAccount(group.slug, "meetup"))
-        @displayIntegration("Slack", accounts.slack, id => modalSlack(id, group, slackForm), SettingsCtrl.removeAccount(group.slug, "slack"))
+        @displayIntegration("Meetup", accounts.meetup, id => modalMeetup(id, meetupForm, accounts.meetup), SettingsCtrl.removeAccount(req.group.slug, "meetup"))
+        @displayIntegration("Slack", accounts.slack, id => modalSlack(id, slackForm), SettingsCtrl.removeAccount(req.group.slug, "slack"))
         @* displayIntegration("Twitter", accounts.twitter, id => modalTwitter(), SettingsCtrl.removeAccount(group.slug, "twitter")) *@
         @* displayIntegration("YouTube", accounts.youtube, id => modalYoutube(), SettingsCtrl.removeAccount(group.slug, "youtube")) *@
     </div>

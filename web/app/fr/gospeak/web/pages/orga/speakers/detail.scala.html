@@ -1,21 +1,21 @@
-@import fr.gospeak.core.domain.{Group, Proposal, User}
+@import fr.gospeak.core.domain.{Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.{container, speakerCard, proposalItem}
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, speaker: User, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(speaker.name.value + " - Gospeak", group, b)() {
+@(speaker: User, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(speaker.name.value + " - Gospeak", b)() {
     <div class="row">
         <div class="col-4">
             @speakerCard(speaker)
         </div>
         <div class="col-8">
             <h2 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h2>
-            @Formats.paginated[Proposal.Full](proposals, SpeakerCtrl.detail(group.slug, speaker.slug, _), proposalItem(group, _, speakers, userRatings))
+            @Formats.paginated[Proposal.Full](proposals, SpeakerCtrl.detail(req.group.slug, speaker.slug, _), proposalItem(_, speakers, userRatings))
         </div>
     </div>
 }()

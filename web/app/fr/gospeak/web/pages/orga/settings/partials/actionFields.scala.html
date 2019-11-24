@@ -2,9 +2,9 @@
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.AddAction
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(actionForm: Form[AddAction])(implicit req: UserReq[AnyContent])
+@(actionForm: Form[AddAction])(implicit req: OrgaReq[AnyContent])
 @fieldHorizontal(actionForm("trigger"), Seq("label" -> "Trigger", "help" -> "Choose the trigger you want for your action")) { (field, args) =>
     @inputSelect(field, Group.Settings.Action.Trigger.all.map(t => (t.toString, t.name)), Seq("placeholder" -> "") ++ args)
 }

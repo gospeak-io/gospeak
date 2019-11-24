@@ -1,17 +1,14 @@
-@import fr.gospeak.core.domain.{Group, Proposal, User, Event}
+@import fr.gospeak.core.domain.{Contact, Partner}
 @import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.pages.orga.partners.contacts.routes.ContactCtrl
+@import fr.gospeak.web.utils.OrgaReq
 
-@import fr.gospeak.core.domain.Contact
-@import fr.gospeak.core.domain.Partner
-
-@(group: Group, partner: Partner, contact: Contact)
+@(partner: Partner, contact: Contact)(implicit req: OrgaReq[AnyContent])
 <div class="list-group-item list-group-item-action">
     @if(contact.description.isEmpty) {
-        <a href="@ContactCtrl.detail(group.slug, partner.slug, contact.id)">@contact.name.value</a>
+        <a href="@ContactCtrl.detail(req.group.slug, partner.slug, contact.id)">@contact.name.value</a>
     } else {
-        <a href="@ContactCtrl.detail(group.slug, partner.slug, contact.id)" data-toggle="html-popover" data-trigger="hover">
+        <a href="@ContactCtrl.detail(req.group.slug, partner.slug, contact.id)" data-toggle="html-popover" data-trigger="hover">
             <div class="content">@markdown(contact.description)</div>
             @contact.name.value
         </a>

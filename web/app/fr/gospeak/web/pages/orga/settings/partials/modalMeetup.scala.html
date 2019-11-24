@@ -1,15 +1,14 @@
-@import fr.gospeak.core.domain.Group
 @import fr.gospeak.core.services.meetup.domain.MeetupCredentials
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.MeetupAccount
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(id: String, group: Group, meetupForm: Form[MeetupAccount], credsOpt: Option[MeetupCredentials])(implicit req: UserReq[AnyContent])
+@(id: String, meetupForm: Form[MeetupAccount], credsOpt: Option[MeetupCredentials])(implicit req: OrgaReq[AnyContent])
 <div class="modal fade" id="@id" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
-        @formElt(meetupForm, SettingsCtrl.meetupAuthorize(group.slug)) {
+        @formElt(meetupForm, SettingsCtrl.meetupAuthorize(req.group.slug)) {
             <div class="modal-header">
                 <h5 class="modal-title" id="meetupIntegrationModal">Meetup integration</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">

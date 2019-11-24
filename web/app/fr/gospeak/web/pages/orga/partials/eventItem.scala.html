@@ -1,20 +1,20 @@
-@import fr.gospeak.core.domain.{Event, Group, Proposal, User, Cfp, Venue}
+@import fr.gospeak.core.domain.{Event, Proposal, User, Cfp, Venue}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, event: Event, cfp: Option[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User])(implicit req: UserReq[AnyContent])
+@(event: Event, cfp: Option[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User])(implicit req: OrgaReq[AnyContent])
 <div class="list-group-item list-group-item-action @if(event.start.isAfter(req.nowLDT)) {list-group-item-secondary}">
     <h5 class="mb-1">
-        <a href="@EventCtrl.detail(group.slug, event.slug)">@event.name.value</a>
+        <a href="@EventCtrl.detail(req.group.slug, event.slug)">@event.name.value</a>
         @event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }
     </h5>
     @if(!event.isPublic) {<span class="badge badge-dark">Draft</span>}
-    @event.venue.map { id => @venue(venues, id, v => Some(VenueCtrl.detail(group.slug, v.id))) }.getOrElse { <b class="text-danger">Missing venue</b> }
+    @event.venue.map { id => @venue(venues, id, v => Some(VenueCtrl.detail(req.group.slug, v.id))) }.getOrElse { <b class="text-danger">Missing venue</b> }
     @Formats.date(event.start),
     @event.maxAttendee.map { max =>  @Formats.plural(max, "place"), }
     @Formats.plural(event.talks.length, "planned talk")
@@ -24,8 +24,8 @@
         @event.talks.map { pId =>
             <li>
                 @proposals.find(_.id == pId).map { p =>
-                    @cfp.map { c => <a href="@ProposalCtrl.detail(group.slug, c.slug, p.id)">@p.title.value</a> }.getOrElse{<span>@p.title.value</span>}
-                    @p.speakers.toList.map { uId => @speaker(speakers, uId, s => Some(SpeakerCtrl.detail(group.slug, s.slug))) }
+                    @cfp.map { c => <a href="@ProposalCtrl.detail(req.group.slug, c.slug, p.id)">@p.title.value</a> }.getOrElse{<span>@p.title.value</span>}
+                    @p.speakers.toList.map { uId => @speaker(speakers, uId, s => Some(SpeakerCtrl.detail(req.group.slug, s.slug))) }
                 }.getOrElse { Unknown (@pId.value) }
             </li>
         }

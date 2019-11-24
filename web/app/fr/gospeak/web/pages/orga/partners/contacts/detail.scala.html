@@ -1,4 +1,4 @@
-@import fr.gospeak.core.domain.{Contact, Group, Partner, Venue, Sponsor}
+@import fr.gospeak.core.domain.{Contact, Partner, Venue, Sponsor}
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.partners.contacts.routes.ContactCtrl
@@ -7,10 +7,10 @@
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, partner: Partner, contact: Contact, contactVenues: Seq[Venue], contactSponsors: Seq[Sponsor])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(partner.name.value + " - Gospeak", group, b)() {
+@(partner: Partner, contact: Contact, contactVenues: Seq[Venue], contactSponsors: Seq[Sponsor])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(partner.name.value + " - Gospeak", b)() {
     <div class="d-flex justify-content-between align-items-start">
         <div class="media">
             <img src="@partner.logo.value" alt="@partner.name.value logo" class="avatar align-self-start mr-3">
@@ -20,7 +20,7 @@
 
                 <blockquote class="blockquote">@markdown(contact.description)</blockquote>
 
-                <p><a href="@PartnerCtrl.detail(group.slug, partner.slug)">@partner.name.value</a> contact</p>
+                <p><a href="@PartnerCtrl.detail(req.group.slug, partner.slug)">@partner.name.value</a> contact</p>
             </div>
         </div>
         <span class="btn-group">
@@ -28,9 +28,9 @@
                 <i class="fas fa-cog"></i>
             </button>
             <span class="dropdown-menu dropdown-menu-right">
-                <a class="dropdown-item" href="@ContactCtrl.edit(group.slug, partner.slug, contact.id)">Edit</a>
+                <a class="dropdown-item" href="@ContactCtrl.edit(req.group.slug, partner.slug, contact.id)">Edit</a>
                 @if(contactVenues.isEmpty && contactSponsors.isEmpty) {
-                    @formBtn(ContactCtrl.doRemove(group.slug, partner.slug, contact.id), Seq("class" -> "dropdown-item", "confirm" -> s"Delete contact ${contact.name.value} of ${partner.name.value}?")) {Delete}
+                    @formBtn(ContactCtrl.doRemove(req.group.slug, partner.slug, contact.id), Seq("class" -> "dropdown-item", "confirm" -> s"Delete contact ${contact.name.value} of ${partner.name.value}?")) {Delete}
                 } else {
                     <span class="dropdown-item text-muted" title="This contact is linked to venues or sponsors" data-toggle="tooltip" data-placement="left">Can't delete</span>
                 }
@@ -41,7 +41,7 @@
     @if(contactVenues.nonEmpty || contactSponsors.nonEmpty) {
         <ul>
         @contactVenues.map { v =>
-            <li>Contact for venue at <a href="@VenueCtrl.detail(group.slug, partner.slug, v.id)">@v.address.formatted</a></li>
+            <li>Contact for venue at <a href="@VenueCtrl.detail(req.group.slug, partner.slug, v.id)">@v.address.formatted</a></li>
         }
         @contactSponsors.map { s =>
             <li>Sponsor contact from @Formats.date(s.start) to @Formats.date(s.finish)</li>

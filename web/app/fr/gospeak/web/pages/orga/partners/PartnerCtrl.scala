@@ -28,7 +28,7 @@ class PartnerCtrl(cc: ControllerComponents,
                   sponsorPackRepo: OrgaSponsorPackRepo,
                   sponsorRepo: OrgaSponsorRepo) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    partnerRepo.list(params).map(partners => Ok(html.list(req.group, partners)(listBreadcrumb)))
+    partnerRepo.list(params).map(partners => Ok(html.list(partners)(listBreadcrumb)))
   })
 
   def create(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -44,7 +44,7 @@ class PartnerCtrl(cc: ControllerComponents,
 
   private def createView(group: Group.Slug, form: Form[Partner.Data])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
     val b = listBreadcrumb.add("New" -> routes.PartnerCtrl.create(group))
-    IO.pure(Ok(html.create(req.group, form)(b)))
+    IO.pure(Ok(html.create(form)(b)))
   }
 
   def detail(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -57,7 +57,7 @@ class PartnerCtrl(cc: ControllerComponents,
       events <- OptionT.liftF(eventRepo.list(partnerElt.id))
       users <- OptionT.liftF(userRepo.list((partnerElt.users ++ venues.flatMap(_.users)).distinct))
       b = breadcrumb(partnerElt)
-      res = Ok(html.detail(req.group, partnerElt, venues, contacts, users, sponsors, packs, events)(b))
+      res = Ok(html.detail(partnerElt, venues, contacts, users, sponsors, packs, events)(b))
     } yield res).value.map(_.getOrElse(partnerNotFound(group, partner)))
   })
 
@@ -83,9 +83,9 @@ class PartnerCtrl(cc: ControllerComponents,
   private def editView(group: Group.Slug, partner: Partner.Slug, form: Form[Partner.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
       partnerElt <- OptionT(partnerRepo.find(partner))
-      b = breadcrumb(partnerElt).add("Edit" -> routes.PartnerCtrl.edit(group, partner))
       filledForm = if (form.hasErrors) form else form.fill(partnerElt.data)
-    } yield Ok(html.edit(req.group, partnerElt, filledForm)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
+      b = breadcrumb(partnerElt).add("Edit" -> routes.PartnerCtrl.edit(group, partner))
+    } yield Ok(html.edit(partnerElt, filledForm)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
   }
 
   def doRemove(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
