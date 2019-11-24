@@ -49,19 +49,19 @@ object Emails {
       subject = s"Your application to ${group.name.value} group was rejected :(",
       content = HtmlContent(html.joinGroupRejected(rejectedUser, group).body))
 
-  def inviteOrgaToGroup(invite: UserRequest.GroupInvite, group: Group)(implicit req: UserReq[AnyContent]): Email =
+  def inviteOrgaToGroup(invite: UserRequest.GroupInvite)(implicit req: OrgaReq[AnyContent]): Email =
     Email(
       from = Constants.Contact.noReply,
       to = Seq(EmailAddress.Contact(invite.email)),
-      subject = s"You have been invited to join ${req.user.name.value} in the ${group.name.value} group",
-      content = HtmlContent(html.inviteOrgaToGroup(invite, group).body))
+      subject = s"You have been invited to join ${req.user.name.value} in the ${req.group.name.value} group",
+      content = HtmlContent(html.inviteOrgaToGroup(invite).body))
 
-  def inviteOrgaToGroupCanceled(invite: UserRequest.GroupInvite, group: Group)(implicit req: UserReq[AnyContent]): Email =
+  def inviteOrgaToGroupCanceled(invite: UserRequest.GroupInvite)(implicit req: OrgaReq[AnyContent]): Email =
     Email(
       from = Constants.Contact.noReply,
       to = Seq(EmailAddress.Contact(invite.email)),
-      subject = s"Your invitation for the group ${group.name.value} has been canceled :(",
-      content = HtmlContent(html.inviteOrgaToGroupCanceled(invite, group).body))
+      subject = s"Your invitation for the group ${req.group.name.value} has been canceled :(",
+      content = HtmlContent(html.inviteOrgaToGroupCanceled(invite).body))
 
   def inviteOrgaToGroupAccepted(invite: UserRequest.GroupInvite, group: Group, orga: User)(implicit req: UserReq[AnyContent]): Email =
     Email(
@@ -77,12 +77,12 @@ object Emails {
       subject = s"Oups, ${req.user.name.value} rejected your invitation in the ${group.name.value} group :(",
       content = HtmlContent(html.inviteOrgaToGroupRejected(invite, group, orga).body))
 
-  def orgaRemovedFromGroup(group: Group, orga: User)(implicit req: UserReq[AnyContent]): Email =
+  def orgaRemovedFromGroup(orga: User)(implicit req: OrgaReq[AnyContent]): Email =
     Email(
       from = Constants.Contact.noReply,
       to = Seq(orga.asContact),
-      subject = s"${req.user.name.value} removed you from the organizers of ${group.name.value} :(",
-      content = HtmlContent(html.orgaRemovedFromGroup(group, orga).body))
+      subject = s"${req.user.name.value} removed you from the organizers of ${req.group.name.value} :(",
+      content = HtmlContent(html.orgaRemovedFromGroup(orga).body))
 
   def inviteSpeakerToTalk(invite: UserRequest.TalkInvite, talk: Talk)(implicit req: UserReq[AnyContent]): Email =
     Email(

@@ -25,11 +25,11 @@ trait OrgaUserRequestRepo {
   def rejectUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done]
 
 
-  def invite(group: Group.Id, email: EmailAddress, by: User.Id, now: Instant): IO[GroupInvite]
+  def invite(email: EmailAddress)(implicit ctx: OrgaCtx): IO[GroupInvite]
 
-  def cancelGroupInvite(id: UserRequest.Id, by: User.Id, now: Instant): IO[GroupInvite]
+  def cancelGroupInvite(id: UserRequest.Id)(implicit ctx: OrgaCtx): IO[GroupInvite]
 
-  def listPendingInvites(group: Group.Id): IO[Seq[GroupInvite]]
+  def listPendingInvites(implicit ctx: OrgaCtx): IO[Seq[GroupInvite]]
 
 
   def invite(proposal: Proposal.Id, email: EmailAddress)(implicit ctx: OrgaCtx): IO[ProposalInvite]

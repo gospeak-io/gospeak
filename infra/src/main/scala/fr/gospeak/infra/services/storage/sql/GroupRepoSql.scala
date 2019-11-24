@@ -42,12 +42,12 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
       case None => IO.raiseError(new IllegalArgumentException("unreachable group"))
     }
 
-  override def removeOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done] =
-    find(group).flatMap {
+  override def removeOwner(owner: User.Id)(implicit ctx: OrgaCtx): IO[Done] =
+    find(ctx.group.id).flatMap {
       case Some(groupElt) =>
         if (groupElt.owners.toList.contains(owner)) {
           NonEmptyList.fromList(groupElt.owners.filter(_ != owner)).map { owners =>
-            updateOwners(group)(owners, by, now).run(xa)
+            updateOwners(ctx.group.id)(owners, ctx.user.id, ctx.now).run(xa)
           }.getOrElse {
             IO.raiseError(new IllegalArgumentException("last owner can't be removed"))
           }

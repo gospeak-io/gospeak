@@ -8,7 +8,7 @@ import fr.gospeak.core.domain.Contact.{FirstName, LastName}
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
 import fr.gospeak.core.domain.utils.TemplateData.EventInfo
-import fr.gospeak.core.domain.utils.{Constants, Info, SocialAccounts, TemplateData}
+import fr.gospeak.core.domain.utils.{Constants, Info, OrgaCtx, SocialAccounts, TemplateData}
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.core.services.storage.GospeakDb
 import fr.gospeak.core.{ApplicationConf, GospeakConf}
@@ -427,7 +427,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       _ <- sponsors.map(SponsorRepoSql.insert(_).run(xa)).sequence
       _ <- (events ++ generated.map(_._3)).map(EventRepoSql.insert(_).run(xa)).sequence
       _ <- eventTalks.map { case (c, e, p, u) => addTalk(c, e, p, u, now) }.sequence
-      _ <- groupSettings.set(humanTalks.id, humanTalksSettings, userDemo.id, now)
+      _ <- groupSettings.set(humanTalksSettings)(new OrgaCtx(now, userDemo, humanTalks))
       _ <- groupMembers.map(GroupRepoSql.insertMember(_).run(xa)).sequence
       _ <- eventRsvps.map(EventRepoSql.insertRsvp(_).run(xa)).sequence
       _ <- cfpExts.map(ExternalCfpRepoSql.insert(_).run(xa)).sequence

@@ -24,7 +24,7 @@ trait OrgaGroupRepo {
 
   def addOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done]
 
-  def removeOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done]
+  def removeOwner(owner: User.Id)(implicit ctx: OrgaCtx): IO[Done]
 
   def listMembers(implicit ctx: OrgaCtx): IO[Seq[Group.Member]]
 }

@@ -71,11 +71,11 @@ class UserRequestRepoSql(groupRepo: GroupRepoSql,
   override def listPendingUserToJoinAGroupRequests(user: User.Id): IO[Seq[UserAskToJoinAGroupRequest]] = UserAskToJoinAGroup.selectAllPending(user).runList(xa)
 
 
-  override def invite(group: Group.Id, email: EmailAddress, by: User.Id, now: Instant): IO[GroupInvite] =
-    GroupInviteQueries.insert(GroupInvite(UserRequest.Id.generate(), group, email, now, by, None, None, None)).run(xa)
+  override def invite(email: EmailAddress)(implicit ctx: OrgaCtx): IO[GroupInvite] =
+    GroupInviteQueries.insert(GroupInvite(UserRequest.Id.generate(), ctx.group.id, email, ctx.now, ctx.user.id, None, None, None)).run(xa)
 
-  override def cancelGroupInvite(id: Id, by: User.Id, now: Instant): IO[GroupInvite] =
-    GroupInviteQueries.cancel(id, by, now).run(xa).flatMap(_ => GroupInviteQueries.selectOne(id).runUnique(xa))
+  override def cancelGroupInvite(id: Id)(implicit ctx: OrgaCtx): IO[GroupInvite] =
+    GroupInviteQueries.cancel(id, ctx.user.id, ctx.now).run(xa).flatMap(_ => GroupInviteQueries.selectOne(id).runUnique(xa))
 
   override def accept(invite: UserRequest.GroupInvite, by: User.Id, now: Instant): IO[Done] = for {
     _ <- GroupInviteQueries.accept(invite.id, by, now).run(xa)
@@ -84,7 +84,7 @@ class UserRequestRepoSql(groupRepo: GroupRepoSql,
 
   override def reject(invite: UserRequest.GroupInvite, by: User.Id, now: Instant): IO[Done] = GroupInviteQueries.reject(invite.id, by, now).run(xa)
 
-  override def listPendingInvites(group: Group.Id): IO[Seq[GroupInvite]] = GroupInviteQueries.selectAllPending(group).runList(xa)
+  override def listPendingInvites(implicit ctx: OrgaCtx): IO[Seq[GroupInvite]] = GroupInviteQueries.selectAllPending(ctx.group.id).runList(xa)
 
 
   override def invite(talk: Talk.Id, email: EmailAddress, by: User.Id, now: Instant): IO[TalkInvite] =
