@@ -1,10 +1,8 @@
 package fr.gospeak.core.services.storage
 
-import java.time.Instant
-
 import cats.effect.IO
-import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.libs.scalautils.domain.{Done, Page}
 
 trait VenueRepo extends OrgaVenueRepo with PublicVenueRepo with SuggestVenueRepo
@@ -16,7 +14,7 @@ trait OrgaVenueRepo {
 
   def remove(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Done]
 
-  def listFull(group: Group.Id, params: Page.Params): IO[Page[Venue.Full]]
+  def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Full]]
 
   def listFull(partner: Partner.Id): IO[Seq[Venue.Full]]
 

@@ -34,7 +34,7 @@ class CfpRepoSqlSpec extends RepoSpec {
     }
     it("should fail on duplicate slug") {
       val (user, group1, ctx1) = createUserAndGroup().unsafeRunSync()
-      val group2 = groupRepo.create(groupData2, user.id, now).unsafeRunSync()
+      val group2 = groupRepo.create(groupData2)(ctx1).unsafeRunSync()
       cfpRepo.create(cfpData1)(new OrgaCtx(now, user, group1)).unsafeRunSync()
       an[Exception] should be thrownBy cfpRepo.create(cfpData1)(new OrgaCtx(now, user, group2)).unsafeRunSync()
     }

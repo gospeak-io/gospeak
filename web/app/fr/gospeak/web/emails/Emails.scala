@@ -35,19 +35,19 @@ object Emails {
       subject = "Reset your password!",
       content = HtmlContent(html.forgotPassword(user, passwordReset).body))
 
-  def joinGroupAccepted(acceptedUser: User, group: Group)(implicit req: UserReq[AnyContent]): Email =
+  def joinGroupAccepted(acceptedUser: User)(implicit req: OrgaReq[AnyContent]): Email =
     Email(
       from = Constants.Contact.noReply,
       to = Seq(acceptedUser.asContact),
-      subject = s"Welcome to ${group.name.value} group!",
-      content = HtmlContent(html.joinGroupAccepted(acceptedUser, group).body))
+      subject = s"Welcome to ${req.group.name.value} group!",
+      content = HtmlContent(html.joinGroupAccepted(acceptedUser).body))
 
-  def joinGroupRejected(rejectedUser: User, group: Group)(implicit req: UserReq[AnyContent]): Email =
+  def joinGroupRejected(rejectedUser: User)(implicit req: OrgaReq[AnyContent]): Email =
     Email(
       from = Constants.Contact.noReply,
       to = Seq(rejectedUser.asContact),
-      subject = s"Your application to ${group.name.value} group was rejected :(",
-      content = HtmlContent(html.joinGroupRejected(rejectedUser, group).body))
+      subject = s"Your application to ${req.group.name.value} group was rejected :(",
+      content = HtmlContent(html.joinGroupRejected(rejectedUser).body))
 
   def inviteOrgaToGroup(invite: UserRequest.GroupInvite)(implicit req: OrgaReq[AnyContent]): Email =
     Email(

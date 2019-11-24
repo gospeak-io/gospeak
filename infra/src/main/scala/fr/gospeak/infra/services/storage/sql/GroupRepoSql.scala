@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
-import fr.gospeak.core.domain.utils.{Info, OrgaCtx}
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.GroupRepo
 import fr.gospeak.infra.services.storage.sql.GroupRepoSql._
@@ -17,17 +17,17 @@ import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
 
 class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with GroupRepo {
-  override def create(data: Group.Data, by: User.Id, now: Instant): IO[Group] =
-    insert(Group(data, NonEmptyList.of(by), Info(by, now))).run(xa)
+  override def create(data: Group.Data)(implicit ctx: UserCtx): IO[Group] =
+    insert(Group(data, NonEmptyList.of(ctx.user.id), ctx.info)).run(xa)
 
-  override def edit(slug: Group.Slug)(data: Group.Data, by: User.Id, now: Instant): IO[Done] = {
-    if (data.slug != slug) {
+  override def edit(data: Group.Data)(implicit ctx: OrgaCtx): IO[Done] = {
+    if (data.slug != ctx.group.slug) {
       find(data.slug).flatMap {
-        case None => update(slug)(data, by, now).run(xa)
+        case None => update(ctx.group.slug)(data, ctx.user.id, ctx.now).run(xa)
         case _ => IO.raiseError(CustomException(s"You already have a partner with slug ${data.slug}"))
       }
     } else {
-      update(slug)(data, by, now).run(xa)
+      update(ctx.group.slug)(data, ctx.user.id, ctx.now).run(xa)
     }
   }
 
@@ -59,7 +59,7 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def list(params: Page.Params): IO[Page[Group]] = selectPage(params).run(xa)
 
-  override def listJoinable(user: User.Id, params: Page.Params): IO[Page[Group]] = selectPageJoinable(user, params).run(xa)
+  override def listJoinable(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Group]] = selectPageJoinable(ctx.user.id, params).run(xa)
 
   override def list(user: User.Id): IO[Seq[Group]] = selectAll(user).runList(xa)
 

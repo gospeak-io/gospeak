@@ -7,12 +7,12 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain.UserRequest._
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.OrgaCtx
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import fr.gospeak.core.services.storage.UserRequestRepo
 import fr.gospeak.infra.services.storage.sql.UserRequestRepoSql._
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
@@ -24,12 +24,12 @@ class UserRequestRepoSql(groupRepo: GroupRepoSql,
 
   override def list(user: User.Id, params: Page.Params): IO[Page[UserRequest]] = selectPage(user, params).run(xa)
 
-  override def listPendingGroupRequests(group: Group.Id, now: Instant): IO[Seq[UserRequest]] = selectAllPending(group, now).runList(xa)
+  override def listPendingGroupRequests(implicit ctx: OrgaCtx): IO[Seq[UserRequest]] = selectAllPending(ctx.group.id, ctx.now).runList(xa)
 
   // override def findPending(group: Group.Id, req: UserRequest.Id, now: Instant): IO[Option[UserRequest]] = selectOnePending(group, req, now).runOption(xa)
 
-  override def findPendingUserToJoinAGroup(group: Group.Id, req: UserRequest.Id): IO[Option[UserAskToJoinAGroupRequest]] =
-    UserAskToJoinAGroup.selectOnePending(group, req).runOption(xa)
+  override def findPendingUserToJoinAGroup(req: UserRequest.Id)(implicit ctx: OrgaCtx): IO[Option[UserAskToJoinAGroupRequest]] =
+    UserAskToJoinAGroup.selectOnePending(ctx.group.id, req).runOption(xa)
 
   override def createAccountValidationRequest(email: EmailAddress, user: User.Id, now: Instant): IO[AccountValidationRequest] =
     AccountValidation.insert(AccountValidationRequest(UserRequest.Id.generate(), email, now.plus(Timeout.accountValidation), now, user, None)).run(xa)
@@ -58,17 +58,17 @@ class UserRequestRepoSql(groupRepo: GroupRepoSql,
   override def findPendingPasswordResetRequest(email: EmailAddress, now: Instant): IO[Option[PasswordResetRequest]] = PasswordReset.selectPending(email, now).runOption(xa)
 
 
-  override def createUserAskToJoinAGroup(user: User.Id, group: Group.Id, now: Instant): IO[UserAskToJoinAGroupRequest] =
-    UserAskToJoinAGroup.insert(UserAskToJoinAGroupRequest(UserRequest.Id.generate(), group, now, user, None, None, None)).run(xa)
+  override def createUserAskToJoinAGroup(group: Group.Id)(implicit ctx: UserCtx): IO[UserAskToJoinAGroupRequest] =
+    UserAskToJoinAGroup.insert(UserAskToJoinAGroupRequest(UserRequest.Id.generate(), group, ctx.now, ctx.user.id, None, None, None)).run(xa)
 
-  override def acceptUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done] = for {
-    _ <- UserAskToJoinAGroup.accept(req.id, by, now).run(xa)
-    _ <- groupRepo.addOwner(req.group)(req.createdBy, by, now)
+  override def acceptUserToJoinAGroup(req: UserAskToJoinAGroupRequest)(implicit ctx: OrgaCtx): IO[Done] = for {
+    _ <- UserAskToJoinAGroup.accept(req.id, ctx.user.id, ctx.now).run(xa)
+    _ <- groupRepo.addOwner(req.group)(req.createdBy, ctx.user.id, ctx.now)
   } yield Done
 
-  override def rejectUserToJoinAGroup(req: UserAskToJoinAGroupRequest, by: User.Id, now: Instant): IO[Done] = UserAskToJoinAGroup.reject(req.id, by, now).run(xa)
+  override def rejectUserToJoinAGroup(req: UserAskToJoinAGroupRequest)(implicit ctx: OrgaCtx): IO[Done] = UserAskToJoinAGroup.reject(req.id, ctx.user.id, ctx.now).run(xa)
 
-  override def listPendingUserToJoinAGroupRequests(user: User.Id): IO[Seq[UserAskToJoinAGroupRequest]] = UserAskToJoinAGroup.selectAllPending(user).runList(xa)
+  override def listPendingUserToJoinAGroupRequests(implicit ctx: UserCtx): IO[Seq[UserAskToJoinAGroupRequest]] = UserAskToJoinAGroup.selectAllPending(ctx.user.id).runList(xa)
 
 
   override def invite(email: EmailAddress)(implicit ctx: OrgaCtx): IO[GroupInvite] =

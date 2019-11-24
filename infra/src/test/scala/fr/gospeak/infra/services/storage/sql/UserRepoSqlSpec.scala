@@ -6,7 +6,7 @@ import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 import TablesSpec.socialFields
-import fr.gospeak.core.domain.utils.OrgaCtx
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 
 class UserRepoSqlSpec extends RepoSpec {
   private val login = Login(ProviderId("providerId"), ProviderKey("providerKey"))
@@ -35,17 +35,17 @@ class UserRepoSqlSpec extends RepoSpec {
       userRepo.list(Seq(user1.id, user2.id)).unsafeRunSync() should contain theSameElementsAs Seq(user1, user2)
     }
     it("should select all speakers for a group") {
-      userRepo.speakers(group.id, params).unsafeRunSync().items shouldBe Seq()
+      userRepo.speakers(params)(new OrgaCtx(now, user, group)).unsafeRunSync().items shouldBe Seq()
 
       val user1 = userRepo.create(userData1, now, None).unsafeRunSync()
       val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
       val talk1 = talkRepo.create(talkData1, user1.id, now).unsafeRunSync()
-      val group1 = groupRepo.create(groupData1, user1.id, now).unsafeRunSync()
+      val group1 = groupRepo.create(groupData1)(new UserCtx(now, user1)).unsafeRunSync()
       val ctx1 = new OrgaCtx(now, user1, group1)
       val cfp1 = cfpRepo.create(cfpData1)(ctx1).unsafeRunSync()
       val prop1 = proposalRepo.create(talk1.id, cfp1.id, proposalData1, NonEmptyList.of(user1.id, user2.id), user1.id, now).unsafeRunSync()
 
-      userRepo.speakers(group1.id, params).unsafeRunSync().items.map(_.id) should contain theSameElementsAs prop1.speakers.toList
+      userRepo.speakers(params)(new OrgaCtx(now, user, group1)).unsafeRunSync().items.map(_.id) should contain theSameElementsAs prop1.speakers.toList
     }
     describe("Queries") {
       describe("logins") {

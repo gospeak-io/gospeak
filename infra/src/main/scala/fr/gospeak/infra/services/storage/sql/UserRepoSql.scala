@@ -6,6 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.UserRepo
 import fr.gospeak.infra.services.storage.sql.UserRepoSql._
@@ -58,6 +59,8 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
       res <- NonEmptyList.fromList(speakerIds).map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User]))
     } yield res
   }
+
+  override def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User]] = speakers(ctx.group.id, params)
 
   override def listPublic(params: Page.Params): IO[Page[User]] = selectPagePublic(params).run(xa)
 

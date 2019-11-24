@@ -1,7 +1,7 @@
 package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
-import fr.gospeak.core.domain.utils.OrgaCtx
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import fr.gospeak.core.domain.{Cfp, Proposal, Talk}
 import fr.gospeak.infra.services.storage.sql.CfpRepoSqlSpec.{fields => cfpFields, table => cfpTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec.{fields => eventFields, table => eventTable}
@@ -24,7 +24,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
     }
     it("should fail to create a proposal when talk does not exists") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
-      val group = groupRepo.create(groupData1, user.id, now).unsafeRunSync()
+      val group = groupRepo.create(groupData1)(new UserCtx(now, user)).unsafeRunSync()
       val ctx = new OrgaCtx(now, user, group)
       val cfp = cfpRepo.create(cfpData1)(ctx).unsafeRunSync()
       an[Exception] should be thrownBy proposalRepo.create(Talk.Id.generate(), cfp.id, proposalData1, speakers, user.id, now).unsafeRunSync()

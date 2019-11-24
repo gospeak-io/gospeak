@@ -3,6 +3,7 @@ package fr.gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
+import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
@@ -13,7 +14,7 @@ trait OrgaUserRepo {
 
   def find(id: User.Id): IO[Option[User]]
 
-  def speakers(group: Group.Id, params: Page.Params): IO[Page[User]]
+  def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User]]
 
   def list(ids: Seq[User.Id]): IO[Seq[User]]
 }
