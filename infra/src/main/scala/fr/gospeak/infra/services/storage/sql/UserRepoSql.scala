@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
-import fr.gospeak.core.domain.utils.OrgaCtx
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.UserRepo
 import fr.gospeak.infra.services.storage.sql.UserRepoSql._
@@ -23,10 +23,12 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
   override def edit(user: User.Id)(data: User.Data, now: Instant): IO[User] =
     update(user)(data, now).run(xa).flatMap(_ => find(user).flatMap(_.toIO(new IllegalArgumentException(s"User $user does not exists"))))
 
-  override def editStatus(user: User.Id)(status: User.Status, now: Instant): IO[Done] =
-    selectOne(user).runOption(xa).flatMap {
-      case Some(userElt) => update(user)(userElt.data.copy(status = status), now).run(xa)
-      case None => IO.raiseError(new IllegalArgumentException(s"User $user does not exists"))
+  override def edit(data: User.Data)(implicit ctx: UserCtx): IO[User] = edit(ctx.user.id)(data, ctx.now)
+
+  override def editStatus(status: User.Status)(implicit ctx: UserCtx): IO[Done] =
+    selectOne(ctx.user.id).runOption(xa).flatMap {
+      case Some(userElt) => update(ctx.user.id)(userElt.data.copy(status = status), ctx.now).run(xa)
+      case None => IO.raiseError(new IllegalArgumentException(s"User ${ctx.user.id} does not exists"))
     }
 
   override def createLoginRef(login: User.Login, user: User.Id): IO[Done] = insertLoginRef(User.LoginRef(login, user)).run(xa).map(_ => Done)

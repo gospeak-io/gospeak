@@ -3,7 +3,7 @@ package fr.gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.utils.OrgaCtx
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
@@ -30,9 +30,9 @@ trait SpeakerUserRepo {
 trait UserUserRepo {
   def find(id: User.Id): IO[Option[User]]
 
-  def edit(user: User.Id)(data: User.Data, now: Instant): IO[User]
+  def edit(data: User.Data)(implicit ctx: UserCtx): IO[User]
 
-  def editStatus(user: User.Id)(status: User.Status, now: Instant): IO[Done]
+  def editStatus(status: User.Status)(implicit ctx: UserCtx): IO[Done]
 
   def list(ids: Seq[User.Id]): IO[Seq[User]]
 }

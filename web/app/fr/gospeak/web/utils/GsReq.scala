@@ -5,7 +5,7 @@ import java.time.{Instant, LocalDate, LocalDateTime}
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import fr.gospeak.core.ApplicationConf
-import fr.gospeak.core.domain.utils.Constants
+import fr.gospeak.core.domain.utils.{Constants, OrgaCtx, UserAwareCtx, UserCtx}
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.libs.scalautils.domain.EmailAddress
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
@@ -47,11 +47,6 @@ sealed class BasicReq[A](protected val request: Request[A],
   }
 }
 
-object BasicReq {
-  def apply[A](req: Request[A], messages: Messages, env: ApplicationConf.Env): BasicReq[A] =
-    new BasicReq(req, messages, Instant.now(), env)
-}
-
 
 class UserAwareReq[A](override protected val request: Request[A],
                       override protected val messages: Messages,
@@ -68,11 +63,8 @@ class UserAwareReq[A](override protected val request: Request[A],
 
   def secured(i: AuthUser, authenticator: CookieAuthenticator): UserReq[A] =
     new UserReq(request, messages, now, env, SecuredRequest(underlying.identity.getOrElse(i), underlying.authenticator.getOrElse(authenticator), request), user.getOrElse(i.user), i.groups)
-}
 
-object UserAwareReq {
-  def apply[A](req: UserAwareRequest[CookieEnv, A], messages: Messages, env: ApplicationConf.Env): UserAwareReq[A] =
-    new UserAwareReq(req.request, messages, Instant.now(), env, req, req.identity.map(_.user))
+  def ctx: UserAwareCtx = new UserAwareCtx(now, user)
 }
 
 
@@ -88,11 +80,8 @@ class UserReq[A](override protected val request: Request[A],
   def userAware: UserAwareReq[A] = new UserAwareReq(request, messages, now, env, UserAwareRequest(Some(underlying.identity), Some(underlying.authenticator), request), Some(user))
 
   def orga(group: Group): OrgaReq[A] = new OrgaReq[A](request, messages, now, env, underlying, user, groups, group)
-}
 
-object UserReq {
-  def apply[A](req: SecuredRequest[CookieEnv, A], messages: Messages, env: ApplicationConf.Env): UserReq[A] =
-    new UserReq(req.request, messages, Instant.now(), env, req, req.identity.user, req.identity.groups)
+  def ctx: UserCtx = new UserCtx(now, user)
 }
 
 
@@ -104,5 +93,7 @@ class OrgaReq[A](override protected val request: Request[A],
                  override val user: User,
                  override val groups: Seq[Group],
                  val group: Group) extends UserReq[A](request, messages, now, env, underlying, user, groups) {
+  override def ctx: OrgaCtx = new OrgaCtx(now, user, group)
+
   def senders: Seq[EmailAddress.Contact] = group.senders(user)
 }

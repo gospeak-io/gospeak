@@ -8,7 +8,7 @@ import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{Info, OrgaCtx}
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import fr.gospeak.core.services.storage.ProposalRepo
 import fr.gospeak.infra.services.storage.sql.ProposalRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
@@ -18,26 +18,26 @@ import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
 
 class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ProposalRepo {
-  override def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal] =
-    insert(Proposal(talk, cfp, None, data, Proposal.Status.Pending, speakers, Info(by, now))).run(xa)
+  override def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[Proposal] =
+    insert(Proposal(talk, cfp, None, data, Proposal.Status.Pending, speakers, ctx.info)).run(xa)
 
   override def edit(cfp: Cfp.Slug, proposal: Proposal.Id, data: Proposal.Data)(implicit ctx: OrgaCtx): IO[Done] =
     update(ctx.user.id, ctx.group.slug, cfp, proposal)(data, ctx.now).run(xa)
 
-  override def edit(talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, by: User.Id, now: Instant): IO[Done] =
-    update(by, talk, cfp)(data, now).run(xa)
+  override def edit(talk: Talk.Slug, cfp: Cfp.Slug, data: Proposal.Data)(implicit ctx: UserCtx): IO[Done] =
+    update(ctx.user.id, talk, cfp)(data, ctx.now).run(xa)
 
   override def editSlides(cfp: Cfp.Slug, id: Proposal.Id, slides: Slides)(implicit ctx: OrgaCtx): IO[Done] =
     updateSlides(cfp, id)(slides, ctx.user.id, ctx.now).run(xa)
 
-  override def editSlides(talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, by: User.Id, now: Instant): IO[Done] =
-    updateSlides(by, talk, cfp)(slides, by, now).run(xa)
+  override def editSlides(talk: Talk.Slug, cfp: Cfp.Slug, slides: Slides)(implicit ctx: UserCtx): IO[Done] =
+    updateSlides(ctx.user.id, talk, cfp)(slides, ctx.user.id, ctx.now).run(xa)
 
   override def editVideo(cfp: Cfp.Slug, id: Proposal.Id, video: Video)(implicit ctx: OrgaCtx): IO[Done] =
     updateVideo(cfp, id)(video, ctx.user.id, ctx.now).run(xa)
 
-  override def editVideo(talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, by: User.Id, now: Instant): IO[Done] =
-    updateVideo(by, talk, cfp)(video, by, now).run(xa)
+  override def editVideo(talk: Talk.Slug, cfp: Cfp.Slug, video: Video)(implicit ctx: UserCtx): IO[Done] =
+    updateVideo(ctx.user.id, talk, cfp)(video, ctx.user.id, ctx.now).run(xa)
 
   override def addSpeaker(proposal: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
     find(proposal).flatMap {
@@ -50,8 +50,8 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
       case None => IO.raiseError(new IllegalArgumentException("unreachable talk"))
     }
 
-  override def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug)(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
-    removeSpeaker(find(by, talk, cfp))(speaker, by, now)
+  override def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, speaker: User.Id)(implicit ctx: UserCtx): IO[Done] =
+    removeSpeaker(find(talk, cfp))(speaker, ctx.user.id, ctx.now)
 
   override def removeSpeaker(cfp: Cfp.Slug, id: Proposal.Id, speaker: User.Id)(implicit ctx: OrgaCtx): IO[Done] =
     removeSpeaker(find(cfp, id))(speaker, ctx.user.id, ctx.now)
@@ -98,13 +98,13 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def find(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal]] = selectOne(cfp, id).runOption(xa)
 
-  override def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]] = selectOne(speaker, talk, cfp).runOption(xa)
+  override def find(talk: Talk.Slug, cfp: Cfp.Slug)(implicit ctx: UserCtx): IO[Option[Proposal]] = selectOne(ctx.user.id, talk, cfp).runOption(xa)
 
   override def findFull(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal.Full]] = selectOneFull(cfp, id).runOption(xa)
 
   override def findFull(proposal: Proposal.Id): IO[Option[Proposal.Full]] = selectOneFull(proposal).runOption(xa)
 
-  override def findFull(talk: Talk.Slug, cfp: Cfp.Slug)(by: User.Id): IO[Option[Proposal.Full]] = selectOneFull(talk, cfp, by).runOption(xa)
+  override def findFull(talk: Talk.Slug, cfp: Cfp.Slug)(implicit ctx: UserCtx): IO[Option[Proposal.Full]] = selectOneFull(talk, cfp, ctx.user.id).runOption(xa)
 
   override def findPublicFull(group: Group.Id, proposal: Proposal.Id): IO[Option[Proposal.Full]] = selectOnePublicFull(group, proposal).runOption(xa)
 
@@ -122,7 +122,7 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def listFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(ctx.group.id, speaker, params).run(xa)
 
-  override def listFull(speaker: User.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(speaker, params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectPageFull(ctx.user.id, params).run(xa)
 
   override def listPublicFull(speaker: User.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPagePublicFull(speaker, params).run(xa)
 

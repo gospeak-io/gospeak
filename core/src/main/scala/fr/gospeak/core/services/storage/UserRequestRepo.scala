@@ -40,16 +40,16 @@ trait OrgaUserRequestRepo {
 }
 
 trait SpeakerUserRequestRepo {
-  def invite(talk: Talk.Id, email: EmailAddress, by: User.Id, now: Instant): IO[TalkInvite]
+  def invite(talk: Talk.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[TalkInvite]
 
-  def cancelTalkInvite(id: UserRequest.Id, by: User.Id, now: Instant): IO[TalkInvite]
+  def cancelTalkInvite(id: UserRequest.Id)(implicit ctx: UserCtx): IO[TalkInvite]
 
   def listPendingInvites(talk: Talk.Id): IO[Seq[TalkInvite]]
 
 
-  def invite(talk: Proposal.Id, email: EmailAddress, by: User.Id, now: Instant): IO[ProposalInvite]
+  def invite(talk: Proposal.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[ProposalInvite]
 
-  def cancelProposalInvite(id: UserRequest.Id, by: User.Id, now: Instant): IO[ProposalInvite]
+  def cancelProposalInvite(id: UserRequest.Id)(implicit ctx: UserCtx): IO[ProposalInvite]
 
   def listPendingInvites(proposal: Proposal.Id): IO[Seq[ProposalInvite]]
 }
@@ -60,19 +60,19 @@ trait UserUserRequestRepo {
   def list(user: User.Id, params: Page.Params): IO[Page[UserRequest]]
 
 
-  def accept(invite: UserRequest.GroupInvite, by: User.Id, now: Instant): IO[Done]
+  def accept(invite: UserRequest.GroupInvite)(implicit ctx: UserCtx): IO[Done]
 
-  def reject(invite: UserRequest.GroupInvite, by: User.Id, now: Instant): IO[Done]
-
-
-  def accept(invite: UserRequest.TalkInvite, by: User.Id, now: Instant): IO[Done]
-
-  def reject(invite: UserRequest.TalkInvite, by: User.Id, now: Instant): IO[Done]
+  def reject(invite: UserRequest.GroupInvite)(implicit ctx: UserCtx): IO[Done]
 
 
-  def accept(invite: UserRequest.ProposalInvite, by: User.Id, now: Instant): IO[Done]
+  def accept(invite: UserRequest.TalkInvite)(implicit ctx: UserCtx): IO[Done]
 
-  def reject(invite: UserRequest.ProposalInvite, by: User.Id, now: Instant): IO[Done]
+  def reject(invite: UserRequest.TalkInvite)(implicit ctx: UserCtx): IO[Done]
+
+
+  def accept(invite: UserRequest.ProposalInvite)(implicit ctx: UserCtx): IO[Done]
+
+  def reject(invite: UserRequest.ProposalInvite)(implicit ctx: UserCtx): IO[Done]
 }
 
 trait AuthUserRequestRepo {

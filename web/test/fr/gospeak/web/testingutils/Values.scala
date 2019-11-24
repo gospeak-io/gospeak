@@ -1,5 +1,6 @@
 package fr.gospeak.web.testingutils
 
+import java.time.Instant
 import java.util.UUID
 
 import akka.stream.Materializer
@@ -11,7 +12,6 @@ import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry
 import com.mohiva.play.silhouette.test._
 import com.typesafe.config.ConfigFactory
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.libs.timeshape.TimeShape
@@ -21,8 +21,7 @@ import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv}
 import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.utils.{UserReq, UserAwareReq}
-import play.api.i18n.Messages
+import fr.gospeak.web.utils.{UserAwareReq, UserReq}
 import play.api.mvc._
 import play.api.test.CSRFTokenHelper._
 import play.api.test.{CSRFTokenHelper, FakeRequest, Helpers, NoMaterializer}
@@ -63,11 +62,9 @@ object Values extends RandomDataGenerator {
   // twirl
   private val req: Request[AnyContent] = CSRFTokenHelper.addCSRFToken(FakeRequest().withAuthenticator(identity.loginInfo)(env))
   private val authenticator: CookieAuthenticator = FakeAuthenticator(loginInfo)(env, req)
-  val userAwareReq: UserAwareRequest[CookieEnv, AnyContent] = UserAwareRequest[CookieEnv, AnyContent](Some(identity), Some(authenticator), req)
-  val securedReq: SecuredRequest[CookieEnv, AnyContent] = SecuredRequest[CookieEnv, AnyContent](identity, authenticator, req)
-  val messages: Messages = messagesApi.preferred(securedReq)
-  val secured: UserReq[AnyContent] = UserReq[AnyContent](securedReq, messages, conf.application.env)
-  val userAware: UserAwareReq[AnyContent] = UserAwareReq[AnyContent](userAwareReq, messages, conf.application.env)
+  private val r: SecuredRequest[CookieEnv, AnyContent] = SecuredRequest[CookieEnv, AnyContent](identity, authenticator, req)
+  val userReq: UserReq[AnyContent] = new UserReq[AnyContent](r.request, messagesApi.preferred(r), Instant.now(), conf.application.env, r, r.identity.user, r.identity.groups)
+  val userAwareReq: UserAwareReq[AnyContent] = userReq.userAware
   val b: Breadcrumb = Breadcrumb(Seq())
 
   // domain

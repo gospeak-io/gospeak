@@ -87,7 +87,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk)] = for {
     (user, group, ctx) <- createUserAndGroup()
     cfp <- cfpRepo.create(cfpData1)(ctx)
-    talk <- talkRepo.create(talkData1, user.id, now)
+    talk <- talkRepo.create(talkData1)(ctx)
   } yield (user, group, cfp, talk)
 
   protected def mapFields(fields: String, f: String => String): String = RepoSpec.mapFields(fields, f)

@@ -1,5 +1,7 @@
 package fr.gospeak.web.utils
 
+import java.time.Instant
+
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.ApplicationConf
@@ -19,12 +21,12 @@ abstract class UICtrl(cc: ControllerComponents,
                       silhouette: Silhouette[CookieEnv],
                       env: ApplicationConf.Env) extends AbstractController(cc) with I18nSupport {
   protected def UserAwareActionIO(block: UserAwareReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.UserAwareAction.async { r =>
-    val req = UserAwareReq[AnyContent](r, messagesApi.preferred(r.request), env)
+    val req = new UserAwareReq[AnyContent](r.request, messagesApi.preferred(r.request), Instant.now(), env, r, r.identity.map(_.user))
     recoverFailedAction(block(req))(r.request).unsafeToFuture()
   }
 
   protected def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.SecuredAction.async { r =>
-    val req = UserReq[AnyContent](r, messagesApi.preferred(r.request), env)
+    val req = new UserReq[AnyContent](r.request, messagesApi.preferred(r.request), Instant.now(), env, r, r.identity.user, r.identity.groups)
     recoverFailedAction(block(req))(r.request).unsafeToFuture()
   }
 
@@ -117,7 +119,7 @@ object UICtrl {
 
     protected def UserAwareAction(block: UserAwareReq[AnyContent] => UserAwareCtx => IO[Result]): Action[AnyContent] = {
       UserAwareActionIO { req =>
-        block(req)(new UserAwareCtx(req.now, req.user))
+        block(req)(req.ctx)
       }
     }
   }
@@ -127,7 +129,7 @@ object UICtrl {
 
     protected def UserAction(block: UserReq[AnyContent] => UserCtx => IO[Result]): Action[AnyContent] = {
       SecuredActionIO { req =>
-        block(req)(new UserCtx(req.now, req.user))
+        block(req)(req.ctx)
       }
     }
   }
@@ -139,7 +141,7 @@ object UICtrl {
     protected def OrgaAction(group: Group.Slug)(block: OrgaReq[AnyContent] => OrgaCtx => IO[Result]): Action[AnyContent] = {
       SecuredActionIO { req =>
         groupRepo.find(req.user.id, group).flatMap {
-          case Some(group) => block(req.orga(group))(new OrgaCtx(req.now, req.user, group))
+          case Some(group) => block(req.orga(group))(req.orga(group).ctx)
           case None => IO.pure(Redirect(pages.user.routes.UserCtrl.index()).flashing("warning" -> s"Unable to find group with slug '${group.value}'"))
         }
       }

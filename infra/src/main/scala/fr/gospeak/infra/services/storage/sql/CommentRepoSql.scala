@@ -1,11 +1,9 @@
 package fr.gospeak.infra.services.storage.sql
 
-import java.time.Instant
-
 import cats.effect.IO
 import doobie.implicits._
 import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
-import fr.gospeak.core.domain.{Comment, Event, Proposal, User}
+import fr.gospeak.core.domain.{Comment, Event, Proposal}
 import fr.gospeak.core.services.storage.CommentRepo
 import fr.gospeak.infra.services.storage.sql.CommentRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
@@ -14,11 +12,8 @@ import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
 
 class CommentRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with CommentRepo {
-  override def addComment(event: Event.Id, data: Comment.Data, by: User.Id, now: Instant): IO[Comment] =
-    insert(event, Comment.create(data, Comment.Kind.Event, by, now)).run(xa)
-
-  override def addComment(proposal: Proposal.Id, data: Comment.Data, by: User.Id, now: Instant): IO[Comment] =
-    insert(proposal, Comment.create(data, Comment.Kind.Proposal, by, now)).run(xa)
+  override def addComment(event: Event.Id, data: Comment.Data)(implicit ctx: UserCtx): IO[Comment] =
+    insert(event, Comment.create(data, Comment.Kind.Event, ctx.user.id, ctx.now)).run(xa)
 
   override def addComment(proposal: Proposal.Id, data: Comment.Data)(implicit ctx: UserCtx): IO[Comment] =
     insert(proposal, Comment.create(data, Comment.Kind.Proposal, ctx.user.id, ctx.now)).run(xa)

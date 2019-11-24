@@ -1,5 +1,7 @@
 package fr.gospeak.web.utils
 
+import java.time.Instant
+
 import cats.data.OptionT
 import cats.effect.IO
 import fr.gospeak.core.ApplicationConf
@@ -12,10 +14,9 @@ import play.api.mvc._
 import scala.util.control.NonFatal
 
 class ApiCtrl(cc: ControllerComponents, env: ApplicationConf.Env) extends AbstractController(cc) {
-  protected def ActionIO[A](bodyParser: BodyParser[A])(block: BasicReq[A] => IO[Result]): Action[A] = Action(bodyParser).async { req =>
-    block(BasicReq[A](req, messagesApi.preferred(req), env)).recover {
-      case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage)))
-    }.unsafeToFuture()
+  protected def ActionIO[A](bodyParser: BodyParser[A])(block: BasicReq[A] => IO[Result]): Action[A] = Action(bodyParser).async { r =>
+    block(new BasicReq[A](r, messagesApi.preferred(r), Instant.now(), env))
+      .recover { case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage))) }.unsafeToFuture()
   }
 
   protected def ActionIO(block: BasicReq[AnyContent] => IO[Result]): Action[AnyContent] =

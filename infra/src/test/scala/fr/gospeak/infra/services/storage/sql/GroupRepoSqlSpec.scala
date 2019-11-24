@@ -13,18 +13,19 @@ class GroupRepoSqlSpec extends RepoSpec {
     it("should create and retrieve a group") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
       val ctx = new UserCtx(now, user)
-      groupRepo.list(user.id).unsafeRunSync() shouldBe Seq()
+      groupRepo.list(ctx).unsafeRunSync() shouldBe Seq()
       groupRepo.find(user.id, groupData1.slug).unsafeRunSync() shouldBe None
       val group = groupRepo.create(groupData1)(ctx).unsafeRunSync()
-      groupRepo.list(user.id).unsafeRunSync() shouldBe Seq(group)
+      groupRepo.list(ctx).unsafeRunSync() shouldBe Seq(group)
       groupRepo.find(user.id, groupData1.slug).unsafeRunSync() shouldBe Some(group)
     }
     it("should not retrieve not owned groups") {
       val user1 = userRepo.create(userData1, now, None).unsafeRunSync()
       val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
+      val ctx1 = new UserCtx(now, user1)
       val ctx2 = new UserCtx(now, user2)
       groupRepo.create(groupData1)(ctx2).unsafeRunSync()
-      groupRepo.list(user1.id).unsafeRunSync() shouldBe Seq()
+      groupRepo.list(ctx1).unsafeRunSync() shouldBe Seq()
       groupRepo.find(user1.id, groupData1.slug).unsafeRunSync() shouldBe None
     }
     it("should fail on duplicate slug") {
@@ -40,7 +41,7 @@ class GroupRepoSqlSpec extends RepoSpec {
       val created = groupRepo.create(groupData1)(ctx1).unsafeRunSync()
       created.owners.toList shouldBe List(user1.id)
 
-      groupRepo.addOwner(created.id)(user2.id, user1.id, now).unsafeRunSync()
+      groupRepo.addOwner(created.id, user2.id, user1.id)(ctx1).unsafeRunSync()
       val updated = groupRepo.find(created.id).unsafeRunSync().get
       updated.owners.toList shouldBe List(user1.id, user2.id)
     }

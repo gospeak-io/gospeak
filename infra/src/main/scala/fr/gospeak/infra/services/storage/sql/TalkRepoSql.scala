@@ -7,58 +7,58 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.utils.Info
+import fr.gospeak.core.domain.utils.UserCtx
 import fr.gospeak.core.domain.{Cfp, Talk, User}
 import fr.gospeak.core.services.storage.TalkRepo
 import fr.gospeak.infra.services.storage.sql.TalkRepoSql._
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.domain._
 
 class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with TalkRepo {
-  override def create(data: Talk.Data, by: User.Id, now: Instant): IO[Talk] =
+  override def create(data: Talk.Data)(implicit ctx: UserCtx): IO[Talk] =
     find(data.slug).flatMap {
-      case None => insert(Talk(data, Talk.Status.Draft, NonEmptyList.one(by), Info(by, now))).run(xa)
+      case None => insert(Talk(data, Talk.Status.Draft, NonEmptyList.one(ctx.user.id), ctx.info)).run(xa)
       case _ => IO.raiseError(CustomException(s"Talk slug '${data.slug}' is already used"))
     }
 
-  override def edit(talk: Talk.Slug)(data: Talk.Data, by: User.Id, now: Instant): IO[Done] = {
+  override def edit(talk: Talk.Slug, data: Talk.Data)(implicit ctx: UserCtx): IO[Done] = {
     if (data.slug != talk) {
       find(data.slug).flatMap {
-        case None => update(talk)(data, by, now).run(xa)
+        case None => update(talk)(data, ctx.user.id, ctx.now).run(xa)
         case _ => IO.raiseError(CustomException(s"Talk slug '${data.slug}' is already used"))
       }
     } else {
-      update(talk)(data, by, now).run(xa)
+      update(talk)(data, ctx.user.id, ctx.now).run(xa)
     }
   }
 
-  override def editStatus(talk: Talk.Slug)(status: Talk.Status, by: User.Id): IO[Done] = updateStatus(talk)(status, by).run(xa)
+  override def editStatus(talk: Talk.Slug, status: Talk.Status)(implicit ctx: UserCtx): IO[Done] = updateStatus(talk)(status, ctx.user.id).run(xa)
 
-  override def editSlides(talk: Talk.Slug)(slides: Slides, by: User.Id, now: Instant): IO[Done] = updateSlides(talk)(slides, by, now).run(xa)
+  override def editSlides(talk: Talk.Slug, slides: Slides)(implicit ctx: UserCtx): IO[Done] = updateSlides(talk)(slides, ctx.user.id, ctx.now).run(xa)
 
-  override def editVideo(talk: Talk.Slug)(video: Video, by: User.Id, now: Instant): IO[Done] = updateVideo(talk)(video, by, now).run(xa)
+  override def editVideo(talk: Talk.Slug, video: Video)(implicit ctx: UserCtx): IO[Done] = updateVideo(talk)(video, ctx.user.id, ctx.now).run(xa)
 
-  override def addSpeaker(talk: Talk.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
+  override def addSpeaker(talk: Talk.Id, by: User.Id)(implicit ctx: UserCtx): IO[Done] =
     find(talk).flatMap {
       case Some(talkElt) =>
-        if (talkElt.speakers.toList.contains(speaker)) {
+        if (talkElt.speakers.toList.contains(ctx.user.id)) {
           IO.raiseError(new IllegalArgumentException("speaker already added"))
         } else {
-          updateSpeakers(talkElt.slug)(talkElt.speakers.append(speaker), by, now).run(xa)
+          updateSpeakers(talkElt.slug)(talkElt.speakers.append(ctx.user.id), by, ctx.now).run(xa)
         }
       case None => IO.raiseError(new IllegalArgumentException("unreachable talk"))
     }
 
-  override def removeSpeaker(talk: Talk.Slug)(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
-    find(by, talk).flatMap {
+  override def removeSpeaker(talk: Talk.Slug, speaker: User.Id)(implicit ctx: UserCtx): IO[Done] =
+    find(talk).flatMap {
       case Some(talkElt) =>
         if (talkElt.info.createdBy == speaker) {
           IO.raiseError(new IllegalArgumentException("talk creator can't be removed"))
         } else if (talkElt.speakers.toList.contains(speaker)) {
           NonEmptyList.fromList(talkElt.speakers.filter(_ != speaker)).map { speakers =>
-            updateSpeakers(talk)(speakers, by, now).run(xa)
+            updateSpeakers(talk)(speakers, ctx.user.id, ctx.now).run(xa)
           }.getOrElse {
             IO.raiseError(new IllegalArgumentException("last speaker can't be removed"))
           }
@@ -70,15 +70,13 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def find(talk: Talk.Id): IO[Option[Talk]] = selectOne(talk).runOption(xa)
 
-  override def list(user: User.Id, params: Page.Params): IO[Page[Talk]] = selectPage(user, params).run(xa)
+  override def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]] = selectPage(ctx.user.id, params).run(xa)
 
   override def list(user: User.Id, status: Talk.Status, params: Page.Params): IO[Page[Talk]] = selectPage(user, status, params).run(xa)
 
   override def listActive(user: User.Id, cfp: Cfp.Id, params: Page.Params): IO[Page[Talk]] = selectPage(user, cfp, Talk.Status.active, params).run(xa)
 
-  private def find(talk: Talk.Slug): IO[Option[Talk]] = selectOne(talk).runOption(xa)
-
-  override def find(user: User.Id, talk: Talk.Slug): IO[Option[Talk]] = selectOne(user, talk).runOption(xa)
+  override def find(talk: Talk.Slug)(implicit ctx: UserCtx): IO[Option[Talk]] = selectOne(ctx.user.id, talk).runOption(xa)
 
   override def exists(talk: Talk.Slug): IO[Boolean] = selectOne(talk).runExists(xa)
 

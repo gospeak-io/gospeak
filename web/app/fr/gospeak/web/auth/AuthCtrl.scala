@@ -34,17 +34,17 @@ class AuthCtrl(cc: ControllerComponents,
                groupRepo: AuthGroupRepo,
                authSrv: AuthSrv,
                emailSrv: EmailSrv,
-               envConf: ApplicationConf.Env) extends UICtrl(cc, silhouette, env) {
+               envConf: ApplicationConf.Env) extends UICtrl(cc, silhouette, env) with UICtrl.UserAction with UICtrl.UserAwareAction {
   private val loginRedirect = (redirect: Option[String]) => Redirect(redirect.getOrElse(UserRoutes.index().path()))
   private val logoutRedirect = Redirect(HomeRoutes.index())
 
-  def signup(redirect: Option[String]): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def signup(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     IO.pure(req.user
       .map(_ => loginRedirect(redirect).flashing(req.flash))
       .getOrElse(Ok(html.signup(AuthForms.signup, redirect))))
-  }
+  })
 
-  def doSignup(redirect: Option[String]): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def doSignup(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     AuthForms.signup.bindFromRequest.fold(
       formWithErrors => IO.pure(BadRequest(html.signup(formWithErrors, redirect))),
       data => (for {
@@ -60,15 +60,15 @@ class AuthCtrl(cc: ControllerComponents,
         case NonFatal(e) => IO.pure(BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), redirect)))
       }
     )
-  }
+  })
 
-  def login(redirect: Option[String]): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def login(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     IO.pure(req.user
       .map(_ => loginRedirect(redirect).flashing(req.flash))
       .getOrElse(Ok(html.login(AuthForms.login, envConf, redirect, authSrv.providerIds))))
-  }
+  })
 
-  def doLogin(redirect: Option[String]): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def doLogin(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     AuthForms.login.bindFromRequest.fold(
       formWithErrors => IO.pure(BadRequest(html.login(formWithErrors, envConf, redirect, authSrv.providerIds))),
       data => (for {
@@ -81,9 +81,9 @@ class AuthCtrl(cc: ControllerComponents,
         case NonFatal(e) => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), envConf, redirect, authSrv.providerIds))
       }
     )
-  }
+  })
 
-  def authenticate(providerID: String): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def authenticate(providerID: String): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
       profileE <- authSrv.authenticate(providerID)
       result <- profileE.fold(IO.pure, profile => for {
@@ -95,43 +95,43 @@ class AuthCtrl(cc: ControllerComponents,
       case CustomException(msg, _) => Redirect(routes.AuthCtrl.login()).flashing("error" -> msg)
       case NonFatal(e) => Redirect(routes.AuthCtrl.login()).flashing("error" -> e.getMessage)
     }
-  }
+  })
 
-  def doLogout(): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def doLogout(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
     authSrv.logout(logoutRedirect)
-  }
+  })
 
-  def accountValidation(): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def accountValidation(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
     for {
       existingValidationOpt <- userRequestRepo.findPendingAccountValidationRequest(req.user.id, req.now)
       emailValidation <- existingValidationOpt.map(IO.pure).getOrElse(userRequestRepo.createAccountValidationRequest(req.user.email, req.user.id, req.now))
       _ <- emailSrv.send(Emails.accountValidation(emailValidation))
     } yield loginRedirect(HttpUtils.getReferer(req)).flashing("success" -> "Email validation sent!")
-  }
+  })
 
-  def doValidateAccount(id: UserRequest.Id): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def doValidateAccount(id: UserRequest.Id): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
       validation <- OptionT(userRequestRepo.findAccountValidationRequest(id))
       msg <- if (validation.isPending(req.now)) {
         OptionT.liftF(userRequestRepo.validateAccount(id, validation.email, req.now).map(_ => "success" -> s"Well done! You validated your email."))
-      } else if(validation.deadline.isBefore(req.now)) {
+      } else if (validation.deadline.isBefore(req.now)) {
         OptionT.liftF(IO.pure("error" -> "Expired deadline for email validation. Please ask to resend the validation email."))
-      } else if(validation.acceptedAt.nonEmpty) {
+      } else if (validation.acceptedAt.nonEmpty) {
         OptionT.liftF(IO.pure("error" -> s"This validation was already used. Please contact <b>${Constants.Contact.admin.address.value}</b> if this is not expected."))
       } else {
         OptionT.liftF(IO.pure("error" -> "Can't validate your email, please ask to resend the validation email."))
       }
       res = Redirect(UserRoutes.index()).flashing(msg)
     } yield res).value.map(_.getOrElse(notFound()))
-  }
+  })
 
-  def forgotPassword(redirect: Option[String]): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def forgotPassword(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     IO.pure(req.user
       .map(_ => loginRedirect(redirect).flashing(req.flash))
       .getOrElse(Ok(html.forgotPassword(AuthForms.forgotPassword, redirect))))
-  }
+  })
 
-  def doForgotPassword(redirect: Option[String]): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def doForgotPassword(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     AuthForms.forgotPassword.bindFromRequest.fold(
       formWithErrors => IO.pure(BadRequest(html.forgotPassword(formWithErrors, redirect))),
       data => (for {
@@ -143,15 +143,15 @@ class AuthCtrl(cc: ControllerComponents,
       } yield Redirect(routes.AuthCtrl.login()).flashing("success" -> "Reset password email sent!")).value
         .map(_.getOrElse(Redirect(routes.AuthCtrl.forgotPassword(redirect)).flashing("error" -> s"Email not found")))
     )
-  }
+  })
 
-  def resetPassword(id: UserRequest.Id): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def resetPassword(id: UserRequest.Id): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     req.user
       .map(_ => IO.pure(loginRedirect(None).flashing(req.flash)))
       .getOrElse(resetPasswordForm(id, AuthForms.resetPassword))
-  }
+  })
 
-  def doResetPassword(id: UserRequest.Id): Action[AnyContent] = UserAwareActionIO { implicit req =>
+  def doResetPassword(id: UserRequest.Id): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     AuthForms.resetPassword.bindFromRequest.fold(
       formWithErrors => resetPasswordForm(id, formWithErrors),
       data => (for {
@@ -160,7 +160,7 @@ class AuthCtrl(cc: ControllerComponents,
         (_, result) <- OptionT.liftF(authSrv.login(user, data.rememberMe, loginRedirect(None)))
       } yield result).value.map(_.getOrElse(notFound()))
     )
-  }
+  })
 
   private def resetPasswordForm(id: UserRequest.Id, form: Form[AuthForms.ResetPasswordData])(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     userRequestRepo.findPendingPasswordResetRequest(id, req.now).map { passwordResetOpt =>

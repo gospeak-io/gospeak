@@ -31,13 +31,13 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
     }
   }
 
-  override def addOwner(group: Group.Id)(owner: User.Id, by: User.Id, now: Instant): IO[Done] =
+  override def addOwner(group: Group.Id, owner: User.Id, by: User.Id)(implicit ctx: UserCtx): IO[Done] =
     find(group).flatMap {
       case Some(groupElt) =>
         if (groupElt.owners.toList.contains(owner)) {
           IO.raiseError(new IllegalArgumentException("owner already added"))
         } else {
-          updateOwners(groupElt.id)(groupElt.owners.append(owner), by, now).run(xa)
+          updateOwners(groupElt.id)(groupElt.owners.append(owner), by, ctx.now).run(xa)
         }
       case None => IO.raiseError(new IllegalArgumentException("unreachable group"))
     }
@@ -63,9 +63,11 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def list(user: User.Id): IO[Seq[Group]] = selectAll(user).runList(xa)
 
+  override def list(implicit ctx: UserCtx): IO[Seq[Group]] = selectAll(ctx.user.id).runList(xa)
+
   override def list(ids: Seq[Group.Id]): IO[Seq[Group]] = runNel(selectAll, ids)
 
-  override def listJoined(user: User.Id, params: Page.Params): IO[Page[(Group, Group.Member)]] = selectPageJoined(user, params).run(xa)
+  override def listJoined(params: Page.Params)(implicit ctx: UserCtx): IO[Page[(Group, Group.Member)]] = selectPageJoined(ctx.user.id, params).run(xa)
 
   override def find(user: User.Id, slug: Group.Slug): IO[Option[Group]] = selectOne(user, slug).runOption(xa)
 

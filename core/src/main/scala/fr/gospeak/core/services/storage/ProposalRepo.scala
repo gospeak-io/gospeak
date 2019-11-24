@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.OrgaCtx
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import fr.gospeak.libs.scalautils.domain._
 
 trait ProposalRepo extends OrgaProposalRepo with SpeakerProposalRepo with UserProposalRepo with AuthProposalRepo with SuggestProposalRepo with PublicProposalRepo
@@ -57,33 +57,33 @@ trait OrgaProposalRepo {
 }
 
 trait SpeakerProposalRepo {
-  def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): IO[Proposal]
+  def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[Proposal]
 
-  def edit(talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, by: User.Id, now: Instant): IO[Done]
+  def edit(talk: Talk.Slug, cfp: Cfp.Slug, data: Proposal.Data)(implicit ctx: UserCtx): IO[Done]
 
-  def editSlides(talk: Talk.Slug, cfp: Cfp.Slug)(slides: Slides, by: User.Id, now: Instant): IO[Done]
+  def editSlides(talk: Talk.Slug, cfp: Cfp.Slug, slides: Slides)(implicit ctx: UserCtx): IO[Done]
 
-  def editVideo(talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, by: User.Id, now: Instant): IO[Done]
+  def editVideo(talk: Talk.Slug, cfp: Cfp.Slug, video: Video)(implicit ctx: UserCtx): IO[Done]
 
-  def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
+  def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, speaker: User.Id)(implicit ctx: UserCtx): IO[Done]
 
   def find(proposal: Proposal.Id): IO[Option[Proposal]]
 
   def findFull(proposal: Proposal.Id): IO[Option[Proposal.Full]]
 
-  def findFull(talk: Talk.Slug, cfp: Cfp.Slug)(by: User.Id): IO[Option[Proposal.Full]]
+  def findFull(talk: Talk.Slug, cfp: Cfp.Slug)(implicit ctx: UserCtx): IO[Option[Proposal.Full]]
 
-  def listFull(user: User.Id, params: Page.Params): IO[Page[Proposal.Full]]
+  def listFull(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]]
 
   def listFull(talk: Talk.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
-  def find(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): IO[Option[Proposal]]
+  def find(talk: Talk.Slug, cfp: Cfp.Slug)(implicit ctx: UserCtx): IO[Option[Proposal]]
 }
 
 trait UserProposalRepo {
   def addSpeaker(proposal: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
 
-  def listFull(user: User.Id, params: Page.Params): IO[Page[Proposal.Full]]
+  def listFull(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]]
 }
 
 trait AuthProposalRepo
