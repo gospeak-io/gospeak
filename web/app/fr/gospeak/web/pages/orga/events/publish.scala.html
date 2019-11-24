@@ -1,4 +1,4 @@
-@import fr.gospeak.core.domain.{Event, Group}
+@import fr.gospeak.core.domain.Event
 @import fr.gospeak.libs.scalautils.domain.Markdown
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
@@ -7,13 +7,13 @@
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, event: Event, description: Markdown, form: Form[PublishOptions], hasMeetupAccount: Boolean)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(event.name.value + " - Gospeak", group, b)() {
+@(event: Event, description: Markdown, form: Form[PublishOptions], hasMeetupAccount: Boolean)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(event.name.value + " - Gospeak", b)() {
     <h1 class="page-header">Let's review your event before publishing</h1>
 
-    @formElt(form, EventCtrl.doPublish(group.slug, event.slug)) {
+    @formElt(form, EventCtrl.doPublish(req.group.slug, event.slug)) {
         <h3 class="d-flex justify-content-between align-items-center">
             @event.name.value
             @event.maxAttendee.map { max =>  <span>@Formats.plural(max, "place")</span> }
@@ -34,7 +34,7 @@
         @markdown(description)
 
         @actionsVertical() {
-            @btnCancel(EventCtrl.detail(group.slug, event.slug))
+            @btnCancel(EventCtrl.detail(req.group.slug, event.slug))
             @btnSubmit("Publish it!")
         }
     }

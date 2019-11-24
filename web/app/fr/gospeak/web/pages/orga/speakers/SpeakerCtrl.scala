@@ -21,7 +21,7 @@ class SpeakerCtrl(cc: ControllerComponents,
                   eventRepo: OrgaEventRepo,
                   proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    userRepo.speakers(params).map(speakers => Ok(html.list(req.group, speakers)(listBreadcrumb)))
+    userRepo.speakers(params).map(speakers => Ok(html.list(speakers)(listBreadcrumb)))
   })
 
   def detail(group: Group.Slug, speaker: User.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -30,7 +30,7 @@ class SpeakerCtrl(cc: ControllerComponents,
       proposals <- OptionT.liftF(proposalRepo.listFull(speakerElt.id, params))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users)))
       userRatings <- OptionT.liftF(proposalRepo.listRatings(proposals.items.map(_.id)))
-      res = Ok(html.detail(req.group, speakerElt, proposals, speakers, userRatings)(breadcrumb(speakerElt)))
+      res = Ok(html.detail(speakerElt, proposals, speakers, userRatings)(breadcrumb(speakerElt)))
     } yield res).value.map(_.getOrElse(speakerNotFound(group, speaker)))
   })
 }

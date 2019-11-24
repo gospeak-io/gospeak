@@ -45,7 +45,7 @@ class ContactCtrl(cc: ControllerComponents,
       partnerElt <- OptionT(partnerRepo.find(partner))
       contacts <- OptionT.liftF(contactRepo.list(partnerElt.id, params))
       b = listBreadcrumb(partnerElt)
-    } yield Ok(html.list(req.group, partnerElt, contacts)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
+    } yield Ok(html.list(partnerElt, contacts)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
   })
 
   def create(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -73,7 +73,7 @@ class ContactCtrl(cc: ControllerComponents,
       partnerElt <- OptionT(partnerRepo.find(partner))
       b = listBreadcrumb(partnerElt).add("New" -> routes.ContactCtrl.create(group, partner))
       call = routes.ContactCtrl.doCreate(group, partner)
-    } yield Ok(html.create(req.group, partnerElt, form, call)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
+    } yield Ok(html.create(partnerElt, form, call)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
   }
 
   def detail(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -83,7 +83,7 @@ class ContactCtrl(cc: ControllerComponents,
       contactVenues <- OptionT.liftF(venueRepo.listAll(contactElt.id))
       contactSponsors <- OptionT.liftF(sponsorRepo.listAll(contactElt.id))
       b = breadcrumb(partnerElt, contactElt)
-      res = Ok(html.detail(req.group, partnerElt, contactElt, contactVenues, contactSponsors)(b))
+      res = Ok(html.detail(partnerElt, contactElt, contactVenues, contactSponsors)(b))
     } yield res).value.map(_.getOrElse(contactNotFound(group, partner, contact)))
   })
 
@@ -113,7 +113,7 @@ class ContactCtrl(cc: ControllerComponents,
       contactElt <- OptionT(contactRepo.find(contact))
       b = breadcrumb(partnerElt, contactElt).add("Edit" -> routes.ContactCtrl.edit(group, partner, contact))
       filledForm = if (form.hasErrors) form else form.fill(contactElt.data)
-    } yield Ok(html.edit(req.group, partnerElt, contactElt, filledForm)(b))).value.map(_.getOrElse(contactNotFound(group, partner, contact)))
+    } yield Ok(html.edit(partnerElt, contactElt, filledForm)(b))).value.map(_.getOrElse(contactNotFound(group, partner, contact)))
   }
 
   def doRemove(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {

@@ -6,10 +6,10 @@
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, templateId: Option[String], settings: Group.Settings, form: Form[EventTemplateItem])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(group.name.value + " settings - Gospeak", group, b)() {
+@(templateId: Option[String], settings: Group.Settings, form: Form[EventTemplateItem])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(req.group.name.value + " settings - Gospeak", b)() {
     @templateId match {
         case Some(id) => {
             <h1>Update template event '@id'</h1>
@@ -19,7 +19,7 @@
         }
     }
 
-    @formElt(form, SettingsCtrl.doUpdateEventTemplate(group.slug, templateId)) {
+    @formElt(form, SettingsCtrl.doUpdateEventTemplate(req.group.slug, templateId)) {
         <div class="row">
             <div class="col-6">
                 @fieldVertical(form("template"), Seq("label" -> "Your template:")) { (field, args) =>
@@ -34,7 +34,7 @@
             @inputText(field, Seq("placeholder" -> "ex: Intro slides") ++ args)
         }
         @actionsVertical() {
-            @btnCancel(SettingsCtrl.settings(group.slug))
+            @btnCancel(SettingsCtrl.settings(req.group.slug))
             @btnSubmit(templateId.map(id => s"Update template event '$id'").getOrElse("Create new template"))
         }
     }

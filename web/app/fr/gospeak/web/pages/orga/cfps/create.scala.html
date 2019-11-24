@@ -1,18 +1,18 @@
-@import fr.gospeak.core.domain.{Cfp, Event, Group}
+@import fr.gospeak.core.domain.{Cfp, Event}
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.orga.partials.html.{cfpFields, container}
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, form: Form[Cfp.Data], event: Option[Event.Slug])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container("Gospeak", group, b)() {
+@(form: Form[Cfp.Data], event: Option[Event.Slug])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container("Gospeak", b)() {
     <h1 class="page-header">Create a CFP</h1>
 
-    @formElt(form, CfpCtrl.doCreate(group.slug, event)) {
+    @formElt(form, CfpCtrl.doCreate(req.group.slug, event)) {
         @cfpFields(form)
         @actionsHorizontal() {
-            @btnCancel(CfpCtrl.list(group.slug))
+            @btnCancel(CfpCtrl.list(req.group.slug))
             @btnSubmit("Create")
         }
     }

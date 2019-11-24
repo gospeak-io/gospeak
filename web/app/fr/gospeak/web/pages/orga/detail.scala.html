@@ -1,6 +1,4 @@
-@import java.time.LocalDate
-
-@import fr.gospeak.core.domain.{Cfp, Event, Group, Partner, Proposal, Sponsor, SponsorPack, User, UserRequest, Venue}
+@import fr.gospeak.core.domain.{Cfp, Event, Partner, Proposal, Sponsor, SponsorPack, User, UserRequest, Venue}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
@@ -11,9 +9,9 @@
 @import fr.gospeak.web.pages.partials.display.html.emailLink
 @import fr.gospeak.web.pages.partials.form.html.formBtn
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, events: Page[Event], cfps: Seq[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User], currentSponsors: Seq[(Partner, (Sponsor, Int))], pastSponsors: Seq[(Partner, Seq[Sponsor])], packs: Seq[SponsorPack], requests: Seq[UserRequest], requestUsers: Seq[User])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@(events: Page[Event], cfps: Seq[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User], currentSponsors: Seq[(Partner, (Sponsor, Int))], pastSponsors: Seq[(Partner, Seq[Sponsor])], packs: Seq[SponsorPack], requests: Seq[UserRequest], requestUsers: Seq[User])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @addSponsorBtn() = {
 @defining(packs.filter(_.active)) { activePacks: Seq[SponsorPack] =>
     @if(activePacks.nonEmpty) {
@@ -23,7 +21,7 @@
             </button>
             <span class="dropdown-menu dropdown-menu-right">
             @activePacks.map { pack =>
-                <a class="dropdown-item" href="@SponsorCtrl.create(group.slug, pack.slug)">@pack.name.value pack</a>
+                <a class="dropdown-item" href="@SponsorCtrl.create(req.group.slug, pack.slug)">@pack.name.value pack</a>
             }
             </span>
         </span>
@@ -33,14 +31,14 @@
 @requestUser(id: User.Id) = {
 @requestUsers.find(_.id == id).map { u => <b>@u.name.value</b> (@Html(emailLink(u.email).body.trim)) }.getOrElse { <b>Unknown user @id.value</b> }
 }
-@container(group.name.value + " - Gospeak", group, b)() {
+@container(req.group.name.value + " - Gospeak", b)() {
     @requests.map {
         case r: UserRequest.UserAskToJoinAGroupRequest => {
             <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert">
-                <p class="mb-0">@requestUser(r.createdBy) wants to join the <b>@group.name.value</b> group</p>
+                <p class="mb-0">@requestUser(r.createdBy) wants to join the <b>@req.group.name.value</b> group</p>
                 <span>
-                    @formBtn(GroupCtrl.acceptJoin(group.slug, r.id), Seq("class" -> "btn-sm btn-success")){Accept}
-                    @formBtn(GroupCtrl.rejectJoin(group.slug, r.id), Seq("class" -> "btn-sm btn-danger")){Reject}
+                    @formBtn(GroupCtrl.acceptJoin(req.group.slug, r.id), Seq("class" -> "btn-sm btn-success")){Accept}
+                    @formBtn(GroupCtrl.rejectJoin(req.group.slug, r.id), Seq("class" -> "btn-sm btn-danger")){Reject}
                 </span>
             </div>
         }
@@ -51,18 +49,18 @@
     @if(events.isEmpty) {
         <h2 class="d-flex justify-content-between align-items-center">
             <span class="text-capitalize">No incoming events</span>
-            <a class="btn btn-primary" href="@EventCtrl.create(group.slug)" data-hotkey="+">Create an event</a>
+            <a class="btn btn-primary" href="@EventCtrl.create(req.group.slug)" data-hotkey="+">Create an event</a>
         </h2>
     } else {
         <h2 class="d-flex justify-content-between align-items-center">
             <span class="text-capitalize">@Formats.plural(events.total.value, "incoming event")</span>
-            <a class="btn btn-primary" href="@EventCtrl.create(group.slug)" data-hotkey="+">Create an event</a>
+            <a class="btn btn-primary" href="@EventCtrl.create(req.group.slug)" data-hotkey="+">Create an event</a>
         </h2>
 
         <div class="list-group mt-3 mb-3">
-            @events.items.map { e => @eventItem(group, e, cfps.find(c => e.cfp.contains(c.id)), venues, proposals, speakers) }
+            @events.items.map { e => @eventItem(e, cfps.find(c => e.cfp.contains(c.id)), venues, proposals, speakers) }
             @if(!events.isLast) {
-                <a href="@EventCtrl.list(group.slug)" class="list-group-item list-group-item-action">More...</a>
+                <a href="@EventCtrl.list(req.group.slug)" class="list-group-item list-group-item-action">More...</a>
             }
         </div>
     }
@@ -76,7 +74,7 @@
         @currentSponsors.map { case (partner, sp) =>
         <li>
             Until @Formats.date(sp._1.finish):
-            <a href="@PartnerCtrl.detail(group.slug, partner.slug)">@partner.name.value</a>
+            <a href="@PartnerCtrl.detail(req.group.slug, partner.slug)">@partner.name.value</a>
             @packs.find(_.id == sp._1.pack).map(_.name.value) pack
             @if(sp._1.finish.minusMonths(1).isBefore(req.nowLD)) {
                 <span class="text-danger">Will finish very soon</span>
@@ -103,7 +101,7 @@
         @pastSponsors.map { case (partner, sponsors) =>
         <li>
             Finished @Formats.date(sponsors.map(_.finish).sortWith(_.compareTo(_) > 0).head):
-            <a href="@PartnerCtrl.detail(group.slug, partner.slug)">@partner.name.value</a> (@sponsors.length times sponsor)
+            <a href="@PartnerCtrl.detail(req.group.slug, partner.slug)">@partner.name.value</a> (@sponsors.length times sponsor)
         </li>
         }
         </ul>

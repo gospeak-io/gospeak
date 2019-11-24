@@ -1,12 +1,12 @@
-@import fr.gospeak.core.domain.{Cfp, Group}
+@import fr.gospeak.core.domain.Cfp
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.pages.partials.display.html.tags
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, cfp: Cfp)(implicit req: UserReq[AnyContent])
+@(cfp: Cfp)(implicit req: OrgaReq[AnyContent])
 @if(cfp.isActive(req.nowLDT)) {
-    <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center list-group-item-secondary" href="@CfpCtrl.detail(group.slug, cfp.slug)">
+    <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center list-group-item-secondary" href="@CfpCtrl.detail(req.group.slug, cfp.slug)">
         <div>
             <h5 class="mb-1">@cfp.name.value - <small>@Formats.cfpDates(cfp).capitalize</small></h5>
             @tags(cfp.tags, "secondary")
@@ -14,7 +14,7 @@
         <span class="badge badge-secondary badge-pill">??? proposals</span>
     </a>
 } else {
-    <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="@CfpCtrl.detail(group.slug, cfp.slug)">
+    <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="@CfpCtrl.detail(req.group.slug, cfp.slug)">
         <div>
             <h5 class="mb-1">@cfp.name.value - <small>@Formats.cfpDates(cfp).capitalize</small></h5>
             @tags(cfp.tags)

@@ -26,7 +26,7 @@ class ProposalCtrl(cc: ControllerComponents,
       proposals <- proposalRepo.listFull(customParams)
       speakers <- userRepo.list(proposals.items.flatMap(_.users))
       userRatings <- proposalRepo.listRatings(proposals.items.map(_.id))
-    } yield Ok(html.list(req.group, proposals, speakers, userRatings)(listBreadcrumb))
+    } yield Ok(html.list(proposals, speakers, userRatings)(listBreadcrumb))
   })
 }
 

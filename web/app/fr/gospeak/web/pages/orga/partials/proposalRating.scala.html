@@ -1,9 +1,9 @@
-@import fr.gospeak.core.domain.{Cfp, Group, Proposal}
+@import fr.gospeak.core.domain.Proposal
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(proposal: Proposal.Full, userGrade: Option[Proposal.Rating.Grade], btnClass: String = "")(implicit req: UserReq[AnyContent])
+@(proposal: Proposal.Full, userGrade: Option[Proposal.Rating.Grade], btnClass: String = "")(implicit req: OrgaReq[AnyContent])
 @userGrade match {
     case Some(Proposal.Rating.Grade.Like) => {
         @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), Seq("class" -> s"btn-secondary $btnClass")) {@proposal.dislikes <i class="far fa-thumbs-down"></i>}

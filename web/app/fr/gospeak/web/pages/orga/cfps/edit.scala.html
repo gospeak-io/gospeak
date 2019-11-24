@@ -1,18 +1,18 @@
-@import fr.gospeak.core.domain.{Cfp, Group}
+@import fr.gospeak.core.domain.Cfp
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.orga.partials.html.{cfpFields, container}
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, cfp: Cfp, form: Form[Cfp.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container("Gospeak", group, b)() {
+@(cfp: Cfp, form: Form[Cfp.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container("Gospeak", b)() {
     <h1 class="page-header">Edit @cfp.name.value</h1>
 
-    @formElt(form, CfpCtrl.doEdit(group.slug, cfp.slug)) {
+    @formElt(form, CfpCtrl.doEdit(req.group.slug, cfp.slug)) {
         @cfpFields(form)
         @actionsHorizontal() {
-            @btnCancel(CfpCtrl.detail(group.slug, cfp.slug))
+            @btnCancel(CfpCtrl.detail(req.group.slug, cfp.slug))
             @btnSubmit("Edit")
         }
     }

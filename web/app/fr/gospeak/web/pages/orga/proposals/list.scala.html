@@ -1,13 +1,13 @@
-@import fr.gospeak.core.domain.{Group, Proposal, User}
+@import fr.gospeak.core.domain.{Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.{container, proposalItem}
 @import fr.gospeak.web.pages.orga.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(group.name.value + " - Gospeak", group, b)() {
+@(proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(req.group.name.value + " - Gospeak", b)() {
     <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") <small>(from any CFP)</small></h1>
-    @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list(group.slug, _), proposalItem(group, _, speakers, userRatings))
+    @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list(req.group.slug, _), proposalItem(_, speakers, userRatings))
 }()

@@ -1,18 +1,18 @@
-@import fr.gospeak.core.domain.{Group, Venue, Partner}
+@import fr.gospeak.core.domain.{Venue, Partner}
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.{container, venueFields}
 @import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, hasMeetupAccount: Boolean, partner: Option[Partner], form: Form[Venue.Data], doCreate: Call)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container("Gospeak", group, b)() {
+@(hasMeetupAccount: Boolean, partner: Option[Partner], form: Form[Venue.Data], doCreate: Call)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container("Gospeak", b)() {
     <h1 class="page-header">Create a venue</h1>
 
     @formElt(form, doCreate) {
-        @venueFields(form, group, hasMeetupAccount, partner)
+        @venueFields(form, hasMeetupAccount, partner)
         @actionsHorizontal() {
-            @btnCancel(VenueCtrl.list(group.slug))
+            @btnCancel(VenueCtrl.list(req.group.slug))
             @btnSubmit("Create")
         }
     }

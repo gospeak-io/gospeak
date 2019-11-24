@@ -1,4 +1,4 @@
-@import fr.gospeak.core.domain.{Cfp, Group, Proposal, User}
+@import fr.gospeak.core.domain.{Cfp, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
@@ -6,10 +6,10 @@
 @import fr.gospeak.web.pages.partials.display.html.tags
 @import fr.gospeak.web.pages.published.cfps.routes.{CfpCtrl => PublicCfpCtrl}
 @import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, cfp: Cfp, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(cfp.name.value + " - Gospeak", group, b)() {
+@(cfp: Cfp, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(cfp.name.value + " - Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@cfp.name.value</span>
         <span class="btn-group">
@@ -17,7 +17,7 @@
                 <i class="fas fa-cog"></i>
             </button>
             <span class="dropdown-menu dropdown-menu-right">
-                <a class="dropdown-item" href="@CfpCtrl.edit(group.slug, cfp.slug)">Edit</a>
+                <a class="dropdown-item" href="@CfpCtrl.edit(req.group.slug, cfp.slug)">Edit</a>
                 @if(cfp.isActive(req.nowLDT)) {
                     <a class="dropdown-item" href="@PublicCfpCtrl.detail(cfp.slug)" target="_blank">View public page</a>
                 } else {
@@ -31,5 +31,5 @@
 
     <h2 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h2>
     <p class="mt-2 mb-0">You voted on @Formats.plural(userRatings.length, "proposal") on a total of @proposals.total.value</p>
-    @Formats.paginated[Proposal.Full](proposals, CfpCtrl.detail(group.slug, cfp.slug, _), proposalItem(group, _, speakers, userRatings))
+    @Formats.paginated[Proposal.Full](proposals, CfpCtrl.detail(req.group.slug, cfp.slug, _), proposalItem(_, speakers, userRatings))
 }()

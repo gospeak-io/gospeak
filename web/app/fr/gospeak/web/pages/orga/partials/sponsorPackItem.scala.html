@@ -1,19 +1,20 @@
-@import fr.gospeak.core.domain.{Group, SponsorPack}
+@import fr.gospeak.core.domain.SponsorPack
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, sponsorPack: SponsorPack)
+@(sponsorPack: SponsorPack)(implicit req: OrgaReq[AnyContent])
 <div class="list-group-item d-flex justify-content-between align-items-center @if(!sponsorPack.active) {list-group-item-light}">
     <div>
         @if(sponsorPack.active) {
-            <a href="@SponsorCtrl.detail(group.slug, sponsorPack.slug)"><b>@sponsorPack.name.value</b></a>,
+            <a href="@SponsorCtrl.detail(req.group.slug, sponsorPack.slug)"><b>@sponsorPack.name.value</b></a>,
         } else {
-            <a href="@SponsorCtrl.detail(group.slug, sponsorPack.slug)"><s class="text-muted">@sponsorPack.name.value</s></a>,
+            <a href="@SponsorCtrl.detail(req.group.slug, sponsorPack.slug)"><s class="text-muted">@sponsorPack.name.value</s></a>,
         }
         @sponsorPack.price.value for @sponsorPack.duration.value
     </div>
     @if(sponsorPack.active) {
         <div>
-            <a href="@SponsorCtrl.create(group.slug, sponsorPack.slug)" class="btn btn-primary btn-sm">Add sponsor</a>
+            <a href="@SponsorCtrl.create(req.group.slug, sponsorPack.slug)" class="btn btn-primary btn-sm">Add sponsor</a>
         </div>
     }
 </div>

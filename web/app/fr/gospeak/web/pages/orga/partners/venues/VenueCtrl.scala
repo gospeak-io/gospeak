@@ -41,11 +41,11 @@ class VenueCtrl(cc: ControllerComponents,
 
   private def createView(group: Group.Slug, partner: Partner.Slug, form: Form[Venue.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
-      meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup)
       partnerElt <- OptionT(partnerRepo.find(partner))
-      b = listBreadcrumb(partnerElt).add("New" -> routes.VenueCtrl.create(group, partner))
+      meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup)
       call = routes.VenueCtrl.doCreate(group, partner)
-    } yield Ok(html.create(req.group, meetupAccount.isDefined, Some(partnerElt), form, call)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
+      b = listBreadcrumb(partnerElt).add("New" -> routes.VenueCtrl.create(group, partner))
+    } yield Ok(html.create(meetupAccount.isDefined, Some(partnerElt), form, call)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
   }
 
   def detail(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -53,10 +53,10 @@ class VenueCtrl(cc: ControllerComponents,
       venueElt <- OptionT(venueRepo.findFull(venue))
       events <- OptionT.liftF(eventRepo.list(venue))
       users <- OptionT.liftF(userRepo.list(venueElt.users))
-      b = breadcrumb(venueElt)
       editCall = routes.VenueCtrl.edit(group, partner, venue)
       removeCall = routes.VenueCtrl.doRemove(group, partner, venue)
-      res = Ok(html.detail(req.group, venueElt, events, users, editCall, removeCall)(b))
+      b = breadcrumb(venueElt)
+      res = Ok(html.detail(venueElt, events, users, editCall, removeCall)(b))
     } yield res).value.map(_.getOrElse(venueNotFound(group, partner, venue)))
   })
 
@@ -75,10 +75,10 @@ class VenueCtrl(cc: ControllerComponents,
     (for {
       venueElt <- OptionT(venueRepo.findFull(venue))
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup)
-      b = breadcrumb(venueElt).add("Edit" -> routes.VenueCtrl.edit(group, partner, venue))
       filledForm = if (form.hasErrors) form else form.fill(venueElt.data)
       call = routes.VenueCtrl.doEdit(group, partner, venue)
-    } yield Ok(html.edit(req.group, meetupAccount.isDefined, venueElt, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
+      b = breadcrumb(venueElt).add("Edit" -> routes.VenueCtrl.edit(group, partner, venue))
+    } yield Ok(html.edit(meetupAccount.isDefined, venueElt, filledForm, call)(b))).value.map(_.getOrElse(venueNotFound(group, venue)))
   }
 
   def doRemove(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {

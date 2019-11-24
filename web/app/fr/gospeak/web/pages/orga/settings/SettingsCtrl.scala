@@ -59,7 +59,7 @@ class SettingsCtrl(cc: ControllerComponents,
 
   private def createActionView(actionForm: Form[AddAction])(implicit req: OrgaReq[AnyContent]): HtmlFormat.Appendable = {
     val b = breadcrumb("Create action" -> routes.SettingsCtrl.createAction(req.group.slug))
-    html.actionCreate(req.group, actionForm)(b)
+    html.actionCreate(actionForm)(b)
   }
 
   def updateAction(group: Group.Slug, trigger: Group.Settings.Action.Trigger, index: Int): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -83,7 +83,7 @@ class SettingsCtrl(cc: ControllerComponents,
 
   private def updateActionView(trigger: Group.Settings.Action.Trigger, index: Int, actionForm: Form[AddAction])(implicit req: OrgaReq[AnyContent]): HtmlFormat.Appendable = {
     val b = breadcrumb("Update action" -> routes.SettingsCtrl.createAction(req.group.slug))
-    html.actionUpdate(req.group, trigger, index, actionForm)(b)
+    html.actionUpdate(trigger, index, actionForm)(b)
   }
 
   def doRemoveAction(group: Group.Slug, trigger: Group.Settings.Action.Trigger, index: Int): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -215,7 +215,6 @@ class SettingsCtrl(cc: ControllerComponents,
       orgas <- userRepo.list(req.group.owners.toList)
       invites <- userRequestRepo.listPendingInvites
     } yield Ok(html.settings(
-      req.group,
       settings,
       orgas,
       invites,
@@ -233,7 +232,7 @@ class SettingsCtrl(cc: ControllerComponents,
       "Event" -> routes.SettingsCtrl.settings(req.group.slug),
       "Templates" -> routes.SettingsCtrl.settings(req.group.slug),
       templateId.getOrElse("New") -> routes.SettingsCtrl.updateEventTemplate(req.group.slug, templateId))
-    Ok(html.updateEventTemplate(req.group, templateId, settings, form)(b))
+    Ok(html.updateEventTemplate(templateId, settings, form)(b))
   }
 
   private def createActionToSettings(settings: Group.Settings, addAction: SettingsForms.AddAction): Group.Settings = {

@@ -1,18 +1,18 @@
-@import fr.gospeak.core.domain.{Contact, Group, Partner}
+@import fr.gospeak.core.domain.{Contact, Partner}
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html._
 @import fr.gospeak.web.pages.orga.partners.contacts.routes.ContactCtrl
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.OrgaReq
 
-@(group: Group, partner: Partner, contact: Contact, form: Form[Contact.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container("Gospeak", group, b)() {
+@(partner: Partner, contact: Contact, form: Form[Contact.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container("Gospeak", b)() {
     <h1 class="page-header">Edit @contact.name.value</h1>
 
-    @formElt(form, ContactCtrl.doEdit(group.slug, partner.slug, contact.id)) {
-        @contactsFields(form, group, partner)
+    @formElt(form, ContactCtrl.doEdit(req.group.slug, partner.slug, contact.id)) {
+        @contactsFields(form, partner)
         @actionsHorizontal() {
-            @btnCancel(ContactCtrl.detail(group.slug, partner.slug, contact.id))
+            @btnCancel(ContactCtrl.detail(req.group.slug, partner.slug, contact.id))
             @btnSubmit("Edit")
         }
     }

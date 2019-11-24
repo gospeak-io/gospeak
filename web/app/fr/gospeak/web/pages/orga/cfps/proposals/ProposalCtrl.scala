@@ -40,7 +40,7 @@ class ProposalCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
       userRatings <- OptionT.liftF(proposalRepo.listRatings(cfp))
       b = listBreadcrumb(cfpElt)
-    } yield Ok(html.list(req.group, cfpElt, proposals, speakers, userRatings)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
+    } yield Ok(html.list(cfpElt, proposals, speakers, userRatings)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
   })
 
   def detail(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -75,7 +75,7 @@ class ProposalCtrl(cc: ControllerComponents,
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposal))
       events <- OptionT.liftF(eventRepo.list(proposalElt.event.map(_.id).toList))
       b = breadcrumb(proposalElt.cfp, proposalElt.proposal)
-      res = Ok(html.detail(req.group, proposalElt, speakers, ratings, comments, orgaComments, invites, events, ProposalForms.addSpeaker, GenericForm.embed, commentForm, orgaCommentForm)(b))
+      res = Ok(html.detail(proposalElt, speakers, ratings, comments, orgaComments, invites, events, ProposalForms.addSpeaker, GenericForm.embed, commentForm, orgaCommentForm)(b))
     } yield res).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
@@ -96,7 +96,7 @@ class ProposalCtrl(cc: ControllerComponents,
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       b = breadcrumb(cfpElt, proposalElt).add("Edit" -> routes.ProposalCtrl.edit(group, cfp, proposal))
       filledForm = if (form.hasErrors) form else form.fill(proposalElt.data)
-    } yield Ok(html.edit(req.group, cfpElt, proposalElt, filledForm)(b))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
+    } yield Ok(html.edit(cfpElt, proposalElt, filledForm)(b))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
   def inviteSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
