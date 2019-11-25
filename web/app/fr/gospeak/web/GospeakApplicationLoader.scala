@@ -9,10 +9,7 @@ import com.mohiva.play.silhouette.api.services.AuthenticatorService
 import com.mohiva.play.silhouette.api.util.{Clock, FingerprintGenerator, HTTPLayer, PlayHTTPLayer}
 import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaSigner}
 import com.mohiva.play.silhouette.impl.authenticators._
-import com.mohiva.play.silhouette.impl.providers.oauth1.TwitterProvider
 import com.mohiva.play.silhouette.impl.providers.oauth1.secrets.CookieSecretProvider
-import com.mohiva.play.silhouette.impl.providers.oauth1.services.PlayOAuth1Service
-import com.mohiva.play.silhouette.impl.providers.oauth2.{FacebookProvider, GitHubProvider, GoogleProvider}
 import com.mohiva.play.silhouette.impl.providers.state.{CsrfStateItemHandler, CsrfStateSettings}
 import com.mohiva.play.silhouette.impl.providers.{DefaultSocialStateHandler, SocialProviderRegistry}
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
@@ -102,7 +99,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val templateSrv: TemplateSrv = wire[TemplateSrv]
   lazy val gravatarSrv: GravatarSrv = wire[GravatarSrv]
   lazy val emailSrv: EmailSrv = EmailSrv.from(conf.emailService)
-  lazy val meetupClient: MeetupClient = wire[MeetupClient]
+  lazy val meetupClient: MeetupClient = new MeetupClient(conf.meetup, conf.application.baseUrl, conf.application.env.isProd)
   lazy val meetupSrv: MeetupSrv = wire[MeetupSrvImpl]
   lazy val slackClient: SlackClient = wire[SlackClient]
   lazy val slackSrv: SlackSrv = wire[SlackSrvImpl]
@@ -147,12 +144,13 @@ class GospeakComponents(context: ApplicationLoader.Context)
     val socialStateHandler = new DefaultSocialStateHandler(Set(csrfStateItemHandler), signer)
     val cookieSecretProvider = new CookieSecretProvider(conf.auth.cookie.authenticator.toCookieSecretSettings, signer, crypter, clock)
     val httpLayer: HTTPLayer = new PlayHTTPLayer(wsClient)
-    val googleProvider = new GoogleProvider(httpLayer, socialStateHandler, conf.auth.google)
-    val twitterProvider = new TwitterProvider(httpLayer, new PlayOAuth1Service(conf.auth.twitter), cookieSecretProvider, conf.auth.twitter)
-    val facebookProvider = new FacebookProvider(httpLayer, socialStateHandler, conf.auth.facebook)
-    val githubProvider = new GitHubProvider(httpLayer, socialStateHandler, conf.auth.github)
-    // val linkedInProvider = new LinkedInProvider(httpLayer, socialStateHandler, conf.auth.linkedIn) // FIXME LinkedInProvider needs a little hack to get working with silhouette
-    SocialProviderRegistry(Seq(googleProvider, twitterProvider, facebookProvider, githubProvider))
+    val providers: Seq[AuthConf.SocialConf] = Seq(
+      conf.auth.google,
+      conf.auth.twitter,
+      conf.auth.facebook,
+      // conf.auth.linkedin, // FIXME LinkedinProvider needs a little hack to get working with silhouette
+      conf.auth.github)
+    SocialProviderRegistry(providers.map(_.toProvider(conf.application.baseUrl, httpLayer, socialStateHandler, cookieSecretProvider)))
   }
 
   lazy val eventBus: EventBus = new EventBus()

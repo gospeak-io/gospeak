@@ -1,7 +1,6 @@
 package fr.gospeak.web
 
 import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
-import com.mohiva.play.silhouette.impl.providers.{OAuth1Settings, OAuth2Settings}
 import com.typesafe.config.Config
 import fr.gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.infra.libs.meetup.MeetupClient
@@ -58,8 +57,11 @@ object AppConf {
     private implicit val jcaCrypterSettingsReader: ConfigReader[JcaCrypterSettings] = deriveReader[JcaCrypterSettings]
     private implicit val authConfRememberMeReader: ConfigReader[AuthConf.RememberMe] = deriveReader[AuthConf.RememberMe]
     private implicit val authConfCookieConfReader: ConfigReader[AuthConf.CookieConf] = deriveReader[AuthConf.CookieConf]
-    private implicit val authOAuth2Settings: ConfigReader[OAuth2Settings] = deriveReader[OAuth2Settings]
-    private implicit val authOAuth1Settings: ConfigReader[OAuth1Settings] = deriveReader[OAuth1Settings]
+    private implicit val facebookConfReader: ConfigReader[AuthConf.FacebookConf] = deriveReader[AuthConf.FacebookConf]
+    private implicit val githubConfReader: ConfigReader[AuthConf.GithubConf] = deriveReader[AuthConf.GithubConf]
+    private implicit val googleConfReader: ConfigReader[AuthConf.GoogleConf] = deriveReader[AuthConf.GoogleConf]
+    private implicit val linkedinConfReader: ConfigReader[AuthConf.LinkedinConf] = deriveReader[AuthConf.LinkedinConf]
+    private implicit val twitterConfReader: ConfigReader[AuthConf.TwitterConf] = deriveReader[AuthConf.TwitterConf]
 
     private implicit val databaseConfReader: ConfigReader[DatabaseConf] = (cur: ConfigCursor) => cur.asString
       .flatMap(DatabaseConf.from(_).leftMap(_ => ConfigReaderFailures(ConvertFailure(CannotConvert(cur.toString, "DatabaseConf", "Invalid value"), cur.location, cur.path))))

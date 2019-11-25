@@ -11,8 +11,8 @@ import org.scalatest.{FunSpec, Matchers}
 
 class MeetupClientSpec extends FunSpec with Matchers {
   private val redirectUri = "http://localhost:9000/u/groups/ht-paris/settings/meetup-oauth2"
-  private val localConf = Conf("...", Secret("..."), "http://localhost:9000", safeMode = false)
-  private val client = new MeetupClient(localConf)
+  private val localConf = Conf("...", Secret("..."))
+  private val client = new MeetupClient(localConf, "http://localhost:9000", false)
   private val code = "..."
   private implicit val accessToken: MeetupToken.Access = MeetupToken.Access("...")
   private val refreshToken = "..."

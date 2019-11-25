@@ -18,20 +18,20 @@ import scala.util.{Failure, Try}
  *
  * `groupSlug` is `urlname` in API, this name change in parameters is for better clariry
  */
-class MeetupClient(conf: Conf) {
+class MeetupClient(conf: Conf, appBaseUrl: String, performWriteOps: Boolean) {
   private val baseUrl = "https://api.meetup.com"
 
-  def hasSecureCallback: Boolean = conf.baseRedirectUri.startsWith("https")
+  def hasSecureCallback: Boolean = appBaseUrl.startsWith("https")
 
   def buildAuthorizationUrl(redirectUri: String): Try[Url] =
-    if (redirectUri.startsWith(conf.baseRedirectUri)) {
+    if (redirectUri.startsWith(appBaseUrl)) {
       Url.from(HttpClient.buildUrl("https://secure.meetup.com/oauth2/authorize", Map(
         "scope" -> "event_management",
         "client_id" -> conf.key,
         "response_type" -> "code",
         "redirect_uri" -> redirectUri))).toTry
     } else {
-      Failure(new IllegalArgumentException(s"Bad redirectUri ($redirectUri), it should start with ${conf.baseRedirectUri}"))
+      Failure(new IllegalArgumentException(s"Bad redirectUri ($redirectUri), it should start with $appBaseUrl"))
     }
 
   // https://www.meetup.com/meetup_api/auth/#oauth2server
@@ -80,10 +80,10 @@ class MeetupClient(conf: Conf) {
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events#create
   def createEvent(groupSlug: String, event: MeetupEvent.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
-    if (conf.safeMode) {
-      IO.pure(Left(MeetupError("safe_mode_enabled", Some("Unable to create an event when safe mode is enabled"))))
-    } else {
+    if (performWriteOps) {
       post[MeetupEvent](s"$baseUrl/$groupSlug/events", event.toMap)
+    } else {
+      IO.pure(Left(MeetupError("safe_mode_enabled", Some("Unable to create an event when safe mode is enabled"))))
     }
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#get
@@ -92,18 +92,18 @@ class MeetupClient(conf: Conf) {
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#edit
   def updateEvent(groupSlug: String, eventId: String, event: MeetupEvent.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
-    if (conf.safeMode) {
-      IO.pure(Left(MeetupError("safe_mode_enabled", Some("Unable to update an event when safe mode is enabled"))))
-    } else {
+    if (performWriteOps) {
       patch[MeetupEvent](s"$baseUrl/$groupSlug/events/$eventId", event.toMap)
+    } else {
+      IO.pure(Left(MeetupError("safe_mode_enabled", Some("Unable to update an event when safe mode is enabled"))))
     }
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#delete
   def deleteEvent(groupSlug: String, eventId: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Unit]] =
-    if (conf.safeMode) {
-      IO.pure(Right(()))
-    } else {
+    if (performWriteOps) {
       delete[Unit](s"$baseUrl/$groupSlug/events/$eventId", Map("remove_from_calendar" -> "true"))
+    } else {
+      IO.pure(Right(()))
     }
 
   // no venue API doc: https://github.com/meetup/api/issues/331
@@ -113,10 +113,10 @@ class MeetupClient(conf: Conf) {
 
   // no doc :(
   def createVenue(groupSlug: String, venue: MeetupVenue.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupVenue]] =
-    if (conf.safeMode) {
-      IO.pure(Left(MeetupError("safe_mode_enabled", Some("Unable to create a venue when safe mode is enabled"))))
-    } else {
+    if (performWriteOps) {
       post[MeetupVenue](s"$baseUrl/$groupSlug/venues", venue.toMap)
+    } else {
+      IO.pure(Left(MeetupError("safe_mode_enabled", Some("Unable to create a venue when safe mode is enabled"))))
     }
 
   // no doc, does not work
@@ -125,18 +125,18 @@ class MeetupClient(conf: Conf) {
 
   // no doc, does not work :(
   def updateVenue(groupSlug: String, venueId: Long, venue: domain.MeetupVenue.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupVenue]] =
-    if (conf.safeMode) {
-      IO.pure(Left(MeetupError("safe_mode_enabled", Some("Unable to update a venue when safe mode is enabled"))))
-    } else {
+    if (performWriteOps) {
       patch[MeetupVenue](s"$baseUrl/$groupSlug/venues/$venueId", venue.toMap)
+    } else {
+      IO.pure(Left(MeetupError("safe_mode_enabled", Some("Unable to update a venue when safe mode is enabled"))))
     }
 
   // no doc, does not work :(
   def deleteVenue(groupSlug: String, venueId: Long)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Unit]] =
-    if (conf.safeMode) {
-      IO.pure(Right(()))
-    } else {
+    if (performWriteOps) {
       delete[Unit](s"$baseUrl/$groupSlug/venues/$venueId", Map())
+    } else {
+      IO.pure(Right(()))
     }
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/find/locations
@@ -180,9 +180,6 @@ class MeetupClient(conf: Conf) {
 
 object MeetupClient {
 
-  final case class Conf(key: String,
-                        secret: Secret,
-                        baseRedirectUri: String,
-                        safeMode: Boolean) // when 'true', does not perform write operations
+  final case class Conf(key: String, secret: Secret)
 
 }

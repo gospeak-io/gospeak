@@ -8,6 +8,7 @@ import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain.{EnumBuilder, StringEnum}
 
 final case class ApplicationConf(env: ApplicationConf.Env,
+                                 baseUrl: String,
                                  aesKey: AesSecretKey)
 
 object ApplicationConf {

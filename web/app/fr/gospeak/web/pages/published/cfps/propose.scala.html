@@ -9,8 +9,8 @@
 @import fr.gospeak.web.pages.published.partials.html.container_theme
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
-@import java.util.concurrent.TimeUnit
 @import fr.gospeak.web.utils.UserAwareReq
+@import java.util.concurrent.TimeUnit
 
 @(cfp: Cfp, talks: Page[Talk], form: Form[Create])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @talkItem(talk: Talk) = {
