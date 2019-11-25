@@ -170,7 +170,15 @@ class GroupCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(group))
       proposals <- OptionT.liftF(proposalRepo.listPublicFull(groupElt.id, params.defaultOrderBy("title")))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.speakers.toList).distinct))
-      res = Ok(html.talks(groupElt, proposals, speakers)(breadcrumbTalks(groupElt)))
+      members <- OptionT.liftF(groupRepo.listMembers(groupElt.id, params))
+      events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, params))
+      cfps <- OptionT.liftF(cfpRepo.listAllOpen(groupElt.id, req.now))
+      sponsors <- OptionT.liftF(sponsorRepo.listCurrentFull(groupElt.id, req.now))
+      packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
+      orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
+      userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
+      res = Ok(html.talks(groupElt, proposals, cfps, members, speakers, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt)))
+
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   })
 
@@ -187,7 +195,14 @@ class GroupCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       speakers <- OptionT.liftF(userRepo.speakers(groupElt.id, params))
-      res = Ok(html.speakers(groupElt, speakers)(breadcrumbSpeakers(groupElt)))
+      members <- OptionT.liftF(groupRepo.listMembers(groupElt.id, params))
+      events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, params))
+      cfps <- OptionT.liftF(cfpRepo.listAllOpen(groupElt.id, req.now))
+      sponsors <- OptionT.liftF(sponsorRepo.listCurrentFull(groupElt.id, req.now))
+      packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
+      orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
+      userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
+      res = Ok(html.speakers(groupElt, cfps, members, speakers, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   })
 
@@ -195,7 +210,13 @@ class GroupCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       members <- OptionT.liftF(groupRepo.listMembers(groupElt.id, params))
-      res = Ok(html.members(groupElt, members)(breadcrumbMembers(groupElt)))
+      events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, params))
+      cfps <- OptionT.liftF(cfpRepo.listAllOpen(groupElt.id, req.now))
+      sponsors <- OptionT.liftF(sponsorRepo.listCurrentFull(groupElt.id, req.now))
+      packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
+      orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
+      userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
+      res = Ok(html.members(groupElt, cfps, members, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   })
 }
