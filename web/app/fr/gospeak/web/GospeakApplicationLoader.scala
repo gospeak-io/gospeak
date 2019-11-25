@@ -214,15 +214,13 @@ class GospeakComponents(context: ApplicationLoader.Context)
 
   def onStart(): Unit = {
     db.checkEnv(envConf).unsafeRunSync()
-//    if (envConf.isProd) {
-//      db.migrate().unsafeRunSync()
-//    } else {
+    if (envConf.isProd) {
+      db.migrate().unsafeRunSync()
+    } else {
       db.dropTables().unsafeRunSync()
       db.migrate().unsafeRunSync()
-      configuration.getOptional[String]("mongo").map(db.insertHTData)
-        .getOrElse(db.insertMockData(conf.gospeak)).unsafeRunSync()
-      // db.insertMockData(conf.gospeak).unsafeRunSync()
-//    }
+      db.insertMockData(conf.gospeak).unsafeRunSync()
+    }
 
     messageBus.subscribe(messageHandler.handle)
 
