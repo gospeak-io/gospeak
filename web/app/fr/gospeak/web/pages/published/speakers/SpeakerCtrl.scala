@@ -29,7 +29,7 @@ class SpeakerCtrl(cc: ControllerComponents,
       speakerElt <- OptionT(userRepo.findPublic(user))
       publicTalks <- OptionT.liftF(talkRepo.list(speakerElt.id, Talk.Status.Public, params))
       // acceptedProposals <- OptionT.liftF(proposalRepo.listPublicFull(speakerElt.id, params))
-      groups <- OptionT.liftF(groupRepo.list(speakerElt.id))
+      groups <- OptionT.liftF(groupRepo.listFull(speakerElt.id))
       orgas <- OptionT.liftF(userRepo.list(groups.flatMap(_.owners.toList)))
       res = Ok(html.detail(speakerElt, publicTalks, groups, orgas)(breadcrumb(speakerElt)))
     } yield res).value.map(_.getOrElse(publicUserNotFound(user)))

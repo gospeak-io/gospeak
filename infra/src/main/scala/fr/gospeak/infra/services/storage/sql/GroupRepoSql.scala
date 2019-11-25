@@ -57,11 +57,13 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
       case None => IO.raiseError(new IllegalArgumentException("unreachable group"))
     }
 
-  override def list(params: Page.Params): IO[Page[Group]] = selectPage(params).run(xa)
+  override def list(params: Page.Params): IO[Page[Group.Full]] = selectPage(params).run(xa)
 
   override def listJoinable(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Group]] = selectPageJoinable(ctx.user.id, params).run(xa)
 
   override def list(user: User.Id): IO[Seq[Group]] = selectAll(user).runList(xa)
+
+  override def listFull(user: User.Id): IO[Seq[Group.Full]] = selectAllFull(user).runList(xa)
 
   override def list(implicit ctx: UserCtx): IO[Seq[Group]] = selectAll(ctx.user.id).runList(xa)
 
@@ -101,6 +103,11 @@ object GroupRepoSql {
   private val table = Tables.groups
   private val tableSelect = table.dropFields(_.name.startsWith("location_"))
   private val memberTable = Tables.groupMembers
+  private val tableFull = tableSelect
+    .joinOpt(memberTable, _.id("g") -> _.group_id).get.dropFields(_.prefix == memberTable.prefix)
+    .joinOpt(Tables.events, _.id("g") -> _.group_id).get.dropFields(_.prefix == Tables.events.prefix)
+    .aggregate("COALESCE(COUNT(DISTINCT gm.user_id), 0)", "memberCount")
+    .aggregate("COALESCE(COUNT(DISTINCT e.id), 0)", "eventCount")
   private val memberTableWithUser = Tables.groupMembers
     .join(Tables.users, _.user_id -> _.id).flatMap(_.dropField(_.user_id)).get
   private val tableWithMember = tableSelect
@@ -123,8 +130,8 @@ object GroupRepoSql {
   private[sql] def updateOwners(group: Group.Id)(owners: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
     table.update(fr0"owners=$owners, updated_at=$now, updated_by=$by", fr0"WHERE g.id=$group")
 
-  private[sql] def selectPage(params: Page.Params): SelectPage[Group] =
-    tableSelect.selectPage[Group](params)
+  private[sql] def selectPage(params: Page.Params): SelectPage[Group.Full] =
+    tableFull.selectPage[Group.Full](params, fr0"WHERE gm.leaved_at IS NULL AND e.published IS NOT NULL")
 
   private[sql] def selectPageJoinable(user: User.Id, params: Page.Params): SelectPage[Group] =
     tableSelect.selectPage[Group](params, fr0"WHERE g.owners NOT LIKE ${"%" + user.value + "%"}")
@@ -134,6 +141,9 @@ object GroupRepoSql {
 
   private[sql] def selectAll(user: User.Id): Select[Group] =
     tableSelect.select[Group](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"}")
+
+  private[sql] def selectAllFull(user: User.Id): Select[Group.Full] =
+    tableFull.select[Group.Full](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"} AND gm.leaved_at IS NULL AND e.published IS NOT NULL")
 
   private[sql] def selectAll(ids: NonEmptyList[Group.Id]): Select[Group] =
     tableSelect.select[Group](fr0"WHERE " ++ Fragments.in(fr"g.id", ids))

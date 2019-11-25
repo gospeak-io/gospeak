@@ -1,10 +1,10 @@
 @import fr.gospeak.core.domain.{Group, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.published.partials.html.{container_theme, speakerCard, groupItem_theme, proposalItem, talkItem}
+@import fr.gospeak.web.pages.published.partials.html.{container_theme, speakerCard, groupItem_theme, talkItem}
 @import fr.gospeak.web.utils.UserAwareReq
 
-@(speaker: User, publicTalks: Page[Talk], ownedGroups: Seq[Group], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(speaker: User, publicTalks: Page[Talk], ownedGroups: Seq[Group.Full], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container_theme(speaker.name.value + " - Gospeak", b)() {
     <div class="row">
         <div class="col-4">

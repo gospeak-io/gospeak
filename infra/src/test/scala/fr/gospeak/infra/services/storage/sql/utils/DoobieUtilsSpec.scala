@@ -128,7 +128,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
         val where = fr0"WHERE t.id=${e.id}"
         whereFragment(None, None, fields) shouldBe None
         whereFragment(Some(where), None, fields).get.query.sql shouldBe "WHERE t.id=?"
-        whereFragment(None, Some(Page.Search("q")), fields).get.query.sql shouldBe "WHERE t.name ILIKE ? OR t.desc ILIKE ?"
+        whereFragment(None, Some(Page.Search("q")), fields).get.query.sql shouldBe " WHERE t.name ILIKE ? OR t.desc ILIKE ?"
         whereFragment(Some(where), Some(Page.Search("q")), fields).get.query.sql shouldBe "WHERE t.id=? AND (t.name ILIKE ? OR t.desc ILIKE ?)"
       }
     }
@@ -163,7 +163,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
       }
       it("should build pagination with search") {
         val (w, o, l) = paginationFragment(prefix, None, p.search("q"), sorts, fields)
-        (w ++ o ++ l).query.sql shouldBe "WHERE t.name ILIKE ? OR t.desc ILIKE ? ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
+        (w ++ o ++ l).query.sql shouldBe " WHERE t.name ILIKE ? OR t.desc ILIKE ? ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
       }
       it("should build pagination with search and where") {
         val (w, o, l) = paginationFragment(prefix, Some(where), p.search("q"), sorts, fields)

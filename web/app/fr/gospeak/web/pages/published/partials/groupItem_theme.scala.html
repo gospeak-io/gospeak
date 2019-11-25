@@ -1,8 +1,9 @@
 @import fr.gospeak.core.domain.{Group, User}
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
+@import fr.gospeak.web.utils.Formats
 
-@(group: Group, orgas: Seq[User])
+@(group: Group.Full, orgas: Seq[User])
 <a class="card card-frame mb-3" href="@GroupCtrl.detail(group.slug)">
     <div class="card-body p-4">
         <div class="media">
@@ -12,8 +13,8 @@
                 <p class="font-size-1">@tags(group.tags)</p>
                 <div class="media">
                     <div class="media-body">
-                        <small class="d-block text-dark">7800 members</small>
-                        <small class="d-block text-dark">79 events</small>
+                        <small class="d-block text-dark">@Formats.plural(group.memberCount, "member")</small>
+                        <small class="d-block text-dark">@Formats.plural(group.eventCount, "event")</small>
                     </div>
                     <ul class="list-inline mr-2 mb-0">
                     @group.owners.toList.map { id =>

@@ -6,7 +6,7 @@
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 
-@(groups: Page[Group], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(groups: Page[Group.Full], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container_theme("Gospeak - groups", b)() {
     <div id="listGroups">
         <div class="w-md-80 w-lg-80 text-center mx-md-auto mb-5">
@@ -18,7 +18,7 @@
                 <a class="btn btn-text btn-text-success" href="#">Create your group!</a>
             </p>
         </div>
-        @Formats.paginated[Group](groups, GroupCtrl.list, groupItem_theme(_, orgas))
+        @Formats.paginated[Group.Full](groups, GroupCtrl.list, groupItem_theme(_, orgas))
     </div>
 
 }{

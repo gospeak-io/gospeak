@@ -97,6 +97,26 @@ object Group {
     val all: Seq[Status] = Seq(Active, Disabled)
   }
 
+  final case class Full(group: Group, memberCount: Long, eventCount: Long) {
+    def slug: Slug = group.slug
+
+    def name: Name = group.name
+
+    def logo: Option[Logo] = group.logo
+
+    def contact: Option[EmailAddress] = group.contact
+
+    def description: Markdown = group.description
+
+    def location: Option[GMapPlace] = group.location
+
+    def owners: NonEmptyList[User.Id] = group.owners
+
+    def tags: Seq[Tag] = group.tags
+
+    def info: Info = group.info
+  }
+
   final case class Data(slug: Group.Slug,
                         name: Group.Name,
                         logo: Option[Logo],

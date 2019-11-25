@@ -15,6 +15,9 @@ case class PublicApiGroup(slug: String,
                           created: Instant)
 
 object PublicApiGroup {
+  def apply(group: Group.Full): PublicApiGroup =
+    apply(group.group)
+
   def apply(group: Group): PublicApiGroup =
     new PublicApiGroup(
       slug = group.slug.value,
