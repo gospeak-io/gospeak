@@ -140,8 +140,8 @@ object GroupRepoSqlSpec {
   private val memberFields = mapFields("group_id, user_id, role, presentation, joined_at, leaved_at", "gm." + _)
   private val memberOrderBy = "ORDER BY gm.joined_at IS NULL, gm.joined_at"
 
-  private val tableFull = s"$table LEFT OUTER JOIN group_members gm ON g.id=gm.group_id LEFT OUTER JOIN events e ON g.id=e.group_id WHERE gm.leaved_at IS NULL AND e.published IS NOT NULL GROUP BY $fields"
-  private val fieldsFull = s"$fields, COALESCE(COUNT(DISTINCT gm.user_id), 0) as memberCount, COALESCE(COUNT(DISTINCT e.id), 0) as eventCount"
+  private val tableFull = s"$table LEFT OUTER JOIN group_members gm ON g.id=gm.group_id LEFT OUTER JOIN events e ON g.id=e.group_id LEFT OUTER JOIN proposals p ON e.id=p.event_id WHERE gm.leaved_at IS NULL AND e.published IS NOT NULL GROUP BY $fields"
+  private val fieldsFull = s"$fields, COALESCE(COUNT(DISTINCT gm.user_id), 0) as memberCount, COALESCE(COUNT(DISTINCT e.id), 0) as eventCount, COALESCE(COUNT(DISTINCT p.id), 0) as talkCount"
 
   private val memberTableWithUser = s"$memberTable INNER JOIN $userTable ON gm.user_id=u.id"
   private val memberFieldsWithUser = s"${memberFields.replaceAll("gm.user_id, ", "")}, $userFields"
