@@ -62,7 +62,9 @@ trait AuthUserRepo {
 }
 
 trait PublicUserRepo {
-  def speakers(group: Group.Id, params: Page.Params): IO[Page[User]]
+  def speakersPublic(group: Group.Id, params: Page.Params): IO[Page[User]]
+
+  def speakerCountPublic(group: Group.Id): IO[Long]
 
   def listPublic(params: Page.Params): IO[Page[User]]
 

@@ -43,14 +43,15 @@ class GroupCtrl(cc: ControllerComponents,
 
   def detail(group: Group.Slug): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
-      groupElt <- OptionT(groupRepo.find(group))
+      groupElt <- OptionT(groupRepo.findFull(group))
+      speakerCount <- OptionT.liftF(userRepo.speakerCountPublic(groupElt.id))
       cfps <- OptionT.liftF(cfpRepo.listAllOpen(groupElt.id, req.now))
       events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, Page.Params.defaults))
       sponsors <- OptionT.liftF(sponsorRepo.listCurrentFull(groupElt.id, req.now))
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
-      res = Ok(html.detail(groupElt, cfps, events, sponsors, packs, orgas, userMembership)(breadcrumb(groupElt)))
+      res = Ok(html.detail(groupElt, speakerCount, cfps, events, sponsors, packs, orgas, userMembership)(breadcrumb(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   })
 
@@ -80,15 +81,15 @@ class GroupCtrl(cc: ControllerComponents,
 
   def events(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
-
-      groupElt <- OptionT(groupRepo.find(group))
+      groupElt <- OptionT(groupRepo.findFull(group))
+      speakerCount <- OptionT.liftF(userRepo.speakerCountPublic(groupElt.id))
       cfps <- OptionT.liftF(cfpRepo.listAllOpen(groupElt.id, req.now))
       events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, params))
       sponsors <- OptionT.liftF(sponsorRepo.listCurrentFull(groupElt.id, req.now))
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
-      res = Ok(html.events(groupElt, cfps, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt)))
+      res = Ok(html.events(groupElt, speakerCount, cfps, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   })
 
@@ -167,7 +168,8 @@ class GroupCtrl(cc: ControllerComponents,
 
   def talks(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
-      groupElt <- OptionT(groupRepo.find(group))
+      groupElt <- OptionT(groupRepo.findFull(group))
+      speakerCount <- OptionT.liftF(userRepo.speakerCountPublic(groupElt.id))
       proposals <- OptionT.liftF(proposalRepo.listPublicFull(groupElt.id, params.defaultOrderBy("title")))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.speakers.toList).distinct))
       members <- OptionT.liftF(groupRepo.listMembers(groupElt.id, params))
@@ -177,7 +179,7 @@ class GroupCtrl(cc: ControllerComponents,
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
-      res = Ok(html.talks(groupElt, proposals, cfps, members, speakers, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt)))
+      res = Ok(html.talks(groupElt, speakerCount, proposals, cfps, members, speakers, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
 
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   })
@@ -193,8 +195,9 @@ class GroupCtrl(cc: ControllerComponents,
 
   def speakers(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
-      groupElt <- OptionT(groupRepo.find(group))
-      speakers <- OptionT.liftF(userRepo.speakers(groupElt.id, params))
+      groupElt <- OptionT(groupRepo.findFull(group))
+      speakerCount <- OptionT.liftF(userRepo.speakerCountPublic(groupElt.id))
+      speakers <- OptionT.liftF(userRepo.speakersPublic(groupElt.id, params))
       members <- OptionT.liftF(groupRepo.listMembers(groupElt.id, params))
       events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, params))
       cfps <- OptionT.liftF(cfpRepo.listAllOpen(groupElt.id, req.now))
@@ -202,13 +205,14 @@ class GroupCtrl(cc: ControllerComponents,
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
-      res = Ok(html.speakers(groupElt, cfps, members, speakers, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt)))
+      res = Ok(html.speakers(groupElt, speakerCount, cfps, members, speakers, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   })
 
   def members(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
-      groupElt <- OptionT(groupRepo.find(group))
+      groupElt <- OptionT(groupRepo.findFull(group))
+      speakerCount <- OptionT.liftF(userRepo.speakerCountPublic(groupElt.id))
       members <- OptionT.liftF(groupRepo.listMembers(groupElt.id, params))
       events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, params))
       cfps <- OptionT.liftF(cfpRepo.listAllOpen(groupElt.id, req.now))
@@ -216,7 +220,7 @@ class GroupCtrl(cc: ControllerComponents,
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
-      res = Ok(html.members(groupElt, cfps, members, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt)))
+      res = Ok(html.members(groupElt, speakerCount, cfps, members, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   })
 }

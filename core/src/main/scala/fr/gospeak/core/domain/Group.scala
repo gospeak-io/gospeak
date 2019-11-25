@@ -97,7 +97,9 @@ object Group {
     val all: Seq[Status] = Seq(Active, Disabled)
   }
 
-  final case class Full(group: Group, memberCount: Long, eventCount: Long) {
+  final case class Full(group: Group, memberCount: Long, eventCount: Long, talkCount: Long) {
+    def id: Id = group.id
+
     def slug: Slug = group.slug
 
     def name: Name = group.name
@@ -105,6 +107,8 @@ object Group {
     def logo: Option[Logo] = group.logo
 
     def contact: Option[EmailAddress] = group.contact
+
+    def website: Option[Url] = group.website
 
     def description: Markdown = group.description
 

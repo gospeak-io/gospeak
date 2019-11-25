@@ -64,6 +64,19 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User]] = speakers(ctx.group.id, params)
 
+  override def speakersPublic(group: Group.Id, params: Page.Params): IO[Page[User]] = {
+    val speakerIdsQuery = proposalsWithCfps.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group")
+    for {
+      speakerIds <- speakerIdsQuery.runList(xa).map(_.flatMap(_.toList).distinct)
+      res <- NonEmptyList.fromList(speakerIds).map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User]))
+    } yield res
+  }
+
+  override def speakerCountPublic(group: Group.Id): IO[Long] = {
+    proposalsWithCfps.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group")
+      .runList(xa).map(_.flatMap(_.toList).distinct.length.toLong)
+  }
+
   override def listPublic(params: Page.Params): IO[Page[User]] = selectPagePublic(params).run(xa)
 
   override def list(ids: Seq[User.Id]): IO[Seq[User]] = runNel(selectAll, ids)

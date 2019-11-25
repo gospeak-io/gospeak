@@ -63,7 +63,7 @@ class GroupCtrl(cc: ControllerComponents,
   def speakers(group: Group.Slug, params: Page.Params): Action[AnyContent] = ApiActionPageT { implicit req =>
     for {
       groupElt <- OptionT(groupRepo.find(group))
-      speakers <- OptionT.liftF(userRepo.speakers(groupElt.id, params))
+      speakers <- OptionT.liftF(userRepo.speakersPublic(groupElt.id, params))
       // TODO add proposals, talks, groups member and owners for each speaker
     } yield speakers.map(PublicApiSpeaker(_))
   }

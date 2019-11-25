@@ -54,6 +54,8 @@ trait PublicGroupRepo {
 
   def find(group: Group.Slug): IO[Option[Group]]
 
+  def findFull(group: Group.Slug): IO[Option[Group.Full]]
+
   def find(group: Group.Id): IO[Option[Group]]
 
   def listMembers(group: Group.Id, params: Page.Params): IO[Page[Group.Member]]

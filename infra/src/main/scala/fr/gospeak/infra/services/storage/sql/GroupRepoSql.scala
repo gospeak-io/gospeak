@@ -77,6 +77,8 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def find(group: Group.Slug): IO[Option[Group]] = selectOne(group).runOption(xa)
 
+  override def findFull(group: Group.Slug): IO[Option[Group.Full]] = selectOneFull(group).runOption(xa)
+
   override def exists(group: Group.Slug): IO[Boolean] = selectOne(group).runExists(xa)
 
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
@@ -104,10 +106,14 @@ object GroupRepoSql {
   private val tableSelect = table.dropFields(_.name.startsWith("location_"))
   private val memberTable = Tables.groupMembers
   private val tableFull = tableSelect
-    .joinOpt(memberTable, _.id("g") -> _.group_id).get.dropFields(_.prefix == memberTable.prefix)
-    .joinOpt(Tables.events, _.id("g") -> _.group_id).get.dropFields(_.prefix == Tables.events.prefix)
+    .joinOpt(memberTable, _.id("g") -> _.group_id).get
+    .joinOpt(Tables.events, _.id("g") -> _.group_id).get
+    .joinOpt(Tables.proposals, _.id("e") -> _.event_id).get
     .aggregate("COALESCE(COUNT(DISTINCT gm.user_id), 0)", "memberCount")
     .aggregate("COALESCE(COUNT(DISTINCT e.id), 0)", "eventCount")
+    .aggregate("COALESCE(COUNT(DISTINCT p.id), 0)", "talkCount")
+    .dropFields(f => Seq(memberTable.prefix, Tables.events.prefix, Tables.proposals.prefix).contains(f.prefix))
+  private val tableFullWhere = fr0"WHERE gm.leaved_at IS NULL AND e.published IS NOT NULL"
   private val memberTableWithUser = Tables.groupMembers
     .join(Tables.users, _.user_id -> _.id).flatMap(_.dropField(_.user_id)).get
   private val tableWithMember = tableSelect
@@ -131,7 +137,7 @@ object GroupRepoSql {
     table.update(fr0"owners=$owners, updated_at=$now, updated_by=$by", fr0"WHERE g.id=$group")
 
   private[sql] def selectPage(params: Page.Params): SelectPage[Group.Full] =
-    tableFull.selectPage[Group.Full](params, fr0"WHERE gm.leaved_at IS NULL AND e.published IS NOT NULL")
+    tableFull.selectPage[Group.Full](params, tableFullWhere)
 
   private[sql] def selectPageJoinable(user: User.Id, params: Page.Params): SelectPage[Group] =
     tableSelect.selectPage[Group](params, fr0"WHERE g.owners NOT LIKE ${"%" + user.value + "%"}")
@@ -143,7 +149,7 @@ object GroupRepoSql {
     tableSelect.select[Group](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"}")
 
   private[sql] def selectAllFull(user: User.Id): Select[Group.Full] =
-    tableFull.select[Group.Full](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"} AND gm.leaved_at IS NULL AND e.published IS NOT NULL")
+    tableFull.select[Group.Full](tableFullWhere ++ fr0" AND g.owners LIKE ${"%" + user.value + "%"}")
 
   private[sql] def selectAll(ids: NonEmptyList[Group.Id]): Select[Group] =
     tableSelect.select[Group](fr0"WHERE " ++ Fragments.in(fr"g.id", ids))
@@ -156,6 +162,9 @@ object GroupRepoSql {
 
   private[sql] def selectOne(group: Group.Slug): Select[Group] =
     tableSelect.select[Group](fr0"WHERE g.slug=$group")
+
+  private[sql] def selectOneFull(group: Group.Slug): Select[Group.Full] =
+    tableFull.select[Group.Full](tableFullWhere ++ fr0" AND g.slug=$group")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
     tableSelect.select[Seq[Tag]](Seq(Field("tags", "g")), Seq())

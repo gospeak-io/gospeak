@@ -2,17 +2,15 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html.markdown
-@import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 @import fr.gospeak.web.pages.published.partials.html.{container_theme, groupCard}
 
-
-@(group: Group, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container_theme(group.name.value + " - Gospeak", b)() {
         <div class="row">
-            @groupCard(group, cfps, events, sponsors, packs, orgas, userMembership)(b)
+            @groupCard(group, speakerCount, cfps, events, sponsors, packs, orgas, userMembership)(b)
 
             <div class="col-lg-8">
                 <div class="pl-lg-4">
