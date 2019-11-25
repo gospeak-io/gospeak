@@ -99,7 +99,7 @@ object Formats {
 
   def paginationHeader[A](page: Page[A], link: Page.Params => Call): Html = {
     Html(
-      s"""<div class="d-flex justify-content-between mt-2"${if (page.hasManyPages) "" else " style=\"display: none !important;\""}>
+      s"""<div class="d-flex justify-content-between mt-2"${if (page.hasManyPages || page.params.search.nonEmpty) "" else " style=\"display: none !important;\""}>
          |  ${search(page, link(Page.Params.defaults))}
          |  ${pagination(page, link)}
          |</div>
