@@ -65,7 +65,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
   override def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User]] = speakers(ctx.group.id, params)
 
   override def speakersPublic(group: Group.Id, params: Page.Params): IO[Page[User]] = {
-    val speakerIdsQuery = proposalsWithCfps.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group")
+    val speakerIdsQuery = proposalsWithCfpEvents.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group AND e.published IS NOT NULL")
     for {
       speakerIds <- speakerIdsQuery.runList(xa).map(_.flatMap(_.toList).distinct)
       res <- NonEmptyList.fromList(speakerIds).map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User]))
@@ -73,7 +73,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
   }
 
   override def speakerCountPublic(group: Group.Id): IO[Long] = {
-    proposalsWithCfps.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group")
+    proposalsWithCfpEvents.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group AND e.published IS NOT NULL")
       .runList(xa).map(_.flatMap(_.toList).distinct.length.toLong)
   }
 
@@ -89,6 +89,7 @@ object UserRepoSql {
   private val loginsTable = Tables.logins
   private val tableWithLogin = table.join(loginsTable, _.id -> _.user_id).get
   private val proposalsWithCfps = Tables.proposals.join(Tables.cfps, _.cfp_id -> _.id).get
+  private val proposalsWithCfpEvents = proposalsWithCfps.join(Tables.events, _.event_id -> _.id).get
 
   private[sql] def insert(e: User): Insert[User] = {
     val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.bio}, ${e.company}, ${e.location}, ${e.phone}, ${e.website}, " ++
