@@ -116,6 +116,7 @@ object Group {
 
     def owners: NonEmptyList[User.Id] = group.owners
 
+    def social: SocialAccounts = group.social
     def tags: Seq[Tag] = group.tags
 
     def info: Info = group.info
