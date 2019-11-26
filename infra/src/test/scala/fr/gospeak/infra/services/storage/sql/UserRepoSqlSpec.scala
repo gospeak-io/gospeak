@@ -130,7 +130,7 @@ object UserRepoSqlSpec {
   val credentialsFields: String = mapFields("provider_id, provider_key, hasher, password, salt", "cd." + _)
 
   val table = "users u"
-  val fields: String = mapFields(s"id, slug, status, first_name, last_name, email, email_validated, avatar, bio, company, location, phone, website, $socialFields, created_at, updated_at", "u." + _)
+  val fields: String = mapFields(s"id, slug, status, first_name, last_name, email, email_validated, email_validation_before_login, avatar, bio, company, location, phone, website, $socialFields, created_at, updated_at", "u." + _)
   val orderBy = "ORDER BY u.first_name IS NULL, u.first_name"
 
   val tableWithLogin = s"$table INNER JOIN $loginsTable ON u.id=lg.user_id"

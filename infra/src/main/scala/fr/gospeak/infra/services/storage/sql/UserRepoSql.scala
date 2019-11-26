@@ -92,7 +92,7 @@ object UserRepoSql {
   private val proposalsWithCfpEvents = proposalsWithCfps.join(Tables.events, _.event_id -> _.id).get
 
   private[sql] def insert(e: User): Insert[User] = {
-    val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.avatar.url}, ${e.bio}, ${e.company}, ${e.location}, ${e.phone}, ${e.website}, " ++
+    val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.emailValidationBeforeLogin}, ${e.avatar.url}, ${e.bio}, ${e.company}, ${e.location}, ${e.phone}, ${e.website}, " ++
       fr0"${e.social.facebook}, ${e.social.instagram}, ${e.social.twitter}, ${e.social.linkedIn}, ${e.social.youtube}, ${e.social.meetup}, ${e.social.eventbrite}, ${e.social.slack}, ${e.social.discord}, ${e.social.github}, " ++
       fr0"${e.createdAt}, ${e.updatedAt}"
     table.insert(e, _ => values)

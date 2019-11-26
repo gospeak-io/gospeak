@@ -12,6 +12,7 @@ final case class User(id: User.Id,
                       lastName: String,
                       email: EmailAddress,
                       emailValidated: Option[Instant],
+                      emailValidationBeforeLogin: Boolean,
                       avatar: Avatar,
                       bio: Option[Markdown],
                       company: Option[String],
@@ -32,7 +33,7 @@ final case class User(id: User.Id,
 
 object User {
   def apply(d: Data, now: Instant, emailValidated: Option[Instant] = None): User =
-    new User(Id.generate(), d.slug, d.status, d.firstName, d.lastName, d.email, emailValidated, d.avatar, d.bio, d.company, d.location, d.phone, d.website, d.social, now, now)
+    new User(Id.generate(), d.slug, d.status, d.firstName, d.lastName, d.email, emailValidated, emailValidationBeforeLogin = false, avatar = d.avatar, bio = d.bio, company = d.company, location = d.location, phone = d.phone, website = d.website, social = d.social, createdAt = now, updatedAt = now)
 
   final class Id private(value: String) extends DataClass(value) with IId
 

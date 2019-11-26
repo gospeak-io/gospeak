@@ -183,7 +183,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     def user(slug: String, email: String, firstName: String, lastName: String, status: User.Status = User.Status.Undefined, bio: Option[Markdown] = None, company: Option[String] = None, location: Option[String] = None, phone: Option[String] = None, website: Option[Url] = None, social: SocialAccounts = SocialAccounts.fromUrls()): User = {
       val emailAddr = EmailAddress.from(email).get
       val avatar = gravatarSrv.getAvatar(emailAddr)
-      User(User.Id.generate(), User.Slug.from(slug).get, status, firstName, lastName, emailAddr, Some(now), avatar, bio, company, location, phone, website, social, now, now)
+      User(id = User.Id.generate(), slug = User.Slug.from(slug).get, status = status, firstName = firstName, lastName = lastName, email = emailAddr, emailValidated = Some(now), emailValidationBeforeLogin = false, avatar = avatar, bio = bio, company = company, location = location, phone = phone, website = website, social = social, createdAt = now, updatedAt = now)
     }
 
     def group(slug: String, name: String, tags: Seq[String], by: User, location: Option[GMapPlace] = None, owners: Seq[User] = Seq(), social: SocialAccounts = SocialAccounts.fromUrls(), email: Option[String] = None): Group =
