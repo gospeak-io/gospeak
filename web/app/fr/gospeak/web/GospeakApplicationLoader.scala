@@ -215,7 +215,9 @@ class GospeakComponents(context: ApplicationLoader.Context)
   def onStart(): Unit = {
     db.checkEnv(envConf).unsafeRunSync()
     if (envConf.isProd) {
+      db.dropTables().unsafeRunSync()
       db.migrate().unsafeRunSync()
+      db.insertHTData(configuration.get[String]("mongo")).unsafeRunSync()
     } else {
       db.dropTables().unsafeRunSync()
       db.migrate().unsafeRunSync()
