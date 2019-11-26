@@ -3,12 +3,12 @@ package fr.gospeak.infra.services.storage.sql
 import java.time.{Instant, LocalDate, LocalDateTime}
 
 import cats.data.NonEmptyList
-import cats.effect.{ContextShift, IO}
+import cats.effect.IO
 import fr.gospeak.core.domain.Contact.{FirstName, LastName}
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
 import fr.gospeak.core.domain.utils.TemplateData.EventInfo
-import fr.gospeak.core.domain.utils.{Constants, Info, OrgaCtx, SocialAccounts, TemplateData}
+import fr.gospeak.core.domain.utils._
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.core.services.storage.GospeakDb
 import fr.gospeak.core.{ApplicationConf, GospeakConf}
@@ -20,9 +20,7 @@ import fr.gospeak.libs.scalautils.StringUtils
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import fr.gospeak.libs.scalautils.domain.TimePeriod._
 import fr.gospeak.libs.scalautils.domain._
-import fr.gospeak.migration.MongoRepo
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
@@ -69,105 +67,6 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
   override val comment = new CommentRepoSql(xa)
   override val externalCfp = new ExternalCfpRepoSql(xa)
   override val userRequest = new UserRequestRepoSql(group, talk, proposal, xa)
-
-  /*
-    TODO:
-      - partner twitter account
-      - still miss venue and sponsor contact (link to partner contact)
-      - group settings (hardcoded)
-
-      from https://github.com/loicknuchel/gospeak/commit/242fc7ccf7c14745da6dfe1f544fdb5b83fab4f2
-   */
-  def insertHTData(mongoUri: String): IO[Done] = {
-    implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-    val dbName = mongoUri.split('?').head.split('/').last
-    IO.fromFuture(IO(MongoRepo.create(mongoUri, dbName).toFuture)).bracket { mongo =>
-      for {
-        htUsers <- IO.fromFuture(IO(mongo.loadPersons()))
-        htTalks <- IO.fromFuture(IO(mongo.loadTalks()))
-        htEvents <- IO.fromFuture(IO(mongo.loadEvents()))
-        htPartners <- IO.fromFuture(IO(mongo.loadPartners()))
-
-        initDate = Instant.ofEpochMilli(htUsers.map(_.meta.created).min)
-        users = htUsers.filter { u =>
-          u.auth.exists(_.isOrga) ||
-            htTalks.exists(t => t.data.speakers.contains(u.id) || t.meta.createdBy == u.id || t.meta.updatedBy == u.id)
-        }.map(_.toUser)
-        orgas = htUsers.filter(_.auth.exists(_.isOrga)).map(_.toUser)
-        lkn = orgas.find(_.email.value == "loicknuchel@gmail.com").get
-        groupHt = Group(Group.Id.generate(), Group.Slug.from("humantalks-paris").get, Group.Name("HumanTalks Paris"), None, None, Some(EmailAddress.from("paris@humantalks.com").get), None, Markdown(
-          """HumanTalks Paris, c'est un événement mensuel pour les développeuses et développeurs.
-            |Chaque mois, 4 speakeuses et/ou speakeurs se succèdent pour présenter en 10 minutes un sujet de leur choix (language, méthode de programmation, projet perso, design...).
-            |Quelque soit votre niveau vous pouvez proposer un talk aux organisateurs du HumanTalks de Paris. L'accès est gratuit !
-            |
-            |Les talks sont filmés et retransmis sur [notre chaine YouTube](https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog)
-          """.stripMargin.trim), None, NonEmptyList.fromListUnsafe(orgas.map(_.id)), SocialAccounts.fromUrls(), tags = Seq(), Group.Status.Active, info = Info(lkn.id, initDate))
-        cfpHt = Cfp(Cfp.Id.generate(), groupHt.id, Cfp.Slug.from("humantalks-paris").get, Cfp.Name("HumanTalks Paris"), None, None, Markdown(
-          """Les HumanTalks sont des événements pour les développeuses et développeurs de tous horizons et qui ont lieu partout en France.
-            |
-            |Le principe est simple: 4 talks de 10 minutes tous les 2ème mardi du mois pour partager autour du développement logiciel au sens large: code bien sûr, mais aussi design, organisation, agilité...
-            |
-            |Nous acceuillons très volontiers des speakers débutant qui voudraient partager.
-          """.stripMargin.trim), tags = Seq(), info = Info(lkn.id, initDate))
-        talks = htTalks.map(_.toTalk).map(e => e.copy(info = e.info.copy(
-          createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(e.speakers.head),
-          updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(e.speakers.head)
-        )))
-        proposals = htTalks.map(_.toProposal(cfpHt.id)).map(e => e.copy(info = e.info.copy(
-          createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(e.speakers.head),
-          updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(e.speakers.head)
-        )))
-        partners = htPartners.map(_.toPartner(groupHt.id)).map(e => e.copy(info = e.info.copy(
-          createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
-          updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
-        )))
-        contacts = htPartners.flatMap(p => htUsers.filter(u => p.containsContact(u.id)).map(_.toContact(p))).map { case (id, e) =>
-          (id, e.copy(info = e.info.copy(
-            createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
-            updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
-          )))
-        }
-        standardPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("standard").get, SponsorPack.Name("Standard"), Markdown(""), Price(500, Price.Currency.EUR), 1.year, active = false, Info(lkn.id, initDate))
-        premiumPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("premium").get, SponsorPack.Name("Premium"), Markdown(""), Price(1500, Price.Currency.EUR), 1.year, active = false, Info(lkn.id, initDate))
-        bronzePack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("bronze").get, SponsorPack.Name("Bronze"), Markdown(""), Price(500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
-        silverPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("silver").get, SponsorPack.Name("Silver"), Markdown(""), Price(1500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
-        goldPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("gold").get, SponsorPack.Name("Gold"), Markdown(""), Price(2500, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
-        platiniumPack = SponsorPack(SponsorPack.Id.generate(), groupHt.id, SponsorPack.Slug.from("platinium").get, SponsorPack.Name("Platinium"), Markdown(""), Price(6000, Price.Currency.EUR), 1.year, active = true, Info(lkn.id, initDate))
-        sponsorPacks = List(standardPack, premiumPack, bronzePack, silverPack, goldPack, platiniumPack)
-        sponsors = htPartners.flatMap(_.toSponsors(groupHt.id, sponsorPacks, contacts)).map(e => e.copy(info = e.info.copy(
-          createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
-          updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
-        )))
-        venues = htPartners.flatMap(_.toVenue(contacts)).map(e => e.copy(info = e.info.copy(
-          createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
-          updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
-        )))
-        events = htEvents.map(e => e.toEvent(groupHt.id, cfpHt.id, venues, proposals)).map(e => e.copy(
-          orgaNotes = e.orgaNotes.copy(
-            updatedBy = users.find(_.id == e.orgaNotes.updatedBy).map(_.id).getOrElse(lkn.id)),
-          info = e.info.copy(
-            createdBy = users.find(_.id == e.info.createdBy).map(_.id).getOrElse(lkn.id),
-            updatedBy = users.find(_.id == e.info.updatedBy).map(_.id).getOrElse(lkn.id)
-          )))
-
-        _ <- users.map(UserRepoSql.insert(_).run(xa)).sequence
-        // _ <- UserRepoSql.insertCredentials(User.Credentials("credentials", lkn.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None)).run(xa) // pwd: demo
-        // _ <- UserRepoSql.insertLoginRef(User.LoginRef("credentials", lkn.email.value, lkn.id)).run(xa)
-        // _ <- UserRepoSql.validateAccount(lkn.email, lkn.created).run(xa)
-        _ <- GroupRepoSql.insert(groupHt).run(xa)
-        _ <- CfpRepoSql.insert(cfpHt).run(xa)
-        _ <- talks.map(TalkRepoSql.insert(_).run(xa)).sequence
-        _ <- proposals.map(ProposalRepoSql.insert(_).run(xa)).sequence
-        _ <- partners.map(PartnerRepoSql.insert(_).run(xa)).sequence
-        _ <- contacts.map(c => ContactRepoSql.insert(c._2).run(xa)).sequence
-        _ <- sponsorPacks.map(SponsorPackRepoSql.insert(_).run(xa)).sequence
-        _ <- sponsors.map(SponsorRepoSql.insert(_).run(xa)).sequence
-        _ <- venues.map(VenueRepoSql.insert(_).run(xa)).sequence
-        _ <- events.map(EventRepoSql.insert(_).run(xa)).sequence
-        _ <- IO(events.map(event => addTalk(cfpHt, event, proposals.filter(p => event.talks.contains(p.id)), event.info.createdBy, event.info.updatedAt)).map(_.unsafeRunSync()))
-      } yield Done
-    } { mongo => IO(mongo.close()) }
-  }
 
   def insertMockData(conf: GospeakConf): IO[Done] = {
     val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
