@@ -132,9 +132,9 @@ object Tables {
     sort = Seq("created_at"),
     search = Seq("id", "kind", "answers", "text", "created_by")).get
 
-  val requests: Table = Table.from(
-    name = "requests",
-    prefix = "r",
+  val userRequests: Table = Table.from(
+    name = "user_requests",
+    prefix = "ur",
     fields = Seq("id", "kind", "group_id", "cfp_id", "event_id", "talk_id", "proposal_id", "email", "payload", "deadline", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by"),
     sort = Seq("-created_at"),
     search = Seq("id", "email", "group_id", "created_by")).get
@@ -146,5 +146,5 @@ object Tables {
     sort = Seq("close", "name"),
     search = Seq("id", "name", "description", "url", "event_url", "location", "twitter_account", "twitter_hashtag", "tags")).get
 
-  val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, groupSettings, groupMembers, cfps, partners, contacts, venues, events, eventRsvps, proposals, proposalRatings, sponsorPacks, sponsors, comments, requests, externalCfps)
+  val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, groupSettings, groupMembers, cfps, partners, contacts, venues, events, eventRsvps, proposals, proposalRatings, sponsorPacks, sponsors, comments, userRequests, externalCfps)
 }

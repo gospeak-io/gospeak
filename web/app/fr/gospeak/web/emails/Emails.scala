@@ -21,12 +21,12 @@ object Emails {
       subject = "Welcome to gospeak!",
       content = HtmlContent(html.signup(emailValidation).body))
 
-  def accountValidation(accountValidation: AccountValidationRequest)(implicit req: UserReq[AnyContent]): Email =
+  def accountValidation(accountValidation: AccountValidationRequest, user: User)(implicit req: UserAwareReq[AnyContent]): Email =
     Email(
       from = Constants.Contact.noReply,
-      to = Seq(req.user.asContact),
+      to = Seq(user.asContact),
       subject = "Validate your email!",
-      content = HtmlContent(html.accountValidation(accountValidation).body))
+      content = HtmlContent(html.accountValidation(accountValidation, user).body))
 
   def forgotPassword(user: User, passwordReset: PasswordResetRequest)(implicit req: UserAwareReq[AnyContent]): Email =
     Email(

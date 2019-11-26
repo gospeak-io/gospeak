@@ -1,9 +1,10 @@
 @import fr.gospeak.core.domain.UserRequest.AccountValidationRequest
+@import fr.gospeak.core.domain.User
 @import fr.gospeak.web.auth.routes.AuthCtrl
-@import fr.gospeak.web.utils.UserReq
+@import fr.gospeak.web.utils.UserAwareReq
 
-@(emailValidation: AccountValidationRequest)(implicit req: UserReq[AnyContent])
-<p>Hello @req.user.firstName,</p>
+@(emailValidation: AccountValidationRequest, user: User)(implicit req: UserAwareReq[AnyContent])
+<p>Hello @user.firstName,</p>
 <p>It seems you missed the signup email to validate your account ;)</p>
 <p>No worries, here is the <a href="@AuthCtrl.doValidateAccount(emailValidation.id).absoluteURL()">activation link</a> to rescue you.</p>
 <p>We hope you are enjoying gospeak and make amazing talks or events \o/</p>

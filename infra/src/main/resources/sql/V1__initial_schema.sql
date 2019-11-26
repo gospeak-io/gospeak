@@ -324,7 +324,7 @@ CREATE TABLE comments
 CREATE INDEX comments_event_idx ON comments (event_id);
 CREATE INDEX comments_proposal_idx ON comments (proposal_id);
 
-CREATE TABLE requests
+CREATE TABLE user_requests
 (
     id          CHAR(36)    NOT NULL,
     kind        VARCHAR(30) NOT NULL,

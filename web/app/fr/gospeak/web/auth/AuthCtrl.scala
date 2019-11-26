@@ -6,12 +6,12 @@ import cats.implicits._
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
 import fr.gospeak.core.ApplicationConf
-import fr.gospeak.core.domain.UserRequest
+import fr.gospeak.core.domain.{User, UserRequest}
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
 import fr.gospeak.core.domain.utils.Constants
 import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.EmailSrv
-import fr.gospeak.libs.scalautils.domain.CustomException
+import fr.gospeak.libs.scalautils.domain.{CustomException, EmailAddress}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
@@ -75,7 +75,11 @@ class AuthCtrl(cc: ControllerComponents,
         user <- authSrv.getIdentity(data)
         (_, result) <- authSrv.login(user, data.rememberMe, loginRedirect(redirect))
       } yield result: Result).recover {
-        case _: AccountValidationRequiredException => Ok(html.login(AuthForms.login.fill(data).withGlobalError("You need to validate your account by clicking on the email validation link"), envConf, redirect, authSrv.providerIds))
+        case _: AccountValidationRequiredException => Ok(html.login(AuthForms.login.fill(data).withGlobalError(
+          s"""You need to validate your account by clicking on the email validation link
+             |<a href="${routes.AuthCtrl.resendEmailValidationExt(data.email)}" class="btn btn-danger btn-xs">Resend validation email</a>
+             |""".stripMargin
+        ), envConf, redirect, authSrv.providerIds))
         case _: IdentityNotFoundException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), envConf, redirect, authSrv.providerIds))
         case _: InvalidPasswordException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), envConf, redirect, authSrv.providerIds))
         case NonFatal(e) => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), envConf, redirect, authSrv.providerIds))
@@ -101,19 +105,30 @@ class AuthCtrl(cc: ControllerComponents,
     authSrv.logout(logoutRedirect)
   })
 
-  def accountValidation(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
-    for {
-      existingValidationOpt <- userRequestRepo.findPendingAccountValidationRequest(req.user.id, req.now)
-      emailValidation <- existingValidationOpt.map(IO.pure).getOrElse(userRequestRepo.createAccountValidationRequest(req.user.email, req.user.id, req.now))
-      _ <- emailSrv.send(Emails.accountValidation(emailValidation))
-    } yield loginRedirect(HttpUtils.getReferer(req)).flashing("success" -> "Email validation sent!")
+  def resendEmailValidation(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+    resendEmailValidation(req.user)(req.userAware)
   })
+
+  def resendEmailValidationExt(email: EmailAddress): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+    (for {
+      user <- OptionT(userRepo.find(email))
+      res <- OptionT.liftF(resendEmailValidation(user))
+    } yield res).value.map(_.getOrElse(loginRedirect(HttpUtils.getReferer(req)).flashing("error" -> s"No user found with email ${email.value}")))
+  })
+
+  private def resendEmailValidation(user: User)(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
+    for {
+      existingValidationOpt <- userRequestRepo.findPendingAccountValidationRequest(user.id, req.now)
+      emailValidation <- existingValidationOpt.map(IO.pure).getOrElse(userRequestRepo.createAccountValidationRequest(user.email, user.id, req.now))
+      _ <- emailSrv.send(Emails.accountValidation(emailValidation, user))
+    } yield loginRedirect(HttpUtils.getReferer(req)).flashing("success" -> "Email validation sent!")
+  }
 
   def doValidateAccount(id: UserRequest.Id): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
       validation <- OptionT(userRequestRepo.findAccountValidationRequest(id))
       msg <- if (validation.isPending(req.now)) {
-        OptionT.liftF(userRequestRepo.validateAccount(id, validation.email, req.now).map(_ => "success" -> s"Well done! You validated your email."))
+        OptionT.liftF(userRequestRepo.validateAccount(id, validation.email, req.now).map(_ => "success" -> s"Well done! You validated your email.${req.user.map(_ => "").getOrElse(" You can now login!")}"))
       } else if (validation.deadline.isBefore(req.now)) {
         OptionT.liftF(IO.pure("error" -> "Expired deadline for email validation. Please ask to resend the validation email."))
       } else if (validation.acceptedAt.nonEmpty) {
@@ -121,7 +136,7 @@ class AuthCtrl(cc: ControllerComponents,
       } else {
         OptionT.liftF(IO.pure("error" -> "Can't validate your email, please ask to resend the validation email."))
       }
-      res = Redirect(UserRoutes.index()).flashing(msg)
+      res = Redirect(req.user.map(_ => UserRoutes.index()).getOrElse(routes.AuthCtrl.login())).flashing(msg)
     } yield res).value.map(_.getOrElse(notFound()))
   })
 

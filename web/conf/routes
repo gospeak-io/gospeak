@@ -36,7 +36,8 @@ GET         /login                                                              
 POST        /login                                                                         fr.gospeak.web.auth.AuthCtrl.doLogin(redirect: Option[String] ?= None)
 GET         /authenticate/:provider                                                        fr.gospeak.web.auth.AuthCtrl.authenticate(provider: String)
 GET         /logout                                                                        fr.gospeak.web.auth.AuthCtrl.doLogout
-POST        /account-validation                                                            fr.gospeak.web.auth.AuthCtrl.accountValidation
+POST        /resend-email-validation                                                       fr.gospeak.web.auth.AuthCtrl.resendEmailValidation
+GET         /resend-email-validation/:email                                                fr.gospeak.web.auth.AuthCtrl.resendEmailValidationExt(email: EmailAddress)
 GET         /validate-account                                                              fr.gospeak.web.auth.AuthCtrl.doValidateAccount(id: UserRequest.Id)
 GET         /forgot-password                                                               fr.gospeak.web.auth.AuthCtrl.forgotPassword(redirect: Option[String] ?= None)
 POST        /forgot-password                                                               fr.gospeak.web.auth.AuthCtrl.doForgotPassword(redirect: Option[String] ?= None)

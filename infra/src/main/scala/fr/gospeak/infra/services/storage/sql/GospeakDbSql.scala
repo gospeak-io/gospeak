@@ -180,10 +180,10 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
 
     val gravatarSrv = new GravatarSrv()
 
-    def user(slug: String, email: String, firstName: String, lastName: String, status: User.Status = User.Status.Undefined, bio: Option[Markdown] = None, company: Option[String] = None, location: Option[String] = None, phone: Option[String] = None, website: Option[Url] = None, social: SocialAccounts = SocialAccounts.fromUrls()): User = {
+    def user(slug: String, email: String, firstName: String, lastName: String, status: User.Status = User.Status.Undefined, emailValidated: Option[Instant] = Some(now), emailValidationBeforeLogin: Boolean = false, bio: Option[Markdown] = None, company: Option[String] = None, location: Option[String] = None, phone: Option[String] = None, website: Option[Url] = None, social: SocialAccounts = SocialAccounts.fromUrls()): User = {
       val emailAddr = EmailAddress.from(email).get
       val avatar = gravatarSrv.getAvatar(emailAddr)
-      User(id = User.Id.generate(), slug = User.Slug.from(slug).get, status = status, firstName = firstName, lastName = lastName, email = emailAddr, emailValidated = Some(now), emailValidationBeforeLogin = false, avatar = avatar, bio = bio, company = company, location = location, phone = phone, website = website, social = social, createdAt = now, updatedAt = now)
+      User(id = User.Id.generate(), slug = User.Slug.from(slug).get, status = status, firstName = firstName, lastName = lastName, email = emailAddr, emailValidated = emailValidated, emailValidationBeforeLogin = emailValidationBeforeLogin, avatar = avatar, bio = bio, company = company, location = location, phone = phone, website = website, social = social, createdAt = now, updatedAt = now)
     }
 
     def group(slug: String, name: String, tags: Seq[String], by: User, location: Option[GMapPlace] = None, owners: Seq[User] = Seq(), social: SocialAccounts = SocialAccounts.fromUrls(), email: Option[String] = None): Group =
@@ -300,8 +300,9 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       social = social)
     val userSpeaker = user("speaker", "speaker@mail.com", "Speaker", "User")
     val userOrga = user("orga", "orga@mail.com", "Orga", "User")
-    val userEmpty = user("empty", "empty@mail.com", "Empty", "User")
-    val users = Seq(userDemo, userSpeaker, userOrga, userEmpty)
+    val userEmpty = user("empty", "empty@mail.com", "Empty", "User", emailValidated = None)
+    val lkn = user("exist", "exist@mail.com", "Exist", "User", emailValidated = None, emailValidationBeforeLogin = true)
+    val users = Seq(userDemo, userSpeaker, userOrga, userEmpty, lkn)
 
     val credentials = users.map(u => User.Credentials("credentials", u.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None)) // pwd: demo
     val loginRefs = users.map(u => User.LoginRef("credentials", u.email.value, u.id))
