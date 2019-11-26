@@ -63,7 +63,7 @@ object SocialAccounts {
     githubUrl <- github.map(Url.from).sequence
   } yield fromUrls(facebookUrl, instagramUrl, twitterUrl, linkedInUrl, youtubeUrl, meetupUrl, eventbriteUrl, slackUrl, discordUrl, githubUrl)
 
-  sealed abstract class SocialAccount(url: Url) {
+  sealed abstract class SocialAccount(url: Url, val name: String) {
     def link: String = url.value
 
     def handle: String
@@ -71,43 +71,43 @@ object SocialAccounts {
 
   object SocialAccount {
 
-    final case class FacebookAccount(url: Url) extends SocialAccount(url) {
+    final case class FacebookAccount(url: Url) extends SocialAccount(url, "facebook") {
       def handle: String = url.value
     }
 
-    final case class InstagramAccount(url: Url) extends SocialAccount(url) {
+    final case class InstagramAccount(url: Url) extends SocialAccount(url, "instagram") {
       def handle: String = url.value
     }
 
-    final case class TwitterAccount(url: Url) extends SocialAccount(url) {
+    final case class TwitterAccount(url: Url) extends SocialAccount(url, "twitter") {
       def handle: String = "@" + url.value.split("/").last
     }
 
-    final case class LinkedInAccount(url: Url) extends SocialAccount(url) {
+    final case class LinkedInAccount(url: Url) extends SocialAccount(url, "linkedin") {
       def handle: String = url.value.split("/").filter(_.nonEmpty).lastOption.getOrElse(url.value)
     }
 
-    final case class YoutubeAccount(url: Url) extends SocialAccount(url) {
+    final case class YoutubeAccount(url: Url) extends SocialAccount(url, "youtube") {
       def handle: String = url.value
     }
 
-    final case class MeetupAccount(url: Url) extends SocialAccount(url) {
+    final case class MeetupAccount(url: Url) extends SocialAccount(url, "meetup") {
       def handle: String = url.value
     }
 
-    final case class EventbriteAccount(url: Url) extends SocialAccount(url) {
+    final case class EventbriteAccount(url: Url) extends SocialAccount(url, "eventbrite") {
       def handle: String = url.value
     }
 
-    final case class SlackAccount(url: Url) extends SocialAccount(url) {
+    final case class SlackAccount(url: Url) extends SocialAccount(url, "slack") {
       def handle: String = url.value
     }
 
-    final case class DiscordAccount(url: Url) extends SocialAccount(url) {
+    final case class DiscordAccount(url: Url) extends SocialAccount(url, "discord") {
       def handle: String = url.value
     }
 
-    final case class GithubAccount(url: Url) extends SocialAccount(url) {
+    final case class GithubAccount(url: Url) extends SocialAccount(url, "github") {
       def handle: String = url.value
     }
 
