@@ -206,6 +206,16 @@ object Extensions {
     def mapFailure(f: Throwable => Throwable): Try[A] =
       in.recoverWith { case NonFatal(e) => Failure(f(e)) }
 
+    def toEither: Either[Throwable, A] = in match {
+      case Success(a) => Right(a)
+      case Failure(e) => Left(e)
+    }
+
+    def toEither[E](f: Throwable => E): Either[E, A] = in match {
+      case Success(a) => Right(a)
+      case Failure(e) => Left(f(e))
+    }
+
     def toFuture: Future[A] = Future.fromTry(in)
 
     def toIO: IO[A] = in match {

@@ -90,7 +90,7 @@ class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
         emailAddress.bind(data) shouldBe Right(v)
       }
       emailAddress.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
-      emailAddress.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.email"), Seq())))
+      emailAddress.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq()), FormError("", Seq("error.email"), Seq())))
       emailAddress.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.email"), Seq())))
     }
     it("should bind & unbind a Url") {

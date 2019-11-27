@@ -123,6 +123,7 @@ class AuthCtrl(cc: ControllerComponents,
     } yield loginRedirect(HttpUtils.getReferer(req)).flashing("success" -> "Email validation sent!")
   }
 
+  // not UserAction because some user can't connect before validating their email
   def doValidateAccount(id: UserRequest.Id): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     (for {
       validation <- OptionT(userRequestRepo.findAccountValidationRequest(id))
