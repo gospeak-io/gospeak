@@ -14,12 +14,12 @@ object Emails {
     def asContact: EmailAddress.Contact = EmailAddress.Contact(user.email, Some(user.name.value))
   }
 
-  def signup(emailValidation: AccountValidationRequest)(implicit req: UserReq[AnyContent]): Email =
+  def signup(emailValidation: AccountValidationRequest, user: User)(implicit req: UserAwareReq[AnyContent]): Email =
     Email(
       from = Constants.Contact.noReply,
-      to = Seq(req.user.asContact),
+      to = Seq(user.asContact),
       subject = "Welcome to gospeak!",
-      content = HtmlContent(html.signup(emailValidation).body))
+      content = HtmlContent(html.signup(emailValidation, user).body))
 
   def accountValidation(accountValidation: AccountValidationRequest, user: User)(implicit req: UserAwareReq[AnyContent]): Email =
     Email(

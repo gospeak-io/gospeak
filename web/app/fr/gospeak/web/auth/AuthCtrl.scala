@@ -50,9 +50,8 @@ class AuthCtrl(cc: ControllerComponents,
       data => (for {
         user <- authSrv.createIdentity(data)
         emailValidation <- userRequestRepo.createAccountValidationRequest(user.user.email, user.user.id, req.now)
+        _ <- emailSrv.send(Emails.signup(emailValidation, user.user))
         (authenticator, result) <- authSrv.login(user, data.rememberMe, loginRedirect(redirect))
-        secured = req.secured(user, authenticator)
-        _ <- emailSrv.send(Emails.signup(emailValidation)(secured))
       } yield result: Result).recoverWith {
         case e: AccountValidationRequiredException => authSrv.logout(e.identity, Redirect(routes.AuthCtrl.login(redirect)).flashing("warning" -> "Account created, you need to validate it by clicking on the email validation link"))
         case _: DuplicateIdentityException => IO.pure(BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError("User already exists"), redirect)))

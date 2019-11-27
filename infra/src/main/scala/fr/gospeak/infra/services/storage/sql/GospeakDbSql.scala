@@ -203,8 +203,8 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val lkn = user("exist", "exist@mail.com", "Exist", "User", emailValidated = None, emailValidationBeforeLogin = true)
     val users = Seq(userDemo, userSpeaker, userOrga, userEmpty, lkn)
 
-    val credentials = users.map(u => User.Credentials("credentials", u.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None)) // pwd: demo
-    val loginRefs = users.map(u => User.LoginRef("credentials", u.email.value, u.id))
+    val credentials = users.filterNot(_.slug.value == "exist").map(u => User.Credentials("credentials", u.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None)) // pwd: demo
+    val loginRefs = users.filterNot(_.slug.value == "exist").map(u => User.LoginRef("credentials", u.email.value, u.id))
 
     val talk1 = talk(userDemo, "why-fp", "Why FP", status = Talk.Status.Private, tags = Seq("FP"))
     val talk2 = talk(userDemo, "scala-best-practices", "Scala Best Practices", speakers = Seq(userSpeaker),
