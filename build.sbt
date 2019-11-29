@@ -44,7 +44,7 @@ val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
   "com.pepegar" %% "hammock-apache-http").map(_ % "0.10.0")
-val flyway = Seq("org.flywaydb" % "flyway-core" % "6.0.8")
+val flyway = Seq("org.flywaydb" % "flyway-core" % "6.1.0")
 val silhouetteVersion = "6.1.1"
 val silhouette = Seq(
   "com.mohiva" %% "play-silhouette",
@@ -64,10 +64,10 @@ val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.6.1")
 val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.4.1")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
   "org.webjars.npm" % "jquery" % "3.4.1",
-  "org.webjars.npm" % "bootstrap" % "4.3.1",
+  "org.webjars.npm" % "bootstrap" % "4.4.1",
   "org.webjars.npm" % "autosize" % "4.0.2",
   // "org.webjars.npm" % "@fortawesome/fontawesome-free" % "5.6.3",
-  "org.webjars.npm" % "select2" % "4.0.10",
+  "org.webjars.npm" % "select2" % "4.0.12",
   "org.webjars.npm" % "select2-bootstrap-theme" % "0.1.0-beta.10",
   "org.webjars.npm" % "bootstrap-datepicker" % "1.9.0",
   "org.webjars.npm" % "imask" % "5.2.1",

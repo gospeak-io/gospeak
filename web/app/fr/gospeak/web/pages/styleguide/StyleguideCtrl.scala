@@ -17,7 +17,6 @@ import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages
-import fr.gospeak.web.pages.published.html
 import fr.gospeak.web.utils.{OrgaReq, UICtrl, UserAwareReq}
 import org.joda.time.DateTime
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
