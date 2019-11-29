@@ -48,10 +48,10 @@ class ProposalCtrl(cc: ControllerComponents,
   })
 
   def doRate(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, grade: Proposal.Rating.Grade): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.ProposalCtrl.detail(group, cfp, proposal).toString))
     (for {
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       _ <- OptionT.liftF(proposalRepo.rate(cfp, proposalElt.id, grade))
+      next = redirectToPreviousPageOr(routes.ProposalCtrl.detail(group, cfp, proposal))
     } yield next.flashing("success" -> s"$grade saved on <b>${proposalElt.title.value}</b>")).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   })
 
@@ -158,20 +158,20 @@ class ProposalCtrl(cc: ControllerComponents,
   })
 
   def reject(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.ProposalCtrl.detail(group, cfp, proposal).toString))
     (for {
       cfpElt <- OptionT(cfpRepo.find(cfp))
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       _ <- OptionT.liftF(proposalRepo.reject(cfp, proposal))
+      next = redirectToPreviousPageOr(routes.ProposalCtrl.detail(group, cfp, proposal))
     } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   })
 
   def cancelRejection(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.ProposalCtrl.detail(group, cfp, proposal).toString))
     (for {
       cfpElt <- OptionT(cfpRepo.find(cfp))
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       _ <- OptionT.liftF(proposalRepo.cancelReject(cfp, proposal))
+      next = redirectToPreviousPageOr(routes.ProposalCtrl.detail(group, cfp, proposal))
     } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   })
 }

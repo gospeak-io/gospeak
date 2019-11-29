@@ -11,7 +11,7 @@ import scala.concurrent.Future
 
 class CustomUnsecuredErrorHandler(val messagesApi: MessagesApi) extends UnsecuredErrorHandler with I18nSupport {
   override def onNotAuthorized(implicit req: RequestHeader): Future[Result] = {
-    val url = HttpUtils.getReferer(req.headers).getOrElse(UserCtrl.index().path())
-    Future.successful(Redirect(url).flashing("error" -> "Forbidden access"))
+    val next = Redirect(HttpUtils.getReferer(req.headers).getOrElse(UserCtrl.index().path()))
+    Future.successful(next.flashing("error" -> "Forbidden access"))
   }
 }

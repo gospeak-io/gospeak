@@ -16,7 +16,7 @@ class CustomSecuredErrorHandler(val messagesApi: MessagesApi) extends SecuredErr
   }
 
   override def onNotAuthorized(implicit req: RequestHeader): Future[Result] = {
-    val url = HttpUtils.getReferer(req.headers).getOrElse(UserCtrl.index().path())
-    Future.successful(Redirect(url).flashing("error" -> "Forbidden access"))
+    val next = Redirect(HttpUtils.getReferer(req.headers).getOrElse(UserCtrl.index().path()))
+    Future.successful(next.flashing("error" -> "Forbidden access"))
   }
 }

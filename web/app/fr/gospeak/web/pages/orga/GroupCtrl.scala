@@ -114,23 +114,23 @@ class GroupCtrl(cc: ControllerComponents,
   }
 
   def acceptJoin(group: Group.Slug, userRequest: UserRequest.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.GroupCtrl.detail(group).toString))
     (for {
       requestElt <- OptionT(userRequestRepo.findPendingUserToJoinAGroup(userRequest))
       userElt <- OptionT(userRepo.find(requestElt.createdBy))
       _ <- OptionT.liftF(userRequestRepo.acceptUserToJoinAGroup(requestElt))
       _ <- OptionT.liftF(emailSrv.send(Emails.joinGroupAccepted(userElt)))
+      next = redirectToPreviousPageOr(routes.GroupCtrl.detail(group))
       msg = s"You accepted <b>${userElt.name.value}</b> as organizer of ${req.group.name.value}"
     } yield next.flashing("success" -> msg)).value.map(_.getOrElse(groupNotFound(group)))
   })
 
   def rejectJoin(group: Group.Slug, userRequest: UserRequest.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.GroupCtrl.detail(group).toString))
     (for {
       requestElt <- OptionT(userRequestRepo.findPendingUserToJoinAGroup(userRequest))
       userElt <- OptionT(userRepo.find(requestElt.createdBy))
       _ <- OptionT.liftF(userRequestRepo.rejectUserToJoinAGroup(requestElt))
       _ <- OptionT.liftF(emailSrv.send(Emails.joinGroupRejected(userElt)))
+      next = redirectToPreviousPageOr(routes.GroupCtrl.detail(group))
       msg = s"You refused to <b>${userElt.name.value}</b> to join ${req.group.name.value} as an organizer"
     } yield next.flashing("error" -> msg)).value.map(_.getOrElse(groupNotFound(group)))
   })

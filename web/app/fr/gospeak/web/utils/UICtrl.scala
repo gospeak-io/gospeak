@@ -31,12 +31,16 @@ abstract class UICtrl(cc: ControllerComponents,
   }
 
   private def recoverFailedAction(result: IO[Result])(implicit req: Request[AnyContent]): IO[Result] = {
-    val back = HttpUtils.getReferer(req.headers).getOrElse(fr.gospeak.web.pages.published.routes.HomeCtrl.index().toString)
+    val next = redirectToPreviousPageOr(fr.gospeak.web.pages.published.routes.HomeCtrl.index())
     // FIXME better error handling (send email or notif?)
     result.recover {
-      case e: JdbcSQLSyntaxErrorException => e.printStackTrace(); Redirect(back).flashing("error" -> s"Unexpected SQL error")
-      case NonFatal(e) => e.printStackTrace(); Redirect(back).flashing("error" -> s"Unexpected error: ${e.getMessage} (${e.getClass.getSimpleName})")
+      case e: JdbcSQLSyntaxErrorException => e.printStackTrace(); next.flashing("error" -> s"Unexpected SQL error")
+      case NonFatal(e) => e.printStackTrace(); next.flashing("error" -> s"Unexpected error: ${e.getMessage} (${e.getClass.getSimpleName})")
     }
+  }
+
+  protected def redirectToPreviousPageOr[A](default: => Call)(implicit req: Request[A]): Result = {
+    HttpUtils.getReferer(req.headers).map(Redirect(_)).getOrElse(Redirect(default))
   }
 
   // orga redirects

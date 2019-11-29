@@ -11,7 +11,7 @@ import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublishedSpeakerRoutes}
 import fr.gospeak.web.pages.speaker.SpeakerCtrl._
 import fr.gospeak.web.pages.user.UserCtrl
-import fr.gospeak.web.utils.{HttpUtils, UICtrl, UserReq}
+import fr.gospeak.web.utils.{UICtrl, UserReq}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -47,7 +47,7 @@ class SpeakerCtrl(cc: ControllerComponents,
   }
 
   def doEditStatus(status: User.Status): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
-    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.SpeakerCtrl.detail().toString))
+    val next = redirectToPreviousPageOr(routes.SpeakerCtrl.detail())
     val msg = status match {
       case User.Status.Undefined =>
         "Still unsure about what to do? Your profile is <b>Private</b> by default."

@@ -105,17 +105,15 @@ class SponsorCtrl(cc: ControllerComponents,
   }
 
   def disablePack(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.SponsorCtrl.list(group).toString))
-    sponsorPackRepo.disable(pack).map(_ => next)
+    sponsorPackRepo.disable(pack).map(_ => redirectToPreviousPageOr(routes.SponsorCtrl.list(group)))
   })
 
   def enablePack(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.SponsorCtrl.list(group).toString))
-    sponsorPackRepo.enable(pack).map(_ => next)
+    sponsorPackRepo.enable(pack).map(_ => redirectToPreviousPageOr(routes.SponsorCtrl.list(group)))
   })
 
   def paid(group: Group.Slug, sponsor: Sponsor.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.SponsorCtrl.list(group).toString))
+    val next = redirectToPreviousPageOr(routes.SponsorCtrl.list(group))
     (for {
       sponsorElt <- OptionT(sponsorRepo.find(sponsor))
       _ <- OptionT.liftF(sponsorRepo.edit(sponsor, sponsorElt.data.copy(paid = Some(req.nowLD))))
@@ -123,8 +121,7 @@ class SponsorCtrl(cc: ControllerComponents,
   })
 
   def remove(group: Group.Slug, sponsor: Sponsor.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    val next = Redirect(HttpUtils.getReferer(req).getOrElse(routes.SponsorCtrl.list(group).toString))
-    sponsorRepo.remove(sponsor).map(_ => next)
+    sponsorRepo.remove(sponsor).map(_ => redirectToPreviousPageOr(routes.SponsorCtrl.list(group)))
   })
 }
 
