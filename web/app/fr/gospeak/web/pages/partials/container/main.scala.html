@@ -28,6 +28,15 @@
         <script type="text/javascript" src="@routes.Assets.versioned("lib/mousetrap/mousetrap.js")"></script>
         <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/main.js")"></script>
         <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAyBrYxVFLX8Vl8ClH9wp-eNK_o2vzUBdA&libraries=places&language=en&callback=googleMapsInit" async defer></script>
+        <script>
+                (function (w,d,s,o,f,js,fjs) {
+                    w[o] = w[o] || function () { (w[o].q = w[o].q || []).push(arguments) };
+                    js = d.createElement(s), fjs = d.getElementsByTagName(s)[0];
+                    js.id = o; js.src = f; js.async = 1; fjs.parentNode.insertBefore(js, fjs);
+                }(window, document, 'script', 'plausible', 'https://plausible.io/js/p.js'));
+
+                plausible('page')
+        </script>
         @script
     </body>
 </html>
