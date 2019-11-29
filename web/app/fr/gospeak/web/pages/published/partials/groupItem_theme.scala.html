@@ -17,21 +17,21 @@
                         <small class="d-block text-dark">@Formats.plural(group.eventCount, "event")</small>
                     </div>
                     <ul class="list-inline mr-2 mb-0">
-                    @group.owners.toList.map { id =>
-                        @orgas.find(_.id == id).map { user =>
-                        <li class="list-inline-item ml-n3 mr-0">
-                            <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
-                                <img src="@user.avatar.url.value" alt="@user.name.value avatar" class="img-fluid rounded-circle" title="@user.name.value">
-                            </div>
-                        </li>
-                        }.getOrElse {
-                            <li class="list-inline-item ml-n3 mr-0">
-                                <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
-                                    <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp" alt="avatar" class="img-fluid rounded-circle" title="unknow avatar">
-                                </div>
-                            </li>
+                        @group.owners.toList.map { id =>
+                            @orgas.find(_.id == id).map { user =>
+                                <li class="list-inline-item ml-n3 mr-0">
+                                    <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
+                                        <img src="@user.avatar.url.value" alt="@user.name.value avatar" class="img-fluid rounded-circle" title="@user.name.value">
+                                    </div>
+                                </li>
+                            }.getOrElse {
+                                <li class="list-inline-item ml-n3 mr-0">
+                                    <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
+                                        <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp" alt="avatar" class="img-fluid rounded-circle" title="unknow avatar">
+                                    </div>
+                                </li>
+                            }
                         }
-                    }
                     </ul>
                 </div>
             </div>

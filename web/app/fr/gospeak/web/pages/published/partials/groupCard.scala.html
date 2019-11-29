@@ -23,9 +23,7 @@
             <div class="mb-4">
                 @cfps.length match {
                     case 0 => {}
-                    case _ => {
-                        <a class="btn btn-sm btn-soft-primary transition-3d-hover" href="@CfpCtrl.propose(cfps.head.slug)">Propose a talk</a>
-                    }
+                    case _ => { <a class="btn btn-sm btn-soft-primary transition-3d-hover" href="@CfpCtrl.propose(cfps.head.slug)">Propose a talk</a> }
                 }
             </div>
 
@@ -38,22 +36,22 @@
             </div>
 
             <div class="mt-2">
-            @group.owners.toList.map { id =>
-                @orgas.find(_.id == id).map { user =>
-                    <li class="list-inline-item ml-n3 mr-0">
-                        <img src="@user.avatar.url.value" alt="@user.name.value avatar"
-                        title="@user.name.value"
-                        data-toggle="tooltip"
-                        data-placement="top" class="u-sm-avatar u-sm-avatar--bordered rounded-circle img-fluid rounded-circle" title="@user.name.value">
-                    </li>
-                }.getOrElse {
-                    <li class="list-inline-item ml-n3 mr-0">
-                        <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
-                            <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp" alt="avatar" class="img-fluid rounded-circle" title="unknow avatar">
-                        </div>
-                    </li>
+                @group.owners.toList.map { id =>
+                    @orgas.find(_.id == id).map { user =>
+                        <li class="list-inline-item ml-n3 mr-0">
+                            <img src="@user.avatar.url.value" alt="@user.name.value avatar"
+                                title="@user.name.value"
+                                data-toggle="tooltip"
+                                data-placement="top" class="u-sm-avatar u-sm-avatar--bordered rounded-circle img-fluid rounded-circle" title="@user.name.value">
+                        </li>
+                    }.getOrElse {
+                        <li class="list-inline-item ml-n3 mr-0">
+                            <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
+                                <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp" alt="avatar" class="img-fluid rounded-circle" title="unknow avatar">
+                            </div>
+                        </li>
+                    }
                 }
-            }
             </div>
         </div>
 
@@ -94,77 +92,63 @@
 
         <div class="mb-5">
             <h4 class="font-size-1 font-weight-semi-bold text-uppercase mb-3">Linked accounts</h4>
-            @group.social.twitter.map{ t =>
-                <a class="media align-items-center mb-2" href="@t.link">
-                    <div class="u-sm-avatar mr-3">
-                        <i class="fab fa-twitter"></i>
-                    </div>
+            @group.social.twitter.map { t =>
+                <a class="media align-items-center mb-2" href="@t.link" target="_blank">
+                    <div class="u-sm-avatar mr-3"><i class="fab fa-twitter"></i></div>
                     <div class="media-body">
                         <h4 class="font-size-1 text-dark mb-0">Twitter</h4>
                         <small class="d-block text-secondary">@t.handle</small>
                     </div>
                 </a>
             }
-            @group.social.youtube.map{ t =>
-                <a class="media align-items-center mb-2" href="@t.link">
-                    <div class="u-sm-avatar mr-3">
-                        <i class="fab fa-youtube"></i>
-                    </div>
+            @group.social.youtube.map { t =>
+                <a class="media align-items-center mb-2" href="@t.link" target="_blank">
+                    <div class="u-sm-avatar mr-3"><i class="fab fa-youtube"></i></div>
                     <div class="media-body">
                         <h4 class="font-size-1 text-dark mb-0">Youtube</h4>
                         <small class="d-block text-secondary">View the channel</small>
                     </div>
                 </a>
             }
-            @group.social.facebook.map{ t =>
-                <a class="media align-items-center mb-2" href="@t.link">
-                    <div class="u-sm-avatar mr-3">
-                        <i class="fab fa-facebook"></i>
-                    </div>
+            @group.social.facebook.map { t =>
+                <a class="media align-items-center mb-2" href="@t.link" target="_blank">
+                    <div class="u-sm-avatar mr-3"><i class="fab fa-facebook"></i></div>
                     <div class="media-body">
                         <h4 class="font-size-1 text-dark mb-0">Facebook</h4>
                         <small class="d-block text-secondary">View the page</small>
                     </div>
                 </a>
             }
-            @group.social.instagram.map{ t =>
-                <a class="media align-items-center mb-2" href="@t.link">
-                    <div class="u-sm-avatar mr-3">
-                        <i class="fab fa-instagram"></i>
-                    </div>
+            @group.social.instagram.map { t =>
+                <a class="media align-items-center mb-2" href="@t.link" target="_blank">
+                    <div class="u-sm-avatar mr-3"><i class="fab fa-instagram"></i></div>
                     <div class="media-body">
                         <h4 class="font-size-1 text-dark mb-0">Instagram</h4>
                         <small class="d-block text-secondary">Follow us</small>
                     </div>
                 </a>
             }
-            @group.social.slack.map{ t =>
-                <a class="media align-items-center mb-2" href="@t.link">
-                    <div class="u-sm-avatar mr-3">
-                        <i class="fab fa-slack"></i>
-                    </div>
+            @group.social.slack.map { t =>
+                <a class="media align-items-center mb-2" href="@t.link" target="_blank">
+                    <div class="u-sm-avatar mr-3"><i class="fab fa-slack"></i></div>
                     <div class="media-body">
                         <h4 class="font-size-1 text-dark mb-0">Slack</h4>
                         <small class="d-block text-secondary">Join the group</small>
                     </div>
                 </a>
             }
-            @group.social.github.map{ t =>
-                <a class="media align-items-center mb-2" href="@t.link">
-                    <div class="u-sm-avatar mr-3">
-                        <i class="fab fa-github"></i>
-                    </div>
+            @group.social.github.map { t =>
+                <a class="media align-items-center mb-2" href="@t.link" target="_blank">
+                    <div class="u-sm-avatar mr-3"><i class="fab fa-github"></i></div>
                     <div class="media-body">
                         <h4 class="font-size-1 text-dark mb-0">Github</h4>
                         <small class="d-block text-secondary">View the repo</small>
                     </div>
                 </a>
             }
-            @group.social.meetup.map{ t =>
-                <a class="media align-items-center mb-2" href="@t.link">
-                    <div class="u-sm-avatar mr-3">
-                        <i class="fab fa-meetup"></i>
-                    </div>
+            @group.social.meetup.map { t =>
+                <a class="media align-items-center mb-2" href="@t.link" target="_blank">
+                    <div class="u-sm-avatar mr-3"><i class="fab fa-meetup"></i></div>
                     <div class="media-body">
                         <h4 class="font-size-1 text-dark mb-0">Meetup</h4>
                         <small class="d-block text-secondary">View the group</small>

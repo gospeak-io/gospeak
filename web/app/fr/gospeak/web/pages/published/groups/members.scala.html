@@ -26,13 +26,13 @@
         </div>
     </div>
 }
-@container_theme(group.name.value + " - Gospeak", b)() {
-        <div class="row">
-            @groupCard(group, speakerCount, cfps, events, sponsors, packs, orgas, userMembership)(b)
+@container_theme(group.name.value + " members - Gospeak", b)() {
+<div class="row">
+    @groupCard(group, speakerCount, cfps, events, sponsors, packs, orgas, userMembership)(b)
 
-            <div class="col-lg-8 m">
-                <h3>@Formats.plural(members.total.value, "member") in @group.name.value</h3>
-                @Formats.paginated[Group.Member](members, GroupCtrl.members(group.slug, _), m => memberItem(group, m))
-            </div>
-        </div>
+    <div class="col-lg-8 m">
+        <h3>@Formats.plural(members.total.value, "member") in @group.name.value</h3>
+        @Formats.paginated[Group.Member](members, GroupCtrl.members(group.slug, _), m => memberItem(group, m))
+    </div>
+</div>
 }()

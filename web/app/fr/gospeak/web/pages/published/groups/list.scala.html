@@ -7,67 +7,63 @@
 @import fr.gospeak.web.utils.UserAwareReq
 
 @(groups: Page[Group.Full], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container_theme("Gospeak - groups", b)() {
-    <div id="listGroups">
-        <div class="w-md-80 w-lg-80 text-center mx-md-auto mb-5">
-            <h2 class="text-primary">Gospeak
-                <span class="font-weight-semi-bold">User groups</span>
-            </h2>
-            <p>
-                There are a lot of groups to attends! Whant to list yours? <br>
-                <a class="btn btn-text btn-text-success" href="mailto:contact@@gospeak.io?subject=Would like to create a group!&body=Don't be shy, email us :p">Create your group!</a>
-            </p>
-        </div>
-        @Formats.paginated[Group.Full](groups, GroupCtrl.list, groupItem_theme(_, orgas))
+@container_theme("Groups - Gospeak", b)() {
+<div id="listGroups">
+    <div class="w-md-80 w-lg-80 text-center mx-md-auto mb-5">
+        <h2 class="text-primary">Gospeak <span class="font-weight-semi-bold">User groups</span></h2>
+        <p>
+            There are a lot of groups to attends! Whant to list yours?<br>
+            <a class="btn btn-text btn-text-success" href="mailto:contact@@gospeak.io?subject=Would like to create a group!&body=Don't be shy, email us :p">Create your group!</a>
+        </p>
     </div>
-
+    @Formats.paginated[Group.Full](groups, GroupCtrl.list, groupItem_theme(_, orgas))
+</div>
 }{
-    <script>
-            $(window).on('load', function() {
-                // initialization of HSMegaMenu component
-                $('.js-mega-menu').HSMegaMenu({
-                    event: 'hover',
-                    pageContainer: $('.container'),
-                    breakpoint: 767.98,
-                    hideTimeOut: 0
-                });
+<script>
+    $(window).on('load', function() {
+        // initialization of HSMegaMenu component
+        $('.js-mega-menu').HSMegaMenu({
+            event: 'hover',
+            pageContainer: $('.container'),
+            breakpoint: 767.98,
+            hideTimeOut: 0
+        });
 
-                // initialization of svg injector module
-                $.HSCore.components.HSSVGIngector.init('.js-svg-injector');
-            });
+        // initialization of svg injector module
+        $.HSCore.components.HSSVGIngector.init('.js-svg-injector');
+    });
 
-            $(document).on('ready', function() {
-                // initialization of header
-                $.HSCore.components.HSHeader.init($('#header'));
+    $(document).on('ready', function() {
+        // initialization of header
+        $.HSCore.components.HSHeader.init($('#header'));
 
-                // initialization of unfold component
-                $.HSCore.components.HSUnfold.init($('[data-unfold-target]'), {
-                    afterOpen: function() {
-                        $(this).find('input[type="search"]').focus();
-                    }
-                });
+        // initialization of unfold component
+        $.HSCore.components.HSUnfold.init($('[data-unfold-target]'), {
+            afterOpen: function() {
+                $(this).find('input[type="search"]').focus();
+            }
+        });
 
-                // initialization of malihu scrollbar
-                $.HSCore.components.HSMalihuScrollBar.init($('.js-scrollbar'));
+        // initialization of malihu scrollbar
+        $.HSCore.components.HSMalihuScrollBar.init($('.js-scrollbar'));
 
-                // initialization of show animations
-                $.HSCore.components.HSShowAnimation.init('.js-animation-link');
+        // initialization of show animations
+        $.HSCore.components.HSShowAnimation.init('.js-animation-link');
 
-                // initialization of form validation
-                $.HSCore.components.HSValidation.init('.js-validate', {
-                    rules: {
-                        confirmPassword: {
-                            equalTo: '#signupPassword'
-                        }
-                    }
-                });
+        // initialization of form validation
+        $.HSCore.components.HSValidation.init('.js-validate', {
+            rules: {
+                confirmPassword: {
+                    equalTo: '#signupPassword'
+                }
+            }
+        });
 
-                // initialization of forms
-                $.HSCore.components.HSFocusState.init();
+        // initialization of forms
+        $.HSCore.components.HSFocusState.init();
 
-                // initialization of go to
-                $.HSCore.components.HSGoTo.init('.js-go-to');
-            });
-    </script>
+        // initialization of go to
+        $.HSCore.components.HSGoTo.init('.js-go-to');
+    });
+</script>
 }
-

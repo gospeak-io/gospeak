@@ -1,18 +1,18 @@
 @import fr.gospeak.core.domain.ExternalCfp
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
-@import fr.gospeak.web.pages.published.partials.html.{cfpFields, container}
+@import fr.gospeak.web.pages.published.partials.html.{cfpFields, container_theme}
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.UserReq
 
 @(cfp: ExternalCfp, form: Form[ExternalCfp.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(s"Edit ${cfp.name.value} CFP - Gospeak", b)() {
+@container_theme(s"Edit ${cfp.name.value} CFP - Gospeak", b)() {
     @formElt(form, CfpCtrl.doEdit(cfp.id)) {
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>Edit @cfp.name.value</h1>
             <div>
-                @btnCancel(CfpCtrl.detailExt(cfp.id), classes = "btn btn-secondary btn-lg")
-                @btnSubmit("Edit", "btn btn-primary btn-lg")
+                @btnCancel(CfpCtrl.detailExt(cfp.id), classes = "btn btn-secondary btn-sm")
+                @btnSubmit("Edit", "btn btn-primary btn-sm")
             </div>
         </div>
         @cfpFields(form)

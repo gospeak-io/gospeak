@@ -10,224 +10,204 @@
 @import fr.gospeak.web.utils.UserAwareReq
 
 @(group: Group, event: Event.Full, description: Markdown, proposals: Seq[Proposal.Full], speakers: Seq[User], comments: Seq[Comment.Full], commentForm: Form[Comment.Data], yesRsvp: Long, userRsvp: Option[Event.Rsvp], rsvps: Seq[Event.Rsvp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container_theme(event.name.value + " - Gospeak", b)() {
-        <div class="container">
-            <div class="border-bottom">
-                <div class="media mb-5">
-                    <div class="u-lg-avatar mr-4">
-                        @group.logo.map { logo => <img src="@logo.url.value" alt="@group.name.value logo" class="img-fluid rounded-circle" width="160" height="160"/> }
-                    </div>
-
-                    <div class="media-body">
-                        <div class="row">
-                            <div class="col-lg-6 mb-3 mb-lg-0">
-                                <h1 class="h4 mb-1">@event.name.value@event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }</h1>
-                                    <!-- Review -->
-                                <span class="text-primary font-size-1">
-                                    <i class="fas fa-calendar-day"></i> @Formats.dateFull(event.start)<br>
-                                    <i class="fas fa-clock"></i> @Formats.time(event.start)
-                                </span>
-                            </div>
-
-                            <div class="col-lg-6 text-lg-right">
-                                <div class="d-flex justify-content-md-end align-items-center">
-
-
-                                    <div>
-                                    @(event.isPast(req.now), userRsvp.map(_.answer)) match {
-                                        case (true, Some(Event.Rsvp.Answer.Yes)) => {You were there}
-                                        case (true, Some(Event.Rsvp.Answer.No)) => {Event is past}
-                                        case (true, Some(Event.Rsvp.Answer.Wait)) => {You were on waiting list}
-                                        case (true, None) => {}
-                                        case (false, Some(Event.Rsvp.Answer.Yes)) => {
-                                            <div class="d-inline-block mr-2">
-                                                <a class="btn btn-sm btn-soft-secondary transition-3d-hover px-5 mx-2" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)">No</a>
-                                            </div>
-                                            <a class="btn btn-sm btn-primary transition-3d-hover px-5" href="#">Yes</a>
-                                        }
-                                        case (false, Some(Event.Rsvp.Answer.No)) => {
-                                            <div class="d-inline-block mr-2">
-                                                <a class="btn btn-sm btn-danger transition-3d-hover px-5 mx-2" href="#">No</a>
-                                            </div>
-                                            <a class="btn btn-sm btn-soft-primary transition-3d-hover px-5" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.Yes)">Yes</a>
-                                        }
-                                        case (false, Some(Event.Rsvp.Answer.Wait)) => {
-                                            <div class="d-inline-block mr-2">
-                                                <a class="btn btn-sm btn-soft-secondary transition-3d-hover px-5 mx-2" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)">No</a>
-                                            </div>
-
-                                            <a class="btn btn-sm btn-soft-primary transition-3d-hover px-5" href="#">Waiting list</a>
-                                        }
-                                        case (false, None) => {
-                                            <div class="d-inline-block mr-2">
-                                                <a class="btn btn-sm btn-soft-secondary transition-3d-hover px-5 mx-2" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)">No</a>
-                                            </div>
-
-                                            <a class="btn btn-sm btn-soft-primary transition-3d-hover px-5" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.Yes)">Yes</a>
-                                        }
-                                    }
-                                    </div>
-                                </div>
-                                <div class="space-bottom-1 mt-1">
-                                    <div class="small text-right text-secondary">
-                                    @(event.isPast(req.now), userRsvp.map(_.answer)) match {
-                                        case (true, Some(Event.Rsvp.Answer.Yes)) => {}
-                                        case (true, Some(Event.Rsvp.Answer.No)) => {}
-                                        case (true, Some(Event.Rsvp.Answer.Wait)) => {}
-                                        case (true, None) => {}
-                                        case (false, Some(Event.Rsvp.Answer.Yes)) => {
-                                            @event.maxAttendee.map { nb => <span>@Formats.plural(nb - yesRsvp, "remaining place")</span> }
-                                        }
-                                        case (false, Some(Event.Rsvp.Answer.No)) => {
-                                            @event.maxAttendee.map { nb => <span>@Formats.plural(nb - yesRsvp, "remaining place")</span> }
-                                        }
-                                        case (false, Some(Event.Rsvp.Answer.Wait)) => {
-                                            <span>No remaining place</span>
-                                        }
-                                        case (false, None) => {
-                                            @event.maxAttendee.map { nb => <span>@Formats.plural(nb - yesRsvp, "remaining place")</span> }
-                                        }
-                                    }
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
+@container_theme(event.name.value + " - " + group.name.value + " - Gospeak", b)() {
+<div class="container">
+    <div class="border-bottom">
+        <div class="media mb-5">
+            <div class="u-lg-avatar mr-4">
+                @group.logo.map { logo => <img src="@logo.url.value" alt="@group.name.value logo" class="img-fluid rounded-circle" width="160" height="160"/> }
             </div>
-        </div>
 
-        <div class="container">
-            <div class="border-bottom space-2">
+            <div class="media-body">
                 <div class="row">
-                    <div class="col-lg-8 mb-9 mb-lg-0">
-                        <div class="mb-4">
-                            <h2 class="h5">Description</h2>
-                        </div>
-
-                        <div class="mb-7">
-                            @markdown(description)
-                        </div>
-
-                        @if(event.talks.nonEmpty) {
-                            <div class="mb-4">
-                                <h2 class="h5">Talks</h2>
-                            </div>
-                            <div class="row">
-                                <div class="col">
-                                @event.talks.toList.flatMap(id => proposals.find(_.id == id)).map { talk =>
-                                    <div class="card mb-3">
-                                        <div class="card-body d-flex justify-content-between align-items-center">
-                                            <h5 class="card-title mb-0">
-                                                <a href="@GroupCtrl.talk(group.slug, talk.id)">@talk.title.value</a>
-                                                <small>@talk.speakers.toList.map { id => @speaker(speakers, id, s => Some(SpeakerCtrl.detail(s.slug)).filter(_ => s.isPublic)) }</small>
-                                            </h5>
-                                            <span>
-                                                @slidesIcon(talk.slides)
-                                                @videoIcon(talk.video)
-                                            </span>
-                                        </div>
-                                    </div>
-                                }
-                                </div>
-                            </div>
-                        }
-
-                        <div class="mb-4">
-                            <h2 class="h5">Comments</h2>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                            @commentSection(comments, commentForm, GroupCtrl.doSendComment(group.slug, event.slug), GroupCtrl.event(group.slug, event.slug))
-                            </div>
-                        </div>
-
-
+                    <div class="col-lg-6 mb-3 mb-lg-0">
+                        <h1 class="h4 mb-1">@event.name.value@event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }</h1>
+                        <!-- Review -->
+                        <span class="text-primary font-size-1">
+                            <i class="fas fa-calendar-day"></i> @Formats.dateFull(event.start)<br>
+                            <i class="fas fa-clock"></i> @Formats.time(event.start)
+                        </span>
                     </div>
 
-                    <div class="col-lg-4">
-                        <div class="pl-lg-4">
-                            <div class="card border-0 shadow-sm mb-3">
-                                <div class="card-body pt-1 px-5 pt-5 pb-5">
-                                    @event.venue.map { v =>
-                                        <div class="row ">
-                                            <img class="u-clients mx-auto mb-4" src="@v.partner.logo.value" alt="@v.partner.name.value logo">
-                                        </div>
-                                        <div class="media mb-3">
-                                            <div class="min-width-4 text-center text-primary mt-1 mr-3">
-                                                <span class="fas fa-map-marked-alt"></span>
-                                            </div>
-                                            <div class="media-body">
-                                                <span class="d-block font-weight-medium">@v.partner.name.value</span>
-                                                <small class="d-block text-secondary"> @address(v.address)</small>
-                                            </div>
-                                        </div>
-                                    }
-                                    <div class="media mb-3">
-                                        <div class="min-width-4 text-center text-primary mt-1 mr-3">
-                                            <span class="fas fa-clock"></span>
-                                        </div>
-                                        <div class="media-body">
-                                            <span class="d-block font-weight-medium">@Formats.date(event.start)</span>
-                                            <small class="d-block text-secondary">@Formats.time(event.start)</small>
-                                        </div>
+                    <div class="col-lg-6 text-lg-right">
+                        <div class="d-flex justify-content-md-end align-items-center">
+                            @(event.isPast(req.now), userRsvp.map(_.answer)) match {
+                                case (true, Some(Event.Rsvp.Answer.Yes)) => {You were there}
+                                case (true, Some(Event.Rsvp.Answer.No)) => {Event is past}
+                                case (true, Some(Event.Rsvp.Answer.Wait)) => {You were on waiting list}
+                                case (true, None) => {}
+                                case (false, Some(Event.Rsvp.Answer.Yes)) => {
+                                    <div class="d-inline-block mr-2">
+                                        <a class="btn btn-sm btn-soft-secondary transition-3d-hover px-5 mx-2" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)">No</a>
                                     </div>
-
-                                    <div class="media mb-3">
-                                        <div class="min-width-4 text-center text-primary mt-1 mr-3">
-                                            <span class="fas fa-users"></span>
-                                        </div>
-                                        <div class="media-body">
-                                            <span class="d-block font-weight-normal">
-                                                @if(event.allowRsvp) {
-                                                    <span>@yesRsvp people going</span>
-                                                }
-                                            </span>
-                                        </div>
+                                    <a class="btn btn-sm btn-primary transition-3d-hover px-5" href="#">Yes</a>
+                                }
+                                case (false, Some(Event.Rsvp.Answer.No)) => {
+                                    <div class="d-inline-block mr-2">
+                                        <a class="btn btn-sm btn-danger transition-3d-hover px-5 mx-2" href="#">No</a>
                                     </div>
-                                    <div class="media mb-3">
-                                        @event.venue.map { v =>
-                                        <div class="media-body">
-
-                                            <h4 class="h6">More about @v.partner.name.value</h4>
-
-                                            <p class="font-size-1 mb-0">@v.partner.description.map(c => c.value)</p>
-                                        </div>
-                                    }
+                                    <a class="btn btn-sm btn-soft-primary transition-3d-hover px-5" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.Yes)">Yes</a>
+                                }
+                                case (false, Some(Event.Rsvp.Answer.Wait)) => {
+                                    <div class="d-inline-block mr-2">
+                                        <a class="btn btn-sm btn-soft-secondary transition-3d-hover px-5 mx-2" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)">No</a>
                                     </div>
-                                </div>
-                            </div>
-
-                            <div class="pt-3 mb-3">
-                            @if(event.allowRsvp) {
-                                <div class="mb-2">
-                                    <h2 class="h5">@yesRsvp Attendes</h2>
-                                </div>
-                                @if(rsvps.nonEmpty) {
-                                    @rsvps.sortBy(_.answer).map { rsvp =>
-                                        <div class="card card-frame mb-1">
-                                            <div class="card-body">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <span><img src="@rsvp.user.avatar.url.value" alt="" class="img-fluid rounded-circle avatar mr-3" width="35" height="35"/> @rsvp.user.name.value</span>
-                                                    @rsvp.answer match {
-                                                        case Event.Rsvp.Answer.Yes => {<span class="badge badge-success">Yes</span>}
-                                                        case Event.Rsvp.Answer.No => {<span class="badge badge-danger">No</span>}
-                                                        case Event.Rsvp.Answer.Wait => {<span class="badge badge-secondary">List d'attente</span>}
-                                                    }
-                                                </div>
-                                            </div>
-                                        </div>
-                                    }
+                                    <a class="btn btn-sm btn-soft-primary transition-3d-hover px-5" href="#">Waiting list</a>
+                                }
+                                case (false, None) => {
+                                    <div class="d-inline-block mr-2">
+                                        <a class="btn btn-sm btn-soft-secondary transition-3d-hover px-5 mx-2" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)">No</a>
+                                    </div>
+                                    <a class="btn btn-sm btn-soft-primary transition-3d-hover px-5" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.Yes)">Yes</a>
                                 }
                             }
+                        </div>
+                        <div class="space-bottom-1 mt-1">
+                            <div class="small text-right text-secondary">
+                                @(event.isPast(req.now), userRsvp.map(_.answer)) match {
+                                    case (true, Some(Event.Rsvp.Answer.Yes)) => {}
+                                    case (true, Some(Event.Rsvp.Answer.No)) => {}
+                                    case (true, Some(Event.Rsvp.Answer.Wait)) => {}
+                                    case (true, None) => {}
+                                    case (false, Some(Event.Rsvp.Answer.Yes)) => {
+                                        @event.maxAttendee.map { nb => <span>@Formats.plural(nb - yesRsvp, "remaining place")</span> }
+                                    }
+                                    case (false, Some(Event.Rsvp.Answer.No)) => {
+                                        @event.maxAttendee.map { nb => <span>@Formats.plural(nb - yesRsvp, "remaining place")</span> }
+                                    }
+                                    case (false, Some(Event.Rsvp.Answer.Wait)) => {
+                                        <span>No remaining place</span>
+                                    }
+                                    case (false, None) => {
+                                        @event.maxAttendee.map { nb => <span>@Formats.plural(nb - yesRsvp, "remaining place")</span> }
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="border-bottom space-2">
+        <div class="row">
+            <div class="col-lg-8 mb-9 mb-lg-0">
+                <div class="mb-4">
+                    <h2 class="h5">Description</h2>
+                </div>
+
+                <div class="mb-7">
+                    @markdown(description)
+                </div>
+
+                @if(event.talks.nonEmpty) {
+                    <div class="mb-4">
+                        <h2 class="h5">Talks</h2>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            @event.talks.toList.flatMap(id => proposals.find(_.id == id)).map { talk =>
+                                <div class="card mb-3">
+                                    <div class="card-body d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title mb-0">
+                                            <a href="@GroupCtrl.talk(group.slug, talk.id)">@talk.title.value</a>
+                                            <small>@talk.speakers.toList.map { id => @speaker(speakers, id, s => Some(SpeakerCtrl.detail(s.slug)).filter(_ => s.isPublic)) }</small>
+                                        </h5>
+                                        <span>
+                                            @slidesIcon(talk.slides)
+                                            @videoIcon(talk.video)
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="mb-4">
+                    <h2 class="h5">Comments</h2>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        @commentSection(comments, commentForm, GroupCtrl.doSendComment(group.slug, event.slug), GroupCtrl.event(group.slug, event.slug))
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="pl-lg-4">
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-body pt-1 px-5 pt-5 pb-5">
+                            @event.venue.map { v =>
+                                <div class="row ">
+                                    <img class="u-clients mx-auto mb-4" src="@v.partner.logo.value" alt="@v.partner.name.value logo">
+                                </div>
+                                <div class="media mb-3">
+                                    <div class="min-width-4 text-center text-primary mt-1 mr-3"><span class="fas fa-map-marked-alt"></span></div>
+                                    <div class="media-body">
+                                        <span class="d-block font-weight-medium">@v.partner.name.value</span>
+                                        <small class="d-block text-secondary"> @address(v.address)</small>
+                                    </div>
+                                </div>
+                            }
+                            <div class="media mb-3">
+                                <div class="min-width-4 text-center text-primary mt-1 mr-3"><span class="fas fa-clock"></span></div>
+                                <div class="media-body">
+                                    <span class="d-block font-weight-medium">@Formats.date(event.start)</span>
+                                    <small class="d-block text-secondary">@Formats.time(event.start)</small>
+                                </div>
+                            </div>
+
+                            <div class="media mb-3">
+                                <div class="min-width-4 text-center text-primary mt-1 mr-3"><span class="fas fa-users"></span></div>
+                                <div class="media-body">
+                                    <span class="d-block font-weight-normal">
+                                        @if(event.allowRsvp) {
+                                            <span>@yesRsvp people going</span>
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="media mb-3">
+                                @event.venue.map { v =>
+                                    <div class="media-body">
+                                        <h4 class="h6">More about @v.partner.name.value</h4>
+                                        <p class="font-size-1 mb-0">@v.partner.description.map(c => c.value)</p>
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>
 
+                    <div class="pt-3 mb-3">
+                        @if(event.allowRsvp) {
+                            <div class="mb-2">
+                                <h2 class="h5">@yesRsvp Attendes</h2>
+                            </div>
+                            @if(rsvps.nonEmpty) {
+                                @rsvps.sortBy(_.answer).map { rsvp =>
+                                    <div class="card card-frame mb-1">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span><img src="@rsvp.user.avatar.url.value" alt="" class="img-fluid rounded-circle avatar mr-3" width="35" height="35"/> @rsvp.user.name.value</span>
+                                                @rsvp.answer match {
+                                                    case Event.Rsvp.Answer.Yes => {<span class="badge badge-success">Yes</span>}
+                                                    case Event.Rsvp.Answer.No => {<span class="badge badge-danger">No</span>}
+                                                    case Event.Rsvp.Answer.Wait => {<span class="badge badge-secondary">List d'attente</span>}
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        }
+                    </div>
                 </div>
-
             </div>
         </div>
+    </div>
+</div>
 }()

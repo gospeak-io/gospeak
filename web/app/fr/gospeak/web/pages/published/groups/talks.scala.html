@@ -24,13 +24,13 @@
         </div>
     </div>
 }
-@container_theme(group.name.value + " - Gospeak", b)() {
-        <div class="row">
-            @groupCard(group, speakerCount, cfps, events, sponsors, packs, orgas, userMembership)(b)
+@container_theme(group.name.value + " talks - Gospeak", b)() {
+<div class="row">
+    @groupCard(group, speakerCount, cfps, events, sponsors, packs, orgas, userMembership)(b)
 
-            <div class="col-lg-8 m">
-                <h3>@Formats.plural(talks.total.value, "talk") given at @group.name.value</h3>
-                @Formats.paginated[Proposal.Full](talks, GroupCtrl.talks(group.slug, _), t => talkItem(group, t, speakers))
-            </div>
-        </div>
+    <div class="col-lg-8 m">
+        <h3>@Formats.plural(talks.total.value, "talk") given at @group.name.value</h3>
+        @Formats.paginated[Proposal.Full](talks, GroupCtrl.talks(group.slug, _), t => talkItem(group, t, speakers))
+    </div>
+</div>
 }()
