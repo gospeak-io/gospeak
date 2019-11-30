@@ -63,7 +63,7 @@ class GroupCtrl(cc: ControllerComponents,
         .map(_ => "success" -> s"You are now a member of <b>${groupElt.name.value}</b>")
         .recover { case NonFatal(e) => "error" -> s"Can't join <b>${groupElt.name.value}</b>: ${e.getMessage}" })
         .getOrElse(IO.pure("success" -> s"You are already a member of <b>${groupElt.name.value}</b>")))
-      next = Redirect(routes.GroupCtrl.detail(group)).flashing(msg)
+      next = redirectToPreviousPageOr(routes.GroupCtrl.detail(group)).flashing(msg)
     } yield next).value.map(_.getOrElse(publicGroupNotFound(group)))
   })
 
@@ -75,7 +75,7 @@ class GroupCtrl(cc: ControllerComponents,
         .map(_ => "success" -> s"You have leaved <b>${groupElt.name.value}</b>")
         .recover { case NonFatal(e) => "error" -> s"Can't leave <b>${groupElt.name.value}</b>, error: ${e.getMessage}" })
         .getOrElse(IO.pure("error" -> s"You are not a member of <b>${groupElt.name.value}</b>")))
-      next = Redirect(routes.GroupCtrl.detail(group)).flashing(msg)
+      next = redirectToPreviousPageOr(routes.GroupCtrl.detail(group)).flashing(msg)
     } yield next).value.map(_.getOrElse(publicGroupNotFound(group)))
   })
 
@@ -117,12 +117,13 @@ class GroupCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.speakers.toList).distinct))
       comments <- OptionT.liftF(commentRepo.getComments(eventElt.id))
       yesRsvp <- OptionT.liftF(eventRepo.countYesRsvp(eventElt.id))
+      userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
       userRsvp <- OptionT.liftF(req.user.map(_.id).map(eventRepo.findRsvp(eventElt.id, _)).sequence.map(_.flatten))
       rsvps <- OptionT.liftF(eventRepo.listRsvps(eventElt.id))
       data = builder.buildEventInfo(eventElt, cfpElt, proposals.map(_.proposal), speakers)
       description = templateSrv.render(eventElt.description, data).getOrElse(Markdown(eventElt.description.value))
       b = breadcrumbEvent(groupElt, eventElt)
-      res = Ok(html.event(groupElt, eventElt, description, proposals, speakers, comments, commentForm, yesRsvp, userRsvp, rsvps)(b))
+      res = Ok(html.event(groupElt, eventElt, description, proposals, speakers, comments, commentForm, yesRsvp, userMembership, userRsvp, rsvps)(b))
     } yield res).value.map(_.getOrElse(publicEventNotFound(group, event)))
   }
 

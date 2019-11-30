@@ -40,7 +40,10 @@ abstract class UICtrl(cc: ControllerComponents,
   }
 
   protected def redirectToPreviousPageOr[A](default: => Call)(implicit req: Request[A]): Result = {
-    HttpUtils.getReferer(req.headers).map(Redirect(_)).getOrElse(Redirect(default))
+    HttpUtils.getReferer(req.headers)
+      .filterNot(url => url.contains("login") || url.contains("signup"))
+      .map(Redirect(_))
+      .getOrElse(Redirect(default))
   }
 
   // orga redirects

@@ -3,13 +3,14 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.html._
+@import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.pages.published.partials.html.container_theme
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 
-@(group: Group, event: Event.Full, description: Markdown, proposals: Seq[Proposal.Full], speakers: Seq[User], comments: Seq[Comment.Full], commentForm: Form[Comment.Data], yesRsvp: Long, userRsvp: Option[Event.Rsvp], rsvps: Seq[Event.Rsvp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(group: Group, event: Event.Full, description: Markdown, proposals: Seq[Proposal.Full], speakers: Seq[User], comments: Seq[Comment.Full], commentForm: Form[Comment.Data], yesRsvp: Long, userMembership: Option[Group.Member], userRsvp: Option[Event.Rsvp], rsvps: Seq[Event.Rsvp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container_theme(event.name.value + " - " + group.name.value + " - Gospeak", b)() {
 <div class="container">
     <div class="border-bottom">
@@ -185,22 +186,30 @@
                     <div class="pt-3 mb-3">
                         @if(event.allowRsvp) {
                             <div class="mb-2">
-                                <h2 class="h5">@yesRsvp Attendes</h2>
+                                <h2 class="h5">@Formats.plural(yesRsvp, "attendee")</h2>
                             </div>
                             @if(rsvps.nonEmpty) {
-                                @rsvps.sortBy(_.answer).map { rsvp =>
-                                    <div class="card card-frame mb-1">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <span><img src="@rsvp.user.avatar.url.value" alt="" class="img-fluid rounded-circle avatar mr-3" width="35" height="35"/> @rsvp.user.name.value</span>
-                                                @rsvp.answer match {
-                                                    case Event.Rsvp.Answer.Yes => {<span class="badge badge-success">Yes</span>}
-                                                    case Event.Rsvp.Answer.No => {<span class="badge badge-danger">No</span>}
-                                                    case Event.Rsvp.Answer.Wait => {<span class="badge badge-secondary">List d'attente</span>}
-                                                }
+                                @userMembership.map { member =>
+                                    @rsvps.sortBy(_.answer).map { rsvp =>
+                                        <div class="card card-frame mb-1">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span><img src="@rsvp.user.avatar.url.value" alt="" class="img-fluid rounded-circle avatar mr-3" width="35" height="35"/> @rsvp.user.name.value</span>
+                                                    @rsvp.answer match {
+                                                        case Event.Rsvp.Answer.Yes => {<span class="badge badge-success">Yes</span>}
+                                                        case Event.Rsvp.Answer.No => {<span class="badge badge-danger">No</span>}
+                                                        case Event.Rsvp.Answer.Wait => {<span class="badge badge-secondary">List d'attente</span>}
+                                                    }
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    }
+                                }.getOrElse {
+                                    <p>
+                                        You must belong to the group to see who is coming.<br>
+                                        <a class="btn btn-xs btn-soft-secondary transition-3d-hover mr-1" href="@AuthCtrl.login(Some(GroupCtrl.event(group.slug, event.slug).toString))">Login</a>
+                                        <a class="btn btn-xs btn-soft-success transition-3d-hover mr-1" href="@GroupCtrl.doJoin(group.slug)">Join this group</a>
+                                    </p>
                                 }
                             }
                         }
