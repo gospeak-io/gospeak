@@ -7,9 +7,10 @@ import fr.gospeak.infra.libs.meetup.MeetupClient.Conf
 import fr.gospeak.infra.libs.meetup.domain.{MeetupEvent, MeetupToken, MeetupVenue}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Geo, Secret}
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class MeetupClientSpec extends FunSpec with Matchers {
+class MeetupClientSpec extends AnyFunSpec with Matchers {
   private val redirectUri = "http://localhost:9000/u/groups/ht-paris/settings/meetup-oauth2"
   private val localConf = Conf("...", Secret("..."))
   private val client = new MeetupClient(localConf, "http://localhost:9000", false)

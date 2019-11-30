@@ -1,8 +1,9 @@
 package fr.gospeak.infra.services.storage.sql
 
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class TablesSpec extends FunSpec with Matchers {
+class TablesSpec extends AnyFunSpec with Matchers {
   describe("Tables") {
     it("should not have duplicate name or prefix") {
       val names = Tables.all.map(_.value)

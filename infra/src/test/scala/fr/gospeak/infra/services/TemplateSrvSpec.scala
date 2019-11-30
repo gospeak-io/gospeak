@@ -6,9 +6,10 @@ import fr.gospeak.infra.services.TemplateSrvSpec._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.{Encoder, Json}
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class TemplateSrvSpec extends FunSpec with Matchers {
+class TemplateSrvSpec extends AnyFunSpec with Matchers {
   private val srv = new TemplateSrv
 
   describe("MustacheTemplateSrv") {

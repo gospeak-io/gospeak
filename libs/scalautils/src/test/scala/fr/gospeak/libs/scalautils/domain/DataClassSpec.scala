@@ -1,8 +1,9 @@
 package fr.gospeak.libs.scalautils.domain
 
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class DataClassSpec extends FunSpec with Matchers {
+class DataClassSpec extends AnyFunSpec with Matchers {
 
   class Id(value: String) extends DataClass(value) with IId
 

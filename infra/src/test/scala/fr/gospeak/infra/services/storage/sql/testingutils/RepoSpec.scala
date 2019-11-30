@@ -16,9 +16,11 @@ import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, 
 import fr.gospeak.infra.testingutils.Values
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
-import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterEach with RandomDataGenerator {
+class RepoSpec extends AnyFunSpec with Matchers with IOChecker with BeforeAndAfterEach with RandomDataGenerator {
   protected val db: GospeakDbSql = Values.db
   val transactor: doobie.Transactor[IO] = db.xa
   protected val userRepo: UserRepoSql = db.user

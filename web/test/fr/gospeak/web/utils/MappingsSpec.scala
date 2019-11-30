@@ -10,13 +10,14 @@ import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.utils.Mappings._
-import org.scalatest.{FunSpec, Matchers}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.data.FormError
 
 import scala.concurrent.duration.FiniteDuration
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
+class MappingsSpec extends AnyFunSpec with Matchers with ScalaCheckPropertyChecks {
   private val timeshape = TimeShape.create().get
 
   describe("Mappings") {

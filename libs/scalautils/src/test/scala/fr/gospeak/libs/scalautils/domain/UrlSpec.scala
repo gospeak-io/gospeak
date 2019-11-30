@@ -1,8 +1,9 @@
 package fr.gospeak.libs.scalautils.domain
 
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class UrlSpec extends FunSpec with Matchers {
+class UrlSpec extends AnyFunSpec with Matchers {
   private val full = "http://sub.domain.ext/path/to/file?p1=value&p2=other#fragment"
 
   describe("Url") {

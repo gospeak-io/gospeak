@@ -3,9 +3,10 @@ package fr.gospeak.web.utils
 import fr.gospeak.core.domain.UserRequest
 import fr.gospeak.libs.scalautils.domain.{Page, Url}
 import fr.gospeak.web.utils.QueryStringBindables._
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class QueryStringBindablesSpec extends FunSpec with Matchers {
+class QueryStringBindablesSpec extends AnyFunSpec with Matchers {
   describe("QueryStringBindables") {
     it("should bind & unbind a Page.Params when no params") {
       val params = Page.Params()

@@ -1,9 +1,10 @@
 package fr.gospeak.web.utils
 
 import fr.gospeak.libs.scalautils.domain.{Html, Markdown}
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class MarkdownUtilsSpec extends FunSpec with Matchers {
+class MarkdownUtilsSpec extends AnyFunSpec with Matchers {
   describe("MarkdownUtils") {
     it("should parse and render basic markdown") {
       MarkdownUtils.render(Markdown(

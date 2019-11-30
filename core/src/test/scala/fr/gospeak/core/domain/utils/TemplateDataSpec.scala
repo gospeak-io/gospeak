@@ -1,9 +1,10 @@
 package fr.gospeak.core.domain.utils
 
 import fr.gospeak.core.domain.Group
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class TemplateDataSpec extends FunSpec with Matchers {
+class TemplateDataSpec extends AnyFunSpec with Matchers {
   describe("TemplateData") {
     describe("Ref") {
       describe("from") {

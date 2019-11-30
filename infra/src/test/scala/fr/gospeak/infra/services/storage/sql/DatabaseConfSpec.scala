@@ -1,9 +1,10 @@
 package fr.gospeak.infra.services.storage.sql
 
 import fr.gospeak.libs.scalautils.domain.Secret
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class DatabaseConfSpec extends FunSpec with Matchers {
+class DatabaseConfSpec extends AnyFunSpec with Matchers {
   describe("DatabaseConf") {
     describe("from") {
       it("should parse a H2 url") {

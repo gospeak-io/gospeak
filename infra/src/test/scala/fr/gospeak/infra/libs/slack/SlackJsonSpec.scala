@@ -4,9 +4,10 @@ import fr.gospeak.infra.libs.slack.SlackJson._
 import fr.gospeak.infra.libs.slack.domain.{SlackChannel, SlackMessage, SlackTokenInfo, SlackUser}
 import fr.gospeak.libs.scalautils.FileUtils
 import io.circe.parser.decode
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class SlackJsonSpec extends FunSpec with Matchers {
+class SlackJsonSpec extends AnyFunSpec with Matchers {
   private val basePath = Some("infra/src/test/resources/slack").filter(FileUtils.exists).getOrElse("src/test/resources/slack")
 
   describe("SlackJson") {

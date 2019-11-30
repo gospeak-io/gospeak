@@ -1,9 +1,10 @@
 package fr.gospeak.infra.libs.slack
 
 import fr.gospeak.infra.libs.slack.domain.{SlackSender, SlackToken}
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class SlackClientSpec extends FunSpec with Matchers {
+class SlackClientSpec extends AnyFunSpec with Matchers {
   private val token = SlackToken("...")
   private val sender = SlackSender.Bot("Gospeak test", None)
   private val client = new SlackClient

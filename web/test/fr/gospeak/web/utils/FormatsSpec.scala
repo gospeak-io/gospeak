@@ -2,11 +2,12 @@ package fr.gospeak.web.utils
 
 import java.time.Instant
 
-import org.scalatest.{FunSpec, Matchers}
 
 import scala.concurrent.duration._
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class FormatsSpec extends FunSpec with Matchers {
+class FormatsSpec extends AnyFunSpec with Matchers {
   private val i = Instant.ofEpochMilli(1549115209899L)
 
   describe("Formats") {

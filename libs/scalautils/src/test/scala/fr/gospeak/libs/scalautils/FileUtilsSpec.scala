@@ -1,8 +1,9 @@
 package fr.gospeak.libs.scalautils
 
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class FileUtilsSpec extends FunSpec with Matchers {
+class FileUtilsSpec extends AnyFunSpec with Matchers {
   private val path = "libs/scalautils/target/test/test.txt"
 
   describe("FileUtils") {

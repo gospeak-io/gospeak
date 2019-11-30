@@ -1,9 +1,10 @@
 package fr.gospeak.libs.scalautils
 
 import fr.gospeak.libs.scalautils.StringUtils._
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class StringUtilsSpec extends FunSpec with Matchers {
+class StringUtilsSpec extends AnyFunSpec with Matchers {
   describe("StringUtils") {
     describe("leftPad") {
       it("should pad Strings") {

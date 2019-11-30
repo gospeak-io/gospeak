@@ -8,11 +8,12 @@ import fr.gospeak.infra.services.storage.sql.GospeakDbSql
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.AuthSrv
-import org.scalatest.{FunSpec, Matchers}
 import play.api.mvc._
 import play.api.test.NoMaterializer
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-trait CtrlSpec extends FunSpec with Matchers {
+trait CtrlSpec extends AnyFunSpec with Matchers {
   // play
   protected val cc: ControllerComponents = Values.cc
 

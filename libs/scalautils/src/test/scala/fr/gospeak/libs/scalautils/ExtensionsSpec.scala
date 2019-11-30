@@ -2,11 +2,12 @@ package fr.gospeak.libs.scalautils
 
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.CustomException
-import org.scalatest.{FunSpec, Matchers}
 
 import scala.util.{Failure, Success}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class ExtensionsSpec extends FunSpec with Matchers {
+class ExtensionsSpec extends AnyFunSpec with Matchers {
   describe("Extensions") {
     describe("TraversableOnceExtension") {
       describe("swap") {
