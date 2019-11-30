@@ -16,7 +16,7 @@
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.OrgaReq
 
-@(event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Slug], notesForm: Form[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Id], notesForm: Form[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(event.name.value + " - Gospeak", b)() {
     @if(!event.isPublic) {
         <div class="alert alert-info" role="alert">
@@ -156,6 +156,7 @@
                     @inputSelect(cfpForm("cfp"), Seq(), Seq(
                         "placeholder" -> "-- Attach a CFP to this event",
                         "remote" -> SuggestCtrl.suggestCfps(req.group.slug).toString,
+                        "style" -> "width: 500px",
                         "optional" -> ""))
                     @btnSubmit("Attach a CFP", "btn btn-primary ml-2")
                     <span class="ml-2">or</span>

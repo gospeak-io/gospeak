@@ -25,7 +25,7 @@ object EventForms {
 
   val notes: Form[String] = Form(single("notes" -> text))
 
-  val cfp: Form[Cfp.Slug] = Form(single("cfp" -> cfpSlug))
+  val cfp: Form[Cfp.Id] = Form(single("cfp" -> cfpId))
 
   final case class MeetupOptions(publish: Boolean, draft: Boolean)
 

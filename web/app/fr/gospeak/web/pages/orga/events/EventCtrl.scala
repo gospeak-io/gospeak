@@ -139,10 +139,7 @@ class EventCtrl(cc: ControllerComponents,
   def attachCfp(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     EventForms.cfp.bindFromRequest.fold(
       formWithErrors => IO.pure(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Unable to attach CFP: ${req.formatErrors(formWithErrors)}")),
-      cfp => (for {
-        cfpElt <- OptionT(cfpRepo.find(cfp))
-        _ <- OptionT.liftF(eventRepo.attachCfp(event, cfpElt.id))
-      } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(cfpNotFound(group, event, cfp)))
+      cfp => eventRepo.attachCfp(event, cfp).map(_ => Redirect(routes.EventCtrl.detail(group, event)))
     )
   })
 
