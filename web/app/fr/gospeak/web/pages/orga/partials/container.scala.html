@@ -28,11 +28,11 @@
                 <div class="navbar-nav">
                     @navbarLink(EventCtrl.list(req.group.slug), "data-hotkey" -> "1") {Events}
                     @navbarLink(CfpCtrl.list(req.group.slug), "data-hotkey" -> "2") {CFPs}
-                    @navbarLink(ProposalCtrl.list(req.group.slug), "data-hotkey" -> "3") {Proposals}
-                    @navbarLink(SpeakerCtrl.list(req.group.slug), "data-hotkey" -> "4") {Speakers}
-                    @navbarLink(PartnerCtrl.list(req.group.slug), "data-hotkey" -> "5") {Partners}
-                    @navbarLink(VenueCtrl.list(req.group.slug), "data-hotkey" -> "6") {Venues}
-                    @navbarLink(SponsorCtrl.list(req.group.slug), "data-hotkey" -> "7") {Sponsors}
+                    @* @navbarLink(ProposalCtrl.list(req.group.slug), "data-hotkey" -> "3") {Proposals} *@
+                    @* @navbarLink(SpeakerCtrl.list(req.group.slug), "data-hotkey" -> "4") {Speakers} *@
+                    @navbarLink(PartnerCtrl.list(req.group.slug), "data-hotkey" -> "3") {Partners}
+                    @* @navbarLink(VenueCtrl.list(req.group.slug), "data-hotkey" -> "6") {Venues} *@
+                    @* @navbarLink(SponsorCtrl.list(req.group.slug), "data-hotkey" -> "7") {Sponsors} *@
                 </div>
             </div>
             <form class="form-inline my-2 my-lg-0">
@@ -46,6 +46,7 @@
                     </a>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownSettings">
                         <a class="dropdown-item" href="@GroupCtrl.contactMembers(req.group.slug)">Contact members</a>
+                        <a class="dropdown-item" href="@SponsorCtrl.list(req.group.slug)">Sponsors</a>
                         <a class="dropdown-item" href="@SettingsCtrl.settings(req.group.slug)" data-hotkey="g s">Settings</a>
                     </div>
                 </div>
