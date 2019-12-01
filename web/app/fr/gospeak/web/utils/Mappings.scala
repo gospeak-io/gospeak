@@ -14,7 +14,7 @@ import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
+import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.utils.Extensions._
 import fr.gospeak.web.utils.Mappings.Utils._
@@ -137,6 +137,7 @@ object Mappings {
         s"$key.utcOffset" -> Some(value.utcOffset.toString)
       ).collect { case (k, Some(v)) => (k, v) }.toMap
   })
+
   val socialAccounts: Mapping[SocialAccounts] = mapping(
     "facebook" -> optional(url.transform[FacebookAccount](FacebookAccount, _.url)),
     "instagram" -> optional(url.transform[InstagramAccount](InstagramAccount, _.url)),
@@ -209,6 +210,21 @@ object Mappings {
 
   def template[A]: Mapping[MustacheMarkdownTmpl[A]] = of(templateFormatter)
 
+
+  private def templateTextFormatter[A]: Formatter[MustacheTextTmpl[A]] = new Formatter[MustacheTextTmpl[A]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], MustacheTextTmpl[A]] =
+      data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
+        case "Mustache" => data.get(s"$key.value").map(v => Right(MustacheTextTmpl[A](v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
+        case v => Left(Seq(FormError(s"$key.kind", s"Invalid value '$v' for key '$key.kind'")))
+      }
+
+    override def unbind(key: String, value: MustacheTextTmpl[A]): Map[String, String] = value match {
+      case MustacheTextTmpl(v) => Map(s"$key.kind" -> "Mustache", s"$key.value" -> v)
+    }
+  }
+
+  def templateText[A]: Mapping[MustacheTextTmpl[A]] = of(templateTextFormatter)
+
   val groupSettingsEvent: Mapping[Group.Settings.Action.Trigger] = of(new Formatter[Group.Settings.Action.Trigger] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action.Trigger] =
       data.eitherGetAndParse(key, v => Group.Settings.Action.Trigger.from(v).asTry(identity), formatError).left.map(Seq(_))
@@ -219,6 +235,11 @@ object Mappings {
   val groupSettingsAction: Mapping[Group.Settings.Action] = of(new Formatter[Group.Settings.Action] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action] = {
       data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
+        case "Email.Send" => (
+          templateTextFormatter.bind(s"$key.to", data),
+          templateTextFormatter.bind(s"$key.subject", data),
+          templateFormatter.bind(s"$key.content", data)
+          ).mapN(Group.Settings.Action.Email.apply)
         case "Slack.PostMessage" => (
           templateFormatter.bind(s"$key.channel", data),
           templateFormatter.bind(s"$key.message", data),
@@ -230,6 +251,11 @@ object Mappings {
     }
 
     override def unbind(key: String, value: Group.Settings.Action): Map[String, String] = value match {
+      case a: Group.Settings.Action.Email =>
+        Map(s"$key.kind" -> "Email.Send") ++
+          templateTextFormatter.unbind(s"$key.to", a.to) ++
+          templateTextFormatter.unbind(s"$key.subject", a.subject) ++
+          templateFormatter.unbind(s"$key.content", a.content)
       case Group.Settings.Action.Slack(p: SlackAction.PostMessage) =>
         Map(s"$key.kind" -> "Slack.PostMessage") ++
           templateFormatter.unbind(s"$key.channel", p.channel) ++

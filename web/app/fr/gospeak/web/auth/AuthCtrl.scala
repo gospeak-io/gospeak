@@ -6,11 +6,11 @@ import cats.implicits._
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
 import fr.gospeak.core.ApplicationConf
-import fr.gospeak.core.domain.{User, UserRequest}
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
 import fr.gospeak.core.domain.utils.Constants
+import fr.gospeak.core.domain.{User, UserRequest}
+import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
-import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.domain.{CustomException, EmailAddress}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}

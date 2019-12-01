@@ -1,12 +1,12 @@
-package fr.gospeak.web.utils
+package fr.gospeak.infra.services
 
 import fr.gospeak.libs.scalautils.domain.{Html, Markdown}
 import org.scalatest.{FunSpec, Matchers}
 
-class MarkdownUtilsSpec extends FunSpec with Matchers {
+class MarkdownSrvImplSpec extends FunSpec with Matchers {
   describe("MarkdownUtils") {
     it("should parse and render basic markdown") {
-      MarkdownUtils.render(Markdown(
+      MarkdownSrvImpl.render(Markdown(
         """# My title
           |
           |A paragraph with *italic*, **bold** and a list:
@@ -23,7 +23,7 @@ class MarkdownUtilsSpec extends FunSpec with Matchers {
         """.stripMargin.trim)
     }
     it("should escape raw html") {
-      MarkdownUtils.render(Markdown(
+      MarkdownSrvImpl.render(Markdown(
         """# No html
           |
           |<p>should be escaped</p>
@@ -33,7 +33,7 @@ class MarkdownUtilsSpec extends FunSpec with Matchers {
         """.stripMargin.trim)
     }
     it("should allows emoji") {
-      MarkdownUtils.render(Markdown("Use emoji, they are great :scream:")) shouldBe Html(
+      MarkdownSrvImpl.render(Markdown("Use emoji, they are great :scream:")) shouldBe Html(
         """<div class="markdown"><p>Use emoji, they are great 😱</p></div>
         """.stripMargin.trim)
     }

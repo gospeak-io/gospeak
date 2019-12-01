@@ -5,9 +5,9 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Group, UserRequest}
+import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.libs.timeshape.TimeShape
-import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -18,7 +18,7 @@ import fr.gospeak.web.pages.orga.settings.SettingsCtrl
 import fr.gospeak.web.pages.orga.settings.routes.{SettingsCtrl => SettingsRoutes}
 import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import fr.gospeak.web.utils.{HttpUtils, OrgaReq, UICtrl, UserReq}
+import fr.gospeak.web.utils.{OrgaReq, UICtrl, UserReq}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 

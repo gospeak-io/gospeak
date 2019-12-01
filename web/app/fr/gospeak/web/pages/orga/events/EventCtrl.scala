@@ -6,9 +6,10 @@ import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.OrgaCtx
+import fr.gospeak.core.services.TemplateSrv
+import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.infra.services.{EmailSrv, TemplateSrv}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, Html, Page}
 import fr.gospeak.web.auth.domain.CookieEnv

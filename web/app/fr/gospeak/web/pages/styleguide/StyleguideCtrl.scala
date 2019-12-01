@@ -9,7 +9,8 @@ import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{Constants, Info, SocialAccounts}
-import fr.gospeak.infra.services.{EmailSrv, GravatarSrv}
+import fr.gospeak.core.services.email.EmailSrv
+import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain._

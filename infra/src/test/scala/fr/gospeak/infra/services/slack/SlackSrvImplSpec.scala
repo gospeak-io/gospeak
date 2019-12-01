@@ -3,7 +3,7 @@ package fr.gospeak.infra.services.slack
 import fr.gospeak.core.services.slack.domain.{SlackCredentials, SlackToken}
 import fr.gospeak.infra.libs.slack.SlackClient
 import fr.gospeak.infra.libs.slack.domain.SlackError
-import fr.gospeak.infra.services.TemplateSrv
+import fr.gospeak.infra.services.TemplateSrvImpl
 import fr.gospeak.libs.scalautils.domain.Crypted
 import org.scalatest.{FunSpec, Matchers}
 
@@ -11,7 +11,7 @@ class SlackSrvImplSpec extends FunSpec with Matchers {
   private val token = SlackToken(Crypted("..."))
   private val creds = SlackCredentials(token, "Gospeak test", None)
   private val client = new SlackClient
-  private val srv = new SlackSrvImpl(client, new TemplateSrv)
+  private val srv = new SlackSrvImpl(client, new TemplateSrvImpl)
 
   describe("SlackSrvImpl") {
     describe("exec") {

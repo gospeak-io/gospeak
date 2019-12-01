@@ -1,0 +1,14 @@
+@import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.utils.OrgaReq
+
+@(field: Field, templateTarget: String)(implicit req: OrgaReq[AnyContent])
+@inputHidden(field("kind"), Seq("value" -> "Email.Send"))
+@fieldVertical(field("to"), Seq("label" -> "Recipient", "help" -> "Recipient email address")) { (field, args) =>
+    @inputTemplate(field, target = Some(templateTarget), multiline = false, markdown = false)
+}
+@fieldVertical(field("subject"), Seq("label" -> "Subject", "help" -> "Email subject")) { (field, args) =>
+    @inputTemplate(field, target = Some(templateTarget), multiline = false, markdown = false)
+}
+@fieldVertical(field("content"), Seq("label" -> "Message", "help" -> "Email message")) { (field, args) =>
+    @inputTemplate(field, target = Some(templateTarget))
+}

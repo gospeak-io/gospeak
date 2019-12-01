@@ -5,8 +5,8 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.UserRequest
+import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv

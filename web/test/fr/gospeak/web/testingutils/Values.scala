@@ -16,7 +16,8 @@ import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.infra.services.storage.sql.{DatabaseConf, GospeakDbSql}
-import fr.gospeak.infra.services.{GravatarSrv, InMemoryEmailSrv}
+import fr.gospeak.infra.services.GravatarSrv
+import fr.gospeak.infra.services.email.InMemoryEmailSrv
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv}

@@ -4,8 +4,8 @@ import cats.data.OptionT
 import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.OrgaCtx
+import fr.gospeak.core.services.TemplateSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.infra.services.TemplateSrv
 import fr.gospeak.libs.scalautils.domain.Markdown
 import fr.gospeak.web.domain.MessageBuilder
 import fr.gospeak.web.services.EventSrv.EventFull

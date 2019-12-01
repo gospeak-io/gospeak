@@ -1,6 +1,7 @@
 package fr.gospeak.infra.services
 
 import fr.gospeak.core.domain.utils.TemplateData
+import fr.gospeak.core.services.TemplateSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Markdown
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
@@ -8,23 +9,21 @@ import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto.deriveConfiguredEncoder
 import io.circe.{Encoder, Json, JsonNumber, JsonObject}
 
-class TemplateSrv {
-  def asData(data: TemplateData): Json = TemplateSrv.templateDataEncoder.apply(data)
-
+class TemplateSrvImpl extends TemplateSrv {
   def render[A <: TemplateData](tmpl: MustacheTextTmpl[A], data: A): Either[String, String] =
-    MustacheTemplateSrv.render(tmpl.value, data: TemplateData)(TemplateSrv.templateDataEncoder)
+    MustacheTemplateSrv.render(tmpl.value, data: TemplateData)(TemplateSrvImpl.templateDataEncoder)
 
   def render[A <: TemplateData](tmpl: MustacheMarkdownTmpl[A], data: A): Either[String, Markdown] =
-    MustacheTemplateSrv.render(tmpl.value, data: TemplateData)(TemplateSrv.templateDataEncoder).map(Markdown)
+    MustacheTemplateSrv.render(tmpl.value, data: TemplateData)(TemplateSrvImpl.templateDataEncoder).map(Markdown)
 
-  def render(tmpl: MustacheTextTmpl[Any]): Either[String, String] =
+  def render[A <: TemplateData](tmpl: MustacheTextTmpl[A]): Either[String, String] =
     MustacheTemplateSrv.render(tmpl.value, Json.obj())
 
-  def render(tmpl: MustacheMarkdownTmpl[Any]): Either[String, Markdown] =
+  def render[A <: TemplateData](tmpl: MustacheMarkdownTmpl[A]): Either[String, Markdown] =
     MustacheTemplateSrv.render(tmpl.value, Json.obj()).map(Markdown)
 }
 
-object TemplateSrv {
+object TemplateSrvImpl {
   private implicit val circeConfiguration: Configuration = Configuration.default.withDiscriminator("type")
   private implicit val strDateTimeEncoder: Encoder[TemplateData.StrDateTime] = deriveConfiguredEncoder[TemplateData.StrDateTime]
   private implicit val descriptionEncoder: Encoder[TemplateData.Description] = deriveConfiguredEncoder[TemplateData.Description]
@@ -45,6 +44,8 @@ object TemplateSrv {
   private implicit val eventInfoEncoder: Encoder[TemplateData.EventInfo] = deriveConfiguredEncoder[TemplateData.EventInfo]
 
   private implicit val templateDataEncoder: Encoder[TemplateData] = deriveConfiguredEncoder[TemplateData]
+
+  def asData(data: TemplateData): Json = templateDataEncoder.apply(data)
 }
 
 // cf https://github.com/eikek/yamusca

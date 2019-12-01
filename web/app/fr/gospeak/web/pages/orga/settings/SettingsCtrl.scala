@@ -6,12 +6,12 @@ import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, User, UserRequest}
+import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.meetup.domain.{MeetupCredentials, MeetupException, MeetupGroup}
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackCredentials
 import fr.gospeak.core.services.storage.{GroupSettingsRepo, OrgaGroupRepo, OrgaUserRepo, OrgaUserRequestRepo}
-import fr.gospeak.infra.services.EmailSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb

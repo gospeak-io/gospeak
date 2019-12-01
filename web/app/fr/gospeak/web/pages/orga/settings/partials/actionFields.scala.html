@@ -12,7 +12,7 @@
 <div class="row">
     <div class="col-7">
         @navVertical(actionForm("action"), field => Seq(
-            /* (field, "Email-Send", "Send an email", _ => Html("TODO")), */
+            (field, "Email-Send", "Send an email", actionFieldsEmailSend(_, actionForm("trigger").id)),
             (field, "Slack-PostMessage", "Post Slack message", actionFieldsSlackPostMessage(_, actionForm("trigger").id))
             /* (field, "Twitter-PostMessage", "Post a Twitt", _ => Html("TODO")) */
         ), 4)

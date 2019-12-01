@@ -346,12 +346,16 @@ object DoobieUtils {
       Meta[String].timap(fromJson[Map[String, MustacheTextTmpl[TemplateData.EventInfo]]](_).get)(toJson)
     }
     implicit val groupSettingsActionsMeta: Meta[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]] = {
+      implicit val textTemplateDecoder: Decoder[MustacheTextTmpl[TemplateData]] = deriveDecoder[MustacheTextTmpl[TemplateData]]
+      implicit val textTemplateEncoder: Encoder[MustacheTextTmpl[TemplateData]] = deriveEncoder[MustacheTextTmpl[TemplateData]]
       implicit val markdownTemplateDecoder: Decoder[MustacheMarkdownTmpl[TemplateData]] = deriveDecoder[MustacheMarkdownTmpl[TemplateData]]
       implicit val markdownTemplateEncoder: Encoder[MustacheMarkdownTmpl[TemplateData]] = deriveEncoder[MustacheMarkdownTmpl[TemplateData]]
       implicit val slackActionPostMessageDecoder: Decoder[SlackAction.PostMessage] = deriveDecoder[SlackAction.PostMessage]
       implicit val slackActionPostMessageEncoder: Encoder[SlackAction.PostMessage] = deriveEncoder[SlackAction.PostMessage]
       implicit val slackActionDecoder: Decoder[SlackAction] = deriveDecoder[SlackAction]
       implicit val slackActionEncoder: Encoder[SlackAction] = deriveEncoder[SlackAction]
+      implicit val groupSettingsActionEmailDecoder: Decoder[Group.Settings.Action.Email] = deriveDecoder[Group.Settings.Action.Email]
+      implicit val groupSettingsActionEmailEncoder: Encoder[Group.Settings.Action.Email] = deriveEncoder[Group.Settings.Action.Email]
       implicit val groupSettingsActionSlackDecoder: Decoder[Group.Settings.Action.Slack] = deriveDecoder[Group.Settings.Action.Slack]
       implicit val groupSettingsActionSlackEncoder: Encoder[Group.Settings.Action.Slack] = deriveEncoder[Group.Settings.Action.Slack]
       implicit val groupSettingsActionDecoder: Decoder[Group.Settings.Action] = deriveDecoder[Group.Settings.Action]

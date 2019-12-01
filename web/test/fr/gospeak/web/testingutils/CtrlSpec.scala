@@ -3,7 +3,7 @@ package fr.gospeak.web.testingutils
 import akka.stream.Materializer
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.infra.libs.timeshape.TimeShape
-import fr.gospeak.infra.services.InMemoryEmailSrv
+import fr.gospeak.infra.services.email.InMemoryEmailSrv
 import fr.gospeak.infra.services.storage.sql.GospeakDbSql
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv

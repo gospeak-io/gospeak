@@ -117,6 +117,7 @@ object Group {
     def owners: NonEmptyList[User.Id] = group.owners
 
     def social: SocialAccounts = group.social
+
     def tags: Seq[Tag] = group.tags
 
     def info: Info = group.info
@@ -195,6 +196,10 @@ object Group {
 
         val all: Seq[Trigger] = Seq(OnEventCreated, OnEventAddTalk, OnEventRemoveTalk, OnEventPublish, OnProposalCreated)
       }
+
+      final case class Email(to: MustacheTextTmpl[TemplateData],
+                             subject: MustacheTextTmpl[TemplateData],
+                             content: MustacheMarkdownTmpl[TemplateData]) extends Action
 
       final case class Slack(value: SlackAction) extends Action
 

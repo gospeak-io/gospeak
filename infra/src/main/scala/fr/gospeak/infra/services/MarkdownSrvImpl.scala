@@ -1,14 +1,19 @@
-package fr.gospeak.web.utils
+package fr.gospeak.infra.services
 
 import com.vladsch.flexmark.ext.emoji.{EmojiExtension, EmojiImageType}
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.data.MutableDataSet
+import fr.gospeak.core.services.MarkdownSrv
 import fr.gospeak.libs.scalautils.domain.{Html, Markdown}
 
 import scala.collection.JavaConverters._
 
-object MarkdownUtils {
+class MarkdownSrvImpl extends MarkdownSrv {
+  override def render(md: Markdown): Html = MarkdownSrvImpl.render(md)
+}
+
+object MarkdownSrvImpl {
   private val options = new MutableDataSet()
     // https://github.com/vsch/flexmark-java/wiki/Extensions#emoji
     .set(Parser.EXTENSIONS, Seq(EmojiExtension.create()).asJava)

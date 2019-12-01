@@ -11,7 +11,8 @@ import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackToken
 import fr.gospeak.core.services.storage._
-import fr.gospeak.infra.services.TemplateSrv
+import fr.gospeak.core.services.{MarkdownSrv, TemplateSrv}
+import fr.gospeak.infra.services.TemplateSrvImpl
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain.{Html, Page}
@@ -57,6 +58,7 @@ class SuggestCtrl(cc: ControllerComponents,
                   sponsorPackRepo: SuggestSponsorPackRepo,
                   externalCfpRepo: SuggestExternalCfpRepo,
                   templateSrv: TemplateSrv,
+                  markdownSrv: MarkdownSrv,
                   slackSrv: SlackSrv) extends ApiCtrl(cc, env) {
   private def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = SecuredActionIO(parse.anyContent)(block)
 
@@ -143,7 +145,7 @@ class SuggestCtrl(cc: ControllerComponents,
   def templateData(ref: TemplateData.Ref): Action[AnyContent] = SecuredActionIO { implicit req =>
     val data = TemplateData.Sample
       .fromRef(ref)
-      .map(templateSrv.asData)
+      .map(TemplateSrvImpl.asData)
       .map(circeToPlay)
       .getOrElse(Json.obj())
     IO.pure(Ok(Json.toJson(TemplateDataResponse(data))))
@@ -159,7 +161,7 @@ class SuggestCtrl(cc: ControllerComponents,
           .getOrElse(templateSrv.render(data.template))
         val res = template match {
           case Left(err) => TemplateResponse(None, Some(err))
-          case Right(tmpl) if data.markdown => TemplateResponse(Some(MarkdownUtils.render(tmpl)), None)
+          case Right(tmpl) if data.markdown => TemplateResponse(Some(markdownSrv.render(tmpl)), None)
           case Right(tmpl) => TemplateResponse(Some(Html(s"<pre>${HtmlFormat.escape(tmpl.value)}</pre>")), None)
         }
         IO.pure(Ok(Json.toJson(res)))
