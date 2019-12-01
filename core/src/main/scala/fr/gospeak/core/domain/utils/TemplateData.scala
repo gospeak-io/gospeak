@@ -78,12 +78,12 @@ object TemplateData {
         |
         |Vestibulum nisl mauris, congue eu blandit eget, scelerisque ut eros. In porta ultrices magna non consequat.
       """.stripMargin)
-    private val host = "https://gospeak.fr"
+    private val host = "https://gospeak.io"
     private val dateTime = date(LocalDateTime.of(2019, 9, 10, 19, 0, 0))
     private val user = User("john-doe", "John Doe", "John", "Doe", s"https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=${Constants.gravatarStyle}", "john.doe@mail.com")
     private val group = Group(s"$host/u/groups/humantalks-paris", Some(s"$host/groups/humantalks-paris"), "humantalks-paris", "HumanTalks Paris", description, Seq("tech"))
     private val cfp = Cfp(s"${group.link}/cfps/humantalks-paris", Some(s"$host/cfps/humantalks-paris"), "humantalks-paris", "HumanTalks Paris", description, Seq("tech"))
-    private val event = Event(s"${group.link}/events/2019-09", Some("TODO"), "2019-09", "HumanTalks Paris Septembre", description, dateTime, Seq("IOT", "UX", "Clean Code"))
+    private val event = Event(s"${group.link}/events/2019-09", group.publicLink.map(l => s"$l/events/2019-09"), "2019-09", "HumanTalks Paris Septembre", description, dateTime, Seq("IOT", "UX", "Clean Code"))
     private val proposal1 = Proposal(s"${cfp.link}/proposals/28f26543-1ab8-4749-b0ac-786d1bd76888", "The Scala revolution", description, None, None, Seq("scala", "fp"))
     private val proposal2 = Proposal(s"${cfp.link}/proposals/28f26543-1ab8-4749-b0ac-786d1bd76666", "Public speaking for everyone", description, None, None, Seq("social", "marketing"))
     private val eventVenue = EventVenue("Zeenea", "48 Rue de Ponthieu, 75008 Paris", "https://dataxday.fr/wp-content/uploads/2018/01/zeenea-logo.png", "https://maps.google.com/?cid=3360768160548514744")

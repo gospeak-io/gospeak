@@ -20,7 +20,7 @@ Finally, Gospeak will also gather a list of external CFPs (like big conferences)
 We really believe that public speaking is an awesome experience and we hope more and more people will do it.
 One of the **Gospeak** goal is to help everybody try public speaking and help them in the way.
 
-If you have any idea or suggestion about that, we will be happy to discuss it with you, feel free to reach us at [contact@gospeak.fr](mailto:contact@gospeak.fr) or [@GospeakApp](https://twitter.com/GospeakApp)
+If you have any idea or suggestion about that, we will be happy to discuss it with you, feel free to reach us at [contact@gospeak.io](mailto:contact@gospeak.io) or [@GospeakApp](https://twitter.com/GospeakApp)
 
 ## Dev
 

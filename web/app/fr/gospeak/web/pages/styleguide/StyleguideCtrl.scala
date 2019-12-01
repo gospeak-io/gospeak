@@ -62,7 +62,7 @@ class StyleguideCtrl(cc: ControllerComponents,
     name = Group.Name("A group"),
     logo = None,
     banner = None,
-    contact = Some(EmailAddress.from("contact@gospeak.fr").get),
+    contact = Some(EmailAddress.from("contact@gospeak.io").get),
     website = None,
     description = Markdown(
       """This is an **awesome** group, you should come and see us.

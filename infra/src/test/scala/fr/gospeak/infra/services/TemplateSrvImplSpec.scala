@@ -98,16 +98,16 @@ class TemplateSrvImplSpec extends FunSpec with Matchers {
             |
             |- **The Scala revolution** by *John Doe*
             |
-            |Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor odio vitae venenatis porta. Quisque cursus dolor augue, nec pharetra dolor ullamcorper id. [see more](https://gospeak.fr/groups/humantalks-paris/talks/28f26543-1ab8-4749-b0ac-786d1bd76888)
+            |Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor odio vitae venenatis porta. Quisque cursus dolor augue, nec pharetra dolor ullamcorper id. [see more](https://gospeak.io/groups/humantalks-paris/talks/28f26543-1ab8-4749-b0ac-786d1bd76888)
             |
             |
             |- **Public speaking for everyone** by *John Doe* and *Jane Doe*
             |
-            |Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor odio vitae venenatis porta. Quisque cursus dolor augue, nec pharetra dolor ullamcorper id. [see more](https://gospeak.fr/groups/humantalks-paris/talks/28f26543-1ab8-4749-b0ac-786d1bd76666)
+            |Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor odio vitae venenatis porta. Quisque cursus dolor augue, nec pharetra dolor ullamcorper id. [see more](https://gospeak.io/groups/humantalks-paris/talks/28f26543-1ab8-4749-b0ac-786d1bd76666)
             |
             |---
             |
-            |Propose your talks for the next sessions on [Gospeak](https://gospeak.fr/cfps/humantalks-paris)
+            |Propose your talks for the next sessions on [Gospeak](https://gospeak.io/cfps/humantalks-paris)
           """.stripMargin.trim
       }
       it("should do a nice fallback on error") {

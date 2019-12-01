@@ -9,8 +9,8 @@ object Constants {
   val gravatarStyle = "identicon"
 
   object Contact {
-    val admin: EmailAddress.Contact = EmailAddress.Contact(EmailAddress.from("contact@gospeak.fr").right.get, Some("Gospeak"))
-    val noReply: EmailAddress.Contact = EmailAddress.Contact(EmailAddress.from("noreply@gospeak.fr").right.get, Some("Gospeak"))
+    val admin: EmailAddress.Contact = EmailAddress.Contact(EmailAddress.from("contact@gospeak.io").right.get, Some("Gospeak"))
+    val noReply: EmailAddress.Contact = EmailAddress.Contact(EmailAddress.from("noreply@gospeak.io").right.get, Some("Gospeak"))
   }
 
   object Slack {

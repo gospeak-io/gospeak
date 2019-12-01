@@ -32,10 +32,10 @@ class MeetupSrvImplSpec extends FunSpec with Matchers {
             |""".stripMargin
       }
       it("should replace links with <a>") {
-        toSimpleHtml(Markdown("Here is a [link](https://gospeak.fr)")) shouldBe "Here is a https://gospeak.fr"
+        toSimpleHtml(Markdown("Here is a [link](https://gospeak.io)")) shouldBe "Here is a https://gospeak.io"
       }
       it("should replace images with url") {
-        toSimpleHtml(Markdown("Here is an ![image](https://gospeak.fr/icon.png)")) shouldBe "Here is an https://gospeak.fr/icon.png"
+        toSimpleHtml(Markdown("Here is an ![image](https://gospeak.io/icon.png)")) shouldBe "Here is an https://gospeak.io/icon.png"
       }
       it("should handle a full text") {
         val md = Markdown(
