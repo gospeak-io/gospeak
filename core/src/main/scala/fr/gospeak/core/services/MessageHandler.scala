@@ -30,7 +30,7 @@ class MessageHandler(appConf: ApplicationConf,
 
   private def handle(msg: GospeakMessage.TalkRemoved): IO[Int] = handleGroupEvent(msg.group.value.id, Trigger.OnEventRemoveTalk, TemplateData.talkRemoved(msg))
 
-  private def handle(msg: GospeakMessage.EventPublished): IO[Int] = IO.pure(0)
+  private def handle(msg: GospeakMessage.EventPublished): IO[Int] = handleGroupEvent(msg.group.value.id, Trigger.OnEventPublish, TemplateData.eventPublished(msg))
 
   private def handle(msg: GospeakMessage.ProposalCreated): IO[Int] = handleGroupEvent(msg.cfp.value.group, Trigger.OnProposalCreated, TemplateData.proposalCreated(msg))
 

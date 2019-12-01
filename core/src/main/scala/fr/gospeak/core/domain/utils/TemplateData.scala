@@ -9,6 +9,7 @@ import fr.gospeak.libs.scalautils.domain.CustomException
 
 /*
   Formatted data for user templates (mustache for example)
+  WARNING: updating theses classes may break some user templating, be careful!!!
  */
 sealed trait TemplateData extends Product with Serializable {
   val ref: TemplateData.Ref = TemplateData.Ref.from(getClass.getSimpleName).right.get
@@ -63,7 +64,7 @@ object TemplateData {
 
   final case class TalkRemoved(group: Group, event: Event, cfp: Cfp, proposal: Proposal, user: User) extends TemplateData
 
-  final case class EventPublished() extends TemplateData
+  final case class EventPublished(group: Group, event: Event, user: User) extends TemplateData
 
   final case class ProposalCreated(group: Group, cfp: Cfp, proposal: Proposal, user: User) extends TemplateData
 
@@ -94,7 +95,7 @@ object TemplateData {
     private val eventCreated = EventCreated(group = group, event = event, user = user)
     private val talkAdded = TalkAdded(group = group, event = event, cfp = cfp, proposal = proposal1, user = user)
     private val talkRemoved = TalkRemoved(group = group, event = event, cfp = cfp, proposal = proposal1, user = user)
-    private val eventPublished = EventPublished()
+    private val eventPublished = EventPublished(group = group, event = event, user = user)
     private val proposalCreated = ProposalCreated(group, cfp, proposal1, user)
     val eventInfo = EventInfo(group, event, Some(eventVenue), Some(cfp), Seq(eventTalk1, eventTalk2))
 
@@ -143,7 +144,7 @@ object TemplateData {
 
   def talkRemoved(msg: GospeakMessage.TalkRemoved): TalkRemoved = TalkRemoved(group(msg.group), event(msg.event), cfp(msg.cfp), proposal(msg.proposal), user(msg.user))
 
-  def eventPublished(msg: GospeakMessage.EventPublished): EventPublished = EventPublished()
+  def eventPublished(msg: GospeakMessage.EventPublished): EventPublished = EventPublished(group(msg.group), event(msg.event), user(msg.user))
 
   def proposalCreated(msg: GospeakMessage.ProposalCreated): ProposalCreated = ProposalCreated(group(msg.group), cfp(msg.cfp), proposal(msg.proposal), user(msg.user))
 

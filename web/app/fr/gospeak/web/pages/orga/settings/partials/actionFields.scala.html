@@ -1,4 +1,5 @@
 @import fr.gospeak.core.domain.Group
+@import fr.gospeak.core.domain.utils.TemplateData
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.AddAction
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
@@ -17,6 +18,6 @@
         ), 4)
     </div>
     <div class="col-5">
-    @displayTemplateData(target = Some(actionForm("trigger").id))
+        @displayTemplateData(ref = actionForm("trigger").value.flatMap(v => TemplateData.Ref.from(v).toOption), target = Some(actionForm("trigger").id))
     </div>
 </div>

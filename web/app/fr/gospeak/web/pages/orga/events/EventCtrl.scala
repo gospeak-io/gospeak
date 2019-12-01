@@ -207,6 +207,7 @@ class EventCtrl(cc: ControllerComponents,
         } else {
           OptionT.liftF(IO.pure(Seq.empty[Done]))
         }
+        _ <- OptionT.liftF(mb.publishEventPublished(e.event))
       } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))))
       .recover {
         case NonFatal(e) => Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"An error happened: ${e.getMessage}")

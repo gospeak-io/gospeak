@@ -17,6 +17,9 @@ class MessageBuilder {
   def buildTalkRemoved(event: Event, cfp: Cfp, proposal: Proposal)(implicit req: OrgaReq[AnyContent]): GospeakMessage.TalkRemoved =
     GospeakMessage.TalkRemoved(linked(req.group), linked(req.group, event), linked(req.group, cfp), linked(req.group, event, cfp, proposal), req.user)
 
+  def buildEventPublished(event: Event)(implicit req: OrgaReq[AnyContent]): GospeakMessage.EventPublished =
+    GospeakMessage.EventPublished(linked(req.group), linked(req.group, event), req.user)
+
   def buildProposalCreated(group: Group, cfp: Cfp, proposal: Proposal)(implicit req: UserReq[AnyContent]): GospeakMessage.ProposalCreated =
     GospeakMessage.ProposalCreated(linked(group), linked(group, cfp), linked(group, cfp, proposal), req.user)
 

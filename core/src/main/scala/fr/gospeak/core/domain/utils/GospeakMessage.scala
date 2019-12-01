@@ -34,7 +34,9 @@ object GospeakMessage {
                                proposal: Linked[Proposal],
                                user: User) extends TalkMessage
 
-  final case class EventPublished() extends EventMessage
+  final case class EventPublished(group: Linked[Group],
+                                  event: Linked[Event],
+                                  user: User) extends EventMessage
 
   final case class ProposalCreated(group: Linked[Group],
                                    cfp: Linked[Cfp],
