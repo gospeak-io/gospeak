@@ -1,5 +1,6 @@
 package fr.gospeak.infra.services.storage.sql
 
+import fr.gospeak.core.domain.ExternalCfp
 import fr.gospeak.infra.services.storage.sql.ExternalCfpRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
@@ -27,6 +28,21 @@ class ExternalCfpRepoSqlSpec extends RepoSpec {
           s"LIMIT 20 OFFSET 0"
         q.fr.query.sql shouldBe req
         // check(q, req) // not null types become nullable when doing union, so it fails :(
+      }
+      it("should build selectDuplicates") {
+        val q = ExternalCfpRepoSql.selectDuplicates(ExternalCfp.DuplicateParams(
+          cfpUrl = Some("a"),
+          cfpName = Some("a"),
+          cfpEndDate = Some(ldt),
+          eventUrl = Some("a"),
+          eventStartDate = Some(ldt),
+          twitterAccount = Some("a"),
+          twitterHashtag = Some("a")))
+        check(q, s"SELECT $fields FROM $table WHERE ec.url LIKE ? OR ec.name LIKE ? OR ec.close=? OR ec.event_url LIKE ? OR ec.event_start=? OR ec.twitter_account LIKE ? OR ec.twitter_hashtag LIKE ? $orderBy")
+      }
+      it("should build selectDuplicates empty") {
+        val q = ExternalCfpRepoSql.selectDuplicates(ExternalCfp.DuplicateParams.defaults)
+        check(q, s"SELECT $fields FROM $table WHERE ec.id='no-match' $orderBy")
       }
       it("should build selectTags") {
         val q = ExternalCfpRepoSql.selectTags()

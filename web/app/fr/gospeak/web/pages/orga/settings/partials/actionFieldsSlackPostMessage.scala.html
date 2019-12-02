@@ -9,7 +9,7 @@
 @fieldVertical(field("message"), Seq("label" -> "Message")) { (field, args) =>
     @inputTemplate(field, target = Some(templateTarget))
     <small class="form-text">
-        <span id="help-action_message" class="text-muted">What message to send, use <a href="#">Slack formatting</a></span>
+        <span id="help-action_message" class="text-muted">What message to send, use <a href="https://api.slack.com/docs/message-formatting" target="_blank">Slack formatting</a></span>
     </small>
 }
 @fieldCheckbox(field("createdChannelIfNotExist"), Seq("label" -> "Create channel if it does not exist")) { (field, args) =>

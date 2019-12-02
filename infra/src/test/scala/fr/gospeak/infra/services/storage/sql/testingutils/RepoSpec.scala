@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services.storage.sql.testingutils
 
-import java.time.Instant
+import java.time.{Instant, LocalDateTime}
 
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -32,6 +32,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val proposalRepo: ProposalRepoSql = db.proposal
   protected val contactRepo: ContactRepoSql = db.contact
   protected val now: Instant = random[Instant]
+  protected val ldt: LocalDateTime = random[LocalDateTime]
   protected val user: User = random[User]
   protected val group: Group = random[Group]
   protected val groupSettings: Group.Settings = random[Group.Settings]

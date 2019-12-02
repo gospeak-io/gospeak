@@ -51,4 +51,16 @@ object ExternalCfp {
     def apply(cfp: ExternalCfp): Data = new Data(cfp.name, cfp.logo, cfp.description, cfp.begin, cfp.close, cfp.url, cfp.event, cfp.tags)
   }
 
+  final case class DuplicateParams(cfpUrl: Option[String],
+                                   cfpName: Option[String],
+                                   cfpEndDate: Option[LocalDateTime],
+                                   eventUrl: Option[String],
+                                   eventStartDate: Option[LocalDateTime],
+                                   twitterAccount: Option[String],
+                                   twitterHashtag: Option[String])
+
+  object DuplicateParams {
+    val defaults = DuplicateParams(None, None, None, None, None, None, None)
+  }
+
 }

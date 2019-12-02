@@ -1,5 +1,8 @@
 package fr.gospeak.web.utils
 
+import java.net.URLEncoder
+import java.time.{LocalDate, LocalDateTime}
+
 import fr.gospeak.core.domain.UserRequest
 import fr.gospeak.libs.scalautils.domain.{Page, Url}
 import fr.gospeak.web.utils.QueryStringBindables._
@@ -7,19 +10,42 @@ import org.scalatest.{FunSpec, Matchers}
 
 class QueryStringBindablesSpec extends FunSpec with Matchers {
   describe("QueryStringBindables") {
-    it("should bind & unbind a Page.Params when no params") {
-      val params = Page.Params()
-      pageParamsQueryStringBindable.bind("", Map()) shouldBe Some(Right(params))
-      pageParamsQueryStringBindable.unbind("", params) shouldBe ""
+    describe("LocalDateTime") {
+      it("should parse and format dates") {
+        val ldt = LocalDateTime.of(2019, 9, 21, 19, 12)
+        val date = "21/09/2019"
+        val dateTime = s"$date 19:12"
+        val dateEncoded = URLEncoder.encode(date, "UTF-8")
+        val dateTimeEncoded = URLEncoder.encode(dateTime, "UTF-8")
+        LocalDateTime.parse(dateTime, dtf1) shouldBe ldt
+        LocalDateTime.parse(dateTimeEncoded, dtf2) shouldBe ldt
+        LocalDate.parse(date, df1).atTime(19, 12) shouldBe ldt
+        LocalDate.parse(dateEncoded, df2).atTime(19, 12) shouldBe ldt
+        ldt.format(df1) shouldBe date
+      }
+      it("should bind & unbind a LocalDateTime when no params") {
+        val ldt = LocalDateTime.of(2019, 9, 21, 0, 0)
+        val date = "21/09/2019"
+        val dateTimeEncoded = URLEncoder.encode(date + " 00:00", "UTF-8")
+        localDateTimeQueryStringBindable.bind("key", Map("key" -> Seq(date))) shouldBe Some(Right(ldt))
+        localDateTimeQueryStringBindable.unbind("key", ldt) shouldBe s"key=$dateTimeEncoded"
+      }
     }
-    it("should bind & unbind a Page.Params when all params") {
-      val params = buildParams(2, 30, "test", "name")
-      pageParamsQueryStringBindable.bind("", Map(
-        Page.No.key -> Seq("2"),
-        Page.Size.key -> Seq("30"),
-        Page.Search.key -> Seq("test"),
-        Page.OrderBy.key -> Seq("name"))) shouldBe Some(Right(params))
-      pageParamsQueryStringBindable.unbind("", params) shouldBe s"${Page.No.key}=2&${Page.Size.key}=30&${Page.Search.key}=test&${Page.OrderBy.key}=name"
+    describe("Page.Params") {
+      it("should bind & unbind a Page.Params when no params") {
+        val params = Page.Params()
+        pageParamsQueryStringBindable.bind("", Map()) shouldBe Some(Right(params))
+        pageParamsQueryStringBindable.unbind("", params) shouldBe ""
+      }
+      it("should bind & unbind a Page.Params when all params") {
+        val params = buildParams(2, 30, "test", "name")
+        pageParamsQueryStringBindable.bind("", Map(
+          Page.No.key -> Seq("2"),
+          Page.Size.key -> Seq("30"),
+          Page.Search.key -> Seq("test"),
+          Page.OrderBy.key -> Seq("name"))) shouldBe Some(Right(params))
+        pageParamsQueryStringBindable.unbind("", params) shouldBe s"${Page.No.key}=2&${Page.Size.key}=30&${Page.Search.key}=test&${Page.OrderBy.key}=name"
+      }
     }
     it("should bind & unbind a Url") {
       val url = Url.from("http://youtube.com").right.get

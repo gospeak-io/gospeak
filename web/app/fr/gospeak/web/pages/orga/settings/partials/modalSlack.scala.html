@@ -1,5 +1,5 @@
 @import fr.gospeak.core.services.slack.domain.SlackCredentials
-@import fr.gospeak.web.api.ui.routes.SuggestCtrl
+@import fr.gospeak.web.api.ui.routes.UtilsCtrl
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.core.domain.utils.Constants
@@ -22,7 +22,7 @@
                     @inputText(field, Seq(
                         "autofocus" -> "true",
                         "placeholder" -> "ex: xoxp-19471843520-26025264040-635191736450-732a788fa04094e3aaedf6edb9fa2666",
-                        "remote-validate" -> SuggestCtrl.validateSlackToken("{{input}}").toString) ++ args)
+                        "remote-validate" -> UtilsCtrl.validateSlackToken("{{input}}").toString) ++ args)
                     <small class="form-text text-muted">
                         Your app token. <a data-toggle="collapse" href="#createSlackAppCollapse" tabindex="-1">
                         Create one</a> if needed.</small>

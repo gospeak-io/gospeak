@@ -15,6 +15,8 @@ trait PublicExternalCfpRepo {
 
   def listOpen(now: Instant, params: Page.Params): IO[Page[CommonCfp]]
 
+  def listDuplicates(p: ExternalCfp.DuplicateParams): IO[Seq[ExternalCfp]]
+
   def find(cfp: ExternalCfp.Id): IO[Option[ExternalCfp]]
 }
 

@@ -7,15 +7,9 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.core.services.slack.SlackSrv
-import fr.gospeak.core.services.slack.domain.SlackToken
 import fr.gospeak.core.services.storage._
-import fr.gospeak.core.services.{MarkdownSrv, TemplateSrv}
-import fr.gospeak.infra.services.TemplateSrvImpl
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
-import fr.gospeak.libs.scalautils.domain.{Html, Page}
+import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.api.domain.utils.PublicApiError
 import fr.gospeak.web.api.utils.JsonFormats._
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -26,7 +20,6 @@ import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 import fr.gospeak.web.utils._
 import play.api.libs.json._
 import play.api.mvc._
-import play.twirl.api.HtmlFormat
 
 import scala.util.control.NonFatal
 
@@ -34,18 +27,9 @@ case class SuggestedItem(id: String, text: String)
 
 case class SearchResultItem(text: String, url: String)
 
-case class ValidationResult(valid: Boolean, message: String)
-
-case class TemplateDataResponse(data: JsValue)
-
-case class TemplateRequest(template: MustacheMarkdownTmpl[TemplateData], ref: Option[TemplateData.Ref], markdown: Boolean)
-
-case class TemplateResponse(result: Option[Html], error: Option[String])
-
 class SuggestCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
                   env: ApplicationConf.Env,
-                  appConf: ApplicationConf,
                   groupRepo: SuggestGroupRepo,
                   userRepo: SuggestUserRepo,
                   cfpRepo: SuggestCfpRepo,
@@ -56,16 +40,14 @@ class SuggestCtrl(cc: ControllerComponents,
                   contactRepo: SuggestContactRepo,
                   venueRepo: SuggestVenueRepo,
                   sponsorPackRepo: SuggestSponsorPackRepo,
-                  externalCfpRepo: SuggestExternalCfpRepo,
-                  templateSrv: TemplateSrv,
-                  markdownSrv: MarkdownSrv,
-                  slackSrv: SlackSrv) extends ApiCtrl(cc, env) {
+                  externalCfpRepo: SuggestExternalCfpRepo) extends ApiCtrl(cc, env) {
   private def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = SecuredActionIO(parse.anyContent)(block)
 
   private def SecuredActionIO[A](bodyParser: BodyParser[A])(block: UserReq[A] => IO[Result]): Action[A] = silhouette.SecuredAction(bodyParser).async { r =>
     block(new UserReq[A](r.request, messagesApi.preferred(r.request), Instant.now(), env, r, r.identity.user, r.identity.groups))
       .recover { case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage))) }.unsafeToFuture()
   }
+
 
   def suggestTags(): Action[AnyContent] = ActionIO { implicit req =>
     for {
@@ -133,50 +115,5 @@ class SuggestCtrl(cc: ControllerComponents,
       results <- OptionT.liftF(list(groupElt.id, Page.Params.defaults.search(q)))
       res = Ok(Json.toJson(results.items.map(format)))
     } yield res).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SearchResultItem]))))
-  }
-
-  def validateSlackToken(token: String): Action[AnyContent] = SecuredActionIO { implicit req =>
-    SlackToken.from(token, appConf.aesKey).toIO.flatMap(slackSrv.getInfos(_, appConf.aesKey))
-      .map(infos => ValidationResult(valid = true, s"Token for ${infos.teamName} team, created by ${infos.userName}"))
-      .recover { case NonFatal(e) => ValidationResult(valid = false, s"Invalid token: ${e.getMessage}") }
-      .map(res => Ok(Json.toJson(res)))
-  }
-
-  def templateData(ref: TemplateData.Ref): Action[AnyContent] = SecuredActionIO { implicit req =>
-    val data = TemplateData.Sample
-      .fromRef(ref)
-      .map(TemplateSrvImpl.asData)
-      .map(circeToPlay)
-      .getOrElse(Json.obj())
-    IO.pure(Ok(Json.toJson(TemplateDataResponse(data))))
-  }
-
-  def renderTemplate(): Action[JsValue] = SecuredActionIO(parse.json) { implicit req =>
-    req.body.validate[TemplateRequest].fold(
-      errors => IO.pure(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
-      data => {
-        val template = data.ref
-          .flatMap(TemplateData.Sample.fromRef)
-          .map(templateSrv.render(data.template, _))
-          .getOrElse(templateSrv.render(data.template))
-        val res = template match {
-          case Left(err) => TemplateResponse(None, Some(err))
-          case Right(tmpl) if data.markdown => TemplateResponse(Some(markdownSrv.render(tmpl)), None)
-          case Right(tmpl) => TemplateResponse(Some(Html(s"<pre>${HtmlFormat.escape(tmpl.value)}</pre>")), None)
-        }
-        IO.pure(Ok(Json.toJson(res)))
-      }
-    )
-  }
-
-  private def circeToPlay(json: io.circe.Json): JsValue = {
-    json.fold(
-      jsonNull = JsNull,
-      jsonBoolean = (b: Boolean) => JsBoolean(b),
-      jsonNumber = (n: io.circe.JsonNumber) => JsNumber(n.toBigDecimal.getOrElse(BigDecimal(n.toDouble))),
-      jsonString = (s: String) => JsString(s),
-      jsonArray = (v: Vector[io.circe.Json]) => JsArray(v.map(circeToPlay)),
-      jsonObject = (o: io.circe.JsonObject) => JsObject(o.toMap.mapValues(circeToPlay))
-    )
   }
 }

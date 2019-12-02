@@ -22,6 +22,8 @@ class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
 
   override def listOpen(now: Instant, params: Page.Params): IO[Page[CommonCfp]] = selectCommonPage(now, params).run(xa)
 
+  override def listDuplicates(p: ExternalCfp.DuplicateParams): IO[Seq[ExternalCfp]] = selectDuplicates(p).runList(xa)
+
   override def find(cfp: ExternalCfp.Id): IO[Option[ExternalCfp]] = selectOne(cfp).runOption(xa)
 
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
@@ -56,6 +58,23 @@ object ExternalCfpRepoSql {
 
   private[sql] def selectCommonPage(now: Instant, params: Page.Params): SelectPage[CommonCfp] =
     commonTable.selectPage(params, fr0"WHERE (c.begin IS NULL OR c.begin < $now) AND (c.close IS NULL OR c.close > $now)")
+
+  private[sql] def selectDuplicates(p: ExternalCfp.DuplicateParams): Select[ExternalCfp] = {
+    val filters = Seq(
+      p.cfpUrl.map(v => fr0"ec.url LIKE ${"%" + v + "%"}"),
+      p.cfpName.map(v => fr0"ec.name LIKE ${"%" + v + "%"}"),
+      p.cfpEndDate.map(v => fr0"ec.close=$v"),
+      p.eventUrl.map(v => fr0"ec.event_url LIKE ${"%" + v + "%"}"),
+      p.eventStartDate.map(v => fr0"ec.event_start=$v"),
+      p.twitterAccount.map(v => fr0"ec.twitter_account LIKE ${"%" + v + "%"}"),
+      p.twitterHashtag.map(v => fr0"ec.twitter_hashtag LIKE ${"%" + v + "%"}")
+    ).flatten
+    if (filters.isEmpty) {
+      tableSelect.select[ExternalCfp](fr0"WHERE ec.id='no-match'")
+    } else {
+      tableSelect.select[ExternalCfp](fr0"WHERE " ++ filters.reduce(_ ++ fr0" OR " ++ _))
+    }
+  }
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
     table.select[Seq[Tag]](Seq(Field("tags", "ec")), Seq())

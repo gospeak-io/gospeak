@@ -1,11 +1,36 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.core.domain.{Event, Group, Partner, SponsorPack, UserRequest}
+import java.time.{LocalDate, LocalDateTime}
+import java.time.format.DateTimeFormatter
+
+import fr.gospeak.core.domain._
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Page, Url}
 import play.api.mvc.QueryStringBindable
-import fr.gospeak.libs.scalautils.Extensions._
+
+import scala.util.Try
 
 object QueryStringBindables {
+  private[utils] val dtf1 = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+  private[utils] val dtf2 = DateTimeFormatter.ofPattern("dd'%2F'MM'%2F'yyyy+HH'%3A'mm")
+  private[utils] val df1 = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+  private[utils] val df2 = DateTimeFormatter.ofPattern("dd'%2F'MM'%2F'yyyy")
+
+  implicit def localDateTimeQueryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[LocalDateTime] =
+    new QueryStringBindable[LocalDateTime] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, LocalDateTime]] =
+        stringBinder.bind(key, params).map(_.flatMap { u =>
+          Try(LocalDateTime.parse(u, dtf1))
+            .orElse(Try(LocalDateTime.parse(u, dtf2)))
+            .orElse(Try(LocalDate.parse(u, df1).atTime(0, 0)))
+            .orElse(Try(LocalDate.parse(u, df2).atTime(0, 0)))
+            .toEither.left.map(_.getMessage)
+        })
+
+      override def unbind(key: String, value: LocalDateTime): String =
+        stringBinder.unbind(key, value.format(dtf1))
+    }
+
   implicit def pageParamsQueryStringBindable(implicit stringBinder: QueryStringBindable[String], intBinder: QueryStringBindable[Int]): QueryStringBindable[Page.Params] =
     new QueryStringBindable[Page.Params] {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Page.Params]] =
@@ -22,6 +47,31 @@ object QueryStringBindables {
           Some(value.pageSize).filter(_.nonEmpty).map(p => intBinder.unbind(p.key, p.value)),
           value.search.filter(_.nonEmpty).map(p => stringBinder.unbind(p.key, p.value)),
           value.orderBy.filter(_.nonEmpty).map(p => stringBinder.unbind(p.key, p.value))
+        ).flatten.mkString("&")
+    }
+
+  implicit def externalCfpDuplicateParamsQueryStringBindable(implicit stringBinder: QueryStringBindable[String], ldtBinder: QueryStringBindable[LocalDateTime]): QueryStringBindable[ExternalCfp.DuplicateParams] =
+    new QueryStringBindable[ExternalCfp.DuplicateParams] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, ExternalCfp.DuplicateParams]] =
+        Some(for {
+          cfpUrl <- stringBinder.bind("cfpUrl", params).sequence
+          cfpName <- stringBinder.bind("cfpName", params).sequence
+          cfpEndDate <- ldtBinder.bind("cfpEndDate", params).sequence
+          eventUrl <- stringBinder.bind("eventUrl", params).sequence
+          eventStartDate <- ldtBinder.bind("eventStartDate", params).sequence
+          twitterAccount <- stringBinder.bind("twitterAccount", params).sequence
+          twitterHashtag <- stringBinder.bind("twitterHashtag", params).sequence
+        } yield ExternalCfp.DuplicateParams(cfpUrl, cfpName, cfpEndDate, eventUrl, eventStartDate, twitterAccount, twitterHashtag))
+
+      override def unbind(key: String, value: ExternalCfp.DuplicateParams): String =
+        Seq(
+          value.cfpUrl.filter(_.nonEmpty).map(p => stringBinder.unbind("cfpUrl", p)),
+          value.cfpName.filter(_.nonEmpty).map(p => stringBinder.unbind("cfpName", p)),
+          value.cfpEndDate.map(p => ldtBinder.unbind("cfpEndDate", p)),
+          value.eventUrl.filter(_.nonEmpty).map(p => stringBinder.unbind("eventUrl", p)),
+          value.eventStartDate.map(p => ldtBinder.unbind("eventStartDate", p)),
+          value.twitterAccount.filter(_.nonEmpty).map(p => stringBinder.unbind("twitterAccount", p)),
+          value.twitterHashtag.filter(_.nonEmpty).map(p => stringBinder.unbind("twitterHashtag", p))
         ).flatten.mkString("&")
     }
 
