@@ -83,11 +83,11 @@ val scalaCheck = Seq(
   "org.scalacheck" %% "scalacheck" % "1.14.2",
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.3",
   "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
-val timeshape = Seq("net.iakovlev" % "timeshape" % "2018d.6")
+// val timeshape = Seq("net.iakovlev" % "timeshape" % "2018d.6") // removed because it takes too memory
 
 val scalautilsDependencies = cats ++ scalaTest ++ scalaCheck
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
-val infraDependencies = timeshape ++ hammock ++ flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
+val infraDependencies = /* timeshape ++ */ hammock ++ flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
 val webDependencies = play ++ silhouette ++ pureconfig ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
 
 
