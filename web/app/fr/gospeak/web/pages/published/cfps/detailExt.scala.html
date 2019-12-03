@@ -16,7 +16,7 @@
             </div>
             <h1 class="h5">@cfp.name.value <a href="@CfpCtrl.edit(cfp.id)" class="text-muted x-small"><i class="fas fa-edit"></i></a></h1>
             <span>
-                @cfp.begin.map { o => Opened the @Formats.date(o.toLocalDate) }<br/>
+                @cfp.begin.map { o => @if(o.isBefore(req.nowLDT)) { Opened } else { Will open } the @Formats.date(o.toLocalDate)<br/> }
                 @cfp.event.start.map { s => Event from @Formats.date(s.toLocalDate) @cfp.event.finish.map { f => to @Formats.date(f.toLocalDate)} }
             </span>
             <div class="mb-4">
@@ -24,9 +24,11 @@
                 <br/>
                 @tags(cfp.tags)
             </div>
-            <div class="mb-2">
-                <a class="btn btn-sm btn-soft-success transition-3d-hover mr-1" target="_blank" href="@cfp.url.value">Propose a talk</a>
-            </div>
+            @if(cfp.isActive(req.nowLDT)) {
+                <div class="mb-2">
+                    <a class="btn btn-sm btn-soft-success transition-3d-hover mr-1" target="_blank" href="@cfp.url.value">Propose a talk</a>
+                </div>
+            }
             <span class="text-muted small">
                 @cfp.close.map { c => <small class="fas fa-flag mr-1"></small> Close the @Formats.date(c.toLocalDate) }
             </span>

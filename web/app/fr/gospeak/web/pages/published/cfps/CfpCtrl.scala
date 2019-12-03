@@ -9,7 +9,7 @@ import fr.gospeak.core.domain.{Cfp, ExternalCfp, Talk}
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
 import fr.gospeak.infra.libs.timeshape.TimeShape
-import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.libs.scalautils.domain.{CustomException, Page}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
@@ -38,7 +38,7 @@ class CfpCtrl(cc: ControllerComponents,
               mb: GospeakMessageBus,
               timeShape: TimeShape) extends UICtrl(cc, silhouette, env) with UICtrl.UserAction with UICtrl.UserAwareAction {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
-    externalCfpRepo.listOpen(req.now, params).map(cfps => Ok(html.list(cfps)(listBreadcrumb())))
+    externalCfpRepo.listIncoming(req.now, params).map(cfps => Ok(html.list(cfps)(listBreadcrumb())))
   })
 
   def gettingStarted(): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
@@ -101,6 +101,7 @@ class CfpCtrl(cc: ControllerComponents,
       data => req.secured.map { secured =>
         (for {
           cfpElt <- OptionT(cfpRepo.findRead(cfp))
+          _ <- if(cfpElt.isActive(req.nowLDT)) OptionT.liftF(IO.pure(())) else OptionT.liftF(IO.raiseError(CustomException("Can't propose a talk, CFP is not open")))
           ctx = secured.ctx
           talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData)(ctx))
           proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers)(ctx))
@@ -119,7 +120,7 @@ class CfpCtrl(cc: ControllerComponents,
 
   private def proposeForm(cfp: Cfp.Slug, form: Form[CfpForms.Create], params: Page.Params)(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     (for {
-      cfpElt <- OptionT(cfpRepo.findOpen(cfp, req.now))
+      cfpElt <- OptionT(cfpRepo.findIncoming(cfp, req.now))
       talks <- OptionT.liftF(req.user.map(_.id).map(talkRepo.listActive(_, cfpElt.id, params)).getOrElse(IO.pure(Page.empty[Talk])))
       b = proposeTalkBreadcrumb(cfpElt)
     } yield Ok(html.propose(cfpElt, talks, form)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
@@ -131,6 +132,7 @@ class CfpCtrl(cc: ControllerComponents,
       formWithErrors => proposeConnectForm(cfp, formWithErrors, CfpForms.login.bindFromRequest),
       data => (for {
         cfpElt <- OptionT(cfpRepo.findRead(cfp))
+        _ <- if(cfpElt.isActive(req.nowLDT)) OptionT.liftF(IO.pure(())) else OptionT.liftF(IO.raiseError(CustomException("Can't propose a talk, CFP is not open")))
         identity <- OptionT.liftF(authSrv.createIdentity(data.user))
         emailValidation <- OptionT.liftF(userRequestRepo.createAccountValidationRequest(identity.user.email, identity.user.id, req.now))
         _ <- OptionT.liftF(emailSrv.send(Emails.signup(emailValidation, identity.user)))
@@ -157,6 +159,7 @@ class CfpCtrl(cc: ControllerComponents,
       formWithErrors => proposeConnectForm(cfp, CfpForms.signup.bindFromRequest, formWithErrors),
       data => (for {
         cfpElt <- OptionT(cfpRepo.findRead(cfp))
+        _ <- if(cfpElt.isActive(req.nowLDT)) OptionT.liftF(IO.pure(())) else OptionT.liftF(IO.raiseError(CustomException("Can't propose a talk, CFP is not open")))
         identity <- OptionT.liftF(authSrv.getIdentity(data.user))
         (auth, result) <- OptionT.liftF(authSrv.login(identity, data.user.rememberMe, Redirect(ProposalCtrl.detail(data.talk.slug, cfp))))
         secured = req.secured(identity, auth)
@@ -177,7 +180,7 @@ class CfpCtrl(cc: ControllerComponents,
 
   private def proposeConnectForm(cfp: Cfp.Slug, signupForm: Form[CfpForms.ProposalSignupData], loginForm: Form[CfpForms.ProposalLoginData])(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     (for {
-      cfpElt <- OptionT(cfpRepo.findOpen(cfp, req.now))
+      cfpElt <- OptionT(cfpRepo.findIncoming(cfp, req.now))
       b = proposeTalkBreadcrumb(cfpElt)
     } yield Ok(html.proposeConnect(cfpElt, signupForm, loginForm)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
   }

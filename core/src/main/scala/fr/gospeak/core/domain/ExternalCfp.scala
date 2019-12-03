@@ -17,6 +17,8 @@ case class ExternalCfp(id: ExternalCfp.Id,
                        tags: Seq[Tag],
                        info: Info) {
   def data: ExternalCfp.Data = ExternalCfp.Data(this)
+
+  def isActive(now: LocalDateTime): Boolean = begin.forall(_.isBefore(now)) && close.forall(_.isAfter(now))
 }
 
 object ExternalCfp {

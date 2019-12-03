@@ -13,7 +13,7 @@ trait PublicExternalCfpRepo {
 
   def edit(cfp: ExternalCfp.Id)(data: ExternalCfp.Data, by: User.Id, now: Instant): IO[Done]
 
-  def listOpen(now: Instant, params: Page.Params): IO[Page[CommonCfp]]
+  def listIncoming(now: Instant, params: Page.Params): IO[Page[CommonCfp]]
 
   def listDuplicates(p: ExternalCfp.DuplicateParams): IO[Seq[ExternalCfp]]
 

@@ -64,8 +64,8 @@ class CfpRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fields FROM $table INNER JOIN $eventTable ON c.id=e.cfp_id WHERE e.id=? $orderBy")
       }
       it("should build selectOne for cfp slug id and date") {
-        val q = CfpRepoSql.selectOne(cfp.slug, now)
-        check(q, s"SELECT $fields FROM $table WHERE (c.begin IS NULL OR c.begin < ?) AND (c.close IS NULL OR c.close > ?) AND c.slug=? $orderBy")
+        val q = CfpRepoSql.selectOneIncoming(cfp.slug, now)
+        check(q, s"SELECT $fields FROM $table WHERE (c.close IS NULL OR c.close > ?) AND c.slug=? $orderBy")
       }
       it("should build selectPage for a group") {
         val q = CfpRepoSql.selectPage(group.id, params)
@@ -76,8 +76,8 @@ class CfpRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fields FROM $table WHERE c.id NOT IN (SELECT p.cfp_id FROM proposals p WHERE p.talk_id=?) $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPage for a date") {
-        val q = CfpRepoSql.selectPage(now, params)
-        check(q, s"SELECT $fields FROM $table WHERE (c.begin IS NULL OR c.begin < ?) AND (c.close IS NULL OR c.close > ?) $orderBy LIMIT 20 OFFSET 0", checkCount = false)
+        val q = CfpRepoSql.selectPageIncoming(now, params)
+        check(q, s"SELECT $fields FROM $table WHERE (c.close IS NULL OR c.close > ?) $orderBy LIMIT 20 OFFSET 0", checkCount = false)
       }
       it("should build selectAll for group id") {
         val q = CfpRepoSql.selectAll(group.id)
@@ -88,8 +88,8 @@ class CfpRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fields FROM $table WHERE c.id IN (?, ?, ?)  $orderBy")
       }
       it("should build selectAll for group and date") {
-        val q = CfpRepoSql.selectAll(group.id, now)
-        check(q, s"SELECT $fields FROM $table WHERE (c.begin IS NULL OR c.begin < ?) AND (c.close IS NULL OR c.close > ?) AND c.group_id=? $orderBy")
+        val q = CfpRepoSql.selectAllIncoming(group.id, now)
+        check(q, s"SELECT $fields FROM $table WHERE (c.close IS NULL OR c.close > ?) AND c.group_id=? $orderBy")
       }
       it("should build selectTags") {
         val q = CfpRepoSql.selectTags()

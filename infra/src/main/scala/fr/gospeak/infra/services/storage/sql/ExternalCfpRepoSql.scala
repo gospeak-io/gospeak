@@ -20,7 +20,7 @@ class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
   override def edit(cfp: ExternalCfp.Id)(data: ExternalCfp.Data, by: User.Id, now: Instant): IO[Done] =
     update(cfp)(data, by, now).run(xa)
 
-  override def listOpen(now: Instant, params: Page.Params): IO[Page[CommonCfp]] = selectCommonPage(now, params).run(xa)
+  override def listIncoming(now: Instant, params: Page.Params): IO[Page[CommonCfp]] = selectCommonPageIncoming(now, params).run(xa)
 
   override def listDuplicates(p: ExternalCfp.DuplicateParams): IO[Seq[ExternalCfp]] = selectDuplicates(p).runList(xa)
 
@@ -56,8 +56,8 @@ object ExternalCfpRepoSql {
   private[sql] def selectOne(cfp: ExternalCfp.Id): Select[ExternalCfp] =
     tableSelect.select[ExternalCfp](fr0"WHERE ec.id=$cfp")
 
-  private[sql] def selectCommonPage(now: Instant, params: Page.Params): SelectPage[CommonCfp] =
-    commonTable.selectPage(params, fr0"WHERE (c.begin IS NULL OR c.begin < $now) AND (c.close IS NULL OR c.close > $now)")
+  private[sql] def selectCommonPageIncoming(now: Instant, params: Page.Params): SelectPage[CommonCfp] =
+    commonTable.selectPage(params, fr0"WHERE (c.close IS NULL OR c.close > $now)")
 
   private[sql] def selectDuplicates(p: ExternalCfp.DuplicateParams): Select[ExternalCfp] = {
     val filters = Seq(

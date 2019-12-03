@@ -40,15 +40,15 @@ trait UserCfpRepo
 trait AuthCfpRepo
 
 trait PublicCfpRepo {
-  def listOpen(now: Instant, params: Page.Params): IO[Page[Cfp]]
+  def listIncoming(now: Instant, params: Page.Params): IO[Page[Cfp]]
 
-  def listAllOpen(group: Group.Id, now: Instant): IO[Seq[Cfp]]
+  def listAllIncoming(group: Group.Id, now: Instant): IO[Seq[Cfp]]
 
   def find(id: Cfp.Id): IO[Option[Cfp]]
 
   def findRead(cfp: Cfp.Slug): IO[Option[Cfp]]
 
-  def findOpen(cfp: Cfp.Slug, now: Instant): IO[Option[Cfp]]
+  def findIncoming(cfp: Cfp.Slug, now: Instant): IO[Option[Cfp]]
 }
 
 trait SuggestCfpRepo {

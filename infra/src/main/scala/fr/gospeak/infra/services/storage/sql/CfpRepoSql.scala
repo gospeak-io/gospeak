@@ -40,19 +40,19 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
 
   override def find(id: Event.Id): IO[Option[Cfp]] = selectOne(id).runOption(xa)
 
-  override def findOpen(slug: Cfp.Slug, now: Instant): IO[Option[Cfp]] = selectOne(slug, now).runOption(xa)
+  override def findIncoming(slug: Cfp.Slug, now: Instant): IO[Option[Cfp]] = selectOneIncoming(slug, now).runOption(xa)
 
   override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Cfp]] = selectPage(ctx.group.id, params).run(xa)
 
   override def availableFor(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]] = selectPage(talk, params).run(xa)
 
-  override def listOpen(now: Instant, params: Page.Params): IO[Page[Cfp]] = selectPage(now, params).run(xa)
+  override def listIncoming(now: Instant, params: Page.Params): IO[Page[Cfp]] = selectPageIncoming(now, params).run(xa)
 
   override def list(ids: Seq[Cfp.Id]): IO[Seq[Cfp]] = runNel(selectAll, ids)
 
   override def list(group: Group.Id): IO[Seq[Cfp]] = selectAll(group).runList(xa)
 
-  override def listAllOpen(group: Group.Id, now: Instant): IO[Seq[Cfp]] = selectAll(group, now).runList(xa)
+  override def listAllIncoming(group: Group.Id, now: Instant): IO[Seq[Cfp]] = selectAllIncoming(group, now).runList(xa)
 
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 }
@@ -84,7 +84,7 @@ object CfpRepoSql {
   private[sql] def selectOne(id: Event.Id): Select[Cfp] =
     tableWithEvent.select[Cfp](Tables.cfps.fields, fr0"WHERE e.id=$id")
 
-  private[sql] def selectOne(slug: Cfp.Slug, now: Instant): Select[Cfp] =
+  private[sql] def selectOneIncoming(slug: Cfp.Slug, now: Instant): Select[Cfp] =
     table.select[Cfp](where(slug, now))
 
   private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[Cfp] =
@@ -95,7 +95,7 @@ object CfpRepoSql {
     table.selectPage[Cfp](params, fr0"WHERE c.id NOT IN (" ++ talkCfps.fr ++ fr0")")
   }
 
-  private[sql] def selectPage(now: Instant, params: Page.Params): SelectPage[Cfp] =
+  private[sql] def selectPageIncoming(now: Instant, params: Page.Params): SelectPage[Cfp] =
     table.selectPage[Cfp](params, where(now))
 
   private[sql] def selectAll(group: Group.Id): Select[Cfp] =
@@ -104,7 +104,7 @@ object CfpRepoSql {
   private[sql] def selectAll(ids: NonEmptyList[Cfp.Id]): Select[Cfp] =
     table.select[Cfp](fr0"WHERE " ++ Fragments.in(fr"c.id", ids))
 
-  private[sql] def selectAll(group: Group.Id, now: Instant): Select[Cfp] =
+  private[sql] def selectAllIncoming(group: Group.Id, now: Instant): Select[Cfp] =
     table.select[Cfp](where(group, now))
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
@@ -114,7 +114,7 @@ object CfpRepoSql {
     fr0"WHERE c.group_id=$group AND c.slug=$slug"
 
   private def where(now: Instant): Fragment =
-    fr0"WHERE (c.begin IS NULL OR c.begin < $now) AND (c.close IS NULL OR c.close > $now)"
+    fr0"WHERE (c.close IS NULL OR c.close > $now)"
 
   private def where(slug: Cfp.Slug, now: Instant): Fragment =
     where(now) ++ fr0" AND c.slug=$slug"

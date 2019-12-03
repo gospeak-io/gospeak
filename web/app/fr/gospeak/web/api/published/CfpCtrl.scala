@@ -15,7 +15,7 @@ class CfpCtrl(cc: ControllerComponents,
               cfpRepo: PublicCfpRepo) extends ApiCtrl(cc, env) {
   def list(params: Page.Params): Action[AnyContent] = ApiActionPage { implicit req =>
     for {
-      cfps <- cfpRepo.listOpen(req.now, params)
+      cfps <- cfpRepo.listIncoming(req.now, params)
       groups <- groupRepo.list(cfps.items.map(_.group).distinct)
     } yield cfps.map(c => PublicApiCfp(c, groups.find(_.id == c.group)))
   }
