@@ -1,5 +1,17 @@
 declare const $;
 
+// JS redirect urls (because it's a PITA to do in DNS ^^)
+(function () {
+    const url = window.location.href;
+    const redirectUrl = url
+        .replace('http://', 'https://')
+        .replace('://www.', '://')
+        .replace('gospeak.fr', 'gospeak.io');
+    if (redirectUrl !== url) {
+        window.location.replace(redirectUrl);
+    }
+})();
+
 const slugify = (str: string): string => {
     return (str || '')
         .trim()
