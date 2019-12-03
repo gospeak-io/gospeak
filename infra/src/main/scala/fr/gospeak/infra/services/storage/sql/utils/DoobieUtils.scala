@@ -45,8 +45,12 @@ object DoobieUtils {
   final case class TableJoin(kind: String,
                              name: String,
                              prefix: String,
-                             on: NonEmptyList[(Field, Field)]) {
-    def value: String = s"$kind $name $prefix ON ${on.map { case (l, r) => s"${l.value}=${r.value}" }.toList.mkString(" AND ")}"
+                             on: NonEmptyList[(Field, Field)],
+                             where: Option[String]) {
+    def value: String = {
+      val join = on.map { case (l, r) => s"${l.value}=${r.value}" }.toList ++ where.toList
+      s"$kind $name $prefix ON ${join.mkString(" AND ")}"
+    }
   }
 
   final case class Sorts(default: Seq[Field],
@@ -102,19 +106,22 @@ object DoobieUtils {
     def dropField(f: Table => Either[CustomException, Field]): Either[CustomException, Table] = f(this).flatMap(dropField)
 
     def join(rightTable: Table, on: Table.BuildJoinFields, more: Table.BuildJoinFields*): Either[CustomException, Table] =
-      doJoin("INNER JOIN", rightTable, NonEmptyList.of(on, more: _*))
+      doJoin("INNER JOIN", rightTable, NonEmptyList.of(on, more: _*), None)
 
     def joinOpt(rightTable: Table, on: Table.BuildJoinFields, more: Table.BuildJoinFields*): Either[CustomException, Table] =
-      doJoin("LEFT OUTER JOIN", rightTable, NonEmptyList.of(on, more: _*))
+      doJoin("LEFT OUTER JOIN", rightTable, NonEmptyList.of(on, more: _*), None)
 
-    private def doJoin(kind: String, rightTable: Table, on: NonEmptyList[Table.BuildJoinFields]): Either[CustomException, Table] = for {
+    def joinOpt(rightTable: Table, on: Table.BuildJoinFields, where: String): Either[CustomException, Table] =
+      doJoin("LEFT OUTER JOIN", rightTable, NonEmptyList.of(on), Some(where))
+
+    private def doJoin(kind: String, rightTable: Table, on: NonEmptyList[Table.BuildJoinFields], where: Option[String]): Either[CustomException, Table] = for {
       joinFields <- on
         .map(f => f(this, rightTable))
         .map { case (leftField, rightField) => leftField.flatMap(lf => rightField.map(rf => (lf, rf))) }.sequence
       res <- Table.from(
         name = name,
         prefix = prefix,
-        joins = joins ++ Seq(TableJoin(kind, rightTable.name, rightTable.prefix, joinFields)) ++ rightTable.joins,
+        joins = joins ++ Seq(TableJoin(kind, rightTable.name, rightTable.prefix, joinFields, where)) ++ rightTable.joins,
         fields = fields ++ rightTable.fields,
         aggFields = aggFields ++ rightTable.aggFields,
         sorts = sorts,
