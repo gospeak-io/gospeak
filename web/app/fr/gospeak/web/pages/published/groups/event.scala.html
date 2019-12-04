@@ -15,9 +15,11 @@
 <div class="container">
     <div class="border-bottom">
         <div class="media mb-5">
-            <div class="u-lg-avatar mr-4">
-                @group.logo.map { logo => <img src="@logo.url.value" alt="@group.name.value logo" class="img-fluid rounded-circle" width="160" height="160"/> }
-            </div>
+            @group.logo.map { logo =>
+                <div class="u-lg-avatar mr-4">
+                    <img src="@logo.url.value" alt="@group.name.value logo" class="img-fluid rounded-circle" width="160" height="160"/>
+                </div>
+            }
 
             <div class="media-body">
                 <div class="row">
@@ -30,62 +32,64 @@
                         </span>
                     </div>
 
-                    <div class="col-lg-6 text-lg-right">
-                        <div class="d-flex justify-content-md-end align-items-center">
-                            @(event.isPast(req.now), userRsvp.map(_.answer)) match {
-                                case (true, Some(Event.Rsvp.Answer.Yes)) => {You were there}
-                                case (true, Some(Event.Rsvp.Answer.No)) => {Event is past}
-                                case (true, Some(Event.Rsvp.Answer.Wait)) => {You were on waiting list}
-                                case (true, None) => {}
-                                case (false, Some(Event.Rsvp.Answer.Yes)) => {
-                                    <div class="d-inline-block mr-2">
-                                        <a class="btn btn-sm btn-soft-secondary transition-3d-hover px-5 mx-2" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)">No</a>
-                                    </div>
-                                    <a class="btn btn-sm btn-primary transition-3d-hover px-5" href="#">Yes</a>
-                                }
-                                case (false, Some(Event.Rsvp.Answer.No)) => {
-                                    <div class="d-inline-block mr-2">
-                                        <a class="btn btn-sm btn-danger transition-3d-hover px-5 mx-2" href="#">No</a>
-                                    </div>
-                                    <a class="btn btn-sm btn-soft-primary transition-3d-hover px-5" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.Yes)">Yes</a>
-                                }
-                                case (false, Some(Event.Rsvp.Answer.Wait)) => {
-                                    <div class="d-inline-block mr-2">
-                                        <a class="btn btn-sm btn-soft-secondary transition-3d-hover px-5 mx-2" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)">No</a>
-                                    </div>
-                                    <a class="btn btn-sm btn-soft-primary transition-3d-hover px-5" href="#">Waiting list</a>
-                                }
-                                case (false, None) => {
-                                    <div class="d-inline-block mr-2">
-                                        <a class="btn btn-sm btn-soft-secondary transition-3d-hover px-5 mx-2" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)">No</a>
-                                    </div>
-                                    <a class="btn btn-sm btn-soft-primary transition-3d-hover px-5" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.Yes)">Yes</a>
-                                }
-                            }
-                        </div>
-                        <div class="space-bottom-1 mt-1">
-                            <div class="small text-right text-secondary">
+                    @if(event.allowRsvp) {
+                        <div class="col-lg-6 text-lg-right">
+                            <div class="d-flex justify-content-md-end align-items-center">
                                 @(event.isPast(req.now), userRsvp.map(_.answer)) match {
-                                    case (true, Some(Event.Rsvp.Answer.Yes)) => {}
-                                    case (true, Some(Event.Rsvp.Answer.No)) => {}
-                                    case (true, Some(Event.Rsvp.Answer.Wait)) => {}
+                                    case (true, Some(Event.Rsvp.Answer.Yes)) => {You were there}
+                                    case (true, Some(Event.Rsvp.Answer.No)) => {Event is past}
+                                    case (true, Some(Event.Rsvp.Answer.Wait)) => {You were on waiting list}
                                     case (true, None) => {}
                                     case (false, Some(Event.Rsvp.Answer.Yes)) => {
-                                        @event.maxAttendee.map { nb => <span>@Formats.plural(nb - yesRsvp, "remaining place")</span> }
+                                        <div class="d-inline-block mr-2">
+                                            <a class="btn btn-sm btn-soft-secondary transition-3d-hover px-5 mx-2" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)">No</a>
+                                        </div>
+                                        <a class="btn btn-sm btn-primary transition-3d-hover px-5" href="#">Yes</a>
                                     }
                                     case (false, Some(Event.Rsvp.Answer.No)) => {
-                                        @event.maxAttendee.map { nb => <span>@Formats.plural(nb - yesRsvp, "remaining place")</span> }
+                                        <div class="d-inline-block mr-2">
+                                            <a class="btn btn-sm btn-danger transition-3d-hover px-5 mx-2" href="#">No</a>
+                                        </div>
+                                        <a class="btn btn-sm btn-soft-primary transition-3d-hover px-5" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.Yes)">Yes</a>
                                     }
                                     case (false, Some(Event.Rsvp.Answer.Wait)) => {
-                                        <span>No remaining place</span>
+                                        <div class="d-inline-block mr-2">
+                                            <a class="btn btn-sm btn-soft-secondary transition-3d-hover px-5 mx-2" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)">No</a>
+                                        </div>
+                                        <a class="btn btn-sm btn-soft-primary transition-3d-hover px-5" href="#">Waiting list</a>
                                     }
                                     case (false, None) => {
-                                        @event.maxAttendee.map { nb => <span>@Formats.plural(nb - yesRsvp, "remaining place")</span> }
+                                        <div class="d-inline-block mr-2">
+                                            <a class="btn btn-sm btn-soft-secondary transition-3d-hover px-5 mx-2" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.No)">No</a>
+                                        </div>
+                                        <a class="btn btn-sm btn-soft-primary transition-3d-hover px-5" href="@GroupCtrl.doRsvp(group.slug, event.slug, Event.Rsvp.Answer.Yes)">Yes</a>
                                     }
                                 }
                             </div>
+                            <div class="space-bottom-1 mt-1">
+                                <div class="small text-right text-secondary">
+                                    @(event.isPast(req.now), userRsvp.map(_.answer)) match {
+                                        case (true, Some(Event.Rsvp.Answer.Yes)) => {}
+                                        case (true, Some(Event.Rsvp.Answer.No)) => {}
+                                        case (true, Some(Event.Rsvp.Answer.Wait)) => {}
+                                        case (true, None) => {}
+                                        case (false, Some(Event.Rsvp.Answer.Yes)) => {
+                                            @event.maxAttendee.map { nb => <span>@Formats.plural(nb - yesRsvp, "remaining place")</span> }
+                                        }
+                                        case (false, Some(Event.Rsvp.Answer.No)) => {
+                                            @event.maxAttendee.map { nb => <span>@Formats.plural(nb - yesRsvp, "remaining place")</span> }
+                                        }
+                                        case (false, Some(Event.Rsvp.Answer.Wait)) => {
+                                            <span>No remaining place</span>
+                                        }
+                                        case (false, None) => {
+                                            @event.maxAttendee.map { nb => <span>@Formats.plural(nb - yesRsvp, "remaining place")</span> }
+                                        }
+                                    }
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    }
                 </div>
             </div>
         </div>
@@ -147,7 +151,7 @@
                                     <img class="u-clients mx-auto mb-4" src="@v.partner.logo.value" alt="@v.partner.name.value logo">
                                 </div>
                                 <div class="media mb-3">
-                                    <div class="min-width-4 text-center text-primary mt-1 mr-3"><span class="fas fa-map-marked-alt"></span></div>
+                                    <div class="min-width-4 text-center text-primary mr-3"><span class="fas fa-map-marked-alt"></span></div>
                                     <div class="media-body">
                                         <span class="d-block font-weight-medium">@v.partner.name.value</span>
                                         <small class="d-block text-secondary"> @address(v.address)</small>
@@ -155,31 +159,33 @@
                                 </div>
                             }
                             <div class="media mb-3">
-                                <div class="min-width-4 text-center text-primary mt-1 mr-3"><span class="fas fa-clock"></span></div>
+                                <div class="min-width-4 text-center text-primary mr-3"><span class="fas fa-clock"></span></div>
                                 <div class="media-body">
                                     <span class="d-block font-weight-medium">@Formats.date(event.start)</span>
                                     <small class="d-block text-secondary">@Formats.time(event.start)</small>
                                 </div>
                             </div>
 
-                            <div class="media mb-3">
-                                <div class="min-width-4 text-center text-primary mt-1 mr-3"><span class="fas fa-users"></span></div>
-                                <div class="media-body">
-                                    <span class="d-block font-weight-normal">
-                                        @if(event.allowRsvp) {
-                                            <span>@yesRsvp people going</span>
-                                        }
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="media mb-3">
-                                @event.venue.map { v =>
+                            @if(event.allowRsvp) {
+                                <div class="media mb-3">
+                                    <div class="min-width-4 text-center text-primary mr-3"><span class="fas fa-users"></span></div>
                                     <div class="media-body">
-                                        <h4 class="h6">More about @v.partner.name.value</h4>
-                                        <p class="font-size-1 mb-0">@v.partner.description.map(c => c.value)</p>
+                                        <span class="d-block font-weight-normal">
+                                            <span>@yesRsvp people going</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                            @event.venue.map { v =>
+                                @v.partner.description.map { description =>
+                                    <div class="media mb-3">
+                                        <div class="media-body">
+                                            <h4 class="h6">More about @v.partner.name.value</h4>
+                                            <p class="font-size-1 mb-0">@description.value</p>
+                                        </div>
                                     </div>
                                 }
-                            </div>
+                            }
                         </div>
                     </div>
 
