@@ -48,8 +48,8 @@ class ProposalRepoSqlSpec extends RepoSpec {
         check(q, s"INSERT INTO ${table.stripSuffix(" p")} (${mapFields(fields, _.stripPrefix("p."))}) VALUES (${mapFields(fields, _ => "?")})")
       }
       it("should build update for orga, group, cfp and proposal") {
-        val q = ProposalRepoSql.update(user.id, group.slug, cfp.slug, proposal.id)(proposal.data, now)
-        check(q, s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated_at=?, updated_by=? WHERE p.id=$whereGroupAndCfp")
+        val q = ProposalRepoSql.update(user.id, group.slug, cfp.slug, proposal.id)(proposal.dataOrga, now)
+        check(q, s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, orga_tags=?, updated_at=?, updated_by=? WHERE p.id=$whereGroupAndCfp")
       }
       it("should build update for speaker, talk and cfp") {
         val q = ProposalRepoSql.update(user.id, talk.slug, cfp.slug)(proposal.data, now)
@@ -191,7 +191,7 @@ object ProposalRepoSqlSpec {
   import RepoSpec._
 
   val table = "proposals p"
-  val fields: String = mapFields("id, talk_id, cfp_id, event_id, status, title, duration, description, speakers, slides, video, tags, created_at, created_by, updated_at, updated_by", "p." + _)
+  val fields: String = mapFields("id, talk_id, cfp_id, event_id, status, title, duration, description, speakers, slides, video, tags, orga_tags, created_at, created_by, updated_at, updated_by", "p." + _)
   val orderBy = "ORDER BY p.created_at IS NULL, p.created_at DESC"
 
   private val whereCfp = s"(SELECT p.id FROM $table INNER JOIN $cfpTable ON p.cfp_id=c.id WHERE p.id=? AND c.slug=?)"
