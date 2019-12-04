@@ -20,6 +20,7 @@ final case class Proposal(id: Proposal.Id,
                           slides: Option[Slides],
                           video: Option[Video],
                           tags: Seq[Tag],
+                          orgaTags: Seq[Tag],
                           info: Info) {
   def data: Proposal.Data = Proposal.Data(this)
 
@@ -34,7 +35,7 @@ object Proposal {
             status: Status,
             speakers: NonEmptyList[User.Id],
             info: Info): Proposal =
-    new Proposal(Id.generate(), talk, cfp, event, status, data.title, data.duration, data.description, speakers, data.slides, data.video, data.tags, info)
+    new Proposal(Id.generate(), talk, cfp, event, status, data.title, data.duration, data.description, speakers, data.slides, data.video, data.tags, Seq(), info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
