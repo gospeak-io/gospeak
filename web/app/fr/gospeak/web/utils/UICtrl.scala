@@ -12,6 +12,7 @@ import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.pages
 import org.h2.jdbc.JdbcSQLSyntaxErrorException
+import org.slf4j.LoggerFactory
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 
@@ -20,22 +21,36 @@ import scala.util.control.NonFatal
 abstract class UICtrl(cc: ControllerComponents,
                       silhouette: Silhouette[CookieEnv],
                       env: ApplicationConf.Env) extends AbstractController(cc) with I18nSupport {
+  private val logger = LoggerFactory.getLogger(this.getClass)
+
   protected def UserAwareActionIO(block: UserAwareReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.UserAwareAction.async { r =>
     val req = new UserAwareReq[AnyContent](r.request, messagesApi.preferred(r.request), Instant.now(), env, r, r.identity.map(_.user))
-    recoverFailedAction(block(req))(r.request).unsafeToFuture()
+    recoverFailedAction(block(req))(req).unsafeToFuture()
   }
 
   protected def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.SecuredAction.async { r =>
     val req = new UserReq[AnyContent](r.request, messagesApi.preferred(r.request), Instant.now(), env, r, r.identity.user, r.identity.groups)
-    recoverFailedAction(block(req))(r.request).unsafeToFuture()
+    recoverFailedAction(block(req))(req).unsafeToFuture()
   }
 
-  private def recoverFailedAction(result: IO[Result])(implicit req: Request[AnyContent]): IO[Result] = {
+  private def recoverFailedAction(result: IO[Result])(implicit req: BasicReq[AnyContent]): IO[Result] = {
+    def logError(e: Throwable): Unit = {
+      val (user, group) = req match {
+        case r: OrgaReq[AnyContent] => Some(r.user) -> Some(r.group)
+        case r: UserReq[AnyContent] => Some(r.user) -> None
+        case r: UserAwareReq[AnyContent] => r.user -> None
+        case _: BasicReq[AnyContent] => None -> None
+      }
+      val userStr = user.map(u => s" for user ${u.name.value} (${u.id.value})").getOrElse("")
+      val groupStr = group.map(g => s" in group ${g.name.value} (${g.id.value})").getOrElse("")
+      logger.error("Error in controller" + userStr + groupStr, e)
+    }
+
     val next = redirectToPreviousPageOr(fr.gospeak.web.pages.published.routes.HomeCtrl.index())
     // FIXME better error handling (send email or notif?)
     result.recover {
-      case e: JdbcSQLSyntaxErrorException => e.printStackTrace(); next.flashing("error" -> s"Unexpected SQL error")
-      case NonFatal(e) => e.printStackTrace(); next.flashing("error" -> s"Unexpected error: ${e.getMessage} (${e.getClass.getSimpleName})")
+      case e: JdbcSQLSyntaxErrorException => logError(e); next.flashing("error" -> s"Unexpected SQL error")
+      case NonFatal(e) => logError(e); next.flashing("error" -> s"Unexpected error: ${e.getMessage} (${e.getClass.getSimpleName})")
     }
   }
 

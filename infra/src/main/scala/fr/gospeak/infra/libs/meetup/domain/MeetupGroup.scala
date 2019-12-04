@@ -24,7 +24,7 @@ object MeetupGroup {
   final case class Basic(id: Long,
                          name: String,
                          urlname: String,
-                         join_mode: String,
+                         join_mode: String, // "open"
                          lat: Double,
                          lon: Double,
                          country: String,

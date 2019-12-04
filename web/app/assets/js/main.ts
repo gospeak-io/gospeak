@@ -4,9 +4,9 @@ declare const $;
 (function () {
     const url = window.location.href;
     const redirectUrl = url
-        .replace('http://', 'https://')
-        .replace('://www.', '://')
-        .replace('gospeak.fr', 'gospeak.io');
+        .replace('gospeak.fr', 'gospeak.io')
+        .replace('www.gospeak.io', 'gospeak.io')
+        .replace('http://gospeak.io', 'https://gospeak.io');
     if (redirectUrl !== url) {
         window.location.replace(redirectUrl);
     }

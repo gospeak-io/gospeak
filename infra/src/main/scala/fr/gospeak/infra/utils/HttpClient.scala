@@ -6,6 +6,7 @@ import cats.effect.IO
 import fr.gospeak.libs.scalautils.domain.CustomException
 import hammock.apache.ApacheInterpreter
 import hammock.{Encoder, Entity, Hammock, HttpResponse, InterpTrans, Method, Uri}
+import fr.gospeak.libs.scalautils.Extensions._
 
 object HttpClient {
 
@@ -29,7 +30,7 @@ object HttpClient {
   private implicit val stringEncoder: Encoder[String] = (value: String) => Entity.StringEntity(value)
 
   def get(url: String, query: Map[String, String] = Map(), headers: Map[String, String] = Map()): IO[Response] =
-    buildUri(url, query)(uri => Hammock.request(Method.GET, uri, headers).exec[IO]).map(Response.from)
+    buildUri(url, query)(request(Method.GET, _, headers))
 
   def postJson(url: String, body: String, query: Map[String, String] = Map(), headers: Map[String, String] = Map()): IO[Response] =
     sendJson(method = Method.POST, url = url, body = body, query = query, headers = headers)
@@ -56,13 +57,23 @@ object HttpClient {
     sendForm(method = Method.DELETE, url = url, body = body, query = query, headers = headers)
 
   private def sendJson(method: Method, url: String, body: String, query: Map[String, String] = Map(), headers: Map[String, String] = Map()): IO[Response] =
-    buildUri(url, query)(uri => Hammock.request(method, uri, headers + ("Content-Type" -> "application/json"), Some(body)).exec[IO]).map(Response.from)
+    buildUri(url, query)(request(method, _, headers + ("Content-Type" -> "application/json"), Some(body)))
 
   private def sendForm(method: Method, url: String, body: Map[String, String], query: Map[String, String], headers: Map[String, String]): IO[Response] =
-    buildUri(url, query)(uri => Hammock.request(method, uri, headers + ("Content-Type" -> "application/x-www-form-urlencoded"), Some(buildParams(body))).exec[IO]).map(Response.from)
+    buildUri(url, query)(request(method, _, headers + ("Content-Type" -> "application/x-www-form-urlencoded"), Some(buildParams(body))))
 
-  private def buildUri(url: String, query: Map[String, String])(callback: Uri => IO[HttpResponse]): IO[HttpResponse] =
+  private def buildUri(url: String, query: Map[String, String])(callback: Uri => IO[Response]): IO[Response] =
     Uri.fromString(buildUrl(url, query)).map(callback).getOrElse(IO.raiseError(CustomException(s"Invalid URI '${buildUrl(url, query)}'")))
+
+  private def request(method: Method,
+                      uri: Uri,
+                      headers: Map[String, String],
+                      body: Option[String] = None): IO[Response] = {
+    // def requestInfo: String = s"HttpClient.$method ${uri.path}\n  headers: $headers" + body.map(b => s"\n  body: $b").getOrElse("")
+    Hammock.request(method, uri, headers, body).exec[IO].map(Response.from)
+    // .map { r => println(s"\n$requestInfo\n  response: ${r.status} ${r.body}"); r }
+    // .recoverWith { case e => println(s"\n$requestInfo\n  response: ${e.getClass.getSimpleName}: ${e.getMessage}"); IO.raiseError(e) }
+  }
 
   def buildUrl(url: String, query: Map[String, String]): String = {
     if (query.isEmpty) {
