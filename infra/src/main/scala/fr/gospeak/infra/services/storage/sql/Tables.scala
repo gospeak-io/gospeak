@@ -100,7 +100,7 @@ object Tables {
   val proposals: Table = Table.from(
     name = "proposals",
     prefix = "p",
-    fields = Seq("id", "talk_id", "cfp_id", "event_id", "status", "title", "duration", "description", "speakers", "slides", "video", "tags", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "talk_id", "cfp_id", "event_id", "status", "title", "duration", "description", "speakers", "slides", "video", "tags", "orga_tags", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("-created_at"),
     search = Seq("id", "title", "status", "description", "tags")).get
 

@@ -1,0 +1,1 @@
+ALTER TABLE proposals ADD COLUMN orga_tags VARCHAR(150) NOT NULL DEFAULT '';

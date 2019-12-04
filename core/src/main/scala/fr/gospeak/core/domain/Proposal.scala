@@ -24,6 +24,8 @@ final case class Proposal(id: Proposal.Id,
                           info: Info) {
   def data: Proposal.Data = Proposal.Data(this)
 
+  def dataOrga: Proposal.DataOrga = Proposal.DataOrga(this)
+
   def users: Seq[User.Id] = (info.users ++ speakers.toList).distinct
 }
 
@@ -76,6 +78,8 @@ object Proposal {
     def video: Option[Video] = proposal.video
 
     def tags: Seq[Tag] = proposal.tags
+
+    def orgaTags: Seq[Tag] = proposal.orgaTags
 
     def info: Info = proposal.info
 
@@ -132,6 +136,18 @@ object Proposal {
     def apply(talk: Talk.Data): Proposal.Data = Proposal.Data(talk.title, talk.duration, talk.description, talk.slides, talk.video, talk.tags)
 
     def apply(proposal: Proposal): Data = Data(proposal.title, proposal.duration, proposal.description, proposal.slides, proposal.video, proposal.tags)
+  }
+
+  final case class DataOrga(title: Talk.Title,
+                        duration: FiniteDuration,
+                        description: Markdown,
+                        slides: Option[Slides],
+                        video: Option[Video],
+                        tags: Seq[Tag],
+                        orgaTags: Seq[Tag])
+
+  object DataOrga {
+    def apply(proposal: Proposal): DataOrga = DataOrga(proposal.title, proposal.duration, proposal.description, proposal.slides, proposal.video, proposal.tags, proposal.orgaTags)
   }
 
 }
