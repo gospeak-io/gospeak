@@ -13,7 +13,7 @@ trait ProposalRepo extends OrgaProposalRepo with SpeakerProposalRepo with UserPr
 trait OrgaProposalRepo {
   val fields: ProposalFields.type = ProposalFields
 
-  def edit(cfp: Cfp.Slug, proposal: Proposal.Id, data: Proposal.Data)(implicit ctx: OrgaCtx): IO[Done]
+  def edit(cfp: Cfp.Slug, proposal: Proposal.Id, data: Proposal.DataOrga)(implicit ctx: OrgaCtx): IO[Done]
 
   def accept(cfp: Cfp.Slug, id: Proposal.Id, event: Event.Id)(implicit ctx: OrgaCtx): IO[Done]
 
@@ -54,6 +54,8 @@ trait OrgaProposalRepo {
   def listRatings(cfp: Cfp.Slug)(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]]
 
   def listRatings(proposals: Seq[Proposal.Id])(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]]
+
+  def editOrgaTags(id: Proposal.Id, tags: Seq[Tag])(implicit ctx: OrgaCtx): IO[Done]
 }
 
 trait SpeakerProposalRepo {

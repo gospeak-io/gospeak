@@ -4,7 +4,7 @@
 @import fr.gospeak.web.utils.OrgaReq
 @import java.util.concurrent.TimeUnit
 
-@(form: Form[Proposal.Data])(implicit req: OrgaReq[AnyContent])
+@(form: Form[Proposal.DataOrga])(implicit req: OrgaReq[AnyContent])
 @fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title for your proposal (you can adapt your talk title)")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
 }
@@ -21,5 +21,8 @@
     @inputEmbed(field, args)
 }
 @fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your proposal")) { (field, args) =>
+    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
+}
+@fieldHorizontal(form("orgaTags"), Seq("label" -> "Orga Tags", "help" -> "Won't be visible to speakers")) { (field, args) =>
     @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
 }

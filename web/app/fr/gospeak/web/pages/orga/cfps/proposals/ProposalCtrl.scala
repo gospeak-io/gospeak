@@ -15,7 +15,7 @@ import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.orga.cfps.CfpCtrl
 import fr.gospeak.web.pages.orga.cfps.proposals.ProposalCtrl._
-import fr.gospeak.web.pages.speaker.talks.proposals.ProposalForms
+import fr.gospeak.web.pages.speaker.talks.proposals.{ProposalForms => SpeakerProposalForms}
 import fr.gospeak.web.utils.{GenericForm, OrgaReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -75,7 +75,7 @@ class ProposalCtrl(cc: ControllerComponents,
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposal))
       events <- OptionT.liftF(eventRepo.list(proposalElt.event.map(_.id).toList))
       b = breadcrumb(proposalElt.cfp, proposalElt.proposal)
-      res = Ok(html.detail(proposalElt, speakers, ratings, comments, orgaComments, invites, events, ProposalForms.addSpeaker, GenericForm.embed, commentForm, orgaCommentForm)(b))
+      res = Ok(html.detail(proposalElt, speakers, ratings, comments, orgaComments, invites, events, SpeakerProposalForms.addSpeaker, GenericForm.embed, commentForm, orgaCommentForm)(b))
     } yield res).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
@@ -90,18 +90,18 @@ class ProposalCtrl(cc: ControllerComponents,
     )
   })
 
-  private def editView(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, form: Form[Proposal.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
+  private def editView(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, form: Form[Proposal.DataOrga])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
       cfpElt <- OptionT(cfpRepo.find(cfp))
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       b = breadcrumb(cfpElt, proposalElt).add("Edit" -> routes.ProposalCtrl.edit(group, cfp, proposal))
-      filledForm = if (form.hasErrors) form else form.fill(proposalElt.data)
+      filledForm = if (form.hasErrors) form else form.fill(proposalElt.dataOrga)
     } yield Ok(html.edit(cfpElt, proposalElt, filledForm)(b))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
   def inviteSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
-    ProposalForms.addSpeaker.bindFromRequest.fold(
+    SpeakerProposalForms.addSpeaker.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       email => (for {
         proposalElt <- OptionT(proposalRepo.find(cfp, proposal))

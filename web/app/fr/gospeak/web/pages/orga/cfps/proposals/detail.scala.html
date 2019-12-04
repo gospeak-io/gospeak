@@ -37,7 +37,7 @@
     <div class="row">
         <div class="col-9">
             @proposal.event.map { evt => <h2>Added to @event(events, evt.id, Some(e => EventCtrl.detail(req.group.slug, e.slug)))</h2> }
-            <p class="mb-0">@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video) @tags(proposal.tags)</p>
+            <p class="mb-0">@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video) @tags(proposal.tags) @tags(proposal.orgaTags, color="info")</p>
             <div>
                 Speakers:
                 @proposal.speakers.toList.map(id => speakers.find(_.id == id)).map {

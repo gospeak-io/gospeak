@@ -21,7 +21,7 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[Proposal] =
     insert(Proposal(talk, cfp, None, data, Proposal.Status.Pending, speakers, ctx.info)).run(xa)
 
-  override def edit(cfp: Cfp.Slug, proposal: Proposal.Id, data: Proposal.Data)(implicit ctx: OrgaCtx): IO[Done] =
+  override def edit(cfp: Cfp.Slug, proposal: Proposal.Id, data: Proposal.DataOrga)(implicit ctx: OrgaCtx): IO[Done] =
     update(ctx.user.id, ctx.group.slug, cfp, proposal)(data, ctx.now).run(xa)
 
   override def edit(talk: Talk.Slug, cfp: Cfp.Slug, data: Proposal.Data)(implicit ctx: UserCtx): IO[Done] =
@@ -140,6 +140,8 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def listRatings(proposals: Seq[Proposal.Id])(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]] =
     NonEmptyList.fromList(proposals.toList).map(selectAllRatings(ctx.user.id, _).runList(xa)).getOrElse(IO.pure(Seq()))
+
+  override def editOrgaTags(id: Proposal.Id, tags: Seq[Tag])(implicit ctx: OrgaCtx): IO[Done] = update(id, tags).run(xa)
 }
 
 object ProposalRepoSql {
@@ -168,21 +170,26 @@ object ProposalRepoSql {
     .dropFields(_.prefix == Tables.cfps.prefix)
 
   private[sql] def insert(e: Proposal): Insert[Proposal] = {
-    val values = fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
+    val values = fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.orgaTags}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert[Proposal](e, _ => values)
   }
 
   private[sql] def insert(e: Proposal.Rating): Insert[Proposal.Rating] =
     ratingTable.insert[Proposal.Rating](e, _ => fr0"${e.proposal}, ${e.grade.value}, ${e.createdAt}, ${e.createdBy}")
 
-  private[sql] def update(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.Data, now: Instant): Update = {
-    val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated_at=$now, updated_by=$orga"
+  private[sql] def update(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.DataOrga, now: Instant): Update = {
+    val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, orga_tags=${data.orgaTags}, updated_at=$now, updated_by=$orga"
     table.update(fields, where(orga, group, cfp, proposal))
   }
 
   private[sql] def update(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): Update = {
     val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated_at=$now, updated_by=$speaker"
     table.update(fields, where(speaker, talk, cfp))
+  }
+
+  private[sql] def update(e: Proposal.Id, tags: Seq[Tag]): Update = {
+    val fields = fr0"orga_tags=$tags"
+    table.update(fields, where(e))
   }
 
   private[sql] def update(e: Proposal.Rating): Update =
