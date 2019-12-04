@@ -27,12 +27,14 @@ If you have any idea or suggestion about that, we will be happy to discuss it wi
 ### Getting started
 
 - install a scala environment
-    - jdk
+    - jdk 8
     - sbt
     - scala (intellij)
 - clone the repo
 - launch `sbt run`
 - open `http://localhost:9000`
+
+If you enconter a Metaspace error, try to give `sbt` more memory using: `sbt -mem 2048 run`
 
 ### Troubleshooting
 
