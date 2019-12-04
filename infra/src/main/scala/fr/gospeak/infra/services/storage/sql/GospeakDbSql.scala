@@ -94,8 +94,8 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     def talk(by: User, slug: String, title: String, status: Talk.Status = Talk.Status.Public, speakers: Seq[User] = Seq(), duration: Int = 10, slides: Option[Slides] = None, video: Option[Video] = None, description: String = "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", tags: Seq[String] = Seq()): Talk =
       Talk(Talk.Id.generate(), Talk.Slug.from(slug).get, status, Talk.Title(title), Duration(duration, MINUTES), Markdown(description), NonEmptyList.of(by.id) ++ speakers.map(_.id).toList, slides, video, tags.map(Tag(_)), Info(by.id, now))
 
-    def proposal(talk: Talk, cfp: Cfp, status: Proposal.Status = Proposal.Status.Pending): Proposal =
-      Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, status, talk.title, talk.duration, talk.description, talk.speakers, talk.slides, talk.video, talk.tags, Seq(), talk.info)
+    def proposal(talk: Talk, cfp: Cfp, status: Proposal.Status = Proposal.Status.Pending, orgaTags: Seq[String] = Seq()): Proposal =
+      Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, status, talk.title, talk.duration, talk.description, talk.speakers, talk.slides, talk.video, talk.tags, orgaTags.map(Tag(_)), talk.info)
 
     def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, maxAttendee: Option[Int], allowRsvp: Boolean = false, venue: Option[Venue] = None, description: MustacheMarkdownTmpl[EventInfo] = MustacheMarkdownTmpl[EventInfo](""), tags: Seq[String] = Seq(), published: Boolean = true): Event =
       Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), LocalDateTime.parse(s"${date}T19:00:00"), maxAttendee, allowRsvp, description, Event.Notes("", now, by.id), venue.map(_.id), Seq(), tags.map(Tag(_)), if (published) Some(Instant.parse(date + "T06:06:24.074Z")) else None, Event.ExtRefs(), Info(by.id, now))
@@ -216,7 +216,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
           |- do not throw
           |- never use null
           |- go functional
-        """.stripMargin.trim)
+        """.stripMargin.trim, tags = Seq("tech", "scala", "beginner"))
     val talk3 = talk(userDemo, "nodejs-news", "NodeJs news", status = Talk.Status.Draft)
     val talk4 = talk(userSpeaker, "scalajs-react", "ScalaJS + React = <3", status = Talk.Status.Draft, speakers = Seq(userDemo), duration = 50, tags = Seq("Scala"))
     val talk5 = talk(userSpeaker, "gagner-1-million", "Gagner 1 Million au BlackJack avec Akka", status = Talk.Status.Private, duration = 15)
@@ -249,7 +249,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val cfps = Seq(cfp1, cfp2, cfp3, cfp4)
 
     val proposal1 = proposal(talk1, cfp1)
-    val proposal2 = proposal(talk2, cfp1)
+    val proposal2 = proposal(talk2, cfp1, orgaTags = Seq("accepted", "1st round"))
     val proposal3 = proposal(talk2, cfp4)
     val proposal4 = proposal(talk3, cfp1, status = Proposal.Status.Declined)
     val proposal5 = proposal(talk4, cfp3)

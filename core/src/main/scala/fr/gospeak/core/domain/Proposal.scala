@@ -139,12 +139,12 @@ object Proposal {
   }
 
   final case class DataOrga(title: Talk.Title,
-                        duration: FiniteDuration,
-                        description: Markdown,
-                        slides: Option[Slides],
-                        video: Option[Video],
-                        tags: Seq[Tag],
-                        orgaTags: Seq[Tag])
+                            duration: FiniteDuration,
+                            description: Markdown,
+                            slides: Option[Slides],
+                            video: Option[Video],
+                            tags: Seq[Tag],
+                            orgaTags: Seq[Tag])
 
   object DataOrga {
     def apply(proposal: Proposal): DataOrga = DataOrga(proposal.title, proposal.duration, proposal.description, proposal.slides, proposal.video, proposal.tags, proposal.orgaTags)

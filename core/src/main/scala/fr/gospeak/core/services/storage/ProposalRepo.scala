@@ -54,8 +54,6 @@ trait OrgaProposalRepo {
   def listRatings(cfp: Cfp.Slug)(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]]
 
   def listRatings(proposals: Seq[Proposal.Id])(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]]
-
-  def editOrgaTags(id: Proposal.Id, tags: Seq[Tag])(implicit ctx: OrgaCtx): IO[Done]
 }
 
 trait SpeakerProposalRepo {

@@ -101,6 +101,7 @@
                             @videoIcon(talk.video)
                             @cfpOpt.map { cfp => <a href="@ProposalCtrl.detail(req.group.slug, cfp.slug, talk.id)">@talk.title.value</a> }.getOrElse { <span>@talk.title.value</span> }
                             @tags(talk.tags)
+                            @tags(talk.orgaTags, color="info", title="orga tag")
                         </div>
                         <div>@talk.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug))) }</div>
                     }.getOrElse { Unknown (@tId.value) }
@@ -133,9 +134,10 @@
                             @duration(proposal.duration)
                             @slidesIcon(proposal.slides)
                             @videoIcon(proposal.video)
-                            <a href="@ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
                             @proposalRating(proposal, userRatings.find(_.proposal == proposal.id).map(_.grade), "btn-xs")
+                            <a href="@ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
                             @tags(proposal.tags)
+                            @tags(proposal.orgaTags, color="info", title="orga tag")
                             <small title="Proposal date">(since @Formats.date(proposal.info.createdAt))</small>
                         </div>
                         <div>
