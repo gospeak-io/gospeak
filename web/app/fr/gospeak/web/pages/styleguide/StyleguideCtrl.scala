@@ -137,6 +137,7 @@ class StyleguideCtrl(cc: ControllerComponents,
     slides = talk.slides,
     video = talk.video,
     tags = Seq("tag").map(Tag(_)),
+    orgaTags = Seq("orgaTags").map(Tag(_)),
     info = Info(user.id, now))
   private val partner = Partner(
     id = Partner.Id.generate(),
