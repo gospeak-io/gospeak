@@ -1,10 +1,11 @@
 .idea
 *.iml
+.DS_Store
 target/
-run_coverage.sh
+/node_modules/
+/local/
 web/conf/local.conf
 web/conf/env.local.conf
 web/conf/env.dev.conf
 web/conf/env.prod.conf
-.DS_Store
-/node_modules/
+run_coverage.sh
