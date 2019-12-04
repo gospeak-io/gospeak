@@ -23,6 +23,6 @@
 @fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your proposal")) { (field, args) =>
     @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
 }
-@fieldHorizontal(form("orgaTags"), Seq("label" -> "Orga Tags", "help" -> "Won't be visible to speakers")) { (field, args) =>
+@fieldHorizontal(form("orgaTags"), Seq("label" -> "Orga tags", "help" -> "For orga only, they are not visible to speakers")) { (field, args) =>
     @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
 }

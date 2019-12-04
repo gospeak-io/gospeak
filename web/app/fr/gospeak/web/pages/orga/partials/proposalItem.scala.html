@@ -21,6 +21,7 @@
             @videoIcon(proposal.video)
             @proposalRating(proposal, userRatings.find(_.proposal == proposal.id).map(_.grade), "btn-xs")
             @tags(proposal.tags)
+            @tags(proposal.orgaTags, color="info", title="orga tag")
             <small>Proposed on @date(proposal.info.createdAt)</small>
         </span>
     </div>

@@ -140,8 +140,6 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def listRatings(proposals: Seq[Proposal.Id])(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]] =
     NonEmptyList.fromList(proposals.toList).map(selectAllRatings(ctx.user.id, _).runList(xa)).getOrElse(IO.pure(Seq()))
-
-  override def editOrgaTags(id: Proposal.Id, tags: Seq[Tag])(implicit ctx: OrgaCtx): IO[Done] = update(id, tags).run(xa)
 }
 
 object ProposalRepoSql {
@@ -185,11 +183,6 @@ object ProposalRepoSql {
   private[sql] def update(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): Update = {
     val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated_at=$now, updated_by=$speaker"
     table.update(fields, where(speaker, talk, cfp))
-  }
-
-  private[sql] def update(e: Proposal.Id, tags: Seq[Tag]): Update = {
-    val fields = fr0"orga_tags=$tags"
-    table.update(fields, where(e))
   }
 
   private[sql] def update(e: Proposal.Rating): Update =
