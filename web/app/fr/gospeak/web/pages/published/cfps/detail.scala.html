@@ -23,7 +23,8 @@
             </span>
 
             <div class="mb-4">
-                <a class="font-size-1" href="@group.website">@group.website</a>
+                <a class="font-size-1" href="@group.website">View site web</a>
+                <br>
                 @tags(cfp.tags)
             </div>
             @if(cfp.isActive(req.nowLDT)) {
@@ -101,13 +102,13 @@
                         </a>
                     </div>
                 }
-                @group.social.facebook.map { t =>
+                @group.social.meetup.map { t =>
                     <div class="row mb-2">
                         <a class="media align-items-center" href="@t.link">
-                            <div class="u-sm-avatar mr-3"><i class="fab fa-facebook"></i></div>
+                            <div class="u-sm-avatar mr-3"><i class="fab fa-meetup"></i></div>
                             <div class="media-body">
-                                <h4 class="font-size-1 text-dark mb-0">Facebook</h4>
-                                <small class="d-block text-secondary"><a href="@t.link">View the page</a></small>
+                                <h4 class="font-size-1 text-dark mb-0">Slack</h4>
+                                <small class="d-block text-secondary"><a href="@t.link">Join the group</a></small>
                             </div>
                         </a>
                     </div>
