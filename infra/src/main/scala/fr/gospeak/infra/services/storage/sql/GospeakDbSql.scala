@@ -44,7 +44,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     }.recoverWith {
       case e: org.h2.jdbc.JdbcSQLSyntaxErrorException if e.getMessage.contains("Table \"env\" not found") => createTable()
       case e: org.postgresql.util.PSQLException if e.getMessage.startsWith("ERROR: relation \"env\" does not exist") => createTable()
-      case NonFatal(e) => IO.raiseError(new IllegalStateException(s"Unknown error ${e.getClass.getSimpleName}: ${e.getMessage}", e))
+      case NonFatal(e) => IO.raiseError(new IllegalStateException(s"Can't check db env due to unknown error ${e.getClass.getSimpleName}: ${e.getMessage}", e))
     }
   }
 
