@@ -1,6 +1,6 @@
 @import fr.gospeak.core.domain.{Sponsor, Partner}
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.{container, sponsorFields}
+@import fr.gospeak.web.pages.orga.partials.html.{container_theme, sponsorFields}
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.pages.partials.form.html._
@@ -8,7 +8,7 @@
 @import fr.gospeak.web.utils.OrgaReq
 
 @(partner: Partner, sponsor: Sponsor, form: Form[Sponsor.Data], slug: Option[Partner.Slug])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container("Gospeak", b)() {
+@container_theme("Gospeak", b)() {
     <h1 class="page-header">Update @partner.name.value from @Formats.date(sponsor.start) to @Formats.date(sponsor.finish)</h1>
 
     @formElt(form, SponsorCtrl.doEdit(req.group.slug, sponsor.id, slug)) {

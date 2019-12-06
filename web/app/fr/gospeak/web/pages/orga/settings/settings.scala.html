@@ -2,14 +2,14 @@
 @import fr.gospeak.core.services.slack.domain.SlackCredentials
 @import fr.gospeak.libs.scalautils.domain.EmailAddress
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.container
+@import fr.gospeak.web.pages.orga.partials.html.container_theme
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.MeetupAccount
 @import fr.gospeak.web.pages.orga.settings.partials.html._
 @import fr.gospeak.web.utils.OrgaReq
 
 @(settings: Group.Settings, orgas: Seq[User], invites: Seq[UserRequest.GroupInvite], meetupForm: Form[MeetupAccount], slackForm: Form[SlackCredentials], inviteOrgaForm: Form[EmailAddress])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(req.group.name.value + " settings - Gospeak", b)() {
+@container_theme(req.group.name.value + " settings - Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>Settings</span>
         <a class="btn btn-primary" href="@GroupCtrl.edit(req.group.slug)">Update group</a>

@@ -1,12 +1,12 @@
 @import fr.gospeak.core.domain.Event
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.partials.html.{container, eventFields}
+@import fr.gospeak.web.pages.orga.partials.html.{container_theme, eventFields}
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.OrgaReq
 
 @(hasMeetupAccount: Boolean, event: Event, form: Form[Event.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(event.name.value + " - Gospeak", b)() {
+@container_theme(event.name.value + " - Gospeak", b)() {
     <h1 class="page-header">Edit @event.name.value</h1>
 
     @formElt(form, EventCtrl.doEdit(req.group.slug, event.slug)) {

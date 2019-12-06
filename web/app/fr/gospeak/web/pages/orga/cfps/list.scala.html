@@ -1,13 +1,13 @@
 @import fr.gospeak.core.domain.Cfp
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.{cfpItem, container}
+@import fr.gospeak.web.pages.orga.partials.html.{cfpItem, container_theme}
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.OrgaReq
 
 @(cfps: Page[Cfp])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container("Gospeak", b)() {
+@container_theme("Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span class="text-capitalize">@Formats.plural(cfps.total.value, "Call For Paper")</span>
         <a class="btn btn-primary" href="@CfpCtrl.create(req.group.slug)" data-hotkey="+">Create a CFP</a>

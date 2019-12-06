@@ -8,27 +8,122 @@
 @import fr.gospeak.web.utils.OrgaReq
 
 @(event: Event, cfp: Option[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User])(implicit req: OrgaReq[AnyContent])
-<div class="list-group-item list-group-item-action @if(event.start.isAfter(req.nowLDT)) {list-group-item-secondary}">
-    <h5 class="mb-1">
-        <a href="@EventCtrl.detail(req.group.slug, event.slug)">@event.name.value</a>
-        @event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }
-    </h5>
-    @if(!event.isPublic) {<span class="badge badge-dark">Draft</span>}
-    @event.venue.map { id => @venue(venues, id, v => Some(VenueCtrl.detail(req.group.slug, v.id))) }.getOrElse { <b class="text-danger">Missing venue</b> }
-    @Formats.date(event.start),
-    @event.maxAttendee.map { max =>  @Formats.plural(max, "place"), }
-    @Formats.plural(event.talks.length, "planned talk")
-    @tags(event.tags)
-    @if(event.talks.nonEmpty) {
-        <ol>
-        @event.talks.map { pId =>
-            <li>
-                @proposals.find(_.id == pId).map { p =>
-                    @cfp.map { c => <a href="@ProposalCtrl.detail(req.group.slug, c.slug, p.id)">@p.title.value</a> }.getOrElse{<span>@p.title.value</span>}
-                    @p.speakers.toList.map { uId => @speaker(speakers, uId, s => Some(SpeakerCtrl.detail(req.group.slug, s.slug))) }
-                }.getOrElse { Unknown (@pId.value) }
-            </li>
+<div id="eventDetail" class="accordion mb-9">
+        <!-- Card -->
+    <div class="card">
+        <div class="card-header card-collapse @if(event.start.isAfter(req.nowLDT)) {}" id="cardHeadingThree">
+            <h5 class="mb-0">
+                <button class="btn btn-link btn-block card-btn collapsed p-3" role="button" data-toggle="collapse" data-target="#cardThree" aria-expanded="false" aria-controls="cardThree">
+                    <span class="row align-items-center">
+                        <span class="col-md-6 mb-2 mb-md-0">
+                            <span class="media align-items-center">
+                                <span class="mx-2">
+                                @event.venue.flatMap(id => venues.find(_.id == id)).map { venue =>
+                                    <img class="max-width-6 mr-3" src=" @venue.partner.logo.value" alt="Partner logo">
+                                }.getOrElse {
+                                    <img class="max-width-6 mr-3" src="https://secure.meetupstatic.com/photos/event/b/6/1/4/600_251926612.jpeg" alt="Image Description">
+                                    }
+                                </span>
+
+                                <span class="media-body">
+                                    <span class="d-block font-size-1"><a href="@EventCtrl.detail(req.group.slug, event.slug)">@event.name.value</a>
+                                        @event.refs.meetup.map { ref =>
+                                            <a href="@ref.link" target="_blank">
+                                                <i class="fab fa-meetup"></i>
+                                            </a>
+                                        }</span>
+                                </span>
+                            </span>
+                        </span>
+                        <span class="col-4 col-md-2 text-md-right">
+                            @if(!event.isPublic) {
+                                <span class="btn btn-xs  btn-pill btn-soft-dark">Draft</span>
+                            }
+                            <span class="btn btn-xs  btn-pill btn-soft-primary">
+                            @Formats.plural(event.talks.length, "talk")
+                            </span>
+                        </span>
+                        <span class="col-6 col-md-3">
+                            <span class="text-primary font-size-1">
+                            @Formats.date(event.start)
+                            </span>
+                        </span>
+
+                        <span class="col-2 col-md-1 text-right">
+                            <span class="card-btn-arrow">
+                                <span class="fas fa-arrow-down small"></span>
+                            </span>
+                        </span>
+                    </span>
+                </button>
+            </h5>
+        </div>
+        @if(event.talks.nonEmpty) {
+            <div id="cardThree" class="" aria-labelledby="cardHeadingThree" data-parent="#paymentDetails">
+                <div class="card-body px-4">
+                        <!-- Card Details -->
+                    <div class="row">
+                        <div class="col-sm-7 mb-2 mb-sm-0">
+                            <h4 class="h6 mb-1">@tags(event.tags)</h4>
+
+                            @event.talks.map { pId =>
+                                <li>
+                                    @proposals.find(_.id == pId).map { p =>
+                                        @cfp.map { c => <a class="d-block font-size-1 mb-1" href="@ProposalCtrl.detail(req.group.slug, c.slug, p.id)">@p.title.value</a> }.getOrElse {
+                                            <span class="d-block font-size-1 mb-1">@p.title.value</span>
+                                        }
+                                        @p.speakers.toList.map { uId => @speaker(speakers, uId, s => Some(SpeakerCtrl.detail(req.group.slug, s.slug))) }
+                                    }.getOrElse { Unknown (@pId.value) }
+                                </li>
+                            }
+
+
+                        </div>
+                        <div class="col-sm-5 mb-2 mb-sm-0">
+                            <h5 class="h6 mb-0">
+                                @event.venue.flatMap(id => venues.find(_.id == id)).map { venue =>
+                                    @venue.partner.data.name.value
+                                }
+                            </h5>
+                            <h5 class="h6">@event.maxAttendee.map { max => @Formats.plural(max, "place")
+                            }
+                            </h5>
+                            <address class="font-size-1">
+                                @event.venue.flatMap(id => venues.find(_.id == id)).map { venue =>
+                                    @venue.address.value
+                                }
+                            </span>
+                            </address>
+                            <button type="button" class="btn btn-xs btn-soft-secondary mr-1">Delete</button>
+                            <button type="button" class="btn btn-xs btn-primary">Edit</button>
+                        </div>
+                    </div>
+                        <!-- End Card Details -->
+                </div>
+            </div>
+
+
         }
-        </ol>
-    }
+    </div>
+        <!-- End Card -->
 </div>
+
+
+
+
+
+
+@if(event.talks.nonEmpty) {
+    <ol>
+    @event.talks.map { pId =>
+        <li>
+            @proposals.find(_.id == pId).map { p =>
+                @cfp.map { c => <a href="@ProposalCtrl.detail(req.group.slug, c.slug, p.id)">@p.title.value</a> }.getOrElse {
+                    <span>@p.title.value</span>
+                }
+                @p.speakers.toList.map { uId => @speaker(speakers, uId, s => Some(SpeakerCtrl.detail(req.group.slug, s.slug))) }
+            }.getOrElse { Unknown (@pId.value) }
+        </li>
+    }
+    </ol>
+}

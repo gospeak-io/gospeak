@@ -1,12 +1,12 @@
 @import fr.gospeak.core.domain.{Cfp, Event}
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
-@import fr.gospeak.web.pages.orga.partials.html.{cfpFields, container}
+@import fr.gospeak.web.pages.orga.partials.html.{cfpFields, container_theme}
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.OrgaReq
 
 @(form: Form[Cfp.Data], event: Option[Event.Slug])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container("Gospeak", b)() {
+@container_theme("Gospeak", b)() {
     <h1 class="page-header">Create a CFP</h1>
 
     @formElt(form, CfpCtrl.doCreate(req.group.slug, event)) {

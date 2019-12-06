@@ -222,9 +222,11 @@ class GospeakComponents(context: ApplicationLoader.Context)
     if (envConf.isProd) {
       db.migrate().unsafeRunSync()
     } else {
-      db.dropTables().unsafeRunSync()
+     /*
+     db.dropTables().unsafeRunSync()
       db.migrate().unsafeRunSync()
       db.insertMockData(conf.gospeak).unsafeRunSync()
+      */
     }
 
     messageBus.subscribe(messageHandler.handle)
