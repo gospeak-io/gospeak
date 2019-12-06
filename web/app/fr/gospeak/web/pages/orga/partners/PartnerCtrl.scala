@@ -51,7 +51,7 @@ class PartnerCtrl(cc: ControllerComponents,
     (for {
       partnerElt <- OptionT(partnerRepo.find(partner))
       contacts <- OptionT.liftF(contactRepo.list(partnerElt.id))
-      venues <- OptionT.liftF(venueRepo.listFull(partnerElt.id))
+      venues <- OptionT.liftF(venueRepo.listAllFull(partnerElt.id))
       packs <- OptionT.liftF(sponsorPackRepo.listActives)
       sponsors <- OptionT.liftF(sponsorRepo.listAllFull(partnerElt.id))
       events <- OptionT.liftF(eventRepo.list(partnerElt.id))
