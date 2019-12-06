@@ -8,21 +8,20 @@
 @import fr.gospeak.web.utils.OrgaReq
 
 @(event: Event, cfp: Option[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User])(implicit req: OrgaReq[AnyContent])
-<div id="eventDetail" class="accordion mb-9">
-        <!-- Card -->
-    <div class="card">
-        <div class="card-header card-collapse @if(event.start.isAfter(req.nowLDT)) {}" id="cardHeadingThree">
+<div id="basicsAccordion">
+    <div class="card mb-3">
+        <div class="card-header card-collapse" id="basicsHeadingOne">
             <h5 class="mb-0">
-                <button class="btn btn-link btn-block card-btn collapsed p-3" role="button" data-toggle="collapse" data-target="#cardThree" aria-expanded="false" aria-controls="cardThree">
+                <button type="button" class="btn btn-link btn-block card-btn collapsed p-3" data-toggle="collapse" data-target="#basicsCollapse-@event.slug.value" aria-expanded="false" aria-controls="basicsCollapseOne">
                     <span class="row align-items-center">
                         <span class="col-md-6 mb-2 mb-md-0">
                             <span class="media align-items-center">
                                 <span class="mx-2">
-                                @event.venue.flatMap(id => venues.find(_.id == id)).map { venue =>
+                                    @event.venue.flatMap(id => venues.find(_.id == id)).map { venue =>
                                     <img class="max-width-6 mr-3" src=" @venue.partner.logo.value" alt="Partner logo">
-                                }.getOrElse {
-                                    <img class="max-width-6 mr-3" src="https://secure.meetupstatic.com/photos/event/b/6/1/4/600_251926612.jpeg" alt="Image Description">
-                                    }
+                                    }.getOrElse {
+                                        <img class="max-width-6 mr-3" src="https://secure.meetupstatic.com/photos/event/b/6/1/4/600_251926612.jpeg" alt="Image Description">
+                                        }
                                 </span>
 
                                 <span class="media-body">
@@ -55,75 +54,51 @@
                             </span>
                         </span>
                     </span>
+
                 </button>
             </h5>
         </div>
-        @if(event.talks.nonEmpty) {
-            <div id="cardThree" class="" aria-labelledby="cardHeadingThree" data-parent="#paymentDetails">
-                <div class="card-body px-4">
-                        <!-- Card Details -->
-                    <div class="row">
-                        <div class="col-sm-7 mb-2 mb-sm-0">
-                            <h4 class="h6 mb-1">@tags(event.tags)</h4>
+        <div id="basicsCollapse-@event.slug.value" class="collapse" aria-labelledby="basicsHeadingOne" data-parent="#basicsAccordion" style="">
+            <div class="row card-body">
+                <div class="col-sm-6">
+                        <h2 class="h6 mb-0">@tags(event.tags)</h2>
+                    <div class="pt-3 pb-4 px-4">
+                        <div class="d-flex align-items-start mb-4" >
+                            @if(event.talks.nonEmpty) {
+                                @event.talks.map { pId =>
+                                    <div class="ml-3">
+                                        @proposals.find(_.id == pId).map { p =>
+                                            <span class="d-block text-dark">
+                                                @cfp.map { c => <a class="" href="@ProposalCtrl.detail(req.group.slug, c.slug, p.id)">@p.title.value</a> }.getOrElse {
+                                                    <span class="">@p.title.value</span>
+                                                }
+                                            by
+                                                <img class="u-sm-avatar rounded-circle" src="https://secure.meetupstatic.com/photos/event/b/6/1/4/600_251926612.jpeg" alt="Image Description">
+                                            </span>
 
-                            @event.talks.map { pId =>
-                                <li>
-                                    @proposals.find(_.id == pId).map { p =>
-                                        @cfp.map { c => <a class="d-block font-size-1 mb-1" href="@ProposalCtrl.detail(req.group.slug, c.slug, p.id)">@p.title.value</a> }.getOrElse {
-                                            <span class="d-block font-size-1 mb-1">@p.title.value</span>
-                                        }
-                                        @p.speakers.toList.map { uId => @speaker(speakers, uId, s => Some(SpeakerCtrl.detail(req.group.slug, s.slug))) }
-                                    }.getOrElse { Unknown (@pId.value) }
-                                </li>
-                            }
-
-
-                        </div>
-                        <div class="col-sm-5 mb-2 mb-sm-0">
-                            <h5 class="h6 mb-0">
-                                @event.venue.flatMap(id => venues.find(_.id == id)).map { venue =>
-                                    @venue.partner.data.name.value
+                                        }.getOrElse { Unknown (@pId.value) }
+                                    </div>
                                 }
-                            </h5>
-                            <h5 class="h6">@event.maxAttendee.map { max => @Formats.plural(max, "place")
                             }
-                            </h5>
-                            <address class="font-size-1">
-                                @event.venue.flatMap(id => venues.find(_.id == id)).map { venue =>
-                                    @venue.address.value
-                                }
-                            </span>
-                            </address>
-                            <button type="button" class="btn btn-xs btn-soft-secondary mr-1">Delete</button>
-                            <button type="button" class="btn btn-xs btn-primary">Edit</button>
                         </div>
                     </div>
-                        <!-- End Card Details -->
+                </div>
+                <div class="col-sm-5">
+                    <h5 class="h6 mb-0">
+                        @event.venue.flatMap(id => venues.find(_.id == id)).map { venue =>
+                            @venue.partner.data.name.value
+                        }
+                    </h5>
+                    <h5 class="font-size-1">
+                        @event.maxAttendee.map { max => @Formats.plural(max, "place")}
+                    </h5>
+                    <address class="font-size-1">
+                        @event.venue.flatMap(id => venues.find(_.id == id)).map { venue =>
+                            @venue.address.value
+                        }
+                    </address>
                 </div>
             </div>
-
-
-        }
+        </div>
     </div>
-        <!-- End Card -->
 </div>
-
-
-
-
-
-
-@if(event.talks.nonEmpty) {
-    <ol>
-    @event.talks.map { pId =>
-        <li>
-            @proposals.find(_.id == pId).map { p =>
-                @cfp.map { c => <a href="@ProposalCtrl.detail(req.group.slug, c.slug, p.id)">@p.title.value</a> }.getOrElse {
-                    <span>@p.title.value</span>
-                }
-                @p.speakers.toList.map { uId => @speaker(speakers, uId, s => Some(SpeakerCtrl.detail(req.group.slug, s.slug))) }
-            }.getOrElse { Unknown (@pId.value) }
-        </li>
-    }
-    </ol>
-}
