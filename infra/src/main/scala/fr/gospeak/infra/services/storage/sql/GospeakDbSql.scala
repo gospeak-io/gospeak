@@ -183,7 +183,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       eventbrite = Some("https://www.eventbrite.com/o/the-family-15751873639"),
       slack = Some("https://humantalks.slack.com"),
       discord = Some("https://discordapp.com/invite/3MMu9cR"),
-      github = Some("https://github.com/loicknuchel/gospeak")).get
+      github = Some("https://github.com/gospeak-io")).get
 
     val userDemo = user(
       slug = "demo",
