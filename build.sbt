@@ -130,7 +130,7 @@ val web = (project in file("web"))
       "fr.gospeak.web.utils.PathBindables._",
       "fr.gospeak.web.utils.QueryStringBindables._"),
     buildInfoKeys := Seq[BuildInfoKey](
-      name, version, scalaVersion, sbtVersion, buildInfoBuildNumber,
+      name, version, scalaVersion, sbtVersion,
       // see https://www.git-scm.com/docs/git-log#_pretty_formats
       "gitBranch" -> execOutput("git rev-parse --abbrev-ref HEAD"),
       "gitHash" -> execOutput("git log -1 --format=%h"),
