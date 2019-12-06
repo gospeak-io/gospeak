@@ -26,13 +26,17 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Full]] = selectPageFull(ctx.group.id, params).run(xa)
 
+  override def listAllFull()(implicit ctx: OrgaCtx): IO[Page[Venue.Full]] = ???
+
+  override def listPublicFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Full]] = ???
+
   override def listFull(group: Group.Id): IO[Seq[Venue.Full]] = selectAllFull(group).runList(xa)
 
-  override def listFull(partner: Partner.Id): IO[Seq[Venue.Full]] = selectAllFull(partner).runList(xa)
+  override def listAllFull(partner: Partner.Id): IO[Seq[Venue.Full]] = selectAllFull(partner).runList(xa)
 
   override def listFull(group: Group.Id, venues: Seq[Venue.Id]): IO[Seq[Venue.Full]] = runNel[Venue.Id, Venue.Full](selectAllFull(group, _), venues)
 
-  override def listFull(venues: Seq[Venue.Id])(implicit ctx: OrgaCtx): IO[Seq[Venue.Full]] = runNel[Venue.Id, Venue.Full](selectAllFull(ctx.group.id, _), venues)
+  override def listAllFull(venues: Seq[Venue.Id])(implicit ctx: OrgaCtx): IO[Seq[Venue.Full]] = runNel[Venue.Id, Venue.Full](selectAllFull(ctx.group.id, _), venues)
 
   override def findFull(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Option[Venue.Full]] = selectOneFull(ctx.group.id, venue).runOption(xa)
 

@@ -30,6 +30,13 @@ class VenueCtrl(cc: ControllerComponents,
     venueRepo.listFull(params).map(venues => Ok(html.list(venues)(listBreadcrumb)))
   })
 
+  def explore(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    for {
+      groupVenues <- venueRepo.listAllFull()
+      publicVenues <- venueRepo.listPublicFull(params)
+    } yield Ok(html.explore(publicVenues)(listBreadcrumb))
+  })
+
   def create(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     createView(VenueForms.create(timeShape))
   })

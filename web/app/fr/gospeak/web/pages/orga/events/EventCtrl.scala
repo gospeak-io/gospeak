@@ -46,7 +46,7 @@ class EventCtrl(cc: ControllerComponents,
     for {
       events <- eventRepo.list(params)
       cfps <- cfpRepo.list(events.items.flatMap(_.cfp))
-      venues <- venueRepo.listFull(events.items.flatMap(_.venue))
+      venues <- venueRepo.listAllFull(events.items.flatMap(_.venue))
       proposals <- proposalRepo.list(events.items.flatMap(_.talks))
       speakers <- userRepo.list(proposals.flatMap(_.users))
     } yield Ok(html.list(events, cfps, venues, proposals, speakers)(listBreadcrumb))

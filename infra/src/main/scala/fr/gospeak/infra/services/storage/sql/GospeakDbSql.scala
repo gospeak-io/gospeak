@@ -255,19 +255,26 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val proposal5 = proposal(talk4, cfp3)
     val proposals = Seq(proposal1, proposal2, proposal3, proposal4, proposal5)
 
-    val zeenea = partner(humanTalks, "Zeenea", "Recrute des devs Scala et Angular", Some("A startup building a data catalog"), 1, userDemo, social = social)
+    val zeeneaHT = partner(humanTalks, "Zeenea", "Recrute des devs Scala et Angular", Some("A startup building a data catalog"), 1, userDemo, social = social)
     val criteo = partner(humanTalks, "Criteo", "", None, 2, userDemo)
     val nexeo = partner(humanTalks, "Nexeo", "", None, 3, userDemo)
     val google = partner(humanTalks, "Google", "", None, 4, userDemo)
-    val partners = Seq(zeenea, criteo, nexeo, google)
+    // FIXME strange behaviour: if variable is name as social (facebook, eventbrite...), the compilation fails... WTF
+    // if works when I remove the named params in SocialAccounts.fromStrings
+    val zeeneaDG = partner(dataGov, "Zeenea", "Recrute des devs Scala et Angular", Some("A startup building a data catalog"), 1, userDemo, social = social)
+    val voodoo = partner(dataGov, "Voodoo", "", None, 2, userDemo)
+    val partners = Seq(zeeneaHT, criteo, nexeo, google, zeeneaDG, voodoo)
 
-    val zeeneaNina = contact(zeenea, "nina@zeenea.com", "Nina", "Truc", userDemo)
-    val zeeneaJean = contact(zeenea, "jean@zeenea.com", "Jean", "Machin", userDemo)
+    val zeeneaHTNina = contact(zeeneaHT, "nina@zeenea.com", "Nina", "Truc", userDemo)
+    val zeeneaHTJean = contact(zeeneaHT, "jean@zeenea.com", "Jean", "Machin", userDemo)
     val criteoClaude = contact(criteo, "claude@criteo.com", "Claude", "Bidule", userDemo)
-    val contacts = Seq(zeeneaNina, zeeneaJean, criteoClaude)
+    val zeeneaDGNina = contact(zeeneaDG, "nina@zeenea.com", "Nina", "Truc", userDemo)
+    val contacts = Seq(zeeneaHTNina, zeeneaHTJean, criteoClaude, zeeneaDGNina)
 
-    val venue1 = venue(zeenea, zeeneaPlace, userDemo, contact = Some(zeeneaNina), roomSize = Some(80))
-    val venues = Seq(venue1)
+    val venue1 = venue(zeeneaHT, zeeneaPlace, userDemo, contact = Some(zeeneaHTNina), roomSize = Some(80))
+    val venue2 = venue(zeeneaDG, zeeneaPlace, userDemo, contact = Some(zeeneaDGNina), roomSize = Some(80))
+    val venue3 = venue(voodoo, palaisDesCongres, userDemo)
+    val venues = Seq(venue1, venue2, venue3)
 
     val event1 = event(humanTalks, Some(cfp2), "2018-06", "HumanTalks Day #1", "2018-06-01", userDemo, Some(100), venue = None, description = groupDefaultSettings.event.description)
     val event2 = event(humanTalks, None, "2019-01", "HumanTalks Paris Janvier 2019", "2019-01-08", userDemo, Some(120), venue = None, description = groupDefaultSettings.event.description)
@@ -289,8 +296,8 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val old = sponsorPack(humanTalks, "Old", 100, userDemo, active = false)
     val packs = Seq(base, premium, old)
 
-    val sponsor1 = sponsor(humanTalks, zeenea, base, userDemo, "2018-01-01", "2019-01-01", Some(zeeneaJean))
-    val sponsor2 = sponsor(humanTalks, zeenea, premium, userDemo, "2019-01-01", "2020-01-01")
+    val sponsor1 = sponsor(humanTalks, zeeneaHT, base, userDemo, "2018-01-01", "2019-01-01", Some(zeeneaHTJean))
+    val sponsor2 = sponsor(humanTalks, zeeneaHT, premium, userDemo, "2019-01-01", "2020-01-01")
     val sponsor3 = sponsor(humanTalks, nexeo, base, userDemo, "2018-01-01", "2019-01-01")
     val sponsors = Seq(sponsor1, sponsor2, sponsor3)
 

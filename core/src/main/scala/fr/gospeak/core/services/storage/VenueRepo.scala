@@ -16,9 +16,13 @@ trait OrgaVenueRepo {
 
   def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Full]]
 
-  def listFull(partner: Partner.Id): IO[Seq[Venue.Full]]
+  def listAllFull()(implicit ctx: OrgaCtx): IO[Page[Venue.Full]]
 
-  def listFull(venues: Seq[Venue.Id])(implicit ctx: OrgaCtx): IO[Seq[Venue.Full]]
+  def listPublicFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Full]]
+
+  def listAllFull(partner: Partner.Id): IO[Seq[Venue.Full]]
+
+  def listAllFull(venues: Seq[Venue.Id])(implicit ctx: OrgaCtx): IO[Seq[Venue.Full]]
 
   def findFull(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Option[Venue.Full]]
 
