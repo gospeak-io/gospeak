@@ -1,13 +1,13 @@
 @import fr.gospeak.core.domain.Group
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.{container, groupFields}
+@import fr.gospeak.web.pages.orga.partials.html.{container_theme, groupFields}
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.OrgaReq
 
 @(form: Form[Group.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container("Gospeak", b)() {
+@container_theme("Gospeak", b)() {
     @formElt(form, GroupCtrl.doEdit(req.group.slug)) {
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>Edit @req.group.name.value infos</h1>

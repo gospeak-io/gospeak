@@ -1,12 +1,12 @@
 @import fr.gospeak.core.domain.Partner
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
-@import fr.gospeak.web.pages.orga.partials.html.{partnerFields, container}
+@import fr.gospeak.web.pages.orga.partials.html.{partnerFields, container_theme}
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.OrgaReq
 
 @(form: Form[Partner.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container("Gospeak", b)() {
+@container_theme("Gospeak", b)() {
     <h1 class="page-header">Create a partner</h1>
 
     @formElt(form, PartnerCtrl.doCreate(req.group.slug)) {

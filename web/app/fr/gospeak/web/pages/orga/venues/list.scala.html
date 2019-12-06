@@ -1,13 +1,13 @@
 @import fr.gospeak.core.domain.Venue
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.{container, venueItem}
+@import fr.gospeak.web.pages.orga.partials.html.{container_theme, venueItem}
 @import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.OrgaReq
 
 @(venues: Page[Venue.Full])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(req.group.name.value + " - Gospeak", b)() {
+@container_theme(req.group.name.value + " - Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span class="text-capitalize">@Formats.plural(venues.total.value, "venue")</span>
         <a class="btn btn-primary" href="@VenueCtrl.create(req.group.slug)" data-hotkey="+">Create a venue</a>

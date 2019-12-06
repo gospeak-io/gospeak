@@ -1,12 +1,12 @@
 @import fr.gospeak.core.domain.Venue
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.{container, venueFields}
+@import fr.gospeak.web.pages.orga.partials.html.{container_theme, venueFields}
 @import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.OrgaReq
 
 @(hasMeetupAccount: Boolean, venue: Venue.Full, form: Form[Venue.Data], doEdit: Call)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container("Gospeak", b)() {
+@container_theme("Gospeak", b)() {
     <div class="page-header">
         <h1>Edit @venue.partner.name.value venue</h1>
         <h2>@venue.address.value</h2>
