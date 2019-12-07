@@ -15,10 +15,8 @@ import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.partners.PartnerCtrl
 import fr.gospeak.web.pages.orga.partners.contacts.ContactCtrl._
 import fr.gospeak.web.pages.orga.partners.routes.{PartnerCtrl => PartnerRoutes}
-import fr.gospeak.web.utils.Mappings._
 import fr.gospeak.web.utils.{OrgaReq, UICtrl}
 import play.api.data.Form
-import play.api.data.Forms.mapping
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
 import scala.util.control.NonFatal
@@ -32,14 +30,6 @@ class ContactCtrl(cc: ControllerComponents,
                   partnerRepo: OrgaPartnerRepo,
                   venueRepo: OrgaVenueRepo,
                   sponsorRepo: OrgaSponsorRepo) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
-  private val createForm: Form[Contact.Data] = Form(mapping(
-    "partner" -> partnerId,
-    "first_name" -> contactFirstName,
-    "last_name" -> contactLastName,
-    "email" -> emailAddress,
-    "description" -> markdown
-  )(Contact.Data.apply)(Contact.Data.unapply))
-
   def list(group: Group.Slug, partner: Partner.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     (for {
       partnerElt <- OptionT(partnerRepo.find(partner))
@@ -49,11 +39,11 @@ class ContactCtrl(cc: ControllerComponents,
   })
 
   def create(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    createView(group, partner, createForm)
+    createView(group, partner, ContactForms.create)
   })
 
   def doCreate(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    createForm.bindFromRequest.fold(
+    ContactForms.create.bindFromRequest.fold(
       formWithErrors => createView(group, partner, formWithErrors),
       data => (for {
         partnerElt <- OptionT(partnerRepo.find(partner))
@@ -62,8 +52,8 @@ class ContactCtrl(cc: ControllerComponents,
         contact <- OptionT.liftF(contactRepo.create(data))
       } yield Redirect(routes.ContactCtrl.detail(group, partner, contact.id))).value.map(_.getOrElse(partnerNotFound(group, partner)))
         .recoverWith {
-          case _: DuplicateEmailException => createView(group, partner, createForm.bindFromRequest().withError("email", "Email already exists"))
-          case NonFatal(e) => createView(group, partner, createForm.bindFromRequest().withGlobalError(e.getMessage))
+          case _: DuplicateEmailException => createView(group, partner, ContactForms.create.bindFromRequest().withError("email", "Email already exists"))
+          case NonFatal(e) => createView(group, partner, ContactForms.create.bindFromRequest().withGlobalError(e.getMessage))
         }
     )
   })
@@ -88,11 +78,11 @@ class ContactCtrl(cc: ControllerComponents,
   })
 
   def edit(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    editView(group, partner, contact, createForm)
+    editView(group, partner, contact, ContactForms.create)
   })
 
   def doEdit(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    createForm.bindFromRequest.fold(
+    ContactForms.create.bindFromRequest.fold(
       formWithErrors => editView(group, partner, contact, formWithErrors),
       data => (for {
         partnerElt <- OptionT(partnerRepo.find(partner))
@@ -101,8 +91,8 @@ class ContactCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(contactRepo.edit(contact, data))
       } yield Redirect(routes.ContactCtrl.detail(group, partner, contact))).value.map(_.getOrElse(partnerNotFound(group, partner)))
         .recoverWith {
-          case _: DuplicateEmailException => createView(group, partner, createForm.bindFromRequest().withError("email", "Email already exists"))
-          case NonFatal(e) => createView(group, partner, createForm.bindFromRequest().withGlobalError(e.getMessage))
+          case _: DuplicateEmailException => createView(group, partner, ContactForms.create.bindFromRequest().withError("email", "Email already exists"))
+          case NonFatal(e) => createView(group, partner, ContactForms.create.bindFromRequest().withGlobalError(e.getMessage))
         }
     )
   })

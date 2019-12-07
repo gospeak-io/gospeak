@@ -8,6 +8,8 @@ import fr.gospeak.libs.scalautils.domain.{Done, Page}
 trait VenueRepo extends OrgaVenueRepo with PublicVenueRepo with SuggestVenueRepo
 
 trait OrgaVenueRepo {
+  def duplicate(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Venue]
+
   def create(data: Venue.Data)(implicit ctx: OrgaCtx): IO[Venue]
 
   def edit(venue: Venue.Id, data: Venue.Data)(implicit ctx: OrgaCtx): IO[Done]

@@ -10,7 +10,7 @@ final case class Venue(id: Venue.Id,
                        partner: Partner.Id,
                        contact: Option[Contact.Id],
                        address: GMapPlace,
-                       description: Markdown,
+                       notes: Markdown, // private infos for the group
                        roomSize: Option[Int],
                        refs: Venue.ExtRefs,
                        info: Info) {
@@ -21,7 +21,7 @@ final case class Venue(id: Venue.Id,
 
 object Venue {
   def apply(group: Group.Id, data: Data, info: Info): Venue =
-    new Venue(Id.generate(), data.partner, data.contact, data.address, data.description, data.roomSize, ExtRefs(), info)
+    new Venue(Id.generate(), data.partner, data.contact, data.address, data.notes, data.roomSize, ExtRefs(), info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -36,7 +36,7 @@ object Venue {
 
     def address: GMapPlace = venue.address
 
-    def description: Markdown = venue.description
+    def notes: Markdown = venue.notes
 
     def roomSize: Option[Int] = venue.roomSize
 
@@ -49,10 +49,10 @@ object Venue {
     def info: Info = venue.info
   }
 
-  final case class Public(id: Id,
-                          name: Partner.Name,
+  final case class Public(name: Partner.Name,
                           logo: Url,
                           address: GMapPlace,
+                          id: Id,
                           events: Long)
 
   final case class Public1(venue: Venue, partner: Partner, contact: Option[Contact], group: Group, event: Event)
@@ -60,12 +60,12 @@ object Venue {
   final case class Data(partner: Partner.Id,
                         contact: Option[Contact.Id],
                         address: GMapPlace,
-                        description: Markdown,
+                        notes: Markdown,
                         roomSize: Option[Int],
                         refs: Venue.ExtRefs)
 
   object Data {
-    def apply(venue: Venue): Data = new Data(venue.partner, venue.contact, venue.address, venue.description, venue.roomSize, venue.refs)
+    def apply(venue: Venue): Data = new Data(venue.partner, venue.contact, venue.address, venue.notes, venue.roomSize, venue.refs)
   }
 
 }

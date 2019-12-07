@@ -16,7 +16,7 @@
 @fieldHorizontal(form("email"), Seq("label" -> "Email", "help" -> "Please enter a valid email")) { (field, args) =>
     @inputEmail(field, Seq("placeholder" -> "Email", "autofocus" -> "true"))
 }
-@fieldHorizontal(form("description"), Seq("label" -> "Description")) { (field, args) =>
+@fieldHorizontal(form("notes"), Seq("label" -> "Notes", "help" -> "Private notes for your group")) { (field, args) =>
     @inputTextarea(field, args)
 }
 @inputHidden(form("partner"), Seq("value" -> partner.id.value))

@@ -121,6 +121,7 @@ POST        /u/groups/:group/partners/:partner/contacts/:contact/edit           
 POST        /u/groups/:group/partners/:partner/contacts/:contact/remove                    fr.gospeak.web.pages.orga.partners.contacts.ContactCtrl.doRemove(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id)
 GET         /u/groups/:group/venues                                                        fr.gospeak.web.pages.orga.venues.VenueCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /u/groups/:group/venues/explore                                                fr.gospeak.web.pages.orga.venues.VenueCtrl.explore(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+POST        /u/groups/:group/venues/duplicate/:venue                                       fr.gospeak.web.pages.orga.venues.VenueCtrl.duplicate(group: Group.Slug, venue: Venue.Id)
 GET         /u/groups/:group/venues/create                                                 fr.gospeak.web.pages.orga.venues.VenueCtrl.create(group: Group.Slug)
 POST        /u/groups/:group/venues/create                                                 fr.gospeak.web.pages.orga.venues.VenueCtrl.doCreate(group: Group.Slug)
 GET         /u/groups/:group/venues/:venue                                                 fr.gospeak.web.pages.orga.venues.VenueCtrl.detail(group: Group.Slug, venue: Venue.Id)

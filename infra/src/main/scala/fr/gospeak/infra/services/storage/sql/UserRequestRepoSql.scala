@@ -16,10 +16,10 @@ import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 
-class UserRequestRepoSql(groupRepo: GroupRepoSql,
+class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
+                         groupRepo: GroupRepoSql,
                          talkRepo: TalkRepoSql,
-                         proposalRepo: ProposalRepoSql,
-                         protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRequestRepo {
+                         proposalRepo: ProposalRepoSql) extends GenericRepo with UserRequestRepo {
   override def find(id: UserRequest.Id): IO[Option[UserRequest]] = selectOne(id).runOption(xa)
 
   override def list(user: User.Id, params: Page.Params): IO[Page[UserRequest]] = selectPage(user, params).run(xa)
