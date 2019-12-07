@@ -20,7 +20,7 @@
         <div class="list-group list-group-flush">
         @settings.actions.map { case (trigger, actions) =>
         <div class="list-group-item">
-            <h4 class="mb-0">@trigger.name</h4>
+            <h4 class="mb-0 px-3">@trigger.name</h4>
             <div>@actions.zipWithIndex.map { case (action, i) => @actionItem(trigger, i, action, settings.accounts) }</div>
         </div>
         }
