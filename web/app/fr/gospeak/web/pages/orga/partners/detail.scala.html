@@ -16,7 +16,7 @@
 @container_theme(partner.name.value + " - Gospeak", b)() {
     <div class="d-flex justify-content-between align-items-start">
         <div class="media">
-            <img src="@partner.logo.value" alt="@partner.name.value logo" class="avatar align-self-start mr-3">
+            <img src="@partner.logo.value" alt="@partner.name.value logo" class="avatar-lg align-self-start mr-3" style="height: 100px">
             <div class="media-body">
                 <h1 class="mt-0">@partner.name.value</h1>
                 @socialIcons(partner.social)
@@ -53,7 +53,7 @@
             </h5>
             <div class="list-group list-group-flush">
             @venues.map { venue =>
-                <div class="list-group-item">
+                <div class="list-group-item p-2">
                     <a href="@VenueCtrl.detail(req.group.slug, partner.slug, venue.id)">@venue.address.value</a>
                     @venue.contact.map { c => (contact: <a href="@ContactCtrl.detail(req.group.slug, partner.slug, c.id)">@c.name.value</a>)}
                 </div>
@@ -95,7 +95,7 @@
             </h5>
             <div class="list-group list-group-flush">
             @sponsors.map { sponsor =>
-                <span class="list-group-item d-flex justify-content-between align-items-center">
+                <span class="list-group-item d-flex justify-content-between align-items-center p-2">
                     <span>
                         @if(sponsor.isCurrent(req.now)) {
                             <b><a href="@SponsorCtrl.detail(req.group.slug, sponsor.pack.slug)">@sponsor.pack.name.value pack</a></b>
@@ -106,12 +106,12 @@
                         from @Formats.date(sponsor.start) to @Formats.date(sponsor.finish)
                         @sponsor.paid.map { p => (@sponsor.price.value paid on @Formats.date(p)) }.getOrElse {(@sponsor.price.value, not paid)}
                     </span>
-                    <span>
+                    <span class="d-flex">
                         @if(sponsor.paid.isEmpty) {
-                            @formBtn(SponsorCtrl.paid(req.group.slug, sponsor.id), Seq("class" -> "btn-primary btn-sm", "confirm" -> "Mark this sponsoring as paid ?")) {Mark as paid}
+                            @formBtn(SponsorCtrl.paid(req.group.slug, sponsor.id), Seq("class" -> "btn-primary btn-xs", "confirm" -> "Mark this sponsoring as paid ?")) {Mark as paid}
                         }
-                        <a href="@SponsorCtrl.edit(req.group.slug, sponsor.id, Some(partner.slug))" class="btn btn-primary btn-sm">Update</a>
-                        @formBtn(SponsorCtrl.remove(req.group.slug, sponsor.id), Seq("class" -> "btn-danger btn-sm", "confirm" -> "Remove this sponsoring ?")) {Remove}
+                        <a href="@SponsorCtrl.edit(req.group.slug, sponsor.id, Some(partner.slug))" class="btn btn-primary btn-xs mx-1">Update</a>
+                        @formBtn(SponsorCtrl.remove(req.group.slug, sponsor.id), Seq("class" -> "btn-danger btn-xs", "confirm" -> "Remove this sponsoring ?")) {Remove}
                     </span>
                 </span>
             }
@@ -123,16 +123,16 @@
         <div class="card mb-3">
             <h5 class="card-header">No contact for @partner.name.value</h5>
             <div class="card-body text-center">
-                <a href="@ContactCtrl.create(req.group.slug, partner.slug)" class="btn btn-success">Create a contact</a>
+                <a href="@ContactCtrl.create(req.group.slug, partner.slug)" class="btn btn-success btn-xs">Create a contact</a>
             </div>
         </div>
     } else {
         <div class="card mb-3">
             <h5 class="card-header d-flex justify-content-between align-items-center">
                 <span>@Formats.plural(contacts.length, "contact") for @partner.name.value</span>
-                <a class="btn btn-primary btn-sm" href="@ContactCtrl.create(req.group.slug, partner.slug)">Create a contact</a>
+                <a class="btn btn-primary btn-xs" href="@ContactCtrl.create(req.group.slug, partner.slug)">Create a contact</a>
             </h5>
-            <div class="list-group list-group-flush">
+            <div class="list-group list-group-flush p-2">
                 @contacts.map { contact => @contactItem(partner, contact) }
             </div>
         </div>
@@ -143,7 +143,7 @@
             <h5 class="card-header">Hosted @Formats.plural(events.length, "event")</h5>
             <div class="list-group list-group-flush">
             @events.map { case (event, venue) =>
-                <span class="list-group-item">
+                <span class="list-group-item p-2">
                     <a href="@EventCtrl.detail(req.group.slug, event.slug)">@event.name.value</a> at
                     <a href="@VenueCtrl.detail(req.group.slug, partner.slug, venue.id)">@venue.address.value</a>
                 </span>
