@@ -15,8 +15,8 @@
         </h5>
         <p class="mb-0">Pack <b>@sponsor.pack.name.value</b>, from @Formats.date(sponsor.start) to @Formats.date(sponsor.finish)</p>
     </div>
-    <div>
-        <a href="@SponsorCtrl.edit(req.group.slug, sponsor.id, None)" class="btn btn-primary btn-sm">Update</a>
-        @formBtn(SponsorCtrl.remove(req.group.slug, sponsor.id), Seq("class" -> "btn-danger btn-sm", "confirm" -> s"Remove ${sponsor.partner.name.value} sponsoring starting ${Formats.date(sponsor.start)}?")) {Remove}
+    <div class="d-flex">
+        <a href="@SponsorCtrl.edit(req.group.slug, sponsor.id, None)" class="btn btn-primary btn-xs mr-2">Update</a>
+        @formBtn(SponsorCtrl.remove(req.group.slug, sponsor.id), Seq("class" -> "btn-danger btn-xs", "confirm" -> s"Remove ${sponsor.partner.name.value} sponsoring starting ${Formats.date(sponsor.start)}?")) {Remove}
     </div>
 </div>
