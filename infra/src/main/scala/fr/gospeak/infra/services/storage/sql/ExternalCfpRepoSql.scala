@@ -80,8 +80,8 @@ object ExternalCfpRepoSql {
     table.select[Seq[Tag]](Seq(Field("tags", "ec")), Seq())
 
   private def insertLocation(a: Option[GMapPlace]) =
-    fr0"$a, ${a.map(_.geo.lat)}, ${a.map(_.geo.lng)}, ${a.flatMap(_.locality)}, ${a.map(_.country)}"
+    fr0"$a, ${a.map(_.id)}, ${a.map(_.geo.lat)}, ${a.map(_.geo.lng)}, ${a.flatMap(_.locality)}, ${a.map(_.country)}"
 
   private def updateLocation(a: Option[GMapPlace]) =
-    fr0"location=$a, location_lat=${a.map(_.geo.lat)}, location_lng=${a.map(_.geo.lng)}, location_locality=${a.flatMap(_.locality)}, location_country=${a.map(_.country)}"
+    fr0"location=$a, location_id=${a.map(_.id)}, location_lat=${a.map(_.geo.lat)}, location_lng=${a.map(_.geo.lng)}, location_locality=${a.flatMap(_.locality)}, location_country=${a.map(_.country)}"
 }

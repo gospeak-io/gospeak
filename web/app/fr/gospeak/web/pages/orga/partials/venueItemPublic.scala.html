@@ -1,0 +1,14 @@
+@import fr.gospeak.core.domain.Venue
+@import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
+@import fr.gospeak.web.utils.OrgaReq
+
+@(venue: Venue.Public)(implicit req: OrgaReq[AnyContent])
+<a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="@VenueCtrl.detail(req.group.slug, venue.id)">
+    <div>
+        <h5 class="mb-1">@venue.name.value</h5>
+        <p class="mb-1">@venue.address.value</p>
+        <p class="mb-1">@venue.events events</p>
+        @* <p class="mb-1">Event: @venue.event.name.value, Group: @venue.group.name.value</p> *@
+    </div>
+    <img src="@venue.logo.value" alt="@venue.name.value logo" class="avatar avatar-lg" style="height: 50px">
+</a>

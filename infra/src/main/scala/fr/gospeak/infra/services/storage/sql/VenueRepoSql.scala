@@ -26,9 +26,9 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Full]] = selectPageFull(ctx.group.id, params).run(xa)
 
-  override def listAllFull()(implicit ctx: OrgaCtx): IO[Page[Venue.Full]] = ???
+  override def listAllFull()(implicit ctx: OrgaCtx): IO[Seq[Venue.Full]] = selectAllFull(ctx.group.id).runList(xa)
 
-  override def listPublicFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Full]] = ???
+  override def listPublicFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Public]] = selectPublicPageFull(params).run(xa)
 
   override def listFull(group: Group.Id): IO[Seq[Venue.Full]] = selectAllFull(group).runList(xa)
 
@@ -50,14 +50,18 @@ object VenueRepoSql {
   private val tableFull = tableSelect
     .join(Tables.partners, _.partner_id -> _.id).get
     .joinOpt(Tables.contacts, _.contact_id -> _.id).get
+  private val publicTableFull = tableFull
+    .join(Tables.groups, _.group_id("pa") -> _.id).get.dropFields(_.name.startsWith("location_"))
+    .join(Tables.events, _.id("g") -> _.group_id, "e.published IS NOT NULL").get
+    .aggregate("COALESCE(COUNT(e.id), 0)", "events")
 
   private[sql] def insert(e: Venue): Insert[Venue] = {
-    val values = fr0"${e.id}, ${e.partner}, ${e.contact}, ${e.address}, ${e.address.geo.lat}, ${e.address.geo.lng}, ${e.address.country}, ${e.description}, ${e.roomSize}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.venue)}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
+    val values = fr0"${e.id}, ${e.partner}, ${e.contact}, ${e.address}, ${e.address.id}, ${e.address.geo.lat}, ${e.address.geo.lng}, ${e.address.locality}, ${e.address.country}, ${e.description}, ${e.roomSize}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.venue)}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert[Venue](e, _ => values)
   }
 
   private[sql] def update(group: Group.Id, venue: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"contact_id=${data.contact}, address=${data.address}, address_lat=${data.address.geo.lat}, address_lng=${data.address.geo.lng}, address_country=${data.address.country}, description=${data.description}, room_size=${data.roomSize}, meetupGroup=${data.refs.meetup.map(_.group)}, meetupVenue=${data.refs.meetup.map(_.venue)}, updated_at=$now, updated_by=$by"
+    val fields = fr0"contact_id=${data.contact}, address=${data.address}, address_id=${data.address.id}, address_lat=${data.address.geo.lat}, address_lng=${data.address.geo.lng}, address_locality=${data.address.locality}, address_country=${data.address.country}, description=${data.description}, room_size=${data.roomSize}, meetupGroup=${data.refs.meetup.map(_.group)}, meetupVenue=${data.refs.meetup.map(_.venue)}, updated_at=$now, updated_by=$by"
     table.update(fields, where(group, venue))
   }
 
@@ -81,6 +85,11 @@ object VenueRepoSql {
 
   private[sql] def selectAll(group: Group.Id, contact: Contact.Id): Select[Venue] =
     tableSelect.select[Venue](fr0"WHERE v.contact_id=$contact")
+
+  private[sql] def selectPublicPageFull(params: Page.Params): SelectPage[Venue.Public] = {
+    val fields = Seq(Field("id", "v"), Field("name", "pa"), Field("logo", "pa"), Field("address", "v"))
+    publicTableFull.selectPage[Venue.Public](fields, params.defaultOrderBy("pa.name"))
+  }
 
   private def where(group: Group.Id, id: Venue.Id): Fragment =
     fr0"WHERE v.id=(" ++ tableFull.select(Seq(Field("id", "v")), fr0"WHERE pa.group_id=$group AND v.id=$id", Seq()).fr ++ fr0")"

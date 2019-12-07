@@ -49,6 +49,14 @@ object Venue {
     def info: Info = venue.info
   }
 
+  final case class Public(id: Id,
+                          name: Partner.Name,
+                          logo: Url,
+                          address: GMapPlace,
+                          events: Long)
+
+  final case class Public1(venue: Venue, partner: Partner, contact: Option[Contact], group: Group, event: Event)
+
   final case class Data(partner: Partner.Id,
                         contact: Option[Contact.Id],
                         address: GMapPlace,

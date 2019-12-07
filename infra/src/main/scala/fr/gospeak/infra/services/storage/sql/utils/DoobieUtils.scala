@@ -68,7 +68,7 @@ object DoobieUtils {
               case (true, false) => field.copy(name = "-" + field.name)
               case (false, _) => field
             }
-          }).getOrElse(Seq(Field(sort, prefix)))
+          }).getOrElse(Seq(Field(sort, if (sort.contains(".")) "" else prefix)))
         }
       }.getOrElse(default)
     }
@@ -107,6 +107,9 @@ object DoobieUtils {
 
     def join(rightTable: Table, on: Table.BuildJoinFields, more: Table.BuildJoinFields*): Either[CustomException, Table] =
       doJoin("INNER JOIN", rightTable, NonEmptyList.of(on, more: _*), None)
+
+    def join(rightTable: Table, on: Table.BuildJoinFields, where: String): Either[CustomException, Table] =
+      doJoin("INNER JOIN", rightTable, NonEmptyList.of(on), Some(where))
 
     def joinOpt(rightTable: Table, on: Table.BuildJoinFields, more: Table.BuildJoinFields*): Either[CustomException, Table] =
       doJoin("LEFT OUTER JOIN", rightTable, NonEmptyList.of(on, more: _*), None)
@@ -155,6 +158,10 @@ object DoobieUtils {
     def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, None, params, sorts, search)
 
     def selectPage[A: Read](params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, Some(fr0" " ++ where), params, sorts, search)
+
+    def selectPage[A: Read](fields: Seq[Field], params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, None, params, sorts, search)
+
+    def selectPage[A: Read](fields: Seq[Field], params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, Some(fr0" " ++ where), params, sorts, search)
   }
 
   object Table {

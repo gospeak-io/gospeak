@@ -34,7 +34,7 @@ class VenueCtrl(cc: ControllerComponents,
     for {
       groupVenues <- venueRepo.listAllFull()
       publicVenues <- venueRepo.listPublicFull(params)
-    } yield Ok(html.explore(publicVenues)(listBreadcrumb))
+    } yield Ok(html.explore(publicVenues, groupVenues)(listBreadcrumb))
   })
 
   def create(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {

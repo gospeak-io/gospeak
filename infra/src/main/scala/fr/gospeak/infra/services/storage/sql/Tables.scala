@@ -37,7 +37,7 @@ object Tables {
   val groups: Table = Table.from(
     name = "groups",
     prefix = "g",
-    fields = Seq("id", "slug", "name", "logo", "banner", "contact", "website", "description", "location", "location_lat", "location_lng", "location_locality", "location_country", "owners") ++ socialFields ++ Seq("tags", "status", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "slug", "name", "logo", "banner", "contact", "website", "description", "location", "location_id", "location_lat", "location_lng", "location_locality", "location_country", "owners") ++ socialFields ++ Seq("tags", "status", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("name"),
     search = Seq("id", "slug", "name", "contact", "description", "location_locality", "location_country", "tags")).get
 
@@ -79,7 +79,7 @@ object Tables {
   val venues: Table = Table.from(
     name = "venues",
     prefix = "v",
-    fields = Seq("id", "partner_id", "contact_id", "address", "address_lat", "address_lng", "address_country", "description", "room_size", "meetupGroup", "meetupVenue", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "partner_id", "contact_id", "address", "address_id", "address_lat", "address_lng", "address_locality", "address_country", "description", "room_size", "meetupGroup", "meetupVenue", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("created_at"),
     search = Seq("id", "address", "description")).get
 
@@ -142,7 +142,7 @@ object Tables {
   val externalCfps: Table = Table.from(
     name = "external_cfps",
     prefix = "ec",
-    fields = Seq("id", "name", "logo", "description", "begin", "close", "url", "event_start", "event_finish", "event_url", "location", "location_lat", "location_lng", "location_locality", "location_country", "tickets_url", "videos_url", "twitter_account", "twitter_hashtag", "tags", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "name", "logo", "description", "begin", "close", "url", "event_start", "event_finish", "event_url", "location", "location_id", "location_lat", "location_lng", "location_locality", "location_country", "tickets_url", "videos_url", "twitter_account", "twitter_hashtag", "tags", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("close", "name"),
     search = Seq("id", "name", "description", "url", "event_url", "location", "twitter_account", "twitter_hashtag", "tags")).get
 
