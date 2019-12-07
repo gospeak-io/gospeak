@@ -283,7 +283,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val event7 = event(humanTalks, Some(cfp1), "2020-01", "HumanTalks Paris Janvier 2020", "2020-01-14", userDemo, Some(100), venue = Some(venue1), description = groupDefaultSettings.event.description, published = false)
     val event8 = event(humanTalks, Some(cfp1), "2020-04", "HumanTalks Paris Avril 2020", "2020-04-14", userDemo, Some(100), venue = Some(venue1), description = groupDefaultSettings.event.description, published = false)
     val event5 = event(parisJs, Some(cfp4), "2019-04", "Paris.Js Avril", "2019-04-01", userOrga, None)
-    val event6 = event(dataGov, None, "2019-03", "Nouveaux modeles de gouvenance", "2019-03-15", userDemo, Some(100), tags = Seq("Data Gouv"))
+    val event6 = event(dataGov, None, "2019-03", "Nouveaux modeles de gouvenance", "2019-03-15", userDemo, Some(100), venue = Some(venue3), tags = Seq("Data Gouv"))
     val events = Seq(event1, event2, event3, event4, event5, event6, event7, event8)
 
     val eventTalks = Seq(

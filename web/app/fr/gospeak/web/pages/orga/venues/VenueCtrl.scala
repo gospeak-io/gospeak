@@ -32,9 +32,18 @@ class VenueCtrl(cc: ControllerComponents,
 
   def explore(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     for {
+      publicVenues <- venueRepo.listPublic(params)
       groupVenues <- venueRepo.listAllFull()
-      publicVenues <- venueRepo.listPublicFull(params)
-    } yield Ok(html.explore(publicVenues, groupVenues)(listBreadcrumb))
+    } yield Ok(html.explore(publicVenues, groupVenues)(exploreBreadcrumb))
+  })
+
+  def exploreDetail(group: Group.Slug, venue: Venue.Id, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    (for {
+      venueElt <- OptionT(venueRepo.findPublic(venue))
+      events <- OptionT.liftF(eventRepo.listPublic(venueElt.address, params))
+      groupVenues <- OptionT.liftF(venueRepo.listAllFull())
+      res = Ok(html.exploreDetail(venueElt, events, groupVenues)(exploreBreadcrumb(venueElt)))
+    } yield res).value.map(_.getOrElse(venueNotFound(group, venue)))
   })
 
   def duplicate(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
@@ -105,4 +114,10 @@ object VenueCtrl {
 
   def breadcrumb(venue: Venue.Full)(implicit req: OrgaReq[AnyContent]): Breadcrumb =
     listBreadcrumb.add(venue.address.value -> routes.VenueCtrl.detail(req.group.slug, venue.id))
+
+  def exploreBreadcrumb(implicit req: OrgaReq[AnyContent]): Breadcrumb =
+    listBreadcrumb.add("Explore" -> routes.VenueCtrl.explore(req.group.slug))
+
+  def exploreBreadcrumb(venue: Venue.Public)(implicit req: OrgaReq[AnyContent]): Breadcrumb =
+    exploreBreadcrumb.add(venue.address.value -> routes.VenueCtrl.exploreDetail(req.group.slug, venue.id))
 }

@@ -20,7 +20,9 @@ trait OrgaVenueRepo {
 
   def listAllFull()(implicit ctx: OrgaCtx): IO[Seq[Venue.Full]]
 
-  def listPublicFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Public]]
+  def listPublic(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Public]]
+
+  def findPublic(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Option[Venue.Public]]
 
   def listAllFull(partner: Partner.Id): IO[Seq[Venue.Full]]
 
