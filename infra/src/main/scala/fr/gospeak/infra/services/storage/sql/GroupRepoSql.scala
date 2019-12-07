@@ -119,14 +119,14 @@ object GroupRepoSql {
     .join(memberTableWithUser, _.id -> _.group_id).get
 
   private[sql] def insert(e: Group): Insert[Group] = {
-    val values = fr0"${e.id}, ${e.slug}, ${e.name}, ${e.logo}, ${e.banner}, ${e.contact}, ${e.website}, ${e.description}, ${e.location}, ${e.location.map(_.geo.lat)}, ${e.location.map(_.geo.lng)}, ${e.location.flatMap(_.locality)}, ${e.location.map(_.country)}, ${e.owners}, " ++
+    val values = fr0"${e.id}, ${e.slug}, ${e.name}, ${e.logo}, ${e.banner}, ${e.contact}, ${e.website}, ${e.description}, ${e.location}, ${e.location.map(_.id)}, ${e.location.map(_.geo.lat)}, ${e.location.map(_.geo.lng)}, ${e.location.flatMap(_.locality)}, ${e.location.map(_.country)}, ${e.owners}, " ++
       fr0"${e.social.facebook}, ${e.social.instagram}, ${e.social.twitter}, ${e.social.linkedIn}, ${e.social.youtube}, ${e.social.meetup}, ${e.social.eventbrite}, ${e.social.slack}, ${e.social.discord}, ${e.social.github}, " ++
       fr0"${e.tags}, ${e.status}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert[Group](e, _ => values)
   }
 
   private[sql] def update(group: Group.Slug)(d: Group.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"slug=${d.slug}, name=${d.name}, logo=${d.logo}, banner=${d.banner}, contact=${d.contact}, website=${d.website}, description=${d.description}, location=${d.location}, location_lat=${d.location.map(_.geo.lat)}, location_lng=${d.location.map(_.geo.lng)}, location_locality=${d.location.flatMap(_.locality)}, location_country=${d.location.map(_.country)}, " ++
+    val fields = fr0"slug=${d.slug}, name=${d.name}, logo=${d.logo}, banner=${d.banner}, contact=${d.contact}, website=${d.website}, description=${d.description}, location=${d.location}, location_id=${d.location.map(_.id)}, location_lat=${d.location.map(_.geo.lat)}, location_lng=${d.location.map(_.geo.lng)}, location_locality=${d.location.flatMap(_.locality)}, location_country=${d.location.map(_.country)}, " ++
       fr0"social_facebook=${d.social.facebook}, social_instagram=${d.social.instagram}, social_twitter=${d.social.twitter}, social_linkedIn=${d.social.linkedIn}, social_youtube=${d.social.youtube}, social_meetup=${d.social.meetup}, social_eventbrite=${d.social.eventbrite}, social_slack=${d.social.slack}, social_discord=${d.social.discord}, social_github=${d.social.github}, " ++
       fr0"tags=${d.tags}, updated_at=$now, updated_by=$by"
     table.update(fields, fr0"WHERE g.slug=$group")

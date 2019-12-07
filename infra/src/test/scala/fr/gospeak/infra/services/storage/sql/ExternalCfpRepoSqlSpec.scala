@@ -14,7 +14,7 @@ class ExternalCfpRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = ExternalCfpRepoSql.update(externalCfp.id)(externalCfp.data, user.id, now)
-        check(q, s"UPDATE $table SET name=?, logo=?, description=?, begin=?, close=?, url=?, event_start=?, event_finish=?, event_url=?, location=?, location_lat=?, location_lng=?, location_locality=?, location_country=?, tickets_url=?, videos_url=?, twitter_account=?, twitter_hashtag=?, tags=?, updated_at=?, updated_by=? WHERE id=?")
+        check(q, s"UPDATE $table SET name=?, logo=?, description=?, begin=?, close=?, url=?, event_start=?, event_finish=?, event_url=?, location=?, location_id=?, location_lat=?, location_lng=?, location_locality=?, location_country=?, tickets_url=?, videos_url=?, twitter_account=?, twitter_hashtag=?, tags=?, updated_at=?, updated_by=? WHERE id=?")
       }
       it("should build selectOne for cfp id") {
         val q = ExternalCfpRepoSql.selectOne(externalCfp.id)
@@ -54,7 +54,7 @@ class ExternalCfpRepoSqlSpec extends RepoSpec {
 
 object ExternalCfpRepoSqlSpec {
   val table = "external_cfps ec"
-  val fieldsInsert: String = mapFields("id, name, logo, description, begin, close, url, event_start, event_finish, event_url, location, location_lat, location_lng, location_locality, location_country, tickets_url, videos_url, twitter_account, twitter_hashtag, tags, created_at, created_by, updated_at, updated_by", "ec." + _)
+  val fieldsInsert: String = mapFields("id, name, logo, description, begin, close, url, event_start, event_finish, event_url, location, location_id, location_lat, location_lng, location_locality, location_country, tickets_url, videos_url, twitter_account, twitter_hashtag, tags, created_at, created_by, updated_at, updated_by", "ec." + _)
   val fields: String = fieldsInsert.split(", ").filterNot(_.startsWith("ec.location_")).mkString(", ")
   val orderBy = "ORDER BY ec.close IS NULL, ec.close, ec.name IS NULL, ec.name"
 

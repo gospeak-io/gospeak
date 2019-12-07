@@ -54,7 +54,8 @@ object Page {
 
   final case class OrderBy(values: Seq[String]) extends AnyVal {
     def prefix(p: String): OrderBy = OrderBy(values.map(v =>
-      if (v.startsWith("-")) s"-$p.${v.stripPrefix("-")}"
+      if(v.contains(".")) v
+      else if (v.startsWith("-")) s"-$p.${v.stripPrefix("-")}"
       else s"$p.$v"
     ))
 
@@ -126,9 +127,9 @@ object Page {
 
     def defaultSize(size: Int): Params = if (pageSize == Params.defaults.pageSize) copy(pageSize = Size(size)) else this
 
-    def defaultOrderBy(field: String*): Params = if (orderBy == Params.defaults.orderBy) copy(orderBy = Some(OrderBy(field))) else this
+    def defaultOrderBy(fields: String*): Params = if (orderBy == Params.defaults.orderBy) copy(orderBy = Some(OrderBy(fields))) else this
 
-    def orderBy(field: String*): Params = copy(orderBy = Some(OrderBy(field)))
+    def orderBy(fields: String*): Params = copy(orderBy = Some(OrderBy(fields)))
 
     def search(q: String): Params = copy(search = Some(Search(q)))
 
