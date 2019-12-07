@@ -1,0 +1,38 @@
+@import fr.gospeak.core.domain.{Event, Venue}
+@import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.pages.orga.partials.html.container_theme
+@import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
+@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
+@import fr.gospeak.web.pages.partials.form.html.formBtn
+@import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.OrgaReq
+
+@(venue: Venue.Public, events: Page[Event.Full], groupVenues: Seq[Venue.Full])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@eventItem(event: Event.Full) = {
+    <div>
+        <a href="@GroupCtrl.event(event.group.slug, event.slug)">@event.name.value</a> at
+        <a href="@GroupCtrl.detail(event.group.slug)">@event.group.name.value</a> group
+    </div>
+}
+@container_theme(venue.name.value + " - Gospeak", b)() {
+    <div class="d-flex justify-content-between align-items-start">
+        <div class="media">
+            <img src="@venue.logo.value" alt="@venue.name.value logo" class="avatar align-self-start mr-3">
+            <div class="media-body">
+                <h1 class="mt-0">@venue.name.value</h1>
+                <p>@venue.address.value</p>
+                @* @venue.contact.map { c => <p>Contact: @c.name.value</p> } *@
+                @* @venue.roomSize.map { s => <p>@s places in the room</p> } *@
+            </div>
+        </div>
+        @groupVenues.find(_.address.id == venue.address.id).map { v =>
+            <button class="btn btn-success disabled">Exists in your group</button>
+        }.getOrElse {
+            @formBtn(VenueCtrl.duplicate(req.group.slug, venue.id), Seq("class" -> "btn-success")){Add to your group}
+        }
+    </div>
+
+    <h5>Hosted events</h5>
+    @Formats.paginated[Event.Full](events, VenueCtrl.exploreDetail(req.group.slug, venue.id, _), eventItem)
+}()

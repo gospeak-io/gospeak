@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
-import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
+import fr.gospeak.libs.scalautils.domain.{Done, GMapPlace, Page, Tag}
 
 trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with PublicEventRepo with SuggestEventRepo
 
@@ -30,6 +30,8 @@ trait OrgaEventRepo {
   def list(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Seq[(Event, Venue)]]
 
   def list(ids: Seq[Event.Id]): IO[Seq[Event]]
+
+  def listPublic(address: GMapPlace, params: Page.Params): IO[Page[Event.Full]]
 
   def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]]
 

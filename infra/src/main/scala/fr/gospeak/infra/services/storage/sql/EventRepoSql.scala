@@ -17,7 +17,7 @@ import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
+import fr.gospeak.libs.scalautils.domain.{CustomException, Done, GMapPlace, Page, Tag}
 
 class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with EventRepo {
   override def create(data: Event.Data)(implicit ctx: OrgaCtx): IO[Event] =
@@ -59,6 +59,8 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def list(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Seq[(Event, Venue)]] = selectAll(ctx.group.id, partner).runList(xa)
 
   override def listPublished(group: Group.Id, params: Page.Params): IO[Page[Event.Full]] = selectPagePublished(group, params).run(xa)
+
+  override def listPublic(address: GMapPlace, params: Page.Params): IO[Page[Event.Full]] = selectPagePublic(address, params).run(xa)
 
   override def list(ids: Seq[Event.Id]): IO[Seq[Event]] = runNel(selectAll, ids)
 
@@ -139,6 +141,9 @@ object EventRepoSql {
 
   private[sql] def selectPagePublished(group: Group.Id, params: Page.Params): SelectPage[Event.Full] =
     tableFull.selectPage[Event.Full](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")
+
+  private[sql] def selectPagePublic(address: GMapPlace, params: Page.Params): SelectPage[Event.Full] =
+    tableFull.selectPage[Event.Full](params, fr0"WHERE v.address=$address AND e.published IS NOT NULL")
 
   private[sql] def selectAll(ids: NonEmptyList[Event.Id]): Select[Event] =
     table.select[Event](fr0"WHERE " ++ Fragments.in(fr"e.id", ids))
