@@ -12,5 +12,5 @@
         <span class="text-capitalize">@Formats.plural(publicVenues.total.value, "public venue")</span>
         <a class="btn btn-link" href="@VenueCtrl.list(req.group.slug)">Back to your venues</a>
     </h1>
-    @Formats.paginated[Venue.Public](publicVenues, VenueCtrl.explore(req.group.slug, _), venueItemPublic(_))
+    @Formats.paginated[Venue.Public](publicVenues, VenueCtrl.explore(req.group.slug, _), venueItemPublic(_, groupVenues))
 }()

@@ -17,13 +17,17 @@ class VenueRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = VenueRepoSql.update(group.id, venue.id)(venue.data, user.id, now)
-        check(q, s"UPDATE $table SET contact_id=?, address=?, address_id=?, address_lat=?, address_lng=?, address_locality=?, address_country=?, description=?, room_size=?, meetupGroup=?, meetupVenue=?, updated_at=?, updated_by=? WHERE v.id=(SELECT v.id FROM $tableFull WHERE pa.group_id=? AND v.id=?)")
+        check(q, s"UPDATE $table SET contact_id=?, address=?, address_id=?, address_lat=?, address_lng=?, address_locality=?, address_country=?, notes=?, room_size=?, meetupGroup=?, meetupVenue=?, updated_at=?, updated_by=? WHERE v.id=(SELECT v.id FROM $tableFull WHERE pa.group_id=? AND v.id=?)")
       }
       it("should build delete") {
         val q = VenueRepoSql.delete(group.id, venue.id)
         check(q, s"DELETE FROM $table WHERE v.id=(SELECT v.id FROM $tableFull WHERE pa.group_id=? AND v.id=?)")
       }
       it("should build selectOneFull") {
+        val q = VenueRepoSql.selectOneFull(venue.id)
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE v.id=? $orderBy")
+      }
+      it("should build selectOneFull in a group") {
         val q = VenueRepoSql.selectOneFull(group.id, venue.id)
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? AND v.id=? $orderBy")
       }
@@ -49,7 +53,7 @@ class VenueRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPublicPageFull") {
         val q = VenueRepoSql.selectPublicPageFull(params)
-        check(q, s"SELECT $fieldsPublic FROM $tablePublic GROUP BY v.id, pa.name, pa.logo, v.address $orderByPublic LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fieldsPublic FROM $tablePublic GROUP BY pa.name, pa.logo, v.address $orderByPublic LIMIT 20 OFFSET 0")
       }
     }
   }
@@ -60,14 +64,14 @@ object VenueRepoSqlSpec {
   import RepoSpec._
 
   val table = "venues v"
-  val fieldsInsert: String = mapFields("id, partner_id, contact_id, address, address_id, address_lat, address_lng, address_locality, address_country, description, room_size, meetupGroup, meetupVenue, created_at, created_by, updated_at, updated_by", "v." + _)
-  val fields: String = mapFields("id, partner_id, contact_id, address, description, room_size, meetupGroup, meetupVenue, created_at, created_by, updated_at, updated_by", "v." + _)
+  val fieldsInsert: String = mapFields("id, partner_id, contact_id, address, address_id, address_lat, address_lng, address_locality, address_country, notes, room_size, meetupGroup, meetupVenue, created_at, created_by, updated_at, updated_by", "v." + _)
+  val fields: String = mapFields("id, partner_id, contact_id, address, notes, room_size, meetupGroup, meetupVenue, created_at, created_by, updated_at, updated_by", "v." + _)
   val orderBy = "ORDER BY v.created_at IS NULL, v.created_at"
 
   private val tableFull = s"$table INNER JOIN $partnerTable ON v.partner_id=pa.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id"
   private val fieldsFull = s"$fields, $partnerFields, $contactFields"
 
   private val tablePublic = s"$tableFull INNER JOIN $groupTable ON pa.group_id=g.id INNER JOIN $eventTable ON g.id=e.group_id AND e.published IS NOT NULL"
-  private val fieldsPublic = s"v.id, pa.name, pa.logo, v.address, COALESCE(COUNT(e.id), 0) as events"
+  private val fieldsPublic = s"pa.name, pa.logo, v.address, MAX(v.id) as id, COALESCE(COUNT(e.id), 0) as events"
   private val orderByPublic = "ORDER BY pa.name IS NULL, pa.name"
 }

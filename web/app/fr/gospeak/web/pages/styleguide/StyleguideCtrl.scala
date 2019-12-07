@@ -171,14 +171,14 @@ class StyleguideCtrl(cc: ControllerComponents,
     firstName = Contact.FirstName(user.firstName),
     lastName = Contact.LastName(user.lastName),
     email = user.email,
-    description = Markdown(""),
+    notes = Markdown(""),
     info = Info(user.id, now))
   private val venue = Venue(
     id = Venue.Id.generate(),
     partner = partner.id,
     contact = Some(contact.id),
     address = place,
-    description = Markdown(""),
+    notes = Markdown(""),
     roomSize = None,
     refs = Venue.ExtRefs(
       meetup = None),

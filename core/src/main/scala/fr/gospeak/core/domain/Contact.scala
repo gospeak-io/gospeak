@@ -9,7 +9,7 @@ final case class Contact(id: Contact.Id,
                          firstName: FirstName,
                          lastName: LastName,
                          email: EmailAddress,
-                         description: Markdown,
+                         notes: Markdown, // private infos for the group
                          info: Info) {
   def data: Contact.Data = Contact.Data(this)
 
@@ -19,8 +19,8 @@ final case class Contact(id: Contact.Id,
 }
 
 object Contact {
-  def apply(data: Data,
-            info: Info): Contact = Contact(Id.generate(), data.partner, data.firstName, data.lastName, data.email, data.description, info)
+  def apply(data: Data, info: Info): Contact =
+    Contact(Id.generate(), data.partner, data.firstName, data.lastName, data.email, data.notes, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -32,10 +32,14 @@ object Contact {
 
   final case class Name(value: String) extends AnyVal
 
-  final case class Data(partner: Partner.Id, firstName: FirstName, lastName: LastName, email: EmailAddress, description: Markdown)
+  final case class Data(partner: Partner.Id,
+                        firstName: FirstName,
+                        lastName: LastName,
+                        email: EmailAddress,
+                        notes: Markdown)
 
   object Data {
-    def apply(c: Contact) = new Data(c.partner, c.firstName, c.lastName, c.email, c.description)
+    def apply(c: Contact) = new Data(c.partner, c.firstName, c.lastName, c.email, c.notes)
   }
 
 }

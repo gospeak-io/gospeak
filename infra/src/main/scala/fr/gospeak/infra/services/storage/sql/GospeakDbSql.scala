@@ -58,15 +58,15 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
   override val groupSettings = new GroupSettingsRepoSql(xa, gsConf)
   override val cfp = new CfpRepoSql(xa)
   override val partner = new PartnerRepoSql(xa)
-  override val venue = new VenueRepoSql(xa)
+  override val contact = new ContactRepoSql(xa)
+  override val venue = new VenueRepoSql(xa, partner, contact)
   override val sponsorPack = new SponsorPackRepoSql(xa)
   override val sponsor = new SponsorRepoSql(xa)
   override val event = new EventRepoSql(xa)
   override val proposal = new ProposalRepoSql(xa)
-  override val contact = new ContactRepoSql(xa)
   override val comment = new CommentRepoSql(xa)
   override val externalCfp = new ExternalCfpRepoSql(xa)
-  override val userRequest = new UserRequestRepoSql(group, talk, proposal, xa)
+  override val userRequest = new UserRequestRepoSql(xa, group, talk, proposal)
 
   def insertMockData(conf: GospeakConf): IO[Done] = {
     val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import

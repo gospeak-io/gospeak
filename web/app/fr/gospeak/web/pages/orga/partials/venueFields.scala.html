@@ -21,7 +21,7 @@
         "remote" -> SuggestCtrl.suggestContacts(req.group.slug, partner.map(_.id).getOrElse(Partner.Id.empty)).toString,
         "remote-replace" -> partner.map(_ => "").getOrElse(Partner.Id.empty.value + ":partner")) ++ args)
 }
-@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Some details about this partner")) { (field, args) =>
+@fieldHorizontal(form("notes"), Seq("label" -> "Notes", "help" -> "Private notes for your group")) { (field, args) =>
     @inputMarkdown(field, args)
 }
 @fieldHorizontal(form("roomSize"), Seq("label" -> "Room size")) { (field, args) =>

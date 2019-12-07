@@ -37,6 +37,10 @@ class VenueCtrl(cc: ControllerComponents,
     } yield Ok(html.explore(publicVenues, groupVenues)(listBreadcrumb))
   })
 
+  def duplicate(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    venueRepo.duplicate(venue).map(_ => redirectToPreviousPageOr(routes.VenueCtrl.list(group)))
+  })
+
   def create(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     createView(VenueForms.create(timeShape))
   })

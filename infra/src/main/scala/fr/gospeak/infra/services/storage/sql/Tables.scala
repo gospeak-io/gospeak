@@ -72,16 +72,16 @@ object Tables {
   val contacts: Table = Table.from(
     name = "contacts",
     prefix = "ct",
-    fields = Seq("id", "partner_id", "first_name", "last_name", "email", "description", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "partner_id", "first_name", "last_name", "email", "notes", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("last_name", "first_name"),
     search = Seq("id", "first_name", "last_name", "email")).get
 
   val venues: Table = Table.from(
     name = "venues",
     prefix = "v",
-    fields = Seq("id", "partner_id", "contact_id", "address", "address_id", "address_lat", "address_lng", "address_locality", "address_country", "description", "room_size", "meetupGroup", "meetupVenue", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "partner_id", "contact_id", "address", "address_id", "address_lat", "address_lng", "address_locality", "address_country", "notes", "room_size", "meetupGroup", "meetupVenue", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("created_at"),
-    search = Seq("id", "address", "description")).get
+    search = Seq("id", "address", "notes")).get
 
   val events: Table = Table.from(
     name = "events",
