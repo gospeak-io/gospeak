@@ -10,6 +10,7 @@ import fr.gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import fr.gospeak.core.services.storage.OrgaGroupRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
+import fr.gospeak.web.auth
 import fr.gospeak.web.pages
 import org.h2.jdbc.JdbcSQLSyntaxErrorException
 import org.slf4j.LoggerFactory
@@ -24,7 +25,7 @@ abstract class UICtrl(cc: ControllerComponents,
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   protected def UserAwareActionIO(block: UserAwareReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.UserAwareAction.async { r =>
-    val req = new UserAwareReq[AnyContent](r.request, messagesApi.preferred(r.request), Instant.now(), env, r, r.identity.map(_.user))
+    val req = new UserAwareReq[AnyContent](r.request, messagesApi.preferred(r.request), Instant.now(), env, r, r.identity.map(_.user), r.identity.map(_.groups))
     recoverFailedAction(block(req))(req).unsafeToFuture()
   }
 
@@ -135,6 +136,25 @@ abstract class UICtrl(cc: ControllerComponents,
 }
 
 object UICtrl {
+
+  trait Auth {
+    self: UICtrl =>
+
+    def loggedRedirect(result: => IO[Result], redirect: Option[String])(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
+      req.secured.map(r => loggedRedirect(redirect)(r)).getOrElse(result)
+    }
+
+    def loggedRedirect(redirect: Option[String])(implicit req: UserReq[AnyContent]): IO[Result] = {
+      IO.pure(redirect.map(Redirect(_))
+        .orElse(if (req.groups.length == 1) Some(Redirect(pages.orga.routes.GroupCtrl.detail(req.groups.head.slug))) else None)
+        .getOrElse(Redirect(pages.user.routes.UserCtrl.index())))
+        .map(_.flashing(req.flash))
+    }
+
+    def logoutRedirect(implicit req: UserReq[AnyContent]): IO[Result] = {
+      IO.pure(Redirect(pages.published.routes.HomeCtrl.index()))
+    }
+  }
 
   trait UserAwareAction {
     self: UICtrl =>

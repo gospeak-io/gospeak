@@ -74,7 +74,8 @@ class AuthSrv(userRepo: AuthUserRepo,
     } yield user
   }
 
-  def login(user: AuthUser, rememberMe: Boolean, redirect: Result)(implicit req: UserAwareReq[AnyContent]): IO[(CookieAuthenticator, AuthenticatorResult)] = {
+  def login(user: AuthUser, rememberMe: Boolean, redirect: UserReq[AnyContent] => IO[Result])
+           (implicit req: UserAwareReq[AnyContent]): IO[(CookieAuthenticator, AuthenticatorResult)] = {
     for {
       _ <- if (user.shouldValidateEmail()) IO.raiseError(AccountValidationRequiredException(user)) else IO.pure(())
       authenticator <- IO.fromFuture(IO(silhouette.env.authenticatorService.create(user.loginInfo))).map {
@@ -85,14 +86,18 @@ class AuthSrv(userRepo: AuthUserRepo,
         case auth => auth
       }
       cookie <- IO.fromFuture(IO(silhouette.env.authenticatorService.init(authenticator)))
-      result <- IO.fromFuture(IO(silhouette.env.authenticatorService.embed(cookie, redirect)))
+      next <- redirect(req.secured(user, authenticator))
+      result <- IO.fromFuture(IO(silhouette.env.authenticatorService.embed(cookie, next)))
       _ = silhouette.env.eventBus.publish(LoginEvent(user, req))
     } yield (authenticator, result)
   }
 
-  def logout(redirect: Result)(implicit req: UserReq[AnyContent]): IO[AuthenticatorResult] = {
+  def logout(redirect: IO[Result])(implicit req: UserReq[AnyContent]): IO[AuthenticatorResult] = {
     silhouette.env.eventBus.publish(LogoutEvent(req.underlying.identity, req))
-    IO.fromFuture(IO(silhouette.env.authenticatorService.discard(req.underlying.authenticator, redirect)))
+    for {
+      next <- redirect
+      res <- IO.fromFuture(IO(silhouette.env.authenticatorService.discard(req.underlying.authenticator, next)))
+    } yield res
   }
 
   def logout(identity: AuthUser, redirect: Result)(implicit req: UserAwareReq[AnyContent]): IO[Result] = {

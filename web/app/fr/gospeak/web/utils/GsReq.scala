@@ -53,7 +53,8 @@ class UserAwareReq[A](override protected val request: Request[A],
                       override val now: Instant,
                       override val env: ApplicationConf.Env,
                       val underlying: UserAwareRequest[CookieEnv, A],
-                      val user: Option[User]) extends BasicReq[A](request, messages, now, env) {
+                      val user: Option[User],
+                      val groups: Option[Seq[Group]]) extends BasicReq[A](request, messages, now, env) {
   def basic: BasicReq[A] = this
 
   def secured: Option[UserReq[A]] = for {
@@ -77,7 +78,7 @@ class UserReq[A](override protected val request: Request[A],
                  val groups: Seq[Group]) extends BasicReq[A](request, messages, now, env) {
   def basic: BasicReq[A] = this
 
-  def userAware: UserAwareReq[A] = new UserAwareReq(request, messages, now, env, UserAwareRequest(Some(underlying.identity), Some(underlying.authenticator), request), Some(user))
+  def userAware: UserAwareReq[A] = new UserAwareReq(request, messages, now, env, UserAwareRequest(Some(underlying.identity), Some(underlying.authenticator), request), Some(user), Some(groups))
 
   def orga(group: Group): OrgaReq[A] = new OrgaReq[A](request, messages, now, env, underlying, user, groups, group)
 
