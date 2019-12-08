@@ -13,12 +13,12 @@
 @container_theme(venue.partner.name.value + " - Gospeak", b)() {
     <div class="d-flex justify-content-between align-items-start">
         <div class="media">
-            <img src="@venue.partner.logo.value" alt="@venue.partner.name.value logo" class="avatar align-self-start mr-3">
+            <img src="@venue.partner.logo.value" alt="@venue.partner.name.value logo" class="avatar align-self-start mr-3" style="height: 100px">
             <div class="media-body">
                 <h1 class="mt-0"><a href="@PartnerCtrl.detail(req.group.slug, venue.partner.slug)">@venue.partner.name.value</a></h1>
                 <p>@venue.address.value</p>
-                @venue.contact.map { c => <p>Contact: <a href="@ContactCtrl.detail(req.group.slug, venue.partner.slug, c.id)">@c.name.value</a></p> }
-                @venue.roomSize.map { s => <p>@s places in the room</p> }
+                @venue.contact.map { c => <span>Contact: <a href="@ContactCtrl.detail(req.group.slug, venue.partner.slug, c.id)">@c.name.value</a></span><br> }
+                @venue.roomSize.map { s => <span>@s places in the room</span> }
             </div>
         </div>
         <span class="btn-group">
