@@ -16,16 +16,13 @@ import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.pages.published.routes.{HomeCtrl => HomeRoutes}
 import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import fr.gospeak.web.utils.{HttpUtils, UICtrl, UserAwareReq}
+import fr.gospeak.web.utils.{UICtrl, UserAwareReq}
 import play.api.data.Form
 import play.api.mvc._
 
 import scala.util.control.NonFatal
 
-// TODO Social auth
-// TODO JWT Auth for API
 class AuthCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
                env: ApplicationConf.Env,
@@ -34,14 +31,9 @@ class AuthCtrl(cc: ControllerComponents,
                groupRepo: AuthGroupRepo,
                authSrv: AuthSrv,
                emailSrv: EmailSrv,
-               envConf: ApplicationConf.Env) extends UICtrl(cc, silhouette, env) with UICtrl.UserAction with UICtrl.UserAwareAction {
-  private val loginRedirect = (redirect: Option[String]) => Redirect(redirect.getOrElse(UserRoutes.index().path()))
-  private val logoutRedirect = Redirect(HomeRoutes.index())
-
+               envConf: ApplicationConf.Env) extends UICtrl(cc, silhouette, env) with UICtrl.Auth with UICtrl.UserAction with UICtrl.UserAwareAction {
   def signup(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
-    IO.pure(req.user
-      .map(_ => loginRedirect(redirect).flashing(req.flash))
-      .getOrElse(Ok(html.signup(AuthForms.signup, redirect))))
+    loggedRedirect(IO.pure(Ok(html.signup(AuthForms.signup, redirect))), redirect)
   })
 
   def doSignup(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
@@ -51,7 +43,7 @@ class AuthCtrl(cc: ControllerComponents,
         user <- authSrv.createIdentity(data)
         emailValidation <- userRequestRepo.createAccountValidationRequest(user.user.email, user.user.id, req.now)
         _ <- emailSrv.send(Emails.signup(emailValidation, user.user))
-        (authenticator, result) <- authSrv.login(user, data.rememberMe, loginRedirect(redirect))
+        (authenticator, result) <- authSrv.login(user, data.rememberMe, loggedRedirect(redirect)(_))
       } yield result: Result).recoverWith {
         case e: AccountValidationRequiredException => authSrv.logout(e.identity, Redirect(routes.AuthCtrl.login(redirect)).flashing("warning" -> "Account created, you need to validate it by clicking on the email validation link"))
         case _: DuplicateIdentityException => IO.pure(BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError("User already exists"), redirect)))
@@ -62,9 +54,7 @@ class AuthCtrl(cc: ControllerComponents,
   })
 
   def login(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
-    IO.pure(req.user
-      .map(_ => loginRedirect(redirect).flashing(req.flash))
-      .getOrElse(Ok(html.login(AuthForms.login, envConf, redirect, authSrv.providerIds))))
+    loggedRedirect(IO.pure(Ok(html.login(AuthForms.login, envConf, redirect, authSrv.providerIds))), redirect)
   })
 
   def doLogin(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
@@ -72,7 +62,7 @@ class AuthCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(BadRequest(html.login(formWithErrors, envConf, redirect, authSrv.providerIds))),
       data => (for {
         user <- authSrv.getIdentity(data)
-        (_, result) <- authSrv.login(user, data.rememberMe, loginRedirect(redirect))
+        (_, result) <- authSrv.login(user, data.rememberMe, loggedRedirect(redirect)(_))
       } yield result: Result).recover {
         case _: AccountValidationRequiredException => Ok(html.login(AuthForms.login.fill(data).withGlobalError(
           s"""You need to validate your account by clicking on the email validation link
@@ -91,8 +81,7 @@ class AuthCtrl(cc: ControllerComponents,
       profileE <- authSrv.authenticate(providerID)
       result <- profileE.fold(IO.pure, profile => for {
         authUser <- authSrv.createOrEdit(profile)
-        next = Redirect(UserRoutes.index()).flashing("success" -> s"Hi ${authUser.user.name.value}, welcome to Gospeak!")
-        (_, authenticatorResult) <- authSrv.login(authUser, rememberMe = true, next)
+        (_, authenticatorResult) <- authSrv.login(authUser, rememberMe = true, loggedRedirect(None)(_).map(_.flashing("success" -> s"Hi ${authUser.user.name.value}, welcome to Gospeak!")))
       } yield authenticatorResult)
     } yield result).recover {
       case CustomException(msg, _) => Redirect(routes.AuthCtrl.login()).flashing("error" -> msg)
@@ -112,7 +101,7 @@ class AuthCtrl(cc: ControllerComponents,
     (for {
       user <- OptionT(userRepo.find(email))
       res <- OptionT.liftF(resendEmailValidation(user))
-    } yield res).value.map(_.getOrElse(loginRedirect(HttpUtils.getReferer(req)).flashing("error" -> s"No user found with email ${email.value}")))
+    } yield res).value.map(_.getOrElse(redirectToPreviousPageOr(routes.AuthCtrl.login()).flashing("error" -> s"No user found with email ${email.value}")))
   })
 
   private def resendEmailValidation(user: User)(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
@@ -120,7 +109,7 @@ class AuthCtrl(cc: ControllerComponents,
       existingValidationOpt <- userRequestRepo.findPendingAccountValidationRequest(user.id, req.now)
       emailValidation <- existingValidationOpt.map(IO.pure).getOrElse(userRequestRepo.createAccountValidationRequest(user.email, user.id, req.now))
       _ <- emailSrv.send(Emails.accountValidation(emailValidation, user))
-    } yield loginRedirect(HttpUtils.getReferer(req)).flashing("success" -> "Email validation sent!")
+    } yield redirectToPreviousPageOr(routes.AuthCtrl.login()).flashing("success" -> "Email validation sent!")
   }
 
   // not UserAction because some user can't connect before validating their email
@@ -141,9 +130,7 @@ class AuthCtrl(cc: ControllerComponents,
   })
 
   def forgotPassword(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
-    IO.pure(req.user
-      .map(_ => loginRedirect(redirect).flashing(req.flash))
-      .getOrElse(Ok(html.forgotPassword(AuthForms.forgotPassword, redirect))))
+    loggedRedirect(IO.pure(Ok(html.forgotPassword(AuthForms.forgotPassword, redirect))), redirect)
   })
 
   def doForgotPassword(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
@@ -161,9 +148,7 @@ class AuthCtrl(cc: ControllerComponents,
   })
 
   def resetPassword(id: UserRequest.Id): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
-    req.user
-      .map(_ => IO.pure(loginRedirect(None).flashing(req.flash)))
-      .getOrElse(resetPasswordForm(id, AuthForms.resetPassword))
+    loggedRedirect(resetPasswordForm(id, AuthForms.resetPassword), None)
   })
 
   def doResetPassword(id: UserRequest.Id): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
@@ -172,7 +157,7 @@ class AuthCtrl(cc: ControllerComponents,
       data => (for {
         passwordReset <- OptionT(userRequestRepo.findPendingPasswordResetRequest(id, req.now))
         user <- OptionT.liftF(authSrv.updateIdentity(data, passwordReset))
-        (_, result) <- OptionT.liftF(authSrv.login(user, data.rememberMe, loginRedirect(None)))
+        (_, result) <- OptionT.liftF(authSrv.login(user, data.rememberMe, loggedRedirect(None)(_)))
       } yield result).value.map(_.getOrElse(notFound()))
     )
   })

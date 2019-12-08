@@ -136,7 +136,7 @@ class CfpCtrl(cc: ControllerComponents,
         identity <- OptionT.liftF(authSrv.createIdentity(data.user))
         emailValidation <- OptionT.liftF(userRequestRepo.createAccountValidationRequest(identity.user.email, identity.user.id, req.now))
         _ <- OptionT.liftF(emailSrv.send(Emails.signup(emailValidation, identity.user)))
-        (auth, result) <- OptionT.liftF(authSrv.login(identity, data.user.rememberMe, Redirect(ProposalCtrl.detail(data.talk.slug, cfp))))
+        (auth, result) <- OptionT.liftF(authSrv.login(identity, data.user.rememberMe, _ => IO.pure(Redirect(ProposalCtrl.detail(data.talk.slug, cfp)))))
         secured = req.secured(identity, auth)
         ctx = secured.ctx
         talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData)(ctx))
@@ -161,7 +161,7 @@ class CfpCtrl(cc: ControllerComponents,
         cfpElt <- OptionT(cfpRepo.findRead(cfp))
         _ <- if(cfpElt.isActive(req.nowLDT)) OptionT.liftF(IO.pure(())) else OptionT.liftF(IO.raiseError(CustomException("Can't propose a talk, CFP is not open")))
         identity <- OptionT.liftF(authSrv.getIdentity(data.user))
-        (auth, result) <- OptionT.liftF(authSrv.login(identity, data.user.rememberMe, Redirect(ProposalCtrl.detail(data.talk.slug, cfp))))
+        (auth, result) <- OptionT.liftF(authSrv.login(identity, data.user.rememberMe, _ => IO.pure(Redirect(ProposalCtrl.detail(data.talk.slug, cfp)))))
         secured = req.secured(identity, auth)
         ctx = secured.ctx
         talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData)(ctx))
