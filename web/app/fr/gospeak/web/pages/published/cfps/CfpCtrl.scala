@@ -8,7 +8,6 @@ import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Cfp, ExternalCfp, Talk}
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.libs.scalautils.domain.{CustomException, Page}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
@@ -35,8 +34,7 @@ class CfpCtrl(cc: ControllerComponents,
               externalCfpRepo: PublicExternalCfpRepo,
               authSrv: AuthSrv,
               emailSrv: EmailSrv,
-              mb: GospeakMessageBus,
-              timeShape: TimeShape) extends UICtrl(cc, silhouette, env) with UICtrl.UserAction with UICtrl.UserAwareAction {
+              mb: GospeakMessageBus) extends UICtrl(cc, silhouette, env) with UICtrl.UserAction with UICtrl.UserAwareAction {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     externalCfpRepo.listIncoming(req.now, params).map(cfps => Ok(html.list(cfps)(listBreadcrumb())))
   })
@@ -46,11 +44,11 @@ class CfpCtrl(cc: ControllerComponents,
   })
 
   def add(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
-    IO.pure(Ok(html.create(CfpForms.external(timeShape))(listBreadcrumb().add("Add" -> routes.CfpCtrl.add))))
+    IO.pure(Ok(html.create(CfpForms.external)(listBreadcrumb().add("Add" -> routes.CfpCtrl.add))))
   })
 
   def doAdd(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
-    CfpForms.external(timeShape).bindFromRequest.fold(
+    CfpForms.external.bindFromRequest.fold(
       formWithErrors => IO.pure(Ok(html.create(formWithErrors)(listBreadcrumb().add("Add" -> routes.CfpCtrl.add)))),
       data => externalCfpRepo.create(data, req.user.id, req.now).map(cfp => Redirect(routes.CfpCtrl.detailExt(cfp.id)))
     )
@@ -72,11 +70,11 @@ class CfpCtrl(cc: ControllerComponents,
   })
 
   def edit(cfp: ExternalCfp.Id): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
-    editView(cfp, CfpForms.external(timeShape))
+    editView(cfp, CfpForms.external)
   })
 
   def doEdit(cfp: ExternalCfp.Id): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
-    CfpForms.external(timeShape).bindFromRequest.fold(
+    CfpForms.external.bindFromRequest.fold(
       formWithErrors => editView(cfp, formWithErrors),
       data => externalCfpRepo.edit(cfp)(data, req.user.id, req.now)
         .map(_ => Redirect(routes.CfpCtrl.detailExt(cfp)).flashing("success" -> "CFP updated"))

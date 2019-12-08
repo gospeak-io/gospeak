@@ -22,7 +22,7 @@
                 <h2 class="mt-0 mb-3">Accepted talks</h2>
                 <div>
                 @proposals.items.map { proposal =>
-                    @proposalItemForProfile(proposal, req.now)
+                    @proposalItemForProfile(proposal)
                 }
                 </div>
             }

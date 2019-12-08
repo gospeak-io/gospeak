@@ -7,7 +7,6 @@ import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, Partner, Venue}
 import fr.gospeak.core.services.storage._
-import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.partners.PartnerCtrl
@@ -26,14 +25,13 @@ class VenueCtrl(cc: ControllerComponents,
                 eventRepo: OrgaEventRepo,
                 partnerRepo: OrgaPartnerRepo,
                 venueRepo: OrgaVenueRepo,
-                groupSettingsRepo: GroupSettingsRepo,
-                timeShape: TimeShape) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
+                groupSettingsRepo: GroupSettingsRepo) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
   def create(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    createView(group, partner, VenueForms.create(timeShape))
+    createView(group, partner, VenueForms.create)
   })
 
   def doCreate(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    VenueForms.create(timeShape).bindFromRequest.fold(
+    VenueForms.create.bindFromRequest.fold(
       formWithErrors => createView(group, partner, formWithErrors),
       data => venueRepo.create(data).map(_ => Redirect(PartnerRoutes.detail(group, partner)))
     )
@@ -61,11 +59,11 @@ class VenueCtrl(cc: ControllerComponents,
   })
 
   def edit(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    editView(group, partner, venue, VenueForms.create(timeShape))
+    editView(group, partner, venue, VenueForms.create)
   })
 
   def doEdit(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    VenueForms.create(timeShape).bindFromRequest.fold(
+    VenueForms.create.bindFromRequest.fold(
       formWithErrors => editView(group, partner, venue, formWithErrors),
       data => venueRepo.edit(venue, data).map(_ => Redirect(routes.VenueCtrl.detail(group, partner, venue)))
     )

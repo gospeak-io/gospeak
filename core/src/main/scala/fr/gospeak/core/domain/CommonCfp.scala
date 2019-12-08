@@ -1,7 +1,9 @@
 package fr.gospeak.core.domain
 
-import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
+import java.time.{Instant, LocalDateTime}
 
+import fr.gospeak.core.domain.utils.Constants
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{GMapPlace, Logo, Markdown, Tag}
 
@@ -15,6 +17,8 @@ final case class CommonCfp(id: String,
                            location: Option[GMapPlace],
                            description: Markdown,
                            tags: Seq[Tag]) {
+  def closesInDays(nb: Int, now: Instant): Boolean = close.exists(_.toInstant(Constants.defaultZoneId).isBefore(now.minus(nb, ChronoUnit.DAYS)))
+
   def ref: Either[ExternalCfp.Id, Cfp.Slug] = slug.toEither(ExternalCfp.Id.from(id).get)
 }
 

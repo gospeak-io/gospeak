@@ -1,21 +1,20 @@
 @import fr.gospeak.core.domain.CommonCfp
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
-@import fr.gospeak.web.utils.Formats
-@import java.time.temporal.ChronoUnit
-@import java.time.{Instant, ZoneOffset}
 @import fr.gospeak.web.pages.partials.display.html.tags
+@import fr.gospeak.web.utils.Formats
+@import fr.gospeak.web.utils.UserAwareReq
 
-@(cfp: CommonCfp, now: Instant)
+@(cfp: CommonCfp)(implicit req: UserAwareReq[AnyContent])
 <div class="mb-2">
     <a class="card card-frame card-text-dark" href="@cfp.ref.fold(id => CfpCtrl.detailExt(id), slug => CfpCtrl.detail(slug))">
         <span class="card-body p-4">
             <span class="row align-items-center">
                 <span class="col-sm-2 mb-2 mb-sm-0">
                     @cfp.close match {
-                        case Some(d) if now.plus(10, ChronoUnit.DAYS).isAfter(d.toInstant(ZoneOffset.UTC)) => {
+                        case Some(d) if cfp.closesInDays(10, req.now) => {
                             <span class="btn btn-xs btn-soft-danger btn-block">Closes @Formats.date(d)</span>
                         }
-                        case Some(d) if now.plus(30, ChronoUnit.DAYS).isAfter(d.toInstant(ZoneOffset.UTC)) => {
+                        case Some(d) if cfp.closesInDays(30, req.now) => {
                             <span class="btn btn-xs btn-soft-warning btn-block">Closes @Formats.date(d)</span>
                         }
                         case Some(d) => {

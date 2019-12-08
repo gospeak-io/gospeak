@@ -245,7 +245,7 @@
                 @example(s"$name") { _ => @published.groupItem(group, Seq()) }
             }
             @component("cfpItem", "@cfpItem(cfp)") { name =>
-                @example(s"$name") { _ => @published.cfpItem(CommonCfp(group, cfp), userReq.now) }
+                @example(s"$name") { _ => @published.cfpItem(CommonCfp(group, cfp)) }
             }
             @component("speakerItem", "@speakerItem(speaker)") { name =>
                 @example(s"$name") { _ => @published.speakerItem(user) }

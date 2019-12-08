@@ -6,7 +6,6 @@ import fr.gospeak.core.domain.Event.Notes
 import fr.gospeak.core.domain.utils.{Constants, Info, TemplateData}
 import fr.gospeak.core.services.meetup.domain.MeetupEvent
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.TimeUtils
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain._
 
@@ -37,11 +36,9 @@ final case class Event(id: Event.Id,
 
   def isPublic: Boolean = published.isDefined
 
-  def isPast(venue: Option[Venue.Full], now: Instant): Boolean = startInstant(venue).isBefore(now)
+  def isPast(now: Instant): Boolean = start.toInstant(Constants.defaultZoneId).isBefore(now)
 
-  def canRsvp(venue: Option[Venue.Full], now: Instant): Boolean = allowRsvp && isPublic && startInstant(venue).isAfter(now)
-
-  private def startInstant(venue: Option[Venue.Full]): Instant = TimeUtils.toInstant(start, venue.map(_.timezone).getOrElse(Constants.defaultZoneId))
+  def canRsvp(now: Instant): Boolean = allowRsvp && isPublic && start.toInstant(Constants.defaultZoneId).isAfter(now)
 }
 
 object Event {
@@ -121,9 +118,9 @@ object Event {
 
     def isFull(yesRsvps: Long): Boolean = event.maxAttendee.exists(_ <= yesRsvps.toInt)
 
-    def isPast(now: Instant): Boolean = event.isPast(venue, now)
+    def isPast(now: Instant): Boolean = event.isPast(now)
 
-    def canRsvp(now: Instant): Boolean = event.canRsvp(venue, now)
+    def canRsvp(now: Instant): Boolean = event.canRsvp(now)
   }
 
   final case class Data(cfp: Option[Cfp.Id],

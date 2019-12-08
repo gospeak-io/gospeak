@@ -3,7 +3,6 @@ package fr.gospeak.web.pages.published.cfps
 import java.time.LocalDateTime
 
 import fr.gospeak.core.domain.{ExternalCfp, Proposal, Talk}
-import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.web.auth.AuthForms
 import fr.gospeak.web.auth.AuthForms.{LoginData, SignupData}
 import fr.gospeak.web.pages.speaker.talks.TalkForms
@@ -41,7 +40,7 @@ object CfpForms {
     "user" -> AuthForms.loginMapping
   )(ProposalLoginData.apply)(ProposalLoginData.unapply))
 
-  def external(timeShape: TimeShape): Form[ExternalCfp.Data] = Form(mapping(
+  val external: Form[ExternalCfp.Data] = Form(mapping(
     "name" -> externalCfpName,
     "logo" -> optional(logo),
     "description" -> markdown,
@@ -52,7 +51,7 @@ object CfpForms {
       "start" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),
       "finish" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),
       "url" -> optional(url),
-      "address" -> optional(gMapPlace(timeShape)),
+      "address" -> optional(gMapPlace),
       "tickets" -> optional(url),
       "videos" -> optional(url),
       "twitterAccount" -> optional(twitterAccount),

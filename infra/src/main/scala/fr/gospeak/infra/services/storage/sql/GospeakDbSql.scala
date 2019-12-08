@@ -138,8 +138,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       url = "https://maps.google.com/?q=Paris,+France&ftid=0x47e66e1f06e2b70f:0x40b82c3688c9460",
       website = Some("http://www.paris.fr/"),
       phone = None,
-      utcOffset = 60,
-      timezone = Constants.defaultZoneId)
+      utcOffset = 60)
     val zeeneaPlace = GMapPlace(
       id = "ChIJ0wnrwMdv5kcRuOvv_dXYoy4",
       name = "Zeenea Data Catalog",
@@ -154,8 +153,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       url = "https://maps.google.com/?cid=3360768160548514744",
       website = Some("https://www.zeenea.com/"),
       phone = None,
-      utcOffset = 60,
-      timezone = Constants.defaultZoneId)
+      utcOffset = 60)
     val palaisDesCongres = GMapPlace(
       id = "ChIJKW6JQItv5kcRbVSjqnRf9jA",
       name = "Palais Des Congrès",
@@ -170,8 +168,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       url = "https://maps.google.com/?cid=3528112312775038061",
       website = None,
       phone = None,
-      utcOffset = 60,
-      timezone = Constants.defaultZoneId)
+      utcOffset = 60)
 
     val social = SocialAccounts.fromStrings(
       facebook = Some("https://www.facebook.com/GoSpeak-116563639716599"),

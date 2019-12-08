@@ -1,14 +1,13 @@
 package fr.gospeak.web.pages.orga
 
 import fr.gospeak.core.domain.Group
-import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.libs.scalautils.domain.{EmailAddress, Markdown}
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
 
 object GroupForms {
-  def create(timeShape: TimeShape): Form[Group.Data] = Form(mapping(
+  val create: Form[Group.Data] = Form(mapping(
     "slug" -> groupSlug,
     "name" -> groupName,
     "logo" -> optional(logo),
@@ -16,7 +15,7 @@ object GroupForms {
     "contact" -> optional(emailAddress),
     "website" -> optional(url),
     "description" -> markdown,
-    "location" -> optional(gMapPlace(timeShape)),
+    "location" -> optional(gMapPlace),
     "social" -> socialAccounts,
     "tags" -> tags
   )(Group.Data.apply)(Group.Data.unapply))

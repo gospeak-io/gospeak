@@ -1,7 +1,5 @@
 package fr.gospeak.core.domain
 
-import java.time.ZoneId
-
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.meetup.domain.MeetupVenue
 import fr.gospeak.libs.scalautils.domain._
@@ -39,8 +37,6 @@ object Venue {
     def notes: Markdown = venue.notes
 
     def roomSize: Option[Int] = venue.roomSize
-
-    def timezone: ZoneId = venue.address.timezone
 
     def refs: ExtRefs = venue.refs
 

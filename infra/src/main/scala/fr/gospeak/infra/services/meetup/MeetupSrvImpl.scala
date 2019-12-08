@@ -1,8 +1,9 @@
 package fr.gospeak.infra.services.meetup
 
-import java.time.ZoneOffset
+import java.time.ZoneId
 
 import cats.effect.IO
+import fr.gospeak.core.domain.utils.Constants
 import fr.gospeak.core.domain.{Event, Venue}
 import fr.gospeak.core.services.meetup.{MeetupSrv, domain => gs}
 import fr.gospeak.infra.libs.meetup.MeetupClient
@@ -10,7 +11,6 @@ import fr.gospeak.infra.libs.meetup.domain._
 import fr.gospeak.infra.services.meetup.MeetupSrvImpl._
 import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.TimeUtils
 import fr.gospeak.libs.scalautils.domain.{Avatar, CustomException, Markdown, Url}
 
 import scala.util.Try
@@ -46,6 +46,8 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
                        creds: gs.MeetupCredentials): IO[(gs.MeetupEvent.Ref, Option[gs.MeetupVenue.Ref])] = {
     toLib(creds, key).toIO.flatMap { implicit token =>
       for {
+        group <- client.getGroup(creds.group.value).flatMap(_.toIO(e => gs.MeetupException.GroupNotFound(creds.group, e.format)))
+        timezone = Try(ZoneId.of(group.timezone)).getOrElse(Constants.defaultZoneId)
         orgas <- client.getOrgas(creds.group.value).flatMap(_.toIO(e => gs.MeetupException.CantFetchOrgas(creds.group, e.format)))
         venueId <- venue.map { v =>
           v.refs.meetup.map(r => IO.pure(r.venue.value)).getOrElse {
@@ -59,7 +61,7 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
           }
         }.sequence
         venueRef = venueId.map(id => gs.MeetupVenue.Ref(creds.group, gs.MeetupVenue.Id(id)))
-        toCreateEvent = toLib(event, venue, venueId, orgas.map(_.id), description, draft)
+        toCreateEvent = toLib(event, timezone, venue, venueId, orgas.map(_.id), description, draft)
         meetupEvent <- event.refs.meetup
           .map(r => client.updateEvent(creds.group.value, r.event.value.toString, toCreateEvent).flatMap(_.toIO(e => gs.MeetupException.CantUpdateEvent(creds.group, event, e.format))))
           .getOrElse(client.createEvent(creds.group.value, toCreateEvent).flatMap(_.toIO(e => gs.MeetupException.CantCreateEvent(creds.group, event, e.format))))
@@ -87,11 +89,11 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
       repinned = false,
       visibility = "public")
 
-  private def toLib(event: Event, venue: Option[Venue.Full], venueId: Option[Long], orgaIds: Seq[Long], description: Markdown, isDraft: Boolean): MeetupEvent.Create =
+  private def toLib(event: Event, tz: ZoneId, venue: Option[Venue.Full], venueId: Option[Long], orgaIds: Seq[Long], description: Markdown, isDraft: Boolean): MeetupEvent.Create =
     MeetupEvent.Create(
       name = event.name.value,
       description = toSimpleHtml(description),
-      time = TimeUtils.toInstant(event.start, venue.map(_.address.timezone).getOrElse(ZoneOffset.UTC)).toEpochMilli,
+      time = event.start.toInstant(tz).toEpochMilli,
       publish_status = if (isDraft) "draft" else "published",
       announce = !isDraft,
       // duration = 10800000,

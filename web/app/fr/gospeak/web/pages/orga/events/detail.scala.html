@@ -57,7 +57,7 @@
         @Formats.datetime(event.start)
         @tags(event.tags)
         @event.maxAttendee.map { max =>  @Formats.plural(max, "place") }
-        @(event.allowRsvp, event.isPublic, event.isPast(venueOpt, req.now)) match {
+        @(event.allowRsvp, event.isPublic, event.isPast(req.now)) match {
             case (true, true, true) => {<span class="badge badge-secondary" title="RSVP disabled because event is past" data-toggle="tooltip" data-placement="top">RSVP active</span>}
             case (true, true, false) => {<span class="badge badge-success" title="Users will be able to RSVP when event is published and before it starts" data-toggle="tooltip" data-placement="top">RSVP active</span>}
             case (true, false, _) => {<span class="badge badge-secondary" title="RSVP will be active once the event is published" data-toggle="tooltip" data-placement="top">RSVP active</span>}

@@ -6,7 +6,6 @@ import java.util.concurrent.TimeUnit
 
 import fr.gospeak.core.domain._
 import fr.gospeak.core.testingutils.Generators._
-import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.utils.Mappings._
@@ -17,8 +16,6 @@ import play.api.data.FormError
 import scala.concurrent.duration.FiniteDuration
 
 class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
-  private val timeshape = TimeShape.create().get
-
   describe("Mappings") {
     it("should bind & unbind a Double") {
       forAll { v: Double =>
@@ -35,7 +32,7 @@ class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
         val data = instant.unbind(v)
         instant.bind(data) shouldBe Right(v)
       }
-      instant.bind(Map("" -> "2019-07-14T15:53:18")) shouldBe Right(Instant.ofEpochMilli(1563119598000L))
+      instant.bind(Map("" -> "2019-07-14T17:53:18")) shouldBe Right(Instant.ofEpochMilli(1563119598000L))
       instant.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
       instant.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.datetime"), Seq())))
       instant.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.datetime"), Seq())))
@@ -151,12 +148,8 @@ class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
     }
     it("should bind & unbind a GMapPlace") {
       forAll { in: GMapPlace =>
-        val timezone = timeshape.getZoneId(in.geo)
-        whenever(timezone.isDefined) {
-          val v = in.copy(timezone = timezone.get)
-          val data = gMapPlace(timeshape).unbind(v)
-          gMapPlace(timeshape).bind(data) shouldBe Right(v)
-        }
+        val data = gMapPlace.unbind(in)
+        gMapPlace.bind(data) shouldBe Right(in)
       }
     }
     it("should bind & unbind a User.Slug") {

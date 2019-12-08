@@ -7,7 +7,6 @@ import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, Venue}
 import fr.gospeak.core.services.storage._
-import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
@@ -24,8 +23,7 @@ class VenueCtrl(cc: ControllerComponents,
                 val groupRepo: OrgaGroupRepo,
                 eventRepo: OrgaEventRepo,
                 venueRepo: OrgaVenueRepo,
-                groupSettingsRepo: GroupSettingsRepo,
-                timeShape: TimeShape) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
+                groupSettingsRepo: GroupSettingsRepo) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     venueRepo.listFull(params).map(venues => Ok(html.list(venues)(listBreadcrumb)))
   })
@@ -51,11 +49,11 @@ class VenueCtrl(cc: ControllerComponents,
   })
 
   def create(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    createView(VenueForms.create(timeShape))
+    createView(VenueForms.create)
   })
 
   def doCreate(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    VenueForms.create(timeShape).bindFromRequest.fold(
+    VenueForms.create.bindFromRequest.fold(
       formWithErrors => createView(formWithErrors),
       data => venueRepo.create(data).map(venueElt => Redirect(routes.VenueCtrl.detail(group, venueElt.id)))
     )
@@ -82,11 +80,11 @@ class VenueCtrl(cc: ControllerComponents,
   })
 
   def edit(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    editView(venue, VenueForms.create(timeShape))
+    editView(venue, VenueForms.create)
   })
 
   def doEdit(group: Group.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    VenueForms.create(timeShape).bindFromRequest.fold(
+    VenueForms.create.bindFromRequest.fold(
       formWithErrors => editView(venue, formWithErrors),
       data => venueRepo.edit(venue, data).map(_ => Redirect(routes.VenueCtrl.detail(group, venue)))
     )
