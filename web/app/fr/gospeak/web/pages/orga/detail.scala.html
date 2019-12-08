@@ -1,4 +1,4 @@
-@import fr.gospeak.core.domain.{Cfp, Event, Partner, Proposal, Sponsor, SponsorPack, User, UserRequest, Venue}
+@import fr.gospeak.core.domain.{Cfp, Event, Group, Partner, Proposal, Sponsor, SponsorPack, User, UserRequest, Venue}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
@@ -11,7 +11,7 @@
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.OrgaReq
 
-@(events: Page[Event], cfps: Seq[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User], currentSponsors: Seq[(Partner, (Sponsor, Int))], pastSponsors: Seq[(Partner, Seq[Sponsor])], packs: Seq[SponsorPack], requests: Seq[UserRequest], requestUsers: Seq[User])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(stats: Group.Stats, events: Page[Event], cfps: Seq[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User], currentSponsors: Seq[(Partner, (Sponsor, Int))], pastSponsors: Seq[(Partner, Seq[Sponsor])], packs: Seq[SponsorPack], requests: Seq[UserRequest], requestUsers: Seq[User])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @addSponsorBtn() = {
 @defining(packs.filter(_.active)) { activePacks: Seq[SponsorPack] =>
     @if(activePacks.nonEmpty) {
@@ -59,7 +59,7 @@
                             <span class="fas fa-users btn-icon__inner"></span>
                         </span>
                         <div class="media-body">
-                            <span class="d-block font-size-3">7800</span>
+                            <span class="d-block font-size-3">@stats.memberCount</span>
                             <h2 class="h6 text-secondary font-weight-normal mb-0">Members</h2>
                         </div>
                     </div>
@@ -75,8 +75,8 @@
                             <span class="fas fa-scroll btn-icon__inner"></span>
                         </span>
                         <div class="media-body">
-                            <span class="d-block font-size-3">42</span>
-                            <h3 class="h6 text-secondary font-weight-normal mb-0">Proposal recues</h3>
+                            <span class="d-block font-size-3">@stats.proposalCount</span>
+                            <h3 class="h6 text-secondary font-weight-normal mb-0">Received proposals</h3>
                         </div>
                     </div>
                 </div>
@@ -88,6 +88,22 @@
                 <div class="card-body p-5">
                     <div class="media align-items-center">
                         <span class="btn btn-lg btn-icon btn-soft-warning rounded-circle mr-4">
+                            <span class="fas fa-calendar-day btn-icon__inner"></span>
+                        </span>
+                        <div class="media-body">
+                            <span class="d-block font-size-3">@stats.eventCount</span>
+                            <h3 class="h6 text-secondary font-weight-normal mb-0">Events</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Card -->
+
+            <!-- Card -->
+            <!-- <div class="card">
+                <div class="card-body p-5">
+                    <div class="media align-items-center">
+                        <span class="btn btn-lg btn-icon btn-soft-warning rounded-circle mr-4">
                             <span class="fas fa-binoculars btn-icon__inner"></span>
                         </span>
                         <div class="media-body">
@@ -96,7 +112,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
             <!-- End Card -->
         </div>
         @if(events.isEmpty) {
