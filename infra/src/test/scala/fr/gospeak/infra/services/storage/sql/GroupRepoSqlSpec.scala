@@ -92,6 +92,10 @@ class GroupRepoSqlSpec extends RepoSpec {
         val q = GroupRepoSql.selectOne(group.slug)
         check(q, s"SELECT $fields FROM $table WHERE g.slug=? $orderBy")
       }
+      it("should build selectStats") {
+        val q = GroupRepoSql.selectStats(group.slug)
+        check(q, s"SELECT $statFields FROM $statTable WHERE g.slug=? GROUP BY g.id, g.slug, g.name $orderBy")
+      }
       it("should build selectTags") {
         val q = GroupRepoSql.selectTags()
         check(q, s"SELECT g.tags FROM $table")
@@ -140,7 +144,7 @@ object GroupRepoSqlSpec {
   private val memberFields = mapFields("group_id, user_id, role, presentation, joined_at, leaved_at", "gm." + _)
   private val memberOrderBy = "ORDER BY gm.joined_at IS NULL, gm.joined_at"
 
-  private val tableFull = s"$table LEFT OUTER JOIN group_members gm ON g.id=gm.group_id AND gm.leaved_at IS NULL LEFT OUTER JOIN events e ON g.id=e.group_id AND e.published IS NOT NULL LEFT OUTER JOIN proposals p ON e.id=p.event_id GROUP BY $fields"
+  private val tableFull = s"$table LEFT OUTER JOIN $memberTable ON g.id=gm.group_id AND gm.leaved_at IS NULL LEFT OUTER JOIN events e ON g.id=e.group_id AND e.published IS NOT NULL LEFT OUTER JOIN proposals p ON e.id=p.event_id GROUP BY $fields"
   private val fieldsFull = s"$fields, COALESCE(COUNT(DISTINCT gm.user_id), 0) as memberCount, COALESCE(COUNT(DISTINCT e.id), 0) as eventCount, COALESCE(COUNT(DISTINCT p.id), 0) as talkCount"
 
   private val memberTableWithUser = s"$memberTable INNER JOIN $userTable ON gm.user_id=u.id"
@@ -148,4 +152,7 @@ object GroupRepoSqlSpec {
 
   private val tableWithMember = s"$table INNER JOIN $memberTable ON g.id=gm.group_id INNER JOIN $userTable ON gm.user_id=u.id"
   private val fieldsWithMember = s"$fields, $memberFieldsWithUser"
+
+  private val statTable = s"$table LEFT OUTER JOIN $memberTable ON g.id=gm.group_id AND gm.leaved_at IS NULL LEFT OUTER JOIN cfps c ON g.id=c.group_id LEFT OUTER JOIN proposals p ON c.id=p.cfp_id LEFT OUTER JOIN events e ON g.id=e.group_id"
+  private val statFields = s"g.id, g.slug, g.name, COALESCE(COUNT(DISTINCT gm.user_id), 0) as memberCount, COALESCE(COUNT(DISTINCT p.id), 0) as proposalCount, COALESCE(COUNT(DISTINCT e.id), 0) as eventCount"
 }

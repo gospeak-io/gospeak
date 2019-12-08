@@ -98,6 +98,8 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def listMembers(group: Group.Id, params: Page.Params): IO[Page[Group.Member]] = selectPageActiveMembers(group, params).run(xa)
 
   override def findActiveMember(group: Group.Id, user: User.Id): IO[Option[Group.Member]] = selectOneActiveMember(group, user).runOption(xa)
+
+  override def getStats(implicit ctx: OrgaCtx): IO[Group.Stats] = selectStats(ctx.group.slug).runUnique(xa)
 }
 
 object GroupRepoSql {
@@ -117,6 +119,15 @@ object GroupRepoSql {
     .join(Tables.users, _.user_id -> _.id).flatMap(_.dropField(_.user_id)).get
   private val tableWithMember = tableSelect
     .join(memberTableWithUser, _.id -> _.group_id).get
+  private val statTable = table
+    .joinOpt(memberTable, _.id("g") -> _.group_id, "gm.leaved_at IS NULL").get
+    .joinOpt(Tables.cfps, _.id("g") -> _.group_id).get
+    .joinOpt(Tables.proposals, _.id("c") -> _.cfp_id).get
+    .joinOpt(Tables.events, _.id("g") -> _.group_id).get
+    .aggregate("COALESCE(COUNT(DISTINCT gm.user_id), 0)", "memberCount")
+    .aggregate("COALESCE(COUNT(DISTINCT p.id), 0)", "proposalCount")
+    .aggregate("COALESCE(COUNT(DISTINCT e.id), 0)", "eventCount")
+    .copy(fields = Seq("id", "slug", "name").map(Field(_, "g")))
 
   private[sql] def insert(e: Group): Insert[Group] = {
     val values = fr0"${e.id}, ${e.slug}, ${e.name}, ${e.logo}, ${e.banner}, ${e.contact}, ${e.website}, ${e.description}, ${e.location}, ${e.location.map(_.id)}, ${e.location.map(_.geo.lat)}, ${e.location.map(_.geo.lng)}, ${e.location.flatMap(_.locality)}, ${e.location.map(_.country)}, ${e.owners}, " ++
@@ -164,6 +175,9 @@ object GroupRepoSql {
 
   private[sql] def selectOneFull(group: Group.Slug): Select[Group.Full] =
     tableFull.select[Group.Full](fr0"WHERE g.slug=$group")
+
+  private[sql] def selectStats(group: Group.Slug): Select[Group.Stats] =
+    statTable.select[Group.Stats](fr0"WHERE g.slug=$group")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
     tableSelect.select[Seq[Tag]](Seq(Field("tags", "g")), Seq())

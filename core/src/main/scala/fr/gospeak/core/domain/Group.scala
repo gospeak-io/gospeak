@@ -123,6 +123,13 @@ object Group {
     def info: Info = group.info
   }
 
+  final case class Stats(id: Id,
+                         slug: Slug,
+                         name: Name,
+                         memberCount: Long,
+                         proposalCount: Long,
+                         eventCount: Long)
+
   final case class Data(slug: Group.Slug,
                         name: Group.Name,
                         logo: Option[Logo],

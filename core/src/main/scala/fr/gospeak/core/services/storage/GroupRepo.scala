@@ -27,6 +27,8 @@ trait OrgaGroupRepo {
   def removeOwner(owner: User.Id)(implicit ctx: OrgaCtx): IO[Done]
 
   def listMembers(implicit ctx: OrgaCtx): IO[Seq[Group.Member]]
+
+  def getStats(implicit ctx: OrgaCtx): IO[Group.Stats]
 }
 
 trait SpeakerGroupRepo {
