@@ -2,16 +2,15 @@ package fr.gospeak.web.utils
 
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.time.{Instant, LocalDateTime, ZoneOffset}
+import java.time.{Instant, LocalDateTime}
 import java.util.concurrent.TimeUnit
 
 import cats.implicits._
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.SocialAccounts
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount._
+import fr.gospeak.core.domain.utils.{Constants, SocialAccounts}
 import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup, MeetupVenue}
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
-import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
@@ -42,7 +41,7 @@ object Mappings {
   val localDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern(localDateFormat)
 
   val double: Mapping[Double] = of(doubleFormat)
-  val instant: Mapping[Instant] = stringEitherMapping(s => Try(LocalDateTime.parse(s).toInstant(ZoneOffset.UTC)).toEither, _.atZone(ZoneOffset.UTC).toLocalDateTime.toString, datetimeError) // FIXME manage timezone
+  val instant: Mapping[Instant] = stringEitherMapping(s => Try(LocalDateTime.parse(s)).map(_.toInstant(Constants.defaultZoneId)).toEither, _.atZone(Constants.defaultZoneId).toLocalDateTime.toString, datetimeError)
   val myLocalDateTime: Mapping[LocalDateTime] = mapping(
     "date" -> localDate("dd/MM/yyyy"),
     "time" -> localTime("HH:mm")
@@ -79,27 +78,7 @@ object Mappings {
     "currency" -> currency
   )(Price.apply)(Price.unapply)
 
-  def gMapPlace(timeShape: TimeShape): Mapping[GMapPlace] = of(new Formatter[GMapPlace] {
-    private def buildGMapPlace(key: String)(id: String,
-                                            name: String,
-                                            streetNo: Option[String],
-                                            street: Option[String],
-                                            postalCode: Option[String],
-                                            locality: Option[String],
-                                            country: String,
-                                            formatted: String,
-                                            input: String,
-                                            lat: Double,
-                                            lng: Double,
-                                            url: String,
-                                            website: Option[String],
-                                            phone: Option[String],
-                                            utcOffset: Int): Either[List[FormError], GMapPlace] = {
-      timeShape.getZoneId(Geo(lat, lng)).map { timezone =>
-        GMapPlace(id, name, streetNo, street, postalCode, locality, country, formatted, input, Geo(lat, lng), url, website, phone, utcOffset, timezone)
-      }.toEither(List(FormError(s"$key.timezone", s"Unable to get timezone for Geo($lat, $lng) :(")))
-    }
-
+  val gMapPlace: Mapping[GMapPlace] = of(new Formatter[GMapPlace] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], GMapPlace] = (
       data.eitherGet(s"$key.id").toValidatedNec,
       data.eitherGet(s"$key.name").toValidatedNec,
@@ -116,7 +95,7 @@ object Mappings {
       data.get(s"$key.website").validNec[FormError],
       data.get(s"$key.phone").validNec[FormError],
       data.eitherGetAndParse(s"$key.utcOffset", _.tryInt, numberError).toValidatedNec
-      ).mapN(buildGMapPlace(key)).toEither.left.map(_.toList).flatten
+      ).mapN(GMapPlace.apply).toEither.left.map(_.toList)
 
     override def unbind(key: String, value: GMapPlace): Map[String, String] =
       Seq(

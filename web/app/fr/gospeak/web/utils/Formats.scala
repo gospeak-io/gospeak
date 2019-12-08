@@ -1,10 +1,11 @@
 package fr.gospeak.web.utils
 
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
+import java.time.{Instant, LocalDate, LocalDateTime}
 import java.util.Locale
 
 import fr.gospeak.core.domain.Cfp
+import fr.gospeak.core.domain.utils.Constants
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.pages.partials.html.{pagination, search, sort}
 import play.api.mvc.{AnyContent, Call}
@@ -13,8 +14,8 @@ import play.twirl.api.Html
 import scala.concurrent.duration._
 
 object Formats {
-  private val df = DateTimeFormatter.ofPattern("dd MMM YYYY").withZone(ZoneOffset.UTC.normalized()).withLocale(Locale.ENGLISH)
-  private val dtf = DateTimeFormatter.ofPattern("dd MMM YYYY 'at' HH:mm:ss.SSS '(UTC)'").withZone(ZoneOffset.UTC.normalized()).withLocale(Locale.ENGLISH)
+  private val df = DateTimeFormatter.ofPattern("dd MMM YYYY").withZone(Constants.defaultZoneId.normalized()).withLocale(Locale.ENGLISH)
+  private val dtf = DateTimeFormatter.ofPattern("dd MMM YYYY 'at' HH:mm:ss.SSS '(UTC)'").withZone(Constants.defaultZoneId.normalized()).withLocale(Locale.ENGLISH)
   private val ldtf = DateTimeFormatter.ofPattern("dd MMM YYYY 'at' HH:mm:ss").withLocale(Locale.ENGLISH)
   private val dateFull = DateTimeFormatter.ofPattern("EEEE dd MMMM YYYY").withLocale(Locale.ENGLISH)
   private val time = DateTimeFormatter.ofPattern("HH:mm").withLocale(Locale.ENGLISH)

@@ -23,7 +23,6 @@ import fr.gospeak.core.services.storage._
 import fr.gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.infra.libs.meetup.MeetupClient
 import fr.gospeak.infra.libs.slack.SlackClient
-import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.infra.services.email.EmailSrvFactory
 import fr.gospeak.infra.services.meetup.MeetupSrvImpl
 import fr.gospeak.infra.services.slack.SlackSrvImpl
@@ -71,7 +70,6 @@ class GospeakComponents(context: ApplicationLoader.Context)
 
   // unsafe init should be done at the beginning
   lazy val conf: AppConf = AppConf.load(configuration).get
-  lazy val timeShape: TimeShape = TimeShape.create().get
 
   lazy val appConf: ApplicationConf = conf.application
   lazy val envConf: ApplicationConf.Env = appConf.env

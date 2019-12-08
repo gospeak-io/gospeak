@@ -15,7 +15,6 @@ import com.mohiva.play.silhouette.test._
 import com.typesafe.config.ConfigFactory
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
-import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.infra.services.storage.sql.{DatabaseConf, GospeakDbSql}
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.infra.services.email.InMemoryEmailSrv
@@ -68,7 +67,4 @@ object Values extends RandomDataGenerator {
   val userReq: UserReq[AnyContent] = new UserReq[AnyContent](r.request, messagesApi.preferred(r), Instant.now(), conf.application.env, r, r.identity.user, r.identity.groups)
   val userAwareReq: UserAwareReq[AnyContent] = userReq.userAware
   val b: Breadcrumb = Breadcrumb(Seq())
-
-  // domain
-  val timeShape: TimeShape = TimeShape.create().get
 }

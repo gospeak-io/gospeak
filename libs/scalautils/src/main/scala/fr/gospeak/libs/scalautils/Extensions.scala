@@ -1,6 +1,6 @@
 package fr.gospeak.libs.scalautils
 
-import java.time.Instant
+import java.time.{Instant, LocalDateTime, ZoneId}
 import java.util.Optional
 
 import cats.MonadError
@@ -278,6 +278,10 @@ object Extensions {
 
   implicit class InstantExtension(val in: Instant) extends AnyVal {
     def plus(d: FiniteDuration): Instant = in.plusMillis(d.toMillis)
+  }
+
+  implicit class LocalDateTimeExtension(val in: LocalDateTime) extends AnyVal {
+    def toInstant(zone: ZoneId): Instant = TimeUtils.toInstant(in, zone)
   }
 
   implicit class IOExtension[A](val in: IO[A]) extends AnyVal {

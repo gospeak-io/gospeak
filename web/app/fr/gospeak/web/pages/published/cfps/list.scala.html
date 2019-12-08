@@ -18,7 +18,7 @@
             A Conference is missing? <a class="btn btn-text btn-text-success" href="@CfpCtrl.add"> You can add it here</a>
         </p>
     </div>
-    @Formats.paginated[CommonCfp](cfps, CfpCtrl.list, cfpItem(_, req.now))
+    @Formats.paginated[CommonCfp](cfps, CfpCtrl.list, cfpItem(_))
 </div>
 }{
 <script>

@@ -1,6 +1,6 @@
 package fr.gospeak.core.services.meetup.domain
 
-import fr.gospeak.core.domain.{Event, Partner, Venue}
+import fr.gospeak.core.domain.{Event, Venue}
 import fr.gospeak.libs.scalautils.domain.Geo
 
 sealed abstract class MeetupException(msg: String) extends Exception(msg)

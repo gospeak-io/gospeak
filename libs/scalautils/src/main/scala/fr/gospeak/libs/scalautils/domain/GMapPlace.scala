@@ -1,7 +1,5 @@
 package fr.gospeak.libs.scalautils.domain
 
-import java.time.ZoneId
-
 case class GMapPlace(id: String,
                      name: String,
                      streetNo: Option[String],
@@ -15,8 +13,7 @@ case class GMapPlace(id: String,
                      url: String,
                      website: Option[String],
                      phone: Option[String],
-                     utcOffset: Int, // in minutes
-                     timezone: ZoneId) {
+                     utcOffset: Int) { // in minutes
   def value: String = formatted
 
   def trim: GMapPlace = GMapPlace(
@@ -33,6 +30,24 @@ case class GMapPlace(id: String,
     url = url.trim,
     website = website.map(_.trim).filter(_.nonEmpty),
     phone = phone.map(_.trim).filter(_.nonEmpty),
-    utcOffset = utcOffset,
-    timezone = timezone)
+    utcOffset = utcOffset)
+}
+
+object GMapPlace {
+  def apply(id: String,
+            name: String,
+            streetNo: Option[String],
+            street: Option[String],
+            postalCode: Option[String],
+            locality: Option[String],
+            country: String,
+            formatted: String,
+            input: String,
+            lat: Double,
+            lng: Double,
+            url: String,
+            website: Option[String],
+            phone: Option[String],
+            utcOffset: Int): GMapPlace =
+    new GMapPlace(id, name, streetNo, street, postalCode, locality, country, formatted, input, Geo(lat, lng), url, website, phone, utcOffset)
 }

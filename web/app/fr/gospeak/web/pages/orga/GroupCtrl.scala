@@ -7,7 +7,6 @@ import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Group, UserRequest}
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -37,14 +36,13 @@ class GroupCtrl(cc: ControllerComponents,
                 sponsorPackRepo: OrgaSponsorPackRepo,
                 partnerRepo: OrgaPartnerRepo,
                 userRequestRepo: OrgaUserRequestRepo,
-                emailSrv: EmailSrv,
-                timeShape: TimeShape) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction with UICtrl.UserAction {
+                emailSrv: EmailSrv) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction with UICtrl.UserAction {
   def create(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
-    createForm(GroupForms.create(timeShape))
+    createForm(GroupForms.create)
   })
 
   def doCreate(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
-    GroupForms.create(timeShape).bindFromRequest.fold(
+    GroupForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
       data => groupRepo.create(data).map(_ => Redirect(routes.GroupCtrl.detail(data.slug)))
     )
@@ -91,16 +89,16 @@ class GroupCtrl(cc: ControllerComponents,
   })
 
   def edit(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    editForm(GroupForms.create(timeShape))
+    editForm(GroupForms.create)
   })
 
   def doEdit(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    GroupForms.create(timeShape).bindFromRequest.fold(
+    GroupForms.create.bindFromRequest.fold(
       formWithErrors => editForm(formWithErrors),
       data => for {
         newSlugExits <- groupRepo.exists(data.slug)
         res <- if (newSlugExits && data.slug != group) {
-          editForm(GroupForms.create(timeShape).fillAndValidate(data).withError("slug", s"Slug ${data.slug.value} already taken by an other group"))
+          editForm(GroupForms.create.fillAndValidate(data).withError("slug", s"Slug ${data.slug.value} already taken by an other group"))
         } else {
           groupRepo.edit(data).map(_ => Redirect(SettingsRoutes.settings(data.slug)))
         }

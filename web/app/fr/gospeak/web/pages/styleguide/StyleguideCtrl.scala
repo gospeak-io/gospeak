@@ -8,7 +8,7 @@ import com.mohiva.play.silhouette.api.{LoginInfo, Silhouette}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{Constants, Info, SocialAccounts}
+import fr.gospeak.core.domain.utils.{Info, SocialAccounts}
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
@@ -163,8 +163,7 @@ class StyleguideCtrl(cc: ControllerComponents,
     url = "https://maps.google.com/?q=Paris,+France&ftid=0x47e66e1f06e2b70f:0x40b82c3688c9460",
     website = Some("http://www.paris.fr/"),
     phone = None,
-    utcOffset = 60,
-    timezone = Constants.defaultZoneId)
+    utcOffset = 60)
   private val contact = Contact(
     id = Contact.Id.generate(),
     partner = partner.id,
