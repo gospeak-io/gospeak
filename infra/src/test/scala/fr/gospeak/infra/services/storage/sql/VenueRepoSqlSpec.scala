@@ -52,11 +52,11 @@ class VenueRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fields FROM $table WHERE v.contact_id=? $orderBy")
       }
       it("should build selectPagePublic") {
-        val q = VenueRepoSql.selectPagePublic(params)
+        val q = VenueRepoSql.selectPagePublic(group.id, params)
         check(q, s"SELECT $fieldsPublic FROM $tablePublic GROUP BY pa.name, pa.logo, v.address $orderByPublic LIMIT 20 OFFSET 0")
       }
       it("should build selectOnePublic") {
-        val q = VenueRepoSql.selectOnePublic(venue.id)
+        val q = VenueRepoSql.selectOnePublic(group.id, venue.id)
         check(q, s"SELECT $fieldsPublic FROM $tablePublic WHERE v.id=? GROUP BY pa.name, pa.logo, v.address $orderByPublic")
       }
       it("should build selectPageCommon") {
@@ -83,7 +83,7 @@ object VenueRepoSqlSpec {
   private val tableFull = s"$tableWithPartner LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id"
   private val fieldsFull = s"$fields, $partnerFields, $contactFields"
 
-  private val tablePublic = s"$tableWithPartner INNER JOIN $groupTable ON pa.group_id=g.id INNER JOIN $eventTable ON g.id=e.group_id AND e.venue=v.id AND e.published IS NOT NULL"
+  private val tablePublic = s"$tableWithPartner INNER JOIN $groupTable ON pa.group_id=g.id AND g.id != ? INNER JOIN $eventTable ON g.id=e.group_id AND e.venue=v.id AND e.published IS NOT NULL"
   private val fieldsPublic = s"pa.name, pa.logo, v.address, MAX(v.id) as id, COALESCE(COUNT(e.id), 0) as events"
   private val orderByPublic = "ORDER BY pa.name IS NULL, pa.name"
 
