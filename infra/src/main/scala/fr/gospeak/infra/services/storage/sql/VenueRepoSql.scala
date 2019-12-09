@@ -56,6 +56,8 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
   override def listAllFull()(implicit ctx: OrgaCtx): IO[Seq[Venue.Full]] = selectAllFull(ctx.group.id).runList(xa)
 
+  override def listCommon(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Common]] = selectPageCommon(ctx.group.id, params).run(xa)
+
   override def listPublic(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Public]] = selectPagePublic(params).run(xa)
 
   override def findPublic(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Option[Venue.Public]] = selectOnePublic(venue).runOption(xa)
@@ -77,8 +79,9 @@ object VenueRepoSql {
   private val _ = venueIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.venues
   private val tableSelect = table.dropFields(_.name.startsWith("address_"))
-  private val tableFull = tableSelect
+  private val tableWithPartner = tableSelect
     .join(Tables.partners, _.partner_id -> _.id).get
+  private val tableFull = tableWithPartner
     .joinOpt(Tables.contacts, _.contact_id -> _.id).get
   private val publicTableFull = tableSelect
     .join(Tables.partners, _.partner_id -> _.id).get
@@ -128,6 +131,26 @@ object VenueRepoSql {
 
   private[sql] def selectOnePublic(id: Venue.Id): Select[Venue.Public] =
     publicTableFull.select[Venue.Public](fr0"WHERE v.id=$id")
+
+  private[sql] def selectPageCommon(group: Group.Id, params: Page.Params): SelectPage[Venue.Common] = {
+    val g = tableWithPartner.select[Venue.Full](
+      fields = Seq(Field("false", "", "public"), Field("name", "pa"), Field("logo", "pa"), Field("address", "v"), Field("id", "v"), Field("0", "", "events")),
+      where = fr0"WHERE pa.group_id=$group",
+      sort = Seq())
+    val p = publicTableFull.select[Venue.Public](
+      fields = Seq(Field("true", "", "public")) ++ publicTableFull.fields,
+      sort = Seq())
+
+    SelectPage[Venue.Common](
+      table = fr0"((" ++ g.fr ++ fr0") UNION (" ++ p.fr ++ fr0")) v",
+      prefix = "v",
+      fields = Seq("id", "name", "logo", "address", "events", "public").map(Field(_, "v")),
+      aggFields = Seq(),
+      whereOpt = None,
+      params = params,
+      sorts = Sorts(Seq(Field("public", "v"), Field("name", "v"), Field("-events", "v")), Map()),
+      searchFields = Seq(Field("name", "v"), Field("address", "v")))
+  }
 
   private def where(group: Group.Id, id: Venue.Id): Fragment =
     fr0"WHERE v.id=(" ++ tableFull.select(Seq(Field("id", "v")), fr0"WHERE pa.group_id=$group AND v.id=$id", Seq()).fr ++ fr0")"

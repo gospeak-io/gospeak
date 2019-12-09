@@ -12,7 +12,7 @@ import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth
 import fr.gospeak.web.pages
-import org.h2.jdbc.JdbcSQLSyntaxErrorException
+import org.h2.jdbc.{JdbcSQLIntegrityConstraintViolationException, JdbcSQLSyntaxErrorException}
 import org.slf4j.LoggerFactory
 import play.api.i18n.I18nSupport
 import play.api.mvc._
@@ -51,6 +51,7 @@ abstract class UICtrl(cc: ControllerComponents,
     // FIXME better error handling (send email or notif?)
     result.recover {
       case e: JdbcSQLSyntaxErrorException => logError(e); next.flashing("error" -> s"Unexpected SQL error")
+      case e: JdbcSQLIntegrityConstraintViolationException => logError(e); next.flashing("error" -> s"Duplicate key SQL error")
       case NonFatal(e) => logError(e); next.flashing("error" -> s"Unexpected error: ${e.getMessage} (${e.getClass.getSimpleName})")
     }
   }

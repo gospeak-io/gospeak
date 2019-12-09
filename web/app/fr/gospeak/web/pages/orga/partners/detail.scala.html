@@ -42,14 +42,14 @@
         <div class="card mb-3">
             <h5 class="card-header">No venue for @partner.name.value</h5>
             <div class="card-body text-center">
-                <a href="@VenueCtrl.create(req.group.slug, partner.slug)" class="btn btn-success">Create a venue</a>
+                <a href="@VenueCtrl.create(req.group.slug, partner.slug)" class="btn btn-success btn-xs">Create a venue</a>
             </div>
         </div>
     } else {
         <div class="card mb-3">
             <h5 class="card-header d-flex justify-content-between align-items-center">
                 <span>@Formats.plural(venues.length, "venue") for @partner.name.value</span>
-                <a class="btn btn-primary btn-sm" href="@VenueCtrl.create(req.group.slug, partner.slug)">Create a venue</a>
+                <a class="btn btn-primary btn-xs" href="@VenueCtrl.create(req.group.slug, partner.slug)">Create a venue</a>
             </h5>
             <div class="list-group list-group-flush">
             @venues.map { venue =>
@@ -67,7 +67,7 @@
             <h5 class="card-header">@partner.name.value has never sponsored @req.group.name.value</h5>
             <div class="card-body text-center">
                 <span class="btn-group">
-                    <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button type="button" class="btn btn-success btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Add sponsoring
                     </button>
                     <span class="dropdown-menu dropdown-menu-right">
@@ -83,7 +83,7 @@
             <h5 class="card-header d-flex justify-content-between align-items-center">
                 <span>@partner.name.value has sponsored @Formats.plural(sponsors.length, "time") @req.group.name.value</span>
                 <span class="btn-group">
-                    <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button type="button" class="btn btn-primary btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Add sponsoring
                     </button>
                     <span class="dropdown-menu dropdown-menu-right">

@@ -53,7 +53,12 @@
     </h1>
 
     <p>
-        @event.venue.map { id => @venue(venueOpt.toList, id, v => Some(VenueCtrl.detail(req.group.slug, v.partner.slug, v.id))) }.getOrElse{ <b class="text-danger">Missing venue</b>, }
+        @event.venue.map { id =>
+            @venue(venueOpt.toList, id, v => Some(VenueCtrl.detail(req.group.slug, v.partner.slug, v.id)))
+        }.getOrElse{
+            <b class="text-danger">Missing venue</b>
+        }
+        <a href="@EventCtrl.setVenue(req.group.slug, event.slug)" class="no-style"><i class="fas fa-edit"></i></a>
         @Formats.datetime(event.start)
         @tags(event.tags)
         @event.maxAttendee.map { max =>  @Formats.plural(max, "place") }
