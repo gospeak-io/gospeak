@@ -27,6 +27,7 @@ object Venue {
 
   final case class ExtRefs(meetup: Option[MeetupVenue.Ref] = None)
 
+  // to add linked entities when selecting venues
   final case class Full(venue: Venue, partner: Partner, contact: Option[Contact]) {
     def users: Seq[User.Id] = (venue.users ++ partner.users ++ contact.map(_.users).getOrElse(Seq())).distinct
 
@@ -45,14 +46,23 @@ object Venue {
     def info: Info = venue.info
   }
 
+  // to list public venues (venues linked in published events)
   final case class Public(name: Partner.Name,
                           logo: Url,
                           address: GMapPlace,
+                          // aggregation fields, should be at the end
                           id: Id,
                           events: Long)
 
-  final case class Public1(venue: Venue, partner: Partner, contact: Option[Contact], group: Group, event: Event)
+  // to list both public and group venues
+  final case class Common(id: Id,
+                          name: Partner.Name,
+                          logo: Url,
+                          address: GMapPlace,
+                          events: Long,
+                          public: Boolean)
 
+  // to hold form data
   final case class Data(partner: Partner.Id,
                         contact: Option[Contact.Id],
                         address: GMapPlace,

@@ -8,11 +8,10 @@
 
 @(events: Page[Event], cfps: Seq[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container_theme("Gospeak", b)() {
+    <h1 class="d-flex justify-content-between align-items-center">
+        <span class="text-capitalize">@Formats.plural(events.total.value, "event")</span>
+        <a class="btn btn-primary" href="@EventCtrl.create(req.group.slug)" data-hotkey="+">Create an event</a>
+    </h1>
 
-        <h1 class="d-flex justify-content-between align-items-center">
-            <span class="text-capitalize">@Formats.plural(events.total.value, "event")</span>
-            <a class="btn btn-primary" href="@EventCtrl.create(req.group.slug)" data-hotkey="+">Create an event</a>
-        </h1>
-
-       @Formats.paginated[Event](events, EventCtrl.list(req.group.slug, _), e => eventItem(e, cfps.find(c => e.cfp.contains(c.id)), venues, proposals, speakers))
+   @Formats.paginated[Event](events, EventCtrl.list(req.group.slug, _), e => eventItem(e, cfps.find(c => e.cfp.contains(c.id)), venues, proposals, speakers))
 }()

@@ -8,3 +8,21 @@
   vertical-align: text-top;
   margin: 1px 0 0 0;
 }
+
+a.no-style {
+  color: inherit;
+}
+
+.btn-form {
+  display: inline;
+}
+
+.btn-form .btn.no-style {
+  display: inline;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 1;
+  color: inherit;
+  font-size: inherit;
+}

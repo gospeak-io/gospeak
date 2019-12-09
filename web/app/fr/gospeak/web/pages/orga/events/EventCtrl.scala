@@ -18,6 +18,7 @@ import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.events.EventCtrl._
 import fr.gospeak.web.pages.orga.events.EventForms.PublishOptions
+import fr.gospeak.web.pages.orga.venues.VenueForms
 import fr.gospeak.web.services.EventSrv
 import fr.gospeak.web.utils.{OrgaReq, UICtrl}
 import play.api.data.Form
@@ -33,6 +34,7 @@ class EventCtrl(cc: ControllerComponents,
                 val groupRepo: OrgaGroupRepo,
                 cfpRepo: OrgaCfpRepo,
                 eventRepo: OrgaEventRepo,
+                partnerRepo: OrgaPartnerRepo,
                 venueRepo: OrgaVenueRepo,
                 proposalRepo: OrgaProposalRepo,
                 groupSettingsRepo: GroupSettingsRepo,
@@ -134,6 +136,50 @@ class EventCtrl(cc: ControllerComponents,
     EventForms.notes.bindFromRequest.fold(
       formWithErrors => IO.pure(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Unable to edit notes: ${req.formatErrors(formWithErrors)}")),
       notes => eventRepo.editNotes(event, notes).map(_ => Redirect(routes.EventCtrl.detail(group, event)))
+    )
+  })
+
+  def setVenue(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    (for {
+      e <- OptionT(eventSrv.getFullEvent(event))
+      venues <- OptionT.liftF(venueRepo.listCommon(params))
+      res = Ok(html.setVenue(e.event, e.venueOpt, venues)(setVenueBreadcrumb(e.event)))
+    } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
+  })
+
+  def doSetVenue(group: Group.Slug, event: Event.Slug, venue: Venue.Id, public: Boolean): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    (for {
+      eventElt <- OptionT(eventRepo.find(event))
+      venueToSet <- OptionT.liftF(if (public) {
+        venueRepo.duplicate(venue).map(_.id)
+      } else {
+        IO.pure(venue)
+      })
+      _ <- OptionT.liftF(eventRepo.edit(event, eventElt.data.copy(venue = Some(venueToSet))))
+      res = Redirect(routes.EventCtrl.detail(group, event)).flashing("success" -> "Venue updated")
+    } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
+  })
+
+  def createVenue(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    (for {
+      eventElt <- OptionT(eventRepo.find(event))
+      res = Ok(html.createVenue(eventElt, VenueForms.createWithPartner)(createVenueBreadcrumb(eventElt)))
+    } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
+  })
+
+  def doCreateVenue(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+    VenueForms.createWithPartner.bindFromRequest().fold(
+      formWithErrors => (for {
+        eventElt <- OptionT(eventRepo.find(event))
+        res = Ok(html.createVenue(eventElt, formWithErrors)(createVenueBreadcrumb(eventElt)))
+      } yield res).value.map(_.getOrElse(eventNotFound(group, event))),
+      data => (for {
+        eventElt <- OptionT(eventRepo.find(event))
+        partner <- OptionT.liftF(partnerRepo.create(data.toPartner))
+        venue <- OptionT.liftF(venueRepo.create(data.toVenue(partner.id)))
+        _ <- OptionT.liftF(eventRepo.edit(event, eventElt.data.copy(venue = Some(venue.id))))
+        res = Redirect(routes.EventCtrl.detail(group, event)).flashing("success" -> "Venue updated")
+      } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
     )
   })
 
@@ -259,4 +305,10 @@ object EventCtrl {
 
   def breadcrumb(event: Event)(implicit req: OrgaReq[AnyContent]): Breadcrumb =
     listBreadcrumb.add(event.name.value -> routes.EventCtrl.detail(req.group.slug, event.slug))
+
+  def setVenueBreadcrumb(event: Event)(implicit req: OrgaReq[AnyContent]): Breadcrumb =
+    breadcrumb(event).add("Set venue" -> routes.EventCtrl.setVenue(req.group.slug, event.slug))
+
+  def createVenueBreadcrumb(event: Event)(implicit req: OrgaReq[AnyContent]): Breadcrumb =
+    setVenueBreadcrumb(event).add("New" -> routes.EventCtrl.createVenue(req.group.slug, event.slug))
 }

@@ -59,6 +59,12 @@ class VenueRepoSqlSpec extends RepoSpec {
         val q = VenueRepoSql.selectOnePublic(venue.id)
         check(q, s"SELECT $fieldsPublic FROM $tablePublic WHERE v.id=? GROUP BY pa.name, pa.logo, v.address $orderByPublic")
       }
+      it("should build selectPageCommon") {
+        val q = VenueRepoSql.selectPageCommon(group.id, params)
+        q.fr.query.sql shouldBe s"SELECT $commonFields FROM $commonTable $commonOrderBy LIMIT 20 OFFSET 0"
+        // ignored because of fake nullable columns
+        // check(q, s"SELECT $commonFields FROM $commonTable $commonOrderBy LIMIT 20 OFFSET 0")
+      }
     }
   }
 }
@@ -72,10 +78,18 @@ object VenueRepoSqlSpec {
   val fields: String = mapFields("id, partner_id, contact_id, address, notes, room_size, meetupGroup, meetupVenue, created_at, created_by, updated_at, updated_by", "v." + _)
   val orderBy = "ORDER BY v.created_at IS NULL, v.created_at"
 
-  private val tableFull = s"$table INNER JOIN $partnerTable ON v.partner_id=pa.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id"
+  private val tableWithPartner = s"$table INNER JOIN $partnerTable ON v.partner_id=pa.id"
+
+  private val tableFull = s"$tableWithPartner LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id"
   private val fieldsFull = s"$fields, $partnerFields, $contactFields"
 
-  private val tablePublic = s"$table INNER JOIN $partnerTable ON v.partner_id=pa.id INNER JOIN $groupTable ON pa.group_id=g.id INNER JOIN $eventTable ON g.id=e.group_id AND e.venue=v.id AND e.published IS NOT NULL"
+  private val tablePublic = s"$tableWithPartner INNER JOIN $groupTable ON pa.group_id=g.id INNER JOIN $eventTable ON g.id=e.group_id AND e.venue=v.id AND e.published IS NOT NULL"
   private val fieldsPublic = s"pa.name, pa.logo, v.address, MAX(v.id) as id, COALESCE(COUNT(e.id), 0) as events"
   private val orderByPublic = "ORDER BY pa.name IS NULL, pa.name"
+
+  private val commonTable = s"(" +
+    s"(SELECT false as public, pa.name, pa.logo, v.address, v.id, 0 as events FROM $tableWithPartner WHERE pa.group_id=?) UNION " +
+    s"(SELECT true as public, $fieldsPublic FROM $tablePublic GROUP BY public, pa.name, pa.logo, v.address)) v"
+  private val commonFields = "v.id, v.name, v.logo, v.address, v.events, v.public"
+  private val commonOrderBy = "ORDER BY v.public IS NULL, v.public, v.name IS NULL, v.name, v.events IS NULL, v.events DESC"
 }
