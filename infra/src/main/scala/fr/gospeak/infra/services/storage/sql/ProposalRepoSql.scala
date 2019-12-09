@@ -279,17 +279,19 @@ object ProposalRepoSql {
     fr0"WHERE p.id=$id"
 
   private def where(cfp: Cfp.Slug, id: Proposal.Id): Fragment =
-    fr0"WHERE p.id=(SELECT p.id FROM " ++
-      Fragment.const0(s"${table.value} INNER JOIN ${Tables.cfps.value} ON p.cfp_id=c.id") ++
+    fr0"WHERE p.id=(SELECT p.id FROM " ++ table.value ++
+      fr0" INNER JOIN " ++ Tables.cfps.value ++ fr0" ON p.cfp_id=c.id" ++
       fr0" WHERE p.id=$id AND c.slug=$cfp" ++ fr0")"
 
   private def where(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Fragment =
-    fr0"WHERE p.id=(SELECT p.id FROM " ++
-      Fragment.const0(s"${table.value} INNER JOIN ${Tables.cfps.value} ON p.cfp_id=c.id INNER JOIN ${Tables.groups.value} ON c.group_id=g.id") ++
+    fr0"WHERE p.id=(SELECT p.id FROM " ++ table.value ++
+      fr0" INNER JOIN " ++ Tables.cfps.value ++ fr0" ON p.cfp_id=c.id" ++
+      fr0" INNER JOIN " ++ Tables.groups.value ++ fr0" ON c.group_id=g.id" ++
       fr0" WHERE p.id=$proposal AND c.slug=$cfp AND g.slug=$group AND g.owners LIKE ${"%" + orga.value + "%"}" ++ fr0")"
 
   private def where(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Fragment =
-    fr0"WHERE p.id=(SELECT p.id FROM " ++
-      Fragment.const0(s"${table.value} INNER JOIN ${Tables.cfps.value} ON p.cfp_id=c.id INNER JOIN ${Tables.talks.value} ON p.talk_id=t.id") ++
+    fr0"WHERE p.id=(SELECT p.id FROM " ++ table.value ++
+      fr0" INNER JOIN " ++ Tables.cfps.value ++ fr0" ON p.cfp_id=c.id" ++
+      fr0" INNER JOIN " ++ Tables.talks.value ++ fr0" ON p.talk_id=t.id" ++
       fr0" WHERE c.slug=$cfp AND t.slug=$talk AND p.speakers LIKE ${"%" + speaker.value + "%"}" ++ fr0")"
 }

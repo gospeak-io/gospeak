@@ -51,7 +51,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
       describe("join") {
         it("should build a joined table") {
           val table = table1.join(table2, _.field("id") -> _.field("ref1")).get
-          table.value shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1"
+          table.value.query.sql shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1"
           table.prefix shouldBe "t1"
           table.fields shouldBe table1.fields ++ table2.fields
           table.sorts shouldBe table1.sorts
@@ -61,20 +61,20 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
           val table = table1
             .join(table2, _.field("id") -> _.field("ref1")).get
             .join(table3, _.field("id", "t2") -> _.field("ref2")).get
-          table.value shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1 INNER JOIN table3 t3 ON t2.id=t3.ref2"
+          table.value.query.sql shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1 INNER JOIN table3 t3 ON t2.id=t3.ref2"
         }
         it("should be associative") {
           val t23 = table2.join(table3, _.field("id") -> _.field("ref2")).get
-          t23.value shouldBe "table2 t2 INNER JOIN table3 t3 ON t2.id=t3.ref2"
+          t23.value.query.sql shouldBe "table2 t2 INNER JOIN table3 t3 ON t2.id=t3.ref2"
 
           val t123A = table1.join(t23, _.field("id") -> _.field("ref1")).get
-          t123A.value shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1 INNER JOIN table3 t3 ON t2.id=t3.ref2"
+          t123A.value.query.sql shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1 INNER JOIN table3 t3 ON t2.id=t3.ref2"
 
           val t12 = table1.join(table2, _.field("id") -> _.field("ref1")).get
-          t12.value shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1"
+          t12.value.query.sql shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1"
 
           val t123B = t12.join(table3, _.field("id", "t2") -> _.field("ref2")).get
-          t123B.value shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1 INNER JOIN table3 t3 ON t2.id=t3.ref2"
+          t123B.value.query.sql shouldBe "table1 t1 INNER JOIN table2 t2 ON t1.id=t2.ref1 INNER JOIN table3 t3 ON t2.id=t3.ref2"
 
           t123A shouldBe t123B
         }
@@ -96,21 +96,21 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
     describe("Update") {
       it("should build an update") {
         val e = Entity(1, "n")
-        val sql = Update("table t", fr0"t.name=${e.name}", fr0" WHERE t.id=${e.id}").fr.update.sql
+        val sql = Update(fr0"table t", fr0"t.name=${e.name}", fr0" WHERE t.id=${e.id}").fr.update.sql
         sql shouldBe "UPDATE table t SET t.name=? WHERE t.id=?"
       }
     }
     describe("Delete") {
       it("should build a delete") {
         val e = Entity(1, "n")
-        val sql = Delete("table t", fr0" WHERE t.id=${e.id}").fr.update.sql
+        val sql = Delete(fr0"table t", fr0" WHERE t.id=${e.id}").fr.update.sql
         sql shouldBe "DELETE FROM table t WHERE t.id=?"
       }
     }
     describe("Select") {
       it("should build a select") {
         val e = Entity(1, "n")
-        val sql = Select("table t", Seq(Field("id", "t"), Field("name", "t")), Seq(), Some(fr0" WHERE t.id=${e.id}"), Sorts(Seq(Field("name", "t")), Map()), Some(3)).fr.update.sql
+        val sql = Select(fr0"table t", Seq(Field("id", "t"), Field("name", "t")), Seq(), Some(fr0" WHERE t.id=${e.id}"), Sorts(Seq(Field("name", "t")), Map()), Some(3)).fr.update.sql
         sql shouldBe "SELECT t.id, t.name FROM table t WHERE t.id=? ORDER BY t.name IS NULL, t.name LIMIT 3"
       }
     }

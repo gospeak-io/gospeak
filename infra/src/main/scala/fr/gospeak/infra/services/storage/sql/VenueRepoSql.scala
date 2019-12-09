@@ -13,7 +13,7 @@ import fr.gospeak.core.services.storage.VenueRepo
 import fr.gospeak.infra.services.storage.sql.VenueRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Sorts, Update}
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
+import fr.gospeak.infra.services.storage.sql.utils.{DoobieUtils, GenericRepo}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, Markdown, Page}
 
@@ -58,9 +58,9 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
   override def listCommon(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Common]] = selectPageCommon(ctx.group.id, params).run(xa)
 
-  override def listPublic(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Public]] = selectPagePublic(params).run(xa)
+  override def listPublic(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Public]] = selectPagePublic(ctx.group.id, params).run(xa)
 
-  override def findPublic(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Option[Venue.Public]] = selectOnePublic(venue).runOption(xa)
+  override def findPublic(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Option[Venue.Public]] = selectOnePublic(ctx.group.id, venue).runOption(xa)
 
   override def listFull(group: Group.Id): IO[Seq[Venue.Full]] = selectAllFull(group).runList(xa)
 
@@ -83,10 +83,11 @@ object VenueRepoSql {
     .join(Tables.partners, _.partner_id -> _.id).get
   private val tableFull = tableWithPartner
     .joinOpt(Tables.contacts, _.contact_id -> _.id).get
-  private val publicTableFull = tableSelect
+
+  private def publicTableFull(group: Group.Id): DoobieUtils.Table = tableSelect
     .join(Tables.partners, _.partner_id -> _.id).get
-    .join(Tables.groups, _.group_id("pa") -> _.id).get.dropFields(_.name.startsWith("location_"))
-    .join(Tables.events, _.id("g") -> _.group_id, "e.venue=v.id AND e.published IS NOT NULL").get
+    .join(Tables.groups, _.group_id("pa") -> _.id, fr0"g.id != $group").get.dropFields(_.name.startsWith("location_"))
+    .join(Tables.events, _.id("g") -> _.group_id, fr0"e.venue=v.id AND e.published IS NOT NULL").get
     .aggregate("MAX(v.id)", "id")
     .aggregate("COALESCE(COUNT(e.id), 0)", "events")
     .copy(fields = Seq(Field("name", "pa"), Field("logo", "pa"), Field("address", "v")))
@@ -126,19 +127,19 @@ object VenueRepoSql {
   private[sql] def selectAll(group: Group.Id, contact: Contact.Id): Select[Venue] =
     tableSelect.select[Venue](fr0"WHERE v.contact_id=$contact")
 
-  private[sql] def selectPagePublic(params: Page.Params): SelectPage[Venue.Public] =
-    publicTableFull.selectPage[Venue.Public](params)
+  private[sql] def selectPagePublic(group: Group.Id, params: Page.Params): SelectPage[Venue.Public] =
+    publicTableFull(group).selectPage[Venue.Public](params)
 
-  private[sql] def selectOnePublic(id: Venue.Id): Select[Venue.Public] =
-    publicTableFull.select[Venue.Public](fr0"WHERE v.id=$id")
+  private[sql] def selectOnePublic(group: Group.Id, id: Venue.Id): Select[Venue.Public] =
+    publicTableFull(group).select[Venue.Public](fr0"WHERE v.id=$id")
 
   private[sql] def selectPageCommon(group: Group.Id, params: Page.Params): SelectPage[Venue.Common] = {
     val g = tableWithPartner.select[Venue.Full](
       fields = Seq(Field("false", "", "public"), Field("name", "pa"), Field("logo", "pa"), Field("address", "v"), Field("id", "v"), Field("0", "", "events")),
       where = fr0"WHERE pa.group_id=$group",
       sort = Seq())
-    val p = publicTableFull.select[Venue.Public](
-      fields = Seq(Field("true", "", "public")) ++ publicTableFull.fields,
+    val p = publicTableFull(group).select[Venue.Public](
+      fields = Seq(Field("true", "", "public")) ++ publicTableFull(group).fields,
       sort = Seq())
 
     SelectPage[Venue.Common](

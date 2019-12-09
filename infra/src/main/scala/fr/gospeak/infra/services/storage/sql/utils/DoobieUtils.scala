@@ -50,10 +50,10 @@ object DoobieUtils {
                              name: String,
                              prefix: String,
                              on: NonEmptyList[(Field, Field)],
-                             where: Option[String]) {
-    def value: String = {
-      val join = on.map { case (l, r) => s"${l.value}=${r.value}" }.toList ++ where.toList
-      s"$kind $name $prefix ON ${join.mkString(" AND ")}"
+                             where: Option[Fragment]) {
+    def value: Fragment = {
+      val join = on.map { case (l, r) => const0(s"${l.value}=${r.value}") }.toList ++ where.toList
+      const0(s"$kind $name $prefix ON ") ++ join.reduce(_ ++ fr0" AND " ++ _)
     }
   }
 
@@ -85,17 +85,17 @@ object DoobieUtils {
                          aggFields: Seq[AggregateField],
                          sorts: Sorts,
                          search: Seq[Field]) extends Dynamic {
-    def value: String = s"$name $prefix" + joins.map(" " + _.value).mkString
+    def value: Fragment = const0(s"$name $prefix") ++ joins.foldLeft(fr0"")(_ ++ fr0" " ++ _.value)
 
-    private def field(field: Field): Either[CustomException, Field] = fields.find(_ == field).toEither(CustomException(s"Unable to find field '${field.value}' in table '$value'"))
+    private def field(field: Field): Either[CustomException, Field] = fields.find(_ == field).toEither(CustomException(s"Unable to find field '${field.value}' in table '${value.query.sql}'"))
 
     def field(name: String, prefix: String): Either[CustomException, Field] = field(Field(name, prefix))
 
     def field(name: String): Either[CustomException, Field] =
       fields.filter(_.name == name) match {
-        case Seq() => Left(CustomException(s"Unable to find field '$name' in table '$value'"))
+        case Seq() => Left(CustomException(s"Unable to find field '$name' in table '${value.query.sql}'"))
         case Seq(f) => Right(f)
-        case l => Left(CustomException(s"Ambiguous field '$name' (possible values: ${l.map(f => s"'${f.value}'").mkString(", ")}) in table '$value'"))
+        case l => Left(CustomException(s"Ambiguous field '$name' (possible values: ${l.map(f => s"'${f.value}'").mkString(", ")}) in table '${value.query.sql}'"))
       }
 
     def selectDynamic(name: String): Either[CustomException, Field] = field(name)
@@ -112,16 +112,16 @@ object DoobieUtils {
     def join(rightTable: Table, on: Table.BuildJoinFields, more: Table.BuildJoinFields*): Either[CustomException, Table] =
       doJoin("INNER JOIN", rightTable, NonEmptyList.of(on, more: _*), None)
 
-    def join(rightTable: Table, on: Table.BuildJoinFields, where: String): Either[CustomException, Table] =
+    def join(rightTable: Table, on: Table.BuildJoinFields, where: Fragment): Either[CustomException, Table] =
       doJoin("INNER JOIN", rightTable, NonEmptyList.of(on), Some(where))
 
     def joinOpt(rightTable: Table, on: Table.BuildJoinFields, more: Table.BuildJoinFields*): Either[CustomException, Table] =
       doJoin("LEFT OUTER JOIN", rightTable, NonEmptyList.of(on, more: _*), None)
 
-    def joinOpt(rightTable: Table, on: Table.BuildJoinFields, where: String): Either[CustomException, Table] =
+    def joinOpt(rightTable: Table, on: Table.BuildJoinFields, where: Fragment): Either[CustomException, Table] =
       doJoin("LEFT OUTER JOIN", rightTable, NonEmptyList.of(on), Some(where))
 
-    private def doJoin(kind: String, rightTable: Table, on: NonEmptyList[Table.BuildJoinFields], where: Option[String]): Either[CustomException, Table] = for {
+    private def doJoin(kind: String, rightTable: Table, on: NonEmptyList[Table.BuildJoinFields], where: Option[Fragment]): Either[CustomException, Table] = for {
       joinFields <- on
         .map(f => f(this, rightTable))
         .map { case (leftField, rightField) => leftField.flatMap(lf => rightField.map(rf => (lf, rf))) }.sequence
@@ -161,13 +161,13 @@ object DoobieUtils {
 
     def selectOne[A: Read](where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, Some(fr0" " ++ where), Sorts(sort, Map()), Some(1))
 
-    def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](const0(value), prefix, fields, aggFields, None, params, sorts, search)
+    def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, None, params, sorts, search)
 
-    def selectPage[A: Read](params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](const0(value), prefix, fields, aggFields, Some(fr0" " ++ where), params, sorts, search)
+    def selectPage[A: Read](params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, Some(fr0" " ++ where), params, sorts, search)
 
-    def selectPage[A: Read](fields: Seq[Field], params: Page.Params): SelectPage[A] = SelectPage[A](const0(value), prefix, fields, aggFields, None, params, sorts, search)
+    def selectPage[A: Read](fields: Seq[Field], params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, None, params, sorts, search)
 
-    def selectPage[A: Read](fields: Seq[Field], params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](const0(value), prefix, fields, aggFields, Some(fr0" " ++ where), params, sorts, search)
+    def selectPage[A: Read](fields: Seq[Field], params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, Some(fr0" " ++ where), params, sorts, search)
   }
 
   object Table {
@@ -213,8 +213,8 @@ object DoobieUtils {
       }
   }
 
-  final case class Update(table: String, fields: Fragment, where: Fragment) {
-    def fr: Fragment = const0(s"UPDATE $table SET ") ++ fields ++ where
+  final case class Update(table: Fragment, fields: Fragment, where: Fragment) {
+    def fr: Fragment = fr0"UPDATE " ++ table ++ fr0" SET " ++ fields ++ where
 
     def run(xa: doobie.Transactor[IO]): IO[Done] =
       fr.update.run.transact(xa).flatMap {
@@ -223,8 +223,8 @@ object DoobieUtils {
       }
   }
 
-  final case class Delete(table: String, where: Fragment) {
-    def fr: Fragment = const0(s"DELETE FROM $table") ++ where
+  final case class Delete(table: Fragment, where: Fragment) {
+    def fr: Fragment = fr0"DELETE FROM " ++ table ++ where
 
     def run(xa: doobie.Transactor[IO]): IO[Done] =
       fr.update.run.transact(xa).flatMap {
@@ -233,14 +233,14 @@ object DoobieUtils {
       }
   }
 
-  final case class Select[A: Read](table: String,
+  final case class Select[A: Read](table: Fragment,
                                    fields: Seq[Field],
                                    aggFields: Seq[AggregateField],
                                    whereOpt: Option[Fragment],
                                    sorts: Sorts,
                                    limit: Option[Int]) {
     def fr: Fragment = {
-      val select = const0(s"SELECT ${(fields.map(_.value) ++ aggFields.map(_.value)).mkString(", ")} FROM $table")
+      val select = const0(s"SELECT ${(fields.map(_.value) ++ aggFields.map(_.value)).mkString(", ")} FROM ") ++ table
       val where = whereOpt.getOrElse(fr0"")
       val groupBy = aggFields.headOption.map(_ => const0(s" GROUP BY ${fields.map(_.label).mkString(", ")}")).getOrElse(fr0"")
       val orderBy = NonEmptyList.fromList(sorts.default.toList).map(orderByFragment(_)).getOrElse(fr0"")
