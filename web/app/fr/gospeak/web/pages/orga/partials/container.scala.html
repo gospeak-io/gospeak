@@ -8,7 +8,6 @@
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
-@import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.container.html._
@@ -31,7 +30,6 @@
                     @* @navbarLink(ProposalCtrl.list(req.group.slug), "data-hotkey" -> "3") {Proposals} *@
                     @* @navbarLink(SpeakerCtrl.list(req.group.slug), "data-hotkey" -> "4") {Speakers} *@
                     @navbarLink(PartnerCtrl.list(req.group.slug), "data-hotkey" -> "3") {Partners}
-                    @* @navbarLink(VenueCtrl.list(req.group.slug), "data-hotkey" -> "6") {Venues} *@
                     @* @navbarLink(SponsorCtrl.list(req.group.slug), "data-hotkey" -> "7") {Sponsors} *@
                 </div>
             </div>

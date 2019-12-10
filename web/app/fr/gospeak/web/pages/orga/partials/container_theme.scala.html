@@ -6,7 +6,6 @@
 @import fr.gospeak.web.pages.orga.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
-@import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.published.routes.HomeCtrl
@@ -117,9 +116,6 @@
                                 </li>
                                 <li class="nav-item">
                                     @navbarLink(PartnerCtrl.list(req.group.slug), "data-hotkey" -> "3") {Partners}
-                                </li>
-                                <li class="nav-item">
-                                    @navbarLink(VenueCtrl.list(req.group.slug), "data-hotkey" -> "6") {Venues}
                                 </li>
                                 <li class="nav-item">
                                     @navbarLink(SponsorCtrl.list(req.group.slug), "data-hotkey" -> "7") {Sponsors}

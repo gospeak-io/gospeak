@@ -161,13 +161,15 @@ object DoobieUtils {
 
     def selectOne[A: Read](where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, Some(fr0" " ++ where), Sorts(sort, Map()), Some(1))
 
-    def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, None, params, sorts, search)
+    def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, None, None, params, sorts, search)
 
-    def selectPage[A: Read](params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, Some(fr0" " ++ where), params, sorts, search)
+    def selectPage[A: Read](params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, Some(fr0" " ++ where), None, params, sorts, search)
 
-    def selectPage[A: Read](fields: Seq[Field], params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, None, params, sorts, search)
+    def selectPage[A: Read](params: Page.Params, where: Fragment, having: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, Some(fr0" " ++ where), Some(fr0" " ++ having), params, sorts, search)
 
-    def selectPage[A: Read](fields: Seq[Field], params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, Some(fr0" " ++ where), params, sorts, search)
+    def selectPage[A: Read](fields: Seq[Field], params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, None, None, params, sorts, search)
+
+    def selectPage[A: Read](fields: Seq[Field], params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, Some(fr0" " ++ where), None, params, sorts, search)
   }
 
   object Table {
@@ -263,21 +265,23 @@ object DoobieUtils {
                                        fields: Seq[Field],
                                        aggFields: Seq[AggregateField],
                                        whereOpt: Option[Fragment],
+                                       havingOpt: Option[Fragment],
                                        params: Page.Params,
                                        sorts: Sorts,
                                        searchFields: Seq[Field]) {
     private val select: Fragment = const0(s"SELECT ${(fields.map(_.value) ++ aggFields.map(_.value)).mkString(", ")} FROM ") ++ table
     private val groupBy: Fragment = aggFields.headOption.map(_ => const0(s" GROUP BY ${fields.map(_.label).mkString(", ")}")).getOrElse(fr0"")
+    private val having: Fragment = havingOpt.getOrElse(fr0"")
 
     def fr: Fragment = {
       val (where, orderBy, limit) = paginationFragment(prefix, whereOpt, params, sorts, searchFields)
-      select ++ where ++ groupBy ++ orderBy ++ limit
+      select ++ where ++ groupBy ++ having ++ orderBy ++ limit
     }
 
     def countFr: Fragment = {
       val select = const0(s"SELECT ${fields.headOption.map(_.value).getOrElse("*")} FROM ") ++ table
       val where = whereFragment(whereOpt, params.search, searchFields).getOrElse(fr0"")
-      fr0"SELECT count(*) FROM (" ++ select ++ where ++ groupBy ++ fr0") as cnt"
+      fr0"SELECT count(*) FROM (" ++ select ++ where ++ groupBy ++ having ++ fr0") as cnt"
     }
 
     def query: doobie.Query0[A] = fr.query[A]

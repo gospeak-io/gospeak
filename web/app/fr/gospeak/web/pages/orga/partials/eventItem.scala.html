@@ -4,7 +4,6 @@
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 @import fr.gospeak.web.utils.OrgaReq
 
 @(event: Event, cfp: Option[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User])(implicit req: OrgaReq[AnyContent])
@@ -18,7 +17,7 @@
                             <span class="media align-items-center">
                                 <span class="mx-2">
                                     @event.venue.flatMap(id => venues.find(_.id == id)).map { venue =>
-                                    <img class="max-width-6 mr-3" src=" @venue.partner.logo.value" alt="Partner logo">
+                                        <img class="max-width-6 mr-3" src=" @venue.partner.logo.value" alt="Partner logo">
                                     }.getOrElse {
                                         <img class="max-width-6 mr-3" src="https://secure.meetupstatic.com/photos/event/b/6/1/4/600_251926612.jpeg" alt="Image Description">
                                         }
@@ -30,7 +29,8 @@
                                             <a href="@ref.link" target="_blank">
                                                 <i class="fab fa-meetup"></i>
                                             </a>
-                                        }</span>
+                                        }
+                                    </span>
                                 </span>
                             </span>
                         </span>
@@ -38,14 +38,10 @@
                             @if(!event.isPublic) {
                                 <span class="btn btn-xs  btn-pill btn-soft-dark">Draft</span>
                             }
-                            <span class="btn btn-xs  btn-pill btn-soft-primary">
-                            @Formats.plural(event.talks.length, "talk")
-                            </span>
+                            <span class="btn btn-xs  btn-pill btn-soft-primary">@Formats.plural(event.talks.length, "talk")</span>
                         </span>
                         <span class="col-6 col-md-3">
-                            <span class="text-primary font-size-1">
-                            @Formats.date(event.start)
-                            </span>
+                            <span class="text-primary font-size-1">@Formats.date(event.start)</span>
                         </span>
 
                         <span class="col-2 col-md-1 text-right">
@@ -54,7 +50,6 @@
                             </span>
                         </span>
                     </span>
-
                 </button>
             </h5>
         </div>

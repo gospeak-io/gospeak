@@ -1,4 +1,4 @@
-@import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal, Comment, User, UserRequest}
+@import fr.gospeak.core.domain.{Event, Proposal, Comment, User, UserRequest}
 @import fr.gospeak.libs.scalautils.domain.{EmailAddress, Url}
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
@@ -45,7 +45,7 @@
                         <span class="badge badge-pill badge-primary">
                             <a href="@SpeakerCtrl.detail(req.group.slug, speaker.slug)">@speaker.name.value</a>
                             @if(speaker.id != proposal.info.createdBy) {
-                                @formBtn(ProposalCtrl.removeSpeaker(req.group.slug, proposal.cfp.slug, proposal.id, speaker.slug), Seq("class" -> "no-style", "title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
+                                @formBtn(ProposalCtrl.removeSpeaker(req.group.slug, proposal.cfp.slug, proposal.id, speaker.slug), Seq("title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
                             }
                         </span>
                     }
@@ -54,7 +54,7 @@
                 @invites.map { i =>
                     <span class="badge badge-pill badge-secondary" title="Speaker invitation, still not a speaker">
                         @i.email.value
-                        @formBtn(ProposalCtrl.cancelInviteSpeaker(req.group.slug, proposal.cfp.slug, proposal.id, i.id), Seq("class" -> "no-style", "title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
+                        @formBtn(ProposalCtrl.cancelInviteSpeaker(req.group.slug, proposal.cfp.slug, proposal.id, i.id), Seq("title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
                     </span>
                 }
                 <a href="#" class="badge badge-pill badge-primary" data-toggle="modal" data-target="#inviteSpeakerModal"><i class="fas fa-plus"></i></a>

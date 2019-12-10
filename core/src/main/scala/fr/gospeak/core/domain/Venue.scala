@@ -18,8 +18,8 @@ final case class Venue(id: Venue.Id,
 }
 
 object Venue {
-  def apply(group: Group.Id, data: Data, info: Info): Venue =
-    new Venue(Id.generate(), data.partner, data.contact, data.address, data.notes, data.roomSize, ExtRefs(), info)
+  def apply(group: Group.Id, partner: Partner.Id, data: Data, info: Info): Venue =
+    new Venue(Id.generate(), partner, data.contact, data.address, data.notes, data.roomSize, ExtRefs(), info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -44,10 +44,13 @@ object Venue {
     def data: Data = venue.data
 
     def info: Info = venue.info
+
+    def hasContact(id: Contact.Id): Boolean = contact.exists(_.id == id)
   }
 
   // to list public venues (venues linked in published events)
-  final case class Public(name: Partner.Name,
+  final case class Public(slug: Partner.Slug,
+                          name: Partner.Name,
                           logo: Url,
                           address: GMapPlace,
                           // aggregation fields, should be at the end
@@ -56,6 +59,7 @@ object Venue {
 
   // to list both public and group venues
   final case class Common(id: Id,
+                          slug: Partner.Slug,
                           name: Partner.Name,
                           logo: Url,
                           address: GMapPlace,
@@ -63,15 +67,14 @@ object Venue {
                           public: Boolean)
 
   // to hold form data
-  final case class Data(partner: Partner.Id,
-                        contact: Option[Contact.Id],
+  final case class Data(contact: Option[Contact.Id],
                         address: GMapPlace,
                         notes: Markdown,
                         roomSize: Option[Int],
                         refs: Venue.ExtRefs)
 
   object Data {
-    def apply(venue: Venue): Data = new Data(venue.partner, venue.contact, venue.address, venue.notes, venue.roomSize, venue.refs)
+    def apply(venue: Venue): Data = new Data(venue.contact, venue.address, venue.notes, venue.roomSize, venue.refs)
   }
 
 }

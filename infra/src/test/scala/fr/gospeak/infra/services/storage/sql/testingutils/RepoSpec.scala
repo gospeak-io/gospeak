@@ -82,7 +82,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected def createPartnerAndVenue(user: User, group: Group)(implicit ctx: OrgaCtx): IO[(Partner, Venue)] = for {
     partner <- partnerRepo.create(partnerData1)
     contact <- venueData1.contact.map(_ => contactRepo.create(contactData1.copy(partner = partner.id))).sequence
-    venue <- venueRepo.create(venueData1.copy(partner = partner.id, contact = contact.map(_.id)))
+    venue <- venueRepo.create(partner.id, venueData1.copy(contact = contact.map(_.id)))
   } yield (partner, venue)
 
   protected def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk)] = for {

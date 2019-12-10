@@ -262,13 +262,13 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val voodoo = partner(dataGov, "Voodoo", "", None, 2, userDemo)
     val partners = Seq(zeeneaHT, criteo, nexeo, google, zeeneaDG, voodoo)
 
-    val zeeneaHTNina = contact(zeeneaHT, "nina@zeenea.com", "Nina", "Truc", userDemo)
+    val zeeneaHTNina = contact(zeeneaHT, "nina@zeenea.com", "Nina", "Truc", userDemo, description = "Awesome partner, **very friendly**")
     val zeeneaHTJean = contact(zeeneaHT, "jean@zeenea.com", "Jean", "Machin", userDemo)
     val criteoClaude = contact(criteo, "claude@criteo.com", "Claude", "Bidule", userDemo)
     val zeeneaDGNina = contact(zeeneaDG, "nina@zeenea.com", "Nina", "Truc", userDemo)
     val contacts = Seq(zeeneaHTNina, zeeneaHTJean, criteoClaude, zeeneaDGNina)
 
-    val venue1 = venue(zeeneaHT, zeeneaPlace, userDemo, contact = Some(zeeneaHTNina), roomSize = Some(80))
+    val venue1 = venue(zeeneaHT, zeeneaPlace, userDemo, contact = Some(zeeneaHTNina), roomSize = Some(80), description = "Super accueil, à refaire à l'occasion")
     val venue2 = venue(zeeneaDG, zeeneaPlace, userDemo, contact = Some(zeeneaDGNina), roomSize = Some(80))
     val venue3 = venue(voodoo, palaisDesCongres, userDemo)
     val venues = Seq(venue1, venue2, venue3)
@@ -315,7 +315,8 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       val e = Event(Event.Id.generate(), bigGroup.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), LocalDateTime.parse("2019-03-12T19:00:00"), Some(100), allowRsvp = false, MustacheMarkdownTmpl(""), Event.Notes("", now, userOrga.id), None, Seq(), Seq(), Some(now), Event.ExtRefs(), Info(userOrga.id, now))
       val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Status.Draft, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Info(userSpeaker.id, now))
       val p = Proposal(Proposal.Id.generate(), talk7.id, cfpId, None, Proposal.Status.Pending, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Markdown("temporary description"), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Seq(), Info(userSpeaker.id, now))
-      (g, c, e, t, p)
+      val pa = Partner(Partner.Id.generate(), bigGroup.id, Partner.Slug.from(s"z-partner-$i").get, Partner.Name(s"Z Partner $i"), Markdown(""), None, Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-3.png").get, SocialAccounts.fromUrls(), Info(userOrga.id, now))
+      (g, c, e, t, p, pa)
     }
 
     for {
@@ -326,7 +327,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       _ <- (groups ++ generated.map(_._1)).map(GroupRepoSql.insert(_).run(xa)).sequence
       _ <- (cfps ++ generated.map(_._2)).map(CfpRepoSql.insert(_).run(xa)).sequence
       _ <- (proposals ++ generated.map(_._5)).map(ProposalRepoSql.insert(_).run(xa)).sequence
-      _ <- partners.map(PartnerRepoSql.insert(_).run(xa)).sequence
+      _ <- (partners ++ generated.map(_._6)).map(PartnerRepoSql.insert(_).run(xa)).sequence
       _ <- contacts.map(ContactRepoSql.insert(_).run(xa)).sequence
       _ <- venues.map(VenueRepoSql.insert(_).run(xa)).sequence
       _ <- packs.map(SponsorPackRepoSql.insert(_).run(xa)).sequence

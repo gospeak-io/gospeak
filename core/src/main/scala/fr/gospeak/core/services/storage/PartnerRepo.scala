@@ -16,6 +16,8 @@ trait OrgaPartnerRepo {
 
   def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner]]
 
+  def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner.Full]]
+
   def list(partners: Seq[Partner.Id]): IO[Seq[Partner]]
 
   def find(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Option[Partner]]

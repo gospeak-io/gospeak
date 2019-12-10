@@ -8,7 +8,7 @@
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partials.html.{container_theme, proposalRating}
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.orga.partners.venues.routes.VenueCtrl
+@import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
@@ -53,12 +53,17 @@
     </h1>
 
     <p>
-        @event.venue.map { id =>
-            @venue(venueOpt.toList, id, v => Some(VenueCtrl.detail(req.group.slug, v.partner.slug, v.id)))
-        }.getOrElse{
-            <b class="text-danger">Missing venue</b>
+        @venueOpt.map { venue =>
+            <span class="badge badge-pill badge-primary" title="@venue.address.value" data-toggle="tooltip">
+                <a href="@PartnerCtrl.detail(req.group.slug, venue.partner.slug)">@venue.partner.name.value</a>
+                <a href="@EventCtrl.setVenue(req.group.slug, event.slug)"><i class="fas fa-edit"></i></a>
+            </span>
+        }.getOrElse {
+            <span class="badge badge-pill badge-danger">
+                Missing venue
+                <a href="@EventCtrl.setVenue(req.group.slug, event.slug)"><i class="fas fa-edit"></i></a>
+            </span>
         }
-        <a href="@EventCtrl.setVenue(req.group.slug, event.slug)" class="no-style"><i class="fas fa-edit"></i></a>
         @Formats.datetime(event.start)
         @tags(event.tags)
         @event.maxAttendee.map { max =>  @Formats.plural(max, "place") }

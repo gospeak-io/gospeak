@@ -3,23 +3,15 @@
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.OrgaReq
 
-@(form: Form[Venue.Data], hasMeetupAccount: Boolean, partner: Option[Partner])(implicit req: OrgaReq[AnyContent])
+@(form: Form[Venue.Data], partner: Partner, hasMeetupAccount: Boolean)(implicit req: OrgaReq[AnyContent])
 @fieldHorizontal(form("address"), Seq("label" -> "Address", "help" -> "Address of the venue")) { (field, args) =>
     @inputGMapPlace(field, Seq("autofocus" -> "true") ++ args)
-}
-@partner.map { p =>
-    @inputHidden(form("partner"), Seq("value" -> p.id.value))
-}.getOrElse {
-    @fieldHorizontal(form("partner"), Seq("label" -> "Partner")) { (field, args) =>
-        @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.suggestPartners(req.group.slug).toString) ++ args)
-    }
 }
 @fieldHorizontal(form("contact"), Seq("label" -> "Contact", "help" -> "The contact for this venue")) { (field, args) =>
     @inputSelect(field, Seq(), Seq(
         "placeholder" -> "",
         "optional" -> "true",
-        "remote" -> SuggestCtrl.suggestContacts(req.group.slug, partner.map(_.id).getOrElse(Partner.Id.empty)).toString,
-        "remote-replace" -> partner.map(_ => "").getOrElse(Partner.Id.empty.value + ":partner")) ++ args)
+        "remote" -> SuggestCtrl.suggestContacts(req.group.slug, partner.id).toString) ++ args)
 }
 @fieldHorizontal(form("notes"), Seq("label" -> "Notes", "help" -> "Private notes for your group")) { (field, args) =>
     @inputMarkdown(field, args)

@@ -43,6 +43,8 @@ object Sponsor {
     def price: Price = sponsor.price
 
     def paid: Option[LocalDate] = sponsor.paid
+
+    def hasContact(id: Contact.Id): Boolean = contact.exists(_.id == id)
   }
 
   final case class Data(partner: Partner.Id,

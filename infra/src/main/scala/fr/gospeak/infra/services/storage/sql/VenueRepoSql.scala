@@ -20,8 +20,8 @@ import fr.gospeak.libs.scalautils.domain.{Done, Markdown, Page}
 class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO],
                    partnerRepo: PartnerRepoSql,
                    contactRepo: ContactRepoSql) extends GenericRepo with VenueRepo {
-  override def duplicate(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Venue] = for {
-    venueElt <- selectOneFull(venue).runUnique(xa)
+  override def duplicate(id: Venue.Id)(implicit ctx: OrgaCtx): IO[(Partner, Venue, Option[Contact])] = for {
+    venueElt <- selectOneFull(id).runUnique(xa)
     partner <- partnerRepo.create(Partner.Data(
       slug = venueElt.partner.slug,
       name = venueElt.partner.name,
@@ -37,16 +37,15 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO],
         email = contact.email,
         notes = Markdown(""))) // private to group
     }.sequence
-    res <- create(Venue.Data(
-      partner = partner.id,
+    venue <- create(partner.id, Venue.Data(
       contact = contact.map(_.id),
       address = venueElt.address,
       notes = Markdown(""), // private to group
       roomSize = venueElt.roomSize,
       refs = Venue.ExtRefs()))
-  } yield res
+  } yield (partner, venue, contact)
 
-  override def create(data: Venue.Data)(implicit ctx: OrgaCtx): IO[Venue] = insert(Venue(ctx.group.id, data, ctx.info)).run(xa)
+  override def create(partner: Partner.Id, data: Venue.Data)(implicit ctx: OrgaCtx): IO[Venue] = insert(Venue(ctx.group.id, partner, data, ctx.info)).run(xa)
 
   override def edit(venue: Venue.Id, data: Venue.Data)(implicit ctx: OrgaCtx): IO[Done] = update(ctx.group.id, venue)(data, ctx.user.id, ctx.now).run(xa)
 
@@ -90,7 +89,7 @@ object VenueRepoSql {
     .join(Tables.events, _.id("g") -> _.group_id, fr0"e.venue=v.id AND e.published IS NOT NULL").get
     .aggregate("MAX(v.id)", "id")
     .aggregate("COALESCE(COUNT(e.id), 0)", "events")
-    .copy(fields = Seq(Field("name", "pa"), Field("logo", "pa"), Field("address", "v")))
+    .copy(fields = Seq(Field("slug", "pa"), Field("name", "pa"), Field("logo", "pa"), Field("address", "v")))
     .copy(sorts = Sorts(Seq(Field("name", "pa")), Map()))
 
   private[sql] def insert(e: Venue): Insert[Venue] = {
@@ -135,7 +134,7 @@ object VenueRepoSql {
 
   private[sql] def selectPageCommon(group: Group.Id, params: Page.Params): SelectPage[Venue.Common] = {
     val g = tableWithPartner.select[Venue.Full](
-      fields = Seq(Field("false", "", "public"), Field("name", "pa"), Field("logo", "pa"), Field("address", "v"), Field("id", "v"), Field("0", "", "events")),
+      fields = Seq(Field("false", "", "public"), Field("slug", "pa"), Field("name", "pa"), Field("logo", "pa"), Field("address", "v"), Field("id", "v"), Field("0", "", "events")),
       where = fr0"WHERE pa.group_id=$group",
       sort = Seq())
     val p = publicTableFull(group).select[Venue.Public](
@@ -145,9 +144,10 @@ object VenueRepoSql {
     SelectPage[Venue.Common](
       table = fr0"((" ++ g.fr ++ fr0") UNION (" ++ p.fr ++ fr0")) v",
       prefix = "v",
-      fields = Seq("id", "name", "logo", "address", "events", "public").map(Field(_, "v")),
+      fields = Seq("id", "slug", "name", "logo", "address", "events", "public").map(Field(_, "v")),
       aggFields = Seq(),
       whereOpt = None,
+      havingOpt = None,
       params = params,
       sorts = Sorts(Seq(Field("public", "v"), Field("name", "v"), Field("-events", "v")), Map()),
       searchFields = Seq(Field("name", "v"), Field("address", "v")))
