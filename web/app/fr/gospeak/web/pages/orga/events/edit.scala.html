@@ -19,9 +19,10 @@
         @fieldVertical(form("start"), Seq("label" -> "Date", "help" -> "Local date and time when the event will start")) { (field, args) =>
             @inputLocalDatetime(field, args)
         }
-        @fieldVertical(form("venue"), Seq("label" -> "Venue", "help" -> "Where your event will take place")) { (field, args) =>
+        @inputHidden(form("venue"))
+        @* @fieldVertical(form("venue"), Seq("label" -> "Venue", "help" -> "Where your event will take place")) { (field, args) =>
             @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.suggestVenues(req.group.slug).toString, "optional" -> "") ++ args)
-        }
+        } *@
         @fieldVertical(form("max-attendee"), Seq("label" -> "Max attendees", "help" -> "What is the capacity of this event")) { (field, args) =>
             @inputNumber(field, Seq("placeholder" -> "50", "optional" -> "") ++ args)
         }
