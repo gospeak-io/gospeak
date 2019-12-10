@@ -39,15 +39,17 @@ object QueryStringBindables {
           pageSize <- intBinder.bind(Page.Size.key, params).map(_.flatMap(p => Page.Size.from(p))).getOrElse(Right(Page.Params.defaults.pageSize))
           search <- stringBinder.bind(Page.Search.key, params).map(_.map(s => Some(Page.Search(s)))).getOrElse(Right(Page.Params.defaults.search))
           orderBy <- stringBinder.bind(Page.OrderBy.key, params).map(_.map(Page.OrderBy.parse)).getOrElse(Right(Page.Params.defaults.orderBy))
-        } yield Page.Params(page, pageSize, search, orderBy))
+          ignoreKeys = Seq(Page.No.key, Page.Size.key, Page.Search.key, Page.OrderBy.key)
+          filters = params.filterKeys(!ignoreKeys.contains(_)).collect { case (key, Seq(value)) => key -> value }
+        } yield Page.Params(page, pageSize, search, orderBy, filters))
 
       override def unbind(key: String, value: Page.Params): String =
-        Seq(
+        (Seq(
           Some(value.page).filter(_.nonEmpty).map(p => intBinder.unbind(p.key, p.value)),
           Some(value.pageSize).filter(_.nonEmpty).map(p => intBinder.unbind(p.key, p.value)),
           value.search.filter(_.nonEmpty).map(p => stringBinder.unbind(p.key, p.value)),
           value.orderBy.filter(_.nonEmpty).map(p => stringBinder.unbind(p.key, p.value))
-        ).flatten.mkString("&")
+        ).flatten ++ value.filters.map { case (key, value) => stringBinder.unbind(key, value) }).mkString("&")
     }
 
   implicit def externalCfpDuplicateParamsQueryStringBindable(implicit stringBinder: QueryStringBindable[String], ldtBinder: QueryStringBindable[LocalDateTime]): QueryStringBindable[ExternalCfp.DuplicateParams] =

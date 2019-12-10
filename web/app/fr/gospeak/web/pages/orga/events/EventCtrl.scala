@@ -18,7 +18,7 @@ import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.events.EventCtrl._
 import fr.gospeak.web.pages.orga.events.EventForms.PublishOptions
-import fr.gospeak.web.pages.orga.venues.VenueForms
+import fr.gospeak.web.pages.orga.partners.PartnerForms
 import fr.gospeak.web.services.EventSrv
 import fr.gospeak.web.utils.{OrgaReq, UICtrl}
 import play.api.data.Form
@@ -152,7 +152,7 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       eventElt <- OptionT(eventRepo.find(event))
       venueToSet <- OptionT.liftF(if (public) {
-        venueRepo.duplicate(venue).map(_.id)
+        venueRepo.duplicate(venue).map(_._2.id)
       } else {
         IO.pure(venue)
       })
@@ -164,12 +164,12 @@ class EventCtrl(cc: ControllerComponents,
   def createVenue(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     (for {
       eventElt <- OptionT(eventRepo.find(event))
-      res = Ok(html.createVenue(eventElt, VenueForms.createWithPartner)(createVenueBreadcrumb(eventElt)))
+      res = Ok(html.createVenue(eventElt, PartnerForms.createVenueWithPartner)(createVenueBreadcrumb(eventElt)))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   })
 
   def doCreateVenue(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
-    VenueForms.createWithPartner.bindFromRequest().fold(
+    PartnerForms.createVenueWithPartner.bindFromRequest().fold(
       formWithErrors => (for {
         eventElt <- OptionT(eventRepo.find(event))
         res = Ok(html.createVenue(eventElt, formWithErrors)(createVenueBreadcrumb(eventElt)))
@@ -177,7 +177,7 @@ class EventCtrl(cc: ControllerComponents,
       data => (for {
         eventElt <- OptionT(eventRepo.find(event))
         partner <- OptionT.liftF(partnerRepo.create(data.toPartner))
-        venue <- OptionT.liftF(venueRepo.create(data.toVenue(partner.id)))
+        venue <- OptionT.liftF(venueRepo.create(partner.id, data.toVenue))
         _ <- OptionT.liftF(eventRepo.edit(event, eventElt.data.copy(venue = Some(venue.id))))
         res = Redirect(routes.EventCtrl.detail(group, event)).flashing("success" -> "Venue updated")
       } yield res).value.map(_.getOrElse(eventNotFound(group, event)))

@@ -14,6 +14,7 @@ import fr.gospeak.infra.services.storage.sql.PartnerRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page}
 
 class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with PartnerRepo {
@@ -37,6 +38,8 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner]] = selectPage(ctx.group.id, params).run(xa)
 
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner.Full]] = selectPageFull(ctx.group.id, params).run(xa)
+
   override def list(group: Group.Id): IO[Seq[Partner]] = selectAll(group).runList(xa)
 
   override def list(partners: Seq[Partner.Id]): IO[Seq[Partner]] = runNel(selectAll, partners)
@@ -51,6 +54,14 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 object PartnerRepoSql {
   private val _ = partnerIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.partners
+  private val tableFull = table
+    .joinOpt(Tables.venues, _.id("pa") -> _.partner_id).get
+    .joinOpt(Tables.sponsors, _.id("pa") -> _.partner_id).get
+    .joinOpt(Tables.contacts, _.id("pa") -> _.partner_id).get
+    .aggregate("COALESCE(COUNT(DISTINCT v.id), 0)", "venueCount")
+    .aggregate("COALESCE(COUNT(DISTINCT s.id), 0)", "sponsorCount")
+    .aggregate("COALESCE(COUNT(DISTINCT ct.id), 0)", "contactCount")
+    .copy(fields = table.fields)
 
   private[sql] def insert(e: Partner): Insert[Partner] = {
     val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.notes}, ${e.description}, ${e.logo}, " ++
@@ -71,6 +82,28 @@ object PartnerRepoSql {
 
   private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[Partner] =
     table.selectPage[Partner](params, fr0"WHERE pa.group_id=$group")
+
+  private[sql] def selectPageFull(group: Group.Id, params: Page.Params): SelectPage[Partner.Full] = {
+    val filters = Seq(
+      params.filters.get("venues") match {
+        case Some("true") => Some(fr0"COALESCE(COUNT(DISTINCT v.id), 0) > 0")
+        case Some("false") => Some(fr0"COALESCE(COUNT(DISTINCT v.id), 0) = 0")
+        case _ => None
+      },
+      params.filters.get("sponsors") match {
+        case Some("true") => Some(fr0"COALESCE(COUNT(DISTINCT s.id), 0) > 0")
+        case Some("false") => Some(fr0"COALESCE(COUNT(DISTINCT s.id), 0) = 0")
+        case _ => None
+      },
+      params.filters.get("contacts") match {
+        case Some("true") => Some(fr0"COALESCE(COUNT(DISTINCT ct.id), 0) > 0")
+        case Some("false") => Some(fr0"COALESCE(COUNT(DISTINCT ct.id), 0) = 0")
+        case _ => None
+      }
+    ).flatten
+    val having = filters.headOption.map(_ => fr0"HAVING " ++ filters.reduce(_ ++ fr0" AND " ++ _)).getOrElse(fr0"")
+    tableFull.selectPage[Partner.Full](params, fr0"WHERE pa.group_id=$group", having)
+  }
 
   private[sql] def selectAll(group: Group.Id): Select[Partner] =
     table.select[Partner](fr0"WHERE pa.group_id=$group")

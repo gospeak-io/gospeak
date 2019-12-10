@@ -149,7 +149,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
     describe("paginationFragment") {
       val e = Entity(1, "n")
       val where = fr0"WHERE t.id=${e.id}"
-      val p = Page.Params(1, 20, None, None, nullsFirst = false)
+      val p = Page.Params.defaults
       val fields = Seq(Field("name", "t"), Field("desc", "t"))
       val sorts = Sorts(Seq(Field("created", "t")), Map())
       val prefix = "t"

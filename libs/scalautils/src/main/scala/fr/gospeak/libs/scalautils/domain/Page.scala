@@ -54,7 +54,7 @@ object Page {
 
   final case class OrderBy(values: Seq[String]) extends AnyVal {
     def prefix(p: String): OrderBy = OrderBy(values.map(v =>
-      if(v.contains(".")) v
+      if (v.contains(".")) v
       else if (v.startsWith("-")) s"-$p.${v.stripPrefix("-")}"
       else s"$p.$v"
     ))
@@ -121,32 +121,40 @@ object Page {
                           pageSize: Size = Params.defaults.pageSize,
                           search: Option[Search] = Params.defaults.search,
                           orderBy: Option[OrderBy] = Params.defaults.orderBy,
+                          filters: Map[String, String] = Params.defaults.filters,
                           nullsFirst: Boolean = Params.defaults.nullsFirst) {
     val offset: Offset = Offset((page.value - 1) * pageSize.value)
     val offsetEnd: Int = page.value * pageSize.value
 
     def defaultSize(size: Int): Params = if (pageSize == Params.defaults.pageSize) copy(pageSize = Size(size)) else this
 
+    def search(q: String): Params = copy(search = Some(Search(q)))
+
     def defaultOrderBy(fields: String*): Params = if (orderBy == Params.defaults.orderBy) copy(orderBy = Some(OrderBy(fields))) else this
 
     def orderBy(fields: String*): Params = copy(orderBy = Some(OrderBy(fields)))
 
-    def search(q: String): Params = copy(search = Some(Search(q)))
+    def hasOrderBy(o: String): Boolean = orderBy.exists(_.values == Seq(o))
+
+    def withFilter(key: String, value: String): Params = copy(filters = filters + (key -> value))
+
+    def dropFilter(key: String): Params = copy(filters = filters - key)
+
+    def toggleFilter(key: String): Params = filters.get(key) match {
+      case Some("true") => withFilter(key, "false")
+      case Some("false") => withFilter(key, "true")
+      case _ => withFilter(key, "true")
+    }
 
     def withNullsFirst: Params = copy(nullsFirst = true)
 
     def withNullsLast: Params = copy(nullsFirst = false)
-
-    def hasOrderBy(o: String): Boolean = orderBy.exists(_.values == Seq(o))
   }
 
   object Params {
-    val defaults = Params(No(1), Size(20), None, None, nullsFirst = false)
+    val defaults = Params(No(1), Size(20), None, None, Map(), nullsFirst = false)
 
     def no(n: Int): Params = defaults.copy(page = No(n))
-
-    def apply(page: Int, pageSize: Int, search: Option[String], orderBy: Option[Seq[String]], nullsFirst: Boolean): Params =
-      new Params(No(page), Size(pageSize), search.map(Search(_)), orderBy.map(OrderBy(_)), nullsFirst)
   }
 
 }

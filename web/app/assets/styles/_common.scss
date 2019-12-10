@@ -9,7 +9,8 @@
   margin: 1px 0 0 0;
 }
 
-a.no-style {
+a.no-style,
+.badge > a {
   color: inherit;
 }
 
@@ -17,7 +18,8 @@ a.no-style {
   display: inline;
 }
 
-.btn-form .btn.no-style {
+.btn-form > .btn.no-style,
+.badge > .btn-form > .btn {
   display: inline;
   background: none;
   border: none;

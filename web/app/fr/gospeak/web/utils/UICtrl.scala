@@ -10,7 +10,6 @@ import fr.gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import fr.gospeak.core.services.storage.OrgaGroupRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.auth
 import fr.gospeak.web.pages
 import org.h2.jdbc.{JdbcSQLIntegrityConstraintViolationException, JdbcSQLSyntaxErrorException}
 import org.slf4j.LoggerFactory
@@ -84,9 +83,6 @@ abstract class UICtrl(cc: ControllerComponents,
 
   protected def partnerNotFound(group: Group.Slug, partner: Partner.Slug): Result =
     Redirect(pages.orga.partners.routes.PartnerCtrl.list(group)).flashing("warning" -> s"Unable to find partner with slug '${partner.value}'")
-
-  protected def venueNotFound(group: Group.Slug, venue: Venue.Id): Result =
-    Redirect(pages.orga.venues.routes.VenueCtrl.list(group)).flashing("warning" -> s"Unable to find venue with id '${venue.value}'")
 
   protected def venueNotFound(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Result =
     Redirect(pages.orga.partners.routes.PartnerCtrl.detail(group, partner)).flashing("warning" -> s"Unable to find venue with id '${venue.value}'")

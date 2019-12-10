@@ -1,8 +1,11 @@
 package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
+import fr.gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{table => contactTable}
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSqlSpec._
+import fr.gospeak.infra.services.storage.sql.SponsorRepoSqlSpec.{table => sponsorTable}
 import fr.gospeak.infra.services.storage.sql.TablesSpec.socialFields
+import fr.gospeak.infra.services.storage.sql.VenueRepoSqlSpec.{table => venueTable}
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 
@@ -26,6 +29,10 @@ class PartnerRepoSqlSpec extends RepoSpec {
       it("should build selectPage") {
         val q = PartnerRepoSql.selectPage(group.id, params)
         check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy LIMIT 20 OFFSET 0")
+      }
+      it("should build selectPageFull") {
+        val q = PartnerRepoSql.selectPageFull(group.id, params)
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? $groupByFull  $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectAll") {
         val q = PartnerRepoSql.selectAll(group.id)
@@ -51,4 +58,8 @@ object PartnerRepoSqlSpec {
   val table = "partners pa"
   val fields: String = mapFields(s"id, group_id, slug, name, notes, description, logo, $socialFields, created_at, created_by, updated_at, updated_by", "pa." + _)
   val orderBy = "ORDER BY pa.name IS NULL, pa.name"
+
+  private val tableFull = s"$table LEFT OUTER JOIN $venueTable ON pa.id=v.partner_id LEFT OUTER JOIN $sponsorTable ON pa.id=s.partner_id LEFT OUTER JOIN $contactTable ON pa.id=ct.partner_id"
+  private val fieldsFull = s"$fields, COALESCE(COUNT(DISTINCT v.id), 0) as venueCount, COALESCE(COUNT(DISTINCT s.id), 0) as sponsorCount, COALESCE(COUNT(DISTINCT ct.id), 0) as contactCount"
+  private val groupByFull = s"GROUP BY $fields"
 }

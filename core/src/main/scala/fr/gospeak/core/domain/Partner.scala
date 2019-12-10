@@ -33,6 +33,16 @@ object Partner {
 
   final case class Name(value: String) extends AnyVal
 
+  final case class Full(partner: Partner, venueCount: Long, sponsorCount: Long, contactCount: Long) {
+    def slug: Slug = partner.slug
+
+    def name: Name = partner.name
+
+    def logo: Url = partner.logo
+
+    def social: SocialAccounts = partner.social
+  }
+
   final case class Data(slug: Partner.Slug,
                         name: Partner.Name,
                         notes: Markdown,
