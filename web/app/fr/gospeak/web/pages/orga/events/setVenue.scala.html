@@ -3,34 +3,41 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.partials.html.container_theme
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.partners.venues.routes.VenueCtrl
+@import fr.gospeak.web.pages.orga.venues.routes.VenueCtrl
 @import fr.gospeak.web.pages.partials.form.html.formBtn
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.OrgaReq
 
-@(event: Event, venueOpt: Option[Venue.Full], venues: Page[Venue.Common])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(event: Event, venueOpt: Option[Venue.Full], venues: Page[Venue.Common], groupVenues: Seq[Venue.Full])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @venueItem(venue: Venue.Common) = {
-    <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-        <div>
-            <h5 class="mb-1">@venue.name.value</h5>
-            <p class="mb-1">@venue.address.value</p>
-            @if(venue.public) {
-                <p class="mb-1">Public venue, hosted @venue.events events</p>
-            } else {
-                <p class="mb-1">Venue of your group</p>
-            }
-        </div>
-        @if(venue.public) {
-            @formBtn(EventCtrl.doSetVenue(req.group.slug, event.slug, venue.id, venue.public), Seq(
-                "class" -> "btn-success",
-                "title" -> "This is a public venue: if you choose it, it will be imported in your venues",
-                "data-toggle" ->"tooltip",
-                "data-placement" -> "left"
-            )){Choose this venue}
-        } else {
-            @formBtn(EventCtrl.doSetVenue(req.group.slug, event.slug, venue.id, venue.public), Seq("class" -> "btn-success")) {Choose this venue}
+    @if(venue.public) {
+        @groupVenues.find(_.address.id == venue.address.id).map { v =>
+            <div style="display: none">@venue.name.value (@venue.address.value)</div>
+        }.getOrElse {
+            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1"><a href="@VenueCtrl.exploreDetail(req.group.slug, venue.id)">@venue.name.value</a></h5>
+                    <p class="mb-1">@venue.address.value</p>
+                    <p class="mb-1">Public venue, hosted @venue.events events</p>
+                </div>
+                @formBtn(EventCtrl.doSetVenue(req.group.slug, event.slug, venue.id, venue.public), Seq(
+                    "class" -> "btn-success",
+                    "title" -> "This is a public venue: if you choose it, it will be imported in your venues",
+                    "data-toggle" ->"tooltip",
+                    "data-placement" -> "left"
+                )){Choose this venue}
+            </div>
         }
-    </div>
+    } else {
+        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-1"><a href="@VenueCtrl.detail(req.group.slug, venue.id)">@venue.name.value</a></h5>
+                <p class="mb-1">@venue.address.value</p>
+                <p class="mb-1">Venue of your group</p>
+            </div>
+            @formBtn(EventCtrl.doSetVenue(req.group.slug, event.slug, venue.id, venue.public), Seq("class" -> "btn-success")) {Choose this venue}
+        </div>
+    }
 }
 @container_theme(event.name.value + " - Gospeak", b)() {
     <h1>Set a venue for @event.name.value</h1>
@@ -43,7 +50,7 @@
     </div>
 
     @venueOpt.map { venue =>
-        <div>Current venue: <a href="@VenueCtrl.detail(req.group.slug, venue.partner.slug, venue.id)">@venue.partner.name.value</a> (@venue.address.value)</div>
+        <div>Current venue: <a href="@VenueCtrl.detail(req.group.slug, venue.id)">@venue.partner.name.value</a> (@venue.address.value)</div>
     }.getOrElse {
         <div>No venue yet for @event.name.value</div>
     }

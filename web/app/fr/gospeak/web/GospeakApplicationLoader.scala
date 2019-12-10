@@ -219,6 +219,8 @@ class GospeakComponents(context: ApplicationLoader.Context)
     db.checkEnv(envConf).unsafeRunSync()
     if (envConf.isProd) {
       db.migrate().unsafeRunSync()
+    } else if (envConf.isDev) {
+      db.migrate().unsafeRunSync()
     } else {
       db.dropTables().unsafeRunSync()
       db.migrate().unsafeRunSync()

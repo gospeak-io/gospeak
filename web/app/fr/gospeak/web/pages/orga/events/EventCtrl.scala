@@ -143,7 +143,8 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       e <- OptionT(eventSrv.getFullEvent(event))
       venues <- OptionT.liftF(venueRepo.listCommon(params))
-      res = Ok(html.setVenue(e.event, e.venueOpt, venues)(setVenueBreadcrumb(e.event)))
+      groupVenues <- OptionT.liftF(venueRepo.listAllFull())
+      res = Ok(html.setVenue(e.event, e.venueOpt, venues, groupVenues)(setVenueBreadcrumb(e.event)))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   })
 
