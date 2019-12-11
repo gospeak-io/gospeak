@@ -1,13 +1,13 @@
-@import fr.gospeak.core.domain.{Cfp, Group, Proposal, User}
+@import fr.gospeak.core.domain.{Cfp, Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.pages.orga.partials.html.{container, proposalItem}
+@import fr.gospeak.web.pages.orga.partials.html.{container_theme, proposalItem}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.OrgaReq
 
 @(cfp: Cfp, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container("Gospeak", b)() {
+@container_theme("Gospeak", b)() {
     <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h1>
     <p class="mt-2 mb-0">You voted on @Formats.plural(userRatings.length, "proposal") on a total of @proposals.total.value</p>
     @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list(req.group.slug, cfp.slug, _), proposalItem(_, speakers, userRatings))

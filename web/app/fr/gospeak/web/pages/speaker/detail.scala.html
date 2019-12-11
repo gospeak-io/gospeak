@@ -1,12 +1,12 @@
 @import fr.gospeak.core.domain.{Group, Proposal}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.speaker.partials.html.{container, groupItem, proposalItemForProfile, speakerCard}
+@import fr.gospeak.web.pages.speaker.partials.html.{container_old, groupItem, proposalItemForProfile, speakerCard}
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.UserReq
 
 @(proposals: Page[Proposal.Full], ownedGroups: Seq[Group])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(req.user.name.value + " - Gospeak", b)() {
+@container_old(req.user.name.value + " - Gospeak", b)() {
     <div class="row">
         <div class="col">
             <a class="btn btn-primary float-right" href="@SpeakerCtrl.edit()">Update Profile</a>
