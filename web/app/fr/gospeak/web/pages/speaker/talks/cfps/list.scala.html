@@ -2,12 +2,12 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.speaker.talks.cfps.routes.CfpCtrl
-@import fr.gospeak.web.pages.speaker.partials.html.{cfpItem, container}
+@import fr.gospeak.web.pages.speaker.partials.html.{cfpItem, container_old}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserReq
 
 @(talk: Talk, cfps: Page[Cfp])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container("Gospeak", b)() {
+@container_old("Gospeak", b)() {
     @if(cfps.isEmpty) {
         <div class="jumbotron">
             <h1>No available CFP to propose @talk.title.value <i class="far fa-sad-tear"></i></h1>

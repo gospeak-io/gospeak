@@ -1,13 +1,12 @@
-@import fr.gospeak.libs.scalautils.domain.EmailAddress
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.GroupForms.ContactMembers
-@import fr.gospeak.web.pages.orga.partials.html.container
+@import fr.gospeak.web.pages.orga.partials.html.container_theme
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.OrgaReq
 
 @(form: Form[ContactMembers])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(req.group.name.value + " - Gospeak", b)() {
+@container_theme(req.group.name.value + " - Gospeak", b)() {
     <h1>Contact @req.group.name.value members</h1>
 
     @formElt(form, GroupCtrl.doContactMembers(req.group.slug)) {

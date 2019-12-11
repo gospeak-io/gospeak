@@ -5,7 +5,7 @@
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
-@import fr.gospeak.web.pages.speaker.partials.html.container
+@import fr.gospeak.web.pages.speaker.partials.html.container_old
 @import fr.gospeak.web.pages.speaker.proposals.routes.{ProposalCtrl => ProposalListCtrl}
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
@@ -14,7 +14,7 @@
 @import fr.gospeak.web.utils.UserReq
 
 @(incomingEvents: Page[(Event.Full, Option[Event.Rsvp])], joinedGroups: Page[(Group, Group.Member)], talks: Page[Talk], proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container("Gospeak", b)() {
+@container_old("Gospeak", b)() {
     @if(talks.nonEmpty && req.user.status.isUndefined) {
         <div class="alert alert-info" role="alert">
             <h4 class="alert-heading d-flex justify-content-between align-items-center">

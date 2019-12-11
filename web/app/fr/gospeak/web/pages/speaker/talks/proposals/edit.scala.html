@@ -2,12 +2,12 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.speaker.partials.html.{container, proposalFields}
+@import fr.gospeak.web.pages.speaker.partials.html.{container_old, proposalFields}
 @import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.UserReq
 
 @(form: Form[Proposal.Data], proposal: Proposal.Full)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container("Gospeak", b)() {
+@container_old("Gospeak", b)() {
     <h1 class="page-header">Update @proposal.title.value at @proposal.cfp.name.value</h1>
     <blockquote class="blockquote">@markdown(proposal.cfp.description)</blockquote>
 

@@ -1,13 +1,13 @@
 @import fr.gospeak.core.domain.User
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.speaker.partials.html.container
+@import fr.gospeak.web.pages.speaker.partials.html.container_old
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublicSpeakerCtrl}
 @import fr.gospeak.web.utils.UserReq
 
 @(form: Form[User.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container("Gospeak", b)() {
+@container_old("Gospeak", b)() {
     @formElt(form, SpeakerCtrl.doEdit()) {
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>Edit my profile</h1>

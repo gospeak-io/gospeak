@@ -1,13 +1,13 @@
 @import fr.gospeak.core.domain.SponsorPack
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.container
+@import fr.gospeak.web.pages.orga.partials.html.container_theme
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.OrgaReq
 
 @(pack: SponsorPack)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(pack.name.value + " - Gospeak", b)() {
+@container_theme(pack.name.value + " - Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         @if(pack.active) {
             <span>@pack.name.value</span>

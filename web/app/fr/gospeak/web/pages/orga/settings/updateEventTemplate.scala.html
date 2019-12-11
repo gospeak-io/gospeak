@@ -1,7 +1,7 @@
 @import fr.gospeak.core.domain.Group
 @import fr.gospeak.core.domain.utils.TemplateData
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.container
+@import fr.gospeak.web.pages.orga.partials.html.container_theme
 @import fr.gospeak.web.pages.orga.settings.SettingsForms.EventTemplateItem
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.display.html._
@@ -9,7 +9,7 @@
 @import fr.gospeak.web.utils.OrgaReq
 
 @(templateId: Option[String], settings: Group.Settings, form: Form[EventTemplateItem])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(req.group.name.value + " settings - Gospeak", b)() {
+@container_theme(req.group.name.value + " settings - Gospeak", b)() {
     @templateId match {
         case Some(id) => {
             <h1>Update template event '@id'</h1>

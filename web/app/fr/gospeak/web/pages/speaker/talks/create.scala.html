@@ -1,12 +1,12 @@
 @import fr.gospeak.core.domain.Talk
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.speaker.partials.html.{container, talkFields}
+@import fr.gospeak.web.pages.speaker.partials.html.{container_old, talkFields}
 @import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
 @import fr.gospeak.web.utils.UserReq
 
 @(form: Form[Talk.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container("Gospeak", b)() {
+@container_old("Gospeak", b)() {
     <h1 class="page-header">Create a talk</h1>
 
     @formElt(form, TalkCtrl.doCreate()) {
