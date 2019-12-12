@@ -5,7 +5,10 @@
 @import fr.gospeak.web.pages.orga.partials.html.{container_theme, eventItem}
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
+@import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
+@import fr.gospeak.web.pages.orga.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
+@import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
 @import fr.gospeak.web.pages.partials.display.html.emailLink
 @import fr.gospeak.web.pages.partials.form.html.formBtn
 @import fr.gospeak.web.utils.Formats
@@ -15,163 +18,158 @@
 @addSponsorBtn() = {
 @defining(packs.filter(_.active)) { activePacks: Seq[SponsorPack] =>
     @if(activePacks.nonEmpty) {
-
-                <span class="btn-group">
-                    <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Add a sponsor
-                    </button>
-                    <span class="dropdown-menu dropdown-menu-right">
-                        @activePacks.map { pack =>
-                        <a class="dropdown-item" href="@SponsorCtrl.create(req.group.slug, pack.slug)">@pack.name.value pack</a>
-                        }
-                    </span>
-                </span>
+        <span class="btn-group">
+            <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Add a sponsor
+            </button>
+            <span class="dropdown-menu dropdown-menu-right">
+                @activePacks.map { pack =>
+                    <a class="dropdown-item" href="@SponsorCtrl.create(req.group.slug, pack.slug)">@pack.name.value pack</a>
+                }
+            </span>
+        </span>
     }
 }
 }
 @requestUser(id: User.Id) = {
-@requestUsers.find(_.id == id).map { u => <b>@u.name.value</b> (@Html(emailLink(u.email).body.trim)) }.getOrElse { <b>Unknown user @id.value</b> }
+    @requestUsers.find(_.id == id).map { u => <b>@u.name.value</b> (@Html(emailLink(u.email).body.trim)) }.getOrElse { <b>Unknown user @id.value</b> }
 }
 @container_theme(req.group.name.value + " - Gospeak", b)() {
-        @requests.map {
-            case r: UserRequest.UserAskToJoinAGroupRequest => {
-                <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert">
-                    <p class="mb-0">@requestUser(r.createdBy) wants to join the <b>@req.group.name.value</b> group</p>
-                    <span>
-                        @formBtn(GroupCtrl.acceptJoin(req.group.slug, r.id), Seq("class" -> "btn-sm btn-success")){Accept}
-                        @formBtn(GroupCtrl.rejectJoin(req.group.slug, r.id), Seq("class" -> "btn-sm btn-danger")){Reject}
-                    </span>
-                </div>
-            }
-            case r => {
-                <div class="alert alert-info" role="alert"><p class="mb-0">Unknown request: @r.getClass.getSimpleName</p></div>
-            }
+    @requests.map {
+        case r: UserRequest.UserAskToJoinAGroupRequest => {
+            <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert">
+                <p class="mb-0">@requestUser(r.createdBy) wants to join the <b>@req.group.name.value</b> group</p>
+                <span>
+                    @formBtn(GroupCtrl.acceptJoin(req.group.slug, r.id), Seq("class" -> "btn-sm btn-success")){Accept}
+                    @formBtn(GroupCtrl.rejectJoin(req.group.slug, r.id), Seq("class" -> "btn-sm btn-danger")){Reject}
+                </span>
+            </div>
         }
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="h6 mb-0">Statistiques</h3>
+        case r => {
+            <div class="alert alert-info" role="alert"><p class="mb-0">Unknown request: @r.getClass.getSimpleName</p></div>
+        }
+    }
+    <div class="card-deck d-block d-lg-flex card-lg-gutters-3 mb-6">
+        <!-- Card -->
+        <a class="card mb-3 mb-lg-0" href="@PublicGroupCtrl.members(req.group.slug)" target="_blank">
+            <div class="card-body p-5">
+                <div class="media align-items-center">
+                    <span class="btn btn-lg btn-icon btn-soft-primary rounded-circle mr-4">
+                        <span class="fas fa-users btn-icon__inner"></span>
+                    </span>
+                    <div class="media-body">
+                        <span class="d-block font-size-3">@stats.memberCount</span>
+                        <h2 class="h6 text-secondary font-weight-normal mb-0">Members</h2>
+                    </div>
+                </div>
+            </div>
+        </a>
+        <!-- End Card -->
+
+        <!-- Card -->
+        <a class="card mb-3 mb-lg-0" href="@ProposalCtrl.list(req.group.slug)">
+            <div class="card-body p-5">
+                <div class="media align-items-center">
+                    <span class="btn btn-lg btn-icon btn-soft-success rounded-circle mr-4">
+                        <span class="fas fa-scroll btn-icon__inner"></span>
+                    </span>
+                    <div class="media-body">
+                        <span class="d-block font-size-3">@stats.proposalCount</span>
+                        <h3 class="h6 text-secondary font-weight-normal mb-0">Received proposals</h3>
+                    </div>
+                </div>
+            </div>
+        </a>
+        <!-- End Card -->
+
+        <!-- Card -->
+        <a class="card" href="@EventCtrl.list(req.group.slug)">
+            <div class="card-body p-5">
+                <div class="media align-items-center">
+                    <span class="btn btn-lg btn-icon btn-soft-warning rounded-circle mr-4">
+                        <span class="fas fa-calendar-day btn-icon__inner"></span>
+                    </span>
+                    <div class="media-body">
+                        <span class="d-block font-size-3">@stats.eventCount</span>
+                        <h3 class="h6 text-secondary font-weight-normal mb-0">Events</h3>
+                    </div>
+                </div>
+            </div>
+        </a>
+        <!-- End Card -->
+
+        <!-- Card -->
+        <!-- <div class="card">
+            <div class="card-body p-5">
+                <div class="media align-items-center">
+                    <span class="btn btn-lg btn-icon btn-soft-warning rounded-circle mr-4">
+                        <span class="fas fa-binoculars btn-icon__inner"></span>
+                    </span>
+                    <div class="media-body">
+                        <span class="d-block font-size-3">800</span>
+                        <h3 class="h6 text-secondary font-weight-normal mb-0">CFP impressions</h3>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+        <!-- End Card -->
     </div>
-        <div class="card-deck d-block d-lg-flex card-lg-gutters-3 mb-6">
-            <!-- Card -->
-            <div class="card mb-3 mb-lg-0">
-                <div class="card-body p-5">
-                    <div class="media align-items-center">
-                        <span class="btn btn-lg btn-icon btn-soft-primary rounded-circle mr-4">
-                            <span class="fas fa-users btn-icon__inner"></span>
-                        </span>
-                        <div class="media-body">
-                            <span class="d-block font-size-3">@stats.memberCount</span>
-                            <h2 class="h6 text-secondary font-weight-normal mb-0">Members</h2>
-                        </div>
-                    </div>
+    @if(events.isEmpty) {
+        <div class="card-deck d-block d-lg-flex card-lg-gutters-3 mb-6 space-3">
+            <div class="w-md-80 w-lg-50 text-center mx-md-auto">
+                <figure id="iconChecked" class="ie-height-90 max-width-11 mx-auto mb-3" style="">
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 25.6 25.6" style="enable-background:new 0 0 25.6 25.6;" xml:space="preserve" class="injected-svg js-svg-injector" data-parent="#iconChecked">
+                        <style type="text/css">
+                            .checked-icon-0{fill:#00C9A7;}
+                        </style>
+                        <path class="checked-icon-0 fill-success" d="M12.8,0C5.7,0,0,5.7,0,12.8s5.7,12.8,12.8,12.8s12.8-5.7,12.8-12.8S19.9,0,12.8,0z M19.5,8.8L12.7,19  c-0.2,0.3-0.5,0.5-0.8,0.5s-0.7-0.2-0.9-0.4l-4-4c-0.3-0.3-0.3-0.7,0-1l1-1c0.3-0.3,0.7-0.3,1,0l2.6,2.6l5.7-8.4  c0.2-0.3,0.7-0.4,1-0.2l1.2,0.8C19.7,8.1,19.8,8.5,19.5,8.8z"></path>
+                    </svg>
+                </figure>
+                <div class="mb-5">
+                    <h1 class="h3 font-weight-medium">Your group is created</h1>
+                    <p>You can now create your first event or CFP.</p>
                 </div>
+                <a class="btn btn-sm btn-primary transition-3d-hover" href="#">Create Event</a>   or   <a class="btn btn-sm btn-primary transition-3d-hover" href="#">Create CFP</a>
             </div>
-            <!-- End Card -->
-
-            <!-- Card -->
-            <div class="card mb-3 mb-lg-0">
-                <div class="card-body p-5">
-                    <div class="media align-items-center">
-                        <span class="btn btn-lg btn-icon btn-soft-success rounded-circle mr-4">
-                            <span class="fas fa-scroll btn-icon__inner"></span>
-                        </span>
-                        <div class="media-body">
-                            <span class="d-block font-size-3">@stats.proposalCount</span>
-                            <h3 class="h6 text-secondary font-weight-normal mb-0">Received proposals</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- End Card -->
-
-            <!-- Card -->
-            <div class="card">
-                <div class="card-body p-5">
-                    <div class="media align-items-center">
-                        <span class="btn btn-lg btn-icon btn-soft-warning rounded-circle mr-4">
-                            <span class="fas fa-calendar-day btn-icon__inner"></span>
-                        </span>
-                        <div class="media-body">
-                            <span class="d-block font-size-3">@stats.eventCount</span>
-                            <h3 class="h6 text-secondary font-weight-normal mb-0">Events</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- End Card -->
-
-            <!-- Card -->
-            <!-- <div class="card">
-                <div class="card-body p-5">
-                    <div class="media align-items-center">
-                        <span class="btn btn-lg btn-icon btn-soft-warning rounded-circle mr-4">
-                            <span class="fas fa-binoculars btn-icon__inner"></span>
-                        </span>
-                        <div class="media-body">
-                            <span class="d-block font-size-3">800</span>
-                            <h3 class="h6 text-secondary font-weight-normal mb-0">CFP impressions</h3>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
-            <!-- End Card -->
         </div>
-        @if(events.isEmpty) {
-            <div class="card-deck d-block d-lg-flex card-lg-gutters-3 mb-6 space-3">
-                <div class="w-md-80 w-lg-50 text-center mx-md-auto">
-                    <figure id="iconChecked" class="ie-height-90 max-width-11 mx-auto mb-3" style="">
-                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 25.6 25.6" style="enable-background:new 0 0 25.6 25.6;" xml:space="preserve" class="injected-svg js-svg-injector" data-parent="#iconChecked">
-                            <style type="text/css">
-                                .checked-icon-0{fill:#00C9A7;}
-                            </style>
-                            <path class="checked-icon-0 fill-success" d="M12.8,0C5.7,0,0,5.7,0,12.8s5.7,12.8,12.8,12.8s12.8-5.7,12.8-12.8S19.9,0,12.8,0z M19.5,8.8L12.7,19  c-0.2,0.3-0.5,0.5-0.8,0.5s-0.7-0.2-0.9-0.4l-4-4c-0.3-0.3-0.3-0.7,0-1l1-1c0.3-0.3,0.7-0.3,1,0l2.6,2.6l5.7-8.4  c0.2-0.3,0.7-0.4,1-0.2l1.2,0.8C19.7,8.1,19.8,8.5,19.5,8.8z"></path>
-                        </svg>
-                    </figure>
-                    <div class="mb-5">
-                        <h1 class="h3 font-weight-medium">Your group is created</h1>
-                        <p>You can now create your first event or CFP.</p>
-                    </div>
-                    <a class="btn btn-sm btn-primary transition-3d-hover" href="#">Create Event</a>   or   <a class="btn btn-sm btn-primary transition-3d-hover" href="#">Create CFP</a>
-                </div>
-            </div>
-        } else {
+    } else {
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="h6 mb-0">@Formats.plural(events.total.value, "incoming event")</h3>
-        </div> <div class="">
+        </div>
+        <div>
+            @events.items.map { e => @eventItem(e, cfps.find(c => e.cfp.contains(c.id)), venues, proposals, speakers) }
+            @if(!events.isLast) {
+                <a href="@EventCtrl.list(req.group.slug)" class="">More...</a>
+            }
+        </div>
+    }
 
-                    @events.items.map { e => @eventItem(e, cfps.find(c => e.cfp.contains(c.id)), venues, proposals, speakers) }
-                    @if(!events.isLast) {
-                                <a href="@EventCtrl.list(req.group.slug)" class="">More...</a>
+    @if(currentSponsors.nonEmpty) {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="h6 mb-0">Current sponsors</h3>
+            <a class="link-muted" href="@SponsorCtrl.list(req.group.slug)">View All</a>
+        </div>
+        <div class="card">
+            <div class="card-body p-5">
+                <ul class="mb-0">
+                    @currentSponsors.map { case (partner, sp) =>
+                        <li>
+                            Until @Formats.date(sp._1.finish):
+                            <a href="@PartnerCtrl.detail(req.group.slug, partner.slug)">@partner.name.value</a>
+                            @packs.find(_.id == sp._1.pack).map(_.name.value) pack
+                            @if(sp._1.finish.minusMonths(1).isBefore(req.nowLD)) {
+                                <span class="text-danger">Will finish very soon</span>
+                            } else if (sp._1.finish.minusMonths(3).isBefore(req.nowLD)) {
+                                <span class="text-warning">Will finish soon</span>
+                            }
+                            (@sp._2 times sponsor)
+                            @if(sp._1.paid.isEmpty) {
+                                <span class="text-danger">Not paid</span>
+                            }
+                        </li>
                     }
+                </ul>
             </div>
-
-        }
-
-        @if(currentSponsors.nonEmpty) {
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="h6 mb-0">Current sponsors</h3>
-                <a class="link-muted" href="#">View All</a>
-            </div>
-            <div class="card">
-                <div class="card-body p-5">
-                  <ul class="">
-                      @currentSponsors.map { case (partner, sp) =>
-                       <li class="">
-                        Until @Formats.date(sp._1.finish):
-                        <a href="@PartnerCtrl.detail(req.group.slug, partner.slug)">@partner.name.value</a>
-                        @packs.find(_.id == sp._1.pack).map(_.name.value) pack
-                        @if(sp._1.finish.minusMonths(1).isBefore(req.nowLD)) {
-                        <span class="text-danger">Will finish very soon</span>
-                        } else if(sp._1.finish.minusMonths(3).isBefore(req.nowLD)) {
-                        <span class="text-warning">Will finish soon</span>
-                        }
-                        (@sp._2 times sponsor)
-                        @if(sp._1.paid.isEmpty) {
-                        <span class="text-danger">Not paid</span>
-                        }
-                    </li>
-                      }
-                 </ul>
-            </div>
-            </div>
-        }
+        </div>
+    }
 }()
