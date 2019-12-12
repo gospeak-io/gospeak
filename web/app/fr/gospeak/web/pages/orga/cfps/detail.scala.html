@@ -3,7 +3,7 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.orga.partials.html.{container_theme, proposalItem}
-@import fr.gospeak.web.pages.partials.display.html.tags
+@import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.cfps.routes.{CfpCtrl => PublicCfpCtrl}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.OrgaReq
@@ -31,5 +31,11 @@
 
     <h2 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h2>
     <p class="mt-2 mb-0">You voted on @Formats.plural(userRatings.length, "proposal") on a total of @proposals.total.value</p>
+    <div>
+        Filters:
+        @filterEnum(proposals, CfpCtrl.detail(req.group.slug, cfp.slug, _), "Status", "status", Seq("pending", "accepted", "declined"))
+        @filterBool(proposals, CfpCtrl.detail(req.group.slug, cfp.slug, _), "With slides", "slides")
+        @filterBool(proposals, CfpCtrl.detail(req.group.slug, cfp.slug, _), "With video", "video")
+    </div>
     @Formats.paginated[Proposal.Full](proposals, CfpCtrl.detail(req.group.slug, cfp.slug, _), proposalItem(_, speakers, userRatings))
 }()

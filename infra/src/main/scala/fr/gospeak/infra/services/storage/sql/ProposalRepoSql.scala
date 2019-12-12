@@ -231,30 +231,13 @@ object ProposalRepoSql {
     table.selectPage[Proposal](params, fr0"WHERE p.cfp_id=$cfp AND p.status=$status")
 
   private[sql] def selectPageFull(cfp: Cfp.Id, params: Page.Params): SelectPage[Proposal.Full] =
-    tableFull.selectPage[Proposal.Full](params, fr0"WHERE p.cfp_id=$cfp")
+    tableFull.selectPage[Proposal.Full](params, fr0"WHERE p.cfp_id=$cfp" ++ pageFilters(params))
 
   private[sql] def selectPageFull(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): SelectPage[Proposal.Full] =
     tableFull.selectPage[Proposal.Full](params, fr0"WHERE p.cfp_id=$cfp AND p.status=$status")
 
-  private[sql] def selectPageFull(group: Group.Id, params: Page.Params): SelectPage[Proposal.Full] = {
-    val statusFilter = params.filters.get("status") match {
-      case Some("pending") => fr0" AND p.status='Pending'"
-      case Some("accepted") => fr0" AND p.status='Accepted'"
-      case Some("declined") => fr0" AND p.status='Declined'"
-      case _ => fr0""
-    }
-    val slidesFilter = params.filters.get("slides") match {
-      case Some("true") => fr0" AND p.slides IS NOT NULL"
-      case Some("false") => fr0" AND p.slides IS NULL"
-      case _ => fr0""
-    }
-    val videoFilter = params.filters.get("video") match {
-      case Some("true") => fr0" AND p.video IS NOT NULL"
-      case Some("false") => fr0" AND p.video IS NULL"
-      case _ => fr0""
-    }
-    tableFull.selectPage[Proposal.Full](params, fr0"WHERE c.group_id=$group" ++ statusFilter ++ slidesFilter ++ videoFilter)
-  }
+  private[sql] def selectPageFull(group: Group.Id, params: Page.Params): SelectPage[Proposal.Full] =
+    tableFull.selectPage[Proposal.Full](params, fr0"WHERE c.group_id=$group" ++ pageFilters(params))
 
   private[sql] def selectPageFull(group: Group.Id, speaker: User.Id, params: Page.Params): SelectPage[Proposal.Full] =
     tableFull.selectPage[Proposal.Full](params, fr0"WHERE c.group_id=$group AND p.speakers LIKE ${"%" + speaker.value + "%"}")
@@ -311,4 +294,24 @@ object ProposalRepoSql {
       fr0" INNER JOIN " ++ Tables.cfps.value ++ fr0" ON p.cfp_id=c.id" ++
       fr0" INNER JOIN " ++ Tables.talks.value ++ fr0" ON p.talk_id=t.id" ++
       fr0" WHERE c.slug=$cfp AND t.slug=$talk AND p.speakers LIKE ${"%" + speaker.value + "%"}" ++ fr0")"
+
+  private def pageFilters(params: Page.Params): Fragment = {
+    val statusFilter = params.filters.get("status") match {
+      case Some("pending") => fr0" AND p.status='Pending'"
+      case Some("accepted") => fr0" AND p.status='Accepted'"
+      case Some("declined") => fr0" AND p.status='Declined'"
+      case _ => fr0""
+    }
+    val slidesFilter = params.filters.get("slides") match {
+      case Some("true") => fr0" AND p.slides IS NOT NULL"
+      case Some("false") => fr0" AND p.slides IS NULL"
+      case _ => fr0""
+    }
+    val videoFilter = params.filters.get("video") match {
+      case Some("true") => fr0" AND p.video IS NOT NULL"
+      case Some("false") => fr0" AND p.video IS NULL"
+      case _ => fr0""
+    }
+    statusFilter ++ slidesFilter ++ videoFilter
+  }
 }

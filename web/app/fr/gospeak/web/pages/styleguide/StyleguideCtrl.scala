@@ -194,6 +194,13 @@ class StyleguideCtrl(cc: ControllerComponents,
     answer = Event.Rsvp.Answer.Yes,
     answeredAt = now,
     user = user)
+  private val comment = Comment(
+    id = Comment.Id.generate(),
+    kind = Comment.Kind.Proposal,
+    answers = None,
+    text = "Comment text\nA second line of text\n\nGood job!",
+    createdAt = now,
+    createdBy = user.id)
   private val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event), 0L, 0L, 0L)
   private val venueFull = Venue.Full(venue, partner, Some(contact))
   private val accountValidationRequest = UserRequest.AccountValidationRequest(
@@ -301,6 +308,9 @@ class StyleguideCtrl(cc: ControllerComponents,
       // case "proposalCreationAccepted" => Emails.proposalCreationAccepted(group, cfp, Some(event), proposalCreation, orgaUser)
       // case "proposalCreationRejected" => Emails.proposalCreationRejected(group, cfp, Some(event), proposalCreation, orgaUser)
       case "eventPublished" => Emails.eventPublished(event, Some(venueFull), member)
+      case "proposalCommentAddedForSpeaker" => Emails.proposalCommentAddedForSpeaker(cfp, talk, proposal, user, comment)
+      case "proposalCommentAddedForOrga" => Emails.proposalCommentAddedForOrga(group, cfp, proposal, user, comment)
+      case "eventCommentAdded" => Emails.eventCommentAdded(group, event, user, comment)
       case "groupMessage" => Emails.groupMessage(group, EmailAddress.Contact(user.email), "subject", Markdown("message body"), member)
       case "eventMessage" => Emails.eventMessage(event, EmailAddress.Contact(user.email), "subject", Markdown("message body"), rsvp)
     }

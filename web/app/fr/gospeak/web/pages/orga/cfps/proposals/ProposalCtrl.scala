@@ -9,7 +9,7 @@ import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
+import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Video}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.emails.Emails
@@ -30,6 +30,7 @@ class ProposalCtrl(cc: ControllerComponents,
                    val groupRepo: OrgaGroupRepo,
                    cfpRepo: OrgaCfpRepo,
                    eventRepo: OrgaEventRepo,
+                   talkRepo: SpeakerTalkRepo,
                    proposalRepo: OrgaProposalRepo,
                    commentRepo: OrgaCommentRepo,
                    emailSrv: EmailSrv) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
@@ -60,7 +61,17 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => proposalView(group, cfp, proposal, if (orga) GenericForm.comment else formWithErrors, if (orga) formWithErrors else GenericForm.comment),
       data => (for {
         proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
-        _ <- OptionT.liftF(if (orga) commentRepo.addOrgaComment(proposalElt.id, data) else commentRepo.addComment(proposalElt.id, data))
+        cfpElt <- OptionT(cfpRepo.find(cfp))
+        talkElt <- OptionT(talkRepo.find(proposalElt.talk))
+        _ <- OptionT.liftF(if (orga) {
+          commentRepo.addOrgaComment(proposalElt.id, data).map(_ => Done)
+        } else {
+          for {
+            speakers <- userRepo.list(proposalElt.speakers.toList)
+            comment <- commentRepo.addComment(proposalElt.id, data)
+            _ <- speakers.map(s => emailSrv.send(Emails.proposalCommentAddedForSpeaker(cfpElt, talkElt, proposalElt, s, comment))).sequence
+          } yield Done
+        })
       } yield Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
     )
   })

@@ -1,0 +1,11 @@
+@import fr.gospeak.core.domain.{Comment, Event, Group, User}
+@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
+@import fr.gospeak.web.utils.UserReq
+
+@(group: Group, event: Event, orga: User, comment: Comment)(implicit req: UserReq[AnyContent])
+<p>Hi @orga.firstName,</p>
+<p>@req.user.name.value sent a message for the <b>@event.name.value</b> event:</p>
+<div style="white-space: pre-line;">@comment.text</div>
+<br>
+<p>You can view it on <a href="@GroupCtrl.event(group.slug, event.slug).absoluteURL()">Gospeak</a> to answer if you want.</p>
+<p>The Gospeak team</p>

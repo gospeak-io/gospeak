@@ -4,10 +4,8 @@
 
 @(form: Form[Url], url: Call)(implicit req: UserReq[AnyContent])
 @formElt(form, url, Seq("class" -> "mb-2")) {
-    @fieldHorizontal(form("url"), Seq("label" -> "Slides")) { (field, _) =>
-        @inputEmbed(field, Seq("placeholder" -> "Url of the slides"))
-    }
-    @actionsHorizontal() {
-        @btnSubmit("Add slides", "btn btn-secondary")
-    }
+    <div class="row">
+        <div class="col-9">@inputEmbed(form("url"), Seq("placeholder" -> "Slides (ex: https://fr.slideshare.net/loicknuchel/scala-bad-practices-scalaio-2019)", "class" -> "form-control-xs"))</div>
+        <div class="col">@btnSubmit("Add slides", "btn btn-secondary btn-xs")</div>
+    </div>
 }
