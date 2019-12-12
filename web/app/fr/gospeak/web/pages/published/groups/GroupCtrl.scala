@@ -104,7 +104,9 @@ class GroupCtrl(cc: ControllerComponents,
       data => (for {
         groupElt <- OptionT(groupRepo.find(group))
         eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
-        _ <- OptionT.liftF(commentRepo.addComment(eventElt.id, data))
+        orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
+        comment <- OptionT.liftF(commentRepo.addComment(eventElt.id, data))
+        _ <- OptionT.liftF(orgas.map(o => emailSrv.send(Emails.eventCommentAdded(groupElt, eventElt.event, o, comment))).sequence)
       } yield Redirect(routes.GroupCtrl.event(group, event))).value.map(_.getOrElse(publicEventNotFound(group, event)))
     )
   })

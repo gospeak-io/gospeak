@@ -67,7 +67,7 @@
         <div class="col">
             <h3 class="d-flex justify-content-between align-items-center">
                 <span>Ratings</span>
-                <div>@proposalRating(proposal, ratings.find(_.createdBy == req.user.id).map(_.grade))</div>
+                <div>@proposalRating(proposal, ratings.find(_.createdBy == req.user.id).map(_.grade), "btn-xs")</div>
             </h3>
             @ratings.sortBy(_.grade).map { rating =>
                 <div>

@@ -39,6 +39,12 @@
                         </span>
                     </span>
                     <span class="col-4 col-md-2 text-md-right">
+                        @if(event.orgaNotes.isDefined) {
+                            <div data-toggle="html-popover" data-trigger="hover" style="display: inline">
+                                <div class="content" style="white-space: pre-line;">@event.orgaNotes.text</div>
+                                <i class="far fa-file-alt"></i>
+                            </div>
+                        }
                         @if(!event.isPublic) {
                             <span class="btn btn-xs btn-pill btn-soft-dark">Draft</span>
                         }

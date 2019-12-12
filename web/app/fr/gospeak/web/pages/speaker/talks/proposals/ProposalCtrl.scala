@@ -86,7 +86,11 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => proposalView(talk, cfp, formWithErrors),
       data => (for {
         proposalElt <- OptionT(proposalRepo.find(talk, cfp))
-        _ <- OptionT.liftF(commentRepo.addComment(proposalElt.id, data))
+        cfpElt <- OptionT(cfpRepo.find(proposalElt.cfp))
+        groupElt <- OptionT(groupRepo.find(cfpElt.group))
+        orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
+        comment <- OptionT.liftF(commentRepo.addComment(proposalElt.id, data))
+        _ <- OptionT.liftF(orgas.map(o => emailSrv.send(Emails.proposalCommentAddedForOrga(groupElt, cfpElt, proposalElt, o, comment))).sequence)
       } yield Redirect(routes.ProposalCtrl.detail(talk, cfp))).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
     )
   })

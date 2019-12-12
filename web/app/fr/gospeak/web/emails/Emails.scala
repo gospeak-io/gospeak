@@ -168,6 +168,27 @@ object Emails {
       subject = s"New event from ${req.group.name.value}: ${event.name.value}",
       content = HtmlContent(html.eventPublished(event, venueOpt, member).body))
 
+  def proposalCommentAddedForSpeaker(cfp: Cfp, talk: Talk, proposal: Proposal, speaker: User, comment: Comment)(implicit req: OrgaReq[AnyContent]): Email =
+    Email(
+      from = Constants.Contact.noReply,
+      to = Seq(speaker.asContact),
+      subject = s"New comment on your proposal '${proposal.title.value}' at ${cfp.name.value}",
+      content = HtmlContent(html.proposalCommentAddedForSpeaker(cfp, talk, proposal, speaker, comment).body))
+
+  def proposalCommentAddedForOrga(group: Group, cfp: Cfp, proposal: Proposal, orga: User, comment: Comment)(implicit req: UserReq[AnyContent]): Email =
+    Email(
+      from = Constants.Contact.noReply,
+      to = Seq(orga.asContact),
+      subject = s"New comment on the '${proposal.title.value}' proposal for ${cfp.name.value}",
+      content = HtmlContent(html.proposalCommentAddedForOrga(group, cfp, proposal, orga, comment).body))
+
+  def eventCommentAdded(group: Group, event: Event, orga: User, comment: Comment)(implicit req: UserReq[AnyContent]): Email =
+    Email(
+      from = Constants.Contact.noReply,
+      to = Seq(orga.asContact),
+      subject = s"New comment on event '${event.name.value}'",
+      content = HtmlContent(html.eventCommentAdded(group, event, orga, comment).body))
+
   def groupMessage(group: Group, sender: EmailAddress.Contact, subject: String, text: Markdown, member: Group.Member)(implicit req: UserReq[AnyContent]): Email =
     Email(
       from = sender,

@@ -1,0 +1,11 @@
+@import fr.gospeak.core.domain.{Cfp, Comment, Proposal, Talk, User}
+@import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.utils.OrgaReq
+
+@(cfp: Cfp, talk: Talk, proposal: Proposal, speaker: User, comment: Comment)(implicit req: OrgaReq[AnyContent])
+<p>Hi @speaker.firstName,</p>
+<p>@req.user.name.value left you a message about your proposal <b>@proposal.title.value</b> for <b>@cfp.name.value</b>:</p>
+<div style="white-space: pre-line;">@comment.text</div>
+<br>
+<p>You can view it on <a href="@ProposalCtrl.detail(talk.slug, cfp.slug).absoluteURL()">Gospeak</a> to answer if you want.</p>
+<p>The Gospeak team</p>

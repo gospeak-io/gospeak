@@ -57,7 +57,9 @@ object Event {
 
   final case class Notes(text: String,
                          updatedAt: Instant,
-                         updatedBy: User.Id)
+                         updatedBy: User.Id) {
+    def isDefined: Boolean = text.nonEmpty
+  }
 
   final case class ExtRefs(meetup: Option[MeetupEvent.Ref] = None)
 
