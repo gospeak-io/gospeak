@@ -78,7 +78,7 @@
                             <div class="text-center mx-auto mb-3">
                                 <span class="position-relative">
                                     <a href="@GroupCtrl.detail(req.group.slug)">
-                                        <img class="img-fluid rounded-circle" src="@req.group.logo.map(_.url.value).getOrElse("https://secure.meetupstatic.com/photos/event/b/6/1/4/600_251926612.jpeg")" alt="Image Description" width="100">
+                                        <img class="img-fluid rounded-circle" src="@req.group.logo.map(_.url.value).getOrElse(routes.Assets.versioned("lib/web/img/placeholders/group-logo.png"))" alt="@req.group.name.value logo" width="100">
                                     </a>
                                     <span class="badge badge-light badge-pos rounded-circle p-2">
                                         <div class="nav-item dropdown">
@@ -126,7 +126,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-9 col-lg-10 mt-4">
+            <div class="col-md-9 col-lg-10">
                 <div class="container">
                     @flash(req.flash)
                     @content

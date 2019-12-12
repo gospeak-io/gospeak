@@ -45,6 +45,13 @@ declare const autosize;
     });
 })();
 
+// stop event propagation when needed (ex: links inside a collapse)
+(function () {
+    $('.no-propagation').click(function (e) {
+        e.stopImmediatePropagation();
+    });
+})();
+
 // autofocus when a modal opens
 (function () {
     $('.modal').on('shown.bs.modal', function () {
