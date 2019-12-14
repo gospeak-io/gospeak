@@ -2,7 +2,7 @@ package fr.gospeak.web.pages.published
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.published.HomeCtrl._
@@ -11,7 +11,7 @@ import play.api.mvc._
 
 class HomeCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
-               env: ApplicationConf.Env) extends UICtrl(cc, silhouette, env) with UICtrl.UserAwareAction {
+               conf: AppConf) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAwareAction {
   def index(): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     IO.pure(Ok(html.index()(breadcrumb())))
   })

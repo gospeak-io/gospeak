@@ -4,13 +4,12 @@ import java.time.Instant
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import fr.gospeak.core.services.storage.OrgaGroupRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.pages
+import fr.gospeak.web.{AppConf, pages}
 import org.h2.jdbc.{JdbcSQLIntegrityConstraintViolationException, JdbcSQLSyntaxErrorException}
 import org.slf4j.LoggerFactory
 import play.api.i18n.I18nSupport
@@ -20,16 +19,30 @@ import scala.util.control.NonFatal
 
 abstract class UICtrl(cc: ControllerComponents,
                       silhouette: Silhouette[CookieEnv],
-                      env: ApplicationConf.Env) extends AbstractController(cc) with I18nSupport {
+                      conf: AppConf) extends AbstractController(cc) with I18nSupport {
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   protected def UserAwareActionIO(block: UserAwareReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.UserAwareAction.async { r =>
-    val req = new UserAwareReq[AnyContent](r.request, messagesApi.preferred(r.request), Instant.now(), env, r, r.identity.map(_.user), r.identity.map(_.groups))
+    val req = new UserAwareReq[AnyContent](
+      request = r.request,
+      messages = messagesApi.preferred(r.request),
+      now = Instant.now(),
+      conf = conf,
+      underlying = r,
+      user = r.identity.map(_.user),
+      groups = r.identity.map(_.groups))
     recoverFailedAction(block(req))(req).unsafeToFuture()
   }
 
   protected def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.SecuredAction.async { r =>
-    val req = new UserReq[AnyContent](r.request, messagesApi.preferred(r.request), Instant.now(), env, r, r.identity.user, r.identity.groups)
+    val req = new UserReq[AnyContent](
+      request = r.request,
+      messages = messagesApi.preferred(r.request),
+      now = Instant.now(),
+      conf = conf,
+      underlying = r,
+      user = r.identity.user,
+      groups = r.identity.groups)
     recoverFailedAction(block(req))(req).unsafeToFuture()
   }
 

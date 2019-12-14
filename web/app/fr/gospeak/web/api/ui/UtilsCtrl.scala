@@ -1,10 +1,9 @@
 package fr.gospeak.web.api.ui
 
-import java.time.{Instant, LocalDateTime}
+import java.time.Instant
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.ExternalCfp
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.slack.SlackSrv
@@ -15,6 +14,7 @@ import fr.gospeak.infra.services.{EmbedSrv, TemplateSrvImpl}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain.{Html, Markdown, Url}
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.PublicApiExternalCfp
 import fr.gospeak.web.api.domain.utils.{PublicApiError, PublicApiResponse}
 import fr.gospeak.web.api.utils.JsonFormats._
@@ -36,22 +36,21 @@ case class TemplateResponse(result: Option[Html], error: Option[String])
 
 class UtilsCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
-                env: ApplicationConf.Env,
-                appConf: ApplicationConf,
+                conf: AppConf,
                 externalCfpRepo: PublicExternalCfpRepo,
                 slackSrv: SlackSrv,
                 templateSrv: TemplateSrv,
-                markdownSrv: MarkdownSrv) extends ApiCtrl(cc, env) {
+                markdownSrv: MarkdownSrv) extends ApiCtrl(cc, conf) {
   private def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = SecuredActionIO(parse.anyContent)(block)
 
   private def SecuredActionIO[A](bodyParser: BodyParser[A])(block: UserReq[A] => IO[Result]): Action[A] = silhouette.SecuredAction(bodyParser).async { r =>
-    block(new UserReq[A](r.request, messagesApi.preferred(r.request), Instant.now(), env, r, r.identity.user, r.identity.groups))
+    block(new UserReq[A](r.request, messagesApi.preferred(r.request), Instant.now(), conf, r, r.identity.user, r.identity.groups))
       .recover { case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage))) }.unsafeToFuture()
   }
 
 
   def validateSlackToken(token: String): Action[AnyContent] = SecuredActionIO { implicit req =>
-    SlackToken.from(token, appConf.aesKey).toIO.flatMap(slackSrv.getInfos(_, appConf.aesKey))
+    SlackToken.from(token, conf.application.aesKey).toIO.flatMap(slackSrv.getInfos(_, conf.application.aesKey))
       .map(infos => ValidationResult(valid = true, s"Token for ${infos.teamName} team, created by ${infos.userName}"))
       .recover { case NonFatal(e) => ValidationResult(valid = false, s"Invalid token: ${e.getMessage}") }
       .map(res => Ok(Json.toJson(res)))

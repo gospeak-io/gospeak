@@ -3,7 +3,6 @@ package fr.gospeak.web.api
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.StatusCtrl._
 import fr.gospeak.web.utils.ApiCtrl
@@ -14,8 +13,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import scala.util.Try
 
 class StatusCtrl(cc: ControllerComponents,
-                 env: ApplicationConf.Env,
-                 conf: AppConf) extends ApiCtrl(cc, env) {
+                 conf: AppConf) extends ApiCtrl(cc, conf) {
   private val startedAt = Instant.now()
 
   def getStatus: Action[AnyContent] = ActionIO { implicit req =>
@@ -30,7 +28,8 @@ object StatusCtrl {
   implicit val appStatusWrites: Writes[AppStatus] = Json.writes[AppStatus]
 
   final case class SrvStatus(db: String,
-                             email: String)
+                             email: String,
+                             upload: String)
 
   final case class GitStatus(subject: String,
                              branch: String,
@@ -58,7 +57,8 @@ object StatusCtrl {
         sbtVersion = info.sbtVersion,
         services = SrvStatus(
           db = conf.database.getClass.getSimpleName,
-          email = conf.emailService.getClass.getName.split("\\$").filter(_.nonEmpty).last),
+          email = conf.email.getClass.getName.split("\\$").filter(_.nonEmpty).last,
+          upload = conf.upload.getClass.getSimpleName),
         lastCommit = GitStatus(
           subject = info.gitSubject,
           branch = info.gitBranch,

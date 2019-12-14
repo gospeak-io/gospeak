@@ -15,7 +15,7 @@
 @import fr.gospeak.web.utils.OrgaReq
 
 @(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: OrgaReq[AnyContent])
-@main(title, "orga.css", style, script, req.env) {
+@main(title, "orga.css", style, script) {
     <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
         <div class="container">
             <a class="navbar-brand" href="@GroupCtrl.detail(req.group.slug)">@req.group.name.value</a>

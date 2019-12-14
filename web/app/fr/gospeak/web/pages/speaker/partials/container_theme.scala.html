@@ -14,7 +14,7 @@
 @import fr.gospeak.web.pages.published.routes.HomeCtrl
 
 @(title: String, b: Breadcrumb, hideAlert: Boolean = false)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserReq[AnyContent])
-@main_theme(title, "published_theme.css", style, script, req.env) {
+@main_theme(title, "published_theme.css", style, script) {
     <header id="header" class="u-header u-header--abs-top-md u-header--bg-transparent u-header--show-hide-md" data-header-fix-moment="500" data-header-fix-effect="slide">
         <div class="u-header__section">
             <div id="logoAndNav" class="container">

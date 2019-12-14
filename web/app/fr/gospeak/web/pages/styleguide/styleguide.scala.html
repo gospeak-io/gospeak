@@ -41,7 +41,7 @@
     """<script>
       |  $('body').scrollspy({ target: '#menu' })
       |</script>
-    """.stripMargin), userReq.env) {
+    """.stripMargin)) {
     <nav id="menu" class="navbar sticky-top navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="#">Gospeak styleguide</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -295,4 +295,4 @@
             }
         }
     </div>
-}
+}(orgaReq)

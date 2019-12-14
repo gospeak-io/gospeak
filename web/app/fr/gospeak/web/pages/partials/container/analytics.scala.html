@@ -1,6 +1,6 @@
-@import fr.gospeak.core.ApplicationConf
-@(env: ApplicationConf.Env)
-@if(env.isProd) {
+@import fr.gospeak.web.utils.BasicReq
+@()(implicit req: BasicReq[AnyContent])
+@if(req.conf.application.env.isProd) {
     <script>
         (function (w,d,s,o,f,js,fjs) {
             w[o] = w[o] || function () { (w[o].q = w[o].q || []).push(arguments) };

@@ -3,13 +3,13 @@ package fr.gospeak.web.pages.speaker.talks
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.utils.UserCtx
 import fr.gospeak.core.domain.{Talk, User, UserRequest}
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.emails.Emails
@@ -24,13 +24,13 @@ import scala.util.control.NonFatal
 
 class TalkCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
-               env: ApplicationConf.Env,
+               conf: AppConf,
                userRepo: SpeakerUserRepo,
                userRequestRepo: SpeakerUserRequestRepo,
                eventRepo: SpeakerEventRepo,
                talkRepo: SpeakerTalkRepo,
                proposalRepo: SpeakerProposalRepo,
-               emailSrv: EmailSrv) extends UICtrl(cc, silhouette, env) with UICtrl.UserAction {
+               emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAction {
   def list(params: Page.Params): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
     talkRepo.list(params).map(talks => Ok(html.list(talks)(listBreadcrumb)))
   })

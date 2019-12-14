@@ -269,7 +269,8 @@ declare const IMask;
     });
 })(); */
 
-// inputImageUrl
+// inputImg
+declare const cloudinary;
 (function () {
     $('.input-imageurl').each(function () {
         const $elt = $(this);
@@ -277,6 +278,49 @@ declare const IMask;
         const $preview = $elt.find('.preview');
         update($input, $preview); // run on page load
         $input.change(() => update($input, $preview));
+    });
+
+    // see https://cloudinary.com/documentation/upload_widget
+    $('.cloudinary-img-widget').each(function () {
+        const $elt = $(this);
+        const $btn = $elt.find('button');
+        const $input = $elt.find('input[type="hidden"]');
+        const $preview = $elt.find('.preview');
+        update($input, $preview); // run on page load
+
+        const cloudName = $btn.attr('data-cloud-name');
+        const uploadPreset = $btn.attr('data-upload-preset');
+        const folder = $btn.attr('data-folder');
+        const name = $btn.attr('data-name');
+        const maxFiles = $btn.attr('data-max-files');
+        const ratio = $btn.attr('data-ratio');
+
+        const cloudinaryWidget = cloudinary.createUploadWidget({
+            cloudName: cloudName,
+            uploadPreset: uploadPreset,
+            // upload params
+            folder: folder,
+            publicId: name,
+            resourceType: 'image',
+            clientAllowedFormats: ['png', 'jpg', 'jpeg', 'gif'],
+            // format params
+            multiple: maxFiles !== 1,
+            maxFiles: maxFiles,
+            cropping: ratio !== undefined,
+            croppingAspectRatio: ratio,
+            showSkipCropButton: ratio !== undefined,
+            croppingShowDimensions: ratio !== undefined,
+        }, (error, result) => {
+            if (!error && result && result.event === "success") {
+                $input.val(result.info.secure_url);
+                update($input, $preview);
+            }
+        });
+
+        $btn.click(function (e) {
+            e.preventDefault();
+            cloudinaryWidget.open();
+        });
     });
 
     function update($input, $preview): void {

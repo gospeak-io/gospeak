@@ -8,7 +8,7 @@
 @import fr.gospeak.web.utils.UserAwareReq
 
 @(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
-@main_theme(title, "published_theme.css", style, script, req.env) {
+@main_theme(title, "published_theme.css", style, script) {
 <header id="header" class="u-header u-header--abs-top-md u-header--bg-transparent u-header--show-hide-md" data-header-fix-moment="500" data-header-fix-effect="slide">
     <div class="u-header__section">
         <div id="logoAndNav" class="container">

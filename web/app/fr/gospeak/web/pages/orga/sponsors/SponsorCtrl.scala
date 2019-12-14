@@ -3,11 +3,11 @@ package fr.gospeak.web.pages.orga.sponsors
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, Partner, Sponsor, SponsorPack}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.GroupCtrl
@@ -19,13 +19,13 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
 class SponsorCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
-                  env: ApplicationConf.Env,
+                  conf: AppConf,
                   userRepo: OrgaUserRepo,
                   sponsorPackRepo: OrgaSponsorPackRepo,
                   sponsorRepo: OrgaSponsorRepo,
                   val groupRepo: OrgaGroupRepo,
                   partnerRepo: OrgaPartnerRepo,
-                  venueRepo: OrgaVenueRepo) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
+                  venueRepo: OrgaVenueRepo) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     for {
       sponsorPacks <- sponsorPackRepo.listAll

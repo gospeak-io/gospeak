@@ -4,11 +4,11 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Cfp, ExternalCfp, Talk}
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Page}
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
@@ -25,7 +25,7 @@ import scala.util.control.NonFatal
 
 class CfpCtrl(cc: ControllerComponents,
               silhouette: Silhouette[CookieEnv],
-              env: ApplicationConf.Env,
+              conf: AppConf,
               groupRepo: PublicGroupRepo,
               cfpRepo: PublicCfpRepo,
               talkRepo: SpeakerTalkRepo,
@@ -34,7 +34,7 @@ class CfpCtrl(cc: ControllerComponents,
               externalCfpRepo: PublicExternalCfpRepo,
               authSrv: AuthSrv,
               emailSrv: EmailSrv,
-              mb: GospeakMessageBus) extends UICtrl(cc, silhouette, env) with UICtrl.UserAction with UICtrl.UserAwareAction {
+              mb: GospeakMessageBus) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAction with UICtrl.UserAwareAction {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     externalCfpRepo.listIncoming(req.now, params).map(cfps => Ok(html.list(cfps)(listBreadcrumb())))
   })

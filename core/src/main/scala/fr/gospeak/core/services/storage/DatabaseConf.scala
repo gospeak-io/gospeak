@@ -1,4 +1,4 @@
-package fr.gospeak.infra.services.storage.sql
+package fr.gospeak.core.services.storage
 
 import fr.gospeak.libs.scalautils.domain.Secret
 

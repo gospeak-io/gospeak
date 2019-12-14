@@ -1,6 +1,7 @@
 @import fr.gospeak.core.domain.User
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.partials.form.ImgConf
 @import fr.gospeak.web.pages.speaker.partials.html.container_old
 @import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublicSpeakerCtrl}
@@ -36,7 +37,7 @@
                     @inputEmail(field, Seq("placeholder" -> "Email"))
                 }
                 @fieldHorizontal(form("avatar"), Seq("label" -> "Avatar")) { (field, args) =>
-                    @inputImg(field, Seq("placeholder" -> "ex: https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=identicon"))
+                    @inputImg(field, ImgConf.userAvatar())
                 }
                 @fieldHorizontal(form("bio"), Seq("label" -> "Bio")) { (field, args) =>
                     @inputMarkdown(field, Seq("placeholder" -> "Tell people a bit more about you"))

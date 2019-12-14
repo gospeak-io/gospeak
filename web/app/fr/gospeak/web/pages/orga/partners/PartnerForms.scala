@@ -2,7 +2,7 @@ package fr.gospeak.web.pages.orga.partners
 
 import fr.gospeak.core.domain.utils.SocialAccounts
 import fr.gospeak.core.domain.{Contact, Partner, Venue}
-import fr.gospeak.libs.scalautils.domain.{GMapPlace, Markdown, Url}
+import fr.gospeak.libs.scalautils.domain.{GMapPlace, Logo, Markdown}
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
@@ -13,7 +13,7 @@ object PartnerForms {
     "name" -> partnerName,
     "notes" -> markdown,
     "description" -> optional(markdown),
-    "logo" -> url,
+    "logo" -> logo,
     "social" -> socialAccounts
   )(Partner.Data.apply)(Partner.Data.unapply))
 
@@ -35,7 +35,7 @@ object PartnerForms {
 
   final case class VenuePartnerData(slug: Partner.Slug,
                                     name: Partner.Name,
-                                    logo: Url,
+                                    logo: Logo,
                                     address: GMapPlace) {
     def toPartner: Partner.Data = Partner.Data(
       slug = slug,
@@ -56,7 +56,7 @@ object PartnerForms {
   val createVenueWithPartner: Form[VenuePartnerData] = Form(mapping(
     "slug" -> partnerSlug,
     "name" -> partnerName,
-    "logo" -> url,
+    "logo" -> logo,
     "address" -> gMapPlace
   )(VenuePartnerData.apply)(VenuePartnerData.unapply))
 }

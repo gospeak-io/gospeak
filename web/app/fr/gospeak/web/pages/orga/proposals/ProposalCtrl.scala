@@ -1,10 +1,10 @@
 package fr.gospeak.web.pages.orga.proposals
 
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.GroupCtrl
@@ -14,12 +14,12 @@ import play.api.mvc._
 
 class ProposalCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
-                   env: ApplicationConf.Env,
+                   conf: AppConf,
                    userRepo: OrgaUserRepo,
                    val groupRepo: OrgaGroupRepo,
                    cfpRepo: OrgaCfpRepo,
                    eventRepo: OrgaEventRepo,
-                   proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
+                   proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     val customParams = params.defaultOrderBy(proposalRepo.fields.title)
     for {

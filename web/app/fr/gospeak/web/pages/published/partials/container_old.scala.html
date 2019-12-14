@@ -8,7 +8,7 @@
 @import fr.gospeak.web.utils.UserAwareReq
 
 @(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
-@main(title, "published.css", style, script, req.env) {
+@main(title, "published.css", style, script) {
 <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
     <div class="container">
         <a class="navbar-brand" href="@HomeCtrl.index()">Gospeak</a>

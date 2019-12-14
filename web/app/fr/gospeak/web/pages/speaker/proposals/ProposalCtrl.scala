@@ -1,9 +1,9 @@
 package fr.gospeak.web.pages.speaker.proposals
 
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.services.storage.SpeakerProposalRepo
 import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.speaker.proposals.ProposalCtrl._
@@ -13,8 +13,8 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class ProposalCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
-                   env: ApplicationConf.Env,
-                   proposalRepo: SpeakerProposalRepo) extends UICtrl(cc, silhouette, env) with UICtrl.UserAction {
+                   conf: AppConf,
+                   proposalRepo: SpeakerProposalRepo) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAction {
   def list(params: Page.Params): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
     proposalRepo.listFull(params).map(proposals => Ok(html.list(proposals)(listBreadcrumb)))
   })

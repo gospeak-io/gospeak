@@ -3,12 +3,12 @@ package fr.gospeak.web.pages.orga.partners
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Contact, Group, Partner, Venue}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.exceptions.DuplicateEmailException
 import fr.gospeak.web.domain.Breadcrumb
@@ -22,7 +22,7 @@ import scala.util.control.NonFatal
 
 class PartnerCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
-                  env: ApplicationConf.Env,
+                  conf: AppConf,
                   userRepo: OrgaUserRepo,
                   val groupRepo: OrgaGroupRepo,
                   eventRepo: OrgaEventRepo,
@@ -31,7 +31,7 @@ class PartnerCtrl(cc: ControllerComponents,
                   venueRepo: OrgaVenueRepo,
                   sponsorPackRepo: OrgaSponsorPackRepo,
                   sponsorRepo: OrgaSponsorRepo,
-                  groupSettingsRepo: GroupSettingsRepo) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
+                  groupSettingsRepo: GroupSettingsRepo) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     partnerRepo.listFull(params).map(partners => Ok(html.list(partners)(listBreadcrumb)))
   })
