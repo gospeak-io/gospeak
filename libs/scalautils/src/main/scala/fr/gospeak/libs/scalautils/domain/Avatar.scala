@@ -1,5 +1,3 @@
 package fr.gospeak.libs.scalautils.domain
 
-final case class Avatar(url: Url) {
-  def value: String = url.value
-}
+final case class Avatar(override val url: Url) extends Image(url)

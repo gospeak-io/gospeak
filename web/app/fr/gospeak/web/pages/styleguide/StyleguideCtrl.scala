@@ -6,7 +6,6 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.{LoginInfo, Silhouette}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{Info, SocialAccounts}
 import fr.gospeak.core.services.email.EmailSrv
@@ -17,8 +16,8 @@ import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.pages
 import fr.gospeak.web.utils.{OrgaReq, UICtrl, UserAwareReq}
+import fr.gospeak.web.{AppConf, pages}
 import org.joda.time.DateTime
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
@@ -26,7 +25,7 @@ import scala.concurrent.duration._
 
 class StyleguideCtrl(cc: ControllerComponents,
                      silhouette: Silhouette[CookieEnv],
-                     env: ApplicationConf.Env) extends UICtrl(cc, silhouette, env) with UICtrl.UserAwareAction with UICtrl.UserAction {
+                     conf: AppConf) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAwareAction with UICtrl.UserAction {
 
 
   private val now = Instant.now()
@@ -146,7 +145,7 @@ class StyleguideCtrl(cc: ControllerComponents,
     name = Partner.Name("Zeenea"),
     notes = Markdown(""),
     description = None,
-    logo = Url.from("https://gospeak.io").get,
+    logo = Url.from("https://gospeak.io").map(Logo).get,
     social = SocialAccounts.fromUrls(),
     info = Info(user.id, now))
   private val place = GMapPlace(

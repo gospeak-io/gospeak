@@ -5,11 +5,11 @@ import java.time.Instant
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.utils.PublicApiError
 import fr.gospeak.web.api.utils.JsonFormats._
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -29,7 +29,7 @@ case class SearchResultItem(text: String, url: String)
 
 class SuggestCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
-                  env: ApplicationConf.Env,
+                  conf: AppConf,
                   groupRepo: SuggestGroupRepo,
                   userRepo: SuggestUserRepo,
                   cfpRepo: SuggestCfpRepo,
@@ -40,11 +40,11 @@ class SuggestCtrl(cc: ControllerComponents,
                   contactRepo: SuggestContactRepo,
                   venueRepo: SuggestVenueRepo,
                   sponsorPackRepo: SuggestSponsorPackRepo,
-                  externalCfpRepo: SuggestExternalCfpRepo) extends ApiCtrl(cc, env) {
+                  externalCfpRepo: SuggestExternalCfpRepo) extends ApiCtrl(cc, conf) {
   private def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = SecuredActionIO(parse.anyContent)(block)
 
   private def SecuredActionIO[A](bodyParser: BodyParser[A])(block: UserReq[A] => IO[Result]): Action[A] = silhouette.SecuredAction(bodyParser).async { r =>
-    block(new UserReq[A](r.request, messagesApi.preferred(r.request), Instant.now(), env, r, r.identity.user, r.identity.groups))
+    block(new UserReq[A](r.request, messagesApi.preferred(r.request), Instant.now(), conf, r, r.identity.user, r.identity.groups))
       .recover { case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage))) }.unsafeToFuture()
   }
 

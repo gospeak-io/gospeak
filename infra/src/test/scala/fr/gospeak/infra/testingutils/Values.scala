@@ -4,7 +4,7 @@ import java.util.UUID
 
 import fr.gospeak.core.GospeakConf
 import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.infra.services.storage.sql.{DatabaseConf, GospeakDbSql}
+import fr.gospeak.infra.services.storage.sql.GospeakDbSql
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 
 object Values {

@@ -3,7 +3,6 @@ package fr.gospeak.web.pages.orga.events
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.services.TemplateSrv
@@ -12,6 +11,7 @@ import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, Html, Page}
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus, MessageBuilder}
 import fr.gospeak.web.emails.Emails
@@ -28,8 +28,7 @@ import scala.util.control.NonFatal
 
 class EventCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
-                env: ApplicationConf.Env,
-                appConf: ApplicationConf,
+                conf: AppConf,
                 userRepo: OrgaUserRepo,
                 val groupRepo: OrgaGroupRepo,
                 cfpRepo: OrgaCfpRepo,
@@ -43,7 +42,7 @@ class EventCtrl(cc: ControllerComponents,
                 eventSrv: EventSrv,
                 meetupSrv: MeetupSrv,
                 emailSrv: EmailSrv,
-                mb: GospeakMessageBus) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
+                mb: GospeakMessageBus) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     for {
       events <- eventRepo.list(params)
@@ -242,7 +241,7 @@ class EventCtrl(cc: ControllerComponents,
         meetup <- OptionT.liftF((for {
           creds <- meetupAccount
           info <- data.meetup if info.publish
-        } yield meetupSrv.publish(e.event, e.venueOpt, description, info.draft, appConf.aesKey, creds)).sequence)
+        } yield meetupSrv.publish(e.event, e.venueOpt, description, info.draft, conf.application.aesKey, creds)).sequence)
         _ <- OptionT.liftF(meetup.map(_._1).filter(_ => e.event.refs.meetup.isEmpty)
           .map(ref => e.event.copy(refs = e.event.refs.copy(meetup = Some(ref))))
           .map(eventElt => eventRepo.edit(event, eventElt.data)).sequence)

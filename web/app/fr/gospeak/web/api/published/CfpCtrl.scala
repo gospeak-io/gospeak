@@ -1,18 +1,18 @@
 package fr.gospeak.web.api.published
 
 import cats.data.OptionT
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.Cfp
 import fr.gospeak.core.services.storage.{PublicCfpRepo, PublicGroupRepo}
 import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.PublicApiCfp
 import fr.gospeak.web.utils.ApiCtrl
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class CfpCtrl(cc: ControllerComponents,
-              env: ApplicationConf.Env,
+              conf: AppConf,
               groupRepo: PublicGroupRepo,
-              cfpRepo: PublicCfpRepo) extends ApiCtrl(cc, env) {
+              cfpRepo: PublicCfpRepo) extends ApiCtrl(cc, conf) {
   def list(params: Page.Params): Action[AnyContent] = ApiActionPage { implicit req =>
     for {
       cfps <- cfpRepo.listIncoming(req.now, params)

@@ -1,17 +1,16 @@
 @import fr.gospeak.web.auth.AuthForms.LoginData
-@import fr.gospeak.core.ApplicationConf
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.auth.partials.html.container_theme
 @import fr.gospeak.web.auth.partials.html.loginFields
 @import fr.gospeak.web.pages.partials.form.html.formElt
 @import fr.gospeak.web.utils.UserAwareReq
 
-@(form: Form[LoginData], envConf: ApplicationConf.Env, redirect: Option[String], providerIds: Seq[String])(implicit req: UserAwareReq[AnyContent])
+@(form: Form[LoginData], redirect: Option[String], providerIds: Seq[String])(implicit req: UserAwareReq[AnyContent])
 @container_theme("Gospeak - login")() {
     <div class="login">
         <div class="card bg-light shadow">
             <div class="card-body">
-                @if(!envConf.isProd) {
+                @if(!req.conf.application.env.isProd) {
                     <div class="alert alert-info" role="alert">
                         This is a test instance, data is reset at each restart.<br>
                         You can connect with a demo account:<br>

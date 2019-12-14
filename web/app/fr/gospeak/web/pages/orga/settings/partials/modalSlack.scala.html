@@ -2,6 +2,7 @@
 @import fr.gospeak.web.api.ui.routes.UtilsCtrl
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.partials.form.ImgConf
 @import fr.gospeak.core.domain.utils.Constants
 @import fr.gospeak.web.utils.OrgaReq
 
@@ -51,7 +52,7 @@
                     @inputText(field, Seq("placeholder" -> "ex: Gospeak bot", "value" -> Constants.Slack.defaultBotName) ++ args)
                 }
                 @fieldHorizontal(slackForm("avatar"), Seq("label" -> "Bot avatar", "help" -> "The bot avatar in Slack")) { (field, args) =>
-                    @inputImg(field, Seq("placeholder" -> s"ex: https://secure.gravatar.com/avatar/fa64969431e3d540ef30d06860d64958?size=100&default=${Constants.gravatarStyle}", "value" -> Constants.Slack.defaultBotAvatar, "optional" -> "") ++ args)
+                    @inputImg(field, ImgConf.slackBotAvatar(Seq("value" -> Constants.Slack.defaultBotAvatar, "optional" -> "") ++ args))
                 }
             </div>
             <div class="modal-footer">

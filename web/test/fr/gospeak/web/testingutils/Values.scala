@@ -15,7 +15,7 @@ import com.mohiva.play.silhouette.test._
 import com.typesafe.config.ConfigFactory
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.testingutils.Generators._
-import fr.gospeak.infra.services.storage.sql.{DatabaseConf, GospeakDbSql}
+import fr.gospeak.infra.services.storage.sql.GospeakDbSql
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.infra.services.email.InMemoryEmailSrv
 import fr.gospeak.web.AppConf

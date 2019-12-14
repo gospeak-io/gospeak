@@ -3,12 +3,12 @@ package fr.gospeak.web.pages.user
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.UserRequest
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain._
 import fr.gospeak.web.emails.Emails
@@ -21,7 +21,7 @@ import scala.util.control.NonFatal
 
 class UserCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
-               env: ApplicationConf.Env,
+               conf: AppConf,
                userRepo: UserUserRepo,
                groupRepo: UserGroupRepo,
                eventRepo: UserEventRepo,
@@ -29,7 +29,7 @@ class UserCtrl(cc: ControllerComponents,
                talkRepo: SpeakerTalkRepo,
                proposalRepo: SpeakerProposalRepo,
                cfpRepo: SpeakerCfpRepo,
-               emailSrv: EmailSrv) extends UICtrl(cc, silhouette, env) with UICtrl.UserAction {
+               emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAction {
   def index(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
     for {
       incomingEvents <- eventRepo.listIncoming(Page.Params.defaults)

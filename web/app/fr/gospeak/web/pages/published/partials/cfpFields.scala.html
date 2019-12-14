@@ -1,6 +1,7 @@
 @import fr.gospeak.core.domain.ExternalCfp
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.form.html._
+@import fr.gospeak.web.pages.partials.form.ImgConf
 @import fr.gospeak.web.utils.UserReq
 
 @(form: Form[ExternalCfp.Data])(implicit req: UserReq[AnyContent])
@@ -20,7 +21,7 @@
             </div>
         }
         @fieldHorizontal(form("logo"), Seq("label" -> "Logo")) { (field, args) =>
-            @inputImg(field, Seq("placeholder" -> "Url of the CFP logo") ++ args)
+            @inputImg(field, ImgConf.externalCfpLogo())
         }
         @fieldHorizontal(form("tags"), Seq("label" -> "Tags")) { (field, args) =>
             @inputTags(field, Seq("remote" -> SuggestCtrl.suggestTags().toString, "placeholder" -> "Main topics of this CFP or conference") ++ args)

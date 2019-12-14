@@ -3,13 +3,13 @@ package fr.gospeak.web.pages.orga.cfps.proposals
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Video}
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.emails.Emails
@@ -24,7 +24,7 @@ import scala.util.control.NonFatal
 
 class ProposalCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
-                   env: ApplicationConf.Env,
+                   conf: AppConf,
                    userRepo: OrgaUserRepo,
                    userRequestRepo: OrgaUserRequestRepo,
                    val groupRepo: OrgaGroupRepo,
@@ -33,7 +33,7 @@ class ProposalCtrl(cc: ControllerComponents,
                    talkRepo: SpeakerTalkRepo,
                    proposalRepo: OrgaProposalRepo,
                    commentRepo: OrgaCommentRepo,
-                   emailSrv: EmailSrv) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
+                   emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def list(group: Group.Slug, cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     (for {
       cfpElt <- OptionT(cfpRepo.find(cfp))

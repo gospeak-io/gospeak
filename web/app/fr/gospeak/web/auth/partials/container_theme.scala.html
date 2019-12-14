@@ -2,7 +2,7 @@
 @import fr.gospeak.web.utils.UserAwareReq
 
 @(title: String)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
-@main_theme(title, "published_theme.css", style, script, req.env) {
+@main_theme(title, "published_theme.css", style, script) {
 <main>
     <div class="d-flex align-items-center position-relative height-lg-100vh">
         <div class="container">
@@ -15,5 +15,4 @@
         </div>
     </div>
 </main>
-
 }

@@ -21,7 +21,7 @@ object SettingsForms {
   def slackAccount(key: AesSecretKey): Form[SlackCredentials] = Form(mapping(
     "token" -> slackToken(key),
     "name" -> nonEmptyText,
-    "avatar" -> optional(url)
+    "avatar" -> optional(avatar)
   )(SlackCredentials.apply)(SlackCredentials.unapply))
 
   final case class AddAction(trigger: Settings.Action.Trigger, action: Settings.Action)

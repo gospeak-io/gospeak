@@ -72,10 +72,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val conf: AppConf = AppConf.load(configuration).get
 
   lazy val appConf: ApplicationConf = conf.application
-  lazy val envConf: ApplicationConf.Env = appConf.env
-  lazy val authConf: AuthConf = conf.auth
   lazy val dbConf: DatabaseConf = conf.database
-  lazy val meetupConf: MeetupClient.Conf = conf.meetup
   lazy val gsConf: GospeakConf = conf.gospeak
 
   lazy val db: GospeakDbSql = wire[GospeakDbSql]
@@ -100,7 +97,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val markdownSrv: MarkdownSrv = wire[MarkdownSrvImpl]
   lazy val templateSrv: TemplateSrv = wire[TemplateSrvImpl]
   lazy val gravatarSrv: GravatarSrv = wire[GravatarSrv]
-  lazy val emailSrv: EmailSrv = EmailSrvFactory.from(conf.emailService)
+  lazy val emailSrv: EmailSrv = EmailSrvFactory.from(conf.email)
   lazy val meetupClient: MeetupClient = new MeetupClient(conf.meetup, conf.application.baseUrl, conf.application.env.isProd)
   lazy val meetupSrv: MeetupSrv = wire[MeetupSrvImpl]
   lazy val slackClient: SlackClient = wire[SlackClient]
@@ -177,7 +174,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
   // end:Silhouette conf
 
-  lazy val authSrv: AuthSrv = AuthSrv(authConf, silhouette, userRepo, userRequestRepo, groupRepo, authRepo, clock, socialProviderRegistry, gravatarSrv)
+  lazy val authSrv: AuthSrv = AuthSrv(conf.auth, silhouette, userRepo, userRequestRepo, groupRepo, authRepo, clock, socialProviderRegistry, gravatarSrv)
 
   lazy val styleguideCtrl = wire[StyleguideCtrl]
   lazy val homeCtrl = wire[HomeCtrl]
@@ -213,10 +210,11 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
 
   def onStart(): Unit = {
-    db.checkEnv(envConf).unsafeRunSync()
-    if (envConf.isProd) {
+    val env = conf.application.env
+    db.checkEnv(env).unsafeRunSync()
+    if (env.isProd) {
       db.migrate().unsafeRunSync()
-    } else if (envConf.isDev) {
+    } else if (env.isDev) {
       db.migrate().unsafeRunSync()
     } else {
       db.dropTables().unsafeRunSync()

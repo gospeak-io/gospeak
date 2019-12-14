@@ -1,13 +1,13 @@
 package fr.gospeak.infra.libs.meetup
 
 import cats.effect.IO
-import fr.gospeak.infra.libs.meetup.MeetupClient.Conf
+import fr.gospeak.core.services.meetup.MeetupConf
 import fr.gospeak.infra.libs.meetup.MeetupJson._
 import fr.gospeak.infra.libs.meetup.domain._
 import fr.gospeak.infra.utils.HttpClient
 import fr.gospeak.infra.utils.HttpClient.Response
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Geo, Secret, Url}
+import fr.gospeak.libs.scalautils.domain.{Geo, Url}
 import io.circe.parser.decode
 import io.circe.{Decoder, Encoder}
 
@@ -18,7 +18,7 @@ import scala.util.{Failure, Try}
  *
  * `groupSlug` is `urlname` in API, this name change in parameters is for better clariry
  */
-class MeetupClient(conf: Conf, appBaseUrl: String, performWriteOps: Boolean) {
+class MeetupClient(conf: MeetupConf, appBaseUrl: String, performWriteOps: Boolean) {
   private val baseUrl = "https://api.meetup.com"
 
   def hasSecureCallback: Boolean = appBaseUrl.startsWith("https")
@@ -176,10 +176,4 @@ class MeetupClient(conf: Conf, appBaseUrl: String, performWriteOps: Boolean) {
     import io.circe.syntax._
     value.asJson.noSpaces
   }
-}
-
-object MeetupClient {
-
-  final case class Conf(key: String, secret: Secret)
-
 }

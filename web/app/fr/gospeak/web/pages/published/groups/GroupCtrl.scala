@@ -3,13 +3,13 @@ package fr.gospeak.web.pages.published.groups
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Comment, Event, Group, Proposal}
 import fr.gospeak.core.services.TemplateSrv
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Markdown, Page}
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, MessageBuilder}
 import fr.gospeak.web.emails.Emails
@@ -23,7 +23,7 @@ import scala.util.control.NonFatal
 
 class GroupCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
-                env: ApplicationConf.Env,
+                conf: AppConf,
                 userRepo: PublicUserRepo,
                 groupRepo: PublicGroupRepo,
                 cfpRepo: PublicCfpRepo,
@@ -34,7 +34,7 @@ class GroupCtrl(cc: ControllerComponents,
                 commentRepo: PublicCommentRepo,
                 emailSrv: EmailSrv,
                 builder: MessageBuilder,
-                templateSrv: TemplateSrv) extends UICtrl(cc, silhouette, env) with UICtrl.UserAction with UICtrl.UserAwareAction {
+                templateSrv: TemplateSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAction with UICtrl.UserAwareAction {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     for {
       groups <- groupRepo.list(params)

@@ -5,13 +5,13 @@ import cats.effect.IO
 import cats.implicits._
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
 import fr.gospeak.core.domain.utils.Constants
 import fr.gospeak.core.domain.{User, UserRequest}
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.libs.scalautils.domain.{CustomException, EmailAddress}
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.auth.services.AuthSrv
@@ -25,13 +25,12 @@ import scala.util.control.NonFatal
 
 class AuthCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
-               env: ApplicationConf.Env,
+               conf: AppConf,
                userRepo: AuthUserRepo,
                userRequestRepo: AuthUserRequestRepo,
                groupRepo: AuthGroupRepo,
                authSrv: AuthSrv,
-               emailSrv: EmailSrv,
-               envConf: ApplicationConf.Env) extends UICtrl(cc, silhouette, env) with UICtrl.Auth with UICtrl.UserAction with UICtrl.UserAwareAction {
+               emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.Auth with UICtrl.UserAction with UICtrl.UserAwareAction {
   def signup(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     loggedRedirect(IO.pure(Ok(html.signup(AuthForms.signup, redirect))), redirect)
   })
@@ -54,12 +53,12 @@ class AuthCtrl(cc: ControllerComponents,
   })
 
   def login(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
-    loggedRedirect(IO.pure(Ok(html.login(AuthForms.login, envConf, redirect, authSrv.providerIds))), redirect)
+    loggedRedirect(IO.pure(Ok(html.login(AuthForms.login, redirect, authSrv.providerIds))), redirect)
   })
 
   def doLogin(redirect: Option[String]): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
     AuthForms.login.bindFromRequest.fold(
-      formWithErrors => IO.pure(BadRequest(html.login(formWithErrors, envConf, redirect, authSrv.providerIds))),
+      formWithErrors => IO.pure(BadRequest(html.login(formWithErrors, redirect, authSrv.providerIds))),
       data => (for {
         user <- authSrv.getIdentity(data)
         (_, result) <- authSrv.login(user, data.rememberMe, loggedRedirect(redirect)(_))
@@ -68,10 +67,10 @@ class AuthCtrl(cc: ControllerComponents,
           s"""You need to validate your account by clicking on the email validation link
              |<a href="${routes.AuthCtrl.resendEmailValidationExt(data.email)}" class="btn btn-danger btn-xs">Resend validation email</a>
              |""".stripMargin
-        ), envConf, redirect, authSrv.providerIds))
-        case _: IdentityNotFoundException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), envConf, redirect, authSrv.providerIds))
-        case _: InvalidPasswordException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), envConf, redirect, authSrv.providerIds))
-        case NonFatal(e) => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), envConf, redirect, authSrv.providerIds))
+        ), redirect, authSrv.providerIds))
+        case _: IdentityNotFoundException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), redirect, authSrv.providerIds))
+        case _: InvalidPasswordException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), redirect, authSrv.providerIds))
+        case NonFatal(e) => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), redirect, authSrv.providerIds))
       }
     )
   })

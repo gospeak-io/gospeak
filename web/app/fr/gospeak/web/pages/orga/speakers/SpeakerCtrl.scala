@@ -2,10 +2,10 @@ package fr.gospeak.web.pages.orga.speakers
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.{OrgaEventRepo, OrgaGroupRepo, OrgaProposalRepo, OrgaUserRepo}
 import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.orga.GroupCtrl
@@ -15,11 +15,11 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class SpeakerCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
-                  env: ApplicationConf.Env,
+                  conf: AppConf,
                   userRepo: OrgaUserRepo,
                   val groupRepo: OrgaGroupRepo,
                   eventRepo: OrgaEventRepo,
-                  proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
+                  proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     userRepo.speakers(params).map(speakers => Ok(html.list(speakers)(listBreadcrumb)))
   })

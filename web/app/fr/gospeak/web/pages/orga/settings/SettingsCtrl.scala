@@ -3,7 +3,6 @@ package fr.gospeak.web.pages.orga.settings
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, User, UserRequest}
 import fr.gospeak.core.services.email.EmailSrv
@@ -13,6 +12,7 @@ import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackCredentials
 import fr.gospeak.core.services.storage.{GroupSettingsRepo, OrgaGroupRepo, OrgaUserRepo, OrgaUserRequestRepo}
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.emails.Emails
@@ -29,15 +29,14 @@ import scala.util.control.NonFatal
 
 class SettingsCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
-                   env: ApplicationConf.Env,
-                   appConf: ApplicationConf,
+                   conf: AppConf,
                    val groupRepo: OrgaGroupRepo,
                    groupSettingsRepo: GroupSettingsRepo,
                    userRepo: OrgaUserRepo,
                    userRequestRepo: OrgaUserRequestRepo,
                    emailSrv: EmailSrv,
                    meetupSrv: MeetupSrv,
-                   slackSrv: SlackSrv) extends UICtrl(cc, silhouette, env) with UICtrl.OrgaAction {
+                   slackSrv: SlackSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def settings(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     groupSettingsRepo.find.flatMap(settingsView(_))
   })
@@ -108,9 +107,9 @@ class SettingsCtrl(cc: ControllerComponents,
     req.getQueryString("code").map { code =>
       (for {
         settings <- groupSettingsRepo.find
-        token <- meetupSrv.requestAccessToken(redirectUri, code, appConf.aesKey)
-        loggedUser <- meetupSrv.getLoggedUser(appConf.aesKey)(token)
-        meetupGroupElt <- meetupSrv.getGroup(meetupGroup, appConf.aesKey)(token)
+        token <- meetupSrv.requestAccessToken(redirectUri, code, conf.application.aesKey)
+        loggedUser <- meetupSrv.getLoggedUser(conf.application.aesKey)(token)
+        meetupGroupElt <- meetupSrv.getGroup(meetupGroup, conf.application.aesKey)(token)
         creds = MeetupCredentials(token, loggedUser, meetupGroupElt)
         _ <- groupSettingsRepo.set(settings.set(creds))
         next = Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Connected to <b>${loggedUser.name}</b> meetup account")
@@ -128,9 +127,9 @@ class SettingsCtrl(cc: ControllerComponents,
   def updateSlackAccount(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
     for {
       settings <- groupSettingsRepo.find
-      res <- SettingsForms.slackAccount(appConf.aesKey).bindFromRequest.fold(
+      res <- SettingsForms.slackAccount(conf.application.aesKey).bindFromRequest.fold(
         formWithErrors => settingsView(settings, slack = Some(formWithErrors)),
-        creds => slackSrv.getInfos(creds.token, appConf.aesKey)
+        creds => slackSrv.getInfos(creds.token, conf.application.aesKey)
           .flatMap(_ => groupSettingsRepo.set(settings.set(creds)))
           .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> "Slack account updated"))
           .recover { case NonFatal(e) => Redirect(routes.SettingsCtrl.settings(group)).flashing("error" -> s"Invalid Slack token: ${e.getMessage}") }
@@ -219,7 +218,7 @@ class SettingsCtrl(cc: ControllerComponents,
       orgas,
       invites,
       meetup.getOrElse(settings.accounts.meetup.map(s => SettingsForms.meetupAccount.fill(MeetupAccount(s.group))).getOrElse(SettingsForms.meetupAccount)),
-      slack.getOrElse(settings.accounts.slack.map(s => SettingsForms.slackAccount(appConf.aesKey).fill(s)).getOrElse(SettingsForms.slackAccount(appConf.aesKey))),
+      slack.getOrElse(settings.accounts.slack.map(s => SettingsForms.slackAccount(conf.application.aesKey).fill(s)).getOrElse(SettingsForms.slackAccount(conf.application.aesKey))),
       GenericForm.invite
     )(listBreadcrumb))
   }

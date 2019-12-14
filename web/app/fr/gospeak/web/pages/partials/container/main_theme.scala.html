@@ -1,7 +1,8 @@
-@import fr.gospeak.core.ApplicationConf
-@(title: String, stylesheet: String, style: Html, script: Html, env: ApplicationConf.Env)(content: Html)
+@import fr.gospeak.web.utils.BasicReq
+
+@(title: String, stylesheet: String, style: Html, script: Html)(content: Html)(implicit req: BasicReq[AnyContent])
 <!doctype html>
-<html lang="en"@if(!env.isProd){ class="@env"}>
+<html lang="en"@if(!req.conf.application.env.isProd){ class="@req.conf.application.env"}>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -45,6 +46,6 @@
         <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/main.js")"></script>
         <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAyBrYxVFLX8Vl8ClH9wp-eNK_o2vzUBdA&libraries=places&language=en&callback=googleMapsInit" async defer></script>
         @script
-        @analytics(env)
+        @analytics()
     </body>
 </html>

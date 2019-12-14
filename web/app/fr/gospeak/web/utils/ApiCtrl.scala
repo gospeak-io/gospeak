@@ -4,18 +4,18 @@ import java.time.Instant
 
 import cats.data.OptionT
 import cats.effect.IO
-import fr.gospeak.core.ApplicationConf
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.utils.{PublicApiError, PublicApiResponse}
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc._
 
 import scala.util.control.NonFatal
 
-class ApiCtrl(cc: ControllerComponents, env: ApplicationConf.Env) extends AbstractController(cc) {
+class ApiCtrl(cc: ControllerComponents, conf: AppConf) extends AbstractController(cc) {
   protected def ActionIO[A](bodyParser: BodyParser[A])(block: BasicReq[A] => IO[Result]): Action[A] = Action(bodyParser).async { r =>
-    block(new BasicReq[A](r, messagesApi.preferred(r), Instant.now(), env))
+    block(new BasicReq[A](r, messagesApi.preferred(r), Instant.now(), conf))
       .recover { case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage))) }.unsafeToFuture()
   }
 

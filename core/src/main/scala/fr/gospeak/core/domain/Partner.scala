@@ -9,7 +9,7 @@ final case class Partner(id: Partner.Id,
                          name: Partner.Name,
                          notes: Markdown, // private infos for the group
                          description: Option[Markdown], // public description
-                         logo: Url,
+                         logo: Logo,
                          social: SocialAccounts,
                          info: Info) {
   def data: Partner.Data = Partner.Data(this)
@@ -38,7 +38,7 @@ object Partner {
 
     def name: Name = partner.name
 
-    def logo: Url = partner.logo
+    def logo: Logo = partner.logo
 
     def social: SocialAccounts = partner.social
   }
@@ -47,7 +47,7 @@ object Partner {
                         name: Partner.Name,
                         notes: Markdown,
                         description: Option[Markdown],
-                        logo: Url,
+                        logo: Logo,
                         social: SocialAccounts)
 
   object Data {
