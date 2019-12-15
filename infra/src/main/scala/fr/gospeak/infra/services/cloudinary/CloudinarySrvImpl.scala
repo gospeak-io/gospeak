@@ -30,9 +30,9 @@ object CloudinarySrvImpl {
   val groupSlackBotId = Some("slack-bot-avatar")
   val extCfpLogoId = Option.empty[String]
 
-  def userFolder(user: User): Option[String] = Some(s"users/${user.slug.value}/${user.id.value}")
+  def userFolder(user: User): Option[String] = Some(s"users/${user.slug.value}_${user.id.value}")
 
-  def groupFolder(group: Group): Option[String] = Some(s"groups/${group.slug.value}/${group.id.value}")
+  def groupFolder(group: Group): Option[String] = Some(s"groups/${group.slug.value}_${group.id.value}")
 
   def groupPartnerFolder(group: Group): Option[String] = groupFolder(group).map(_ + "/partners")
 

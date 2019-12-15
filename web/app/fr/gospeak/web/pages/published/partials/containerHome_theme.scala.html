@@ -1,3 +1,4 @@
+@import fr.gospeak.core.domain.utils.Constants.Image
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.container.html.{flash_theme, main_theme, navbarLink_theme, userDropdown_theme}
@@ -14,7 +15,7 @@
         <div id="logoAndNav" class="container">
             <nav class="js-mega-menu navbar navbar-expand-md u-header__navbar u-header__navbar--no-space">
                 <a class="navbar-brand u-header__navbar-brand u-header__navbar-brand-center" href="@HomeCtrl.index()" aria-label="Gospeak">
-                    <img class="img-fluid" src="@routes.Assets.versioned("lib/web/img/logos/gospeak-logo.svg")" alt="Gospeak logo">
+                    <img class="img-fluid" src="@Image.gospeakLogoText" alt="Gospeak logo">
                 </a>
 
                 <!-- Responsive Toggle Button -->
