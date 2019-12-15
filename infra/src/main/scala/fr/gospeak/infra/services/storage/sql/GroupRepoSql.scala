@@ -14,9 +14,12 @@ import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
+import fr.gospeak.libs.scalautils.domain.{Banner, CustomException, Done, Logo, Page, Tag}
+import org.slf4j.LoggerFactory
 
 class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with GroupRepo {
+  private val logger = LoggerFactory.getLogger(this.getClass)
+
   override def create(data: Group.Data)(implicit ctx: UserCtx): IO[Group] =
     insert(Group(data, NonEmptyList.of(ctx.user.id), ctx.info)).run(xa)
 
@@ -100,6 +103,19 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def findActiveMember(group: Group.Id, user: User.Id): IO[Option[Group.Member]] = selectOneActiveMember(group, user).runOption(xa)
 
   override def getStats(implicit ctx: OrgaCtx): IO[Group.Stats] = selectStats(ctx.group.slug).runUnique(xa)
+
+  // FIXME[cloudinary-migration]: to remove one image migration is done
+  def listAll(): IO[Seq[Group]] = tableSelect.select[Group]().runList(xa)
+
+  // FIXME[cloudinary-migration]: to remove one image migration is done
+  def editLogo(group: Group, logo: Logo): IO[Done] =
+    table.update(fr0"logo=$logo", fr0"WHERE g.id=${group.id}").run(xa)
+      .map { r => logger.info(s"[GROUP] update ${group.name.value} logo to ${logo.value}"); r }
+
+  // FIXME[cloudinary-migration]: to remove one image migration is done
+  def editBanner(group: Group, banner: Banner): IO[Done] =
+    table.update(fr0"banner=$banner", fr0"WHERE g.id=${group.id}").run(xa)
+      .map { r => logger.info(s"[GROUP] update ${group.name.value} banner to ${banner.value}"); r }
 }
 
 object GroupRepoSql {

@@ -15,9 +15,12 @@ import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page}
+import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Logo, Page}
+import org.slf4j.LoggerFactory
 
 class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with PartnerRepo {
+  private val logger = LoggerFactory.getLogger(this.getClass)
+
   override def create(data: Partner.Data)(implicit ctx: OrgaCtx): IO[Partner] =
     insert(Partner(ctx.group.id, data, ctx.info)).run(xa)
 
@@ -49,6 +52,14 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
   override def find(partner: Partner.Slug)(implicit ctx: OrgaCtx): IO[Option[Partner]] = selectOne(ctx.group.id, partner).runOption(xa)
 
   override def find(group: Group.Id, partner: Partner.Slug): IO[Option[Partner]] = selectOne(group, partner).runOption(xa)
+
+  // FIXME[cloudinary-migration]: to remove one image migration is done
+  def listAll(): IO[Seq[(Partner, Group)]] = tableWithGroup.select[(Partner, Group)]().runList(xa)
+
+  // FIXME[cloudinary-migration]: to remove one image migration is done
+  def editLogo(partner: Partner, logo: Logo): IO[Done] =
+    table.update(fr0"logo=$logo", fr0"WHERE pa.id=${partner.id}").run(xa)
+      .map { r => logger.info(s"[PARTNER] update ${partner.name.value} logo to ${logo.value}"); r }
 }
 
 object PartnerRepoSql {
@@ -62,6 +73,9 @@ object PartnerRepoSql {
     .aggregate("COALESCE(COUNT(DISTINCT s.id), 0)", "sponsorCount")
     .aggregate("COALESCE(COUNT(DISTINCT ct.id), 0)", "contactCount")
     .copy(fields = table.fields)
+  private val tableWithGroup = table
+    .join(Tables.groups, _.group_id -> _.id).get
+    .dropFields(_.name.startsWith("location_"))
 
   private[sql] def insert(e: Partner): Insert[Partner] = {
     val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.notes}, ${e.description}, ${e.logo}, " ++
