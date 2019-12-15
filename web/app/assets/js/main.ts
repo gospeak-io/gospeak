@@ -292,17 +292,23 @@ declare const cloudinary;
         const uploadPreset = $btn.attr('data-upload-preset');
         const folder = $btn.attr('data-folder');
         const name = $btn.attr('data-name');
-        const maxFiles = $btn.attr('data-max-files');
-        const ratio = $btn.attr('data-ratio');
+        const tagsStr = $btn.attr('data-tags');
+        const maxFilesStr = $btn.attr('data-max-files');
+        const ratioStr = $btn.attr('data-ratio');
+        const tags = tagsStr ? tagsStr.split(',') : undefined;
+        const maxFiles = maxFilesStr ? parseInt(maxFilesStr) : undefined;
+        const ratio = ratioStr ? parseFloat(ratioStr) : undefined;
 
-        const cloudinaryWidget = cloudinary.createUploadWidget({
+        // see https://cloudinary.com/documentation/upload_widget#upload_widget_options
+        const opts = {
             cloudName: cloudName,
             uploadPreset: uploadPreset,
             // upload params
             folder: folder,
             publicId: name,
+            tags: tags,
             resourceType: 'image',
-            clientAllowedFormats: ['png', 'jpg', 'jpeg', 'gif'],
+            clientAllowedFormats: ['png', 'jpg', 'jpeg', 'gif', 'svg'], // see https://cloudinary.com/documentation/image_transformations#supported_image_formats
             // format params
             multiple: maxFiles !== 1,
             maxFiles: maxFiles,
@@ -310,15 +316,19 @@ declare const cloudinary;
             croppingAspectRatio: ratio,
             showSkipCropButton: ratio !== undefined,
             croppingShowDimensions: ratio !== undefined,
-        }, (error, result) => {
-            if (!error && result && result.event === "success") {
-                $input.val(result.info.secure_url);
+        };
+
+        const cloudinaryWidget = cloudinary.createUploadWidget(opts, (error, result) => {
+            if (!error && result && result.event === 'success') {
+                $input.val(cloudinaryUrl(result.info, cloudName, ratio));
                 update($input, $preview);
             }
         });
 
         $btn.click(function (e) {
             e.preventDefault();
+            // update: needed as unsigned upload can't override, should use signed upload instead
+            cloudinaryWidget.update({publicId: `${name}-${Date.now()}`});
             cloudinaryWidget.open();
         });
     });
@@ -330,6 +340,17 @@ declare const cloudinary;
             $preview.attr('src', $input.val());
             $preview.show();
         }
+    }
+
+    function cloudinaryUrl(info, cloudName: string, ratio?: number): string {
+        let transformations = '';
+        if (info.coordinates && info.coordinates.custom && info.coordinates.custom.length === 1) {
+            const [x, y, width, height] = info.coordinates.custom[0];
+            transformations = `${transformations}/x_${x},y_${y},w_${width},h_${height},c_crop`;
+        } else if (ratio) {
+            transformations = `${transformations}/ar_${ratio},c_crop`;
+        }
+        return `https://res.cloudinary.com/${cloudName}/${info.resource_type}/${info.type}${transformations}/v${info.version}/${info.public_id}.${info.format}`;
     }
 })();
 

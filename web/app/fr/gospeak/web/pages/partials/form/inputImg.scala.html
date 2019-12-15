@@ -17,6 +17,7 @@
                 @uploadPreset.map { v => data-upload-preset="@v" }
                 data-folder="@conf.folder"
                 @conf.name.map { v => data-name="@v" }
+                @if(conf.tags.nonEmpty) { data-tags="@conf.tags.mkString(",")" }
                 @conf.maxFiles.map { v => data-max-files="@v" }
                 @conf.ratio.map { v => data-ratio="@v" }>Image upload</button>
             @inputHidden(field)
