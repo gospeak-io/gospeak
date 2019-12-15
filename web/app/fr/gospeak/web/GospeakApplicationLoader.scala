@@ -16,13 +16,17 @@ import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, Secure
 import com.softwaremill.macwire.wire
 import fr.gospeak.core.domain.utils.GospeakMessage
 import fr.gospeak.core.services._
+import fr.gospeak.core.services.cloudinary.CloudinarySrv
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.storage._
+import fr.gospeak.core.services.upload.UploadConf
 import fr.gospeak.core.{ApplicationConf, GospeakConf}
+import fr.gospeak.infra.libs.cloudinary.CloudinaryClient
 import fr.gospeak.infra.libs.meetup.MeetupClient
 import fr.gospeak.infra.libs.slack.SlackClient
+import fr.gospeak.infra.services.cloudinary.CloudinarySrvImpl
 import fr.gospeak.infra.services.email.EmailSrvFactory
 import fr.gospeak.infra.services.meetup.MeetupSrvImpl
 import fr.gospeak.infra.services.slack.SlackSrvImpl
@@ -73,6 +77,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
 
   lazy val appConf: ApplicationConf = conf.application
   lazy val dbConf: DatabaseConf = conf.database
+  lazy val uploadConf: UploadConf = conf.upload
   lazy val gsConf: GospeakConf = conf.gospeak
 
   lazy val db: GospeakDbSql = wire[GospeakDbSql]
@@ -98,6 +103,8 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val templateSrv: TemplateSrv = wire[TemplateSrvImpl]
   lazy val gravatarSrv: GravatarSrv = wire[GravatarSrv]
   lazy val emailSrv: EmailSrv = EmailSrvFactory.from(conf.email)
+  lazy val cloudinaryClient: CloudinaryClient = wire[CloudinaryClient]
+  lazy val cloudinarySrv: CloudinarySrv = wire[CloudinarySrvImpl]
   lazy val meetupClient: MeetupClient = new MeetupClient(conf.meetup, conf.application.baseUrl, conf.application.env.isProd)
   lazy val meetupSrv: MeetupSrv = wire[MeetupSrvImpl]
   lazy val slackClient: SlackClient = wire[SlackClient]
@@ -219,8 +226,9 @@ class GospeakComponents(context: ApplicationLoader.Context)
     } else {
       db.dropTables().unsafeRunSync()
       db.migrate().unsafeRunSync()
-      db.insertMockData(conf.gospeak).unsafeRunSync()
+      db.insertMockData().unsafeRunSync()
     }
+    // db.migrateImages().unsafeToFuture() // FIXME[cloudinary-migration] async to not block app startup, should be removed once executed
 
     messageBus.subscribe(messageHandler.handle)
 

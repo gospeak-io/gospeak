@@ -1,0 +1,19 @@
+{
+  "public_id": "test/test",
+  "version": 1576427381,
+  "signature": "406d0b0cda968d8f455d685513e2e21373e75f8d",
+  "width": 512,
+  "height": 512,
+  "format": "png",
+  "resource_type": "image",
+  "created_at": "2019-12-15T16:29:41Z",
+  "tags": [],
+  "bytes": 14944,
+  "type": "upload",
+  "etag": "7c0955edf9cec166a868bd0f37439be3",
+  "placeholder": false,
+  "url": "http://res.cloudinary.com/dev-gospeak/image/upload/v1576427381/test/test.png",
+  "secure_url": "https://res.cloudinary.com/dev-gospeak/image/upload/v1576427381/test/test.png",
+  "access_mode": "public",
+  "original_filename": "168728"
+}

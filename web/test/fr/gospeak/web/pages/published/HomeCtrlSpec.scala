@@ -5,7 +5,7 @@ import play.api.http.Status
 import play.api.test.Helpers._
 
 class HomeCtrlSpec extends CtrlSpec {
-  private val ctrl = new HomeCtrl(cc, silhouette, conf.application.env)
+  private val ctrl = new HomeCtrl(cc, silhouette, conf)
 
   describe("HomeCtrl") {
     it("should return 200") {

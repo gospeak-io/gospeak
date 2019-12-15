@@ -17,7 +17,7 @@
                 data-cloud-name="@cloudName"
                 @uploadPreset.map { v => data-upload-preset="@v" }
                 @creds.map { v => data-api-key="@v.key" data-sign-url="@UtilsCtrl.cloudinarySignature()" }
-                data-folder="@conf.folder"
+                @conf.folder.map { v => data-folder="@v" }
                 @conf.name.map { v => data-name="@v" }
                 @if(conf.tags.nonEmpty) { data-tags="@conf.tags.mkString(",")" }
                 @conf.maxFiles.map { v => data-max-files="@v" }

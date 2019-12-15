@@ -14,9 +14,14 @@ import com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry
 import com.mohiva.play.silhouette.test._
 import com.typesafe.config.ConfigFactory
 import fr.gospeak.core.domain.User
+import fr.gospeak.core.services.cloudinary.CloudinarySrv
+import fr.gospeak.core.services.storage.DatabaseConf
+import fr.gospeak.core.services.upload.UploadConf
 import fr.gospeak.core.testingutils.Generators._
+import fr.gospeak.infra.libs.cloudinary.CloudinaryClient
 import fr.gospeak.infra.services.storage.sql.GospeakDbSql
 import fr.gospeak.infra.services.GravatarSrv
+import fr.gospeak.infra.services.cloudinary.CloudinarySrvImpl
 import fr.gospeak.infra.services.email.InMemoryEmailSrv
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
@@ -55,7 +60,9 @@ object Values extends RandomDataGenerator {
 
   // app
   val conf: AppConf = AppConf.load(ConfigFactory.load()).get
-  val db: GospeakDbSql = new GospeakDbSql(DatabaseConf.H2(s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"), conf.gospeak)
+  private val dbConf = DatabaseConf.H2(s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1")
+  private val cloudinarySrv: CloudinarySrv = new CloudinarySrvImpl(new CloudinaryClient(UploadConf.Url()))
+  val db: GospeakDbSql = new GospeakDbSql(dbConf, conf.gospeak, cloudinarySrv)
   private val authRepo = new AuthRepo(db.user, db.group)
   val emailSrv = new InMemoryEmailSrv()
   val authSrv = AuthSrv(conf.auth, silhouette, db.user, db.userRequest, db.group, authRepo, clock, SocialProviderRegistry(Seq()), new GravatarSrv())
@@ -64,7 +71,7 @@ object Values extends RandomDataGenerator {
   private val req: Request[AnyContent] = CSRFTokenHelper.addCSRFToken(FakeRequest().withAuthenticator(identity.loginInfo)(env))
   private val authenticator: CookieAuthenticator = FakeAuthenticator(loginInfo)(env, req)
   private val r: SecuredRequest[CookieEnv, AnyContent] = SecuredRequest[CookieEnv, AnyContent](identity, authenticator, req)
-  val userReq: UserReq[AnyContent] = new UserReq[AnyContent](r.request, messagesApi.preferred(r), Instant.now(), conf.application.env, r, r.identity.user, r.identity.groups)
+  val userReq: UserReq[AnyContent] = new UserReq[AnyContent](r.request, messagesApi.preferred(r), Instant.now(), conf, r, r.identity.user, r.identity.groups)
   val userAwareReq: UserAwareReq[AnyContent] = userReq.userAware
   val b: Breadcrumb = Breadcrumb(Seq())
 }

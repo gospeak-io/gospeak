@@ -8,7 +8,7 @@ class GospeakDbSqlSpec extends RepoSpec {
   describe("GospeakDbSql") {
     describe("insertMockData") {
       it("should not fail") {
-        db.insertMockData(Values.gsConf).unsafeRunSync() shouldBe Done
+        db.insertMockData().unsafeRunSync() shouldBe Done
       }
     }
   }
