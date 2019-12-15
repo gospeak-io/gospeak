@@ -190,6 +190,7 @@ GET         /styleguide/answers/:id                                             
 GET         /styleguide/emails/:id                                                         fr.gospeak.web.pages.styleguide.StyleguideCtrl.emails(id: String)
 GET         /status                                                                        fr.gospeak.web.api.StatusCtrl.getStatus
 
+GET         /ui/integrations/cloudinary/signature                                          fr.gospeak.web.api.ui.UtilsCtrl.cloudinarySignature
 GET         /ui/validate/slack-token                                                       fr.gospeak.web.api.ui.UtilsCtrl.validateSlackToken(token: String)
 GET         /ui/cfps/duplicates                                                            fr.gospeak.web.api.ui.UtilsCtrl.duplicatesExtCfp(params: ExternalCfp.DuplicateParams ?= ExternalCfp.DuplicateParams.defaults)
 GET         /ui/utils/embed                                                                fr.gospeak.web.api.ui.UtilsCtrl.embed(url: Url)

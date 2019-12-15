@@ -29,6 +29,9 @@ object Crypto {
   def md5(message: String): String =
     MessageDigest.getInstance("MD5").digest(message.getBytes).map("%02x".format(_)).mkString
 
+  def sha1(message: String): String =
+    MessageDigest.getInstance("SHA1").digest(message.getBytes).map("%02x".format(_)).mkString
+
   def secureRandom(): Try[Double] = {
     Try(SecureRandom.getInstance("SHA1PRNG")).map { sr =>
       val seedByteCount = 10

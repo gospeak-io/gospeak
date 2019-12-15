@@ -22,6 +22,11 @@ class CryptoSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
         Crypto.md5("toto") shouldBe "f71dbe52628a3f83a77ab494817525c6"
       }
     }
+    describe("sha1") {
+      it("should compute a sha1") {
+        Crypto.sha1("toto") shouldBe "0b9c2625dc21ef05f6ad4ddf47c5f203837aa32c"
+      }
+    }
     describe("aes") {
       it("should generate random numbers") {
         val r1 = Crypto.secureRandom().get

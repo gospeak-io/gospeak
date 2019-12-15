@@ -1,5 +1,6 @@
 @import fr.gospeak.core.services.upload.UploadConf
 @import fr.gospeak.web.pages.partials.form.ImgConf
+@import fr.gospeak.web.api.ui.routes.UtilsCtrl
 @import fr.gospeak.web.utils.UserReq
 
 @(field: Field, conf: ImgConf)(implicit req: UserReq[AnyContent])
@@ -10,11 +11,12 @@
             <img class="preview" src="" style="height: 50px; margin-top: 5px; display: none;"/>
         </div>
     }
-    case UploadConf.Cloudinary(cloudName, uploadPreset) => {
+    case UploadConf.Cloudinary(cloudName, uploadPreset, creds) => {
         <div class="cloudinary-img-widget d-flex flex-row align-items-center">
             <button class="btn btn-primary"
                 data-cloud-name="@cloudName"
                 @uploadPreset.map { v => data-upload-preset="@v" }
+                @creds.map { v => data-api-key="@v.key" data-sign-url="@UtilsCtrl.cloudinarySignature()" }
                 data-folder="@conf.folder"
                 @conf.name.map { v => data-name="@v" }
                 @if(conf.tags.nonEmpty) { data-tags="@conf.tags.mkString(",")" }
