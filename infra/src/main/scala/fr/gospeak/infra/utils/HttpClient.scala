@@ -6,7 +6,6 @@ import cats.effect.IO
 import fr.gospeak.libs.scalautils.domain.CustomException
 import hammock.apache.ApacheInterpreter
 import hammock.{Encoder, Entity, Hammock, HttpResponse, InterpTrans, Method, Uri}
-import fr.gospeak.libs.scalautils.Extensions._
 
 object HttpClient {
 
@@ -16,7 +15,9 @@ object HttpClient {
 
   final case class Response(status: Int,
                             body: String,
-                            headers: Map[String, String])
+                            headers: Map[String, String]) {
+    def isOk: Boolean = 200 <= status && status < 400
+  }
 
   object Response {
     def from(res: HttpResponse): Response =

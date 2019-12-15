@@ -9,12 +9,14 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
 import fr.gospeak.core.domain.utils.TemplateData.EventInfo
 import fr.gospeak.core.domain.utils._
+import fr.gospeak.core.services.cloudinary.CloudinarySrv
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.core.services.storage.{DatabaseConf, GospeakDb}
 import fr.gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.infra.services.GravatarSrv
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.{DoobieUtils, FlywayUtils}
+import fr.gospeak.infra.utils.HttpClient
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.StringUtils
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
@@ -24,7 +26,10 @@ import fr.gospeak.libs.scalautils.domain._
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
-class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb {
+class GospeakDbSql(dbConf: DatabaseConf,
+                   gsConf: GospeakConf,
+                   cloudinarySrv: CloudinarySrv // FIXME[cloudinary-migration] to remove
+                  ) extends GospeakDb {
   private val flyway = FlywayUtils.build(dbConf)
   private[sql] val xa: doobie.Transactor[IO] = DoobieUtils.transactor(dbConf)
 
@@ -52,6 +57,20 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
 
   def dropTables(): IO[Done] = IO(flyway.clean()).map(_ => Done)
 
+  // FIXME[cloudinary-migration] to remove after migration
+  def migrateImages(): IO[Done] = {
+    val gravatarSrv = new GravatarSrv()
+    for {
+      users <- user.listAll()
+      (toImport, toReset) <- users
+        .filterNot(u => u.avatar.isCloudinary || u.avatar.isGravatar)
+        .map(u => HttpClient.get(u.avatar.value).map(r => (u, r))).sequence
+        .map(_.partition(_._2.isOk))
+      _ <- toReset.map { case (u, _) => user.editAvatar(u, gravatarSrv.getAvatar(u.email)) }.sequence
+      _ <- toImport.map { case (u, _) => cloudinarySrv.uploadAvatar(u).flatMap(user.editAvatar(u, _)) }.sequence
+    } yield Done
+  }
+
   override val user = new UserRepoSql(xa)
   override val talk = new TalkRepoSql(xa)
   override val group = new GroupRepoSql(xa)
@@ -68,7 +87,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
   override val externalCfp = new ExternalCfpRepoSql(xa)
   override val userRequest = new UserRequestRepoSql(xa, group, talk, proposal)
 
-  def insertMockData(conf: GospeakConf): IO[Done] = {
+  def insertMockData(): IO[Done] = {
     val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
     var n = Instant.now()
 
@@ -79,10 +98,10 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
 
     val gravatarSrv = new GravatarSrv()
 
-    def user(slug: String, email: String, firstName: String, lastName: String, status: User.Status = User.Status.Undefined, emailValidated: Option[Instant] = Some(now), emailValidationBeforeLogin: Boolean = false, bio: Option[Markdown] = None, company: Option[String] = None, location: Option[String] = None, phone: Option[String] = None, website: Option[Url] = None, social: SocialAccounts = SocialAccounts.fromUrls()): User = {
+    def user(slug: String, email: String, firstName: String, lastName: String, status: User.Status = User.Status.Undefined, emailValidated: Option[Instant] = Some(now), emailValidationBeforeLogin: Boolean = false, avatar: Option[String] = None, bio: Option[Markdown] = None, company: Option[String] = None, location: Option[String] = None, phone: Option[String] = None, website: Option[Url] = None, social: SocialAccounts = SocialAccounts.fromUrls()): User = {
       val emailAddr = EmailAddress.from(email).get
-      val avatar = gravatarSrv.getAvatar(emailAddr)
-      User(id = User.Id.generate(), slug = User.Slug.from(slug).get, status = status, firstName = firstName, lastName = lastName, email = emailAddr, emailValidated = emailValidated, emailValidationBeforeLogin = emailValidationBeforeLogin, avatar = avatar, bio = bio, company = company, location = location, phone = phone, website = website, social = social, createdAt = now, updatedAt = now)
+      val avatarObj = avatar.map(Url.from(_).get).map(Avatar).getOrElse(gravatarSrv.getAvatar(emailAddr))
+      User(id = User.Id.generate(), slug = User.Slug.from(slug).get, status = status, firstName = firstName, lastName = lastName, email = emailAddr, emailValidated = emailValidated, emailValidationBeforeLogin = emailValidationBeforeLogin, avatar = avatarObj, bio = bio, company = company, location = location, phone = phone, website = website, social = social, createdAt = now, updatedAt = now)
     }
 
     def group(slug: String, name: String, tags: Seq[String], by: User, location: Option[GMapPlace] = None, owners: Seq[User] = Seq(), social: SocialAccounts = SocialAccounts.fromUrls(), email: Option[String] = None): Group =
@@ -122,7 +141,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     def cfpExt(name: String, url: String, logo: Option[String] = None, begin: Option[String] = None, close: Option[String] = None, start: Option[String] = None, finish: Option[String] = None, eventUrl: Option[String] = None, address: Option[GMapPlace] = None, ticketsUrl: Option[String] = None, videosUrl: Option[String] = None, twitterAccount: Option[String] = None, twitterHashtag: Option[String] = None, tags: Seq[String] = Seq(), description: String = "", by: User): ExternalCfp =
       ExternalCfp(ExternalCfp.Id.generate(), ExternalCfp.Name(name), logo.map(Url.from(_).get).map(Logo), Markdown(description), begin.map(d => LocalDateTime.parse(d + "T00:00:00")), close.map(d => LocalDateTime.parse(d + "T00:00:00")), Url.from(url).get, ExternalCfp.Event(start.map(d => LocalDateTime.parse(d + "T00:00:00")), finish.map(d => LocalDateTime.parse(d + "T00:00:00")), eventUrl.map(Url.from(_).get), address, ticketsUrl.map(Url.from(_).get), videosUrl.map(Url.from(_).get), twitterAccount.map(a => Url.from("https://twitter.com/" + a).get).map(TwitterAccount), twitterHashtag.map(TwitterHashtag.from(_).get)), tags.map(Tag(_)), Info(by.id, now))
 
-    val groupDefaultSettings = conf.defaultGroupSettings
+    val groupDefaultSettings = gsConf.defaultGroupSettings
 
     val parisPlace = GMapPlace(
       id = "ChIJD7fiBh9u5kcRYJSMaMOCCwQ",
@@ -188,6 +207,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       firstName = "Demo",
       lastName = "User",
       status = User.Status.Public,
+      avatar = Some("https://image.flaticon.com/icons/png/512/168/168728.png"),
       bio = Some(Markdown("Entrepreneur, functional programmer, OSS contributor, speaker, author.\nWork hard, stay positive, and live fearlessly.")),
       company = Some("Zeenea"),
       location = Some("Paris"),
@@ -196,7 +216,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       social = social)
     val userSpeaker = user("speaker", "speaker@mail.com", "Speaker", "User")
     val userOrga = user("orga", "orga@mail.com", "Orga", "User")
-    val userEmpty = user("empty", "empty@mail.com", "Empty", "User", emailValidated = None)
+    val userEmpty = user("empty", "empty@mail.com", "Empty", "User", emailValidated = None, avatar = Some("https://broken.com/icon.png"))
     val lkn = user("exist", "exist@mail.com", "Exist", "User", emailValidated = None, emailValidationBeforeLogin = true)
     val users = Seq(userDemo, userSpeaker, userOrga, userEmpty, lkn)
 

@@ -25,7 +25,8 @@ import scala.concurrent.duration._
 
 class StyleguideCtrl(cc: ControllerComponents,
                      silhouette: Silhouette[CookieEnv],
-                     conf: AppConf) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAwareAction with UICtrl.UserAction {
+                     conf: AppConf,
+                     gravatarSrv: GravatarSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAwareAction with UICtrl.UserAction {
 
 
   private val now = Instant.now()
@@ -41,7 +42,7 @@ class StyleguideCtrl(cc: ControllerComponents,
     email = email,
     emailValidated = None,
     emailValidationBeforeLogin = false,
-    avatar = GravatarSrv.getAvatar(email),
+    avatar = gravatarSrv.getAvatar(email),
     bio = None,
     company = None,
     location = None,

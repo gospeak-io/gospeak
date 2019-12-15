@@ -6,13 +6,12 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.ExternalCfp
 import fr.gospeak.core.domain.utils.TemplateData
+import fr.gospeak.core.services.cloudinary.CloudinarySrv
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackToken
 import fr.gospeak.core.services.storage.PublicExternalCfpRepo
-import fr.gospeak.core.services.upload.UploadConf
 import fr.gospeak.core.services.{MarkdownSrv, TemplateSrv}
 import fr.gospeak.infra.services.{EmbedSrv, TemplateSrvImpl}
-import fr.gospeak.libs.scalautils.Crypto
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain.{Html, Markdown, Url}
@@ -40,6 +39,7 @@ class UtilsCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
                 conf: AppConf,
                 externalCfpRepo: PublicExternalCfpRepo,
+                cloudinarySrv: CloudinarySrv,
                 slackSrv: SlackSrv,
                 templateSrv: TemplateSrv,
                 markdownSrv: MarkdownSrv) extends ApiCtrl(cc, conf) {
@@ -52,15 +52,10 @@ class UtilsCtrl(cc: ControllerComponents,
 
 
   def cloudinarySignature(): Action[AnyContent] = SecuredActionIO { implicit req =>
-    IO.pure(conf.upload match {
-      case UploadConf.Cloudinary(_, _, Some(creds)) =>
-        val params = req.queryString
-          .flatMap { case (key, values) => values.headOption.map(value => (key, value)) }
-          .toList.sortBy(_._1)
-          .map { case (key, value) => s"$key=$value" }.mkString("&")
-        Ok(Crypto.sha1(params + creds.secret.decode))
-      case _: UploadConf.Cloudinary => BadRequest(Json.toJson(PublicApiError("No credentials defined for cloudinary")))
-      case _ => BadRequest(Json.toJson(PublicApiError("Cloudinary is not defined as upload service")))
+    val queryParams = req.queryString.flatMap { case (key, values) => values.headOption.map(value => (key, value)) }
+    IO.pure(cloudinarySrv.signRequest(queryParams) match {
+      case Right(signature) => Ok(signature)
+      case Left(error) => BadRequest(Json.toJson(PublicApiError(error)))
     })
   }
 
