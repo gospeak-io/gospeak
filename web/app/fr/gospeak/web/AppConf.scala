@@ -2,6 +2,7 @@ package fr.gospeak.web
 
 import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
 import com.typesafe.config.Config
+import fr.gospeak.core.domain.utils.Creds
 import fr.gospeak.core.services.email.EmailConf
 import fr.gospeak.core.services.meetup.MeetupConf
 import fr.gospeak.core.services.storage.DatabaseConf
@@ -44,6 +45,20 @@ object AppConf {
     import pureconfig.generic.semiauto._
 
     private implicit val secretReader: ConfigReader[Secret] = deriveReader[Secret]
+    private implicit val credsReader: ConfigReader[Creds] = deriveReader[Creds]
+    private implicit val credsOptReader: ConfigReader[Option[Creds]] = (cur: ConfigCursor) => {
+      if (cur.isUndefined) {
+        Right(None)
+      } else {
+        cur.asObjectCursor.flatMap { obj =>
+          if (obj.isEmpty) {
+            Right(None)
+          } else {
+            credsReader.from(obj).map(Some(_))
+          }
+        }
+      }
+    }
     private implicit val aesSecretKeyReader: ConfigReader[AesSecretKey] = (cur: ConfigCursor) => cur.asString.map(AesSecretKey)
 
     private implicit val applicationConfEnvReader: ConfigReader[ApplicationConf.Env] = (cur: ConfigCursor) => cur.asString.flatMap {

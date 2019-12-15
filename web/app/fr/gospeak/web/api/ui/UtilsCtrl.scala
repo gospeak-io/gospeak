@@ -9,8 +9,10 @@ import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackToken
 import fr.gospeak.core.services.storage.PublicExternalCfpRepo
+import fr.gospeak.core.services.upload.UploadConf
 import fr.gospeak.core.services.{MarkdownSrv, TemplateSrv}
 import fr.gospeak.infra.services.{EmbedSrv, TemplateSrvImpl}
+import fr.gospeak.libs.scalautils.Crypto
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain.{Html, Markdown, Url}
@@ -48,6 +50,19 @@ class UtilsCtrl(cc: ControllerComponents,
       .recover { case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage))) }.unsafeToFuture()
   }
 
+
+  def cloudinarySignature(): Action[AnyContent] = SecuredActionIO { implicit req =>
+    IO.pure(conf.upload match {
+      case UploadConf.Cloudinary(_, _, Some(creds)) =>
+        val params = req.queryString
+          .flatMap { case (key, values) => values.headOption.map(value => (key, value)) }
+          .toList.sortBy(_._1)
+          .map { case (key, value) => s"$key=$value" }.mkString("&")
+        Ok(Crypto.sha1(params + creds.secret.decode))
+      case _: UploadConf.Cloudinary => BadRequest(Json.toJson(PublicApiError("No credentials defined for cloudinary")))
+      case _ => BadRequest(Json.toJson(PublicApiError("Cloudinary is not defined as upload service")))
+    })
+  }
 
   def validateSlackToken(token: String): Action[AnyContent] = SecuredActionIO { implicit req =>
     SlackToken.from(token, conf.application.aesKey).toIO.flatMap(slackSrv.getInfos(_, conf.application.aesKey))

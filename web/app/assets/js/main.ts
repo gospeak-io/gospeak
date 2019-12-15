@@ -290,6 +290,8 @@ declare const cloudinary;
 
         const cloudName = $btn.attr('data-cloud-name');
         const uploadPreset = $btn.attr('data-upload-preset');
+        const apiKey = $btn.attr('data-api-key');
+        const signUrl = $btn.attr('data-sign-url');
         const folder = $btn.attr('data-folder');
         const name = $btn.attr('data-name');
         const tagsStr = $btn.attr('data-tags');
@@ -303,6 +305,8 @@ declare const cloudinary;
         const opts = {
             cloudName: cloudName,
             uploadPreset: uploadPreset,
+            apiKey: apiKey,
+            uploadSignature: apiKey ? generateSignature(signUrl) : undefined,
             // upload params
             folder: folder,
             publicId: name,
@@ -327,8 +331,10 @@ declare const cloudinary;
 
         $btn.click(function (e) {
             e.preventDefault();
-            // update: needed as unsigned upload can't override, should use signed upload instead
-            cloudinaryWidget.update({publicId: `${name}-${Date.now()}`});
+            if (!apiKey) {
+                // needed as unsigned upload can't override, use signed upload instead (add `creds` in app config, see UploadConf)
+                cloudinaryWidget.update({publicId: `${name}-${Date.now()}`});
+            }
             cloudinaryWidget.open();
         });
     });
@@ -351,6 +357,16 @@ declare const cloudinary;
             transformations = `${transformations}/ar_${ratio},c_crop`;
         }
         return `https://res.cloudinary.com/${cloudName}/${info.resource_type}/${info.type}${transformations}/v${info.version}/${info.public_id}.${info.format}`;
+    }
+
+    function generateSignature(signUrl: string) {
+        return (callback, params_to_sign) => $.ajax({
+            url: signUrl,
+            type: 'GET',
+            dataType: 'text',
+            data: params_to_sign,
+            success: callback
+        });
     }
 })();
 
