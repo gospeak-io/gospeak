@@ -1,3 +1,4 @@
+@import fr.gospeak.core.domain.utils.Constants.Image
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
@@ -11,7 +12,6 @@
 @import fr.gospeak.web.pages.published.routes.HomeCtrl
 @import fr.gospeak.web.pages.published.cfps.routes.{CfpCtrl => PublicCfpCtrl}
 @import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
-@import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.pages.partials.container.html._
 @import fr.gospeak.web.pages.partials.form.html.formBtn
 @import fr.gospeak.web.utils.OrgaReq
@@ -24,7 +24,7 @@
                 <nav class="js-mega-menu navbar navbar-expand-md u-header__navbar u-header__navbar--no-space">
                     <!-- Logo -->
                     <a class="navbar-brand u-header__navbar-brand u-header__navbar-brand-center" href="@HomeCtrl.index()" aria-label="Gospeak">
-                        <img class="img-fluid" src="@routes.Assets.versioned("lib/web/img/logos/gospeak-logo.svg")" alt="Gospeak logo">
+                        <img class="img-fluid" src="@Image.gospeakLogoText" alt="Gospeak logo">
                     </a>
                     <!-- End Logo -->
 
@@ -78,7 +78,7 @@
                             <div class="text-center mx-auto mb-3">
                                 <span class="position-relative">
                                     <a href="@GroupCtrl.detail(req.group.slug)">
-                                        <img class="img-fluid rounded-circle" src="@req.group.logo.map(_.url.value).getOrElse(routes.Assets.versioned("lib/web/img/placeholders/group-logo.png"))" alt="@req.group.name.value logo" width="100">
+                                        <img class="img-fluid rounded-circle" src="@req.group.logo.map(_.url.value).getOrElse(Image.placeholderGroupLogo)" alt="@req.group.name.value logo" width="100">
                                     </a>
                                     <span class="badge badge-light badge-pos rounded-circle p-2">
                                         <div class="nav-item dropdown">
