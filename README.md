@@ -40,10 +40,6 @@ If you enconter a Metaspace error, try to give `sbt` more memory using: `sbt -me
 
 - run coverage: `sbt clean coverage test coverageReport coverageAggregate && xdg-open target/scala-2.12/scoverage-report/index.html`
 
-### Architecture
-
-TODO
-
 ## Notes
 
 - https://github.com/DavidGregory084/sbt-tpolecat
