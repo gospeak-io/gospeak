@@ -75,7 +75,7 @@ val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib f
   "org.webjars.npm" % "typeahead.js-bootstrap4-css" % "1.0.0",
   "org.webjars.npm" % "mousetrap" % "1.6.3")
 val logback = Seq(
-  "org.slf4j" % "slf4j-api" % "1.7.29",
+  "org.slf4j" % "slf4j-api" % "1.7.30",
   "ch.qos.logback" % "logback-classic" % "1.2.3")
 val scalaTest = Seq(
   "org.scalatest" %% "scalatest" % "3.0.8").map(_ % Test)
