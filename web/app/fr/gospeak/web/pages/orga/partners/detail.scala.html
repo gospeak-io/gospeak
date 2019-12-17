@@ -51,7 +51,7 @@
             </h5>
             <div class="list-group list-group-flush">
             @venues.map { venue =>
-                <div class="list-group-item p-2 d-flex justify-content-between align-items-center">
+                <div class="list-group-item d-flex justify-content-between align-items-center px-3">
                     <div>
                         @if(venue.notes.nonEmpty) {
                             <span data-toggle="html-popover" data-placement="top" data-trigger="hover">
@@ -116,7 +116,7 @@
             </h5>
             <div class="list-group list-group-flush">
             @sponsors.map { sponsor =>
-                <span class="list-group-item d-flex justify-content-between align-items-center p-2">
+                <span class="list-group-item d-flex justify-content-between align-items-center px-3">
                     <span>
                         @if(sponsor.isCurrent(req.now)) {
                             <b><a href="@SponsorCtrl.detail(req.group.slug, sponsor.pack.slug)">@sponsor.pack.name.value pack</a></b>
@@ -127,12 +127,12 @@
                         from @Formats.date(sponsor.start) to @Formats.date(sponsor.finish)
                         @sponsor.paid.map { p => (@sponsor.price.value paid on @Formats.date(p)) }.getOrElse {(@sponsor.price.value, not paid)}
                     </span>
-                    <span class="d-flex">
+                    <span>
                         @if(sponsor.paid.isEmpty) {
                             @formBtn(SponsorCtrl.paid(req.group.slug, sponsor.id), Seq("class" -> "btn-primary btn-xs", "confirm" -> "Mark this sponsoring as paid ?")) {Mark as paid}
                         }
                         @formBtn(SponsorCtrl.remove(req.group.slug, sponsor.id), Seq("class" -> "btn-danger btn-xs", "confirm" -> "Remove this sponsoring ?")) {<i class="fas fa-trash"></i>}
-                        <a href="@SponsorCtrl.edit(req.group.slug, sponsor.id, Some(partner.slug))" class="btn btn-primary btn-xs mx-1"><i class="fas fa-edit"></i></a>
+                        <a href="@SponsorCtrl.edit(req.group.slug, sponsor.id, Some(partner.slug))" class="btn btn-primary btn-xs"><i class="fas fa-edit"></i></a>
                     </span>
                 </span>
             }
@@ -153,9 +153,9 @@
                 <span>@Formats.plural(contacts.length, "contact") for @partner.name.value</span>
                 <a class="btn btn-primary btn-xs" href="@PartnerCtrl.createContact(req.group.slug, partner.slug)">Create a contact</a>
             </h5>
-            <div class="list-group list-group-flush p-2">
+            <div class="list-group list-group-flush">
                 @contacts.map { contact =>
-                    <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-3">
                         <div>
                             @if(contact.notes.isEmpty) {
                                 @contact.name.value
@@ -191,7 +191,7 @@
             <h5 class="card-header">Hosted @Formats.plural(events.length, "event")</h5>
             <div class="list-group list-group-flush">
             @events.map { case (event, venue) =>
-                <span class="list-group-item p-2">
+                <span class="list-group-item px-3">
                     <a href="@EventCtrl.detail(req.group.slug, event.slug)">@event.name.value</a> at
                     @venue.address.value
                 </span>
