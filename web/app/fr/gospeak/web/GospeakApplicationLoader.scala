@@ -223,12 +223,12 @@ class GospeakComponents(context: ApplicationLoader.Context)
       db.migrate().unsafeRunSync()
     } else if (env.isDev) {
       db.migrate().unsafeRunSync()
+      db.migrateImages().unsafeToFuture() // FIXME[cloudinary-migration] async to not block app startup, should be removed once executed
     } else {
       db.dropTables().unsafeRunSync()
       db.migrate().unsafeRunSync()
       db.insertMockData().unsafeRunSync()
     }
-    // db.migrateImages().unsafeToFuture() // FIXME[cloudinary-migration] async to not block app startup, should be removed once executed
 
     messageBus.subscribe(messageHandler.handle)
 
