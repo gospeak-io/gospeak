@@ -1,3 +1,6 @@
+ALTER TABLE proposals
+    ADD COLUMN orga_tags VARCHAR(150) NOT NULL DEFAULT '';
+
 ALTER TABLE groups
     ADD COLUMN location_id VARCHAR(150);
 ALTER TABLE external_cfps
