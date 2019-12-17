@@ -28,3 +28,21 @@ a.no-style,
   color: inherit;
   font-size: inherit;
 }
+
+.avatar {
+  height: 31px;
+  min-width: 31px;
+  border-radius: 0.25em;
+}
+
+.avatar.avatar-list {
+  height: 70px;
+  min-width: 71px;
+  border-radius: 50%;
+}
+
+.card .avatar-lg {
+  max-width: 200px;
+  width: 100%;
+  border-radius: 50%;
+}
