@@ -7,6 +7,7 @@
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.orga.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
 @import fr.gospeak.web.pages.partials.display.html.emailLink
@@ -32,16 +33,27 @@
 }
 }
 @requestUser(id: User.Id) = {
-    @requestUsers.find(_.id == id).map { u => <b>@u.name.value</b> (@Html(emailLink(u.email).body.trim)) }.getOrElse { <b>Unknown user @id.value</b> }
+    @requestUsers.find(_.id == id).map { u => <a href="mailto:@u.email.value">@u.name.value</a> }.getOrElse { <b>Unknown user @id.value</b> }
 }
 @container_theme(req.group.name.value + " - Gospeak", b)() {
     @requests.map {
         case r: UserRequest.UserAskToJoinAGroupRequest => {
             <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert">
-                <p class="mb-0">@requestUser(r.createdBy) wants to join the <b>@req.group.name.value</b> group</p>
+                <p class="mb-0"><b>@requestUser(r.createdBy)</b> wants to join this group</p>
                 <span>
-                    @formBtn(GroupCtrl.acceptJoin(req.group.slug, r.id), Seq("class" -> "btn-sm btn-success")){Accept}
-                    @formBtn(GroupCtrl.rejectJoin(req.group.slug, r.id), Seq("class" -> "btn-sm btn-danger")){Reject}
+                    @formBtn(GroupCtrl.acceptJoin(req.group.slug, r.id), Seq("class" -> "btn-success btn-sm")){Accept}
+                    @formBtn(GroupCtrl.rejectJoin(req.group.slug, r.id), Seq("class" -> "btn-danger btn-sm")){Reject}
+                </span>
+            </div>
+        }
+        case r: UserRequest.GroupInvite => {
+            <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert">
+                <p class="mb-0"><b>@r.email.value</b> has been invited by @requestUser(r.createdBy) to join this group</p>
+                <span>
+                    @formBtn(SettingsCtrl.cancelInviteOrga(req.group.slug, r.id), Seq(
+                        "class" -> "btn-danger btn-sm",
+                        "title" -> "Cancel this invite",
+                        "confirm" -> s"Cancel group invite for ${r.email.value}?")) {Cancel}
                 </span>
             </div>
         }

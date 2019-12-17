@@ -189,10 +189,12 @@ class SettingsCtrl(cc: ControllerComponents,
   })
 
   def cancelInviteOrga(group: Group.Slug, request: UserRequest.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+
     for {
       invite <- userRequestRepo.cancelGroupInvite(request)
       _ <- emailSrv.send(Emails.inviteOrgaToGroupCanceled(invite))
-    } yield Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Invitation to <b>${invite.email.value}</b> has been canceled")
+      next = redirectToPreviousPageOr(routes.SettingsCtrl.settings(group))
+    } yield next.flashing("success" -> s"Invitation to <b>${invite.email.value}</b> has been canceled")
   })
 
   def doRemoveOrga(group: Group.Slug, orga: User.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
