@@ -4,6 +4,7 @@ import java.time.Instant
 import java.util.UUID
 
 import akka.stream.Materializer
+import akka.stream.testkit.NoMaterializer
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import com.mohiva.play.silhouette.api.actions._
 import com.mohiva.play.silhouette.api.util.Clock
@@ -25,7 +26,7 @@ import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.utils.{UserAwareReq, UserReq}
 import play.api.mvc._
 import play.api.test.CSRFTokenHelper._
-import play.api.test.{CSRFTokenHelper, FakeRequest, Helpers, NoMaterializer}
+import play.api.test.{CSRFTokenHelper, FakeRequest, Helpers}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

@@ -1,6 +1,7 @@
 package fr.gospeak.web.testingutils
 
 import akka.stream.Materializer
+import akka.stream.testkit.NoMaterializer
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.infra.libs.timeshape.TimeShape
 import fr.gospeak.infra.services.email.InMemoryEmailSrv
@@ -10,7 +11,6 @@ import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.AuthSrv
 import org.scalatest.{FunSpec, Matchers}
 import play.api.mvc._
-import play.api.test.NoMaterializer
 
 trait CtrlSpec extends FunSpec with Matchers {
   // play
