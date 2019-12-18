@@ -70,7 +70,7 @@ class GospeakDbSql(dbConf: DatabaseConf,
         .map { case (c, l) => HttpClient.get(l.value).map(r => (c, l, r)) }.sequence
         .map(_.partition(_._3.isOk))
       _ = cfpsToReset.foreach { case (c, _, _) => logger.warn(s"Can't reset external cfp ${c.name.value} (${c.id.value})") }
-      _ <- cfpsToImport.map { case (c, l, _) => cloudinarySrv.uploadExternalCfpLogo(l).flatMap(externalCfp.editLogo(c, _)) }.sequence
+      _ <- cfpsToImport.map { case (c, l, _) => cloudinarySrv.uploadExternalCfpLogo(c, l).flatMap(externalCfp.editLogo(c, _)) }.sequence
       _ = logger.info(s"imported ${cfpsToImport.length} cfps")
 
       users <- user.listAll()

@@ -1,7 +1,7 @@
 package fr.gospeak.infra.services.cloudinary
 
 import cats.effect.IO
-import fr.gospeak.core.domain.{Group, Partner, User}
+import fr.gospeak.core.domain.{ExternalCfp, Group, Partner, User}
 import fr.gospeak.core.services.cloudinary.CloudinarySrv
 import fr.gospeak.infra.libs.cloudinary.CloudinaryClient
 import fr.gospeak.infra.libs.cloudinary.domain.CloudinaryUploadRequest
@@ -15,17 +15,17 @@ class CloudinarySrvImpl(client: CloudinaryClient) extends CloudinarySrv {
     client.upload(CloudinaryUploadRequest(
       file = user.avatar.value,
       folder = CloudinarySrvImpl.userFolder(user),
-      publicId = CloudinarySrvImpl.userAvatarId
+      publicId = CloudinarySrvImpl.userAvatarFile
     )).flatMap(_.toIO(new IllegalStateException(_)))
       .flatMap(_.toUrl.toIO)
       .map(_.transform(Seq("ar_1", "c_crop")).toUrl).map(Avatar)
   }
 
-  override def uploadExternalCfpLogo(logo: Logo): IO[Logo] = {
+  override def uploadExternalCfpLogo(cfp: ExternalCfp, logo: Logo): IO[Logo] = {
     client.upload(CloudinaryUploadRequest(
       file = logo.value,
       folder = CloudinarySrvImpl.extCfpFolder(),
-      publicId = CloudinarySrvImpl.extCfpLogoId
+      publicId = CloudinarySrvImpl.extCfpLogoFile(Some(cfp.name.value))
     )).flatMap(_.toIO(new IllegalStateException(_)))
       .flatMap(_.toUrl.toIO)
       .map(_.transform(Seq("ar_1", "c_crop")).toUrl).map(Logo)
@@ -35,7 +35,7 @@ class CloudinarySrvImpl(client: CloudinaryClient) extends CloudinarySrv {
     client.upload(CloudinaryUploadRequest(
       file = logo.value,
       folder = CloudinarySrvImpl.groupFolder(group),
-      publicId = CloudinarySrvImpl.groupLogoId
+      publicId = CloudinarySrvImpl.groupLogoFile
     )).flatMap(_.toIO(new IllegalStateException(_)))
       .flatMap(_.toUrl.toIO)
       .map(_.transform(Seq("ar_1", "c_crop")).toUrl).map(Logo)
@@ -45,7 +45,7 @@ class CloudinarySrvImpl(client: CloudinaryClient) extends CloudinarySrv {
     client.upload(CloudinaryUploadRequest(
       file = banner.value,
       folder = CloudinarySrvImpl.groupFolder(group),
-      publicId = CloudinarySrvImpl.groupBannerId
+      publicId = CloudinarySrvImpl.groupBannerFile
     )).flatMap(_.toIO(new IllegalStateException(_)))
       .flatMap(_.toUrl.toIO)
       .map(_.transform(Seq("ar_3", "c_crop")).toUrl).map(Banner)
@@ -55,7 +55,7 @@ class CloudinarySrvImpl(client: CloudinaryClient) extends CloudinarySrv {
     client.upload(CloudinaryUploadRequest(
       file = partner.logo.value,
       folder = CloudinarySrvImpl.groupPartnerFolder(group),
-      publicId = CloudinarySrvImpl.groupPartnerId
+      publicId = CloudinarySrvImpl.groupPartnerFile(Some(partner.slug.value))
     )).flatMap(_.toIO(new IllegalStateException(_)))
       .flatMap(_.toUrl.toIO)
       .map(_.transform(Seq("ar_1", "c_crop")).toUrl).map(Logo)
@@ -63,12 +63,18 @@ class CloudinarySrvImpl(client: CloudinaryClient) extends CloudinarySrv {
 }
 
 object CloudinarySrvImpl {
-  val userAvatarId = Some("avatar")
-  val groupLogoId = Some("logo")
-  val groupBannerId = Some("banner")
-  val groupPartnerId = Option.empty[String]
-  val groupSlackBotId = Some("slack-bot-avatar")
-  val extCfpLogoId = Option.empty[String]
+  def userAvatarFile = Some("avatar")
+
+  def groupLogoFile = Some("logo")
+
+  def groupBannerFile = Some("banner")
+
+  def groupPartnerFile(slug: Option[String]): Option[String] = slug.filter(_.nonEmpty)
+
+  def groupSlackBotFile = Some("slack-bot-avatar")
+
+  def extCfpLogoFile(name: Option[String]): Option[String] = name.filter(_.nonEmpty)
+
 
   def userFolder(user: User): Option[String] = Some(s"users/${user.slug.value}_${user.id.value}")
 

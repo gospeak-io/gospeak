@@ -17,6 +17,6 @@
     @inputMarkdown(field, args)
 }
 @fieldHorizontal(form("logo"), Seq("label" -> "Logo")) { (field, args) =>
-    @inputImg(field, ImgConf.partnerLogo())
+    @inputImg(field, ImgConf.partnerLogo(form("slug").value))
 }
 @socialAccountsFields(form("social"))

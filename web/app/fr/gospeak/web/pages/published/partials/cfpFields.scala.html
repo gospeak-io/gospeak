@@ -21,7 +21,7 @@
             </div>
         }
         @fieldHorizontal(form("logo"), Seq("label" -> "Logo")) { (field, args) =>
-            @inputImg(field, ImgConf.externalCfpLogo())
+            @inputImg(field, ImgConf.externalCfpLogo(form("name").value))
         }
         @fieldHorizontal(form("tags"), Seq("label" -> "Tags")) { (field, args) =>
             @inputTags(field, Seq("remote" -> SuggestCtrl.suggestTags().toString, "placeholder" -> "Main topics of this CFP or conference") ++ args)

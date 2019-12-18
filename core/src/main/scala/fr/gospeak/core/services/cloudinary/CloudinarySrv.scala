@@ -1,7 +1,7 @@
 package fr.gospeak.core.services.cloudinary
 
 import cats.effect.IO
-import fr.gospeak.core.domain.{Group, Partner, User}
+import fr.gospeak.core.domain.{ExternalCfp, Group, Partner, User}
 import fr.gospeak.libs.scalautils.domain.{Avatar, Banner, Logo}
 
 trait CloudinarySrv {
@@ -9,7 +9,7 @@ trait CloudinarySrv {
 
   def uploadAvatar(user: User): IO[Avatar]
 
-  def uploadExternalCfpLogo(logo: Logo): IO[Logo]
+  def uploadExternalCfpLogo(cfp: ExternalCfp, logo: Logo): IO[Logo]
 
   def uploadGroupLogo(group: Group, logo: Logo): IO[Logo]
 
