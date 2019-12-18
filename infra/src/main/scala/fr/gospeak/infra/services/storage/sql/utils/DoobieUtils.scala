@@ -329,12 +329,6 @@ object DoobieUtils {
 
     import scala.reflect.runtime.universe._
 
-    // FIX doobie bug: https://github.com/tpolecat/doobie/issues/633
-    // TODO to remove on doobie upgrade
-    implicit val instantMeta: Meta[Instant] =  Meta[Timestamp].imap(
-      t => t.toLocalDateTime.atZone(ZoneOffset.UTC).toInstant)(
-      i => Timestamp.valueOf(LocalDateTime.ofInstant(i, ZoneOffset.UTC)))
-
     implicit val envMeta: Meta[ApplicationConf.Env] = Meta[String].timap(ApplicationConf.Env.from(_).get)(_.value)
     implicit val timePeriodMeta: Meta[TimePeriod] = Meta[String].timap(TimePeriod.from(_).get)(_.value)
     implicit val finiteDurationMeta: Meta[FiniteDuration] = Meta[Long].timap(Duration.fromNanos)(_.toNanos)
