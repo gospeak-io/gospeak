@@ -88,9 +88,9 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
   def listAll(): IO[Seq[User]] = table.select[User]().runList(xa)
 
   // FIXME[cloudinary-migration]: to remove one image migration is done
-  def editAvatar(user: User, avatar: Avatar): IO[Done] =
+  def editAvatar(index: Int, user: User, avatar: Avatar): IO[Done] =
     table.update(fr0"avatar=${avatar.url}", fr0"WHERE u.id=${user.id}").run(xa)
-      .map { r => logger.info(s"[USER] update ${user.name.value} avatar to ${avatar.value}"); r }
+      .map { r => logger.info(s"[USER $index] ${user.name.value} avatar updated to ${avatar.value}"); r }
 }
 
 object UserRepoSql {

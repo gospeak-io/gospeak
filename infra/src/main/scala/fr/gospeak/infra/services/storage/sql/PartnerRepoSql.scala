@@ -57,9 +57,9 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
   def listAll(): IO[Seq[(Partner, Group)]] = tableWithGroup.select[(Partner, Group)]().runList(xa)
 
   // FIXME[cloudinary-migration]: to remove one image migration is done
-  def editLogo(partner: Partner, logo: Logo): IO[Done] =
+  def editLogo(index: Int, partner: Partner, logo: Logo): IO[Done] =
     table.update(fr0"logo=$logo", fr0"WHERE pa.id=${partner.id}").run(xa)
-      .map { r => logger.info(s"[PARTNER] update ${partner.name.value} logo to ${logo.value}"); r }
+      .map { r => logger.info(s"[PARTNER $index] ${partner.name.value} updated to ${logo.value}"); r }
 }
 
 object PartnerRepoSql {

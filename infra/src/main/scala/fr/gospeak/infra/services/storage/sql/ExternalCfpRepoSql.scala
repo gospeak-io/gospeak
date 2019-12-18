@@ -35,9 +35,9 @@ class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
   def listAll(): IO[Seq[ExternalCfp]] = tableSelect.select[ExternalCfp]().runList(xa)
 
   // FIXME[cloudinary-migration]: to remove one image migration is done
-  def editLogo(cfp: ExternalCfp, logo: Logo): IO[Done] =
+  def editLogo(index: Int, cfp: ExternalCfp, logo: Logo): IO[Done] =
     table.update(fr0"logo=$logo", fr0"WHERE ec.id=${cfp.id}").run(xa)
-      .map { r => logger.info(s"[CFP] update ${cfp.name.value} logo to ${logo.value}"); r }
+      .map { r => logger.info(s"[CFP $index] ${cfp.name.value} logo updated to ${logo.value}"); r }
 }
 
 object ExternalCfpRepoSql {

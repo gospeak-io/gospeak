@@ -20,6 +20,6 @@ final case class CloudinaryUploadResponse(public_id: String,
                                           url: String,
                                           secure_url: String,
                                           access_mode: String,
-                                          original_filename: String) {
+                                          original_filename: Option[String]) {
   def toUrl: Try[Image.CloudinaryUrl] = Image.CloudinaryUrl.parse(secure_url)
 }
