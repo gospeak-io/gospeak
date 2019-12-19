@@ -3,10 +3,13 @@ package gospeak.web.pages.user.talks
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import gospeak.core.domain.Performance
 import gospeak.core.domain.utils.UserCtx
 import gospeak.core.domain.{Talk, User, UserRequest}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Page, Slides, Video}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb
@@ -15,8 +18,6 @@ import gospeak.web.pages.user.UserCtrl
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import gospeak.web.pages.user.talks.TalkCtrl._
 import gospeak.web.utils.{GenericForm, UICtrl, UserReq}
-import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Page, Slides, Video}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -152,6 +153,27 @@ class TalkCtrl(cc: ControllerComponents,
 
   def changeStatus(talk: Talk.Slug, status: Talk.Status): Action[AnyContent] = UserAction { implicit req =>
     talkRepo.editStatus(talk, status).map(_ => Redirect(routes.TalkCtrl.detail(talk)))
+  }
+
+  def addPerformance(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
+    addPerformanceView(talk, TalkForms.createPerformance)
+  }
+
+  def doAddPerformance(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
+    TalkForms.createPerformance.bindFromRequest.fold(
+      formWithErrors => addPerformanceView(talk, formWithErrors),
+      data => {
+        println(data)
+        IO.pure(Redirect(routes.TalkCtrl.detail(talk)))
+      }
+    )
+  }
+
+  def addPerformanceView(talk: Talk.Slug, form: Form[Performance.Data])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
+    (for {
+      talkElt <- OptionT(talkRepo.find(talk))
+      res = Ok(html.createPerformance(talkElt, form)(breadcrumb(talkElt).add("New Performance" -> routes.TalkCtrl.addPerformance(talk))))
+    } yield res).value.map(_.getOrElse(talkNotFound(talk)))
   }
 }
 

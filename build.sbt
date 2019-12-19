@@ -1,6 +1,6 @@
 ThisBuild / version := "0.1-SNAPSHOT"
 ThisBuild / scalaVersion := "2.12.10"
-ThisBuild / organization := "fr.gospeak"
+ThisBuild / organization := "gospeak"
 
 ThisBuild / fork := true
 ThisBuild / javaOptions += "-Xmx1G"
