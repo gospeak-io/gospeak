@@ -80,15 +80,15 @@ object TemplateData {
       """.stripMargin)
     private val host = "https://gospeak.io"
     private val dateTime = date(LocalDateTime.of(2019, 9, 10, 19, 0, 0))
-    private val user = User("john-doe", "John Doe", "John", "Doe", s"https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=${Constants.gravatarStyle}", "john.doe@mail.com")
+    private val user = User("john-doe", "John Doe", "John", "Doe", "https://api.adorable.io/avatars/john-doe.png", "john.doe@mail.com")
     private val group = Group(s"$host/u/groups/humantalks-paris", Some(s"$host/groups/humantalks-paris"), "humantalks-paris", "HumanTalks Paris", description, Seq("tech"))
     private val cfp = Cfp(s"${group.link}/cfps/humantalks-paris", Some(s"$host/cfps/humantalks-paris"), "humantalks-paris", "HumanTalks Paris", description, Seq("tech"))
     private val event = Event(s"${group.link}/events/2019-09", group.publicLink.map(l => s"$l/events/2019-09"), "2019-09", "HumanTalks Paris Septembre", description, dateTime, Seq("IOT", "UX", "Clean Code"))
     private val proposal1 = Proposal(s"${cfp.link}/proposals/28f26543-1ab8-4749-b0ac-786d1bd76888", "The Scala revolution", description, None, None, Seq("scala", "fp"))
     private val proposal2 = Proposal(s"${cfp.link}/proposals/28f26543-1ab8-4749-b0ac-786d1bd76666", "Public speaking for everyone", description, None, None, Seq("social", "marketing"))
     private val eventVenue = EventVenue("Zeenea", "48 Rue de Ponthieu, 75008 Paris", "https://dataxday.fr/wp-content/uploads/2018/01/zeenea-logo.png", "https://maps.google.com/?cid=3360768160548514744")
-    private val talkSpeaker1 = TalkSpeaker(s"${group.link}/speakers/john-doe", Some(s"$host/speakers/john-doe"), "John Doe", s"https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=${Constants.gravatarStyle}")
-    private val talkSpeaker2 = TalkSpeaker(s"${group.link}/speakers/jane-doe", None, "Jane Doe", s"https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=${Constants.gravatarStyle}")
+    private val talkSpeaker1 = TalkSpeaker(s"${group.link}/speakers/john-doe", Some(s"$host/speakers/john-doe"), "John Doe", "https://api.adorable.io/avatars/john-doe.png")
+    private val talkSpeaker2 = TalkSpeaker(s"${group.link}/speakers/jane-doe", None, "Jane Doe", "https://api.adorable.io/avatars/jane-doe.png")
     private val eventTalk1 = EventTalk(proposal1.link, Some(s"$host/groups/humantalks-paris/talks/28f26543-1ab8-4749-b0ac-786d1bd76888"), proposal1.title, proposal1.description, Seq(talkSpeaker1), proposal1.tags)
     private val eventTalk2 = EventTalk(proposal2.link, Some(s"$host/groups/humantalks-paris/talks/28f26543-1ab8-4749-b0ac-786d1bd76666"), proposal2.title, proposal2.description, Seq(talkSpeaker1, talkSpeaker2), proposal2.tags)
 

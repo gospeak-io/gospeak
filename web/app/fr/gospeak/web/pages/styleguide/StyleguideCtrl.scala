@@ -9,7 +9,7 @@ import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{Info, SocialAccounts}
 import fr.gospeak.core.services.email.EmailSrv
-import fr.gospeak.infra.services.GravatarSrv
+import fr.gospeak.infra.services.AvatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain._
@@ -26,23 +26,24 @@ import scala.concurrent.duration._
 class StyleguideCtrl(cc: ControllerComponents,
                      silhouette: Silhouette[CookieEnv],
                      conf: AppConf,
-                     gravatarSrv: GravatarSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAwareAction with UICtrl.UserAction {
+                     avatarSrv: AvatarSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAwareAction with UICtrl.UserAction {
 
 
   private val now = Instant.now()
   private val dt = new DateTime()
   private val ldt = LocalDateTime.now()
   private val email = EmailAddress.from("john.doe@mail.com").get
+  private val userSlug = User.Slug.from("john-doe").get
   private val user = User(
     id = User.Id.generate(),
-    slug = User.Slug.from("john-doe").get,
+    slug = userSlug,
     status = User.Status.Public,
     firstName = "John",
     lastName = "Doe",
     email = email,
     emailValidated = None,
     emailValidationBeforeLogin = false,
-    avatar = gravatarSrv.getAvatar(email),
+    avatar = avatarSrv.getDefault(email, userSlug),
     bio = None,
     company = None,
     location = None,

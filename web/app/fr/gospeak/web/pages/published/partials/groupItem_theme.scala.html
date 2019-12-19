@@ -1,4 +1,5 @@
 @import fr.gospeak.core.domain.{Group, User}
+@import fr.gospeak.core.domain.utils.Constants.Image
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.utils.Formats
@@ -20,13 +21,13 @@
                             @orgas.find(_.id == id).map { user =>
                                 <li class="list-inline-item ml-n3 mr-0">
                                     <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
-                                        <img src="@user.avatar.url.value" alt="@user.name.value avatar" class="img-fluid rounded-circle" title="@user.name.value">
+                                        <img src="@user.avatar.url.value" alt="@user.name.value avatar" title="@user.name.value" class="img-fluid rounded-circle">
                                     </div>
                                 </li>
                             }.getOrElse {
                                 <li class="list-inline-item ml-n3 mr-0">
                                     <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
-                                        <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp" alt="avatar" class="img-fluid rounded-circle" title="unknow avatar">
+                                        <img src="@Image.placeholderUnknownUser" alt="Unknown user avatar" title="Unknow user" class="img-fluid rounded-circle">
                                     </div>
                                 </li>
                             }

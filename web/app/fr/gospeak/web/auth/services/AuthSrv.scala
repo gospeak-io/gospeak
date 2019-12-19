@@ -13,14 +13,14 @@ import fr.gospeak.core.domain.User.{Login, ProviderId, ProviderKey}
 import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
-import fr.gospeak.infra.services.GravatarSrv
+import fr.gospeak.infra.services.AvatarSrv
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.{CustomException, EmailAddress}
 import fr.gospeak.web.auth.AuthConf
 import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv, SocialProfile}
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
-import fr.gospeak.web.utils.{UserReq, UserAwareReq}
+import fr.gospeak.web.utils.{UserAwareReq, UserReq}
 import org.apache.http.auth.AuthenticationException
 import play.api.mvc.{AnyContent, Result}
 
@@ -38,7 +38,7 @@ class AuthSrv(userRepo: AuthUserRepo,
               passwordHasherRegistry: PasswordHasherRegistry,
               credentialsProvider: CredentialsProvider,
               socialProviderRegistry: SocialProviderRegistry,
-              gravatarSrv: GravatarSrv) {
+              avatarSrv: AvatarSrv) {
   implicit private val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 
   def createIdentity(data: SignupData)(implicit req: UserAwareReq[AnyContent]): IO[AuthUser] = {
@@ -52,7 +52,7 @@ class AuthSrv(userRepo: AuthUserRepo,
       emailOpt <- userRepo.find(data.email)
       slugOpt <- userRepo.find(data.slug)
       _ <- slugOpt.forall(s => emailOpt.exists(_.id == s.id)).toIO(DuplicateSlugException(data.slug)) // fail if slug exists for a different user from email
-      avatar = gravatarSrv.getAvatar(data.email)
+      avatar = avatarSrv.getDefault(data.email, data.slug)
       user <- emailOpt.map { user =>
         userRepo.edit(user.id)(user.data.copy(slug = data.slug, firstName = data.firstName, lastName = data.lastName, email = data.email, avatar = avatar), req.now)
       }.getOrElse {
@@ -122,7 +122,7 @@ class AuthSrv(userRepo: AuthUserRepo,
   def createOrEdit(profile: CommonSocialProfile)(implicit req: UserAwareReq[AnyContent]): IO[AuthUser] = {
     def create(login: Login): IO[AuthUser] = {
       for {
-        data <- SocialProfile.toUserData(profile, gravatarSrv.getAvatar(_), req.now).toIO
+        data <- SocialProfile.toUserData(profile, avatarSrv.getDefault, req.now).toIO
         exists <- userRepo.find(data.email)
         user <- exists.fold(userRepo.create(data, req.now, Some(req.now)))(u => userRepo.edit(u.id)(u.data, req.now))
         _ <- userRepo.createLoginRef(login, user.id)
@@ -177,12 +177,12 @@ object AuthSrv {
             authRepo: AuthRepo,
             clock: Clock,
             socialProviderRegistry: SocialProviderRegistry,
-            gravatarSrv: GravatarSrv): AuthSrv = {
+            avatarSrv: AvatarSrv): AuthSrv = {
     val authInfoRepository = new DelegableAuthInfoRepository(authRepo)
     val bCryptPasswordHasher: PasswordHasher = new BCryptPasswordHasher
     val passwordHasherRegistry: PasswordHasherRegistry = PasswordHasherRegistry(bCryptPasswordHasher)
     val credentialsProvider = new CredentialsProvider(authInfoRepository, passwordHasherRegistry)
-    new AuthSrv(userRepo, userRequestRepo, groupRepo, authRepo, silhouette, clock, authConf, passwordHasherRegistry, credentialsProvider, socialProviderRegistry, gravatarSrv)
+    new AuthSrv(userRepo, userRequestRepo, groupRepo, authRepo, silhouette, clock, authConf, passwordHasherRegistry, credentialsProvider, socialProviderRegistry, avatarSrv)
   }
 
   def login(email: EmailAddress): User.Login = User.Login(ProviderId(CredentialsProvider.ID), ProviderKey(email.value))

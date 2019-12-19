@@ -12,7 +12,11 @@ abstract class Image(val url: Url) {
 
   def isCloudinary: Boolean = Image.CloudinaryUrl.parse(url.value).isSuccess
 
+  def isAdorable: Boolean = Image.AdorableUrl.parse(url.value).isSuccess
+
   def isGravatar: Boolean = Image.GravatarUrl.parse(url.value).isSuccess
+
+  def isDefault: Boolean = isAdorable || isGravatar
 
   private def transform(transformations: Seq[String]*): String =
     Image.CloudinaryUrl.parse(url.value).map(_.transform(transformations: _*).value).getOrElse(url.value)
@@ -51,12 +55,30 @@ object Image {
     }
   }
 
+  final case class AdorableUrl(hash: String,
+                               size: Option[Int]) {
+    def value: String = s"https://api.adorable.io/avatars${size.map("/" + _).getOrElse("")}/$hash.png"
+
+    def toUrl: Url = Url.from(value).get
+  }
+
+  object AdorableUrl {
+    private val adorableRegex = "https://api.adorable.io/avatars(?:/([0-9]+))?/([^/]*).png".r
+
+    def parse(url: String): Try[AdorableUrl] = url match {
+      case adorableRegex(size, hash) => Option(size).map(s => Try(s.toInt)).sequence.map(s => AdorableUrl(hash, s))
+      case _ => Failure(new IllegalArgumentException(s"Unable to parse '$url' as Image.AdorableUrl"))
+    }
+  }
+
   final case class GravatarUrl(hash: String,
                                params: Seq[(String, String)]) {
     def value: String = {
       val queryParams = params.map { case (key, value) => s"$key=$value" }.mkString("&")
       s"https://secure.gravatar.com/avatar/$hash" + Some(queryParams).filter(_.nonEmpty).map("?" + _).getOrElse("")
     }
+
+    def toUrl: Url = Url.from(value).get
   }
 
   object GravatarUrl {

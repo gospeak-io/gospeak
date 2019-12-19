@@ -20,7 +20,7 @@ import fr.gospeak.core.services.upload.UploadConf
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.libs.cloudinary.CloudinaryClient
 import fr.gospeak.infra.services.storage.sql.GospeakDbSql
-import fr.gospeak.infra.services.GravatarSrv
+import fr.gospeak.infra.services.AvatarSrv
 import fr.gospeak.infra.services.cloudinary.CloudinarySrvImpl
 import fr.gospeak.infra.services.email.InMemoryEmailSrv
 import fr.gospeak.web.AppConf
@@ -65,7 +65,7 @@ object Values extends RandomDataGenerator {
   val db: GospeakDbSql = new GospeakDbSql(dbConf, conf.gospeak, cloudinarySrv)
   private val authRepo = new AuthRepo(db.user, db.group)
   val emailSrv = new InMemoryEmailSrv()
-  val authSrv = AuthSrv(conf.auth, silhouette, db.user, db.userRequest, db.group, authRepo, clock, SocialProviderRegistry(Seq()), new GravatarSrv())
+  val authSrv = AuthSrv(conf.auth, silhouette, db.user, db.userRequest, db.group, authRepo, clock, SocialProviderRegistry(Seq()), new AvatarSrv())
 
   // twirl
   private val req: Request[AnyContent] = CSRFTokenHelper.addCSRFToken(FakeRequest().withAuthenticator(identity.loginInfo)(env))

@@ -13,7 +13,7 @@ object SocialProfile {
   val setEmailUrls: Map[String, String] = Map(
     "twitter" -> "https://twitter.com/settings/email")
 
-  def toUserData(profile: CommonSocialProfile, defaultAvatar: EmailAddress => Avatar, now: Instant): Either[CustomException, User.Data] =
+  def toUserData(profile: CommonSocialProfile, defaultAvatar: (EmailAddress, User.Slug) => Avatar, now: Instant): Either[CustomException, User.Data] =
     for {
       email <- profile.email.map(EmailAddress.from)
         .getOrElse(Left(CustomException(s"<b>No email available from your ${profile.loginInfo.providerID} account.</b><br>" +
@@ -28,7 +28,7 @@ object SocialProfile {
       firstName = profile.firstName.getOrElse(first),
       lastName = profile.lastName.getOrElse(last),
       email = email,
-      avatar = avatarOpt.getOrElse(defaultAvatar(email)),
+      avatar = avatarOpt.getOrElse(defaultAvatar(email, slug)),
       bio = None,
       company = None,
       location = None,
@@ -36,7 +36,6 @@ object SocialProfile {
       website = None,
       social = SocialAccounts.fromUrls())
 
-  def getAvatar(profile: CommonSocialProfile): Either[CustomException, Option[Avatar]] = for {
-    avatar <- profile.avatarURL.map(Url.from).sequence
-  } yield avatar.map(Avatar)
+  def getAvatar(profile: CommonSocialProfile): Either[CustomException, Option[Avatar]] =
+    profile.avatarURL.map(Url.from).sequence.map(_.map(Avatar))
 }

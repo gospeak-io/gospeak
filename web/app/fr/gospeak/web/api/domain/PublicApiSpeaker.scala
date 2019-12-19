@@ -46,7 +46,7 @@ object PublicApiSpeaker {
         linkedin = user.social.linkedIn.map(_.link),
         website = user.website.map(_.value))
 
-    val unknown = Embedded("missing", "Missing", "Speaker", s"https://secure.gravatar.com/avatar/fa24c69431e3df73ef30d06860dd6258?size=100&default=${Constants.gravatarStyle}", None, None, None, None)
+    val unknown = Embedded("unknown", "Unknown", "Speaker", Constants.Image.placeholderUnknownUser, None, None, None, None)
 
     implicit val embeddedWrites: Writes[Embedded] = Json.writes[Embedded]
   }

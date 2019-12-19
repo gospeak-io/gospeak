@@ -1,4 +1,5 @@
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Sponsor, SponsorPack, User}
+@import fr.gospeak.core.domain.utils.Constants.Image
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
@@ -40,15 +41,17 @@
                 @group.owners.toList.map { id =>
                     @orgas.find(_.id == id).map { user =>
                         <li class="list-inline-item ml-n3 mr-0">
-                            <img src="@user.avatar.url.value" alt="@user.name.value avatar"
+                            <img src="@user.avatar.url.value"
+                                alt="@user.name.value avatar"
                                 title="@user.name.value"
                                 data-toggle="tooltip"
-                                data-placement="top" class="u-sm-avatar u-sm-avatar--bordered rounded-circle img-fluid rounded-circle" title="@user.name.value">
+                                data-placement="top"
+                                class="u-sm-avatar u-sm-avatar--bordered rounded-circle img-fluid rounded-circle">
                         </li>
                     }.getOrElse {
                         <li class="list-inline-item ml-n3 mr-0">
                             <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
-                                <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp" alt="avatar" class="img-fluid rounded-circle" title="unknow avatar">
+                                <img src="@Image.placeholderUnknownUser" alt="Unknown user avatar" title="Unknow user" class="img-fluid rounded-circle">
                             </div>
                         </li>
                     }

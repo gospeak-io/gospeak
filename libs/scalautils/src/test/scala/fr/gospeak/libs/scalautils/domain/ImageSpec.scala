@@ -39,6 +39,24 @@ class ImageSpec extends FunSpec with Matchers {
         res.value shouldBe url
       }
     }
+    describe("AdorableUrl") {
+      it("should parse and format an adorable url") {
+        val url = "https://api.adorable.io/avatars/loic-knuchel.png"
+        val res = Image.AdorableUrl(
+          hash = "loic-knuchel",
+          size = None)
+        Image.AdorableUrl.parse(url).get shouldBe res
+        res.value shouldBe url
+      }
+      it("should parse and format an adorable url with size") {
+        val url = "https://api.adorable.io/avatars/285/loic-knuchel.png"
+        val res = Image.AdorableUrl(
+          hash = "loic-knuchel",
+          size = Some(285))
+        Image.AdorableUrl.parse(url).get shouldBe res
+        res.value shouldBe url
+      }
+    }
     describe("GravatarUrl") {
       it("should parse and format a gravatar url") {
         val url = "https://secure.gravatar.com/avatar/9a2ae971f81eaff1f0da3d56cbf4a2ee"
@@ -53,6 +71,14 @@ class ImageSpec extends FunSpec with Matchers {
         val res = Image.GravatarUrl(
           hash = "9a2ae971f81eaff1f0da3d56cbf4a2ee",
           params = Seq("size" -> "100", "default" -> "wavatar"))
+        Image.GravatarUrl.parse(url).get shouldBe res
+        res.value shouldBe url
+      }
+      it("should parse and format a gravatar url with size and default as url") {
+        val url = "https://secure.gravatar.com/avatar/9a2ae971f81eaff1f0da3d56cbf4a2ee?size=100&default=https://api.adorable.io/avatars/285/loic-knuchel.png"
+        val res = Image.GravatarUrl(
+          hash = "9a2ae971f81eaff1f0da3d56cbf4a2ee",
+          params = Seq("size" -> "100", "default" -> "https://api.adorable.io/avatars/285/loic-knuchel.png"))
         Image.GravatarUrl.parse(url).get shouldBe res
         res.value shouldBe url
       }

@@ -1,4 +1,5 @@
 @import fr.gospeak.core.domain.{Group, User}
+@import fr.gospeak.core.domain.utils.Constants.Image
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 
@@ -9,9 +10,9 @@
     Orgas:
     @group.owners.toList.map { id =>
         @orgas.find(_.id == id).map { user =>
-            <img src="@user.avatar.url.value" alt="@user.name.value avatar" class="avatar" title="@user.name.value">
+            <img src="@user.avatar.url.value" alt="@user.name.value avatar" title="@user.name.value" class="avatar">
         }.getOrElse {
-            <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp" alt="Unknown" class="avatar" title="Unknown">
+            <img src="@Image.placeholderUnknownUser" alt="Unknown user avatar" title="Unknow user" class="avatar">
         }
     }
 </a>

@@ -6,7 +6,6 @@ import fr.gospeak.libs.scalautils.domain.EmailAddress
 
 object Constants {
   val defaultZoneId: ZoneId = ZoneId.of("Europe/Paris")
-  val gravatarStyle = "identicon"
 
   object Image {
     val gospeakLogoText = "https://res.cloudinary.com/gospeak/image/upload/gospeak/logo-text.svg"

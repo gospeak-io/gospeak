@@ -13,7 +13,7 @@ import fr.gospeak.core.services.cloudinary.CloudinarySrv
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.core.services.storage.{DatabaseConf, GospeakDb}
 import fr.gospeak.core.{ApplicationConf, GospeakConf}
-import fr.gospeak.infra.services.GravatarSrv
+import fr.gospeak.infra.services.AvatarSrv
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.{DoobieUtils, FlywayUtils}
 import fr.gospeak.infra.utils.HttpClient
@@ -61,12 +61,12 @@ class GospeakDbSql(dbConf: DatabaseConf,
 
   // FIXME[cloudinary-migration] to remove after migration
   def migrateImages(): IO[Done] = {
-    val gravatarSrv = new GravatarSrv()
+    val avatarSrv = new AvatarSrv()
     (for {
       cfps <- externalCfp.listAll()
       _ = logger.info(s"${cfps.length} cfps found")
       (cfpsToImport, cfpsToReset) <- cfps
-        .collect { case c if c.logo.exists(l => !l.isCloudinary && !l.isGravatar) => (c, c.logo.get) }
+        .collect { case c if c.logo.exists(l => !l.isCloudinary && !l.isDefault) => (c, c.logo.get) }
         .map { case (c, l) => HttpClient.get(l.value).map(r => (c, l, r)) }.sequence
         .map(_.partition(_._3.isOk))
       _ = logger.info(s"${cfpsToReset.length} cfps to reset")
@@ -77,20 +77,23 @@ class GospeakDbSql(dbConf: DatabaseConf,
 
       users <- user.listAll()
       _ = logger.info(s"${users.length} users found")
+      userDefaultToReset = users.filter(_.avatar.isDefault)
       (usersToImport, usersToReset) <- users
-        .filter(u => !u.avatar.isCloudinary && !u.avatar.isGravatar)
+        .filter(u => !u.avatar.isCloudinary && !u.avatar.isDefault)
         .map(u => HttpClient.get(u.avatar.value).map(r => (u, r))).sequence
         .map(_.partition(_._2.isOk))
+      _ = logger.info(s"${userDefaultToReset.length} default users to reset")
       _ = logger.info(s"${usersToReset.length} users to reset")
       _ = logger.info(s"${usersToImport.length} users to import")
-      _ <- usersToReset.zipWithIndex.map { case ((u, _), i) => user.editAvatar(i + 1, u, gravatarSrv.getAvatar(u.email)) }.sequence
+      _ <- userDefaultToReset.zipWithIndex.map { case (u, i) => user.editAvatar(i + 1, u, avatarSrv.getDefault(u.email, u.slug)) }.sequence
+      _ <- usersToReset.zipWithIndex.map { case ((u, _), i) => user.editAvatar(i + 1, u, avatarSrv.getDefault(u.email, u.slug)) }.sequence
       _ <- usersToImport.zipWithIndex.map { case ((u, _), i) => cloudinarySrv.uploadAvatar(u).flatMap(user.editAvatar(i + 1, u, _)) }.sequence
       _ = logger.info(s"imported ${usersToImport.length} users and reseted ${usersToReset.length} users")
 
       groups <- group.listAll()
       _ = logger.info(s"${groups.length} groups found")
       (groupLogosToImport, groupLogosToReset) <- groups
-        .collect { case c if c.logo.exists(l => !l.isCloudinary && !l.isGravatar) => (c, c.logo.get) }
+        .collect { case c if c.logo.exists(l => !l.isCloudinary && !l.isDefault) => (c, c.logo.get) }
         .map { case (c, l) => HttpClient.get(l.value).map(r => (c, l, r)) }.sequence
         .map(_.partition(_._3.isOk))
       _ = logger.info(s"${groupLogosToReset.length} group logos to reset")
@@ -100,7 +103,7 @@ class GospeakDbSql(dbConf: DatabaseConf,
       _ = logger.info(s"imported ${groupLogosToImport.length} group logos")
 
       (groupBannersToImport, groupBannersToReset) <- groups
-        .collect { case c if c.banner.exists(l => !l.isCloudinary && !l.isGravatar) => (c, c.banner.get) }
+        .collect { case c if c.banner.exists(l => !l.isCloudinary && !l.isDefault) => (c, c.banner.get) }
         .map { case (c, b) => HttpClient.get(b.value).map(r => (c, b, r)) }.sequence
         .map(_.partition(_._3.isOk))
       _ = logger.info(s"${groupBannersToReset.length} group banners to reset")
@@ -112,7 +115,7 @@ class GospeakDbSql(dbConf: DatabaseConf,
       partners <- partner.listAll()
       _ = logger.info(s"${partners.length} partners found")
       (partnersToImport, partnersToReset) <- partners
-        .filter { case (p, _) => !p.logo.isCloudinary && !p.logo.isGravatar }
+        .filter { case (p, _) => !p.logo.isCloudinary && !p.logo.isDefault }
         .map { case (p, g) => HttpClient.get(p.logo.value).map(r => (p, g, r)) }.sequence
         .map(_.partition(_._3.isOk))
       _ = logger.info(s"${partnersToReset.length} partners to reset")
@@ -123,7 +126,7 @@ class GospeakDbSql(dbConf: DatabaseConf,
 
       _ = logger.info(
         s"""Image migration finished:
-           |  - ${usersToReset.length} users reseted
+           |  - ${userDefaultToReset.length + usersToReset.length} users reseted
            |  - ${usersToImport.length} users imported
            |  - ${cfpsToImport.length} external cfps imported
            |  - ${groupLogosToImport.length} group logos imported
@@ -163,12 +166,13 @@ class GospeakDbSql(dbConf: DatabaseConf,
       n
     }
 
-    val gravatarSrv = new GravatarSrv()
+    val avatarSrv = new AvatarSrv()
 
     def user(slug: String, email: String, firstName: String, lastName: String, status: User.Status = User.Status.Undefined, emailValidated: Option[Instant] = Some(now), emailValidationBeforeLogin: Boolean = false, avatar: Option[String] = None, bio: Option[Markdown] = None, company: Option[String] = None, location: Option[String] = None, phone: Option[String] = None, website: Option[Url] = None, social: SocialAccounts = SocialAccounts.fromUrls()): User = {
       val emailAddr = EmailAddress.from(email).get
-      val avatarObj = avatar.map(Url.from(_).get).map(Avatar).getOrElse(gravatarSrv.getAvatar(emailAddr))
-      User(id = User.Id.generate(), slug = User.Slug.from(slug).get, status = status, firstName = firstName, lastName = lastName, email = emailAddr, emailValidated = emailValidated, emailValidationBeforeLogin = emailValidationBeforeLogin, avatar = avatarObj, bio = bio, company = company, location = location, phone = phone, website = website, social = social, createdAt = now, updatedAt = now)
+      val slugObj = User.Slug.from(slug).get
+      val avatarObj = avatar.map(Url.from(_).get).map(Avatar).getOrElse(avatarSrv.getDefault(emailAddr, slugObj))
+      User(id = User.Id.generate(), slug = slugObj, status = status, firstName = firstName, lastName = lastName, email = emailAddr, emailValidated = emailValidated, emailValidationBeforeLogin = emailValidationBeforeLogin, avatar = avatarObj, bio = bio, company = company, location = location, phone = phone, website = website, social = social, createdAt = now, updatedAt = now)
     }
 
     def group(slug: String, name: String, tags: Seq[String], by: User, location: Option[GMapPlace] = None, owners: Seq[User] = Seq(), social: SocialAccounts = SocialAccounts.fromUrls(), email: Option[String] = None): Group =

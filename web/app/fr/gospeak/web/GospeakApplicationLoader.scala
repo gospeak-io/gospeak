@@ -31,7 +31,7 @@ import fr.gospeak.infra.services.email.EmailSrvFactory
 import fr.gospeak.infra.services.meetup.MeetupSrvImpl
 import fr.gospeak.infra.services.slack.SlackSrvImpl
 import fr.gospeak.infra.services.storage.sql._
-import fr.gospeak.infra.services.{GravatarSrv, MarkdownSrvImpl, TemplateSrvImpl}
+import fr.gospeak.infra.services.{AvatarSrv, MarkdownSrvImpl, TemplateSrvImpl}
 import fr.gospeak.libs.scalautils.{BasicMessageBus, MessageBus}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
@@ -101,7 +101,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val eventSrv: EventSrv = wire[EventSrv]
   lazy val markdownSrv: MarkdownSrv = wire[MarkdownSrvImpl]
   lazy val templateSrv: TemplateSrv = wire[TemplateSrvImpl]
-  lazy val gravatarSrv: GravatarSrv = wire[GravatarSrv]
+  lazy val avatarSrv: AvatarSrv = wire[AvatarSrv]
   lazy val emailSrv: EmailSrv = EmailSrvFactory.from(conf.email)
   lazy val cloudinaryClient: CloudinaryClient = wire[CloudinaryClient]
   lazy val cloudinarySrv: CloudinarySrv = wire[CloudinarySrvImpl]
@@ -181,7 +181,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
   // end:Silhouette conf
 
-  lazy val authSrv: AuthSrv = AuthSrv(conf.auth, silhouette, userRepo, userRequestRepo, groupRepo, authRepo, clock, socialProviderRegistry, gravatarSrv)
+  lazy val authSrv: AuthSrv = AuthSrv(conf.auth, silhouette, userRepo, userRequestRepo, groupRepo, authRepo, clock, socialProviderRegistry, avatarSrv)
 
   lazy val styleguideCtrl = wire[StyleguideCtrl]
   lazy val homeCtrl = wire[HomeCtrl]
