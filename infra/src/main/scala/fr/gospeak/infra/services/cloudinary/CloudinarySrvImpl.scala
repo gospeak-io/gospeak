@@ -69,11 +69,11 @@ object CloudinarySrvImpl {
 
   def groupBannerFile = Some("banner")
 
-  def groupPartnerFile(slug: Option[String]): Option[String] = slug.filter(_.nonEmpty)
+  def groupPartnerFile(partnerSlug: Option[String]): Option[String] = partnerSlug.filter(_.nonEmpty)
 
   def groupSlackBotFile = Some("slack-bot-avatar")
 
-  def extCfpLogoFile(name: Option[String]): Option[String] = name.filter(_.nonEmpty)
+  def extCfpLogoFile(cfpName: Option[String]): Option[String] = cfpName.filter(_.nonEmpty)
 
 
   def userFolder(user: User): Option[String] = Some(s"users/${user.slug.value}_${user.id.value}")

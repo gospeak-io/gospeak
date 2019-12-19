@@ -22,7 +22,7 @@
             @inputText(field, Seq("placeholder" -> "Partner name", "autofocus" -> "true") ++ args)
         }
         @fieldHorizontal(form("logo"), Seq("label" -> "Logo")) { (field, args) =>
-            @inputImg(field, ImgConf.partnerLogo(form("slug").value))
+            @inputImg(field, ImgConf.partnerLogo(form("slug")))
         }
         @fieldHorizontal(form("address"), Seq("label" -> "Address", "help" -> "Address of the venue")) { (field, args) =>
             @inputGMapPlace(field, Seq("autofocus" -> "true") ++ args)

@@ -7,13 +7,14 @@
 
 @(partner: Partner, form: Form[Partner.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container_theme("Gospeak", b)() {
-    <h1 class="page-header">Edit @partner.name.value</h1>
-
     @formElt(form, PartnerCtrl.doEdit(req.group.slug, partner.slug)) {
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Edit @partner.name.value</h1>
+            <div>
+                @btnCancel(PartnerCtrl.detail(req.group.slug, partner.slug))
+                @btnSubmit("Edit")
+            </div>
+        </div>
         @partnerFields(form)
-        @actionsHorizontal() {
-            @btnCancel(PartnerCtrl.detail(req.group.slug, partner.slug))
-            @btnSubmit("Edit")
-        }
     }
 }()

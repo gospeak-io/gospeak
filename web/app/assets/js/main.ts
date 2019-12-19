@@ -96,6 +96,7 @@ declare const autosize;
                 const curSlug = slugInput.val();
                 if (curSlug === '' || curSlug === oldSlug) {
                     slugInput.val(newSlug);
+                    slugInput.change();
                 }
             });
         });
@@ -297,6 +298,7 @@ declare const cloudinary;
         const tagsStr = $btn.attr('data-tags');
         const maxFilesStr = $btn.attr('data-max-files');
         const ratioStr = $btn.attr('data-ratio');
+        const dynamicName = $btn.attr('data-dynamic-name');
         const tags = tagsStr ? tagsStr.split(',') : undefined;
         const maxFiles = maxFilesStr ? parseInt(maxFilesStr) : undefined;
         const ratio = ratioStr ? parseFloat(ratioStr) : undefined;
@@ -329,11 +331,19 @@ declare const cloudinary;
             }
         });
 
+        const $dynamicNameInput = dynamicName ? $('#' + dynamicName) : undefined;
+        if($dynamicNameInput) {
+            $dynamicNameInput.change(() => {
+                opts.publicId = $dynamicNameInput.val();
+                cloudinaryWidget.update({publicId: opts.publicId});
+            });
+        }
+
         $btn.click(function (e) {
             e.preventDefault();
             if (!apiKey) {
                 // needed as unsigned upload can't override, use signed upload instead (add `creds` in app config, see UploadConf)
-                cloudinaryWidget.update({publicId: `${name}-${Date.now()}`});
+                cloudinaryWidget.update({publicId: `${opts.publicId}-${Date.now()}`});
             }
             cloudinaryWidget.open();
         });

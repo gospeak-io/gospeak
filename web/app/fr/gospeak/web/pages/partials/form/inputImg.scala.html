@@ -19,6 +19,7 @@
                 @creds.map { v => data-api-key="@v.key" data-sign-url="@UtilsCtrl.cloudinarySignature()" }
                 @conf.folder.map { v => data-folder="@v" }
                 @conf.name.map { v => data-name="@v" }
+                @conf.dynamicName.map { v => data-dynamic-name="@v" }
                 @if(conf.tags.nonEmpty) { data-tags="@conf.tags.mkString(",")" }
                 @conf.maxFiles.map { v => data-max-files="@v" }
                 @conf.ratio.map { v => data-ratio="@v" }>Image upload</button>
