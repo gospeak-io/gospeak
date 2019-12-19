@@ -221,6 +221,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
     db.checkEnv(env).unsafeRunSync()
     if (env.isProd) {
       db.migrate().unsafeRunSync()
+      db.migrateImages().unsafeToFuture() // FIXME[cloudinary-migration] async to not block app startup, should be removed once executed
     } else if (env.isDev) {
       db.migrate().unsafeRunSync()
       db.migrateImages().unsafeToFuture() // FIXME[cloudinary-migration] async to not block app startup, should be removed once executed
