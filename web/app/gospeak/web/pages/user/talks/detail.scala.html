@@ -41,42 +41,45 @@
     }
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@talk.title.value</span>
-        <span class="btn-group">
-            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-cog"></i>
-            </button>
-            <span class="dropdown-menu dropdown-menu-right">
-                <a class="dropdown-item" href="@TalkCtrl.edit(talk.slug)">Edit</a>
-                @if(talk.status != Talk.Status.Public) {
-                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Public), Seq(
-                        "class" -> "dropdown-item",
-                        "title" -> Talk.Status.Public.description,
-                        "data-toggle" -> "tooltip",
-                        "data-placement" -> "left")) {Make it public}
-                }
-                @if(talk.status != Talk.Status.Listed) {
-                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Listed), Seq(
-                        "class" -> "dropdown-item",
-                        "title" -> Talk.Status.Listed.description,
-                        "data-toggle" -> "tooltip",
-                        "data-placement" -> "left")) {Make it listed}
-                }
-                @if(talk.status != Talk.Status.Private) {
-                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Private), Seq(
-                        "class" -> "dropdown-item",
-                        "title" -> Talk.Status.Private.description,
-                        "data-toggle" -> "tooltip",
-                        "data-placement" -> "left")) {Make it private}
-                }
-                @if(talk.status != Talk.Status.Archived) {
-                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Archived), Seq(
-                        "class" -> "dropdown-item",
-                        "title" -> Talk.Status.Archived.description,
-                        "data-toggle" -> "tooltip",
-                        "data-placement" -> "left")) {Archive it}
-                }
+        <div>
+            <a class="btn btn-primary" href="@TalkCtrl.addPerformance(talk.slug)">Add a performance</a>
+            <span class="btn-group">
+                <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <span class="dropdown-menu dropdown-menu-right">
+                    <a class="dropdown-item" href="@TalkCtrl.edit(talk.slug)">Edit</a>
+                    @if(talk.status != Talk.Status.Public) {
+                        @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Public), Seq(
+                            "class" -> "dropdown-item",
+                            "title" -> Talk.Status.Public.description,
+                            "data-toggle" -> "tooltip",
+                            "data-placement" -> "left")) {Make it public}
+                    }
+                    @if(talk.status != Talk.Status.Listed) {
+                        @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Listed), Seq(
+                            "class" -> "dropdown-item",
+                            "title" -> Talk.Status.Listed.description,
+                            "data-toggle" -> "tooltip",
+                            "data-placement" -> "left")) {Make it listed}
+                    }
+                    @if(talk.status != Talk.Status.Private) {
+                        @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Private), Seq(
+                            "class" -> "dropdown-item",
+                            "title" -> Talk.Status.Private.description,
+                            "data-toggle" -> "tooltip",
+                            "data-placement" -> "left")) {Make it private}
+                    }
+                    @if(talk.status != Talk.Status.Archived) {
+                        @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Archived), Seq(
+                            "class" -> "dropdown-item",
+                            "title" -> Talk.Status.Archived.description,
+                            "data-toggle" -> "tooltip",
+                            "data-placement" -> "left")) {Archive it}
+                    }
+                </span>
             </span>
-        </span>
+        </div>
     </h1>
 
     <p class="mb-0">@talkStatus(talk.status) @duration(talk.duration) @slidesIcon(talk.slides) @videoIcon(talk.video)</p>
