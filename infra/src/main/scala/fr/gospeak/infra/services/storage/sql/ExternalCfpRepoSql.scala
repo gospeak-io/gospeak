@@ -11,7 +11,7 @@ import fr.gospeak.infra.services.storage.sql.ExternalCfpRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Sorts, Table, Update}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.libs.scalautils.domain.{Done, GMapPlace, Logo, Page, Tag}
+import fr.gospeak.libs.scalautils.domain.{Done, GMapPlace, Page, Tag}
 import org.slf4j.LoggerFactory
 
 class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ExternalCfpRepo {
@@ -30,14 +30,6 @@ class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
   override def find(cfp: ExternalCfp.Id): IO[Option[ExternalCfp]] = selectOne(cfp).runOption(xa)
 
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
-
-  // FIXME[cloudinary-migration]: to remove one image migration is done
-  def listAll(): IO[Seq[ExternalCfp]] = tableSelect.select[ExternalCfp]().runList(xa)
-
-  // FIXME[cloudinary-migration]: to remove one image migration is done
-  def editLogo(index: Int, cfp: ExternalCfp, logo: Logo): IO[Done] =
-    table.update(fr0"logo=$logo", fr0"WHERE ec.id=${cfp.id}").run(xa)
-      .map { r => logger.info(s"[CFP $index] ${cfp.name.value} logo updated to ${logo.value}"); r }
 }
 
 object ExternalCfpRepoSql {

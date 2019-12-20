@@ -14,7 +14,7 @@ import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Update}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Avatar, Done, EmailAddress, Page}
+import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
 import org.slf4j.LoggerFactory
 
 class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRepo {
@@ -83,14 +83,6 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
   override def listPublic(params: Page.Params): IO[Page[User]] = selectPagePublic(params).run(xa)
 
   override def list(ids: Seq[User.Id]): IO[Seq[User]] = runNel(selectAll, ids)
-
-  // FIXME[cloudinary-migration]: to remove one image migration is done
-  def listAll(): IO[Seq[User]] = table.select[User]().runList(xa)
-
-  // FIXME[cloudinary-migration]: to remove one image migration is done
-  def editAvatar(index: Int, user: User, avatar: Avatar): IO[Done] =
-    table.update(fr0"avatar=${avatar.url}", fr0"WHERE u.id=${user.id}").run(xa)
-      .map { r => logger.info(s"[USER $index] ${user.name.value} avatar updated to ${avatar.value}"); r }
 }
 
 object UserRepoSql {

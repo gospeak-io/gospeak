@@ -9,14 +9,12 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
 import fr.gospeak.core.domain.utils.TemplateData.EventInfo
 import fr.gospeak.core.domain.utils._
-import fr.gospeak.core.services.cloudinary.CloudinarySrv
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.core.services.storage.{DatabaseConf, GospeakDb}
 import fr.gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.infra.services.AvatarSrv
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.{DoobieUtils, FlywayUtils}
-import fr.gospeak.infra.utils.HttpClient
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.StringUtils
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
@@ -27,10 +25,7 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
-class GospeakDbSql(dbConf: DatabaseConf,
-                   gsConf: GospeakConf,
-                   cloudinarySrv: CloudinarySrv // FIXME[cloudinary-migration] to remove
-                  ) extends GospeakDb {
+class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb {
   private val logger = LoggerFactory.getLogger(this.getClass)
   private val flyway = FlywayUtils.build(dbConf)
   private[sql] val xa: doobie.Transactor[IO] = DoobieUtils.transactor(dbConf)
@@ -58,88 +53,6 @@ class GospeakDbSql(dbConf: DatabaseConf,
   def migrate(): IO[Int] = IO(flyway.migrate())
 
   def dropTables(): IO[Done] = IO(flyway.clean()).map(_ => Done)
-
-  // FIXME[cloudinary-migration] to remove after migration
-  def migrateImages(): IO[Done] = {
-    val avatarSrv = new AvatarSrv()
-    (for {
-      cfps <- externalCfp.listAll()
-      _ = logger.info(s"${cfps.length} cfps found")
-      (cfpsToImport, cfpsToReset) <- cfps
-        .collect { case c if c.logo.exists(l => !l.isCloudinary && !l.isDefault) => (c, c.logo.get) }
-        .map { case (c, l) => HttpClient.get(l.value).map(r => (c, l, r)) }.sequence
-        .map(_.partition(_._3.isOk))
-      _ = logger.info(s"${cfpsToReset.length} cfps to reset")
-      _ = logger.info(s"${cfpsToImport.length} cfps to import")
-      _ = cfpsToReset.foreach { case (c, _, _) => logger.warn(s"Can't reset external cfp ${c.name.value} (${c.id.value})") }
-      _ <- cfpsToImport.zipWithIndex.map { case ((c, l, _), i) => cloudinarySrv.uploadExternalCfpLogo(c, l).flatMap(externalCfp.editLogo(i + 1, c, _)) }.sequence
-      _ = logger.info(s"imported ${cfpsToImport.length} cfps")
-
-      users <- user.listAll()
-      _ = logger.info(s"${users.length} users found")
-      userDefaultToReset = users.filter(_.avatar.isDefault)
-      (usersToImport, usersToReset) <- users
-        .filter(u => !u.avatar.isCloudinary && !u.avatar.isDefault)
-        .map(u => HttpClient.get(u.avatar.value).map(r => (u, r))).sequence
-        .map(_.partition(_._2.isOk))
-      _ = logger.info(s"${userDefaultToReset.length} default users to reset")
-      _ = logger.info(s"${usersToReset.length} users to reset")
-      _ = logger.info(s"${usersToImport.length} users to import")
-      _ <- userDefaultToReset.zipWithIndex.map { case (u, i) => user.editAvatar(i + 1, u, avatarSrv.getDefault(u.email, u.slug)) }.sequence
-      _ <- usersToReset.zipWithIndex.map { case ((u, _), i) => user.editAvatar(i + 1, u, avatarSrv.getDefault(u.email, u.slug)) }.sequence
-      _ <- usersToImport.zipWithIndex.map { case ((u, _), i) => cloudinarySrv.uploadAvatar(u).flatMap(user.editAvatar(i + 1, u, _)) }.sequence
-      _ = logger.info(s"imported ${usersToImport.length} users and reseted ${usersToReset.length} users")
-
-      groups <- group.listAll()
-      _ = logger.info(s"${groups.length} groups found")
-      (groupLogosToImport, groupLogosToReset) <- groups
-        .collect { case c if c.logo.exists(l => !l.isCloudinary && !l.isDefault) => (c, c.logo.get) }
-        .map { case (c, l) => HttpClient.get(l.value).map(r => (c, l, r)) }.sequence
-        .map(_.partition(_._3.isOk))
-      _ = logger.info(s"${groupLogosToReset.length} group logos to reset")
-      _ = logger.info(s"${groupLogosToImport.length} group logos to import")
-      _ = groupLogosToReset.foreach { case (g, _, _) => logger.warn(s"Can't reset group ${g.name.value} logo (${g.id.value})") }
-      _ <- groupLogosToImport.zipWithIndex.map { case ((g, l, _), i) => cloudinarySrv.uploadGroupLogo(g, l).flatMap(group.editLogo(i + 1, g, _)) }.sequence
-      _ = logger.info(s"imported ${groupLogosToImport.length} group logos")
-
-      (groupBannersToImport, groupBannersToReset) <- groups
-        .collect { case c if c.banner.exists(l => !l.isCloudinary && !l.isDefault) => (c, c.banner.get) }
-        .map { case (c, b) => HttpClient.get(b.value).map(r => (c, b, r)) }.sequence
-        .map(_.partition(_._3.isOk))
-      _ = logger.info(s"${groupBannersToReset.length} group banners to reset")
-      _ = logger.info(s"${groupBannersToImport.length} group banners to import")
-      _ = groupBannersToReset.foreach { case (g, _, _) => logger.warn(s"Can't reset group ${g.name.value} banner (${g.id.value})") }
-      _ <- groupBannersToImport.zipWithIndex.map { case ((g, b, _), i) => cloudinarySrv.uploadGroupBanner(g, b).flatMap(group.editBanner(i + 1, g, _)) }.sequence
-      _ = logger.info(s"imported ${groupBannersToImport.length} group banners")
-
-      partners <- partner.listAll()
-      _ = logger.info(s"${partners.length} partners found")
-      (partnersToImport, partnersToReset) <- partners
-        .filter { case (p, _) => !p.logo.isCloudinary && !p.logo.isDefault }
-        .map { case (p, g) => HttpClient.get(p.logo.value).map(r => (p, g, r)) }.sequence
-        .map(_.partition(_._3.isOk))
-      _ = logger.info(s"${partnersToReset.length} partners to reset")
-      _ = logger.info(s"${partnersToImport.length} partners to import")
-      _ = partnersToReset.foreach { case (p, _, _) => logger.warn(s"Can't reset partner ${p.name.value} logo (${p.id.value})") }
-      _ <- partnersToImport.zipWithIndex.map { case ((p, g, _), i) => cloudinarySrv.uploadPartnerLogo(g, p).flatMap(partner.editLogo(i + 1, p, _)) }.sequence
-      _ = logger.info(s"imported ${partnersToImport.length} partners")
-
-      _ = logger.info(
-        s"""Image migration finished:
-           |  - ${userDefaultToReset.length + usersToReset.length} users reseted
-           |  - ${usersToImport.length} users imported
-           |  - ${cfpsToImport.length} external cfps imported
-           |  - ${groupLogosToImport.length} group logos imported
-           |  - ${groupBannersToImport.length} group banners imported
-           |  - ${partnersToImport.length} partners imported
-           |
-           |  - ${cfpsToReset.length} external cfps NOT reseted (to check)${cfpsToReset.map { case (c, _, _) => s"\n    - ${c.name.value}: ${c.logo.map(_.value).getOrElse("no logo")}" }.mkString}
-           |  - ${groupLogosToReset.length} group logos NOT reseted (to check)${groupLogosToReset.map { case (c, _, _) => s"\n    - ${c.name.value}: ${c.logo.map(_.value).getOrElse("no logo")}" }.mkString}
-           |  - ${groupBannersToReset.length} group banners NOT reseted (to check)${groupBannersToReset.map { case (c, _, _) => s"\n    - ${c.name.value}: ${c.logo.map(_.value).getOrElse("no banner")}" }.mkString}
-           |  - ${partnersToReset.length} partners NOT reseted (to check)${partnersToReset.map { case (c, _, _) => s"\n    - ${c.name.value}: ${c.logo.value}" }.mkString}
-           |""".stripMargin)
-    } yield Done).recover { case NonFatal(e) => logger.error(s"migrateImages error ${e.getClass.getSimpleName}: ${e.getMessage}", e); Done }
-  }
 
   override val user = new UserRepoSql(xa)
   override val talk = new TalkRepoSql(xa)
