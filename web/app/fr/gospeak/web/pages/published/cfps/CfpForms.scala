@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 import fr.gospeak.core.domain.{ExternalCfp, Proposal, Talk}
 import fr.gospeak.web.auth.AuthForms
 import fr.gospeak.web.auth.AuthForms.{LoginData, SignupData}
-import fr.gospeak.web.pages.speaker.talks.TalkForms
+import fr.gospeak.web.pages.user.talks.TalkForms
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._

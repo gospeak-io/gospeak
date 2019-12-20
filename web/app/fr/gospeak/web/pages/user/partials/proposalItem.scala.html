@@ -1,0 +1,22 @@
+@import fr.gospeak.core.domain.Proposal
+@import fr.gospeak.web.pages.partials.display.html._
+@import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.utils.Formats
+
+@(proposal: Proposal.Full)
+<a href="@ProposalCtrl.detail(proposal.talk.slug, proposal.cfp.slug)" class="list-group-item list-group-item-action">
+    <div class="d-flex w-100 justify-content-between align-items-center">
+        <h5 class="mb-1">@proposal.cfp.name.value @proposal.event.map { e => (@e.name.value - @Formats.date(e.start)) }</h5>
+        <div>@proposalStatus(proposal.status)</div>
+    </div>
+    <div class="d-flex w-100 justify-content-between align-items-center">
+        <p class="mb-1">
+            Title: @proposal.title.value
+            @if(proposal.duration != proposal.talk.duration) {
+                @duration(proposal.duration, Some("Proposal duration"))
+            }
+            @tags(proposal.tags)
+        </p>
+        <small title="Proposal date">@Formats.date(proposal.info.createdAt)</small>
+    </div>
+</a>

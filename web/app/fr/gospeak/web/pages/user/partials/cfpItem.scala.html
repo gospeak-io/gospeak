@@ -1,0 +1,9 @@
+@import fr.gospeak.core.domain.{Cfp, Talk}
+@import fr.gospeak.web.pages.partials.display.html.tags
+@import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
+
+@(talk: Talk, cfp: Cfp)
+<a href="@ProposalCtrl.create(talk.slug, cfp.slug)" class="list-group-item list-group-item-action">
+    <h5 class="mb-1">@cfp.name.value</h5>
+    @tags(cfp.tags)
+</a>

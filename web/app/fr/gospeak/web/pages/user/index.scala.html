@@ -5,11 +5,11 @@
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
-@import fr.gospeak.web.pages.speaker.partials.html.container_old
-@import fr.gospeak.web.pages.speaker.proposals.routes.{ProposalCtrl => ProposalListCtrl}
-@import fr.gospeak.web.pages.speaker.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.pages.speaker.talks.routes.TalkCtrl
+@import fr.gospeak.web.pages.user.partials.html.container_old
+@import fr.gospeak.web.pages.user.proposals.routes.{ProposalCtrl => ProposalListCtrl}
+@import fr.gospeak.web.pages.user.profile.routes.ProfileCtrl
+@import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
+@import fr.gospeak.web.pages.user.talks.routes.TalkCtrl
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserReq
 
@@ -20,12 +20,12 @@
             <h4 class="alert-heading d-flex justify-content-between align-items-center">
                 <span>Hi speaker!</span>
                 <span>
-                    @formBtn(SpeakerCtrl.doEditStatus(User.Status.Private), Seq(
+                    @formBtn(ProfileCtrl.doEditStatus(User.Status.Private), Seq(
                         "class" -> "btn-sm btn-secondary",
                         "title" -> User.Status.Private.description,
                         "data-toggle" -> "tooltip",
                         "data-placement" -> "bottom")) {Make it private}
-                    @formBtn(SpeakerCtrl.doEditStatus(User.Status.Public), Seq(
+                    @formBtn(ProfileCtrl.doEditStatus(User.Status.Public), Seq(
                         "class" -> "btn-sm btn-primary",
                         "title" -> User.Status.Public.description,
                         "data-toggle" -> "tooltip",

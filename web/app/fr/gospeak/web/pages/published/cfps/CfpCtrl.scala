@@ -16,7 +16,7 @@ import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus}
 import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.pages.published.cfps.CfpCtrl._
-import fr.gospeak.web.pages.speaker.talks.proposals.routes.ProposalCtrl
+import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 import fr.gospeak.web.utils.{UICtrl, UserAwareReq, UserReq}
 import play.api.data.Form
 import play.api.mvc._

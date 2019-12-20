@@ -109,15 +109,15 @@ abstract class UICtrl(cc: ControllerComponents,
   protected def contactNotFound(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Result =
     Redirect(pages.orga.partners.routes.PartnerCtrl.detail(group, partner)).flashing("warning" -> s"Unable to find contact with id '${contact.value}'")
 
-  // speaker redirects
+  // user redirects
   protected def talkNotFound(talk: Talk.Slug): Result =
-    Redirect(pages.speaker.talks.routes.TalkCtrl.list()).flashing("warning" -> s"Unable to find talk with slug '${talk.value}'")
+    Redirect(pages.user.talks.routes.TalkCtrl.list()).flashing("warning" -> s"Unable to find talk with slug '${talk.value}'")
 
   protected def cfpNotFound(talk: Talk.Slug, cfp: Cfp.Slug): Result =
-    Redirect(pages.speaker.talks.cfps.routes.CfpCtrl.list(talk)).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")
+    Redirect(pages.user.talks.cfps.routes.CfpCtrl.list(talk)).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")
 
   protected def proposalNotFound(talk: Talk.Slug, cfp: Cfp.Slug): Result =
-    Redirect(pages.speaker.talks.routes.TalkCtrl.detail(talk)).flashing("warning" -> s"Unable to find proposal for CFP '${cfp.value}'")
+    Redirect(pages.user.talks.routes.TalkCtrl.detail(talk)).flashing("warning" -> s"Unable to find proposal for CFP '${cfp.value}'")
 
   // public redirects
   protected def publicCfpNotFound(cfp: Cfp.Slug): Result =

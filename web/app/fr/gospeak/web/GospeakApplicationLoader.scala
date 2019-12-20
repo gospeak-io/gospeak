@@ -38,10 +38,6 @@ import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandle
 import fr.gospeak.web.auth.{AuthConf, AuthCtrl}
 import fr.gospeak.web.domain.{GospeakMessageBus, MessageBuilder}
 import fr.gospeak.web.pages._
-import fr.gospeak.web.pages.published.HomeCtrl
-import fr.gospeak.web.pages.speaker.talks.TalkCtrl
-import fr.gospeak.web.pages.styleguide.StyleguideCtrl
-import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.services.EventSrv
 import org.slf4j.LoggerFactory
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -183,13 +179,18 @@ class GospeakComponents(context: ApplicationLoader.Context)
 
   lazy val authSrv: AuthSrv = AuthSrv(conf.auth, silhouette, userRepo, userRequestRepo, groupRepo, authRepo, clock, socialProviderRegistry, avatarSrv)
 
-  lazy val styleguideCtrl = wire[StyleguideCtrl]
-  lazy val homeCtrl = wire[HomeCtrl]
+  lazy val styleguideCtrl = wire[styleguide.StyleguideCtrl]
+  lazy val homeCtrl = wire[published.HomeCtrl]
   lazy val cfpCtrl = wire[published.cfps.CfpCtrl]
   lazy val groupCtrl = wire[published.groups.GroupCtrl]
   lazy val speakerCtrl = wire[published.speakers.SpeakerCtrl]
   lazy val authCtrl = wire[AuthCtrl]
-  lazy val userCtrl = wire[UserCtrl]
+  lazy val userCtrl = wire[user.UserCtrl]
+  lazy val userTalkCtrl = wire[user.talks.TalkCtrl]
+  lazy val userTalkCfpCtrl = wire[user.talks.cfps.CfpCtrl]
+  lazy val userTalkProposalCtrl = wire[user.talks.proposals.ProposalCtrl]
+  lazy val userProposalCtrl = wire[user.proposals.ProposalCtrl]
+  lazy val userProfileCtrl = wire[user.profile.ProfileCtrl]
   lazy val userGroupCtrl = wire[orga.GroupCtrl]
   lazy val userGroupEventCtrl = wire[orga.events.EventCtrl]
   lazy val userGroupCfpCtrl = wire[orga.cfps.CfpCtrl]
@@ -199,11 +200,6 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val userGroupPartnerCtrl = wire[orga.partners.PartnerCtrl]
   lazy val userGroupSponsorCtrl = wire[orga.sponsors.SponsorCtrl]
   lazy val userGroupSettingsCtrl = wire[orga.settings.SettingsCtrl]
-  lazy val userSpeakerCtrl = wire[speaker.SpeakerCtrl]
-  lazy val userTalkCtrl = wire[TalkCtrl]
-  lazy val userProposalCtrl = wire[fr.gospeak.web.pages.speaker.proposals.ProposalCtrl]
-  lazy val userTalkCfpCtrl = wire[fr.gospeak.web.pages.speaker.talks.cfps.CfpCtrl]
-  lazy val userTalkProposalCtrl = wire[fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl]
   lazy val apiStatusCtrl = wire[api.StatusCtrl]
   lazy val apiUiSuggestCtrl = wire[api.ui.SuggestCtrl]
   lazy val apiUiUtilsCtrl = wire[api.ui.UtilsCtrl]

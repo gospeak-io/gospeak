@@ -15,7 +15,7 @@ import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.orga.cfps.CfpCtrl
 import fr.gospeak.web.pages.orga.cfps.proposals.ProposalCtrl._
-import fr.gospeak.web.pages.speaker.talks.proposals.{ProposalForms => SpeakerProposalForms}
+import fr.gospeak.web.pages.user.talks.proposals.{ProposalForms => SpeakerProposalForms}
 import fr.gospeak.web.utils.{GenericForm, OrgaReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}

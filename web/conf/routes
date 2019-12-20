@@ -48,6 +48,36 @@ GET         /u                                                                  
 GET         /u/answer/:request                                                             fr.gospeak.web.pages.user.UserCtrl.answerRequest(request: UserRequest.Id)
 POST        /u/accept/:request                                                             fr.gospeak.web.pages.user.UserCtrl.acceptRequest(request: UserRequest.Id)
 POST        /u/reject/:request                                                             fr.gospeak.web.pages.user.UserCtrl.rejectRequest(request: UserRequest.Id)
+GET         /u/talks                                                                       fr.gospeak.web.pages.user.talks.TalkCtrl.list(params: Page.Params ?= Page.Params.defaults)
+GET         /u/talks/create                                                                fr.gospeak.web.pages.user.talks.TalkCtrl.create
+POST        /u/talks/create                                                                fr.gospeak.web.pages.user.talks.TalkCtrl.doCreate
+GET         /u/talks/:talk                                                                 fr.gospeak.web.pages.user.talks.TalkCtrl.detail(talk: Talk.Slug)
+GET         /u/talks/:talk/edit                                                            fr.gospeak.web.pages.user.talks.TalkCtrl.edit(talk: Talk.Slug)
+POST        /u/talks/:talk/edit                                                            fr.gospeak.web.pages.user.talks.TalkCtrl.doEdit(talk: Talk.Slug)
+POST        /u/talks/:talk/speakers                                                        fr.gospeak.web.pages.user.talks.TalkCtrl.inviteSpeaker(talk: Talk.Slug)
+POST        /u/talks/:talk/speakers/cancel/:request                                        fr.gospeak.web.pages.user.talks.TalkCtrl.cancelInviteSpeaker(talk: Talk.Slug, request: UserRequest.Id)
+POST        /u/talks/:talk/speakers/:speaker                                               fr.gospeak.web.pages.user.talks.TalkCtrl.removeSpeaker(talk: Talk.Slug, speaker: User.Slug)
+POST        /u/talks/:talk/slides                                                          fr.gospeak.web.pages.user.talks.TalkCtrl.doAddSlides(talk: Talk.Slug)
+POST        /u/talks/:talk/video                                                           fr.gospeak.web.pages.user.talks.TalkCtrl.doAddVideo(talk: Talk.Slug)
+POST        /u/talks/:talk/status/:status                                                  fr.gospeak.web.pages.user.talks.TalkCtrl.changeStatus(talk: Talk.Slug, status: Talk.Status)
+GET         /u/talks/:talk/cfps                                                            fr.gospeak.web.pages.user.talks.cfps.CfpCtrl.list(talk: Talk.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /u/talks/:talk/cfps/:cfp                                                       fr.gospeak.web.pages.user.talks.proposals.ProposalCtrl.create(talk: Talk.Slug, cfp: Cfp.Slug)
+POST        /u/talks/:talk/cfps/:cfp                                                       fr.gospeak.web.pages.user.talks.proposals.ProposalCtrl.doCreate(talk: Talk.Slug, cfp: Cfp.Slug)
+GET         /u/talks/:talk/proposals                                                       fr.gospeak.web.pages.user.talks.proposals.ProposalCtrl.list(talk: Talk.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /u/talks/:talk/proposals/:cfp                                                  fr.gospeak.web.pages.user.talks.proposals.ProposalCtrl.detail(talk: Talk.Slug, cfp: Cfp.Slug)
+POST        /u/talks/:talk/proposals/:cfp/comment                                          fr.gospeak.web.pages.user.talks.proposals.ProposalCtrl.doSendComment(talk: Talk.Slug, cfp: Cfp.Slug)
+GET         /u/talks/:talk/proposals/:cfp/edit                                             fr.gospeak.web.pages.user.talks.proposals.ProposalCtrl.edit(talk: Talk.Slug, cfp: Cfp.Slug)
+POST        /u/talks/:talk/proposals/:cfp/edit                                             fr.gospeak.web.pages.user.talks.proposals.ProposalCtrl.doEdit(talk: Talk.Slug, cfp: Cfp.Slug)
+POST        /u/talks/:talk/proposals/:cfp/speakers                                         fr.gospeak.web.pages.user.talks.proposals.ProposalCtrl.inviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug)
+POST        /u/talks/:talk/proposals/:cfp/speakers/cancel/:request                         fr.gospeak.web.pages.user.talks.proposals.ProposalCtrl.cancelInviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, request: UserRequest.Id)
+POST        /u/talks/:talk/proposals/:cfp/speakers/:speaker                                fr.gospeak.web.pages.user.talks.proposals.ProposalCtrl.removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, speaker: User.Slug)
+POST        /u/talks/:talk/proposals/:cfp/slides                                           fr.gospeak.web.pages.user.talks.proposals.ProposalCtrl.doAddSlides(talk: Talk.Slug, cfp: Cfp.Slug)
+POST        /u/talks/:talk/proposals/:cfp/video                                            fr.gospeak.web.pages.user.talks.proposals.ProposalCtrl.doAddVideo(talk: Talk.Slug, cfp: Cfp.Slug)
+GET         /u/proposals                                                                   fr.gospeak.web.pages.user.proposals.ProposalCtrl.list(params: Page.Params ?= Page.Params.defaults)
+GET         /u/profile                                                                     fr.gospeak.web.pages.user.profile.ProfileCtrl.detail(params: Page.Params ?= Page.Params.defaults)
+GET         /u/profile/edit                                                                fr.gospeak.web.pages.user.profile.ProfileCtrl.edit
+POST        /u/profile/edit                                                                fr.gospeak.web.pages.user.profile.ProfileCtrl.doEdit
+POST        /u/profile/status/:status                                                      fr.gospeak.web.pages.user.profile.ProfileCtrl.doEditStatus(status: User.Status)
 
 GET         /u/groups/create                                                               fr.gospeak.web.pages.orga.GroupCtrl.create
 POST        /u/groups/create                                                               fr.gospeak.web.pages.orga.GroupCtrl.doCreate
@@ -150,37 +180,6 @@ POST        /u/groups/:group/settings/event-template/:templateId/remove         
 POST        /u/groups/:group/settings/orgas                                                fr.gospeak.web.pages.orga.settings.SettingsCtrl.inviteOrga(group: Group.Slug)
 POST        /u/groups/:group/settings/orgas/cancel/:request                                fr.gospeak.web.pages.orga.settings.SettingsCtrl.cancelInviteOrga(group: Group.Slug, request: UserRequest.Id)
 POST        /u/groups/:group/settings/orgas/:user/remove                                   fr.gospeak.web.pages.orga.settings.SettingsCtrl.doRemoveOrga(group: Group.Slug, user: User.Slug)
-
-GET         /u/profile                                                                     fr.gospeak.web.pages.speaker.SpeakerCtrl.detail(params: Page.Params ?= Page.Params.defaults)
-GET         /u/profile/edit                                                                fr.gospeak.web.pages.speaker.SpeakerCtrl.edit
-POST        /u/profile/edit                                                                fr.gospeak.web.pages.speaker.SpeakerCtrl.doEdit
-POST        /u/profile/status/:status                                                      fr.gospeak.web.pages.speaker.SpeakerCtrl.doEditStatus(status: User.Status)
-GET         /u/talks                                                                       fr.gospeak.web.pages.speaker.talks.TalkCtrl.list(params: Page.Params ?= Page.Params.defaults)
-GET         /u/talks/create                                                                fr.gospeak.web.pages.speaker.talks.TalkCtrl.create
-POST        /u/talks/create                                                                fr.gospeak.web.pages.speaker.talks.TalkCtrl.doCreate
-GET         /u/talks/:talk                                                                 fr.gospeak.web.pages.speaker.talks.TalkCtrl.detail(talk: Talk.Slug)
-GET         /u/talks/:talk/edit                                                            fr.gospeak.web.pages.speaker.talks.TalkCtrl.edit(talk: Talk.Slug)
-POST        /u/talks/:talk/edit                                                            fr.gospeak.web.pages.speaker.talks.TalkCtrl.doEdit(talk: Talk.Slug)
-POST        /u/talks/:talk/speakers                                                        fr.gospeak.web.pages.speaker.talks.TalkCtrl.inviteSpeaker(talk: Talk.Slug)
-POST        /u/talks/:talk/speakers/cancel/:request                                        fr.gospeak.web.pages.speaker.talks.TalkCtrl.cancelInviteSpeaker(talk: Talk.Slug, request: UserRequest.Id)
-POST        /u/talks/:talk/speakers/:speaker                                               fr.gospeak.web.pages.speaker.talks.TalkCtrl.removeSpeaker(talk: Talk.Slug, speaker: User.Slug)
-POST        /u/talks/:talk/slides                                                          fr.gospeak.web.pages.speaker.talks.TalkCtrl.doAddSlides(talk: Talk.Slug)
-POST        /u/talks/:talk/video                                                           fr.gospeak.web.pages.speaker.talks.TalkCtrl.doAddVideo(talk: Talk.Slug)
-POST        /u/talks/:talk/status/:status                                                  fr.gospeak.web.pages.speaker.talks.TalkCtrl.changeStatus(talk: Talk.Slug, status: Talk.Status)
-GET         /u/talks/:talk/cfps                                                            fr.gospeak.web.pages.speaker.talks.cfps.CfpCtrl.list(talk: Talk.Slug, params: Page.Params ?= Page.Params.defaults)
-GET         /u/talks/:talk/cfps/:cfp                                                       fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.create(talk: Talk.Slug, cfp: Cfp.Slug)
-POST        /u/talks/:talk/cfps/:cfp                                                       fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.doCreate(talk: Talk.Slug, cfp: Cfp.Slug)
-GET         /u/talks/:talk/proposals                                                       fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.list(talk: Talk.Slug, params: Page.Params ?= Page.Params.defaults)
-GET         /u/talks/:talk/proposals/:cfp                                                  fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.detail(talk: Talk.Slug, cfp: Cfp.Slug)
-POST        /u/talks/:talk/proposals/:cfp/comment                                          fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.doSendComment(talk: Talk.Slug, cfp: Cfp.Slug)
-GET         /u/talks/:talk/proposals/:cfp/edit                                             fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.edit(talk: Talk.Slug, cfp: Cfp.Slug)
-POST        /u/talks/:talk/proposals/:cfp/edit                                             fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.doEdit(talk: Talk.Slug, cfp: Cfp.Slug)
-POST        /u/talks/:talk/proposals/:cfp/speakers                                         fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.inviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug)
-POST        /u/talks/:talk/proposals/:cfp/speakers/cancel/:request                         fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.cancelInviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, request: UserRequest.Id)
-POST        /u/talks/:talk/proposals/:cfp/speakers/:speaker                                fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, speaker: User.Slug)
-POST        /u/talks/:talk/proposals/:cfp/slides                                           fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.doAddSlides(talk: Talk.Slug, cfp: Cfp.Slug)
-POST        /u/talks/:talk/proposals/:cfp/video                                            fr.gospeak.web.pages.speaker.talks.proposals.ProposalCtrl.doAddVideo(talk: Talk.Slug, cfp: Cfp.Slug)
-GET         /u/proposals                                                                   fr.gospeak.web.pages.speaker.proposals.ProposalCtrl.list(params: Page.Params ?= Page.Params.defaults)
 
 GET         /styleguide                                                                    fr.gospeak.web.pages.styleguide.StyleguideCtrl.index(params: Page.Params ?= Page.Params.defaults)
 GET         /styleguide/published/:id                                                      fr.gospeak.web.pages.styleguide.StyleguideCtrl.published(id: String)
