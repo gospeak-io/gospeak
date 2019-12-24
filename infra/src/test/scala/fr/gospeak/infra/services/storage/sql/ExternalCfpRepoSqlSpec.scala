@@ -59,7 +59,7 @@ object ExternalCfpRepoSqlSpec {
   val orderBy = "ORDER BY ec.close IS NULL, ec.close, ec.name IS NULL, ec.name"
 
   val commonTable: String = "(" +
-    "(SELECT c.id,       c.slug, c.name, null as logo, c.begin, c.close, g.location, c.description, c.tags FROM cfps c INNER JOIN groups g ON c.group_id=g.id) UNION " +
-    "(SELECT c.id, null as slug, c.name,       c.logo, c.begin, c.close, c.location, c.description, c.tags FROM external_cfps c)) c"
-  val commonFields = "c.id, c.slug, c.name, c.logo, c.begin, c.close, c.location, c.description, c.tags"
+    "(SELECT c.id,       c.slug, c.name, null as logo, c.begin, c.close, g.location, c.description, null as event_start, null as event_finish, c.tags FROM cfps c INNER JOIN groups g ON c.group_id=g.id) UNION " +
+    "(SELECT c.id, null as slug, c.name,       c.logo, c.begin, c.close, c.location, c.description, c.event_start, c.event_finish, c.tags FROM external_cfps c)) c"
+  val commonFields = "c.id, c.slug, c.name, c.logo, c.begin, c.close, c.location, c.description, c.event_start, c.event_finish, c.tags"
 }

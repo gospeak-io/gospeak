@@ -16,6 +16,8 @@ final case class CommonCfp(id: String,
                            close: Option[LocalDateTime],
                            location: Option[GMapPlace],
                            description: Markdown,
+                           eventStart: Option[LocalDateTime],
+                           eventFinish: Option[LocalDateTime],
                            tags: Seq[Tag]) {
   def closesInDays(nb: Int, now: Instant): Boolean = close.exists(_.toInstant(Constants.defaultZoneId).isBefore(now.minus(nb, ChronoUnit.DAYS)))
 
@@ -32,6 +34,8 @@ object CommonCfp {
     close = cfp.close,
     location = group.location,
     description = cfp.description,
+    eventStart = None,
+    eventFinish = None,
     tags = cfp.tags)
 
   def apply(cfp: ExternalCfp): CommonCfp = new CommonCfp(
@@ -43,5 +47,7 @@ object CommonCfp {
     close = cfp.close,
     location = cfp.event.location,
     description = cfp.description,
+    eventStart = cfp.event.start,
+    eventFinish = cfp.event.finish,
     tags = cfp.tags)
 }

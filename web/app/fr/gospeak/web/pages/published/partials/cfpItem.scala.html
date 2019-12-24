@@ -25,7 +25,7 @@
                         }
                     }
                 </span>
-                <span class="col-sm-4">@cfp.name</span>
+                <span class="col-sm-4">@cfp.name @cfp.eventStart.map { s => (@Formats.date(s))}</span>
 
                 <span class="col-sm-6 text-primary text-sm-right">
                     @cfp.location.map { l => @l.locality.map(_+",") @l.country }

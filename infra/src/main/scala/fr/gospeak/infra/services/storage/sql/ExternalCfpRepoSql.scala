@@ -37,11 +37,11 @@ object ExternalCfpRepoSql {
   private val table = Tables.externalCfps
   private val tableSelect = table.dropFields(_.name.startsWith("location_"))
   private val commonTable = Table(
-    name = "((SELECT c.id,       c.slug, c.name, null as logo, c.begin, c.close, g.location, c.description, c.tags FROM cfps c INNER JOIN groups g ON c.group_id=g.id) " +
-      "UNION (SELECT c.id, null as slug, c.name,       c.logo, c.begin, c.close, c.location, c.description, c.tags FROM external_cfps c))",
+    name = "((SELECT c.id,       c.slug, c.name, null as logo, c.begin, c.close, g.location, c.description, null as event_start, null as event_finish, c.tags FROM cfps c INNER JOIN groups g ON c.group_id=g.id) " +
+      "UNION (SELECT c.id, null as slug, c.name,       c.logo, c.begin, c.close, c.location, c.description, c.event_start, c.event_finish, c.tags FROM external_cfps c))",
     prefix = "c",
     joins = Seq(),
-    fields = Seq("id", "slug", "name", "logo", "begin", "close", "location", "description", "tags").map(Field(_, "c")),
+    fields = Seq("id", "slug", "name", "logo", "begin", "close", "location", "description", "event_start", "event_finish", "tags").map(Field(_, "c")),
     aggFields = Seq(),
     sorts = Sorts(Seq("close", "name").map(Field(_, "c")), Map()),
     search = Seq("name", "description", "tags").map(Field(_, "c")))
