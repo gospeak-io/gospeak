@@ -6,6 +6,8 @@ import fr.gospeak.web.utils.Mappings
 import play.api.data.{Field, FormError}
 import play.twirl.api.Html
 
+import scala.concurrent.duration.Duration
+import scala.util.Try
 import scala.util.matching.Regex
 
 object Utils {
@@ -110,7 +112,7 @@ object Utils {
     args.find { case (k, _) => k == key }.map { case (_, v) => v }
 
   def getArg(args: Args, key: String, default: => String): String =
-    getArg(args, key).getOrElse(default)
+    getArg(args, key).getOrElse(default).replace("\"", "&quot;")
 
   def helpId(args: Args, field: Field): String =
     "help-" + id(field, args)
@@ -124,4 +126,12 @@ object Utils {
       case f: Function0[_] => Some(f().toString)
       case _ => None
     }
+
+  def convert(lengthField: Field, from: Option[String], dest: TimeUnit): Field = {
+    (for {
+      length <- lengthField.value.flatMap(v => Try(v.toInt).toOption)
+      srcUnit <- from.flatMap(u => Try(TimeUnit.valueOf(u)).toOption)
+      newLength = Duration(length, srcUnit).toUnit(dest).toInt
+    } yield lengthField.copy(value = Some(newLength.toString))).getOrElse(lengthField)
+  }
 }
