@@ -14,3 +14,23 @@
 .u-header__nav-link.active {
   color: $gray-900;
 }
+
+.btn {
+  padding: .375rem .75rem;
+}
+
+.btn-group-sm > .btn, .btn-sm {
+  padding: .25rem .5rem;
+}
+
+.btn-xs {
+  padding: 0.15rem 0.4rem;
+}
+
+.markdown ul {
+  color: $gray-700;
+}
+
+.dropdown-item.btn {
+  padding: .375rem 1.5rem;
+}

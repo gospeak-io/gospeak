@@ -15,10 +15,10 @@
     @inputMarkdown(field, args)
 }
 @fieldHorizontal(form("slides"), Seq("label" -> "Slides", "help" -> "Slides for your talk")) { (field, args) =>
-    @inputEmbed(field, args)
+    @inputEmbed(field, Seq("placeholder" -> "ex: https://www.slideshare.net/loicknuchel/scala-bad-practices-scalaio-2019") ++ args)
 }
 @fieldHorizontal(form("video"), Seq("label" -> "Video", "help" -> "Video of your talk")) { (field, args) =>
-    @inputEmbed(field, args)
+    @inputEmbed(field, Seq("placeholder" -> "ex: https://www.youtube.com/watch?v=Tm-qyMukBq4") ++ args)
 }
 @fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your talk")) { (field, args) =>
     @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))

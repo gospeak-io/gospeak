@@ -21,7 +21,7 @@
             <div class="card-body text-center">
                 <h5 class="card-title">No incoming event</h5>
                 <p class="card-text">Follow more groups to discover interesting events near you</p>
-                <a href="@PublicGroupCtrl.list()" class="btn btn-success btn-sm">Discover new groups</a>
+                <a href="@PublicGroupCtrl.list()" class="btn btn-success">Discover new groups</a>
             </div>
         } else {
             <div class="list-group list-group-flush">
@@ -46,12 +46,12 @@
             <div class="card-body text-center">
                 <h5 class="card-title">Join groups to participate to their events</h5>
                 <p class="card-text">Joining a group will allows you to be notified of their events and participate to them</p>
-                <a href="@PublicGroupCtrl.list()" class="btn btn-success btn-sm">Find interesting groups</a>
+                <a href="@PublicGroupCtrl.list()" class="btn btn-success">Find interesting groups</a>
             </div>
         } else {
             <h5 class="card-header d-flex justify-content-between align-items-center">
                 <span>Your groups</span>
-                <a class="btn btn-primary btn-xs" href="@PublicGroupCtrl.list()">Browse groups</a>
+                <a class="btn btn-primary btn-sm" href="@PublicGroupCtrl.list()">Browse groups</a>
             </h5>
             <div class="list-group list-group-flush">
                 @joinedGroups.items.map { case (g, m) =>
@@ -68,12 +68,12 @@
             <div class="card-body text-center">
                 <h5 class="card-title">Manage your talks with Gospeak!<br>&nbsp;</h5>
                 <p class="card-text">Create your talks, find groups to submit them, allow organizers to contact you to speak, show them publicly</p>
-                <a href="@TalkCtrl.create()" class="btn btn-success btn-sm">Create your first talk</a>
+                <a href="@TalkCtrl.create()" class="btn btn-success">Create your first talk</a>
             </div>
         } else {
             <h5 class="card-header d-flex justify-content-between align-items-center">
                 <span>Your talks</span>
-                <a class="btn btn-primary btn-xs" href="@TalkCtrl.create()">Create a talk</a>
+                <a class="btn btn-primary btn-sm" href="@TalkCtrl.create()">Create a talk</a>
             </h5>
             <div class="list-group list-group-flush">
                 @talks.items.map { t =>
@@ -91,12 +91,12 @@
             <div class="card-body text-center">
                 <h5 class="card-title">Propose your talks to CFPs and manage them here<br>&nbsp;</h5>
                 <p class="card-text">Follow the status of your proposals here</p>
-                <a href="@CfpCtrl.list()" class="btn btn-success btn-sm">Find a CFP to propose a talk</a>
+                <a href="@CfpCtrl.list()" class="btn btn-success">Find a CFP to propose a talk</a>
             </div>
         } else {
             <h5 class="card-header d-flex justify-content-between align-items-center">
                 <span>Your proposals</span>
-                <a class="btn btn-primary btn-xs" href="@CfpCtrl.list()">Find a CFP</a>
+                <a class="btn btn-primary btn-sm" href="@CfpCtrl.list()">Find a CFP</a>
             </h5>
             <div class="list-group list-group-flush">
                 @proposals.items.map { p =>
@@ -117,19 +117,19 @@
         }
     </div>
 }
-@container_theme("Gospeak", b)() {
+@container_theme("Gospeak dashboard", b)() {
     @if(talks.nonEmpty && req.user.status.isUndefined) {
         <div class="alert alert-info" role="alert">
             <h4 class="alert-heading d-flex justify-content-between align-items-center">
                 <span>Hi speaker!</span>
                 <span>
                     @formBtn(ProfileCtrl.doEditStatus(User.Status.Private), Seq(
-                        "class" -> "btn-secondary btn-xs",
+                        "class" -> "btn-secondary btn-sm",
                         "title" -> User.Status.Private.description,
                         "data-toggle" -> "tooltip",
                         "data-placement" -> "bottom")) {Make it private}
                     @formBtn(ProfileCtrl.doEditStatus(User.Status.Public), Seq(
-                        "class" -> "btn-primary btn-xs",
+                        "class" -> "btn-primary btn-sm",
                         "title" -> User.Status.Public.description,
                         "data-toggle" -> "tooltip",
                         "data-placement" -> "bottom")) {Make it public}
