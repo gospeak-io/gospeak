@@ -1,48 +1,39 @@
 @import fr.gospeak.core.domain.utils.Constants.Image
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.partials.container.html.{flash_theme, main_theme, navbarLink_theme, userDropdown_theme}
+@import fr.gospeak.web.pages.partials.container.html.{flash_theme, main_theme, navbarLink_theme, userDropdown_theme, alert}
+@import fr.gospeak.web.pages.partials.form.html.formBtn
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.pages.published.routes.HomeCtrl
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import fr.gospeak.web.pages.user.routes.UserCtrl
 @import fr.gospeak.web.utils.UserAwareReq
 
-@(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
+@(title: String, b: Breadcrumb, hideAlert: Boolean = false)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
 @main_theme(title, "published_theme.css", style, script) {
 <header id="header" class="u-header u-header--abs-top-md u-header--bg-transparent u-header--show-hide-md" data-header-fix-moment="500" data-header-fix-effect="slide">
     <div class="u-header__section">
         <div id="logoAndNav" class="container">
             <nav class="js-mega-menu navbar navbar-expand-md u-header__navbar u-header__navbar--no-space">
-                <!-- Logo -->
                 <a class="navbar-brand u-header__navbar-brand u-header__navbar-brand-center" href="@HomeCtrl.index()" aria-label="Gospeak">
                     <img class="img-fluid" src="@Image.gospeakLogoText" alt="Image Description">
                 </a>
 
-                <!-- End Logo -->
-
-                <!-- Responsive Toggle Button -->
                 <button type="button" class="navbar-toggler btn u-hamburger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navBar" data-toggle="collapse" data-target="#navBar">
                     <span id="hamburgerTrigger" class="u-hamburger__box">
                         <span class="u-hamburger__inner"></span>
                     </span>
                 </button>
-                <!-- End Responsive Toggle Button -->
 
-                <!-- Navigation -->
                 <div id="navBar" class="collapse navbar-collapse u-header__navbar-collapse">
                     <ul class="navbar-nav u-header__navbar-nav">
-                        <li class="nav-item  u-header__nav-item" data-event="hover" data-animation-in="slideInUp" data-animation-out="fadeOut" data-position="left">
-                            @navbarLink_theme(CfpCtrl.list(), "data-hotkey" -> "1") {Call For Proposals}
-                        </li>
-                        <li class="nav-item  u-header__nav-item" data-event="hover" data-animation-in="slideInUp" data-animation-out="fadeOut">
-                            @navbarLink_theme(GroupCtrl.list(), "data-hotkey" -> "2") {Groups}
-                        </li>
-                        @*
-                        <li class="nav-item  u-header__nav-item" data-event="hover" data-animation-in="slideInUp" data-animation-out="fadeOut">
-                            @navbarLink_theme(SpeakerCtrl.list(), "data-hotkey" -> "3") {Speakers}
-                        </li>
-                        *@
+                        @req.secured.map { r =>
+                            <li class="nav-item u-header__nav-item">@navbarLink_theme(UserCtrl.index()) {Dashboard}</li>
+                        }
+                        <li class="nav-item u-header__nav-item">@navbarLink_theme(CfpCtrl.list()) {Call For Proposals}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink_theme(GroupCtrl.list()) {Groups}</li>
+                        @* <li class="nav-item u-header__nav-item">@navbarLink_theme(SpeakerCtrl.list()) {Speakers}</li> *@
                         <li class="nav-item u-header__nav-last-item">
                             @req.secured.map { r =>
                                 @userDropdown_theme(r.user, r.groups)
@@ -52,13 +43,19 @@
                         </li>
                     </ul>
                 </div>
-                <!-- End Navigation -->
             </nav>
         </div>
     </div>
 </header>
 <main id="content" role="main">
     <div class="container space-2 mt-5">
+        @req.secured.filter(r => !hideAlert && r.user.emailValidated.isEmpty).map { implicit r =>
+            @alert("warning", "d-flex justify-content-between align-items-center") {
+                <span class="align-self-center">
+                    Your email is not validated, please click on the validation link in the signup email</span>
+                @formBtn(AuthCtrl.resendEmailValidation(), Seq("class" -> "btn-sm btn-warning")) {Resend validation email}
+            }
+        }
         @flash_theme(req.flash)
         @content
     </div>
