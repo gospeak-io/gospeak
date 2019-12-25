@@ -2,22 +2,23 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.user.partials.html.{proposalFields, container_old}
+@import fr.gospeak.web.pages.published.partials.html.container_theme
+@import fr.gospeak.web.pages.user.partials.html.proposalFields
 @import fr.gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.UserReq
 
 @(form: Form[Proposal.Data], talk: Talk, cfp: Cfp)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container_old("Gospeak", b)() {
-    <h1 class="page-header">Propose @talk.title.value to @cfp.name.value</h1>
-    @tags(cfp.tags)
-    <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
-
+@container_theme("Gospeak", b)() {
     @formElt(form, ProposalCtrl.doCreate(talk.slug, cfp.slug)) {
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Propose to @cfp.name.value</h1>
+            <div>
+                @btnCancel(CfpCtrl.list(talk.slug))
+                @btnSubmit("Propose your talk")
+            </div>
+        </div>
+        <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
         @proposalFields(form)
-        @actionsHorizontal() {
-            @btnCancel(CfpCtrl.list(talk.slug))
-            @btnSubmit("Propose your talk")
-        }
     }
-}()
+}()(req.userAware)

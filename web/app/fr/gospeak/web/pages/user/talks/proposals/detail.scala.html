@@ -5,16 +5,16 @@
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.html._
 @import fr.gospeak.web.pages.partials.html.{slidesFields, videoFields}
+@import fr.gospeak.web.pages.published.partials.html.container_theme
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.user.partials.html.container_old
 @import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserReq
 
 @(proposal: Proposal.Full, speakers: Seq[User], comments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url], commentForm: Form[Comment.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container_old(proposal.cfp.name.value + " - Gospeak", b)() {
-    <h1 class="d-flex justify-content-between align-items-center">
-        <span>@proposalStatusIcon(proposal.status) @proposal.title.value proposal <small>to @proposal.cfp.name.value</small></span>
+@container_theme(proposal.title.value + " - Gospeak", b)() {
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>@proposalStatusIcon(proposal.status) @proposal.cfp.name.value proposal</h1>
         <span class="btn-group">
             <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fas fa-cog"></i>
@@ -23,11 +23,12 @@
                 <a class="dropdown-item" href="@ProposalCtrl.edit(proposal.talk.slug, proposal.cfp.slug)">Edit</a>
             </span>
         </span>
-    </h1>
+    </div>
+    <h2>@proposal.title.value</h2>
 
     <p class="mb-0">@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video) @tags(proposal.tags)</p>
     @proposal.event.map { e => <p class="mb-0">Given at <b>@e.name.value</b> on @Formats.date(e.start)</p> }
-    <div>
+    <div class="p">
         Speakers:
         @proposal.speakers.toList.map(id => speakers.find(_.id == id)).map {
             case Some(speaker) => {
@@ -78,4 +79,4 @@
             </div>
         </div>
     </div>
-}()
+}()(req.userAware)

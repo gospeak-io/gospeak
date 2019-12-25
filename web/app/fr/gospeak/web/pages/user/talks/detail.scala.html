@@ -4,8 +4,8 @@
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.html.{slidesFields, videoFields}
-@import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.published.partials.html.container_theme
+@import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.user.partials.html.proposalItem
 @import fr.gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
@@ -82,7 +82,7 @@
 
     <p class="mb-0">@talkStatus(talk.status) @duration(talk.duration) @slidesIcon(talk.slides) @videoIcon(talk.video)</p>
     <p class="mb-0">@tags(talk.tags)</p>
-    <div>
+    <div class="p">
         Speakers:
         @talk.speakers.toList.map(id => speakers.find(_.id == id)).map {
             case Some(speaker) => {
@@ -130,9 +130,7 @@
             <ul class="list-group list-group-flush">
             @proposals.items.map { proposal => @proposalItem(proposal) }
             </ul>
-            @if(!proposals.isLast) {
-                <div class="card-footer"><a href="@ProposalCtrl.list(talk.slug)">More...</a></div>
-            }
+            <div class="card-footer"><a href="@ProposalCtrl.list(talk.slug)">View all</a></div>
         </div>
     }
 

@@ -99,8 +99,9 @@ object Formats {
   }
 
   def paginationHeader[A](page: Page[A], link: Page.Params => Call): Html = {
+    // should add 'align-items-center mb-3' to div but search form has too much height :(
     Html(
-      s"""<div class="d-flex justify-content-between mt-2"${if (page.hasManyPages || page.params.search.nonEmpty) "" else " style=\"display: none !important;\""}>
+      s"""<div class="d-flex justify-content-between"${if (page.hasManyPages || page.params.search.nonEmpty) "" else " style=\"display: none !important;\""}>
          |  ${search(page, link(Page.Params.defaults))}
          |  ${pagination(page, link)}
          |</div>
@@ -111,13 +112,13 @@ object Formats {
   def paginationBody[A](page: Page[A], item: A => Html): Html = {
     if (page.isEmpty) {
       Html(
-        """<div class="jumbotron text-center mt-2">
+        """<div class="jumbotron text-center mb-3">
           |  <h2>No results <i class="far fa-sad-tear"></i></h2>
           |</div>
       """.stripMargin)
     } else {
       Html(
-        s"""<div class="list-group mt-2">
+        s"""<div class="list-group mb-3">
            |  ${page.items.map(item).mkString("\n")}
            |</div>
        """.stripMargin)
@@ -125,6 +126,6 @@ object Formats {
   }
 
   def paginationFooter[A](page: Page[A], link: Page.Params => Call): Html = {
-    Html(s"""<div class="d-flex justify-content-end mt-2">${pagination(page, link)}</div>""")
+    Html(s"""<div class="d-flex justify-content-end mb-3">${pagination(page, link)}</div>""")
   }
 }

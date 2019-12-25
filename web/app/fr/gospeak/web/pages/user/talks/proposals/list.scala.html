@@ -1,14 +1,15 @@
 @import fr.gospeak.core.domain.{Proposal, Talk}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.user.partials.html.{container_old, proposalItem}
+@import fr.gospeak.web.pages.published.partials.html.container_theme
+@import fr.gospeak.web.pages.user.partials.html.proposalItem
 @import fr.gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserReq
 
 @(talk: Talk, proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container_old(talk.title.value + " - Gospeak", b)() {
+@container_theme(talk.title.value + " - Gospeak", b)() {
     @if(proposals.isEmpty) {
         <div class="jumbotron">
             <h1>Still no proposal for @talk.title.value <i class="far fa-sad-tear"></i></h1>
@@ -21,4 +22,4 @@
         <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") for @talk.title.value</h1>
         @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list(talk.slug, _), proposalItem(_))
     }
-}()
+}()(req.userAware)

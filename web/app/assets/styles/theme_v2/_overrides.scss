@@ -1,11 +1,5 @@
 @import "../front/variables";
 
-.select2-container--bootstrap {
-  .select2-selection {
-    padding: 8px;
-  }
-}
-
 .list-group-flush .list-group-item {
   padding-left: 1.25rem;
   padding-right: 1.25rem;
@@ -31,6 +25,16 @@
   color: $gray-700;
 }
 
+.p {
+  color: $gray-700;
+  line-height: 1.7;
+}
+
 .dropdown-item.btn {
   padding: .375rem 1.5rem;
+}
+
+.form-control {
+  height: calc(1.5em + .75rem + 2px);
+  padding: .375rem .75rem;
 }
