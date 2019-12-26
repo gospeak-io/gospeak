@@ -1,14 +1,13 @@
 @import fr.gospeak.core.domain.Talk
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.published.partials.html.container_theme
-@import fr.gospeak.web.pages.user.partials.html.talkItem
+@import fr.gospeak.web.pages.user.partials.html.{container, talkItem}
 @import fr.gospeak.web.pages.user.talks.routes.TalkCtrl
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserReq
 
 @(talks: Page[Talk])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container_theme("My talks - Gospeak", b)() {
+@container("My talks - Gospeak", b)() {
     @if(talks.isEmpty) {
         <div class="jumbotron">
             <h1>You have no talk <i class="far fa-sad-tear"></i></h1>
@@ -26,4 +25,4 @@
         </h1>
         @Formats.paginated[Talk](talks, TalkCtrl.list, talkItem(_))
     }
-}()(req.userAware)
+}()

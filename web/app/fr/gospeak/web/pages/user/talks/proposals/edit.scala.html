@@ -2,13 +2,12 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.published.partials.html.container_theme
-@import fr.gospeak.web.pages.user.partials.html.proposalFields
+@import fr.gospeak.web.pages.user.partials.html.{container, proposalFields}
 @import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.UserReq
 
 @(form: Form[Proposal.Data], proposal: Proposal.Full)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container_theme(proposal.title.value + " - Gospeak", b)() {
+@container(s"Edit '${proposal.title.value}' - Gospeak", b)() {
     @formElt(form, ProposalCtrl.doEdit(proposal.talk.slug, proposal.cfp.slug)) {
         <div class="d-flex justify-content-between align-items-center">
             <h1>Update @proposal.cfp.name.value proposal</h1>
@@ -21,4 +20,4 @@
         <blockquote class="blockquote">@markdown(proposal.cfp.description)</blockquote>
         @proposalFields(form)
     }
-}()(req.userAware)
+}()

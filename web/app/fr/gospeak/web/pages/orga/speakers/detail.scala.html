@@ -2,13 +2,13 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.{container_theme, speakerCard, proposalItem}
+@import fr.gospeak.web.pages.orga.partials.html.{container, speakerCard, proposalItem}
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.OrgaReq
 
 @(speaker: User, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container_theme(speaker.name.value + " - Gospeak", b)() {
+@container(s"${speaker.name.value} - Gospeak", b)() {
     <div class="row">
         <div class="col-4">
             @speakerCard(speaker)

@@ -3,7 +3,7 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.partials.html.{container_theme, proposalRating}
+@import fr.gospeak.web.pages.orga.partials.html.{container, proposalRating}
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
@@ -12,7 +12,7 @@
 @import fr.gospeak.web.utils.OrgaReq
 
 @(proposal: Proposal.Full, speakers: Seq[User], ratings: Seq[Proposal.Rating.Full], comments: Seq[Comment.Full], orgaComments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite], events: Seq[Event], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url], commentForm: Form[Comment.Data], orgaCommentForm: Form[Comment.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container_theme(proposal.title.value + " - Gospeak", b)() {
+@container(s"'${proposal.title.value}' - Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@proposalStatusIcon(proposal.status) @proposal.title.value</span>
         <span class="btn-group">

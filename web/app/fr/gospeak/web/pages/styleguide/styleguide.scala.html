@@ -11,7 +11,7 @@
 @import fr.gospeak.web.utils.GenericForm
 @import fr.gospeak.web.utils.{UserAwareReq, UserReq, OrgaReq}
 
-@(user: User, group: Group, cfp: Cfp, event: Event, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, params: Page.Params)(implicit userAwareReq: UserAwareReq[AnyContent], userReq: UserReq[AnyContent], orgaReq: OrgaReq[AnyContent])
+@(user: User, group: Group, groupFull: Group.Full, cfp: Cfp, event: Event, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, params: Page.Params)(implicit userAwareReq: UserAwareReq[AnyContent], userReq: UserReq[AnyContent], orgaReq: OrgaReq[AnyContent])
 @section(id: String, title: String, localization: String)(display: String => Html) = {
     <div id="@id" class="section">
         <h2>@title: <code style="font-size: 1rem">@localization</code></h2>
@@ -30,7 +30,7 @@
         <div class="col-10">@display(label)</div>
     </div>
 }
-@container.main("Gospeak styleguide", "user.css", Html(
+@container.main("Styleguide - Gospeak", Html(
     """<style>
       |.section {
       |  padding-top: 56px;
@@ -233,9 +233,7 @@
         @section("global-container", "Global container components", "@import fr.gospeak.web.pages.partials.container.html._") { _ =>
             @component("alert", "@alert(\"primary\") {This is an <b>HTML</b> text!}") { name =>
                 @example(s"$name with 'primary'") { _ => @container.alert("primary") {This is an <b>HTML</b> text!} }
-                @example(s"$name with 'secondary'") { _ =>
-                    @container.alert("secondary") {This is an <b>HTML</b> text!}
-                }
+                @example(s"$name with 'secondary'") { _ => @container.alert("secondary") {This is an <b>HTML</b> text!} }
                 @example(s"$name with 'success'") { _ => @container.alert("success") {This is an <b>HTML</b> text!} }
                 @example(s"$name with 'warning'") { _ => @container.alert("warning") {This is an <b>HTML</b> text!} }
                 @example(s"$name with 'danger'") { _ => @container.alert("danger") {This is an <b>HTML</b> text!} }
@@ -247,7 +245,7 @@
 
         @section("published", "Published components", "@import fr.gospeak.web.pages.published.partials.html._") { _ =>
             @component("groupItem", "@groupItem(group)") { name =>
-                @example(s"$name") { _ => @published.groupItem(group, Seq()) }
+                @example(s"$name") { _ => @published.groupItem(groupFull, Seq()) }
             }
             @component("cfpItem", "@cfpItem(cfp)") { name =>
                 @example(s"$name") { _ => @published.cfpItem(CommonCfp(group, cfp)) }

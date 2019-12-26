@@ -2,13 +2,12 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.published.partials.html.container_theme
-@import fr.gospeak.web.pages.user.partials.html.{groupItem, proposalItemForProfile}
+@import fr.gospeak.web.pages.user.partials.html.{container, groupItem, proposalItemForProfile}
 @import fr.gospeak.web.pages.user.profile.routes.ProfileCtrl
 @import fr.gospeak.web.utils.UserReq
 
 @(proposals: Page[Proposal.Full], ownedGroups: Seq[Group])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container_theme(req.user.name.value + " - Gospeak", b)() {
+@container("My profile - Gospeak", b)() {
     <div class="row">
         <div class="col-4">
             <div class="card shadow-sm">
@@ -49,4 +48,4 @@
             }
         </div>
     </div>
-}()(req.userAware)
+}()

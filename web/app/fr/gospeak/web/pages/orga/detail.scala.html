@@ -2,7 +2,7 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.partials.html.{container_theme, eventItem}
+@import fr.gospeak.web.pages.orga.partials.html.{container, eventItem}
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
@@ -35,7 +35,7 @@
 @requestUser(id: User.Id) = {
     @requestUsers.find(_.id == id).map { u => <a href="mailto:@u.email.value">@u.name.value</a> }.getOrElse { <b>Unknown user @id.value</b> }
 }
-@container_theme(req.group.name.value + " - Gospeak", b)() {
+@container(s"${req.group.name.value} - Gospeak", b)() {
     @requests.map {
         case r: UserRequest.UserAskToJoinAGroupRequest => {
             <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert">

@@ -1,15 +1,14 @@
 @import fr.gospeak.core.domain.Proposal
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.published.partials.html.container_theme
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
-@import fr.gospeak.web.pages.user.partials.html.{container_old, proposalItem}
+@import fr.gospeak.web.pages.user.partials.html.{container, proposalItem}
 @import fr.gospeak.web.pages.user.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserReq
 
 @(proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container_theme("My proposals - Gospeak", b)() {
+@container("My proposals - Gospeak", b)() {
     @if(proposals.isEmpty) {
         <div class="jumbotron">
             <h1>You have no proposal <i class="far fa-sad-tear"></i></h1>
@@ -26,4 +25,4 @@
         </h1>
         @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list, proposalItem(_))
     }
-}()(req.userAware)
+}()

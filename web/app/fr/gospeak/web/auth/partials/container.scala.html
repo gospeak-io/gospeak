@@ -1,8 +1,8 @@
-@import fr.gospeak.web.pages.partials.container.html.{flash, main_theme}
+@import fr.gospeak.web.pages.partials.container.html.{flash, main}
 @import fr.gospeak.web.utils.UserAwareReq
 
 @(title: String)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
-@main_theme(title, "published_theme.css", style, script) {
+@main(title, style, script) {
 <main>
     <div class="d-flex align-items-center position-relative height-lg-100vh">
         <div class="container">

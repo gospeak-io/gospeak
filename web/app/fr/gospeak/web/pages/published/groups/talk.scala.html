@@ -3,12 +3,12 @@
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.published.partials.html.container_theme
+@import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 
 @(group: Group, talk: Proposal.Full, speakers: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container_theme(talk.title.value + " at " + group.name.value + " - Gospeak", b)() {
+@container(s"'${talk.title.value}' at ${group.name.value} - Gospeak", b)() {
 <div class="w-lg-60 mx-lg-auto">
     <div class="mb-4">
         <h1 class="h2 font-weight-medium">@talk.title.value</h1>

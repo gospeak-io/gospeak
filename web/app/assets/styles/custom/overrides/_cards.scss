@@ -1,0 +1,16 @@
+/*
+ * Bootstrap & theme global overrides
+ */
+
+.card-header .btn-sm,
+.card-header .input-group-sm {
+  margin-top: -3px;
+  margin-bottom: -4px;
+}
+
+.card-body p:last-child,
+.card-body h5:last-child,
+.card-body .markdown:last-child,
+.card-body .form-group:last-child {
+  margin-bottom: 0;
+}

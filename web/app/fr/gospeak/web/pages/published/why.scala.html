@@ -1,9 +1,9 @@
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.published.partials.html.container_theme
+@import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.utils.UserAwareReq
 
 @()(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container_theme("Gospeak", b)() {
+@container("Gospeak is for you!", b)() {
 <h1 class="home-title">Why use <b>Gospeak</b>?</h1>
 
 <p>

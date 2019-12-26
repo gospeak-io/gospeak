@@ -4,9 +4,8 @@
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.html.{slidesFields, videoFields}
-@import fr.gospeak.web.pages.published.partials.html.container_theme
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.user.partials.html.proposalItem
+@import fr.gospeak.web.pages.user.partials.html.{container, proposalItem}
 @import fr.gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.user.talks.routes.TalkCtrl
@@ -14,7 +13,7 @@
 @import fr.gospeak.web.utils.UserReq
 
 @(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Page[Proposal.Full], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container_theme(talk.title.value + " - Gospeak", b)() {
+@container(s"'${talk.title.value}' - Gospeak", b)() {
     @if(talk.status == Talk.Status.Draft) {
         <div class="alert alert-info" role="alert">
             <h4 class="alert-heading d-flex justify-content-between align-items-center">
@@ -155,4 +154,4 @@
             </div>
         </div>
     </div>
-}()(req.userAware)
+}()

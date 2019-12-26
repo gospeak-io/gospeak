@@ -14,7 +14,7 @@
                         Post Slack message
                         @if(accounts.slack.isEmpty) {<span class="badge badge-warning" title="Enable the Slack integration to activate it">Disabled</span>}
                     </span>
-                    <span class="d-flex">
+                    <span>
                         <a href="@SettingsCtrl.updateAction(req.group.slug, trigger, index)" class="btn btn-primary btn-xs mr-1">Update</a>
                         @formBtn(SettingsCtrl.doRemoveAction(req.group.slug, trigger, index), Seq("class" -> "btn-danger btn-xs mr-1")) {Remove}
                     </span>
@@ -39,7 +39,7 @@
             <div class="media-body">
                 <h5 class="mb-0 d-flex justify-content-between align-items-center">
                     <span>Send email</span>
-                    <span class="d-flex">
+                    <span>
                         <a href="@SettingsCtrl.updateAction(req.group.slug, trigger, index)" class="btn btn-primary btn-xs mr-1">Update</a>
                         @formBtn(SettingsCtrl.doRemoveAction(req.group.slug, trigger, index), Seq("class" -> "btn-danger btn-xs mr-1")) {Remove}
                     </span>

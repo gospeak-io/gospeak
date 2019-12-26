@@ -1,13 +1,13 @@
 @import fr.gospeak.core.domain.{Sponsor, SponsorPack}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.{container_theme, sponsorItem, sponsorPackItem}
+@import fr.gospeak.web.pages.orga.partials.html.{container, sponsorItem, sponsorPackItem}
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.OrgaReq
 
 @(sponsorPacks: Seq[SponsorPack], sponsors: Page[Sponsor.Full])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container_theme(req.group.name.value + " - Gospeak", b)() {
+@container(s"${req.group.name.value} sponsors - Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span class="text-capitalize">@Formats.plural(sponsorPacks.length, "sponsor pack")</span>
         <a class="btn btn-primary" href="@SponsorCtrl.createPack(req.group.slug)" data-hotkey="+">Create a sponsor pack</a>

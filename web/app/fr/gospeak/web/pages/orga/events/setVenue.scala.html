@@ -1,7 +1,7 @@
 @import fr.gospeak.core.domain.{Event, Venue}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.container_theme
+@import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.pages.partials.form.html.formBtn
@@ -39,7 +39,7 @@
         </div>
     }
 }
-@container_theme(event.name.value + " - Gospeak", b)() {
+@container(s"Set venue for ${event.name.value} - Gospeak", b)() {
     <div class="d-flex justify-content-between align-items-center">
         <h1>@event.name.value</h1>
         <div>

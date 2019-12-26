@@ -11,7 +11,7 @@
 @import fr.gospeak.web.utils.OrgaReq
 
 @(partner: Partner, venues: Seq[Venue.Full], contacts: Seq[Contact], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], events: Seq[(Event, Venue)])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container_theme(partner.name.value + " - Gospeak", b)() {
+@container(s"${partner.name.value} - Gospeak", b)() {
     <div class="d-flex justify-content-between align-items-start">
         <div class="media">
             <img src="@partner.logo.value" alt="@partner.name.value logo" class="avatar-lg align-self-start mr-3" style="height: 100px">

@@ -1,0 +1,13 @@
+/*
+ * Bootstrap & theme global overrides
+ */
+@import "../../front/variables";
+
+.u-header__nav-link.active {
+  color: $gray-900;
+}
+
+.navbar-nav .nav-item i.fas {
+  font-size: 1.3em;
+  vertical-align: middle;
+}

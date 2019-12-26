@@ -2,7 +2,7 @@
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
-@import fr.gospeak.web.pages.published.partials.html.{container_theme, groupCard}
+@import fr.gospeak.web.pages.published.partials.html.{container, groupCard}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 
@@ -19,7 +19,7 @@
         </div>
     </a>
 }
-@container_theme(group.name.value + " events - Gospeak", b)() {
+@container(s"${group.name.value} events - Gospeak", b)() {
 <div class="row">
     @groupCard(group, speakerCount, cfps, events, sponsors, packs, orgas, userMembership)(b)
 

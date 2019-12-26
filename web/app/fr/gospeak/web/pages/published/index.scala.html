@@ -1,10 +1,10 @@
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.published.partials.html.containerHome_theme
+@import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.utils.UserAwareReq
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 
 @()(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@containerHome_theme("Gospeak", b)() {
+@container("Gospeak", b, full = true)() {
 <div class="d-lg-flex position-relative">
     <div class="container d-lg-flex align-items-lg-center space-top-2 space-top-md-5 space-lg-0 min-height-lg-100vh">
         <div class="row w-100">
@@ -21,7 +21,7 @@
             </div>
         </div>
 
-        <div id="SVGMainHero" class="col-lg-9 col-xl-7 svg-preloader d-none d-lg-block position-absolute top-0 right-0 pr-0" style="margin-top: 105.6px;">
+        <div id="SVGMainHero" class="col-lg-9 col-xl-7 svg-preloader d-none d-lg-block position-absolute top-0 right-0 pr-0" style="margin-top: 4em;">
             <figure class="ie-main-hero">
                 <img class="js-svg-injector" src="@routes.Assets.versioned("lib/web/img/main-hero.svg")" alt="Image Description"
                     data-img-paths='[{"targetId": "#SVGMainHeroImg1", "newPath": "@routes.Assets.versioned("lib/web/img/micro.jpg")"}]' data-parent="#SVGMainHero">
@@ -42,9 +42,7 @@
 
         // initialization of svg injector module
         $.HSCore.components.HSSVGIngector.init('.js-svg-injector');
-    });
 
-    $(document).on('ready', function() {
         // initialization of header
         $.HSCore.components.HSHeader.init($('#header'));
 

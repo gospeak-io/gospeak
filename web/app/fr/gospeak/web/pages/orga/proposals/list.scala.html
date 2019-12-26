@@ -1,14 +1,14 @@
 @import fr.gospeak.core.domain.{Proposal, User}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.{container_theme, proposalItem}
+@import fr.gospeak.web.pages.orga.partials.html.{container, proposalItem}
 @import fr.gospeak.web.pages.orga.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.OrgaReq
 
 @(proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container_theme(req.group.name.value + " - Gospeak", b)() {
+@container(s"${req.group.name.value} proposals - Gospeak", b)() {
     <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") <small>(from any CFP)</small></h1>
     <div>
         Filters:

@@ -202,6 +202,7 @@ class StyleguideCtrl(cc: ControllerComponents,
     text = "Comment text\nA second line of text\n\nGood job!",
     createdAt = now,
     createdBy = user.id)
+  private val groupFull = Group.Full(group, 0L, 0L, 0L)
   private val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event), 0L, 0L, 0L)
   private val venueFull = Venue.Full(venue, partner, Some(contact))
   private val accountValidationRequest = UserRequest.AccountValidationRequest(
@@ -248,7 +249,7 @@ class StyleguideCtrl(cc: ControllerComponents,
   def index(params: Page.Params): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
     implicit val userAware: UserAwareReq[AnyContent] = req.userAware
     implicit val orga: OrgaReq[AnyContent] = req.orga(group)
-    IO.pure(Ok(html.styleguide(user, group, cfp, event, talk, proposal, proposalFull, params)))
+    IO.pure(Ok(html.styleguide(user, group, groupFull, cfp, event, talk, proposal, proposalFull, params)))
   })
 
   def published(id: String): Action[AnyContent] = UserAction(implicit req => implicit ctx => {

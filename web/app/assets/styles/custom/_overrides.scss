@@ -1,0 +1,23 @@
+/*
+ * Bootstrap & theme global overrides
+ */
+@import "overrides/buttons";
+@import "overrides/cards";
+@import "overrides/dropdowns";
+@import "overrides/forms";
+@import "overrides/header";
+@import "overrides/links";
+@import "overrides/lists";
+@import "overrides/text";
+
+.popover {
+  max-width: 600px;
+}
+
+[data-toggle="collapse"] {
+  cursor: pointer;
+}
+
+.pagination {
+  margin-bottom: 0;
+}

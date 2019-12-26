@@ -3,16 +3,21 @@
 @import fr.gospeak.web.api.ui.routes.SuggestCtrl
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.partials.html.container_theme
+@import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.utils.OrgaReq
 
 @(hasMeetupAccount: Boolean, event: Event, form: Form[Event.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container_theme(event.name.value + " - Gospeak", b)() {
-    <h1 class="page-header">Edit @event.name.value</h1>
-
+@container(s"Edit ${event.name.value} - Gospeak", b)() {
     @formElt(form, EventCtrl.doEdit(req.group.slug, event.slug)) {
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Edit @event.name.value</h1>
+            <div>
+                @btnCancel(EventCtrl.detail(req.group.slug, event.slug))
+                @btnSubmit("Save")
+            </div>
+        </div>
         @fieldVertical(form("name"), Seq("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
             @inputText(field, Seq("placeholder" -> "Event name", "autofocus" -> "true") ++ args)
         }
@@ -55,10 +60,6 @@
                     <div class="col-6">@inputNumber(field("event"), Seq("placeholder" -> "Event id", "optional" -> "true") ++ args)</div>
                 </div>
             }
-        }
-        @actionsVertical() {
-            @btnCancel(EventCtrl.detail(req.group.slug, event.slug))
-            @btnSubmit("Save")
         }
     }
 }()

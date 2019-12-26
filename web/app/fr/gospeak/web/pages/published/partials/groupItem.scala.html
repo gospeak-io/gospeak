@@ -2,17 +2,39 @@
 @import fr.gospeak.core.domain.utils.Constants.Image
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
+@import fr.gospeak.web.utils.Formats
 
-@(group: Group, orgas: Seq[User])
-<a class="list-group-item list-group-item-action" href="@GroupCtrl.detail(group.slug)">
-    <h5 class="mb-0">@group.name.value</h5>
-    @tags(group.tags)
-    Orgas:
-    @group.owners.toList.map { id =>
-        @orgas.find(_.id == id).map { user =>
-            <img src="@user.avatar.url.value" alt="@user.name.value avatar" title="@user.name.value" class="avatar">
-        }.getOrElse {
-            <img src="@Image.placeholderUnknownUser" alt="Unknown user avatar" title="Unknow user" class="avatar">
-        }
-    }
+@(group: Group.Full, orgas: Seq[User])
+<a class="card card-frame mb-3" href="@GroupCtrl.detail(group.slug)">
+    <div class="card-body p-4">
+        <div class="media">
+            @group.logo.map { logo => <img src="@logo.url.value" alt="@group.name.value logo" class="img-fluid rounded-circle" width="110" height="110"/> }
+            <div class="media-body pl-5">
+                <h2 class="h5">@group.name.value</h2>
+                <p class="font-size-1">@tags(group.tags)</p>
+                <div class="media">
+                    <div class="media-body">
+                        <small class="d-block text-dark">@Formats.plural(group.eventCount, "event")</small>
+                    </div>
+                    <ul class="list-inline mr-2 mb-0">
+                        @group.owners.toList.map { id =>
+                            @orgas.find(_.id == id).map { user =>
+                                <li class="list-inline-item ml-n3 mr-0">
+                                    <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
+                                        <img src="@user.avatar.url.value" alt="@user.name.value avatar" title="@user.name.value" class="img-fluid rounded-circle">
+                                    </div>
+                                </li>
+                            }.getOrElse {
+                                <li class="list-inline-item ml-n3 mr-0">
+                                    <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
+                                        <img src="@Image.placeholderUnknownUser" alt="Unknown user avatar" title="Unknow user" class="img-fluid rounded-circle">
+                                    </div>
+                                </li>
+                            }
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 </a>
