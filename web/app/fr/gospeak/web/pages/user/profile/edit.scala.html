@@ -2,13 +2,13 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.pages.partials.form.ImgConf
-@import fr.gospeak.web.pages.user.partials.html.container_old
+@import fr.gospeak.web.pages.published.partials.html.container_theme
 @import fr.gospeak.web.pages.user.profile.routes.ProfileCtrl
 @import fr.gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublicSpeakerCtrl}
 @import fr.gospeak.web.utils.UserReq
 
 @(form: Form[User.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container_old("Gospeak", b)() {
+@container_theme("Edit " + req.user.name.value + " - Gospeak", b)() {
     @formElt(form, ProfileCtrl.doEdit()) {
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>Edit my profile</h1>
@@ -71,4 +71,4 @@
             </div>
         </div>
     }
-}()
+}()(req.userAware)

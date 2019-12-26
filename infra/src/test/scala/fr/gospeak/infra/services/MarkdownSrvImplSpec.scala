@@ -14,7 +14,7 @@ class MarkdownSrvImplSpec extends FunSpec with Matchers {
           | - item 1
           | - item 2
         """.stripMargin.trim)) shouldBe Html(
-        """<div class="markdown"><h1>My title</h1>
+        """<div class="markdown "><h1>My title</h1>
           |<p>A paragraph with <em>italic</em>, <strong>bold</strong> and a list:</p>
           |<ul>
           |<li>item 1</li>
@@ -28,13 +28,13 @@ class MarkdownSrvImplSpec extends FunSpec with Matchers {
           |
           |<p>should be escaped</p>
         """.stripMargin.trim)) shouldBe Html(
-        """<div class="markdown"><h1>No html</h1>
+        """<div class="markdown "><h1>No html</h1>
           |<p>&lt;p&gt;should be escaped&lt;/p&gt;</p></div>
         """.stripMargin.trim)
     }
     it("should allows emoji") {
       MarkdownSrvImpl.render(Markdown("Use emoji, they are great :scream:")) shouldBe Html(
-        """<div class="markdown"><p>Use emoji, they are great 😱</p></div>
+        """<div class="markdown "><p>Use emoji, they are great 😱</p></div>
         """.stripMargin.trim)
     }
   }

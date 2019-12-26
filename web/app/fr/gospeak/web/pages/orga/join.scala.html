@@ -4,7 +4,7 @@
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
 @import fr.gospeak.web.pages.partials.display.html.{markdown, speaker, timeAgo}
 @import fr.gospeak.web.pages.partials.form.html.formBtn
-@import fr.gospeak.web.pages.user.partials.html.container_old
+@import fr.gospeak.web.pages.published.partials.html.container_theme
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserReq
 
@@ -13,7 +13,7 @@
     <div class="list-group-item d-flex justify-content-between align-items-center">
         <div>
             <h5 class="mb-1">@group.name.value</h5>
-            @markdown(group.description)
+            @markdown(group.description, "mb-0")
             <p class="mb-0">Owners: @group.owners.toList.map { id => @speaker(owners, id) }</p>
         </div>
         @pendingRequests.find(_.group == group.id).map { userReq =>
@@ -23,7 +23,7 @@
         }
     </div>
 }
-@container_old("Gospeak", b)() {
+@container_theme("Join group - Gospeak", b)() {
     @if(groups.isEmpty) {
         <div class="jumbotron">
             <h1 style="margin-bottom: 3rem">No group available to join <i class="far fa-sad-tear"></i></h1>
@@ -32,7 +32,7 @@
             </p>
         </div>
     } else {
-        <h1 class="text-capitalize">@Formats.plural(groups.total.value, "group") you can ask to join</h1>
+        <h1>@Formats.plural(groups.total.value, "group") you can ask to join as orga</h1>
         @Formats.paginated[Group](groups, GroupCtrl.join, groupItem)
     }
-}()
+}()(req.userAware)

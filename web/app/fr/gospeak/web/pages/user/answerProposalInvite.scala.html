@@ -3,12 +3,12 @@
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html.markdown
 @import fr.gospeak.web.pages.partials.form.html.formBtn
-@import fr.gospeak.web.pages.user.partials.html.container_old
+@import fr.gospeak.web.pages.published.partials.html.container_theme
 @import fr.gospeak.web.pages.user.routes.UserCtrl
 @import fr.gospeak.web.utils.UserReq
 
 @(invite: UserRequest.ProposalInvite, proposal: Proposal, speaker: User)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container_old("Gospeak", b, hideAlert = true)() {
+@container_theme(proposal.title.value + " invite - Gospeak", b, hideAlert = true)() {
     @if(invite.isPending(req.now)) {
         <h1>Nice!!! You have been invited to speak <i class="far fa-thumbs-up"></i></h1>
         <h3>@proposal.title.value</h3>
@@ -24,4 +24,4 @@
         </p>
         <a href="@UserCtrl.index()" class="btn btn-primary">Go to home page</a>
     }
-}()
+}()(req.userAware)

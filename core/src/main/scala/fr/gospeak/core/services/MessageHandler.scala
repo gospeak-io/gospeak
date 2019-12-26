@@ -49,7 +49,7 @@ class MessageHandler(appConf: ApplicationConf,
       (for {
         to <- templateSrv.render(email.to, data).leftMap(CustomException(_)).flatMap(EmailAddress.from).map(EmailAddress.Contact(_))
         subject <- templateSrv.render(email.subject, data).leftMap(CustomException(_))
-        content <- templateSrv.render(email.content, data).map(markdownSrv.render).leftMap(CustomException(_))
+        content <- templateSrv.render(email.content, data).map(markdownSrv.render(_)).leftMap(CustomException(_))
       } yield emailSrv.send(EmailSrv.Email(
         from = Constants.Contact.noReply,
         to = Seq(to),

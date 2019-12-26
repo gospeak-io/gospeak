@@ -46,3 +46,17 @@ a.no-style,
   width: 100%;
   border-radius: 50%;
 }
+
+.markdown {
+  margin-bottom: 1rem;
+}
+
+.markdown p:last-child,
+.markdown ul:last-child {
+  margin-bottom: 0;
+}
+
+.no-margin {
+  margin: 0;
+  padding: 0;
+}
