@@ -14,6 +14,7 @@
 @import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
 @import fr.gospeak.web.pages.partials.container.html.{alert, flash, main, navbarLink, userDropdown}
 @import fr.gospeak.web.pages.partials.form.html.formBtn
+@import fr.gospeak.web.pages.user.routes.UserCtrl
 @import fr.gospeak.web.utils.OrgaReq
 
 @(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: OrgaReq[AnyContent])
@@ -34,9 +35,10 @@
 
                 <div id="navBar" class="collapse navbar-collapse u-header__navbar-collapse">
                     <ul class="navbar-nav u-header__navbar-nav">
-                        <li class="nav-item  u-header__nav-item">@navbarLink(PublicCfpCtrl.list()) {Call For Proposals}</li>
-                        <li class="nav-item  u-header__nav-item">@navbarLink(PublicGroupCtrl.list()) {Groups}</li>
-                        @* <li class="nav-item  u-header__nav-item">@navbarLink(PublicSpeakerCtrl.list()) {Speakers}</li> *@
+                        <li class="nav-item u-header__nav-item">@navbarLink(UserCtrl.index()) {Dashboard}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink(PublicCfpCtrl.list()) {Call For Proposals}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink(PublicGroupCtrl.list()) {Groups}</li>
+                        @* <li class="nav-item u-header__nav-item">@navbarLink(PublicSpeakerCtrl.list()) {Speakers}</li> *@
                         <li class="nav-item u-header__nav-last-item">@userDropdown(req.user, req.groups, Some(req.group))</li>
                     </ul>
                 </div>
@@ -66,7 +68,7 @@
                                 </a>
                                 <span class="badge badge-light badge-pos rounded-circle p-2">
                                     <div class="nav-item dropdown">
-                                        <a class="" href="#" id="navbarDropdownSettings" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <a href="#" id="navbarDropdownSettings" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                             <i class="fas fa-cogs"></i>
                                         </a>
                                         <div class="dropdown-menu" aria-labelledby="navbarDropdownSettings">

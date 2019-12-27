@@ -99,9 +99,8 @@ object Formats {
   }
 
   def paginationHeader[A](page: Page[A], link: Page.Params => Call): Html = {
-    // should add 'align-items-center mb-3' to div but search form has too much height :(
     Html(
-      s"""<div class="d-flex justify-content-between"${if (page.hasManyPages || page.params.search.nonEmpty) "" else " style=\"display: none !important;\""}>
+      s"""<div class="d-flex justify-content-between align-items-center mb-3"${if (page.hasManyPages || page.params.search.nonEmpty) "" else " style=\"display: none !important;\""}>
          |  ${search(page, link(Page.Params.defaults))}
          |  ${pagination(page, link)}
          |</div>

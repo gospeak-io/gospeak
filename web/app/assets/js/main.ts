@@ -566,6 +566,27 @@ declare const Bloodhound;
     });
 })();
 
+// svg injector (cf home page)
+(function() {
+    $.HSCore.components.HSSVGIngector.init('.js-svg-injector');
+})();
+
+// typing animation (cf home page), https://github.com/mattboldt/typed.js
+declare const Typed;
+(function () {
+    $('.js-typed').each(function () {
+        const $elt = $(this);
+        const strings = ($elt.attr('data-strings') || '').split(',');
+        new Typed('.js-typed', {
+            strings: strings,
+            typeSpeed: 60,
+            loop: true,
+            backSpeed: 25,
+            backDelay: 1500
+        });
+    });
+})();
+
 // https://craig.is/killing/mice
 declare const Mousetrap;
 (function () {

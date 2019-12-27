@@ -11,7 +11,7 @@
             <div class="col-lg-5">
                 <h1 class="display-4 font-size-md-down-5 mb-3">Introducing Gospeak</h1>
                 <p>
-                    A plateform for <span class="text-primary"><strong class="u-text-animation u-text-animation--typing"></strong></span><br>
+                    A plateform for <strong class="js-typed text-primary" data-strings="speakers.,organizers.,attendees."></strong><br>
                     An Open Source project to helps organizers to find speakers.
                 </p>
 
@@ -23,46 +23,13 @@
 
         <div id="SVGMainHero" class="col-lg-9 col-xl-7 svg-preloader d-none d-lg-block position-absolute top-0 right-0 pr-0" style="margin-top: 4em;">
             <figure class="ie-main-hero">
-                <img class="js-svg-injector" src="@routes.Assets.versioned("lib/web/img/main-hero.svg")" alt="Image Description"
-                    data-img-paths='[{"targetId": "#SVGMainHeroImg1", "newPath": "@routes.Assets.versioned("lib/web/img/micro.jpg")"}]' data-parent="#SVGMainHero">
+                <img class="js-svg-injector"
+                    src="@routes.Assets.versioned("lib/web/img/main-hero.svg")"
+                    alt="Hero image"
+                    data-img-paths='[{"targetId": "#SVGMainHeroImg1", "newPath": "@routes.Assets.versioned("lib/web/img/micro.jpg")"}]'
+                    data-parent="#SVGMainHero">
             </figure>
         </div>
     </div>
 </div>
-}{
-<script>
-    $(window).on('load', function() {
-        // initialization of HSMegaMenu component
-        $('.js-mega-menu').HSMegaMenu({
-            event: 'hover',
-            pageContainer: $('.container'),
-            breakpoint: 767.98,
-            hideTimeOut: 0
-        });
-
-        // initialization of svg injector module
-        $.HSCore.components.HSSVGIngector.init('.js-svg-injector');
-
-        // initialization of header
-        $.HSCore.components.HSHeader.init($('#header'));
-
-        // initialization of unfold component
-        $.HSCore.components.HSUnfold.init($('[data-unfold-target]'));
-
-        // initialization of fancybox
-        $.HSCore.components.HSFancyBox.init('.js-fancybox');
-
-        // initialization of text animation (typing)
-        var typed = new Typed(".u-text-animation.u-text-animation--typing", {
-            strings: ["speakers.", "organizers.", "attendees."],
-            typeSpeed: 60,
-            loop: true,
-            backSpeed: 25,
-            backDelay: 1500
-        });
-
-        // initialization of go to
-        $.HSCore.components.HSGoTo.init('.js-go-to');
-    });
-</script>
-}
+}()
