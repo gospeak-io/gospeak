@@ -205,6 +205,7 @@ class StyleguideCtrl(cc: ControllerComponents,
   private val groupFull = Group.Full(group, 0L, 0L, 0L)
   private val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event), 0L, 0L, 0L)
   private val venueFull = Venue.Full(venue, partner, Some(contact))
+  private val eventFull = Event.Full(event, Some(venueFull), Some(cfp), group)
   private val accountValidationRequest = UserRequest.AccountValidationRequest(
     id = UserRequest.Id.generate(),
     email = user.email,
@@ -249,7 +250,7 @@ class StyleguideCtrl(cc: ControllerComponents,
   def index(params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     implicit val userAware: UserAwareReq[AnyContent] = req.userAware
     implicit val orga: OrgaReq[AnyContent] = req.orga(group)
-    IO.pure(Ok(html.styleguide(user, group, groupFull, cfp, event, talk, proposal, proposalFull, params)))
+    IO.pure(Ok(html.styleguide(user, group, groupFull, cfp, event, eventFull, talk, proposal, proposalFull, params)))
   }
 
   def published(id: String): Action[AnyContent] = UserAction { implicit req =>

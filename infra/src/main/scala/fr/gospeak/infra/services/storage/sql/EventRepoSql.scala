@@ -48,11 +48,15 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def find(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event]] = selectOne(ctx.group.id, event).runOption(xa)
 
+  override def findFull(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event.Full]] = selectOneFull(ctx.group.id, event).runOption(xa)
+
   override def findPublished(group: Group.Id, event: Event.Slug): IO[Option[Event.Full]] = selectOnePublished(group, event).runOption(xa)
 
   override def list(group: Group.Id, params: Page.Params): IO[Page[Event]] = selectPage(group, params).run(xa)
 
   override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]] = selectPage(ctx.group.id, params).run(xa)
+
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]] = selectPageFull(ctx.group.id, params).run(xa)
 
   override def list(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Seq[Event]] = selectAll(ctx.group.id, venue).runList(xa)
 
@@ -64,7 +68,7 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def list(ids: Seq[Event.Id]): IO[Seq[Event]] = runNel(selectAll, ids)
 
-  override def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]] = selectPageAfter(ctx.group.id, ctx.now.truncatedTo(ChronoUnit.DAYS), params).run(xa)
+  override def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]] = selectPageAfterFull(ctx.group.id, ctx.now.truncatedTo(ChronoUnit.DAYS), params).run(xa)
 
   override def listIncoming(params: Page.Params)(implicit ctx: UserCtx): IO[Page[(Event.Full, Option[Event.Rsvp])]] = selectPageIncoming(ctx.user.id, ctx.now, params).run(xa)
 
@@ -95,6 +99,7 @@ object EventRepoSql {
   private val tableFull = tableWithVenue
     .joinOpt(Tables.partners, _.partner_id("v") -> _.id).get
     .joinOpt(Tables.contacts, _.contact_id("v") -> _.id).get
+    .joinOpt(Tables.cfps, _.cfp_id("e") -> _.id).get
     .join(Tables.groups.dropFields(_.name.startsWith("location_")), _.group_id("e") -> _.id).get
   private val rsvpTable = Tables.eventRsvps
   private val rsvpTableWithUser = rsvpTable
@@ -133,11 +138,17 @@ object EventRepoSql {
   private[sql] def selectOne(group: Group.Id, event: Event.Slug): Select[Event] =
     table.select[Event](where(group, event))
 
+  private[sql] def selectOneFull(group: Group.Id, event: Event.Slug): Select[Event.Full] =
+    tableFull.select[Event.Full](where(group, event))
+
   private[sql] def selectOnePublished(group: Group.Id, event: Event.Slug): Select[Event.Full] =
     tableFull.select[Event.Full](fr0"WHERE e.group_id=$group AND e.slug=$event AND e.published IS NOT NULL")
 
   private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[Event] =
     table.selectPage[Event](params, fr0"WHERE e.group_id=$group")
+
+  private[sql] def selectPageFull(group: Group.Id, params: Page.Params): SelectPage[Event.Full] =
+    tableFull.selectPage[Event.Full](params, fr0"WHERE e.group_id=$group")
 
   private[sql] def selectPagePublished(group: Group.Id, params: Page.Params): SelectPage[Event.Full] =
     tableFull.selectPage[Event.Full](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")
@@ -154,8 +165,8 @@ object EventRepoSql {
   private[sql] def selectAll(group: Group.Id, partner: Partner.Id): Select[(Event, Venue)] =
     tableWithVenue.select[(Event, Venue)](fr0"WHERE e.group_id=$group AND v.partner_id=$partner")
 
-  private[sql] def selectPageAfter(group: Group.Id, now: Instant, params: Page.Params): SelectPage[Event] =
-    table.selectPage[Event](params, fr0"WHERE e.group_id=$group AND e.start > $now")
+  private[sql] def selectPageAfterFull(group: Group.Id, now: Instant, params: Page.Params): SelectPage[Event.Full] =
+    tableFull.selectPage[Event.Full](params, fr0"WHERE e.group_id=$group AND e.start > $now")
 
   private[sql] def selectPageIncoming(user: User.Id, now: Instant, params: Page.Params): SelectPage[(Event.Full, Option[Event.Rsvp])] =
     tableFullWithMemberAndRsvp.selectPage[(Event.Full, Option[Event.Rsvp])](params, fr0"WHERE e.start > $now AND e.published IS NOT NULL AND gm.user_id=$user")

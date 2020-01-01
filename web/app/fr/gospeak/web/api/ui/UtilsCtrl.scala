@@ -14,7 +14,7 @@ import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain.{Html, Markdown, Url}
 import fr.gospeak.web.AppConf
-import fr.gospeak.web.api.domain.ExternalCfpPublicApi
+import fr.gospeak.web.api.domain.ApiExternalCfp
 import fr.gospeak.web.api.domain.utils.{PublicApiError, PublicApiResponse}
 import fr.gospeak.web.api.ui.helpers.JsonFormats._
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -57,7 +57,7 @@ class UtilsCtrl(cc: ControllerComponents,
   }
 
   def duplicatesExtCfp(params: ExternalCfp.DuplicateParams): Action[AnyContent] = UserAction { implicit req =>
-    externalCfpRepo.listDuplicates(params).map(cfps => Ok(Json.toJson(PublicApiResponse(cfps.map(ExternalCfpPublicApi(_)), req.now))))
+    externalCfpRepo.listDuplicates(params).map(cfps => Ok(Json.toJson(PublicApiResponse(cfps.map(ApiExternalCfp.published), req.now))))
   }
 
   def embed(url: Url): Action[AnyContent] = ActionIO { implicit req =>

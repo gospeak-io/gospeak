@@ -1,5 +1,5 @@
 @import fr.gospeak.core.domain.{Group, User}
-@import fr.gospeak.core.domain.utils.Constants.Image
+@import fr.gospeak.core.domain.utils.Constants.Placeholders
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.utils.Formats
@@ -27,7 +27,7 @@
                             }.getOrElse {
                                 <li class="list-inline-item ml-n3 mr-0">
                                     <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
-                                        <img src="@Image.placeholderUnknownUser" alt="Unknown user avatar" title="Unknow user" class="img-fluid rounded-circle">
+                                        <img src="@Placeholders.unknownUser" alt="Unknown user avatar" title="Unknow user" class="img-fluid rounded-circle">
                                     </div>
                                 </li>
                             }

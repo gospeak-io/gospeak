@@ -2,8 +2,8 @@ package fr.gospeak.core.domain.utils
 
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount._
-import fr.gospeak.libs.scalautils.domain.{CustomException, Url}
 import fr.gospeak.libs.scalautils.Extensions._
+import fr.gospeak.libs.scalautils.domain.{CustomException, Url}
 
 final case class SocialAccounts(facebook: Option[FacebookAccount],
                                 instagram: Option[InstagramAccount],
@@ -66,50 +66,34 @@ object SocialAccounts {
   sealed abstract class SocialAccount(url: Url, val name: String) {
     def link: String = url.value
 
-    def handle: String
+    def handle: String = url.value.split("/").filter(_.nonEmpty).lastOption.getOrElse(url.value)
   }
 
   object SocialAccount {
 
-    final case class FacebookAccount(url: Url) extends SocialAccount(url, "facebook") {
-      def handle: String = url.value
-    }
+    final case class FacebookAccount(url: Url) extends SocialAccount(url, "facebook")
 
-    final case class InstagramAccount(url: Url) extends SocialAccount(url, "instagram") {
-      def handle: String = url.value
-    }
+    final case class InstagramAccount(url: Url) extends SocialAccount(url, "instagram")
 
     final case class TwitterAccount(url: Url) extends SocialAccount(url, "twitter") {
-      def handle: String = "@" + url.value.split("/").last
+      override def handle: String = "@" + url.value.split("/").filter(_.nonEmpty).last
     }
 
-    final case class LinkedInAccount(url: Url) extends SocialAccount(url, "linkedin") {
-      def handle: String = url.value.split("/").filter(_.nonEmpty).lastOption.getOrElse(url.value)
-    }
+    final case class LinkedInAccount(url: Url) extends SocialAccount(url, "linkedin")
 
-    final case class YoutubeAccount(url: Url) extends SocialAccount(url, "youtube") {
-      def handle: String = url.value
-    }
+    final case class YoutubeAccount(url: Url) extends SocialAccount(url, "youtube")
 
-    final case class MeetupAccount(url: Url) extends SocialAccount(url, "meetup") {
-      def handle: String = url.value
-    }
+    final case class MeetupAccount(url: Url) extends SocialAccount(url, "meetup")
 
-    final case class EventbriteAccount(url: Url) extends SocialAccount(url, "eventbrite") {
-      def handle: String = url.value
-    }
+    final case class EventbriteAccount(url: Url) extends SocialAccount(url, "eventbrite")
 
     final case class SlackAccount(url: Url) extends SocialAccount(url, "slack") {
-      def handle: String = url.value
+      override def handle: String = url.value.split("\\.").head.replace("https://", "").replace("http://", "")
     }
 
-    final case class DiscordAccount(url: Url) extends SocialAccount(url, "discord") {
-      def handle: String = url.value
-    }
+    final case class DiscordAccount(url: Url) extends SocialAccount(url, "discord")
 
-    final case class GithubAccount(url: Url) extends SocialAccount(url, "github") {
-      def handle: String = url.value
-    }
+    final case class GithubAccount(url: Url) extends SocialAccount(url, "github")
 
   }
 

@@ -4,6 +4,7 @@ import cats.data.NonEmptyList
 import fr.gospeak.core.domain.Event
 import fr.gospeak.core.domain.utils.FakeCtx
 import fr.gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{fields => contactFields, table => contactTable}
+import fr.gospeak.infra.services.storage.sql.CfpRepoSqlSpec.{fields => cfpFields, table => cfpTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec.{memberTable, fields => groupFields, table => groupTable}
 import fr.gospeak.infra.services.storage.sql.PartnerRepoSqlSpec.{fields => partnerFields, table => partnerTable}
@@ -64,6 +65,10 @@ class EventRepoSqlSpec extends RepoSpec {
         val q = EventRepoSql.selectOne(group.id, event.slug)
         check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.slug=? $orderBy")
       }
+      it("should build selectOneFull") {
+        val q = EventRepoSql.selectOneFull(group.id, event.slug)
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? $orderBy")
+      }
       it("should build selectOnePublished") {
         val q = EventRepoSql.selectOnePublished(group.id, event.slug)
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? AND e.published IS NOT NULL $orderBy")
@@ -71,6 +76,10 @@ class EventRepoSqlSpec extends RepoSpec {
       it("should build selectPage") {
         val q = EventRepoSql.selectPage(group.id, params)
         check(q, s"SELECT $fields FROM $table WHERE e.group_id=? $orderBy LIMIT 20 OFFSET 0")
+      }
+      it("should build selectPageFull") {
+        val q = EventRepoSql.selectPageFull(group.id, params)
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPagePublished") {
         val q = EventRepoSql.selectPagePublished(group.id, params)
@@ -92,9 +101,9 @@ class EventRepoSqlSpec extends RepoSpec {
         val q = EventRepoSql.selectAll(group.id, partner.id)
         check(q, s"SELECT $fieldsWithVenue FROM $tableWithVenue WHERE e.group_id=? AND v.partner_id=? $orderBy")
       }
-      it("should build selectPageAfter") {
-        val q = EventRepoSql.selectPageAfter(group.id, now, params)
-        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.start > ? $orderBy LIMIT 20 OFFSET 0", checkCount = false)
+      it("should build selectPageAfterFull") {
+        val q = EventRepoSql.selectPageAfterFull(group.id, now, params)
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.start > ? $orderBy LIMIT 20 OFFSET 0", checkCount = false)
       }
       it("should build selectPageIncoming") {
         val q = EventRepoSql.selectPageIncoming(user.id, now, params)
@@ -153,8 +162,8 @@ object EventRepoSqlSpec {
   private val tableWithVenue = s"$table LEFT OUTER JOIN $venueTable ON e.venue=v.id"
   private val fieldsWithVenue = s"$fields, $venueFields"
 
-  private val tableFull = s"$tableWithVenue LEFT OUTER JOIN $partnerTable ON v.partner_id=pa.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id INNER JOIN $groupTable ON e.group_id=g.id"
-  private val fieldsFull = s"$fieldsWithVenue, $partnerFields, $contactFields, $groupFields"
+  private val tableFull = s"$tableWithVenue LEFT OUTER JOIN $partnerTable ON v.partner_id=pa.id LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id LEFT OUTER JOIN $cfpTable ON e.cfp_id=c.id INNER JOIN $groupTable ON e.group_id=g.id"
+  private val fieldsFull = s"$fieldsWithVenue, $partnerFields, $contactFields, $cfpFields, $groupFields"
 
   private val rsvpTable = "event_rsvps er"
   private val rsvpFields = mapFields("event_id, user_id, answer, answered_at", "er." + _)

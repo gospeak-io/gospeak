@@ -7,11 +7,15 @@ import fr.gospeak.libs.scalautils.domain.EmailAddress
 object Constants {
   val defaultZoneId: ZoneId = ZoneId.of("Europe/Paris")
 
-  object Image {
+  object Images {
     val gospeakLogoText = "https://res.cloudinary.com/gospeak/image/upload/gospeak/logo-text.svg"
-    val placeholderGroupLogo = "https://res.cloudinary.com/gospeak/image/upload/placeholders/group-logo.png"
-    val placeholderNoVenueForEvent = "https://res.cloudinary.com/gospeak/image/upload/placeholders/no-venue-for-event.png"
-    val placeholderUnknownUser = "https://res.cloudinary.com/gospeak/image/upload/placeholders/unknown-user.png"
+  }
+
+  object Placeholders {
+    val groupLogo = "https://res.cloudinary.com/gospeak/image/upload/placeholders/group-logo.png"
+    val unknownUser = "https://res.cloudinary.com/gospeak/image/upload/placeholders/unknown-user.png"
+    val unknownPartner = "https://res.cloudinary.com/gospeak/image/upload/placeholders/unknown-user.png" // FIXME find better image
+    val noVenueForEvent = "https://res.cloudinary.com/gospeak/image/upload/placeholders/no-venue-for-event.png"
   }
 
   object Contact {

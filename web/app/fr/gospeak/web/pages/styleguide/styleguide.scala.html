@@ -11,7 +11,7 @@
 @import fr.gospeak.web.utils.GenericForm
 @import fr.gospeak.web.utils.{UserAwareReq, UserReq, OrgaReq}
 
-@(user: User, group: Group, groupFull: Group.Full, cfp: Cfp, event: Event, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, params: Page.Params)(implicit userAwareReq: UserAwareReq[AnyContent], userReq: UserReq[AnyContent], orgaReq: OrgaReq[AnyContent])
+@(user: User, group: Group, groupFull: Group.Full, cfp: Cfp, event: Event, eventFull: Event.Full, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, params: Page.Params)(implicit userAwareReq: UserAwareReq[AnyContent], userReq: UserReq[AnyContent], orgaReq: OrgaReq[AnyContent])
 @section(id: String, title: String, localization: String)(display: String => Html) = {
     <div id="@id" class="section">
         <h2>@title: <code style="font-size: 1rem">@localization</code></h2>
@@ -274,9 +274,9 @@
                 @example(s"$name") { _ => @orga.cfpItem(cfp) }
             }
             @component("eventItem", "@eventItem(group, event, proposals, speakers)") { name =>
-                @example(s"$name in the future") { _ => @orga.eventItem(event.copy(start = event.start.plusDays(3)), None, Seq(), Seq(), Seq(user)) }
-                @example(s"$name in the past") { _ => @orga.eventItem(event.copy(start = event.start.plusDays(-3)), None, Seq(), Seq(), Seq(user)) }
-                @example(s"$name with a talk") { _ => @orga.eventItem(event.copy(talks = Seq(proposal.id)), Some(cfp), Seq(), Seq(proposal), Seq(user)) }
+                @example(s"$name in the future") { _ => @orga.eventItem(eventFull.copy(event = event.copy(start = event.start.plusDays(3))), Seq(), Seq(user)) }
+                @example(s"$name in the past") { _ => @orga.eventItem(eventFull.copy(event = event.copy(start = event.start.plusDays(-3))), Seq(), Seq(user)) }
+                @example(s"$name with a talk") { _ => @orga.eventItem(eventFull.copy(event = event.copy(talks = Seq(proposal.id))), Seq(proposal), Seq(user)) }
             }
             @component("proposalItem", "@proposalItem(group, proposalFull, speakers)") { name =>
                 @example(s"$name pending") { _ => @orga.proposalItem(proposalFull.copy(event = None), Seq(user), Seq()) }

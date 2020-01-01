@@ -8,5 +8,5 @@ trait GenericRepo {
   protected[sql] val xa: doobie.Transactor[IO]
 
   protected def runNel[Id, A](run: NonEmptyList[Id] => Select[A], ids: Seq[Id]): IO[Seq[A]] =
-    NonEmptyList.fromList(ids.toList).map(run(_).runList(xa)).getOrElse(IO.pure(Seq()))
+    NonEmptyList.fromList(ids.toList.distinct).map(run(_).runList(xa)).getOrElse(IO.pure(Seq()))
 }

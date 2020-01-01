@@ -34,6 +34,8 @@ final case class Event(id: Event.Id,
 
   def move(talk: Proposal.Id, up: Boolean): Event = copy(talks = talks.swap(talk, up))
 
+  def users: Seq[User.Id] = orgaNotes.updatedBy +: info.users
+
   def isPublic: Boolean = published.isDefined
 
   def isPast(now: Instant): Boolean = start.toInstant(Constants.defaultZoneId).isBefore(now)
@@ -97,7 +99,7 @@ object Event {
 
   }
 
-  final case class Full(event: Event, venue: Option[Venue.Full], group: Group) {
+  final case class Full(event: Event, venue: Option[Venue.Full], cfp: Option[Cfp], group: Group) {
     def id: Event.Id = event.id
 
     def slug: Slug = event.slug
@@ -106,19 +108,27 @@ object Event {
 
     def description: MustacheMarkdownTmpl[TemplateData.EventInfo] = event.description
 
+    def orgaNotes: Notes = event.orgaNotes
+
     def start: LocalDateTime = event.start
 
     def talks: Seq[Proposal.Id] = event.talks
+
+    def tags: Seq[Tag] = event.tags
+
+    def published: Option[Instant] = event.published
 
     def maxAttendee: Option[Int] = event.maxAttendee
 
     def allowRsvp: Boolean = event.allowRsvp
 
-    def cfp: Option[Cfp.Id] = event.cfp
-
     def refs: ExtRefs = event.refs
 
+    def users: Seq[User.Id] = event.users
+
     def isFull(yesRsvps: Long): Boolean = event.maxAttendee.exists(_ <= yesRsvps.toInt)
+
+    def isPublic: Boolean = event.isPublic
 
     def isPast(now: Instant): Boolean = event.isPast(now)
 

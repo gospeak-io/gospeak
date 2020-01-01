@@ -93,7 +93,7 @@ trait PublicProposalRepo {
 
   def listPublicFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]]
 
-  def listPublicFull(ids: Seq[Proposal.Id]): IO[Seq[Proposal.Full]]
+  def listPublic(ids: Seq[Proposal.Id]): IO[Seq[Proposal]]
 
   def findPublicFull(group: Group.Id, proposal: Proposal.Id): IO[Option[Proposal.Full]]
 }

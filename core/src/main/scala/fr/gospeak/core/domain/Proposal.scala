@@ -26,7 +26,7 @@ final case class Proposal(id: Proposal.Id,
 
   def dataOrga: Proposal.DataOrga = Proposal.DataOrga(this)
 
-  def users: Seq[User.Id] = (info.users ++ speakers.toList).distinct
+  def users: Seq[User.Id] = speakers.toList ++ info.users
 }
 
 object Proposal {

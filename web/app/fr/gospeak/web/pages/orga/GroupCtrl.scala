@@ -74,8 +74,6 @@ class GroupCtrl(cc: ControllerComponents,
     for {
       stats <- groupRepo.getStats
       events <- eventRepo.listAfter(Page.Params.defaults.orderBy("start"))
-      cfps <- cfpRepo.list(events.items.flatMap(_.cfp))
-      venues <- venueRepo.listAllFull(events.items.flatMap(_.venue))
       proposals <- proposalRepo.list(events.items.flatMap(_.talks))
       speakers <- userRepo.list(proposals.flatMap(_.users).distinct)
       sponsors <- sponsorRepo.listAll.map(_.groupBy(_.partner))
@@ -85,7 +83,7 @@ class GroupCtrl(cc: ControllerComponents,
       packs <- sponsorPackRepo.listAll
       requests <- userRequestRepo.listPendingGroupRequests
       requestUsers <- userRepo.list(requests.flatMap(_.users).distinct)
-    } yield Ok(html.detail(stats, events, cfps, venues, proposals, speakers, currentSponsors, pastSponsors, packs, requests, requestUsers)(breadcrumb))
+    } yield Ok(html.detail(stats, events, proposals, speakers, currentSponsors, pastSponsors, packs, requests, requestUsers)(breadcrumb))
   }
 
   def edit(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>

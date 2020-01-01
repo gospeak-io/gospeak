@@ -1,21 +1,19 @@
-@import fr.gospeak.core.domain.{Cfp, Event, Group, Partner, Proposal, Sponsor, SponsorPack, User, UserRequest, Venue}
+@import fr.gospeak.core.domain.{Event, Group, Partner, Proposal, Sponsor, SponsorPack, User, UserRequest}
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partials.html.{container, eventItem}
 @import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
-@import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.orga.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
-@import fr.gospeak.web.pages.partials.display.html.emailLink
 @import fr.gospeak.web.pages.partials.form.html.formBtn
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.OrgaReq
 
-@(stats: Group.Stats, events: Page[Event], cfps: Seq[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User], currentSponsors: Seq[(Partner, (Sponsor, Int))], pastSponsors: Seq[(Partner, Seq[Sponsor])], packs: Seq[SponsorPack], requests: Seq[UserRequest], requestUsers: Seq[User])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(stats: Group.Stats, events: Page[Event.Full], proposals: Seq[Proposal], speakers: Seq[User], currentSponsors: Seq[(Partner, (Sponsor, Int))], pastSponsors: Seq[(Partner, Seq[Sponsor])], packs: Seq[SponsorPack], requests: Seq[UserRequest], requestUsers: Seq[User])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @addSponsorBtn() = {
 @defining(packs.filter(_.active)) { activePacks: Seq[SponsorPack] =>
     @if(activePacks.nonEmpty) {
@@ -149,7 +147,7 @@
             <h3 class="h6 mb-0">@Formats.plural(events.total.value, "incoming event")</h3>
         </div>
         <div>
-            @events.items.map { e => @eventItem(e, cfps.find(c => e.cfp.contains(c.id)), venues, proposals, speakers) }
+            @events.items.map { e => @eventItem(e, proposals, speakers) }
             @if(!events.isLast) {
                 <a href="@EventCtrl.list(req.group.slug)" class="">More...</a>
             }

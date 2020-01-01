@@ -10,7 +10,7 @@
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 
-@(group: Group, event: Event.Full, description: Markdown, proposals: Seq[Proposal.Full], speakers: Seq[User], comments: Seq[Comment.Full], commentForm: Form[Comment.Data], yesRsvp: Long, userMembership: Option[Group.Member], userRsvp: Option[Event.Rsvp], rsvps: Seq[Event.Rsvp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(group: Group, event: Event.Full, description: Markdown, proposals: Seq[Proposal], speakers: Seq[User], comments: Seq[Comment.Full], commentForm: Form[Comment.Data], yesRsvp: Long, userMembership: Option[Group.Member], userRsvp: Option[Event.Rsvp], rsvps: Seq[Event.Rsvp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${event.name.value} - Gospeak", b)() {
 <div class="container">
     <div class="border-bottom">

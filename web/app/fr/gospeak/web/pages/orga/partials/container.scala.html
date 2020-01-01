@@ -1,4 +1,4 @@
-@import fr.gospeak.core.domain.utils.Constants.Image
+@import fr.gospeak.core.domain.utils.Constants.{Images, Placeholders}
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.routes.GroupCtrl
@@ -24,7 +24,7 @@
         <div id="logoAndNav" class="container-fluid px-10">
             <nav class="js-mega-menu navbar navbar-expand-md u-header__navbar u-header__navbar--no-space">
                 <a class="navbar-brand u-header__navbar-brand u-header__navbar-brand-center" href="@HomeCtrl.index()" aria-label="Gospeak">
-                    <img class="img-fluid" src="@Image.gospeakLogoText" alt="Gospeak logo">
+                    <img class="img-fluid" src="@Images.gospeakLogoText" alt="Gospeak logo">
                 </a>
 
                 <button type="button" class="navbar-toggler btn u-hamburger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navBar" data-toggle="collapse" data-target="#navBar">
@@ -64,7 +64,7 @@
                         <div class="text-center mx-auto mb-3">
                             <span class="position-relative">
                                 <a href="@GroupCtrl.detail(req.group.slug)">
-                                    <img class="img-fluid rounded-circle" src="@req.group.logo.map(_.url.value).getOrElse(Image.placeholderGroupLogo)" alt="@req.group.name.value logo" width="100">
+                                    <img class="img-fluid rounded-circle" src="@req.group.logo.map(_.url.value).getOrElse(Placeholders.groupLogo)" alt="@req.group.name.value logo" width="100">
                                 </a>
                                 <span class="badge badge-light badge-pos rounded-circle p-2">
                                     <div class="nav-item dropdown">

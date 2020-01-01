@@ -1,5 +1,5 @@
-@import fr.gospeak.core.domain.{Event, Proposal, User, Cfp, Venue}
-@import fr.gospeak.core.domain.utils.Constants.Image
+@import fr.gospeak.core.domain.{Event, Proposal, User}
+@import fr.gospeak.core.domain.utils.Constants.Placeholders
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
@@ -8,7 +8,7 @@
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.OrgaReq
 
-@(event: Event, cfp: Option[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal], speakers: Seq[User])(implicit req: OrgaReq[AnyContent])
+@(event: Event.Full, proposals: Seq[Proposal], speakers: Seq[User])(implicit req: OrgaReq[AnyContent])
 <div id="collapse-@event.slug.value" class="card mb-3">
     <div class="card-header card-collapse">
         <h5 class="mb-0">
@@ -17,7 +17,7 @@
                     <span class="col-md-6 mb-2 mb-md-0">
                         <span class="media align-items-center">
                             <span class="mx-2">
-                                @event.venue.flatMap(id => venues.find(_.id == id)).map { venue =>
+                                @event.venue.map { venue =>
                                     <a href="@PartnerCtrl.detail(req.group.slug, venue.partner.slug)" class="no-propagation">
                                         <img class="max-width-6 mr-3" src="@venue.partner.logo.value" alt="@venue.partner.name.value logo" title="@venue.partner.name.value">
                                     </a>
@@ -25,7 +25,7 @@
                                     @req.group.logo.map { logo =>
                                         <img class="max-width-6 mr-3" src="@logo.value" alt="@req.group.name.value logo" title="No venue yet">
                                     }.getOrElse {
-                                        <img class="max-width-6 mr-3" src="@Image.placeholderNoVenueForEvent" alt="No venue icon" title="No venue yet">
+                                        <img class="max-width-6 mr-3" src="@Placeholders.noVenueForEvent" alt="No venue icon" title="No venue yet">
                                     }
                                 }
                             </span>
@@ -69,7 +69,7 @@
                         <div class="ml-3">
                             @proposals.find(_.id == pId).map { p =>
                                 <span class="d-block text-dark">
-                                    @cfp.map { c =>
+                                    @event.cfp.map { c =>
                                         <a href="@ProposalCtrl.detail(req.group.slug, c.slug, p.id)">@p.title.value</a>
                                     }.getOrElse {
                                         <a href="#">@p.title.value</a>
@@ -81,7 +81,7 @@
                                                 <img class="u-sm-avatar rounded-circle" src="@s.avatar.value" alt="@s.name.value avatar" title="@s.name.value" data-toggle="tooltip">
                                             </a>
                                         }.getOrElse {
-                                            <img class="u-sm-avatar rounded-circle" src="@Image.placeholderUnknownUser" alt="Unknown user" title="Unknown user" data-toggle="tooltip">
+                                            <img class="u-sm-avatar rounded-circle" src="@Placeholders.unknownUser" alt="Unknown user" title="Unknown user" data-toggle="tooltip">
                                         }
                                     }
                                 </span>
@@ -91,7 +91,7 @@
                 }
             </div>
             <div class="col-sm-5">
-                @event.venue.flatMap(id => venues.find(_.id == id)).map { venue =>
+                @event.venue.map { venue =>
                     <h5 class="h6 mb-0">@venue.partner.data.name.value</h5>
                     <address class="font-size-1 mb-0">@venue.address.value</address>
                 }

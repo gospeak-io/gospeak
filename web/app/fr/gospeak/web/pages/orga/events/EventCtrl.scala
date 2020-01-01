@@ -45,12 +45,10 @@ class EventCtrl(cc: ControllerComponents,
                 mb: GospeakMessageBus) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
-      events <- eventRepo.list(params)
-      cfps <- cfpRepo.list(events.items.flatMap(_.cfp))
-      venues <- venueRepo.listAllFull(events.items.flatMap(_.venue))
+      events <- eventRepo.listFull(params)
       proposals <- proposalRepo.list(events.items.flatMap(_.talks))
       speakers <- userRepo.list(proposals.flatMap(_.users))
-    } yield Ok(html.list(events, cfps, venues, proposals, speakers)(listBreadcrumb))
+    } yield Ok(html.list(events, proposals, speakers)(listBreadcrumb))
   }
 
   def create(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>

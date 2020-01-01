@@ -147,9 +147,9 @@ class ProposalRepoSqlSpec extends RepoSpec {
         val q = ProposalRepoSql.selectAll(NonEmptyList.of(proposal.id))
         check(q, s"SELECT $fields FROM $table WHERE id IN (?)  $orderBy")
       }
-      it("should build selectAllPublicFull") {
-        val q = ProposalRepoSql.selectAllPublicFull(NonEmptyList.of(proposal.id))
-        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE p.id IN (?) AND e.published IS NOT NULL GROUP BY $fieldsFull $orderByFull")
+      it("should build selectAllPublic") {
+        val q = ProposalRepoSql.selectAllPublic(NonEmptyList.of(proposal.id))
+        check(q, s"SELECT $fields FROM $tableWithEvent WHERE p.id IN (?) AND e.published IS NOT NULL $orderBy")
       }
       it("should build selectTags") {
         val q = ProposalRepoSql.selectTags()
@@ -201,6 +201,8 @@ object ProposalRepoSqlSpec {
   private val ratingTable = "proposal_ratings pr"
   private val ratingFields = mapFields("proposal_id, grade, created_at, created_by", "pr." + _)
   private val ratingOrderBy = "ORDER BY pr.created_at IS NULL, pr.created_at"
+
+  private val tableWithEvent = s"$table LEFT OUTER JOIN $eventTable ON p.event_id=e.id"
 
   private val tableFull = s"$table INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $groupTable ON c.group_id=g.id INNER JOIN $talkTable ON p.talk_id=t.id LEFT OUTER JOIN $eventTable ON p.event_id=e.id LEFT OUTER JOIN $ratingTable ON p.id=pr.proposal_id"
   private val fieldsFull = s"$fields, $cfpFields, $groupFields, $talkFields, $eventFields"

@@ -223,5 +223,6 @@ GET         /api/speakers                                                       
 GET         /api/speakers/:speaker                                                         fr.gospeak.web.api.published.SpeakerCtrl.detail(speaker: User.Slug)
 
 GET         /api/u/groups/:group/events                                                    fr.gospeak.web.api.orga.ApiEventCtrl.list(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /api/u/groups/:group/events/:event                                             fr.gospeak.web.api.orga.ApiEventCtrl.detail(group: Group.Slug, event: Event.Slug)
 
 GET         /assets/*file                                                                  controllers.Assets.versioned(path="/public", file: Asset)

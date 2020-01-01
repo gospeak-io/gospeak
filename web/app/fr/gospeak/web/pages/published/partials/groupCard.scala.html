@@ -1,5 +1,5 @@
 @import fr.gospeak.core.domain.{Cfp, Event, Group, Sponsor, SponsorPack, User}
-@import fr.gospeak.core.domain.utils.Constants.Image
+@import fr.gospeak.core.domain.utils.Constants.Placeholders
 @import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.partials.display.html._
@@ -51,7 +51,7 @@
                     }.getOrElse {
                         <li class="list-inline-item ml-n3 mr-0">
                             <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
-                                <img src="@Image.placeholderUnknownUser" alt="Unknown user avatar" title="Unknow user" class="img-fluid rounded-circle">
+                                <img src="@Placeholders.unknownUser" alt="Unknown user avatar" title="Unknow user" class="img-fluid rounded-circle">
                             </div>
                         </li>
                     }

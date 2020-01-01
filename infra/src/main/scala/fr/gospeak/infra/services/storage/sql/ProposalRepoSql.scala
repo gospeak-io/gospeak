@@ -130,7 +130,7 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def list(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = runNel(selectAll, ids)
 
-  override def listPublicFull(ids: Seq[Proposal.Id]): IO[Seq[Proposal.Full]] = runNel(selectAllPublicFull, ids)
+  override def listPublic(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = runNel(selectAllPublic, ids)
 
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 
@@ -146,6 +146,9 @@ object ProposalRepoSql {
   private val _ = proposalIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.proposals
   private val ratingTable = Tables.proposalRatings
+  private val tableWithEvent = table
+    .joinOpt(Tables.events, _.event_id("p") -> _.id).get
+    .dropFields(_.prefix == Tables.events.prefix)
   private val tableFull = table
     .join(Tables.cfps, _.cfp_id -> _.id).get
     .join(Tables.groups.dropFields(_.name.startsWith("location_")), _.group_id("c") -> _.id).get
@@ -257,8 +260,8 @@ object ProposalRepoSql {
   private[sql] def selectAll(ids: NonEmptyList[Proposal.Id]): Select[Proposal] =
     table.select[Proposal](fr0"WHERE " ++ Fragments.in(fr"id", ids))
 
-  private[sql] def selectAllPublicFull(ids: NonEmptyList[Proposal.Id]): Select[Proposal.Full] =
-    tableFull.select[Proposal.Full](fr0"WHERE " ++ Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
+  private[sql] def selectAllPublic(ids: NonEmptyList[Proposal.Id]): Select[Proposal] =
+    tableWithEvent.select[Proposal](fr0"WHERE " ++ Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
     table.select[Seq[Tag]](Seq(Field("tags", "p")), Seq())

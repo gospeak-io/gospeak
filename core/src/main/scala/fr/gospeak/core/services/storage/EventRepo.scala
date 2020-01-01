@@ -25,6 +25,8 @@ trait OrgaEventRepo {
 
   def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]]
 
+  def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]]
+
   def list(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Seq[Event]]
 
   def list(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Seq[(Event, Venue)]]
@@ -33,9 +35,11 @@ trait OrgaEventRepo {
 
   def listPublic(address: GMapPlace, params: Page.Params): IO[Page[Event.Full]]
 
-  def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]]
+  def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]]
 
   def find(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event]]
+
+  def findFull(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event.Full]]
 
   def listRsvps(event: Event.Id): IO[Seq[Event.Rsvp]]
 

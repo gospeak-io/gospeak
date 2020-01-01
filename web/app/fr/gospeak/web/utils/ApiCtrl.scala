@@ -110,13 +110,14 @@ object ApiCtrl {
 
     protected def OrgaAction[A](group: Group.Slug)(block: OrgaReq[AnyContent] => IO[ApiResponse[A]])(implicit w: Writes[A]): Action[AnyContent] = {
       UserAction { req =>
-        groupRepo.find(req.user.id, group).flatMap {
-          case Some(group) => block(req.orga(group)).map{
+        groupRepo.find(group).flatMap {
+          case Some(groupElt) if groupElt.owners.toList.contains(req.user.id) => block(req.orga(groupElt)).map {
             case i: ItemResponse[A] => Ok(Json.toJson(i))
             case p: PageResponse[A] => Ok(Json.toJson(p))
-            case e: ErrorResponse => new Status(e.data)(Json.toJson(e))
+            case e: ErrorResponse => new Status(e.status)(Json.toJson(e))
           }
-          case None => IO.pure(NotFound(s"Unable to find group with slug '${group.value}'"))
+          case Some(_) => IO.pure(Forbidden(Json.toJson(ApiResponse.forbidden(s"You are not a '${group.value}' group owner")(req))))
+          case None => IO.pure(NotFound(Json.toJson(ApiResponse.notFound(s"No group '${group.value}'")(req))))
         }
       }
     }
