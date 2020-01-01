@@ -18,14 +18,14 @@ class CfpCtrl(cc: ControllerComponents,
               conf: AppConf,
               cfpRepo: SpeakerCfpRepo,
               talkRepo: SpeakerTalkRepo,
-              proposalRepo: SpeakerProposalRepo) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAction {
-  def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+              proposalRepo: SpeakerProposalRepo) extends UICtrl(cc, silhouette, conf) {
+  def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(talk))
       cfps <- OptionT.liftF(cfpRepo.availableFor(talkElt.id, params))
       b = listBreadcrumb(talkElt)
     } yield Ok(html.list(talkElt, cfps)(b))).value.map(_.getOrElse(talkNotFound(talk)))
-  })
+  }
 }
 
 object CfpCtrl {

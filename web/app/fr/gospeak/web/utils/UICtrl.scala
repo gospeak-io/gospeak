@@ -2,9 +2,7 @@ package fr.gospeak.web.utils
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import fr.gospeak.core.services.storage.OrgaGroupRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
@@ -21,12 +19,12 @@ abstract class UICtrl(cc: ControllerComponents,
                       conf: AppConf) extends AbstractController(cc) with I18nSupport {
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  protected def UserAwareActionIO(block: UserAwareReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.UserAwareAction.async { r: UserAwareRequest[CookieEnv, AnyContent] =>
+  protected def UserAwareAction(block: UserAwareReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.UserAwareAction.async { r =>
     val req = UserAwareReq.from(conf, messagesApi, r)
     recoverFailedAction(block(req))(req).unsafeToFuture()
   }
 
-  protected def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.SecuredAction.async { r =>
+  protected def UserAction(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.SecuredAction.async { r =>
     val req = UserReq.from(conf, messagesApi, r)
     recoverFailedAction(block(req))(req).unsafeToFuture()
   }
@@ -151,34 +149,14 @@ object UICtrl {
     }
   }
 
-  trait UserAwareAction {
-    self: UICtrl =>
-
-    protected def UserAwareAction(block: UserAwareReq[AnyContent] => UserAwareCtx => IO[Result]): Action[AnyContent] = {
-      UserAwareActionIO { req =>
-        block(req)(req.ctx)
-      }
-    }
-  }
-
-  trait UserAction {
-    self: UICtrl =>
-
-    protected def UserAction(block: UserReq[AnyContent] => UserCtx => IO[Result]): Action[AnyContent] = {
-      SecuredActionIO { req =>
-        block(req)(req.ctx)
-      }
-    }
-  }
-
   trait OrgaAction {
     self: UICtrl =>
     val groupRepo: OrgaGroupRepo
 
-    protected def OrgaAction(group: Group.Slug)(block: OrgaReq[AnyContent] => OrgaCtx => IO[Result]): Action[AnyContent] = {
-      SecuredActionIO { req =>
+    protected def OrgaAction(group: Group.Slug)(block: OrgaReq[AnyContent] => IO[Result]): Action[AnyContent] = {
+      UserAction { req =>
         groupRepo.find(req.user.id, group).flatMap {
-          case Some(group) => block(req.orga(group))(req.orga(group).ctx)
+          case Some(group) => block(req.orga(group))
           case None => IO.pure(Redirect(pages.user.routes.UserCtrl.index()).flashing("warning" -> s"Unable to find group with slug '${group.value}'"))
         }
       }

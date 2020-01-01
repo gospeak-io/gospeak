@@ -34,52 +34,52 @@ class CfpCtrl(cc: ControllerComponents,
               externalCfpRepo: PublicExternalCfpRepo,
               authSrv: AuthSrv,
               emailSrv: EmailSrv,
-              mb: GospeakMessageBus) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAction with UICtrl.UserAwareAction {
-  def list(params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+              mb: GospeakMessageBus) extends UICtrl(cc, silhouette, conf) {
+  def list(params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     externalCfpRepo.listIncoming(req.now, params).map(cfps => Ok(html.list(cfps)(listBreadcrumb())))
-  })
+  }
 
-  def gettingStarted(): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def gettingStarted(): Action[AnyContent] = UserAwareAction { implicit req =>
     IO.pure(Ok(html.gettingStarted()(listBreadcrumb().add("Getting Started" -> routes.CfpCtrl.gettingStarted))))
-  })
+  }
 
-  def add(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def add(): Action[AnyContent] = UserAction { implicit req =>
     IO.pure(Ok(html.create(CfpForms.external)(listBreadcrumb().add("Add" -> routes.CfpCtrl.add))))
-  })
+  }
 
-  def doAdd(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doAdd(): Action[AnyContent] = UserAction { implicit req =>
     CfpForms.external.bindFromRequest.fold(
       formWithErrors => IO.pure(Ok(html.create(formWithErrors)(listBreadcrumb().add("Add" -> routes.CfpCtrl.add)))),
       data => externalCfpRepo.create(data, req.user.id, req.now).map(cfp => Redirect(routes.CfpCtrl.detailExt(cfp.id)))
     )
-  })
+  }
 
-  def detailExt(cfp: ExternalCfp.Id): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def detailExt(cfp: ExternalCfp.Id): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       cfpElt <- OptionT(externalCfpRepo.find(cfp))
       b = breadcrumb(cfpElt)
     } yield Ok(html.detailExt(cfpElt)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
-  })
+  }
 
-  def detail(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def detail(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       cfpElt <- OptionT(cfpRepo.findRead(cfp))
       groupElt <- OptionT(groupRepo.find(cfpElt.group))
       b = breadcrumb(cfpElt)
     } yield Ok(html.detail(groupElt, cfpElt)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
-  })
+  }
 
-  def edit(cfp: ExternalCfp.Id): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def edit(cfp: ExternalCfp.Id): Action[AnyContent] = UserAction { implicit req =>
     editView(cfp, CfpForms.external)
-  })
+  }
 
-  def doEdit(cfp: ExternalCfp.Id): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doEdit(cfp: ExternalCfp.Id): Action[AnyContent] = UserAction { implicit req =>
     CfpForms.external.bindFromRequest.fold(
       formWithErrors => editView(cfp, formWithErrors),
       data => externalCfpRepo.edit(cfp)(data, req.user.id, req.now)
         .map(_ => Redirect(routes.CfpCtrl.detailExt(cfp)).flashing("success" -> "CFP updated"))
     )
-  })
+  }
 
   private def editView(cfp: ExternalCfp.Id, form: Form[ExternalCfp.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
@@ -89,20 +89,19 @@ class CfpCtrl(cc: ControllerComponents,
     } yield Ok(html.edit(cfpElt, filledForm)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
   }
 
-  def propose(cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def propose(cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     proposeForm(cfp, CfpForms.create, params)
-  })
+  }
 
-  def doPropose(cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def doPropose(cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     CfpForms.create.bindFromRequest.fold(
       formWithErrors => proposeForm(cfp, formWithErrors, params),
       data => req.secured.map { secured =>
         (for {
           cfpElt <- OptionT(cfpRepo.findRead(cfp))
           _ <- if(cfpElt.isActive(req.nowLDT)) OptionT.liftF(IO.pure(())) else OptionT.liftF(IO.raiseError(CustomException("Can't propose a talk, CFP is not open")))
-          ctx = secured.ctx
-          talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData)(ctx))
-          proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers)(ctx))
+          talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData)(secured))
+          proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers)(secured))
           groupElt <- OptionT(groupRepo.find(cfpElt.group))
           _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt)(secured))
           msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
@@ -114,7 +113,7 @@ class CfpCtrl(cc: ControllerComponents,
         }
       }
     )
-  })
+  }
 
   private def proposeForm(cfp: Cfp.Slug, form: Form[CfpForms.Create], params: Page.Params)(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     (for {
@@ -124,7 +123,7 @@ class CfpCtrl(cc: ControllerComponents,
     } yield Ok(html.propose(cfpElt, talks, form)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
   }
 
-  def doProposeSignup(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def doProposeSignup(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
     import cats.implicits._
     CfpForms.signup.bindFromRequest.fold(
       formWithErrors => proposeConnectForm(cfp, formWithErrors, CfpForms.login.bindFromRequest),
@@ -136,9 +135,8 @@ class CfpCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(emailSrv.send(Emails.signup(emailValidation, identity.user)))
         (auth, result) <- OptionT.liftF(authSrv.login(identity, data.user.rememberMe, _ => IO.pure(Redirect(ProposalCtrl.detail(data.talk.slug, cfp)))))
         secured = req.secured(identity, auth)
-        ctx = secured.ctx
-        talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData)(ctx))
-        proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers)(ctx))
+        talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData)(secured))
+        proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers)(secured))
         groupElt <- OptionT(groupRepo.find(cfpElt.group))
         _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt)(secured))
         msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
@@ -149,9 +147,9 @@ class CfpCtrl(cc: ControllerComponents,
         case NonFatal(e) => proposeConnectForm(cfp, signupData = Some(data), error = s"${e.getClass.getSimpleName}: ${e.getMessage}")
       }
     )
-  })
+  }
 
-  def doProposeLogin(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def doProposeLogin(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
     import cats.implicits._
     CfpForms.login.bindFromRequest.fold(
       formWithErrors => proposeConnectForm(cfp, CfpForms.signup.bindFromRequest, formWithErrors),
@@ -161,9 +159,8 @@ class CfpCtrl(cc: ControllerComponents,
         identity <- OptionT.liftF(authSrv.getIdentity(data.user))
         (auth, result) <- OptionT.liftF(authSrv.login(identity, data.user.rememberMe, _ => IO.pure(Redirect(ProposalCtrl.detail(data.talk.slug, cfp)))))
         secured = req.secured(identity, auth)
-        ctx = secured.ctx
-        talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData)(ctx))
-        proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers)(ctx))
+        talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData)(secured))
+        proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers)(secured))
         groupElt <- OptionT(groupRepo.find(cfpElt.group))
         _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt)(secured))
         msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
@@ -174,7 +171,7 @@ class CfpCtrl(cc: ControllerComponents,
         case NonFatal(e) => proposeConnectForm(cfp, loginData = Some(data), error = s"${e.getClass.getSimpleName}: ${e.getMessage}")
       }
     )
-  })
+  }
 
   private def proposeConnectForm(cfp: Cfp.Slug, signupForm: Form[CfpForms.ProposalSignupData], loginForm: Form[CfpForms.ProposalLoginData])(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     (for {

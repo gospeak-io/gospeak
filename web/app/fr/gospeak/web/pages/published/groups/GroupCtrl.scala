@@ -34,15 +34,15 @@ class GroupCtrl(cc: ControllerComponents,
                 commentRepo: PublicCommentRepo,
                 emailSrv: EmailSrv,
                 builder: MessageBuilder,
-                templateSrv: TemplateSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAction with UICtrl.UserAwareAction {
-  def list(params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+                templateSrv: TemplateSrv) extends UICtrl(cc, silhouette, conf) {
+  def list(params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     for {
       groups <- groupRepo.list(params)
       orgas <- userRepo.list(groups.items.flatMap(_.owners.toList))
     } yield Ok(html.list(groups, orgas)(listBreadcrumb()))
-  })
+  }
 
-  def detail(group: Group.Slug): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def detail(group: Group.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.findFull(group))
       speakerCount <- OptionT.liftF(userRepo.speakerCountPublic(groupElt.id))
@@ -54,9 +54,9 @@ class GroupCtrl(cc: ControllerComponents,
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
       res = Ok(html.detail(groupElt, speakerCount, cfps, events, sponsors, packs, orgas, userMembership)(breadcrumb(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
-  })
+  }
 
-  def doJoin(group: Group.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doJoin(group: Group.Slug): Action[AnyContent] = UserAction { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       userMembership <- OptionT.liftF(groupRepo.findActiveMember(groupElt.id, req.user.id))
@@ -66,9 +66,9 @@ class GroupCtrl(cc: ControllerComponents,
         .getOrElse(IO.pure("success" -> s"You are already a member of <b>${groupElt.name.value}</b>")))
       next = redirectToPreviousPageOr(routes.GroupCtrl.detail(group)).flashing(msg)
     } yield next).value.map(_.getOrElse(publicGroupNotFound(group)))
-  })
+  }
 
-  def doLeave(group: Group.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doLeave(group: Group.Slug): Action[AnyContent] = UserAction { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       userMembership <- OptionT.liftF(groupRepo.findActiveMember(groupElt.id, req.user.id))
@@ -78,9 +78,9 @@ class GroupCtrl(cc: ControllerComponents,
         .getOrElse(IO.pure("error" -> s"You are not a member of <b>${groupElt.name.value}</b>")))
       next = redirectToPreviousPageOr(routes.GroupCtrl.detail(group)).flashing(msg)
     } yield next).value.map(_.getOrElse(publicGroupNotFound(group)))
-  })
+  }
 
-  def events(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def events(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.findFull(group))
       speakerCount <- OptionT.liftF(userRepo.speakerCountPublic(groupElt.id))
@@ -92,13 +92,13 @@ class GroupCtrl(cc: ControllerComponents,
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
       res = Ok(html.events(groupElt, speakerCount, cfps, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
-  })
+  }
 
-  def event(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def event(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
     eventView(group, event, GenericForm.comment)
-  })
+  }
 
-  def doSendComment(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doSendComment(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAction { implicit req =>
     GenericForm.comment.bindFromRequest.fold(
       formWithErrors => eventView(group, event, formWithErrors)(req.userAware),
       data => (for {
@@ -109,7 +109,7 @@ class GroupCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(orgas.map(o => emailSrv.send(Emails.eventCommentAdded(groupElt, eventElt.event, o, comment))).sequence)
       } yield Redirect(routes.GroupCtrl.event(group, event))).value.map(_.getOrElse(publicEventNotFound(group, event)))
     )
-  })
+  }
 
   private def eventView(group: Group.Slug, event: Event.Slug, commentForm: Form[Comment.Data])(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     (for {
@@ -130,7 +130,7 @@ class GroupCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(publicEventNotFound(group, event)))
   }
 
-  def doRsvp(group: Group.Slug, event: Event.Slug, answer: Event.Rsvp.Answer): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doRsvp(group: Group.Slug, event: Event.Slug, answer: Event.Rsvp.Answer): Action[AnyContent] = UserAction { implicit req =>
     import Event.Rsvp.Answer.{No, Wait, Yes}
     val waitMsg = "warning" -> "Thanks but this event is already full. You are on waiting list, your place will be reserved as soon as there is more places"
     val yesMsg = "success" -> "You seat is booked!"
@@ -168,9 +168,9 @@ class GroupCtrl(cc: ControllerComponents,
       case e: CustomException => Redirect(routes.GroupCtrl.event(group, event)).flashing("error" -> e.message)
       case NonFatal(e) => Redirect(routes.GroupCtrl.event(group, event)).flashing("error" -> s"Unexpected error: ${e.getMessage}")
     }
-  })
+  }
 
-  def talks(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def talks(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.findFull(group))
       speakerCount <- OptionT.liftF(userRepo.speakerCountPublic(groupElt.id))
@@ -186,18 +186,18 @@ class GroupCtrl(cc: ControllerComponents,
       res = Ok(html.talks(groupElt, speakerCount, proposals, cfps, members, speakers, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
 
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
-  })
+  }
 
-  def talk(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def talk(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       proposalElt <- OptionT(proposalRepo.findPublicFull(groupElt.id, proposal))
       speakers <- OptionT.liftF(userRepo.list(proposalElt.speakers.toList))
       res = Ok(html.talk(groupElt, proposalElt, speakers)(breadcrumbTalk(groupElt, proposalElt)))
     } yield res).value.map(_.getOrElse(publicProposalNotFound(group, proposal)))
-  })
+  }
 
-  def speakers(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def speakers(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.findFull(group))
       speakerCount <- OptionT.liftF(userRepo.speakerCountPublic(groupElt.id))
@@ -211,9 +211,9 @@ class GroupCtrl(cc: ControllerComponents,
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
       res = Ok(html.speakers(groupElt, speakerCount, cfps, members, speakers, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
-  })
+  }
 
-  def members(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def members(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.findFull(group))
       speakerCount <- OptionT.liftF(userRepo.speakerCountPublic(groupElt.id))
@@ -226,7 +226,7 @@ class GroupCtrl(cc: ControllerComponents,
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
       res = Ok(html.members(groupElt, speakerCount, cfps, members, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
-  })
+  }
 }
 
 object GroupCtrl {

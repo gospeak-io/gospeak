@@ -36,41 +36,41 @@ class GroupCtrl(cc: ControllerComponents,
                 sponsorPackRepo: OrgaSponsorPackRepo,
                 partnerRepo: OrgaPartnerRepo,
                 userRequestRepo: OrgaUserRequestRepo,
-                emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction with UICtrl.UserAction {
-  def create(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+                emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
+  def create(): Action[AnyContent] = UserAction { implicit req =>
     createForm(GroupForms.create)
-  })
+  }
 
-  def doCreate(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doCreate(): Action[AnyContent] = UserAction { implicit req =>
     GroupForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
       data => groupRepo.create(data).map(_ => Redirect(routes.GroupCtrl.detail(data.slug)))
     )
-  })
+  }
 
   private def createForm(form: Form[Group.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     val b = groupBreadcrumb.add("New" -> routes.GroupCtrl.create())
     IO.pure(Ok(html.create(form)(b)))
   }
 
-  def join(params: Page.Params): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def join(params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     for {
       groups <- groupRepo.listJoinable(params)
       pendingRequests <- userRequestRepo.listPendingUserToJoinAGroupRequests
       owners <- userRepo.list(groups.items.flatMap(_.owners.toList).distinct)
       b = groupBreadcrumb.add("Join" -> routes.GroupCtrl.join())
     } yield Ok(html.join(groups, owners, pendingRequests)(b))
-  })
+  }
 
-  def doJoin(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doJoin(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       _ <- OptionT.liftF(userRequestRepo.createUserAskToJoinAGroup(groupElt.id))
     } yield Redirect(UserRoutes.index()).flashing("success" -> s"Join request sent to <b>${groupElt.name.value}</b> group"))
       .value.map(_.getOrElse(Redirect(routes.GroupCtrl.join(params)).flashing("error" -> s"Unable to send join request to <b>$group</b>")))
-  })
+  }
 
-  def detail(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def detail(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
       stats <- groupRepo.getStats
       events <- eventRepo.listAfter(Page.Params.defaults.orderBy("start"))
@@ -86,13 +86,13 @@ class GroupCtrl(cc: ControllerComponents,
       requests <- userRequestRepo.listPendingGroupRequests
       requestUsers <- userRepo.list(requests.flatMap(_.users).distinct)
     } yield Ok(html.detail(stats, events, cfps, venues, proposals, speakers, currentSponsors, pastSponsors, packs, requests, requestUsers)(breadcrumb))
-  })
+  }
 
-  def edit(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def edit(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     editForm(GroupForms.create)
-  })
+  }
 
-  def doEdit(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doEdit(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     GroupForms.create.bindFromRequest.fold(
       formWithErrors => editForm(formWithErrors),
       data => for {
@@ -104,7 +104,7 @@ class GroupCtrl(cc: ControllerComponents,
         }
       } yield res
     )
-  })
+  }
 
   private def editForm(form: Form[Group.Data])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
     val filledForm = if (form.hasErrors) form else form.fill(req.group.data)
@@ -112,7 +112,7 @@ class GroupCtrl(cc: ControllerComponents,
     IO.pure(Ok(html.edit(filledForm)(b)))
   }
 
-  def acceptJoin(group: Group.Slug, userRequest: UserRequest.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def acceptJoin(group: Group.Slug, userRequest: UserRequest.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       requestElt <- OptionT(userRequestRepo.findPendingUserToJoinAGroup(userRequest))
       userElt <- OptionT(userRepo.find(requestElt.createdBy))
@@ -121,9 +121,9 @@ class GroupCtrl(cc: ControllerComponents,
       next = redirectToPreviousPageOr(routes.GroupCtrl.detail(group))
       msg = s"You accepted <b>${userElt.name.value}</b> as organizer of ${req.group.name.value}"
     } yield next.flashing("success" -> msg)).value.map(_.getOrElse(groupNotFound(group)))
-  })
+  }
 
-  def rejectJoin(group: Group.Slug, userRequest: UserRequest.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def rejectJoin(group: Group.Slug, userRequest: UserRequest.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       requestElt <- OptionT(userRequestRepo.findPendingUserToJoinAGroup(userRequest))
       userElt <- OptionT(userRepo.find(requestElt.createdBy))
@@ -132,13 +132,13 @@ class GroupCtrl(cc: ControllerComponents,
       next = redirectToPreviousPageOr(routes.GroupCtrl.detail(group))
       msg = s"You refused to <b>${userElt.name.value}</b> to join ${req.group.name.value} as an organizer"
     } yield next.flashing("error" -> msg)).value.map(_.getOrElse(groupNotFound(group)))
-  })
+  }
 
-  def contactMembers(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def contactMembers(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     contactMembersView(GroupForms.contactMembers)
-  })
+  }
 
-  def doContactMembers(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doContactMembers(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     GroupForms.contactMembers.bindFromRequest.fold(
       formWithErrors => contactMembersView(formWithErrors),
       data => (for {
@@ -151,7 +151,7 @@ class GroupCtrl(cc: ControllerComponents,
     ).recover {
       case NonFatal(e) => Redirect(routes.GroupCtrl.detail(group)).flashing("error" -> s"An error happened: ${e.getMessage}")
     }
-  })
+  }
 
   private def contactMembersView(form: Form[GroupForms.ContactMembers])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
     val b = breadcrumb.add("Contact members" -> routes.GroupCtrl.contactMembers(req.group.slug))

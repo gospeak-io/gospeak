@@ -21,32 +21,32 @@ class ProfileCtrl(cc: ControllerComponents,
                   groupRepo: UserGroupRepo,
                   proposalRepo: UserProposalRepo,
                   talkRepo: UserTalkRepo,
-                  userRepo: UserUserRepo) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAction {
-  def detail(params: Page.Params): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+                  userRepo: UserUserRepo) extends UICtrl(cc, silhouette, conf) {
+  def detail(params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     for {
       proposals <- proposalRepo.listFull(params)
       groups <- groupRepo.list
     } yield Ok(html.detail(proposals, groups)(breadcrumb))
-  })
+  }
 
-  def edit(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def edit(): Action[AnyContent] = UserAction { implicit req =>
     editView(ProfileForms.create)
-  })
+  }
 
-  def doEdit(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doEdit(): Action[AnyContent] = UserAction { implicit req =>
     ProfileForms.create.bindFromRequest.fold(
       formWithErrors => editView(formWithErrors),
       data => userRepo.edit(data)
         .map(_ => Redirect(routes.ProfileCtrl.detail()).flashing("success" -> "Profile updated"))
     )
-  })
+  }
 
   private def editView(form: Form[User.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     val filledForm = if (form.hasErrors) form else form.fill(req.user.data)
     IO(Ok(html.edit(filledForm)(editBreadcrumb)))
   }
 
-  def doEditStatus(status: User.Status): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doEditStatus(status: User.Status): Action[AnyContent] = UserAction { implicit req =>
     val next = redirectToPreviousPageOr(routes.ProfileCtrl.detail())
     val msg = status match {
       case User.Status.Undefined =>
@@ -57,7 +57,7 @@ class ProfileCtrl(cc: ControllerComponents,
         s"""Nice! You are now officially a public speaker on Gospeak. Here is your <a href="${PublishedSpeakerRoutes.detail(req.user.slug)}" target="_blank">public page</a>."""
     }
     userRepo.editStatus(status).map(_ => next.flashing("success" -> msg))
-  })
+  }
 }
 
 object ProfileCtrl {

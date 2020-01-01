@@ -29,17 +29,17 @@ class UserCtrl(cc: ControllerComponents,
                talkRepo: SpeakerTalkRepo,
                proposalRepo: SpeakerProposalRepo,
                cfpRepo: SpeakerCfpRepo,
-               emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAction {
-  def index(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+               emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) {
+  def index(): Action[AnyContent] = UserAction { implicit req =>
     for {
       incomingEvents <- eventRepo.listIncoming(Page.Params.defaults)
       joinedGroups <- groupRepo.listJoined(Page.Params.defaults)
       talks <- talkRepo.list(Page.Params.defaults)
       proposals <- proposalRepo.listFull(Page.Params.defaults)
     } yield Ok(html.index(incomingEvents, joinedGroups, talks, proposals)(breadcrumb))
-  })
+  }
 
-  def answerRequest(request: UserRequest.Id): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def answerRequest(request: UserRequest.Id): Action[AnyContent] = UserAction { implicit req =>
     userRequestRepo.find(request).flatMap {
       case Some(r: UserRequest.GroupInvite) => (for {
         groupElt <- OptionT(groupRepo.find(r.group))
@@ -60,9 +60,9 @@ class UserCtrl(cc: ControllerComponents,
         // TODO: add log here
         IO.pure(Redirect(routes.UserCtrl.index()).flashing("error" -> "Invalid request"))
     }
-  })
+  }
 
-  def acceptRequest(request: UserRequest.Id): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def acceptRequest(request: UserRequest.Id): Action[AnyContent] = UserAction { implicit req =>
     userRequestRepo.find(request).map(_.filter(_.isPending(req.now))).flatMap {
       case Some(r: UserRequest.GroupInvite) => (for {
         groupElt <- OptionT(groupRepo.find(r.group))
@@ -85,9 +85,9 @@ class UserCtrl(cc: ControllerComponents,
       case _ => IO.pure(Some("Request not found or unhandled"))
     }.map(msg => Redirect(routes.UserCtrl.index()).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))
       .recover { case NonFatal(e) => Redirect(routes.UserCtrl.index()).flashing("error" -> s"Unexpected error: ${e.getMessage}") }
-  })
+  }
 
-  def rejectRequest(request: UserRequest.Id): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def rejectRequest(request: UserRequest.Id): Action[AnyContent] = UserAction { implicit req =>
     userRequestRepo.find(request).map(_.filter(_.isPending(req.now))).flatMap {
       case Some(r: UserRequest.GroupInvite) => (for {
         groupElt <- OptionT(groupRepo.find(r.group))
@@ -110,7 +110,7 @@ class UserCtrl(cc: ControllerComponents,
       case _ => IO.pure(Some("Request not found or unhandled"))
     }.map(msg => Redirect(routes.UserCtrl.index()).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))
       .recover { case NonFatal(e) => Redirect(routes.UserCtrl.index()).flashing("error" -> s"Unexpected error: ${e.getMessage}") }
-  })
+  }
 }
 
 object UserCtrl {

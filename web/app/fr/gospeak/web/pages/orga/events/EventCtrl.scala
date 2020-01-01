@@ -43,7 +43,7 @@ class EventCtrl(cc: ControllerComponents,
                 meetupSrv: MeetupSrv,
                 emailSrv: EmailSrv,
                 mb: GospeakMessageBus) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
-  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
       events <- eventRepo.list(params)
       cfps <- cfpRepo.list(events.items.flatMap(_.cfp))
@@ -51,13 +51,13 @@ class EventCtrl(cc: ControllerComponents,
       proposals <- proposalRepo.list(events.items.flatMap(_.talks))
       speakers <- userRepo.list(proposals.flatMap(_.users))
     } yield Ok(html.list(events, cfps, venues, proposals, speakers)(listBreadcrumb))
-  })
+  }
 
-  def create(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def create(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     createView(group, EventForms.create)
-  })
+  }
 
-  def doCreate(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doCreate(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     EventForms.create.bindFromRequest.fold(
       formWithErrors => createView(group, formWithErrors),
       data => (for {
@@ -66,7 +66,7 @@ class EventCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(mb.publishEventCreated(eventElt))
       } yield Redirect(routes.EventCtrl.detail(group, data.slug))).value.map(_.getOrElse(groupNotFound(group)))
     )
-  })
+  }
 
   private def createView(group: Group.Slug, form: Form[Event.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     for {
@@ -77,7 +77,7 @@ class EventCtrl(cc: ControllerComponents,
     } yield Ok(html.create(meetupAccount.isDefined, filledForm)(b))
   }
 
-  def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val customParams = params.defaultSize(40).defaultOrderBy(proposalRepo.fields.created)
     (for {
       e <- OptionT(eventSrv.getFullEvent(event))
@@ -89,9 +89,9 @@ class EventCtrl(cc: ControllerComponents,
       b = breadcrumb(e.event)
       res = Ok(html.detail(e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, userRatings, eventTemplates, EventForms.cfp, EventForms.notes.fill(e.event.orgaNotes.text))(b))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
-  })
+  }
 
-  def showTemplate(group: Group.Slug, event: Event.Slug, templateId: String): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def showTemplate(group: Group.Slug, event: Event.Slug, templateId: String): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       e <- OptionT(eventSrv.getFullEvent(event))
       eventTemplates <- OptionT.liftF(groupSettingsRepo.findEventTemplates)
@@ -101,13 +101,13 @@ class EventCtrl(cc: ControllerComponents,
         .map(text => Ok(html.showTemplate(Html(text))))
         .getOrElse(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Invalid template '$templateId'"))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
-  })
+  }
 
-  def edit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def edit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     editView(group, event, EventForms.create)
-  })
+  }
 
-  def doEdit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doEdit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     EventForms.create.bindFromRequest.fold(
       formWithErrors => editView(group, event, formWithErrors),
       data => for {
@@ -120,7 +120,7 @@ class EventCtrl(cc: ControllerComponents,
         }
       } yield res
     )
-  })
+  }
 
   private def editView(group: Group.Slug, event: Event.Slug, form: Form[Event.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
@@ -131,23 +131,23 @@ class EventCtrl(cc: ControllerComponents,
     } yield Ok(html.edit(meetupAccount.isDefined, eventElt, filledForm)(b))).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
-  def doEditNotes(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doEditNotes(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     EventForms.notes.bindFromRequest.fold(
       formWithErrors => IO.pure(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Unable to edit notes: ${req.formatErrors(formWithErrors)}")),
       notes => eventRepo.editNotes(event, notes).map(_ => Redirect(routes.EventCtrl.detail(group, event)))
     )
-  })
+  }
 
-  def setVenue(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def setVenue(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       e <- OptionT(eventSrv.getFullEvent(event))
       venues <- OptionT.liftF(venueRepo.listCommon(params))
       groupVenues <- OptionT.liftF(venueRepo.listAllFull())
       res = Ok(html.setVenue(e.event, e.venueOpt, venues, groupVenues)(setVenueBreadcrumb(e.event)))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
-  })
+  }
 
-  def doSetVenue(group: Group.Slug, event: Event.Slug, venue: Venue.Id, public: Boolean): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doSetVenue(group: Group.Slug, event: Event.Slug, venue: Venue.Id, public: Boolean): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       eventElt <- OptionT(eventRepo.find(event))
       venueToSet <- OptionT.liftF(if (public) {
@@ -158,16 +158,16 @@ class EventCtrl(cc: ControllerComponents,
       _ <- OptionT.liftF(eventRepo.edit(event, eventElt.data.copy(venue = Some(venueToSet))))
       res = Redirect(routes.EventCtrl.detail(group, event)).flashing("success" -> "Venue updated")
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
-  })
+  }
 
-  def createVenue(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def createVenue(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       eventElt <- OptionT(eventRepo.find(event))
       res = Ok(html.createVenue(eventElt, PartnerForms.createVenueWithPartner)(createVenueBreadcrumb(eventElt)))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
-  })
+  }
 
-  def doCreateVenue(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doCreateVenue(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     PartnerForms.createVenueWithPartner.bindFromRequest().fold(
       formWithErrors => (for {
         eventElt <- OptionT(eventRepo.find(event))
@@ -181,16 +181,16 @@ class EventCtrl(cc: ControllerComponents,
         res = Redirect(routes.EventCtrl.detail(group, event)).flashing("success" -> "Venue updated")
       } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
     )
-  })
+  }
 
-  def attachCfp(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def attachCfp(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     EventForms.cfp.bindFromRequest.fold(
       formWithErrors => IO.pure(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Unable to attach CFP: ${req.formatErrors(formWithErrors)}")),
       cfp => eventRepo.attachCfp(event, cfp).map(_ => Redirect(routes.EventCtrl.detail(group, event)))
     )
-  })
+  }
 
-  def addToTalks(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def addToTalks(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       eventElt <- OptionT(eventRepo.find(event))
       cfpElt <- OptionT(cfpRepo.find(eventElt.id))
@@ -199,9 +199,9 @@ class EventCtrl(cc: ControllerComponents,
       _ <- OptionT.liftF(proposalRepo.accept(cfpElt.slug, talk, eventElt.id))
       _ <- OptionT.liftF(mb.publishTalkAdded(eventElt, cfpElt, proposalElt))
     } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event)))
-  })
+  }
 
-  def cancelTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def cancelTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       eventElt <- OptionT(eventRepo.find(event))
       cfpElt <- OptionT(cfpRepo.find(eventElt.id))
@@ -210,28 +210,28 @@ class EventCtrl(cc: ControllerComponents,
       _ <- OptionT.liftF(proposalRepo.cancel(cfpElt.slug, talk, eventElt.id))
       _ <- OptionT.liftF(mb.publishTalkRemoved(eventElt, cfpElt, proposalElt))
     } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event)))
-  })
+  }
 
-  def moveTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, up: Boolean, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def moveTalk(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, up: Boolean, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       eventElt <- OptionT(eventRepo.find(event))
       _ <- OptionT.liftF(eventRepo.editTalks(event, eventElt.move(talk, up).talks))
     } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event)))
-  })
+  }
 
-  def rejectProposal(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def rejectProposal(group: Group.Slug, event: Event.Slug, talk: Proposal.Id, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       eventElt <- OptionT(eventRepo.find(event))
       cfpElt <- OptionT(cfpRepo.find(eventElt.id))
       _ <- OptionT.liftF(proposalRepo.reject(cfpElt.slug, talk))
     } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event)))
-  })
+  }
 
-  def publish(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def publish(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     publishView(group, event, EventForms.publish.fill(PublishOptions.default))
-  })
+  }
 
-  def doPublish(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doPublish(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     EventForms.publish.bindFromRequest.fold(
       formWithErrors => publishView(group, event, formWithErrors),
       data => (for {
@@ -259,7 +259,7 @@ class EventCtrl(cc: ControllerComponents,
       .recover {
         case NonFatal(e) => Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"An error happened: ${e.getMessage}")
       }
-  })
+  }
 
   private def publishView(group: Group.Slug, event: Event.Slug, form: Form[PublishOptions])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
@@ -272,11 +272,11 @@ class EventCtrl(cc: ControllerComponents,
   }
 
 
-  def contactRsvps(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def contactRsvps(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     contactRsvpsView(group, event, EventForms.contactAttendees)
-  })
+  }
 
-  def doContactRsvps(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doContactRsvps(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     EventForms.contactAttendees.bindFromRequest.fold(
       formWithErrors => contactRsvpsView(group, event, formWithErrors),
       data => (for {
@@ -289,7 +289,7 @@ class EventCtrl(cc: ControllerComponents,
     ).recover {
       case NonFatal(e) => Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"An error happened: ${e.getMessage}")
     }
-  })
+  }
 
   private def contactRsvpsView(group: Group.Slug, event: Event.Slug, form: Form[EventForms.ContactAttendees])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {

@@ -2,7 +2,7 @@ package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.Talk
-import fr.gospeak.core.domain.utils.OrgaCtx
+import fr.gospeak.core.domain.utils.FakeCtx
 import fr.gospeak.infra.services.storage.sql.CfpRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec.{table => eventTable}
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
@@ -24,7 +24,7 @@ class CfpRepoSqlSpec extends RepoSpec {
     }
     it("should fail to create a cfp when the group does not exists") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
-      val ctx = new OrgaCtx(now, user, group)
+      val ctx = FakeCtx(now, user, group)
       an[Exception] should be thrownBy cfpRepo.create(cfpData1)(ctx).unsafeRunSync()
     }
     it("should fail to create two cfp for a group") {
@@ -35,8 +35,8 @@ class CfpRepoSqlSpec extends RepoSpec {
     it("should fail on duplicate slug") {
       val (user, group1, ctx1) = createUserAndGroup().unsafeRunSync()
       val group2 = groupRepo.create(groupData2)(ctx1).unsafeRunSync()
-      cfpRepo.create(cfpData1)(new OrgaCtx(now, user, group1)).unsafeRunSync()
-      an[Exception] should be thrownBy cfpRepo.create(cfpData1)(new OrgaCtx(now, user, group2)).unsafeRunSync()
+      cfpRepo.create(cfpData1)(FakeCtx(now, user, group1)).unsafeRunSync()
+      an[Exception] should be thrownBy cfpRepo.create(cfpData1)(FakeCtx(now, user, group2)).unsafeRunSync()
     }
     describe("Queries") {
       it("should build insert") {

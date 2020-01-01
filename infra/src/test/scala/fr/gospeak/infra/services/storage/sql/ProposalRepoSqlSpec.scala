@@ -1,7 +1,7 @@
 package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
-import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import fr.gospeak.core.domain.utils.FakeCtx
 import fr.gospeak.core.domain.{Cfp, Proposal, Talk}
 import fr.gospeak.infra.services.storage.sql.CfpRepoSqlSpec.{fields => cfpFields, table => cfpTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec.{fields => eventFields, table => eventTable}
@@ -15,7 +15,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
   describe("ProposalRepoSql") {
     it("should create and retrieve a proposal for a group and talk") {
       val (user, group, cfp, talk) = createUserGroupCfpAndTalk().unsafeRunSync()
-      val ctx = new UserCtx(now, user)
+      val ctx = FakeCtx(now, user)
       proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe Seq()
       proposalRepo.listFull(cfp.id, params).unsafeRunSync().items shouldBe Seq()
       val proposal = proposalRepo.create(talk.id, cfp.id, proposalData1, speakers)(ctx).unsafeRunSync()
@@ -25,20 +25,20 @@ class ProposalRepoSqlSpec extends RepoSpec {
     }
     it("should fail to create a proposal when talk does not exists") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
-      val group = groupRepo.create(groupData1)(new UserCtx(now, user)).unsafeRunSync()
-      val ctx = new OrgaCtx(now, user, group)
+      val group = groupRepo.create(groupData1)(FakeCtx(now, user)).unsafeRunSync()
+      val ctx = FakeCtx(now, user, group)
       val cfp = cfpRepo.create(cfpData1)(ctx).unsafeRunSync()
       an[Exception] should be thrownBy proposalRepo.create(Talk.Id.generate(), cfp.id, proposalData1, speakers)(ctx).unsafeRunSync()
     }
     it("should fail to create a proposal when cfp does not exists") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
-      val ctx = new UserCtx(now, user)
+      val ctx = FakeCtx(now, user)
       val talk = talkRepo.create(talkData1)(ctx).unsafeRunSync()
       an[Exception] should be thrownBy proposalRepo.create(talk.id, Cfp.Id.generate(), proposalData1, speakers)(ctx).unsafeRunSync()
     }
     it("should fail on duplicate cfp and talk") {
       val (user, _, cfp, talk) = createUserGroupCfpAndTalk().unsafeRunSync()
-      val ctx = new UserCtx(now, user)
+      val ctx = FakeCtx(now, user)
       proposalRepo.create(talk.id, cfp.id, proposalData1, speakers)(ctx).unsafeRunSync()
       an[Exception] should be thrownBy proposalRepo.create(talk.id, cfp.id, proposalData1, speakers)(ctx).unsafeRunSync()
     }

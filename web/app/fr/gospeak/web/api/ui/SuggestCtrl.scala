@@ -47,23 +47,23 @@ class SuggestCtrl(cc: ControllerComponents,
     } yield Ok(Json.toJson(suggestItems.sortBy(_.text)))
   }
 
-  def suggestCfps(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def suggestCfps(group: Group.Slug): Action[AnyContent] = UserAction { implicit req =>
     makeSuggest[Cfp](cfpRepo.list, c => SuggestedItem(c.id.value, c.name.value + " - " + Formats.cfpDates(c)))(group)
   }
 
-  def suggestPartners(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def suggestPartners(group: Group.Slug): Action[AnyContent] = UserAction { implicit req =>
     makeSuggest[Partner](partnerRepo.list, p => SuggestedItem(p.id.value, p.name.value))(group)
   }
 
-  def suggestContacts(group: Group.Slug, partner: Partner.Id): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def suggestContacts(group: Group.Slug, partner: Partner.Id): Action[AnyContent] = UserAction { implicit req =>
     makeSuggest[Contact](_ => contactRepo.list(partner), p => SuggestedItem(p.id.value, p.name.value))(group)
   }
 
-  def suggestVenues(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def suggestVenues(group: Group.Slug): Action[AnyContent] = UserAction { implicit req =>
     makeSuggest[Venue.Full](venueRepo.listFull, v => SuggestedItem(v.id.value, v.partner.name.value + " - " + v.address.value))(group)
   }
 
-  def suggestSponsorPacks(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def suggestSponsorPacks(group: Group.Slug): Action[AnyContent] = UserAction { implicit req =>
     makeSuggest[SponsorPack](sponsorPackRepo.listAll, sp => SuggestedItem(sp.id.value, sp.name.value + " (" + sp.price.value + ")" + (if (sp.active) "" else " (not active)")))(group)
   }
 
@@ -75,23 +75,23 @@ class SuggestCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(NotFound(Json.toJson(Seq.empty[SuggestedItem]))))
   }
 
-  def searchRoot(group: Group.Slug): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def searchRoot(group: Group.Slug): Action[AnyContent] = UserAction { implicit req =>
     IO.pure(BadRequest("this endpoint should not be requested"))
   }
 
-  def searchSpeakers(group: Group.Slug, q: String): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def searchSpeakers(group: Group.Slug, q: String): Action[AnyContent] = UserAction { implicit req =>
     makeSearch[User](userRepo.speakers, s => SearchResultItem(s.name.value, SpeakerCtrl.detail(group, s.slug).toString))(group, q)
   }
 
-  def searchProposals(group: Group.Slug, q: String): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def searchProposals(group: Group.Slug, q: String): Action[AnyContent] = UserAction { implicit req =>
     makeSearch[Proposal.Full](proposalRepo.listFull, p => SearchResultItem(p.title.value, ProposalCtrl.detail(group, p.cfp.slug, p.id).toString))(group, q)
   }
 
-  def searchPartners(group: Group.Slug, q: String): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def searchPartners(group: Group.Slug, q: String): Action[AnyContent] = UserAction { implicit req =>
     makeSearch[Partner](partnerRepo.list, p => SearchResultItem(p.name.value, PartnerCtrl.detail(group, p.slug).toString))(group, q)
   }
 
-  def searchEvents(group: Group.Slug, q: String): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def searchEvents(group: Group.Slug, q: String): Action[AnyContent] = UserAction { implicit req =>
     makeSearch[Event](eventRepo.list, e => SearchResultItem(e.name.value, EventCtrl.detail(group, e.slug).toString))(group, q)
   }
 

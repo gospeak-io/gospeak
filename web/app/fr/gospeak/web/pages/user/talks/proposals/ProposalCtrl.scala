@@ -36,20 +36,20 @@ class ProposalCtrl(cc: ControllerComponents,
                    proposalRepo: SpeakerProposalRepo,
                    commentRepo: SpeakerCommentRepo,
                    emailSrv: EmailSrv,
-                   mb: GospeakMessageBus) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAction {
-  def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+                   mb: GospeakMessageBus) extends UICtrl(cc, silhouette, conf) {
+  def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(talk))
       proposals <- OptionT.liftF(proposalRepo.listFull(talkElt.id, params))
       b = listBreadcrumb(talkElt)
     } yield Ok(html.list(talkElt, proposals)(b))).value.map(_.getOrElse(talkNotFound(talk)))
-  })
+  }
 
-  def create(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def create(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     createForm(ProposalForms.create, talk, cfp)
-  })
+  }
 
-  def doCreate(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doCreate(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     ProposalForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors, talk, cfp),
       data => {
@@ -63,7 +63,7 @@ class ProposalCtrl(cc: ControllerComponents,
         } yield Redirect(routes.ProposalCtrl.detail(talk, cfp)).flashing("success" -> msg)).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }
     )
-  })
+  }
 
   private def createForm(form: Form[Proposal.Data], talk: Talk.Slug, cfp: Cfp.Slug)(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
     (for {
@@ -77,11 +77,11 @@ class ProposalCtrl(cc: ControllerComponents,
       .getOrElse(Ok(html.create(filledForm, talkElt, cfpElt)(b)))).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
   }
 
-  def detail(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def detail(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     proposalView(talk, cfp, GenericForm.comment)
-  })
+  }
 
-  def doSendComment(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doSendComment(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     GenericForm.comment.bindFromRequest.fold(
       formWithErrors => proposalView(talk, cfp, formWithErrors),
       data => (for {
@@ -93,7 +93,7 @@ class ProposalCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(orgas.map(o => emailSrv.send(Emails.proposalCommentAddedForOrga(groupElt, cfpElt, proposalElt, o, comment))).sequence)
       } yield Redirect(routes.ProposalCtrl.detail(talk, cfp))).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
     )
-  })
+  }
 
   private def proposalView(talk: Talk.Slug, cfp: Cfp.Slug, commentForm: Form[Comment.Data])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
     (for {
@@ -106,16 +106,16 @@ class ProposalCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
   }
 
-  def edit(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def edit(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     editView(talk, cfp, ProposalForms.create)
-  })
+  }
 
-  def doEdit(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doEdit(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     ProposalForms.create.bindFromRequest.fold(
       formWithErrors => editView(talk, cfp, formWithErrors),
       data => proposalRepo.edit(talk, cfp, data).map(_ => Redirect(routes.ProposalCtrl.detail(talk, cfp)))
     )
-  })
+  }
 
   private def editView(talk: Talk.Slug, cfp: Cfp.Slug, form: Form[Proposal.Data])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
     (for {
@@ -125,7 +125,7 @@ class ProposalCtrl(cc: ControllerComponents,
     } yield Ok(html.edit(filledForm, proposalFull)(b))).value.map(_.getOrElse(talkNotFound(talk)))
   }
 
-  def inviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def inviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     ProposalForms.addSpeaker.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
@@ -135,18 +135,18 @@ class ProposalCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposal(invite, proposalElt)))
       } yield next.flashing("success" -> s"<b>$email</b> is invited as speaker")).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
     )
-  })
+  }
 
-  def cancelInviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, request: UserRequest.Id): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def cancelInviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, request: UserRequest.Id): Action[AnyContent] = UserAction { implicit req =>
     (for {
       proposalElt <- OptionT(proposalRepo.find(talk, cfp))
       invite <- OptionT.liftF(userRequestRepo.cancelProposalInvite(request))
       _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalCanceled(invite, proposalElt)))
       next = Redirect(routes.ProposalCtrl.detail(talk, cfp)).flashing("success" -> s"Invitation to <b>${invite.email.value}</b> has been canceled")
     } yield next).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
-  })
+  }
 
-  def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, speaker: User.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, speaker: User.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     (for {
       proposalElt <- OptionT(proposalRepo.find(talk, cfp))
@@ -159,9 +159,9 @@ class ProposalCtrl(cc: ControllerComponents,
         }.recover { case NonFatal(e) => next.flashing("error" -> s"<b>${speakerElt.name.value}</b> not removed: ${e.getMessage}") }
       }
     } yield res).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
-  })
+  }
 
-  def doAddSlides(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doAddSlides(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     GenericForm.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
@@ -170,9 +170,9 @@ class ProposalCtrl(cc: ControllerComponents,
         case Right(slides) => proposalRepo.editSlides(talk, cfp, slides).map(_ => next)
       }
     )
-  })
+  }
 
-  def doAddVideo(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doAddVideo(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     GenericForm.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
@@ -181,7 +181,7 @@ class ProposalCtrl(cc: ControllerComponents,
         case Right(video) => proposalRepo.editVideo(talk, cfp, video).map(_ => next)
       }
     )
-  })
+  }
 }
 
 object ProposalCtrl {

@@ -338,7 +338,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       _ <- sponsors.map(SponsorRepoSql.insert(_).run(xa)).sequence
       _ <- (events ++ generated.map(_._3)).map(EventRepoSql.insert(_).run(xa)).sequence
       _ <- eventTalks.map { case (c, e, p, u) => addTalk(c, e, p, u, now) }.sequence
-      _ <- groupSettings.set(humanTalksSettings)(new OrgaCtx(now, userDemo, humanTalks))
+      _ <- groupSettings.set(humanTalksSettings)(FakeCtx(now, userDemo, humanTalks))
       _ <- groupMembers.map(GroupRepoSql.insertMember(_).run(xa)).sequence
       _ <- eventRsvps.map(EventRepoSql.insertRsvp(_).run(xa)).sequence
       _ <- cfpExts.map(ExternalCfpRepoSql.insert(_).run(xa)).sequence

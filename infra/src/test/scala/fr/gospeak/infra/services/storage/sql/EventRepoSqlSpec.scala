@@ -2,7 +2,7 @@ package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.Event
-import fr.gospeak.core.domain.utils.OrgaCtx
+import fr.gospeak.core.domain.utils.FakeCtx
 import fr.gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{fields => contactFields, table => contactTable}
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec.{memberTable, fields => groupFields, table => groupTable}
@@ -25,7 +25,7 @@ class EventRepoSqlSpec extends RepoSpec {
     }
     it("should fail to create an event when the group does not exists") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
-      val ctx = new OrgaCtx(now, user, group)
+      val ctx = FakeCtx(now, user, group)
       an[Exception] should be thrownBy eventRepo.create(eventData1)(ctx).unsafeRunSync()
     }
     it("should fail on duplicate slug for the same group") {

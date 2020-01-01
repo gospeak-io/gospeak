@@ -41,7 +41,7 @@ class UtilsCtrl(cc: ControllerComponents,
                 slackSrv: SlackSrv,
                 templateSrv: TemplateSrv,
                 markdownSrv: MarkdownSrv) extends ApiCtrl(cc, silhouette, conf) {
-  def cloudinarySignature(): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def cloudinarySignature(): Action[AnyContent] = UserAction { implicit req =>
     val queryParams = req.queryString.flatMap { case (key, values) => values.headOption.map(value => (key, value)) }
     IO.pure(cloudinarySrv.signRequest(queryParams) match {
       case Right(signature) => Ok(signature)
@@ -49,14 +49,14 @@ class UtilsCtrl(cc: ControllerComponents,
     })
   }
 
-  def validateSlackToken(token: String): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def validateSlackToken(token: String): Action[AnyContent] = UserAction { implicit req =>
     SlackToken.from(token, conf.application.aesKey).toIO.flatMap(slackSrv.getInfos(_, conf.application.aesKey))
       .map(infos => ValidationResult(valid = true, s"Token for ${infos.teamName} team, created by ${infos.userName}"))
       .recover { case NonFatal(e) => ValidationResult(valid = false, s"Invalid token: ${e.getMessage}") }
       .map(res => Ok(Json.toJson(res)))
   }
 
-  def duplicatesExtCfp(params: ExternalCfp.DuplicateParams): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def duplicatesExtCfp(params: ExternalCfp.DuplicateParams): Action[AnyContent] = UserAction { implicit req =>
     externalCfpRepo.listDuplicates(params).map(cfps => Ok(Json.toJson(PublicApiResponse(cfps.map(ExternalCfpPublicApi(_)), req.now))))
   }
 
@@ -71,7 +71,7 @@ class UtilsCtrl(cc: ControllerComponents,
     IO.pure(Ok(html.value))
   }
 
-  def templateData(ref: TemplateData.Ref): Action[AnyContent] = SecuredActionIO { implicit req =>
+  def templateData(ref: TemplateData.Ref): Action[AnyContent] = UserAction { implicit req =>
     val data = TemplateData.Sample
       .fromRef(ref)
       .map(TemplateSrvImpl.asData)
@@ -80,7 +80,7 @@ class UtilsCtrl(cc: ControllerComponents,
     IO.pure(Ok(Json.toJson(TemplateDataResponse(data))))
   }
 
-  def renderTemplate(): Action[JsValue] = SecuredActionIO(parse.json) { implicit req =>
+  def renderTemplate(): Action[JsValue] = UserAction(parse.json) { implicit req =>
     req.body.validate[TemplateRequest].fold(
       errors => IO.pure(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
       data => {

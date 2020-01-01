@@ -32,27 +32,27 @@ class PartnerCtrl(cc: ControllerComponents,
                   sponsorPackRepo: OrgaSponsorPackRepo,
                   sponsorRepo: OrgaSponsorRepo,
                   groupSettingsRepo: GroupSettingsRepo) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
-  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     partnerRepo.listFull(params).map(partners => Ok(html.list(partners)(listBreadcrumb)))
-  })
+  }
 
-  def create(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def create(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     createView(group, PartnerForms.create)
-  })
+  }
 
-  def doCreate(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doCreate(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     PartnerForms.create.bindFromRequest.fold(
       formWithErrors => createView(group, formWithErrors),
       data => partnerRepo.create(data).map(partnerElt => Redirect(routes.PartnerCtrl.detail(group, partnerElt.slug)))
     )
-  })
+  }
 
   private def createView(group: Group.Slug, form: Form[Partner.Data])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
     val b = listBreadcrumb.add("New" -> routes.PartnerCtrl.create(group))
     IO.pure(Ok(html.create(form)(b)))
   }
 
-  def detail(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def detail(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       partnerElt <- OptionT(partnerRepo.find(partner))
       contacts <- OptionT.liftF(contactRepo.list(partnerElt.id))
@@ -64,13 +64,13 @@ class PartnerCtrl(cc: ControllerComponents,
       b = breadcrumb(partnerElt)
       res = Ok(html.detail(partnerElt, venues, contacts, users, sponsors, packs, events)(b))
     } yield res).value.map(_.getOrElse(partnerNotFound(group, partner)))
-  })
+  }
 
-  def edit(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def edit(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     editView(group, partner, PartnerForms.create)
-  })
+  }
 
-  def doEdit(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doEdit(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     PartnerForms.create.bindFromRequest.fold(
       formWithErrors => editView(group, partner, formWithErrors),
       data => for {
@@ -83,7 +83,7 @@ class PartnerCtrl(cc: ControllerComponents,
         }
       } yield res
     )
-  })
+  }
 
   private def editView(group: Group.Slug, partner: Partner.Slug, form: Form[Partner.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
@@ -93,17 +93,17 @@ class PartnerCtrl(cc: ControllerComponents,
     } yield Ok(html.edit(partnerElt, filledForm)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
   }
 
-  def doRemove(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doRemove(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     partnerRepo.remove(partner).map(_ => Redirect(routes.PartnerCtrl.list(group)))
-  })
+  }
 
   /* VENUE */
 
-  def createVenue(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def createVenue(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     createVenueView(group, partner, PartnerForms.createVenue)
-  })
+  }
 
-  def doCreateVenue(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doCreateVenue(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     PartnerForms.createVenue.bindFromRequest.fold(
       formWithErrors => createVenueView(group, partner, formWithErrors),
       data => partnerRepo.find(partner).flatMap {
@@ -111,7 +111,7 @@ class PartnerCtrl(cc: ControllerComponents,
         case None => IO.pure(Redirect(routes.PartnerCtrl.detail(group, partner)).flashing("error" -> s"Partner '${partner.value}' not found"))
       }
     )
-  })
+  }
 
   private def createVenueView(group: Group.Slug, partner: Partner.Slug, form: Form[Venue.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
@@ -121,16 +121,16 @@ class PartnerCtrl(cc: ControllerComponents,
     } yield Ok(html.createVenue(form, partnerElt, meetupAccount.isDefined)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
   }
 
-  def editVenue(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def editVenue(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     editVenueView(group, partner, venue, PartnerForms.createVenue)
-  })
+  }
 
-  def doEditVenue(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doEditVenue(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     PartnerForms.createVenue.bindFromRequest.fold(
       formWithErrors => editVenueView(group, partner, venue, formWithErrors),
       data => venueRepo.edit(venue, data).map(_ => Redirect(routes.PartnerCtrl.detail(group, partner)))
     )
-  })
+  }
 
   private def editVenueView(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id, form: Form[Venue.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
@@ -141,17 +141,17 @@ class PartnerCtrl(cc: ControllerComponents,
     } yield Ok(html.editVenue(filledForm, venueElt, meetupAccount.isDefined)(b))).value.map(_.getOrElse(venueNotFound(group, partner, venue)))
   }
 
-  def doRemoveVenue(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doRemoveVenue(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     venueRepo.remove(venue).map(_ => Redirect(routes.PartnerCtrl.detail(group, partner)))
-  })
+  }
 
   /* CONTACT */
 
-  def createContact(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def createContact(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     createContactView(group, partner, PartnerForms.createContact)
-  })
+  }
 
-  def doCreateContact(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doCreateContact(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     PartnerForms.createContact.bindFromRequest.fold(
       formWithErrors => createContactView(group, partner, formWithErrors),
       data => (for {
@@ -165,7 +165,7 @@ class PartnerCtrl(cc: ControllerComponents,
           case NonFatal(e) => createContactView(group, partner, PartnerForms.createContact.bindFromRequest().withGlobalError(e.getMessage))
         }
     )
-  })
+  }
 
   private def createContactView(group: Group.Slug, partner: Partner.Slug, form: Form[Contact.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
@@ -175,11 +175,11 @@ class PartnerCtrl(cc: ControllerComponents,
     } yield Ok(html.createContact(partnerElt, form, call)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
   }
 
-  def editContact(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def editContact(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     editContactView(group, partner, contact, PartnerForms.createContact)
-  })
+  }
 
-  def doEditContact(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doEditContact(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     PartnerForms.createContact.bindFromRequest.fold(
       formWithErrors => editContactView(group, partner, contact, formWithErrors),
       data => (for {
@@ -194,7 +194,7 @@ class PartnerCtrl(cc: ControllerComponents,
           case NonFatal(e) => editContactView(group, partner, contact, PartnerForms.createContact.bindFromRequest().withGlobalError(e.getMessage))
         }
     )
-  })
+  }
 
   private def editContactView(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id, form: Form[Contact.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
@@ -205,12 +205,12 @@ class PartnerCtrl(cc: ControllerComponents,
     } yield Ok(html.editContact(partnerElt, contactElt, filledForm)(b))).value.map(_.getOrElse(contactNotFound(group, partner, contact)))
   }
 
-  def doRemoveContact(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doRemoveContact(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       partnerElt <- OptionT(partnerRepo.find(partner))
       _ <- OptionT.liftF(contactRepo.remove(partnerElt.id, contact))
     } yield Redirect(routes.PartnerCtrl.detail(group, partner))).value.map(_.getOrElse(contactNotFound(group, partner, contact)))
-  })
+  }
 }
 
 object PartnerCtrl {

@@ -4,17 +4,35 @@ import java.time.Instant
 
 import fr.gospeak.core.domain.{Group, User}
 
-// TODO: use traits which are extended by BasicReq...
-sealed class BasicCtx(val now: Instant)
+trait BasicCtx {
+  val now: Instant
+}
 
-final class UserAwareCtx(override val now: Instant,
-                         val user: Option[User]) extends BasicCtx(now)
+trait UserAwareCtx extends BasicCtx {
+  val user: Option[User]
+}
 
-sealed class UserCtx(override val now: Instant,
-                     val user: User) extends BasicCtx(now) {
+trait UserCtx extends BasicCtx {
+  val user: User
+
   def info: Info = Info(user.id, now)
 }
 
-final class OrgaCtx(override val now: Instant,
-                    override val user: User,
-                    val group: Group) extends UserCtx(now, user)
+trait OrgaCtx extends UserCtx {
+  val user: User
+  val group: Group
+}
+
+object FakeCtx {
+  def apply(now: Instant): BasicCtx = FakeBasicCtx(now)
+
+  def apply(now: Instant, user: User): UserCtx = FakeUserCtx(now, user)
+
+  def apply(now: Instant, user: User, group: Group): OrgaCtx = FakeOrgaCtx(now, user, group)
+}
+
+final case class FakeBasicCtx(now: Instant) extends BasicCtx
+
+final case class FakeUserCtx(now: Instant, user: User) extends UserCtx
+
+final case class FakeOrgaCtx(now: Instant, user: User, group: Group) extends OrgaCtx

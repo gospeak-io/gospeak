@@ -4,7 +4,6 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.Group
-import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.services.storage.OrgaGroupRepo
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
@@ -73,20 +72,20 @@ class ApiCtrl(cc: ControllerComponents,
    */
 
 
-  protected def SecuredActionIO[A](bodyParser: BodyParser[A])(block: UserReq[A] => IO[Result]): Action[A] = silhouette.SecuredAction(bodyParser).async { r =>
+  protected def UserAction[A](bodyParser: BodyParser[A])(block: UserReq[A] => IO[Result]): Action[A] = silhouette.SecuredAction(bodyParser).async { r =>
     val req = UserReq.from(conf, messagesApi, r)
     recoverFailedAction(block(UserReq.from(conf, messagesApi, r)))(req).unsafeToFuture()
   }
 
-  protected def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = SecuredActionIO(parse.anyContent)(block)
+  protected def UserAction(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = UserAction(parse.anyContent)(block)
 
   private def recoverFailedAction[A](result: IO[Result])(implicit req: BasicReq[A]): IO[Result] = {
     def logError(e: Throwable): Unit = {
       val (user, group) = req match {
-        case r: OrgaReq[AnyContent] => Some(r.user) -> Some(r.group)
-        case r: UserReq[AnyContent] => Some(r.user) -> None
-        case r: UserAwareReq[AnyContent] => r.user -> None
-        case _: BasicReq[AnyContent] => None -> None
+        case r: OrgaReq[_] => Some(r.user) -> Some(r.group)
+        case r: UserReq[_] => Some(r.user) -> None
+        case r: UserAwareReq[_] => r.user -> None
+        case _: BasicReq[_] => None -> None
       }
       val userStr = user.map(u => s" for user ${u.name.value} (${u.id.value})").getOrElse("")
       val groupStr = group.map(g => s" in group ${g.name.value} (${g.id.value})").getOrElse("")
@@ -109,10 +108,10 @@ object ApiCtrl {
     self: ApiCtrl =>
     val groupRepo: OrgaGroupRepo
 
-    protected def OrgaAction[A](group: Group.Slug)(block: OrgaCtx => IO[ApiResponse[A]])(implicit w: Writes[A]): Action[AnyContent] = {
-      SecuredActionIO { req =>
+    protected def OrgaAction[A](group: Group.Slug)(block: OrgaReq[AnyContent] => IO[ApiResponse[A]])(implicit w: Writes[A]): Action[AnyContent] = {
+      UserAction { req =>
         groupRepo.find(req.user.id, group).flatMap {
-          case Some(group) => block(req.orga(group).ctx).map{
+          case Some(group) => block(req.orga(group)).map{
             case i: ItemResponse[A] => Ok(Json.toJson(i))
             case p: PageResponse[A] => Ok(Json.toJson(p))
             case e: ErrorResponse => new Status(e.data)(Json.toJson(e))

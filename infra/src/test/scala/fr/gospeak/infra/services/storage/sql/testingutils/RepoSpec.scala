@@ -9,7 +9,7 @@ import doobie.scalatest.IOChecker
 import doobie.util.testing.Analyzable
 import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import fr.gospeak.core.domain.utils.{FakeCtx, OrgaCtx}
 import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.services.storage.sql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
@@ -75,8 +75,8 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
 
   protected def createUserAndGroup(): IO[(User, Group, OrgaCtx)] = for {
     user <- userRepo.create(userData1, now, None)
-    group <- groupRepo.create(groupData1)(new UserCtx(now, user))
-    ctx = new OrgaCtx(now, user, group)
+    group <- groupRepo.create(groupData1)(FakeCtx(now, user))
+    ctx = FakeCtx(now, user, group)
   } yield (user, group, ctx)
 
   protected def createPartnerAndVenue(user: User, group: Group)(implicit ctx: OrgaCtx): IO[(Partner, Venue)] = for {

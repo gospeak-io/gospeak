@@ -14,10 +14,10 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 class ProposalCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
                    conf: AppConf,
-                   proposalRepo: SpeakerProposalRepo) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAction {
-  def list(params: Page.Params): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+                   proposalRepo: SpeakerProposalRepo) extends UICtrl(cc, silhouette, conf) {
+  def list(params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     proposalRepo.listFull(params).map(proposals => Ok(html.list(proposals)(listBreadcrumb)))
-  })
+  }
 }
 
 object ProposalCtrl {

@@ -26,7 +26,7 @@ import scala.concurrent.duration._
 class StyleguideCtrl(cc: ControllerComponents,
                      silhouette: Silhouette[CookieEnv],
                      conf: AppConf,
-                     avatarSrv: AvatarSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAwareAction with UICtrl.UserAction {
+                     avatarSrv: AvatarSrv) extends UICtrl(cc, silhouette, conf) {
 
 
   private val now = Instant.now()
@@ -246,30 +246,30 @@ class StyleguideCtrl(cc: ControllerComponents,
     rejected = None,
     canceled = None)
 
-  def index(params: Page.Params): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def index(params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     implicit val userAware: UserAwareReq[AnyContent] = req.userAware
     implicit val orga: OrgaReq[AnyContent] = req.orga(group)
     IO.pure(Ok(html.styleguide(user, group, groupFull, cfp, event, talk, proposal, proposalFull, params)))
-  })
+  }
 
-  def published(id: String): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def published(id: String): Action[AnyContent] = UserAction { implicit req =>
     implicit val userAware: UserAwareReq[AnyContent] = req.userAware
     val res = id match {
       case "index" => pages.published.html.index()(Breadcrumb(Seq()))
       case "why" => pages.published.html.why()(Breadcrumb(Seq()))
     }
     IO.pure(Ok(res))
-  })
+  }
 
-  def speaker(id: String): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def speaker(id: String): Action[AnyContent] = UserAction { implicit req =>
     ???
-  })
+  }
 
-  def orga(id: String): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def orga(id: String): Action[AnyContent] = UserAction { implicit req =>
     ???
-  })
+  }
 
-  def answers(id: String): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def answers(id: String): Action[AnyContent] = UserAction { implicit req =>
     implicit val userAware: UserAwareReq[AnyContent] = req.userAware
     val res = id match {
       case "GroupInvite" => pages.user.html.answerGroupInvite(groupInvite, group, user)(Breadcrumb(Seq()))
@@ -278,9 +278,9 @@ class StyleguideCtrl(cc: ControllerComponents,
       // case "ProposalCreation" => pages.user.html.answerProposalCreation(proposalCreation, group, cfp, Some(event), user, UserRequestForms.loggedProposalInvite)(Breadcrumb(Seq()))
     }
     IO.pure(Ok(res))
-  })
+  }
 
-  def emails(id: String): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def emails(id: String): Action[AnyContent] = UserAction { implicit req =>
     implicit val userAware: UserAwareReq[AnyContent] = req.userAware
     implicit val orga: OrgaReq[AnyContent] = req.orga(group)
     val email: EmailSrv.Email = id match {
@@ -317,5 +317,5 @@ class StyleguideCtrl(cc: ControllerComponents,
       case "eventMessage" => Emails.eventMessage(event, EmailAddress.Contact(user.email), "subject", Markdown("message body"), rsvp)
     }
     IO.pure(Ok(html.styleguideEmail(email, id)))
-  })
+  }
 }

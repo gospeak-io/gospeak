@@ -4,7 +4,7 @@ import java.time.{Instant, LocalDate, LocalDateTime}
 
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
-import fr.gospeak.core.domain.utils.{Constants, OrgaCtx, UserAwareCtx, UserCtx}
+import fr.gospeak.core.domain.utils.{BasicCtx, Constants, OrgaCtx, UserAwareCtx, UserCtx}
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.libs.scalautils.domain.EmailAddress
 import fr.gospeak.web.AppConf
@@ -18,7 +18,7 @@ import scala.util.matching.Regex
 sealed class BasicReq[A] protected(protected val request: Request[A],
                                    protected val messages: Messages,
                                    val now: Instant,
-                                   val conf: AppConf) extends WrappedRequest[A](request) {
+                                   val conf: AppConf) extends WrappedRequest[A](request) with BasicCtx {
   def nowLDT: LocalDateTime = LocalDateTime.ofInstant(now, Constants.defaultZoneId)
 
   def nowLD: LocalDate = nowLDT.toLocalDate
@@ -59,7 +59,7 @@ final class UserAwareReq[A] protected(override val request: Request[A],
                                       override val conf: AppConf,
                                       val underlying: UserAwareRequest[CookieEnv, A],
                                       val user: Option[User],
-                                      val groups: Option[Seq[Group]]) extends BasicReq[A](request, messages, now, conf) {
+                                      val groups: Option[Seq[Group]]) extends BasicReq[A](request, messages, now, conf) with UserAwareCtx {
   def basic: BasicReq[A] = this
 
   def secured: Option[UserReq[A]] = for {
@@ -68,8 +68,6 @@ final class UserAwareReq[A] protected(override val request: Request[A],
   } yield UserReq.from(this, identity, authenticator)
 
   def secured(identity: AuthUser, authenticator: CookieAuthenticator): UserReq[A] = UserReq.from(this, identity, authenticator)
-
-  def ctx: UserAwareCtx = new UserAwareCtx(now, user)
 }
 
 object UserAwareReq {
@@ -94,14 +92,12 @@ sealed class UserReq[A] protected(override val request: Request[A],
                                  override val conf: AppConf,
                                  val underlying: SecuredRequest[CookieEnv, A],
                                  val user: User,
-                                 val groups: Seq[Group]) extends BasicReq[A](request, messages, now, conf) {
+                                 val groups: Seq[Group]) extends BasicReq[A](request, messages, now, conf) with UserCtx {
   def basic: BasicReq[A] = this
 
   def userAware: UserAwareReq[A] = UserAwareReq.from(this)
 
   def orga(group: Group): OrgaReq[A] = OrgaReq.from(this, group)
-
-  def ctx: UserCtx = new UserCtx(now, user)
 }
 
 object UserReq {
@@ -127,9 +123,7 @@ final class OrgaReq[A] protected(override val request: Request[A],
                                  override val underlying: SecuredRequest[CookieEnv, A],
                                  override val user: User,
                                  override val groups: Seq[Group],
-                                 val group: Group) extends UserReq[A](request, messages, now, conf, underlying, user, groups) {
-  override def ctx: OrgaCtx = new OrgaCtx(now, user, group)
-
+                                 val group: Group) extends UserReq[A](request, messages, now, conf, underlying, user, groups) with OrgaCtx {
   def senders: Seq[EmailAddress.Contact] = group.senders(user)
 }
 

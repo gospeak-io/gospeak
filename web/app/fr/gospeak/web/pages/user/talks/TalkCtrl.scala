@@ -30,16 +30,16 @@ class TalkCtrl(cc: ControllerComponents,
                eventRepo: SpeakerEventRepo,
                talkRepo: SpeakerTalkRepo,
                proposalRepo: SpeakerProposalRepo,
-               emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAction {
-  def list(params: Page.Params): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+               emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) {
+  def list(params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     talkRepo.list(params).map(talks => Ok(html.list(talks)(listBreadcrumb)))
-  })
+  }
 
-  def create(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def create(): Action[AnyContent] = UserAction { implicit req =>
     createForm(TalkForms.create)
-  })
+  }
 
-  def doCreate(): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doCreate(): Action[AnyContent] = UserAction { implicit req =>
     TalkForms.create.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
       data => talkRepo.find(data.slug).flatMap {
@@ -49,13 +49,13 @@ class TalkCtrl(cc: ControllerComponents,
           talkRepo.create(data).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
     )
-  })
+  }
 
   private def createForm(form: Form[Talk.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     IO.pure(Ok(html.create(form)(listBreadcrumb.add("New" -> routes.TalkCtrl.create()))))
   }
 
-  def detail(talk: Talk.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def detail(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(talk))
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(talkElt.id))
@@ -63,13 +63,13 @@ class TalkCtrl(cc: ControllerComponents,
       proposals <- OptionT.liftF(proposalRepo.listFull(talkElt.id, Page.Params.defaults))
       b = breadcrumb(talkElt)
     } yield Ok(html.detail(talkElt, speakers, invites, proposals, GenericForm.invite, GenericForm.embed)(b))).value.map(_.getOrElse(talkNotFound(talk)))
-  })
+  }
 
-  def edit(talk: Talk.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def edit(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
     editForm(talk, TalkForms.create)
-  })
+  }
 
-  def doEdit(talk: Talk.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doEdit(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
     TalkForms.create.bindFromRequest.fold(
       formWithErrors => editForm(talk, formWithErrors),
       data => talkRepo.find(data.slug).flatMap {
@@ -79,7 +79,7 @@ class TalkCtrl(cc: ControllerComponents,
           talkRepo.edit(talk, data).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
     )
-  })
+  }
 
   private def editForm(talk: Talk.Slug, form: Form[Talk.Data])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
     talkRepo.find(talk).map {
@@ -92,7 +92,7 @@ class TalkCtrl(cc: ControllerComponents,
     }
   }
 
-  def inviteSpeaker(talk: Talk.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def inviteSpeaker(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.TalkCtrl.detail(talk))
     GenericForm.invite.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
@@ -102,18 +102,18 @@ class TalkCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToTalk(invite, talkElt)))
       } yield next.flashing("success" -> s"<b>$email</b> is invited as speaker")).value.map(_.getOrElse(talkNotFound(talk)))
     )
-  })
+  }
 
-  def cancelInviteSpeaker(talk: Talk.Slug, request: UserRequest.Id): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def cancelInviteSpeaker(talk: Talk.Slug, request: UserRequest.Id): Action[AnyContent] = UserAction { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(talk))
       invite <- OptionT.liftF(userRequestRepo.cancelTalkInvite(request))
       _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToTalkCanceled(invite, talkElt)))
       next = Redirect(routes.TalkCtrl.detail(talk)).flashing("success" -> s"Invitation to <b>${invite.email.value}</b> has been canceled")
     } yield next).value.map(_.getOrElse(talkNotFound(talk)))
-  })
+  }
 
-  def removeSpeaker(talk: Talk.Slug, speaker: User.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def removeSpeaker(talk: Talk.Slug, speaker: User.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.TalkCtrl.detail(talk))
     (for {
       talkElt <- OptionT(talkRepo.find(talk))
@@ -126,9 +126,9 @@ class TalkCtrl(cc: ControllerComponents,
         }.recover { case NonFatal(e) => next.flashing("error" -> s"<b>${speakerElt.name.value}</b> not removed: ${e.getMessage}") }
       }
     } yield res).value.map(_.getOrElse(talkNotFound(talk)))
-  })
+  }
 
-  def doAddSlides(talk: Talk.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doAddSlides(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.TalkCtrl.detail(talk))
     GenericForm.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
@@ -137,9 +137,9 @@ class TalkCtrl(cc: ControllerComponents,
         case Right(slides) => talkRepo.editSlides(talk, slides).map(_ => next)
       }
     )
-  })
+  }
 
-  def doAddVideo(talk: Talk.Slug): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def doAddVideo(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.TalkCtrl.detail(talk))
     GenericForm.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
@@ -148,11 +148,11 @@ class TalkCtrl(cc: ControllerComponents,
         case Right(video) => talkRepo.editVideo(talk, video).map(_ => next)
       }
     )
-  })
+  }
 
-  def changeStatus(talk: Talk.Slug, status: Talk.Status): Action[AnyContent] = UserAction(implicit req => implicit ctx => {
+  def changeStatus(talk: Talk.Slug, status: Talk.Status): Action[AnyContent] = UserAction { implicit req =>
     talkRepo.editStatus(talk, status).map(_ => Redirect(routes.TalkCtrl.detail(talk)))
-  })
+  }
 }
 
 object TalkCtrl {

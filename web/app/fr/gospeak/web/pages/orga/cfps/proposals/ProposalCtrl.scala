@@ -34,7 +34,7 @@ class ProposalCtrl(cc: ControllerComponents,
                    proposalRepo: OrgaProposalRepo,
                    commentRepo: OrgaCommentRepo,
                    emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
-  def list(group: Group.Slug, cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def list(group: Group.Slug, cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       cfpElt <- OptionT(cfpRepo.find(cfp))
       proposals <- OptionT.liftF(proposalRepo.listFull(cfpElt.id, params))
@@ -42,21 +42,21 @@ class ProposalCtrl(cc: ControllerComponents,
       userRatings <- OptionT.liftF(proposalRepo.listRatings(cfp))
       b = listBreadcrumb(cfpElt)
     } yield Ok(html.list(cfpElt, proposals, speakers, userRatings)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
-  })
+  }
 
-  def detail(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def detail(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     proposalView(group, cfp, proposal, GenericForm.comment, GenericForm.comment)
-  })
+  }
 
-  def doRate(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, grade: Proposal.Rating.Grade): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doRate(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, grade: Proposal.Rating.Grade): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       _ <- OptionT.liftF(proposalRepo.rate(cfp, proposalElt.id, grade))
       next = redirectToPreviousPageOr(routes.ProposalCtrl.detail(group, cfp, proposal))
     } yield next.flashing("success" -> s"$grade saved on <b>${proposalElt.title.value}</b>")).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
-  })
+  }
 
-  def doSendComment(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, orga: Boolean): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doSendComment(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, orga: Boolean): Action[AnyContent] = OrgaAction(group) { implicit req =>
     GenericForm.comment.bindFromRequest.fold(
       formWithErrors => proposalView(group, cfp, proposal, if (orga) GenericForm.comment else formWithErrors, if (orga) formWithErrors else GenericForm.comment),
       data => (for {
@@ -74,7 +74,7 @@ class ProposalCtrl(cc: ControllerComponents,
         })
       } yield Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
     )
-  })
+  }
 
   private def proposalView(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, commentForm: Form[Comment.Data], orgaCommentForm: Form[Comment.Data])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
     (for {
@@ -90,16 +90,16 @@ class ProposalCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
-  def edit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def edit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     editView(group, cfp, proposal, ProposalForms.create)
-  })
+  }
 
-  def doEdit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doEdit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     ProposalForms.create.bindFromRequest.fold(
       formWithErrors => editView(group, cfp, proposal, formWithErrors),
       data => proposalRepo.edit(cfp, proposal, data).map { _ => Redirect(routes.ProposalCtrl.detail(group, cfp, proposal)) }
     )
-  })
+  }
 
   private def editView(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, form: Form[Proposal.DataOrga])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
@@ -110,7 +110,7 @@ class ProposalCtrl(cc: ControllerComponents,
     } yield Ok(html.edit(cfpElt, proposalElt, filledForm)(b))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
-  def inviteSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def inviteSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
     SpeakerProposalForms.addSpeaker.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
@@ -120,18 +120,18 @@ class ProposalCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposal(invite, proposalElt)))
       } yield next.flashing("success" -> s"<b>$email</b> is invited as speaker")).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
     )
-  })
+  }
 
-  def cancelInviteSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, request: UserRequest.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def cancelInviteSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, request: UserRequest.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       invite <- OptionT.liftF(userRequestRepo.cancelProposalInvite(request))
       _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalCanceled(invite, proposalElt)))
       next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal)).flashing("success" -> s"Invitation to <b>${invite.email.value}</b> has been canceled")
     } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
-  })
+  }
 
-  def removeSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, speaker: User.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def removeSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, speaker: User.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
     (for {
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
@@ -144,9 +144,9 @@ class ProposalCtrl(cc: ControllerComponents,
         }.recover { case NonFatal(e) => next.flashing("error" -> s"<b>${speakerElt.name.value}</b> not removed: ${e.getMessage}") }
       }
     } yield res).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
-  })
+  }
 
-  def doAddSlides(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doAddSlides(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
     GenericForm.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
@@ -155,9 +155,9 @@ class ProposalCtrl(cc: ControllerComponents,
         case Right(slides) => proposalRepo.editSlides(cfp, proposal, slides).map(_ => next)
       }
     )
-  })
+  }
 
-  def doAddVideo(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doAddVideo(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
     GenericForm.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
@@ -166,25 +166,25 @@ class ProposalCtrl(cc: ControllerComponents,
         case Right(video) => proposalRepo.editVideo(cfp, proposal, video).map(_ => next)
       }
     )
-  })
+  }
 
-  def reject(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def reject(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       cfpElt <- OptionT(cfpRepo.find(cfp))
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       _ <- OptionT.liftF(proposalRepo.reject(cfp, proposal))
       next = redirectToPreviousPageOr(routes.ProposalCtrl.detail(group, cfp, proposal))
     } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
-  })
+  }
 
-  def cancelRejection(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def cancelRejection(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       cfpElt <- OptionT(cfpRepo.find(cfp))
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       _ <- OptionT.liftF(proposalRepo.cancelReject(cfp, proposal))
       next = redirectToPreviousPageOr(routes.ProposalCtrl.detail(group, cfp, proposal))
     } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
-  })
+  }
 }
 
 object ProposalCtrl {

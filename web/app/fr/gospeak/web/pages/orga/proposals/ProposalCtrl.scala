@@ -20,14 +20,14 @@ class ProposalCtrl(cc: ControllerComponents,
                    cfpRepo: OrgaCfpRepo,
                    eventRepo: OrgaEventRepo,
                    proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
-  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val customParams = params.defaultOrderBy(proposalRepo.fields.title)
     for {
       proposals <- proposalRepo.listFull(customParams)
       speakers <- userRepo.list(proposals.items.flatMap(_.users))
       userRatings <- proposalRepo.listRatings(proposals.items.map(_.id))
     } yield Ok(html.list(proposals, speakers, userRatings)(listBreadcrumb))
-  })
+  }
 }
 
 object ProposalCtrl {

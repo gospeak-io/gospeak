@@ -19,12 +19,12 @@ class SpeakerCtrl(cc: ControllerComponents,
                   userRepo: PublicUserRepo,
                   talkRepo: PublicTalkRepo,
                   proposalRepo: PublicProposalRepo,
-                  groupRepo: PublicGroupRepo) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAwareAction {
-  def list(params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+                  groupRepo: PublicGroupRepo) extends UICtrl(cc, silhouette, conf) {
+  def list(params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     userRepo.listPublic(params).map(speakers => Ok(html.list(speakers)(listBreadcrumb())))
-  })
+  }
 
-  def detail(user: User.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def detail(user: User.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       speakerElt <- OptionT(userRepo.findPublic(user))
       publicTalks <- OptionT.liftF(talkRepo.list(speakerElt.id, Talk.Status.Public, params))
@@ -33,7 +33,7 @@ class SpeakerCtrl(cc: ControllerComponents,
       orgas <- OptionT.liftF(userRepo.list(groups.flatMap(_.owners.toList)))
       res = Ok(html.detail(speakerElt, publicTalks, groups, orgas)(breadcrumb(speakerElt)))
     } yield res).value.map(_.getOrElse(publicUserNotFound(user)))
-  })
+  }
 }
 
 object SpeakerCtrl {

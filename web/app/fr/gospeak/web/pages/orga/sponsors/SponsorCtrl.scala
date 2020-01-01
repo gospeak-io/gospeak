@@ -26,40 +26,40 @@ class SponsorCtrl(cc: ControllerComponents,
                   val groupRepo: OrgaGroupRepo,
                   partnerRepo: OrgaPartnerRepo,
                   venueRepo: OrgaVenueRepo) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
-  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
       sponsorPacks <- sponsorPackRepo.listAll
       sponsors <- sponsorRepo.listFull(params)
     } yield Ok(html.list(sponsorPacks, sponsors)(listBreadcrumb))
-  })
+  }
 
-  def createPack(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def createPack(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     createPackView(SponsorForms.createPack)
-  })
+  }
 
-  def doCreatePack(group: Group.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doCreatePack(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     SponsorForms.createPack.bindFromRequest.fold(
       formWithErrors => createPackView(formWithErrors),
       data => sponsorPackRepo.create(data).map(_ => Redirect(routes.SponsorCtrl.list(group)))
     )
-  })
+  }
 
   private def createPackView(form: Form[SponsorPack.Data])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
     val b = listBreadcrumb.add("New pack" -> routes.SponsorCtrl.createPack(req.group.slug))
     IO.pure(Ok(html.createPack(form)(b)))
   }
 
-  def create(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def create(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     createView(pack, SponsorForms.create, partner)
-  })
+  }
 
-  def doCreate(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doCreate(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = partner.map(p => PartnerRoutes.detail(group, p)).getOrElse(routes.SponsorCtrl.list(group))
     SponsorForms.create.bindFromRequest.fold(
       formWithErrors => createView(pack, formWithErrors, partner),
       data => sponsorRepo.create(data).map(_ => Redirect(next))
     )
-  })
+  }
 
   private def createView(pack: SponsorPack.Slug, form: Form[Sponsor.Data], partner: Option[Partner.Slug])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
@@ -76,24 +76,24 @@ class SponsorCtrl(cc: ControllerComponents,
     } yield Ok(html.create(packElt, filledForm, partnerElt)(b))).value.map(_.getOrElse(packNotFound(req.group.slug, pack)))
   }
 
-  def detail(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def detail(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     sponsorPackRepo.find(pack).map {
       case Some(packElt) => Ok(html.detail(packElt)(breadcrumb(packElt)))
       case None => packNotFound(group, pack)
     }
-  })
+  }
 
-  def edit(group: Group.Slug, sponsor: Sponsor.Id, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def edit(group: Group.Slug, sponsor: Sponsor.Id, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     updateView(sponsor, SponsorForms.create, partner)
-  })
+  }
 
-  def doEdit(group: Group.Slug, sponsor: Sponsor.Id, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def doEdit(group: Group.Slug, sponsor: Sponsor.Id, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = partner.map(p => PartnerRoutes.detail(group, p)).getOrElse(routes.SponsorCtrl.list(group))
     SponsorForms.create.bindFromRequest.fold(
       formWithErrors => updateView(sponsor, formWithErrors, partner),
       data => sponsorRepo.edit(sponsor, data).map(_ => Redirect(next))
     )
-  })
+  }
 
   private def updateView(sponsor: Sponsor.Id, form: Form[Sponsor.Data], partner: Option[Partner.Slug])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
@@ -104,25 +104,25 @@ class SponsorCtrl(cc: ControllerComponents,
     } yield Ok(html.edit(partnerElt, sponsorElt, filledForm, partner)(b))).value.map(_.getOrElse(sponsorNotFound(req.group.slug, sponsor)))
   }
 
-  def disablePack(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def disablePack(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     sponsorPackRepo.disable(pack).map(_ => redirectToPreviousPageOr(routes.SponsorCtrl.list(group)))
-  })
+  }
 
-  def enablePack(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def enablePack(group: Group.Slug, pack: SponsorPack.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     sponsorPackRepo.enable(pack).map(_ => redirectToPreviousPageOr(routes.SponsorCtrl.list(group)))
-  })
+  }
 
-  def paid(group: Group.Slug, sponsor: Sponsor.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def paid(group: Group.Slug, sponsor: Sponsor.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = redirectToPreviousPageOr(routes.SponsorCtrl.list(group))
     (for {
       sponsorElt <- OptionT(sponsorRepo.find(sponsor))
       _ <- OptionT.liftF(sponsorRepo.edit(sponsor, sponsorElt.data.copy(paid = Some(req.nowLD))))
     } yield next).value.map(_.getOrElse(next.flashing("error" -> s"Unable to mark sponsor ${sponsor.value} of group ${group.value} as paid :(")))
-  })
+  }
 
-  def remove(group: Group.Slug, sponsor: Sponsor.Id): Action[AnyContent] = OrgaAction(group)(implicit req => implicit ctx => {
+  def remove(group: Group.Slug, sponsor: Sponsor.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     sponsorRepo.remove(sponsor).map(_ => redirectToPreviousPageOr(routes.SponsorCtrl.list(group)))
-  })
+  }
 }
 
 object SponsorCtrl {

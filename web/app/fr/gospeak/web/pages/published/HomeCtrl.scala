@@ -11,14 +11,14 @@ import play.api.mvc._
 
 class HomeCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
-               conf: AppConf) extends UICtrl(cc, silhouette, conf) with UICtrl.UserAwareAction {
-  def index(): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+               conf: AppConf) extends UICtrl(cc, silhouette, conf) {
+  def index(): Action[AnyContent] = UserAwareAction { implicit req =>
     IO.pure(Ok(html.index()(breadcrumb())))
-  })
+  }
 
-  def why(): Action[AnyContent] = UserAwareAction(implicit req => implicit ctx => {
+  def why(): Action[AnyContent] = UserAwareAction { implicit req =>
     IO.pure(Ok(html.why()(breadcrumb().add("Why use Gospeak" -> routes.HomeCtrl.why()))))
-  })
+  }
 }
 
 object HomeCtrl {
