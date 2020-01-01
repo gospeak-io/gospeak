@@ -1,17 +1,13 @@
 package fr.gospeak.web.api.ui
 
-import java.time.Instant
-
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage._
-import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
-import fr.gospeak.web.api.domain.utils.PublicApiError
-import fr.gospeak.web.api.utils.JsonFormats._
+import fr.gospeak.web.api.ui.helpers.JsonFormats._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 import fr.gospeak.web.pages.orga.events.routes.EventCtrl
@@ -20,8 +16,6 @@ import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 import fr.gospeak.web.utils._
 import play.api.libs.json._
 import play.api.mvc._
-
-import scala.util.control.NonFatal
 
 case class SuggestedItem(id: String, text: String)
 
@@ -40,15 +34,7 @@ class SuggestCtrl(cc: ControllerComponents,
                   contactRepo: SuggestContactRepo,
                   venueRepo: SuggestVenueRepo,
                   sponsorPackRepo: SuggestSponsorPackRepo,
-                  externalCfpRepo: SuggestExternalCfpRepo) extends ApiCtrl(cc, conf) {
-  private def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = SecuredActionIO(parse.anyContent)(block)
-
-  private def SecuredActionIO[A](bodyParser: BodyParser[A])(block: UserReq[A] => IO[Result]): Action[A] = silhouette.SecuredAction(bodyParser).async { r =>
-    block(new UserReq[A](r.request, messagesApi.preferred(r.request), Instant.now(), conf, r, r.identity.user, r.identity.groups))
-      .recover { case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage))) }.unsafeToFuture()
-  }
-
-
+                  externalCfpRepo: SuggestExternalCfpRepo) extends ApiCtrl(cc, silhouette, conf) {
   def suggestTags(): Action[AnyContent] = ActionIO { implicit req =>
     for {
       gTags <- groupRepo.listTags()

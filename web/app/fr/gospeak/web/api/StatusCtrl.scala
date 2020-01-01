@@ -3,8 +3,10 @@ package fr.gospeak.web.api
 import java.time.Instant
 
 import cats.effect.IO
+import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.StatusCtrl._
+import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
 import generated.BuildInfo
 import play.api.libs.json._
@@ -13,7 +15,8 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import scala.util.Try
 
 class StatusCtrl(cc: ControllerComponents,
-                 conf: AppConf) extends ApiCtrl(cc, conf) {
+                 silhouette: Silhouette[CookieEnv],
+                 conf: AppConf) extends ApiCtrl(cc, silhouette, conf) {
   private val startedAt = Instant.now()
 
   def getStatus: Action[AnyContent] = ActionIO { implicit req =>

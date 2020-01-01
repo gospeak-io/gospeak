@@ -1,7 +1,5 @@
 package fr.gospeak.web.api.ui
 
-import java.time.Instant
-
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.ExternalCfp
@@ -16,11 +14,11 @@ import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain.{Html, Markdown, Url}
 import fr.gospeak.web.AppConf
-import fr.gospeak.web.api.domain.PublicApiExternalCfp
+import fr.gospeak.web.api.domain.ExternalCfpPublicApi
 import fr.gospeak.web.api.domain.utils.{PublicApiError, PublicApiResponse}
-import fr.gospeak.web.api.utils.JsonFormats._
+import fr.gospeak.web.api.ui.helpers.JsonFormats._
 import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.utils.{ApiCtrl, UserReq}
+import fr.gospeak.web.utils.ApiCtrl
 import play.api.libs.json._
 import play.api.mvc._
 import play.twirl.api.HtmlFormat
@@ -42,15 +40,7 @@ class UtilsCtrl(cc: ControllerComponents,
                 cloudinarySrv: CloudinarySrv,
                 slackSrv: SlackSrv,
                 templateSrv: TemplateSrv,
-                markdownSrv: MarkdownSrv) extends ApiCtrl(cc, conf) {
-  private def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = SecuredActionIO(parse.anyContent)(block)
-
-  private def SecuredActionIO[A](bodyParser: BodyParser[A])(block: UserReq[A] => IO[Result]): Action[A] = silhouette.SecuredAction(bodyParser).async { r =>
-    block(new UserReq[A](r.request, messagesApi.preferred(r.request), Instant.now(), conf, r, r.identity.user, r.identity.groups))
-      .recover { case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage))) }.unsafeToFuture()
-  }
-
-
+                markdownSrv: MarkdownSrv) extends ApiCtrl(cc, silhouette, conf) {
   def cloudinarySignature(): Action[AnyContent] = SecuredActionIO { implicit req =>
     val queryParams = req.queryString.flatMap { case (key, values) => values.headOption.map(value => (key, value)) }
     IO.pure(cloudinarySrv.signRequest(queryParams) match {
@@ -67,7 +57,7 @@ class UtilsCtrl(cc: ControllerComponents,
   }
 
   def duplicatesExtCfp(params: ExternalCfp.DuplicateParams): Action[AnyContent] = SecuredActionIO { implicit req =>
-    externalCfpRepo.listDuplicates(params).map(cfps => Ok(Json.toJson(PublicApiResponse(cfps.map(PublicApiExternalCfp(_)), req.now))))
+    externalCfpRepo.listDuplicates(params).map(cfps => Ok(Json.toJson(PublicApiResponse(cfps.map(ExternalCfpPublicApi(_)), req.now))))
   }
 
   def embed(url: Url): Action[AnyContent] = ActionIO { implicit req =>

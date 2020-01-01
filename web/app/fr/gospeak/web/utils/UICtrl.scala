@@ -1,9 +1,8 @@
 package fr.gospeak.web.utils
 
-import java.time.Instant
-
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import fr.gospeak.core.services.storage.OrgaGroupRepo
@@ -22,27 +21,13 @@ abstract class UICtrl(cc: ControllerComponents,
                       conf: AppConf) extends AbstractController(cc) with I18nSupport {
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  protected def UserAwareActionIO(block: UserAwareReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.UserAwareAction.async { r =>
-    val req = new UserAwareReq[AnyContent](
-      request = r.request,
-      messages = messagesApi.preferred(r.request),
-      now = Instant.now(),
-      conf = conf,
-      underlying = r,
-      user = r.identity.map(_.user),
-      groups = r.identity.map(_.groups))
+  protected def UserAwareActionIO(block: UserAwareReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.UserAwareAction.async { r: UserAwareRequest[CookieEnv, AnyContent] =>
+    val req = UserAwareReq.from(conf, messagesApi, r)
     recoverFailedAction(block(req))(req).unsafeToFuture()
   }
 
   protected def SecuredActionIO(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.SecuredAction.async { r =>
-    val req = new UserReq[AnyContent](
-      request = r.request,
-      messages = messagesApi.preferred(r.request),
-      now = Instant.now(),
-      conf = conf,
-      underlying = r,
-      user = r.identity.user,
-      groups = r.identity.groups)
+    val req = UserReq.from(conf, messagesApi, r)
     recoverFailedAction(block(req))(req).unsafeToFuture()
   }
 

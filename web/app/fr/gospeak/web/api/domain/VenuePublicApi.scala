@@ -5,7 +5,7 @@ import fr.gospeak.libs.scalautils.domain.Geo
 import fr.gospeak.web.api.domain.utils.Place
 import play.api.libs.json.{Json, Writes}
 
-object PublicApiVenue {
+object VenuePublicApi {
 
   case class Embedded(name: String,
                       logo: String,

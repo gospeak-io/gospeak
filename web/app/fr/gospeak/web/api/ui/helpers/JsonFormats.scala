@@ -1,4 +1,4 @@
-package fr.gospeak.web.api.utils
+package fr.gospeak.web.api.ui.helpers
 
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.libs.scalautils.domain.Html

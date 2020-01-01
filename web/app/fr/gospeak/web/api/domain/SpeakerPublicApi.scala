@@ -4,7 +4,7 @@ import fr.gospeak.core.domain.User
 import fr.gospeak.core.domain.utils.Constants
 import play.api.libs.json.{Json, Writes}
 
-case class PublicApiSpeaker(slug: String,
+case class SpeakerPublicApi(slug: String,
                             firstName: String,
                             lastName: String,
                             avatar: String,
@@ -13,9 +13,9 @@ case class PublicApiSpeaker(slug: String,
                             linkedin: Option[String],
                             website: Option[String])
 
-object PublicApiSpeaker {
-  def apply(user: User): PublicApiSpeaker =
-    new PublicApiSpeaker(
+object SpeakerPublicApi {
+  def apply(user: User): SpeakerPublicApi =
+    new SpeakerPublicApi(
       slug = user.slug.value,
       firstName = user.firstName,
       lastName = user.lastName,
@@ -51,5 +51,5 @@ object PublicApiSpeaker {
     implicit val embeddedWrites: Writes[Embedded] = Json.writes[Embedded]
   }
 
-  implicit val writes: Writes[PublicApiSpeaker] = Json.writes[PublicApiSpeaker]
+  implicit val writes: Writes[SpeakerPublicApi] = Json.writes[SpeakerPublicApi]
 }

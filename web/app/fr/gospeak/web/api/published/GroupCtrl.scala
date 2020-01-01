@@ -1,27 +1,30 @@
 package fr.gospeak.web.api.published
 
 import cats.data.OptionT
+import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.{Event, Group, Proposal}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
-import fr.gospeak.web.api.domain.{PublicApiEvent, PublicApiGroup, PublicApiProposal, PublicApiSpeaker}
+import fr.gospeak.web.api.domain.{EventPublicApi, GroupPublicApi, ProposalPublicApi, SpeakerPublicApi}
+import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class GroupCtrl(cc: ControllerComponents,
+                silhouette: Silhouette[CookieEnv],
                 conf: AppConf,
                 groupRepo: PublicGroupRepo,
                 eventRepo: PublicEventRepo,
                 proposalRepo: PublicProposalRepo,
                 venueRepo: PublicVenueRepo,
-                userRepo: PublicUserRepo) extends ApiCtrl(cc, conf) {
+                userRepo: PublicUserRepo) extends ApiCtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = ApiActionPage { implicit req =>
-    groupRepo.list(params).map(_.map(PublicApiGroup(_)))
+    groupRepo.list(params).map(_.map(GroupPublicApi(_)))
   }
 
   def detail(group: Group.Slug): Action[AnyContent] = ApiActionOpt { implicit req =>
-    groupRepo.find(group).map(_.map(PublicApiGroup(_)))
+    groupRepo.find(group).map(_.map(GroupPublicApi(_)))
   }
 
   def events(group: Group.Slug, params: Page.Params): Action[AnyContent] = ApiActionPageT { implicit req =>
@@ -30,7 +33,7 @@ class GroupCtrl(cc: ControllerComponents,
       events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, params))
       talks <- OptionT.liftF(proposalRepo.listPublicFull(events.items.flatMap(_.talks).distinct))
       speakers <- OptionT.liftF(userRepo.list(talks.flatMap(_.speakers.toList).distinct))
-    } yield events.map(PublicApiEvent(_, talks, speakers))
+    } yield events.map(EventPublicApi(_, talks, speakers))
   }
 
   def event(group: Group.Slug, event: Event.Slug): Action[AnyContent] = ApiActionOptT { implicit req =>
@@ -39,7 +42,7 @@ class GroupCtrl(cc: ControllerComponents,
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
       talks <- OptionT.liftF(proposalRepo.listPublicFull(eventElt.talks.distinct))
       speakers <- OptionT.liftF(userRepo.list(talks.flatMap(_.speakers.toList).distinct))
-    } yield PublicApiEvent(eventElt, talks, speakers)
+    } yield EventPublicApi(eventElt, talks, speakers)
   }
 
   def talks(group: Group.Slug, params: Page.Params): Action[AnyContent] = ApiActionPageT { implicit req =>
@@ -48,7 +51,7 @@ class GroupCtrl(cc: ControllerComponents,
       talks <- OptionT.liftF(proposalRepo.listPublicFull(groupElt.id, params))
       speakers <- OptionT.liftF(userRepo.list(talks.items.flatMap(_.speakers.toList).distinct))
       venues <- OptionT.liftF(venueRepo.listFull(groupElt.id, talks.items.flatMap(_.event.flatMap(_.venue)).distinct))
-    } yield talks.map(PublicApiProposal(_, speakers, venues))
+    } yield talks.map(ProposalPublicApi(_, speakers, venues))
   }
 
   def talk(group: Group.Slug, talk: Proposal.Id): Action[AnyContent] = ApiActionOptT { implicit req =>
@@ -57,7 +60,7 @@ class GroupCtrl(cc: ControllerComponents,
       talkElt <- OptionT(proposalRepo.findPublicFull(groupElt.id, talk))
       speakers <- OptionT.liftF(userRepo.list(talkElt.speakers.toList.distinct))
       venues <- OptionT.liftF(venueRepo.listFull(groupElt.id, talkElt.event.flatMap(_.venue).toList))
-    } yield PublicApiProposal(talkElt, speakers, venues)
+    } yield ProposalPublicApi(talkElt, speakers, venues)
   }
 
   def speakers(group: Group.Slug, params: Page.Params): Action[AnyContent] = ApiActionPageT { implicit req =>
@@ -65,6 +68,6 @@ class GroupCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(group))
       speakers <- OptionT.liftF(userRepo.speakersPublic(groupElt.id, params))
       // TODO add proposals, talks, groups member and owners for each speaker
-    } yield speakers.map(PublicApiSpeaker(_))
+    } yield speakers.map(SpeakerPublicApi(_))
   }
 }

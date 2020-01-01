@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 import fr.gospeak.core.domain.ExternalCfp
 import play.api.libs.json.{Json, Writes}
 
-case class PublicApiExternalCfp(id: String,
+case class ExternalCfpPublicApi(id: String,
                                 url: String,
                                 name: String,
                                 description: String,
@@ -20,9 +20,9 @@ case class PublicApiExternalCfp(id: String,
                                 eventTwitterHashtag: Option[String],
                                 tags: Seq[String])
 
-object PublicApiExternalCfp {
-  def apply(cfp: ExternalCfp): PublicApiExternalCfp =
-    new PublicApiExternalCfp(
+object ExternalCfpPublicApi {
+  def apply(cfp: ExternalCfp): ExternalCfpPublicApi =
+    new ExternalCfpPublicApi(
       id = cfp.id.value,
       url = cfp.url.value,
       name = cfp.name.value,
@@ -38,5 +38,5 @@ object PublicApiExternalCfp {
       eventTwitterHashtag = cfp.event.twitterHashtag.map(_.url),
       tags = cfp.tags.map(_.value))
 
-  implicit val writes: Writes[PublicApiExternalCfp] = Json.writes[PublicApiExternalCfp]
+  implicit val writes: Writes[ExternalCfpPublicApi] = Json.writes[ExternalCfpPublicApi]
 }

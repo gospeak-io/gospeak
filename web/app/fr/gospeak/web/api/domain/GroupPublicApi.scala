@@ -6,7 +6,7 @@ import fr.gospeak.core.domain.Group
 import fr.gospeak.web.api.domain.utils.Place
 import play.api.libs.json.{Json, Writes}
 
-case class PublicApiGroup(slug: String,
+case class GroupPublicApi(slug: String,
                           name: String,
                           contact: Option[String],
                           description: String,
@@ -14,12 +14,12 @@ case class PublicApiGroup(slug: String,
                           tags: Seq[String],
                           created: Instant)
 
-object PublicApiGroup {
-  def apply(group: Group.Full): PublicApiGroup =
+object GroupPublicApi {
+  def apply(group: Group.Full): GroupPublicApi =
     apply(group.group)
 
-  def apply(group: Group): PublicApiGroup =
-    new PublicApiGroup(
+  def apply(group: Group): GroupPublicApi =
+    new GroupPublicApi(
       slug = group.slug.value,
       name = group.name.value,
       contact = group.contact.map(_.value),
@@ -48,5 +48,5 @@ object PublicApiGroup {
     implicit val embeddedWrites: Writes[Embedded] = Json.writes[Embedded]
   }
 
-  implicit val writes: Writes[PublicApiGroup] = Json.writes[PublicApiGroup]
+  implicit val writes: Writes[GroupPublicApi] = Json.writes[GroupPublicApi]
 }

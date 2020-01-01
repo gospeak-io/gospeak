@@ -66,7 +66,7 @@ object Values extends RandomDataGenerator {
   private val req: Request[AnyContent] = CSRFTokenHelper.addCSRFToken(FakeRequest().withAuthenticator(identity.loginInfo)(env))
   private val authenticator: CookieAuthenticator = FakeAuthenticator(loginInfo)(env, req)
   private val r: SecuredRequest[CookieEnv, AnyContent] = SecuredRequest[CookieEnv, AnyContent](identity, authenticator, req)
-  val userReq: UserReq[AnyContent] = new UserReq[AnyContent](r.request, messagesApi.preferred(r), Instant.now(), conf, r, r.identity.user, r.identity.groups)
+  val userReq: UserReq[AnyContent] = UserReq.from(conf, messagesApi, r)
   val userAwareReq: UserAwareReq[AnyContent] = userReq.userAware
   val b: Breadcrumb = Breadcrumb(Seq())
 }
