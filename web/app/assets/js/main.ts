@@ -1,5 +1,9 @@
 declare const $;
 
+interface ApiResponse<T> {
+    data: T
+}
+
 // JS redirect urls (because it's a PITA to do in DNS ^^)
 (function () {
     const url = window.location.href;
@@ -192,10 +196,16 @@ declare const autosize;
         }
     }
 
+    interface SuggestedItem {
+        id: string
+        text: string
+    }
+
     function fetchAndSetOptions($select, url): void {
-        $.getJSON(url, res => {
-            const values = ($select.attr('value') || '').split(',').filter(v => v.length > 0); // currently selected values
-            const options = res.concat(values.map(v => ({id: v, text: v}))).filter((v, i, arr) => arr.indexOf(v) === i); // add values not in suggestions
+        $.getJSON(url, (res: ApiResponse<SuggestedItem[]>) => {
+            const values: string[] = ($select.attr('value') || '').split(',').filter(v => v.length > 0); // currently selected values
+            const valuesSuggestions = values.map(v => ({id: v, text: v}));
+            const options = res.data.concat(valuesSuggestions).filter((v, i, arr) => arr.indexOf(v) === i); // add values not in suggestions
             $select.find('option[value]').remove(); // remove non empty existing options before adding new ones
             options.map(item => {
                 if ($select.find('option[value="' + item.id + '"]').length === 0) { // do not add item if it already exists
@@ -332,7 +342,7 @@ declare const cloudinary;
         });
 
         const $dynamicNameInput = dynamicName ? $('#' + dynamicName) : undefined;
-        if($dynamicNameInput) {
+        if ($dynamicNameInput) {
             $dynamicNameInput.change(() => {
                 opts.publicId = $dynamicNameInput.val();
                 cloudinaryWidget.update({publicId: opts.publicId});
@@ -458,9 +468,10 @@ declare const cloudinary;
         const tmpl = $input.val();
         fetchTemplate(tmpl, ref, markdown).then(tmpl => {
             if (tmpl.error) {
-                console.warn('Template error', tmpl.error);
+                previewPane.html(`<pre class="alert alert-warning mb-0" role="alert">${tmpl.error}</pre>`);
+            } else {
+                previewPane.html(tmpl.result);
             }
-            previewPane.html(tmpl.result);
         });
     }
 
@@ -480,7 +491,7 @@ declare const cloudinary;
                 ref: ref,
                 markdown: markdown
             })
-        }).then(res => res.json());
+        }).then(res => res.json()).then(json => json.data ? json.data : {error: json.message});
     }
 })();
 
@@ -567,7 +578,7 @@ declare const Bloodhound;
 })();
 
 // svg injector (cf home page)
-(function() {
+(function () {
     $.HSCore.components.HSSVGIngector.init('.js-svg-injector');
 })();
 

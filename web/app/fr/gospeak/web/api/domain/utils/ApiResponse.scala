@@ -4,10 +4,11 @@ import java.time.Instant
 
 import fr.gospeak.core.domain.utils.BasicCtx
 import fr.gospeak.libs.scalautils.domain.Page
+import fr.gospeak.web.utils.BasicReq
 import play.api.http.Status
-import play.api.libs.json.{Json, Writes}
+import play.api.libs.json._
 
-sealed trait ApiResponse[+A] {
+sealed trait ApiResponse[+A] extends Product with Serializable {
   def data: A
 
   val execMs: Long
@@ -28,6 +29,11 @@ object ApiResponse {
       execMs = Instant.now().toEpochMilli - ctx.now.toEpochMilli)
 
   def notFound(message: String)(implicit ctx: BasicCtx): ErrorResponse = err(Status.NOT_FOUND, message)
+
+  def badRequest(errors: Seq[(JsPath, Seq[JsonValidationError])])(implicit req: BasicReq[JsValue]): ErrorResponse =
+    err(Status.BAD_REQUEST, "Invalid request body:" + errors.map { case (path, errs) =>
+      s"\n  - ${path.toJsonString}: ${errs.map(req.format).mkString(", ")}"
+    }.mkString)
 
   def forbidden(message: String)(implicit ctx: BasicCtx): ErrorResponse = err(Status.FORBIDDEN, message)
 

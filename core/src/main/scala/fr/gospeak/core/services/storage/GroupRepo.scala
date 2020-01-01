@@ -48,7 +48,7 @@ trait AuthGroupRepo {
 }
 
 trait PublicGroupRepo {
-  def list(params: Page.Params): IO[Page[Group.Full]]
+  def listFull(params: Page.Params): IO[Page[Group.Full]]
 
   def listFull(user: User.Id): IO[Seq[Group.Full]]
 

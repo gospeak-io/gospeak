@@ -97,8 +97,20 @@ a.no-style {
   margin-bottom: 0;
 }
 
-.markdown-editor .tab-content {
-  margin-top: 5px;
+.markdown-editor {
+  .tab-content {
+    margin-top: 5px;
+  }
+
+  .tab-pane.preview {
+    padding: 10px;
+  }
+}
+
+.template-editor {
+  .tab-pane.preview {
+    padding: 10px;
+  }
 }
 
 // Other

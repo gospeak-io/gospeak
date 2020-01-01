@@ -15,7 +15,7 @@ import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain.{Html, Markdown, Url}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.ApiExternalCfp
-import fr.gospeak.web.api.domain.utils.{PublicApiError, PublicApiResponse}
+import fr.gospeak.web.api.domain.utils.{ApiResponse, PublicApiError, PublicApiResponse}
 import fr.gospeak.web.api.ui.helpers.JsonFormats._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
@@ -41,7 +41,7 @@ class UtilsCtrl(cc: ControllerComponents,
                 slackSrv: SlackSrv,
                 templateSrv: TemplateSrv,
                 markdownSrv: MarkdownSrv) extends ApiCtrl(cc, silhouette, conf) {
-  def cloudinarySignature(): Action[AnyContent] = UserAction { implicit req =>
+  def cloudinarySignature(): Action[AnyContent] = CustomUserAction { implicit req =>
     val queryParams = req.queryString.flatMap { case (key, values) => values.headOption.map(value => (key, value)) }
     IO.pure(cloudinarySrv.signRequest(queryParams) match {
       case Right(signature) => Ok(signature)
@@ -49,29 +49,28 @@ class UtilsCtrl(cc: ControllerComponents,
     })
   }
 
-  def validateSlackToken(token: String): Action[AnyContent] = UserAction { implicit req =>
+  def validateSlackToken(token: String): Action[AnyContent] = CustomUserAction { implicit req =>
     SlackToken.from(token, conf.application.aesKey).toIO.flatMap(slackSrv.getInfos(_, conf.application.aesKey))
       .map(infos => ValidationResult(valid = true, s"Token for ${infos.teamName} team, created by ${infos.userName}"))
       .recover { case NonFatal(e) => ValidationResult(valid = false, s"Invalid token: ${e.getMessage}") }
       .map(res => Ok(Json.toJson(res)))
   }
 
-  def duplicatesExtCfp(params: ExternalCfp.DuplicateParams): Action[AnyContent] = UserAction { implicit req =>
+  def duplicatesExtCfp(params: ExternalCfp.DuplicateParams): Action[AnyContent] = CustomUserAction { implicit req =>
     externalCfpRepo.listDuplicates(params).map(cfps => Ok(Json.toJson(PublicApiResponse(cfps.map(ApiExternalCfp.published), req.now))))
   }
 
-  def embed(url: Url): Action[AnyContent] = ActionIO { implicit req =>
-    EmbedSrv.embedCode(url)
-      .map { code => Ok(code.value) }
+  def embed(url: Url): Action[AnyContent] = CustomUserAwareAction { implicit req =>
+    EmbedSrv.embedCode(url).map(code => Ok(code.value))
   }
 
-  def markdownToHtml(): Action[String] = ActionIO(parse.text) { implicit req =>
+  def markdownToHtml(): Action[String] = CustomUserAwareAction(parse.text) { implicit req =>
     val md = Markdown(req.body)
     val html = markdownSrv.render(md)
     IO.pure(Ok(html.value))
   }
 
-  def templateData(ref: TemplateData.Ref): Action[AnyContent] = UserAction { implicit req =>
+  def templateData(ref: TemplateData.Ref): Action[AnyContent] = CustomUserAction { implicit req =>
     val data = TemplateData.Sample
       .fromRef(ref)
       .map(TemplateSrvImpl.asData)
@@ -80,22 +79,17 @@ class UtilsCtrl(cc: ControllerComponents,
     IO.pure(Ok(Json.toJson(TemplateDataResponse(data))))
   }
 
-  def renderTemplate(): Action[JsValue] = UserAction(parse.json) { implicit req =>
-    req.body.validate[TemplateRequest].fold(
-      errors => IO.pure(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
-      data => {
-        val template = data.ref
-          .flatMap(TemplateData.Sample.fromRef)
-          .map(templateSrv.render(data.template, _))
-          .getOrElse(templateSrv.render(data.template))
-        val res = template match {
-          case Left(err) => TemplateResponse(None, Some(err))
-          case Right(tmpl) if data.markdown => TemplateResponse(Some(markdownSrv.render(tmpl)), None)
-          case Right(tmpl) => TemplateResponse(Some(Html(s"<pre>${HtmlFormat.escape(tmpl.value)}</pre>")), None)
-        }
-        IO.pure(Ok(Json.toJson(res)))
-      }
-    )
+  def renderTemplate(): Action[JsValue] = UserActionJson[TemplateRequest, TemplateResponse] { implicit req =>
+    val template = req.body.ref
+      .flatMap(TemplateData.Sample.fromRef)
+      .map(templateSrv.render(req.body.template, _))
+      .getOrElse(templateSrv.render(req.body.template))
+    val res = template match {
+      case Left(err) => TemplateResponse(None, Some(err))
+      case Right(tmpl) if req.body.markdown => TemplateResponse(Some(markdownSrv.render(tmpl)), None)
+      case Right(tmpl) => TemplateResponse(Some(Html(s"<pre>${HtmlFormat.escape(tmpl.value)}</pre>")), None)
+    }
+    IO.pure(ApiResponse.from(res))
   }
 
   private def circeToPlay(json: io.circe.Json): JsValue = {

@@ -37,7 +37,7 @@ class GroupCtrl(cc: ControllerComponents,
                 templateSrv: TemplateSrv) extends UICtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     for {
-      groups <- groupRepo.list(params)
+      groups <- groupRepo.listFull(params)
       orgas <- userRepo.list(groups.items.flatMap(_.owners.toList))
     } yield Ok(html.list(groups, orgas)(listBreadcrumb()))
   }

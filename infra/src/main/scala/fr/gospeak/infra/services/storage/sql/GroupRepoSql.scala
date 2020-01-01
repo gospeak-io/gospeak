@@ -60,7 +60,7 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
       case None => IO.raiseError(new IllegalArgumentException("unreachable group"))
     }
 
-  override def list(params: Page.Params): IO[Page[Group.Full]] = selectPage(params).run(xa)
+  override def listFull(params: Page.Params): IO[Page[Group.Full]] = selectPage(params).run(xa)
 
   override def listJoinable(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Group]] = selectPageJoinable(ctx.user.id, params).run(xa)
 

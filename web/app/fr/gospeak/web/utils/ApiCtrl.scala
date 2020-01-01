@@ -1,18 +1,17 @@
 package fr.gospeak.web.utils
 
-import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.Group
+import fr.gospeak.core.domain._
+import fr.gospeak.core.domain.utils.BasicCtx
 import fr.gospeak.core.services.storage.OrgaGroupRepo
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
-import fr.gospeak.web.api.domain.utils.{ApiResponse, ErrorResponse, ItemResponse, PageResponse, PublicApiError, PublicApiResponse}
+import fr.gospeak.web.api.domain.utils._
 import fr.gospeak.web.auth.domain.CookieEnv
 import org.h2.jdbc.{JdbcSQLIntegrityConstraintViolationException, JdbcSQLSyntaxErrorException}
 import org.slf4j.LoggerFactory
-import play.api.libs.json.{Json, Writes}
+import play.api.libs.json.{JsValue, Json, Reads, Writes}
 import play.api.mvc._
 
 import scala.util.control.NonFatal
@@ -22,64 +21,49 @@ class ApiCtrl(cc: ControllerComponents,
               conf: AppConf) extends AbstractController(cc) {
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  protected def ActionIO[A](bodyParser: BodyParser[A])(block: BasicReq[A] => IO[Result]): Action[A] = Action(bodyParser).async { r =>
-    block(BasicReq.from(conf, messagesApi, r))
-      .recover { case NonFatal(e) => InternalServerError(Json.toJson(PublicApiError(e.getMessage))) }.unsafeToFuture()
-  }
+  protected def CustomUserAwareAction[A](bodyParser: BodyParser[A])(block: UserAwareReq[A] => IO[Result]): Action[A] =
+    silhouette.UserAwareAction(bodyParser).async { r =>
+      val req = UserAwareReq.from(conf, messagesApi, r)
+      recoverFailedAction(block(req))(req).unsafeToFuture()
+    }
 
-  protected def ActionIO(block: BasicReq[AnyContent] => IO[Result]): Action[AnyContent] =
-    ActionIO(parse.anyContent)(block)
+  protected def CustomUserAwareAction(block: UserAwareReq[AnyContent] => IO[Result]): Action[AnyContent] =
+    CustomUserAwareAction(parse.anyContent)(block)
 
+  protected def UserAwareAction[P, R](bodyParser: BodyParser[P])(block: UserAwareReq[P] => IO[ApiResponse[R]])(implicit w: Writes[R]): Action[P] =
+    CustomUserAwareAction(bodyParser)(block(_).map(asResult(_)))
 
-  protected def ApiAction[R, A](bodyParser: BodyParser[R])(block: BasicReq[R] => IO[PublicApiResponse[A]])(implicit w: Writes[A]): Action[R] =
-    ActionIO(bodyParser)(req => block(req).map(okResult(_)))
-
-  protected def ApiAction[A](block: BasicReq[AnyContent] => IO[PublicApiResponse[A]])(implicit w: Writes[A]): Action[AnyContent] =
-    ApiAction(parse.anyContent)(block)
-
-
-  protected def ApiActionOpt[R, A](bodyParser: BodyParser[R])(block: BasicReq[R] => IO[Option[A]])(implicit w: Writes[A]): Action[R] =
-    ActionIO(bodyParser)(req => block(req).map(_.map(b => okResult(PublicApiResponse(b, req.now))).getOrElse(NotFound)))
-
-  protected def ApiActionOpt[A](block: BasicReq[AnyContent] => IO[Option[A]])(implicit w: Writes[A]): Action[AnyContent] =
-    ApiActionOpt(parse.anyContent)(block)
+  protected def UserAwareAction[R](block: UserAwareReq[AnyContent] => IO[ApiResponse[R]])(implicit w: Writes[R]): Action[AnyContent] =
+    CustomUserAwareAction(parse.anyContent)(block(_).map(asResult(_)))
 
 
-  protected def ApiActionPage[R, A](bodyParser: BodyParser[R])(block: BasicReq[R] => IO[Page[A]])(implicit w: Writes[A]): Action[R] =
-    ApiAction(bodyParser)(req => block(req).map(p => PublicApiResponse(p, req.now)))
+  // FIXME avoid usage of this
+  protected def CustomUserAction[P](bodyParser: BodyParser[P])(block: UserReq[P] => IO[Result]): Action[P] =
+    silhouette.SecuredAction(bodyParser).async { r =>
+      val req = UserReq.from(conf, messagesApi, r)
+      recoverFailedAction(block(req))(req).unsafeToFuture()
+    }
 
-  protected def ApiActionPage[A](block: BasicReq[AnyContent] => IO[Page[A]])(implicit w: Writes[A]): Action[AnyContent] =
-    ApiActionPage(parse.anyContent)(block)
+  // FIXME avoid usage of this
+  protected def CustomUserAction(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] =
+    CustomUserAction(parse.anyContent)(block)
+
+  protected def UserAction[P, R](bodyParser: BodyParser[P])(block: UserReq[P] => IO[ApiResponse[R]])(implicit w: Writes[R]): Action[P] =
+    CustomUserAction(bodyParser)(block(_).map(asResult(_)))
+
+  protected def UserActionJson[P, R](block: UserReq[P] => IO[ApiResponse[R]])(implicit r: Reads[P], w: Writes[R]): Action[JsValue] =
+    CustomUserAction(parse.json) { implicit req =>
+      req.body.validate[P].fold(
+        errors => IO.pure(ApiResponse.badRequest(errors)),
+        data => block(req.withBody(data))
+      ).map(asResult(_))
+    }
+
+  protected def UserAction[R](block: UserReq[AnyContent] => IO[ApiResponse[R]])(implicit w: Writes[R]): Action[AnyContent] =
+    CustomUserAction(parse.anyContent)(block(_).map(asResult(_)))
 
 
-  protected def ApiActionOptT[R, A](bodyParser: BodyParser[R])(block: BasicReq[R] => OptionT[IO, A])(implicit w: Writes[A]): Action[R] =
-    ApiActionOpt(bodyParser)(block(_).value)
-
-  protected def ApiActionOptT[A](block: BasicReq[AnyContent] => OptionT[IO, A])(implicit w: Writes[A]): Action[AnyContent] =
-    ApiActionOptT(parse.anyContent)(block)
-
-
-  protected def ApiActionPageT[R, A](bodyParser: BodyParser[R])(block: BasicReq[R] => OptionT[IO, Page[A]])(implicit w: Writes[A]): Action[R] =
-    ActionIO(bodyParser)(req => block(req).value.map(_.map(b => okResult(PublicApiResponse(b, req.now))).getOrElse(NotFound)))
-
-  protected def ApiActionPageT[A](block: BasicReq[AnyContent] => OptionT[IO, Page[A]])(implicit w: Writes[A]): Action[AnyContent] =
-    ApiActionPageT(parse.anyContent)(block)
-
-  private def okResult[A](r: PublicApiResponse[A])(implicit w: Writes[A]) = Ok(Json.toJson(r))
-
-  /*
-    New methods
-   */
-
-
-  protected def UserAction[A](bodyParser: BodyParser[A])(block: UserReq[A] => IO[Result]): Action[A] = silhouette.SecuredAction(bodyParser).async { r =>
-    val req = UserReq.from(conf, messagesApi, r)
-    recoverFailedAction(block(UserReq.from(conf, messagesApi, r)))(req).unsafeToFuture()
-  }
-
-  protected def UserAction(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = UserAction(parse.anyContent)(block)
-
-  private def recoverFailedAction[A](result: IO[Result])(implicit req: BasicReq[A]): IO[Result] = {
+  private def recoverFailedAction[P](result: IO[Result])(implicit req: BasicReq[P]): IO[Result] = {
     def logError(e: Throwable): Unit = {
       val (user, group) = req match {
         case r: OrgaReq[_] => Some(r.user) -> Some(r.group)
@@ -100,6 +84,27 @@ class ApiCtrl(cc: ControllerComponents,
       case NonFatal(e) => logError(e); InternalServerError(Json.toJson(PublicApiError(e.getMessage)))
     }
   }
+
+  private def asResult[R](r: ApiResponse[R])(implicit w: Writes[R]): Result = r match {
+    case i: ItemResponse[R] => Ok(Json.toJson(i))
+    case p: PageResponse[R] => Ok(Json.toJson(p))
+    case e: ErrorResponse => new Status(e.status)(Json.toJson(e))
+  }
+
+  protected def groupNotFound(group: Group.Slug)(implicit ctx: BasicCtx): ErrorResponse =
+    ApiResponse.notFound(s"No group '${group.value}'")
+
+  protected def eventNotFound(group: Group.Slug, event: Event.Slug)(implicit ctx: BasicCtx): ErrorResponse =
+    ApiResponse.notFound(s"No event '${event.value}' in group '${group.value}'")
+
+  protected def talkNotFound(group: Group.Slug, talk: Proposal.Id)(implicit ctx: BasicCtx): ErrorResponse =
+    ApiResponse.notFound(s"No talk '${talk.value}' in group '${group.value}'")
+
+  protected def cfpNotFound(cfp: Cfp.Slug)(implicit ctx: BasicCtx): ErrorResponse =
+    ApiResponse.notFound(s"No cfp '${cfp.value}'")
+
+  protected def userNotFound(user: User.Slug)(implicit ctx: BasicCtx): ErrorResponse =
+    ApiResponse.notFound(s"No user '${user.value}'")
 }
 
 object ApiCtrl {
@@ -108,16 +113,12 @@ object ApiCtrl {
     self: ApiCtrl =>
     val groupRepo: OrgaGroupRepo
 
-    protected def OrgaAction[A](group: Group.Slug)(block: OrgaReq[AnyContent] => IO[ApiResponse[A]])(implicit w: Writes[A]): Action[AnyContent] = {
-      UserAction { req =>
+    protected def OrgaAction[R](group: Group.Slug)(block: OrgaReq[AnyContent] => IO[ApiResponse[R]])(implicit w: Writes[R]): Action[AnyContent] = {
+      CustomUserAction { implicit req =>
         groupRepo.find(group).flatMap {
-          case Some(groupElt) if groupElt.owners.toList.contains(req.user.id) => block(req.orga(groupElt)).map {
-            case i: ItemResponse[A] => Ok(Json.toJson(i))
-            case p: PageResponse[A] => Ok(Json.toJson(p))
-            case e: ErrorResponse => new Status(e.status)(Json.toJson(e))
-          }
+          case Some(groupElt) if groupElt.owners.toList.contains(req.user.id) => block(req.orga(groupElt)).map(asResult(_))
           case Some(_) => IO.pure(Forbidden(Json.toJson(ApiResponse.forbidden(s"You are not a '${group.value}' group owner")(req))))
-          case None => IO.pure(NotFound(Json.toJson(ApiResponse.notFound(s"No group '${group.value}'")(req))))
+          case None => IO.pure(NotFound(Json.toJson(groupNotFound(group))))
         }
       }
     }
