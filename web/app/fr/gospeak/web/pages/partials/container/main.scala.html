@@ -7,43 +7,44 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
-        <link rel="stylesheet" href="@routes.Assets.versioned("lib/select2/dist/css/select2.min.css")">
-        <link rel="stylesheet" href="@routes.Assets.versioned("lib/select2-bootstrap-theme/dist/select2-bootstrap.min.css")">
-        <link rel="stylesheet" href="@routes.Assets.versioned("lib/bootstrap-datepicker/dist/css/bootstrap-datepicker3.min.css")">
-        <link rel="stylesheet" href="@routes.Assets.versioned("lib/typeahead.js-bootstrap4-css/typeaheadjs.css")">
-        <link rel="stylesheet" href="@routes.Assets.versioned(s"lib/web/styles/main.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("select2/dist/css/select2.min.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("select2-bootstrap-theme/dist/select2-bootstrap.min.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("bootstrap-datepicker/dist/css/bootstrap-datepicker3.min.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("typeahead.js-bootstrap4-css/typeaheadjs.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("web/styles/main.css")">
         @style
         <title>@title</title>
+        @favicon()
     </head>
     <body class="bg-light">
         @content
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/jquery/dist/jquery.min.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/bootstrap/dist/js/bootstrap.bundle.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("jquery/dist/jquery.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("bootstrap/dist/js/bootstrap.bundle.min.js")"></script>
 
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/hs.megamenu.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/svg-injector.min.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/jquery.fancybox.min.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/typed.min.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/hs.core.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.header.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.unfold.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.fancybox.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.svg-injector.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.go-to.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.malihu-scrollbar.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.validation.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.focus-state.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/components/hs.show-animation.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/hs.megamenu.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/svg-injector.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/jquery.fancybox.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/typed.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/hs.core.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/components/hs.header.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/components/hs.unfold.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/components/hs.fancybox.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/components/hs.svg-injector.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/components/hs.go-to.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/components/hs.malihu-scrollbar.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/components/hs.validation.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/components/hs.focus-state.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/components/hs.show-animation.js")"></script>
 
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/autosize/dist/autosize.min.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/select2/dist/js/select2.min.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/bootstrap-datepicker/dist/locales/bootstrap-datepicker.fr.min.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/imask/dist/imask.min.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/github-com-twitter-typeahead-js/typeahead.bundle.min.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/mousetrap/mousetrap.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("autosize/dist/autosize.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("select2/dist/js/select2.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("bootstrap-datepicker/dist/locales/bootstrap-datepicker.fr.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("imask/dist/imask.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("github-com-twitter-typeahead-js/typeahead.bundle.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("mousetrap/mousetrap.js")"></script>
         <script type="text/javascript" src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/web/js/main.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("web/js/main.js")"></script>
         <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAyBrYxVFLX8Vl8ClH9wp-eNK_o2vzUBdA&libraries=places&language=en&callback=googleMapsInit" async defer></script>
         @script
         @analytics()
