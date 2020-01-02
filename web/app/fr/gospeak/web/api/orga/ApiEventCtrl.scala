@@ -7,7 +7,7 @@ import fr.gospeak.core.services.storage.{OrgaEventRepo, OrgaGroupRepo, OrgaPropo
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.ApiEvent
-import fr.gospeak.web.api.domain.utils.ApiResponse
+import fr.gospeak.web.api.domain.utils.ApiResult
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -24,7 +24,7 @@ class ApiEventCtrl(cc: ControllerComponents,
       events <- eventRepo.listFull(params)
       proposals <- proposalRepo.list(events.items.flatMap(_.talks))
       users <- userRepo.list(events.items.flatMap(_.users) ++ proposals.flatMap(_.users))
-    } yield ApiResponse.from(events, (e: Event.Full) => ApiEvent.orga(e, proposals, users))
+    } yield ApiResult.of(events, (e: Event.Full) => ApiEvent.orga(e, proposals, users))
   }
 
   def detail(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction[ApiEvent.Orga](group) { implicit req =>
@@ -32,7 +32,7 @@ class ApiEventCtrl(cc: ControllerComponents,
       eventElt <- OptionT(eventRepo.findFull(event))
       proposals <- OptionT.liftF(proposalRepo.list(eventElt.talks))
       users <- OptionT.liftF(userRepo.list(eventElt.users ++ proposals.flatMap(_.users)))
-      res = ApiResponse.from(ApiEvent.orga(eventElt, proposals, users))
-    } yield res).value.map(_.getOrElse(ApiResponse.notFound(s"No event '${event.value}' in group '${group.value}'")))
+      res = ApiResult.of(ApiEvent.orga(eventElt, proposals, users))
+    } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 }

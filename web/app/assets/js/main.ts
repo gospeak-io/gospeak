@@ -118,16 +118,21 @@ declare const autosize;
         }
     });
 
+    interface ValidationResult {
+        message: string
+        valid: boolean
+    }
+
     function update($input, url): void {
         const value = $input.val();
         if (value) {
-            $.getJSON(url.replace('%7B%7Binput%7D%7D', value), res => {
+            $.getJSON(url.replace('%7B%7Binput%7D%7D', value), (res: ApiResponse<ValidationResult>) => {
                 if ($input.val() === value) {
                     removeFeedback($input);
-                    if (res.valid) {
-                        addValidFeedback($input, res);
+                    if (res.data.valid) {
+                        addValidFeedback($input, res.data);
                     } else {
-                        addInvalidFeedback($input, res);
+                        addInvalidFeedback($input, res.data);
                     }
                 }
             });
@@ -145,14 +150,14 @@ declare const autosize;
         }
     }
 
-    function addValidFeedback($input, res): void {
+    function addValidFeedback($input, res: ValidationResult): void {
         $input.addClass('is-valid');
         if (res.message) {
             $input.after('<span class="valid-feedback">' + res.message + '</span>');
         }
     }
 
-    function addInvalidFeedback($input, res): void {
+    function addInvalidFeedback($input, res: ValidationResult): void {
         $input.addClass('is-invalid');
         if (res.message) {
             $input.after('<span class="invalid-feedback">' + res.message + '</span>');
@@ -380,13 +385,11 @@ declare const cloudinary;
     }
 
     function generateSignature(signUrl: string) {
-        return (callback, params_to_sign) => $.ajax({
+        return (callback, params_to_sign): void => $.ajax({
             url: signUrl,
             type: 'GET',
-            dataType: 'text',
-            data: params_to_sign,
-            success: callback
-        });
+            data: params_to_sign
+        }).then(res => callback(res.data));
     }
 })();
 
@@ -408,10 +411,15 @@ declare const cloudinary;
         });
     });
 
-    function fetchHtml(md) {
-        return fetch('/ui/utils/markdown-to-html', {method: 'POST', body: md}).then(function (res) {
-            return res.text();
-        });
+    function fetchHtml(md: string): Promise<string> {
+        return fetch('/ui/utils/markdown-to-html', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(md)
+        }).then(res => res.json()).then(json => json.data);
     }
 })();
 
@@ -476,7 +484,7 @@ declare const cloudinary;
     }
 
     function fetchData(ref) {
-        return fetch('/ui/utils/template-data/' + ref).then(res => res.json());
+        return fetch('/ui/utils/template-data/' + ref).then(res => res.json()).then(json => json.data);
     }
 
     function fetchTemplate(tmpl, ref, markdown) {
@@ -529,7 +537,7 @@ declare const cloudinary;
     }
 
     function fetchEmbedCode(url) {
-        return fetch('/ui/utils/embed?url=' + url).then(res => res.text());
+        return fetch('/ui/utils/embed?url=' + url).then(res => res.json()).then(json => json.data);
     }
 })();
 

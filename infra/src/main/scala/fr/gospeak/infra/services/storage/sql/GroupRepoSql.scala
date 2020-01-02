@@ -74,8 +74,6 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listJoined(params: Page.Params)(implicit ctx: UserCtx): IO[Page[(Group, Group.Member)]] = selectPageJoined(ctx.user.id, params).run(xa)
 
-  override def find(user: User.Id, slug: Group.Slug): IO[Option[Group]] = selectOne(user, slug).runOption(xa)
-
   override def find(group: Group.Id): IO[Option[Group]] = selectOne(group).runOption(xa)
 
   override def find(group: Group.Slug): IO[Option[Group]] = selectOne(group).runOption(xa)
@@ -166,9 +164,6 @@ object GroupRepoSql {
 
   private[sql] def selectAll(ids: NonEmptyList[Group.Id]): Select[Group] =
     tableSelect.select[Group](fr0"WHERE " ++ Fragments.in(fr"g.id", ids))
-
-  private[sql] def selectOne(user: User.Id, slug: Group.Slug): Select[Group] =
-    tableSelect.select[Group](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"} AND g.slug=$slug")
 
   private[sql] def selectOne(group: Group.Id): Select[Group] =
     tableSelect.select[Group](fr0"WHERE g.id=$group")

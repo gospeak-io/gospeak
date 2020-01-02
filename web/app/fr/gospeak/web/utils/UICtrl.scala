@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 
+import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 abstract class UICtrl(cc: ControllerComponents,
@@ -20,16 +21,16 @@ abstract class UICtrl(cc: ControllerComponents,
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   protected def UserAwareAction(block: UserAwareReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.UserAwareAction.async { r =>
-    val req = UserAwareReq.from(conf, messagesApi, r)
-    recoverFailedAction(block(req))(req).unsafeToFuture()
+    implicit val req: UserAwareReq[AnyContent] = UserAwareReq.from(conf, messagesApi, r)
+    actionResult(block(req))
   }
 
   protected def UserAction(block: UserReq[AnyContent] => IO[Result]): Action[AnyContent] = silhouette.SecuredAction.async { r =>
-    val req = UserReq.from(conf, messagesApi, r)
-    recoverFailedAction(block(req))(req).unsafeToFuture()
+    implicit val req: UserReq[AnyContent] = UserReq.from(conf, messagesApi, r)
+    actionResult(block(req))
   }
 
-  private def recoverFailedAction(result: IO[Result])(implicit req: BasicReq[AnyContent]): IO[Result] = {
+  private def actionResult(result: IO[Result])(implicit req: BasicReq[AnyContent]): Future[Result] = {
     def logError(e: Throwable): Unit = {
       val (user, group) = req match {
         case r: OrgaReq[AnyContent] => Some(r.user) -> Some(r.group)
@@ -39,16 +40,15 @@ abstract class UICtrl(cc: ControllerComponents,
       }
       val userStr = user.map(u => s" for user ${u.name.value} (${u.id.value})").getOrElse("")
       val groupStr = group.map(g => s" in group ${g.name.value} (${g.id.value})").getOrElse("")
-      logger.error("Error in controller" + userStr + groupStr, e)
+      logger.error("Error in controller" + userStr + groupStr, e) // FIXME better error handling (send email or notif?)
     }
 
     val next = redirectToPreviousPageOr(fr.gospeak.web.pages.published.routes.HomeCtrl.index())
-    // FIXME better error handling (send email or notif?)
     result.recover {
       case e: JdbcSQLSyntaxErrorException => logError(e); next.flashing("error" -> s"Unexpected SQL error")
       case e: JdbcSQLIntegrityConstraintViolationException => logError(e); next.flashing("error" -> s"Duplicate key SQL error")
       case NonFatal(e) => logError(e); next.flashing("error" -> s"Unexpected error: ${e.getMessage} (${e.getClass.getSimpleName})")
-    }
+    }.unsafeToFuture()
   }
 
   protected def redirectToPreviousPageOr[A](default: => Call)(implicit req: Request[A]): Result = {
@@ -155,8 +155,9 @@ object UICtrl {
 
     protected def OrgaAction(group: Group.Slug)(block: OrgaReq[AnyContent] => IO[Result]): Action[AnyContent] = {
       UserAction { req =>
-        groupRepo.find(req.user.id, group).flatMap {
-          case Some(group) => block(req.orga(group))
+        groupRepo.find(group).flatMap {
+          case Some(groupElt) if groupElt.owners.toList.contains(req.user.id) => block(req.orga(groupElt))
+          case Some(_) => IO.pure(Redirect(pages.user.routes.UserCtrl.index()).flashing("warning" -> s"You are not a '${group.value}' group owner"))
           case None => IO.pure(Redirect(pages.user.routes.UserCtrl.index()).flashing("warning" -> s"Unable to find group with slug '${group.value}'"))
         }
       }

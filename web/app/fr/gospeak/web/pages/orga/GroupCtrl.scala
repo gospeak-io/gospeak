@@ -140,15 +140,12 @@ class GroupCtrl(cc: ControllerComponents,
     GroupForms.contactMembers.bindFromRequest.fold(
       formWithErrors => contactMembersView(formWithErrors),
       data => (for {
-        groupElt <- OptionT(groupRepo.find(req.user.id, group))
-        sender <- OptionT(IO.pure(groupElt.senders(req.user).find(_.address == data.from)))
+        sender <- OptionT(IO.pure(req.group.senders(req.user).find(_.address == data.from)))
         members <- OptionT.liftF(groupRepo.listMembers)
-        _ <- OptionT.liftF(members.map(m => emailSrv.send(Emails.groupMessage(groupElt, sender, data.subject, data.content, m))).sequence)
-        next = Redirect(routes.GroupCtrl.detail(group))
-      } yield next.flashing("success" -> "Message sent to group members")).value.map(_.getOrElse(groupNotFound(group)))
-    ).recover {
-      case NonFatal(e) => Redirect(routes.GroupCtrl.detail(group)).flashing("error" -> s"An error happened: ${e.getMessage}")
-    }
+        _ <- OptionT.liftF(members.map(m => emailSrv.send(Emails.groupMessage(req.group, sender, data.subject, data.content, m))).sequence)
+        next = Redirect(routes.GroupCtrl.detail(group)).flashing("success" -> "Message sent to group members")
+      } yield next).value.map(_.getOrElse(groupNotFound(group)))
+    )
   }
 
   private def contactMembersView(form: Form[GroupForms.ContactMembers])(implicit req: OrgaReq[AnyContent]): IO[Result] = {

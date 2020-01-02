@@ -6,7 +6,7 @@ import fr.gospeak.core.domain.{Event, Group, Proposal}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
-import fr.gospeak.web.api.domain.utils.ApiResponse
+import fr.gospeak.web.api.domain.utils.ApiResult
 import fr.gospeak.web.api.domain.{ApiEvent, ApiGroup, ApiProposal, ApiUser}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
@@ -21,11 +21,11 @@ class GroupCtrl(cc: ControllerComponents,
                 venueRepo: PublicVenueRepo,
                 userRepo: PublicUserRepo) extends ApiCtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiGroup.Published]] { implicit req =>
-    groupRepo.listFull(params).map(ApiResponse.from(_, ApiGroup.published))
+    groupRepo.listFull(params).map(ApiResult.of(_, ApiGroup.published))
   }
 
   def detail(group: Group.Slug): Action[AnyContent] = UserAwareAction[ApiGroup.Published] { implicit req =>
-    groupRepo.findFull(group).map(_.map(g => ApiResponse.from(ApiGroup.published(g))).getOrElse(groupNotFound(group)))
+    groupRepo.findFull(group).map(_.map(g => ApiResult.of(ApiGroup.published(g))).getOrElse(groupNotFound(group)))
   }
 
   def events(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiEvent.Published]] { implicit req =>
@@ -34,7 +34,7 @@ class GroupCtrl(cc: ControllerComponents,
       events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, params))
       talks <- OptionT.liftF(proposalRepo.listPublic(events.items.flatMap(_.talks).distinct))
       speakers <- OptionT.liftF(userRepo.list(talks.flatMap(_.speakers.toList).distinct))
-      res = ApiResponse.from(events, ApiEvent.published(_, talks, speakers))
+      res = ApiResult.of(events, ApiEvent.published(_, talks, speakers))
     } yield res).value.map(_.getOrElse(groupNotFound(group)))
   }
 
@@ -44,7 +44,7 @@ class GroupCtrl(cc: ControllerComponents,
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
       talks <- OptionT.liftF(proposalRepo.listPublic(eventElt.talks.distinct))
       speakers <- OptionT.liftF(userRepo.list(talks.flatMap(_.speakers.toList).distinct))
-      res = ApiResponse.from(ApiEvent.published(eventElt, talks, speakers))
+      res = ApiResult.of(ApiEvent.published(eventElt, talks, speakers))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
@@ -54,7 +54,7 @@ class GroupCtrl(cc: ControllerComponents,
       talks <- OptionT.liftF(proposalRepo.listPublicFull(groupElt.id, params))
       speakers <- OptionT.liftF(userRepo.list(talks.items.flatMap(_.speakers.toList).distinct))
       venues <- OptionT.liftF(venueRepo.listFull(groupElt.id, talks.items.flatMap(_.event.flatMap(_.venue)).distinct))
-      res = ApiResponse.from(talks, ApiProposal.published(_, speakers, venues))
+      res = ApiResult.of(talks, ApiProposal.published(_, speakers, venues))
     } yield res).value.map(_.getOrElse(groupNotFound(group)))
   }
 
@@ -64,7 +64,7 @@ class GroupCtrl(cc: ControllerComponents,
       talkElt <- OptionT(proposalRepo.findPublicFull(groupElt.id, talk))
       speakers <- OptionT.liftF(userRepo.list(talkElt.speakers.toList.distinct))
       venues <- OptionT.liftF(venueRepo.listFull(groupElt.id, talkElt.event.flatMap(_.venue).toList))
-      res = ApiResponse.from(ApiProposal.published(talkElt, speakers, venues))
+      res = ApiResult.of(ApiProposal.published(talkElt, speakers, venues))
     } yield res).value.map(_.getOrElse(talkNotFound(group, talk)))
   }
 
@@ -73,7 +73,7 @@ class GroupCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(group))
       speakers <- OptionT.liftF(userRepo.speakersPublic(groupElt.id, params))
       // TODO add proposals, talks, groups member and owners for each speaker
-      res = ApiResponse.from(speakers, ApiUser.published)
+      res = ApiResult.of(speakers, ApiUser.published)
     } yield res).value.map(_.getOrElse(groupNotFound(group)))
   }
 }

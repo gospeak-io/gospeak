@@ -6,7 +6,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.StatusCtrl._
-import fr.gospeak.web.api.domain.utils.ApiResponse
+import fr.gospeak.web.api.domain.utils.ApiResult
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
 import generated.BuildInfo
@@ -21,7 +21,7 @@ class StatusCtrl(cc: ControllerComponents,
   private val startedAt = Instant.now()
 
   def getStatus: Action[AnyContent] = UserAwareAction { implicit req =>
-    IO.pure(ApiResponse.from(AppStatus(startedAt, generated.BuildInfo, conf)))
+    IO.pure(ApiResult.of(AppStatus(startedAt, generated.BuildInfo, conf)))
   }
 
 }

@@ -7,7 +7,7 @@ import fr.gospeak.core.services.storage.{PublicCfpRepo, PublicGroupRepo}
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.ApiCfp
-import fr.gospeak.web.api.domain.utils.ApiResponse
+import fr.gospeak.web.api.domain.utils.ApiResult
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -21,14 +21,14 @@ class CfpCtrl(cc: ControllerComponents,
     for {
       cfps <- cfpRepo.listIncoming(req.now, params)
       groups <- groupRepo.list(cfps.items.map(_.group).distinct)
-    } yield ApiResponse.from(cfps, (c: Cfp) => ApiCfp.published(c, groups.find(_.id == c.group)))
+    } yield ApiResult.of(cfps, (c: Cfp) => ApiCfp.published(c, groups.find(_.id == c.group)))
   }
 
   def detail(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction[ApiCfp.Published] { implicit req =>
     (for {
       cfpElt <- OptionT(cfpRepo.findRead(cfp))
       groupElt <- OptionT(groupRepo.find(cfpElt.group))
-      res = ApiResponse.from(ApiCfp.published(cfpElt, Some(groupElt)))
+      res = ApiResult.of(ApiCfp.published(cfpElt, Some(groupElt)))
     } yield res).value.map(_.getOrElse(cfpNotFound(cfp)))
   }
 }

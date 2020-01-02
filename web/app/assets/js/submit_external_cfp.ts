@@ -58,9 +58,7 @@
         const params = Object.keys(query).filter(key => !!query[key]).map(key => key + '=' + encodeURI(query[key]));
         const url = '/ui/cfps/duplicates?' + params.join('&');
         if (params.length > 0) {
-            return $.get(url).then(res => {
-                return res.data;
-            });
+            return $.get(url).then(res => res.data);
         } else {
             return Promise.resolve([]);
         }

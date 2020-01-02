@@ -10,8 +10,6 @@ import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
 trait GroupRepo extends OrgaGroupRepo with SpeakerGroupRepo with UserGroupRepo with AuthGroupRepo with PublicGroupRepo with SuggestGroupRepo
 
 trait OrgaGroupRepo {
-  def find(user: User.Id, group: Group.Slug): IO[Option[Group]]
-
   def find(group: Group.Slug): IO[Option[Group]]
 
   def listJoinable(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Group]]
@@ -70,7 +68,5 @@ trait PublicGroupRepo {
 }
 
 trait SuggestGroupRepo {
-  def find(user: User.Id, slug: Group.Slug): IO[Option[Group]]
-
   def listTags(): IO[Seq[Tag]]
 }

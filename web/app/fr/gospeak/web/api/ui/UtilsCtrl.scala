@@ -15,7 +15,7 @@ import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.libs.scalautils.domain.{Html, Markdown, Url}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.ApiExternalCfp
-import fr.gospeak.web.api.domain.utils.{ApiResponse, PublicApiError, PublicApiResponse}
+import fr.gospeak.web.api.domain.utils.ApiResult
 import fr.gospeak.web.api.ui.helpers.JsonFormats._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
@@ -41,42 +41,42 @@ class UtilsCtrl(cc: ControllerComponents,
                 slackSrv: SlackSrv,
                 templateSrv: TemplateSrv,
                 markdownSrv: MarkdownSrv) extends ApiCtrl(cc, silhouette, conf) {
-  def cloudinarySignature(): Action[AnyContent] = CustomUserAction { implicit req =>
+  def cloudinarySignature(): Action[AnyContent] = UserAction[String] { implicit req =>
     val queryParams = req.queryString.flatMap { case (key, values) => values.headOption.map(value => (key, value)) }
     IO.pure(cloudinarySrv.signRequest(queryParams) match {
-      case Right(signature) => Ok(signature)
-      case Left(error) => BadRequest(Json.toJson(PublicApiError(error)))
+      case Right(signature) => ApiResult.of(signature)
+      case Left(error) => ApiResult.badRequest(error)
     })
   }
 
-  def validateSlackToken(token: String): Action[AnyContent] = CustomUserAction { implicit req =>
+  def validateSlackToken(token: String): Action[AnyContent] = UserAction[ValidationResult] { implicit req =>
     SlackToken.from(token, conf.application.aesKey).toIO.flatMap(slackSrv.getInfos(_, conf.application.aesKey))
       .map(infos => ValidationResult(valid = true, s"Token for ${infos.teamName} team, created by ${infos.userName}"))
       .recover { case NonFatal(e) => ValidationResult(valid = false, s"Invalid token: ${e.getMessage}") }
-      .map(res => Ok(Json.toJson(res)))
+      .map(ApiResult.of(_))
   }
 
-  def duplicatesExtCfp(params: ExternalCfp.DuplicateParams): Action[AnyContent] = CustomUserAction { implicit req =>
-    externalCfpRepo.listDuplicates(params).map(cfps => Ok(Json.toJson(PublicApiResponse(cfps.map(ApiExternalCfp.published), req.now))))
+  def duplicatesExtCfp(params: ExternalCfp.DuplicateParams): Action[AnyContent] = UserAction[Seq[ApiExternalCfp.Published]] { implicit req =>
+    externalCfpRepo.listDuplicates(params).map(cfps => ApiResult.of(cfps.map(ApiExternalCfp.published)))
   }
 
-  def embed(url: Url): Action[AnyContent] = CustomUserAwareAction { implicit req =>
-    EmbedSrv.embedCode(url).map(code => Ok(code.value))
+  def embed(url: Url): Action[AnyContent] = UserAwareAction { implicit req =>
+    EmbedSrv.embedCode(url).map(_.value).map(ApiResult.of(_))
   }
 
-  def markdownToHtml(): Action[String] = CustomUserAwareAction(parse.text) { implicit req =>
+  def markdownToHtml(): Action[JsValue] = UserAwareActionJson[String, String] { implicit req =>
     val md = Markdown(req.body)
     val html = markdownSrv.render(md)
-    IO.pure(Ok(html.value))
+    IO.pure(ApiResult.of(html.value))
   }
 
-  def templateData(ref: TemplateData.Ref): Action[AnyContent] = CustomUserAction { implicit req =>
+  def templateData(ref: TemplateData.Ref): Action[AnyContent] = UserAction[TemplateDataResponse] { implicit req =>
     val data = TemplateData.Sample
       .fromRef(ref)
       .map(TemplateSrvImpl.asData)
       .map(circeToPlay)
       .getOrElse(Json.obj())
-    IO.pure(Ok(Json.toJson(TemplateDataResponse(data))))
+    IO.pure(ApiResult.of(TemplateDataResponse(data)))
   }
 
   def renderTemplate(): Action[JsValue] = UserActionJson[TemplateRequest, TemplateResponse] { implicit req =>
@@ -89,7 +89,7 @@ class UtilsCtrl(cc: ControllerComponents,
       case Right(tmpl) if req.body.markdown => TemplateResponse(Some(markdownSrv.render(tmpl)), None)
       case Right(tmpl) => TemplateResponse(Some(Html(s"<pre>${HtmlFormat.escape(tmpl.value)}</pre>")), None)
     }
-    IO.pure(ApiResponse.from(res))
+    IO.pure(ApiResult.of(res))
   }
 
   private def circeToPlay(json: io.circe.Json): JsValue = {

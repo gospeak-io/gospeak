@@ -6,7 +6,7 @@ import fr.gospeak.core.services.storage.PublicUserRepo
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.ApiUser
-import fr.gospeak.web.api.domain.utils.ApiResponse
+import fr.gospeak.web.api.domain.utils.ApiResult
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -17,11 +17,11 @@ class SpeakerCtrl(cc: ControllerComponents,
                   userRepo: PublicUserRepo) extends ApiCtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiUser.Published]] { implicit req =>
     // TODO add proposals, talks, groups member and owners
-    userRepo.listPublic(params).map(ApiResponse.from(_, ApiUser.published))
+    userRepo.listPublic(params).map(ApiResult.of(_, ApiUser.published))
   }
 
   def detail(speaker: User.Slug): Action[AnyContent] = UserAwareAction[ApiUser.Published] { implicit req =>
     // TODO add proposals, talks, groups member and owners
-    userRepo.findPublic(speaker).map(_.map(g => ApiResponse.from(ApiUser.published(g))).getOrElse(userNotFound(speaker)))
+    userRepo.findPublic(speaker).map(_.map(g => ApiResult.of(ApiUser.published(g))).getOrElse(userNotFound(speaker)))
   }
 }

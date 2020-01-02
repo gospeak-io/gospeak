@@ -14,19 +14,10 @@ class GroupRepoSqlSpec extends RepoSpec {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
       val ctx = FakeCtx(now, user)
       groupRepo.list(ctx).unsafeRunSync() shouldBe Seq()
-      groupRepo.find(user.id, groupData1.slug).unsafeRunSync() shouldBe None
+      groupRepo.find(groupData1.slug).unsafeRunSync() shouldBe None
       val group = groupRepo.create(groupData1)(ctx).unsafeRunSync()
       groupRepo.list(ctx).unsafeRunSync() shouldBe Seq(group)
-      groupRepo.find(user.id, groupData1.slug).unsafeRunSync() shouldBe Some(group)
-    }
-    it("should not retrieve not owned groups") {
-      val user1 = userRepo.create(userData1, now, None).unsafeRunSync()
-      val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
-      val ctx1 = FakeCtx(now, user1)
-      val ctx2 = FakeCtx(now, user2)
-      groupRepo.create(groupData1)(ctx2).unsafeRunSync()
-      groupRepo.list(ctx1).unsafeRunSync() shouldBe Seq()
-      groupRepo.find(user1.id, groupData1.slug).unsafeRunSync() shouldBe None
+      groupRepo.find(groupData1.slug).unsafeRunSync() shouldBe Some(group)
     }
     it("should fail on duplicate slug") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
@@ -79,10 +70,6 @@ class GroupRepoSqlSpec extends RepoSpec {
       it("should build selectAll by user") {
         val q = GroupRepoSql.selectAll(user.id)
         check(q, s"SELECT $fields FROM $table WHERE g.owners LIKE ? $orderBy")
-      }
-      it("should build selectOne") {
-        val q = GroupRepoSql.selectOne(user.id, group.slug)
-        check(q, s"SELECT $fields FROM $table WHERE g.owners LIKE ? AND g.slug=? $orderBy")
       }
       it("should build selectOne with id") {
         val q = GroupRepoSql.selectOne(group.id)
