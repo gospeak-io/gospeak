@@ -68,7 +68,7 @@ class GroupCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(talkNotFound(group, talk)))
   }
 
-  def speakers(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
+  def speakers(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiUser.Published]] { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       speakers <- OptionT.liftF(userRepo.speakersPublic(groupElt.id, params))
