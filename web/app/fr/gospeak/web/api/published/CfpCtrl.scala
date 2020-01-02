@@ -17,15 +17,14 @@ class CfpCtrl(cc: ControllerComponents,
               conf: AppConf,
               groupRepo: PublicGroupRepo,
               cfpRepo: PublicCfpRepo) extends ApiCtrl(cc, silhouette, conf) {
-  def list(params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
+  def list(params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiCfp.Published]] { implicit req =>
     for {
       cfps <- cfpRepo.listIncoming(req.now, params)
       groups <- groupRepo.list(cfps.items.map(_.group).distinct)
-      res = ApiResponse.from(cfps, c => ApiCfp.published(c, groups.find(_.id == c.group)))
-    } yield res
+    } yield ApiResponse.from(cfps, (c: Cfp) => ApiCfp.published(c, groups.find(_.id == c.group)))
   }
 
-  def detail(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
+  def detail(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction[ApiCfp.Published] { implicit req =>
     (for {
       cfpElt <- OptionT(cfpRepo.findRead(cfp))
       groupElt <- OptionT(groupRepo.find(cfpElt.group))

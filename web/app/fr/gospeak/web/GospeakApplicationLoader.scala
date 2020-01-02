@@ -204,6 +204,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val uiUtilsCtrl = wire[api.ui.UtilsCtrl]
 
   lazy val apiStatusCtrl = wire[api.StatusCtrl]
+  lazy val apiSwaggerCtrl = wire[api.swagger.SwaggerCtrl]
   lazy val apiGroupCtrl = wire[api.published.GroupCtrl]
   lazy val apiCfpCtrl = wire[api.published.CfpCtrl]
   lazy val apiSpeakerCtrl = wire[api.published.SpeakerCtrl]

@@ -73,7 +73,8 @@ val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib f
   "org.webjars.npm" % "imask" % "5.2.1",
   "org.webjars.npm" % "github-com-twitter-typeahead-js" % "0.11.1",
   "org.webjars.npm" % "typeahead.js-bootstrap4-css" % "1.0.0",
-  "org.webjars.npm" % "mousetrap" % "1.6.3")
+  "org.webjars.npm" % "mousetrap" % "1.6.3",
+  "org.webjars.npm" % "swagger-ui-dist" % "3.24.3")
 val logback = Seq(
   "org.slf4j" % "slf4j-api" % "1.7.30",
   "ch.qos.logback" % "logback-classic" % "1.2.3")

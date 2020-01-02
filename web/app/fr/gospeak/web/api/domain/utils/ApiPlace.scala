@@ -19,9 +19,9 @@ object ApiPlace {
       locality = p.locality,
       country = p.country,
       url = p.url,
-      geo = ApiGeo(p.geo.lng, p.geo.lng))
+      geo = ApiGeo(p.geo.lat, p.geo.lng))
 
-  val unknown = ApiPlace("unknown", "Unknown address", None, "unknown", "https://goo.gl/maps/V9UHGdJpsSYSHqRL9", ApiGeo(48.8588376, 2.2768489))
+  val unknown = ApiPlace("unknown", "Unknown address", None, "unknown", "https://maps.google.com/?cid=3360768160548514744", ApiGeo(48.8716827, 2.307039))
 
   implicit val writes: Writes[ApiPlace] = Json.writes[ApiPlace]
 }
