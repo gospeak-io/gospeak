@@ -73,7 +73,7 @@ object ApiEvent {
   // embedded data in other models, should be public
   final case class Embed(slug: String,
                          name: String,
-                         date: LocalDateTime,
+                         start: LocalDateTime,
                          meetup: Option[String])
 
   object Embed {
@@ -84,7 +84,7 @@ object ApiEvent {
     new Embed(
       slug = e.slug.value,
       name = e.name.value,
-      date = e.start,
+      start = e.start,
       meetup = e.refs.meetup.map(_.link))
 
   /*

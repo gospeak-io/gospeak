@@ -19,7 +19,7 @@ class SwaggerCtrl(cc: ControllerComponents,
                   conf: AppConf) extends ApiCtrl(cc, silhouette, conf) {
   def getSpec: Action[AnyContent] = CustomUserAwareAction { implicit req =>
     val file = new File("web/app/fr/gospeak/web/api/swagger/gospeak.conf")
-    val spec = ConfigFactory.parseFile(file)
+    val spec = ConfigFactory.parseFile(file).resolve()
     val json = spec.root().render(ConfigRenderOptions.concise())
     Try(Json.parse(json)).toIO.map(Ok(_))
   }
