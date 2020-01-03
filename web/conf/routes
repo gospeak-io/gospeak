@@ -211,7 +211,7 @@ GET         /ui/search/:group/partners                                          
 GET         /ui/search/:group/events                                                       fr.gospeak.web.api.ui.SuggestCtrl.searchEvents(group: Group.Slug, q: String)
 
 GET         /api                                                                           fr.gospeak.web.api.swagger.SwaggerCtrl.getUi
-GET         /api/swagger.json                                                              fr.gospeak.web.api.swagger.SwaggerCtrl.getSpec
+GET         /api/openapi.json                                                              fr.gospeak.web.api.swagger.SwaggerCtrl.getSpec
 GET         /api/groups                                                                    fr.gospeak.web.api.published.GroupCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /api/groups/:group                                                             fr.gospeak.web.api.published.GroupCtrl.detail(group: Group.Slug)
 GET         /api/groups/:group/events                                                      fr.gospeak.web.api.published.GroupCtrl.events(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)

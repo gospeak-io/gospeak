@@ -1,6 +1,7 @@
-@import fr.gospeak.web.pages.partials.container.html.favicon
+@import fr.gospeak.web.pages.partials.container.html.{favicon, analytics}
+@import fr.gospeak.web.utils.UserAwareReq
 
-@()
+@()(implicit req: UserAwareReq[AnyContent])
 <!doctype html>
 <html lang="en">
     <head>
@@ -36,12 +37,13 @@
                 window.onload = function () {
                     // see https://github.com/swagger-api/swagger-ui/blob/master/docs/usage/configuration.md
                     window.ui = SwaggerUIBundle({
-                        url: "api/swagger.json",
+                        url: "api/openapi.json",
                         dom_id: '#swagger-ui',
                         deepLinking: true,
                         presets: [SwaggerUIBundle.presets.apis]
                     });
                 }
         </script>
+        @analytics()
     </body>
 </html>
