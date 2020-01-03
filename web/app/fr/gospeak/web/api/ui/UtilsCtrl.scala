@@ -50,7 +50,7 @@ class UtilsCtrl(cc: ControllerComponents,
   }
 
   def validateSlackToken(token: String): Action[AnyContent] = UserAction[ValidationResult] { implicit req =>
-    SlackToken.from(token, conf.application.aesKey).toIO.flatMap(slackSrv.getInfos(_, conf.application.aesKey))
+    SlackToken.from(token, conf.app.aesKey).toIO.flatMap(slackSrv.getInfos(_, conf.app.aesKey))
       .map(infos => ValidationResult(valid = true, s"Token for ${infos.teamName} team, created by ${infos.userName}"))
       .recover { case NonFatal(e) => ValidationResult(valid = false, s"Invalid token: ${e.getMessage}") }
       .map(ApiResult.of(_))

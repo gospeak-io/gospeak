@@ -71,7 +71,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   // unsafe init should be done at the beginning
   lazy val conf: AppConf = AppConf.load(configuration).get
 
-  lazy val appConf: ApplicationConf = conf.application
+  lazy val appConf: ApplicationConf = conf.app
   lazy val dbConf: DatabaseConf = conf.database
   lazy val uploadConf: UploadConf = conf.upload
   lazy val gsConf: GospeakConf = conf.gospeak
@@ -101,7 +101,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val emailSrv: EmailSrv = EmailSrvFactory.from(conf.email)
   lazy val cloudinaryClient: CloudinaryClient = wire[CloudinaryClient]
   lazy val cloudinarySrv: CloudinarySrv = wire[CloudinarySrvImpl]
-  lazy val meetupClient: MeetupClient = new MeetupClient(conf.meetup, conf.application.baseUrl, conf.application.env.isProd)
+  lazy val meetupClient: MeetupClient = new MeetupClient(conf.meetup, conf.app.baseUrl, conf.app.env.isProd)
   lazy val meetupSrv: MeetupSrv = wire[MeetupSrvImpl]
   lazy val slackClient: SlackClient = wire[SlackClient]
   lazy val slackSrv: SlackSrv = wire[SlackSrvImpl]
@@ -152,7 +152,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
       conf.auth.facebook,
       // conf.auth.linkedin, // FIXME LinkedinProvider needs a little hack to get working with silhouette
       conf.auth.github)
-    SocialProviderRegistry(providers.map(_.toProvider(conf.application.baseUrl, httpLayer, socialStateHandler, cookieSecretProvider)))
+    SocialProviderRegistry(providers.map(_.toProvider(conf.app.baseUrl, httpLayer, socialStateHandler, cookieSecretProvider)))
   }
 
   lazy val eventBus: EventBus = new EventBus()
@@ -217,7 +217,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   }
 
   def onStart(): Unit = {
-    val env = conf.application.env
+    val env = conf.app.env
     db.checkEnv(env).unsafeRunSync()
     if (env.isProd) {
       db.migrate().unsafeRunSync()

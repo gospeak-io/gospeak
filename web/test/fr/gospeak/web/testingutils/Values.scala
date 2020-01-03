@@ -1,6 +1,5 @@
 package fr.gospeak.web.testingutils
 
-import java.time.Instant
 import java.util.UUID
 
 import akka.stream.Materializer
@@ -34,7 +33,7 @@ object Values extends RandomDataGenerator {
   // play
   // private val playEnv = Environment.simple()
   // private val ctx = ApplicationLoader.Context.create(playEnv)
-  // private val gsComponents = new GospeakComponents(ctx)
+  // val app = new GospeakComponents(ctx)
   val cc: ControllerComponents = Helpers.stubControllerComponents()
   private val playBodyParsers = cc.parsers
   private val messagesApi = cc.messagesApi

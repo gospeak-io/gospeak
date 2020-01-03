@@ -239,7 +239,7 @@ class EventCtrl(cc: ControllerComponents,
         meetup <- OptionT.liftF((for {
           creds <- meetupAccount
           info <- data.meetup if info.publish
-        } yield meetupSrv.publish(e.event, e.venueOpt, description, info.draft, conf.application.aesKey, creds)).sequence)
+        } yield meetupSrv.publish(e.event, e.venueOpt, description, info.draft, conf.app.aesKey, creds)).sequence)
         _ <- OptionT.liftF(meetup.map(_._1).filter(_ => e.event.refs.meetup.isEmpty)
           .map(ref => e.event.copy(refs = e.event.refs.copy(meetup = Some(ref))))
           .map(eventElt => eventRepo.edit(event, eventElt.data)).sequence)

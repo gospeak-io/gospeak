@@ -53,7 +53,7 @@ object StatusCtrl {
   object AppStatus {
     def apply(startedAt: Instant, info: BuildInfo.type, conf: AppConf): AppStatus =
       new AppStatus(
-        env = conf.application.env.toString,
+        env = conf.app.env.value,
         buildAt = Instant.ofEpochMilli(info.builtAtMillis),
         startedAt = startedAt,
         appVersion = info.version,

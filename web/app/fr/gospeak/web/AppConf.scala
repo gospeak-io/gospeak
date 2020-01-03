@@ -20,7 +20,7 @@ import pureconfig.{ConfigCursor, ConfigReader, ConfigSource, Derivation}
 
 import scala.util.{Failure, Success, Try}
 
-final case class AppConf(application: ApplicationConf,
+final case class AppConf(app: ApplicationConf,
                          auth: AuthConf,
                          database: DatabaseConf,
                          email: EmailConf,

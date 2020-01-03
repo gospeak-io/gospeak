@@ -107,9 +107,9 @@ class SettingsCtrl(cc: ControllerComponents,
     req.getQueryString("code").map { code =>
       (for {
         settings <- groupSettingsRepo.find
-        token <- meetupSrv.requestAccessToken(redirectUri, code, conf.application.aesKey)
-        loggedUser <- meetupSrv.getLoggedUser(conf.application.aesKey)(token)
-        meetupGroupElt <- meetupSrv.getGroup(meetupGroup, conf.application.aesKey)(token)
+        token <- meetupSrv.requestAccessToken(redirectUri, code, conf.app.aesKey)
+        loggedUser <- meetupSrv.getLoggedUser(conf.app.aesKey)(token)
+        meetupGroupElt <- meetupSrv.getGroup(meetupGroup, conf.app.aesKey)(token)
         creds = MeetupCredentials(token, loggedUser, meetupGroupElt)
         _ <- groupSettingsRepo.set(settings.set(creds))
         next = Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Connected to <b>${loggedUser.name}</b> meetup account")
@@ -127,9 +127,9 @@ class SettingsCtrl(cc: ControllerComponents,
   def updateSlackAccount(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
       settings <- groupSettingsRepo.find
-      res <- SettingsForms.slackAccount(conf.application.aesKey).bindFromRequest.fold(
+      res <- SettingsForms.slackAccount(conf.app.aesKey).bindFromRequest.fold(
         formWithErrors => settingsView(settings, slack = Some(formWithErrors)),
-        creds => slackSrv.getInfos(creds.token, conf.application.aesKey)
+        creds => slackSrv.getInfos(creds.token, conf.app.aesKey)
           .flatMap(_ => groupSettingsRepo.set(settings.set(creds)))
           .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> "Slack account updated"))
           .recover { case NonFatal(e) => Redirect(routes.SettingsCtrl.settings(group)).flashing("error" -> s"Invalid Slack token: ${e.getMessage}") }
@@ -220,7 +220,7 @@ class SettingsCtrl(cc: ControllerComponents,
       orgas,
       invites,
       meetup.getOrElse(settings.accounts.meetup.map(s => SettingsForms.meetupAccount.fill(MeetupAccount(s.group))).getOrElse(SettingsForms.meetupAccount)),
-      slack.getOrElse(settings.accounts.slack.map(s => SettingsForms.slackAccount(conf.application.aesKey).fill(s)).getOrElse(SettingsForms.slackAccount(conf.application.aesKey))),
+      slack.getOrElse(settings.accounts.slack.map(s => SettingsForms.slackAccount(conf.app.aesKey).fill(s)).getOrElse(SettingsForms.slackAccount(conf.app.aesKey))),
       GenericForm.invite
     )(listBreadcrumb))
   }
