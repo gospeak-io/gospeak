@@ -1,4 +1,4 @@
-package fr.gospeak.web.services.openapi.models
+package fr.gospeak.web.services.openapi.models.utils
 
 import fr.gospeak.web.services.openapi.error.OpenApiError.Message
 import org.scalatest.{FunSpec, Matchers}

@@ -2,7 +2,8 @@ package fr.gospeak.web.services.openapi
 
 import fr.gospeak.web.services.openapi.error.OpenApiError.{Message, ValidationError}
 import fr.gospeak.web.services.openapi.error.OpenApiErrors
-import fr.gospeak.web.services.openapi.models.{OpenApi, Version}
+import fr.gospeak.web.services.openapi.models.utils.{Email, Markdown, TODO, Url, Version}
+import fr.gospeak.web.services.openapi.models.{Info, OpenApi}
 import fr.gospeak.web.utils.Extensions._
 import play.api.libs.json._
 
@@ -20,9 +21,17 @@ object OpenApiFactory {
     Json.toJson(openApi)
   }
 
-  private object Formats {
+  object Formats {
     private val formatString: Format[String] = Format((json: JsValue) => json.validate[String], (o: String) => JsString(o))
+    implicit val formatTODO: Format[TODO] = Format((_: JsValue) => JsSuccess(TODO()), (_: TODO) => JsNull)
+    implicit val formatMarkdown: Format[Markdown] = formatString.imap(Markdown)(_.value)
+    implicit val formatUrl: Format[Url] = formatString.validate(Url.from)(_.value)
+    implicit val formatEmail: Format[Email] = formatString.validate(Email.from)(_.value)
     implicit val formatVersion: Format[Version] = formatString.validate(Version.from)(_.format)
+
+    implicit val formatInfoContact: Format[Info.Contact] = Json.format[Info.Contact]
+    implicit val formatInfoLicense: Format[Info.License] = Json.format[Info.License]
+    implicit val formatInfo: Format[Info] = Json.format[Info]
     implicit val formatOpenApi: Format[OpenApi] = Json.format[OpenApi]
   }
 
