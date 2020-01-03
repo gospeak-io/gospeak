@@ -1,6 +1,6 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.web.services.openapi.error.OpenApiError.Message
+import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
 import play.api.data.FormError
 import play.api.libs.json._
 import play.twirl.api.Html
@@ -38,10 +38,19 @@ object Extensions {
       Format(in.map(f), in.contramap(g))
 
     def iflatMap[B](f: A => Either[Seq[JsonValidationError], B])(g: B => A): Format[B] =
-      Format(in.reads(_).flatMap(f(_).fold(errs => JsError(Seq(JsPath -> errs)), JsSuccess(_))), in.contramap(g))
+      Format(js => in.reads(js).flatMap(a => asJson(f(a))), in.contramap(g))
 
-    def validate[B](f: A => Either[Seq[Message], B])(g: B => A): Format[B] =
-      iflatMap(f(_).left.map(_.map(m => JsonValidationError(Seq(m.value), m.args: _*))))(g)
+    def validate[B](f: A => Either[Seq[ErrorMessage], B])(g: B => A): Format[B] =
+      iflatMap(a => f(a).left.map(asJson))(g)
+
+    def check(f: A => Option[Seq[ErrorMessage]]): Format[A] =
+      Format(js => in.reads(js).flatMap(a => asJson(f(a).map(asJson).toLeft(a))), in)
+
+    private def asJson(errs: Seq[ErrorMessage]): Seq[JsonValidationError] =
+      errs.map(err => JsonValidationError(Seq(err.value), err.args: _*))
+
+    private def asJson[T](res: Either[Seq[JsonValidationError], T]): JsResult[T] =
+      res.fold(errs => JsError(Seq(JsPath -> errs)), JsSuccess(_))
   }
 
 }

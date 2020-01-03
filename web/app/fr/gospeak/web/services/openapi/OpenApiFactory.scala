@@ -1,9 +1,9 @@
 package fr.gospeak.web.services.openapi
 
-import fr.gospeak.web.services.openapi.error.OpenApiError.{Message, ValidationError}
+import fr.gospeak.web.services.openapi.error.OpenApiError.{ErrorMessage, ValidationError}
 import fr.gospeak.web.services.openapi.error.OpenApiErrors
 import fr.gospeak.web.services.openapi.models.utils.{Email, Markdown, TODO, Url, Version}
-import fr.gospeak.web.services.openapi.models.{Info, OpenApi}
+import fr.gospeak.web.services.openapi.models.{Info, OpenApi, Server}
 import fr.gospeak.web.utils.Extensions._
 import play.api.libs.json._
 
@@ -32,12 +32,14 @@ object OpenApiFactory {
     implicit val formatInfoContact: Format[Info.Contact] = Json.format[Info.Contact]
     implicit val formatInfoLicense: Format[Info.License] = Json.format[Info.License]
     implicit val formatInfo: Format[Info] = Json.format[Info]
+    implicit val formatServerVariable: Format[Server.Variable] = Json.format[Server.Variable]
+    implicit val formatServer: Format[Server] = Json.format[Server].check(_.validate)
     implicit val formatOpenApi: Format[OpenApi] = Json.format[OpenApi]
   }
 
-  private def formatError(err: (JsPath, Seq[JsonValidationError])): ValidationError =
+  private def formatError(errs: (JsPath, Seq[JsonValidationError])): ValidationError =
     ValidationError(
-      path = err._1.path.map(_.toJsonString),
-      errors = err._2.map(e => Message(e.message, e.args.toList)).toList)
+      path = errs._1.path.map(_.toJsonString),
+      errors = errs._2.map(err => ErrorMessage(err.message, err.args.toList)).toList)
 
 }

@@ -12,4 +12,10 @@ import fr.gospeak.web.services.openapi.models.utils.{TODO, Version}
  */
 final case class OpenApi(openapi: Version,
                          info: Info,
+                         servers: Option[Seq[Server]],
+                         paths: Option[TODO],
+                         components: Option[TODO],
+                         security: Option[TODO],
+                         tags: Option[TODO],
+                         externalDocs: Option[TODO],
                          extensions: Option[TODO])

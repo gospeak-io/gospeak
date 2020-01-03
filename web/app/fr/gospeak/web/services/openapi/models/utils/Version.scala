@@ -1,6 +1,6 @@
 package fr.gospeak.web.services.openapi.models.utils
 
-import fr.gospeak.web.services.openapi.error.OpenApiError.Message
+import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
 
 final case class Version(major: Int, minor: Int, patch: Int) {
   def format: String = s"$major.$minor.$patch"
@@ -13,7 +13,7 @@ object Version {
 
   def apply(major: Int): Version = new Version(major, 0, 0)
 
-  def from(in: String): Either[Seq[Message], Version] = in match {
+  def from(in: String): Either[Seq[ErrorMessage], Version] = in match {
     case regex(majorStr, minorStr, patchStr) =>
       Right(Version(
         major = majorStr.toInt, // safe, thanks to regex
@@ -22,6 +22,6 @@ object Version {
     case _ => Left(Seq(regexDoesNotMatch(in)))
   }
 
-  private def regexDoesNotMatch(in: String): Message =
-    Message.validationFailed(in, "x.y.z", "Version")
+  private def regexDoesNotMatch(in: String): ErrorMessage =
+    ErrorMessage.validationFailed(in, "x.y.z", "Version")
 }
