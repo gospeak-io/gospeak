@@ -43,7 +43,7 @@ object Extensions {
     def validate[B](f: A => Either[Seq[ErrorMessage], B])(g: B => A): Format[B] =
       iflatMap(a => f(a).left.map(asJson))(g)
 
-    def check(f: A => Option[Seq[ErrorMessage]]): Format[A] =
+    def verify(f: A => Option[Seq[ErrorMessage]]): Format[A] =
       Format(js => in.reads(js).flatMap(a => asJson(f(a).map(asJson).toLeft(a))), in)
 
     private def asJson(errs: Seq[ErrorMessage]): Seq[JsonValidationError] =

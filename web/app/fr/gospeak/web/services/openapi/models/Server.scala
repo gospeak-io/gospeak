@@ -13,11 +13,19 @@ final case class Server(url: Url,
                         description: Option[Markdown],
                         variables: Option[Map[String, Variable]],
                         extensions: Option[TODO]) {
-  def validate: Option[Seq[ErrorMessage]] = {
-    val errs = Server.extractVariables(url)
+  def hasErrors: Option[List[ErrorMessage]] = {
+    val errors = Server.extractVariables(url)
       .filterNot(v => variables.exists(_.contains(v)))
       .map(ErrorMessage.missingVariable)
-    if (errs.isEmpty) None else Some(errs)
+    if (errors.isEmpty) None else Some(errors)
+  }
+
+  def readUrl: Url = {
+    Server.extractVariables(url).foldLeft(url) { (cur, key) =>
+      variables.flatMap(_.get(key))
+        .map(v => Url(cur.value.replace(s"{$key}", v.default)))
+        .getOrElse(cur)
+    }
   }
 }
 
@@ -27,11 +35,12 @@ object Server {
    * @see "https://spec.openapis.org/oas/v3.0.2#server-variable-object"
    */
   final case class Variable(default: String,
-                            enum: Option[Seq[String]],
-                            description: Option[Markdown])
+                            enum: Option[List[String]],
+                            description: Option[Markdown],
+                            extensions: Option[TODO])
 
   private val variableRegex = "\\{[^}]+}".r
 
-  def extractVariables(url: Url): Seq[String] =
+  def extractVariables(url: Url): List[String] =
     variableRegex.findAllIn(url.value).toList.map(_.stripPrefix("{").stripSuffix("}"))
 }

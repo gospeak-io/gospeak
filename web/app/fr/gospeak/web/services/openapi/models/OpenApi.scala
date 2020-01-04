@@ -1,5 +1,6 @@
 package fr.gospeak.web.services.openapi.models
 
+import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
 import fr.gospeak.web.services.openapi.models.utils.{TODO, Version}
 
 /**
@@ -12,10 +13,20 @@ import fr.gospeak.web.services.openapi.models.utils.{TODO, Version}
  */
 final case class OpenApi(openapi: Version,
                          info: Info,
-                         servers: Option[Seq[Server]],
+                         externalDocs: Option[ExternalDoc],
+                         servers: Option[List[Server]],
+                         tags: Option[List[Tag]],
+                         security: Option[TODO],
                          paths: Option[TODO],
                          components: Option[TODO],
-                         security: Option[TODO],
-                         tags: Option[TODO],
-                         externalDocs: Option[TODO],
-                         extensions: Option[TODO])
+                         extensions: Option[TODO]) {
+  def hasErrors: Option[List[ErrorMessage]] = {
+    val duplicateTags = tags
+      .map(t => t.groupBy(_.name).filter(_._2.length > 1).keys.toList)
+      .getOrElse(List())
+      .map(ErrorMessage.duplicateValue(_, "tags"))
+
+    val errors = duplicateTags
+    if (errors.isEmpty) None else Some(errors)
+  }
+}

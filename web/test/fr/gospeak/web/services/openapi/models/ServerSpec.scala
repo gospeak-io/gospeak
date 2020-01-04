@@ -11,10 +11,14 @@ class ServerSpec extends FunSpec with Matchers {
       Server.extractVariables(Url("https://{user}:{pass}@gospeak.io:{port}/api")) shouldBe Seq("user", "pass", "port")
     }
     it("should check if all variables are referenced") {
-      Server(Url("https://gospeak.io/api"), None, None, None).validate shouldBe None
-      Server(Url("https://gospeak.io/api"), None, Some(Map("port" -> Server.Variable("9000", None, None))), None).validate shouldBe None
-      Server(Url("https://gospeak.io:{port}/api"), None, Some(Map("port" -> Server.Variable("9000", None, None))), None).validate shouldBe None
-      Server(Url("https://gospeak.io:{port}/api"), None, None, None).validate shouldBe Some(Seq(ErrorMessage.missingVariable("port")))
+      Server(Url("https://gospeak.io/api"), None, None, None).hasErrors shouldBe None
+      Server(Url("https://gospeak.io/api"), None, Some(Map("port" -> Server.Variable("9000", None, None, None))), None).hasErrors shouldBe None
+      Server(Url("https://gospeak.io:{port}/api"), None, Some(Map("port" -> Server.Variable("9000", None, None, None))), None).hasErrors shouldBe None
+      Server(Url("https://gospeak.io:{port}/api"), None, None, None).hasErrors shouldBe Some(Seq(ErrorMessage.missingVariable("port")))
+    }
+    it("should replace variables") {
+      Server(Url("https://gospeak.io/api"), None, None, None).readUrl shouldBe Url("https://gospeak.io/api")
+      Server(Url("https://gospeak.io:{port}/api"), None, Some(Map("port" -> Server.Variable("9000", None, None, None))), None).readUrl shouldBe Url("https://gospeak.io:9000/api")
     }
   }
 }

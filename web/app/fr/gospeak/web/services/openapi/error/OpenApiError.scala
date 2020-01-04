@@ -23,6 +23,8 @@ object OpenApiError {
 
     def missingVariable(name: String): ErrorMessage = ErrorMessage("error.variable.missing", List(name))
 
+    def duplicateValue(value: String, in: String): ErrorMessage = ErrorMessage("error.value.duplicate", List(value, in))
+
     def expectString(): ErrorMessage = ErrorMessage("error.expected.jsstring", List())
 
     def expectObject(): ErrorMessage = ErrorMessage("error.expected.jsobject", List())

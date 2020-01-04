@@ -3,7 +3,7 @@ package fr.gospeak.web.services.openapi
 import fr.gospeak.web.services.openapi.error.OpenApiError.{ErrorMessage, ValidationError}
 import fr.gospeak.web.services.openapi.error.OpenApiErrors
 import fr.gospeak.web.services.openapi.models.utils.{Email, Markdown, TODO, Url, Version}
-import fr.gospeak.web.services.openapi.models.{Info, OpenApi, Server}
+import fr.gospeak.web.services.openapi.models.{ExternalDoc, Info, OpenApi, Server, Tag}
 import fr.gospeak.web.utils.Extensions._
 import play.api.libs.json._
 
@@ -32,9 +32,11 @@ object OpenApiFactory {
     implicit val formatInfoContact: Format[Info.Contact] = Json.format[Info.Contact]
     implicit val formatInfoLicense: Format[Info.License] = Json.format[Info.License]
     implicit val formatInfo: Format[Info] = Json.format[Info]
+    implicit val formatExternalDoc: Format[ExternalDoc] = Json.format[ExternalDoc]
     implicit val formatServerVariable: Format[Server.Variable] = Json.format[Server.Variable]
-    implicit val formatServer: Format[Server] = Json.format[Server].check(_.validate)
-    implicit val formatOpenApi: Format[OpenApi] = Json.format[OpenApi]
+    implicit val formatServer: Format[Server] = Json.format[Server].verify(_.hasErrors)
+    implicit val formatTag: Format[Tag] = Json.format[Tag]
+    implicit val formatOpenApi: Format[OpenApi] = Json.format[OpenApi].verify(_.hasErrors)
   }
 
   private def formatError(errs: (JsPath, Seq[JsonValidationError])): ValidationError =

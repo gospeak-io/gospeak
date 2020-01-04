@@ -7,9 +7,9 @@ final case class Email(value: String) extends AnyVal
 object Email {
   private val regex = "(.+@.+\\..+)".r // useful to catch errors, not checking it's really valid
 
-  def from(in: String): Either[Seq[ErrorMessage], Email] = in match {
+  def from(in: String): Either[List[ErrorMessage], Email] = in match {
     case regex(email) => Right(Email(email))
-    case _ => Left(Seq(regexDoesNotMatch(in)))
+    case _ => Left(List(regexDoesNotMatch(in)))
   }
 
   private def regexDoesNotMatch(in: String): ErrorMessage =

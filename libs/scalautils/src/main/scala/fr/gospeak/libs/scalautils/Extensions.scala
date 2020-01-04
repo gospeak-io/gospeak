@@ -72,6 +72,9 @@ object Extensions {
       coll.result()
     }
 
+    def duplicatesBy[B](f: A => B): Map[B, Seq[A]] =
+      in.toSeq.groupBy(f).filter(_._2.length > 1)
+
     def distinctBy[B](f: A => B)(implicit cbf: CanBuildFrom[M[A], A, M[A]]): M[A] = {
       val values = mutable.Map[B, A]()
       in.foldLeft(cbf(in)) { (acc, cur) =>

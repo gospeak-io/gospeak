@@ -13,13 +13,13 @@ object Version {
 
   def apply(major: Int): Version = new Version(major, 0, 0)
 
-  def from(in: String): Either[Seq[ErrorMessage], Version] = in match {
+  def from(in: String): Either[List[ErrorMessage], Version] = in match {
     case regex(majorStr, minorStr, patchStr) =>
       Right(Version(
         major = majorStr.toInt, // safe, thanks to regex
         minor = Option(minorStr).getOrElse(".0").drop(1).toInt,
         patch = Option(patchStr).getOrElse(".0").drop(1).toInt))
-    case _ => Left(Seq(regexDoesNotMatch(in)))
+    case _ => Left(List(regexDoesNotMatch(in)))
   }
 
   private def regexDoesNotMatch(in: String): ErrorMessage =
