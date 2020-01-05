@@ -101,6 +101,8 @@ trait PublicProposalRepo {
 trait SuggestProposalRepo {
   def listTags(): IO[Seq[Tag]]
 
+  def listOrgaTags()(implicit ctx: OrgaCtx): IO[Seq[Tag]]
+
   def listFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]]
 }
 

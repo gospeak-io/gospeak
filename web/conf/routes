@@ -199,6 +199,7 @@ GET         /ui/utils/template-data/:ref                                        
 + nocsrf
 POST        /ui/utils/render-template                                                      fr.gospeak.web.api.ui.UtilsCtrl.renderTemplate
 GET         /ui/suggest/tags                                                               fr.gospeak.web.api.ui.SuggestCtrl.suggestTags
+GET         /ui/suggest/:group/tags                                                        fr.gospeak.web.api.ui.SuggestCtrl.suggestOrgaTags(group: Group.Slug)
 GET         /ui/suggest/:group/cfps                                                        fr.gospeak.web.api.ui.SuggestCtrl.suggestCfps(group: Group.Slug)
 GET         /ui/suggest/:group/partners                                                    fr.gospeak.web.api.ui.SuggestCtrl.suggestPartners(group: Group.Slug)
 GET         /ui/suggest/:group/partners/:partner/contacts                                  fr.gospeak.web.api.ui.SuggestCtrl.suggestContacts(group: Group.Slug, partner: Partner.Id)

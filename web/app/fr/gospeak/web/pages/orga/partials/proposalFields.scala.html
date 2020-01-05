@@ -24,5 +24,5 @@
     @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
 }
 @fieldHorizontal(form("orgaTags"), Seq("label" -> "Orga tags", "help" -> "For orga only, they are not visible to speakers")) { (field, args) =>
-    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
+    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestOrgaTags(req.group.slug).toString))
 }

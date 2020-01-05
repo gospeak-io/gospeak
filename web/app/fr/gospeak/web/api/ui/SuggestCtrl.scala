@@ -46,6 +46,13 @@ class SuggestCtrl(cc: ControllerComponents,
     } yield ApiResult.of(suggestItems.sortBy(_.text))
   }
 
+  def suggestOrgaTags(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
+    for {
+      pTags <- proposalRepo.listOrgaTags()
+      suggestItems = pTags.distinct.map(tag => SuggestedItem(tag.value, tag.value))
+    } yield ApiResult.of(suggestItems.sortBy(_.text))
+  }
+
   def suggestCfps(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     makeSuggest[Cfp](cfpRepo.list, c => SuggestedItem(c.id.value, c.name.value + " - " + Formats.cfpDates(c)))(group)
   }

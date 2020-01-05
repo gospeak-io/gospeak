@@ -134,6 +134,8 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 
+  override def listOrgaTags()(implicit ctx: OrgaCtx): IO[Seq[Tag]] = selectOrgaTags(ctx.group.id).runList(xa).map(_.flatten.distinct)
+
   override def listRatings(id: Proposal.Id): IO[Seq[Proposal.Rating.Full]] = selectAllRatings(id).runList(xa)
 
   override def listRatings(cfp: Cfp.Slug)(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]] = selectAllRatings(cfp, ctx.user.id).runList(xa)
@@ -146,8 +148,10 @@ object ProposalRepoSql {
   private val _ = proposalIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.proposals
   private val ratingTable = Tables.proposalRatings
+  private val tableWithCfp = table
+    .join(Tables.cfps, _.cfp_id -> _.id).get
   private val tableWithEvent = table
-    .joinOpt(Tables.events, _.event_id("p") -> _.id).get
+    .joinOpt(Tables.events, _.event_id -> _.id).get
     .dropFields(_.prefix == Tables.events.prefix)
   private val tableFull = table
     .join(Tables.cfps, _.cfp_id -> _.id).get
@@ -268,6 +272,9 @@ object ProposalRepoSql {
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
     table.select[Seq[Tag]](Seq(Field("tags", "p")), Seq())
+
+  private[sql] def selectOrgaTags(group: Group.Id): Select[Seq[Tag]] =
+    tableWithCfp.select[Seq[Tag]](Seq(Field("orga_tags", "p")), fr0"WHERE c.group_id=$group", Seq())
 
   private[sql] def selectOneRating(id: Proposal.Id, user: User.Id): Select[Proposal.Rating] =
     ratingTable.select[Proposal.Rating](fr0"WHERE pr.proposal_id=$id AND pr.created_by=$user")

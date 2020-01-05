@@ -158,6 +158,10 @@ class ProposalRepoSqlSpec extends RepoSpec {
         val q = ProposalRepoSql.selectTags()
         check(q, s"SELECT p.tags FROM $table")
       }
+      it("should build selectOrgaTags") {
+        val q = ProposalRepoSql.selectOrgaTags(group.id)
+        check(q, s"SELECT p.orga_tags FROM $tableWithCfp WHERE c.group_id=?")
+      }
       it("should build insert Rating") {
         val q = ProposalRepoSql.insert(rating)
         check(q, s"INSERT INTO ${ratingTable.stripSuffix(" pr")} (${mapFields(ratingFields, _.stripPrefix("pr."))}) VALUES (${mapFields(ratingFields, _ => "?")})")
@@ -206,6 +210,7 @@ object ProposalRepoSqlSpec {
   private val ratingOrderBy = "ORDER BY pr.created_at IS NULL, pr.created_at"
 
   private val tableWithEvent = s"$table LEFT OUTER JOIN $eventTable ON p.event_id=e.id"
+  private val tableWithCfp = s"$table INNER JOIN $cfpTable ON p.cfp_id=c.id"
 
   private val tableFull = s"$table INNER JOIN $cfpTable ON p.cfp_id=c.id " +
     s"INNER JOIN $groupTable ON c.group_id=g.id " +
