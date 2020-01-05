@@ -2,7 +2,7 @@ package fr.gospeak.web.services.openapi.models
 
 import cats.data.NonEmptyList
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
-import fr.gospeak.web.services.openapi.models.utils.{Schema, TODO, Version}
+import fr.gospeak.web.services.openapi.models.utils.{TODO, Version}
 
 /**
  * A parsed OpenAPI Specification
@@ -18,8 +18,8 @@ final case class OpenApi(openapi: Version,
                          servers: Option[List[Server]],
                          tags: Option[List[Tag]],
                          security: Option[TODO],
-                         paths: Option[TODO],
                          components: Option[Components],
+                         paths: Map[Path, PathItem],
                          extensions: Option[TODO]) {
   def hasErrors: Option[NonEmptyList[ErrorMessage]] = {
     val duplicateTags = tags.getOrElse(List())
@@ -35,6 +35,9 @@ final case class OpenApi(openapi: Version,
       case None => None
     })
 
-    NonEmptyList.fromList(duplicateTags ++ missingReferences)
+    val duplicatePaths = paths.keys.groupBy(_.value).filter(_._2.size > 1).keys.toList.map(ErrorMessage.duplicateValue(_, "paths"))
+    val duplicateOperationId = paths.values.flatMap(_.operations.values).flatMap(_.operationId).groupBy(identity).filter(_._2.size > 1).keys.toList.map(ErrorMessage.duplicateValue(_, "paths operationId"))
+
+    NonEmptyList.fromList(duplicateTags ++ missingReferences ++ duplicatePaths ++ duplicateOperationId)
   }
 }

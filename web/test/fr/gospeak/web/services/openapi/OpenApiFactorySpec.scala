@@ -18,7 +18,8 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
           |  "info": {
           |    "title": "My api",
           |    "version": "1.0.0"
-          |  }
+          |  },
+          |  "paths": {}
           |}""".stripMargin)
       val openApi = OpenApi(
         Version(3, 0, 2),
@@ -27,8 +28,8 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
         Option.empty[List[Server]],
         Option.empty[List[Tag]],
         Option.empty[TODO],
-        Option.empty[TODO],
         Option.empty[Components],
+        Map.empty[Path, PathItem],
         Option.empty[TODO])
       OpenApiFactory.parseJson(json) shouldBe Right(openApi)
       OpenApiFactory.toJson(openApi) shouldBe json
@@ -41,7 +42,10 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
            |  "externalDocs": ${OpenApiFactorySpec.externalDocsJson},
            |  "servers": [${OpenApiFactorySpec.serverJson}],
            |  "tags": [${OpenApiFactorySpec.tagJson}],
-           |  "components": ${OpenApiFactorySpec.componentsJson}
+           |  "components": ${OpenApiFactorySpec.componentsJson},
+           |  "paths": {
+           |    "/api": ${OpenApiFactorySpec.pathItemJson}
+           |  }
            |}""".stripMargin)
       val openApi = OpenApi(
         Version(3, 0, 2),
@@ -50,8 +54,8 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
         Some(List(OpenApiFactorySpec.server)),
         Some(List(OpenApiFactorySpec.tag)),
         Option.empty[TODO],
-        Option.empty[TODO],
         Some(OpenApiFactorySpec.components),
+        Map(Path("/api") -> OpenApiFactorySpec.pathItem),
         Option.empty[TODO])
       OpenApiFactory.parseJson(json) shouldBe Right(openApi)
       OpenApiFactory.toJson(openApi) shouldBe json
@@ -59,6 +63,7 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
     it("should return required key errors") {
       OpenApiFactory.parseJson(Json.parse("{}")) shouldBe Left(OpenApiErrors(
         ValidationError(List(".openapi"), NonEmptyList.of(ErrorMessage.missingPath())),
+        ValidationError(List(".paths"), NonEmptyList.of(ErrorMessage.missingPath())),
         ValidationError(List(".info"), NonEmptyList.of(ErrorMessage.missingPath()))
       ))
     }
@@ -66,9 +71,11 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
       OpenApiFactory.parseJson(Json.parse(
         """{
           |  "openapi": 1,
-          |  "info": "a"
+          |  "info": "a",
+          |  "paths": 2
           |}""".stripMargin)) shouldBe Left(OpenApiErrors(
         ValidationError(List(".openapi"), NonEmptyList.of(ErrorMessage.expectString())),
+        ValidationError(List(".paths"), NonEmptyList.of(ErrorMessage.expectObject())),
         ValidationError(List(".info"), NonEmptyList.of(ErrorMessage.expectObject()))
       ))
     }
@@ -76,7 +83,8 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
       OpenApiFactory.parseJson(Json.parse(
         """{
           |  "openapi": "a",
-          |  "info": {"title": "t", "version": "b"}
+          |  "info": {"title": "t", "version": "b"},
+          |  "paths": {}
           |}""".stripMargin)) shouldBe Left(OpenApiErrors(
         ValidationError(List(".openapi"), NonEmptyList.of(ErrorMessage.badFormat("a", "Version", "1.2.3"))),
         ValidationError(List(".info", ".version"), NonEmptyList.of(ErrorMessage.badFormat("b", "Version", "1.2.3")))
@@ -93,7 +101,8 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
           |  "tags": [
           |    {"name": "aaa"},
           |    {"name": "aaa"}
-          |  ]
+          |  ],
+          |  "paths": {}
           |}""".stripMargin)
       OpenApiFactory.parseJson(json) shouldBe Left(OpenApiErrors(
         ValidationError(List(), NonEmptyList.of(ErrorMessage.duplicateValue("aaa", "tags")))
@@ -112,7 +121,8 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
           |      "User": {"$ref": "#/components/schemas/Miss"},
           |      "Test": {"$ref": "#/components/miss/User"}
           |    }
-          |  }
+          |  },
+          |  "paths": {}
           |}""".stripMargin)
       OpenApiFactory.parseJson(json) shouldBe Left(OpenApiErrors(ValidationError(List(), NonEmptyList.of(
         ErrorMessage.missingReference("#/components/schemas/Miss"),
@@ -237,12 +247,12 @@ object OpenApiFactorySpec {
   val components = Components(
     Some(Map(
       "User" -> Schema.ObjectVal(Map(
-        "id" -> Schema.IntegerVal(Some("int64"), Some(1), Some(1), Some(Markdown("An id")), Some(0)),
-        "name" -> Schema.StringVal(Some("username"), Some("lkn"), None, Some(Markdown("User name"))),
+        "id" -> Schema.IntegerVal(Some("int64"), None, Some(1), Some(1), Some(Markdown("An id")), Some(0)),
+        "name" -> Schema.StringVal(Some("username"), None, Some("lkn"), None, Some(Markdown("User name"))),
         "flags" -> Schema.ArrayVal(Schema.BooleanVal(None, None, None), Some(List(true, false).map(Js(_))), Some(Markdown("feature flags"))),
         "createdAt" -> Schema.ReferenceVal(Reference.schema("Instant"))
       ), Some(Markdown("A user")), Some(List("id", "name"))),
-      "Instant" -> Schema.StringVal(Some("date-time"), None, None, None))),
+      "Instant" -> Schema.StringVal(Some("date-time"), None, None, None, None))),
     Option.empty[TODO],
     Option.empty[TODO],
     Option.empty[TODO],
@@ -252,4 +262,27 @@ object OpenApiFactorySpec {
     Option.empty[TODO],
     Option.empty[TODO],
     Option.empty[TODO])
+
+  val pathItemJson: String =
+    """{
+      |  "summary": "s",
+      |  "description": "d",
+      |  "get": {
+      |    "responses": {}
+      |  }
+      |}""".stripMargin
+  val pathItem = PathItem(
+    summary = Some("s"),
+    description = Some(Markdown("d")),
+    parameters = None,
+    servers = None,
+    get = Some(PathItem.Operation(None, None, None, None, None, None, None, None, Map(), None, None, None, None)),
+    put = None,
+    post = None,
+    delete = None,
+    options = None,
+    head = None,
+    patch = None,
+    trace = None,
+    extensions = None)
 }

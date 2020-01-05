@@ -2,7 +2,7 @@ package fr.gospeak.web.services.openapi.models
 
 import cats.data.NonEmptyList
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
-import fr.gospeak.web.services.openapi.models.utils.{Reference, Schema, TODO}
+import fr.gospeak.web.services.openapi.models.utils.TODO
 
 /**
  * @see "https://spec.openapis.org/oas/v3.0.2#components-object"

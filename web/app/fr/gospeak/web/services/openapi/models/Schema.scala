@@ -1,7 +1,8 @@
-package fr.gospeak.web.services.openapi.models.utils
+package fr.gospeak.web.services.openapi.models
 
 import cats.data.NonEmptyList
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
+import fr.gospeak.web.services.openapi.models.utils.{Js, Markdown}
 
 // FIXME miss a lot a features here :(
 /**
@@ -17,7 +18,9 @@ sealed trait Schema extends Product with Serializable {
 object Schema {
   val hintAttr = "type"
 
+  // TODO enum, example & default should match format when specified
   final case class StringVal(format: Option[String], // ex: date, date-time, password, byte, binary
+                             enum: Option[List[String]],
                              example: Option[String],
                              default: Option[String],
                              description: Option[Markdown]) extends Schema {
@@ -30,7 +33,9 @@ object Schema {
     val hint = "string"
   }
 
+  // TODO enum, example & default should match format & minimum when specified
   final case class IntegerVal(format: Option[String], // ex: int32, int64
+                              enum: Option[List[Long]],
                               example: Option[Long],
                               default: Option[Long],
                               description: Option[Markdown],
@@ -44,7 +49,9 @@ object Schema {
     val hint = "integer"
   }
 
+  // TODO enum, example & default should match format when specified
   final case class NumberVal(format: Option[String], // ex: float, double
+                             enum: Option[List[Double]],
                              example: Option[Double],
                              default: Option[Double],
                              description: Option[Markdown]) extends Schema {

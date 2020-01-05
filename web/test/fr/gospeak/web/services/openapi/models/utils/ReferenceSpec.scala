@@ -2,6 +2,7 @@ package fr.gospeak.web.services.openapi.models.utils
 
 import cats.data.NonEmptyList
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
+import fr.gospeak.web.services.openapi.models.Reference
 import org.scalatest.{FunSpec, Matchers}
 
 class ReferenceSpec extends FunSpec with Matchers {

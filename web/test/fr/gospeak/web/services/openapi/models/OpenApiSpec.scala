@@ -6,7 +6,7 @@ import fr.gospeak.web.services.openapi.models.utils.Version
 import org.scalatest.{FunSpec, Matchers}
 
 class OpenApiSpec extends FunSpec with Matchers {
-  private val basicOpenApi = OpenApi(Version(1, 2, 3), Info("My api", None, None, None, None, Version(1), None), None, None, None, None, None, None, None)
+  private val basicOpenApi = OpenApi(Version(1, 2, 3), Info("My api", None, None, None, None, Version(1), None), None, None, None, None, None, Map(), None)
 
   describe("OpenApi") {
     it("should check for duplicate tags") {

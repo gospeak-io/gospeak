@@ -2,6 +2,7 @@ package fr.gospeak.web.services.openapi.models.utils
 
 import fr.gospeak.web.services.openapi.OpenApiFactory.Formats._
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
+import fr.gospeak.web.services.openapi.models.{Reference, Schema}
 import fr.gospeak.web.utils.Extensions._
 import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json.{JsError, JsSuccess, Json}
@@ -10,7 +11,7 @@ class SchemaSpec extends FunSpec with Matchers {
   describe("Schema") {
     it("should parse a StringVal") {
       val json = Json.parse("""{"type": "string", "format": "date", "example": "2020-01-04T12:15:19.212Z", "description": "creation date"}""")
-      val schema = Schema.StringVal(Some("date"), Some("2020-01-04T12:15:19.212Z"), None, Some(Markdown("creation date")))
+      val schema = Schema.StringVal(Some("date"), None, Some("2020-01-04T12:15:19.212Z"), None, Some(Markdown("creation date")))
       json.validate[Schema.StringVal] shouldBe JsSuccess(schema)
       Json.toJson(schema) shouldBe json
       json.validate[Schema] shouldBe JsSuccess(schema)
@@ -21,7 +22,7 @@ class SchemaSpec extends FunSpec with Matchers {
     }
     it("should parse a IntegerVal") {
       val json = Json.parse("""{"type": "integer", "format": "int32", "example": 12, "default": 1, "description": "page no", "minimum": 1}""")
-      val schema = Schema.IntegerVal(Some("int32"), Some(12), Some(1), Some(Markdown("page no")), Some(1))
+      val schema = Schema.IntegerVal(Some("int32"), None, Some(12), Some(1), Some(Markdown("page no")), Some(1))
       json.validate[Schema.IntegerVal] shouldBe JsSuccess(schema)
       Json.toJson(schema) shouldBe json
       json.validate[Schema] shouldBe JsSuccess(schema)
@@ -32,7 +33,7 @@ class SchemaSpec extends FunSpec with Matchers {
     }
     it("should parse a NumberVal") {
       val json = Json.parse("""{"type": "number", "format": "double", "example": 4.5, "default": 0.1, "description": "a rating"}""")
-      val schema = Schema.NumberVal(Some("double"), Some(4.5), Some(0.1), Some(Markdown("a rating")))
+      val schema = Schema.NumberVal(Some("double"), None, Some(4.5), Some(0.1), Some(Markdown("a rating")))
       json.validate[Schema.NumberVal] shouldBe JsSuccess(schema)
       Json.toJson(schema) shouldBe json
       json.validate[Schema] shouldBe JsSuccess(schema)
@@ -54,7 +55,7 @@ class SchemaSpec extends FunSpec with Matchers {
     }
     it("should parse a ArrayVal") {
       val json = Json.parse("""{"type": "array", "items": {"type": "string"}, "example": ["tag"], "description": "list of tags"}""")
-      val schema = Schema.ArrayVal(Schema.StringVal(None, None, None, None), Some(List(Js("tag"))), Some(Markdown("list of tags")))
+      val schema = Schema.ArrayVal(Schema.StringVal(None, None, None, None, None), Some(List(Js("tag"))), Some(Markdown("list of tags")))
       json.validate[Schema.ArrayVal] shouldBe JsSuccess(schema)
       Json.toJson(schema) shouldBe json
       json.validate[Schema] shouldBe JsSuccess(schema)
@@ -65,7 +66,7 @@ class SchemaSpec extends FunSpec with Matchers {
     }
     it("should parse a ObjectVal") {
       val json = Json.parse("""{"type": "object", "properties": {"id": {"type": "string"}}, "description": "a user", "required": ["id"]}""")
-      val schema = Schema.ObjectVal(Map("id" -> Schema.StringVal(None, None, None, None)), Some(Markdown("a user")), Some(List("id")))
+      val schema = Schema.ObjectVal(Map("id" -> Schema.StringVal(None, None, None, None, None)), Some(Markdown("a user")), Some(List("id")))
       json.validate[Schema.ObjectVal] shouldBe JsSuccess(schema)
       Json.toJson(schema) shouldBe json
       json.validate[Schema] shouldBe JsSuccess(schema)
@@ -96,9 +97,9 @@ class SchemaSpec extends FunSpec with Matchers {
     }
     describe("flatten") {
       it("should return the list of nested Schemas with the current one") {
-        val strVal = Schema.StringVal(None, None, None, None)
-        val intVal = Schema.IntegerVal(None, None, None, None, None)
-        val numVal = Schema.NumberVal(None, None, None, None)
+        val strVal = Schema.StringVal(None, None, None, None, None)
+        val intVal = Schema.IntegerVal(None, None, None, None, None, None)
+        val numVal = Schema.NumberVal(None, None, None, None, None)
         val boolVal = Schema.BooleanVal(None, None, None)
         val refVal = Schema.ReferenceVal(Reference.schema("Id"))
         val arrStrVal = Schema.ArrayVal(strVal, None, None)

@@ -1,4 +1,4 @@
-package fr.gospeak.web.services.openapi.models.utils
+package fr.gospeak.web.services.openapi.models
 
 import cats.data.NonEmptyList
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
@@ -29,4 +29,20 @@ object Reference {
   }
 
   def schema(name: String): Reference = Reference(s"#/components/schemas/$name")
+
+  def parameter(name: String): Reference = Reference(s"#/components/parameters/$name")
+
+  def requestBody(name: String): Reference = Reference(s"#/components/requestBodies/$name")
+
+  def header(name: String): Reference = Reference(s"#/components/headers/$name")
+
+  def response(name: String): Reference = Reference(s"#/components/responses/$name")
+
+  def callback(name: String): Reference = Reference(s"#/components/callbacks/$name")
+
+  def securityScheme(name: String): Reference = Reference(s"#/components/securitySchemes/$name")
+
+  def link(name: String): Reference = Reference(s"#/components/links/$name")
+
+  def example(name: String): Reference = Reference(s"#/components/examples/$name")
 }

@@ -1,10 +1,11 @@
 package fr.gospeak.web.services.openapi
 
 import cats.data.NonEmptyList
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.web.services.openapi.error.OpenApiError.{ErrorMessage, ValidationError}
 import fr.gospeak.web.services.openapi.error.OpenApiErrors
-import fr.gospeak.web.services.openapi.models.utils.{Email, Js, Markdown, Reference, Schema, TODO, Url, Version}
-import fr.gospeak.web.services.openapi.models.{Components, ExternalDoc, Info, OpenApi, Server, Tag}
+import fr.gospeak.web.services.openapi.models.utils._
+import fr.gospeak.web.services.openapi.models._
 import fr.gospeak.web.utils.Extensions._
 import play.api.libs.json._
 
@@ -29,9 +30,9 @@ object OpenApiFactory {
     implicit val formatUrl: Format[Url] = formatString.validate(Url.from)(_.value)
     implicit val formatEmail: Format[Email] = formatString.validate(Email.from)(_.value)
     implicit val formatVersion: Format[Version] = formatString.validate(Version.from)(_.format)
-    implicit val formatReference: Format[Reference] = formatString.validate(Reference.from)(_.value)
     implicit val formatJs: Format[Js] = Format(js => JsSuccess(Js(js.toString, js.getClass.getSimpleName)), a => Json.parse(a.value))
 
+    implicit val formatReference: Format[Reference] = formatString.validate(Reference.from)(_.value)
     implicit val formatInfoContact: Format[Info.Contact] = Json.format[Info.Contact]
     implicit val formatInfoLicense: Format[Info.License] = Json.format[Info.License]
     implicit val formatInfo: Format[Info] = Json.format[Info]
@@ -71,7 +72,19 @@ object OpenApiFactory {
     implicit val formatComponentsSchemaArray: Format[Schema.ArrayVal] = Json.format[Schema.ArrayVal].hint(Schema.hintAttr, Schema.ArrayVal.hint).verify(_.hasErrors)
     implicit val formatComponentsSchemaObject: Format[Schema.ObjectVal] = Json.format[Schema.ObjectVal].hint(Schema.hintAttr, Schema.ObjectVal.hint).verify(_.hasErrors)
     implicit val formatComponentsSchemaReference: Format[Schema.ReferenceVal] = Json.format[Schema.ReferenceVal]
+    implicit val formatParameterLocation: Format[Parameter.Location] = formatString.validate(Parameter.Location.from)(_.value)
+    implicit val formatParameter: Format[Parameter] = Json.format[Parameter]
     implicit val formatComponents: Format[Components] = Json.format[Components].verify(_.hasErrors)
+    implicit val formatHeader: Format[Header] = Json.format[Header]
+    implicit val formatMediaType: Format[MediaType] = Json.format[MediaType]
+    implicit val formatLink: Format[Link] = Json.format[Link]
+    implicit val formatResponse: Format[Response] = Json.format[Response]
+    implicit val formatRequestBody: Format[RequestBody] = Json.format[RequestBody]
+    implicit val formatPathItemOperation: Format[PathItem.Operation] = Json.format[PathItem.Operation]
+    implicit val formatPathItem: Format[PathItem] = Json.format[PathItem]
+    implicit val formatPaths: Format[Map[Path, PathItem]] = implicitly[Format[Map[String, PathItem]]].validate(
+      _.map { case (k, v) => Path.from(k).map(p => (p, v)) }.sequence.map(_.toMap))(
+      _.map { case (k, v) => (k.value, v) })
     implicit val formatOpenApi: Format[OpenApi] = Json.format[OpenApi].verify(_.hasErrors)
   }
 
