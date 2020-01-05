@@ -31,9 +31,10 @@ object OpenApiError {
     /**
      * When a property does not exists (for object type in schemas)
      *
-     * @param name the property name
+     * @param name     the property name
+     * @param location where the missing property was referenced (can be a location hint instead of a precise location)
      */
-    def missingProperty(name: String): ErrorMessage = ErrorMessage("error.property.missing", List(name))
+    def missingProperty(name: String, location: String): ErrorMessage = ErrorMessage("error.property.missing", List(name, location))
 
     /**
      * When a reference does not exists

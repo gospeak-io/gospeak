@@ -176,6 +176,7 @@ object ProposalRepoSql {
 
   private val ratingTableFull = ratingTable
     .join(Tables.users, _.created_by -> _.id).get
+    .join(Tables.proposals, _.proposal_id -> _.id).get
   private val ratingTableWithProposalCfp = ratingTable
     .join(table, _.proposal_id -> _.id).get
     .join(Tables.cfps, _.cfp_id -> _.id).get

@@ -15,9 +15,9 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 class ApiCfpCtrl(cc: ControllerComponents,
                  silhouette: Silhouette[CookieEnv],
                  conf: AppConf,
+                 userRepo: OrgaUserRepo,
                  val groupRepo: OrgaGroupRepo,
-                 cfpRepo: OrgaCfpRepo,
-                 userRepo: OrgaUserRepo) extends ApiCtrl(cc, silhouette, conf) with ApiCtrl.OrgaAction {
+                 cfpRepo: OrgaCfpRepo) extends ApiCtrl(cc, silhouette, conf) with ApiCtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction[Seq[ApiCfp.Orga]](group) { implicit req =>
     for {
       cfps <- cfpRepo.list(params)

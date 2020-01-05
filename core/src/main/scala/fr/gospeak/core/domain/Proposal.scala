@@ -111,14 +111,14 @@ object Proposal {
       implicit val ordering: Ordering[Grade] = (x: Grade, y: Grade) => x.value - y.value
     }
 
-    final case class Full(rating: Rating, user: User) {
-      def proposal: Id = rating.proposal
-
+    final case class Full(rating: Rating, user: User, proposal: Proposal) {
       def grade: Grade = rating.grade
 
       def createdAt: Instant = rating.createdAt
 
       def createdBy: User.Id = rating.createdBy
+
+      def users: Seq[User.Id] = proposal.users
     }
 
   }

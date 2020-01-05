@@ -105,7 +105,7 @@ object Schema {
     def hasErrors: Option[NonEmptyList[ErrorMessage]] = {
       val missingProperties = required.getOrElse(List())
         .filterNot(properties.contains)
-        .map(ErrorMessage.missingProperty)
+        .map(ErrorMessage.missingProperty(_, "required"))
       val duplicateRequired = required.getOrElse(List())
         .groupBy(identity)
         .filter(_._2.length > 1)

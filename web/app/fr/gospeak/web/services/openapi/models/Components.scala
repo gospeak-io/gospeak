@@ -38,6 +38,8 @@ final case class Components(schemas: Option[Map[String, Schema]],
       }).filter(_._2.exists(_._2.nonEmpty))
       .flatMap { case (name, results) => results.map { case (s, ex) => ErrorMessage.badExampleFormat(ex.map(_.value).mkString(", "), s.hint, name) } }.toList
 
-    NonEmptyList.fromList(badExamplesInSchemaArrays)
+    val duplicateSchemaNames = schemas.getOrElse(Map()).keys.groupBy(identity).filter(_._2.size > 1).keys.toList.map(ErrorMessage.duplicateValue(_, "schemas"))
+
+    NonEmptyList.fromList(badExamplesInSchemaArrays ++ duplicateSchemaNames)
   }
 }

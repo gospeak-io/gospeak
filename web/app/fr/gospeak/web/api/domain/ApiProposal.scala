@@ -1,5 +1,7 @@
 package fr.gospeak.web.api.domain
 
+import java.time.Instant
+
 import fr.gospeak.core.domain.utils.{BasicCtx, OrgaCtx}
 import fr.gospeak.core.domain.{Proposal, User}
 import fr.gospeak.web.api.domain.utils.ApiInfo
@@ -27,11 +29,28 @@ object ApiProposal {
                         score: Long,
                         likes: Long,
                         dislikes: Long,
-                        userRating: Option[Int],
+                        userGrade: Option[Int],
                         info: ApiInfo)
 
   object Orga {
     implicit val writes: Writes[Orga] = Json.writes[Orga]
+
+    final case class Rating(proposal: Embed,
+                            user: ApiUser.Embed,
+                            grade: Int,
+                            updatedAt: Instant)
+
+    object Rating {
+      implicit val writes: Writes[Rating] = Json.writes[Rating]
+
+      def from(r: Proposal.Rating.Full, users: Seq[User])(implicit ctx: OrgaCtx): Rating =
+        new Rating(
+          proposal = embed(r.proposal, users),
+          user = ApiUser.embed(r.user),
+          grade = r.rating.grade.value,
+          updatedAt = r.rating.createdAt)
+    }
+
   }
 
   def orga(p: Proposal.Full, users: Seq[User])(implicit ctx: OrgaCtx): Orga =
@@ -52,7 +71,7 @@ object ApiProposal {
       score = p.score,
       likes = p.likes,
       dislikes = p.dislikes,
-      userRating = p.userGrade.map(_.value),
+      userGrade = p.userGrade.map(_.value),
       info = ApiInfo.from(p.info, users))
 
   // data to display publicly

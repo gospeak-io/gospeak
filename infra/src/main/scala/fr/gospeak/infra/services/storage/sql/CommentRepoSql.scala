@@ -23,9 +23,9 @@ class CommentRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def getComments(event: Event.Id): IO[Seq[Comment.Full]] = selectAll(event, Comment.Kind.Event).runList(xa)
 
-  override def getComments(proposal: Proposal.Id): IO[Seq[Comment.Full]] = selectAll(proposal, Comment.Kind.Proposal).runList(xa)
+  override def getComments(proposal: Proposal.Id)(implicit ctx: UserCtx): IO[Seq[Comment.Full]] = selectAll(proposal, Comment.Kind.Proposal).runList(xa)
 
-  override def getOrgaComments(proposal: Proposal.Id): IO[Seq[Comment.Full]] = selectAll(proposal, Comment.Kind.ProposalOrga).runList(xa)
+  override def getOrgaComments(proposal: Proposal.Id)(implicit ctx: OrgaCtx): IO[Seq[Comment.Full]] = selectAll(proposal, Comment.Kind.ProposalOrga).runList(xa)
 }
 
 object CommentRepoSql {

@@ -36,7 +36,11 @@ object Comment {
     override val all: Seq[Kind] = Seq(Event, Proposal, ProposalOrga)
   }
 
-  final case class Full(comment: Comment, user: User) {
+  final case class Full(comment: Comment, createdBy: User) {
+    def id: Id = comment.id
+
+    def answers: Option[Id] = comment.answers
+
     def text: String = comment.text
 
     def createdAt: Instant = comment.createdAt

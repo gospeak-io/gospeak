@@ -231,6 +231,10 @@ GET         /api/u/groups/:group/cfps                                           
 GET         /api/u/groups/:group/cfps/:cfp                                                 fr.gospeak.web.api.orga.ApiCfpCtrl.detail(group: Group.Slug, cfp: Cfp.Slug)
 GET         /api/u/groups/:group/cfps/:cfp/proposals                                       fr.gospeak.web.api.orga.ApiProposalCtrl.list(group: Group.Slug, cfp: Cfp.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /api/u/groups/:group/cfps/:cfp/proposals/:proposal                             fr.gospeak.web.api.orga.ApiProposalCtrl.detail(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)
+GET         /api/u/groups/:group/cfps/:cfp/proposals/:proposal/ratings                     fr.gospeak.web.api.orga.ApiProposalCtrl.ratings(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)
+GET         /api/u/groups/:group/cfps/:cfp/proposals/:proposal/comments/speaker            fr.gospeak.web.api.orga.ApiProposalCtrl.speakerComments(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)
+GET         /api/u/groups/:group/cfps/:cfp/proposals/:proposal/comments/orga               fr.gospeak.web.api.orga.ApiProposalCtrl.orgaComments(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)
+#GET         /api/u/groups/:group/cfps/:cfp/proposals/:proposal/invites                     fr.gospeak.web.api.orga.ApiProposalCtrl.invites(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)
 GET         /api/u/groups/:group/proposals                                                 fr.gospeak.web.api.orga.ApiProposalCtrl.listAll(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 
 GET         /assets/*file                                                                  controllers.Assets.versioned(path="/public/lib", file: Asset)

@@ -15,10 +15,10 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 class ApiEventCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
                    conf: AppConf,
+                   userRepo: OrgaUserRepo,
                    val groupRepo: OrgaGroupRepo,
                    eventRepo: OrgaEventRepo,
-                   proposalRepo: OrgaProposalRepo,
-                   userRepo: OrgaUserRepo) extends ApiCtrl(cc, silhouette, conf) with ApiCtrl.OrgaAction {
+                   proposalRepo: OrgaProposalRepo) extends ApiCtrl(cc, silhouette, conf) with ApiCtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction[Seq[ApiEvent.Orga]](group) { implicit req =>
     for {
       events <- eventRepo.listFull(params)

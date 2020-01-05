@@ -11,15 +11,15 @@ trait OrgaCommentRepo {
 
   def addOrgaComment(proposal: Proposal.Id, data: Comment.Data)(implicit ctx: OrgaCtx): IO[Comment]
 
-  def getComments(proposal: Proposal.Id): IO[Seq[Comment.Full]]
+  def getComments(proposal: Proposal.Id)(implicit ctx: UserCtx): IO[Seq[Comment.Full]]
 
-  def getOrgaComments(proposal: Proposal.Id): IO[Seq[Comment.Full]]
+  def getOrgaComments(proposal: Proposal.Id)(implicit ctx: OrgaCtx): IO[Seq[Comment.Full]]
 }
 
 trait SpeakerCommentRepo {
   def addComment(proposal: Proposal.Id, data: Comment.Data)(implicit ctx: UserCtx): IO[Comment]
 
-  def getComments(proposal: Proposal.Id): IO[Seq[Comment.Full]]
+  def getComments(proposal: Proposal.Id)(implicit ctx: UserCtx): IO[Seq[Comment.Full]]
 }
 
 trait PublicCommentRepo {

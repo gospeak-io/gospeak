@@ -228,6 +228,6 @@ object ProposalRepoSqlSpec {
   private val fieldsFullCustom = "(SELECT grade from proposal_ratings WHERE created_by=? AND proposal_id=p.id) as user_grade"
   private val orderByFull = "ORDER BY COALESCE(SUM(pr.grade), 0) IS NULL, COALESCE(SUM(pr.grade), 0) DESC, COALESCE(COUNT(pr.grade), 0) IS NULL, COALESCE(COUNT(pr.grade), 0) DESC, p.created_at IS NULL, p.created_at DESC"
 
-  private val ratingTableFull = s"$ratingTable INNER JOIN $userTable ON pr.created_by=u.id"
-  private val ratingFieldsFull = s"$ratingFields, $userFields"
+  private val ratingTableFull = s"$ratingTable INNER JOIN $userTable ON pr.created_by=u.id INNER JOIN $table ON pr.proposal_id=p.id"
+  private val ratingFieldsFull = s"$ratingFields, $userFields, $fields"
 }

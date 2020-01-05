@@ -92,7 +92,7 @@ class SchemaSpec extends FunSpec with Matchers {
     }
     it("should fail if ObjectVal has a required field not present in properties") {
       val json = Json.parse("""{"type": "object", "properties": {}, "required": ["id"]}""")
-      json.validate[Schema.ObjectVal] shouldBe JsError(ErrorMessage.missingProperty("id").toJson)
+      json.validate[Schema.ObjectVal] shouldBe JsError(ErrorMessage.missingProperty("id", "required").toJson)
     }
     describe("flatten") {
       it("should return the list of nested Schemas with the current one") {
