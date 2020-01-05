@@ -1,5 +1,6 @@
 package fr.gospeak.web.services.openapi.models
 
+import cats.data.NonEmptyList
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
 import fr.gospeak.web.services.openapi.models.Server.Variable
 import fr.gospeak.web.services.openapi.models.utils.{Markdown, TODO, Url}
@@ -13,11 +14,11 @@ final case class Server(url: Url,
                         description: Option[Markdown],
                         variables: Option[Map[String, Variable]],
                         extensions: Option[TODO]) {
-  def hasErrors: Option[List[ErrorMessage]] = {
+  def hasErrors: Option[NonEmptyList[ErrorMessage]] = {
     val errors = Server.extractVariables(url)
       .filterNot(v => variables.exists(_.contains(v)))
       .map(ErrorMessage.missingVariable)
-    if (errors.isEmpty) None else Some(errors)
+    NonEmptyList.fromList(errors)
   }
 
   def readUrl: Url = {

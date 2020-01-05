@@ -1,12 +1,13 @@
 package fr.gospeak.web.services.openapi.error
 
+import cats.data.NonEmptyList
 import fr.gospeak.web.services.openapi.error.OpenApiError.MissingErrors
 
 // FIXME: getMessage will return null :(
 final case class OpenApiErrors(head: OpenApiError, tail: List[OpenApiError]) extends Throwable {
-  def toList: List[OpenApiError] = head :: tail
+  def toList: NonEmptyList[OpenApiError] = NonEmptyList.of(head, tail: _*)
 
-  override def toString: String = s"OpenApiErrors(${toList.mkString(", ")})"
+  override def toString: String = s"OpenApiErrors(${toList.toList.mkString(", ")})"
 }
 
 object OpenApiErrors {

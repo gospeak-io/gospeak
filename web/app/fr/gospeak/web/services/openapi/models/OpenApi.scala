@@ -1,7 +1,8 @@
 package fr.gospeak.web.services.openapi.models
 
+import cats.data.NonEmptyList
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
-import fr.gospeak.web.services.openapi.models.utils.{TODO, Version}
+import fr.gospeak.web.services.openapi.models.utils.{Schema, TODO, Version}
 
 /**
  * A parsed OpenAPI Specification
@@ -18,15 +19,22 @@ final case class OpenApi(openapi: Version,
                          tags: Option[List[Tag]],
                          security: Option[TODO],
                          paths: Option[TODO],
-                         components: Option[TODO],
+                         components: Option[Components],
                          extensions: Option[TODO]) {
-  def hasErrors: Option[List[ErrorMessage]] = {
-    val duplicateTags = tags
-      .map(t => t.groupBy(_.name).filter(_._2.length > 1).keys.toList)
-      .getOrElse(List())
+  def hasErrors: Option[NonEmptyList[ErrorMessage]] = {
+    val duplicateTags = tags.getOrElse(List())
+      .groupBy(_.name)
+      .filter(_._2.length > 1)
+      .keys.toList
       .map(ErrorMessage.duplicateValue(_, "tags"))
 
-    val errors = duplicateTags
-    if (errors.isEmpty) None else Some(errors)
+    val references = components.flatMap(_.schemas.map(_.values.toList.flatMap(_.flatten.collect { case Schema.ReferenceVal(r) => r }))).getOrElse(List()).distinct
+    val missingReferences = references.flatMap(r => r.localRef match {
+      case Some(("schemas", name)) => if (components.exists(_.schemas.exists(_.contains(name)))) None else Some(ErrorMessage.missingReference(r.value))
+      case Some((component, _)) => Some(ErrorMessage.unknownReference(r.value, component))
+      case None => None
+    })
+
+    NonEmptyList.fromList(duplicateTags ++ missingReferences)
   }
 }
