@@ -64,9 +64,6 @@ object Extensions {
     def verify(f: A => Option[NonEmptyList[ErrorMessage]]): Format[A] =
       Format(js => in.reads(js).flatMap(a => asJson(f(a).map(_.map(_.toJson)).toLeft(a))), in)
 
-    // def hint(attribute: String): Format[A] =
-    //   Format(js => in.reads(js).flatMap(a => (js \ attribute).validate[String].map(_ => a)), in)
-
     /**
      * Add a hint attribute to the `Format[A]`.
      *

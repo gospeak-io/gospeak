@@ -7,7 +7,7 @@ import fr.gospeak.web.services.openapi.models._
 import fr.gospeak.web.services.openapi.models.utils._
 import fr.gospeak.web.utils.Extensions._
 import org.scalatest.{FunSpec, Matchers}
-import play.api.libs.json.{JsBoolean, JsError, JsSuccess, Json}
+import play.api.libs.json.{JsError, JsSuccess, Json}
 
 class OpenApiFactorySpec extends FunSpec with Matchers {
   describe("OpenApiFactory") {
@@ -239,7 +239,7 @@ object OpenApiFactorySpec {
       "User" -> Schema.ObjectVal(Map(
         "id" -> Schema.IntegerVal(Some("int64"), Some(1), Some(1), Some(Markdown("An id")), Some(0)),
         "name" -> Schema.StringVal(Some("username"), Some("lkn"), None, Some(Markdown("User name"))),
-        "flags" -> Schema.ArrayVal(Schema.BooleanVal(None, None, None), Some(List(true, false).map(JsBoolean)), Some(Markdown("feature flags"))),
+        "flags" -> Schema.ArrayVal(Schema.BooleanVal(None, None, None), Some(List(true, false).map(Js(_))), Some(Markdown("feature flags"))),
         "createdAt" -> Schema.ReferenceVal(Reference.schema("Instant"))
       ), Some(Markdown("A user")), Some(List("id", "name"))),
       "Instant" -> Schema.StringVal(Some("date-time"), None, None, None))),

@@ -21,13 +21,12 @@ final case class Server(url: Url,
     NonEmptyList.fromList(errors)
   }
 
-  def readUrl: Url = {
+  def expandedUrl: Url =
     Server.extractVariables(url).foldLeft(url) { (cur, key) =>
       variables.flatMap(_.get(key))
         .map(v => Url(cur.value.replace(s"{$key}", v.default)))
         .getOrElse(cur)
     }
-  }
 }
 
 object Server {

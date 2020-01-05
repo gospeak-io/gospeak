@@ -4,7 +4,7 @@ import fr.gospeak.web.services.openapi.OpenApiFactory.Formats._
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
 import fr.gospeak.web.utils.Extensions._
 import org.scalatest.{FunSpec, Matchers}
-import play.api.libs.json.{JsError, JsString, JsSuccess, Json}
+import play.api.libs.json.{JsError, JsSuccess, Json}
 
 class SchemaSpec extends FunSpec with Matchers {
   describe("Schema") {
@@ -54,7 +54,7 @@ class SchemaSpec extends FunSpec with Matchers {
     }
     it("should parse a ArrayVal") {
       val json = Json.parse("""{"type": "array", "items": {"type": "string"}, "example": ["tag"], "description": "list of tags"}""")
-      val schema = Schema.ArrayVal(Schema.StringVal(None, None, None, None), Some(List(JsString("tag"))), Some(Markdown("list of tags")))
+      val schema = Schema.ArrayVal(Schema.StringVal(None, None, None, None), Some(List(Js("tag"))), Some(Markdown("list of tags")))
       json.validate[Schema.ArrayVal] shouldBe JsSuccess(schema)
       Json.toJson(schema) shouldBe json
       json.validate[Schema] shouldBe JsSuccess(schema)

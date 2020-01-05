@@ -18,8 +18,8 @@ class ServerSpec extends FunSpec with Matchers {
       Server(Url("https://gospeak.io:{port}/api"), None, None, None).hasErrors shouldBe Some(NonEmptyList.of(ErrorMessage.missingVariable("port")))
     }
     it("should replace variables") {
-      Server(Url("https://gospeak.io/api"), None, None, None).readUrl shouldBe Url("https://gospeak.io/api")
-      Server(Url("https://gospeak.io:{port}/api"), None, Some(Map("port" -> Server.Variable("9000", None, None, None))), None).readUrl shouldBe Url("https://gospeak.io:9000/api")
+      Server(Url("https://gospeak.io/api"), None, None, None).expandedUrl shouldBe Url("https://gospeak.io/api")
+      Server(Url("https://gospeak.io:{port}/api"), None, Some(Map("port" -> Server.Variable("9000", None, None, None))), None).expandedUrl shouldBe Url("https://gospeak.io:9000/api")
     }
   }
 }

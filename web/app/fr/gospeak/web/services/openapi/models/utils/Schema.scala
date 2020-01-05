@@ -2,7 +2,6 @@ package fr.gospeak.web.services.openapi.models.utils
 
 import cats.data.NonEmptyList
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
-import play.api.libs.json._
 
 // FIXME miss a lot a features here :(
 /**
@@ -16,6 +15,7 @@ sealed trait Schema extends Product with Serializable {
 }
 
 object Schema {
+  val hintAttr = "type"
 
   final case class StringVal(format: Option[String], // ex: date, date-time, password, byte, binary
                              example: Option[String],
@@ -70,7 +70,7 @@ object Schema {
   }
 
   final case class ArrayVal(items: Schema,
-                            example: Option[List[JsValue]],
+                            example: Option[List[Js]],
                             description: Option[Markdown]) extends Schema {
     override val hint: String = ArrayVal.hint
 
@@ -78,14 +78,14 @@ object Schema {
 
     def hasErrors: Option[NonEmptyList[ErrorMessage]] = {
       val badTypeExamples = (items match {
-        case _: StringVal => example.getOrElse(List()).filterNot(_.isInstanceOf[JsString])
-        case _: IntegerVal => example.getOrElse(List()).filterNot(_.isInstanceOf[JsNumber])
-        case _: NumberVal => example.getOrElse(List()).filterNot(_.isInstanceOf[JsNumber])
-        case _: BooleanVal => example.getOrElse(List()).filterNot(_.isInstanceOf[JsBoolean])
-        case _: ArrayVal => example.getOrElse(List()).filterNot(_.isInstanceOf[JsArray])
-        case _: ObjectVal => example.getOrElse(List()).filterNot(_.isInstanceOf[JsObject])
+        case _: StringVal => example.getOrElse(List()).filterNot(_.isString)
+        case _: IntegerVal => example.getOrElse(List()).filterNot(_.isNumber)
+        case _: NumberVal => example.getOrElse(List()).filterNot(_.isNumber)
+        case _: BooleanVal => example.getOrElse(List()).filterNot(_.isBoolean)
+        case _: ArrayVal => example.getOrElse(List()).filterNot(_.isArray)
+        case _: ObjectVal => example.getOrElse(List()).filterNot(_.isObject)
         case _: ReferenceVal => List() // will be done at Components level
-      }).map(e => ErrorMessage.badExampleFormat(e.toString, items.hint, description.map(_.value).getOrElse("")))
+      }).map(e => ErrorMessage.badExampleFormat(e.value, items.hint, description.map(_.value).getOrElse("")))
 
       NonEmptyList.fromList(badTypeExamples)
     }

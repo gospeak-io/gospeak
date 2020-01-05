@@ -3,7 +3,7 @@ package fr.gospeak.web.services.openapi
 import cats.data.NonEmptyList
 import fr.gospeak.web.services.openapi.error.OpenApiError.{ErrorMessage, ValidationError}
 import fr.gospeak.web.services.openapi.error.OpenApiErrors
-import fr.gospeak.web.services.openapi.models.utils.{Email, Markdown, Reference, Schema, TODO, Url, Version}
+import fr.gospeak.web.services.openapi.models.utils.{Email, Js, Markdown, Reference, Schema, TODO, Url, Version}
 import fr.gospeak.web.services.openapi.models.{Components, ExternalDoc, Info, OpenApi, Server, Tag}
 import fr.gospeak.web.utils.Extensions._
 import play.api.libs.json._
@@ -30,6 +30,7 @@ object OpenApiFactory {
     implicit val formatEmail: Format[Email] = formatString.validate(Email.from)(_.value)
     implicit val formatVersion: Format[Version] = formatString.validate(Version.from)(_.format)
     implicit val formatReference: Format[Reference] = formatString.validate(Reference.from)(_.value)
+    implicit val formatJs: Format[Js] = Format(js => JsSuccess(Js(js.toString, js.getClass.getSimpleName)), a => Json.parse(a.value))
 
     implicit val formatInfoContact: Format[Info.Contact] = Json.format[Info.Contact]
     implicit val formatInfoLicense: Format[Info.License] = Json.format[Info.License]
@@ -40,14 +41,14 @@ object OpenApiFactory {
     implicit val formatTag: Format[Tag] = Json.format[Tag]
     implicit val formatComponentsSchema: Format[Schema] = Format[Schema]( // should be declared before sub-types for recursive types
       new Reads[Schema] {
-        override def reads(json: JsValue): JsResult[Schema] = (json \ "type").asOpt[String] match {
-          case Some("string") => formatComponentsSchemaString.reads(json)
-          case Some("integer") => formatComponentsSchemaInteger.reads(json)
-          case Some("number") => formatComponentsSchemaNumber.reads(json)
-          case Some("boolean") => formatComponentsSchemaBoolean.reads(json)
-          case Some("array") => formatComponentsSchemaArray.reads(json)
-          case Some("object") => formatComponentsSchemaObject.reads(json)
-          case Some(value) => JsError(ErrorMessage.unknownHint(value, "type").toJson)
+        override def reads(json: JsValue): JsResult[Schema] = (json \ Schema.hintAttr).asOpt[String] match {
+          case Some(Schema.StringVal.hint) => formatComponentsSchemaString.reads(json)
+          case Some(Schema.IntegerVal.hint) => formatComponentsSchemaInteger.reads(json)
+          case Some(Schema.NumberVal.hint) => formatComponentsSchemaNumber.reads(json)
+          case Some(Schema.BooleanVal.hint) => formatComponentsSchemaBoolean.reads(json)
+          case Some(Schema.ArrayVal.hint) => formatComponentsSchemaArray.reads(json)
+          case Some(Schema.ObjectVal.hint) => formatComponentsSchemaObject.reads(json)
+          case Some(value) => JsError(ErrorMessage.unknownHint(value, Schema.hintAttr).toJson)
           case None => formatComponentsSchemaReference.reads(json)
         }
       },
@@ -63,12 +64,12 @@ object OpenApiFactory {
         }
       }
     )
-    implicit val formatComponentsSchemaString: Format[Schema.StringVal] = Json.format[Schema.StringVal].hint("type", Schema.StringVal.hint)
-    implicit val formatComponentsSchemaInteger: Format[Schema.IntegerVal] = Json.format[Schema.IntegerVal].hint("type", Schema.IntegerVal.hint)
-    implicit val formatComponentsSchemaNumber: Format[Schema.NumberVal] = Json.format[Schema.NumberVal].hint("type", Schema.NumberVal.hint)
-    implicit val formatComponentsSchemaBoolean: Format[Schema.BooleanVal] = Json.format[Schema.BooleanVal].hint("type", Schema.BooleanVal.hint)
-    implicit val formatComponentsSchemaArray: Format[Schema.ArrayVal] = Json.format[Schema.ArrayVal].hint("type", Schema.ArrayVal.hint).verify(_.hasErrors)
-    implicit val formatComponentsSchemaObject: Format[Schema.ObjectVal] = Json.format[Schema.ObjectVal].hint("type", Schema.ObjectVal.hint).verify(_.hasErrors)
+    implicit val formatComponentsSchemaString: Format[Schema.StringVal] = Json.format[Schema.StringVal].hint(Schema.hintAttr, Schema.StringVal.hint)
+    implicit val formatComponentsSchemaInteger: Format[Schema.IntegerVal] = Json.format[Schema.IntegerVal].hint(Schema.hintAttr, Schema.IntegerVal.hint)
+    implicit val formatComponentsSchemaNumber: Format[Schema.NumberVal] = Json.format[Schema.NumberVal].hint(Schema.hintAttr, Schema.NumberVal.hint)
+    implicit val formatComponentsSchemaBoolean: Format[Schema.BooleanVal] = Json.format[Schema.BooleanVal].hint(Schema.hintAttr, Schema.BooleanVal.hint)
+    implicit val formatComponentsSchemaArray: Format[Schema.ArrayVal] = Json.format[Schema.ArrayVal].hint(Schema.hintAttr, Schema.ArrayVal.hint).verify(_.hasErrors)
+    implicit val formatComponentsSchemaObject: Format[Schema.ObjectVal] = Json.format[Schema.ObjectVal].hint(Schema.hintAttr, Schema.ObjectVal.hint).verify(_.hasErrors)
     implicit val formatComponentsSchemaReference: Format[Schema.ReferenceVal] = Json.format[Schema.ReferenceVal]
     implicit val formatComponents: Format[Components] = Json.format[Components].verify(_.hasErrors)
     implicit val formatOpenApi: Format[OpenApi] = Json.format[OpenApi].verify(_.hasErrors)
