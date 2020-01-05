@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import fr.gospeak.libs.scalautils.domain._
 
 trait ProposalRepo extends OrgaProposalRepo with SpeakerProposalRepo with UserProposalRepo with AuthProposalRepo with SuggestProposalRepo with PublicProposalRepo
@@ -37,9 +37,9 @@ trait OrgaProposalRepo {
 
   def listFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]]
 
-  def listFull(cfp: Cfp.Slug, params: Page.Params): IO[Page[Proposal.Full]]
+  def listFull(cfp: Cfp.Slug, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]]
 
-  def listFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params): IO[Page[Proposal.Full]]
+  def listFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]]
 
   def list(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal]]
 
@@ -47,7 +47,7 @@ trait OrgaProposalRepo {
 
   def find(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal]]
 
-  def findFull(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal.Full]]
+  def findFull(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): IO[Option[Proposal.Full]]
 
   def listRatings(id: Proposal.Id): IO[Seq[Proposal.Rating.Full]]
 
@@ -69,13 +69,13 @@ trait SpeakerProposalRepo {
 
   def find(proposal: Proposal.Id): IO[Option[Proposal]]
 
-  def findFull(proposal: Proposal.Id): IO[Option[Proposal.Full]]
+  def findFull(proposal: Proposal.Id)(implicit ctx: UserCtx): IO[Option[Proposal.Full]]
 
   def findFull(talk: Talk.Slug, cfp: Cfp.Slug)(implicit ctx: UserCtx): IO[Option[Proposal.Full]]
 
   def listFull(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]]
 
-  def listFull(talk: Talk.Id, params: Page.Params): IO[Page[Proposal.Full]]
+  def listFull(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]]
 
   def find(talk: Talk.Slug, cfp: Cfp.Slug)(implicit ctx: UserCtx): IO[Option[Proposal]]
 }
@@ -89,13 +89,13 @@ trait UserProposalRepo {
 trait AuthProposalRepo
 
 trait PublicProposalRepo {
-  def listPublicFull(speaker: User.Id, params: Page.Params): IO[Page[Proposal.Full]]
+  def listPublicFull(speaker: User.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Proposal.Full]]
 
-  def listPublicFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]]
+  def listPublicFull(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Proposal.Full]]
 
   def listPublic(ids: Seq[Proposal.Id]): IO[Seq[Proposal]]
 
-  def findPublicFull(group: Group.Id, proposal: Proposal.Id): IO[Option[Proposal.Full]]
+  def findPublicFull(group: Group.Id, proposal: Proposal.Id)(implicit ctx: UserAwareCtx): IO[Option[Proposal.Full]]
 }
 
 trait SuggestProposalRepo {
@@ -103,7 +103,7 @@ trait SuggestProposalRepo {
 
   def listOrgaTags()(implicit ctx: OrgaCtx): IO[Seq[Tag]]
 
-  def listFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]]
+  def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]]
 }
 
 object ProposalFields {

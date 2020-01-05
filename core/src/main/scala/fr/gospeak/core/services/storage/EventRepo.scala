@@ -75,7 +75,7 @@ trait PublicEventRepo {
 }
 
 trait SuggestEventRepo {
-  def list(group: Group.Id, params: Page.Params): IO[Page[Event]]
-
   def listTags(): IO[Seq[Tag]]
+
+  def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]]
 }

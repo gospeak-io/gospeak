@@ -8,12 +8,12 @@ import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import fr.gospeak.core.services.storage.ProposalRepo
 import fr.gospeak.infra.services.storage.sql.ProposalRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
-import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
+import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{CustomField, Field, Insert, Select, SelectPage, Update}
+import fr.gospeak.infra.services.storage.sql.utils.{DoobieUtils, GenericRepo}
 import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain._
 
@@ -100,33 +100,31 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def find(talk: Talk.Slug, cfp: Cfp.Slug)(implicit ctx: UserCtx): IO[Option[Proposal]] = selectOne(ctx.user.id, talk, cfp).runOption(xa)
 
-  override def findFull(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal.Full]] = selectOneFull(cfp, id).runOption(xa)
+  override def findFull(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): IO[Option[Proposal.Full]] = selectOneFull(cfp, id).runOption(xa)
 
-  override def findFull(proposal: Proposal.Id): IO[Option[Proposal.Full]] = selectOneFull(proposal).runOption(xa)
+  override def findFull(proposal: Proposal.Id)(implicit ctx: UserCtx): IO[Option[Proposal.Full]] = selectOneFull(proposal).runOption(xa)
 
-  override def findFull(talk: Talk.Slug, cfp: Cfp.Slug)(implicit ctx: UserCtx): IO[Option[Proposal.Full]] = selectOneFull(talk, cfp, ctx.user.id).runOption(xa)
+  override def findFull(talk: Talk.Slug, cfp: Cfp.Slug)(implicit ctx: UserCtx): IO[Option[Proposal.Full]] = selectOneFull(talk, cfp).runOption(xa)
 
-  override def findPublicFull(group: Group.Id, proposal: Proposal.Id): IO[Option[Proposal.Full]] = selectOnePublicFull(group, proposal).runOption(xa)
+  override def findPublicFull(group: Group.Id, proposal: Proposal.Id)(implicit ctx: UserAwareCtx): IO[Option[Proposal.Full]] = selectOnePublicFull(group, proposal).runOption(xa)
 
   override def list(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal]] = selectPage(cfp, status, params).run(xa)
 
-  override def listFull(cfp: Cfp.Slug, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(cfp, params).run(xa)
+  override def listFull(cfp: Cfp.Slug, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(cfp, params).run(xa)
 
-  override def listFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(cfp, status, params).run(xa)
+  override def listFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(cfp, status, params).run(xa)
 
-  override def listFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(group, params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(params).run(xa)
 
-  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(ctx.group.id, params).run(xa)
+  override def listFull(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectPageFull(talk, params).run(xa)
 
-  override def listFull(talk: Talk.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(talk, params).run(xa)
+  override def listFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(speaker, params).run(xa)
 
-  override def listFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(ctx.group.id, speaker, params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectSpeakerPageFull(params).run(xa)
 
-  override def listFull(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectPageFull(ctx.user.id, params).run(xa)
+  override def listPublicFull(speaker: User.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Proposal.Full]] = selectPagePublicFull(speaker, params).run(xa)
 
-  override def listPublicFull(speaker: User.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPagePublicFull(speaker, params).run(xa)
-
-  override def listPublicFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPagePublicFull(group, params).run(xa)
+  override def listPublicFull(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Proposal.Full]] = selectPagePublicFull(group, params).run(xa)
 
   override def list(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = runNel(selectAll, ids)
 
@@ -153,7 +151,7 @@ object ProposalRepoSql {
   private val tableWithEvent = table
     .joinOpt(Tables.events, _.event_id -> _.id).get
     .dropFields(_.prefix == Tables.events.prefix)
-  private val tableFull = table
+  private val tableFullBase = table
     .join(Tables.cfps, _.cfp_id -> _.id).get
     .join(Tables.groups.dropFields(_.name.startsWith("location_")), _.group_id("c") -> _.id).get
     .join(Tables.talks, _.talk_id("p") -> _.id).get
@@ -169,6 +167,13 @@ object ProposalRepoSql {
       "score" -> Seq(Field("-COALESCE(SUM(pr.grade), 0)", ""), Field("-COALESCE(COUNT(pr.grade), 0)", ""), Field("-created_at", "p")),
       "created" -> Seq(Field("created_at", "p")),
       "title" -> Seq(Field("LOWER(p.title)", "")))
+
+  private def userGrade(user: User) = fr0"(SELECT grade from proposal_ratings WHERE created_by=${user.id} AND proposal_id=p.id)"
+
+  private def tableFull(user: Option[User]): DoobieUtils.Table = tableFullBase.addField(CustomField(user.map(userGrade).getOrElse(fr0"null"), "user_grade"))
+
+  private def tableFull(user: User): DoobieUtils.Table = tableFull(Some(user))
+
   private val ratingTableFull = ratingTable
     .join(Tables.users, _.created_by -> _.id).get
   private val ratingTableWithProposalCfp = ratingTable
@@ -225,44 +230,44 @@ object ProposalRepoSql {
   private[sql] def selectOne(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Select[Proposal] =
     table.select[Proposal](where(speaker, talk, cfp))
 
-  private[sql] def selectOneFull(cfp: Cfp.Slug, id: Proposal.Id): Select[Proposal.Full] =
-    tableFull.select[Proposal.Full](where(cfp, id))
+  private[sql] def selectOneFull(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): Select[Proposal.Full] =
+    tableFull(ctx.user).select[Proposal.Full](where(cfp, id))
 
-  private[sql] def selectOneFull(id: Proposal.Id): Select[Proposal.Full] =
-    tableFull.select[Proposal.Full](fr0"WHERE p.id=$id")
+  private[sql] def selectOneFull(id: Proposal.Id)(implicit ctx: UserCtx): Select[Proposal.Full] =
+    tableFull(ctx.user).select[Proposal.Full](fr0"WHERE p.id=$id")
 
-  private[sql] def selectOneFull(talk: Talk.Slug, cfp: Cfp.Slug, by: User.Id): Select[Proposal.Full] =
-    tableFull.select[Proposal.Full](fr0"WHERE t.slug=$talk AND c.slug=$cfp AND p.speakers LIKE ${"%" + by.value + "%"}")
+  private[sql] def selectOneFull(talk: Talk.Slug, cfp: Cfp.Slug)(implicit ctx: UserCtx): Select[Proposal.Full] =
+    tableFull(ctx.user).select[Proposal.Full](fr0"WHERE t.slug=$talk AND c.slug=$cfp AND p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
 
-  private[sql] def selectOnePublicFull(group: Group.Id, id: Proposal.Id): Select[Proposal.Full] =
-    tableFull.select[Proposal.Full](fr0"WHERE c.group_id=$group AND p.id=$id AND e.published IS NOT NULL")
+  private[sql] def selectOnePublicFull(group: Group.Id, id: Proposal.Id)(implicit ctx: UserAwareCtx): Select[Proposal.Full] =
+    tableFull(ctx.user).select[Proposal.Full](fr0"WHERE c.group_id=$group AND p.id=$id AND e.published IS NOT NULL")
 
   private[sql] def selectPage(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): SelectPage[Proposal] =
     table.selectPage[Proposal](params, fr0"WHERE p.cfp_id=$cfp AND p.status=$status")
 
-  private[sql] def selectPageFull(cfp: Cfp.Slug, params: Page.Params): SelectPage[Proposal.Full] =
-    tableFull.selectPage[Proposal.Full](params, fr0"WHERE c.slug=$cfp" ++ pageFilters(params))
+  private[sql] def selectPageFull(cfp: Cfp.Slug, params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, fr0"WHERE c.slug=$cfp" ++ pageFilters(params))
 
-  private[sql] def selectPageFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params): SelectPage[Proposal.Full] =
-    tableFull.selectPage[Proposal.Full](params, fr0"WHERE c.slug=$cfp AND p.status=$status")
+  private[sql] def selectPageFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, fr0"WHERE c.slug=$cfp AND p.status=$status")
 
-  private[sql] def selectPageFull(group: Group.Id, params: Page.Params): SelectPage[Proposal.Full] =
-    tableFull.selectPage[Proposal.Full](params, fr0"WHERE c.group_id=$group" ++ pageFilters(params))
+  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, fr0"WHERE c.group_id=${ctx.group.id}" ++ pageFilters(params))
 
-  private[sql] def selectPageFull(group: Group.Id, speaker: User.Id, params: Page.Params): SelectPage[Proposal.Full] =
-    tableFull.selectPage[Proposal.Full](params, fr0"WHERE c.group_id=$group AND p.speakers LIKE ${"%" + speaker.value + "%"}")
+  private[sql] def selectPageFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, fr0"WHERE c.group_id=${ctx.group.id} AND p.speakers LIKE ${"%" + speaker.value + "%"}")
 
-  private[sql] def selectPageFull(talk: Talk.Id, params: Page.Params): SelectPage[Proposal.Full] =
-    tableFull.selectPage[Proposal.Full](params, fr0"WHERE p.talk_id=$talk")
+  private[sql] def selectPageFull(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, fr0"WHERE p.talk_id=$talk")
 
-  private[sql] def selectPageFull(speaker: User.Id, params: Page.Params): SelectPage[Proposal.Full] =
-    tableFull.selectPage[Proposal.Full](params, fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"}")
+  private[sql] def selectSpeakerPageFull(params: Page.Params)(implicit ctx: UserCtx): SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, fr0"WHERE p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
 
-  private[sql] def selectPagePublicFull(speaker: User.Id, params: Page.Params): SelectPage[Proposal.Full] =
-    tableFull.selectPage[Proposal.Full](params, fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"} AND e.published IS NOT NULL")
+  private[sql] def selectPagePublicFull(speaker: User.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"} AND e.published IS NOT NULL")
 
-  private[sql] def selectPagePublicFull(group: Group.Id, params: Page.Params): SelectPage[Proposal.Full] =
-    tableFull.selectPage[Proposal.Full](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")
+  private[sql] def selectPagePublicFull(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")
 
   private[sql] def selectAll(ids: NonEmptyList[Proposal.Id]): Select[Proposal] =
     table.select[Proposal](fr0"WHERE " ++ Fragments.in(fr"id", ids))

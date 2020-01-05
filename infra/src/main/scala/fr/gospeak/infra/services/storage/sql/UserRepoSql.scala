@@ -57,15 +57,13 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
   override def findPublic(slug: User.Slug): IO[Option[User]] = selectOnePublic(slug).runOption(xa)
 
   // FIXME should be done in only one query: joining on speakers array or splitting speakers string
-  override def speakers(group: Group.Id, params: Page.Params): IO[Page[User]] = {
-    val speakerIdsQuery = proposalsWithCfps.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group")
+  override def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User]] = {
+    val speakerIdsQuery = proposalsWithCfps.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=${ctx.group.id}")
     for {
       speakerIds <- speakerIdsQuery.runList(xa).map(_.flatMap(_.toList).distinct)
       res <- NonEmptyList.fromList(speakerIds).map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User]))
     } yield res
   }
-
-  override def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User]] = speakers(ctx.group.id, params)
 
   override def speakersPublic(group: Group.Id, params: Page.Params): IO[Page[User]] = {
     val speakerIdsQuery = proposalsWithCfpEvents.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group AND e.published IS NOT NULL")

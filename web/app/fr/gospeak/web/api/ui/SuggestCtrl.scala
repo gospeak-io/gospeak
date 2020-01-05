@@ -100,9 +100,9 @@ class SuggestCtrl(cc: ControllerComponents,
     makeSearch[Event](eventRepo.list, e => SearchResultItem(e.name.value, EventCtrl.detail(group, e.slug).toString))(group, q)
   }
 
-  private def makeSearch[A](list: (Group.Id, Page.Params) => IO[Page[A]], format: A => SearchResultItem)
+  private def makeSearch[A](list: Page.Params => IO[Page[A]], format: A => SearchResultItem)
                            (group: Group.Slug, q: String)
                            (implicit req: OrgaReq[AnyContent]): IO[ApiResult[Seq[SearchResultItem]]] = {
-    list(req.group.id, Page.Params.defaults.search(q)).map(results => ApiResult.of(results.items.map(format)))
+    list(Page.Params.defaults.search(q)).map(results => ApiResult.of(results.items.map(format)))
   }
 }

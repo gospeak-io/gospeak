@@ -74,5 +74,5 @@ trait PublicUserRepo {
 }
 
 trait SuggestUserRepo {
-  def speakers(group: Group.Id, params: Page.Params): IO[Page[User]]
+  def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User]]
 }

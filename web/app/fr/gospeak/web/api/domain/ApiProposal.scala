@@ -27,6 +27,7 @@ object ApiProposal {
                         score: Long,
                         likes: Long,
                         dislikes: Long,
+                        userRating: Option[Int],
                         info: ApiInfo)
 
   object Orga {
@@ -51,6 +52,7 @@ object ApiProposal {
       score = p.score,
       likes = p.likes,
       dislikes = p.dislikes,
+      userRating = p.userGrade.map(_.value),
       info = ApiInfo.from(p.info, users))
 
   // data to display publicly
