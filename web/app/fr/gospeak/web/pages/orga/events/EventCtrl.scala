@@ -80,7 +80,7 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       e <- OptionT(eventSrv.getFullEvent(event))
       eventTemplates <- OptionT.liftF(groupSettingsRepo.findEventTemplates)
-      proposals <- OptionT.liftF(e.cfpOpt.map(cfp => proposalRepo.listFull(cfp.id, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal.Full])))
+      proposals <- OptionT.liftF(e.cfpOpt.map(cfp => proposalRepo.listFull(cfp.slug, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal.Full])))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
       userRatings <- OptionT.liftF(proposalRepo.listRatings(proposals.items.map(_.id)))
       desc = eventSrv.buildDescription(e)

@@ -208,8 +208,9 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val apiGroupCtrl = wire[api.published.GroupCtrl]
   lazy val apiCfpCtrl = wire[api.published.CfpCtrl]
   lazy val apiSpeakerCtrl = wire[api.published.SpeakerCtrl]
-  lazy val apiOrgaGoupCtrl = wire[api.orga.ApiGroupCtrl]
   lazy val apiOrgaEventCtrl = wire[api.orga.ApiEventCtrl]
+  lazy val apiOrgaCfpCtrl = wire[api.orga.ApiCfpCtrl]
+  lazy val apiOrgaProposalCtrl = wire[api.orga.ApiProposalCtrl]
 
   override lazy val router: Router = {
     val prefix = "/"

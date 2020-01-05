@@ -66,6 +66,7 @@ class SuggestCtrl(cc: ControllerComponents,
     makeSuggest[SponsorPack](sponsorPackRepo.listAll, sp => SuggestedItem(sp.id.value, s"${sp.name.value} (${sp.price.value})${if (sp.active) "" else " (not active)"}"))(group)
   }
 
+  // TODO: use OrgaReq instead of Group.Id to list items
   private def makeSuggest[A](list: Group.Id => IO[Seq[A]], format: A => SuggestedItem)
                             (group: Group.Slug)
                             (implicit req: OrgaReq[AnyContent]): IO[ApiResult[Seq[SuggestedItem]]] = {

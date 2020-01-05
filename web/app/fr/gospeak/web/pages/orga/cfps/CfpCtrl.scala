@@ -59,7 +59,7 @@ class CfpCtrl(cc: ControllerComponents,
   def detail(group: Group.Slug, cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       cfpElt <- OptionT(cfpRepo.find(cfp))
-      proposals <- OptionT.liftF(proposalRepo.listFull(cfpElt.id, params))
+      proposals <- OptionT.liftF(proposalRepo.listFull(cfp, params))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
       userRatings <- OptionT.liftF(proposalRepo.listRatings(cfp))
       b = breadcrumb(cfpElt)

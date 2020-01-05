@@ -110,7 +110,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
     describe("Select") {
       it("should build a select") {
         val e = Entity(1, "n")
-        val sql = Select(fr0"table t", Seq(Field("id", "t"), Field("name", "t")), Seq(), Some(fr0" WHERE t.id=${e.id}"), Sorts(Seq(Field("name", "t")), Map()), Some(3)).fr.update.sql
+        val sql = Select(fr0"table t", Seq(Field("id", "t"), Field("name", "t")), Seq(), Seq(), Some(fr0" WHERE t.id=${e.id}"), Sorts(Seq(Field("name", "t")), Map()), Some(3)).fr.update.sql
         sql shouldBe "SELECT t.id, t.name FROM table t WHERE t.id=? ORDER BY t.name IS NULL, t.name LIMIT 3"
       }
     }

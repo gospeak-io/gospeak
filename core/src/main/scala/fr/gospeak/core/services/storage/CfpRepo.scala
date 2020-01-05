@@ -18,8 +18,6 @@ trait OrgaCfpRepo {
 
   def list(ids: Seq[Cfp.Id]): IO[Seq[Cfp]]
 
-  def list(group: Group.Id): IO[Seq[Cfp]]
-
   def find(id: Cfp.Id): IO[Option[Cfp]]
 
   def find(slug: Cfp.Slug)(implicit ctx: OrgaCtx): IO[Option[Cfp]]

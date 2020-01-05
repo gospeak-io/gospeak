@@ -110,9 +110,9 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def list(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal]] = selectPage(cfp, status, params).run(xa)
 
-  override def listFull(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(cfp, params).run(xa)
+  override def listFull(cfp: Cfp.Slug, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(cfp, params).run(xa)
 
-  override def listFull(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(cfp, status, params).run(xa)
+  override def listFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(cfp, status, params).run(xa)
 
   override def listFull(group: Group.Id, params: Page.Params): IO[Page[Proposal.Full]] = selectPageFull(group, params).run(xa)
 
@@ -154,6 +154,9 @@ object ProposalRepoSql {
     .join(Tables.groups.dropFields(_.name.startsWith("location_")), _.group_id("c") -> _.id).get
     .join(Tables.talks, _.talk_id("p") -> _.id).get
     .joinOpt(Tables.events, _.event_id("p") -> _.id).get
+    .joinOpt(Tables.venues.dropFields(_.name.startsWith("address_")), _.venue("e") -> _.id).get
+    .joinOpt(Tables.partners, _.partner_id("v") -> _.id).get
+    .joinOpt(Tables.contacts, _.contact_id("v") -> _.id).get
     .joinOpt(ratingTable, _.id("p") -> _.proposal_id).get.dropFields(_.prefix == ratingTable.prefix)
     .aggregate("COALESCE(SUM(pr.grade), 0)", "score")
     .aggregate("COALESCE((COUNT(pr.grade) + SUM(pr.grade)) / 2, 0)", "likes")
@@ -233,11 +236,11 @@ object ProposalRepoSql {
   private[sql] def selectPage(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): SelectPage[Proposal] =
     table.selectPage[Proposal](params, fr0"WHERE p.cfp_id=$cfp AND p.status=$status")
 
-  private[sql] def selectPageFull(cfp: Cfp.Id, params: Page.Params): SelectPage[Proposal.Full] =
-    tableFull.selectPage[Proposal.Full](params, fr0"WHERE p.cfp_id=$cfp" ++ pageFilters(params))
+  private[sql] def selectPageFull(cfp: Cfp.Slug, params: Page.Params): SelectPage[Proposal.Full] =
+    tableFull.selectPage[Proposal.Full](params, fr0"WHERE c.slug=$cfp" ++ pageFilters(params))
 
-  private[sql] def selectPageFull(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): SelectPage[Proposal.Full] =
-    tableFull.selectPage[Proposal.Full](params, fr0"WHERE p.cfp_id=$cfp AND p.status=$status")
+  private[sql] def selectPageFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params): SelectPage[Proposal.Full] =
+    tableFull.selectPage[Proposal.Full](params, fr0"WHERE c.slug=$cfp AND p.status=$status")
 
   private[sql] def selectPageFull(group: Group.Id, params: Page.Params): SelectPage[Proposal.Full] =
     tableFull.selectPage[Proposal.Full](params, fr0"WHERE c.group_id=$group" ++ pageFilters(params))

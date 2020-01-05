@@ -94,6 +94,9 @@ class ApiCtrl(cc: ControllerComponents,
   protected def cfpNotFound(cfp: Cfp.Slug)(implicit ctx: BasicCtx): ErrorResult =
     ApiResult.notFound(s"No cfp '${cfp.value}'")
 
+  protected def proposalNotFound(cfp: Cfp.Slug, proposal: Proposal.Id)(implicit ctx: BasicCtx): ErrorResult =
+    ApiResult.notFound(s"No proposal with id '${proposal.value}' in cfp '${cfp.value}'")
+
   protected def userNotFound(user: User.Slug)(implicit ctx: BasicCtx): ErrorResult =
     ApiResult.notFound(s"No user '${user.value}'")
 }

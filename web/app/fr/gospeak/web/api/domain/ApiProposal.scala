@@ -1,13 +1,57 @@
 package fr.gospeak.web.api.domain
 
-import fr.gospeak.core.domain.utils.BasicCtx
-import fr.gospeak.core.domain.{Proposal, User, Venue}
+import fr.gospeak.core.domain.utils.{BasicCtx, OrgaCtx}
+import fr.gospeak.core.domain.{Proposal, User}
+import fr.gospeak.web.api.domain.utils.ApiInfo
 import play.api.libs.json.{Json, Writes}
 import fr.gospeak.web.api.domain.utils.JsonFormats._
 
 import scala.concurrent.duration._
 
 object ApiProposal {
+
+  // data to display for orgas (everything)
+  final case class Orga(id: String,
+                        status: String,
+                        title: String,
+                        description: String,
+                        duration: FiniteDuration,
+                        slides: Option[String],
+                        video: Option[String],
+                        speakers: Seq[ApiUser.Embed],
+                        tags: Seq[String],
+                        orgaTags: Seq[String],
+                        cfp: ApiCfp.Embed,
+                        event: Option[ApiEvent.Embed],
+                        venue: Option[ApiVenue.Embed],
+                        score: Long,
+                        likes: Long,
+                        dislikes: Long,
+                        info: ApiInfo)
+
+  object Orga {
+    implicit val writes: Writes[Orga] = Json.writes[Orga]
+  }
+
+  def orga(p: Proposal.Full, users: Seq[User])(implicit ctx: OrgaCtx): Orga =
+    new Orga(
+      id = p.id.value,
+      status = p.status.value,
+      title = p.title.value,
+      description = p.description.value,
+      duration = p.duration,
+      slides = p.slides.map(_.value),
+      video = p.video.map(_.value),
+      speakers = p.speakers.toList.map(ApiUser.embed(_, users)),
+      tags = p.tags.map(_.value),
+      orgaTags = p.orgaTags.map(_.value),
+      cfp = ApiCfp.embed(p.cfp),
+      event = p.event.map(ApiEvent.embed),
+      venue = p.venue.map(ApiVenue.embed),
+      score = p.score,
+      likes = p.likes,
+      dislikes = p.dislikes,
+      info = ApiInfo.from(p.info, users))
 
   // data to display publicly
   final case class Published(id: String,
@@ -18,6 +62,8 @@ object ApiProposal {
                              video: Option[String],
                              speakers: Seq[ApiUser.Embed],
                              tags: Seq[String],
+                             group: ApiGroup.Embed,
+                             cfp: ApiCfp.Embed,
                              event: Option[ApiEvent.Embed],
                              venue: Option[ApiVenue.Embed])
 
@@ -25,7 +71,7 @@ object ApiProposal {
     implicit val writes: Writes[Published] = Json.writes[Published]
   }
 
-  def published(p: Proposal.Full, users: Seq[User], venues: Seq[Venue.Full])(implicit ctx: BasicCtx): Published =
+  def published(p: Proposal.Full, users: Seq[User])(implicit ctx: BasicCtx): Published =
     new Published(
       id = p.id.value,
       title = p.title.value,
@@ -35,8 +81,10 @@ object ApiProposal {
       video = p.video.map(_.value),
       speakers = p.speakers.toList.map(ApiUser.embed(_, users)),
       tags = p.tags.map(_.value),
+      group = ApiGroup.embed(p.group),
+      cfp = ApiCfp.embed(p.cfp),
       event = p.event.map(ApiEvent.embed),
-      venue = p.event.flatMap(_.venue).map(ApiVenue.embed(_, venues)))
+      venue = p.venue.map(ApiVenue.embed))
 
   // embedded data in other models, should be public
   final case class Embed(id: String,

@@ -15,9 +15,6 @@ object ApiVenue {
     implicit val writes: Writes[Embed] = Json.writes[Embed]
   }
 
-  def embed(id: Venue.Id, venues: Seq[Venue.Full])(implicit ctx: BasicCtx): Embed =
-    venues.find(_.id == id).map(embed).getOrElse(unknown(id))
-
   def embed(v: Venue.Full)(implicit ctx: BasicCtx): Embed =
     new Embed(
       address = ApiPlace.from(v.address),

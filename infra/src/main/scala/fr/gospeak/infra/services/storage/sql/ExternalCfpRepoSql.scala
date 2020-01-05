@@ -43,6 +43,7 @@ object ExternalCfpRepoSql {
     joins = Seq(),
     fields = Seq("id", "slug", "name", "logo", "begin", "close", "location", "description", "event_start", "event_finish", "tags").map(Field(_, "c")),
     aggFields = Seq(),
+    customFields = Seq(),
     sorts = Sorts(Seq("close", "name").map(Field(_, "c")), Map()),
     search = Seq("name", "description", "tags").map(Field(_, "c")))
 

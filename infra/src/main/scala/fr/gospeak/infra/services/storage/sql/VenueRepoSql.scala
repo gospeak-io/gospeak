@@ -146,6 +146,7 @@ object VenueRepoSql {
       prefix = "v",
       fields = Seq("id", "slug", "name", "logo", "address", "events", "public").map(Field(_, "v")),
       aggFields = Seq(),
+      customFields = Seq(),
       whereOpt = None,
       havingOpt = None,
       params = params,

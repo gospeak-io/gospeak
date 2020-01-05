@@ -203,8 +203,8 @@ class StyleguideCtrl(cc: ControllerComponents,
     createdAt = now,
     createdBy = user.id)
   private val groupFull = Group.Full(group, 0L, 0L, 0L)
-  private val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event), 0L, 0L, 0L)
   private val venueFull = Venue.Full(venue, partner, Some(contact))
+  private val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event), Some(venueFull), 0L, 0L, 0L)
   private val eventFull = Event.Full(event, Some(venueFull), Some(cfp), group)
   private val accountValidationRequest = UserRequest.AccountValidationRequest(
     id = UserRequest.Id.generate(),

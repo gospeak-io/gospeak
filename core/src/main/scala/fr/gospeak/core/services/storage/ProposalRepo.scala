@@ -37,9 +37,9 @@ trait OrgaProposalRepo {
 
   def listFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]]
 
-  def listFull(cfp: Cfp.Id, params: Page.Params): IO[Page[Proposal.Full]]
+  def listFull(cfp: Cfp.Slug, params: Page.Params): IO[Page[Proposal.Full]]
 
-  def listFull(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal.Full]]
+  def listFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params): IO[Page[Proposal.Full]]
 
   def list(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal]]
 

@@ -53,8 +53,7 @@ class GroupCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(group))
       talks <- OptionT.liftF(proposalRepo.listPublicFull(groupElt.id, params))
       speakers <- OptionT.liftF(userRepo.list(talks.items.flatMap(_.speakers.toList).distinct))
-      venues <- OptionT.liftF(venueRepo.listFull(groupElt.id, talks.items.flatMap(_.event.flatMap(_.venue)).distinct))
-      res = ApiResult.of(talks, ApiProposal.published(_, speakers, venues))
+      res = ApiResult.of(talks, ApiProposal.published(_, speakers))
     } yield res).value.map(_.getOrElse(groupNotFound(group)))
   }
 
@@ -63,8 +62,7 @@ class GroupCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(group))
       talkElt <- OptionT(proposalRepo.findPublicFull(groupElt.id, talk))
       speakers <- OptionT.liftF(userRepo.list(talkElt.speakers.toList.distinct))
-      venues <- OptionT.liftF(venueRepo.listFull(groupElt.id, talkElt.event.flatMap(_.venue).toList))
-      res = ApiResult.of(ApiProposal.published(talkElt, speakers, venues))
+      res = ApiResult.of(ApiProposal.published(talkElt, speakers))
     } yield res).value.map(_.getOrElse(talkNotFound(group, talk)))
   }
 

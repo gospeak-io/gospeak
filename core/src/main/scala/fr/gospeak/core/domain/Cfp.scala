@@ -16,6 +16,8 @@ final case class Cfp(id: Cfp.Id,
                      info: Info) {
   def data: Cfp.Data = Cfp.Data(this)
 
+  def users: Seq[User.Id] = info.users
+
   def isActive(now: LocalDateTime): Boolean = begin.forall(_.isBefore(now)) && close.forall(_.isAfter(now))
 }
 

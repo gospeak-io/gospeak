@@ -9,6 +9,9 @@ import fr.gospeak.infra.services.storage.sql.GroupRepoSqlSpec.{fields => groupFi
 import fr.gospeak.infra.services.storage.sql.ProposalRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.TalkRepoSqlSpec.{fields => talkFields, table => talkTable}
 import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec.{fields => userFields, table => userTable}
+import fr.gospeak.infra.services.storage.sql.VenueRepoSqlSpec.{fields => venueFields, table => venueTable}
+import fr.gospeak.infra.services.storage.sql.PartnerRepoSqlSpec.{fields => partnerFields, table => partnerTable}
+import fr.gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{fields => contactFields, table => contactTable}
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class ProposalRepoSqlSpec extends RepoSpec {
@@ -17,10 +20,10 @@ class ProposalRepoSqlSpec extends RepoSpec {
       val (user, group, cfp, talk) = createUserGroupCfpAndTalk().unsafeRunSync()
       val ctx = FakeCtx(now, user)
       proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe Seq()
-      proposalRepo.listFull(cfp.id, params).unsafeRunSync().items shouldBe Seq()
+      proposalRepo.listFull(cfp.slug, params).unsafeRunSync().items shouldBe Seq()
       val proposal = proposalRepo.create(talk.id, cfp.id, proposalData1, speakers)(ctx).unsafeRunSync()
-      proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None, 0L, 0L, 0L))
-      proposalRepo.listFull(cfp.id, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None, 0L, 0L, 0L))
+      proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None, None, 0L, 0L, 0L))
+      proposalRepo.listFull(cfp.slug, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None, None, 0L, 0L, 0L))
       proposalRepo.find(cfp.slug, proposal.id).unsafeRunSync() shouldBe Some(proposal)
     }
     it("should fail to create a proposal when talk does not exists") {
@@ -112,12 +115,12 @@ class ProposalRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fields FROM $table WHERE p.cfp_id=? AND p.status=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull for a cfp") {
-        val q = ProposalRepoSql.selectPageFull(cfp.id, params)
-        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE p.cfp_id=? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
+        val q = ProposalRepoSql.selectPageFull(cfp.slug, params)
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE c.slug=? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull for a cfp and status") {
-        val q = ProposalRepoSql.selectPageFull(cfp.id, Proposal.Status.Pending, params)
-        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE p.cfp_id=? AND p.status=? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
+        val q = ProposalRepoSql.selectPageFull(cfp.slug, Proposal.Status.Pending, params)
+        check(q, s"SELECT $fieldsFull, $fieldsAggFull FROM $tableFull WHERE c.slug=? AND p.status=? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull for a group") {
         val q = ProposalRepoSql.selectPageFull(group.id, params)
@@ -204,8 +207,15 @@ object ProposalRepoSqlSpec {
 
   private val tableWithEvent = s"$table LEFT OUTER JOIN $eventTable ON p.event_id=e.id"
 
-  private val tableFull = s"$table INNER JOIN $cfpTable ON p.cfp_id=c.id INNER JOIN $groupTable ON c.group_id=g.id INNER JOIN $talkTable ON p.talk_id=t.id LEFT OUTER JOIN $eventTable ON p.event_id=e.id LEFT OUTER JOIN $ratingTable ON p.id=pr.proposal_id"
-  private val fieldsFull = s"$fields, $cfpFields, $groupFields, $talkFields, $eventFields"
+  private val tableFull = s"$table INNER JOIN $cfpTable ON p.cfp_id=c.id " +
+    s"INNER JOIN $groupTable ON c.group_id=g.id " +
+    s"INNER JOIN $talkTable ON p.talk_id=t.id " +
+    s"LEFT OUTER JOIN $eventTable ON p.event_id=e.id " +
+    s"LEFT OUTER JOIN $venueTable ON e.venue=v.id " +
+    s"LEFT OUTER JOIN $partnerTable ON v.partner_id=pa.id " +
+    s"LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id " +
+    s"LEFT OUTER JOIN $ratingTable ON p.id=pr.proposal_id"
+  private val fieldsFull = s"$fields, $cfpFields, $groupFields, $talkFields, $eventFields, $venueFields, $partnerFields, $contactFields"
   private val fieldsAggFull = "COALESCE(SUM(pr.grade), 0) as score, COALESCE((COUNT(pr.grade) + SUM(pr.grade)) / 2, 0) as likes, COALESCE((COUNT(pr.grade) - SUM(pr.grade)) / 2, 0) as dislikes"
   private val orderByFull = "ORDER BY COALESCE(SUM(pr.grade), 0) IS NULL, COALESCE(SUM(pr.grade), 0) DESC, COALESCE(COUNT(pr.grade), 0) IS NULL, COALESCE(COUNT(pr.grade), 0) DESC, p.created_at IS NULL, p.created_at DESC"
 
