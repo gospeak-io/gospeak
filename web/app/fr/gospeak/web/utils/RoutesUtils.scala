@@ -29,10 +29,13 @@ object RoutesUtils {
   // see https://www.playframework.com/documentation/2.8.x/ScalaRouting
   private val routeRegex = "(GET|POST|PUT|DELETE|PATCH|HEAD) +(/[^ ]*) +([^ ]+.*)".r
   private[utils] val variableRegex = "(:[^/]+)|(\\*.*)|(\\$[^<]+<[^>]+>)".r
+  val routesPath = "conf/routes"
 
   def loadRoutes(): Try[Routes] = readFile().map(parseRoutes).map(_.collect { case Right(route) => route }).map(Routes)
 
-  private[utils] def readFile(): Try[String] = FileUtils.read("web/conf/routes")
+  // current folder is "gospeak" in "sbt run" but "gospeak/web" in "sbt test"
+  private[utils] def readFile(): Try[String] =
+    if (FileUtils.exists(routesPath)) FileUtils.read(routesPath) else FileUtils.read(s"web/$routesPath")
 
   private[utils] def parseRoutes(routes: String): Seq[Either[(Int, String), Route]] =
     routes.split("\n").zipWithIndex.map { case (route, i) => parseRoute(i + 1, route) }.toList
