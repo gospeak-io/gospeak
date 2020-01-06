@@ -9,6 +9,6 @@ import fr.gospeak.web.services.openapi.models.utils.{Markdown, TODO}
 final case class Link(operationId: Option[String], // should exists in Operation, exclusive with operationRef
                       operationRef: Option[String],
                       description: Option[Markdown],
-                      parameters: Option[TODO],
+                      parameters: Option[Map[String, TODO]],
                       requestBody: Option[TODO],
                       server: Option[Server])

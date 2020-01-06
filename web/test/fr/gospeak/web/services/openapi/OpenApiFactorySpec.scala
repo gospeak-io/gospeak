@@ -5,9 +5,8 @@ import fr.gospeak.web.services.openapi.error.OpenApiError.{ErrorMessage, Validat
 import fr.gospeak.web.services.openapi.error.OpenApiErrors
 import fr.gospeak.web.services.openapi.models._
 import fr.gospeak.web.services.openapi.models.utils._
-import fr.gospeak.web.utils.Extensions._
 import org.scalatest.{FunSpec, Matchers}
-import play.api.libs.json.{JsError, JsSuccess, Json}
+import play.api.libs.json.Json
 
 class OpenApiFactorySpec extends FunSpec with Matchers {
   describe("OpenApiFactory") {
@@ -22,15 +21,15 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
           |  "paths": {}
           |}""".stripMargin)
       val openApi = OpenApi(
-        Version(3, 0, 2),
-        Info("My api", None, None, None, None, Version(1), Option.empty[TODO]),
-        Option.empty[ExternalDoc],
-        Option.empty[List[Server]],
-        Option.empty[List[Tag]],
-        Option.empty[TODO],
-        Option.empty[Components],
-        Map.empty[Path, PathItem],
-        Option.empty[TODO])
+        openapi = Version(3, 0, 2),
+        info = Info("My api", None, None, None, None, Version(1), Option.empty[TODO]),
+        externalDocs = Option.empty[ExternalDoc],
+        servers = Option.empty[List[Server]],
+        tags = Option.empty[List[Tag]],
+        security = Option.empty[TODO],
+        components = Option.empty[Components],
+        paths = Map.empty[Path, PathItem],
+        extensions = Option.empty[TODO])
       OpenApiFactory.parseJson(json) shouldBe Right(openApi)
       OpenApiFactory.toJson(openApi) shouldBe json
     }
@@ -38,25 +37,25 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
       val json = Json.parse(
         s"""{
            |  "openapi": "3.0.2",
-           |  "info": ${OpenApiFactorySpec.infoJson},
-           |  "externalDocs": ${OpenApiFactorySpec.externalDocsJson},
-           |  "servers": [${OpenApiFactorySpec.serverJson}],
-           |  "tags": [${OpenApiFactorySpec.tagJson}],
-           |  "components": ${OpenApiFactorySpec.componentsJson},
+           |  "info": ${InfoSpec.jsonStr},
+           |  "externalDocs": ${ExternalDocSpec.jsonStr},
+           |  "servers": [${ServerSpec.jsonStr}],
+           |  "tags": [${TagSpec.jsonStr}],
+           |  "components": ${ComponentsSpec.jsonStr},
            |  "paths": {
-           |    "/api": ${OpenApiFactorySpec.pathItemJson}
+           |    "/api": ${PathItemSpec.jsonStr}
            |  }
            |}""".stripMargin)
       val openApi = OpenApi(
-        Version(3, 0, 2),
-        OpenApiFactorySpec.info,
-        Some(OpenApiFactorySpec.externalDocs),
-        Some(List(OpenApiFactorySpec.server)),
-        Some(List(OpenApiFactorySpec.tag)),
-        Option.empty[TODO],
-        Some(OpenApiFactorySpec.components),
-        Map(Path("/api") -> OpenApiFactorySpec.pathItem),
-        Option.empty[TODO])
+        openapi = Version(3, 0, 2),
+        info = InfoSpec.value,
+        externalDocs = Some(ExternalDocSpec.value),
+        servers = Some(List(ServerSpec.value)),
+        tags = Some(List(TagSpec.value)),
+        security = Option.empty[TODO],
+        components = Some(ComponentsSpec.value),
+        paths = Map(Path("/api") -> PathItemSpec.value),
+        extensions = Option.empty[TODO])
       OpenApiFactory.parseJson(json) shouldBe Right(openApi)
       OpenApiFactory.toJson(openApi) shouldBe json
     }
@@ -118,171 +117,14 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
           |  },
           |  "components": {
           |    "schemas": {
-          |      "User": {"$ref": "#/components/schemas/Miss"},
-          |      "Test": {"$ref": "#/components/miss/User"}
+          |      "User": {"$ref": "#/components/schemas/Miss"}
           |    }
           |  },
           |  "paths": {}
           |}""".stripMargin)
       OpenApiFactory.parseJson(json) shouldBe Left(OpenApiErrors(ValidationError(List(), NonEmptyList.of(
-        ErrorMessage.missingReference("#/components/schemas/Miss"),
-        ErrorMessage.unknownReference("#/components/miss/User", "miss")
+        ErrorMessage.missingReference("#/components/schemas/Miss")
       ))))
     }
-    describe("Info") {
-      import OpenApiFactory.Formats._
-      it("should parse a full featured Info") {
-        val json = Json.parse(OpenApiFactorySpec.infoJson)
-        json.validate[Info] shouldBe JsSuccess(OpenApiFactorySpec.info)
-        Json.toJson(OpenApiFactorySpec.info) shouldBe json
-      }
-    }
-    describe("ExternalDoc") {
-      import OpenApiFactory.Formats._
-      it("should parse a full featured ExternalDoc") {
-        val json = Json.parse(OpenApiFactorySpec.externalDocsJson)
-        json.validate[ExternalDoc] shouldBe JsSuccess(OpenApiFactorySpec.externalDocs)
-        Json.toJson(OpenApiFactorySpec.externalDocs) shouldBe json
-      }
-    }
-    describe("Server") {
-      import OpenApiFactory.Formats._
-      it("should parse a full featured Server") {
-        val json = Json.parse(OpenApiFactorySpec.serverJson)
-        json.validate[Server] shouldBe JsSuccess(OpenApiFactorySpec.server)
-        Json.toJson(OpenApiFactorySpec.server) shouldBe json
-      }
-      it("should fail when missing a variable") {
-        val json = Json.parse("""{"url": "https://gospeak.io:{port}/api"}""")
-        json.validate[Server] shouldBe JsError(ErrorMessage.missingVariable("port").toJson)
-      }
-    }
-    describe("Components") {
-      import OpenApiFactory.Formats._
-      it("should parse a full featured Components") {
-        val json = Json.parse(OpenApiFactorySpec.componentsJson)
-        json.validate[Components] shouldBe JsSuccess(OpenApiFactorySpec.components)
-        Json.toJson(OpenApiFactorySpec.components) shouldBe json
-      }
-    }
   }
-}
-
-object OpenApiFactorySpec {
-  val infoJson: String =
-    """{
-      |  "title": "My api",
-      |  "description": "desc",
-      |  "termsOfService": "https://gospeak.io/tos",
-      |  "contact": {"name": "Support", "url": "https://gospeak.io/support", "email": "contact@gospeak.io"},
-      |  "license": {"name": "Apache 2.0", "url": "https://gospeak.io/license"},
-      |  "version": "1.0.0"
-      |}""".stripMargin
-  val info = Info(
-    "My api",
-    Some(Markdown("desc")),
-    Some(Url("https://gospeak.io/tos")),
-    Some(Info.Contact(Some("Support"), Some(Url("https://gospeak.io/support")), Some(Email("contact@gospeak.io")), Option.empty[TODO])),
-    Some(Info.License("Apache 2.0", Some(Url("https://gospeak.io/license")), Option.empty[TODO])),
-    Version(1),
-    Option.empty[TODO])
-
-  val externalDocsJson: String =
-    """{
-      |  "url": "https://gospeak.io/docs",
-      |  "description": "More doc on API"
-      |}""".stripMargin
-  val externalDocs = ExternalDoc(Url("https://gospeak.io/docs"), Some(Markdown("More doc on API")), Option.empty[TODO])
-
-  val serverJson: String =
-    """{
-      |  "url": "https://gospeak.io:{port}/api",
-      |  "description": "Prod",
-      |  "variables": {
-      |    "port": {
-      |      "default": "8443",
-      |      "enum": ["8443", "443"],
-      |      "description": "The port to use"
-      |    }
-      |  }
-      |}""".stripMargin
-  val server = Server(
-    Url("https://gospeak.io:{port}/api"),
-    Some(Markdown("Prod")),
-    Some(Map("port" -> Server.Variable("8443", Some(List("8443", "443")), Some(Markdown("The port to use")), Option.empty[TODO]))),
-    Option.empty[TODO])
-
-  val tagJson: String =
-    """{
-      |  "name": "public",
-      |  "description": "Public API",
-      |  "externalDocs": {
-      |    "url": "https://gospeak.io/tags/docs",
-      |    "description": "More details"
-      |  }
-      |}""".stripMargin
-  val tag = Tag(
-    "public",
-    Some(Markdown("Public API")),
-    Some(ExternalDoc(Url("https://gospeak.io/tags/docs"), Some(Markdown("More details")), Option.empty[TODO])),
-    Option.empty[TODO])
-
-  val componentsJson: String =
-    """{
-      |  "schemas": {
-      |    "User": {
-      |      "type": "object",
-      |      "properties": {
-      |        "id": {"type": "integer", "format": "int64", "example": 1, "default": 1, "description": "An id", "minimum": 0},
-      |        "name": {"type": "string", "format": "username", "example": "lkn", "description": "User name"},
-      |        "flags": {"type": "array", "items": {"type": "boolean"}, "example": [true, false], "description": "feature flags"},
-      |        "createdAt": {"$ref": "#/components/schemas/Instant"}
-      |      },
-      |      "description": "A user",
-      |      "required": ["id", "name"]
-      |    },
-      |    "Instant": {"type": "string", "format": "date-time"}
-      |  }
-      |}""".stripMargin
-  val components = Components(
-    Some(Map(
-      "User" -> Schema.ObjectVal(Map(
-        "id" -> Schema.IntegerVal(Some("int64"), None, Some(1), Some(1), Some(Markdown("An id")), Some(0)),
-        "name" -> Schema.StringVal(Some("username"), None, Some("lkn"), None, Some(Markdown("User name"))),
-        "flags" -> Schema.ArrayVal(Schema.BooleanVal(None, None, None), Some(List(true, false).map(Js(_))), Some(Markdown("feature flags"))),
-        "createdAt" -> Schema.ReferenceVal(Reference.schema("Instant"))
-      ), Some(Markdown("A user")), Some(List("id", "name"))),
-      "Instant" -> Schema.StringVal(Some("date-time"), None, None, None, None))),
-    Option.empty[TODO],
-    Option.empty[TODO],
-    Option.empty[TODO],
-    Option.empty[TODO],
-    Option.empty[TODO],
-    Option.empty[TODO],
-    Option.empty[TODO],
-    Option.empty[TODO],
-    Option.empty[TODO])
-
-  val pathItemJson: String =
-    """{
-      |  "summary": "s",
-      |  "description": "d",
-      |  "get": {
-      |    "responses": {}
-      |  }
-      |}""".stripMargin
-  val pathItem = PathItem(
-    summary = Some("s"),
-    description = Some(Markdown("d")),
-    parameters = None,
-    servers = None,
-    get = Some(PathItem.Operation(None, None, None, None, None, None, None, None, Map(), None, None, None, None)),
-    put = None,
-    post = None,
-    delete = None,
-    options = None,
-    head = None,
-    patch = None,
-    trace = None,
-    extensions = None)
 }

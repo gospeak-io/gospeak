@@ -131,6 +131,14 @@ object Schema {
     override val hint: String = ReferenceVal.hint
 
     override def flatten: List[Schema] = List(this)
+
+    def hasErrors: Option[NonEmptyList[ErrorMessage]] = {
+      $ref.localRef match {
+        case Some(("schemas", _)) => None
+        case Some((component, _)) => Some(NonEmptyList.of(ErrorMessage.badReference($ref.value, component, "schemas")))
+        case None => None
+      }
+    }
   }
 
   object ReferenceVal {

@@ -44,6 +44,16 @@ object OpenApiError {
     def missingReference(ref: String): ErrorMessage = ErrorMessage("error.reference.missing", List(ref))
 
     /**
+     * When a reference has an invalid component
+     *
+     * @param ref       the reference containing the invalid component
+     * @param component the invalid component
+     * @param expected  the expected component
+     * @return
+     */
+    def badReference(ref: String, component: String, expected: String): ErrorMessage = ErrorMessage("error.reference.invalid", List(ref, component, expected))
+
+    /**
      * When a reference has an unknown component
      *
      * @param ref       the reference containing the unknown component

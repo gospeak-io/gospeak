@@ -3,12 +3,17 @@ package fr.gospeak.web.services.openapi.models
 import fr.gospeak.web.services.openapi.OpenApiFactory.Formats._
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
 import fr.gospeak.web.services.openapi.models.utils.{Js, Markdown}
-import fr.gospeak.web.utils.Extensions._
+import fr.gospeak.web.utils.JsonUtils._
 import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json.{JsError, JsSuccess, Json}
 
 class SchemaSpec extends FunSpec with Matchers {
   describe("Schema") {
+    it("should parse and serialize") {
+      val json = Json.parse(HeaderSpec.jsonStr)
+      json.validate[Header] shouldBe JsSuccess(HeaderSpec.value)
+      Json.toJson(HeaderSpec.value) shouldBe json
+    }
     it("should parse a StringVal") {
       val json = Json.parse("""{"type": "string", "format": "date", "example": "2020-01-04T12:15:19.212Z", "description": "creation date"}""")
       val schema = Schema.StringVal(Some("date"), None, Some("2020-01-04T12:15:19.212Z"), None, Some(Markdown("creation date")))
@@ -84,8 +89,18 @@ class SchemaSpec extends FunSpec with Matchers {
       Json.toJson(schema: Schema) shouldBe json
     }
     it("should fail if ArrayVal examples have the wrong type") {
-      val json = Json.parse("""{"type": "array", "items": {"type": "string"}, "example": [2]}""")
-      json.validate[Schema.ArrayVal] shouldBe JsError(ErrorMessage.badExampleFormat("2", "string", "").toJson)
+      val json1 = Json.parse("""{"type": "array", "items": {"type": "string"}, "example": [2]}""")
+      json1.validate[Schema.ArrayVal] shouldBe JsError(ErrorMessage.badExampleFormat("2", "string", "").toJson)
+
+      val json2 = Json.parse(
+        """{
+          |  "schemas": {
+          |    "Id": {"type": "string"},
+          |    "Tmp": {"$ref": "#/components/schemas/Id"},
+          |    "Tags": {"type": "array", "items": {"$ref": "#/components/schemas/Tmp"}, "example": [2]}
+          |  }
+          |}""".stripMargin)
+      json2.validate[Components] shouldBe JsError(ErrorMessage.badExampleFormat("2", "string", "Tags").toJson)
     }
     it("should fail if ObjectVal has duplicate value in required") {
       val json = Json.parse("""{"type": "object", "properties": {"id": {"type": "string"}}, "required": ["id", "id"]}""")
@@ -121,4 +136,23 @@ class SchemaSpec extends FunSpec with Matchers {
       }
     }
   }
+}
+
+object SchemaSpec {
+  val jsonStr: String =
+    """{
+      |  "type": "object",
+      |  "properties": {
+      |    "id": {"type": "integer", "format": "int64", "example": 1, "default": 1, "description": "An id", "minimum": 0},
+      |    "name": {"type": "string", "format": "username", "example": "lkn", "description": "User name"},
+      |    "flags": {"type": "array", "items": {"type": "boolean"}, "example": [true, false], "description": "feature flags"}
+      |  },
+      |  "description": "A user",
+      |  "required": ["id", "name"]
+      |}""".stripMargin
+  val value = Schema.ObjectVal(Map(
+    "id" -> Schema.IntegerVal(Some("int64"), None, Some(1), Some(1), Some(Markdown("An id")), Some(0)),
+    "name" -> Schema.StringVal(Some("username"), None, Some("lkn"), None, Some(Markdown("User name"))),
+    "flags" -> Schema.ArrayVal(Schema.BooleanVal(None, None, None), Some(List(true, false).map(Js(_))), Some(Markdown("feature flags")))
+  ), Some(Markdown("A user")), Some(List("id", "name")))
 }
