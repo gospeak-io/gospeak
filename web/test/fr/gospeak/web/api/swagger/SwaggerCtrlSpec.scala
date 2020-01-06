@@ -1,6 +1,7 @@
 package fr.gospeak.web.api.swagger
 
 import fr.gospeak.web.services.openapi.OpenApiFactory
+import fr.gospeak.web.utils.RoutesUtils
 import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json._
 
@@ -13,10 +14,18 @@ class SwaggerCtrlSpec extends FunSpec with Matchers {
       val serialized = OpenApiFactory.toJson(spec)
       serialized shouldBe json
     }
-    /* it("should read route file") {
+    it("should document every /api route") {
       val routes = RoutesUtils.loadRoutes().get
-      routes.foreach(println)
-      println(s"${routes.length} routes")
-    } */
+      val doc = SwaggerCtrl.loadSpec().flatMap(OpenApiFactory.parseJson(_).toTry).get
+
+      val cleanPaths = doc.paths.map { case (path, _) => path.mapVariables(_ => "?").value }.toSet
+      val failed = routes.routes.filter(r => r.path.startsWith("/api/") && r.path != "/api/openapi.json").filterNot { route =>
+        cleanPaths.contains(route.mapVariables(_ => "?").path.stripPrefix("/api"))
+      }
+
+      if (failed.nonEmpty) {
+        fail(s"Some /api routes are not documented in web/${SwaggerCtrl.specPath}:${failed.map("\n  - " + _.path).mkString}")
+      }
+    }
   }
 }

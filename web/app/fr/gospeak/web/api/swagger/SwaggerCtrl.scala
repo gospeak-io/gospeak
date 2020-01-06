@@ -28,11 +28,12 @@ class SwaggerCtrl(cc: ControllerComponents,
 }
 
 object SwaggerCtrl {
+  val specPath = "app/fr/gospeak/web/api/swagger/gospeak.openapi.conf"
+
   def loadSpec(): Try[JsValue] = {
-    val path = "app/fr/gospeak/web/api/swagger/gospeak.openapi.conf"
-    val file1 = new File(s"web/$path")
+    val file1 = new File(s"web/$specPath")
     // current folder is "gospeak" in "sbt run" but "gospeak/web" in "sbt test"
-    val file = if (file1.exists()) file1 else new File(path)
+    val file = if (file1.exists()) file1 else new File(specPath)
     val spec = ConfigFactory.parseFile(file).resolve()
     val json = spec.root().render(ConfigRenderOptions.concise())
     Try(Json.parse(json))

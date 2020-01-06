@@ -1,8 +1,8 @@
-package fr.gospeak.web.services.openapi.models.utils
+package fr.gospeak.web.services.openapi.models
 
 import fr.gospeak.web.services.openapi.OpenApiFactory.Formats._
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
-import fr.gospeak.web.services.openapi.models.{Reference, Schema}
+import fr.gospeak.web.services.openapi.models.utils.{Js, Markdown}
 import fr.gospeak.web.utils.Extensions._
 import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json.{JsError, JsSuccess, Json}
