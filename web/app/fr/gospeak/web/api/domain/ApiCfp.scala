@@ -37,12 +37,18 @@ object ApiCfp {
                              ref: String,
                              name: String,
                              logo: Option[String],
+                             url: Option[String],
                              begin: Option[LocalDateTime],
                              close: Option[LocalDateTime],
                              location: Option[ApiPlace],
                              description: String,
                              eventStart: Option[LocalDateTime],
                              eventFinish: Option[LocalDateTime],
+                             eventUrl: Option[String],
+                             eventTickets: Option[String],
+                             eventVideos: Option[String],
+                             twitterAccount: Option[String],
+                             twitterHashtag: Option[String],
                              tags: Seq[String],
                              group: Option[ApiGroup.Embed])
 
@@ -56,6 +62,7 @@ object ApiCfp {
       ref = cfp.slug.map(_.value).orElse(cfp.id.map(_.value)).getOrElse("fail-ref"),
       name = cfp.name,
       logo = cfp.logo.map(_.value),
+      url = cfp.url.map(_.value),
       begin = cfp.begin,
       close = cfp.close,
       location = cfp.location.map(ApiPlace.from),
@@ -63,6 +70,11 @@ object ApiCfp {
       eventStart = cfp.eventStart,
       eventFinish = cfp.eventFinish,
       tags = cfp.tags.map(_.value),
+      eventUrl = cfp.eventUrl.map(_.value),
+      eventTickets = cfp.eventTickets.map(_.value),
+      eventVideos = cfp.eventVideos.map(_.value),
+      twitterAccount = cfp.twitterAccount.map(_.url.value),
+      twitterHashtag = cfp.twitterHashtag.map(_.value),
       group = cfp.group.flatMap { case (id, _) => groups.find(_.id == id) }.map(ApiGroup.embed))
 
   // embedded data in other models, should be public

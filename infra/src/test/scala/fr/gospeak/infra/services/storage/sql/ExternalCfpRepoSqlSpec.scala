@@ -71,7 +71,7 @@ object ExternalCfpRepoSqlSpec {
   val orderBy = "ORDER BY ec.close IS NULL, ec.close, ec.name IS NULL, ec.name"
 
   val commonTable: String = "(" +
-    "(SELECT c.id,       c.slug, c.name, g.logo, c.begin, c.close, g.location, c.description, null as event_start, null as event_finish, c.tags, g.id as group_id, g.slug as group_slug FROM cfps c INNER JOIN groups g ON c.group_id=g.id) UNION " +
-    "(SELECT c.id, null as slug, c.name, c.logo, c.begin, c.close, c.location, c.description,       c.event_start,       c.event_finish, c.tags, null as group_id,   null as group_slug FROM external_cfps c)) c"
-  val commonFields = "c.id, c.slug, c.name, c.logo, c.begin, c.close, c.location, c.description, c.event_start, c.event_finish, c.tags, c.group_id, c.group_slug"
+    "(SELECT c.id,       c.slug, c.name, g.logo, null as url, c.begin, c.close, g.location, c.description, null as event_start, null as event_finish, null as event_url, null as tickets_url, null as videos_url, null as twitter_account, null as twitter_hashtag, c.tags, g.id as group_id, g.slug as group_slug FROM cfps c INNER JOIN groups g ON c.group_id=g.id) UNION " +
+    "(SELECT c.id, null as slug, c.name, c.logo,       c.url, c.begin, c.close, c.location, c.description,       c.event_start,       c.event_finish,       c.event_url,       c.tickets_url,       c.videos_url,       c.twitter_account,       c.twitter_hashtag, c.tags, null as group_id,   null as group_slug FROM external_cfps c)) c"
+  val commonFields = "c.id, c.slug, c.name, c.logo, c.url, c.begin, c.close, c.location, c.description, c.event_start, c.event_finish, c.event_url, c.tickets_url, c.videos_url, c.twitter_account, c.twitter_hashtag, c.tags, c.group_id, c.group_slug"
 }

@@ -41,11 +41,11 @@ object ExternalCfpRepoSql {
   private val table = Tables.externalCfps
   private val tableSelect = table.dropFields(_.name.startsWith("location_"))
   private val commonTable = Table(
-    name = "((SELECT c.id,       c.slug, c.name, g.logo, c.begin, c.close, g.location, c.description, null as event_start, null as event_finish, c.tags, g.id as group_id, g.slug as group_slug FROM cfps c INNER JOIN groups g ON c.group_id=g.id) " +
-      "UNION (SELECT c.id, null as slug, c.name, c.logo, c.begin, c.close, c.location, c.description,       c.event_start,       c.event_finish, c.tags, null as group_id,   null as group_slug FROM external_cfps c))",
+    name = "((SELECT c.id,       c.slug, c.name, g.logo, null as url, c.begin, c.close, g.location, c.description, null as event_start, null as event_finish, null as event_url, null as tickets_url, null as videos_url, null as twitter_account, null as twitter_hashtag, c.tags, g.id as group_id, g.slug as group_slug FROM cfps c INNER JOIN groups g ON c.group_id=g.id) " +
+      "UNION (SELECT c.id, null as slug, c.name, c.logo,       c.url, c.begin, c.close, c.location, c.description,       c.event_start,       c.event_finish,       c.event_url,       c.tickets_url,       c.videos_url,       c.twitter_account,       c.twitter_hashtag, c.tags, null as group_id,   null as group_slug FROM external_cfps c))",
     prefix = "c",
     joins = Seq(),
-    fields = Seq("id", "slug", "name", "logo", "begin", "close", "location", "description", "event_start", "event_finish", "tags", "group_id", "group_slug").map(Field(_, "c")),
+    fields = Seq("id", "slug", "name", "logo", "url", "begin", "close", "location", "description", "event_start", "event_finish", "event_url", "tickets_url", "videos_url", "twitter_account", "twitter_hashtag", "tags", "group_id", "group_slug").map(Field(_, "c")),
     aggFields = Seq(),
     customFields = Seq(),
     sorts = Sorts(Seq("close", "name").map(Field(_, "c")), Map()),
