@@ -1,7 +1,6 @@
 package fr.gospeak.web.services.openapi.models
 
-import cats.data.NonEmptyList
-import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
+import fr.gospeak.web.services.openapi.error.OpenApiError
 import fr.gospeak.web.services.openapi.models.Path._
 
 /**
@@ -18,8 +17,8 @@ final case class Path(value: String) extends AnyVal {
 object Path {
   private val variableRegex = "\\{[^}]+}".r
 
-  def from(value: String): Either[NonEmptyList[ErrorMessage], Path] = {
+  def from(value: String): Either[OpenApiError, Path] = {
     if (value.startsWith("/")) Right(new Path(value))
-    else Left(NonEmptyList.of(ErrorMessage.badFormat(value, "Path", "/...")))
+    else Left(OpenApiError.badFormat(value, "Path", "/..."))
   }
 }

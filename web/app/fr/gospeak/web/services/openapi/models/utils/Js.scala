@@ -1,5 +1,7 @@
 package fr.gospeak.web.services.openapi.models.utils
 
+import fr.gospeak.web.services.openapi.models.{Schema, Schemas}
+
 /**
  * A Json value, useful to store any value which can't be properly typed
  *
@@ -16,6 +18,18 @@ final case class Js(value: String, clazz: String) {
   def isArray: Boolean = clazz == "JsArray"
 
   def isObject: Boolean = clazz == "JsObject"
+
+  def matchSchema(s: Schemas, res: Schema): Boolean = {
+    res match {
+      case _: Schema.StringVal => isString
+      case _: Schema.IntegerVal => isNumber
+      case _: Schema.NumberVal => isNumber
+      case _: Schema.BooleanVal => isBoolean
+      case _: Schema.ArrayVal => isArray
+      case _: Schema.ObjectVal => isObject
+      case _: Schema.ReferenceVal => true // should not happen as it's resolved
+    }
+  }
 }
 
 object Js {

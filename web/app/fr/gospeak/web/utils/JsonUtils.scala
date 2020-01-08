@@ -1,6 +1,6 @@
 package fr.gospeak.web.utils
 
-import cats.data.NonEmptyList
+import fr.gospeak.web.services.openapi.error.OpenApiError
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
 import play.api.libs.json._
 
@@ -8,6 +8,17 @@ object JsonUtils {
 
   implicit class ErrorMessageExtension(val in: ErrorMessage) extends AnyVal {
     def toJson: JsonValidationError = JsonValidationError(Seq(in.value), in.args: _*)
+  }
+
+  implicit class OpenApiErrorExtension(val in: OpenApiError) extends AnyVal {
+    def toJson: (JsPath, Seq[JsonValidationError]) = (JsPath(in.path.map(asPathNode)), in.errors.toList.map(_.toJson))
+
+    private def asPathNode(str: String): PathNode = str.head match {
+      case '*' => RecursiveSearch(str.stripPrefix("*"))
+      case '.' => KeyPathNode(str.stripPrefix("."))
+      case '[' => IdxPathNode(str.stripPrefix("[").stripSuffix("]").toInt)
+      case _ => KeyPathNode(str) // incorrect PathNode, best effort fallback
+    }
   }
 
   implicit class JsonFormatExtension[A](val in: Format[A]) extends AnyVal {
@@ -20,21 +31,15 @@ object JsonUtils {
     /**
      * Create a `Format[B]` mapping values from a `Format[A]` but allowing the read part to fail
      */
-    def iflatMap[B](f: A => Either[NonEmptyList[JsonValidationError], B])(g: B => A): Format[B] =
+    def validate[B](f: A => Either[OpenApiError, B])(g: B => A): Format[B] =
       Format(js => in.reads(js).flatMap(a => asJson(f(a))), in.contramap(g))
 
     /**
-     * Similar to `iflatMap` but with a different failure type
-     */
-    def validate[B](f: A => Either[NonEmptyList[ErrorMessage], B])(g: B => A): Format[B] =
-      iflatMap(a => f(a).left.map(_.map(_.toJson)))(g)
-
-    /**
      * Add a validation for a `Format[A]`, does not change the value
-     * Similar to a filter but takes optional errors instead of boolean
+     * Similar to a filter but takes list of errors instead of boolean
      */
-    def verify(f: A => Option[NonEmptyList[ErrorMessage]]): Format[A] =
-      Format(js => in.reads(js).flatMap(a => asJson(f(a).map(_.map(_.toJson)).toLeft(a))), in)
+    def verify(f: A => List[OpenApiError]): Format[A] =
+      Format(js => in.reads(js).flatMap(a => asJson(f(a), a)), in)
 
     /**
      * Add a hint attribute to the `Format[A]`.
@@ -46,11 +51,15 @@ object JsonUtils {
      * @param value hint attribute value
      */
     def hint(attr: String, value: String): Format[A] = Format(
-      js => (js \ attr).validate[String].flatMap(hint => if (hint == value) in.reads(js) else JsError(ErrorMessage.badHintValue(hint, value, attr).toJson)),
+      js => (js \ attr).validate[String].flatMap(hint => if (hint == value) in.reads(js) else JsError(Seq(OpenApiError.badHintValue(hint, value, attr).toJson))),
       a => in.writes(a).as[JsObject].deepMerge(Json.obj(attr -> value))
     )
 
-    private def asJson[T](res: Either[NonEmptyList[JsonValidationError], T]): JsResult[T] = res.fold(errs => JsError(Seq(JsPath -> errs.toList)), JsSuccess(_))
+    private def asJson[T](res: Either[OpenApiError, T]): JsResult[T] =
+      res.fold(err => JsError(Seq(err.toJson)), JsSuccess(_))
+
+    private def asJson[T](errors: List[OpenApiError], value: T): JsResult[T] =
+      if (errors.isEmpty) JsSuccess(value) else JsError(errors.map(_.toJson))
   }
 
 }

@@ -1,12 +1,10 @@
 package fr.gospeak.web.services.openapi.models
 
-import cats.data.NonEmptyList
 import fr.gospeak.web.services.openapi.OpenApiFactory.Formats._
-import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
+import fr.gospeak.web.services.openapi.error.OpenApiError
 import fr.gospeak.web.services.openapi.models.utils.{Markdown, TODO, Url}
-import fr.gospeak.web.utils.JsonUtils._
 import org.scalatest.{FunSpec, Matchers}
-import play.api.libs.json.{JsError, JsSuccess, Json}
+import play.api.libs.json.{JsSuccess, Json}
 
 class ServerSpec extends FunSpec with Matchers {
   describe("Server") {
@@ -15,19 +13,16 @@ class ServerSpec extends FunSpec with Matchers {
       json.validate[Server] shouldBe JsSuccess(ServerSpec.value)
       Json.toJson(ServerSpec.value) shouldBe json
     }
-    it("should fail when missing a variable") {
-      val json = Json.parse("""{"url": "https://gospeak.io:{port}/api"}""")
-      json.validate[Server] shouldBe JsError(ErrorMessage.missingVariable("port").toJson)
-    }
     it("should extract variables from an Url") {
       Server.extractVariables(Url("https://gospeak.io/api")) shouldBe Seq()
       Server.extractVariables(Url("https://{user}:{pass}@gospeak.io:{port}/api")) shouldBe Seq("user", "pass", "port")
     }
     it("should check if all variables are referenced") {
-      Server(Url("https://gospeak.io/api"), None, None, None).hasErrors shouldBe None
-      Server(Url("https://gospeak.io/api"), None, Some(Map("port" -> Server.Variable("9000", None, None, None))), None).hasErrors shouldBe None
-      Server(Url("https://gospeak.io:{port}/api"), None, Some(Map("port" -> Server.Variable("9000", None, None, None))), None).hasErrors shouldBe None
-      Server(Url("https://gospeak.io:{port}/api"), None, None, None).hasErrors shouldBe Some(NonEmptyList.of(ErrorMessage.missingVariable("port")))
+      val s = Schemas()
+      Server(Url("https://gospeak.io/api"), None, None, None).getErrors(s) shouldBe List()
+      Server(Url("https://gospeak.io/api"), None, Some(Map("port" -> Server.Variable("9000", None, None, None))), None).getErrors(s) shouldBe List()
+      Server(Url("https://gospeak.io:{port}/api"), None, Some(Map("port" -> Server.Variable("9000", None, None, None))), None).getErrors(s) shouldBe List()
+      Server(Url("https://gospeak.io:{port}/api"), None, None, None).getErrors(s) shouldBe List(OpenApiError.missingVariable("port").atPath(".url"))
     }
     it("should replace variables") {
       Server(Url("https://gospeak.io/api"), None, None, None).expandedUrl shouldBe Url("https://gospeak.io/api")

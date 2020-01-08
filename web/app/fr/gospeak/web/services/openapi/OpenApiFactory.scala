@@ -2,7 +2,8 @@ package fr.gospeak.web.services.openapi
 
 import cats.data.NonEmptyList
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.web.services.openapi.error.OpenApiError.{ErrorMessage, ValidationError}
+import fr.gospeak.web.services.openapi.error.OpenApiError
+import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
 import fr.gospeak.web.services.openapi.error.OpenApiErrors
 import fr.gospeak.web.services.openapi.models.utils._
 import fr.gospeak.web.services.openapi.models._
@@ -39,15 +40,15 @@ object OpenApiFactory {
     implicit lazy val fInfo: Format[Info] = Json.format[Info]
     implicit lazy val fExternalDoc: Format[ExternalDoc] = Json.format[ExternalDoc]
     implicit lazy val fServerVariable: Format[Server.Variable] = Json.format[Server.Variable]
-    implicit lazy val fServer: Format[Server] = Json.format[Server].verify(_.hasErrors)
+    implicit lazy val fServer: Format[Server] = Json.format[Server]
     implicit lazy val fTag: Format[Tag] = Json.format[Tag]
     implicit lazy val fSchemaString: Format[Schema.StringVal] = Json.format[Schema.StringVal].hint(Schema.hintAttr, Schema.StringVal.hint)
     implicit lazy val fSchemaInteger: Format[Schema.IntegerVal] = Json.format[Schema.IntegerVal].hint(Schema.hintAttr, Schema.IntegerVal.hint)
     implicit lazy val fSchemaNumber: Format[Schema.NumberVal] = Json.format[Schema.NumberVal].hint(Schema.hintAttr, Schema.NumberVal.hint)
     implicit lazy val fSchemaBoolean: Format[Schema.BooleanVal] = Json.format[Schema.BooleanVal].hint(Schema.hintAttr, Schema.BooleanVal.hint)
-    implicit lazy val fSchemaArray: Format[Schema.ArrayVal] = Json.format[Schema.ArrayVal].hint(Schema.hintAttr, Schema.ArrayVal.hint).verify(_.hasErrors)
-    implicit lazy val fSchemaObject: Format[Schema.ObjectVal] = Json.format[Schema.ObjectVal].hint(Schema.hintAttr, Schema.ObjectVal.hint).verify(_.hasErrors)
-    implicit lazy val fSchemaReference: Format[Schema.ReferenceVal] = Json.format[Schema.ReferenceVal].verify(_.hasErrors)
+    implicit lazy val fSchemaArray: Format[Schema.ArrayVal] = Json.format[Schema.ArrayVal].hint(Schema.hintAttr, Schema.ArrayVal.hint)
+    implicit lazy val fSchemaObject: Format[Schema.ObjectVal] = Json.format[Schema.ObjectVal].hint(Schema.hintAttr, Schema.ObjectVal.hint)
+    implicit lazy val fSchemaReference: Format[Schema.ReferenceVal] = Json.format[Schema.ReferenceVal]
     implicit lazy val fSchema: Format[Schema] = Format[Schema](
       (json: JsValue) => (json \ Schema.hintAttr).asOpt[String] match {
         case Some(Schema.StringVal.hint) => fSchemaString.reads(json)
@@ -56,7 +57,7 @@ object OpenApiFactory {
         case Some(Schema.BooleanVal.hint) => fSchemaBoolean.reads(json)
         case Some(Schema.ArrayVal.hint) => fSchemaArray.reads(json)
         case Some(Schema.ObjectVal.hint) => fSchemaObject.reads(json)
-        case Some(value) => JsError(ErrorMessage.unknownHint(value, Schema.hintAttr).toJson)
+        case Some(value) => JsError(Seq(OpenApiError.unknownHint(value, Schema.hintAttr).atPath(Schema.hintAttr).toJson))
         case None => fSchemaReference.reads(json)
       },
       {
@@ -68,9 +69,10 @@ object OpenApiFactory {
         case s: Schema.ObjectVal => fSchemaObject.writes(s)
         case s: Schema.ReferenceVal => fSchemaReference.writes(s)
       })
+    implicit lazy val fSchemas: Format[Schemas] = implicitly[Format[Map[String, Schema]]].imap(Schemas(_))(_.value)
     implicit lazy val fParameterLocation: Format[Parameter.Location] = fString.validate(Parameter.Location.from)(_.value)
     implicit lazy val fParameter: Format[Parameter] = Json.format[Parameter]
-    implicit lazy val fComponents: Format[Components] = Json.format[Components].verify(_.hasErrors)
+    implicit lazy val fComponents: Format[Components] = Json.format[Components]
     implicit lazy val fHeader: Format[Header] = Json.format[Header]
     implicit lazy val fMediaType: Format[MediaType] = Json.format[MediaType]
     implicit lazy val fLink: Format[Link] = Json.format[Link]
@@ -81,11 +83,11 @@ object OpenApiFactory {
     implicit lazy val fPaths: Format[Map[Path, PathItem]] = implicitly[Format[Map[String, PathItem]]].validate(
       _.map { case (k, v) => Path.from(k).map(p => (p, v)) }.sequence.map(_.toMap))(
       _.map { case (k, v) => (k.value, v) })
-    implicit lazy val fOpenApi: Format[OpenApi] = Json.format[OpenApi].verify(_.hasErrors)
+    implicit lazy val fOpenApi: Format[OpenApi] = Json.format[OpenApi].verify(_.getErrors)
   }
 
-  private def formatError(errs: (JsPath, Seq[JsonValidationError])): ValidationError =
-    ValidationError(
+  private def formatError(errs: (JsPath, Seq[JsonValidationError])): OpenApiError =
+    OpenApiError(
       path = errs._1.path.map(_.toJsonString),
       errors = NonEmptyList.fromList(errs._2.map(err => ErrorMessage(err.message, err.args.map(_.toString).toList)).toList)
         .getOrElse(NonEmptyList.of(ErrorMessage.noMessage())))

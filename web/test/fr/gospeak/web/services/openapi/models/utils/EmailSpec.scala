@@ -1,7 +1,6 @@
 package fr.gospeak.web.services.openapi.models.utils
 
-import cats.data.NonEmptyList
-import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
+import fr.gospeak.web.services.openapi.error.OpenApiError
 import org.scalatest.{FunSpec, Matchers}
 
 class EmailSpec extends FunSpec with Matchers {
@@ -12,7 +11,7 @@ class EmailSpec extends FunSpec with Matchers {
     }
     it("should fail on invalid values") {
       Email.from("abc.test") shouldBe a[Left[_, _]]
-      Email.from("abc@test") shouldBe Left(NonEmptyList.of(ErrorMessage.badFormat("abc@test", "Email", "example@mail.com")))
+      Email.from("abc@test") shouldBe Left(OpenApiError.badFormat("abc@test", "Email", "example@mail.com"))
     }
   }
 }

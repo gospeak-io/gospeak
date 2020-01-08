@@ -1,7 +1,7 @@
 package fr.gospeak.web.services.openapi.models
 
 import fr.gospeak.web.services.openapi.OpenApiFactory.Formats._
-import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
+import fr.gospeak.web.services.openapi.error.OpenApiError
 import fr.gospeak.web.services.openapi.models.utils.{Js, Markdown}
 import fr.gospeak.web.utils.JsonUtils._
 import org.scalatest.{FunSpec, Matchers}
@@ -23,7 +23,7 @@ class SchemaSpec extends FunSpec with Matchers {
       Json.toJson(schema: Schema) shouldBe json
 
       val badJson = Json.parse("""{"type": "number"}""")
-      badJson.validate[Schema.StringVal] shouldBe JsError(ErrorMessage.badHintValue("number", "string", "type").toJson)
+      badJson.validate[Schema.StringVal] shouldBe JsError(Seq(OpenApiError.badHintValue("number", "string", "type").toJson))
     }
     it("should parse a IntegerVal") {
       val json = Json.parse("""{"type": "integer", "format": "int32", "example": 12, "default": 1, "description": "page no", "minimum": 1}""")
@@ -34,7 +34,7 @@ class SchemaSpec extends FunSpec with Matchers {
       Json.toJson(schema: Schema) shouldBe json
 
       val badJson = Json.parse("""{"type": "string"}""")
-      badJson.validate[Schema.IntegerVal] shouldBe JsError(ErrorMessage.badHintValue("string", "integer", "type").toJson)
+      badJson.validate[Schema.IntegerVal] shouldBe JsError(Seq(OpenApiError.badHintValue("string", "integer", "type").toJson))
     }
     it("should parse a NumberVal") {
       val json = Json.parse("""{"type": "number", "format": "double", "example": 4.5, "default": 0.1, "description": "a rating"}""")
@@ -45,7 +45,7 @@ class SchemaSpec extends FunSpec with Matchers {
       Json.toJson(schema: Schema) shouldBe json
 
       val badJson = Json.parse("""{"type": "string"}""")
-      badJson.validate[Schema.NumberVal] shouldBe JsError(ErrorMessage.badHintValue("string", "number", "type").toJson)
+      badJson.validate[Schema.NumberVal] shouldBe JsError(Seq(OpenApiError.badHintValue("string", "number", "type").toJson))
     }
     it("should parse a BooleanVal") {
       val json = Json.parse("""{"type": "boolean", "example": true, "default": false, "description": "is admin"}""")
@@ -56,7 +56,7 @@ class SchemaSpec extends FunSpec with Matchers {
       Json.toJson(schema: Schema) shouldBe json
 
       val badJson = Json.parse("""{"type": "string"}""")
-      badJson.validate[Schema.BooleanVal] shouldBe JsError(ErrorMessage.badHintValue("string", "boolean", "type").toJson)
+      badJson.validate[Schema.BooleanVal] shouldBe JsError(Seq(OpenApiError.badHintValue("string", "boolean", "type").toJson))
     }
     it("should parse a ArrayVal") {
       val json = Json.parse("""{"type": "array", "items": {"type": "string"}, "example": ["tag"], "description": "list of tags"}""")
@@ -67,7 +67,7 @@ class SchemaSpec extends FunSpec with Matchers {
       Json.toJson(schema: Schema) shouldBe json
 
       val badJson = Json.parse("""{"type": "string"}""")
-      badJson.validate[Schema.ArrayVal] shouldBe JsError(ErrorMessage.badHintValue("string", "array", "type").toJson)
+      badJson.validate[Schema.ArrayVal] shouldBe JsError(Seq(OpenApiError.badHintValue("string", "array", "type").toJson))
     }
     it("should parse a ObjectVal") {
       val json = Json.parse("""{"type": "object", "properties": {"id": {"type": "string"}}, "description": "a user", "required": ["id"]}""")
@@ -78,37 +78,15 @@ class SchemaSpec extends FunSpec with Matchers {
       Json.toJson(schema: Schema) shouldBe json
 
       val badJson = Json.parse("""{"type": "string"}""")
-      badJson.validate[Schema.ObjectVal] shouldBe JsError(ErrorMessage.badHintValue("string", "object", "type").toJson)
+      badJson.validate[Schema.ObjectVal] shouldBe JsError(Seq(OpenApiError.badHintValue("string", "object", "type").toJson))
     }
     it("should parse a ReferenceVal") {
       val json = Json.parse("""{"$ref": "#/components/schemas/Instant"}""")
-      val schema = Schema.ReferenceVal(Reference("#/components/schemas/Instant"))
+      val schema = Schema.ReferenceVal(Reference.schema("Instant"))
       json.validate[Schema.ReferenceVal] shouldBe JsSuccess(schema)
       Json.toJson(schema) shouldBe json
       json.validate[Schema] shouldBe JsSuccess(schema)
       Json.toJson(schema: Schema) shouldBe json
-    }
-    it("should fail if ArrayVal examples have the wrong type") {
-      val json1 = Json.parse("""{"type": "array", "items": {"type": "string"}, "example": [2]}""")
-      json1.validate[Schema.ArrayVal] shouldBe JsError(ErrorMessage.badExampleFormat("2", "string", "").toJson)
-
-      val json2 = Json.parse(
-        """{
-          |  "schemas": {
-          |    "Id": {"type": "string"},
-          |    "Tmp": {"$ref": "#/components/schemas/Id"},
-          |    "Tags": {"type": "array", "items": {"$ref": "#/components/schemas/Tmp"}, "example": [2]}
-          |  }
-          |}""".stripMargin)
-      json2.validate[Components] shouldBe JsError(ErrorMessage.badExampleFormat("2", "string", "Tags").toJson)
-    }
-    it("should fail if ObjectVal has duplicate value in required") {
-      val json = Json.parse("""{"type": "object", "properties": {"id": {"type": "string"}}, "required": ["id", "id"]}""")
-      json.validate[Schema.ObjectVal] shouldBe JsError(ErrorMessage.duplicateValue("id", "required").toJson)
-    }
-    it("should fail if ObjectVal has a required field not present in properties") {
-      val json = Json.parse("""{"type": "object", "properties": {}, "required": ["id"]}""")
-      json.validate[Schema.ObjectVal] shouldBe JsError(ErrorMessage.missingProperty("id", "required").toJson)
     }
     describe("flatten") {
       it("should return the list of nested Schemas with the current one") {

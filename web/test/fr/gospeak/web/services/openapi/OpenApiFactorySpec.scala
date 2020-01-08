@@ -1,8 +1,6 @@
 package fr.gospeak.web.services.openapi
 
-import cats.data.NonEmptyList
-import fr.gospeak.web.services.openapi.error.OpenApiError.{ErrorMessage, ValidationError}
-import fr.gospeak.web.services.openapi.error.OpenApiErrors
+import fr.gospeak.web.services.openapi.error.{OpenApiError, OpenApiErrors}
 import fr.gospeak.web.services.openapi.models._
 import fr.gospeak.web.services.openapi.models.utils._
 import org.scalatest.{FunSpec, Matchers}
@@ -61,9 +59,9 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
     }
     it("should return required key errors") {
       OpenApiFactory.parseJson(Json.parse("{}")) shouldBe Left(OpenApiErrors(
-        ValidationError(List(".openapi"), NonEmptyList.of(ErrorMessage.missingPath())),
-        ValidationError(List(".paths"), NonEmptyList.of(ErrorMessage.missingPath())),
-        ValidationError(List(".info"), NonEmptyList.of(ErrorMessage.missingPath()))
+        OpenApiError.missingPath().atPath(".openapi"),
+        OpenApiError.missingPath().atPath(".paths"),
+        OpenApiError.missingPath().atPath(".info"),
       ))
     }
     it("should return bad format errors") {
@@ -73,9 +71,9 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
           |  "info": "a",
           |  "paths": 2
           |}""".stripMargin)) shouldBe Left(OpenApiErrors(
-        ValidationError(List(".openapi"), NonEmptyList.of(ErrorMessage.expectString())),
-        ValidationError(List(".paths"), NonEmptyList.of(ErrorMessage.expectObject())),
-        ValidationError(List(".info"), NonEmptyList.of(ErrorMessage.expectObject()))
+        OpenApiError.expectString().atPath(".openapi"),
+        OpenApiError.expectObject().atPath(".paths"),
+        OpenApiError.expectObject().atPath(".info"),
       ))
     }
     it("should return bad validation errors") {
@@ -85,8 +83,8 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
           |  "info": {"title": "t", "version": "b"},
           |  "paths": {}
           |}""".stripMargin)) shouldBe Left(OpenApiErrors(
-        ValidationError(List(".openapi"), NonEmptyList.of(ErrorMessage.badFormat("a", "Version", "1.2.3"))),
-        ValidationError(List(".info", ".version"), NonEmptyList.of(ErrorMessage.badFormat("b", "Version", "1.2.3")))
+        OpenApiError.badFormat("a", "Version", "1.2.3").atPath(".openapi"),
+        OpenApiError.badFormat("b", "Version", "1.2.3").atPath(".info", ".version")
       ))
     }
     it("should fail on duplicate tag") {
@@ -104,7 +102,7 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
           |  "paths": {}
           |}""".stripMargin)
       OpenApiFactory.parseJson(json) shouldBe Left(OpenApiErrors(
-        ValidationError(List(), NonEmptyList.of(ErrorMessage.duplicateValue("aaa", "tags")))
+        OpenApiError.duplicateValue("aaa").atPath(".tags", "[1]")
       ))
     }
     it("should fail on missing reference") {
@@ -122,9 +120,9 @@ class OpenApiFactorySpec extends FunSpec with Matchers {
           |  },
           |  "paths": {}
           |}""".stripMargin)
-      OpenApiFactory.parseJson(json) shouldBe Left(OpenApiErrors(ValidationError(List(), NonEmptyList.of(
-        ErrorMessage.missingReference("#/components/schemas/Miss")
-      ))))
+      OpenApiFactory.parseJson(json) shouldBe Left(OpenApiErrors(
+        OpenApiError.missingReference("#/components/schemas/Miss").atPath(".components", ".schemas", ".User")
+      ))
     }
   }
 }

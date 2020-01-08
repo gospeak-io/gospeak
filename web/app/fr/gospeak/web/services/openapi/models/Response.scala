@@ -1,6 +1,8 @@
 package fr.gospeak.web.services.openapi.models
 
-import fr.gospeak.web.services.openapi.models.utils.{Markdown, TODO}
+import fr.gospeak.web.services.openapi.OpenApiUtils
+import fr.gospeak.web.services.openapi.error.OpenApiError
+import fr.gospeak.web.services.openapi.models.utils.{HasValidation, Markdown, TODO}
 
 // TODO Response or Ref
 /**
@@ -11,4 +13,9 @@ final case class Response(description: Markdown,
                           headers: Option[Map[String, Header]],
                           content: Option[Map[String, MediaType]],
                           links: Option[Map[String, Link]],
-                          extensions: Option[TODO])
+                          extensions: Option[TODO]) extends HasValidation {
+  def getErrors(s: Schemas): List[OpenApiError] = {
+    val contentErrors = OpenApiUtils.validate("content", content.getOrElse(Map()), s)
+    contentErrors
+  }
+}

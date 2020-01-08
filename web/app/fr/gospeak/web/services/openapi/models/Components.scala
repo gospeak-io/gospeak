@@ -1,13 +1,13 @@
 package fr.gospeak.web.services.openapi.models
 
-import cats.data.NonEmptyList
-import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
-import fr.gospeak.web.services.openapi.models.utils.TODO
+import fr.gospeak.web.services.openapi.OpenApiUtils
+import fr.gospeak.web.services.openapi.error.OpenApiError
+import fr.gospeak.web.services.openapi.models.utils.{HasValidation, TODO}
 
 /**
  * @see "https://spec.openapis.org/oas/v3.0.2#components-object"
  */
-final case class Components(schemas: Option[Map[String, Schema]],
+final case class Components(schemas: Option[Schemas],
                             responses: Option[TODO],
                             parameters: Option[TODO],
                             examples: Option[TODO],
@@ -16,30 +16,20 @@ final case class Components(schemas: Option[Map[String, Schema]],
                             securitySchemes: Option[TODO],
                             links: Option[TODO],
                             callbacks: Option[TODO],
-                            extensions: Option[TODO]) {
+                            extensions: Option[TODO]) extends HasValidation {
   def getSchema(ref: Reference): Option[Schema] =
     ref.localRef
-      .collect { case ("schemas", name) => schemas.getOrElse(Map()).get(name) }.flatten
+      .collect { case ("schemas", name) => schemas.flatMap(_.get(name)) }.flatten
       .flatMap {
         case Schema.ReferenceVal(ref) => getSchema(ref)
         case schema => Some(schema)
       }
 
-  def hasErrors: Option[NonEmptyList[ErrorMessage]] = {
-    val badExamplesInSchemaArrays = schemas.getOrElse(Map()).mapValues(_.flatten)
-      .mapValues(_.collect { case Schema.ArrayVal(Schema.ReferenceVal(ref), Some(example), _) => (getSchema(ref), example) })
-      .mapValues(_.collect {
-        case (Some(s: Schema.StringVal), example) => (s, example.filterNot(_.isString))
-        case (Some(s: Schema.IntegerVal), example) => (s, example.filterNot(_.isNumber))
-        case (Some(s: Schema.NumberVal), example) => (s, example.filterNot(_.isNumber))
-        case (Some(s: Schema.BooleanVal), example) => (s, example.filterNot(_.isBoolean))
-        case (Some(s: Schema.ArrayVal), example) => (s, example.filterNot(_.isArray))
-        case (Some(s: Schema.ObjectVal), example) => (s, example.filterNot(_.isObject))
-      }).filter(_._2.exists(_._2.nonEmpty))
-      .flatMap { case (name, results) => results.map { case (s, ex) => ErrorMessage.badExampleFormat(ex.map(_.value).mkString(", "), s.hint, name) } }.toList
-
-    val duplicateSchemaNames = schemas.getOrElse(Map()).keys.groupBy(identity).filter(_._2.size > 1).keys.toList.map(ErrorMessage.duplicateValue(_, "schemas"))
-
-    NonEmptyList.fromList(badExamplesInSchemaArrays ++ duplicateSchemaNames)
+  def getErrors(s: Schemas): List[OpenApiError] = {
+    val duplicateSchemaNames = schemas.map(_.value.keys).getOrElse(List()).groupBy(identity)
+      .filter(_._2.size > 1).keys.toList
+      .map(name => OpenApiError.duplicateValue(name).atPath(".schemas", s".$name"))
+    val schemasErrors = OpenApiUtils.validate("schemas", schemas.map(_.value).getOrElse(Map()), s)
+    duplicateSchemaNames ++ schemasErrors
   }
 }

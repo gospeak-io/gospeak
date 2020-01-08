@@ -23,7 +23,7 @@ object ComponentsSpec {
        |  }
        |}""".stripMargin
   val value = Components(
-    schemas = Some(Map("User" -> SchemaSpec.value)),
+    schemas = Some(Schemas("User" -> SchemaSpec.value)),
     responses = Option.empty[TODO],
     parameters = Option.empty[TODO],
     examples = Option.empty[TODO],

@@ -89,6 +89,17 @@ object Extensions {
     }
   }
 
+  implicit class TraversableOnceOptionExtension[A, M[X] <: TraversableOnce[X]](val in: M[Option[A]]) extends AnyVal {
+    def sequence(implicit cbf: CanBuildFrom[M[Option[A]], A, M[A]]): Option[M[A]] = {
+      val init = Option(cbf(in))
+      in.foldLeft(init) { (acc, cur) =>
+        acc.flatMap { results =>
+          cur.map { result => results += result }
+        }
+      }.map(_.result())
+    }
+  }
+
   implicit class TraversableOnceTryExtension[A, M[X] <: TraversableOnce[X]](val in: M[Try[A]]) extends AnyVal {
     def sequence(implicit cbf: CanBuildFrom[M[Try[A]], A, M[A]]): Try[M[A]] = {
       val init = Try(cbf(in) -> Seq.empty[Throwable])
@@ -137,6 +148,22 @@ object Extensions {
             .toIO
         }
       }.flatMap(sequenceResult[A, M](_).toIO).unsafeRunSync()
+    }
+  }
+
+  implicit class MapOptionExtension[A, B](val in: Map[A, Option[B]]) extends AnyVal {
+    def sequence: Option[Map[A, B]] =
+      in.foldLeft(Option(Map.empty[A, B])) { case (acc, (key, value)) =>
+        acc.flatMap(m => value.map(v => m + (key -> v)))
+      }
+  }
+
+  implicit class MapEitherExtension[A, B, E](val in: Map[A, Either[E, B]]) extends AnyVal {
+    def sequence: Either[E, Map[A, B]] = {
+      val init: Either[E, Map[A, B]] = Right(Map())
+      in.foldLeft(init) { case (acc, (key, value)) =>
+        acc.flatMap(m => value.map(v => m + (key -> v)))
+      }
     }
   }
 

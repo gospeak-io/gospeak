@@ -49,6 +49,18 @@ class ExtensionsSpec extends FunSpec with Matchers {
         }
       }
     }
+    describe("TraversableOnceOptionExtension") {
+      it("should invert Seq & Option with sequence") {
+        Seq(Option(1), Option(2)).sequence shouldBe Option(Seq(1, 2))
+        Seq(Option(1), Option(2), None).sequence shouldBe None
+      }
+    }
+    describe("MapOptionExtension") {
+      it("should invert Map & Option with sequence") {
+        Map(1 -> Option(1), 2 -> Option(2)).sequence shouldBe Option(Map(1 -> 1, 2 -> 2))
+        Map(1 -> Option(1), 2 -> Option(2), 3 -> None).sequence shouldBe None
+      }
+    }
     describe("OptionExtension") {
       describe("toTry") {
         it("should convert an Option to a Try") {

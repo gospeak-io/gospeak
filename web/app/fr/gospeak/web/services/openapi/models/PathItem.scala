@@ -1,7 +1,9 @@
 package fr.gospeak.web.services.openapi.models
 
+import fr.gospeak.web.services.openapi.OpenApiUtils
+import fr.gospeak.web.services.openapi.error.OpenApiError
 import fr.gospeak.web.services.openapi.models.PathItem.Operation
-import fr.gospeak.web.services.openapi.models.utils.{Markdown, TODO}
+import fr.gospeak.web.services.openapi.models.utils.{HasValidation, Markdown, TODO}
 
 // TODO PathItem or Ref
 /**
@@ -20,10 +22,17 @@ final case class PathItem(summary: Option[String],
                           head: Option[Operation],
                           patch: Option[Operation],
                           trace: Option[Operation],
-                          extensions: Option[TODO]) {
+                          extensions: Option[TODO]) extends HasValidation {
   def operations: Map[String, Operation] =
     Map("get" -> get, "put" -> put, "post" -> post, "delete" -> delete, "options" -> options, "head" -> head, "patch" -> patch, "trace" -> trace)
       .collect { case (k, Some(v)) => (k, v) }
+
+  def getErrors(s: Schemas): List[OpenApiError] = {
+    val paramErrors = OpenApiUtils.validate("parameters", parameters.getOrElse(List()), s)
+    val serverErrors = OpenApiUtils.validate("servers", servers.getOrElse(List()), s)
+    val opsErrors = OpenApiUtils.validate("operations", operations, s).map(e => e.copy(path = e.path.filter(_ != ".operations")))
+    paramErrors ++ serverErrors ++ opsErrors
+  }
 }
 
 object PathItem {
@@ -43,6 +52,13 @@ object PathItem {
                              callbacks: Option[Map[String, TODO]], // TODO or Ref
                              security: Option[TODO],
                              servers: Option[List[Server]],
-                             extensions: Option[TODO])
+                             extensions: Option[TODO]) extends HasValidation {
+    def getErrors(s: Schemas): List[OpenApiError] = {
+      val paramErrors = OpenApiUtils.validate("parameters", parameters.getOrElse(List()), s)
+      val responseErrors = OpenApiUtils.validate("responses", responses, s)
+      val serverErrors = OpenApiUtils.validate("servers", servers.getOrElse(List()), s)
+      paramErrors ++ responseErrors ++ serverErrors
+    }
+  }
 
 }
