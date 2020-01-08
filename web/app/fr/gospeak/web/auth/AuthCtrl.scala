@@ -136,8 +136,7 @@ class AuthCtrl(cc: ControllerComponents,
     AuthForms.forgotPassword.bindFromRequest.fold(
       formWithErrors => IO.pure(BadRequest(html.forgotPassword(formWithErrors, redirect))),
       data => (for {
-        credentials <- OptionT(userRepo.findCredentials(AuthSrv.login(data.email)))
-        user <- OptionT(userRepo.find(credentials))
+        user <- OptionT(userRepo.find(data.email))
         existingPasswordResetOpt <- OptionT.liftF(userRequestRepo.findPendingPasswordResetRequest(data.email, req.now))
         passwordReset <- existingPasswordResetOpt.map(OptionT.pure(_): OptionT[IO, PasswordResetRequest]).getOrElse(OptionT.liftF(userRequestRepo.createPasswordResetRequest(data.email, req.now)))
         _ <- OptionT.liftF(emailSrv.send(Emails.forgotPassword(user, passwordReset)))

@@ -60,7 +60,17 @@ object Proposal {
     val all: Seq[Status] = Seq(Pending, Accepted, Declined)
   }
 
-  final case class Full(proposal: Proposal, cfp: Cfp, group: Group, talk: Talk, event: Option[Event], venue: Option[Venue.Full], score: Long, likes: Long, dislikes: Long, userGrade: Option[Rating.Grade]) {
+  // TODO: add speakerComments: Long & orgaComments: Long
+  final case class Full(proposal: Proposal,
+                        cfp: Cfp,
+                        group: Group,
+                        talk: Talk,
+                        event: Option[Event],
+                        venue: Option[Venue.Full],
+                        score: Long,
+                        likes: Long,
+                        dislikes: Long,
+                        userGrade: Option[Rating.Grade]) {
     def id: Id = proposal.id
 
     def status: Status = proposal.status

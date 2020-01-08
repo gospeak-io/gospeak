@@ -25,7 +25,7 @@
         </div>
         @if(hasMeetupAccount) {
             <div class="custom-control custom-switch">
-                @inputSwitch(form("meetup.publish"), Seq("label" -> "Publish on Meetup"))
+                @inputSwitch(form("meetup.publish"), Seq("label" -> "Publish on Meetup (create a draft event)"))
             </div>
             @inputHidden(form("meetup.draft"))
         }

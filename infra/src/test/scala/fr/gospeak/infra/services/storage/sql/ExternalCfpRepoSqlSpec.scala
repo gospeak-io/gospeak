@@ -20,6 +20,18 @@ class ExternalCfpRepoSqlSpec extends RepoSpec {
         val q = ExternalCfpRepoSql.selectOne(externalCfp.id)
         check(q, s"SELECT $fields FROM $table WHERE ec.id=? $orderBy")
       }
+      it("should build selectOneCommon for internal") {
+        val q = ExternalCfpRepoSql.selectOneCommon(cfp.slug)
+        val req = s"SELECT $commonFields FROM $commonTable WHERE c.slug=? LIMIT 1"
+        q.fr.query.sql shouldBe req
+        // check(q, req) // not null types become nullable when doing union, so it fails :(
+      }
+      it("should build selectOneCommon for external") {
+        val q = ExternalCfpRepoSql.selectOneCommon(externalCfp.id)
+        val req = s"SELECT $commonFields FROM $commonTable WHERE c.id=? LIMIT 1"
+        q.fr.query.sql shouldBe req
+        // check(q, req) // not null types become nullable when doing union, so it fails :(
+      }
       it("should build selectCommonPage") {
         val q = ExternalCfpRepoSql.selectCommonPageIncoming(now, params)
         val req = s"SELECT $commonFields FROM $commonTable " +
@@ -59,7 +71,7 @@ object ExternalCfpRepoSqlSpec {
   val orderBy = "ORDER BY ec.close IS NULL, ec.close, ec.name IS NULL, ec.name"
 
   val commonTable: String = "(" +
-    "(SELECT c.id,       c.slug, c.name, null as logo, c.begin, c.close, g.location, c.description, null as event_start, null as event_finish, c.tags FROM cfps c INNER JOIN groups g ON c.group_id=g.id) UNION " +
-    "(SELECT c.id, null as slug, c.name,       c.logo, c.begin, c.close, c.location, c.description, c.event_start, c.event_finish, c.tags FROM external_cfps c)) c"
-  val commonFields = "c.id, c.slug, c.name, c.logo, c.begin, c.close, c.location, c.description, c.event_start, c.event_finish, c.tags"
+    "(SELECT c.id,       c.slug, c.name, g.logo, c.begin, c.close, g.location, c.description, null as event_start, null as event_finish, c.tags, g.id as group_id, g.slug as group_slug FROM cfps c INNER JOIN groups g ON c.group_id=g.id) UNION " +
+    "(SELECT c.id, null as slug, c.name, c.logo, c.begin, c.close, c.location, c.description,       c.event_start,       c.event_finish, c.tags, null as group_id,   null as group_slug FROM external_cfps c)) c"
+  val commonFields = "c.id, c.slug, c.name, c.logo, c.begin, c.close, c.location, c.description, c.event_start, c.event_finish, c.tags, c.group_id, c.group_slug"
 }

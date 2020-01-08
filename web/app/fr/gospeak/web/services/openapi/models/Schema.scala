@@ -144,6 +144,22 @@ object Schema {
 
   object ReferenceVal {
     val hint = "reference"
+    val hintAttr = "$ref"
+  }
+
+  final case class CombinationVal(oneOf: Option[List[Schema]]) extends Schema {
+    override val hint: String = CombinationVal.hint
+
+    override def flatten: List[Schema] = this :: oneOf.getOrElse(List())
+
+    override def getErrors(s: Schemas): List[OpenApiError] = {
+      val oneOfErrors = OpenApiUtils.validate("oneOf", oneOf.getOrElse(List()), s)
+      oneOfErrors
+    }
+  }
+
+  object CombinationVal {
+    val hint = "combination"
   }
 
 }

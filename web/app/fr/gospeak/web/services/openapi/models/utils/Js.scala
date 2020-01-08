@@ -19,7 +19,7 @@ final case class Js(value: String, clazz: String) {
 
   def isObject: Boolean = clazz == "JsObject"
 
-  def matchSchema(s: Schemas, res: Schema): Boolean = {
+  def matchSchema(schemas: Schemas, res: Schema): Boolean = {
     res match {
       case _: Schema.StringVal => isString
       case _: Schema.IntegerVal => isNumber
@@ -28,6 +28,7 @@ final case class Js(value: String, clazz: String) {
       case _: Schema.ArrayVal => isArray
       case _: Schema.ObjectVal => isObject
       case _: Schema.ReferenceVal => true // should not happen as it's resolved
+      case s: Schema.CombinationVal => s.oneOf.forall(_.exists(matchSchema(schemas, _)))
     }
   }
 }

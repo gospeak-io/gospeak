@@ -222,6 +222,7 @@ GET         /api/groups/:group/talks/:talk                                      
 GET         /api/groups/:group/speakers                                                    fr.gospeak.web.api.published.GroupCtrl.speakers(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /api/cfps                                                                      fr.gospeak.web.api.published.CfpCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /api/cfps/:cfp                                                                 fr.gospeak.web.api.published.CfpCtrl.detail(cfp: Cfp.Slug)
+GET         /api/cfps/ext/:cfp                                                             fr.gospeak.web.api.published.CfpCtrl.detailExt(cfp: ExternalCfp.Id)
 GET         /api/speakers                                                                  fr.gospeak.web.api.published.SpeakerCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /api/speakers/:speaker                                                         fr.gospeak.web.api.published.SpeakerCtrl.detail(speaker: User.Slug)
 

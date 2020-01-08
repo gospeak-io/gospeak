@@ -88,6 +88,14 @@ class SchemaSpec extends FunSpec with Matchers {
       json.validate[Schema] shouldBe JsSuccess(schema)
       Json.toJson(schema: Schema) shouldBe json
     }
+    it("should parse a CombinationVal") {
+      val json = Json.parse("""{"oneOf": [{"$ref": "#/components/schemas/Instant"}, {"type": "boolean"}]}""")
+      val schema = Schema.CombinationVal(Some(List(Schema.ReferenceVal(Reference.schema("Instant")), Schema.BooleanVal(None, None, None))))
+      json.validate[Schema.CombinationVal] shouldBe JsSuccess(schema)
+      Json.toJson(schema) shouldBe json
+      json.validate[Schema] shouldBe JsSuccess(schema)
+      Json.toJson(schema: Schema) shouldBe json
+    }
     describe("flatten") {
       it("should return the list of nested Schemas with the current one") {
         val strVal = Schema.StringVal(None, None, None, None, None)

@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.effect.IO
 import doobie.implicits._
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.core.domain.{CommonCfp, ExternalCfp, User}
+import fr.gospeak.core.domain.{Cfp, CommonCfp, ExternalCfp, User}
 import fr.gospeak.core.services.storage.ExternalCfpRepo
 import fr.gospeak.infra.services.storage.sql.ExternalCfpRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
@@ -29,6 +29,10 @@ class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
 
   override def find(cfp: ExternalCfp.Id): IO[Option[ExternalCfp]] = selectOne(cfp).runOption(xa)
 
+  override def findCommon(cfp: Cfp.Slug): IO[Option[CommonCfp]] = selectOneCommon(cfp).runOption(xa)
+
+  override def findCommon(cfp: ExternalCfp.Id): IO[Option[CommonCfp]] = selectOneCommon(cfp).runOption(xa)
+
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 }
 
@@ -37,11 +41,11 @@ object ExternalCfpRepoSql {
   private val table = Tables.externalCfps
   private val tableSelect = table.dropFields(_.name.startsWith("location_"))
   private val commonTable = Table(
-    name = "((SELECT c.id,       c.slug, c.name, null as logo, c.begin, c.close, g.location, c.description, null as event_start, null as event_finish, c.tags FROM cfps c INNER JOIN groups g ON c.group_id=g.id) " +
-      "UNION (SELECT c.id, null as slug, c.name,       c.logo, c.begin, c.close, c.location, c.description, c.event_start, c.event_finish, c.tags FROM external_cfps c))",
+    name = "((SELECT c.id,       c.slug, c.name, g.logo, c.begin, c.close, g.location, c.description, null as event_start, null as event_finish, c.tags, g.id as group_id, g.slug as group_slug FROM cfps c INNER JOIN groups g ON c.group_id=g.id) " +
+      "UNION (SELECT c.id, null as slug, c.name, c.logo, c.begin, c.close, c.location, c.description,       c.event_start,       c.event_finish, c.tags, null as group_id,   null as group_slug FROM external_cfps c))",
     prefix = "c",
     joins = Seq(),
-    fields = Seq("id", "slug", "name", "logo", "begin", "close", "location", "description", "event_start", "event_finish", "tags").map(Field(_, "c")),
+    fields = Seq("id", "slug", "name", "logo", "begin", "close", "location", "description", "event_start", "event_finish", "tags", "group_id", "group_slug").map(Field(_, "c")),
     aggFields = Seq(),
     customFields = Seq(),
     sorts = Sorts(Seq("close", "name").map(Field(_, "c")), Map()),
@@ -60,8 +64,14 @@ object ExternalCfpRepoSql {
   private[sql] def selectOne(cfp: ExternalCfp.Id): Select[ExternalCfp] =
     tableSelect.select[ExternalCfp](fr0"WHERE ec.id=$cfp")
 
+  private[sql] def selectOneCommon(cfp: Cfp.Slug): Select[CommonCfp] =
+    commonTable.selectOne[CommonCfp](fr0"WHERE c.slug=$cfp", Seq())
+
+  private[sql] def selectOneCommon(cfp: ExternalCfp.Id): Select[CommonCfp] =
+    commonTable.selectOne[CommonCfp](fr0"WHERE c.id=$cfp", Seq())
+
   private[sql] def selectCommonPageIncoming(now: Instant, params: Page.Params): SelectPage[CommonCfp] =
-    commonTable.selectPage(params, fr0"WHERE (c.close IS NULL OR c.close > $now)")
+    commonTable.selectPage[CommonCfp](params, fr0"WHERE (c.close IS NULL OR c.close > $now)")
 
   private[sql] def selectDuplicates(p: ExternalCfp.DuplicateParams): Select[ExternalCfp] = {
     val filters = Seq(

@@ -22,6 +22,9 @@ final case class Schemas(value: Map[String, Schema]) extends AnyVal {
       case Some((component, name)) => Left(NonEmptyList.of(OpenApiError.badReference(s.$ref.value, component, "schemas")))
       case None => Right(None)
     }
+    case s: Schema.CombinationVal => s.oneOf.map(_.zipWithIndex.map { case (s, i) =>
+      resolve(s).left.map(_.map(_.atPath(".oneOf", s"[$i]")))
+    }.sequence).sequence.map(_.flatMap(_.sequence.map(a => Schema.CombinationVal(Some(a)))))
   }
 
   def contains(name: String): Boolean = value.contains(name)

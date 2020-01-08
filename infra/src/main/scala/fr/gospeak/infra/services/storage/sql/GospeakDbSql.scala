@@ -88,8 +88,8 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
       User(id = User.Id.generate(), slug = slugObj, status = status, firstName = firstName, lastName = lastName, email = emailAddr, emailValidated = emailValidated, emailValidationBeforeLogin = emailValidationBeforeLogin, avatar = avatarObj, bio = bio, company = company, location = location, phone = phone, website = website, social = social, createdAt = now, updatedAt = now)
     }
 
-    def group(slug: String, name: String, tags: Seq[String], by: User, location: Option[GMapPlace] = None, owners: Seq[User] = Seq(), social: SocialAccounts = SocialAccounts.fromUrls(), email: Option[String] = None): Group =
-      Group(Group.Id.generate(), Group.Slug.from(slug).get, Group.Name(name), None, None, email.map(EmailAddress.from(_).get), None, description = Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), location, owners = NonEmptyList.of(by.id) ++ owners.map(_.id).toList, social, tags = tags.map(Tag(_)), Group.Status.Active, info = Info(by.id, now))
+    def group(slug: String, name: String, tags: Seq[String], by: User, location: Option[GMapPlace] = None, owners: Seq[User] = Seq(), logo: Option[String] = None, social: SocialAccounts = SocialAccounts.fromUrls(), email: Option[String] = None): Group =
+      Group(Group.Id.generate(), Group.Slug.from(slug).get, Group.Name(name), logo.map(u => Logo(Url.from(u).get)), None, email.map(EmailAddress.from(_).get), None, description = Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), location, owners = NonEmptyList.of(by.id) ++ owners.map(_.id).toList, social, tags = tags.map(Tag(_)), Group.Status.Active, info = Info(by.id, now))
 
     def cfp(group: Group, slug: String, name: String, start: Option[String], end: Option[String], description: String, tags: Seq[String], by: User): Cfp =
       Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).get, Cfp.Name(name), start.map(d => LocalDateTime.parse(d + "T00:00:00")), end.map(d => LocalDateTime.parse(d + "T00:00:00")), Markdown(description), tags.map(Tag(_)), Info(by.id, now))
@@ -225,7 +225,7 @@ class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb 
     val talk7 = talk(userSpeaker, "big-talk", "Big Talk")
     val talks = Seq(talk1, talk2, talk3, talk4, talk5, talk6, talk7)
 
-    val humanTalks = group("ht-paris", "HumanTalks Paris", Seq("tech"), userDemo, location = Some(parisPlace), owners = Seq(userOrga), email = Some("paris@humantalks.com"), social = social)
+    val humanTalks = group("ht-paris", "HumanTalks Paris", Seq("tech"), userDemo, location = Some(parisPlace), owners = Seq(userOrga), email = Some("paris@humantalks.com"), logo = Some("https://res.cloudinary.com/gospeak/image/upload/ar_1,c_crop/v1576793051/groups/humantalks-paris_7bf00e98-2298-47b1-a001-35e5e307249f/logo.png"), social = social)
     val parisJs = group("paris-js", "Paris.Js", Seq("JavaScript"), userOrga)
     val dataGov = group("data-gov", "Data governance", Seq(), userDemo)
     val bigGroup = group("big-group", "Big Group", Seq("BigData"), userOrga)

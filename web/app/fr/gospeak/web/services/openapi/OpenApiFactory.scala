@@ -49,6 +49,7 @@ object OpenApiFactory {
     implicit lazy val fSchemaArray: Format[Schema.ArrayVal] = Json.format[Schema.ArrayVal].hint(Schema.hintAttr, Schema.ArrayVal.hint)
     implicit lazy val fSchemaObject: Format[Schema.ObjectVal] = Json.format[Schema.ObjectVal].hint(Schema.hintAttr, Schema.ObjectVal.hint)
     implicit lazy val fSchemaReference: Format[Schema.ReferenceVal] = Json.format[Schema.ReferenceVal]
+    implicit lazy val fSchemaCombination: Format[Schema.CombinationVal] = Json.format[Schema.CombinationVal]
     implicit lazy val fSchema: Format[Schema] = Format[Schema](
       (json: JsValue) => (json \ Schema.hintAttr).asOpt[String] match {
         case Some(Schema.StringVal.hint) => fSchemaString.reads(json)
@@ -58,7 +59,8 @@ object OpenApiFactory {
         case Some(Schema.ArrayVal.hint) => fSchemaArray.reads(json)
         case Some(Schema.ObjectVal.hint) => fSchemaObject.reads(json)
         case Some(value) => JsError(Seq(OpenApiError.unknownHint(value, Schema.hintAttr).atPath(Schema.hintAttr).toJson))
-        case None => fSchemaReference.reads(json)
+        case None if (json \ Schema.ReferenceVal.hintAttr).asOpt[String].isDefined => fSchemaReference.reads(json)
+        case None => fSchemaCombination.reads(json)
       },
       {
         case s: Schema.StringVal => fSchemaString.writes(s)
@@ -68,6 +70,7 @@ object OpenApiFactory {
         case s: Schema.ArrayVal => fSchemaArray.writes(s)
         case s: Schema.ObjectVal => fSchemaObject.writes(s)
         case s: Schema.ReferenceVal => fSchemaReference.writes(s)
+        case s: Schema.CombinationVal => fSchemaCombination.writes(s)
       })
     implicit lazy val fSchemas: Format[Schemas] = implicitly[Format[Map[String, Schema]]].imap(Schemas(_))(_.value)
     implicit lazy val fParameterLocation: Format[Parameter.Location] = fString.validate(Parameter.Location.from)(_.value)
