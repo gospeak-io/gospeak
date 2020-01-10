@@ -2,12 +2,11 @@ package fr.gospeak.web.services.openapi
 
 import cats.data.NonEmptyList
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.web.services.openapi.error.OpenApiError
+import fr.gospeak.web.services.openapi.JsonUtils._
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
-import fr.gospeak.web.services.openapi.error.OpenApiErrors
-import fr.gospeak.web.services.openapi.models.utils._
+import fr.gospeak.web.services.openapi.error.{OpenApiError, OpenApiErrors}
 import fr.gospeak.web.services.openapi.models._
-import fr.gospeak.web.utils.JsonUtils._
+import fr.gospeak.web.services.openapi.models.utils._
 import play.api.libs.json._
 
 object OpenApiFactory {

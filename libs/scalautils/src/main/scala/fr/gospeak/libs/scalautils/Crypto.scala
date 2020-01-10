@@ -48,7 +48,7 @@ object Crypto {
 
     override def getEncoded: Array[Byte] = base64DecodeBytes(value).get
 
-    override def toString: String = "*****"
+    override def toString: String = "AesSecretKey(*****)"
   }
 
   final case class AesEncrypted(cipher: String)

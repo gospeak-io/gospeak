@@ -3,7 +3,7 @@ package fr.gospeak.web.services.openapi.models
 import fr.gospeak.web.services.openapi.OpenApiFactory.Formats._
 import fr.gospeak.web.services.openapi.error.OpenApiError
 import fr.gospeak.web.services.openapi.models.utils.{Js, Markdown}
-import fr.gospeak.web.utils.JsonUtils._
+import fr.gospeak.web.services.openapi.JsonUtils._
 import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json.{JsError, JsSuccess, Json}
 
