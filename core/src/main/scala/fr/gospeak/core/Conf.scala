@@ -20,6 +20,8 @@ object ApplicationConf {
 
     def isDev: Boolean = false
 
+    def isStaging: Boolean = false
+
     def isProd: Boolean = false
   }
 
@@ -33,11 +35,15 @@ object ApplicationConf {
       override def isDev: Boolean = true
     }
 
+    final case object Staging extends Env {
+      override def isStaging: Boolean = true
+    }
+
     final case object Prod extends Env {
       override def isProd: Boolean = true
     }
 
-    val all: Seq[Env] = Seq(Local, Dev, Prod)
+    val all: Seq[Env] = Seq(Local, Dev, Staging, Prod)
   }
 
 }

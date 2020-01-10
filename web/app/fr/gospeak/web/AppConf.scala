@@ -64,6 +64,7 @@ object AppConf {
     private implicit val applicationConfEnvReader: ConfigReader[ApplicationConf.Env] = (cur: ConfigCursor) => cur.asString.flatMap {
       case "local" => Right(ApplicationConf.Env.Local)
       case "dev" => Right(ApplicationConf.Env.Dev)
+      case "staging" => Right(ApplicationConf.Env.Staging)
       case "prod" => Right(ApplicationConf.Env.Prod)
       case _ => Left(ConfigReaderFailures(ConvertFailure(CannotConvert(cur.toString, "ApplicationConf.Env", "Invalid value"), cur.location, cur.path)))
     }

@@ -10,7 +10,7 @@
     <div class="login">
         <div class="card bg-light shadow">
             <div class="card-body">
-                @if(!req.conf.app.env.isProd) {
+                @if(req.conf.app.env.isLocal || req.conf.app.env.isDev) {
                     <div class="alert alert-info" role="alert">
                         This is a test instance, data is reset at each restart.<br>
                         You can connect with a demo account:<br>

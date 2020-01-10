@@ -28,3 +28,7 @@ html.Local {
 html.Dev {
   @include envStyles($dev-color, "Dev env");
 }
+
+html.Staging {
+  @include envStyles($staging-color, "Staging env");
+}
