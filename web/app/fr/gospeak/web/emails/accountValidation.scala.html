@@ -6,6 +6,6 @@
 @(emailValidation: AccountValidationRequest, user: User)(implicit req: UserAwareReq[AnyContent])
 <p>Hello @user.firstName,</p>
 <p>It seems you missed the signup email to validate your account ;)</p>
-<p>No worries, here is the <a href="@AuthCtrl.doValidateAccount(emailValidation.id).absoluteURL()">activation link</a> to rescue you.</p>
+<p>No worries, here is the <a href="@req.format(AuthCtrl.doValidateAccount(emailValidation.id))">activation link</a> to rescue you.</p>
 <p>We hope you are enjoying gospeak and make amazing talks or events \o/</p>
 <p>The Gospeak team</p>

@@ -1,10 +1,10 @@
-@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
 @import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.utils.UserAwareReq
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 
 @()(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container("Gospeak", b, full = true)() {
+@container("Gospeak", PageMeta.default(), b, full = true)() {
 <div class="d-lg-flex position-relative">
     <div class="container d-lg-flex align-items-lg-center space-top-2 space-top-md-5 space-lg-0 min-height-lg-100vh">
         <div class="row w-100">

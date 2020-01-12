@@ -1,5 +1,5 @@
 @import fr.gospeak.core.domain.{Group, Proposal, User}
-@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
@@ -8,7 +8,7 @@
 @import fr.gospeak.web.utils.UserAwareReq
 
 @(group: Group, talk: Proposal.Full, speakers: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"'${talk.title.value}' at ${group.name.value} - Gospeak", b)() {
+@container(s"'${talk.title.value}' at ${group.name.value} - Gospeak", PageMeta.talk(group, talk.proposal), b)() {
 <div class="w-lg-60 mx-lg-auto">
     <div class="mb-4">
         <h1 class="h2 font-weight-medium">@talk.title.value</h1>

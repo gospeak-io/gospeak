@@ -1,6 +1,7 @@
 package fr.gospeak.web.utils
 
 import java.time.{Instant, LocalDate, LocalDateTime}
+import java.util.UUID
 
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
@@ -19,9 +20,10 @@ import scala.util.matching.Regex
 
 sealed class BasicReq[A] protected(protected val request: Request[A],
                                    protected val messages: Messages,
+                                   val customId: String,
                                    val now: Instant,
                                    val conf: AppConf) extends WrappedRequest[A](request) with BasicCtx {
-  override def withBody[B](body: B): BasicReq[B] = new BasicReq(request.withBody(body), messages, now, conf)
+  override def withBody[B](body: B): BasicReq[B] = new BasicReq(request.withBody(body), messages, customId, now, conf)
 
   def userOpt: Option[User] = None
 
@@ -30,6 +32,8 @@ sealed class BasicReq[A] protected(protected val request: Request[A],
   def nowLDT: LocalDateTime = LocalDateTime.ofInstant(now, Constants.defaultZoneId)
 
   def nowLD: LocalDate = nowLDT.toLocalDate
+
+  def format(url: Call): String = url.absoluteURL(secure = !conf.app.env.isLocal)(request)
 
   def format(key: String, args: Seq[Any]): String = translate(key, args)
 
@@ -59,20 +63,26 @@ sealed class BasicReq[A] protected(protected val request: Request[A],
 
 object BasicReq {
   def from[A](conf: AppConf, messagesApi: MessagesApi, r: Request[A]): BasicReq[A] =
-    new BasicReq[A](r, messagesApi.preferred(r), Instant.now(), conf)
+    new BasicReq[A](r, messagesApi.preferred(r), buildId(r), Instant.now(), conf)
+
+  def buildId[A](r: Request[A]): String =
+    r.headers.get("X-Request-Id") // header added by heroku
+      .getOrElse(UUID.randomUUID().toString)
 }
 
 
 final class UserAwareReq[A] protected(override val request: Request[A],
                                       override val messages: Messages,
+                                      override val customId: String,
                                       override val now: Instant,
                                       override val conf: AppConf,
                                       val underlying: UserAwareRequest[CookieEnv, A],
                                       val user: Option[User],
-                                      val groups: Option[Seq[Group]]) extends BasicReq[A](request, messages, now, conf) with UserAwareCtx {
+                                      val groups: Option[Seq[Group]]) extends BasicReq[A](request, messages, customId, now, conf) with UserAwareCtx {
   override def withBody[B](body: B): UserAwareReq[B] = new UserAwareReq(
     request = request.withBody(body),
     messages = messages,
+    customId = customId,
     now = now,
     conf = conf,
     underlying = UserAwareRequest(underlying.identity, underlying.authenticator, underlying.request.withBody(body)),
@@ -96,6 +106,7 @@ object UserAwareReq {
     new UserAwareReq[A](
       request = r.request,
       messages = messagesApi.preferred(r.request),
+      customId = BasicReq.buildId(r),
       now = Instant.now(),
       conf = conf,
       underlying = r,
@@ -103,20 +114,30 @@ object UserAwareReq {
       groups = r.identity.map(_.groups))
 
   def from[A](r: UserReq[A]): UserAwareReq[A] =
-    new UserAwareReq[A](r.request, r.messages, r.now, r.conf, UserAwareRequest(Some(r.underlying.identity), Some(r.underlying.authenticator), r.request), Some(r.user), Some(r.groups))
+    new UserAwareReq[A](
+      request = r.request,
+      messages = r.messages,
+      customId = r.customId,
+      now = r.now,
+      conf = r.conf,
+      underlying = UserAwareRequest(Some(r.underlying.identity), Some(r.underlying.authenticator), r.request),
+      user = Some(r.user),
+      groups = Some(r.groups))
 }
 
 
 sealed class UserReq[A] protected(override val request: Request[A],
                                   override val messages: Messages,
+                                  override val customId: String,
                                   override val now: Instant,
                                   override val conf: AppConf,
                                   val underlying: SecuredRequest[CookieEnv, A],
                                   val user: User,
-                                  val groups: Seq[Group]) extends BasicReq[A](request, messages, now, conf) with UserCtx {
+                                  val groups: Seq[Group]) extends BasicReq[A](request, messages, customId, now, conf) with UserCtx {
   override def withBody[B](body: B): UserReq[B] = new UserReq(
     request = request.withBody(body),
     messages = messages,
+    customId = customId,
     now = now,
     conf = conf,
     underlying = SecuredRequest(underlying.identity, underlying.authenticator, underlying.request.withBody(body)),
@@ -137,6 +158,7 @@ object UserReq {
     new UserReq[A](
       request = r.request,
       messages = messagesApi.preferred(r.request),
+      customId = BasicReq.buildId(r),
       now = Instant.now(),
       conf = conf,
       underlying = r,
@@ -144,21 +166,31 @@ object UserReq {
       groups = r.identity.groups)
 
   def from[A](r: UserAwareReq[A], i: AuthUser, authenticator: CookieAuthenticator): UserReq[A] =
-    new UserReq(r.request, r.messages, r.now, r.conf, SecuredRequest(r.underlying.identity.getOrElse(i), r.underlying.authenticator.getOrElse(authenticator), r.request), r.user.getOrElse(i.user), i.groups)
+    new UserReq(
+      request = r.request,
+      messages = r.messages,
+      customId = r.customId,
+      now = r.now,
+      conf = r.conf,
+      underlying = SecuredRequest(r.underlying.identity.getOrElse(i), r.underlying.authenticator.getOrElse(authenticator), r.request),
+      user = r.user.getOrElse(i.user),
+      groups = i.groups)
 }
 
 
 final class OrgaReq[A] protected(override val request: Request[A],
                                  override val messages: Messages,
+                                 override val customId: String,
                                  override val now: Instant,
                                  override val conf: AppConf,
                                  override val underlying: SecuredRequest[CookieEnv, A],
                                  override val user: User,
                                  override val groups: Seq[Group],
-                                 val group: Group) extends UserReq[A](request, messages, now, conf, underlying, user, groups) with OrgaCtx {
+                                 val group: Group) extends UserReq[A](request, messages, customId, now, conf, underlying, user, groups) with OrgaCtx {
   override def withBody[B](body: B): OrgaReq[B] = new OrgaReq(
     request = request.withBody(body),
     messages = messages,
+    customId = customId,
     now = now,
     conf = conf,
     underlying = SecuredRequest(underlying.identity, underlying.authenticator, underlying.request.withBody(body)),
@@ -171,5 +203,5 @@ final class OrgaReq[A] protected(override val request: Request[A],
 
 object OrgaReq {
   def from[A](r: UserReq[A], group: Group): OrgaReq[A] =
-    new OrgaReq[A](r.request, r.messages, r.now, r.conf, r.underlying, r.user, r.groups, group)
+    new OrgaReq[A](r.request, r.messages, r.customId, r.now, r.conf, r.underlying, r.user, r.groups, group)
 }

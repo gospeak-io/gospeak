@@ -1,6 +1,6 @@
 @import fr.gospeak.core.domain.{Cfp, Group, Sponsor, SponsorPack, User}
 @import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 @import fr.gospeak.web.pages.published.partials.html.{container, groupCard}
@@ -26,7 +26,7 @@
         </div>
     </div>
 }
-@container(s"${group.name.value} members - Gospeak", b)() {
+@container(s"${group.name.value} members - Gospeak", PageMeta.group(group.group), b)() {
 <div class="row">
     @groupCard(group, speakerCount, cfps, sponsors, packs, orgas, userMembership)(b)
 

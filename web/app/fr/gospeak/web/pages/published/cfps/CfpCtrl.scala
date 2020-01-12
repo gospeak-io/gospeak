@@ -118,9 +118,10 @@ class CfpCtrl(cc: ControllerComponents,
   private def proposeForm(cfp: Cfp.Slug, form: Form[CfpForms.Create], params: Page.Params)(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     (for {
       cfpElt <- OptionT(cfpRepo.findIncoming(cfp, req.now))
+      groupElt <- OptionT(groupRepo.find(cfpElt.group))
       talks <- OptionT.liftF(req.user.map(_.id).map(talkRepo.listActive(_, cfpElt.id, params)).getOrElse(IO.pure(Page.empty[Talk])))
       b = proposeTalkBreadcrumb(cfpElt)
-    } yield Ok(html.propose(cfpElt, talks, form)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
+    } yield Ok(html.propose(groupElt, cfpElt, talks, form)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
   }
 
   def doProposeSignup(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
@@ -176,8 +177,9 @@ class CfpCtrl(cc: ControllerComponents,
   private def proposeConnectForm(cfp: Cfp.Slug, signupForm: Form[CfpForms.ProposalSignupData], loginForm: Form[CfpForms.ProposalLoginData])(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     (for {
       cfpElt <- OptionT(cfpRepo.findIncoming(cfp, req.now))
+      groupElt <- OptionT(groupRepo.find(cfpElt.group))
       b = proposeTalkBreadcrumb(cfpElt)
-    } yield Ok(html.proposeConnect(cfpElt, signupForm, loginForm)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
+    } yield Ok(html.proposeConnect(groupElt, cfpElt, signupForm, loginForm)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
   }
 
   private def proposeConnectForm(cfp: Cfp.Slug, error: String, signupData: Option[CfpForms.ProposalSignupData] = None, loginData: Option[CfpForms.ProposalLoginData] = None)(implicit req: UserAwareReq[AnyContent]): IO[Result] =

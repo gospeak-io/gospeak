@@ -1,13 +1,13 @@
 @import fr.gospeak.core.domain.User
 @import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
 @import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.pages.published.partials.html.{container, speakerItem}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 
 @(speakers: Page[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container("Speakers - Gospeak", b, full = true)() {
+@container("Speakers - Gospeak", PageMeta.default(), b, full = true)() {
 <main id="content" role="main">
     <div id="banner_gospeaker" class="svg-preloader position-relative bg-img-hero pt-40" style="background-image: url(@routes.Assets.versioned("web/img/banner-speaker3.jpg"));">
         <div class="container space-top-0 space-bottom-3 space-md-3 space-bottom-lg-4">

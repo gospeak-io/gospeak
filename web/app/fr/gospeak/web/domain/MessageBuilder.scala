@@ -40,15 +40,15 @@ class MessageBuilder {
     buildEventInfo(i.group, i.event, i.cfpOpt, i.venueOpt, i.talks, i.speakers)
 
   private def linked(group: Group)(implicit req: BasicReq[AnyContent]): Linked[Group] = {
-    val link = fr.gospeak.web.pages.orga.routes.GroupCtrl.detail(group.slug).absoluteURL()
-    val publicLink = Some(fr.gospeak.web.pages.published.groups.routes.GroupCtrl.detail(group.slug).absoluteURL())
+    val link = req.format(fr.gospeak.web.pages.orga.routes.GroupCtrl.detail(group.slug))
+    val publicLink = Some(req.format(fr.gospeak.web.pages.published.groups.routes.GroupCtrl.detail(group.slug)))
     Linked[Group](group, link, publicLink)
   }
 
   private def linked(group: Group, event: Event)(implicit req: BasicReq[AnyContent]): Linked[Event] = {
-    val link = fr.gospeak.web.pages.orga.events.routes.EventCtrl.detail(group.slug, event.slug).absoluteURL()
+    val link = req.format(fr.gospeak.web.pages.orga.events.routes.EventCtrl.detail(group.slug, event.slug))
     val publicLink = if (event.isPublic) {
-      Some(fr.gospeak.web.pages.published.groups.routes.GroupCtrl.event(group.slug, event.slug).absoluteURL())
+      Some(req.format(fr.gospeak.web.pages.published.groups.routes.GroupCtrl.event(group.slug, event.slug)))
     } else {
       None
     }
@@ -56,9 +56,9 @@ class MessageBuilder {
   }
 
   private def linked(group: Group, cfp: Cfp)(implicit req: BasicReq[AnyContent]): Linked[Cfp] = {
-    val link = fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl.detail(group.slug, cfp.slug).absoluteURL()
+    val link = req.format(fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl.detail(group.slug, cfp.slug))
     val publicLink = if (cfp.isActive(req.nowLDT)) {
-      Some(fr.gospeak.web.pages.published.cfps.routes.CfpCtrl.detail(cfp.slug).absoluteURL())
+      Some(req.format(fr.gospeak.web.pages.published.cfps.routes.CfpCtrl.detail(cfp.slug)))
     } else {
       None
     }
@@ -66,14 +66,14 @@ class MessageBuilder {
   }
 
   private def linked(group: Group, cfp: Cfp, proposal: Proposal)(implicit req: UserReq[AnyContent]): Linked[Proposal] = {
-    val link = fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl.detail(group.slug, cfp.slug, proposal.id).absoluteURL()
+    val link = req.format(fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl.detail(group.slug, cfp.slug, proposal.id))
     Linked[Proposal](proposal, link, None)
   }
 
   private def linked(group: Group, event: Event, cfp: Cfp, proposal: Proposal)(implicit req: BasicReq[AnyContent]): Linked[Proposal] = {
-    val link = fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl.detail(group.slug, cfp.slug, proposal.id).absoluteURL()
+    val link = req.format(fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl.detail(group.slug, cfp.slug, proposal.id))
     val publicLink = if (event.isPublic) {
-      Some(fr.gospeak.web.pages.published.groups.routes.GroupCtrl.talk(group.slug, proposal.id).absoluteURL())
+      Some(req.format(fr.gospeak.web.pages.published.groups.routes.GroupCtrl.talk(group.slug, proposal.id)))
     } else {
       None
     }
@@ -81,9 +81,9 @@ class MessageBuilder {
   }
 
   private def linked(group: Group, user: User)(implicit req: BasicReq[AnyContent]): Linked[User] = {
-    val link = fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl.detail(group.slug, user.slug).absoluteURL()
+    val link = req.format(fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl.detail(group.slug, user.slug))
     val publicLink = if (user.isPublic) {
-      Some(fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl.detail(user.slug).absoluteURL())
+      Some(req.format(fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl.detail(user.slug)))
     } else {
       user.website.map(_.value)
         .orElse(user.social.linkedIn.map(_.link))

@@ -5,6 +5,6 @@
 @(invite: UserRequest.TalkInvite, talk: Talk)(implicit req: UserReq[AnyContent])
 <p>Hi,</p>
 <p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has invited you on the <b>@talk.title.value</b> talk.</p>
-<p>You can <a href="@UserCtrl.answerRequest(invite.id).absoluteURL()">accept or deny</a> this invitation.</p>
+<p>You can <a href="@req.format(UserCtrl.answerRequest(invite.id))">accept or deny</a> this invitation.</p>
 <p>We wish you the best in your public speaking adventure!</p>
 <p>The Gospeak team</p>

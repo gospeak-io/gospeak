@@ -7,5 +7,5 @@
 <p>@req.user.name.value sent a message for the <b>@event.name.value</b> event:</p>
 <div style="white-space: pre-line;">@comment.text</div>
 <br>
-<p>You can view it on <a href="@GroupCtrl.event(group.slug, event.slug).absoluteURL()">Gospeak</a> to answer if you want.</p>
+<p>You can view it on <a href="@req.format(GroupCtrl.event(group.slug, event.slug))">Gospeak</a> to answer if you want.</p>
 <p>The Gospeak team</p>

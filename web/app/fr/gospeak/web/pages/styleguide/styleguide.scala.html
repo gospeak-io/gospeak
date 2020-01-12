@@ -1,5 +1,6 @@
 @import fr.gospeak.core.domain.{Cfp, CommonCfp, Event, Group, Proposal, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
+@import fr.gospeak.web.domain.PageMeta
 @import fr.gospeak.web.pages.orga.partials.{html => orga}
 @import fr.gospeak.web.pages.partials.container.{html => container}
 @import fr.gospeak.web.pages.partials.display.{html => display}
@@ -30,7 +31,7 @@
         <div class="col-10">@display(label)</div>
     </div>
 }
-@container.main("Styleguide - Gospeak", Html(
+@container.main("Styleguide - Gospeak", PageMeta.default()(userReq), Html(
     """<style>
       |.section {
       |  padding-top: 56px;

@@ -1,5 +1,5 @@
 @import fr.gospeak.core.domain.ExternalCfp
-@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.published.partials.html.container
 @import fr.gospeak.web.pages.partials.display.html._
@@ -7,7 +7,7 @@
 @import fr.gospeak.web.utils.UserAwareReq
 
 @(cfp: ExternalCfp)(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${cfp.name.value} - Gospeak", b)() {
+@container(s"${cfp.name.value} - Gospeak", PageMeta.cfp(cfp), b)() {
 <div class="w-lg-80 mx-lg-auto">
     <div class="card shadow-sm p-5 mb-5">
         <div class="text-center pb-5 mb-5">

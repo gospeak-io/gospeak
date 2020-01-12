@@ -1,8 +1,9 @@
+@import fr.gospeak.web.domain.PageMeta
 @import fr.gospeak.web.pages.partials.container.html.{flash, main}
 @import fr.gospeak.web.utils.UserAwareReq
 
-@(title: String)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
-@main(title, style, script) {
+@(title: String, m: PageMeta)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
+@main(title, m, style, script) {
 <main>
     <div class="d-flex align-items-center position-relative height-lg-100vh">
         <div class="container">

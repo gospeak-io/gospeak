@@ -1,11 +1,11 @@
 @import fr.gospeak.core.domain.{Group, Talk, User}
 @import fr.gospeak.libs.scalautils.domain.Page
-@import fr.gospeak.web.domain.Breadcrumb
+@import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
 @import fr.gospeak.web.pages.published.partials.html.{container, speakerCard, groupItem, talkItem}
 @import fr.gospeak.web.utils.UserAwareReq
 
 @(speaker: User, publicTalks: Page[Talk], ownedGroups: Seq[Group.Full], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${speaker.name.value} - Gospeak", b)() {
+@container(s"${speaker.name.value} - Gospeak", PageMeta.user(speaker), b)() {
 <div class="row">
     <div class="col-4">@speakerCard(speaker)</div>
     <div class="col-8">

@@ -1,11 +1,16 @@
+@import fr.gospeak.web.domain.PageMeta
 @import fr.gospeak.web.utils.BasicReq
 
-@(title: String, style: Html, script: Html)(content: Html)(implicit req: BasicReq[AnyContent])
+@(title: String, m: PageMeta, style: Html, script: Html)(content: Html)(implicit req: BasicReq[AnyContent])
 <!doctype html>
 <html lang="en"@if(!req.conf.app.env.isProd){ class="@req.conf.app.env"}>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="request-id" content="@req.customId">
+        @metas(m)
+        @favicon()
+        <title>@if(!req.conf.app.env.isProd){[@req.conf.app.env] }@title</title>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
         <link rel="stylesheet" href="@routes.Assets.versioned("select2/dist/css/select2.min.css")">
         <link rel="stylesheet" href="@routes.Assets.versioned("select2-bootstrap-theme/dist/select2-bootstrap.min.css")">
@@ -13,8 +18,6 @@
         <link rel="stylesheet" href="@routes.Assets.versioned("typeahead.js-bootstrap4-css/typeaheadjs.css")">
         <link rel="stylesheet" href="@routes.Assets.versioned("web/styles/main.css")">
         @style
-        <title>@if(!req.conf.app.env.isProd){[@req.conf.app.env] }@title</title>
-        @favicon()
     </head>
     <body class="bg-light">
         @content

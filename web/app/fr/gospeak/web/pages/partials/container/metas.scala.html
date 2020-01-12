@@ -1,0 +1,18 @@
+@import fr.gospeak.web.domain.PageMeta
+
+@(m: PageMeta)
+<meta name="author" content="Loïc Knuchel,Samir Bouaked">
+<meta name="description" content="@m.description">
+<meta name="keywords" content="speaking,public,cfp,conference,meetup,tech">
+
+<meta name="og:title" content="@m.title">
+<meta name="og:description" content="@m.description">
+<meta name="og:image" content="@m.image">
+<meta name="og:url" content="@m.url">
+<meta name="og:site_name" content="Gospeak">
+
+<meta name="twitter:title" content="@m.title">
+<meta name="twitter:description" content="@m.description">
+<meta name="twitter:image" content="@m.image">
+<meta name="twitter:card" content="@m.twitterCard">
+<meta name="twitter:site" content="@@GospeakApp">

@@ -1,7 +1,7 @@
 package fr.gospeak.core.services.meetup
 
 import cats.effect.IO
-import fr.gospeak.core.domain.{Event, Partner, User, Venue}
+import fr.gospeak.core.domain.{Event, Venue}
 import fr.gospeak.core.services.meetup.domain._
 import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
 import fr.gospeak.libs.scalautils.domain.{Markdown, Url}
