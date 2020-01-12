@@ -35,7 +35,7 @@ class ExternalCfpRepoSqlSpec extends RepoSpec {
       it("should build selectCommonPage") {
         val q = ExternalCfpRepoSql.selectCommonPageIncoming(now, params)
         val req = s"SELECT $commonFields FROM $commonTable " +
-          s"WHERE (c.close IS NULL OR c.close > ?) " +
+          s"WHERE (c.close IS NULL OR c.close >= ?) " +
           s"ORDER BY c.close IS NULL, c.close, c.name IS NULL, c.name " +
           s"LIMIT 20 OFFSET 0"
         q.fr.query.sql shouldBe req
