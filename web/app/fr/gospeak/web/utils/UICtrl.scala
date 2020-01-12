@@ -31,7 +31,7 @@ abstract class UICtrl(cc: ControllerComponents,
   }
 
   private def actionResult(result: IO[Result])(implicit req: BasicReq[AnyContent]): Future[Result] = {
-    def logError(e: Throwable): Unit = {
+    def logError(e: Throwable, msg: String = ""): Unit = {
       val (user, group) = req match {
         case r: OrgaReq[AnyContent] => Some(r.user) -> Some(r.group)
         case r: UserReq[AnyContent] => Some(r.user) -> None
@@ -45,9 +45,15 @@ abstract class UICtrl(cc: ControllerComponents,
 
     val next = redirectToPreviousPageOr(fr.gospeak.web.pages.published.routes.HomeCtrl.index())
     result.recover {
-      case e: JdbcSQLSyntaxErrorException => logError(e); next.flashing("error" -> s"Unexpected SQL error")
-      case e: JdbcSQLIntegrityConstraintViolationException => logError(e); next.flashing("error" -> s"Duplicate key SQL error")
-      case NonFatal(e) => logError(e); next.flashing("error" -> s"Unexpected error: ${e.getMessage} (${e.getClass.getSimpleName})")
+      case e: JdbcSQLSyntaxErrorException =>
+        logError(e, s"\n  Message: ${e.getOriginalMessage}\n  SQL: ${e.getSQL}")
+        next.flashing("error" -> s"Unexpected SQL error")
+      case e: JdbcSQLIntegrityConstraintViolationException =>
+        logError(e, s"\n  Message: ${e.getOriginalMessage}\n  SQL: ${e.getSQL}")
+        next.flashing("error" -> s"Duplicate key SQL error")
+      case NonFatal(e) =>
+        logError(e)
+        next.flashing("error" -> s"Unexpected error: ${e.getMessage} (${e.getClass.getSimpleName})")
     }.unsafeToFuture()
   }
 

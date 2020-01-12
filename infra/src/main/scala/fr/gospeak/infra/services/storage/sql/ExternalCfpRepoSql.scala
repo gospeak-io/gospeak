@@ -71,7 +71,7 @@ object ExternalCfpRepoSql {
     commonTable.selectOne[CommonCfp](fr0"WHERE c.id=$cfp", Seq())
 
   private[sql] def selectCommonPageIncoming(now: Instant, params: Page.Params): SelectPage[CommonCfp] =
-    commonTable.selectPage[CommonCfp](params, fr0"WHERE (c.close IS NULL OR c.close > $now)")
+    commonTable.selectPage[CommonCfp](params, fr0"WHERE (c.close IS NULL OR c.close >= $now)")
 
   private[sql] def selectDuplicates(p: ExternalCfp.DuplicateParams): Select[ExternalCfp] = {
     val filters = Seq(
