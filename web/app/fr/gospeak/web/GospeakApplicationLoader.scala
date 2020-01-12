@@ -14,20 +14,22 @@ import com.mohiva.play.silhouette.impl.providers.state.{CsrfStateItemHandler, Cs
 import com.mohiva.play.silhouette.impl.providers.{DefaultSocialStateHandler, SocialProviderRegistry}
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.softwaremill.macwire.wire
+import fr.gospeak.core.ApplicationConf
 import fr.gospeak.core.domain.utils.GospeakMessage
 import fr.gospeak.core.services._
 import fr.gospeak.core.services.cloudinary.CloudinarySrv
 import fr.gospeak.core.services.email.EmailSrv
+import fr.gospeak.core.services.matomo.MatomoSrv
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.core.services.upload.UploadConf
-import fr.gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.infra.libs.cloudinary.CloudinaryClient
+import fr.gospeak.infra.libs.matomo.MatomoClient
 import fr.gospeak.infra.libs.meetup.MeetupClient
 import fr.gospeak.infra.libs.slack.SlackClient
 import fr.gospeak.infra.services.cloudinary.CloudinarySrvImpl
 import fr.gospeak.infra.services.email.EmailSrvFactory
+import fr.gospeak.infra.services.matomo.MatomoSrvImpl
 import fr.gospeak.infra.services.meetup.MeetupSrvImpl
 import fr.gospeak.infra.services.slack.SlackSrvImpl
 import fr.gospeak.infra.services.storage.sql._
@@ -70,13 +72,9 @@ class GospeakComponents(context: ApplicationLoader.Context)
 
   // unsafe init should be done at the beginning
   lazy val conf: AppConf = AppConf.load(configuration).get
-
   lazy val appConf: ApplicationConf = conf.app
-  lazy val dbConf: DatabaseConf = conf.database
-  lazy val uploadConf: UploadConf = conf.upload
-  lazy val gsConf: GospeakConf = conf.gospeak
 
-  lazy val db: GospeakDbSql = wire[GospeakDbSql]
+  lazy val db: GospeakDbSql = new GospeakDbSql(conf.database, conf.gospeak)
   lazy val userRepo: UserRepo = db.user
   lazy val userRequestRepo: UserRequestRepo = db.userRequest
   lazy val groupRepo: GroupRepo = db.group
@@ -99,12 +97,10 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val templateSrv: TemplateSrv = wire[TemplateSrvImpl]
   lazy val avatarSrv: AvatarSrv = wire[AvatarSrv]
   lazy val emailSrv: EmailSrv = EmailSrvFactory.from(conf.email)
-  lazy val cloudinaryClient: CloudinaryClient = wire[CloudinaryClient]
-  lazy val cloudinarySrv: CloudinarySrv = wire[CloudinarySrvImpl]
-  lazy val meetupClient: MeetupClient = new MeetupClient(conf.meetup, conf.app.baseUrl, conf.app.env.isProd)
-  lazy val meetupSrv: MeetupSrv = wire[MeetupSrvImpl]
-  lazy val slackClient: SlackClient = wire[SlackClient]
-  lazy val slackSrv: SlackSrv = wire[SlackSrvImpl]
+  lazy val cloudinarySrv: CloudinarySrv = new CloudinarySrvImpl(new CloudinaryClient(conf.upload))
+  lazy val meetupSrv: MeetupSrv = new MeetupSrvImpl(new MeetupClient(conf.meetup, conf.app.baseUrl, conf.app.env.isProd))
+  lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient(), templateSrv)
+  lazy val matomoSrv: Option[MatomoSrv] = conf.matomo.map(c => new MatomoSrvImpl(new MatomoClient(c)))
   lazy val messageBuilder: MessageBuilder = wire[MessageBuilder]
   lazy val messageBus: MessageBus[GospeakMessage] = wire[BasicMessageBus[GospeakMessage]]
   lazy val orgaMessageBus: GospeakMessageBus = wire[GospeakMessageBus]

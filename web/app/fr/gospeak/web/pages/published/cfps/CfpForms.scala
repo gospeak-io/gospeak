@@ -45,11 +45,11 @@ object CfpForms {
     "logo" -> optional(logo),
     "description" -> markdown,
     "begin" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),
-    "close" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),
+    "close" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(23, 59), _.toLocalDate)),
     "url" -> url,
     "event" -> mapping(
       "start" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),
-      "finish" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),
+      "finish" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(23, 59), _.toLocalDate)),
       "url" -> optional(url),
       "address" -> optional(gMapPlace),
       "tickets" -> optional(url),

@@ -17,6 +17,7 @@
       _paq.push(["setCookieDomain", "*.gospeak.io"]);
       _paq.push(["setDomains", ["*.gospeak.io"]]);
       _paq.push(["setDoNotTrack", true]);
+      @req.userOpt.map { user => _paq.push(['setUserId', '@user.id.value']); }
       _paq.push(['trackPageView']);
       _paq.push(['enableLinkTracking']);
       (function() {

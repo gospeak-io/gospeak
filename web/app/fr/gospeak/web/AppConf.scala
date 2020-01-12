@@ -4,6 +4,7 @@ import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
 import com.typesafe.config.Config
 import fr.gospeak.core.domain.utils.Creds
 import fr.gospeak.core.services.email.EmailConf
+import fr.gospeak.core.services.matomo.MatomoConf
 import fr.gospeak.core.services.meetup.MeetupConf
 import fr.gospeak.core.services.storage.DatabaseConf
 import fr.gospeak.core.services.upload.UploadConf
@@ -26,6 +27,7 @@ final case class AppConf(app: ApplicationConf,
                          email: EmailConf,
                          upload: UploadConf,
                          meetup: MeetupConf,
+                         matomo: Option[MatomoConf],
                          gospeak: GospeakConf)
 
 object AppConf {
@@ -99,7 +101,8 @@ object AppConf {
     private implicit val authConfReader: ConfigReader[AuthConf] = deriveReader[AuthConf]
     private implicit val emailConfReader: ConfigReader[EmailConf] = deriveReader[EmailConf]
     private implicit val uploadConfReader: ConfigReader[UploadConf] = deriveReader[UploadConf]
-    private implicit val meetupClientConfReader: ConfigReader[MeetupConf] = deriveReader[MeetupConf]
+    private implicit val meetupConfReader: ConfigReader[MeetupConf] = deriveReader[MeetupConf]
+    private implicit val matomoConfReader: ConfigReader[MatomoConf] = deriveReader[MatomoConf]
     private implicit val gospeakConfReader: ConfigReader[GospeakConf] = deriveReader[GospeakConf]
 
     private implicit val appConfReader: ConfigReader[AppConf] = deriveReader[AppConf]

@@ -23,6 +23,10 @@ sealed class BasicReq[A] protected(protected val request: Request[A],
                                    val conf: AppConf) extends WrappedRequest[A](request) with BasicCtx {
   override def withBody[B](body: B): BasicReq[B] = new BasicReq(request.withBody(body), messages, now, conf)
 
+  def userOpt: Option[User] = None
+
+  def groupsOpt: Option[Seq[Group]] = None
+
   def nowLDT: LocalDateTime = LocalDateTime.ofInstant(now, Constants.defaultZoneId)
 
   def nowLD: LocalDate = nowLDT.toLocalDate
@@ -75,6 +79,10 @@ final class UserAwareReq[A] protected(override val request: Request[A],
     user = user,
     groups = groups)
 
+  override def userOpt: Option[User] = user
+
+  override def groupsOpt: Option[Seq[Group]] = groups
+
   def secured: Option[UserReq[A]] = for {
     identity <- underlying.identity
     authenticator <- underlying.authenticator
@@ -114,6 +122,10 @@ sealed class UserReq[A] protected(override val request: Request[A],
     underlying = SecuredRequest(underlying.identity, underlying.authenticator, underlying.request.withBody(body)),
     user = user,
     groups = groups)
+
+  override def userOpt: Option[User] = Some(user)
+
+  override def groupsOpt: Option[Seq[Group]] = Some(groups)
 
   def userAware: UserAwareReq[A] = UserAwareReq.from(this)
 

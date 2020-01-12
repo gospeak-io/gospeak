@@ -10,7 +10,7 @@ import fr.gospeak.web.api.domain.utils.ApiResult
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.utils.ApiCtrl
+import fr.gospeak.web.utils.{ApiCtrl, BasicReq}
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -20,7 +20,7 @@ class AuthCtrl(cc: ControllerComponents,
                userRequestRepo: AuthUserRequestRepo,
                authSrv: AuthSrv,
                emailSrv: EmailSrv) extends ApiCtrl(cc, silhouette, conf) {
-  /*def signup(): Action[JsValue] = UserAwareActionJson[ApiUser.SignupPayload, Option[String]] { implicit req =>
+  /*def signup(): Action[JsValue] = UserAwareActionJson[ApiUser.SignupPayload, Option[String]] { implicit req: BasicReq[ApiUser.SignupPayload] =>
     val data = req.body.asData
     for {
       user <- authSrv.createIdentity(data)
