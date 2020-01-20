@@ -79,6 +79,10 @@ class MeetupClientSpec extends FunSpec with Matchers {
         println(s"event: $event")
         event.id shouldBe eventId
       }
+      it("should get attendees") {
+        val attendees = client.getEventAttendees(groupId, eventId).unsafeRunSync().get
+        println(s"attendees (${attendees.length}):\n${attendees.mkString("\n")}")
+      }
     }
     describe("venue") {
       it("should get venue list") {

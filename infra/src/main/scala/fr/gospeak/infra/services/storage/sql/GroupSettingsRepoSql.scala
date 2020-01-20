@@ -7,7 +7,7 @@ import doobie.implicits._
 import fr.gospeak.core.GospeakConf
 import fr.gospeak.core.domain.Group.Settings
 import fr.gospeak.core.domain.Group.Settings.Action
-import fr.gospeak.core.domain.utils.{OrgaCtx, TemplateData}
+import fr.gospeak.core.domain.utils.{OrgaCtx, TemplateData, UserAwareCtx}
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.meetup.domain.MeetupCredentials
 import fr.gospeak.core.services.slack.domain.SlackCredentials
@@ -28,6 +28,9 @@ class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: G
 
   override def findMeetup(implicit ctx: OrgaCtx): IO[Option[MeetupCredentials]] =
     selectOneMeetup(ctx.group.id).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.accounts.meetup))
+
+  override def findMeetup(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Option[MeetupCredentials]] =
+    selectOneMeetup(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.accounts.meetup))
 
   override def findSlack(group: Group.Id): IO[Option[SlackCredentials]] =
     selectOneSlack(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.accounts.slack))

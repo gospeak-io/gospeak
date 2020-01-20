@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services.meetup
 
-import java.time.ZoneId
+import java.time.{Instant, ZoneId}
 
 import cats.effect.IO
 import fr.gospeak.core.domain.utils.Constants
@@ -32,10 +32,16 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
       case Left(err) => IO.raiseError(gs.MeetupException.LoggedUser(err.format))
     }
 
-  override def getGroup(slug: gs.MeetupGroup.Slug, key: AesSecretKey)(implicit token: gs.MeetupToken): IO[gs.MeetupGroup] =
-    toLib(token, key).toIO.flatMap(client.getGroup(slug.value)(_)).flatMap {
+  override def getGroup(group: gs.MeetupGroup.Slug, key: AesSecretKey)(implicit token: gs.MeetupToken): IO[gs.MeetupGroup] =
+    toLib(token, key).toIO.flatMap(client.getGroup(group.value)(_)).flatMap {
       case Right(group) => fromLib(group).toIO
-      case Left(err) => IO.raiseError(gs.MeetupException.GroupNotFound(slug, err.format))
+      case Left(err) => IO.raiseError(gs.MeetupException.GroupNotFound(group, err.format))
+    }
+
+  override def getAttendees(group: gs.MeetupGroup.Slug, event: gs.MeetupEvent.Id, key: AesSecretKey, creds: gs.MeetupCredentials): IO[Seq[gs.MeetupAttendee]] =
+    toLib(creds, key).toIO.flatMap(client.getEventAttendees(group.value, event.value)(_)).flatMap {
+      case Right(attendees) => attendees.map(fromLib).sequence.toIO
+      case Left(err) => IO.raiseError(gs.MeetupException.GroupNotFound(group, err.format))
     }
 
   override def publish(event: Event,
@@ -139,6 +145,19 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
       link = link,
       city = group.city,
       country = group.country)
+
+  private def fromLib(attendee: MeetupAttendee): Either[CustomException, gs.MeetupAttendee] =
+    for {
+      avatarUrl <- attendee.member.photo.map(_.photo_link).map(Url.from).sequence
+    } yield gs.MeetupAttendee(
+      id = gs.MeetupUser.Id(attendee.member.id),
+      name = attendee.member.name,
+      bio = attendee.member.bio,
+      avatar = avatarUrl.map(Avatar),
+      host = attendee.member.event_context.exists(_.host),
+      response = attendee.rsvp.response,
+      guests = attendee.rsvp.guests,
+      updated = Instant.ofEpochMilli(attendee.rsvp.updated))
 }
 
 object MeetupSrvImpl {

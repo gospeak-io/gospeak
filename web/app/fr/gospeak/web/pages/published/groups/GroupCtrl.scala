@@ -1,14 +1,18 @@
 package fr.gospeak.web.pages.published.groups
 
+import java.time.Instant
+
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.{Comment, Event, Group, Proposal}
 import fr.gospeak.core.services.TemplateSrv
 import fr.gospeak.core.services.email.EmailSrv
+import fr.gospeak.core.services.meetup.MeetupSrv
+import fr.gospeak.core.services.meetup.domain.{MeetupAttendee, MeetupUser}
 import fr.gospeak.core.services.storage._
 import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Markdown, Page}
+import fr.gospeak.libs.scalautils.domain.{Avatar, CustomException, Done, Image, Markdown, Page}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, MessageBuilder}
@@ -19,6 +23,7 @@ import fr.gospeak.web.utils.{GenericForm, UICtrl, UserAwareReq}
 import play.api.data.Form
 import play.api.mvc._
 
+import scala.util.Random
 import scala.util.control.NonFatal
 
 class GroupCtrl(cc: ControllerComponents,
@@ -32,6 +37,8 @@ class GroupCtrl(cc: ControllerComponents,
                 sponsorRepo: PublicSponsorRepo,
                 sponsorPackRepo: PublicSponsorPackRepo,
                 commentRepo: PublicCommentRepo,
+                groupSettingsRepo: PublicGroupSettingsRepo,
+                meetupSrv: MeetupSrv,
                 emailSrv: EmailSrv,
                 builder: MessageBuilder,
                 templateSrv: TemplateSrv) extends UICtrl(cc, silhouette, conf) {
@@ -96,6 +103,19 @@ class GroupCtrl(cc: ControllerComponents,
 
   def event(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
     eventView(group, event, GenericForm.comment)
+  }
+
+  def eventAttendeesMeetup(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(group))
+      eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
+      creds <- OptionT(groupSettingsRepo.findMeetup(groupElt.id))
+      attendees <- OptionT(eventElt.event.refs.meetup.map(r => meetupSrv.getAttendees(r.group, r.event, conf.app.aesKey, creds)).sequence)
+      cleanAttendees = attendees.filter(a => a.id.value != 0L && a.response == "yes" && !a.host)
+      attendee = Random.shuffle(cleanAttendees).headOption
+        .getOrElse(MeetupAttendee(MeetupUser.Id(0), "No attendee", None, Some(Avatar(Image.AdorableUrl("0", None).toUrl)), host = false, "no", 0, Instant.now()))
+      res = Ok(html.attendeeDraw(group, event, attendee))
+    } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
   def doSendComment(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAction { implicit req =>

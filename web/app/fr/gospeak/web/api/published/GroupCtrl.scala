@@ -3,11 +3,13 @@ package fr.gospeak.web.api.published
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.{Event, Group, Proposal}
+import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.storage._
+import fr.gospeak.libs.scalautils.Extensions._
 import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.utils.ApiResult
-import fr.gospeak.web.api.domain.{ApiEvent, ApiGroup, ApiProposal, ApiUser}
+import fr.gospeak.web.api.domain._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -19,7 +21,9 @@ class GroupCtrl(cc: ControllerComponents,
                 eventRepo: PublicEventRepo,
                 proposalRepo: PublicProposalRepo,
                 venueRepo: PublicVenueRepo,
-                userRepo: PublicUserRepo) extends ApiCtrl(cc, silhouette, conf) {
+                userRepo: PublicUserRepo,
+                groupSettingsRepo: PublicGroupSettingsRepo,
+                meetupSrv: MeetupSrv) extends ApiCtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiGroup.Published]] { implicit req =>
     groupRepo.listFull(params).map(ApiResult.of(_, ApiGroup.published))
   }
@@ -45,6 +49,19 @@ class GroupCtrl(cc: ControllerComponents,
       talks <- OptionT.liftF(proposalRepo.listPublic(eventElt.talks.distinct))
       speakers <- OptionT.liftF(userRepo.list(talks.flatMap(_.speakers.toList).distinct))
       res = ApiResult.of(ApiEvent.published(eventElt, talks, speakers))
+    } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
+  }
+
+  def eventAttendeesMeetup(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction[Seq[ApiAttendee.Published]] { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(group))
+      eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
+      creds <- OptionT(groupSettingsRepo.findMeetup(groupElt.id))
+      attendees <- OptionT(eventElt.event.refs.meetup.map(r => meetupSrv.getAttendees(r.group, r.event, conf.app.aesKey, creds)).sequence)
+      host = req.getQueryString("host")
+      response = req.getQueryString("response")
+      cleanAttendees = attendees.filter(a => a.id.value != 0L && response.forall(_ == a.response) && host.forall(_ == a.host.toString))
+      res = ApiResult.of(cleanAttendees.map(ApiAttendee.published(_, creds.group)))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 

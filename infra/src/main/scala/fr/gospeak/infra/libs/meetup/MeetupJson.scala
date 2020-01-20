@@ -1,8 +1,8 @@
 package fr.gospeak.infra.libs.meetup
 
 import fr.gospeak.infra.libs.meetup.domain._
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.{Decoder, Encoder}
+import io.circe.Decoder
+import io.circe.generic.semiauto.deriveDecoder
 
 object MeetupJson {
   implicit val meetupTokenDecoder: Decoder[MeetupToken] = deriveDecoder[MeetupToken]
@@ -19,6 +19,10 @@ object MeetupJson {
   implicit val meetupGroupDecoder: Decoder[MeetupGroup] = deriveDecoder[MeetupGroup]
   implicit val meetupGroupBasicDecoder: Decoder[MeetupGroup.Basic] = deriveDecoder[MeetupGroup.Basic]
   implicit val meetupEventDecoder: Decoder[MeetupEvent] = deriveDecoder[MeetupEvent]
+  implicit val meetupAttendeeMemberDecoder: Decoder[MeetupAttendee.Member] = deriveDecoder[MeetupAttendee.Member]
+  implicit val meetupAttendeeContextDecoder: Decoder[MeetupAttendee.Context] = deriveDecoder[MeetupAttendee.Context]
+  implicit val meetupAttendeeRsvpDecoder: Decoder[MeetupAttendee.Rsvp] = deriveDecoder[MeetupAttendee.Rsvp]
+  implicit val meetupAttendeeDecoder: Decoder[MeetupAttendee] = deriveDecoder[MeetupAttendee]
   implicit val meetupLocationDecoder: Decoder[MeetupLocation] = deriveDecoder[MeetupLocation]
   implicit val meetupErrorDecoder: Decoder[MeetupError] = deriveDecoder[MeetupError]
   implicit val meetupErrorNotAuthorizedDecoder: Decoder[MeetupError.NotAuthorized] = deriveDecoder[MeetupError.NotAuthorized]

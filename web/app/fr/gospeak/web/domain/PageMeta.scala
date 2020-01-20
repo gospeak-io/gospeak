@@ -1,6 +1,6 @@
 package fr.gospeak.web.domain
 
-import fr.gospeak.core.domain.{Cfp, Event, ExternalCfp, Group, Proposal, Talk, User}
+import fr.gospeak.core.domain.{Cfp, Event, ExternalCfp, Group, Proposal, User}
 import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
 import fr.gospeak.web.pages.published.routes.HomeCtrl

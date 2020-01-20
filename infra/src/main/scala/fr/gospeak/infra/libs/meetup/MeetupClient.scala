@@ -106,6 +106,10 @@ class MeetupClient(conf: MeetupConf, appBaseUrl: String, performWriteOps: Boolea
       IO.pure(Right(()))
     }
 
+  // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id/attendance
+  def getEventAttendees(groupSlug: String, eventId: Long)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupAttendee]]] =
+    get[Seq[MeetupAttendee]](s"$baseUrl/$groupSlug/events/$eventId/attendance")
+
   // no venue API doc: https://github.com/meetup/api/issues/331
   // no doc :(
   def getVenues(groupSlug: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupVenue]]] =
