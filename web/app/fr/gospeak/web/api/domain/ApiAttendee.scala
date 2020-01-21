@@ -12,7 +12,7 @@ object ApiAttendee {
   // data to display publicly
   final case class Published(name: String,
                              avatar: String,
-                             profil: String,
+                             meetupProfile: String,
                              host: Boolean,
                              response: String,
                              updated: Instant)
@@ -25,7 +25,7 @@ object ApiAttendee {
     new Published(
       name = attendee.name,
       avatar = attendee.avatar.map(_.value).getOrElse(Image.AdorableUrl(attendee.id.value.toString, None).value),
-      profil = s"https://www.meetup.com/${group.value}/members/${attendee.id.value}",
+      meetupProfile = s"https://www.meetup.com/${group.value}/members/${attendee.id.value}",
       host = attendee.host,
       response = attendee.response,
       updated = attendee.updated)

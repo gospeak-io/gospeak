@@ -1,6 +1,6 @@
 package fr.gospeak.infra.libs.meetup.domain
 
-final case class MeetupEvent(id: String,
+final case class MeetupEvent(id: Long,
                              name: String,
                              status: String, // "cancelled", "upcoming", "past", "proposed", "suggested" or "draft"
                              visibility: String, // "public", "public_limited", or "members"

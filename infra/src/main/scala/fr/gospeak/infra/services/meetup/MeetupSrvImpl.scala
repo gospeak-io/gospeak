@@ -69,9 +69,9 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
         venueRef = venueId.map(id => gs.MeetupVenue.Ref(creds.group, gs.MeetupVenue.Id(id)))
         toCreateEvent = toLib(event, timezone, venue, venueId, orgas.map(_.id), description, draft)
         meetupEvent <- event.refs.meetup
-          .map(r => client.updateEvent(creds.group.value, r.event.value.toString, toCreateEvent).flatMap(_.toIO(e => gs.MeetupException.CantUpdateEvent(creds.group, event, e.format))))
+          .map(r => client.updateEvent(creds.group.value, r.event.value, toCreateEvent).flatMap(_.toIO(e => gs.MeetupException.CantUpdateEvent(creds.group, event, e.format))))
           .getOrElse(client.createEvent(creds.group.value, toCreateEvent).flatMap(_.toIO(e => gs.MeetupException.CantCreateEvent(creds.group, event, e.format))))
-        eventRef <- Try(meetupEvent.id.toLong).map(id => gs.MeetupEvent.Ref(creds.group, gs.MeetupEvent.Id(id))).toIO
+        eventRef <- Try(meetupEvent.id).map(id => gs.MeetupEvent.Ref(creds.group, gs.MeetupEvent.Id(id))).toIO
       } yield (eventRef, venueRef)
     }
   }

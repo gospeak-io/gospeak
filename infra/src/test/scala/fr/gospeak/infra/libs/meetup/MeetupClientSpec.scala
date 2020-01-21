@@ -17,7 +17,7 @@ class MeetupClientSpec extends FunSpec with Matchers {
   private implicit val accessToken: MeetupToken.Access = MeetupToken.Access("...")
   private val refreshToken = "..."
   private val groupId = "HumanTalks-Paris"
-  private val eventId = "262874292"
+  private val eventId = 262874292L
   private val venueId = 25982234L
   private val userId = 14321102L
 

@@ -87,11 +87,11 @@ class MeetupClient(conf: MeetupConf, appBaseUrl: String, performWriteOps: Boolea
     }
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#get
-  def getEvent(groupSlug: String, eventId: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
+  def getEvent(groupSlug: String, eventId: Long)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
     get[MeetupEvent](s"$baseUrl/$groupSlug/events/$eventId")
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#edit
-  def updateEvent(groupSlug: String, eventId: String, event: MeetupEvent.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
+  def updateEvent(groupSlug: String, eventId: Long, event: MeetupEvent.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
     if (performWriteOps) {
       patch[MeetupEvent](s"$baseUrl/$groupSlug/events/$eventId", event.toMap)
     } else {
@@ -99,7 +99,7 @@ class MeetupClient(conf: MeetupConf, appBaseUrl: String, performWriteOps: Boolea
     }
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#delete
-  def deleteEvent(groupSlug: String, eventId: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Unit]] =
+  def deleteEvent(groupSlug: String, eventId: Long)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Unit]] =
     if (performWriteOps) {
       delete[Unit](s"$baseUrl/$groupSlug/events/$eventId", Map("remove_from_calendar" -> "true"))
     } else {
