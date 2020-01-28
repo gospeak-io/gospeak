@@ -1,8 +1,20 @@
 package fr.gospeak.core.services.meetup.domain
 
+import java.time.Instant
+
 import fr.gospeak.libs.scalautils.domain.CustomException
 
 import scala.util.Try
+
+final case class MeetupEvent(id: Long,
+                             name: String,
+                             status: String,
+                             visibility: String,
+                             // FIXME add local date
+                             description: Option[String],
+                             venue: Option[MeetupVenue],
+                             rsvp_limit: Option[Int],
+                             created: Instant)
 
 object MeetupEvent {
 

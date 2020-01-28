@@ -19,6 +19,8 @@ trait MeetupSrv {
 
   def getGroup(group: MeetupGroup.Slug, key: AesSecretKey)(implicit token: MeetupToken): IO[MeetupGroup]
 
+  def getEvents(group: MeetupGroup.Slug, key: AesSecretKey, creds: MeetupCredentials): IO[Seq[MeetupEvent]]
+
   def getAttendees(group: MeetupGroup.Slug, event: MeetupEvent.Id, key: AesSecretKey, creds: MeetupCredentials): IO[Seq[MeetupAttendee]]
 
   def publish(event: Event,

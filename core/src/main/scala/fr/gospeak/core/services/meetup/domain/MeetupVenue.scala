@@ -1,8 +1,15 @@
 package fr.gospeak.core.services.meetup.domain
 
-import fr.gospeak.libs.scalautils.domain.CustomException
+import fr.gospeak.libs.scalautils.domain.{CustomException, Geo}
 
 import scala.util.Try
+
+final case class MeetupVenue(id: Long,
+                             name: String,
+                             address: String,
+                             city: String,
+                             country: String,
+                             geo: Geo)
 
 object MeetupVenue {
 

@@ -14,6 +14,10 @@ object MeetupException {
   final case class GroupNotFound(slug: MeetupGroup.Slug,
                                  error: String) extends MeetupException(s"Meetup group '${slug.value}' not found: $error")
 
+  final case class EventNotFound(slug: MeetupGroup.Slug,
+                                 id: MeetupEvent.Id,
+                                 error: String) extends MeetupException(s"Meetup event ${id.value} in group '${slug.value}' not found: $error")
+
   final case class CantFetchLocation(geo: Geo,
                                      error: String) extends MeetupException(s"Unable to fetch meetup locations for $geo: $error")
 
