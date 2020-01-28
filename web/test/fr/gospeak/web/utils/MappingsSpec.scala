@@ -4,8 +4,8 @@ import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDateTime}
 import java.util.concurrent.TimeUnit
 
-import fr.gospeak.core.domain._
-import fr.gospeak.core.testingutils.Generators._
+import gospeak.core.domain._
+import gospeak.core.testingutils.Generators._
 import fr.gospeak.web.utils.Mappings._
 import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import gospeak.libs.scala.domain._

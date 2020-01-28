@@ -1,8 +1,8 @@
 package fr.gospeak.web.api.published
 
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.User
-import fr.gospeak.core.services.storage.PublicUserRepo
+import gospeak.core.domain.User
+import gospeak.core.services.storage.PublicUserRepo
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.ApiUser
 import fr.gospeak.web.api.domain.utils.ApiResult

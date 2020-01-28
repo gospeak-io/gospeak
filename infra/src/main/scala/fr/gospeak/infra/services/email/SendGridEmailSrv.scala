@@ -1,8 +1,8 @@
 package fr.gospeak.infra.services.email
 
 import cats.effect.IO
-import fr.gospeak.core.services.email.EmailSrv.{Email, HtmlContent, TextContent}
-import fr.gospeak.core.services.email.{EmailConf, EmailSrv}
+import gospeak.core.services.email.EmailSrv.{Email, HtmlContent, TextContent}
+import gospeak.core.services.email.{EmailConf, EmailSrv}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Done
 import gospeak.libs.scala.domain.EmailAddress.Contact

@@ -2,8 +2,8 @@ package fr.gospeak.web.pages.user.talks.cfps
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.Talk
-import fr.gospeak.core.services.storage.{SpeakerCfpRepo, SpeakerProposalRepo, SpeakerTalkRepo}
+import gospeak.core.domain.Talk
+import gospeak.core.services.storage.{SpeakerCfpRepo, SpeakerProposalRepo, SpeakerTalkRepo}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb

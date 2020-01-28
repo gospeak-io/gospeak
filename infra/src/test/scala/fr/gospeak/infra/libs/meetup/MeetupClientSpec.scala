@@ -3,7 +3,7 @@ package fr.gospeak.infra.libs.meetup
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-import fr.gospeak.core.services.meetup.MeetupConf
+import gospeak.core.services.meetup.MeetupConf
 import fr.gospeak.infra.libs.meetup.domain.{MeetupEvent, MeetupToken, MeetupVenue}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Geo, Secret}

@@ -4,8 +4,8 @@ import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate, LocalDateTime}
 import java.util.Locale
 
-import fr.gospeak.core.domain.Cfp
-import fr.gospeak.core.domain.utils.Constants
+import gospeak.core.domain.Cfp
+import gospeak.core.domain.utils.Constants
 import fr.gospeak.web.pages.partials.html.{pagination, search, sort}
 import gospeak.libs.scala.domain.Page
 import play.api.mvc.{AnyContent, Call}

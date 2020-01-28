@@ -1,8 +1,8 @@
 package fr.gospeak.infra.services.email
 
 import cats.effect.IO
-import fr.gospeak.core.services.email.EmailSrv
-import fr.gospeak.core.services.email.EmailSrv.Email
+import gospeak.core.services.email.EmailSrv
+import gospeak.core.services.email.EmailSrv.Email
 import gospeak.libs.scala.domain.Done
 
 import scala.collection.mutable

@@ -1,7 +1,7 @@
 package fr.gospeak.infra.libs.cloudinary
 
-import fr.gospeak.core.domain.utils.Creds
-import fr.gospeak.core.services.upload.UploadConf
+import gospeak.core.domain.utils.Creds
+import gospeak.core.services.upload.UploadConf
 import fr.gospeak.infra.libs.cloudinary.domain.CloudinaryUploadRequest
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Secret

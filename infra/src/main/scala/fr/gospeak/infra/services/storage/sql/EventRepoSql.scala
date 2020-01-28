@@ -8,10 +8,10 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.Event.Rsvp.Answer
-import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
-import fr.gospeak.core.services.storage.EventRepo
+import gospeak.core.domain.Event.Rsvp.Answer
+import gospeak.core.domain._
+import gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import gospeak.core.services.storage.EventRepo
 import fr.gospeak.infra.services.storage.sql.EventRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}

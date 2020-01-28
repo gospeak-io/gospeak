@@ -3,9 +3,9 @@ package fr.gospeak.infra.services.meetup
 import java.time.{Instant, ZoneId}
 
 import cats.effect.IO
-import fr.gospeak.core.domain.utils.Constants
-import fr.gospeak.core.domain.{Event, Venue}
-import fr.gospeak.core.services.meetup.{MeetupSrv, domain => gs}
+import gospeak.core.domain.utils.Constants
+import gospeak.core.domain.{Event, Venue}
+import gospeak.core.services.meetup.{MeetupSrv, domain => gs}
 import fr.gospeak.infra.libs.meetup.MeetupClient
 import fr.gospeak.infra.libs.meetup.domain._
 import fr.gospeak.infra.services.meetup.MeetupSrvImpl._

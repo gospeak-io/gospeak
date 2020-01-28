@@ -1,9 +1,9 @@
 package fr.gospeak.web.pages.orga.settings
 
-import fr.gospeak.core.domain.Group.Settings
-import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.core.services.meetup.domain.MeetupGroup
-import fr.gospeak.core.services.slack.domain.SlackCredentials
+import gospeak.core.domain.Group.Settings
+import gospeak.core.domain.utils.TemplateData
+import gospeak.core.services.meetup.domain.MeetupGroup
+import gospeak.core.services.slack.domain.SlackCredentials
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.web.utils.Mappings._

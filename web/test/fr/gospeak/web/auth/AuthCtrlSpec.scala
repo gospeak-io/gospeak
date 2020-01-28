@@ -1,7 +1,7 @@
 package fr.gospeak.web.auth
 
-import fr.gospeak.core.domain.User
-import fr.gospeak.core.testingutils.Generators._
+import gospeak.core.domain.User
+import gospeak.core.testingutils.Generators._
 import fr.gospeak.web.auth.AuthForms.SignupData
 import fr.gospeak.web.testingutils.CtrlSpec
 import gospeak.libs.scala.domain.{EmailAddress, Secret}
@@ -13,7 +13,7 @@ import play.api.test.Helpers._
 import scala.concurrent.Future
 
 class AuthCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
-  private val _ = aEmailAddress // to keep the `fr.gospeak.core.testingutils.Generators._` import
+  private val _ = aEmailAddress // to keep the `gospeak.core.testingutils.Generators._` import
   private val ctrl = new AuthCtrl(cc, silhouette, conf, db.user, db.userRequest, db.group, authSrv, emailSrv)
   private val redirect: Option[String] = None
   // private val signupData = random[SignupData] // TODO add generators constraints: firstName&lastName should not be empty, password should have 8 char at least

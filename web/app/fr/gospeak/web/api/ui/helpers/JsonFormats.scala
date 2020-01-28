@@ -1,6 +1,6 @@
 package fr.gospeak.web.api.ui.helpers
 
-import fr.gospeak.core.domain.utils.TemplateData
+import gospeak.core.domain.utils.TemplateData
 import fr.gospeak.web.api.ui._
 import fr.gospeak.web.utils.Extensions._
 import gospeak.libs.scala.domain.Html

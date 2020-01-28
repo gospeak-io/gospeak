@@ -4,9 +4,9 @@ import java.time.Instant
 
 import cats.effect.IO
 import doobie.implicits._
-import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.core.domain.{Cfp, CommonCfp, ExternalCfp, User}
-import fr.gospeak.core.services.storage.ExternalCfpRepo
+import gospeak.core.domain.utils.Info
+import gospeak.core.domain.{Cfp, CommonCfp, ExternalCfp, User}
+import gospeak.core.services.storage.ExternalCfpRepo
 import fr.gospeak.infra.services.storage.sql.ExternalCfpRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Sorts, Table, Update}

@@ -2,8 +2,8 @@ package fr.gospeak.web.api.published
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.{Cfp, CommonCfp, ExternalCfp}
-import fr.gospeak.core.services.storage.{PublicExternalCfpRepo, PublicGroupRepo}
+import gospeak.core.domain.{Cfp, CommonCfp, ExternalCfp}
+import gospeak.core.services.storage.{PublicExternalCfpRepo, PublicGroupRepo}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.ApiCfp
 import fr.gospeak.web.api.domain.utils.ApiResult

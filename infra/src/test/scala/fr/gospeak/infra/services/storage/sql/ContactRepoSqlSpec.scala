@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services.storage.sql
 
-import fr.gospeak.core.domain.Contact.{FirstName, LastName}
+import gospeak.core.domain.Contact.{FirstName, LastName}
 import fr.gospeak.infra.services.storage.sql.ContactRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields

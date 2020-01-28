@@ -12,9 +12,9 @@ import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry
 import com.mohiva.play.silhouette.test._
 import com.typesafe.config.ConfigFactory
-import fr.gospeak.core.domain.User
-import fr.gospeak.core.services.storage.DatabaseConf
-import fr.gospeak.core.testingutils.Generators._
+import gospeak.core.domain.User
+import gospeak.core.services.storage.DatabaseConf
+import gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.services.AvatarSrv
 import fr.gospeak.infra.services.email.InMemoryEmailSrv
 import fr.gospeak.infra.services.storage.sql.GospeakDbSql

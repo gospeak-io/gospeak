@@ -2,8 +2,8 @@ package fr.gospeak.web.api.domain
 
 import java.time.Instant
 
-import fr.gospeak.core.domain.Comment
-import fr.gospeak.core.domain.utils.BasicCtx
+import gospeak.core.domain.Comment
+import gospeak.core.domain.utils.BasicCtx
 import play.api.libs.json.{Json, Writes}
 
 final case class ApiComment(id: String,

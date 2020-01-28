@@ -1,7 +1,7 @@
 package fr.gospeak.infra.services
 
-import fr.gospeak.core.services.email.EmailConf.SendGrid
-import fr.gospeak.core.services.email.EmailSrv._
+import gospeak.core.services.email.EmailConf.SendGrid
+import gospeak.core.services.email.EmailSrv._
 import fr.gospeak.infra.services.email.SendGridEmailSrv
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{EmailAddress, Secret}

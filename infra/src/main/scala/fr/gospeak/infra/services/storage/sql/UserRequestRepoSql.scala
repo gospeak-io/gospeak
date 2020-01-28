@@ -5,10 +5,10 @@ import java.time.Instant
 import cats.effect.IO
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.UserRequest._
-import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
-import fr.gospeak.core.services.storage.UserRequestRepo
+import gospeak.core.domain.UserRequest._
+import gospeak.core.domain._
+import gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import gospeak.core.services.storage.UserRequestRepo
 import fr.gospeak.infra.services.storage.sql.UserRequestRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}

@@ -4,7 +4,7 @@ import com.vladsch.flexmark.ext.emoji.{EmojiExtension, EmojiImageType}
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.data.MutableDataSet
-import fr.gospeak.core.services.MarkdownSrv
+import gospeak.core.services.MarkdownSrv
 import gospeak.libs.scala.domain.{Html, Markdown}
 
 import scala.collection.JavaConverters._

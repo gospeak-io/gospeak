@@ -1,8 +1,8 @@
 package fr.gospeak.web.pages.user.talks.cfps
 
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
-import fr.gospeak.core.domain.{Cfp, Talk}
-import fr.gospeak.core.testingutils.Generators._
+import gospeak.core.domain.{Cfp, Talk}
+import gospeak.core.testingutils.Generators._
 import fr.gospeak.web.testingutils.TwirlSpec
 import gospeak.libs.scala.domain.Page
 

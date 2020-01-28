@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services.email
 
-import fr.gospeak.core.services.email.{EmailSrv, EmailConf}
+import gospeak.core.services.email.{EmailSrv, EmailConf}
 
 object EmailSrvFactory {
   def from(conf: EmailConf): EmailSrv = conf match {

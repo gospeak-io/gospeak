@@ -4,14 +4,14 @@ import java.time.Instant
 
 import cats.effect.IO
 import doobie.implicits._
-import fr.gospeak.core.GospeakConf
-import fr.gospeak.core.domain.Group.Settings
-import fr.gospeak.core.domain.Group.Settings.Action
-import fr.gospeak.core.domain.utils.{OrgaCtx, TemplateData, UserAwareCtx}
-import fr.gospeak.core.domain.{Group, User}
-import fr.gospeak.core.services.meetup.domain.MeetupCredentials
-import fr.gospeak.core.services.slack.domain.SlackCredentials
-import fr.gospeak.core.services.storage.GroupSettingsRepo
+import gospeak.core.GospeakConf
+import gospeak.core.domain.Group.Settings
+import gospeak.core.domain.Group.Settings.Action
+import gospeak.core.domain.utils.{OrgaCtx, TemplateData, UserAwareCtx}
+import gospeak.core.domain.{Group, User}
+import gospeak.core.services.meetup.domain.MeetupCredentials
+import gospeak.core.services.slack.domain.SlackCredentials
+import gospeak.core.services.storage.GroupSettingsRepo
 import fr.gospeak.infra.services.storage.sql.GroupSettingsRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, Update}

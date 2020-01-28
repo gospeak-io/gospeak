@@ -3,9 +3,9 @@ package fr.gospeak.web.pages.orga
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.{Group, UserRequest}
-import fr.gospeak.core.services.email.EmailSrv
-import fr.gospeak.core.services.storage._
+import gospeak.core.domain.{Group, UserRequest}
+import gospeak.core.services.email.EmailSrv
+import gospeak.core.services.storage._
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain._

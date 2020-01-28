@@ -2,9 +2,9 @@ package fr.gospeak.web.utils
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.BasicCtx
-import fr.gospeak.core.services.storage.OrgaGroupRepo
+import gospeak.core.domain._
+import gospeak.core.domain.utils.BasicCtx
+import gospeak.core.services.storage.OrgaGroupRepo
 import gospeak.libs.scala.Extensions._
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.utils._

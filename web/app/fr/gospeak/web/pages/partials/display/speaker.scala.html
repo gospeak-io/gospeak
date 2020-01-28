@@ -1,4 +1,4 @@
-@import fr.gospeak.core.domain.User
+@import gospeak.core.domain.User
 @(speakers: Seq[User], id: User.Id, call: User => Option[Call] = _ => None)
 @speakers.find(_.id == id).map(u => (u, call(u))) match {
     case Some((user, Some(url))) => {<a class="badge badge-pill badge-primary" href="@url">@user.name.value</a>}

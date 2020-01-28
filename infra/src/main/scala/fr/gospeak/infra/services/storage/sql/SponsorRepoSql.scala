@@ -5,9 +5,9 @@ import java.time.Instant
 import cats.effect.IO
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.OrgaCtx
-import fr.gospeak.core.services.storage.SponsorRepo
+import gospeak.core.domain._
+import gospeak.core.domain.utils.OrgaCtx
+import gospeak.core.services.storage.SponsorRepo
 import fr.gospeak.infra.services.storage.sql.SponsorRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}

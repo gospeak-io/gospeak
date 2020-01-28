@@ -6,9 +6,9 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.{LoginInfo, Silhouette}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
-import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{Info, SocialAccounts}
-import fr.gospeak.core.services.email.EmailSrv
+import gospeak.core.domain._
+import gospeak.core.domain.utils.{Info, SocialAccounts}
+import gospeak.core.services.email.EmailSrv
 import fr.gospeak.infra.services.AvatarSrv
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.domain.Breadcrumb

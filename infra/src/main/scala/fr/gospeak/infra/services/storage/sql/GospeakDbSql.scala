@@ -4,14 +4,14 @@ import java.time.{Instant, LocalDate, LocalDateTime}
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import fr.gospeak.core.domain.Contact.{FirstName, LastName}
-import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
-import fr.gospeak.core.domain.utils.TemplateData.EventInfo
-import fr.gospeak.core.domain.utils._
-import fr.gospeak.core.services.slack.domain.SlackAction
-import fr.gospeak.core.services.storage.{DatabaseConf, GospeakDb}
-import fr.gospeak.core.{ApplicationConf, GospeakConf}
+import gospeak.core.domain.Contact.{FirstName, LastName}
+import gospeak.core.domain._
+import gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
+import gospeak.core.domain.utils.TemplateData.EventInfo
+import gospeak.core.domain.utils._
+import gospeak.core.services.slack.domain.SlackAction
+import gospeak.core.services.storage.{DatabaseConf, GospeakDb}
+import gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.infra.services.AvatarSrv
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.{DoobieUtils, FlywayUtils}

@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.orga.cfps
 
-import fr.gospeak.core.domain.Cfp
+import gospeak.core.domain.Cfp
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Forms._
 import play.api.data._

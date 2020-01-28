@@ -1,7 +1,7 @@
 package fr.gospeak.infra.services
 
-import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.core.services.TemplateSrv
+import gospeak.core.domain.utils.TemplateData
+import gospeak.core.services.TemplateSrv
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Markdown
 import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}

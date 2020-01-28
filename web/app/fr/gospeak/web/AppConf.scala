@@ -2,13 +2,13 @@ package fr.gospeak.web
 
 import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
 import com.typesafe.config.Config
-import fr.gospeak.core.domain.utils.Creds
-import fr.gospeak.core.services.email.EmailConf
-import fr.gospeak.core.services.matomo.MatomoConf
-import fr.gospeak.core.services.meetup.MeetupConf
-import fr.gospeak.core.services.storage.DatabaseConf
-import fr.gospeak.core.services.upload.UploadConf
-import fr.gospeak.core.{ApplicationConf, GospeakConf}
+import gospeak.core.domain.utils.Creds
+import gospeak.core.services.email.EmailConf
+import gospeak.core.services.matomo.MatomoConf
+import gospeak.core.services.meetup.MeetupConf
+import gospeak.core.services.storage.DatabaseConf
+import gospeak.core.services.upload.UploadConf
+import gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.web.auth.AuthConf
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._

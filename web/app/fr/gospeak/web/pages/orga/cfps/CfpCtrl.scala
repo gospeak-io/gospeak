@@ -3,9 +3,9 @@ package fr.gospeak.web.pages.orga.cfps
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.utils.OrgaCtx
-import fr.gospeak.core.domain.{Cfp, Event, Group}
-import fr.gospeak.core.services.storage._
+import gospeak.core.domain.utils.OrgaCtx
+import gospeak.core.domain.{Cfp, Event, Group}
+import gospeak.core.services.storage._
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb

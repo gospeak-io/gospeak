@@ -2,9 +2,9 @@ package fr.gospeak.web.api.published
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.{Event, Group, Proposal}
-import fr.gospeak.core.services.meetup.MeetupSrv
-import fr.gospeak.core.services.storage._
+import gospeak.core.domain.{Event, Group, Proposal}
+import gospeak.core.services.meetup.MeetupSrv
+import gospeak.core.services.storage._
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain._
 import fr.gospeak.web.api.domain.utils.ApiResult

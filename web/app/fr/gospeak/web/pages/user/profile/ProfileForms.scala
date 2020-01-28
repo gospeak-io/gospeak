@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.user.profile
 
-import fr.gospeak.core.domain.User
+import gospeak.core.domain.User
 import fr.gospeak.web.utils.Mappings._
 import gospeak.libs.scala.domain.Values
 import play.api.data.Form

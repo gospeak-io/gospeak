@@ -2,7 +2,7 @@ package fr.gospeak.infra.services
 
 import java.net.URLEncoder
 
-import fr.gospeak.core.domain.User
+import gospeak.core.domain.User
 import gospeak.libs.scala.domain.Image.{AdorableUrl, GravatarUrl}
 import gospeak.libs.scala.domain.{Avatar, EmailAddress}
 

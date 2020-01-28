@@ -9,10 +9,10 @@ import com.mohiva.play.silhouette.impl.exceptions.IdentityNotFoundException
 import com.mohiva.play.silhouette.impl.providers.{CommonSocialProfile, CredentialsProvider, SocialProviderRegistry}
 import com.mohiva.play.silhouette.password.BCryptPasswordHasher
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
-import fr.gospeak.core.domain.User.{Login, ProviderId, ProviderKey}
-import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
-import fr.gospeak.core.domain.{Group, User}
-import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
+import gospeak.core.domain.User.{Login, ProviderId, ProviderKey}
+import gospeak.core.domain.UserRequest.PasswordResetRequest
+import gospeak.core.domain.{Group, User}
+import gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.AvatarSrv
 import fr.gospeak.web.auth.AuthConf
 import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}

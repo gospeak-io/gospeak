@@ -3,7 +3,7 @@ package fr.gospeak.infra.libs.matomo
 import java.util.UUID
 
 import cats.effect.IO
-import fr.gospeak.core.services.matomo.MatomoConf
+import gospeak.core.services.matomo.MatomoConf
 import fr.gospeak.infra.utils.HttpClient
 import io.circe.Decoder
 import io.circe.parser.decode

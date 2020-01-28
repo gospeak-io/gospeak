@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.orga.cfps.proposals
 
-import fr.gospeak.core.domain.Proposal
+import gospeak.core.domain.Proposal
 import fr.gospeak.web.utils.Mappings.{slides, video}
 import play.api.data.Form
 import play.api.data.Forms.{mapping, optional}

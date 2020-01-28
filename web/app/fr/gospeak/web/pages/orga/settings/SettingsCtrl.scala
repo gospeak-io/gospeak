@@ -3,14 +3,14 @@ package fr.gospeak.web.pages.orga.settings
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.utils.OrgaCtx
-import fr.gospeak.core.domain.{Group, User, UserRequest}
-import fr.gospeak.core.services.email.EmailSrv
-import fr.gospeak.core.services.meetup.MeetupSrv
-import fr.gospeak.core.services.meetup.domain.{MeetupCredentials, MeetupException, MeetupGroup}
-import fr.gospeak.core.services.slack.SlackSrv
-import fr.gospeak.core.services.slack.domain.SlackCredentials
-import fr.gospeak.core.services.storage.{GroupSettingsRepo, OrgaGroupRepo, OrgaUserRepo, OrgaUserRequestRepo}
+import gospeak.core.domain.utils.OrgaCtx
+import gospeak.core.domain.{Group, User, UserRequest}
+import gospeak.core.services.email.EmailSrv
+import gospeak.core.services.meetup.MeetupSrv
+import gospeak.core.services.meetup.domain.{MeetupCredentials, MeetupException, MeetupGroup}
+import gospeak.core.services.slack.SlackSrv
+import gospeak.core.services.slack.domain.SlackCredentials
+import gospeak.core.services.storage.{GroupSettingsRepo, OrgaGroupRepo, OrgaUserRepo, OrgaUserRequestRepo}
 import gospeak.libs.scala.Extensions._
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv

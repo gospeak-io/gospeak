@@ -1,6 +1,6 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.core.domain.Comment
+import gospeak.core.domain.Comment
 import fr.gospeak.web.utils.Mappings._
 import gospeak.libs.scala.domain.{EmailAddress, Url}
 import play.api.data.Form

@@ -2,8 +2,8 @@ package fr.gospeak.web.api.orga
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.{Cfp, Group}
-import fr.gospeak.core.services.storage.{OrgaCfpRepo, OrgaGroupRepo, OrgaUserRepo}
+import gospeak.core.domain.{Cfp, Group}
+import gospeak.core.services.storage.{OrgaCfpRepo, OrgaGroupRepo, OrgaUserRepo}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.ApiCfp
 import fr.gospeak.web.api.domain.utils.ApiResult

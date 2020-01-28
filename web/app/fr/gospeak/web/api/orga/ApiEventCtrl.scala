@@ -2,8 +2,8 @@ package fr.gospeak.web.api.orga
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.{Event, Group}
-import fr.gospeak.core.services.storage.{OrgaEventRepo, OrgaGroupRepo, OrgaProposalRepo, OrgaUserRepo}
+import gospeak.core.domain.{Event, Group}
+import gospeak.core.services.storage.{OrgaEventRepo, OrgaGroupRepo, OrgaProposalRepo, OrgaUserRepo}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.ApiEvent
 import fr.gospeak.web.api.domain.utils.ApiResult

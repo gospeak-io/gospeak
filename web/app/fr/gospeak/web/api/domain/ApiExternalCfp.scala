@@ -2,8 +2,8 @@ package fr.gospeak.web.api.domain
 
 import java.time.LocalDateTime
 
-import fr.gospeak.core.domain.ExternalCfp
-import fr.gospeak.core.domain.utils.BasicCtx
+import gospeak.core.domain.ExternalCfp
+import gospeak.core.domain.utils.BasicCtx
 import play.api.libs.json.{Json, Writes}
 
 object ApiExternalCfp {

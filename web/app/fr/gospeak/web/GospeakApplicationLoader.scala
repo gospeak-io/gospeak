@@ -14,15 +14,15 @@ import com.mohiva.play.silhouette.impl.providers.state.{CsrfStateItemHandler, Cs
 import com.mohiva.play.silhouette.impl.providers.{DefaultSocialStateHandler, SocialProviderRegistry}
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.softwaremill.macwire.wire
-import fr.gospeak.core.ApplicationConf
-import fr.gospeak.core.domain.utils.GospeakMessage
-import fr.gospeak.core.services._
-import fr.gospeak.core.services.cloudinary.CloudinarySrv
-import fr.gospeak.core.services.email.EmailSrv
-import fr.gospeak.core.services.matomo.MatomoSrv
-import fr.gospeak.core.services.meetup.MeetupSrv
-import fr.gospeak.core.services.slack.SlackSrv
-import fr.gospeak.core.services.storage._
+import gospeak.core.ApplicationConf
+import gospeak.core.domain.utils.GospeakMessage
+import gospeak.core.services._
+import gospeak.core.services.cloudinary.CloudinarySrv
+import gospeak.core.services.email.EmailSrv
+import gospeak.core.services.matomo.MatomoSrv
+import gospeak.core.services.meetup.MeetupSrv
+import gospeak.core.services.slack.SlackSrv
+import gospeak.core.services.storage._
 import fr.gospeak.infra.libs.cloudinary.CloudinaryClient
 import fr.gospeak.infra.libs.matomo.MatomoClient
 import fr.gospeak.infra.libs.meetup.MeetupClient

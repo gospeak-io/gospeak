@@ -2,13 +2,13 @@ package fr.gospeak.web.api.ui
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.ExternalCfp
-import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.core.services.cloudinary.CloudinarySrv
-import fr.gospeak.core.services.slack.SlackSrv
-import fr.gospeak.core.services.slack.domain.SlackToken
-import fr.gospeak.core.services.storage.PublicExternalCfpRepo
-import fr.gospeak.core.services.{MarkdownSrv, TemplateSrv}
+import gospeak.core.domain.ExternalCfp
+import gospeak.core.domain.utils.TemplateData
+import gospeak.core.services.cloudinary.CloudinarySrv
+import gospeak.core.services.slack.SlackSrv
+import gospeak.core.services.slack.domain.SlackToken
+import gospeak.core.services.storage.PublicExternalCfpRepo
+import gospeak.core.services.{MarkdownSrv, TemplateSrv}
 import fr.gospeak.infra.services.{EmbedSrv, TemplateSrvImpl}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.ApiExternalCfp

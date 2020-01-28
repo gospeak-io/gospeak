@@ -124,9 +124,9 @@ val web = (project in file("web"))
     name := "web",
     libraryDependencies ++= webDependencies ++ Seq(ws),
     routesImport ++= Seq(
-      "fr.gospeak.core.domain._",
+      "gospeak.core.domain._",
       "gospeak.libs.scala.domain._",
-      "fr.gospeak.core.services.meetup.domain._",
+      "gospeak.core.services.meetup.domain._",
       "fr.gospeak.web.utils.PathBindables._",
       "fr.gospeak.web.utils.QueryStringBindables._"),
     buildInfoKeys := Seq[BuildInfoKey](

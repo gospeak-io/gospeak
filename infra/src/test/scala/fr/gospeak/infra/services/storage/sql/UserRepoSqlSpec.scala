@@ -1,12 +1,12 @@
 package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
-import fr.gospeak.core.domain.User._
+import gospeak.core.domain.User._
 import fr.gospeak.infra.services.storage.sql.UserRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 import TablesSpec.socialFields
-import fr.gospeak.core.domain.utils.FakeCtx
+import gospeak.core.domain.utils.FakeCtx
 
 class UserRepoSqlSpec extends RepoSpec {
   private val login = Login(ProviderId("providerId"), ProviderKey("providerKey"))

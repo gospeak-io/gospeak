@@ -4,9 +4,9 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
-import fr.gospeak.core.domain.{Cfp, ExternalCfp, Talk}
-import fr.gospeak.core.services.email.EmailSrv
-import fr.gospeak.core.services.storage._
+import gospeak.core.domain.{Cfp, ExternalCfp, Talk}
+import gospeak.core.services.email.EmailSrv
+import gospeak.core.services.storage._
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}

@@ -1,9 +1,9 @@
 package fr.gospeak.web.emails
 
-import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest}
-import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.Constants
-import fr.gospeak.core.services.email.EmailSrv.{Email, HtmlContent}
+import gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest}
+import gospeak.core.domain._
+import gospeak.core.domain.utils.Constants
+import gospeak.core.services.email.EmailSrv.{Email, HtmlContent}
 import fr.gospeak.web.utils.{OrgaReq, UserAwareReq, UserReq}
 import gospeak.libs.scala.domain.{EmailAddress, Markdown}
 import play.api.mvc.AnyContent

@@ -1,8 +1,8 @@
 package fr.gospeak.infra.services.cloudinary
 
 import cats.effect.IO
-import fr.gospeak.core.domain.{ExternalCfp, Group, Partner, User}
-import fr.gospeak.core.services.cloudinary.CloudinarySrv
+import gospeak.core.domain.{ExternalCfp, Group, Partner, User}
+import gospeak.core.services.cloudinary.CloudinarySrv
 import fr.gospeak.infra.libs.cloudinary.CloudinaryClient
 import fr.gospeak.infra.libs.cloudinary.domain.CloudinaryUploadRequest
 import gospeak.libs.scala.Extensions._

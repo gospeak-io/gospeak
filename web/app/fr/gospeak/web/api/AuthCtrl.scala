@@ -2,8 +2,8 @@ package fr.gospeak.web.api
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.services.email.EmailSrv
-import fr.gospeak.core.services.storage.AuthUserRequestRepo
+import gospeak.core.services.email.EmailSrv
+import gospeak.core.services.storage.AuthUserRequestRepo
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.ApiUser
 import fr.gospeak.web.api.domain.utils.ApiResult

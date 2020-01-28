@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.published.cfps
 
-import fr.gospeak.core.domain.utils.GospeakMessage
+import gospeak.core.domain.utils.GospeakMessage
 import fr.gospeak.web.domain.{GospeakMessageBus, MessageBuilder}
 import fr.gospeak.web.testingutils.CtrlSpec
 import gospeak.libs.scala.BasicMessageBus

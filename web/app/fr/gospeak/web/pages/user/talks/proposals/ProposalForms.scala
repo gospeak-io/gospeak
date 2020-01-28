@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.user.talks.proposals
 
-import fr.gospeak.core.domain.Proposal
+import gospeak.core.domain.Proposal
 import fr.gospeak.web.utils.Mappings._
 import gospeak.libs.scala.domain.EmailAddress
 import play.api.data.Form

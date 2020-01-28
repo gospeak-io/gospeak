@@ -3,7 +3,7 @@ package fr.gospeak.web.utils
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
 
-import fr.gospeak.core.domain._
+import gospeak.core.domain._
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Page, Url}
 import play.api.mvc.QueryStringBindable

@@ -2,8 +2,8 @@ package fr.gospeak.web.api.domain.utils
 
 import java.time.Instant
 
-import fr.gospeak.core.domain.User
-import fr.gospeak.core.domain.utils.{BasicCtx, Info}
+import gospeak.core.domain.User
+import gospeak.core.domain.utils.{BasicCtx, Info}
 import fr.gospeak.web.api.domain.ApiUser
 import play.api.libs.json.{Json, Writes}
 

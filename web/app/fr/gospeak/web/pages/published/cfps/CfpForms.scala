@@ -2,7 +2,7 @@ package fr.gospeak.web.pages.published.cfps
 
 import java.time.LocalDateTime
 
-import fr.gospeak.core.domain.{ExternalCfp, Proposal, Talk}
+import gospeak.core.domain.{ExternalCfp, Proposal, Talk}
 import fr.gospeak.web.auth.AuthForms
 import fr.gospeak.web.auth.AuthForms.{LoginData, SignupData}
 import fr.gospeak.web.pages.user.talks.TalkForms

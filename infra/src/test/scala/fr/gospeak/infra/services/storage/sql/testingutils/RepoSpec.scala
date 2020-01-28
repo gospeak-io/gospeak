@@ -7,10 +7,10 @@ import cats.effect.IO
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import doobie.scalatest.IOChecker
 import doobie.util.testing.Analyzable
-import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
-import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{FakeCtx, OrgaCtx}
-import fr.gospeak.core.testingutils.Generators._
+import gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
+import gospeak.core.domain._
+import gospeak.core.domain.utils.{FakeCtx, OrgaCtx}
+import gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.services.storage.sql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
 import fr.gospeak.infra.testingutils.Values

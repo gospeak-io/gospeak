@@ -7,9 +7,9 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain.utils.OrgaCtx
-import fr.gospeak.core.domain.{Group, SponsorPack, User}
-import fr.gospeak.core.services.storage.SponsorPackRepo
+import gospeak.core.domain.utils.OrgaCtx
+import gospeak.core.domain.{Group, SponsorPack, User}
+import gospeak.core.services.storage.SponsorPackRepo
 import fr.gospeak.infra.services.storage.sql.SponsorPackRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Insert, Select, Update}

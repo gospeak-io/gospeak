@@ -1,7 +1,7 @@
 package fr.gospeak.web.api.domain
 
-import fr.gospeak.core.domain.Partner
-import fr.gospeak.core.domain.utils.{BasicCtx, Constants}
+import gospeak.core.domain.Partner
+import gospeak.core.domain.utils.{BasicCtx, Constants}
 import fr.gospeak.web.api.domain.utils.ApiSocial
 import play.api.libs.json.{Json, Writes}
 

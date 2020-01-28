@@ -1,7 +1,7 @@
 package fr.gospeak.infra.libs.meetup
 
 import cats.effect.IO
-import fr.gospeak.core.services.meetup.MeetupConf
+import gospeak.core.services.meetup.MeetupConf
 import fr.gospeak.infra.libs.meetup.MeetupJson._
 import fr.gospeak.infra.libs.meetup.domain._
 import fr.gospeak.infra.utils.HttpClient

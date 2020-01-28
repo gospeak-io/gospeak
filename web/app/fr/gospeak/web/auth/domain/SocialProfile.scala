@@ -3,8 +3,8 @@ package fr.gospeak.web.auth.domain
 import java.time.Instant
 
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
-import fr.gospeak.core.domain.User
-import fr.gospeak.core.domain.utils.SocialAccounts
+import gospeak.core.domain.User
+import gospeak.core.domain.utils.SocialAccounts
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.StringUtils
 import gospeak.libs.scala.domain.{Avatar, CustomException, EmailAddress, Url}

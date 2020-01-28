@@ -6,11 +6,11 @@ import java.time.{Instant, LocalDateTime}
 import java.util.concurrent.TimeUnit
 
 import cats.implicits._
-import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount._
-import fr.gospeak.core.domain.utils.{Constants, SocialAccounts}
-import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup, MeetupVenue}
-import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
+import gospeak.core.domain._
+import gospeak.core.domain.utils.SocialAccounts.SocialAccount._
+import gospeak.core.domain.utils.{Constants, SocialAccounts}
+import gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup, MeetupVenue}
+import gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import fr.gospeak.web.utils.Extensions._
 import fr.gospeak.web.utils.Mappings.Utils._
 import gospeak.libs.scala.Crypto.AesSecretKey

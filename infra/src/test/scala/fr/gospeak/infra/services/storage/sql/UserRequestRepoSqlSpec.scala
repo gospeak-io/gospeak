@@ -1,7 +1,7 @@
 package fr.gospeak.infra.services.storage.sql
 
-import fr.gospeak.core.domain.UserRequest
-import fr.gospeak.core.domain.UserRequest._
+import gospeak.core.domain.UserRequest
+import gospeak.core.domain.UserRequest._
 import fr.gospeak.infra.services.storage.sql.UserRequestRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields

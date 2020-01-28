@@ -1,7 +1,7 @@
 package fr.gospeak.infra.services
 
-import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.core.domain.utils.TemplateData.EventInfo
+import gospeak.core.domain.utils.TemplateData
+import gospeak.core.domain.utils.TemplateData.EventInfo
 import fr.gospeak.infra.services.TemplateSrvImplSpec._
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.{Encoder, Json}

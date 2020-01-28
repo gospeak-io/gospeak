@@ -3,7 +3,7 @@ package fr.gospeak.web.utils
 import java.net.URLEncoder
 import java.time.{LocalDate, LocalDateTime}
 
-import fr.gospeak.core.domain.UserRequest
+import gospeak.core.domain.UserRequest
 import fr.gospeak.web.utils.QueryStringBindables._
 import gospeak.libs.scala.domain.{Page, Url}
 import org.scalatest.{FunSpec, Matchers}

@@ -1,8 +1,8 @@
 package fr.gospeak.web.pages.orga.proposals
 
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain._
-import fr.gospeak.core.services.storage._
+import gospeak.core.domain._
+import gospeak.core.services.storage._
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb

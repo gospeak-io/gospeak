@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services.storage.sql
 
-import fr.gospeak.core.domain.ExternalCfp
+import gospeak.core.domain.ExternalCfp
 import fr.gospeak.infra.services.storage.sql.ExternalCfpRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields

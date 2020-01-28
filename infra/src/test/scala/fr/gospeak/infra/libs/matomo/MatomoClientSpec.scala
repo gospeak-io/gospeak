@@ -1,6 +1,6 @@
 package fr.gospeak.infra.libs.matomo
 
-import fr.gospeak.core.services.matomo.MatomoConf
+import gospeak.core.services.matomo.MatomoConf
 import gospeak.libs.scala.domain.Secret
 import org.scalatest.{FunSpec, Matchers}
 

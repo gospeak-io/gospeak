@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services.matomo
 
-import fr.gospeak.core.services.matomo.MatomoSrv
+import gospeak.core.services.matomo.MatomoSrv
 import fr.gospeak.infra.libs.matomo.MatomoClient
 
 class MatomoSrvImpl(client: MatomoClient) extends MatomoSrv {

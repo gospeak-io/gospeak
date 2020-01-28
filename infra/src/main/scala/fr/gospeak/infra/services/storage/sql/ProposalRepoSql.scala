@@ -7,9 +7,9 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
-import fr.gospeak.core.services.storage.ProposalRepo
+import gospeak.core.domain._
+import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
+import gospeak.core.services.storage.ProposalRepo
 import fr.gospeak.infra.services.storage.sql.ProposalRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{CustomField, Field, Insert, Select, SelectPage, Update}

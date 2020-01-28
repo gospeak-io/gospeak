@@ -2,9 +2,9 @@ package fr.gospeak.infra.testingutils
 
 import java.util.UUID
 
-import fr.gospeak.core.GospeakConf
-import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.core.services.storage.DatabaseConf
+import gospeak.core.GospeakConf
+import gospeak.core.domain.utils.TemplateData
+import gospeak.core.services.storage.DatabaseConf
 import fr.gospeak.infra.services.storage.sql.GospeakDbSql
 
 object Values {

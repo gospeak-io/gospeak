@@ -6,9 +6,9 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
-import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
-import fr.gospeak.core.domain.{Group, User}
-import fr.gospeak.core.services.storage.UserRepo
+import gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import gospeak.core.domain.{Group, User}
+import gospeak.core.services.storage.UserRepo
 import fr.gospeak.infra.services.storage.sql.UserRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Update}

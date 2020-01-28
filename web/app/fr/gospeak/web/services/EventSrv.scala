@@ -2,10 +2,10 @@ package fr.gospeak.web.services
 
 import cats.data.OptionT
 import cats.effect.IO
-import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.OrgaCtx
-import fr.gospeak.core.services.TemplateSrv
-import fr.gospeak.core.services.storage._
+import gospeak.core.domain._
+import gospeak.core.domain.utils.OrgaCtx
+import gospeak.core.services.TemplateSrv
+import gospeak.core.services.storage._
 import fr.gospeak.web.domain.MessageBuilder
 import fr.gospeak.web.services.EventSrv.EventFull
 import fr.gospeak.web.utils.{OrgaReq, UserReq}

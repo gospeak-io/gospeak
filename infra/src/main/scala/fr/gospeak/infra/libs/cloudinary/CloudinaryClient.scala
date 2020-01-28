@@ -3,8 +3,8 @@ package fr.gospeak.infra.libs.cloudinary
 import java.time.Instant
 
 import cats.effect.IO
-import fr.gospeak.core.domain.utils.Creds
-import fr.gospeak.core.services.upload.UploadConf
+import gospeak.core.domain.utils.Creds
+import gospeak.core.services.upload.UploadConf
 import fr.gospeak.infra.libs.cloudinary.CloudinaryJson._
 import fr.gospeak.infra.libs.cloudinary.domain.{CloudinaryUploadRequest, CloudinaryUploadResponse}
 import fr.gospeak.infra.utils.HttpClient

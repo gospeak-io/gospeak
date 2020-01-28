@@ -1,8 +1,8 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.core.services.meetup.domain.MeetupGroup
+import gospeak.core.domain._
+import gospeak.core.domain.utils.TemplateData
+import gospeak.core.services.meetup.domain.MeetupGroup
 import gospeak.libs.scala.domain.{CustomException, EmailAddress}
 import play.api.mvc.PathBindable
 

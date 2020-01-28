@@ -2,11 +2,11 @@ package fr.gospeak.infra.services.slack
 
 import cats.data.EitherT
 import cats.effect.IO
-import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.core.services.TemplateSrv
-import fr.gospeak.core.services.slack.SlackSrv
-import fr.gospeak.core.services.slack.domain.SlackAction.PostMessage
-import fr.gospeak.core.services.slack.domain._
+import gospeak.core.domain.utils.TemplateData
+import gospeak.core.services.TemplateSrv
+import gospeak.core.services.slack.SlackSrv
+import gospeak.core.services.slack.domain.SlackAction.PostMessage
+import gospeak.core.services.slack.domain._
 import fr.gospeak.infra.libs.slack.{SlackClient, domain => api}
 import fr.gospeak.infra.services.slack.SlackSrvImpl._
 import gospeak.libs.scala.Crypto.AesSecretKey

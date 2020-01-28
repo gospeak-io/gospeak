@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.user.talks
 
-import fr.gospeak.core.domain.Talk
+import gospeak.core.domain.Talk
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.{Form, Mapping}
 import play.api.data.Forms._

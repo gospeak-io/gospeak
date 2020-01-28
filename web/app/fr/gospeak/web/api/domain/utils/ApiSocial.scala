@@ -1,6 +1,6 @@
 package fr.gospeak.web.api.domain.utils
 
-import fr.gospeak.core.domain.utils.{BasicCtx, SocialAccounts}
+import gospeak.core.domain.utils.{BasicCtx, SocialAccounts}
 import play.api.libs.json.{Json, Writes}
 
 final case class ApiSocial(facebook: Option[ApiSocial.Account],

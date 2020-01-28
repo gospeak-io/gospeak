@@ -1,7 +1,7 @@
 package fr.gospeak.web.pages.user.proposals
 
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.services.storage.SpeakerProposalRepo
+import gospeak.core.services.storage.SpeakerProposalRepo
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb

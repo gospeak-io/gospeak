@@ -5,12 +5,12 @@ import java.time.Instant
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.core.domain.{Comment, Event, Group, Proposal}
-import fr.gospeak.core.services.TemplateSrv
-import fr.gospeak.core.services.email.EmailSrv
-import fr.gospeak.core.services.meetup.MeetupSrv
-import fr.gospeak.core.services.meetup.domain.{MeetupAttendee, MeetupUser}
-import fr.gospeak.core.services.storage._
+import gospeak.core.domain.{Comment, Event, Group, Proposal}
+import gospeak.core.services.TemplateSrv
+import gospeak.core.services.email.EmailSrv
+import gospeak.core.services.meetup.MeetupSrv
+import gospeak.core.services.meetup.domain.{MeetupAttendee, MeetupUser}
+import gospeak.core.services.storage._
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, MessageBuilder}

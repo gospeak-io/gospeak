@@ -1,5 +1,5 @@
-@import fr.gospeak.core.domain.User
-@import fr.gospeak.core.domain.utils.Constants.Placeholders
+@import gospeak.core.domain.User
+@import gospeak.core.domain.utils.Constants.Placeholders
 @(speakers: Seq[User], id: User.Id, call: Option[User => Call] = None)
 @(speakers.find(_.id == id), call) match {
     case (Some(user), Some(url)) => {<a href="@url(user)" title="@user.nameAndCompany" data-toggle="tooltip" data-placement="top"><img src="@user.avatar.url.value" alt="@user.name.value avatar" class="u-sm-avatar rounded-circle"></a>}

@@ -1,7 +1,7 @@
 package fr.gospeak.infra.services.storage.sql
 
-import fr.gospeak.core.domain.Talk
-import fr.gospeak.core.domain.utils.FakeCtx
+import gospeak.core.domain.Talk
+import gospeak.core.domain.utils.FakeCtx
 import fr.gospeak.infra.services.storage.sql.ProposalRepoSqlSpec.{table => proposalTable}
 import fr.gospeak.infra.services.storage.sql.TalkRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec

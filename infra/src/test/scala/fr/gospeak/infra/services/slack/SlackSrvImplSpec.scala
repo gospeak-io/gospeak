@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services.slack
 
-import fr.gospeak.core.services.slack.domain.{SlackCredentials, SlackToken}
+import gospeak.core.services.slack.domain.{SlackCredentials, SlackToken}
 import fr.gospeak.infra.libs.slack.SlackClient
 import fr.gospeak.infra.libs.slack.domain.SlackError
 import fr.gospeak.infra.services.TemplateSrvImpl

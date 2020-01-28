@@ -1,8 +1,8 @@
 package fr.gospeak.web.domain
 
-import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.GospeakMessage.Linked
-import fr.gospeak.core.domain.utils.{GospeakMessage, TemplateData}
+import gospeak.core.domain._
+import gospeak.core.domain.utils.GospeakMessage.Linked
+import gospeak.core.domain.utils.{GospeakMessage, TemplateData}
 import fr.gospeak.web.services.EventSrv.EventFull
 import fr.gospeak.web.utils.{BasicReq, OrgaReq, UserReq}
 import play.api.mvc.AnyContent

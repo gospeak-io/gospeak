@@ -9,13 +9,13 @@ import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
 import doobie.util.transactor.Transactor
 import doobie.util.{Meta, Read}
-import fr.gospeak.core.ApplicationConf
-import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount._
-import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup}
-import fr.gospeak.core.services.slack.domain.SlackAction
-import fr.gospeak.core.services.storage.DatabaseConf
+import gospeak.core.ApplicationConf
+import gospeak.core.domain._
+import gospeak.core.domain.utils.SocialAccounts.SocialAccount._
+import gospeak.core.domain.utils.TemplateData
+import gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup}
+import gospeak.core.services.slack.domain.SlackAction
+import gospeak.core.services.storage.DatabaseConf
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import gospeak.libs.scala.domain._

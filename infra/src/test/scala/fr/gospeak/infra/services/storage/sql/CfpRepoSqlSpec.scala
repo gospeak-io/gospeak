@@ -1,8 +1,8 @@
 package fr.gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
-import fr.gospeak.core.domain.Talk
-import fr.gospeak.core.domain.utils.FakeCtx
+import gospeak.core.domain.Talk
+import gospeak.core.domain.utils.FakeCtx
 import fr.gospeak.infra.services.storage.sql.CfpRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.EventRepoSqlSpec.{table => eventTable}
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
