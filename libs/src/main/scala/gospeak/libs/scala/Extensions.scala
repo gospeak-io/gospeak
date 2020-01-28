@@ -236,6 +236,11 @@ object Extensions {
     def mapFailure(f: Throwable => Throwable): Try[A] =
       in.recoverWith { case NonFatal(e) => Failure(f(e)) }
 
+    def filterWith(p: A => Boolean, e: A => Throwable): Try[A] = in match {
+      case Success(v) => if (p(v)) Success(v) else Failure(e(v))
+      case Failure(_) => in
+    }
+
     def toEither: Either[Throwable, A] = in match {
       case Success(a) => Right(a)
       case Failure(e) => Left(e)

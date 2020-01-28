@@ -3,6 +3,7 @@ package gospeak.infra.services
 import gospeak.core.domain.utils.TemplateData
 import gospeak.core.domain.utils.TemplateData.EventInfo
 import gospeak.infra.services.TemplateSrvImplSpec._
+import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.{Encoder, Json}
 import org.scalatest.{FunSpec, Matchers}
