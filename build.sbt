@@ -53,6 +53,7 @@ val silhouette = Seq(
   "com.mohiva" %% "play-silhouette-persistence").map(_ % silhouetteVersion)
 val silhouetteTest = Seq(
   "com.mohiva" %% "play-silhouette-testkit").map(_ % silhouetteVersion % "test")
+val playJson = Seq("com.typesafe.play" %% "play-json" % "2.8.0")
 val macwireVersion = "2.3.3"
 val play = Seq(
   "com.softwaremill.macwire" %% "macros" % macwireVersion % Provided,
@@ -85,7 +86,7 @@ val scalaCheck = Seq(
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.3",
   "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
 
-val libsDependencies = cats ++ scalaTest ++ scalaCheck
+val libsDependencies = cats ++ playJson ++ scalaTest ++ scalaCheck
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
 val infraDependencies = hammock ++ flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
 val webDependencies = play ++ silhouette ++ pureconfig ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
