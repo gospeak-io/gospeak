@@ -23,17 +23,17 @@ import gospeak.core.services.matomo.MatomoSrv
 import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.storage._
-import fr.gospeak.infra.libs.cloudinary.CloudinaryClient
-import fr.gospeak.infra.libs.matomo.MatomoClient
-import fr.gospeak.infra.libs.meetup.MeetupClient
-import fr.gospeak.infra.libs.slack.SlackClient
-import fr.gospeak.infra.services.cloudinary.CloudinarySrvImpl
-import fr.gospeak.infra.services.email.EmailSrvFactory
-import fr.gospeak.infra.services.matomo.MatomoSrvImpl
-import fr.gospeak.infra.services.meetup.MeetupSrvImpl
-import fr.gospeak.infra.services.slack.SlackSrvImpl
-import fr.gospeak.infra.services.storage.sql._
-import fr.gospeak.infra.services.{AvatarSrv, MarkdownSrvImpl, TemplateSrvImpl}
+import gospeak.infra.libs.cloudinary.CloudinaryClient
+import gospeak.infra.libs.matomo.MatomoClient
+import gospeak.infra.libs.meetup.MeetupClient
+import gospeak.infra.libs.slack.SlackClient
+import gospeak.infra.services.cloudinary.CloudinarySrvImpl
+import gospeak.infra.services.email.EmailSrvFactory
+import gospeak.infra.services.matomo.MatomoSrvImpl
+import gospeak.infra.services.meetup.MeetupSrvImpl
+import gospeak.infra.services.slack.SlackSrvImpl
+import gospeak.infra.services.storage.sql._
+import gospeak.infra.services.{AvatarSrv, MarkdownSrvImpl, TemplateSrvImpl}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
 import fr.gospeak.web.auth.{AuthConf, AuthCtrl}

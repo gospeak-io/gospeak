@@ -9,7 +9,7 @@ import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import gospeak.core.domain._
 import gospeak.core.domain.utils.{Info, SocialAccounts}
 import gospeak.core.services.email.EmailSrv
-import fr.gospeak.infra.services.AvatarSrv
+import gospeak.infra.services.AvatarSrv
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.emails.Emails

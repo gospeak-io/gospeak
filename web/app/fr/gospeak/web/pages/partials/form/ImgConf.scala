@@ -1,6 +1,6 @@
 package fr.gospeak.web.pages.partials.form
 
-import fr.gospeak.infra.services.cloudinary.CloudinarySrvImpl
+import gospeak.infra.services.cloudinary.CloudinarySrvImpl
 import fr.gospeak.web.utils.{OrgaReq, UserReq}
 import play.api.data.Field
 import play.api.mvc.AnyContent

@@ -9,7 +9,7 @@ import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.slack.domain.SlackToken
 import gospeak.core.services.storage.PublicExternalCfpRepo
 import gospeak.core.services.{MarkdownSrv, TemplateSrv}
-import fr.gospeak.infra.services.{EmbedSrv, TemplateSrvImpl}
+import gospeak.infra.services.{EmbedSrv, TemplateSrvImpl}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.ApiExternalCfp
 import fr.gospeak.web.api.domain.utils.ApiResult

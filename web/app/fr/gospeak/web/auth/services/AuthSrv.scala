@@ -13,7 +13,7 @@ import gospeak.core.domain.User.{Login, ProviderId, ProviderKey}
 import gospeak.core.domain.UserRequest.PasswordResetRequest
 import gospeak.core.domain.{Group, User}
 import gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
-import fr.gospeak.infra.services.AvatarSrv
+import gospeak.infra.services.AvatarSrv
 import fr.gospeak.web.auth.AuthConf
 import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv, SocialProfile}

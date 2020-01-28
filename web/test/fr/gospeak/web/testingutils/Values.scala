@@ -15,9 +15,9 @@ import com.typesafe.config.ConfigFactory
 import gospeak.core.domain.User
 import gospeak.core.services.storage.DatabaseConf
 import gospeak.core.testingutils.Generators._
-import fr.gospeak.infra.services.AvatarSrv
-import fr.gospeak.infra.services.email.InMemoryEmailSrv
-import fr.gospeak.infra.services.storage.sql.GospeakDbSql
+import gospeak.infra.services.AvatarSrv
+import gospeak.infra.services.email.InMemoryEmailSrv
+import gospeak.infra.services.storage.sql.GospeakDbSql
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv}

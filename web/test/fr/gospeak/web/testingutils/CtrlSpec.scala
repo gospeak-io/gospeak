@@ -3,8 +3,8 @@ package fr.gospeak.web.testingutils
 import akka.stream.Materializer
 import akka.stream.testkit.NoMaterializer
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.infra.services.email.InMemoryEmailSrv
-import fr.gospeak.infra.services.storage.sql.GospeakDbSql
+import gospeak.infra.services.email.InMemoryEmailSrv
+import gospeak.infra.services.storage.sql.GospeakDbSql
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.AuthSrv
