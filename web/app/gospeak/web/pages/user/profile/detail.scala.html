@@ -1,9 +1,9 @@
 @import gospeak.core.domain.{Group, Proposal}
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.user.partials.html.{container, groupItem, proposalItemForProfile}
-@import fr.gospeak.web.pages.user.profile.routes.ProfileCtrl
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.user.partials.html.{container, groupItem, proposalItemForProfile}
+@import gospeak.web.pages.user.profile.routes.ProfileCtrl
+@import gospeak.web.utils.UserReq
 @import gospeak.libs.scala.domain.Page
 
 @(proposals: Page[Proposal.Full], ownedGroups: Seq[Group])(b: Breadcrumb)(implicit req: UserReq[AnyContent])

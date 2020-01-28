@@ -1,6 +1,6 @@
-package fr.gospeak.web.services.openapi.models.utils
+package gospeak.web.services.openapi.models.utils
 
-import fr.gospeak.web.services.openapi.error.OpenApiError
+import gospeak.web.services.openapi.error.OpenApiError
 
 final case class Url(value: String) extends AnyVal
 

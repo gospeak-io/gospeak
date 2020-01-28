@@ -1,4 +1,4 @@
-package fr.gospeak.web.pages.orga.events
+package gospeak.web.pages.orga.events
 
 import cats.data.OptionT
 import cats.effect.IO
@@ -9,16 +9,16 @@ import gospeak.core.services.TemplateSrv
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.storage._
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus, MessageBuilder}
-import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.pages.orga.GroupCtrl
-import fr.gospeak.web.pages.orga.events.EventCtrl._
-import fr.gospeak.web.pages.orga.events.EventForms.PublishOptions
-import fr.gospeak.web.pages.orga.partners.PartnerForms
-import fr.gospeak.web.services.EventSrv
-import fr.gospeak.web.utils.{OrgaReq, UICtrl}
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.domain.{Breadcrumb, GospeakMessageBus, MessageBuilder}
+import gospeak.web.emails.Emails
+import gospeak.web.pages.orga.GroupCtrl
+import gospeak.web.pages.orga.events.EventCtrl._
+import gospeak.web.pages.orga.events.EventForms.PublishOptions
+import gospeak.web.pages.orga.partners.PartnerForms
+import gospeak.web.services.EventSrv
+import gospeak.web.utils.{OrgaReq, UICtrl}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Done, Html, Page}
 import play.api.data.Form

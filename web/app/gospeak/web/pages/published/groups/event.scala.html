@@ -1,13 +1,13 @@
 @import gospeak.core.domain.{Comment, Event, Group, Proposal, User}
-@import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.partials.html._
-@import fr.gospeak.web.auth.routes.AuthCtrl
-@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
-@import fr.gospeak.web.pages.published.partials.html.container
-@import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserAwareReq
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.html._
+@import gospeak.web.auth.routes.AuthCtrl
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserAwareReq
 @import gospeak.libs.scala.domain.Markdown
 
 @(group: Group, event: Event.Full, description: Markdown, proposals: Seq[Proposal], speakers: Seq[User], comments: Seq[Comment.Full], commentForm: Form[Comment.Data], yesRsvp: Long, userMembership: Option[Group.Member], userRsvp: Option[Event.Rsvp], rsvps: Seq[Event.Rsvp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])

@@ -1,4 +1,4 @@
-package fr.gospeak.web.services.openapi.models
+package gospeak.web.services.openapi.models
 
 import org.scalatest.{FunSpec, Matchers}
 

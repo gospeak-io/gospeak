@@ -1,4 +1,4 @@
-package fr.gospeak.web.pages.user
+package gospeak.web.pages.user
 
 import cats.data.OptionT
 import cats.effect.IO
@@ -6,13 +6,13 @@ import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.UserRequest
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain._
-import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.pages.orga.routes.{GroupCtrl => GroupRoutes}
-import fr.gospeak.web.pages.user.UserCtrl._
-import fr.gospeak.web.utils.{UICtrl, UserReq}
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.domain._
+import gospeak.web.emails.Emails
+import gospeak.web.pages.orga.routes.{GroupCtrl => GroupRoutes}
+import gospeak.web.pages.user.UserCtrl._
+import gospeak.web.utils.{UICtrl, UserReq}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Page
 import play.api.mvc.{Action, AnyContent, ControllerComponents}

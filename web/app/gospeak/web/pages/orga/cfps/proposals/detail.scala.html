@@ -1,14 +1,14 @@
 @import gospeak.core.domain.{Event, Proposal, Comment, User, UserRequest}
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.partials.html.{container, proposalRating}
-@import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.partials.html._
-@import fr.gospeak.web.pages.partials.html.{slidesFields, videoFields}
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
+@import gospeak.web.pages.orga.events.routes.EventCtrl
+@import gospeak.web.pages.orga.partials.html.{container, proposalRating}
+@import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.partials.html._
+@import gospeak.web.pages.partials.html.{slidesFields, videoFields}
+@import gospeak.web.utils.OrgaReq
 @import gospeak.libs.scala.domain.{EmailAddress, Url}
 
 @(proposal: Proposal.Full, speakers: Seq[User], ratings: Seq[Proposal.Rating.Full], comments: Seq[Comment.Full], orgaComments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite], events: Seq[Event], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url], commentForm: Form[Comment.Data], orgaCommentForm: Form[Comment.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])

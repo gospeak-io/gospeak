@@ -1,8 +1,8 @@
-package fr.gospeak.web.services.openapi
+package gospeak.web.services.openapi
 
-import fr.gospeak.web.services.openapi.error.OpenApiError
-import fr.gospeak.web.services.openapi.models.utils.{HasValidation, Js}
-import fr.gospeak.web.services.openapi.models.{Schema, Schemas}
+import gospeak.web.services.openapi.error.OpenApiError
+import gospeak.web.services.openapi.models.utils.{HasValidation, Js}
+import gospeak.web.services.openapi.models.{Schema, Schemas}
 
 object OpenApiUtils {
   def validate(key: String, value: Map[String, HasValidation], schemas: Schemas): List[OpenApiError] =

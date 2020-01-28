@@ -1,7 +1,7 @@
-package fr.gospeak.web.services.openapi
+package gospeak.web.services.openapi
 
-import fr.gospeak.web.services.openapi.error.OpenApiError
-import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
+import gospeak.web.services.openapi.error.OpenApiError
+import gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
 import play.api.libs.json._
 
 object JsonUtils {

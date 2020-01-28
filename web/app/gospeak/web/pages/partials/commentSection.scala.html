@@ -1,8 +1,8 @@
 @import gospeak.core.domain.Comment
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.auth.routes.AuthCtrl
-@import fr.gospeak.web.utils.UserAwareReq
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.auth.routes.AuthCtrl
+@import gospeak.web.utils.UserAwareReq
 
 @(comments: Seq[Comment.Full], commentForm: Form[Comment.Data], sendComment: Call, pageUrl: Call, tabindex: Int = 10)(implicit req: UserAwareReq[AnyContent])
 <div class="comment-section mb-3">

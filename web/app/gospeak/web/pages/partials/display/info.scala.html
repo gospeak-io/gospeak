@@ -1,7 +1,7 @@
 @import gospeak.core.domain.utils.Info
 @import gospeak.core.domain.User
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserReq
 
 @(info: Info, users: Seq[User], call: Option[User => Call] = None)(implicit req: UserReq[AnyContent])
 @username(id: User.Id) = @{

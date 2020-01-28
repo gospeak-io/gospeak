@@ -1,8 +1,8 @@
-package fr.gospeak.web.api.ui.helpers
+package gospeak.web.api.ui.helpers
 
 import gospeak.core.domain.utils.TemplateData
-import fr.gospeak.web.api.ui._
-import fr.gospeak.web.utils.Extensions._
+import gospeak.web.api.ui._
+import gospeak.web.utils.Extensions._
 import gospeak.libs.scala.domain.Html
 import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import play.api.libs.json._

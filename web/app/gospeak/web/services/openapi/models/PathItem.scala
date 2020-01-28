@@ -1,9 +1,9 @@
-package fr.gospeak.web.services.openapi.models
+package gospeak.web.services.openapi.models
 
-import fr.gospeak.web.services.openapi.OpenApiUtils
-import fr.gospeak.web.services.openapi.error.OpenApiError
-import fr.gospeak.web.services.openapi.models.PathItem.Operation
-import fr.gospeak.web.services.openapi.models.utils.{HasValidation, Markdown, TODO}
+import gospeak.web.services.openapi.OpenApiUtils
+import gospeak.web.services.openapi.error.OpenApiError
+import gospeak.web.services.openapi.models.PathItem.Operation
+import gospeak.web.services.openapi.models.utils.{HasValidation, Markdown, TODO}
 
 // TODO PathItem or Ref
 /**

@@ -1,10 +1,10 @@
-package fr.gospeak.web.api.domain
+package gospeak.web.api.domain
 
 import java.time.Instant
 
 import gospeak.core.domain.Group
 import gospeak.core.domain.utils.BasicCtx
-import fr.gospeak.web.api.domain.utils.ApiPlace
+import gospeak.web.api.domain.utils.ApiPlace
 import play.api.libs.json.{Json, Writes}
 
 object ApiGroup {

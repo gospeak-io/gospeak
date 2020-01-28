@@ -1,4 +1,4 @@
-package fr.gospeak.web.services
+package gospeak.web.services
 
 import cats.data.OptionT
 import cats.effect.IO
@@ -6,9 +6,9 @@ import gospeak.core.domain._
 import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.services.TemplateSrv
 import gospeak.core.services.storage._
-import fr.gospeak.web.domain.MessageBuilder
-import fr.gospeak.web.services.EventSrv.EventFull
-import fr.gospeak.web.utils.{OrgaReq, UserReq}
+import gospeak.web.domain.MessageBuilder
+import gospeak.web.services.EventSrv.EventFull
+import gospeak.web.utils.{OrgaReq, UserReq}
 import gospeak.libs.scala.domain.Markdown
 import play.api.mvc.AnyContent
 

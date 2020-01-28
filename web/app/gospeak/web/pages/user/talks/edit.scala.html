@@ -1,9 +1,9 @@
 @import gospeak.core.domain.Talk
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.user.partials.html.{container, talkFields}
-@import fr.gospeak.web.pages.user.talks.routes.TalkCtrl
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.user.partials.html.{container, talkFields}
+@import gospeak.web.pages.user.talks.routes.TalkCtrl
+@import gospeak.web.utils.UserReq
 
 @(talk: Talk, form: Form[Talk.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"Edit '${talk.title.value}' - Gospeak", b)() {

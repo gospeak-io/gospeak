@@ -1,9 +1,9 @@
-package fr.gospeak.web.pages.orga.events
+package gospeak.web.pages.orga.events
 
 import cats.data.NonEmptyList
 import gospeak.core.domain.utils.TemplateData
 import gospeak.core.domain.{Cfp, Event}
-import fr.gospeak.web.utils.Mappings._
+import gospeak.web.utils.Mappings._
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{EmailAddress, EnumBuilder, Markdown, StringEnum}
 import play.api.data.Forms._

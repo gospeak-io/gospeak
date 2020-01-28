@@ -1,5 +1,5 @@
 @import gospeak.core.domain.User
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.utils.OrgaReq
 
 @(rejectedUser: User)(implicit req: OrgaReq[AnyContent])
 <p>Hello @rejectedUser.firstName,</p>

@@ -1,7 +1,7 @@
-package fr.gospeak.web.pages.orga.sponsors
+package gospeak.web.pages.orga.sponsors
 
 import gospeak.core.domain.{Sponsor, SponsorPack}
-import fr.gospeak.web.utils.Mappings._
+import gospeak.web.utils.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
 

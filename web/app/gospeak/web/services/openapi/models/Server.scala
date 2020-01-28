@@ -1,8 +1,8 @@
-package fr.gospeak.web.services.openapi.models
+package gospeak.web.services.openapi.models
 
-import fr.gospeak.web.services.openapi.error.OpenApiError
-import fr.gospeak.web.services.openapi.models.Server.Variable
-import fr.gospeak.web.services.openapi.models.utils.{HasValidation, Markdown, TODO, Url}
+import gospeak.web.services.openapi.error.OpenApiError
+import gospeak.web.services.openapi.models.Server.Variable
+import gospeak.web.services.openapi.models.utils.{HasValidation, Markdown, TODO, Url}
 
 /**
  * The @url attribute support variable substitutions using the @variables attribute

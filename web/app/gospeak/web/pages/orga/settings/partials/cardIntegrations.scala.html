@@ -1,8 +1,8 @@
 @import gospeak.core.domain.Group
 @import gospeak.core.services.slack.domain.SlackCredentials
-@import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
-@import fr.gospeak.web.pages.orga.settings.SettingsForms.MeetupAccount
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import gospeak.web.pages.orga.settings.SettingsForms.MeetupAccount
+@import gospeak.web.utils.OrgaReq
 
 @(accounts: Group.Settings.Accounts, meetupForm: Form[MeetupAccount], slackForm: Form[SlackCredentials])(implicit req: OrgaReq[AnyContent])
 <div class="card mb-3">

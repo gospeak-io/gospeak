@@ -1,6 +1,6 @@
 @import java.time.Instant
-@import fr.gospeak.web.utils.BasicReq
-@import fr.gospeak.web.utils.Formats
+@import gospeak.web.utils.BasicReq
+@import gospeak.web.utils.Formats
 
 @(i: Instant)(implicit req: BasicReq[AnyContent])
 <span title="@Formats.datetime(i)">@Formats.timeAgo(i, req.now)</span>

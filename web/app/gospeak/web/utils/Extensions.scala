@@ -1,4 +1,4 @@
-package fr.gospeak.web.utils
+package gospeak.web.utils
 
 import play.api.data.FormError
 import play.api.libs.json._

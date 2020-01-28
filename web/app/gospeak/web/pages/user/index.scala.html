@@ -1,16 +1,16 @@
 @import gospeak.core.domain.{Event, Group, Proposal, Talk, User}
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
-@import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
-@import fr.gospeak.web.pages.user.partials.html.container
-@import fr.gospeak.web.pages.user.proposals.routes.{ProposalCtrl => ProposalListCtrl}
-@import fr.gospeak.web.pages.user.profile.routes.ProfileCtrl
-@import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.pages.user.talks.routes.TalkCtrl
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
+@import gospeak.web.pages.user.partials.html.container
+@import gospeak.web.pages.user.proposals.routes.{ProposalCtrl => ProposalListCtrl}
+@import gospeak.web.pages.user.profile.routes.ProfileCtrl
+@import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
+@import gospeak.web.pages.user.talks.routes.TalkCtrl
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserReq
 @import gospeak.libs.scala.domain.Page
 
 @(incomingEvents: Page[(Event.Full, Option[Event.Rsvp])], joinedGroups: Page[(Group, Group.Member)], talks: Page[Talk], proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: UserReq[AnyContent])

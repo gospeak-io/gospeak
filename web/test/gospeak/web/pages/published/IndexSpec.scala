@@ -1,6 +1,6 @@
-package fr.gospeak.web.pages.published
+package gospeak.web.pages.published
 
-import fr.gospeak.web.testingutils.TwirlSpec
+import gospeak.web.testingutils.TwirlSpec
 
 class IndexSpec extends TwirlSpec {
   describe("published.index.scala.html") {

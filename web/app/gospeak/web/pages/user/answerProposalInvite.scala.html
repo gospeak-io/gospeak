@@ -1,11 +1,11 @@
 @import gospeak.core.domain.{Proposal, User, UserRequest}
 @import gospeak.core.domain.utils.Constants
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.partials.display.html.markdown
-@import fr.gospeak.web.pages.partials.form.html.formBtn
-@import fr.gospeak.web.pages.user.partials.html.container
-@import fr.gospeak.web.pages.user.routes.UserCtrl
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.partials.display.html.markdown
+@import gospeak.web.pages.partials.form.html.formBtn
+@import gospeak.web.pages.user.partials.html.container
+@import gospeak.web.pages.user.routes.UserCtrl
+@import gospeak.web.utils.UserReq
 
 @(invite: UserRequest.ProposalInvite, proposal: Proposal, speaker: User)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"Invitation for '${proposal.title.value}' proposal - Gospeak", b, hideAlert = true)() {

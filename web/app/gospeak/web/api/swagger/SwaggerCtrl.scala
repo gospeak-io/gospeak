@@ -1,10 +1,10 @@
-package fr.gospeak.web.api.swagger
+package gospeak.web.api.swagger
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.utils.{OpenApiUtils, UICtrl}
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.utils.{OpenApiUtils, UICtrl}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class SwaggerCtrl(cc: ControllerComponents,

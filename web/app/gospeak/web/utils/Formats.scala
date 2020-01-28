@@ -1,4 +1,4 @@
-package fr.gospeak.web.utils
+package gospeak.web.utils
 
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate, LocalDateTime}
@@ -6,7 +6,7 @@ import java.util.Locale
 
 import gospeak.core.domain.Cfp
 import gospeak.core.domain.utils.Constants
-import fr.gospeak.web.pages.partials.html.{pagination, search, sort}
+import gospeak.web.pages.partials.html.{pagination, search, sort}
 import gospeak.libs.scala.domain.Page
 import play.api.mvc.{AnyContent, Call}
 import play.twirl.api.Html

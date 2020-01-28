@@ -1,9 +1,9 @@
-package fr.gospeak.web.auth
+package gospeak.web.auth
 
 import gospeak.core.domain.User
 import gospeak.core.testingutils.Generators._
-import fr.gospeak.web.auth.AuthForms.SignupData
-import fr.gospeak.web.testingutils.CtrlSpec
+import gospeak.web.auth.AuthForms.SignupData
+import gospeak.web.testingutils.CtrlSpec
 import gospeak.libs.scala.domain.{EmailAddress, Secret}
 import org.scalatest.BeforeAndAfterEach
 import play.api.http.Status

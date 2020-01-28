@@ -1,4 +1,4 @@
-package fr.gospeak.web.auth
+package gospeak.web.auth
 
 import com.mohiva.play.silhouette.api.util.HTTPLayer
 import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
@@ -9,7 +9,7 @@ import com.mohiva.play.silhouette.impl.providers.oauth1.services.PlayOAuth1Servi
 import com.mohiva.play.silhouette.impl.providers.oauth2.{FacebookProvider, GitHubProvider, GoogleProvider, LinkedInProvider}
 import com.mohiva.play.silhouette.impl.providers.state.CsrfStateSettings
 import com.mohiva.play.silhouette.impl.providers.{OAuth1Settings, OAuth2Settings, SocialProvider, SocialStateHandler}
-import fr.gospeak.web.auth.AuthConf._
+import gospeak.web.auth.AuthConf._
 import gospeak.libs.scala.domain.Secret
 import play.api.mvc.Cookie
 

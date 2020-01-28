@@ -1,15 +1,15 @@
 @import gospeak.core.domain.{Cfp, CommonCfp, Event, Group, Proposal, Talk, User}
-@import fr.gospeak.web.domain.PageMeta
-@import fr.gospeak.web.pages.orga.partials.{html => orga}
-@import fr.gospeak.web.pages.partials.container.{html => container}
-@import fr.gospeak.web.pages.partials.display.{html => display}
-@import fr.gospeak.web.pages.partials.form.{html => form}
-@import fr.gospeak.web.pages.partials.{html => global}
-@import fr.gospeak.web.pages.published.partials.{html => published}
-@import fr.gospeak.web.pages.styleguide.routes.StyleguideCtrl
-@import fr.gospeak.web.pages.user.partials.{html => speaker}
-@import fr.gospeak.web.utils.GenericForm
-@import fr.gospeak.web.utils.{UserAwareReq, UserReq, OrgaReq}
+@import gospeak.web.domain.PageMeta
+@import gospeak.web.pages.orga.partials.{html => orga}
+@import gospeak.web.pages.partials.container.{html => container}
+@import gospeak.web.pages.partials.display.{html => display}
+@import gospeak.web.pages.partials.form.{html => form}
+@import gospeak.web.pages.partials.{html => global}
+@import gospeak.web.pages.published.partials.{html => published}
+@import gospeak.web.pages.styleguide.routes.StyleguideCtrl
+@import gospeak.web.pages.user.partials.{html => speaker}
+@import gospeak.web.utils.GenericForm
+@import gospeak.web.utils.{UserAwareReq, UserReq, OrgaReq}
 @import gospeak.libs.scala.domain.{Page, Slides, Video}
 
 @(user: User, group: Group, groupFull: Group.Full, cfp: Cfp, event: Event, eventFull: Event.Full, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, params: Page.Params)(implicit userAwareReq: UserAwareReq[AnyContent], userReq: UserReq[AnyContent], orgaReq: OrgaReq[AnyContent])
@@ -134,7 +134,7 @@
                 </ul>
             </li>
         </ul>
-        @section("global", "Global components", "@import fr.gospeak.web.pages.partials.html._") { _ =>
+        @section("global", "Global components", "@import gospeak.web.pages.partials.html._") { _ =>
             @component("pagination", "@pagination(page, MyCtrl.list)") { name =>
                 @example(s"$name with no element") { _ => @global.pagination(Page(Seq.empty[Int], params, Page.Total(0), Seq()), StyleguideCtrl.index) }
                 @example(s"$name with 5 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(5), Seq()), StyleguideCtrl.index) }
@@ -162,7 +162,7 @@
             }
         }
 
-        @section("global-display", "Global display components", "@import fr.gospeak.web.pages.partials.display.html._") { _ =>
+        @section("global-display", "Global display components", "@import gospeak.web.pages.partials.display.html._") { _ =>
             @component("tags", "@tags(cfp.tags)") { name =>
                 @example(s"$name") { _ => @display.tags(cfp.tags) }
             }
@@ -219,7 +219,7 @@
             }
         }
 
-        @section("global-form", "Global form components", "@import fr.gospeak.web.pages.partials.form.html._") { _ =>
+        @section("global-form", "Global form components", "@import gospeak.web.pages.partials.form.html._") { _ =>
             @component("Local Date input", "@inputLocalDate(form(\"myField\"))") { name =>
                 @example(name) { _ => @form.inputLocalDate(GenericForm.embed("url")) }
             }
@@ -231,7 +231,7 @@
             }
         }
 
-        @section("global-container", "Global container components", "@import fr.gospeak.web.pages.partials.container.html._") { _ =>
+        @section("global-container", "Global container components", "@import gospeak.web.pages.partials.container.html._") { _ =>
             @component("alert", "@alert(\"primary\") {This is an <b>HTML</b> text!}") { name =>
                 @example(s"$name with 'primary'") { _ => @container.alert("primary") {This is an <b>HTML</b> text!} }
                 @example(s"$name with 'secondary'") { _ => @container.alert("secondary") {This is an <b>HTML</b> text!} }
@@ -244,7 +244,7 @@
             }
         }
 
-        @section("published", "Published components", "@import fr.gospeak.web.pages.published.partials.html._") { _ =>
+        @section("published", "Published components", "@import gospeak.web.pages.published.partials.html._") { _ =>
             @component("groupItem", "@groupItem(group)") { name =>
                 @example(s"$name") { _ => @published.groupItem(groupFull, Seq()) }
             }
@@ -256,7 +256,7 @@
             }
         }
 
-        @section("speaker", "Speaker components", "@import fr.gospeak.web.pages.user.partials.html._") { _ =>
+        @section("speaker", "Speaker components", "@import gospeak.web.pages.user.partials.html._") { _ =>
             @component("cfpItem", "@cfpItem(talk, cfp)") { name =>
                 @example(s"$name") { _ => @speaker.cfpItem(talk, cfp) }
             }
@@ -270,7 +270,7 @@
             }
         }
 
-        @section("orga", "Orga components", "@import fr.gospeak.web.pages.orga.partials.html._") { _ =>
+        @section("orga", "Orga components", "@import gospeak.web.pages.orga.partials.html._") { _ =>
             @component("cfpItem", "@cfpItem(group, cfp)") { name =>
                 @example(s"$name") { _ => @orga.cfpItem(cfp) }
             }

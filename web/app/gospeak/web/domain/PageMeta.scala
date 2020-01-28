@@ -1,11 +1,11 @@
-package fr.gospeak.web.domain
+package gospeak.web.domain
 
 import gospeak.core.domain.{Cfp, Event, ExternalCfp, Group, Proposal, User}
-import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
-import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
-import fr.gospeak.web.pages.published.routes.HomeCtrl
-import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-import fr.gospeak.web.utils.BasicReq
+import gospeak.web.pages.published.cfps.routes.CfpCtrl
+import gospeak.web.pages.published.groups.routes.GroupCtrl
+import gospeak.web.pages.published.routes.HomeCtrl
+import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+import gospeak.web.utils.BasicReq
 import play.api.mvc.AnyContent
 
 // https://cards-dev.twitter.com/validator

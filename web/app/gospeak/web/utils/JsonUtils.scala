@@ -1,4 +1,4 @@
-package fr.gospeak.web.utils
+package gospeak.web.utils
 
 import gospeak.libs.scala.domain.CustomException
 import play.api.libs.json._

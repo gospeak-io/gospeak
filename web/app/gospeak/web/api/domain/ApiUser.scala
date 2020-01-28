@@ -1,11 +1,11 @@
-package fr.gospeak.web.api.domain
+package gospeak.web.api.domain
 
 import gospeak.core.domain.User
 import gospeak.core.domain.utils.{BasicCtx, Constants}
-import fr.gospeak.web.api.domain.utils.ApiSocial
-import fr.gospeak.web.auth.AuthForms.{LoginData, SignupData}
+import gospeak.web.api.domain.utils.ApiSocial
+import gospeak.web.auth.AuthForms.{LoginData, SignupData}
 import play.api.libs.json.{Json, Reads, Writes}
-import fr.gospeak.web.api.domain.utils.JsonFormats._
+import gospeak.web.api.domain.utils.JsonFormats._
 import gospeak.libs.scala.domain.{EmailAddress, Secret}
 
 object ApiUser {

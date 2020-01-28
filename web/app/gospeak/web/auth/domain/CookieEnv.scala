@@ -1,4 +1,4 @@
-package fr.gospeak.web.auth.domain
+package gospeak.web.auth.domain
 
 import com.mohiva.play.silhouette.api.Env
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator

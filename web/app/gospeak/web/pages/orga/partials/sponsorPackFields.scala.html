@@ -1,6 +1,6 @@
 @import gospeak.core.domain.SponsorPack
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
 
 @(form: Form[SponsorPack.Data])(implicit req: OrgaReq[AnyContent])
 @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the sponsoring pack")) { (field, args) =>

@@ -1,9 +1,9 @@
 @import gospeak.core.domain.Partner
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
-@import fr.gospeak.web.pages.orga.partials.html.{container, partnerFields}
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import gospeak.web.pages.orga.partials.html.{container, partnerFields}
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
 
 @(partner: Partner, form: Form[Partner.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"Edit ${partner.name.value} - Gospeak", b)() {

@@ -1,7 +1,7 @@
 @import gospeak.core.domain.{Partner, Venue}
-@import fr.gospeak.web.api.ui.routes.SuggestCtrl
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.api.ui.routes.SuggestCtrl
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
 
 @(form: Form[Venue.Data], partner: Partner, hasMeetupAccount: Boolean)(implicit req: OrgaReq[AnyContent])
 @fieldHorizontal(form("address"), Seq("label" -> "Address", "help" -> "Address of the venue")) { (field, args) =>

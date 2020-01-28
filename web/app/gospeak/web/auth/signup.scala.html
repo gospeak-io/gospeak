@@ -1,9 +1,9 @@
-@import fr.gospeak.web.auth.AuthForms.SignupData
-@import fr.gospeak.web.auth.partials.html._
-@import fr.gospeak.web.auth.routes.AuthCtrl
-@import fr.gospeak.web.domain.PageMeta
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserAwareReq
+@import gospeak.web.auth.AuthForms.SignupData
+@import gospeak.web.auth.partials.html._
+@import gospeak.web.auth.routes.AuthCtrl
+@import gospeak.web.domain.PageMeta
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.UserAwareReq
 
 @(form: Form[SignupData], redirect: Option[String])(implicit req: UserAwareReq[AnyContent])
 @container("Signup - Gospeak", PageMeta.default())() {

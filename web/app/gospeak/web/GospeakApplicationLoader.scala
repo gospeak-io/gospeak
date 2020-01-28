@@ -1,4 +1,4 @@
-package fr.gospeak.web
+package gospeak.web
 
 import java.util.concurrent.TimeUnit
 
@@ -34,12 +34,12 @@ import gospeak.infra.services.meetup.MeetupSrvImpl
 import gospeak.infra.services.slack.SlackSrvImpl
 import gospeak.infra.services.storage.sql._
 import gospeak.infra.services.{AvatarSrv, MarkdownSrvImpl, TemplateSrvImpl}
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
-import fr.gospeak.web.auth.{AuthConf, AuthCtrl}
-import fr.gospeak.web.domain.{GospeakMessageBus, MessageBuilder}
-import fr.gospeak.web.pages._
-import fr.gospeak.web.services.EventSrv
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
+import gospeak.web.auth.{AuthConf, AuthCtrl}
+import gospeak.web.domain.{GospeakMessageBus, MessageBuilder}
+import gospeak.web.pages._
+import gospeak.web.services.EventSrv
 import gospeak.libs.scala.{BasicMessageBus, MessageBus}
 import org.slf4j.LoggerFactory
 import play.api.libs.ws.ahc.AhcWSComponents

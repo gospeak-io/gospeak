@@ -1,7 +1,7 @@
 @import gospeak.core.domain.Proposal
-@import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
 
 @(proposal: Proposal.Full, userGrade: Option[Proposal.Rating.Grade], btnClass: String = "")(implicit req: OrgaReq[AnyContent])
 @userGrade match {

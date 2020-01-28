@@ -1,9 +1,9 @@
-package fr.gospeak.web.domain
+package gospeak.web.domain
 
 import cats.effect.IO
 import gospeak.core.domain.utils.GospeakMessage
 import gospeak.core.domain.{Cfp, Event, Group, Proposal}
-import fr.gospeak.web.utils.{OrgaReq, UserReq}
+import gospeak.web.utils.{OrgaReq, UserReq}
 import gospeak.libs.scala.MessageBus
 import play.api.mvc.AnyContent
 

@@ -1,14 +1,14 @@
 @import gospeak.core.domain.{Contact, Event, Partner, Sponsor, SponsorPack, User, Venue}
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html._
-@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
-@import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.partials.html._
+@import gospeak.web.pages.orga.events.routes.EventCtrl
+@import gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+@import gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.OrgaReq
 
 @(partner: Partner, venues: Seq[Venue.Full], contacts: Seq[Contact], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], events: Seq[(Event, Venue)])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${partner.name.value} - Gospeak", b)() {

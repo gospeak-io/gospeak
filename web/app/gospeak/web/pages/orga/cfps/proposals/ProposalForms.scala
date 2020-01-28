@@ -1,10 +1,10 @@
-package fr.gospeak.web.pages.orga.cfps.proposals
+package gospeak.web.pages.orga.cfps.proposals
 
 import gospeak.core.domain.Proposal
-import fr.gospeak.web.utils.Mappings.{slides, video}
+import gospeak.web.utils.Mappings.{slides, video}
 import play.api.data.Form
 import play.api.data.Forms.{mapping, optional}
-import fr.gospeak.web.utils.Mappings._
+import gospeak.web.utils.Mappings._
 
 object ProposalForms {
   val create: Form[Proposal.DataOrga] = Form(mapping(

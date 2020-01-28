@@ -1,10 +1,10 @@
-package fr.gospeak.web.api.domain.utils
+package gospeak.web.api.domain.utils
 
 import java.time.Instant
 
 import gospeak.core.domain.User
 import gospeak.core.domain.utils.{BasicCtx, Info}
-import fr.gospeak.web.api.domain.ApiUser
+import gospeak.web.api.domain.ApiUser
 import play.api.libs.json.{Json, Writes}
 
 final case class ApiInfo(createdAt: Instant,

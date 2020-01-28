@@ -1,10 +1,10 @@
-package fr.gospeak.web.auth.services
+package gospeak.web.auth.services
 
 import com.mohiva.play.silhouette.api.actions.SecuredErrorHandler
-import fr.gospeak.web.api.domain.utils.ErrorResult
-import fr.gospeak.web.auth.routes.AuthCtrl
-import fr.gospeak.web.pages.user.routes.UserCtrl
-import fr.gospeak.web.utils.HttpUtils
+import gospeak.web.api.domain.utils.ErrorResult
+import gospeak.web.auth.routes.AuthCtrl
+import gospeak.web.pages.user.routes.UserCtrl
+import gospeak.web.utils.HttpUtils
 import play.api.http.Status
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json

@@ -1,16 +1,16 @@
-package fr.gospeak.web.api
+package gospeak.web.api
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage.AuthUserRequestRepo
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.api.domain.ApiUser
-import fr.gospeak.web.api.domain.utils.ApiResult
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.auth.services.AuthSrv
-import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.utils.{ApiCtrl, BasicReq}
+import gospeak.web.AppConf
+import gospeak.web.api.domain.ApiUser
+import gospeak.web.api.domain.utils.ApiResult
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.auth.services.AuthSrv
+import gospeak.web.emails.Emails
+import gospeak.web.utils.{ApiCtrl, BasicReq}
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 

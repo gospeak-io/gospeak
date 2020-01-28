@@ -1,15 +1,15 @@
-package fr.gospeak.web.pages.orga.speakers
+package gospeak.web.pages.orga.speakers
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.{Group, User}
 import gospeak.core.services.storage.{OrgaEventRepo, OrgaGroupRepo, OrgaProposalRepo, OrgaUserRepo}
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.pages.orga.GroupCtrl
-import fr.gospeak.web.pages.orga.speakers.SpeakerCtrl._
-import fr.gospeak.web.utils.{OrgaReq, UICtrl}
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.domain.Breadcrumb
+import gospeak.web.pages.orga.GroupCtrl
+import gospeak.web.pages.orga.speakers.SpeakerCtrl._
+import gospeak.web.utils.{OrgaReq, UICtrl}
 import gospeak.libs.scala.domain.Page
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 

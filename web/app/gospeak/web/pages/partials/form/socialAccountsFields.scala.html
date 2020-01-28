@@ -1,5 +1,5 @@
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.UserReq
 
 @(form: Field)(implicit req: UserReq[AnyContent])
 @fieldHorizontal(form("facebook"), Seq("label" -> "Facebook")) { (field, args) =>

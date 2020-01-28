@@ -1,5 +1,5 @@
-@import fr.gospeak.web.pages.partials.form.Utils
-@import fr.gospeak.web.utils.BasicReq
+@import gospeak.web.pages.partials.form.Utils
+@import gospeak.web.utils.BasicReq
 
 @(field: Field, args: Seq[(String, String)], help: String)(implicit req: BasicReq[AnyContent])
 <span id="@Utils.helpId(args, field)" class="text-muted">

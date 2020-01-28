@@ -1,6 +1,6 @@
-package fr.gospeak.web.utils
+package gospeak.web.utils
 
-import fr.gospeak.web.utils.HttpUtils._
+import gospeak.web.utils.HttpUtils._
 import org.scalatest.{FunSpec, Matchers}
 
 class HttpUtilsSpec extends FunSpec with Matchers {

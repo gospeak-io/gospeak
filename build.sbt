@@ -127,8 +127,8 @@ val web = (project in file("web"))
       "gospeak.core.domain._",
       "gospeak.libs.scala.domain._",
       "gospeak.core.services.meetup.domain._",
-      "fr.gospeak.web.utils.PathBindables._",
-      "fr.gospeak.web.utils.QueryStringBindables._"),
+      "gospeak.web.utils.PathBindables._",
+      "gospeak.web.utils.QueryStringBindables._"),
     buildInfoKeys := Seq[BuildInfoKey](
       name, version, scalaVersion, sbtVersion,
       // see https://www.git-scm.com/docs/git-log#_pretty_formats

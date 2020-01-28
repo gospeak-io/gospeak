@@ -1,6 +1,6 @@
 @import gospeak.core.domain.{Proposal, User, UserRequest}
-@import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
+@import gospeak.web.utils.UserReq
 
 @(invite: UserRequest.ProposalInvite, proposal: Proposal.Full, speaker: User)(implicit req: UserReq[AnyContent])
 <p>Hi @speaker.name.value,</p>

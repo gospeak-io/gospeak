@@ -1,8 +1,8 @@
 @import gospeak.core.domain.{Group, User}
-@import fr.gospeak.web.auth.routes.AuthCtrl
-@import fr.gospeak.web.pages.orga.routes.GroupCtrl
-@import fr.gospeak.web.pages.user.profile.routes.ProfileCtrl
-@import fr.gospeak.web.pages.user.routes.UserCtrl
+@import gospeak.web.auth.routes.AuthCtrl
+@import gospeak.web.pages.orga.routes.GroupCtrl
+@import gospeak.web.pages.user.profile.routes.ProfileCtrl
+@import gospeak.web.pages.user.routes.UserCtrl
 
 @(user: User, groups: Seq[Group], group: Option[Group] = None)
 <div class="nav-item dropdown list-inline-item">

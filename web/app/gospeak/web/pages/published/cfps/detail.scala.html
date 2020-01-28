@@ -1,11 +1,11 @@
 @import gospeak.core.domain.{Cfp, Group}
-@import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
-@import fr.gospeak.web.pages.published.partials.html.container
-@import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
-@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserAwareReq
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserAwareReq
 
 @(group: Group, cfp: Cfp)(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${cfp.name.value} - Gospeak", PageMeta.cfp(group, cfp), b)() {

@@ -1,8 +1,8 @@
 @import gospeak.core.domain.{Group, User}
 @import gospeak.core.domain.utils.Constants.Placeholders
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
-@import fr.gospeak.web.utils.Formats
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.utils.Formats
 
 @(group: Group.Full, orgas: Seq[User])
 <a class="card card-frame mb-3" href="@GroupCtrl.detail(group.slug)">

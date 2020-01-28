@@ -1,9 +1,9 @@
 @import gospeak.core.domain.{Group, Event}
 @import gospeak.core.services.meetup.domain.MeetupAttendee
-@import fr.gospeak.web.domain.PageMeta
-@import fr.gospeak.web.pages.partials.container.html.main
-@import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
-@import fr.gospeak.web.utils.UserAwareReq
+@import gospeak.web.domain.PageMeta
+@import gospeak.web.pages.partials.container.html.main
+@import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
+@import gospeak.web.utils.UserAwareReq
 
 @(group: Group.Slug, event: Event.Slug, attendee: MeetupAttendee)(implicit req: UserAwareReq[AnyContent])
 @main(s"Draw attendee: ${attendee.name} - Gospeak", PageMeta.default(), style = Html(

@@ -1,19 +1,19 @@
 @import gospeak.core.domain.utils.TemplateData
 @import gospeak.core.domain.{Cfp, Event, Proposal, User, Venue}
-@import fr.gospeak.web.api.ui.routes.SuggestCtrl
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
-@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.partials.html.{container, proposalRating}
-@import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
-@import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.partials.html.{pagination, search}
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.api.ui.routes.SuggestCtrl
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
+@import gospeak.web.pages.orga.cfps.routes.CfpCtrl
+@import gospeak.web.pages.orga.events.routes.EventCtrl
+@import gospeak.web.pages.orga.partials.html.{container, proposalRating}
+@import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+@import gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.partials.html.{pagination, search}
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.OrgaReq
 @import gospeak.libs.scala.domain.{Markdown, MustacheTmpl, Page}
 
 @(event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Id], notesForm: Form[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])

@@ -1,8 +1,8 @@
-package fr.gospeak.web.pages.orga.partners
+package gospeak.web.pages.orga.partners
 
 import gospeak.core.domain.utils.SocialAccounts
 import gospeak.core.domain.{Contact, Partner, Venue}
-import fr.gospeak.web.utils.Mappings._
+import gospeak.web.utils.Mappings._
 import gospeak.libs.scala.domain.{GMapPlace, Logo, Markdown}
 import play.api.data.Form
 import play.api.data.Forms._

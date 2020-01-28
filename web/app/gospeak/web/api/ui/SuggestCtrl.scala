@@ -1,18 +1,18 @@
-package fr.gospeak.web.api.ui
+package gospeak.web.api.ui
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain._
 import gospeak.core.services.storage._
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.api.domain.utils.ApiResult
-import fr.gospeak.web.api.ui.helpers.JsonFormats._
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
-import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
-import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
-import fr.gospeak.web.utils._
+import gospeak.web.AppConf
+import gospeak.web.api.domain.utils.ApiResult
+import gospeak.web.api.ui.helpers.JsonFormats._
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
+import gospeak.web.pages.orga.events.routes.EventCtrl
+import gospeak.web.pages.orga.partners.routes.PartnerCtrl
+import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+import gospeak.web.utils._
 import gospeak.libs.scala.domain.Page
 import play.api.mvc._
 

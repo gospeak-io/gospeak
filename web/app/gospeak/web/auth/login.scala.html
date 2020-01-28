@@ -1,10 +1,10 @@
-@import fr.gospeak.web.auth.AuthForms.LoginData
-@import fr.gospeak.web.auth.routes.AuthCtrl
-@import fr.gospeak.web.auth.partials.html.container
-@import fr.gospeak.web.auth.partials.html.loginFields
-@import fr.gospeak.web.domain.PageMeta
-@import fr.gospeak.web.pages.partials.form.html.formElt
-@import fr.gospeak.web.utils.UserAwareReq
+@import gospeak.web.auth.AuthForms.LoginData
+@import gospeak.web.auth.routes.AuthCtrl
+@import gospeak.web.auth.partials.html.container
+@import gospeak.web.auth.partials.html.loginFields
+@import gospeak.web.domain.PageMeta
+@import gospeak.web.pages.partials.form.html.formElt
+@import gospeak.web.utils.UserAwareReq
 
 @(form: Form[LoginData], redirect: Option[String], providerIds: Seq[String])(implicit req: UserAwareReq[AnyContent])
 @container("Login - Gospeak", PageMeta.default())() {

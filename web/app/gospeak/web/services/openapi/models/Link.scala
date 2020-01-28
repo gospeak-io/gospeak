@@ -1,6 +1,6 @@
-package fr.gospeak.web.services.openapi.models
+package gospeak.web.services.openapi.models
 
-import fr.gospeak.web.services.openapi.models.utils.{Markdown, TODO}
+import gospeak.web.services.openapi.models.utils.{Markdown, TODO}
 
 // TODO Link or Ref
 /**

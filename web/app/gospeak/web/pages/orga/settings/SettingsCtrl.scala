@@ -1,4 +1,4 @@
-package fr.gospeak.web.pages.orga.settings
+package gospeak.web.pages.orga.settings
 
 import cats.data.OptionT
 import cats.effect.IO
@@ -12,15 +12,15 @@ import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.slack.domain.SlackCredentials
 import gospeak.core.services.storage.{GroupSettingsRepo, OrgaGroupRepo, OrgaUserRepo, OrgaUserRequestRepo}
 import gospeak.libs.scala.Extensions._
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.pages.orga.GroupCtrl
-import fr.gospeak.web.pages.orga.settings.SettingsCtrl._
-import fr.gospeak.web.pages.orga.settings.SettingsForms.{AddAction, EventTemplateItem, MeetupAccount}
-import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import fr.gospeak.web.utils.{GenericForm, OrgaReq, UICtrl}
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.domain.Breadcrumb
+import gospeak.web.emails.Emails
+import gospeak.web.pages.orga.GroupCtrl
+import gospeak.web.pages.orga.settings.SettingsCtrl._
+import gospeak.web.pages.orga.settings.SettingsForms.{AddAction, EventTemplateItem, MeetupAccount}
+import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
+import gospeak.web.utils.{GenericForm, OrgaReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
 import play.twirl.api.HtmlFormat

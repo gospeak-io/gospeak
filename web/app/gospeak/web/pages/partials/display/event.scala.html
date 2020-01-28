@@ -1,5 +1,5 @@
 @import gospeak.core.domain.Event
-@import fr.gospeak.web.utils.Formats._
+@import gospeak.web.utils.Formats._
 @(events: Seq[Event], id: Event.Id, call: Option[Event => Call] = None)
 @(events.find(_.id == id), call) match {
     case (Some(event), Some(url)) => {<a href="@url(event)" title="on @date(event.start)">@event.name.value</a>}

@@ -1,11 +1,11 @@
-package fr.gospeak.web.pages.partials
+package gospeak.web.pages.partials
 
 import gospeak.libs.scala.domain.Page
 import gospeak.libs.scala.domain.Page._
 import org.scalatest.{FunSpec, Matchers}
 
 class SearchSpec extends FunSpec with Matchers {
-  private val call = fr.gospeak.web.pages.published.routes.HomeCtrl.index()
+  private val call = gospeak.web.pages.published.routes.HomeCtrl.index()
 
   describe("partials.search.scala.html") {
     it("should display order-by input when present") {

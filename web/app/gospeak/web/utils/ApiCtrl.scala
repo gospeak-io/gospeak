@@ -1,4 +1,4 @@
-package fr.gospeak.web.utils
+package gospeak.web.utils
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
@@ -6,9 +6,9 @@ import gospeak.core.domain._
 import gospeak.core.domain.utils.BasicCtx
 import gospeak.core.services.storage.OrgaGroupRepo
 import gospeak.libs.scala.Extensions._
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.api.domain.utils._
-import fr.gospeak.web.auth.domain.CookieEnv
+import gospeak.web.AppConf
+import gospeak.web.api.domain.utils._
+import gospeak.web.auth.domain.CookieEnv
 import org.h2.jdbc.{JdbcSQLIntegrityConstraintViolationException, JdbcSQLSyntaxErrorException}
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{JsValue, Json, Reads, Writes}

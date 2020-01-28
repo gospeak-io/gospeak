@@ -1,12 +1,12 @@
 @import gospeak.core.domain.{Cfp, Group}
-@import fr.gospeak.web.auth.partials.html._
-@import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
-@import fr.gospeak.web.pages.partials.display.html.markdown
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.published.cfps.CfpForms.{ProposalLoginData, ProposalSignupData}
-@import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
-@import fr.gospeak.web.pages.published.partials.html.container
-@import fr.gospeak.web.utils.UserAwareReq
+@import gospeak.web.auth.partials.html._
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.partials.display.html.markdown
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.published.cfps.CfpForms.{ProposalLoginData, ProposalSignupData}
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.utils.UserAwareReq
 @import gospeak.libs.scala.domain.Markdown
 
 @(group: Group, cfp: Cfp, signupForm: Form[ProposalSignupData], loginForm: Form[ProposalLoginData])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])

@@ -1,4 +1,4 @@
-package fr.gospeak.web.utils
+package gospeak.web.utils
 
 import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json._

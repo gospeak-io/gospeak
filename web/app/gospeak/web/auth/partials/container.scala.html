@@ -1,6 +1,6 @@
-@import fr.gospeak.web.domain.PageMeta
-@import fr.gospeak.web.pages.partials.container.html.{flash, main}
-@import fr.gospeak.web.utils.UserAwareReq
+@import gospeak.web.domain.PageMeta
+@import gospeak.web.pages.partials.container.html.{flash, main}
+@import gospeak.web.utils.UserAwareReq
 
 @(title: String, m: PageMeta)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
 @main(title, m, style, script) {

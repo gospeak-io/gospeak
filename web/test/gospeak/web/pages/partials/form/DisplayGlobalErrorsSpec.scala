@@ -1,6 +1,6 @@
-package fr.gospeak.web.pages.partials.form
+package gospeak.web.pages.partials.form
 
-import fr.gospeak.web.testingutils.TwirlSpec
+import gospeak.web.testingutils.TwirlSpec
 import play.api.data.Form
 import play.api.data.Forms._
 

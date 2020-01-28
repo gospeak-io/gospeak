@@ -1,16 +1,16 @@
-package fr.gospeak.web.pages.user.profile
+package gospeak.web.pages.user.profile
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.User
 import gospeak.core.services.storage.{UserGroupRepo, UserProposalRepo, UserTalkRepo, UserUserRepo}
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublishedSpeakerRoutes}
-import fr.gospeak.web.pages.user.profile.ProfileCtrl._
-import fr.gospeak.web.pages.user.UserCtrl
-import fr.gospeak.web.utils.{UICtrl, UserReq}
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.domain.Breadcrumb
+import gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublishedSpeakerRoutes}
+import gospeak.web.pages.user.profile.ProfileCtrl._
+import gospeak.web.pages.user.UserCtrl
+import gospeak.web.utils.{UICtrl, UserReq}
 import gospeak.libs.scala.domain.Page
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}

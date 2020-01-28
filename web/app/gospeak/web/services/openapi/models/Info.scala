@@ -1,7 +1,7 @@
-package fr.gospeak.web.services.openapi.models
+package gospeak.web.services.openapi.models
 
-import fr.gospeak.web.services.openapi.models.Info.{Contact, License}
-import fr.gospeak.web.services.openapi.models.utils.{Email, Markdown, TODO, Url, Version}
+import gospeak.web.services.openapi.models.Info.{Contact, License}
+import gospeak.web.services.openapi.models.utils.{Email, Markdown, TODO, Url, Version}
 
 /**
  * @see "https://spec.openapis.org/oas/v3.0.2#info-object"

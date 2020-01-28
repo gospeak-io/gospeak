@@ -1,6 +1,6 @@
-package fr.gospeak.web.services.openapi.models.utils
+package gospeak.web.services.openapi.models.utils
 
-import fr.gospeak.web.services.openapi.models.{Schema, Schemas}
+import gospeak.web.services.openapi.models.{Schema, Schemas}
 
 /**
  * A Json value, useful to store any value which can't be properly typed

@@ -1,6 +1,6 @@
-package fr.gospeak.web.services.openapi.models.utils
+package gospeak.web.services.openapi.models.utils
 
-import fr.gospeak.web.services.openapi.error.OpenApiError
+import gospeak.web.services.openapi.error.OpenApiError
 import org.scalatest.{FunSpec, Matchers}
 
 class VersionSpec extends FunSpec with Matchers {

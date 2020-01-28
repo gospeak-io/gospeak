@@ -1,7 +1,7 @@
 @import gospeak.core.domain.{Event, Group, Venue}
-@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.OrgaReq
 
 @(event: Event, venueOpt: Option[Venue.Full], member: Group.Member)(implicit req: OrgaReq[AnyContent])
 <p>Hi @member.user.firstName,</p>

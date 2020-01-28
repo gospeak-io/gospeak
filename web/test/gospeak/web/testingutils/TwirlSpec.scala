@@ -1,7 +1,7 @@
-package fr.gospeak.web.testingutils
+package gospeak.web.testingutils
 
-import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.utils.{UserAwareReq, UserReq}
+import gospeak.web.domain.Breadcrumb
+import gospeak.web.utils.{UserAwareReq, UserReq}
 import org.scalatest.{FunSpec, Matchers}
 import play.api.mvc.AnyContent
 

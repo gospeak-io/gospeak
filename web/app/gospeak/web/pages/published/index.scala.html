@@ -1,7 +1,7 @@
-@import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
-@import fr.gospeak.web.pages.published.partials.html.container
-@import fr.gospeak.web.utils.UserAwareReq
-@import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.utils.UserAwareReq
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
 
 @()(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container("Gospeak", PageMeta.default(), b, full = true)() {

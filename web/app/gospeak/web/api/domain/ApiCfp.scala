@@ -1,10 +1,10 @@
-package fr.gospeak.web.api.domain
+package gospeak.web.api.domain
 
 import java.time.LocalDateTime
 
 import gospeak.core.domain.utils.{BasicCtx, OrgaCtx}
 import gospeak.core.domain.{Cfp, CommonCfp, Group, User}
-import fr.gospeak.web.api.domain.utils.{ApiInfo, ApiPlace}
+import gospeak.web.api.domain.utils.{ApiInfo, ApiPlace}
 import play.api.libs.json.{Json, Writes}
 
 object ApiCfp {

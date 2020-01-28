@@ -1,4 +1,4 @@
-package fr.gospeak.web.auth.services
+package gospeak.web.auth.services
 
 import cats.effect.{ContextShift, IO}
 import com.mohiva.play.silhouette.api._
@@ -14,11 +14,11 @@ import gospeak.core.domain.UserRequest.PasswordResetRequest
 import gospeak.core.domain.{Group, User}
 import gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import gospeak.infra.services.AvatarSrv
-import fr.gospeak.web.auth.AuthConf
-import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
-import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv, SocialProfile}
-import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
-import fr.gospeak.web.utils.{UserAwareReq, UserReq}
+import gospeak.web.auth.AuthConf
+import gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
+import gospeak.web.auth.domain.{AuthUser, CookieEnv, SocialProfile}
+import gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
+import gospeak.web.utils.{UserAwareReq, UserReq}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{CustomException, EmailAddress}
 import org.apache.http.auth.AuthenticationException

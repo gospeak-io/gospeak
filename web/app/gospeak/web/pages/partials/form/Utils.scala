@@ -1,8 +1,8 @@
-package fr.gospeak.web.pages.partials.form
+package gospeak.web.pages.partials.form
 
 import java.util.concurrent.TimeUnit
 
-import fr.gospeak.web.utils.Mappings
+import gospeak.web.utils.Mappings
 import play.api.data.{Field, FormError}
 import play.twirl.api.Html
 

@@ -1,4 +1,4 @@
-package fr.gospeak.web.pages.orga.cfps.proposals
+package gospeak.web.pages.orga.cfps.proposals
 
 import cats.data.OptionT
 import cats.effect.IO
@@ -7,14 +7,14 @@ import gospeak.core.domain._
 import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.pages.orga.cfps.CfpCtrl
-import fr.gospeak.web.pages.orga.cfps.proposals.ProposalCtrl._
-import fr.gospeak.web.pages.user.talks.proposals.{ProposalForms => SpeakerProposalForms}
-import fr.gospeak.web.utils.{GenericForm, OrgaReq, UICtrl}
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.domain.Breadcrumb
+import gospeak.web.emails.Emails
+import gospeak.web.pages.orga.cfps.CfpCtrl
+import gospeak.web.pages.orga.cfps.proposals.ProposalCtrl._
+import gospeak.web.pages.user.talks.proposals.{ProposalForms => SpeakerProposalForms}
+import gospeak.web.utils.{GenericForm, OrgaReq, UICtrl}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Done, Page, Slides, Video}
 import play.api.data.Form

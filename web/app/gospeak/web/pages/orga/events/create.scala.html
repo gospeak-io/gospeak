@@ -1,9 +1,9 @@
 @import gospeak.core.domain.Event
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.partials.html.container
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.events.routes.EventCtrl
+@import gospeak.web.pages.orga.partials.html.container
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
 
 @(hasMeetupAccount: Boolean, form: Form[Event.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container("New Event - Gospeak", b)() {

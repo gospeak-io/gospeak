@@ -1,4 +1,4 @@
-package fr.gospeak.web.pages.orga
+package gospeak.web.pages.orga
 
 import cats.data.OptionT
 import cats.effect.IO
@@ -6,16 +6,16 @@ import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.{Group, UserRequest}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain._
-import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.pages.orga.GroupCtrl._
-import fr.gospeak.web.pages.orga.settings.SettingsCtrl
-import fr.gospeak.web.pages.orga.settings.routes.{SettingsCtrl => SettingsRoutes}
-import fr.gospeak.web.pages.user.UserCtrl
-import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import fr.gospeak.web.utils.{OrgaReq, UICtrl, UserReq}
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.domain._
+import gospeak.web.emails.Emails
+import gospeak.web.pages.orga.GroupCtrl._
+import gospeak.web.pages.orga.settings.SettingsCtrl
+import gospeak.web.pages.orga.settings.routes.{SettingsCtrl => SettingsRoutes}
+import gospeak.web.pages.user.UserCtrl
+import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
+import gospeak.web.utils.{OrgaReq, UICtrl, UserReq}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Page
 import play.api.data.Form

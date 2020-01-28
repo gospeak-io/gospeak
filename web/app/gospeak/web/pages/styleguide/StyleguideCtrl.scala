@@ -1,4 +1,4 @@
-package fr.gospeak.web.pages.styleguide
+package gospeak.web.pages.styleguide
 
 import java.time.{Instant, LocalDateTime}
 
@@ -10,11 +10,11 @@ import gospeak.core.domain._
 import gospeak.core.domain.utils.{Info, SocialAccounts}
 import gospeak.core.services.email.EmailSrv
 import gospeak.infra.services.AvatarSrv
-import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
-import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.utils.{OrgaReq, UICtrl, UserAwareReq}
-import fr.gospeak.web.{AppConf, pages}
+import gospeak.web.auth.domain.{AuthUser, CookieEnv}
+import gospeak.web.domain.Breadcrumb
+import gospeak.web.emails.Emails
+import gospeak.web.utils.{OrgaReq, UICtrl, UserAwareReq}
+import gospeak.web.{AppConf, pages}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import gospeak.libs.scala.domain._

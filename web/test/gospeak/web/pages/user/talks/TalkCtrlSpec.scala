@@ -1,6 +1,6 @@
-package fr.gospeak.web.pages.user.talks
+package gospeak.web.pages.user.talks
 
-import fr.gospeak.web.testingutils.CtrlSpec
+import gospeak.web.testingutils.CtrlSpec
 import gospeak.libs.scala.domain.Page
 import org.scalatest.BeforeAndAfterEach
 import play.api.http.Status

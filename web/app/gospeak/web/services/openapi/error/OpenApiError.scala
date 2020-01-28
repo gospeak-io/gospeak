@@ -1,7 +1,7 @@
-package fr.gospeak.web.services.openapi.error
+package gospeak.web.services.openapi.error
 
 import cats.data.NonEmptyList
-import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
+import gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
 
 final case class OpenApiError(path: List[String], errors: NonEmptyList[ErrorMessage]) {
   def format: String = s"at ${path.mkString(".")}: ${errors.map(_.format).toList.mkString(", ")}"

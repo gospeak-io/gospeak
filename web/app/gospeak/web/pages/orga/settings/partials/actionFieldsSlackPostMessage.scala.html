@@ -1,5 +1,5 @@
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
 
 @(field: Field, templateTarget: String)(implicit req: OrgaReq[AnyContent])
 @inputHidden(field("kind"), Seq("value" -> "Slack.PostMessage"))

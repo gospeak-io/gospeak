@@ -1,9 +1,9 @@
 @import gospeak.core.domain.{Sponsor, SponsorPack}
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.{container, sponsorItem, sponsorPackItem}
-@import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.partials.html.{container, sponsorItem, sponsorPackItem}
+@import gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.OrgaReq
 @import gospeak.libs.scala.domain.Page
 
 @(sponsorPacks: Seq[SponsorPack], sponsors: Page[Sponsor.Full])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])

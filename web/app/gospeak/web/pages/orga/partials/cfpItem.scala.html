@@ -1,8 +1,8 @@
 @import gospeak.core.domain.Cfp
-@import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.pages.partials.display.html.tags
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.pages.orga.cfps.routes.CfpCtrl
+@import gospeak.web.utils.Formats
+@import gospeak.web.pages.partials.display.html.tags
+@import gospeak.web.utils.OrgaReq
 
 @(cfp: Cfp)(implicit req: OrgaReq[AnyContent])
 @if(cfp.isActive(req.nowLDT)) {

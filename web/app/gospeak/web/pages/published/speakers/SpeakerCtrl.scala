@@ -1,15 +1,15 @@
-package fr.gospeak.web.pages.published.speakers
+package gospeak.web.pages.published.speakers
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.{Talk, User}
 import gospeak.core.services.storage.{PublicGroupRepo, PublicProposalRepo, PublicTalkRepo, PublicUserRepo}
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.pages.published.HomeCtrl
-import fr.gospeak.web.pages.published.speakers.SpeakerCtrl._
-import fr.gospeak.web.utils.UICtrl
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.domain.Breadcrumb
+import gospeak.web.pages.published.HomeCtrl
+import gospeak.web.pages.published.speakers.SpeakerCtrl._
+import gospeak.web.utils.UICtrl
 import gospeak.libs.scala.domain.Page
 import play.api.mvc._
 

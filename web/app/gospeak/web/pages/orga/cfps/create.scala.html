@@ -1,9 +1,9 @@
 @import gospeak.core.domain.{Cfp, Event}
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.cfps.routes.CfpCtrl
-@import fr.gospeak.web.pages.orga.partials.html.{cfpFields, container}
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.cfps.routes.CfpCtrl
+@import gospeak.web.pages.orga.partials.html.{cfpFields, container}
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
 
 @(form: Form[Cfp.Data], event: Option[Event.Slug])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container("New CFP - Gospeak", b)() {

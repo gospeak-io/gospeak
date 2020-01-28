@@ -1,9 +1,9 @@
-package fr.gospeak.web.pages.user.talks.cfps
+package gospeak.web.pages.user.talks.cfps
 
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import gospeak.core.domain.{Cfp, Talk}
 import gospeak.core.testingutils.Generators._
-import fr.gospeak.web.testingutils.TwirlSpec
+import gospeak.web.testingutils.TwirlSpec
 import gospeak.libs.scala.domain.Page
 
 class ListSpec extends TwirlSpec with RandomDataGenerator {

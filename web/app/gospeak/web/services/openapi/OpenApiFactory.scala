@@ -1,12 +1,12 @@
-package fr.gospeak.web.services.openapi
+package gospeak.web.services.openapi
 
 import cats.data.NonEmptyList
 import gospeak.libs.scala.Extensions._
-import fr.gospeak.web.services.openapi.JsonUtils._
-import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
-import fr.gospeak.web.services.openapi.error.{OpenApiError, OpenApiErrors}
-import fr.gospeak.web.services.openapi.models._
-import fr.gospeak.web.services.openapi.models.utils._
+import gospeak.web.services.openapi.JsonUtils._
+import gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
+import gospeak.web.services.openapi.error.{OpenApiError, OpenApiErrors}
+import gospeak.web.services.openapi.models._
+import gospeak.web.services.openapi.models.utils._
 import play.api.libs.json._
 
 object OpenApiFactory {

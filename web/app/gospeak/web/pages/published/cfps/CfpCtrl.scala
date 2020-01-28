@@ -1,4 +1,4 @@
-package fr.gospeak.web.pages.published.cfps
+package gospeak.web.pages.published.cfps
 
 import cats.data.OptionT
 import cats.effect.IO
@@ -7,16 +7,16 @@ import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, In
 import gospeak.core.domain.{Cfp, ExternalCfp, Talk}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
-import fr.gospeak.web.auth.services.AuthSrv
-import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus}
-import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.pages.published.HomeCtrl
-import fr.gospeak.web.pages.published.cfps.CfpCtrl._
-import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
-import fr.gospeak.web.utils.{UICtrl, UserAwareReq, UserReq}
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
+import gospeak.web.auth.services.AuthSrv
+import gospeak.web.domain.{Breadcrumb, GospeakMessageBus}
+import gospeak.web.emails.Emails
+import gospeak.web.pages.published.HomeCtrl
+import gospeak.web.pages.published.cfps.CfpCtrl._
+import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
+import gospeak.web.utils.{UICtrl, UserAwareReq, UserReq}
 import gospeak.libs.scala.domain.{CustomException, Page}
 import play.api.data.Form
 import play.api.mvc._

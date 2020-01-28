@@ -1,4 +1,4 @@
-package fr.gospeak.web.auth.domain
+package gospeak.web.auth.domain
 
 import java.time.Instant
 

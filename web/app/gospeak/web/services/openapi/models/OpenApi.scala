@@ -1,9 +1,9 @@
-package fr.gospeak.web.services.openapi.models
+package gospeak.web.services.openapi.models
 
 import cats.data.NonEmptyList
-import fr.gospeak.web.services.openapi.OpenApiUtils
-import fr.gospeak.web.services.openapi.error.OpenApiError
-import fr.gospeak.web.services.openapi.models.utils.{TODO, Version}
+import gospeak.web.services.openapi.OpenApiUtils
+import gospeak.web.services.openapi.error.OpenApiError
+import gospeak.web.services.openapi.models.utils.{TODO, Version}
 
 /**
  * A parsed OpenAPI Specification

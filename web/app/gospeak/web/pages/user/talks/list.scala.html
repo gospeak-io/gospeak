@@ -1,9 +1,9 @@
 @import gospeak.core.domain.Talk
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.user.partials.html.{container, talkItem}
-@import fr.gospeak.web.pages.user.talks.routes.TalkCtrl
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.user.partials.html.{container, talkItem}
+@import gospeak.web.pages.user.talks.routes.TalkCtrl
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserReq
 @import gospeak.libs.scala.domain.Page
 
 @(talks: Page[Talk])(b: Breadcrumb)(implicit req: UserReq[AnyContent])

@@ -1,6 +1,6 @@
-@import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
-@import fr.gospeak.web.pages.published.partials.html.{container => published_container}
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.published.partials.html.{container => published_container}
+@import gospeak.web.utils.UserReq
 
 @(title: String, b: Breadcrumb, hideAlert: Boolean = false)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserReq[AnyContent])
 @published_container(title, PageMeta.default(), b, hideAlert)(style)(content)(script)(req.userAware)

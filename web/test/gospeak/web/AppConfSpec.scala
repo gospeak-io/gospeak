@@ -1,4 +1,4 @@
-package fr.gospeak.web
+package gospeak.web
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{FunSpec, Matchers}

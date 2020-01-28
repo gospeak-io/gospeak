@@ -1,11 +1,11 @@
 @import gospeak.core.domain.User
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.partials.form.ImgConf
-@import fr.gospeak.web.pages.user.partials.html.container
-@import fr.gospeak.web.pages.user.profile.routes.ProfileCtrl
-@import fr.gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublicSpeakerCtrl}
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.partials.form.ImgConf
+@import gospeak.web.pages.user.partials.html.container
+@import gospeak.web.pages.user.profile.routes.ProfileCtrl
+@import gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublicSpeakerCtrl}
+@import gospeak.web.utils.UserReq
 
 @(form: Form[User.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Edit profile - Gospeak", b)() {

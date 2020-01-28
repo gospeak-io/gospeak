@@ -1,10 +1,10 @@
 @import gospeak.core.domain.SponsorPack
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.container
-@import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.partials.html.container
+@import gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
 
 @(pack: SponsorPack)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${pack.name.value} sponsor pack - Gospeak", b)() {

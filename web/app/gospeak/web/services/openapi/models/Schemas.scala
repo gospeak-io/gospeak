@@ -1,8 +1,8 @@
-package fr.gospeak.web.services.openapi.models
+package gospeak.web.services.openapi.models
 
 import cats.data.NonEmptyList
 import gospeak.libs.scala.Extensions._
-import fr.gospeak.web.services.openapi.error.OpenApiError
+import gospeak.web.services.openapi.error.OpenApiError
 
 final case class Schemas(value: Map[String, Schema]) extends AnyVal {
   def get(name: String): Option[Schema] = value.get(name)

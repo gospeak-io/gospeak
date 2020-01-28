@@ -1,9 +1,9 @@
 @import gospeak.core.domain.{Group, User}
-@import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
-@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
-@import fr.gospeak.web.pages.published.partials.html.{container, groupItem}
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserAwareReq
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.pages.published.partials.html.{container, groupItem}
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserAwareReq
 @import gospeak.libs.scala.domain.Page
 
 @(groups: Page[Group.Full], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])

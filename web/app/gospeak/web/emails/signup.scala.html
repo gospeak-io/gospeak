@@ -1,7 +1,7 @@
 @import gospeak.core.domain.User
 @import gospeak.core.domain.UserRequest.AccountValidationRequest
-@import fr.gospeak.web.auth.routes.AuthCtrl
-@import fr.gospeak.web.utils.UserAwareReq
+@import gospeak.web.auth.routes.AuthCtrl
+@import gospeak.web.utils.UserAwareReq
 
 @(emailValidation: AccountValidationRequest, user: User)(implicit req: UserAwareReq[AnyContent])
 <p>Hello @user.firstName,</p>

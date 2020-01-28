@@ -1,14 +1,14 @@
-package fr.gospeak.web.api.published
+package gospeak.web.api.published
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.{Cfp, CommonCfp, ExternalCfp}
 import gospeak.core.services.storage.{PublicExternalCfpRepo, PublicGroupRepo}
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.api.domain.ApiCfp
-import fr.gospeak.web.api.domain.utils.ApiResult
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.utils.ApiCtrl
+import gospeak.web.AppConf
+import gospeak.web.api.domain.ApiCfp
+import gospeak.web.api.domain.utils.ApiResult
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.utils.ApiCtrl
 import gospeak.libs.scala.domain.Page
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 

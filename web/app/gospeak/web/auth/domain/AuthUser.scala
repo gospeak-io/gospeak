@@ -1,4 +1,4 @@
-package fr.gospeak.web.auth.domain
+package gospeak.web.auth.domain
 
 import com.mohiva.play.silhouette.api.{Identity, LoginInfo}
 import gospeak.core.domain.{Group, User}

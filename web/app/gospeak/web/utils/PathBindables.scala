@@ -1,4 +1,4 @@
-package fr.gospeak.web.utils
+package gospeak.web.utils
 
 import gospeak.core.domain._
 import gospeak.core.domain.utils.TemplateData

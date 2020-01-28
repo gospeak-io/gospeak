@@ -1,6 +1,6 @@
 @import gospeak.core.domain.{Group, User, UserRequest}
-@import fr.gospeak.web.pages.orga.routes.GroupCtrl
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.pages.orga.routes.GroupCtrl
+@import gospeak.web.utils.UserReq
 
 @(invite: UserRequest.GroupInvite, group: Group, orga: User)(implicit req: UserReq[AnyContent])
 <p>Hi @orga.name.value,</p>

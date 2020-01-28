@@ -1,7 +1,7 @@
-package fr.gospeak.web.services.openapi.models
+package gospeak.web.services.openapi.models
 
-import fr.gospeak.web.services.openapi.OpenApiFactory.Formats._
-import fr.gospeak.web.services.openapi.models.utils.TODO
+import gospeak.web.services.openapi.OpenApiFactory.Formats._
+import gospeak.web.services.openapi.models.utils.TODO
 import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json.{JsSuccess, Json}
 

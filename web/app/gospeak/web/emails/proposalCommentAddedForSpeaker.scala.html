@@ -1,6 +1,6 @@
 @import gospeak.core.domain.{Cfp, Comment, Proposal, Talk, User}
-@import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
+@import gospeak.web.utils.OrgaReq
 
 @(cfp: Cfp, talk: Talk, proposal: Proposal, speaker: User, comment: Comment)(implicit req: OrgaReq[AnyContent])
 <p>Hi @speaker.firstName,</p>

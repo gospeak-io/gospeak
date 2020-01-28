@@ -1,4 +1,4 @@
-package fr.gospeak.web.pages.orga.settings
+package gospeak.web.pages.orga.settings
 
 import gospeak.core.domain.Group.Settings
 import gospeak.core.domain.utils.TemplateData
@@ -6,7 +6,7 @@ import gospeak.core.services.meetup.domain.MeetupGroup
 import gospeak.core.services.slack.domain.SlackCredentials
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
-import fr.gospeak.web.utils.Mappings._
+import gospeak.web.utils.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
 

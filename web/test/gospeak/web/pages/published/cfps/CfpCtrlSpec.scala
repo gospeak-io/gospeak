@@ -1,8 +1,8 @@
-package fr.gospeak.web.pages.published.cfps
+package gospeak.web.pages.published.cfps
 
 import gospeak.core.domain.utils.GospeakMessage
-import fr.gospeak.web.domain.{GospeakMessageBus, MessageBuilder}
-import fr.gospeak.web.testingutils.CtrlSpec
+import gospeak.web.domain.{GospeakMessageBus, MessageBuilder}
+import gospeak.web.testingutils.CtrlSpec
 import gospeak.libs.scala.BasicMessageBus
 import gospeak.libs.scala.domain.Page
 import org.scalatest.BeforeAndAfterEach

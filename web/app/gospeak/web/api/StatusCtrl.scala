@@ -1,14 +1,14 @@
-package fr.gospeak.web.api
+package gospeak.web.api
 
 import java.time.Instant
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.api.StatusCtrl._
-import fr.gospeak.web.api.domain.utils.ApiResult
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.utils.ApiCtrl
+import gospeak.web.AppConf
+import gospeak.web.api.StatusCtrl._
+import gospeak.web.api.domain.utils.ApiResult
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.utils.ApiCtrl
 import generated.BuildInfo
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}

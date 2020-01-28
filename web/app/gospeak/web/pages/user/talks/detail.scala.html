@@ -1,15 +1,15 @@
 @import gospeak.core.domain.{Proposal, Talk, User, UserRequest}
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.partials.html.{slidesFields, videoFields}
-@import fr.gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.pages.user.partials.html.{container, proposalItem}
-@import fr.gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
-@import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.pages.user.talks.routes.TalkCtrl
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.partials.html.{slidesFields, videoFields}
+@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import gospeak.web.pages.user.partials.html.{container, proposalItem}
+@import gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
+@import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
+@import gospeak.web.pages.user.talks.routes.TalkCtrl
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserReq
 @import gospeak.libs.scala.domain.{EmailAddress, Page, Url}
 
 @(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Page[Proposal.Full], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url])(b: Breadcrumb)(implicit req: UserReq[AnyContent])

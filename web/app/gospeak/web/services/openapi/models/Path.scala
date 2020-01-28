@@ -1,7 +1,7 @@
-package fr.gospeak.web.services.openapi.models
+package gospeak.web.services.openapi.models
 
-import fr.gospeak.web.services.openapi.error.OpenApiError
-import fr.gospeak.web.services.openapi.models.Path._
+import gospeak.web.services.openapi.error.OpenApiError
+import gospeak.web.services.openapi.models.Path._
 
 /**
  * @see "https://spec.openapis.org/oas/v3.0.2#paths-object"

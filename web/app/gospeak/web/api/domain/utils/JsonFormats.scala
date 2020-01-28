@@ -1,7 +1,7 @@
-package fr.gospeak.web.api.domain.utils
+package gospeak.web.api.domain.utils
 
 import gospeak.core.domain.User
-import fr.gospeak.web.utils.JsonUtils._
+import gospeak.web.utils.JsonUtils._
 import gospeak.libs.scala.domain.{EmailAddress, Secret}
 import play.api.libs.json._
 

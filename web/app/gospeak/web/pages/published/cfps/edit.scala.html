@@ -1,9 +1,9 @@
 @import gospeak.core.domain.ExternalCfp
-@import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
-@import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
-@import fr.gospeak.web.pages.published.partials.html.{cfpFields, container}
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.published.partials.html.{cfpFields, container}
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.UserReq
 
 @(cfp: ExternalCfp, form: Form[ExternalCfp.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"Edit ${cfp.name.value} CFP - Gospeak", PageMeta.cfp(cfp), b)() {

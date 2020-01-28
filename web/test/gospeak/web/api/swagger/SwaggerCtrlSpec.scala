@@ -1,7 +1,7 @@
-package fr.gospeak.web.api.swagger
+package gospeak.web.api.swagger
 
-import fr.gospeak.web.services.openapi.OpenApiFactory
-import fr.gospeak.web.utils.{JsonUtils, OpenApiUtils, RoutesUtils}
+import gospeak.web.services.openapi.OpenApiFactory
+import gospeak.web.utils.{JsonUtils, OpenApiUtils, RoutesUtils}
 import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json._
 

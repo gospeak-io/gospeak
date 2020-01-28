@@ -1,4 +1,4 @@
-package fr.gospeak.web.api.domain.utils
+package gospeak.web.api.domain.utils
 
 import gospeak.core.domain.utils.BasicCtx
 import gospeak.libs.scala.domain.GMapPlace

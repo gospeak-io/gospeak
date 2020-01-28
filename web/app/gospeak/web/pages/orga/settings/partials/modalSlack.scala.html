@@ -1,10 +1,10 @@
 @import gospeak.core.services.slack.domain.SlackCredentials
-@import fr.gospeak.web.api.ui.routes.UtilsCtrl
-@import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.pages.partials.form.ImgConf
+@import gospeak.web.api.ui.routes.UtilsCtrl
+@import gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.partials.form.ImgConf
 @import gospeak.core.domain.utils.Constants
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.utils.OrgaReq
 
 @(id: String, slackForm: Form[SlackCredentials])(implicit req: OrgaReq[AnyContent])
 <div class="modal fade" id="@id" tabindex="-1" role="dialog">

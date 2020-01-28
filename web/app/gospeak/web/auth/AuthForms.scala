@@ -1,8 +1,8 @@
-package fr.gospeak.web.auth
+package gospeak.web.auth
 
 import gospeak.core.domain.User
 import gospeak.core.domain.utils.SocialAccounts
-import fr.gospeak.web.utils.Mappings._
+import gospeak.web.utils.Mappings._
 import gospeak.libs.scala.domain.{Avatar, EmailAddress, Secret, Values}
 import play.api.data.Forms._
 import play.api.data.{Form, Mapping}

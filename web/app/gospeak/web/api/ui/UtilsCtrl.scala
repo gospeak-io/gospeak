@@ -1,4 +1,4 @@
-package fr.gospeak.web.api.ui
+package gospeak.web.api.ui
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
@@ -10,12 +10,12 @@ import gospeak.core.services.slack.domain.SlackToken
 import gospeak.core.services.storage.PublicExternalCfpRepo
 import gospeak.core.services.{MarkdownSrv, TemplateSrv}
 import gospeak.infra.services.{EmbedSrv, TemplateSrvImpl}
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.api.domain.ApiExternalCfp
-import fr.gospeak.web.api.domain.utils.ApiResult
-import fr.gospeak.web.api.ui.helpers.JsonFormats._
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.utils.ApiCtrl
+import gospeak.web.AppConf
+import gospeak.web.api.domain.ApiExternalCfp
+import gospeak.web.api.domain.utils.ApiResult
+import gospeak.web.api.ui.helpers.JsonFormats._
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.utils.ApiCtrl
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import gospeak.libs.scala.domain.{Html, Markdown, Url}

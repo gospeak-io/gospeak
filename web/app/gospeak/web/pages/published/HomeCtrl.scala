@@ -1,12 +1,12 @@
-package fr.gospeak.web.pages.published
+package gospeak.web.pages.published
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.pages.published.HomeCtrl._
-import fr.gospeak.web.utils.UICtrl
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.domain.Breadcrumb
+import gospeak.web.pages.published.HomeCtrl._
+import gospeak.web.utils.UICtrl
 import play.api.mvc._
 
 class HomeCtrl(cc: ControllerComponents,

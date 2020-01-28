@@ -1,4 +1,4 @@
-package fr.gospeak.web.auth.services
+package gospeak.web.auth.services
 
 import cats.data.OptionT
 import com.mohiva.play.silhouette.api.LoginInfo
@@ -8,7 +8,7 @@ import com.mohiva.play.silhouette.persistence.daos.DelegableAuthInfoDAO
 import gospeak.core.domain.User
 import gospeak.core.domain.User._
 import gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo}
-import fr.gospeak.web.auth.domain.AuthUser
+import gospeak.web.auth.domain.AuthUser
 import gospeak.libs.scala.domain.Done
 
 import scala.concurrent.Future

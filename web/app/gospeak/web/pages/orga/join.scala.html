@@ -1,11 +1,11 @@
 @import gospeak.core.domain.{Group, User, UserRequest}
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.routes.GroupCtrl
-@import fr.gospeak.web.pages.partials.display.html.{markdown, speaker, timeAgo}
-@import fr.gospeak.web.pages.partials.form.html.formBtn
-@import fr.gospeak.web.pages.user.partials.html.container
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.routes.GroupCtrl
+@import gospeak.web.pages.partials.display.html.{markdown, speaker, timeAgo}
+@import gospeak.web.pages.partials.form.html.formBtn
+@import gospeak.web.pages.user.partials.html.container
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserReq
 @import gospeak.libs.scala.domain.Page
 
 @(groups: Page[Group], owners: Seq[User], pendingRequests: Seq[UserRequest.UserAskToJoinAGroupRequest])(b: Breadcrumb)(implicit req: UserReq[AnyContent])

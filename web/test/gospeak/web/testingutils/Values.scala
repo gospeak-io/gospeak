@@ -1,4 +1,4 @@
-package fr.gospeak.web.testingutils
+package gospeak.web.testingutils
 
 import java.util.UUID
 
@@ -18,11 +18,11 @@ import gospeak.core.testingutils.Generators._
 import gospeak.infra.services.AvatarSrv
 import gospeak.infra.services.email.InMemoryEmailSrv
 import gospeak.infra.services.storage.sql.GospeakDbSql
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
-import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv}
-import fr.gospeak.web.domain.Breadcrumb
-import fr.gospeak.web.utils.{UserAwareReq, UserReq}
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.{AuthUser, CookieEnv}
+import gospeak.web.auth.services.{AuthRepo, AuthSrv}
+import gospeak.web.domain.Breadcrumb
+import gospeak.web.utils.{UserAwareReq, UserReq}
 import play.api.mvc._
 import play.api.test.CSRFTokenHelper._
 import play.api.test.{CSRFTokenHelper, FakeRequest, Helpers}

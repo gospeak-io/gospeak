@@ -1,7 +1,7 @@
-package fr.gospeak.web.utils
+package gospeak.web.utils
 
 import gospeak.core.domain._
-import fr.gospeak.web.utils.PathBindables._
+import gospeak.web.utils.PathBindables._
 import org.scalatest.{FunSpec, Matchers}
 
 class PathBindablesSpec extends FunSpec with Matchers {

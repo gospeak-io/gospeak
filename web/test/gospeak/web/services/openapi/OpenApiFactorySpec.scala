@@ -1,8 +1,8 @@
-package fr.gospeak.web.services.openapi
+package gospeak.web.services.openapi
 
-import fr.gospeak.web.services.openapi.error.{OpenApiError, OpenApiErrors}
-import fr.gospeak.web.services.openapi.models._
-import fr.gospeak.web.services.openapi.models.utils._
+import gospeak.web.services.openapi.error.{OpenApiError, OpenApiErrors}
+import gospeak.web.services.openapi.models._
+import gospeak.web.services.openapi.models.utils._
 import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json.Json
 

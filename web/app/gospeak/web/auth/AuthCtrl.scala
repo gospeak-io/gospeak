@@ -1,4 +1,4 @@
-package fr.gospeak.web.auth
+package gospeak.web.auth
 
 import cats.data.OptionT
 import cats.effect.IO
@@ -10,13 +10,13 @@ import gospeak.core.domain.utils.Constants
 import gospeak.core.domain.{User, UserRequest}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
-import fr.gospeak.web.auth.services.AuthSrv
-import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import fr.gospeak.web.utils.{UICtrl, UserAwareReq}
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
+import gospeak.web.auth.services.AuthSrv
+import gospeak.web.emails.Emails
+import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
+import gospeak.web.utils.{UICtrl, UserAwareReq}
 import gospeak.libs.scala.domain.{CustomException, EmailAddress}
 import play.api.data.Form
 import play.api.mvc._

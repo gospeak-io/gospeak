@@ -1,7 +1,7 @@
 @import gospeak.core.domain.Proposal
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.utils.Formats
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
+@import gospeak.web.utils.Formats
 
 @(proposal: Proposal.Full)
 <a href="@ProposalCtrl.detail(proposal.talk.slug, proposal.cfp.slug)" class="list-group-item list-group-item-action">

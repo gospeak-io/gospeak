@@ -1,6 +1,6 @@
-@import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
-@import fr.gospeak.web.pages.published.partials.html.container
-@import fr.gospeak.web.utils.UserAwareReq
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.utils.UserAwareReq
 
 @()(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container("Start speaking - Gospeak", PageMeta.default(), b)() {

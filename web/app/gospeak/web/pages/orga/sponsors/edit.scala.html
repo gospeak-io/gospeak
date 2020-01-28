@@ -1,11 +1,11 @@
 @import gospeak.core.domain.{Sponsor, Partner}
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.{container, sponsorFields}
-@import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
-@import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.partials.html.{container, sponsorFields}
+@import gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
+@import gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.OrgaReq
 
 @(partner: Partner, sponsor: Sponsor, form: Form[Sponsor.Data], slug: Option[Partner.Slug])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container("Edit sponsor - Gospeak", b)() {

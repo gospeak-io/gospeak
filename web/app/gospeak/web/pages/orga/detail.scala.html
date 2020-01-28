@@ -1,16 +1,16 @@
 @import gospeak.core.domain.{Event, Group, Partner, Proposal, Sponsor, SponsorPack, User, UserRequest}
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.events.routes.EventCtrl
-@import fr.gospeak.web.pages.orga.partials.html.{container, eventItem}
-@import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
-@import fr.gospeak.web.pages.orga.routes.GroupCtrl
-@import fr.gospeak.web.pages.orga.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
-@import fr.gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
-@import fr.gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
-@import fr.gospeak.web.pages.partials.form.html.formBtn
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.events.routes.EventCtrl
+@import gospeak.web.pages.orga.partials.html.{container, eventItem}
+@import gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import gospeak.web.pages.orga.routes.GroupCtrl
+@import gospeak.web.pages.orga.proposals.routes.ProposalCtrl
+@import gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
+@import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
+@import gospeak.web.pages.partials.form.html.formBtn
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.OrgaReq
 @import gospeak.libs.scala.domain.Page
 
 @(stats: Group.Stats, events: Page[Event.Full], proposals: Seq[Proposal], speakers: Seq[User], currentSponsors: Seq[(Partner, (Sponsor, Int))], pastSponsors: Seq[(Partner, Seq[Sponsor])], packs: Seq[SponsorPack], requests: Seq[UserRequest], requestUsers: Seq[User])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])

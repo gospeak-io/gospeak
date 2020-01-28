@@ -1,4 +1,4 @@
-package fr.gospeak.web.utils
+package gospeak.web.utils
 
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -11,8 +11,8 @@ import gospeak.core.domain.utils.SocialAccounts.SocialAccount._
 import gospeak.core.domain.utils.{Constants, SocialAccounts}
 import gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup, MeetupVenue}
 import gospeak.core.services.slack.domain.{SlackAction, SlackToken}
-import fr.gospeak.web.utils.Extensions._
-import fr.gospeak.web.utils.Mappings.Utils._
+import gospeak.web.utils.Extensions._
+import gospeak.web.utils.Mappings.Utils._
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}

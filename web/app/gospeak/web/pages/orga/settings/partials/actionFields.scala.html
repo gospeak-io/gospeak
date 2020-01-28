@@ -1,9 +1,9 @@
 @import gospeak.core.domain.Group
 @import gospeak.core.domain.utils.TemplateData
-@import fr.gospeak.web.pages.orga.settings.SettingsForms.AddAction
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.partials.form.html._
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.pages.orga.settings.SettingsForms.AddAction
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
 
 @(actionForm: Form[AddAction])(implicit req: OrgaReq[AnyContent])
 @fieldHorizontal(actionForm("trigger"), Seq("label" -> "Trigger", "help" -> "Choose the trigger you want for your action")) { (field, args) =>

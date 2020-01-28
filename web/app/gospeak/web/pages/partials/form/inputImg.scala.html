@@ -1,7 +1,7 @@
 @import gospeak.core.services.upload.UploadConf
-@import fr.gospeak.web.pages.partials.form.ImgConf
-@import fr.gospeak.web.api.ui.routes.UtilsCtrl
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.pages.partials.form.ImgConf
+@import gospeak.web.api.ui.routes.UtilsCtrl
+@import gospeak.web.utils.UserReq
 
 @(field: Field, conf: ImgConf)(implicit req: UserReq[AnyContent])
 @req.conf.upload match {

@@ -1,12 +1,12 @@
-package fr.gospeak.web.utils
+package gospeak.web.utils
 
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain._
 import gospeak.core.services.storage.OrgaGroupRepo
 import gospeak.libs.scala.Extensions._
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.{AppConf, pages}
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.{AppConf, pages}
 import org.h2.jdbc.{JdbcSQLIntegrityConstraintViolationException, JdbcSQLSyntaxErrorException}
 import org.slf4j.LoggerFactory
 import play.api.i18n.I18nSupport
@@ -43,7 +43,7 @@ abstract class UICtrl(cc: ControllerComponents,
       logger.error("Error in controller" + userStr + groupStr, e) // FIXME better error handling (send email or notif?)
     }
 
-    val next = redirectToPreviousPageOr(fr.gospeak.web.pages.published.routes.HomeCtrl.index())
+    val next = redirectToPreviousPageOr(gospeak.web.pages.published.routes.HomeCtrl.index())
     result.recover {
       case e: JdbcSQLSyntaxErrorException =>
         logError(e, s"\n  Message: ${e.getOriginalMessage}\n  SQL: ${e.getSQL}")

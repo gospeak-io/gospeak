@@ -1,4 +1,4 @@
-package fr.gospeak.web.pages.user.talks.proposals
+package gospeak.web.pages.user.talks.proposals
 
 import cats.data.OptionT
 import cats.effect.IO
@@ -7,16 +7,16 @@ import gospeak.core.domain._
 import gospeak.core.domain.utils.UserCtx
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus}
-import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import fr.gospeak.web.pages.user.talks.TalkCtrl
-import fr.gospeak.web.pages.user.talks.cfps.CfpCtrl
-import fr.gospeak.web.pages.user.talks.cfps.routes.{CfpCtrl => CfpRoutes}
-import fr.gospeak.web.pages.user.talks.proposals.ProposalCtrl._
-import fr.gospeak.web.utils.{GenericForm, UICtrl, UserReq}
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.domain.{Breadcrumb, GospeakMessageBus}
+import gospeak.web.emails.Emails
+import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
+import gospeak.web.pages.user.talks.TalkCtrl
+import gospeak.web.pages.user.talks.cfps.CfpCtrl
+import gospeak.web.pages.user.talks.cfps.routes.{CfpCtrl => CfpRoutes}
+import gospeak.web.pages.user.talks.proposals.ProposalCtrl._
+import gospeak.web.utils.{GenericForm, UICtrl, UserReq}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Page, Slides, Video}
 import play.api.data.Form

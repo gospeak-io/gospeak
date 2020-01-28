@@ -1,4 +1,4 @@
-package fr.gospeak.web
+package gospeak.web
 
 import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
 import com.typesafe.config.Config
@@ -9,7 +9,7 @@ import gospeak.core.services.meetup.MeetupConf
 import gospeak.core.services.storage.DatabaseConf
 import gospeak.core.services.upload.UploadConf
 import gospeak.core.{ApplicationConf, GospeakConf}
-import fr.gospeak.web.auth.AuthConf
+import gospeak.web.auth.AuthConf
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl

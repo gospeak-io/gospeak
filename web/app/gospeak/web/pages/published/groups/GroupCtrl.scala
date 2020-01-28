@@ -1,4 +1,4 @@
-package fr.gospeak.web.pages.published.groups
+package gospeak.web.pages.published.groups
 
 import java.time.Instant
 
@@ -11,13 +11,13 @@ import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.meetup.domain.{MeetupAttendee, MeetupUser}
 import gospeak.core.services.storage._
-import fr.gospeak.web.AppConf
-import fr.gospeak.web.auth.domain.CookieEnv
-import fr.gospeak.web.domain.{Breadcrumb, MessageBuilder}
-import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.pages.published.HomeCtrl
-import fr.gospeak.web.pages.published.groups.GroupCtrl._
-import fr.gospeak.web.utils.{GenericForm, UICtrl, UserAwareReq}
+import gospeak.web.AppConf
+import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.domain.{Breadcrumb, MessageBuilder}
+import gospeak.web.emails.Emails
+import gospeak.web.pages.published.HomeCtrl
+import gospeak.web.pages.published.groups.GroupCtrl._
+import gospeak.web.utils.{GenericForm, UICtrl, UserAwareReq}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
 import play.api.data.Form

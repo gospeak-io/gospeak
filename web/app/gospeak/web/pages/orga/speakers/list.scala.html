@@ -1,9 +1,9 @@
 @import gospeak.core.domain.User
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.{container, speakerItem}
-@import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.OrgaReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.partials.html.{container, speakerItem}
+@import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.OrgaReq
 @import gospeak.libs.scala.domain.Page
 
 @(speakers: Page[User])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])

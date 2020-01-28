@@ -1,4 +1,4 @@
-package fr.gospeak.web.services.openapi.error
+package gospeak.web.services.openapi.error
 
 // FIXME: getMessage will return null :(
 final case class OpenApiErrors(head: OpenApiError, tail: List[OpenApiError]) extends Throwable {

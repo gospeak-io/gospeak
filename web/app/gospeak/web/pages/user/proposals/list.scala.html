@@ -1,10 +1,10 @@
 @import gospeak.core.domain.Proposal
-@import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
-@import fr.gospeak.web.pages.user.partials.html.{container, proposalItem}
-@import fr.gospeak.web.pages.user.proposals.routes.ProposalCtrl
-@import fr.gospeak.web.utils.Formats
-@import fr.gospeak.web.utils.UserReq
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.user.partials.html.{container, proposalItem}
+@import gospeak.web.pages.user.proposals.routes.ProposalCtrl
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserReq
 @import gospeak.libs.scala.domain.Page
 
 @(proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
