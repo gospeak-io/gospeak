@@ -13,8 +13,8 @@ import fr.gospeak.infra.services.storage.sql.UserRequestRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Done, EmailAddress, Page}
 
 class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
                          groupRepo: GroupRepoSql,

@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.effect.IO
 import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import fr.gospeak.core.domain.{Group, User}
-import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
+import gospeak.libs.scala.domain.{Done, EmailAddress, Page}
 
 trait UserRepo extends OrgaUserRepo with SpeakerUserRepo with UserUserRepo with AuthUserRepo with PublicUserRepo with SuggestUserRepo
 

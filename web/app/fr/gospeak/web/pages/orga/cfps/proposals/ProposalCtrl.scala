@@ -7,8 +7,6 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Done, Page, Slides, Video}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
@@ -17,6 +15,8 @@ import fr.gospeak.web.pages.orga.cfps.CfpCtrl
 import fr.gospeak.web.pages.orga.cfps.proposals.ProposalCtrl._
 import fr.gospeak.web.pages.user.talks.proposals.{ProposalForms => SpeakerProposalForms}
 import fr.gospeak.web.utils.{GenericForm, OrgaReq, UICtrl}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Done, Page, Slides, Video}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 

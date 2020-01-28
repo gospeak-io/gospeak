@@ -1,7 +1,7 @@
 package fr.gospeak.core.services.slack.domain
 
 import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
+import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 
 sealed trait SlackAction
 

@@ -1,6 +1,6 @@
 package fr.gospeak.core.services.meetup.domain
 
-import fr.gospeak.libs.scalautils.domain.Avatar
+import gospeak.libs.scala.domain.Avatar
 
 final case class MeetupUser(id: MeetupUser.Id,
                             name: String,

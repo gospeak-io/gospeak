@@ -34,13 +34,13 @@ import fr.gospeak.infra.services.meetup.MeetupSrvImpl
 import fr.gospeak.infra.services.slack.SlackSrvImpl
 import fr.gospeak.infra.services.storage.sql._
 import fr.gospeak.infra.services.{AvatarSrv, MarkdownSrvImpl, TemplateSrvImpl}
-import fr.gospeak.libs.scalautils.{BasicMessageBus, MessageBus}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
 import fr.gospeak.web.auth.{AuthConf, AuthCtrl}
 import fr.gospeak.web.domain.{GospeakMessageBus, MessageBuilder}
 import fr.gospeak.web.pages._
 import fr.gospeak.web.services.EventSrv
+import gospeak.libs.scala.{BasicMessageBus, MessageBus}
 import org.slf4j.LoggerFactory
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.Cookie.SameSite

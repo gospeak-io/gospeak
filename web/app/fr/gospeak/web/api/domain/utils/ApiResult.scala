@@ -3,8 +3,8 @@ package fr.gospeak.web.api.domain.utils
 import java.time.Instant
 
 import fr.gospeak.core.domain.utils.BasicCtx
-import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.utils.BasicReq
+import gospeak.libs.scala.domain.Page
 import play.api.http.Status
 import play.api.libs.json._
 

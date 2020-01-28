@@ -4,9 +4,9 @@ import java.time.Instant
 
 import cats.effect.IO
 import fr.gospeak.core.domain.UserRequest._
-import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import fr.gospeak.core.domain._
-import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
+import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import gospeak.libs.scala.domain.{Done, EmailAddress, Page}
 
 trait UserRequestRepo extends OrgaUserRequestRepo with SpeakerUserRequestRepo with UserUserRequestRepo with AuthUserRequestRepo
 

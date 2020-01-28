@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.domain._
 
 trait ProposalRepo extends OrgaProposalRepo with SpeakerProposalRepo with UserProposalRepo with AuthProposalRepo with SuggestProposalRepo with PublicProposalRepo
 

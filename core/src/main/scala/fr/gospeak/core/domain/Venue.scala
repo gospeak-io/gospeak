@@ -2,7 +2,7 @@ package fr.gospeak.core.domain
 
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.services.meetup.domain.MeetupVenue
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.domain._
 
 final case class Venue(id: Venue.Id,
                        partner: Partner.Id,

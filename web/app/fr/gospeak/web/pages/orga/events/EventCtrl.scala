@@ -9,8 +9,6 @@ import fr.gospeak.core.services.TemplateSrv
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Done, Html, Page}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus, MessageBuilder}
@@ -21,6 +19,8 @@ import fr.gospeak.web.pages.orga.events.EventForms.PublishOptions
 import fr.gospeak.web.pages.orga.partners.PartnerForms
 import fr.gospeak.web.services.EventSrv
 import fr.gospeak.web.utils.{OrgaReq, UICtrl}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Done, Html, Page}
 import play.api.data.Form
 import play.api.mvc._
 

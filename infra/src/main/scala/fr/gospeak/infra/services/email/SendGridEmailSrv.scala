@@ -3,9 +3,9 @@ package fr.gospeak.infra.services.email
 import cats.effect.IO
 import fr.gospeak.core.services.email.EmailSrv.{Email, HtmlContent, TextContent}
 import fr.gospeak.core.services.email.{EmailConf, EmailSrv}
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.Done
-import fr.gospeak.libs.scalautils.domain.EmailAddress.Contact
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.Done
+import gospeak.libs.scala.domain.EmailAddress.Contact
 
 class SendGridEmailSrv private(client: com.sendgrid.SendGrid) extends EmailSrv {
 

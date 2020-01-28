@@ -6,9 +6,9 @@ import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.{Constants, Info, SocialAccounts, TemplateData}
 import fr.gospeak.core.services.meetup.domain.MeetupCredentials
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackCredentials}
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
+import gospeak.libs.scala.domain._
 
 import scala.util.{Failure, Success, Try}
 

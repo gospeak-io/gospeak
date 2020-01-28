@@ -3,12 +3,12 @@ package fr.gospeak.web.api.published
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.services.storage.PublicUserRepo
-import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.ApiUser
 import fr.gospeak.web.api.domain.utils.ApiResult
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
+import gospeak.libs.scala.domain.Page
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class SpeakerCtrl(cc: ControllerComponents,

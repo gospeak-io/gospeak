@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.OrgaCtx
-import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
+import gospeak.libs.scala.domain.{Done, Page, Tag}
 
 trait CfpRepo extends OrgaCfpRepo with SpeakerCfpRepo with UserCfpRepo with AuthCfpRepo with PublicCfpRepo with SuggestCfpRepo
 

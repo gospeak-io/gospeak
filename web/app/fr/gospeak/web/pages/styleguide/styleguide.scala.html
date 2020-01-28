@@ -1,5 +1,4 @@
 @import fr.gospeak.core.domain.{Cfp, CommonCfp, Event, Group, Proposal, Talk, User}
-@import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 @import fr.gospeak.web.domain.PageMeta
 @import fr.gospeak.web.pages.orga.partials.{html => orga}
 @import fr.gospeak.web.pages.partials.container.{html => container}
@@ -11,6 +10,7 @@
 @import fr.gospeak.web.pages.user.partials.{html => speaker}
 @import fr.gospeak.web.utils.GenericForm
 @import fr.gospeak.web.utils.{UserAwareReq, UserReq, OrgaReq}
+@import gospeak.libs.scala.domain.{Page, Slides, Video}
 
 @(user: User, group: Group, groupFull: Group.Full, cfp: Cfp, event: Event, eventFull: Event.Full, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, params: Page.Params)(implicit userAwareReq: UserAwareReq[AnyContent], userReq: UserReq[AnyContent], orgaReq: OrgaReq[AnyContent])
 @section(id: String, title: String, localization: String)(display: String => Html) = {

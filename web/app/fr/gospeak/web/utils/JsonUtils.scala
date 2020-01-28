@@ -1,6 +1,6 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.libs.scalautils.domain.CustomException
+import gospeak.libs.scala.domain.CustomException
 import play.api.libs.json._
 
 object JsonUtils {

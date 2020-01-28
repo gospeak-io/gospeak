@@ -1,7 +1,7 @@
 package fr.gospeak.infra.services.meetup
 
 import fr.gospeak.infra.services.meetup.MeetupSrvImpl._
-import fr.gospeak.libs.scalautils.domain.Markdown
+import gospeak.libs.scala.domain.Markdown
 import org.scalatest.{FunSpec, Matchers}
 
 class MeetupSrvImplSpec extends FunSpec with Matchers {

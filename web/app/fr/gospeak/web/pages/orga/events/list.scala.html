@@ -1,10 +1,10 @@
 @import fr.gospeak.core.domain.{Event, Proposal, User}
-@import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.orga.partials.html.{container, eventItem}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.OrgaReq
+@import gospeak.libs.scala.domain.Page
 
 @(events: Page[Event.Full], proposals: Seq[Proposal], speakers: Seq[User])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${req.group.name.value} events - Gospeak", b)() {

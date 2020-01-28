@@ -1,6 +1,6 @@
 package fr.gospeak.core.services.matomo
 
-import fr.gospeak.libs.scalautils.domain.Secret
+import gospeak.libs.scala.domain.Secret
 
 final case class MatomoConf(baseUrl: String,
                             site: Int,

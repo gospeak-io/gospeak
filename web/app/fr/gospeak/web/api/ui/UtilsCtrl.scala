@@ -10,15 +10,15 @@ import fr.gospeak.core.services.slack.domain.SlackToken
 import fr.gospeak.core.services.storage.PublicExternalCfpRepo
 import fr.gospeak.core.services.{MarkdownSrv, TemplateSrv}
 import fr.gospeak.infra.services.{EmbedSrv, TemplateSrvImpl}
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
-import fr.gospeak.libs.scalautils.domain.{Html, Markdown, Url}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.ApiExternalCfp
 import fr.gospeak.web.api.domain.utils.ApiResult
 import fr.gospeak.web.api.ui.helpers.JsonFormats._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
+import gospeak.libs.scala.domain.{Html, Markdown, Url}
 import play.api.libs.json._
 import play.api.mvc._
 import play.twirl.api.HtmlFormat

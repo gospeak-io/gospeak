@@ -3,8 +3,8 @@ package fr.gospeak.web.pages.user.talks.proposals
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import fr.gospeak.core.domain.{Proposal, Talk}
 import fr.gospeak.core.testingutils.Generators._
-import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.testingutils.TwirlSpec
+import gospeak.libs.scala.domain.Page
 
 class ListSpec extends TwirlSpec with RandomDataGenerator {
   private val talk = random[Talk]

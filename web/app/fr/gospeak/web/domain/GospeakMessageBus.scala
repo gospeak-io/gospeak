@@ -3,8 +3,8 @@ package fr.gospeak.web.domain
 import cats.effect.IO
 import fr.gospeak.core.domain.utils.GospeakMessage
 import fr.gospeak.core.domain.{Cfp, Event, Group, Proposal}
-import fr.gospeak.libs.scalautils.MessageBus
 import fr.gospeak.web.utils.{OrgaReq, UserReq}
+import gospeak.libs.scala.MessageBus
 import play.api.mvc.AnyContent
 
 class GospeakMessageBus(bus: MessageBus[GospeakMessage], builder: MessageBuilder) {

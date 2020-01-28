@@ -1,10 +1,10 @@
 @import fr.gospeak.core.domain.{Cfp, Talk}
-@import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.user.partials.html.{cfpItem, container}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserReq
+@import gospeak.libs.scala.domain.Page
 
 @(talk: Talk, cfps: Page[Cfp])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"Find CFPs for '${talk.title.value}' - Gospeak", b)() {

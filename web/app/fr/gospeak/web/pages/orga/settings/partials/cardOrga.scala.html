@@ -1,8 +1,8 @@
 @import fr.gospeak.core.domain.{User, UserRequest}
-@import fr.gospeak.libs.scalautils.domain.EmailAddress
 @import fr.gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.OrgaReq
+@import gospeak.libs.scala.domain.EmailAddress
 
 @(orgas: Seq[User], invites: Seq[UserRequest.GroupInvite], inviteOrgaForm: Form[EmailAddress])(implicit req: OrgaReq[AnyContent])
 <div class="card mb-3">

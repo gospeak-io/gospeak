@@ -1,7 +1,7 @@
 package fr.gospeak.web.pages.partials
 
-import fr.gospeak.libs.scalautils.domain.Page
-import fr.gospeak.libs.scalautils.domain.Page._
+import gospeak.libs.scala.domain.Page
+import gospeak.libs.scala.domain.Page._
 import org.scalatest.{FunSpec, Matchers}
 
 class SearchSpec extends FunSpec with Matchers {

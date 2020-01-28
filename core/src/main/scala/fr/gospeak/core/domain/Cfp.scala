@@ -3,7 +3,7 @@ package fr.gospeak.core.domain
 import java.time.LocalDateTime
 
 import fr.gospeak.core.domain.utils.Info
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.domain._
 
 final case class Cfp(id: Cfp.Id,
                      group: Group.Id,

@@ -1,11 +1,11 @@
 package fr.gospeak.web.utils
 
-import java.time.{LocalDate, LocalDateTime}
 import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, LocalDateTime}
 
 import fr.gospeak.core.domain._
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Page, Url}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Page, Url}
 import play.api.mvc.QueryStringBindable
 
 import scala.util.Try

@@ -16,9 +16,9 @@ import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup}
 import fr.gospeak.core.services.slack.domain.SlackAction
 import fr.gospeak.core.services.storage.DatabaseConf
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
+import gospeak.libs.scala.domain._
 import io.circe._
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 

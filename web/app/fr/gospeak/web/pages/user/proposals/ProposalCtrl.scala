@@ -2,13 +2,13 @@ package fr.gospeak.web.pages.user.proposals
 
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.services.storage.SpeakerProposalRepo
-import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.user.proposals.ProposalCtrl._
 import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.utils.{UICtrl, UserReq}
+import gospeak.libs.scala.domain.Page
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class ProposalCtrl(cc: ControllerComponents,

@@ -3,9 +3,9 @@ package fr.gospeak.web.pages.orga.events
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.domain.{Cfp, Event}
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{EmailAddress, EnumBuilder, Markdown, StringEnum}
 import fr.gospeak.web.utils.Mappings._
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{EmailAddress, EnumBuilder, Markdown, StringEnum}
 import play.api.data.Forms._
 import play.api.data._
 
@@ -33,7 +33,7 @@ object EventForms {
                                   meetup: Option[MeetupOptions])
 
   object PublishOptions {
-    val default = PublishOptions(
+    val default: PublishOptions = PublishOptions(
       notifyMembers = true,
       meetup = Some(MeetupOptions(publish = true, draft = true)))
   }

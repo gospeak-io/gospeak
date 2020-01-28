@@ -12,7 +12,7 @@ import fr.gospeak.infra.services.storage.sql.ContactRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.libs.scalautils.domain.{Done, EmailAddress, Page}
+import gospeak.libs.scala.domain.{Done, EmailAddress, Page}
 
 class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ContactRepo {
   override def create(data: Contact.Data)(implicit ctx: OrgaCtx): IO[Contact] = insert(Contact(data, ctx.info)).run(xa)

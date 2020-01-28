@@ -3,7 +3,7 @@ package fr.gospeak.core.domain
 import java.time.Instant
 
 import fr.gospeak.core.domain.utils.SocialAccounts
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.domain._
 
 final case class User(id: User.Id,
                       slug: User.Slug,

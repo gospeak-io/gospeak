@@ -6,7 +6,6 @@ import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Cfp, Event, Group}
 import fr.gospeak.core.services.storage._
-import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
@@ -14,6 +13,7 @@ import fr.gospeak.web.pages.orga.GroupCtrl
 import fr.gospeak.web.pages.orga.cfps.CfpCtrl._
 import fr.gospeak.web.pages.orga.events.routes.{EventCtrl => EventRoutes}
 import fr.gospeak.web.utils.{OrgaReq, UICtrl}
+import gospeak.libs.scala.domain.Page
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 

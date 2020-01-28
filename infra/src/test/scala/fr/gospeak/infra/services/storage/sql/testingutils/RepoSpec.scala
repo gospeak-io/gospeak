@@ -14,8 +14,8 @@ import fr.gospeak.core.testingutils.Generators._
 import fr.gospeak.infra.services.storage.sql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
 import fr.gospeak.infra.testingutils.Values
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Page, Slides, Video}
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
 
 class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterEach with RandomDataGenerator {

@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
-import fr.gospeak.libs.scalautils.domain.{Done, GMapPlace, Page, Tag}
+import gospeak.libs.scala.domain.{Done, GMapPlace, Page, Tag}
 
 trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with PublicEventRepo with SuggestEventRepo
 

@@ -7,18 +7,18 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.UserCtx
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, GospeakMessageBus}
 import fr.gospeak.web.emails.Emails
+import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import fr.gospeak.web.pages.user.talks.TalkCtrl
 import fr.gospeak.web.pages.user.talks.cfps.CfpCtrl
 import fr.gospeak.web.pages.user.talks.cfps.routes.{CfpCtrl => CfpRoutes}
 import fr.gospeak.web.pages.user.talks.proposals.ProposalCtrl._
-import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import fr.gospeak.web.utils.{GenericForm, UICtrl, UserReq}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Page, Slides, Video}
 import play.api.data.Form
 import play.api.mvc._
 

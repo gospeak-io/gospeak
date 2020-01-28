@@ -9,9 +9,9 @@ import fr.gospeak.core.services.meetup.{MeetupSrv, domain => gs}
 import fr.gospeak.infra.libs.meetup.MeetupClient
 import fr.gospeak.infra.libs.meetup.domain._
 import fr.gospeak.infra.services.meetup.MeetupSrvImpl._
-import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Avatar, CustomException, Geo, Markdown, Url}
+import gospeak.libs.scala.Crypto.AesSecretKey
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain._
 
 import scala.util.Try
 

@@ -3,8 +3,8 @@ package fr.gospeak.infra.services
 import java.net.URLEncoder
 
 import fr.gospeak.core.domain.User
-import fr.gospeak.libs.scalautils.domain.Image.{AdorableUrl, GravatarUrl}
-import fr.gospeak.libs.scalautils.domain.{Avatar, EmailAddress}
+import gospeak.libs.scala.domain.Image.{AdorableUrl, GravatarUrl}
+import gospeak.libs.scala.domain.{Avatar, EmailAddress}
 
 class AvatarSrv {
   def getDefault(email: EmailAddress, slug: User.Slug): Avatar = {

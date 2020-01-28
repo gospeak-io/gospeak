@@ -2,8 +2,8 @@ package fr.gospeak.core.services.email
 
 import cats.effect.IO
 import fr.gospeak.core.services.email.EmailSrv.Email
-import fr.gospeak.libs.scalautils.domain.Done
-import fr.gospeak.libs.scalautils.domain.EmailAddress.Contact
+import gospeak.libs.scala.domain.Done
+import gospeak.libs.scala.domain.EmailAddress.Contact
 
 trait EmailSrv {
   def send(email: Email): IO[Done]

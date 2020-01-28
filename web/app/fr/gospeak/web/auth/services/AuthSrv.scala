@@ -14,13 +14,13 @@ import fr.gospeak.core.domain.UserRequest.PasswordResetRequest
 import fr.gospeak.core.domain.{Group, User}
 import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import fr.gospeak.infra.services.AvatarSrv
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{CustomException, EmailAddress}
 import fr.gospeak.web.auth.AuthConf
 import fr.gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv, SocialProfile}
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import fr.gospeak.web.utils.{UserAwareReq, UserReq}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{CustomException, EmailAddress}
 import org.apache.http.auth.AuthenticationException
 import play.api.mvc.{AnyContent, Result}
 

@@ -5,8 +5,8 @@ import java.time.{Instant, LocalDateTime}
 
 import fr.gospeak.core.domain.utils.Constants
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{GMapPlace, Logo, Markdown, Tag, TwitterHashtag, Url}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain._
 
 // to hold Cfp or ExternalCfp in order to list them together
 final case class CommonCfp(id: Option[ExternalCfp.Id],

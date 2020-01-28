@@ -1,11 +1,11 @@
 @import fr.gospeak.core.domain.{Proposal, User}
-@import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.domain.Breadcrumb
-@import fr.gospeak.web.pages.orga.partials.html.{container, speakerCard, proposalItem}
+@import fr.gospeak.web.pages.orga.partials.html.{container, proposalItem, speakerCard}
 @import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.OrgaReq
+@import gospeak.libs.scala.domain.Page
 
 @(speaker: User, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${speaker.name.value} - Gospeak", b)() {

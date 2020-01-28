@@ -2,7 +2,7 @@ package fr.gospeak.core.domain
 
 import cats.data.NonEmptyList
 import fr.gospeak.core.domain.utils._
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.domain._
 
 import scala.concurrent.duration.FiniteDuration
 

@@ -3,7 +3,7 @@ package fr.gospeak.infra.services.email
 import cats.effect.IO
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.email.EmailSrv.Email
-import fr.gospeak.libs.scalautils.domain.Done
+import gospeak.libs.scala.domain.Done
 
 // useful for dev
 class ConsoleEmailSrv extends EmailSrv {

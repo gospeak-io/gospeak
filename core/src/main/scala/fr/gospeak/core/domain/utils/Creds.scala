@@ -1,5 +1,5 @@
 package fr.gospeak.core.domain.utils
 
-import fr.gospeak.libs.scalautils.domain.Secret
+import gospeak.libs.scala.domain.Secret
 
 final case class Creds(key: String, secret: Secret)

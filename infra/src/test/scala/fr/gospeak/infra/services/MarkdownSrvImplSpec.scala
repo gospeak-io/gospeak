@@ -1,6 +1,6 @@
 package fr.gospeak.infra.services
 
-import fr.gospeak.libs.scalautils.domain.{Html, Markdown}
+import gospeak.libs.scala.domain.{Html, Markdown}
 import org.scalatest.{FunSpec, Matchers}
 
 class MarkdownSrvImplSpec extends FunSpec with Matchers {

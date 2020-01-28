@@ -6,8 +6,6 @@ import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.{Group, UserRequest}
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain._
@@ -18,10 +16,10 @@ import fr.gospeak.web.pages.orga.settings.routes.{SettingsCtrl => SettingsRoutes
 import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import fr.gospeak.web.utils.{OrgaReq, UICtrl, UserReq}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.Page
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-
-import scala.util.control.NonFatal
 
 class GroupCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],

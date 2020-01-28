@@ -1,7 +1,7 @@
 package fr.gospeak.web.api.domain.utils
 
 import fr.gospeak.core.domain.utils.BasicCtx
-import fr.gospeak.libs.scalautils.domain.GMapPlace
+import gospeak.libs.scala.domain.GMapPlace
 import play.api.libs.json.{Json, Writes}
 
 case class ApiPlace(name: String,

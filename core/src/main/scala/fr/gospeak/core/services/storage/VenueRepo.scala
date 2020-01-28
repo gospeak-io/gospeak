@@ -3,7 +3,7 @@ package fr.gospeak.core.services.storage
 import cats.effect.IO
 import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.OrgaCtx
-import fr.gospeak.libs.scalautils.domain.{Done, Page}
+import gospeak.libs.scala.domain.{Done, Page}
 
 trait VenueRepo extends OrgaVenueRepo with PublicVenueRepo with SuggestVenueRepo
 

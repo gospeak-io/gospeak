@@ -1,8 +1,8 @@
 package fr.gospeak.web.pages.orga
 
 import fr.gospeak.core.domain.Group
-import fr.gospeak.libs.scalautils.domain.{EmailAddress, Markdown}
 import fr.gospeak.web.utils.Mappings._
+import gospeak.libs.scala.domain.{EmailAddress, Markdown}
 import play.api.data.Form
 import play.api.data.Forms._
 

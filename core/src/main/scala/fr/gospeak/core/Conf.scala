@@ -3,9 +3,9 @@ package fr.gospeak.core
 import fr.gospeak.core.GospeakConf.EventConf
 import fr.gospeak.core.domain.Group
 import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
-import fr.gospeak.libs.scalautils.domain.{EnumBuilder, StringEnum}
+import gospeak.libs.scala.Crypto.AesSecretKey
+import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
+import gospeak.libs.scala.domain.{EnumBuilder, StringEnum}
 
 final case class ApplicationConf(env: ApplicationConf.Env,
                                  baseUrl: String,

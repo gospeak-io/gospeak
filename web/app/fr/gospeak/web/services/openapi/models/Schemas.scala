@@ -1,7 +1,7 @@
 package fr.gospeak.web.services.openapi.models
 
 import cats.data.NonEmptyList
-import fr.gospeak.libs.scalautils.Extensions._
+import gospeak.libs.scala.Extensions._
 import fr.gospeak.web.services.openapi.error.OpenApiError
 
 final case class Schemas(value: Map[String, Schema]) extends AnyVal {

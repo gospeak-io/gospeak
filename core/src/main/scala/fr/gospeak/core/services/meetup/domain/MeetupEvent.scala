@@ -2,7 +2,7 @@ package fr.gospeak.core.services.meetup.domain
 
 import java.time.Instant
 
-import fr.gospeak.libs.scalautils.domain.CustomException
+import gospeak.libs.scala.domain.CustomException
 
 import scala.util.Try
 

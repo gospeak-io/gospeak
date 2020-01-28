@@ -1,6 +1,6 @@
 package fr.gospeak.core.services.meetup.domain
 
-import fr.gospeak.libs.scalautils.domain.Crypted
+import gospeak.libs.scala.domain.Crypted
 
 final case class MeetupCredentials(accessToken: Crypted,
                                    refreshToken: Crypted,

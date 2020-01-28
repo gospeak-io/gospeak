@@ -4,7 +4,7 @@ import fr.gospeak.core.services.slack.domain.{SlackCredentials, SlackToken}
 import fr.gospeak.infra.libs.slack.SlackClient
 import fr.gospeak.infra.libs.slack.domain.SlackError
 import fr.gospeak.infra.services.TemplateSrvImpl
-import fr.gospeak.libs.scalautils.domain.Crypted
+import gospeak.libs.scala.domain.Crypted
 import org.scalatest.{FunSpec, Matchers}
 
 class SlackSrvImplSpec extends FunSpec with Matchers {

@@ -6,8 +6,8 @@ import fr.gospeak.infra.libs.meetup.MeetupJson._
 import fr.gospeak.infra.libs.meetup.domain._
 import fr.gospeak.infra.utils.HttpClient
 import fr.gospeak.infra.utils.HttpClient.Response
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Geo, Url}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Geo, Url}
 import io.circe.parser.decode
 import io.circe.{Decoder, Encoder}
 

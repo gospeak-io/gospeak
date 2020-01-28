@@ -1,10 +1,10 @@
 package fr.gospeak.web.api.ui.helpers
 
 import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.libs.scalautils.domain.Html
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.web.api.ui._
 import fr.gospeak.web.utils.Extensions._
+import gospeak.libs.scala.domain.Html
+import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import play.api.libs.json._
 
 object JsonFormats {

@@ -1,7 +1,7 @@
 @import fr.gospeak.core.domain.Event
-@import fr.gospeak.libs.scalautils.domain.Markdown
 @import fr.gospeak.web.pages.partials.display.html.markdown
 @import fr.gospeak.web.utils.OrgaReq
+@import gospeak.libs.scala.domain.Markdown
 
 @(event: Event, text: Markdown, rsvp: Event.Rsvp)(implicit req: OrgaReq[AnyContent])
 <p>Hi @rsvp.user.firstName,</p>

@@ -1,8 +1,8 @@
 package fr.gospeak.web.api.domain.utils
 
 import fr.gospeak.core.domain.User
-import fr.gospeak.libs.scalautils.domain.{EmailAddress, Secret}
 import fr.gospeak.web.utils.JsonUtils._
+import gospeak.libs.scala.domain.{EmailAddress, Secret}
 import play.api.libs.json._
 
 import scala.concurrent.duration._

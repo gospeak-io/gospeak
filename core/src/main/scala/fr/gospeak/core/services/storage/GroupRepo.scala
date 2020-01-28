@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.effect.IO
 import fr.gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import fr.gospeak.core.domain.{Group, User}
-import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
+import gospeak.libs.scala.domain.{Done, Page, Tag}
 
 trait GroupRepo extends OrgaGroupRepo with SpeakerGroupRepo with UserGroupRepo with AuthGroupRepo with PublicGroupRepo with SuggestGroupRepo
 

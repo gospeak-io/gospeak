@@ -16,8 +16,8 @@ import fr.gospeak.infra.services.storage.sql.GroupSettingsRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, Update}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.libs.scalautils.domain.Done
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
+import gospeak.libs.scala.domain.Done
+import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 
 class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: GospeakConf) extends GenericRepo with GroupSettingsRepo {
   override def find(implicit ctx: OrgaCtx): IO[Group.Settings] =

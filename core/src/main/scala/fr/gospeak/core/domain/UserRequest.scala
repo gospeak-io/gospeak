@@ -2,7 +2,7 @@ package fr.gospeak.core.domain
 
 import java.time.Instant
 
-import fr.gospeak.libs.scalautils.domain.{DataClass, EmailAddress, IId, UuidIdBuilder}
+import gospeak.libs.scala.domain.{DataClass, EmailAddress, IId, UuidIdBuilder}
 
 import scala.concurrent.duration._
 

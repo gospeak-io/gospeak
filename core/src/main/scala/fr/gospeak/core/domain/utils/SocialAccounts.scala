@@ -2,8 +2,8 @@ package fr.gospeak.core.domain.utils
 
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount._
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{CustomException, Url}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{CustomException, Url}
 
 final case class SocialAccounts(facebook: Option[FacebookAccount],
                                 instagram: Option[InstagramAccount],

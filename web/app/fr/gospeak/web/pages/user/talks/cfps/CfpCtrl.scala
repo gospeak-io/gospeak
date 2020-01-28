@@ -4,13 +4,13 @@ import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.Talk
 import fr.gospeak.core.services.storage.{SpeakerCfpRepo, SpeakerProposalRepo, SpeakerTalkRepo}
-import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.pages.user.talks.TalkCtrl
 import fr.gospeak.web.pages.user.talks.cfps.CfpCtrl._
 import fr.gospeak.web.utils.{UICtrl, UserReq}
+import gospeak.libs.scala.domain.Page
 import play.api.mvc._
 
 class CfpCtrl(cc: ControllerComponents,

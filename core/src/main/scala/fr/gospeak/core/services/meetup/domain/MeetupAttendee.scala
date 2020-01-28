@@ -2,7 +2,7 @@ package fr.gospeak.core.services.meetup.domain
 
 import java.time.Instant
 
-import fr.gospeak.libs.scalautils.domain.Avatar
+import gospeak.libs.scala.domain.Avatar
 
 final case class MeetupAttendee(id: MeetupUser.Id,
                                 name: String,

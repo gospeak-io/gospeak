@@ -2,7 +2,7 @@ package fr.gospeak.core.services.cloudinary
 
 import cats.effect.IO
 import fr.gospeak.core.domain.{ExternalCfp, Group, Partner, User}
-import fr.gospeak.libs.scalautils.domain.{Avatar, Banner, Logo}
+import gospeak.libs.scala.domain.{Avatar, Banner, Logo}
 
 trait CloudinarySrv {
   def signRequest(params: Map[String, String]): Either[String, String]

@@ -4,12 +4,12 @@ import cats.data.OptionT
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.{Cfp, Group, Proposal}
 import fr.gospeak.core.services.storage._
-import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.utils.ApiResult
 import fr.gospeak.web.api.domain.{ApiComment, ApiProposal}
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
+import gospeak.libs.scala.domain.Page
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class ApiProposalCtrl(cc: ControllerComponents,

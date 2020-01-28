@@ -15,11 +15,11 @@ import fr.gospeak.core.{ApplicationConf, GospeakConf}
 import fr.gospeak.infra.services.AvatarSrv
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.{DoobieUtils, FlywayUtils}
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.StringUtils
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
-import fr.gospeak.libs.scalautils.domain.TimePeriod._
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.StringUtils
+import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
+import gospeak.libs.scala.domain.TimePeriod._
+import gospeak.libs.scala.domain._
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration._

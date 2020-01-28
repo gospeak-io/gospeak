@@ -1,4 +1,4 @@
-@import fr.gospeak.libs.scalautils.domain.Page
+@import gospeak.libs.scala.domain.Page
 
 @(page: Page[_], action: Call, classes: String = "")
 @if(page.hasManyPages || page.params.search.isDefined) {

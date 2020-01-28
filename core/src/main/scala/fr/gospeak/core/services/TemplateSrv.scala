@@ -1,8 +1,8 @@
 package fr.gospeak.core.services
 
 import fr.gospeak.core.domain.utils.TemplateData
-import fr.gospeak.libs.scalautils.domain.Markdown
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
+import gospeak.libs.scala.domain.Markdown
+import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 
 trait TemplateSrv {
   def render[A <: TemplateData](tmpl: MustacheTextTmpl[A], data: A): Either[String, String]

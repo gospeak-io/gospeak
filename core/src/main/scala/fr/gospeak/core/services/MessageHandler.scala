@@ -9,8 +9,8 @@ import fr.gospeak.core.domain.utils.{Constants, GospeakMessage, TemplateData}
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.storage.GroupSettingsRepo
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{CustomException, EmailAddress}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{CustomException, EmailAddress}
 
 import scala.util.control.NonFatal
 

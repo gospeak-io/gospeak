@@ -10,7 +10,6 @@ import fr.gospeak.core.domain.utils.Constants
 import fr.gospeak.core.domain.{User, UserRequest}
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
-import fr.gospeak.libs.scalautils.domain.{CustomException, EmailAddress}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
@@ -18,6 +17,7 @@ import fr.gospeak.web.auth.services.AuthSrv
 import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import fr.gospeak.web.utils.{UICtrl, UserAwareReq}
+import gospeak.libs.scala.domain.{CustomException, EmailAddress}
 import play.api.data.Form
 import play.api.mvc._
 

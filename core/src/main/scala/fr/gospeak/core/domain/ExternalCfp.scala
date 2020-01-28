@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 import fr.gospeak.core.domain.utils.Info
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.domain._
 
 case class ExternalCfp(id: ExternalCfp.Id,
                        name: ExternalCfp.Name,

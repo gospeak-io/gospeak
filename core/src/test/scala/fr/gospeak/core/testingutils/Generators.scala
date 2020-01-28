@@ -4,14 +4,14 @@ import java.time._
 
 import fr.gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
 import fr.gospeak.core.domain._
-import fr.gospeak.core.domain.utils.{Constants, Info}
 import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount._
+import fr.gospeak.core.domain.utils.{Constants, Info}
 import fr.gospeak.core.services.meetup.domain.MeetupGroup
-import fr.gospeak.libs.scalautils.Crypto
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
-import fr.gospeak.libs.scalautils.domain.TimePeriod.PeriodUnit
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.Crypto
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
+import gospeak.libs.scala.domain.TimePeriod.PeriodUnit
+import gospeak.libs.scala.domain._
 import org.scalacheck.ScalacheckShapeless._
 import org.scalacheck.{Arbitrary, Gen}
 

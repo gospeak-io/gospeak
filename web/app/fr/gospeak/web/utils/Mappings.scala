@@ -11,12 +11,12 @@ import fr.gospeak.core.domain.utils.SocialAccounts.SocialAccount._
 import fr.gospeak.core.domain.utils.{Constants, SocialAccounts}
 import fr.gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup, MeetupVenue}
 import fr.gospeak.core.services.slack.domain.{SlackAction, SlackToken}
-import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
-import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.utils.Extensions._
 import fr.gospeak.web.utils.Mappings.Utils._
+import gospeak.libs.scala.Crypto.AesSecretKey
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
+import gospeak.libs.scala.domain._
 import play.api.data.Forms._
 import play.api.data.format.Formats._
 import play.api.data.format.Formatter

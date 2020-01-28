@@ -5,8 +5,8 @@ import fr.gospeak.core.domain.Group
 import fr.gospeak.core.domain.utils.{OrgaCtx, TemplateData, UserAwareCtx}
 import fr.gospeak.core.services.meetup.domain.MeetupCredentials
 import fr.gospeak.core.services.slack.domain.SlackCredentials
-import fr.gospeak.libs.scalautils.domain.Done
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
+import gospeak.libs.scala.domain.Done
+import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 
 trait GroupSettingsRepo extends OrgaGroupSettingsRepo with PublicGroupSettingsRepo
 

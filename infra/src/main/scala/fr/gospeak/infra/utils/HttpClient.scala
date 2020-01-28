@@ -3,7 +3,7 @@ package fr.gospeak.infra.utils
 import java.net.URLEncoder
 
 import cats.effect.IO
-import fr.gospeak.libs.scalautils.domain.CustomException
+import gospeak.libs.scala.domain.CustomException
 import hammock.apache.ApacheInterpreter
 import hammock.{Encoder, Entity, Hammock, HttpResponse, InterpTrans, Method, Uri}
 

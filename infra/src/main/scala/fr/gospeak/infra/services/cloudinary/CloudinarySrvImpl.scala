@@ -5,8 +5,8 @@ import fr.gospeak.core.domain.{ExternalCfp, Group, Partner, User}
 import fr.gospeak.core.services.cloudinary.CloudinarySrv
 import fr.gospeak.infra.libs.cloudinary.CloudinaryClient
 import fr.gospeak.infra.libs.cloudinary.domain.CloudinaryUploadRequest
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Avatar, Banner, Logo}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Avatar, Banner, Logo}
 
 class CloudinarySrvImpl(client: CloudinaryClient) extends CloudinarySrv {
   override def signRequest(params: Map[String, String]): Either[String, String] = client.sign(params)
@@ -63,15 +63,15 @@ class CloudinarySrvImpl(client: CloudinaryClient) extends CloudinarySrv {
 }
 
 object CloudinarySrvImpl {
-  def userAvatarFile = Some("avatar")
+  def userAvatarFile: Option[String] = Some("avatar")
 
-  def groupLogoFile = Some("logo")
+  def groupLogoFile: Option[String] = Some("logo")
 
-  def groupBannerFile = Some("banner")
+  def groupBannerFile: Option[String] = Some("banner")
 
   def groupPartnerFile(partnerSlug: Option[String]): Option[String] = partnerSlug.filter(_.nonEmpty)
 
-  def groupSlackBotFile = Some("slack-bot-avatar")
+  def groupSlackBotFile: Option[String] = Some("slack-bot-avatar")
 
   def extCfpLogoFile(cfpName: Option[String]): Option[String] = cfpName.filter(_.nonEmpty)
 

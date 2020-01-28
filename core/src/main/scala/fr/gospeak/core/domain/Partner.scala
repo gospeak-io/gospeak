@@ -1,7 +1,7 @@
 package fr.gospeak.core.domain
 
 import fr.gospeak.core.domain.utils.{Info, SocialAccounts}
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.domain._
 
 final case class Partner(id: Partner.Id,
                          group: Group.Id,

@@ -3,8 +3,8 @@ package fr.gospeak.infra.services
 import fr.gospeak.core.services.email.EmailConf.SendGrid
 import fr.gospeak.core.services.email.EmailSrv._
 import fr.gospeak.infra.services.email.SendGridEmailSrv
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{EmailAddress, Secret}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{EmailAddress, Secret}
 import org.scalatest.{FunSpec, Matchers}
 
 class EmailSrvSpec extends FunSpec with Matchers {

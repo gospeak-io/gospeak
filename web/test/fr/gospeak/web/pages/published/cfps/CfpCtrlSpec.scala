@@ -1,10 +1,10 @@
 package fr.gospeak.web.pages.published.cfps
 
 import fr.gospeak.core.domain.utils.GospeakMessage
-import fr.gospeak.libs.scalautils.BasicMessageBus
-import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.domain.{GospeakMessageBus, MessageBuilder}
 import fr.gospeak.web.testingutils.CtrlSpec
+import gospeak.libs.scala.BasicMessageBus
+import gospeak.libs.scala.domain.Page
 import org.scalatest.BeforeAndAfterEach
 import play.api.http.Status
 import play.api.test.Helpers._

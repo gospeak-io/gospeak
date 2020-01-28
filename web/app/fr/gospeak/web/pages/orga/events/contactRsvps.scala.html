@@ -1,11 +1,11 @@
 @import fr.gospeak.core.domain.Event
-@import fr.gospeak.libs.scalautils.domain.EmailAddress
 @import fr.gospeak.web.domain.Breadcrumb
 @import fr.gospeak.web.pages.orga.events.EventForms
 @import fr.gospeak.web.pages.orga.partials.html.container
 @import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 @import fr.gospeak.web.pages.partials.form.html._
 @import fr.gospeak.web.utils.OrgaReq
+@import gospeak.libs.scala.domain.EmailAddress
 
 @(event: Event, senders: Seq[EmailAddress.Contact], form: Form[EventForms.ContactAttendees])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"Contact ${req.group.name.value} RSVPs - Gospeak", b)() {

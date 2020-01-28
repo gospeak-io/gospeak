@@ -2,9 +2,9 @@ package fr.gospeak.infra.services
 
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.TemplateSrv
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.Markdown
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.Markdown
+import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto.deriveConfiguredEncoder
 import io.circe.{Encoder, Json, JsonNumber, JsonObject}

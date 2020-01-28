@@ -11,8 +11,6 @@ import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.meetup.domain.{MeetupAttendee, MeetupUser}
 import fr.gospeak.core.services.storage._
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Avatar, CustomException, Done, Image, Markdown, Page}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.{Breadcrumb, MessageBuilder}
@@ -20,6 +18,8 @@ import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.pages.published.groups.GroupCtrl._
 import fr.gospeak.web.utils.{GenericForm, UICtrl, UserAwareReq}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain._
 import play.api.data.Form
 import play.api.mvc._
 

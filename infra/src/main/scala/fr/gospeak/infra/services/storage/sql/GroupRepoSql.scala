@@ -13,8 +13,8 @@ import fr.gospeak.infra.services.storage.sql.GroupRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{CustomException, Done, Page, Tag}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{CustomException, Done, Page, Tag}
 import org.slf4j.LoggerFactory
 
 class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with GroupRepo {

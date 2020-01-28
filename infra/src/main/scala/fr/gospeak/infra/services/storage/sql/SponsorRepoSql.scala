@@ -12,8 +12,8 @@ import fr.gospeak.infra.services.storage.sql.SponsorRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Done, Page}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Done, Page}
 
 class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SponsorRepo {
   override def create(data: Sponsor.Data)(implicit ctx: OrgaCtx): IO[Sponsor] =

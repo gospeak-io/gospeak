@@ -6,8 +6,8 @@ import java.util.Locale
 
 import fr.gospeak.core.domain.Cfp
 import fr.gospeak.core.domain.utils.Constants
-import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.pages.partials.html.{pagination, search, sort}
+import gospeak.libs.scala.domain.Page
 import play.api.mvc.{AnyContent, Call}
 import play.twirl.api.Html
 

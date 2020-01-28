@@ -85,7 +85,7 @@ val scalaCheck = Seq(
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.3",
   "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
 
-val scalautilsDependencies = cats ++ scalaTest ++ scalaCheck
+val libsDependencies = cats ++ scalaTest ++ scalaCheck
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
 val infraDependencies = hammock ++ flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
 val webDependencies = play ++ silhouette ++ pureconfig ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
@@ -94,15 +94,15 @@ val webDependencies = play ++ silhouette ++ pureconfig ++ webjars ++ logback ++ 
 /**
  * Project definition
  */
-val scalautils = (project in file("libs/scalautils"))
+val libs = (project in file("libs"))
   .settings(
-    name := "scalautils",
-    libraryDependencies ++= scalautilsDependencies,
+    name := "libs",
+    libraryDependencies ++= libsDependencies,
     commonSettings
   )
 
 val core = (project in file("core"))
-  .dependsOn(scalautils)
+  .dependsOn(libs)
   .settings(
     name := "core",
     libraryDependencies ++= coreDependencies,
@@ -125,7 +125,7 @@ val web = (project in file("web"))
     libraryDependencies ++= webDependencies ++ Seq(ws),
     routesImport ++= Seq(
       "fr.gospeak.core.domain._",
-      "fr.gospeak.libs.scalautils.domain._",
+      "gospeak.libs.scala.domain._",
       "fr.gospeak.core.services.meetup.domain._",
       "fr.gospeak.web.utils.PathBindables._",
       "fr.gospeak.web.utils.QueryStringBindables._"),
@@ -159,7 +159,7 @@ val global = (project in file("."))
   .enablePlugins(PlayScala)
   .enablePlugins(JavaAppPackaging)
   .dependsOn(web)
-  .aggregate(scalautils, core, infra, web) // send commands to every module
+  .aggregate(libs, core, infra, web) // send commands to every module
   .settings(name := "gospeak")
 
 // rename zip file created from `dist` command

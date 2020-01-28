@@ -1,6 +1,6 @@
 package fr.gospeak.core.services.storage
 
-import fr.gospeak.libs.scalautils.domain.Secret
+import gospeak.libs.scala.domain.Secret
 import org.scalatest.{FunSpec, Matchers}
 
 class DatabaseConfSpec extends FunSpec with Matchers {

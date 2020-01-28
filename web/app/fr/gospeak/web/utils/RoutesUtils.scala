@@ -1,7 +1,7 @@
 package fr.gospeak.web.utils
 
-import fr.gospeak.libs.scalautils.FileUtils
 import fr.gospeak.web.utils.RoutesUtils._
+import gospeak.libs.scala.FileUtils
 
 import scala.util.Try
 

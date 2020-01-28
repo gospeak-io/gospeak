@@ -1,7 +1,7 @@
 package fr.gospeak.web.services.openapi
 
 import cats.data.NonEmptyList
-import fr.gospeak.libs.scalautils.Extensions._
+import gospeak.libs.scala.Extensions._
 import fr.gospeak.web.services.openapi.JsonUtils._
 import fr.gospeak.web.services.openapi.error.OpenApiError.ErrorMessage
 import fr.gospeak.web.services.openapi.error.{OpenApiError, OpenApiErrors}

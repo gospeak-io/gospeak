@@ -1,7 +1,7 @@
 package fr.gospeak.core.services.meetup.domain
 
-import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
-import fr.gospeak.libs.scalautils.domain.Crypted
+import gospeak.libs.scala.Crypto.AesSecretKey
+import gospeak.libs.scala.domain.Crypted
 
 import scala.util.Try
 

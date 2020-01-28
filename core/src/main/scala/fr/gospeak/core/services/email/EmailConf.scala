@@ -1,6 +1,6 @@
 package fr.gospeak.core.services.email
 
-import fr.gospeak.libs.scalautils.domain.Secret
+import gospeak.libs.scala.domain.Secret
 
 sealed trait EmailConf
 

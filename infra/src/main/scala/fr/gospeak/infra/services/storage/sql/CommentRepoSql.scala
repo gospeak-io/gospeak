@@ -9,7 +9,7 @@ import fr.gospeak.infra.services.storage.sql.CommentRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Insert, Select}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.libs.scalautils.Extensions._
+import gospeak.libs.scala.Extensions._
 
 class CommentRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with CommentRepo {
   override def addComment(event: Event.Id, data: Comment.Data)(implicit ctx: UserCtx): IO[Comment] =

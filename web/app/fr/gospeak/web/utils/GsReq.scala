@@ -7,9 +7,9 @@ import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import fr.gospeak.core.domain.utils._
 import fr.gospeak.core.domain.{Group, User}
-import fr.gospeak.libs.scalautils.domain.EmailAddress
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
+import gospeak.libs.scala.domain.EmailAddress
 import play.api.data.{Field, Form, FormError}
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.libs.json.JsonValidationError

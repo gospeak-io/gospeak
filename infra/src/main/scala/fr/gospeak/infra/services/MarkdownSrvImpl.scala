@@ -5,7 +5,7 @@ import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.data.MutableDataSet
 import fr.gospeak.core.services.MarkdownSrv
-import fr.gospeak.libs.scalautils.domain.{Html, Markdown}
+import gospeak.libs.scala.domain.{Html, Markdown}
 
 import scala.collection.JavaConverters._
 

@@ -1,7 +1,7 @@
 package fr.gospeak.infra.services.storage.sql
 
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Table
-import fr.gospeak.libs.scalautils.Extensions._
+import gospeak.libs.scala.Extensions._
 
 object Tables {
   private val socialFields = Seq("facebook", "instagram", "twitter", "linkedIn", "youtube", "meetup", "eventbrite", "slack", "discord", "github").map("social_" + _)

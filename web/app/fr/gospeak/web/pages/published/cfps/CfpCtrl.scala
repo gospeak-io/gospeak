@@ -7,7 +7,6 @@ import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, In
 import fr.gospeak.core.domain.{Cfp, ExternalCfp, Talk}
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.libs.scalautils.domain.{CustomException, Page}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
@@ -18,6 +17,7 @@ import fr.gospeak.web.pages.published.HomeCtrl
 import fr.gospeak.web.pages.published.cfps.CfpCtrl._
 import fr.gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 import fr.gospeak.web.utils.{UICtrl, UserAwareReq, UserReq}
+import gospeak.libs.scala.domain.{CustomException, Page}
 import play.api.data.Form
 import play.api.mvc._
 

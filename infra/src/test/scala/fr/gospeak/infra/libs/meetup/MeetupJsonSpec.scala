@@ -2,7 +2,7 @@ package fr.gospeak.infra.libs.meetup
 
 import fr.gospeak.infra.libs.meetup.MeetupJson._
 import fr.gospeak.infra.libs.meetup.domain._
-import fr.gospeak.libs.scalautils.FileUtils
+import gospeak.libs.scala.FileUtils
 import io.circe.parser.decode
 import org.scalatest.{FunSpec, Matchers}
 

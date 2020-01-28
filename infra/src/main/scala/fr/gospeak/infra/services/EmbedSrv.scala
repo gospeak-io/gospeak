@@ -2,7 +2,7 @@ package fr.gospeak.infra.services
 
 import cats.effect.IO
 import fr.gospeak.infra.utils.HttpClient
-import fr.gospeak.libs.scalautils.domain.{Html, Url}
+import gospeak.libs.scala.domain.{Html, Url}
 
 import scala.util.control.NonFatal
 

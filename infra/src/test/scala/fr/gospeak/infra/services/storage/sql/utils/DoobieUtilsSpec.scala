@@ -4,8 +4,8 @@ import cats.data.NonEmptyList
 import doobie.implicits._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtilsSpec.Entity
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.Page
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.Page
 import org.scalatest.{FunSpec, Matchers}
 
 class DoobieUtilsSpec extends FunSpec with Matchers {

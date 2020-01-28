@@ -1,5 +1,5 @@
-@import fr.gospeak.libs.scalautils.domain.{Html => GoHtml}
 @import fr.gospeak.web.utils.OrgaReq
+@import gospeak.libs.scala.domain.{Html => GsHtml}
 
-@(html: GoHtml)(implicit req: OrgaReq[AnyContent])
+@(html: GsHtml)(implicit req: OrgaReq[AnyContent])
 @Html(html.value)

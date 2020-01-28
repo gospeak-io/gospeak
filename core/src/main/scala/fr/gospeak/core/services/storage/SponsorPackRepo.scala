@@ -3,7 +3,7 @@ package fr.gospeak.core.services.storage
 import cats.effect.IO
 import fr.gospeak.core.domain.utils.OrgaCtx
 import fr.gospeak.core.domain.{Group, SponsorPack}
-import fr.gospeak.libs.scalautils.domain.Done
+import gospeak.libs.scala.domain.Done
 
 trait SponsorPackRepo extends OrgaSponsorPackRepo with PublicSponsorPackRepo with SuggestSponsorPackRepo
 

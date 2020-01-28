@@ -11,7 +11,7 @@ import fr.gospeak.infra.services.storage.sql.ExternalCfpRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Sorts, Table, Update}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.libs.scalautils.domain.{Done, GMapPlace, Page, Tag}
+import gospeak.libs.scala.domain.{Done, GMapPlace, Page, Tag}
 import org.slf4j.LoggerFactory
 
 class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ExternalCfpRepo {

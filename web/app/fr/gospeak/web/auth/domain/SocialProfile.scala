@@ -5,9 +5,9 @@ import java.time.Instant
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.domain.utils.SocialAccounts
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.StringUtils
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.StringUtils
+import gospeak.libs.scala.domain.{Avatar, CustomException, EmailAddress, Url}
 
 object SocialProfile {
   val setEmailUrls: Map[String, String] = Map(

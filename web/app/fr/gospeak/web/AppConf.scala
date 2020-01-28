@@ -9,11 +9,11 @@ import fr.gospeak.core.services.meetup.MeetupConf
 import fr.gospeak.core.services.storage.DatabaseConf
 import fr.gospeak.core.services.upload.UploadConf
 import fr.gospeak.core.{ApplicationConf, GospeakConf}
-import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
-import fr.gospeak.libs.scalautils.domain.Secret
 import fr.gospeak.web.auth.AuthConf
+import gospeak.libs.scala.Crypto.AesSecretKey
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
+import gospeak.libs.scala.domain.Secret
 import play.api.Configuration
 import play.api.mvc.Cookie.SameSite
 import pureconfig.error.{CannotConvert, ConfigReaderFailure, ConfigReaderFailures, ConvertFailure}

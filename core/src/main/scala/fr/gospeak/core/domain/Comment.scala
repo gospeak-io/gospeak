@@ -2,7 +2,7 @@ package fr.gospeak.core.domain
 
 import java.time.Instant
 
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.domain._
 
 case class Comment(id: Comment.Id,
                    kind: Comment.Kind,

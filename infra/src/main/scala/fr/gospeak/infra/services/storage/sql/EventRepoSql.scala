@@ -16,8 +16,8 @@ import fr.gospeak.infra.services.storage.sql.EventRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
 import fr.gospeak.infra.services.storage.sql.utils.GenericRepo
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{CustomException, Done, GMapPlace, Page, Tag}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain._
 
 class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with EventRepo {
   override def create(data: Event.Data)(implicit ctx: OrgaCtx): IO[Event] =

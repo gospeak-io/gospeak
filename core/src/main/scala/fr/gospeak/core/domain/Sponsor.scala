@@ -3,8 +3,8 @@ package fr.gospeak.core.domain
 import java.time.{Instant, LocalDate}
 
 import fr.gospeak.core.domain.utils.{Constants, Info}
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{DataClass, IId, Price, UuidIdBuilder}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{DataClass, IId, Price, UuidIdBuilder}
 
 case class Sponsor(id: Sponsor.Id,
                    group: Group.Id,

@@ -5,11 +5,11 @@ import java.time.Instant
 import cats.effect.IO
 import fr.gospeak.core.domain.utils.Creds
 import fr.gospeak.core.services.upload.UploadConf
+import fr.gospeak.infra.libs.cloudinary.CloudinaryJson._
 import fr.gospeak.infra.libs.cloudinary.domain.{CloudinaryUploadRequest, CloudinaryUploadResponse}
 import fr.gospeak.infra.utils.HttpClient
-import fr.gospeak.libs.scalautils.Crypto
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.infra.libs.cloudinary.CloudinaryJson._
+import gospeak.libs.scala.Crypto
+import gospeak.libs.scala.Extensions._
 import io.circe.parser.decode
 
 class CloudinaryClient(conf: UploadConf) {

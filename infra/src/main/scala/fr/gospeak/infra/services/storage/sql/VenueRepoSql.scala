@@ -14,8 +14,8 @@ import fr.gospeak.infra.services.storage.sql.VenueRepoSql._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import fr.gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Sorts, Update}
 import fr.gospeak.infra.services.storage.sql.utils.{DoobieUtils, GenericRepo}
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Done, Markdown, Page}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Done, Markdown, Page}
 
 class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO],
                    partnerRepo: PartnerRepoSql,

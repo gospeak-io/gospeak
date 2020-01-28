@@ -6,8 +6,8 @@
 @import fr.gospeak.web.pages.published.cfps.CfpForms.{ProposalLoginData, ProposalSignupData}
 @import fr.gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import fr.gospeak.web.pages.published.partials.html.container
-@import fr.gospeak.libs.scalautils.domain.Markdown
 @import fr.gospeak.web.utils.UserAwareReq
+@import gospeak.libs.scala.domain.Markdown
 
 @(group: Group, cfp: Cfp, signupForm: Form[ProposalSignupData], loginForm: Form[ProposalLoginData])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @displayField(key: String, label: String)(display: String => Html) = {

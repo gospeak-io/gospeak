@@ -1,5 +1,4 @@
-@import fr.gospeak.core.domain.{Cfp, Group, Sponsor, SponsorPack,Proposal, User}
-@import fr.gospeak.libs.scalautils.domain.Page
+@import fr.gospeak.core.domain.{Cfp, Group, Proposal, Sponsor, SponsorPack, User}
 @import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
 @import fr.gospeak.web.pages.partials.display.html._
 @import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
@@ -7,6 +6,7 @@
 @import fr.gospeak.web.pages.published.partials.html.{container, groupCard}
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
+@import gospeak.libs.scala.domain.Page
 
 @(group: Group.Full, speakerCount: Long, talks: Page[Proposal.Full], cfps: Seq[Cfp], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @talkItem(group: Group.Full, talk: Proposal.Full, speakers: Seq[User]) = {

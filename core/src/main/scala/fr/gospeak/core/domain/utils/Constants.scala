@@ -2,7 +2,7 @@ package fr.gospeak.core.domain.utils
 
 import java.time.ZoneId
 
-import fr.gospeak.libs.scalautils.domain.EmailAddress
+import gospeak.libs.scala.domain.EmailAddress
 
 object Constants {
   val defaultZoneId: ZoneId = ZoneId.of("Europe/Paris")

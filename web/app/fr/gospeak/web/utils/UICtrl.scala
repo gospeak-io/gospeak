@@ -4,7 +4,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage.OrgaGroupRepo
-import fr.gospeak.libs.scalautils.Extensions._
+import gospeak.libs.scala.Extensions._
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.{AppConf, pages}
 import org.h2.jdbc.{JdbcSQLIntegrityConstraintViolationException, JdbcSQLSyntaxErrorException}

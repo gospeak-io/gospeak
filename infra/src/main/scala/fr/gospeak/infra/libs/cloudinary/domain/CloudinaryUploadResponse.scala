@@ -1,6 +1,6 @@
 package fr.gospeak.infra.libs.cloudinary.domain
 
-import fr.gospeak.libs.scalautils.domain.Image
+import gospeak.libs.scala.domain.Image
 
 import scala.util.Try
 

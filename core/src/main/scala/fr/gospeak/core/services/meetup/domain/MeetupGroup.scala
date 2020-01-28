@@ -1,6 +1,6 @@
 package fr.gospeak.core.services.meetup.domain
 
-import fr.gospeak.libs.scalautils.domain.{CustomException, DataClass, ISlug, Url}
+import gospeak.libs.scala.domain.{CustomException, DataClass, ISlug, Url}
 
 final case class MeetupGroup(id: MeetupGroup.Id,
                              slug: MeetupGroup.Slug,

@@ -3,8 +3,8 @@ package fr.gospeak.core.services.meetup
 import cats.effect.IO
 import fr.gospeak.core.domain.{Event, Venue}
 import fr.gospeak.core.services.meetup.domain._
-import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
-import fr.gospeak.libs.scalautils.domain.{Markdown, Url}
+import gospeak.libs.scala.Crypto.AesSecretKey
+import gospeak.libs.scala.domain.{Markdown, Url}
 
 import scala.util.Try
 

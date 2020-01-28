@@ -10,14 +10,14 @@ import fr.gospeak.core.domain._
 import fr.gospeak.core.domain.utils.{Info, SocialAccounts}
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.infra.services.AvatarSrv
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
-import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.emails.Emails
 import fr.gospeak.web.utils.{OrgaReq, UICtrl, UserAwareReq}
 import fr.gospeak.web.{AppConf, pages}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
+import gospeak.libs.scala.domain._
 import org.joda.time.DateTime
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 

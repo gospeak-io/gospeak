@@ -3,8 +3,8 @@ package fr.gospeak.infra.libs.cloudinary
 import fr.gospeak.core.domain.utils.Creds
 import fr.gospeak.core.services.upload.UploadConf
 import fr.gospeak.infra.libs.cloudinary.domain.CloudinaryUploadRequest
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.Secret
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.Secret
 import org.scalatest.{FunSpec, Matchers}
 
 class CloudinaryClientSpec extends FunSpec with Matchers {

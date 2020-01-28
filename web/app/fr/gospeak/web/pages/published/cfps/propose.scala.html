@@ -1,5 +1,4 @@
 @import fr.gospeak.core.domain.{Cfp, Group, Talk}
-@import fr.gospeak.libs.scalautils.domain.Page
 @import fr.gospeak.web.auth.routes.AuthCtrl
 @import fr.gospeak.web.domain.{Breadcrumb, PageMeta}
 @import fr.gospeak.web.pages.partials.display.html._
@@ -11,6 +10,8 @@
 @import fr.gospeak.web.utils.Formats
 @import fr.gospeak.web.utils.UserAwareReq
 @import java.util.concurrent.TimeUnit
+
+@import gospeak.libs.scala.domain.Page
 
 @(group: Group, cfp: Cfp, talks: Page[Talk], form: Form[Create])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @talkItem(talk: Talk) = {

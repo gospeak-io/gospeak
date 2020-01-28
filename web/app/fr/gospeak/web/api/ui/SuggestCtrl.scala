@@ -4,7 +4,6 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain._
 import fr.gospeak.core.services.storage._
-import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.api.domain.utils.ApiResult
 import fr.gospeak.web.api.ui.helpers.JsonFormats._
@@ -14,6 +13,7 @@ import fr.gospeak.web.pages.orga.events.routes.EventCtrl
 import fr.gospeak.web.pages.orga.partners.routes.PartnerCtrl
 import fr.gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 import fr.gospeak.web.utils._
+import gospeak.libs.scala.domain.Page
 import play.api.mvc._
 
 case class SuggestedItem(id: String, text: String)

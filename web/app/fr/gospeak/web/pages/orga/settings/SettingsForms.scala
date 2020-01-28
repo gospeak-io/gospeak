@@ -4,8 +4,8 @@ import fr.gospeak.core.domain.Group.Settings
 import fr.gospeak.core.domain.utils.TemplateData
 import fr.gospeak.core.services.meetup.domain.MeetupGroup
 import fr.gospeak.core.services.slack.domain.SlackCredentials
-import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
+import gospeak.libs.scala.Crypto.AesSecretKey
+import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import fr.gospeak.web.utils.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._

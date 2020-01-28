@@ -5,9 +5,9 @@ import java.time.{Instant, LocalDateTime}
 import fr.gospeak.core.domain.Event.Notes
 import fr.gospeak.core.domain.utils.{Constants, Info, TemplateData}
 import fr.gospeak.core.services.meetup.domain.MeetupEvent
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
+import gospeak.libs.scala.domain._
 
 final case class Event(id: Event.Id,
                        group: Group.Id,

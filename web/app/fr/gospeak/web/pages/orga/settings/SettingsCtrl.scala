@@ -11,7 +11,7 @@ import fr.gospeak.core.services.meetup.domain.{MeetupCredentials, MeetupExceptio
 import fr.gospeak.core.services.slack.SlackSrv
 import fr.gospeak.core.services.slack.domain.SlackCredentials
 import fr.gospeak.core.services.storage.{GroupSettingsRepo, OrgaGroupRepo, OrgaUserRepo, OrgaUserRequestRepo}
-import fr.gospeak.libs.scalautils.Extensions._
+import gospeak.libs.scala.Extensions._
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb

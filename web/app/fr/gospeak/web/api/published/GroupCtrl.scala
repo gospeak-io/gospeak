@@ -5,13 +5,13 @@ import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.{Event, Group, Proposal}
 import fr.gospeak.core.services.meetup.MeetupSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
-import fr.gospeak.web.api.domain.utils.ApiResult
 import fr.gospeak.web.api.domain._
+import fr.gospeak.web.api.domain.utils.ApiResult
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.utils.ApiCtrl
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.Page
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class GroupCtrl(cc: ControllerComponents,

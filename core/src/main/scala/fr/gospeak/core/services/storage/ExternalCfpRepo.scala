@@ -4,7 +4,7 @@ import java.time.Instant
 
 import cats.effect.IO
 import fr.gospeak.core.domain.{Cfp, CommonCfp, ExternalCfp, User}
-import fr.gospeak.libs.scalautils.domain.{Done, Page, Tag}
+import gospeak.libs.scala.domain.{Done, Page, Tag}
 
 trait ExternalCfpRepo extends PublicExternalCfpRepo with SuggestExternalCfpRepo
 

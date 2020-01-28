@@ -4,7 +4,6 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import fr.gospeak.core.domain.User
 import fr.gospeak.core.services.storage.{UserGroupRepo, UserProposalRepo, UserTalkRepo, UserUserRepo}
-import fr.gospeak.libs.scalautils.domain.Page
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
@@ -12,6 +11,7 @@ import fr.gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublishedS
 import fr.gospeak.web.pages.user.profile.ProfileCtrl._
 import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.utils.{UICtrl, UserReq}
+import gospeak.libs.scala.domain.Page
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 

@@ -5,8 +5,8 @@ import java.time.temporal.ChronoUnit
 
 import fr.gospeak.core.services.meetup.MeetupConf
 import fr.gospeak.infra.libs.meetup.domain.{MeetupEvent, MeetupToken, MeetupVenue}
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Geo, Secret}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Geo, Secret}
 import org.scalatest.{FunSpec, Matchers}
 
 class MeetupClientSpec extends FunSpec with Matchers {

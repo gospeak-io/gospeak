@@ -9,8 +9,8 @@ import com.mohiva.play.silhouette.impl.providers.oauth1.services.PlayOAuth1Servi
 import com.mohiva.play.silhouette.impl.providers.oauth2.{FacebookProvider, GitHubProvider, GoogleProvider, LinkedInProvider}
 import com.mohiva.play.silhouette.impl.providers.state.CsrfStateSettings
 import com.mohiva.play.silhouette.impl.providers.{OAuth1Settings, OAuth2Settings, SocialProvider, SocialStateHandler}
-import fr.gospeak.libs.scalautils.domain.Secret
 import fr.gospeak.web.auth.AuthConf._
+import gospeak.libs.scala.domain.Secret
 import play.api.mvc.Cookie
 
 import scala.concurrent.duration._

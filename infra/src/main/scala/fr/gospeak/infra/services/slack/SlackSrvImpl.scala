@@ -9,9 +9,9 @@ import fr.gospeak.core.services.slack.domain.SlackAction.PostMessage
 import fr.gospeak.core.services.slack.domain._
 import fr.gospeak.infra.libs.slack.{SlackClient, domain => api}
 import fr.gospeak.infra.services.slack.SlackSrvImpl._
-import fr.gospeak.libs.scalautils.Crypto.AesSecretKey
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{CustomException, Markdown}
+import gospeak.libs.scala.Crypto.AesSecretKey
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{CustomException, Markdown}
 
 import scala.util.Try
 

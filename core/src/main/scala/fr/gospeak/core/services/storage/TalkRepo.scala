@@ -3,7 +3,7 @@ package fr.gospeak.core.services.storage
 import cats.effect.IO
 import fr.gospeak.core.domain.utils.UserCtx
 import fr.gospeak.core.domain.{Cfp, Talk, User}
-import fr.gospeak.libs.scalautils.domain._
+import gospeak.libs.scala.domain._
 
 trait TalkRepo extends OrgaTalkRepo with SpeakerTalkRepo with UserTalkRepo with AuthTalkRepo with PublicTalkRepo with SuggestTalkRepo
 

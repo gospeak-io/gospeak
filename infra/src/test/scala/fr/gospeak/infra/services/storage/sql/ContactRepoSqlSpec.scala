@@ -4,7 +4,7 @@ import fr.gospeak.core.domain.Contact.{FirstName, LastName}
 import fr.gospeak.infra.services.storage.sql.ContactRepoSqlSpec._
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import fr.gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
-import fr.gospeak.libs.scalautils.domain.EmailAddress
+import gospeak.libs.scala.domain.EmailAddress
 
 class ContactRepoSqlSpec extends RepoSpec {
   describe("ContactRepoSql") {

@@ -1,6 +1,6 @@
 package fr.gospeak.core.services.meetup.domain
 
-import fr.gospeak.libs.scalautils.domain.{CustomException, Geo}
+import gospeak.libs.scala.domain.{CustomException, Geo}
 
 import scala.util.Try
 

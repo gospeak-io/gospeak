@@ -7,16 +7,16 @@ import fr.gospeak.core.domain.utils.UserCtx
 import fr.gospeak.core.domain.{Talk, User, UserRequest}
 import fr.gospeak.core.services.email.EmailSrv
 import fr.gospeak.core.services.storage._
-import fr.gospeak.libs.scalautils.Extensions._
-import fr.gospeak.libs.scalautils.domain.{Page, Slides, Video}
 import fr.gospeak.web.AppConf
 import fr.gospeak.web.auth.domain.CookieEnv
 import fr.gospeak.web.domain.Breadcrumb
 import fr.gospeak.web.emails.Emails
-import fr.gospeak.web.pages.user.talks.TalkCtrl._
 import fr.gospeak.web.pages.user.UserCtrl
 import fr.gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
+import fr.gospeak.web.pages.user.talks.TalkCtrl._
 import fr.gospeak.web.utils.{GenericForm, UICtrl, UserReq}
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Page, Slides, Video}
 import play.api.data.Form
 import play.api.mvc._
 

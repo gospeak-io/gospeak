@@ -4,8 +4,8 @@ import java.time.LocalDateTime
 
 import fr.gospeak.core.domain
 import fr.gospeak.core.domain.utils.GospeakMessage.Linked
-import fr.gospeak.libs.scalautils.StringUtils._
-import fr.gospeak.libs.scalautils.domain.CustomException
+import gospeak.libs.scala.StringUtils._
+import gospeak.libs.scala.domain.CustomException
 
 /*
   Formatted data for user templates (mustache for example)

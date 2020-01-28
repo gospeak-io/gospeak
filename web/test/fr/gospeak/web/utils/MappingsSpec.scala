@@ -6,9 +6,9 @@ import java.util.concurrent.TimeUnit
 
 import fr.gospeak.core.domain._
 import fr.gospeak.core.testingutils.Generators._
-import fr.gospeak.libs.scalautils.domain.MustacheTmpl.MustacheMarkdownTmpl
-import fr.gospeak.libs.scalautils.domain._
 import fr.gospeak.web.utils.Mappings._
+import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
+import gospeak.libs.scala.domain._
 import org.scalatest.{FunSpec, Matchers}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.data.FormError

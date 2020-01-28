@@ -4,7 +4,7 @@ import java.time.Instant
 
 import fr.gospeak.core.domain.utils.BasicCtx
 import fr.gospeak.core.services.meetup.domain.{MeetupAttendee, MeetupGroup}
-import fr.gospeak.libs.scalautils.domain.Image
+import gospeak.libs.scala.domain.Image
 import play.api.libs.json.{Json, Writes}
 
 object ApiAttendee {
