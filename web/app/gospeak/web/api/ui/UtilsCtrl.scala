@@ -37,15 +37,16 @@ class UtilsCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
                 conf: AppConf,
                 externalCfpRepo: PublicExternalCfpRepo,
-                cloudinarySrv: CloudinarySrv,
+                cloudinarySrv: Option[CloudinarySrv],
                 slackSrv: SlackSrv,
                 templateSrv: TemplateSrv,
                 markdownSrv: MarkdownSrv) extends ApiCtrl(cc, silhouette, conf) {
   def cloudinarySignature(): Action[AnyContent] = UserAction[String] { implicit req =>
     val queryParams = req.queryString.flatMap { case (key, values) => values.headOption.map(value => (key, value)) }
-    IO.pure(cloudinarySrv.signRequest(queryParams) match {
-      case Right(signature) => ApiResult.of(signature)
-      case Left(error) => ApiResult.badRequest(error)
+    IO.pure(cloudinarySrv.map(_.signRequest(queryParams)) match {
+      case Some(Right(signature)) => ApiResult.of(signature)
+      case Some(Left(error)) => ApiResult.badRequest(error)
+      case None => ApiResult.badRequest("Missing CloudinarySrv")
     })
   }
 

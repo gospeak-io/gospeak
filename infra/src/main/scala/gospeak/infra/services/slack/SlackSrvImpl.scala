@@ -7,7 +7,7 @@ import gospeak.core.services.TemplateSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.slack.domain.SlackAction.PostMessage
 import gospeak.core.services.slack.domain._
-import gospeak.infra.libs.slack.{SlackClient, domain => api}
+import gospeak.libs.slack.{SlackClient, domain => api}
 import gospeak.infra.services.slack.SlackSrvImpl._
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._

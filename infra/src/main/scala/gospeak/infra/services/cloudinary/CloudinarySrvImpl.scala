@@ -3,8 +3,9 @@ package gospeak.infra.services.cloudinary
 import cats.effect.IO
 import gospeak.core.domain.{ExternalCfp, Group, Partner, User}
 import gospeak.core.services.cloudinary.CloudinarySrv
-import gospeak.infra.libs.cloudinary.CloudinaryClient
-import gospeak.infra.libs.cloudinary.domain.CloudinaryUploadRequest
+import gospeak.core.services.upload.UploadConf
+import gospeak.libs.cloudinary.CloudinaryClient
+import gospeak.libs.cloudinary.domain.CloudinaryUploadRequest
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Avatar, Banner, Logo}
 
@@ -63,6 +64,12 @@ class CloudinarySrvImpl(client: CloudinaryClient) extends CloudinarySrv {
 }
 
 object CloudinarySrvImpl {
+  def from(conf: UploadConf.Cloudinary): CloudinarySrvImpl =
+    new CloudinarySrvImpl(new CloudinaryClient(CloudinaryClient.Conf(
+      cloudName = conf.cloudName,
+      uploadPreset = conf.uploadPreset,
+      creds = conf.creds)))
+
   def userAvatarFile: Option[String] = Some("avatar")
 
   def groupLogoFile: Option[String] = Some("logo")

@@ -23,16 +23,13 @@ import gospeak.core.services.matomo.MatomoSrv
 import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.storage._
-import gospeak.infra.libs.cloudinary.CloudinaryClient
-import gospeak.infra.libs.matomo.MatomoClient
-import gospeak.infra.libs.meetup.MeetupClient
-import gospeak.infra.libs.slack.SlackClient
-import gospeak.infra.services.cloudinary.CloudinarySrvImpl
+import gospeak.libs.slack.SlackClient
 import gospeak.infra.services.email.EmailSrvFactory
 import gospeak.infra.services.matomo.MatomoSrvImpl
 import gospeak.infra.services.meetup.MeetupSrvImpl
 import gospeak.infra.services.slack.SlackSrvImpl
 import gospeak.infra.services.storage.sql._
+import gospeak.infra.services.upload.UploadSrvFactory
 import gospeak.infra.services.{AvatarSrv, MarkdownSrvImpl, TemplateSrvImpl}
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
@@ -97,10 +94,10 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val templateSrv: TemplateSrv = wire[TemplateSrvImpl]
   lazy val avatarSrv: AvatarSrv = wire[AvatarSrv]
   lazy val emailSrv: EmailSrv = EmailSrvFactory.from(conf.email)
-  lazy val cloudinarySrv: CloudinarySrv = new CloudinarySrvImpl(new CloudinaryClient(conf.upload))
-  lazy val meetupSrv: MeetupSrv = new MeetupSrvImpl(new MeetupClient(conf.meetup, conf.app.baseUrl, conf.app.env.isProd))
+  lazy val cloudinarySrv: Option[CloudinarySrv] = UploadSrvFactory.from(conf.upload)
+  lazy val meetupSrv: MeetupSrv = MeetupSrvImpl.from(conf.meetup, conf.app.baseUrl, conf.app.env.isProd)
   lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient(), templateSrv)
-  lazy val matomoSrv: Option[MatomoSrv] = conf.matomo.map(c => new MatomoSrvImpl(new MatomoClient(c)))
+  lazy val matomoSrv: Option[MatomoSrv] = conf.matomo.map(MatomoSrvImpl.from)
   lazy val messageBuilder: MessageBuilder = wire[MessageBuilder]
   lazy val messageBus: MessageBus[GospeakMessage] = wire[BasicMessageBus[GospeakMessage]]
   lazy val orgaMessageBus: GospeakMessageBus = wire[GospeakMessageBus]

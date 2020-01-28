@@ -1,7 +1,7 @@
 package gospeak.infra.services
 
 import cats.effect.IO
-import gospeak.infra.utils.HttpClient
+import gospeak.libs.http.HttpClient
 import gospeak.libs.scala.domain.{Html, Url}
 
 import scala.util.control.NonFatal

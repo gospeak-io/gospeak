@@ -1,8 +1,8 @@
 package gospeak.infra.services.slack
 
 import gospeak.core.services.slack.domain.{SlackCredentials, SlackToken}
-import gospeak.infra.libs.slack.SlackClient
-import gospeak.infra.libs.slack.domain.SlackError
+import gospeak.libs.slack.SlackClient
+import gospeak.libs.slack.domain.SlackError
 import gospeak.infra.services.TemplateSrvImpl
 import gospeak.libs.scala.domain.Crypted
 import org.scalatest.{FunSpec, Matchers}

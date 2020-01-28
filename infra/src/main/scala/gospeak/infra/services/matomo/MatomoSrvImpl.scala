@@ -1,7 +1,7 @@
 package gospeak.infra.services.matomo
 
-import gospeak.core.services.matomo.MatomoSrv
-import gospeak.infra.libs.matomo.MatomoClient
+import gospeak.core.services.matomo.{MatomoConf, MatomoSrv}
+import gospeak.libs.matomo.MatomoClient
 
 class MatomoSrvImpl(client: MatomoClient) extends MatomoSrv {
   /*
@@ -12,4 +12,12 @@ class MatomoSrvImpl(client: MatomoClient) extends MatomoSrv {
       - custom dimentions: https://matomo.org/docs/custom-dimensions/
    */
 
+}
+
+object MatomoSrvImpl {
+  def from(conf: MatomoConf): MatomoSrvImpl =
+    new MatomoSrvImpl(new MatomoClient(MatomoClient.Conf(
+      baseUrl = conf.baseUrl,
+      site = conf.site,
+      token = conf.token)))
 }

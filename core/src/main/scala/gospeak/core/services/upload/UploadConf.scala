@@ -1,6 +1,6 @@
 package gospeak.core.services.upload
 
-import gospeak.core.domain.utils.Creds
+import gospeak.libs.scala.domain.Creds
 
 sealed trait UploadConf
 

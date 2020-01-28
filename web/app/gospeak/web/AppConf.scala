@@ -2,7 +2,6 @@ package gospeak.web
 
 import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
 import com.typesafe.config.Config
-import gospeak.core.domain.utils.Creds
 import gospeak.core.services.email.EmailConf
 import gospeak.core.services.matomo.MatomoConf
 import gospeak.core.services.meetup.MeetupConf
@@ -13,7 +12,7 @@ import gospeak.web.auth.AuthConf
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
-import gospeak.libs.scala.domain.Secret
+import gospeak.libs.scala.domain.{Creds, Secret}
 import play.api.Configuration
 import play.api.mvc.Cookie.SameSite
 import pureconfig.error.{CannotConvert, ConfigReaderFailure, ConfigReaderFailures, ConvertFailure}
