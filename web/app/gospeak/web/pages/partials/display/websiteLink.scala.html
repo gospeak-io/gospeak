@@ -1,0 +1,4 @@
+@import gospeak.libs.scala.domain.Url
+
+@(url: Url)
+<span class="website-link"><i class="fas fa-globe" title="Website"></i> <a href="@url.value" class="no-style" target="_blank">@url.value</a></span>

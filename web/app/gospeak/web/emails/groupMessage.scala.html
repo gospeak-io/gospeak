@@ -1,0 +1,12 @@
+@import gospeak.core.domain.Group
+@import gospeak.web.pages.partials.display.html.markdown
+@import gospeak.web.utils.UserReq
+@import gospeak.libs.scala.domain.Markdown
+
+@(group: Group, text: Markdown, member: Group.Member)(implicit req: UserReq[AnyContent])
+<p>Hi @member.user.firstName,</p>
+<p>Here is a message from your <b>@group.name.value</b> group organizer:</p>
+<div>
+    @markdown(text)
+</div>
+<p>The Gospeak team</p>

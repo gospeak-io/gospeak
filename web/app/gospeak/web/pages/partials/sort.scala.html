@@ -1,0 +1,6 @@
+@import gospeak.libs.scala.domain.Page
+
+@(page: Page[_], link: Page.Params => Call)
+@if(page.sorts.nonEmpty) {
+  partials.sort(???)
+}

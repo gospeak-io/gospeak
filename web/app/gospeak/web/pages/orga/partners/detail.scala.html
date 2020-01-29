@@ -1,0 +1,204 @@
+@import gospeak.core.domain.{Contact, Event, Partner, Sponsor, SponsorPack, User, Venue}
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.partials.html._
+@import gospeak.web.pages.orga.events.routes.EventCtrl
+@import gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+@import gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.OrgaReq
+
+@(partner: Partner, venues: Seq[Venue.Full], contacts: Seq[Contact], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], events: Seq[(Event, Venue)])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(s"${partner.name.value} - Gospeak", b)() {
+    <div class="d-flex justify-content-between align-items-start">
+        <div class="media">
+            <img src="@partner.logo.value" alt="@partner.name.value logo" class="avatar-lg align-self-start mr-3" style="height: 100px">
+            <div class="media-body">
+                <h1 class="mt-0">@partner.name.value</h1>
+                @socialIcons(partner.social)
+            </div>
+        </div>
+        <span class="btn-group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-cog"></i>
+            </button>
+            <span class="dropdown-menu dropdown-menu-right">
+                <a class="dropdown-item" href="@PartnerCtrl.edit(req.group.slug, partner.slug)">Edit</a>
+                @if(venues.isEmpty && sponsors.isEmpty && contacts.isEmpty) {
+                    @formBtn(PartnerCtrl.doRemove(req.group.slug, partner.slug), Seq("class" -> "dropdown-item", "confirm" -> s"Delete partner ${partner.name.value}?")) {Delete}
+                } else {
+                    <span class="dropdown-item text-muted" title="This partner has venues, sponsors or contacts" data-toggle="tooltip" data-placement="left">Can't delete</span>
+                }
+            </span>
+        </span>
+    </div>
+    <p>@markdown(partner.notes)</p>
+
+    @if(venues.isEmpty) {
+        <div class="card mb-3">
+            <h5 class="card-header">No venue for @partner.name.value</h5>
+            <div class="card-body text-center">
+                <a href="@PartnerCtrl.createVenue(req.group.slug, partner.slug)" class="btn btn-success btn-xs">Create a venue</a>
+            </div>
+        </div>
+    } else {
+        <div class="card mb-3">
+            <h5 class="card-header d-flex justify-content-between align-items-center">
+                <span>@Formats.plural(venues.length, "venue") for @partner.name.value</span>
+                <a class="btn btn-primary btn-xs" href="@PartnerCtrl.createVenue(req.group.slug, partner.slug)">Create a venue</a>
+            </h5>
+            <div class="list-group list-group-flush">
+            @venues.map { venue =>
+                <div class="list-group-item d-flex justify-content-between align-items-center px-3">
+                    <div>
+                        @if(venue.notes.nonEmpty) {
+                            <span data-toggle="html-popover" data-placement="top" data-trigger="hover">
+                                <div class="content">@markdown(venue.notes)</div>
+                                @venue.address.value
+                            </span>
+                        } else {
+                            @venue.address.value
+                        }
+                        @venue.roomSize.map { size => (@size places) }
+                        @venue.contact.map { c => (contact: @c.name.value) }
+                    </div>
+                    <div>
+                        @if(events.exists(_._2.id == venue.id)) {
+                            <span class="btn btn-secondary btn-xs disabled" title="Remove it from events before deleting it" data-toggle="tooltip">
+                                <i class="fas fa-trash"></i>
+                            </span>
+                        } else {
+                            @formBtn(PartnerCtrl.doRemoveVenue(req.group.slug, partner.slug, venue.id), Seq(
+                                "confirm" -> s"Delete venue ${venue.address.value} from ${partner.name.value}?",
+                                "class" -> "btn-danger btn-xs"
+                            )) {<i class="fas fa-trash"></i>}
+                        }
+                        <a href="@PartnerCtrl.editVenue(req.group.slug, partner.slug, venue.id)" class="btn btn-primary btn-xs"><i class="fas fa-edit"></i></a>
+                    </div>
+                </div>
+            }
+            </div>
+        </div>
+    }
+
+    @if(sponsors.isEmpty) {
+        <div class="card mb-3">
+            <h5 class="card-header">@partner.name.value has never sponsored @req.group.name.value</h5>
+            <div class="card-body text-center">
+                <span class="btn-group">
+                    <button type="button" class="btn btn-success btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Add sponsoring
+                    </button>
+                    <span class="dropdown-menu dropdown-menu-right">
+                    @packs.map { pack =>
+                        <a class="dropdown-item" href="@SponsorCtrl.create(req.group.slug, pack.slug, Some(partner.slug))">@pack.name.value pack (@pack.price.value)</a>
+                    }
+                    </span>
+                </span>
+            </div>
+        </div>
+    } else {
+        <div class="card mb-3">
+            <h5 class="card-header d-flex justify-content-between align-items-center">
+                <span>@partner.name.value has sponsored @Formats.plural(sponsors.length, "time") @req.group.name.value</span>
+                <span class="btn-group">
+                    <button type="button" class="btn btn-primary btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Add sponsoring
+                    </button>
+                    <span class="dropdown-menu dropdown-menu-right">
+                    @packs.map { pack =>
+                        <a class="dropdown-item" href="@SponsorCtrl.create(req.group.slug, pack.slug, Some(partner.slug))">@pack.name.value pack (@pack.price.value)</a>
+                    }
+                    </span>
+                </span>
+            </h5>
+            <div class="list-group list-group-flush">
+            @sponsors.map { sponsor =>
+                <span class="list-group-item d-flex justify-content-between align-items-center px-3">
+                    <span>
+                        @if(sponsor.isCurrent(req.now)) {
+                            <b><a href="@SponsorCtrl.detail(req.group.slug, sponsor.pack.slug)">@sponsor.pack.name.value pack</a></b>
+                        } else {
+                            <b><a href="@SponsorCtrl.detail(req.group.slug, sponsor.pack.slug)"><s class="text-muted">@sponsor.pack.name.value pack</s></a></b>
+                        }
+                        @sponsor.contact.map { c => (contact: @c.name.value) }
+                        from @Formats.date(sponsor.start) to @Formats.date(sponsor.finish)
+                        @sponsor.paid.map { p => (@sponsor.price.value paid on @Formats.date(p)) }.getOrElse {(@sponsor.price.value, not paid)}
+                    </span>
+                    <span>
+                        @if(sponsor.paid.isEmpty) {
+                            @formBtn(SponsorCtrl.paid(req.group.slug, sponsor.id), Seq("class" -> "btn-primary btn-xs", "confirm" -> "Mark this sponsoring as paid ?")) {Mark as paid}
+                        }
+                        @formBtn(SponsorCtrl.remove(req.group.slug, sponsor.id), Seq("class" -> "btn-danger btn-xs", "confirm" -> "Remove this sponsoring ?")) {<i class="fas fa-trash"></i>}
+                        <a href="@SponsorCtrl.edit(req.group.slug, sponsor.id, Some(partner.slug))" class="btn btn-primary btn-xs"><i class="fas fa-edit"></i></a>
+                    </span>
+                </span>
+            }
+            </div>
+        </div>
+    }
+
+    @if(contacts.isEmpty) {
+        <div class="card mb-3">
+            <h5 class="card-header">No contact for @partner.name.value</h5>
+            <div class="card-body text-center">
+                <a href="@PartnerCtrl.createContact(req.group.slug, partner.slug)" class="btn btn-success btn-xs">Create a contact</a>
+            </div>
+        </div>
+    } else {
+        <div class="card mb-3">
+            <h5 class="card-header d-flex justify-content-between align-items-center">
+                <span>@Formats.plural(contacts.length, "contact") for @partner.name.value</span>
+                <a class="btn btn-primary btn-xs" href="@PartnerCtrl.createContact(req.group.slug, partner.slug)">Create a contact</a>
+            </h5>
+            <div class="list-group list-group-flush">
+                @contacts.map { contact =>
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-3">
+                        <div>
+                            @if(contact.notes.isEmpty) {
+                                @contact.name.value
+                            } else {
+                                <span data-toggle="html-popover" data-placement="top" data-trigger="hover">
+                                    <div class="content">@markdown(contact.notes)</div>
+                                    @contact.name.value
+                                </span>
+                            }
+                            (@emailLink(contact.email))
+                        </div>
+                        <div>
+                            @if(venues.exists(_.hasContact(contact.id)) || sponsors.exists(_.hasContact(contact.id))) {
+                                <span class="btn btn-secondary btn-xs disabled" title="Remove him from venues and sponsors before delete him" data-toggle="tooltip">
+                                    <i class="fas fa-trash"></i>
+                                </span>
+                            } else {
+                                @formBtn(PartnerCtrl.doRemoveContact(req.group.slug, partner.slug, contact.id), Seq(
+                                    "confirm" -> s"Delete contact ${contact.name.value} from ${partner.name.value}?",
+                                    "class" -> "btn-danger btn-xs"
+                                )) {<i class="fas fa-trash"></i>}
+                            }
+                            <a href="@PartnerCtrl.editContact(req.group.slug, partner.slug, contact.id)" class="btn btn-primary btn-xs"><i class="fas fa-edit"></i></a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if(events.nonEmpty) {
+        <div class="card mb-3">
+            <h5 class="card-header">Hosted @Formats.plural(events.length, "event")</h5>
+            <div class="list-group list-group-flush">
+            @events.map { case (event, venue) =>
+                <span class="list-group-item px-3">
+                    <a href="@EventCtrl.detail(req.group.slug, event.slug)">@event.name.value</a> at
+                    @venue.address.value
+                </span>
+            }
+            </div>
+        </div>
+    }
+
+    <p>@info(partner.info, speakers, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug)))</p>
+}()

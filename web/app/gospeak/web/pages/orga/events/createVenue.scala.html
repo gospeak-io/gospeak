@@ -1,0 +1,34 @@
+@import gospeak.core.domain.Event
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.events.routes.EventCtrl
+@import gospeak.web.pages.orga.partials.html.container
+@import gospeak.web.pages.orga.partners.PartnerForms
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.partials.form.ImgConf
+@import gospeak.web.utils.OrgaReq
+
+@(event: Event, form: Form[PartnerForms.VenuePartnerData])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container("Create venue - Gospeak", b)() {
+    @formElt(form, EventCtrl.doCreateVenue(req.group.slug, event.slug)) {
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Create venue</h1>
+            <div>
+                @btnCancel(EventCtrl.setVenue(req.group.slug, event.slug))
+                @btnSubmit("Create")
+            </div>
+        </div>
+
+        @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the partner")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "Partner name", "autofocus" -> "true") ++ args)
+        }
+        @fieldHorizontal(form("logo"), Seq("label" -> "Logo")) { (field, args) =>
+            @inputImg(field, ImgConf.partnerLogo(form("slug")))
+        }
+        @fieldHorizontal(form("address"), Seq("label" -> "Address", "help" -> "Address of the venue")) { (field, args) =>
+            @inputGMapPlace(field, Seq("autofocus" -> "true") ++ args)
+        }
+        @fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the partner (in urls for example)")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "Partner slug", "slug-for" -> form("name").id) ++ args)
+        }
+    }
+}()

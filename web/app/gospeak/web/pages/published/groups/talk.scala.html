@@ -1,0 +1,49 @@
+@import gospeak.core.domain.{Group, Proposal, User}
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserAwareReq
+
+@(group: Group, talk: Proposal.Full, speakers: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container(s"'${talk.title.value}' at ${group.name.value} - Gospeak", PageMeta.talk(group, talk.proposal), b)() {
+<div class="w-lg-60 mx-lg-auto">
+    <div class="mb-4">
+        <h1 class="h2 font-weight-medium">@talk.title.value</h1>
+    </div>
+    <div class="border-top border-bottom py-4 mb-5">
+        <div class="row align-items-md-center">
+            <div class="col-md-7 mb-5 mb-md-0">
+                <div class="media align-items-center">
+                    <div class="u-avatar">
+                        <img class="img-fluid rounded-circle" src="#" alt="avatar speaker">
+                    </div>
+                    <div class="media-body font-size-1 ml-3">
+                        <span class="h6 font-weight-medium">
+                            @talk.speakers.toList.map { id => @speaker(speakers, id, s => Some(SpeakerCtrl.detail(s.slug)).filter(_ => s.isPublic)) }
+                        </span>
+                        <span class="d-block text-muted">@talk.event.map { event =>@Formats.date(event.start) }</span>
+                        @talk.event.map { event => <p>At <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a> </p> }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="d-md-flex justify-content-md-end align-items-md-center">
+                    <span class="btn btn-sm btn-icon btn-soft-secondary btn-bg-transparent rounded-circle ml-2" >
+                        @videoIcon(talk.video)
+                    </span>
+                    <span class="btn btn-sm btn-icon btn-soft-secondary btn-bg-transparent rounded-circle ml-2" >
+                        @slidesIcon(talk.slides)
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <p>@markdown(talk.description)</p>
+    @if(talk.tags.nonEmpty) {
+        <div class="mt-5">@tags(talk.tags)</div>
+    }
+</div>
+}()

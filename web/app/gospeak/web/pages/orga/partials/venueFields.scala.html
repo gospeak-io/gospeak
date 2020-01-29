@@ -1,0 +1,29 @@
+@import gospeak.core.domain.{Partner, Venue}
+@import gospeak.web.api.ui.routes.SuggestCtrl
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
+
+@(form: Form[Venue.Data], partner: Partner, hasMeetupAccount: Boolean)(implicit req: OrgaReq[AnyContent])
+@fieldHorizontal(form("address"), Seq("label" -> "Address", "help" -> "Address of the venue")) { (field, args) =>
+    @inputGMapPlace(field, Seq("autofocus" -> "true") ++ args)
+}
+@fieldHorizontal(form("contact"), Seq("label" -> "Contact", "help" -> "The contact for this venue")) { (field, args) =>
+    @inputSelect(field, Seq(), Seq(
+        "placeholder" -> "",
+        "optional" -> "true",
+        "remote" -> SuggestCtrl.suggestContacts(req.group.slug, partner.id).toString) ++ args)
+}
+@fieldHorizontal(form("notes"), Seq("label" -> "Notes", "help" -> "Private notes for your group")) { (field, args) =>
+    @inputMarkdown(field, args)
+}
+@fieldHorizontal(form("roomSize"), Seq("label" -> "Room size")) { (field, args) =>
+    @inputNumber(field, args)
+}
+@if(hasMeetupAccount) {
+    @fieldHorizontal(form("refs.meetup"), Seq("label" -> "Meetup reference", "help" -> "References of this venue in Meetup.com")) { (field, args) =>
+        <div class="row">
+            <div class="col-6">@inputText(field("group"), Seq("placeholder" -> "Group url name name", "optional" -> "true") ++ args)</div>
+            <div class="col-6">@inputNumber(field("venue"), Seq("placeholder" -> "Venue id", "optional" -> "true") ++ args)</div>
+        </div>
+    }
+}

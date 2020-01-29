@@ -1,0 +1,16 @@
+@import gospeak.core.domain.Group
+@import gospeak.core.services.slack.domain.SlackCredentials
+@import gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import gospeak.web.pages.orga.settings.SettingsForms.MeetupAccount
+@import gospeak.web.utils.OrgaReq
+
+@(accounts: Group.Settings.Accounts, meetupForm: Form[MeetupAccount], slackForm: Form[SlackCredentials])(implicit req: OrgaReq[AnyContent])
+<div class="card mb-3">
+    <div class="card-header">Integrations</div>
+    <div class="list-group list-group-flush p-2">
+        @displayIntegration("Meetup", accounts.meetup, id => modalMeetup(id, meetupForm, accounts.meetup), SettingsCtrl.removeAccount(req.group.slug, "meetup"))
+        @displayIntegration("Slack", accounts.slack, id => modalSlack(id, slackForm), SettingsCtrl.removeAccount(req.group.slug, "slack"))
+        @* displayIntegration("Twitter", accounts.twitter, id => modalTwitter(), SettingsCtrl.removeAccount(group.slug, "twitter")) *@
+        @* displayIntegration("YouTube", accounts.youtube, id => modalYoutube(), SettingsCtrl.removeAccount(group.slug, "youtube")) *@
+    </div>
+</div>

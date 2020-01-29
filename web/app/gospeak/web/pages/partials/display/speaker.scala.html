@@ -1,0 +1,7 @@
+@import gospeak.core.domain.User
+@(speakers: Seq[User], id: User.Id, call: User => Option[Call] = _ => None)
+@speakers.find(_.id == id).map(u => (u, call(u))) match {
+    case Some((user, Some(url))) => {<a class="badge badge-pill badge-primary" href="@url">@user.name.value</a>}
+    case Some((user, None)) => {<span class="badge badge-pill badge-primary">@user.name.value</span>}
+    case None => {<span class="badge badge-pill badge-primary">Unknown user (@id.value)</span>}
+}

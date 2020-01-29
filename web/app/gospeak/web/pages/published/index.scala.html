@@ -1,0 +1,35 @@
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.utils.UserAwareReq
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+
+@()(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container("Gospeak", PageMeta.default(), b, full = true)() {
+<div class="d-lg-flex position-relative">
+    <div class="container d-lg-flex align-items-lg-center space-top-2 space-top-md-5 space-lg-0 min-height-lg-100vh">
+        <div class="row w-100">
+            <div class="col-lg-5">
+                <h1 class="display-4 font-size-md-down-5 mb-3">Introducing Gospeak</h1>
+                <p>
+                    A plateform for <strong class="js-typed text-primary" data-strings="speakers.,organizers.,attendees."></strong><br>
+                    An Open Source project to helps organizers to find speakers.
+                </p>
+
+                <div class="d-flex align-items-center flex-wrap">
+                    <a class="btn btn-soft-primary btn-wide transition-3d-hover" href="@CfpCtrl.list()">Find a place to talk!</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="SVGMainHero" class="col-lg-9 col-xl-7 svg-preloader d-none d-lg-block position-absolute top-0 right-0 pr-0" style="margin-top: 4em;">
+            <figure class="ie-main-hero">
+                <img class="js-svg-injector"
+                    src="@routes.Assets.versioned("web/img/main-hero.svg")"
+                    alt="Hero image"
+                    data-img-paths='[{"targetId": "#SVGMainHeroImg1", "newPath": "@routes.Assets.versioned("web/img/micro.jpg")"}]'
+                    data-parent="#SVGMainHero">
+            </figure>
+        </div>
+    </div>
+</div>
+}()

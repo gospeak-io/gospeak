@@ -1,9 +1,0 @@
-@import fr.gospeak.core.domain.{Talk, UserRequest}
-@import fr.gospeak.web.pages.user.talks.routes.TalkCtrl
-@import fr.gospeak.web.utils.UserReq
-
-@(invite: UserRequest.TalkInvite, talk: Talk)(implicit req: UserReq[AnyContent])
-<p>Hi,</p>
-<p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has canceled your invitation to <b>@talk.title.value</b> talk.</p>
-<p>We hope everything is alright, you can <a href="@TalkCtrl.create().absoluteURL()">propose a new talk</a> at any time ;)</p>
-<p>The Gospeak team</p>

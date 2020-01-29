@@ -1,0 +1,25 @@
+package gospeak.web.pages.orga.cfps
+
+import gospeak.core.domain.Cfp
+import gospeak.web.utils.Mappings._
+import play.api.data.Forms._
+import play.api.data._
+
+object CfpForms {
+  val create: Form[Cfp.Data] = Form(mapping(
+    "slug" -> cfpSlug,
+    "name" -> cfpName,
+    "start" -> optional(myLocalDateTime),
+    "end" -> optional(myLocalDateTime),
+    "description" -> markdown,
+    "tags" -> tags
+  )(Cfp.Data.apply)(Cfp.Data.unapply)
+    .verifying("Start of Cfp should be anterior to its end", isStartBeforeEnd _))
+
+  def isStartBeforeEnd(data: Cfp.Data): Boolean = {
+    (data.begin, data.close) match {
+      case (Some(start), Some(end)) if start.isAfter(end) => false
+      case _ => true
+    }
+  }
+}

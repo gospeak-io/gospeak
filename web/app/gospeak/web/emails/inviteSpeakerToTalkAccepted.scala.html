@@ -1,0 +1,9 @@
+@import gospeak.core.domain.{Talk, User, UserRequest}
+@import gospeak.web.pages.user.talks.routes.TalkCtrl
+@import gospeak.web.utils.UserReq
+
+@(invite: UserRequest.TalkInvite, talk: Talk, speaker: User)(implicit req: UserReq[AnyContent])
+<p>Hi @speaker.name.value,</p>
+<p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has <b>accepted</b> your invitation to <a href="@req.format(TalkCtrl.detail(talk.slug))">@talk.title.value</a>.</p>
+<p>Together you are stronger, keep going!</p>
+<p>The Gospeak team</p>

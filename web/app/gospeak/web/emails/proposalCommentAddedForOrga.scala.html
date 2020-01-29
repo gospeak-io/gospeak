@@ -1,0 +1,11 @@
+@import gospeak.core.domain.{Cfp, Comment, Group, Proposal, User}
+@import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
+@import gospeak.web.utils.UserReq
+
+@(group: Group, cfp: Cfp, proposal: Proposal, orga: User, comment: Comment)(implicit req: UserReq[AnyContent])
+<p>Hi @orga.firstName,</p>
+<p>@req.user.name.value sent a message for his <b>@proposal.title.value</b> proposal in <b>@cfp.name.value</b>:</p>
+<div style="white-space: pre-line;">@comment.text</div>
+<br>
+<p>You can view it on <a href="@req.format(ProposalCtrl.detail(group.slug, cfp.slug, proposal.id))">Gospeak</a> to answer if you want.</p>
+<p>The Gospeak team</p>

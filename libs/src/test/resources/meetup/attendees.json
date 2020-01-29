@@ -1,0 +1,62 @@
+[
+  {
+    "member": {
+      "id": 160409339,
+      "name": "Alan Georges",
+      "photo": {
+        "id": 254601597,
+        "highres_link": "https://secure.meetupstatic.com/photos/member/9/e/9/5/highres_254601597.jpeg",
+        "photo_link": "https://secure.meetupstatic.com/photos/member/9/e/9/5/member_254601597.jpeg",
+        "thumb_link": "https://secure.meetupstatic.com/photos/member/9/e/9/5/thumb_254601597.jpeg",
+        "type": "member",
+        "base_url": "https://secure.meetupstatic.com"
+      },
+      "event_context": {
+        "host": false
+      }
+    },
+    "rsvp": {
+      "id": 1795045610,
+      "response": "no",
+      "guests": 0,
+      "updated": 1562659107000
+    }
+  },
+  {
+    "member": {
+      "id": 14124862,
+      "name": "loic knuchel",
+      "bio": "Entrepreneur et développeur freelance",
+      "photo": {
+        "id": 91541492,
+        "highres_link": "https://secure.meetupstatic.com/photos/member/5/a/2/highres_92521442.jpeg",
+        "photo_link": "https://secure.meetupstatic.com/photos/member/5/a/2/member_92521442.jpeg",
+        "thumb_link": "https://secure.meetupstatic.com/photos/member/5/a/2/thumb_92521442.jpeg",
+        "type": "member",
+        "base_url": "https://secure.meetupstatic.com"
+      },
+      "role": "coorganizer",
+      "event_context": {
+        "host": true
+      }
+    },
+    "rsvp": {
+      "id": 1791999947,
+      "response": "yes",
+      "guests": 0,
+      "updated": 1562260584000
+    }
+  },
+  {
+    "member": {
+      "id": 0,
+      "name": "Former member"
+    },
+    "rsvp": {
+      "id": 1795632517,
+      "response": "yes",
+      "guests": 0,
+      "updated": 1562615933000
+    }
+  }
+]

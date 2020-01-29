@@ -1,0 +1,23 @@
+@import gospeak.core.domain.{Partner, Contact}
+@import gospeak.web.pages.partials.form.html.fieldHorizontal
+@import gospeak.web.pages.partials.form.html.inputHidden
+@import gospeak.web.pages.partials.form.html.inputText
+@import gospeak.web.pages.partials.form.html.inputEmail
+@import gospeak.web.pages.partials.form.html.inputTextarea
+@import gospeak.web.utils.OrgaReq
+
+@(form: Form[Contact.Data], partner: Partner)(implicit req: OrgaReq[AnyContent])
+@fieldHorizontal(form("first_name"), Seq("label" -> "First name")) { (field, args) =>
+    @inputText(field, Seq("placeholder" -> "First name", "autofocus" -> "true") ++ args)
+}
+@fieldHorizontal(form("last_name"), Seq("label" -> "Last name")) { (field, args) =>
+    @inputText(field, Seq("placeholder" -> "Last name", "autofocus" -> "true") ++ args)
+}
+@fieldHorizontal(form("email"), Seq("label" -> "Email", "help" -> "Please enter a valid email")) { (field, args) =>
+    @inputEmail(field, Seq("placeholder" -> "Email", "autofocus" -> "true"))
+}
+@fieldHorizontal(form("notes"), Seq("label" -> "Notes", "help" -> "Private notes for your group")) { (field, args) =>
+    @inputTextarea(field, args)
+}
+@inputHidden(form("partner"), Seq("value" -> partner.id.value))
+

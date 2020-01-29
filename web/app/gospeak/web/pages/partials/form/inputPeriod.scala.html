@@ -1,0 +1,16 @@
+@import gospeak.libs.scala.domain.TimePeriod
+
+@(field: Field, timeUnits: Seq[TimePeriod.PeriodUnit] = TimePeriod.PeriodUnit.simple, args: Seq[(String, String)] = Seq())
+<div class="row">
+    <div class="col">
+        @inputNumber(field("length"), args)
+    </div>
+    <div class="col">
+        @if(timeUnits.length == 1) {
+            @inputHidden(field("unit"), ("value", timeUnits.head.value) +: args)
+            <input type="text" class="form-control-plaintext" value="@timeUnits.head.plural" readonly tabindex="-1" />
+        } else {
+            @inputSelect(field("unit"), timeUnits.map(u => (u.value, u.plural)), ("placeholder", "time unit") +: args)
+        }
+    </div>
+</div>

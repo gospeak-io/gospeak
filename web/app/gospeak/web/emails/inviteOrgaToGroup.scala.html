@@ -1,0 +1,10 @@
+@import gospeak.core.domain.UserRequest
+@import gospeak.web.pages.user.routes.UserCtrl
+@import gospeak.web.utils.OrgaReq
+
+@(invite: UserRequest.GroupInvite)(implicit req: OrgaReq[AnyContent])
+<p>Hi,</p>
+<p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has invited you on the <b>@req.group.name.value</b> group.</p>
+<p>You can <a href="@req.format(UserCtrl.answerRequest(invite.id))">accept or deny</a> this invitation.</p>
+<p>We wish you the best in this adventure!</p>
+<p>The Gospeak team</p>

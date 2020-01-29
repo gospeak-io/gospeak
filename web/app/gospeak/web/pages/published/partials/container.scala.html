@@ -1,0 +1,64 @@
+@import gospeak.core.domain.utils.Constants.Images
+@import gospeak.web.auth.routes.AuthCtrl
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.partials.container.html.{alert, flash, main, navbarLink, userDropdown}
+@import gospeak.web.pages.partials.form.html.formBtn
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.pages.published.routes.HomeCtrl
+@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import gospeak.web.pages.user.routes.UserCtrl
+@import gospeak.web.utils.UserAwareReq
+
+@(title: String, m: PageMeta, b: Breadcrumb, full: Boolean = false, hideAlert: Boolean = false)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
+@main(title, m, style, script) {
+<header id="header" class="u-header u-header--abs-top-md u-header--bg-transparent u-header--show-hide-md" data-header-fix-moment="500" data-header-fix-effect="slide">
+    <div class="u-header__section">
+        <div id="logoAndNav" class="container">
+            <nav class="js-mega-menu navbar navbar-expand-md u-header__navbar u-header__navbar--no-space">
+                <a class="navbar-brand u-header__navbar-brand u-header__navbar-brand-center" href="@HomeCtrl.index()" aria-label="Gospeak">
+                    <img class="img-fluid" src="@Images.gospeakLogoText" alt="Gospeak logo">
+                </a>
+
+                <button type="button" class="navbar-toggler btn u-hamburger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navBar" data-toggle="collapse" data-target="#navBar">
+                    <span id="hamburgerTrigger" class="u-hamburger__box">
+                        <span class="u-hamburger__inner"></span>
+                    </span>
+                </button>
+
+                <div id="navBar" class="collapse navbar-collapse u-header__navbar-collapse">
+                    <ul class="navbar-nav u-header__navbar-nav">
+                        @req.secured.map { r =>
+                            <li class="nav-item u-header__nav-item">@navbarLink(UserCtrl.index()) {Dashboard}</li>
+                        }
+                        <li class="nav-item u-header__nav-item">@navbarLink(CfpCtrl.list()) {Call For Proposals}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink(GroupCtrl.list()) {Groups}</li>
+                        @* <li class="nav-item u-header__nav-item">@navbarLink(SpeakerCtrl.list()) {Speakers}</li> *@
+                        <li class="nav-item u-header__nav-last-item">
+                            @req.secured.map { r =>
+                                @userDropdown(r.user, r.groups)
+                            }.getOrElse {
+                                <a class="btn btn-sm btn-primary transition-3d-hover" href="@AuthCtrl.login()">Login</a>
+                            }
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+</header>
+<main id="content" role="main">
+    <div class="@if(!full) {container space-2 mt-5}">
+        @req.secured.filter(r => !hideAlert && r.user.emailValidated.isEmpty).map { implicit r =>
+            @alert("warning", "d-flex justify-content-between align-items-center") {
+                <span class="align-self-center">
+                    Your email is not validated, please click on the validation link in the signup email</span>
+                @formBtn(AuthCtrl.resendEmailValidation(), Seq("class" -> "btn-sm btn-warning")) {Resend validation email}
+            }
+        }
+        @flash(req.flash)
+        @content
+    </div>
+</main>
+}
+

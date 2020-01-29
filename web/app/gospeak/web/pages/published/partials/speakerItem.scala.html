@@ -1,0 +1,18 @@
+@import gospeak.core.domain.User
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+
+@(speaker: User)
+<div class="card card-frame mb-3">
+    <div class="card-body">
+        <div class="media">
+            <div class="u-avatar mr-3">
+                <img class="img-fluid rounded-circle" src="@speaker.avatar.url.value" alt="@speaker.name.value avatar">
+            </div>
+            <div class="media-body">
+                <a href="@SpeakerCtrl.detail(speaker.slug)" ><h4 class="h6 text-dark mb-0">@speaker.name.value</h4></a>
+                <span><small>@socialIcons(speaker.social)</small></span>
+            </div>
+        </div>
+    </div>
+</div>

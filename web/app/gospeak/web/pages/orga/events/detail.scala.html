@@ -1,0 +1,183 @@
+@import gospeak.core.domain.utils.TemplateData
+@import gospeak.core.domain.{Cfp, Event, Proposal, User, Venue}
+@import gospeak.web.api.ui.routes.SuggestCtrl
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
+@import gospeak.web.pages.orga.cfps.routes.CfpCtrl
+@import gospeak.web.pages.orga.events.routes.EventCtrl
+@import gospeak.web.pages.orga.partials.html.{container, proposalRating}
+@import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+@import gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.partials.html.{pagination, search}
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.OrgaReq
+@import gospeak.libs.scala.domain.{Markdown, MustacheTmpl, Page}
+
+@(event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Id], notesForm: Form[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(s"${event.name.value} - Gospeak", b)() {
+    @if(!event.isPublic) {
+        <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading d-flex justify-content-between align-items-center">
+                <span>Not published event</span>
+                <a href="@EventCtrl.publish(req.group.slug, event.slug)"
+                    class="btn btn-sm btn-primary"
+                    title="Will be listed publicly on the group page"
+                    data-toggle="tooltip"
+                    data-placement="bottom">Publish event</a>
+            </h4>
+            <p class="mb-0">This event is not published, so it is not visible outside of this group, publish it to make it public.</p>
+        </div>
+    }
+
+    <h1 class="d-flex justify-content-between align-items-center">
+        <span>
+            @event.name.value
+            @if(event.isPublic) { <a href="@PublicGroupCtrl.event(req.group.slug, event.slug)" target="_blank" title="View public page"><i class="fas fa-eye"></i></a> }
+            @event.refs.meetup.map { ref => <a href="@ref.link" target="_blank" title="View meetup page"><i class="fab fa-meetup"></i></a> }
+        </span>
+        <span class="btn-group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-cog"></i>
+            </button>
+            <span class="dropdown-menu dropdown-menu-right">
+                <a class="dropdown-item" href="@EventCtrl.edit(req.group.slug, event.slug)">Edit</a>
+                @event.refs.meetup.map { _ =>
+                    <a class="dropdown-item" href="@PublicGroupCtrl.eventAttendeesMeetup(req.group.slug, event.slug)" target="_blank">Draw meetup attendee</a>
+                }
+                @eventTemplates.keys.map { id =>
+                    <a class="dropdown-item" href="@EventCtrl.showTemplate(req.group.slug, event.slug, id)">Show @id template</a>
+                }
+                <a class="dropdown-item" href="@EventCtrl.contactRsvps(req.group.slug, event.slug)">Contact attendees</a>
+            </span>
+        </span>
+    </h1>
+
+    <p>
+        @venueOpt.map { venue =>
+            <span class="badge badge-pill badge-primary" title="@venue.address.value" data-toggle="tooltip">
+                <a href="@PartnerCtrl.detail(req.group.slug, venue.partner.slug)">@venue.partner.name.value</a>
+                <a href="@EventCtrl.setVenue(req.group.slug, event.slug)"><i class="fas fa-edit"></i></a>
+            </span>
+        }.getOrElse {
+            <span class="badge badge-pill badge-danger">
+                Missing venue
+                <a href="@EventCtrl.setVenue(req.group.slug, event.slug)"><i class="fas fa-edit"></i></a>
+            </span>
+        }
+        @Formats.datetime(event.start)
+        @tags(event.tags)
+        @event.maxAttendee.map { max =>  @Formats.plural(max, "place") }
+        @(event.allowRsvp, event.isPublic, event.isPast(req.now)) match {
+            case (true, true, true) => {<span class="badge badge-secondary" title="RSVP disabled because event is past" data-toggle="tooltip" data-placement="top">RSVP active</span>}
+            case (true, true, false) => {<span class="badge badge-success" title="Users will be able to RSVP when event is published and before it starts" data-toggle="tooltip" data-placement="top">RSVP active</span>}
+            case (true, false, _) => {<span class="badge badge-secondary" title="RSVP will be active once the event is published" data-toggle="tooltip" data-placement="top">RSVP active</span>}
+            case (false, _, _) => {}
+        }
+    </p>
+
+    @formElt(notesForm, EventCtrl.doEditNotes(req.group.slug, event.slug)) {
+        <div class="form-group">
+            <label for="notes" class="d-flex justify-content-between align-items-center">
+                <span class="lead">Orga notes:</span>
+                @btnSubmit("Save notes", "btn btn-outline-primary btn-sm")
+            </label>
+            @inputTextarea(notesForm("notes"), Seq("placeholder" -> "Notes and reminders about your event...", "optional" -> ""))
+            <small class="form-text text-muted d-flex justify-content-between align-items-center">
+                <span>Use theses not as a reminder between orgas</span>
+                <span>Last update: @timeAgo(event.orgaNotes.updatedAt)</span>
+            </small>
+        </div>
+    }
+
+    @if(event.talks.isEmpty) {
+        @if(cfpOpt.isDefined) {
+            <h3 class="text-danger">No talk added!</h3>
+        }
+    } else {
+        <div class="card mb-3">
+            <h5 class="card-header d-flex justify-content-between align-items-center">
+                <span class="text-capitalize">@Formats.plural(event.talks.length, "planned talk")</span>
+            </h5>
+            <div class="list-group list-group-flush">
+            @event.talks.map { tId =>
+                <div class="list-group-item p-1 d-flex justify-content-between align-items-center">
+                    @talks.find(_.id == tId).map { talk =>
+                        <div>
+                            @formBtn(EventCtrl.cancelTalk(req.group.slug, event.slug, talk.id, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Remove this talk from the event")) { <i class="fas fa-minus"></i> }
+                            @formBtn(EventCtrl.moveTalk(req.group.slug, event.slug, talk.id, true, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Move this talk up")) { <i class="fas fa-arrow-up"></i> }
+                            @formBtn(EventCtrl.moveTalk(req.group.slug, event.slug, talk.id, false, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Move this talk down")) { <i class="fas fa-arrow-down"></i> }
+                            @duration(talk.duration)
+                            @slidesIcon(talk.slides)
+                            @videoIcon(talk.video)
+                            @cfpOpt.map { cfp => <a href="@ProposalCtrl.detail(req.group.slug, cfp.slug, talk.id)">@talk.title.value</a> }.getOrElse { <span>@talk.title.value</span> }
+                            @tags(talk.tags)
+                            @tags(talk.orgaTags, color="info", title="orga tag")
+                        </div>
+                        <div>@talk.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug))) }</div>
+                    }.getOrElse { Unknown (@tId.value) }
+                </div>
+            }
+            </div>
+        </div>
+    }
+
+    @cfpOpt.map { cfp =>
+        @if(proposals.isEmpty && proposals.params.search.isEmpty) {
+            <div class="card">
+                <h5 class="card-header"><b>@cfp.name.value</b> CFP</h5>
+                <div class="card-body text-center">
+                    <p class="card-text">No pending proposal</p>
+                </div>
+            </div>
+        } else {
+            <div class="card">
+                <h5 class="card-header d-flex justify-content-between align-items-center">
+                    <span><b>@cfp.name.value</b> CFP: @Formats.plural(proposals.total.value, "pending talk")</span>
+                    @search(proposals, EventCtrl.detail(req.group.slug, event.slug), "input-group-sm")
+                </h5>
+                <div class="list-group list-group-flush">
+                @proposals.items.map { proposal =>
+                    <div class="list-group-item p-1 d-flex justify-content-between align-items-center">
+                        <div>
+                            @formBtn(EventCtrl.addToTalks(req.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
+                            @formBtn(EventCtrl.rejectProposal(req.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link badge text-danger", "title" -> "Reject this proposal", "confirm" -> s"Reject proposal: ${proposal.title.value}?")){<i class="fas fa-comment-slash"></i>}
+                            @duration(proposal.duration)
+                            @slidesIcon(proposal.slides)
+                            @videoIcon(proposal.video)
+                            @proposalRating(proposal, userRatings.find(_.proposal == proposal.id).map(_.grade), "badge")
+                            <a href="@ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
+                            @tags(proposal.tags)
+                            @tags(proposal.orgaTags, color="info", title="orga tag")
+                            <small title="Proposal date">(since @Formats.date(proposal.info.createdAt))</small>
+                        </div>
+                        <div>
+                            @proposal.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug))) }
+                        </div>
+                    </div>
+                }
+                </div>
+            </div>
+            <div class="mt-1 d-flex justify-content-end">@pagination(proposals, EventCtrl.detail(req.group.slug, event.slug, _))</div>
+        }
+    }.getOrElse {
+        <div class="card">
+            <h5 class="card-header">No attached CFP</h5>
+            <div class="card-body mx-auto text-center">
+                <p class="card-text">Your event has no attached CFP, so you will not be able to add talk proposals</p>
+                @formElt(cfpForm, EventCtrl.attachCfp(req.group.slug, event.slug), Seq("class" -> "form-inline")) {
+                    @inputSelect(cfpForm("cfp"), Seq(), Seq(
+                        "placeholder" -> "-- Attach a CFP to this event",
+                        "remote" -> SuggestCtrl.suggestCfps(req.group.slug).toString,
+                        "style" -> "width: 500px",
+                        "optional" -> ""))
+                    @btnSubmit("Attach a CFP", "btn btn-primary ml-2")
+                    <span class="ml-2">or</span>
+                    <a href="@CfpCtrl.create(req.group.slug, Some(event.slug))" class="btn btn-success ml-2">Create a new CFP</a>
+                }
+            </div>
+        </div>
+    }
+}()

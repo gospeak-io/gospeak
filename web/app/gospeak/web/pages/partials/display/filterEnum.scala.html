@@ -1,0 +1,25 @@
+@import gospeak.libs.scala.domain.Page
+
+@(page: Page[_], link: Page.Params => Call, name: String, key: String, values: Seq[String])
+@menu() = {
+    <div class="dropdown-menu" aria-labelledby="filter-@key">
+        @values.map { value =>
+            <a href="@link(page.params.withFilter(key, value))" class="dropdown-item @if(page.params.filters.get(key).contains(value)){active}">@value</a>
+        }
+    </div>
+}
+<div class="dropdown" style="display: inline">
+    @page.params.filters.get(key) match {
+        case Some(value) => {
+            <div class="badge badge-primary">
+                <a href="@link(page.params.dropFilter(key))"><i class="fas fa-times"></i></a>
+                <a href="#" class="dropdown-toggle" id="filter-@key" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">@name: @value</a>
+                @menu()
+            </div>
+        }
+        case _ => {
+            <a href="#" class="badge badge-secondary dropdown-toggle" id="filter-@key" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">@name</a>
+            @menu()
+        }
+    }
+</div>

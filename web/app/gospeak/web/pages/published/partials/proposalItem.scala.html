@@ -1,0 +1,16 @@
+@import gospeak.core.domain.Proposal
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.utils.Formats._
+@import gospeak.web.utils.UserAwareReq
+
+@(proposal: Proposal.Full)(implicit req: UserAwareReq[AnyContent])
+<div class="list-group-item list-group-item-action">
+    <h5 class="mb-1"><a href="@GroupCtrl.talk(proposal.group.slug, proposal.id)">@proposal.title.value</a></h5>
+    @proposal.event.map { e => <a href="@GroupCtrl.event(proposal.group.slug, e.slug)" class="badge badge-dark">@e.name.value</a> }
+    @duration(proposal.duration)
+    @slidesIcon(proposal.slides)
+    @videoIcon(proposal.video)
+    @tags(proposal.tags)
+    @proposal.event.map { e => <small>@if(e.isPast(req.now)) {Was held} else {Will be hold} on @date(e.start)</small> }
+</div>

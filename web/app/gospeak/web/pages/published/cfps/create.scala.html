@@ -1,0 +1,34 @@
+@import gospeak.core.domain.ExternalCfp
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.published.partials.html.{cfpFields, container}
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.UserReq
+
+@(form: Form[ExternalCfp.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@container("Add a CFP - Gospeak", PageMeta.createCfp(), b)() {
+<div class="row">
+    <div class="col-9">
+        @formElt(form, CfpCtrl.doAdd()) {
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>Add an existing CFP</h1>
+                <div>
+                    @btnCancel(CfpCtrl.list(), classes = "btn btn-secondary btn-sm")
+                    @btnSubmit("Add", "btn btn-primary btn-sm")
+                </div>
+            </div>
+            @cfpFields(form)
+        }
+    </div>
+    <div class="col">
+        <div class="alert alert-primary" role="alert">
+            Hi!<br>
+            <b>Thank you</b> for adding a CFP.<br>
+            Please make sure it does not already exist.
+        </div>
+        <div id="duplicate-cfps"></div>
+    </div>
+</div>
+}{
+    <script type="text/javascript" src="@routes.Assets.versioned("web/js/submit_external_cfp.js")"></script>
+}(req.userAware)

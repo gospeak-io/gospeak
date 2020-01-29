@@ -1,0 +1,67 @@
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.utils.UserAwareReq
+
+@()(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container("Gospeak is for you!", PageMeta.default(), b)() {
+<h1 class="home-title">Why use <b>Gospeak</b>?</h1>
+
+<p>
+    First version is out and used by <a href="https://www.meetup.com/fr-FR/HumanTalks-Paris/" target="_blank">HumanTalks Paris</a> group,
+    but this app is still under <a href="https://github.com/gospeak-io/gospeak" target="_blank">very active development</a>.
+</p>
+
+<div class="row">
+    <div class="col-3">
+        <div class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
+            <a class="nav-link active" id="orga-tab" data-toggle="pill" href="#orga-tab-content" role="tab" aria-controls="orga-tab-content" aria-selected="true">As an Organizer</a>
+            <a class="nav-link" id="speaker-tab" data-toggle="pill" href="#speaker-tab-content" role="tab" aria-controls="speaker-tab-content" aria-selected="false">As a Speaker</a>
+            <a class="nav-link" id="attendee-tab" data-toggle="pill" href="#attendee-tab-content" role="tab" aria-controls="attendee-tab-content" aria-selected="false">As an Attendee</a>
+        </div>
+    </div>
+    <div class="col-9">
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="orga-tab-content" role="tabpanel" aria-labelledby="orga-tab">
+                <p>Gospeak is your main base, it's primary goal is to provide you all the tools you need to run your event as easily as possible.</p>
+                <p>At first it was here to take in charge important missing features in Meetup such as CFP or sponsor management but, with the recent announce, it will have the most important features to replace Meetup</p>
+                <h3>What does it already do</h3>
+                <ul>
+                    <li>Allow to manage your group, events, CFPs, venues and sponsors</li>
+                    <li>It has public pages for your group and events, including talks and speakers</li>
+                    <li>You can automate actions (Slack messages now, but Emails or Twitts soon) to simplify your daily life</li>
+                    <li>It has a Meetup integration, so your Gospeak event can be automatically published to Meetup</li>
+                    <li>You can define templates to automatically generate Slides or anything based on event data</li>
+                </ul>
+                <h3>What we plan really soon</h3>
+                <ul>
+                    <li>RSVPs management</li>
+                    <li>Mass email to group members or event RSVPs</li>
+                    <li>A public API to manage your group and events</li>
+                </ul>
+            </div>
+            <div class="tab-pane fade" id="speaker-tab-content" role="tabpanel" aria-labelledby="speaker-tab">
+                <p>Gospeak allows you to manage your talks and submit them to CFPs.</p>
+                <p>You can easily follow the approval process and exchange with group organizers.</p>
+                <h3>What goes it already do</h3>
+                <ul>
+                    <li>Manage your talks and submit them to Gospeak CFPs</li>
+                    <li>A promotion page with your speaker profile</li>
+                </ul>
+                <h3>What we plan soon</h3>
+                <ul>
+                    <li>Maintain a list of CFPs to help speaker find conferences to speak</li>
+                </ul>
+            </div>
+            <div class="tab-pane fade" id="attendee-tab-content" role="tabpanel" aria-labelledby="attendee-tab">
+                <p>Like Meetup, find interesting groups and participate to their events.</p>
+                <p>Any idea to improve the Attendee experience is welcome.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>Business model</h2>
+<p>No business model yet, it's a personal project from HumanTalks Paris organizers to answers their needs.</p>
+<p>The code is <a href="https://github.com/gospeak-io/gospeak">open source</a>, and will always be.</p>
+<p>The hosted service is free but depending on hosting costs, we will need to generate some revenue, but no plan for that yet.</p>
+}()

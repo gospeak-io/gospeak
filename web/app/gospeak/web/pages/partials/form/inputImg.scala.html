@@ -1,0 +1,30 @@
+@import gospeak.core.services.upload.UploadConf
+@import gospeak.web.pages.partials.form.ImgConf
+@import gospeak.web.api.ui.routes.UtilsCtrl
+@import gospeak.web.utils.UserReq
+
+@(field: Field, conf: ImgConf)(implicit req: UserReq[AnyContent])
+@req.conf.upload match {
+    case _: UploadConf.Url => {
+        <div class="input-imageurl">
+            @inputText(field, conf.args ++ Seq("placeholder" -> "ex: https://gospeak.io/my-logo.png"))
+            <img class="preview" src="" style="height: 50px; margin-top: 5px; display: none;"/>
+        </div>
+    }
+    case UploadConf.Cloudinary(cloudName, uploadPreset, creds) => {
+        <div class="cloudinary-img-widget d-flex flex-row align-items-center">
+            <button class="btn btn-primary"
+                data-cloud-name="@cloudName"
+                @uploadPreset.map { v => data-upload-preset="@v" }
+                @creds.map { v => data-api-key="@v.key" data-sign-url="@UtilsCtrl.cloudinarySignature()" }
+                @conf.folder.map { v => data-folder="@v" }
+                @conf.name.map { v => data-name="@v" }
+                @conf.dynamicName.map { v => data-dynamic-name="@v" }
+                @if(conf.tags.nonEmpty) { data-tags="@conf.tags.mkString(",")" }
+                @conf.maxFiles.map { v => data-max-files="@v" }
+                @conf.ratio.map { v => data-ratio="@v" }>Image upload</button>
+            @inputHidden(field)
+            <img class="preview" src="" style="height: 38px; margin-left: 1rem; display: none;"/>
+        </div>
+    }
+}

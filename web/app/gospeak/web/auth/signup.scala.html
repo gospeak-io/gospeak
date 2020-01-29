@@ -1,0 +1,23 @@
+@import gospeak.web.auth.AuthForms.SignupData
+@import gospeak.web.auth.partials.html._
+@import gospeak.web.auth.routes.AuthCtrl
+@import gospeak.web.domain.PageMeta
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.UserAwareReq
+
+@(form: Form[SignupData], redirect: Option[String])(implicit req: UserAwareReq[AnyContent])
+@container("Signup - Gospeak", PageMeta.default())() {
+    <div class="login">
+        <div class="card bg-light shadow">
+            <div class="card-body">
+            @formElt(form, AuthCtrl.doSignup(redirect)) {
+                @signupFields(form(""))
+                <button type="submit" class="btn btn-primary btn-sm btn-lg btn-block">Sign Up</button>
+            }
+            </div>
+        </div>
+        <div class="mt-2 d-flex justify-content-end align-items-center">
+            <a href="@AuthCtrl.login(redirect)" class="text-muted">Login</a>
+        </div>
+    </div>
+}()

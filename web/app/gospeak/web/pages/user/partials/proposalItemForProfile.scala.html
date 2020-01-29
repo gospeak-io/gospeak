@@ -1,0 +1,15 @@
+@import gospeak.core.domain.Proposal
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.utils.Formats._
+@import gospeak.web.utils.UserReq
+
+@(proposal: Proposal.Full)(implicit req: UserReq[AnyContent])
+<div class="list-group-item list-group-item-action">
+    <h5 class="mb-1">@proposal.title.value</h5>
+    @proposal.event.map { e => <span class="badge badge-dark">@e.name.value</span> }
+    @duration(proposal.duration)
+    @slidesIcon(proposal.slides)
+    @videoIcon(proposal.video)
+    @tags(proposal.tags)
+    @proposal.event.map { e => <small>@if(e.isPast(req.now)) {Was held} else {Will be hold} on @date(e.start)</small> }
+</div>

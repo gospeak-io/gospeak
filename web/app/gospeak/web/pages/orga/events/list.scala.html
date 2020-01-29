@@ -1,0 +1,17 @@
+@import gospeak.core.domain.{Event, Proposal, User}
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.events.routes.EventCtrl
+@import gospeak.web.pages.orga.partials.html.{container, eventItem}
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.OrgaReq
+@import gospeak.libs.scala.domain.Page
+
+@(events: Page[Event.Full], proposals: Seq[Proposal], speakers: Seq[User])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(s"${req.group.name.value} events - Gospeak", b)() {
+    <h1 class="d-flex justify-content-between align-items-center">
+        <span class="text-capitalize">@Formats.plural(events.total.value, "event")</span>
+        <a class="btn btn-primary" href="@EventCtrl.create(req.group.slug)" data-hotkey="+">Create an event</a>
+    </h1>
+
+   @Formats.paginated[Event.Full](events, EventCtrl.list(req.group.slug, _), e => eventItem(e, proposals, speakers))
+}()

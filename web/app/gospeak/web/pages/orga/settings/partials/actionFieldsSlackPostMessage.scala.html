@@ -1,0 +1,20 @@
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
+
+@(field: Field, templateTarget: String)(implicit req: OrgaReq[AnyContent])
+@inputHidden(field("kind"), Seq("value" -> "Slack.PostMessage"))
+@fieldVertical(field("channel"), Seq("label" -> "Channel", "help" -> "Which channel should be used")) { (field, args) =>
+    @inputTemplate(field, target = Some(templateTarget), multiline = false)
+}
+@fieldVertical(field("message"), Seq("label" -> "Message")) { (field, args) =>
+    @inputTemplate(field, target = Some(templateTarget))
+    <small class="form-text">
+        <span id="help-action_message" class="text-muted">What message to send, use <a href="https://api.slack.com/docs/message-formatting" target="_blank">Slack formatting</a></span>
+    </small>
+}
+@fieldCheckbox(field("createdChannelIfNotExist"), Seq("label" -> "Create channel if it does not exist")) { (field, args) =>
+    @inputCheckbox(field, args)
+}
+@fieldCheckbox(field("inviteEverybody"), Seq("label" -> "Invite everyone when create the channel")) { (field, args) =>
+    @inputCheckbox(field, args)
+}

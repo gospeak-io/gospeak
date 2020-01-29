@@ -1,0 +1,94 @@
+@import gospeak.core.domain.{Group, Event}
+@import gospeak.core.services.meetup.domain.MeetupAttendee
+@import gospeak.web.domain.PageMeta
+@import gospeak.web.pages.partials.container.html.main
+@import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
+@import gospeak.web.utils.UserAwareReq
+
+@(group: Group.Slug, event: Event.Slug, attendee: MeetupAttendee)(implicit req: UserAwareReq[AnyContent])
+@main(s"Draw attendee: ${attendee.name} - Gospeak", PageMeta.default(), style = Html(
+    """<style>
+      |html, body, .container, .row { height: 100% }
+      |
+      |.userMain .userBlock{
+      |    float: left;
+      |    width: 100%;
+      |    box-shadow: 0px 0px 23px -3px #ccc;
+      |    padding-bottom: 12px;
+      |    margin-bottom: 30px;
+      |    overflow: hidden;
+      |    background:#fff;
+      |}
+      |.userMain .userBlock .backgrounImg{
+      |    float: left;
+      |    overflow: hidden;
+      |    height: 157px;
+      |}
+      |.userMain .userBlock .backgrounImg img{
+      |    width: auto;
+      |}
+      |.userMain .userBlock .userImg{
+      |    text-align: center;
+      |}
+      |.userMain .userBlock .userImg img{
+      |    width: 160px;
+      |    height: 160px;
+      |    margin-top: -79px;
+      |    border-radius: 100%;
+      |    border: 5px solid #fff;
+      |}
+      |.userMain .userBlock .userDescription{
+      |    text-align: center;
+      |}
+      |.userMain .userBlock .userDescription h5{
+      |    margin-bottom: 2px;
+      |    font-weight: 600;
+      |    font-size: 2rem;
+      |}
+      |.userMain .userBlock .userDescription p{
+      |    margin-bottom: 5px;
+      |    font-size: 1.3rem;
+      |}
+      |.userMain .userBlock .userDescription .btn{
+      |    padding: 0px 30px 0px 30px;
+      |    height: 32px;
+      |    border-radius: 0;
+      |    font-size: 16px;
+      |    background: #0198dd;
+      |    color: #fff;
+      |}
+      |.userMain .userBlock .userDescription .btn:hover{
+      |    opacity:0.7;
+      |}
+      |.userMain .userBlock .followrs{
+      |    display: inline-flex;
+      |    margin-right: 10px;
+      |    border-right: 1px solid #ccc;
+      |    padding-right: 10px;
+      |}
+      |.userMain .userBlock .followrs .number{
+      |    font-size: 15px;
+      |    font-weight: bold;
+      |    margin-right: 5px;
+      |    margin-top: -1px;
+      |}
+      |</style>
+      |""".stripMargin), script = Html("")) {
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col"></div>
+            <div class="col userMain">
+                <div class="userBlock">
+                    <div class="backgrounImg"><img src="https://preview.ibb.co/miQjb7/photography4.jpg"/></div>
+                    <div class="userImg"><img src="@attendee.avatar.map(_.value).getOrElse(s"https://api.adorable.io/avatars/200/${attendee.id.value}.png")"/></div>
+                    <div class="userDescription">
+                        <h5>@attendee.name</h5>
+                        @attendee.bio.map { bio => <p>@bio</p> }
+                        <a href="@PublicGroupCtrl.eventAttendeesMeetup(group, event)"><button class="btn">Draw again</button></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col"></div>
+        </div>
+    </div>
+}

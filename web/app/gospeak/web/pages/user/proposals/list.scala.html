@@ -1,0 +1,28 @@
+@import gospeak.core.domain.Proposal
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.user.partials.html.{container, proposalItem}
+@import gospeak.web.pages.user.proposals.routes.ProposalCtrl
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserReq
+@import gospeak.libs.scala.domain.Page
+
+@(proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@container("My proposals - Gospeak", b)() {
+    @if(proposals.isEmpty) {
+        <div class="jumbotron">
+            <h1>You have no proposal <i class="far fa-sad-tear"></i></h1>
+            <p class="lead">Find a CFP and propose a talk to it!</p>
+            <hr class="my-4">
+            <p class="text-center">
+                <a href="@CfpCtrl.list()" class="btn btn-lg btn-success">Find a CFP</a>
+            </p>
+        </div>
+    } else {
+        <h1 class="d-flex justify-content-between align-items-center">
+            <span class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</span>
+            <a class="btn btn-primary" href="@CfpCtrl.list()">Find a CFP</a>
+        </h1>
+        @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list, proposalItem(_))
+    }
+}()

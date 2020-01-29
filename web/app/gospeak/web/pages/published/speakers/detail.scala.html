@@ -1,0 +1,26 @@
+@import gospeak.core.domain.{Group, Talk, User}
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.published.partials.html.{container, groupItem, speakerCard, talkItem}
+@import gospeak.web.utils.UserAwareReq
+@import gospeak.libs.scala.domain.Page
+
+@(speaker: User, publicTalks: Page[Talk], ownedGroups: Seq[Group.Full], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container(s"${speaker.name.value} - Gospeak", PageMeta.user(speaker), b)() {
+<div class="row">
+    <div class="col-4">@speakerCard(speaker)</div>
+    <div class="col-8">
+        @if(publicTalks.nonEmpty) {
+            <div class="mb-3">
+                <h2>Talks</h2>
+                @publicTalks.items.map { talk => @talkItem(talk) }
+            </div>
+        }
+        @if(ownedGroups.nonEmpty) {
+            <div class="mb-3">
+                <h2>Organises</h2>
+                @ownedGroups.map { group => @groupItem(group, orgas) }
+            </div>
+        }
+    </div>
+</div>
+}()

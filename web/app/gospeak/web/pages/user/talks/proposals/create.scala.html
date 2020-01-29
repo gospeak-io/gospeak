@@ -1,0 +1,23 @@
+@import gospeak.core.domain.{Cfp, Proposal, Talk}
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.user.partials.html.{container, proposalFields}
+@import gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
+@import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
+@import gospeak.web.utils.UserReq
+
+@(form: Form[Proposal.Data], talk: Talk, cfp: Cfp)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@container(s"New proposal for '${talk.title.value}' - Gospeak", b)() {
+    @formElt(form, ProposalCtrl.doCreate(talk.slug, cfp.slug)) {
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Propose to @cfp.name.value</h1>
+            <div>
+                @btnCancel(CfpCtrl.list(talk.slug))
+                @btnSubmit("Propose your talk")
+            </div>
+        </div>
+        <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
+        @proposalFields(form)
+    }
+}()

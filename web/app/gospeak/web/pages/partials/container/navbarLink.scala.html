@@ -1,0 +1,4 @@
+@import gospeak.web.utils.BasicReq
+
+@(url: Call, attrs: (String, String)*)(name: Html)(implicit req: BasicReq[AnyContent])
+<a class="nav-link u-header__nav-link @if(req.uri.startsWith(url.toString)) {active}" href="@url" @attrs.map { case (k, v) => @k="@v" }>@name</a>

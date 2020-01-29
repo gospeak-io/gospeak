@@ -44,7 +44,9 @@ val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
   "com.pepegar" %% "hammock-apache-http").map(_ % "0.10.0")
-val flyway = Seq("org.flywaydb" % "flyway-core" % "6.1.4")
+val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.11")
+val twitter = Seq("com.danielasfregola" %% "twitter4s" % "6.2") // https://github.com/DanielaSfregola/twitter4s
+val flyway = Seq("org.flywaydb" % "flyway-core" % "6.1.2")
 val silhouetteVersion = "6.1.1"
 val silhouette = Seq(
   "com.mohiva" %% "play-silhouette",
@@ -53,6 +55,7 @@ val silhouette = Seq(
   "com.mohiva" %% "play-silhouette-persistence").map(_ % silhouetteVersion)
 val silhouetteTest = Seq(
   "com.mohiva" %% "play-silhouette-testkit").map(_ % silhouetteVersion % "test")
+val playJson = Seq("com.typesafe.play" %% "play-json" % "2.8.0")
 val macwireVersion = "2.3.3"
 val play = Seq(
   "com.softwaremill.macwire" %% "macros" % macwireVersion % Provided,
@@ -85,24 +88,24 @@ val scalaCheck = Seq(
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.3",
   "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
 
-val scalautilsDependencies = cats ++ scalaTest ++ scalaCheck
+val libsDependencies = hammock ++ cats ++ playJson ++ scalaTest ++ scalaCheck
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
-val infraDependencies = hammock ++ flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
+val infraDependencies = twitter ++ akka ++ flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
 val webDependencies = play ++ silhouette ++ pureconfig ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
 
 
 /**
  * Project definition
  */
-val scalautils = (project in file("libs/scalautils"))
+val libs = (project in file("libs"))
   .settings(
-    name := "scalautils",
-    libraryDependencies ++= scalautilsDependencies,
+    name := "libs",
+    libraryDependencies ++= libsDependencies,
     commonSettings
   )
 
 val core = (project in file("core"))
-  .dependsOn(scalautils)
+  .dependsOn(libs)
   .settings(
     name := "core",
     libraryDependencies ++= coreDependencies,
@@ -124,11 +127,11 @@ val web = (project in file("web"))
     name := "web",
     libraryDependencies ++= webDependencies ++ Seq(ws),
     routesImport ++= Seq(
-      "fr.gospeak.core.domain._",
-      "fr.gospeak.libs.scalautils.domain._",
-      "fr.gospeak.core.services.meetup.domain._",
-      "fr.gospeak.web.utils.PathBindables._",
-      "fr.gospeak.web.utils.QueryStringBindables._"),
+      "gospeak.core.domain._",
+      "gospeak.libs.scala.domain._",
+      "gospeak.core.services.meetup.domain._",
+      "gospeak.web.utils.PathBindables._",
+      "gospeak.web.utils.QueryStringBindables._"),
     buildInfoKeys := Seq[BuildInfoKey](
       name, version, scalaVersion, sbtVersion,
       // see https://www.git-scm.com/docs/git-log#_pretty_formats
@@ -159,7 +162,7 @@ val global = (project in file("."))
   .enablePlugins(PlayScala)
   .enablePlugins(JavaAppPackaging)
   .dependsOn(web)
-  .aggregate(scalautils, core, infra, web) // send commands to every module
+  .aggregate(libs, core, infra, web) // send commands to every module
   .settings(name := "gospeak")
 
 // rename zip file created from `dist` command

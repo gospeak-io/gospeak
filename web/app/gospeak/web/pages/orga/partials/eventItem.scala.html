@@ -1,0 +1,104 @@
+@import gospeak.core.domain.{Event, Proposal, User}
+@import gospeak.core.domain.utils.Constants.Placeholders
+@import gospeak.web.pages.orga.events.routes.EventCtrl
+@import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
+@import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+@import gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.OrgaReq
+
+@(event: Event.Full, proposals: Seq[Proposal], speakers: Seq[User])(implicit req: OrgaReq[AnyContent])
+<div id="collapse-@event.slug.value" class="card mb-3">
+    <div class="card-header card-collapse">
+        <h5 class="mb-0">
+            <button type="button" class="btn btn-link btn-block card-btn collapsed p-3" data-toggle="collapse" data-target="#collapse-body-@event.slug.value" aria-expanded="false">
+                <span class="row align-items-center">
+                    <span class="col-md-6 mb-2 mb-md-0">
+                        <span class="media align-items-center">
+                            <span class="mx-2">
+                                @event.venue.map { venue =>
+                                    <a href="@PartnerCtrl.detail(req.group.slug, venue.partner.slug)" class="no-propagation">
+                                        <img class="max-width-6 mr-3" src="@venue.partner.logo.value" alt="@venue.partner.name.value logo" title="@venue.partner.name.value">
+                                    </a>
+                                }.getOrElse {
+                                    @req.group.logo.map { logo =>
+                                        <img class="max-width-6 mr-3" src="@logo.value" alt="@req.group.name.value logo" title="No venue yet">
+                                    }.getOrElse {
+                                        <img class="max-width-6 mr-3" src="@Placeholders.noVenueForEvent" alt="No venue icon" title="No venue yet">
+                                    }
+                                }
+                            </span>
+                            <span class="media-body">
+                                <span class="d-block font-size-1">
+                                    <a href="@EventCtrl.detail(req.group.slug, event.slug)" class="no-propagation" id="collapse-title-@event.slug.value">@event.name.value</a>
+                                    @event.refs.meetup.map { ref =>
+                                        <a href="@ref.link" target="_blank" class="no-propagation"><i class="fab fa-meetup"></i></a>
+                                    }
+                                </span>
+                            </span>
+                        </span>
+                    </span>
+                    <span class="col-4 col-md-2 text-md-right">
+                        @if(event.orgaNotes.isDefined) {
+                            <div data-toggle="html-popover" data-trigger="hover" style="display: inline">
+                                <div class="content" style="white-space: pre-line;">@event.orgaNotes.text</div>
+                                <i class="far fa-file-alt"></i>
+                            </div>
+                        }
+                        @if(!event.isPublic) {
+                            <span class="btn btn-xs btn-pill btn-soft-dark">Draft</span>
+                        }
+                        <span class="btn btn-xs btn-pill btn-soft-primary">@Formats.plural(event.talks.length, "talk")</span>
+                    </span>
+                    <span class="col-6 col-md-3">
+                        <span class="text-primary font-size-1">@Formats.date(event.start)</span>
+                    </span>
+                    <span class="col-2 col-md-1 text-right">
+                        <span class="card-btn-arrow"><span class="fas fa-arrow-down small"></span></span>
+                    </span>
+                </span>
+            </button>
+        </h5>
+    </div>
+    <div id="collapse-body-@event.slug.value" class="collapse" data-parent="#collapse-@event.slug.value" aria-labelledby="collapse-title-@event.slug.value">
+        <div class="row card-body">
+            <div class="col-sm-6">
+                @if(event.talks.nonEmpty) {
+                    @event.talks.map { pId =>
+                        <div class="ml-3">
+                            @proposals.find(_.id == pId).map { p =>
+                                <span class="d-block text-dark">
+                                    @event.cfp.map { c =>
+                                        <a href="@ProposalCtrl.detail(req.group.slug, c.slug, p.id)">@p.title.value</a>
+                                    }.getOrElse {
+                                        <a href="#">@p.title.value</a>
+                                    }
+                                    by
+                                    @p.speakers.toList.map { sId =>
+                                        @speakers.find(_.id == sId).map { s =>
+                                            <a href="@SpeakerCtrl.detail(req.group.slug, s.slug)">
+                                                <img class="u-sm-avatar rounded-circle" src="@s.avatar.value" alt="@s.name.value avatar" title="@s.name.value" data-toggle="tooltip">
+                                            </a>
+                                        }.getOrElse {
+                                            <img class="u-sm-avatar rounded-circle" src="@Placeholders.unknownUser" alt="Unknown user" title="Unknown user" data-toggle="tooltip">
+                                        }
+                                    }
+                                </span>
+                            }.getOrElse { Unknown talk (@pId.value) }
+                        </div>
+                    }
+                }
+            </div>
+            <div class="col-sm-5">
+                @event.venue.map { venue =>
+                    <h5 class="h6 mb-0">@venue.partner.data.name.value</h5>
+                    <address class="font-size-1 mb-0">@venue.address.value</address>
+                }
+                @if(event.allowRsvp) {
+                    @event.maxAttendee.map { max => <h5 class="font-size-1">@Formats.plural(max, "place")</h5> }
+                }
+            </div>
+        </div>
+    </div>
+</div>
