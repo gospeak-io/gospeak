@@ -44,6 +44,8 @@ val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
   "com.pepegar" %% "hammock-apache-http").map(_ % "0.10.0")
+val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.11")
+val twitter = Seq("com.danielasfregola" %% "twitter4s" % "6.2") // https://github.com/DanielaSfregola/twitter4s
 val flyway = Seq("org.flywaydb" % "flyway-core" % "6.1.2")
 val silhouetteVersion = "6.1.1"
 val silhouette = Seq(
@@ -88,7 +90,7 @@ val scalaCheck = Seq(
 
 val libsDependencies = hammock ++ cats ++ playJson ++ scalaTest ++ scalaCheck
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
-val infraDependencies = flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
+val infraDependencies = twitter ++ akka ++ flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
 val webDependencies = play ++ silhouette ++ pureconfig ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
 
 

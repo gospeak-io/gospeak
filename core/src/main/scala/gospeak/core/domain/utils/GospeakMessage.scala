@@ -11,16 +11,16 @@ object GospeakMessage {
 
   sealed trait EventMessage extends GospeakMessage
 
-  sealed trait TalkMessage extends EventMessage
-
-  sealed trait ProposalMessage extends GospeakMessage
-
-  final case class Linked[A](value: A, link: String, publicLink: Option[String])
-
-
   final case class EventCreated(group: Linked[Group],
                                 event: Linked[Event],
                                 user: User) extends EventMessage
+
+  final case class EventPublished(group: Linked[Group],
+                                  event: Linked[Event],
+                                  user: User) extends EventMessage
+
+
+  sealed trait TalkMessage extends EventMessage
 
   final case class TalkAdded(group: Linked[Group],
                              event: Linked[Event],
@@ -34,13 +34,22 @@ object GospeakMessage {
                                proposal: Linked[Proposal],
                                user: User) extends TalkMessage
 
-  final case class EventPublished(group: Linked[Group],
-                                  event: Linked[Event],
-                                  user: User) extends EventMessage
+
+  sealed trait ProposalMessage extends GospeakMessage
 
   final case class ProposalCreated(group: Linked[Group],
                                    cfp: Linked[Cfp],
                                    proposal: Linked[Proposal],
                                    user: User) extends ProposalMessage
+
+
+  sealed trait ExternalCfpMessage extends GospeakMessage
+
+  final case class ExternalCfpCreated(cfp: Linked[ExternalCfp],
+                                      user: User) extends ExternalCfpMessage
+
+  // nested classes
+
+  final case class Linked[A](value: A, link: String, publicLink: Option[String])
 
 }

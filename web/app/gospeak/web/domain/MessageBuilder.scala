@@ -23,6 +23,9 @@ class MessageBuilder {
   def buildProposalCreated(group: Group, cfp: Cfp, proposal: Proposal)(implicit req: UserReq[AnyContent]): GospeakMessage.ProposalCreated =
     GospeakMessage.ProposalCreated(linked(group), linked(group, cfp), linked(group, cfp, proposal), req.user)
 
+  def buildExternalCfpCreated(cfp: ExternalCfp)(implicit req: UserReq[AnyContent]): GospeakMessage.ExternalCfpCreated =
+    GospeakMessage.ExternalCfpCreated(linked(cfp), req.user)
+
   def buildEventInfo(group: Group, event: Event, cfpOpt: Option[Cfp], venueOpt: Option[Venue.Full], talks: Seq[Proposal], speakers: Seq[User])(implicit req: BasicReq[AnyContent]): TemplateData.EventInfo = {
     TemplateData.eventInfo(
       g = linked(group),
@@ -90,5 +93,10 @@ class MessageBuilder {
         .orElse(user.social.twitter.map(_.link))
     }
     Linked[User](user, link, publicLink)
+  }
+
+  private def linked(cfp: ExternalCfp)(implicit req: BasicReq[AnyContent]): Linked[ExternalCfp] = {
+    val publicLink = req.format(gospeak.web.pages.published.cfps.routes.CfpCtrl.detailExt(cfp.id))
+    Linked[ExternalCfp](cfp, publicLink, Some(publicLink))
   }
 }

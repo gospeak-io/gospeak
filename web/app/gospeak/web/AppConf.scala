@@ -6,6 +6,7 @@ import gospeak.core.services.email.EmailConf
 import gospeak.core.services.matomo.MatomoConf
 import gospeak.core.services.meetup.MeetupConf
 import gospeak.core.services.storage.DatabaseConf
+import gospeak.core.services.twitter.TwitterConf
 import gospeak.core.services.upload.UploadConf
 import gospeak.core.{ApplicationConf, GospeakConf}
 import gospeak.web.auth.AuthConf
@@ -26,6 +27,7 @@ final case class AppConf(app: ApplicationConf,
                          email: EmailConf,
                          upload: UploadConf,
                          meetup: MeetupConf,
+                         twitter: Option[TwitterConf],
                          matomo: Option[MatomoConf],
                          gospeak: GospeakConf)
 
@@ -76,11 +78,11 @@ object AppConf {
     private implicit val jcaCrypterSettingsReader: ConfigReader[JcaCrypterSettings] = deriveReader[JcaCrypterSettings]
     private implicit val authConfRememberMeReader: ConfigReader[AuthConf.RememberMe] = deriveReader[AuthConf.RememberMe]
     private implicit val authConfCookieConfReader: ConfigReader[AuthConf.CookieConf] = deriveReader[AuthConf.CookieConf]
-    private implicit val facebookConfReader: ConfigReader[AuthConf.FacebookConf] = deriveReader[AuthConf.FacebookConf]
-    private implicit val githubConfReader: ConfigReader[AuthConf.GithubConf] = deriveReader[AuthConf.GithubConf]
-    private implicit val googleConfReader: ConfigReader[AuthConf.GoogleConf] = deriveReader[AuthConf.GoogleConf]
-    private implicit val linkedinConfReader: ConfigReader[AuthConf.LinkedinConf] = deriveReader[AuthConf.LinkedinConf]
-    private implicit val twitterConfReader: ConfigReader[AuthConf.TwitterConf] = deriveReader[AuthConf.TwitterConf]
+    private implicit val facebookAuthConfReader: ConfigReader[AuthConf.FacebookConf] = deriveReader[AuthConf.FacebookConf]
+    private implicit val githubAuthConfReader: ConfigReader[AuthConf.GithubConf] = deriveReader[AuthConf.GithubConf]
+    private implicit val googleAuthConfReader: ConfigReader[AuthConf.GoogleConf] = deriveReader[AuthConf.GoogleConf]
+    private implicit val linkedinAuthConfReader: ConfigReader[AuthConf.LinkedinConf] = deriveReader[AuthConf.LinkedinConf]
+    private implicit val twitterAuthConfReader: ConfigReader[AuthConf.TwitterConf] = deriveReader[AuthConf.TwitterConf]
 
     private implicit val databaseConfReader: ConfigReader[DatabaseConf] = (cur: ConfigCursor) => cur.asString
       .flatMap(DatabaseConf.from(_).leftMap(_ => ConfigReaderFailures(ConvertFailure(CannotConvert(cur.toString, "DatabaseConf", "Invalid value"), cur.location, cur.path))))
@@ -102,6 +104,7 @@ object AppConf {
     private implicit val uploadConfReader: ConfigReader[UploadConf] = deriveReader[UploadConf]
     private implicit val meetupConfReader: ConfigReader[MeetupConf] = deriveReader[MeetupConf]
     private implicit val matomoConfReader: ConfigReader[MatomoConf] = deriveReader[MatomoConf]
+    private implicit val twitterConfReader: ConfigReader[TwitterConf] = deriveReader[TwitterConf]
     private implicit val gospeakConfReader: ConfigReader[GospeakConf] = deriveReader[GospeakConf]
 
     private implicit val appConfReader: ConfigReader[AppConf] = deriveReader[AppConf]

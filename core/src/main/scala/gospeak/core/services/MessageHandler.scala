@@ -9,6 +9,7 @@ import gospeak.core.domain.utils.{Constants, GospeakMessage, TemplateData}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.storage.GroupSettingsRepo
+import gospeak.core.services.twitter.{Tweets, TwitterSrv}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{CustomException, EmailAddress}
 
@@ -19,13 +20,15 @@ class MessageHandler(appConf: ApplicationConf,
                      templateSrv: TemplateSrv,
                      markdownSrv: MarkdownSrv,
                      emailSrv: EmailSrv,
-                     slackSrv: SlackSrv) {
+                     slackSrv: SlackSrv,
+                     twitterSrv: Option[TwitterSrv]) {
   def handle(msg: GospeakMessage): IO[Unit] = (msg match {
     case m: GospeakMessage.EventCreated => handle(m)
+    case m: GospeakMessage.EventPublished => handle(m)
     case m: GospeakMessage.TalkAdded => handle(m)
     case m: GospeakMessage.TalkRemoved => handle(m)
-    case m: GospeakMessage.EventPublished => handle(m)
     case m: GospeakMessage.ProposalCreated => handle(m)
+    case m: GospeakMessage.ExternalCfpCreated => handle(m)
   }).map(_ => ()).recover { case NonFatal(_) => () }
 
   private def handle(msg: GospeakMessage.EventCreated): IO[Int] = handleGroupEvent(msg.group.value.id, Trigger.OnEventCreated, TemplateData.eventCreated(msg))
@@ -57,5 +60,11 @@ class MessageHandler(appConf: ApplicationConf,
         content = EmailSrv.HtmlContent(content.value)
       ))).toIO.flatMap(identity).map(_ => ())
     case Action.Slack(slack) => accounts.slack.map(slackSrv.exec(slack, data, _, appConf.aesKey)).getOrElse(IO.raiseError(CustomException("No credentials for Slack")))
+  }
+
+  private def handle(msg: GospeakMessage.ExternalCfpCreated): IO[Int] = {
+    twitterSrv
+      .map(srv => srv.tweet(Tweets.externalCfpCreated(msg.cfp.value, msg.cfp.link, msg.user))).sequence
+      .map(_.map(_ => 1).getOrElse(0))
   }
 }

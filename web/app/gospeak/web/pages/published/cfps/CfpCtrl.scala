@@ -50,7 +50,10 @@ class CfpCtrl(cc: ControllerComponents,
   def doAdd(): Action[AnyContent] = UserAction { implicit req =>
     CfpForms.external.bindFromRequest.fold(
       formWithErrors => IO.pure(Ok(html.create(formWithErrors)(listBreadcrumb().add("Add" -> routes.CfpCtrl.add)))),
-      data => externalCfpRepo.create(data, req.user.id, req.now).map(cfp => Redirect(routes.CfpCtrl.detailExt(cfp.id)))
+      data => for {
+        cfp <- externalCfpRepo.create(data, req.user.id, req.now)
+        _ <- mb.publishExternalCfpCreated(cfp)
+      } yield Redirect(routes.CfpCtrl.detailExt(cfp.id))
     )
   }
 
@@ -99,7 +102,7 @@ class CfpCtrl(cc: ControllerComponents,
       data => req.secured.map { secured =>
         (for {
           cfpElt <- OptionT(cfpRepo.findRead(cfp))
-          _ <- if(cfpElt.isActive(req.nowLDT)) OptionT.liftF(IO.pure(())) else OptionT.liftF(IO.raiseError(CustomException("Can't propose a talk, CFP is not open")))
+          _ <- if (cfpElt.isActive(req.nowLDT)) OptionT.liftF(IO.pure(())) else OptionT.liftF(IO.raiseError(CustomException("Can't propose a talk, CFP is not open")))
           talkElt <- OptionT.liftF(talkRepo.create(data.toTalkData)(secured))
           proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.toProposalData, talkElt.speakers)(secured))
           groupElt <- OptionT(groupRepo.find(cfpElt.group))
@@ -130,7 +133,7 @@ class CfpCtrl(cc: ControllerComponents,
       formWithErrors => proposeConnectForm(cfp, formWithErrors, CfpForms.login.bindFromRequest),
       data => (for {
         cfpElt <- OptionT(cfpRepo.findRead(cfp))
-        _ <- if(cfpElt.isActive(req.nowLDT)) OptionT.liftF(IO.pure(())) else OptionT.liftF(IO.raiseError(CustomException("Can't propose a talk, CFP is not open")))
+        _ <- if (cfpElt.isActive(req.nowLDT)) OptionT.liftF(IO.pure(())) else OptionT.liftF(IO.raiseError(CustomException("Can't propose a talk, CFP is not open")))
         identity <- OptionT.liftF(authSrv.createIdentity(data.user))
         emailValidation <- OptionT.liftF(userRequestRepo.createAccountValidationRequest(identity.user.email, identity.user.id, req.now))
         _ <- OptionT.liftF(emailSrv.send(Emails.signup(emailValidation, identity.user)))
@@ -156,7 +159,7 @@ class CfpCtrl(cc: ControllerComponents,
       formWithErrors => proposeConnectForm(cfp, CfpForms.signup.bindFromRequest, formWithErrors),
       data => (for {
         cfpElt <- OptionT(cfpRepo.findRead(cfp))
-        _ <- if(cfpElt.isActive(req.nowLDT)) OptionT.liftF(IO.pure(())) else OptionT.liftF(IO.raiseError(CustomException("Can't propose a talk, CFP is not open")))
+        _ <- if (cfpElt.isActive(req.nowLDT)) OptionT.liftF(IO.pure(())) else OptionT.liftF(IO.raiseError(CustomException("Can't propose a talk, CFP is not open")))
         identity <- OptionT.liftF(authSrv.getIdentity(data.user))
         (auth, result) <- OptionT.liftF(authSrv.login(identity, data.user.rememberMe, _ => IO.pure(Redirect(ProposalCtrl.detail(data.talk.slug, cfp)))))
         secured = req.secured(identity, auth)

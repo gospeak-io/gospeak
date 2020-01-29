@@ -23,12 +23,14 @@ import gospeak.core.services.matomo.MatomoSrv
 import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.storage._
+import gospeak.core.services.twitter.TwitterSrv
 import gospeak.libs.slack.SlackClient
 import gospeak.infra.services.email.EmailSrvFactory
 import gospeak.infra.services.matomo.MatomoSrvImpl
 import gospeak.infra.services.meetup.MeetupSrvImpl
 import gospeak.infra.services.slack.SlackSrvImpl
 import gospeak.infra.services.storage.sql._
+import gospeak.infra.services.twitter.TwitterSrvImpl
 import gospeak.infra.services.upload.UploadSrvFactory
 import gospeak.infra.services.{AvatarSrv, MarkdownSrvImpl, TemplateSrvImpl}
 import gospeak.web.auth.domain.CookieEnv
@@ -95,6 +97,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val avatarSrv: AvatarSrv = wire[AvatarSrv]
   lazy val emailSrv: EmailSrv = EmailSrvFactory.from(conf.email)
   lazy val cloudinarySrv: Option[CloudinarySrv] = UploadSrvFactory.from(conf.upload)
+  lazy val twitterSrv: Option[TwitterSrv] = conf.twitter.map(new TwitterSrvImpl(_, conf.app.env.isProd))
   lazy val meetupSrv: MeetupSrv = MeetupSrvImpl.from(conf.meetup, conf.app.baseUrl, conf.app.env.isProd)
   lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient(), templateSrv)
   lazy val matomoSrv: Option[MatomoSrv] = conf.matomo.map(MatomoSrvImpl.from)
