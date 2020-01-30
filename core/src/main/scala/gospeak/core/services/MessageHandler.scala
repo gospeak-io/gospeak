@@ -1,5 +1,7 @@
 package gospeak.core.services
 
+import java.time.LocalDateTime
+
 import cats.effect.IO
 import gospeak.core.ApplicationConf
 import gospeak.core.domain.Group
@@ -64,6 +66,7 @@ class MessageHandler(appConf: ApplicationConf,
 
   private def handle(msg: GospeakMessage.ExternalCfpCreated): IO[Int] = {
     twitterSrv
+      .filter(_ => msg.cfp.value.isActive(LocalDateTime.now()))
       .map(srv => srv.tweet(Tweets.externalCfpCreated(msg.cfp.value, msg.cfp.link, msg.user))).sequence
       .map(_.map(_ => 1).getOrElse(0))
   }
