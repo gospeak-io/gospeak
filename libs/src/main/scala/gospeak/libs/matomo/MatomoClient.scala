@@ -8,6 +8,14 @@ import gospeak.libs.scala.domain.Secret
 import io.circe.Decoder
 import io.circe.parser.decode
 
+/**
+ * doc:
+ *  - https://developer.matomo.org/guides/querying-the-reporting-api
+ *  - https://developer.matomo.org/api-reference/tracking-api
+ *
+ *  - https://developer.matomo.org/api-reference/reporting-api#Actions
+ *  - https://developer.matomo.org/api-reference/reporting-api#Events
+ */
 class MatomoClient(conf: MatomoClient.Conf) {
   // see https://developer.matomo.org/api-reference/tracking-api
   def trackEvent(category: String, action: String, name: Option[String], value: Option[Double], user: Option[String]): IO[Option[MatomoError]] =
