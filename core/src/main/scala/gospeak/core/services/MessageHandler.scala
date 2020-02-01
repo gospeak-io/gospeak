@@ -7,7 +7,7 @@ import gospeak.core.ApplicationConf
 import gospeak.core.domain.Group
 import gospeak.core.domain.Group.Settings.Action
 import gospeak.core.domain.Group.Settings.Action.Trigger
-import gospeak.core.domain.utils.{Constants, GospeakMessage, TemplateData}
+import gospeak.core.domain.utils.{Constants, GsMessage, TemplateData}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.storage.GroupSettingsRepo
@@ -24,24 +24,24 @@ class MessageHandler(appConf: ApplicationConf,
                      emailSrv: EmailSrv,
                      slackSrv: SlackSrv,
                      twitterSrv: Option[TwitterSrv]) {
-  def handle(msg: GospeakMessage): IO[Unit] = (msg match {
-    case m: GospeakMessage.EventCreated => handle(m)
-    case m: GospeakMessage.EventPublished => handle(m)
-    case m: GospeakMessage.TalkAdded => handle(m)
-    case m: GospeakMessage.TalkRemoved => handle(m)
-    case m: GospeakMessage.ProposalCreated => handle(m)
-    case m: GospeakMessage.ExternalCfpCreated => handle(m)
+  def handle(msg: GsMessage): IO[Unit] = (msg match {
+    case m: GsMessage.EventCreated => handle(m)
+    case m: GsMessage.EventPublished => handle(m)
+    case m: GsMessage.TalkAdded => handle(m)
+    case m: GsMessage.TalkRemoved => handle(m)
+    case m: GsMessage.ProposalCreated => handle(m)
+    case m: GsMessage.ExternalCfpCreated => handle(m)
   }).map(_ => ()).recover { case NonFatal(_) => () }
 
-  private def handle(msg: GospeakMessage.EventCreated): IO[Int] = handleGroupEvent(msg.group.value.id, Trigger.OnEventCreated, TemplateData.eventCreated(msg))
+  private def handle(msg: GsMessage.EventCreated): IO[Int] = handleGroupEvent(msg.group.value.id, Trigger.OnEventCreated, TemplateData.eventCreated(msg))
 
-  private def handle(msg: GospeakMessage.TalkAdded): IO[Int] = handleGroupEvent(msg.group.value.id, Trigger.OnEventAddTalk, TemplateData.talkAdded(msg))
+  private def handle(msg: GsMessage.TalkAdded): IO[Int] = handleGroupEvent(msg.group.value.id, Trigger.OnEventAddTalk, TemplateData.talkAdded(msg))
 
-  private def handle(msg: GospeakMessage.TalkRemoved): IO[Int] = handleGroupEvent(msg.group.value.id, Trigger.OnEventRemoveTalk, TemplateData.talkRemoved(msg))
+  private def handle(msg: GsMessage.TalkRemoved): IO[Int] = handleGroupEvent(msg.group.value.id, Trigger.OnEventRemoveTalk, TemplateData.talkRemoved(msg))
 
-  private def handle(msg: GospeakMessage.EventPublished): IO[Int] = handleGroupEvent(msg.group.value.id, Trigger.OnEventPublish, TemplateData.eventPublished(msg))
+  private def handle(msg: GsMessage.EventPublished): IO[Int] = handleGroupEvent(msg.group.value.id, Trigger.OnEventPublish, TemplateData.eventPublished(msg))
 
-  private def handle(msg: GospeakMessage.ProposalCreated): IO[Int] = handleGroupEvent(msg.cfp.value.group, Trigger.OnProposalCreated, TemplateData.proposalCreated(msg))
+  private def handle(msg: GsMessage.ProposalCreated): IO[Int] = handleGroupEvent(msg.cfp.value.group, Trigger.OnProposalCreated, TemplateData.proposalCreated(msg))
 
   private def handleGroupEvent(id: Group.Id, trigger: Trigger, data: TemplateData): IO[Int] = for {
     actions <- groupSettingsRepo.findActions(id)
@@ -64,7 +64,7 @@ class MessageHandler(appConf: ApplicationConf,
     case Action.Slack(slack) => accounts.slack.map(slackSrv.exec(slack, data, _, appConf.aesKey)).getOrElse(IO.raiseError(CustomException("No credentials for Slack")))
   }
 
-  private def handle(msg: GospeakMessage.ExternalCfpCreated): IO[Int] = {
+  private def handle(msg: GsMessage.ExternalCfpCreated): IO[Int] = {
     twitterSrv
       .filter(_ => msg.cfp.value.isActive(LocalDateTime.now()))
       .map(srv => srv.tweet(Tweets.externalCfpCreated(msg.cfp.value, msg.cfp.link, msg.user))).sequence

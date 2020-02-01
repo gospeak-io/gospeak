@@ -5,11 +5,11 @@ import gospeak.core.domain._
 /*
   Messages sent over the bus so any part of the app can listen to them
  */
-sealed trait GospeakMessage
+sealed trait GsMessage
 
-object GospeakMessage {
+object GsMessage {
 
-  sealed trait EventMessage extends GospeakMessage
+  sealed trait EventMessage extends GsMessage
 
   final case class EventCreated(group: Linked[Group],
                                 event: Linked[Event],
@@ -35,7 +35,7 @@ object GospeakMessage {
                                user: User) extends TalkMessage
 
 
-  sealed trait ProposalMessage extends GospeakMessage
+  sealed trait ProposalMessage extends GsMessage
 
   final case class ProposalCreated(group: Linked[Group],
                                    cfp: Linked[Cfp],
@@ -43,7 +43,7 @@ object GospeakMessage {
                                    user: User) extends ProposalMessage
 
 
-  sealed trait ExternalCfpMessage extends GospeakMessage
+  sealed trait ExternalCfpMessage extends GsMessage
 
   final case class ExternalCfpCreated(cfp: Linked[ExternalCfp],
                                       user: User) extends ExternalCfpMessage

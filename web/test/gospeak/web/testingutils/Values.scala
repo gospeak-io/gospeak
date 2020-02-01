@@ -13,11 +13,11 @@ import com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry
 import com.mohiva.play.silhouette.test._
 import com.typesafe.config.ConfigFactory
 import gospeak.core.domain.User
-import gospeak.core.services.storage.DatabaseConf
+import gospeak.core.services.storage.DbConf
 import gospeak.core.testingutils.Generators._
 import gospeak.infra.services.AvatarSrv
 import gospeak.infra.services.email.InMemoryEmailSrv
-import gospeak.infra.services.storage.sql.GospeakDbSql
+import gospeak.infra.services.storage.sql.GsRepoSql
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.{AuthUser, CookieEnv}
 import gospeak.web.auth.services.{AuthRepo, AuthSrv}
@@ -55,8 +55,8 @@ object Values extends RandomDataGenerator {
 
   // app
   val conf: AppConf = AppConf.load(ConfigFactory.load()).get
-  private val dbConf = DatabaseConf.H2(s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1")
-  val db: GospeakDbSql = new GospeakDbSql(dbConf, conf.gospeak)
+  private val dbConf = DbConf.H2(s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1")
+  val db: GsRepoSql = new GsRepoSql(dbConf, conf.gospeak)
   private val authRepo = new AuthRepo(db.user, db.group)
   val emailSrv = new InMemoryEmailSrv()
   val authSrv = AuthSrv(conf.auth, silhouette, db.user, db.userRequest, db.group, authRepo, clock, SocialProviderRegistry(Seq()), new AvatarSrv())

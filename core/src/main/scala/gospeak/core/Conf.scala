@@ -1,6 +1,6 @@
 package gospeak.core
 
-import gospeak.core.GospeakConf.EventConf
+import gospeak.core.GsConf.EventConf
 import gospeak.core.domain.Group
 import gospeak.core.domain.utils.TemplateData
 import gospeak.libs.scala.Crypto.AesSecretKey
@@ -48,7 +48,7 @@ object ApplicationConf {
 
 }
 
-final case class GospeakConf(event: EventConf) {
+final case class GsConf(event: EventConf) {
   def defaultGroupSettings: Group.Settings = Group.Settings(
     accounts = Group.Settings.Accounts(
       meetup = None,
@@ -61,7 +61,7 @@ final case class GospeakConf(event: EventConf) {
     actions = Map())
 }
 
-object GospeakConf {
+object GsConf {
 
   final case class EventConf(description: MustacheMarkdownTmpl[TemplateData.EventInfo])
 

@@ -3,7 +3,7 @@ package gospeak.core.domain.utils
 import java.time.LocalDateTime
 
 import gospeak.core.domain
-import gospeak.core.domain.utils.GospeakMessage.Linked
+import gospeak.core.domain.utils.GsMessage.Linked
 import gospeak.libs.scala.StringUtils._
 import gospeak.libs.scala.domain.CustomException
 
@@ -138,15 +138,15 @@ object TemplateData {
   private def eventTalk(p: Linked[domain.Proposal], s: Seq[Linked[domain.User]]): EventTalk =
     EventTalk(link = p.link, publicLink = p.publicLink, title = p.value.title.value, description = desc(p.value.description.value), s.map(talkSpeaker), tags = p.value.tags.map(_.value))
 
-  def eventCreated(msg: GospeakMessage.EventCreated): EventCreated = EventCreated(group(msg.group), event(msg.event), user(msg.user))
+  def eventCreated(msg: GsMessage.EventCreated): EventCreated = EventCreated(group(msg.group), event(msg.event), user(msg.user))
 
-  def talkAdded(msg: GospeakMessage.TalkAdded): TalkAdded = TalkAdded(group(msg.group), event(msg.event), cfp(msg.cfp), proposal(msg.proposal), user(msg.user))
+  def talkAdded(msg: GsMessage.TalkAdded): TalkAdded = TalkAdded(group(msg.group), event(msg.event), cfp(msg.cfp), proposal(msg.proposal), user(msg.user))
 
-  def talkRemoved(msg: GospeakMessage.TalkRemoved): TalkRemoved = TalkRemoved(group(msg.group), event(msg.event), cfp(msg.cfp), proposal(msg.proposal), user(msg.user))
+  def talkRemoved(msg: GsMessage.TalkRemoved): TalkRemoved = TalkRemoved(group(msg.group), event(msg.event), cfp(msg.cfp), proposal(msg.proposal), user(msg.user))
 
-  def eventPublished(msg: GospeakMessage.EventPublished): EventPublished = EventPublished(group(msg.group), event(msg.event), user(msg.user))
+  def eventPublished(msg: GsMessage.EventPublished): EventPublished = EventPublished(group(msg.group), event(msg.event), user(msg.user))
 
-  def proposalCreated(msg: GospeakMessage.ProposalCreated): ProposalCreated = ProposalCreated(group(msg.group), cfp(msg.cfp), proposal(msg.proposal), user(msg.user))
+  def proposalCreated(msg: GsMessage.ProposalCreated): ProposalCreated = ProposalCreated(group(msg.group), cfp(msg.cfp), proposal(msg.proposal), user(msg.user))
 
   def eventInfo(g: Linked[domain.Group], e: Linked[domain.Event], v: Option[domain.Venue.Full], c: Option[Linked[domain.Cfp]], ts: Seq[Linked[domain.Proposal]], ss: Seq[Linked[domain.User]]): EventInfo =
     EventInfo(group(g), event(e), v.map(eventVenue), c.map(cfp), ts.map(t => eventTalk(t, t.value.speakers.toList.flatMap(s => ss.find(_.value.id == s)))))

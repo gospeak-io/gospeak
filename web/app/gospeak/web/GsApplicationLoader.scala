@@ -15,7 +15,7 @@ import com.mohiva.play.silhouette.impl.providers.{DefaultSocialStateHandler, Soc
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.softwaremill.macwire.wire
 import gospeak.core.ApplicationConf
-import gospeak.core.domain.utils.GospeakMessage
+import gospeak.core.domain.utils.GsMessage
 import gospeak.core.services._
 import gospeak.core.services.cloudinary.CloudinarySrv
 import gospeak.core.services.email.EmailSrv
@@ -36,7 +36,7 @@ import gospeak.infra.services.{AvatarSrv, MarkdownSrvImpl, TemplateSrvImpl}
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
 import gospeak.web.auth.{AuthConf, AuthCtrl}
-import gospeak.web.domain.{GospeakMessageBus, MessageBuilder}
+import gospeak.web.domain.{GsMessageBus, MessageBuilder}
 import gospeak.web.pages._
 import gospeak.web.services.EventSrv
 import gospeak.libs.scala.{BasicMessageBus, MessageBus}
@@ -51,17 +51,17 @@ import router.Routes
 
 import scala.concurrent.duration.FiniteDuration
 
-class GospeakApplicationLoader extends ApplicationLoader {
+class GsApplicationLoader extends ApplicationLoader {
   override def load(context: ApplicationLoader.Context): Application = {
     LoggerConfigurator(context.environment.classLoader).foreach {
       _.configure(context.environment, context.initialConfiguration, Map.empty)
     }
-    new GospeakComponents(context).application
+    new GsComponents(context).application
   }
 }
 
 // use wire[] only for application classes (be explicit with others as they will not change)
-class GospeakComponents(context: ApplicationLoader.Context)
+class GsComponents(context: ApplicationLoader.Context)
   extends BuiltInComponentsFromContext(context)
     with AhcWSComponents
     with HttpFiltersComponents
@@ -73,7 +73,7 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val conf: AppConf = AppConf.load(configuration).get
   lazy val appConf: ApplicationConf = conf.app
 
-  lazy val db: GospeakDbSql = new GospeakDbSql(conf.database, conf.gospeak)
+  lazy val db: GsRepoSql = new GsRepoSql(conf.database, conf.gospeak)
   lazy val userRepo: UserRepo = db.user
   lazy val userRequestRepo: UserRequestRepo = db.userRequest
   lazy val groupRepo: GroupRepo = db.group
@@ -102,8 +102,8 @@ class GospeakComponents(context: ApplicationLoader.Context)
   lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient(), templateSrv)
   lazy val matomoSrv: Option[MatomoSrv] = conf.matomo.map(MatomoSrvImpl.from)
   lazy val messageBuilder: MessageBuilder = wire[MessageBuilder]
-  lazy val messageBus: MessageBus[GospeakMessage] = wire[BasicMessageBus[GospeakMessage]]
-  lazy val orgaMessageBus: GospeakMessageBus = wire[GospeakMessageBus]
+  lazy val messageBus: MessageBus[GsMessage] = wire[BasicMessageBus[GsMessage]]
+  lazy val orgaMessageBus: GsMessageBus = wire[GsMessageBus]
   lazy val messageHandler: MessageHandler = wire[MessageHandler]
   // start:Silhouette conf
   lazy val clock: Clock = Clock()

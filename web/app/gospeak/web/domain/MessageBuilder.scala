@@ -1,30 +1,30 @@
 package gospeak.web.domain
 
 import gospeak.core.domain._
-import gospeak.core.domain.utils.GospeakMessage.Linked
-import gospeak.core.domain.utils.{GospeakMessage, TemplateData}
+import gospeak.core.domain.utils.GsMessage.Linked
+import gospeak.core.domain.utils.{GsMessage, TemplateData}
 import gospeak.web.services.EventSrv.EventFull
 import gospeak.web.utils.{BasicReq, OrgaReq, UserReq}
 import play.api.mvc.AnyContent
 
 class MessageBuilder {
-  def buildEventCreated(event: Event)(implicit req: OrgaReq[AnyContent]): GospeakMessage.EventCreated =
-    GospeakMessage.EventCreated(linked(req.group), linked(req.group, event), req.user)
+  def buildEventCreated(event: Event)(implicit req: OrgaReq[AnyContent]): GsMessage.EventCreated =
+    GsMessage.EventCreated(linked(req.group), linked(req.group, event), req.user)
 
-  def buildTalkAdded(event: Event, cfp: Cfp, proposal: Proposal)(implicit req: OrgaReq[AnyContent]): GospeakMessage.TalkAdded =
-    GospeakMessage.TalkAdded(linked(req.group), linked(req.group, event), linked(req.group, cfp), linked(req.group, event, cfp, proposal), req.user)
+  def buildTalkAdded(event: Event, cfp: Cfp, proposal: Proposal)(implicit req: OrgaReq[AnyContent]): GsMessage.TalkAdded =
+    GsMessage.TalkAdded(linked(req.group), linked(req.group, event), linked(req.group, cfp), linked(req.group, event, cfp, proposal), req.user)
 
-  def buildTalkRemoved(event: Event, cfp: Cfp, proposal: Proposal)(implicit req: OrgaReq[AnyContent]): GospeakMessage.TalkRemoved =
-    GospeakMessage.TalkRemoved(linked(req.group), linked(req.group, event), linked(req.group, cfp), linked(req.group, event, cfp, proposal), req.user)
+  def buildTalkRemoved(event: Event, cfp: Cfp, proposal: Proposal)(implicit req: OrgaReq[AnyContent]): GsMessage.TalkRemoved =
+    GsMessage.TalkRemoved(linked(req.group), linked(req.group, event), linked(req.group, cfp), linked(req.group, event, cfp, proposal), req.user)
 
-  def buildEventPublished(event: Event)(implicit req: OrgaReq[AnyContent]): GospeakMessage.EventPublished =
-    GospeakMessage.EventPublished(linked(req.group), linked(req.group, event), req.user)
+  def buildEventPublished(event: Event)(implicit req: OrgaReq[AnyContent]): GsMessage.EventPublished =
+    GsMessage.EventPublished(linked(req.group), linked(req.group, event), req.user)
 
-  def buildProposalCreated(group: Group, cfp: Cfp, proposal: Proposal)(implicit req: UserReq[AnyContent]): GospeakMessage.ProposalCreated =
-    GospeakMessage.ProposalCreated(linked(group), linked(group, cfp), linked(group, cfp, proposal), req.user)
+  def buildProposalCreated(group: Group, cfp: Cfp, proposal: Proposal)(implicit req: UserReq[AnyContent]): GsMessage.ProposalCreated =
+    GsMessage.ProposalCreated(linked(group), linked(group, cfp), linked(group, cfp, proposal), req.user)
 
-  def buildExternalCfpCreated(cfp: ExternalCfp)(implicit req: UserReq[AnyContent]): GospeakMessage.ExternalCfpCreated =
-    GospeakMessage.ExternalCfpCreated(linked(cfp), req.user)
+  def buildExternalCfpCreated(cfp: ExternalCfp)(implicit req: UserReq[AnyContent]): GsMessage.ExternalCfpCreated =
+    GsMessage.ExternalCfpCreated(linked(cfp), req.user)
 
   def buildEventInfo(group: Group, event: Event, cfpOpt: Option[Cfp], venueOpt: Option[Venue.Full], talks: Seq[Proposal], speakers: Seq[User])(implicit req: BasicReq[AnyContent]): TemplateData.EventInfo = {
     TemplateData.eventInfo(

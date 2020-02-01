@@ -10,8 +10,8 @@ import gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
 import gospeak.core.domain.utils.TemplateData.EventInfo
 import gospeak.core.domain.utils._
 import gospeak.core.services.slack.domain.SlackAction
-import gospeak.core.services.storage.{DatabaseConf, GospeakDb}
-import gospeak.core.{ApplicationConf, GospeakConf}
+import gospeak.core.services.storage.{DbConf, GsRepo}
+import gospeak.core.{ApplicationConf, GsConf}
 import gospeak.infra.services.AvatarSrv
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import gospeak.infra.services.storage.sql.utils.{DoobieUtils, FlywayUtils}
@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
-class GospeakDbSql(dbConf: DatabaseConf, gsConf: GospeakConf) extends GospeakDb {
+class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
   private val logger = LoggerFactory.getLogger(this.getClass)
   private val flyway = FlywayUtils.build(dbConf)
   private[sql] val xa: doobie.Transactor[IO] = DoobieUtils.transactor(dbConf)

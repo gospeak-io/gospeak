@@ -11,7 +11,7 @@ import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import gospeak.web.auth.services.AuthSrv
-import gospeak.web.domain.{Breadcrumb, GospeakMessageBus}
+import gospeak.web.domain.{Breadcrumb, GsMessageBus}
 import gospeak.web.emails.Emails
 import gospeak.web.pages.published.HomeCtrl
 import gospeak.web.pages.published.cfps.CfpCtrl._
@@ -34,7 +34,7 @@ class CfpCtrl(cc: ControllerComponents,
               externalCfpRepo: PublicExternalCfpRepo,
               authSrv: AuthSrv,
               emailSrv: EmailSrv,
-              mb: GospeakMessageBus) extends UICtrl(cc, silhouette, conf) {
+              mb: GsMessageBus) extends UICtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     externalCfpRepo.listIncoming(req.now, params).map(cfps => Ok(html.list(cfps)(listBreadcrumb())))
   }
