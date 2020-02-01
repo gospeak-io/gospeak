@@ -1,13 +1,13 @@
 package gospeak.web.domain
 
 import cats.effect.IO
-import gospeak.core.domain.utils.GospeakMessage
+import gospeak.core.domain.utils.GsMessage
 import gospeak.core.domain.{Cfp, Event, ExternalCfp, Group, Proposal}
 import gospeak.web.utils.{OrgaReq, UserReq}
 import gospeak.libs.scala.MessageBus
 import play.api.mvc.AnyContent
 
-class GospeakMessageBus(bus: MessageBus[GospeakMessage], builder: MessageBuilder) {
+class GsMessageBus(bus: MessageBus[GsMessage], builder: MessageBuilder) {
   def publishEventCreated(event: Event)(implicit req: OrgaReq[AnyContent]): IO[Int] =
     bus.publish(builder.buildEventCreated(event))
 

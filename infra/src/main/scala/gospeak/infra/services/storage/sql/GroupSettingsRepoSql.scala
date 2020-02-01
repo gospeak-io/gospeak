@@ -4,7 +4,7 @@ import java.time.Instant
 
 import cats.effect.IO
 import doobie.implicits._
-import gospeak.core.GospeakConf
+import gospeak.core.GsConf
 import gospeak.core.domain.Group.Settings
 import gospeak.core.domain.Group.Settings.Action
 import gospeak.core.domain.utils.{OrgaCtx, TemplateData, UserAwareCtx}
@@ -19,7 +19,7 @@ import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.domain.Done
 import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 
-class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: GospeakConf) extends GenericRepo with GroupSettingsRepo {
+class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: GsConf) extends GenericRepo with GroupSettingsRepo {
   override def find(implicit ctx: OrgaCtx): IO[Group.Settings] =
     selectOne(ctx.group.id).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings))
 

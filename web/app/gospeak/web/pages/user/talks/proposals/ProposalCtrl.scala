@@ -9,7 +9,7 @@ import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
-import gospeak.web.domain.{Breadcrumb, GospeakMessageBus}
+import gospeak.web.domain.{Breadcrumb, GsMessageBus}
 import gospeak.web.emails.Emails
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import gospeak.web.pages.user.talks.TalkCtrl
@@ -36,7 +36,7 @@ class ProposalCtrl(cc: ControllerComponents,
                    proposalRepo: SpeakerProposalRepo,
                    commentRepo: SpeakerCommentRepo,
                    emailSrv: EmailSrv,
-                   mb: GospeakMessageBus) extends UICtrl(cc, silhouette, conf) {
+                   mb: GsMessageBus) extends UICtrl(cc, silhouette, conf) {
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(talk))

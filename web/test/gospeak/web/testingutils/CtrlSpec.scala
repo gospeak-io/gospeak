@@ -4,7 +4,7 @@ import akka.stream.Materializer
 import akka.stream.testkit.NoMaterializer
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.infra.services.email.InMemoryEmailSrv
-import gospeak.infra.services.storage.sql.GospeakDbSql
+import gospeak.infra.services.storage.sql.GsRepoSql
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.auth.services.AuthSrv
@@ -23,7 +23,7 @@ trait CtrlSpec extends FunSpec with Matchers {
 
   // app
   protected val conf: AppConf = Values.conf
-  protected val db: GospeakDbSql = Values.db
+  protected val db: GsRepoSql = Values.db
   protected val emailSrv: InMemoryEmailSrv = Values.emailSrv
   protected val authSrv: AuthSrv = Values.authSrv
 }

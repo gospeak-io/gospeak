@@ -5,10 +5,10 @@ import com.typesafe.config.Config
 import gospeak.core.services.email.EmailConf
 import gospeak.core.services.matomo.MatomoConf
 import gospeak.core.services.meetup.MeetupConf
-import gospeak.core.services.storage.DatabaseConf
+import gospeak.core.services.storage.DbConf
 import gospeak.core.services.twitter.TwitterConf
 import gospeak.core.services.upload.UploadConf
-import gospeak.core.{ApplicationConf, GospeakConf}
+import gospeak.core.{ApplicationConf, GsConf}
 import gospeak.web.auth.AuthConf
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
@@ -23,13 +23,13 @@ import scala.util.{Failure, Success, Try}
 
 final case class AppConf(app: ApplicationConf,
                          auth: AuthConf,
-                         database: DatabaseConf,
+                         database: DbConf,
                          email: EmailConf,
                          upload: UploadConf,
                          meetup: MeetupConf,
                          twitter: Option[TwitterConf],
                          matomo: Option[MatomoConf],
-                         gospeak: GospeakConf)
+                         gospeak: GsConf)
 
 object AppConf {
   def load(conf: Config): Try[AppConf] = {
@@ -84,8 +84,8 @@ object AppConf {
     private implicit val linkedinAuthConfReader: ConfigReader[AuthConf.LinkedinConf] = deriveReader[AuthConf.LinkedinConf]
     private implicit val twitterAuthConfReader: ConfigReader[AuthConf.TwitterConf] = deriveReader[AuthConf.TwitterConf]
 
-    private implicit val databaseConfReader: ConfigReader[DatabaseConf] = (cur: ConfigCursor) => cur.asString
-      .flatMap(DatabaseConf.from(_).leftMap(_ => ConfigReaderFailures(ConvertFailure(CannotConvert(cur.toString, "DatabaseConf", "Invalid value"), cur.location, cur.path))))
+    private implicit val databaseConfReader: ConfigReader[DbConf] = (cur: ConfigCursor) => cur.asString
+      .flatMap(DbConf.from(_).leftMap(_ => ConfigReaderFailures(ConvertFailure(CannotConvert(cur.toString, "DatabaseConf", "Invalid value"), cur.location, cur.path))))
 
     private implicit val emailConfConsoleReader: ConfigReader[EmailConf.Console] = deriveReader[EmailConf.Console]
     private implicit val emailConfInMemoryReader: ConfigReader[EmailConf.InMemory] = deriveReader[EmailConf.InMemory]
@@ -96,7 +96,7 @@ object AppConf {
 
     private implicit def markdownTmplReader[A]: ConfigReader[MustacheMarkdownTmpl[A]] = (cur: ConfigCursor) => cur.asString.map(_.stripPrefix("\n")).map(MustacheMarkdownTmpl[A])
 
-    private implicit val gospeakEventConfReader: ConfigReader[GospeakConf.EventConf] = deriveReader[GospeakConf.EventConf]
+    private implicit val gospeakEventConfReader: ConfigReader[GsConf.EventConf] = deriveReader[GsConf.EventConf]
 
     private implicit val applicationConfReader: ConfigReader[ApplicationConf] = deriveReader[ApplicationConf]
     private implicit val authConfReader: ConfigReader[AuthConf] = deriveReader[AuthConf]
@@ -105,7 +105,7 @@ object AppConf {
     private implicit val meetupConfReader: ConfigReader[MeetupConf] = deriveReader[MeetupConf]
     private implicit val matomoConfReader: ConfigReader[MatomoConf] = deriveReader[MatomoConf]
     private implicit val twitterConfReader: ConfigReader[TwitterConf] = deriveReader[TwitterConf]
-    private implicit val gospeakConfReader: ConfigReader[GospeakConf] = deriveReader[GospeakConf]
+    private implicit val gsConfReader: ConfigReader[GsConf] = deriveReader[GsConf]
 
     private implicit val appConfReader: ConfigReader[AppConf] = deriveReader[AppConf]
 

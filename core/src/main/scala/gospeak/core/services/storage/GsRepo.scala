@@ -1,6 +1,6 @@
 package gospeak.core.services.storage
 
-trait GospeakDb {
+trait GsRepo {
   val user: UserRepo
   val talk: TalkRepo
   val group: GroupRepo

@@ -15,7 +15,7 @@ import gospeak.core.domain.utils.SocialAccounts.SocialAccount._
 import gospeak.core.domain.utils.TemplateData
 import gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup}
 import gospeak.core.services.slack.domain.SlackAction
-import gospeak.core.services.storage.DatabaseConf
+import gospeak.core.services.storage.DbConf
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import gospeak.libs.scala.domain._
@@ -29,9 +29,9 @@ import scala.language.dynamics
 object DoobieUtils {
   private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 
-  def transactor(conf: DatabaseConf): doobie.Transactor[IO] = conf match {
-    case c: DatabaseConf.H2 => Transactor.fromDriverManager[IO]("org.h2.Driver", c.url, "", "")
-    case c: DatabaseConf.PostgreSQL => Transactor.fromDriverManager[IO]("org.postgresql.Driver", c.url, c.user, c.pass.decode)
+  def transactor(conf: DbConf): doobie.Transactor[IO] = conf match {
+    case c: DbConf.H2 => Transactor.fromDriverManager[IO]("org.h2.Driver", c.url, "", "")
+    case c: DbConf.PostgreSQL => Transactor.fromDriverManager[IO]("org.postgresql.Driver", c.url, c.user, c.pass.decode)
   }
 
   final case class Field(name: String, prefix: String, alias: String = "") {

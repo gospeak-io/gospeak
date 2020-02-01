@@ -13,7 +13,7 @@ import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Done, Html, Page}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
-import gospeak.web.domain.{Breadcrumb, GospeakMessageBus, MessageBuilder}
+import gospeak.web.domain.{Breadcrumb, GsMessageBus, MessageBuilder}
 import gospeak.web.emails.Emails
 import gospeak.web.pages.orga.GroupCtrl
 import gospeak.web.pages.orga.events.EventCtrl._
@@ -41,7 +41,7 @@ class EventCtrl(cc: ControllerComponents,
                 eventSrv: EventSrv,
                 meetupSrv: MeetupSrv,
                 emailSrv: EmailSrv,
-                mb: GospeakMessageBus) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
+                mb: GsMessageBus) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
       events <- eventRepo.listFull(params)
