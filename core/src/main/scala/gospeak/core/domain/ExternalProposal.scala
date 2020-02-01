@@ -16,9 +16,13 @@ final case class ExternalProposal(id: ExternalProposal.Id,
                                   slides: Option[Slides],
                                   video: Option[Video],
                                   tags: Seq[Tag],
-                                  info: Info)
+                                  info: Info) {
+  def data: ExternalProposal.Data = ExternalProposal.Data(this)
+}
 
 object ExternalProposal {
+  def apply(d: Data, talk: Talk.Id, event: ExternalEvent.Id, speakers: NonEmptyList[User.Id], info: Info): ExternalProposal =
+    new ExternalProposal(Id.generate(), talk, event, d.title, d.duration, d.description, speakers, d.slides, d.video, d.tags, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 

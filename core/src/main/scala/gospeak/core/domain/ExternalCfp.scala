@@ -40,7 +40,7 @@ object ExternalCfp {
                          twitterAccount: Option[TwitterAccount],
                          twitterHashtag: Option[TwitterHashtag])
 
-  final case class Data(name: ExternalCfp.Name,
+  final case class Data(name: Name,
                         logo: Option[Logo],
                         description: Markdown,
                         begin: Option[LocalDateTime],

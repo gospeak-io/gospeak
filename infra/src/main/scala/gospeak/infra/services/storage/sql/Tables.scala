@@ -139,6 +139,13 @@ object Tables {
     sort = Seq("-created_at"),
     search = Seq("id", "email", "group_id", "created_by")).get
 
+  val externalEvents: Table = Table.from(
+    name = "external_events",
+    prefix = "ee",
+    fields = Seq("id", "name", "logo", "description", "start", "finish", "location", "location_id", "location_lat", "location_lng", "location_locality", "location_country", "url", "tickets_url", "videos_url", "twitter_account", "twitter_hashtag", "tags", "created_at", "created_by", "updated_at", "updated_by"),
+    sort = Seq("-start", "name"),
+    search = Seq("id", "name", "description", "location", "url", "twitter_account", "twitter_hashtag", "tags")).get
+
   val externalCfps: Table = Table.from(
     name = "external_cfps",
     prefix = "ec",
@@ -146,5 +153,12 @@ object Tables {
     sort = Seq("close", "name"),
     search = Seq("id", "name", "description", "url", "event_url", "location", "twitter_account", "twitter_hashtag", "tags")).get
 
-  val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, groupSettings, groupMembers, cfps, partners, contacts, venues, events, eventRsvps, proposals, proposalRatings, sponsorPacks, sponsors, comments, userRequests, externalCfps)
+  val externalProposals: Table = Table.from(
+    name = "external_proposals",
+    prefix = "ep",
+    fields = Seq("id", "talk_id", "event_id", "title", "duration", "description", "speakers", "slides", "video", "tags", "created_at", "created_by", "updated_at", "updated_by"),
+    sort = Seq("title", "created_at"),
+    search = Seq("id", "title", "description", "tags")).get
+
+  val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, groupSettings, groupMembers, cfps, partners, contacts, venues, events, eventRsvps, proposals, proposalRatings, sponsorPacks, sponsors, comments, userRequests, externalEvents, externalCfps, externalProposals)
 }

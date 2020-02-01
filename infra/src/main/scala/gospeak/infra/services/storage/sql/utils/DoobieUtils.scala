@@ -440,8 +440,12 @@ object DoobieUtils {
     implicit val meetupEventIdMeta: Meta[MeetupEvent.Id] = Meta[Long].timap(MeetupEvent.Id(_))(_.value)
     implicit val memberRoleMeta: Meta[Group.Member.Role] = Meta[String].timap(Group.Member.Role.from(_).get)(_.value)
     implicit val rsvpAnswerMeta: Meta[Event.Rsvp.Answer] = Meta[String].timap(Event.Rsvp.Answer.from(_).get)(_.value)
+    implicit val externalEventIdMeta: Meta[ExternalEvent.Id] = Meta[String].timap(ExternalEvent.Id.from(_).get)(_.value)
+    implicit val externalEventNameMeta: Meta[ExternalEvent.Name] = Meta[String].timap(ExternalEvent.Name)(_.value)
     implicit val externalCfpIdMeta: Meta[ExternalCfp.Id] = Meta[String].timap(ExternalCfp.Id.from(_).get)(_.value)
     implicit val externalCfpNameMeta: Meta[ExternalCfp.Name] = Meta[String].timap(ExternalCfp.Name)(_.value)
+    implicit val externalProposalIdMeta: Meta[ExternalProposal.Id] = Meta[String].timap(ExternalProposal.Id.from(_).get)(_.value)
+    implicit val externalProposalTitleMeta: Meta[ExternalProposal.Title] = Meta[String].timap(ExternalProposal.Title)(_.value)
     implicit val voteMeta: Meta[Proposal.Rating.Grade] = Meta[Int].timap(Proposal.Rating.Grade.from(_).get)(_.value)
 
     implicit val userIdNelMeta: Meta[NonEmptyList[User.Id]] = Meta[String].timap(
