@@ -99,8 +99,12 @@ object Generators {
   implicit val aCommentId: Arbitrary[Comment.Id] = Arbitrary(Gen.uuid.map(id => Comment.Id.from(id.toString).get))
   implicit val aMeetupGroupSlug: Arbitrary[MeetupGroup.Slug] = Arbitrary(slugGen.map(slug => MeetupGroup.Slug.from(slug).get))
   implicit val aUserRequestId: Arbitrary[UserRequest.Id] = Arbitrary(Gen.uuid.map(id => UserRequest.Id.from(id.toString).get))
+  implicit val aExternalEventId: Arbitrary[ExternalEvent.Id] = Arbitrary(Gen.uuid.map(id => ExternalEvent.Id.from(id.toString).get))
+  implicit val aExternalEventName: Arbitrary[ExternalEvent.Name] = Arbitrary(nonEmptyStringGen.map(str => ExternalEvent.Name(str)))
   implicit val aExternalCfpId: Arbitrary[ExternalCfp.Id] = Arbitrary(Gen.uuid.map(id => ExternalCfp.Id.from(id.toString).get))
   implicit val aExternalCfpName: Arbitrary[ExternalCfp.Name] = Arbitrary(nonEmptyStringGen.map(str => ExternalCfp.Name(str)))
+  implicit val aExternalProposalId: Arbitrary[ExternalProposal.Id] = Arbitrary(Gen.uuid.map(id => ExternalProposal.Id.from(id.toString).get))
+  implicit val aExternalProposalTitle: Arbitrary[ExternalProposal.Title] = Arbitrary(nonEmptyStringGen.map(str => ExternalProposal.Title(str)))
 
   // do not write explicit type, it will throw a NullPointerException
   implicit val aInfo = implicitly[Arbitrary[Info]]

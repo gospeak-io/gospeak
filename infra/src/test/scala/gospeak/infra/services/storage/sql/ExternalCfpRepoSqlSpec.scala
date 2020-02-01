@@ -18,7 +18,7 @@ class ExternalCfpRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne for cfp id") {
         val q = ExternalCfpRepoSql.selectOne(externalCfp.id)
-        check(q, s"SELECT $fields FROM $table WHERE ec.id=? $orderBy")
+        check(q, s"SELECT $fields FROM $table WHERE ec.id=? LIMIT 1")
       }
       it("should build selectOneCommon for internal") {
         val q = ExternalCfpRepoSql.selectOneCommon(cfp.slug)

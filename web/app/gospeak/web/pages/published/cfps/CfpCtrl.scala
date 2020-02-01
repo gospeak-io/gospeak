@@ -51,7 +51,7 @@ class CfpCtrl(cc: ControllerComponents,
     GsForms.externalCfp.bindFromRequest.fold(
       formWithErrors => IO.pure(Ok(html.create(formWithErrors)(listBreadcrumb().add("Add" -> routes.CfpCtrl.add)))),
       data => for {
-        cfp <- externalCfpRepo.create(data, req.user.id, req.now)
+        cfp <- externalCfpRepo.create(data)
         _ <- mb.publishExternalCfpCreated(cfp)
       } yield Redirect(routes.CfpCtrl.detailExt(cfp.id))
     )
@@ -79,7 +79,7 @@ class CfpCtrl(cc: ControllerComponents,
   def doEdit(cfp: ExternalCfp.Id): Action[AnyContent] = UserAction { implicit req =>
     GsForms.externalCfp.bindFromRequest.fold(
       formWithErrors => editView(cfp, formWithErrors),
-      data => externalCfpRepo.edit(cfp)(data, req.user.id, req.now)
+      data => externalCfpRepo.edit(cfp)(data)
         .map(_ => Redirect(routes.CfpCtrl.detailExt(cfp)).flashing("success" -> "CFP updated"))
     )
   }

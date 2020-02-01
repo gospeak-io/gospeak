@@ -2,7 +2,7 @@ package gospeak.infra.services.storage.sql.utils
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import DoobieUtils.Select
+import gospeak.infra.services.storage.sql.utils.DoobieUtils.Select
 
 trait GenericRepo {
   protected[sql] val xa: doobie.Transactor[IO]
