@@ -62,7 +62,7 @@ object ExternalCfp {
                                    twitterHashtag: Option[String])
 
   object DuplicateParams {
-    val defaults = DuplicateParams(None, None, None, None, None, None, None)
+    val defaults: DuplicateParams = DuplicateParams(None, None, None, None, None, None, None)
   }
 
 }

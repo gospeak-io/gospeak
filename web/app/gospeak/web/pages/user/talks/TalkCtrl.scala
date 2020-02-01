@@ -3,9 +3,8 @@ package gospeak.web.pages.user.talks
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import gospeak.core.domain.Performance
 import gospeak.core.domain.utils.UserCtx
-import gospeak.core.domain.{Talk, User, UserRequest}
+import gospeak.core.domain.{ExternalProposal, Talk, User, UserRequest}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
@@ -155,13 +154,13 @@ class TalkCtrl(cc: ControllerComponents,
     talkRepo.editStatus(talk, status).map(_ => Redirect(routes.TalkCtrl.detail(talk)))
   }
 
-  def addPerformance(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
-    addPerformanceView(talk, TalkForms.createPerformance)
+  def addExternalProposal(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
+    addExternalProposalView(talk, TalkForms.createExternalProposal)
   }
 
-  def doAddPerformance(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
-    TalkForms.createPerformance.bindFromRequest.fold(
-      formWithErrors => addPerformanceView(talk, formWithErrors),
+  def doAddExternalProposal(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
+    TalkForms.createExternalProposal.bindFromRequest.fold(
+      formWithErrors => addExternalProposalView(talk, formWithErrors),
       data => {
         println(data)
         IO.pure(Redirect(routes.TalkCtrl.detail(talk)))
@@ -169,10 +168,10 @@ class TalkCtrl(cc: ControllerComponents,
     )
   }
 
-  def addPerformanceView(talk: Talk.Slug, form: Form[Performance.Data])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
+  private def addExternalProposalView(talk: Talk.Slug, form: Form[ExternalProposal.Data])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
     (for {
       talkElt <- OptionT(talkRepo.find(talk))
-      res = Ok(html.createPerformance(talkElt, form)(breadcrumb(talkElt).add("New Performance" -> routes.TalkCtrl.addPerformance(talk))))
+      res = Ok(html.addExternalProposal(talkElt, form)(breadcrumb(talkElt).add("Add external proposal" -> routes.TalkCtrl.addExternalProposal(talk))))
     } yield res).value.map(_.getOrElse(talkNotFound(talk)))
   }
 }

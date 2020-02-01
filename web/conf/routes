@@ -65,6 +65,8 @@ GET         /u/talks/:talk/cfps                                                 
 GET         /u/talks/:talk/cfps/:cfp                                                       gospeak.web.pages.user.talks.proposals.ProposalCtrl.create(talk: Talk.Slug, cfp: Cfp.Slug)
 POST        /u/talks/:talk/cfps/:cfp                                                       gospeak.web.pages.user.talks.proposals.ProposalCtrl.doCreate(talk: Talk.Slug, cfp: Cfp.Slug)
 GET         /u/talks/:talk/proposals                                                       gospeak.web.pages.user.talks.proposals.ProposalCtrl.list(talk: Talk.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /u/talks/:talk/proposals/ext/create                                            gospeak.web.pages.user.talks.TalkCtrl.addExternalProposal(talk: Talk.Slug)
+POST        /u/talks/:talk/proposals/ext/create                                            gospeak.web.pages.user.talks.TalkCtrl.doAddExternalProposal(talk: Talk.Slug)
 GET         /u/talks/:talk/proposals/:cfp                                                  gospeak.web.pages.user.talks.proposals.ProposalCtrl.detail(talk: Talk.Slug, cfp: Cfp.Slug)
 POST        /u/talks/:talk/proposals/:cfp/comment                                          gospeak.web.pages.user.talks.proposals.ProposalCtrl.doSendComment(talk: Talk.Slug, cfp: Cfp.Slug)
 GET         /u/talks/:talk/proposals/:cfp/edit                                             gospeak.web.pages.user.talks.proposals.ProposalCtrl.edit(talk: Talk.Slug, cfp: Cfp.Slug)
@@ -74,8 +76,6 @@ POST        /u/talks/:talk/proposals/:cfp/speakers/cancel/:request              
 POST        /u/talks/:talk/proposals/:cfp/speakers/:speaker                                gospeak.web.pages.user.talks.proposals.ProposalCtrl.removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, speaker: User.Slug)
 POST        /u/talks/:talk/proposals/:cfp/slides                                           gospeak.web.pages.user.talks.proposals.ProposalCtrl.doAddSlides(talk: Talk.Slug, cfp: Cfp.Slug)
 POST        /u/talks/:talk/proposals/:cfp/video                                            gospeak.web.pages.user.talks.proposals.ProposalCtrl.doAddVideo(talk: Talk.Slug, cfp: Cfp.Slug)
-GET         /u/talks/:talk/performances/create                                             gospeak.web.pages.user.talks.TalkCtrl.addPerformance(talk: Talk.Slug)
-POST        /u/talks/:talk/performances/create                                             gospeak.web.pages.user.talks.TalkCtrl.doAddPerformance(talk: Talk.Slug)
 GET         /u/proposals                                                                   gospeak.web.pages.user.proposals.ProposalCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /u/profile                                                                     gospeak.web.pages.user.profile.ProfileCtrl.detail(params: Page.Params ?= Page.Params.defaults)
 GET         /u/profile/edit                                                                gospeak.web.pages.user.profile.ProfileCtrl.edit

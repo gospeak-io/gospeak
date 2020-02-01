@@ -1,16 +1,16 @@
 @import gospeak.core.domain.Talk
-@import gospeak.core.domain.Performance
+@import gospeak.core.domain.ExternalProposal
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.partials.form.html._
-@import gospeak.web.pages.user.partials.html.{container, talkFields}
+@import gospeak.web.pages.user.partials.html.container
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
 @import gospeak.web.utils.UserReq
 
-@(talk: Talk, form: Form[Performance.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@(talk: Talk, form: Form[ExternalProposal.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Gospeak", b)() {
-    <h1>Create a performance</h1>
+    <h1>Add an external proposal</h1>
 
-    @formElt(form, TalkCtrl.doAddPerformance(talk.slug)) {
+    @formElt(form, TalkCtrl.doAddExternalProposal(talk.slug)) {
         @fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title of your talk")) { (field, args) =>
             @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
         }
