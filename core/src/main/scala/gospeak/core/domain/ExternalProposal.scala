@@ -18,6 +18,8 @@ final case class ExternalProposal(id: ExternalProposal.Id,
                                   tags: Seq[Tag],
                                   info: Info) {
   def data: ExternalProposal.Data = ExternalProposal.Data(this)
+
+  def users: Seq[User.Id] = speakers.toList ++ info.users
 }
 
 object ExternalProposal {

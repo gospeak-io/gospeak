@@ -1,0 +1,36 @@
+@import gospeak.core.domain.{ExternalEvent, ExternalProposal, Talk, User}
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.user.partials.html.container
+@import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
+@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import gospeak.web.utils.UserReq
+
+@(talk: Talk, proposal: ExternalProposal, event: ExternalEvent, speakers: Seq[User])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@container(s"'${proposal.title.value}' - Gospeak", b)() {
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>@event.name.value proposal</h1>
+        <span class="btn-group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-cog"></i>
+            </button>
+            <span class="dropdown-menu dropdown-menu-right">
+                <a class="dropdown-item" href="@ProposalCtrl.editExt(talk.slug, proposal.id)">Edit</a>
+                @formBtn(ProposalCtrl.doRemoveExt(talk.slug, proposal.id), Seq("class" -> "dropdown-item", "confirm" -> s"Delete proposal to ${event.name.value}?")) {Delete}
+            </span>
+        </span>
+    </div>
+    <h2>@proposal.title.value</h2>
+
+    <p class="mb-0">@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video) @tags(proposal.tags)</p>
+    <div class="p">
+        Speakers:
+        @proposal.speakers.toList.map(id => speakers.find(_.id == id)).map {
+            case Some(speaker) => {<span class="badge badge-pill badge-primary">@if(speaker.isPublic) { <a href="@SpeakerCtrl.detail(speaker.slug)">@speaker.name.value</a> } else { @speaker.name.value }</span>}
+            case None => { <span class="badge badge-pill badge-primary">Unknown user</span> }
+        }
+    </div>
+    <p>@markdown(proposal.description)</p>
+    <p>@info(proposal.info, speakers)</p>
+}()

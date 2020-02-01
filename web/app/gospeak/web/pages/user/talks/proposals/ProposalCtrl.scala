@@ -7,6 +7,8 @@ import gospeak.core.domain._
 import gospeak.core.domain.utils.UserCtx
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Page, Slides, Video}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.{Breadcrumb, GsMessageBus}
@@ -16,9 +18,8 @@ import gospeak.web.pages.user.talks.TalkCtrl
 import gospeak.web.pages.user.talks.cfps.CfpCtrl
 import gospeak.web.pages.user.talks.cfps.routes.{CfpCtrl => CfpRoutes}
 import gospeak.web.pages.user.talks.proposals.ProposalCtrl._
+import gospeak.web.pages.user.talks.routes.{TalkCtrl => TalkRoutes}
 import gospeak.web.utils.{GsForms, UICtrl, UserReq}
-import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Page, Slides, Video}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -34,15 +35,52 @@ class ProposalCtrl(cc: ControllerComponents,
                    eventRepo: SpeakerEventRepo,
                    talkRepo: SpeakerTalkRepo,
                    proposalRepo: SpeakerProposalRepo,
+                   externalProposalRepo: SpeakerExternalProposalRepo,
+                   externalEventRepo: SpeakerExternalEventRepo,
                    commentRepo: SpeakerCommentRepo,
                    emailSrv: EmailSrv,
                    mb: GsMessageBus) extends UICtrl(cc, silhouette, conf) {
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(talk))
-      proposals <- OptionT.liftF(proposalRepo.listFull(talkElt.id, params))
+      proposals <- OptionT.liftF(externalProposalRepo.listPageCommon(talkElt.id, params))
       b = listBreadcrumb(talkElt)
     } yield Ok(html.list(talkElt, proposals)(b))).value.map(_.getOrElse(talkNotFound(talk)))
+  }
+
+  def detailExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
+    (for {
+      talkElt <- OptionT(talkRepo.find(talk))
+      proposalElt <- OptionT(externalProposalRepo.find(proposal))
+      eventElt <- OptionT(externalEventRepo.find(proposalElt.event))
+      speakers <- OptionT.liftF(userRepo.list(proposalElt.users))
+      b = breadcrumb(talkElt, eventElt, proposalElt)
+    } yield Ok(html.detailExt(talkElt, proposalElt, eventElt, speakers)(b))).value.map(_.getOrElse(extProposalNotFound(talk, proposal)))
+  }
+
+  def editExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
+    editExtView(talk, proposal, GsForms.externalProposal)
+  }
+
+  def doEditExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
+    GsForms.externalProposal.bindFromRequest.fold(
+      formWithErrors => editExtView(talk, proposal, formWithErrors),
+      data => externalProposalRepo.edit(proposal)(data).map(_ => Redirect(routes.ProposalCtrl.detailExt(talk, proposal)))
+    )
+  }
+
+  private def editExtView(talk: Talk.Slug, proposal: ExternalProposal.Id, form: Form[ExternalProposal.Data])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
+    (for {
+      talkElt <- OptionT(talkRepo.find(talk))
+      proposalElt <- OptionT(externalProposalRepo.find(proposal))
+      eventElt <- OptionT(externalEventRepo.find(proposalElt.event))
+      filledForm = if (form.hasErrors) form else form.fill(proposalElt.data)
+      b = breadcrumb(talkElt, eventElt, proposalElt).add("Edit" -> routes.ProposalCtrl.editExt(talk, proposal))
+    } yield Ok(html.editExt(talkElt, proposalElt, eventElt, filledForm)(b))).value.map(_.getOrElse(extProposalNotFound(talk, proposal)))
+  }
+
+  def doRemoveExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
+    externalProposalRepo.remove(proposal).map(_ => Redirect(TalkRoutes.detail(talk)))
   }
 
   def create(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
@@ -190,4 +228,7 @@ object ProposalCtrl {
 
   def breadcrumb(proposal: Proposal.Full)(implicit req: UserReq[AnyContent]): Breadcrumb =
     listBreadcrumb(proposal.talk).add(proposal.cfp.name.value -> CfpRoutes.list(proposal.talk.slug))
+
+  def breadcrumb(talk: Talk, event: ExternalEvent, proposal: ExternalProposal)(implicit req: UserReq[AnyContent]): Breadcrumb =
+    listBreadcrumb(talk).add(event.name.value -> routes.ProposalCtrl.detailExt(talk.slug, proposal.id))
 }

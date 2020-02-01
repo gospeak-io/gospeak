@@ -13,7 +13,11 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = ExternalProposalRepoSql.update(externalProposal.id)(externalProposal.data, user.id, now)
-        check(q, s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated_at=?, updated_by=? WHERE id=?")
+        check(q, s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated_at=?, updated_by=? WHERE id=? AND speakers LIKE ?")
+      }
+      it("should build delete") {
+        val q = ExternalProposalRepoSql.delete(externalProposal.id, user.id)
+        check(q, s"DELETE FROM $table WHERE ep.id=? AND ep.speakers LIKE ?")
       }
       it("should build selectOne") {
         val q = ExternalProposalRepoSql.selectOne(externalProposal.id)

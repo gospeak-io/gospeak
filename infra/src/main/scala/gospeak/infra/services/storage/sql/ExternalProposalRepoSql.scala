@@ -5,12 +5,12 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
-import gospeak.core.domain.utils.{Info, UserCtx}
 import gospeak.core.domain._
+import gospeak.core.domain.utils.{Info, UserCtx}
 import gospeak.core.services.storage.ExternalProposalRepo
 import gospeak.infra.services.storage.sql.ExternalProposalRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Sorts, Table, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Sorts, Table, Update}
 import gospeak.infra.services.storage.sql.utils.{GenericQuery, GenericRepo}
 import gospeak.libs.scala.domain.{Done, Page, Tag}
 
@@ -21,7 +21,11 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
   override def edit(id: ExternalProposal.Id)(data: ExternalProposal.Data)(implicit ctx: UserCtx): IO[Done] =
     update(id)(data, ctx.user.id, ctx.now).run(xa)
 
+  override def remove(id: ExternalProposal.Id)(implicit ctx: UserCtx): IO[Done] = delete(id, ctx.user.id).run(xa)
+
   override def list(params: Page.Params): IO[Page[ExternalProposal]] = selectPage(params).run(xa)
+
+  override def listPageCommon(talk: Talk.Id, params: Page.Params): IO[Page[CommonProposal]] = selectPageCommon(talk, params).run(xa)
 
   override def listAllCommon(talk: Talk.Id): IO[Seq[CommonProposal]] = selectAllCommon(talk).runList(xa)
 
@@ -56,14 +60,20 @@ object ExternalProposalRepoSql {
 
   private[sql] def update(id: ExternalProposal.Id)(e: ExternalProposal.Data, by: User.Id, now: Instant): Update = {
     val fields = fr0"title=${e.title}, duration=${e.duration}, description=${e.description}, slides=${e.slides}, video=${e.video}, tags=${e.tags}, updated_at=$now, updated_by=$by"
-    table.update(fields, fr0"WHERE id=$id")
+    table.update(fields, fr0"WHERE id=$id AND speakers LIKE ${"%" + by.value + "%"}")
   }
+
+  private[sql] def delete(id: ExternalProposal.Id, by: User.Id): Delete =
+    table.delete(fr0"WHERE ep.id=$id AND ep.speakers LIKE ${"%" + by.value + "%"}")
 
   private[sql] def selectOne(id: ExternalProposal.Id): Select[ExternalProposal] =
     table.selectOne[ExternalProposal](fr0"WHERE ep.id=$id", Seq())
 
   private[sql] def selectPage(params: Page.Params): SelectPage[ExternalProposal] =
     table.selectPage[ExternalProposal](params)
+
+  private[sql] def selectPageCommon(talk: Talk.Id, params: Page.Params): SelectPage[CommonProposal] =
+    commonTable.selectPage[CommonProposal](params, fr0"WHERE p.talk_id=$talk")
 
   private[sql] def selectAllCommon(talk: Talk.Id): Select[CommonProposal] =
     commonTable.select[CommonProposal](fr0"WHERE p.talk_id=$talk")
