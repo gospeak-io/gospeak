@@ -1,18 +1,17 @@
-@import gospeak.core.domain.{Proposal, Talk, User, UserRequest}
+@import gospeak.core.domain.{CommonProposal, Talk, User, UserRequest}
+@import gospeak.libs.scala.domain.{EmailAddress, Url}
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.pages.partials.html.{slidesFields, videoFields}
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import gospeak.web.pages.user.partials.html.{container, proposalItem}
+@import gospeak.web.pages.user.partials.html.{container, commonProposalItem}
 @import gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.UserReq
-@import gospeak.libs.scala.domain.{EmailAddress, Page, Url}
+@import gospeak.web.utils.{Formats, UserReq}
 
-@(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Page[Proposal.Full], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Seq[CommonProposal], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"'${talk.title.value}' - Gospeak", b)() {
     @if(talk.status == Talk.Status.Draft) {
         <div class="alert alert-info" role="alert">
@@ -123,14 +122,14 @@
     } else {
         <div class="card">
             <h5 class="card-header d-flex justify-content-between align-items-center">
-                <span>Talk proposed to @Formats.plural(proposals.total.value, "CFP")</span>
+                <span>Talk proposed to @Formats.plural(proposals.length, "CFP")</span>
                 <span>
                     <a class="btn btn-primary btn-sm" href="@TalkCtrl.findExternalEvent(talk.slug)">Show where you gave this talk</a>
                     <a class="btn btn-primary btn-sm" href="@CfpCtrl.list(talk.slug)">Propose your talk to a CFP</a>
                 </span>
             </h5>
             <ul class="list-group list-group-flush">
-            @proposals.items.map { proposal => @proposalItem(proposal) }
+                @proposals.map { proposal => @commonProposalItem(proposal) }
             </ul>
             <div class="card-footer"><a href="@ProposalCtrl.list(talk.slug)">View all</a></div>
         </div>

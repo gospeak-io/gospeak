@@ -124,6 +124,9 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
 
     def rsvp(event: Event, user: User, answer: Event.Rsvp.Answer = Event.Rsvp.Answer.Yes): Event.Rsvp = Event.Rsvp(event.id, answer, now, user)
 
+    def eventExt(name: String, start: String, url: String, logo: Option[String] = None, description: String = "", finish: Option[String] = None, location: Option[GMapPlace] = None, ticketsUrl: Option[String] = None, videosUrl: Option[String] = None, twitterAccount: Option[String] = None, twitterHashtag: Option[String] = None, tags: Seq[String] = Seq(), by: User): ExternalEvent =
+      ExternalEvent(ExternalEvent.Id.generate(), ExternalEvent.Name(name), logo.map(Url.from(_).get).map(Logo), Markdown(description), LocalDateTime.parse(start + "T00:00:00"), finish.map(d => LocalDateTime.parse(d + "T00:00:00")), location, Url.from(url).get, ticketsUrl.map(Url.from(_).get), videosUrl.map(Url.from(_).get), twitterAccount.map(a => Url.from("https://twitter.com/" + a).get).map(TwitterAccount), twitterHashtag.map(TwitterHashtag.from(_).get), tags.map(Tag(_)), Info(by.id, now))
+
     def cfpExt(name: String, url: String, logo: Option[String] = None, begin: Option[String] = None, close: Option[String] = None, start: Option[String] = None, finish: Option[String] = None, eventUrl: Option[String] = None, address: Option[GMapPlace] = None, ticketsUrl: Option[String] = None, videosUrl: Option[String] = None, twitterAccount: Option[String] = None, twitterHashtag: Option[String] = None, tags: Seq[String] = Seq(), description: String = "", by: User): ExternalCfp =
       ExternalCfp(ExternalCfp.Id.generate(), ExternalCfp.Name(name), logo.map(Url.from(_).get).map(Logo), Markdown(description), begin.map(d => LocalDateTime.parse(d + "T00:00:00")), close.map(d => LocalDateTime.parse(d + "T00:00:00")), Url.from(url).get, ExternalCfp.Event(start.map(d => LocalDateTime.parse(d + "T00:00:00")), finish.map(d => LocalDateTime.parse(d + "T00:00:00")), eventUrl.map(Url.from(_).get), address, ticketsUrl.map(Url.from(_).get), videosUrl.map(Url.from(_).get), twitterAccount.map(a => Url.from("https://twitter.com/" + a).get).map(TwitterAccount), twitterHashtag.map(TwitterHashtag.from(_).get)), tags.map(Tag(_)), Info(by.id, now))
 
@@ -310,8 +313,11 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
 
     val eventRsvps = Seq(rsvp(event4, userDemo))
 
-    val devoxx2020 = cfpExt("Devoxx France 2020", "https://cfp.devoxx.fr", Some("https://cfp.devoxx.fr/favicon.ico"), Some("2019-11-01"), Some("2020-01-16"), Some("2020-04-15"), Some("2020-04-17"), Some("https://devoxx.fr"), Some(palaisDesCongres), Some("https://www.devoxx.fr/tickets/"), Some("https://www.youtube.com/channel/UCsVPQfo5RZErDL41LoWvk0A"), Some("DevoxxFR"), Some("DevoxxFR"), Seq("Tech", "Java"), "Initialement très orienté Java, Devoxx France est maintenant une conférence généraliste", userDemo)
-    val cfpExts = Seq(devoxx2020)
+    val devoxx2020 = eventExt("Devoxx France 2020", "2020-04-15", "https://www.devoxx.fr", Some("https://www.devoxx.fr/wp-content/uploads/2019/09/favicon.ico"), "A super event", Some("2020-04-17"), Some(palaisDesCongres), Some("https://www.devoxx.fr/tickets/"), Some("https://www.youtube.com/channel/UCsVPQfo5RZErDL41LoWvk0A"), Some("DevoxxFR"), Some("DevoxxFR"), Seq("Tech", "Java"), userDemo)
+    val eventExts = Seq(devoxx2020)
+
+    val cfpDevoxx2020 = cfpExt("Devoxx France 2020", "https://cfp.devoxx.fr", Some("https://cfp.devoxx.fr/favicon.ico"), Some("2019-11-01"), Some("2020-01-16"), Some("2020-04-15"), Some("2020-04-17"), Some("https://devoxx.fr"), Some(palaisDesCongres), Some("https://www.devoxx.fr/tickets/"), Some("https://www.youtube.com/channel/UCsVPQfo5RZErDL41LoWvk0A"), Some("DevoxxFR"), Some("DevoxxFR"), Seq("Tech", "Java"), "Initialement très orienté Java, Devoxx France est maintenant une conférence généraliste", userDemo)
+    val cfpExts = Seq(cfpDevoxx2020)
 
     val generated = (1 to 25).map { i =>
       val groupId = Group.Id.generate()
@@ -343,6 +349,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       _ <- groupSettings.set(humanTalksSettings)(FakeCtx(now, userDemo, humanTalks))
       _ <- groupMembers.map(GroupRepoSql.insertMember(_).run(xa)).sequence
       _ <- eventRsvps.map(EventRepoSql.insertRsvp(_).run(xa)).sequence
+      _ <- eventExts.map(ExternalEventRepoSql.insert(_).run(xa)).sequence
       _ <- cfpExts.map(ExternalCfpRepoSql.insert(_).run(xa)).sequence
     } yield Done
   }

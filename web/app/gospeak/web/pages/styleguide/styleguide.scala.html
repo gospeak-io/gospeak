@@ -1,4 +1,4 @@
-@import gospeak.core.domain.{Cfp, CommonCfp, Event, Group, Proposal, Talk, User}
+@import gospeak.core.domain.{Cfp, CommonCfp, CommonProposal, Event, Group, Proposal, Talk, User}
 @import gospeak.libs.scala.domain.{Page, Slides, Video}
 @import gospeak.web.domain.PageMeta
 @import gospeak.web.pages.orga.partials.{html => orga}
@@ -12,7 +12,7 @@
 @import gospeak.web.utils.GsForms
 @import gospeak.web.utils.{UserAwareReq, UserReq, OrgaReq}
 
-@(user: User, group: Group, groupFull: Group.Full, cfp: Cfp, event: Event, eventFull: Event.Full, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, params: Page.Params)(implicit userAwareReq: UserAwareReq[AnyContent], userReq: UserReq[AnyContent], orgaReq: OrgaReq[AnyContent])
+@(user: User, group: Group, groupFull: Group.Full, cfp: Cfp, event: Event, eventFull: Event.Full, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, commonProposal: CommonProposal, params: Page.Params)(implicit userAwareReq: UserAwareReq[AnyContent], userReq: UserReq[AnyContent], orgaReq: OrgaReq[AnyContent])
 @section(id: String, title: String, localization: String)(display: String => Html) = {
     <div id="@id" class="section">
         <h2>@title: <code style="font-size: 1rem">@localization</code></h2>
@@ -267,6 +267,11 @@
                 @example(s"$name pending") { _ => @speaker.proposalItem(proposalFull.copy(event = None)) }
                 @example(s"$name accepted") { _ => @speaker.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Accepted))) }
                 @example(s"$name declined") { _ => @speaker.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Declined))) }
+            }
+            @component("proposalItem", "@commonProposalItem(proposalFull)") { name =>
+                @example(s"$name pending") { _ => @speaker.commonProposalItem(commonProposal.copy(event = None)) }
+                @example(s"$name accepted") { _ => @speaker.commonProposalItem(commonProposal.copy(status = Some(Proposal.Status.Accepted))) }
+                @example(s"$name declined") { _ => @speaker.commonProposalItem(commonProposal.copy(status = Some(Proposal.Status.Declined))) }
             }
         }
 

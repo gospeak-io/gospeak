@@ -11,7 +11,7 @@ import gospeak.infra.services.storage.sql.ExternalCfpRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Sorts, Table, Update}
 import gospeak.infra.services.storage.sql.utils.{GenericQuery, GenericRepo}
-import gospeak.libs.scala.domain.{Done, GMapPlace, Page, Tag}
+import gospeak.libs.scala.domain.{Done, Page, Tag}
 
 class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ExternalCfpRepo {
   override def create(data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[ExternalCfp] =
