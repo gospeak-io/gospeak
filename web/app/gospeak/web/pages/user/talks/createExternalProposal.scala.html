@@ -12,12 +12,13 @@
 @container(s"'${talk.title.value}' - Gospeak", b)() {
     @formElt(form, TalkCtrl.doCreateExternalProposal(talk.slug, event.id)) {
         <div class="d-flex justify-content-between align-items-center">
-            <h1>Add an external proposal</h1>
+            <h1>Did you spoke at @event.name.value?</h1>
             <div>
                 @btnCancel(TalkCtrl.detail(talk.slug))
                 @btnSubmit("Create")
             </div>
         </div>
+        <h3>Please, confirm the details of your talk:</h3>
 
         @fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title of your talk")) { (field, args) =>
             @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)

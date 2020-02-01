@@ -4,7 +4,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.utils.UserCtx
-import gospeak.core.domain.{ExternalEvent, ExternalProposal, Talk, User, UserRequest}
+import gospeak.core.domain.{CommonProposal, ExternalEvent, ExternalProposal, Talk, User, UserRequest}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
@@ -31,7 +31,7 @@ class TalkCtrl(cc: ControllerComponents,
                talkRepo: SpeakerTalkRepo,
                proposalRepo: SpeakerProposalRepo,
                externalEventRepo: SpeakerExternalEventRepo,
-               externalProposalRepo: ExternalProposalRepo,
+               externalProposalRepo: SpeakerExternalProposalRepo,
                emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     talkRepo.list(params).map(talks => Ok(html.list(talks)(listBreadcrumb)))
@@ -62,7 +62,7 @@ class TalkCtrl(cc: ControllerComponents,
       talkElt <- OptionT(talkRepo.find(talk))
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(talkElt.id))
       speakers <- OptionT.liftF(userRepo.list(talkElt.users))
-      proposals <- OptionT.liftF(proposalRepo.listFull(talkElt.id, Page.Params.defaults))
+      proposals <- OptionT.liftF(externalProposalRepo.listAllCommon(talkElt.id))
       b = breadcrumb(talkElt)
     } yield Ok(html.detail(talkElt, speakers, invites, proposals, GsForms.invite, GsForms.embed)(b))).value.map(_.getOrElse(talkNotFound(talk)))
   }
@@ -202,7 +202,7 @@ class TalkCtrl(cc: ControllerComponents,
       eventElt <- OptionT(externalEventRepo.find(event))
       filledForm = if (form.hasErrors) form else form.fill(ExternalProposal.Data(talkElt))
       res = Ok(html.createExternalProposal(talkElt, eventElt, filledForm)(breadcrumb(talkElt).add("Add proposal" -> routes.TalkCtrl.createExternalProposal(talk, event))))
-    } yield res).value.map(_.getOrElse(talkNotFound(talk)))
+    } yield res).value.map(_.getOrElse(extEventNotFound(talk, event)))
   }
 }
 
