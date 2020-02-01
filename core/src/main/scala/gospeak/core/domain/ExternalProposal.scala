@@ -9,7 +9,7 @@ import scala.concurrent.duration.FiniteDuration
 final case class ExternalProposal(id: ExternalProposal.Id,
                                   talk: Talk.Id,
                                   event: ExternalEvent.Id,
-                                  title: ExternalProposal.Title,
+                                  title: Talk.Title,
                                   duration: FiniteDuration,
                                   description: Markdown,
                                   speakers: NonEmptyList[User.Id],
@@ -28,9 +28,7 @@ object ExternalProposal {
 
   object Id extends UuidIdBuilder[Id]("ExternalProposal.Id", new Id(_))
 
-  final case class Title(value: String) extends AnyVal
-
-  final case class Data(title: ExternalProposal.Title,
+  final case class Data(title: Talk.Title,
                         duration: FiniteDuration,
                         description: Markdown,
                         slides: Option[Slides],
@@ -39,6 +37,8 @@ object ExternalProposal {
 
   object Data {
     def apply(p: ExternalProposal): Data = new Data(p.title, p.duration, p.description, p.slides, p.video, p.tags)
+
+    def apply(p: Talk): Data = new Data(p.title, p.duration, p.description, p.slides, p.video, p.tags)
   }
 
 }

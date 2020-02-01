@@ -6,7 +6,11 @@ import gospeak.core.domain.{ExternalEvent, ExternalProposal, Talk, User}
 import gospeak.core.domain.utils.UserCtx
 import gospeak.libs.scala.domain.{Done, Page, Tag}
 
-trait ExternalProposalRepo extends PublicExternalProposalRepo with SuggestExternalProposalRepo
+trait ExternalProposalRepo extends SpeakerExternalProposalRepo with PublicExternalProposalRepo with SuggestExternalProposalRepo
+
+trait SpeakerExternalProposalRepo {
+  def create(talk: Talk.Id, event: ExternalEvent.Id, data: ExternalProposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[ExternalProposal]
+}
 
 trait PublicExternalProposalRepo {
   def create(talk: Talk.Id, event: ExternalEvent.Id, data: ExternalProposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[ExternalProposal]

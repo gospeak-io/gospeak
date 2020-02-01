@@ -80,6 +80,8 @@ object CloudinarySrvImpl {
 
   def groupSlackBotFile: Option[String] = Some("slack-bot-avatar")
 
+  def extEventLogoFile(eventName: Option[String]): Option[String] = eventName.filter(_.nonEmpty)
+
   def extCfpLogoFile(cfpName: Option[String]): Option[String] = cfpName.filter(_.nonEmpty)
 
 
@@ -88,6 +90,8 @@ object CloudinarySrvImpl {
   def groupFolder(group: Group): Option[String] = Some(s"groups/${group.slug.value}_${group.id.value}")
 
   def groupPartnerFolder(group: Group): Option[String] = groupFolder(group).map(_ + "/partners")
+
+  def extEventFolder(): Option[String] = Some(s"ext-events")
 
   def extCfpFolder(): Option[String] = Some(s"ext-cfps")
 }

@@ -1,8 +1,9 @@
+@import java.util.concurrent.TimeUnit
+
 @import gospeak.core.domain.Proposal
 @import gospeak.web.api.ui.routes.SuggestCtrl
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.utils.OrgaReq
-@import java.util.concurrent.TimeUnit
 
 @(form: Form[Proposal.DataOrga])(implicit req: OrgaReq[AnyContent])
 @fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title for your proposal (you can adapt your talk title)")) { (field, args) =>

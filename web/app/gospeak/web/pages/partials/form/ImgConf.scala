@@ -14,16 +14,6 @@ final case class ImgConf(folder: Option[String],
                          args: Seq[(String, String)])
 
 object ImgConf {
-  def externalCfpLogo(cfpName: Field)(implicit req: UserReq[AnyContent]): ImgConf =
-    ImgConf(
-      folder = CloudinarySrvImpl.extCfpFolder(),
-      name = CloudinarySrvImpl.extCfpLogoFile(cfpName.value),
-      dynamicName = Some(cfpName.id),
-      tags = Seq(req.user.slug.value, req.user.id.value),
-      maxFiles = Some(1),
-      ratio = Some(1),
-      args = Seq())
-
   def userAvatar()(implicit req: UserReq[AnyContent]): ImgConf =
     ImgConf(
       folder = CloudinarySrvImpl.userFolder(req.user),
@@ -69,6 +59,26 @@ object ImgConf {
       folder = CloudinarySrvImpl.groupFolder(req.group),
       name = CloudinarySrvImpl.groupSlackBotFile,
       dynamicName = None,
+      tags = Seq(req.user.slug.value, req.user.id.value),
+      maxFiles = Some(1),
+      ratio = Some(1),
+      args = Seq())
+
+  def externalEventLogo(eventName: Field)(implicit req: UserReq[AnyContent]): ImgConf =
+    ImgConf(
+      folder = CloudinarySrvImpl.extEventFolder(),
+      name = CloudinarySrvImpl.extEventLogoFile(eventName.value),
+      dynamicName = Some(eventName.id),
+      tags = Seq(req.user.slug.value, req.user.id.value),
+      maxFiles = Some(1),
+      ratio = Some(1),
+      args = Seq())
+
+  def externalCfpLogo(cfpName: Field)(implicit req: UserReq[AnyContent]): ImgConf =
+    ImgConf(
+      folder = CloudinarySrvImpl.extCfpFolder(),
+      name = CloudinarySrvImpl.extCfpLogoFile(cfpName.value),
+      dynamicName = Some(cfpName.id),
       tags = Seq(req.user.slug.value, req.user.id.value),
       maxFiles = Some(1),
       ratio = Some(1),

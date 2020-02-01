@@ -4,7 +4,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.utils.UserCtx
-import gospeak.core.domain.{ExternalProposal, Talk, User, UserRequest}
+import gospeak.core.domain.{ExternalEvent, ExternalProposal, Talk, User, UserRequest}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
@@ -30,6 +30,8 @@ class TalkCtrl(cc: ControllerComponents,
                eventRepo: SpeakerEventRepo,
                talkRepo: SpeakerTalkRepo,
                proposalRepo: SpeakerProposalRepo,
+               externalEventRepo: SpeakerExternalEventRepo,
+               externalProposalRepo: ExternalProposalRepo,
                emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     talkRepo.list(params).map(talks => Ok(html.list(talks)(listBreadcrumb)))
@@ -154,24 +156,52 @@ class TalkCtrl(cc: ControllerComponents,
     talkRepo.editStatus(talk, status).map(_ => Redirect(routes.TalkCtrl.detail(talk)))
   }
 
-  def addExternalProposal(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
-    addExternalProposalView(talk, GsForms.externalProposal)
+  def findExternalEvent(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
+    (for {
+      talkElt <- OptionT(talkRepo.find(talk))
+      events <- OptionT.liftF(externalEventRepo.list(params))
+      res = Ok(html.findExternalEvent(talkElt, events)(extEventsBredcrumb(talkElt)))
+    } yield res).value.map(_.getOrElse(talkNotFound(talk)))
   }
 
-  def doAddExternalProposal(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
-    GsForms.externalProposal.bindFromRequest.fold(
-      formWithErrors => addExternalProposalView(talk, formWithErrors),
-      data => {
-        println(data)
-        IO.pure(Redirect(routes.TalkCtrl.detail(talk)))
-      }
+  def createExternalEvent(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
+    createExternalEventView(talk, GsForms.externalEvent)
+  }
+
+  def doCreateExternalEvent(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
+    GsForms.externalEvent.bindFromRequest.fold(
+      formWithErrors => createExternalEventView(talk, formWithErrors),
+      data => externalEventRepo.create(data).map(e => Redirect(routes.TalkCtrl.createExternalProposal(talk, e.id)))
     )
   }
 
-  private def addExternalProposalView(talk: Talk.Slug, form: Form[ExternalProposal.Data])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
+  private def createExternalEventView(talk: Talk.Slug, form: Form[ExternalEvent.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       talkElt <- OptionT(talkRepo.find(talk))
-      res = Ok(html.addExternalProposal(talkElt, form)(breadcrumb(talkElt).add("Add external proposal" -> routes.TalkCtrl.addExternalProposal(talk))))
+      res = Ok(html.createExternalEvent(talkElt, form)(extEventsBredcrumb(talkElt).add("New" -> routes.TalkCtrl.createExternalEvent(talk))))
+    } yield res).value.map(_.getOrElse(talkNotFound(talk)))
+  }
+
+  def createExternalProposal(talk: Talk.Slug, event: ExternalEvent.Id): Action[AnyContent] = UserAction { implicit req =>
+    createExternalProposalView(talk, event, GsForms.externalProposal)
+  }
+
+  def doCreateExternalProposal(talk: Talk.Slug, event: ExternalEvent.Id): Action[AnyContent] = UserAction { implicit req =>
+    GsForms.externalProposal.bindFromRequest.fold(
+      formWithErrors => createExternalProposalView(talk, event, formWithErrors),
+      data => (for {
+        talkElt <- OptionT(talkRepo.find(talk))
+        _ <- OptionT.liftF(externalProposalRepo.create(talkElt.id, event, data, talkElt.speakers))
+      } yield Redirect(routes.TalkCtrl.detail(talk))).value.map(_.getOrElse(talkNotFound(talk)))
+    )
+  }
+
+  private def createExternalProposalView(talk: Talk.Slug, event: ExternalEvent.Id, form: Form[ExternalProposal.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
+    (for {
+      talkElt <- OptionT(talkRepo.find(talk))
+      eventElt <- OptionT(externalEventRepo.find(event))
+      filledForm = if (form.hasErrors) form else form.fill(ExternalProposal.Data(talkElt))
+      res = Ok(html.createExternalProposal(talkElt, eventElt, filledForm)(breadcrumb(talkElt).add("Add proposal" -> routes.TalkCtrl.createExternalProposal(talk, event))))
     } yield res).value.map(_.getOrElse(talkNotFound(talk)))
   }
 }
@@ -182,4 +212,10 @@ object TalkCtrl {
 
   def breadcrumb(talk: Talk)(implicit req: UserReq[AnyContent]): Breadcrumb =
     listBreadcrumb.addOpt(talk.title.value -> Some(routes.TalkCtrl.detail(talk.slug)).filter(_ => talk.hasSpeaker(req.user.id)))
+
+  def extEventsBredcrumb(talk: Talk)(implicit req: UserReq[AnyContent]): Breadcrumb =
+    breadcrumb(talk).add("Events" -> routes.TalkCtrl.findExternalEvent(talk.slug))
+
+  def extEventBredcrumb(talk: Talk, event: ExternalEvent)(implicit req: UserReq[AnyContent]): Breadcrumb =
+    extEventsBredcrumb(talk).add(event.name.value -> routes.TalkCtrl.findExternalEvent(talk.slug))
 }

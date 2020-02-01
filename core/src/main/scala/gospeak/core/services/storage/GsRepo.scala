@@ -14,6 +14,8 @@ trait GsRepo {
   val proposal: ProposalRepo
   val contact: ContactRepo
   val comment: CommentRepo
-  val externalCfp: ExternalCfpRepo
   val userRequest: UserRequestRepo
+  val externalEvent: ExternalEventRepo
+  val externalCfp: ExternalCfpRepo
+  val externalProposal: ExternalProposalRepo
 }
