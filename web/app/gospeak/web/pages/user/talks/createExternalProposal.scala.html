@@ -1,0 +1,41 @@
+@import java.util.concurrent.TimeUnit
+
+@import gospeak.core.domain.{ExternalEvent, ExternalProposal, Talk}
+@import gospeak.web.api.ui.routes.SuggestCtrl
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.user.partials.html.container
+@import gospeak.web.pages.user.talks.routes.TalkCtrl
+@import gospeak.web.utils.UserReq
+
+@(talk: Talk, event: ExternalEvent, form: Form[ExternalProposal.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@container(s"'${talk.title.value}' - Gospeak", b)() {
+    @formElt(form, TalkCtrl.doCreateExternalProposal(talk.slug, event.id)) {
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Add an external proposal</h1>
+            <div>
+                @btnCancel(TalkCtrl.detail(talk.slug))
+                @btnSubmit("Create")
+            </div>
+        </div>
+
+        @fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title of your talk")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
+        }
+        @fieldHorizontal(form("duration"), Seq("label" -> "Duration", "help" -> "Duration of your proposal")) { (field, args) =>
+            @inputDuration(field, Seq(TimeUnit.MINUTES), args = args)
+        }
+        @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Title of your talk")) { (field, args) =>
+            @inputMarkdown(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
+        }
+        @fieldHorizontal(form("slides"), Seq("label" -> "Slides", "help" -> "Slides for your proposal")) { (field, args) =>
+            @inputEmbed(field, args)
+        }
+        @fieldHorizontal(form("video"), Seq("label" -> "Video", "help" -> "Video of your proposal")) { (field, args) =>
+            @inputEmbed(field, args)
+        }
+        @fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your proposal")) { (field, args) =>
+            @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
+        }
+    }
+}()

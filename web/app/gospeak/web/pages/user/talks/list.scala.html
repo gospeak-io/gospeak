@@ -1,10 +1,10 @@
 @import gospeak.core.domain.Talk
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.user.partials.html.{container, talkItem}
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
 @import gospeak.web.utils.Formats
 @import gospeak.web.utils.UserReq
-@import gospeak.libs.scala.domain.Page
 
 @(talks: Page[Talk])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("My talks - Gospeak", b)() {

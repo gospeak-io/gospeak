@@ -33,7 +33,9 @@ class SuggestCtrl(cc: ControllerComponents,
                   contactRepo: SuggestContactRepo,
                   venueRepo: SuggestVenueRepo,
                   sponsorPackRepo: SuggestSponsorPackRepo,
-                  externalCfpRepo: SuggestExternalCfpRepo) extends ApiCtrl(cc, silhouette, conf) with ApiCtrl.OrgaAction {
+                  externalEventRepo: SuggestExternalEventRepo,
+                  externalCfpRepo: SuggestExternalCfpRepo,
+                  externalProposalRepo: SuggestExternalProposalRepo) extends ApiCtrl(cc, silhouette, conf) with ApiCtrl.OrgaAction {
   def suggestTags(): Action[AnyContent] = UserAwareAction { implicit req =>
     for {
       gTags <- groupRepo.listTags()
@@ -41,8 +43,10 @@ class SuggestCtrl(cc: ControllerComponents,
       eTags <- eventRepo.listTags()
       tTags <- talkRepo.listTags()
       pTags <- proposalRepo.listTags()
+      eeTags <- externalEventRepo.listTags()
       ecTags <- externalCfpRepo.listTags()
-      suggestItems = (gTags ++ cTags ++ eTags ++ tTags ++ pTags ++ ecTags).distinct.map(tag => SuggestedItem(tag.value, tag.value))
+      epTags <- externalProposalRepo.listTags()
+      suggestItems = (gTags ++ cTags ++ eTags ++ tTags ++ pTags ++ eeTags ++ ecTags ++ epTags).distinct.map(tag => SuggestedItem(tag.value, tag.value))
     } yield ApiResult.of(suggestItems.sortBy(_.text))
   }
 

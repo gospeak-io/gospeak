@@ -78,6 +78,9 @@ object PathBindables {
   implicit def meetupGroupUrlNamePathBinder(implicit stringBinder: PathBindable[String]): PathBindable[MeetupGroup.Slug] =
     stringEitherPathBindable[MeetupGroup.Slug](MeetupGroup.Slug.from, _.value)
 
+  implicit def externalEventPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[ExternalEvent.Id] =
+    stringEitherPathBindable[ExternalEvent.Id](ExternalEvent.Id.from, _.value)
+
   implicit def externalCfpPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[ExternalCfp.Id] =
     stringEitherPathBindable[ExternalCfp.Id](ExternalCfp.Id.from, _.value)
 

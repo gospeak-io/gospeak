@@ -118,7 +118,9 @@ object GsForms {
   )(GroupContact.apply)(GroupContact.unapply))
 
   object GroupAccount {
+
     final case class Meetup(group: MeetupGroup.Slug)
+
   }
 
   val groupAccountMeetup: Form[GroupAccount.Meetup] = Form(mapping(
@@ -355,6 +357,21 @@ object GsForms {
     "price" -> price
   )(Sponsor.Data.apply)(Sponsor.Data.unapply))
 
+  val externalEvent: Form[ExternalEvent.Data] = Form(mapping(
+    "name" -> externalEventName,
+    "logo" -> optional(logo),
+    "description" -> markdown,
+    "start" -> localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate),
+    "finish" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(23, 59), _.toLocalDate)),
+    "location" -> optional(gMapPlace),
+    "url" -> url,
+    "tickets" -> optional(url),
+    "videos" -> optional(url),
+    "twitterAccount" -> optional(twitterAccount),
+    "twitterHashtag" -> optional(twitterHashtag),
+    "tags" -> tags
+  )(ExternalEvent.Data.apply)(ExternalEvent.Data.unapply))
+
   val externalCfp: Form[ExternalCfp.Data] = Form(mapping(
     "name" -> externalCfpName,
     "logo" -> optional(logo),
@@ -376,7 +393,7 @@ object GsForms {
   )(ExternalCfp.Data.apply)(ExternalCfp.Data.unapply))
 
   private val externalProposalMapping: Mapping[ExternalProposal.Data] = mapping(
-    "title" -> externalProposalTitle,
+    "title" -> talkTitle,
     "duration" -> duration,
     "description" -> markdown,
     "slides" -> optional(slides),

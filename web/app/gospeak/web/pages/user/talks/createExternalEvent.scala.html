@@ -1,0 +1,68 @@
+@import gospeak.core.domain.{ExternalEvent, Talk}
+@import gospeak.web.api.ui.routes.SuggestCtrl
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.partials.form.ImgConf
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.user.partials.html.container
+@import gospeak.web.pages.user.talks.routes.TalkCtrl
+@import gospeak.web.utils.UserReq
+
+@(talk: Talk, form: Form[ExternalEvent.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@container("Add event - Gospeak", b)() {
+    @formElt(form, TalkCtrl.doCreateExternalEvent(talk.slug)) {
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Add an event</h1>
+            <div>
+                @btnCancel(TalkCtrl.findExternalEvent(talk.slug))
+                @btnSubmit("Add event")
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header" data-toggle="collapse" data-target="#eventCollapse">Event infos</div>
+            <div class="card-body collapse show" id="eventCollapse">
+                @fieldHorizontal(form("url"), Seq("label" -> "Url", "help" -> "The link to the event website")) { (field, args) =>
+                    @inputUrl(field, Seq("placeholder" -> "ex: http://2018.breizhcamp.org", "autofocus" -> "true") ++ args)
+                }
+                @fieldHorizontal(form("name"), Seq("label" -> "Name")) { (field, args) =>
+                    @inputText(field, Seq("placeholder" -> "The event name") ++ args)
+                }
+                @fieldHorizontal(form("start"), Seq("label" -> "Dates")) { (field, args) =>
+                    <div class="row">
+                        <div class="col">@inputLocalDate(field, Seq("placeholder" -> "Start date") ++ args)</div>
+                        <div class="col">@inputLocalDate(form("finish"), Seq("placeholder" -> "End date") ++ args)</div>
+                    </div>
+                }
+                @fieldHorizontal(form("logo"), Seq("label" -> "Logo")) { (field, args) =>
+                    @inputImg(field, ImgConf.externalEventLogo(form("name")))
+                }
+                @fieldHorizontal(form("location"), Seq("label" -> "Location")) { (field, args) =>
+                    @inputGMapPlace(field, Seq("placeholder" -> "Location of the event (address or city)") ++ args)
+                }
+                @fieldHorizontal(form("tags"), Seq("label" -> "Tags")) { (field, args) =>
+                    @inputTags(field, Seq("remote" -> SuggestCtrl.suggestTags().toString, "placeholder" -> "Main topics of this event") ++ args)
+                }
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-header" data-toggle="collapse" data-target="#moreCollapse">More infos</div>
+            <div id="moreCollapse" class="card-body collapse @if(Seq("tickets", "videos", "twitterAccount", "twitterHashtag", "description").exists(f => form(f).value.isDefined)){show}">
+                @fieldHorizontal(form("tickets"), Seq("label" -> "Tickets")) { (field, args) =>
+                    @inputUrl(field, Seq("placeholder" -> "Url to buy tickets") ++ args)
+                }
+                @fieldHorizontal(form("videos"), Seq("label" -> "Videos")) { (field, args) =>
+                    @inputUrl(field, Seq("placeholder" -> "Url to find videos") ++ args)
+                }
+                @fieldHorizontal(form("twitterAccount"), Seq("label" -> "Twitter account")) { (field, args) =>
+                    @inputTwitterAccount(field, Seq("placeholder" -> "ex: https://twitter.com/DevoxxFR") ++ args)
+                }
+                @fieldHorizontal(form("twitterHashtag"), Seq("label" -> "Twitter hashtag")) { (field, args) =>
+                    @inputTwitterHashtag(field, Seq("placeholder" -> "ex: #DevoxxFR") ++ args)
+                }
+                @fieldHorizontal(form("description"), Seq("label" -> "Description")) { (field, args) =>
+                    @inputMarkdown(field, Seq("placeholder" -> "Tell us a bit more about this event") ++ args)
+                }
+            </div>
+        </div>
+    }
+}()
