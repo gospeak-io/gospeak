@@ -15,7 +15,7 @@ import gospeak.web.pages.orga.settings.SettingsCtrl
 import gospeak.web.pages.orga.settings.routes.{SettingsCtrl => SettingsRoutes}
 import gospeak.web.pages.user.UserCtrl
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import gospeak.web.utils.{OrgaReq, UICtrl, UserReq}
+import gospeak.web.utils.{GsForms, OrgaReq, UICtrl, UserReq}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Page
 import play.api.data.Form
@@ -36,11 +36,11 @@ class GroupCtrl(cc: ControllerComponents,
                 userRequestRepo: OrgaUserRequestRepo,
                 emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def create(): Action[AnyContent] = UserAction { implicit req =>
-    createForm(GroupForms.create)
+    createForm(GsForms.group)
   }
 
   def doCreate(): Action[AnyContent] = UserAction { implicit req =>
-    GroupForms.create.bindFromRequest.fold(
+    GsForms.group.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
       data => groupRepo.create(data).map(_ => Redirect(routes.GroupCtrl.detail(data.slug)))
     )
@@ -85,16 +85,16 @@ class GroupCtrl(cc: ControllerComponents,
   }
 
   def edit(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    editForm(GroupForms.create)
+    editForm(GsForms.group)
   }
 
   def doEdit(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    GroupForms.create.bindFromRequest.fold(
+    GsForms.group.bindFromRequest.fold(
       formWithErrors => editForm(formWithErrors),
       data => for {
         newSlugExits <- groupRepo.exists(data.slug)
         res <- if (newSlugExits && data.slug != group) {
-          editForm(GroupForms.create.fillAndValidate(data).withError("slug", s"Slug ${data.slug.value} already taken by an other group"))
+          editForm(GsForms.group.fillAndValidate(data).withError("slug", s"Slug ${data.slug.value} already taken by an other group"))
         } else {
           groupRepo.edit(data).map(_ => Redirect(SettingsRoutes.settings(data.slug)))
         }
@@ -131,11 +131,11 @@ class GroupCtrl(cc: ControllerComponents,
   }
 
   def contactMembers(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    contactMembersView(GroupForms.contactMembers)
+    contactMembersView(GsForms.groupContact)
   }
 
   def doContactMembers(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    GroupForms.contactMembers.bindFromRequest.fold(
+    GsForms.groupContact.bindFromRequest.fold(
       formWithErrors => contactMembersView(formWithErrors),
       data => (for {
         sender <- OptionT(IO.pure(req.group.senders(req.user).find(_.address == data.from)))
@@ -146,7 +146,7 @@ class GroupCtrl(cc: ControllerComponents,
     )
   }
 
-  private def contactMembersView(form: Form[GroupForms.ContactMembers])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
+  private def contactMembersView(form: Form[GsForms.GroupContact])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
     val b = breadcrumb.add("Contact members" -> routes.GroupCtrl.contactMembers(req.group.slug))
     IO.pure(Ok(html.contactMembers(form)(b)))
   }

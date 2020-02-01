@@ -2,11 +2,11 @@ package gospeak.web.api.domain
 
 import gospeak.core.domain.User
 import gospeak.core.domain.utils.{BasicCtx, Constants}
-import gospeak.web.api.domain.utils.ApiSocial
-import gospeak.web.auth.AuthForms.{LoginData, SignupData}
-import play.api.libs.json.{Json, Reads, Writes}
-import gospeak.web.api.domain.utils.JsonFormats._
 import gospeak.libs.scala.domain.{EmailAddress, Secret}
+import gospeak.web.api.domain.utils.ApiSocial
+import gospeak.web.api.domain.utils.JsonFormats._
+import gospeak.web.utils.GsForms
+import play.api.libs.json.{Json, Reads, Writes}
 
 object ApiUser {
 
@@ -75,7 +75,7 @@ object ApiUser {
                                  email: EmailAddress,
                                  password: Secret,
                                  rememberMe: Option[Boolean]) {
-    def asData: SignupData = SignupData(username, firstName, lastName, email, password, rememberMe.getOrElse(false))
+    def asData: GsForms.SignupData = GsForms.SignupData(username, firstName, lastName, email, password, rememberMe.getOrElse(false))
   }
 
   object SignupPayload {
@@ -85,7 +85,7 @@ object ApiUser {
   final case class LoginPayload(email: EmailAddress,
                                 password: Secret,
                                 rememberMe: Option[Boolean]) {
-    def asData: LoginData = LoginData(email, password, rememberMe.getOrElse(false))
+    def asData: GsForms.LoginData = GsForms.LoginData(email, password, rememberMe.getOrElse(false))
   }
 
   object LoginPayload {

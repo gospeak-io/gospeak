@@ -12,7 +12,7 @@ import gospeak.web.auth.exceptions.DuplicateEmailException
 import gospeak.web.domain.Breadcrumb
 import gospeak.web.pages.orga.GroupCtrl
 import gospeak.web.pages.orga.partners.PartnerCtrl._
-import gospeak.web.utils.{OrgaReq, UICtrl}
+import gospeak.web.utils.{GsForms, OrgaReq, UICtrl}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Page
 import play.api.data.Form
@@ -37,11 +37,11 @@ class PartnerCtrl(cc: ControllerComponents,
   }
 
   def create(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    createView(group, PartnerForms.create)
+    createView(group, GsForms.partner)
   }
 
   def doCreate(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    PartnerForms.create.bindFromRequest.fold(
+    GsForms.partner.bindFromRequest.fold(
       formWithErrors => createView(group, formWithErrors),
       data => partnerRepo.create(data).map(partnerElt => Redirect(routes.PartnerCtrl.detail(group, partnerElt.slug)))
     )
@@ -67,17 +67,17 @@ class PartnerCtrl(cc: ControllerComponents,
   }
 
   def edit(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    editView(group, partner, PartnerForms.create)
+    editView(group, partner, GsForms.partner)
   }
 
   def doEdit(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    PartnerForms.create.bindFromRequest.fold(
+    GsForms.partner.bindFromRequest.fold(
       formWithErrors => editView(group, partner, formWithErrors),
       data => for {
         partnerOpt <- partnerRepo.find(data.slug)
         res <- partnerOpt match {
           case Some(duplicate) if data.slug != partner =>
-            editView(group, partner, PartnerForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by partner: ${duplicate.name.value}"))
+            editView(group, partner, GsForms.partner.fillAndValidate(data).withError("slug", s"Slug already taken by partner: ${duplicate.name.value}"))
           case _ =>
             partnerRepo.edit(partner, data).map { _ => Redirect(routes.PartnerCtrl.detail(group, data.slug)) }
         }
@@ -100,11 +100,11 @@ class PartnerCtrl(cc: ControllerComponents,
   /* VENUE */
 
   def createVenue(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    createVenueView(group, partner, PartnerForms.createVenue)
+    createVenueView(group, partner, GsForms.venue)
   }
 
   def doCreateVenue(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    PartnerForms.createVenue.bindFromRequest.fold(
+    GsForms.venue.bindFromRequest.fold(
       formWithErrors => createVenueView(group, partner, formWithErrors),
       data => partnerRepo.find(partner).flatMap {
         case Some(partnerElt) => venueRepo.create(partnerElt.id, data).map(_ => Redirect(routes.PartnerCtrl.detail(group, partner)))
@@ -122,11 +122,11 @@ class PartnerCtrl(cc: ControllerComponents,
   }
 
   def editVenue(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    editVenueView(group, partner, venue, PartnerForms.createVenue)
+    editVenueView(group, partner, venue, GsForms.venue)
   }
 
   def doEditVenue(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    PartnerForms.createVenue.bindFromRequest.fold(
+    GsForms.venue.bindFromRequest.fold(
       formWithErrors => editVenueView(group, partner, venue, formWithErrors),
       data => venueRepo.edit(venue, data).map(_ => Redirect(routes.PartnerCtrl.detail(group, partner)))
     )
@@ -148,11 +148,11 @@ class PartnerCtrl(cc: ControllerComponents,
   /* CONTACT */
 
   def createContact(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    createContactView(group, partner, PartnerForms.createContact)
+    createContactView(group, partner, GsForms.contact)
   }
 
   def doCreateContact(group: Group.Slug, partner: Partner.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    PartnerForms.createContact.bindFromRequest.fold(
+    GsForms.contact.bindFromRequest.fold(
       formWithErrors => createContactView(group, partner, formWithErrors),
       data => (for {
         partnerElt <- OptionT(partnerRepo.find(partner))
@@ -161,8 +161,8 @@ class PartnerCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(contactRepo.create(data))
       } yield Redirect(routes.PartnerCtrl.detail(group, partner))).value.map(_.getOrElse(partnerNotFound(group, partner)))
         .recoverWith {
-          case _: DuplicateEmailException => createContactView(group, partner, PartnerForms.createContact.bindFromRequest().withError("email", "Email already exists"))
-          case NonFatal(e) => createContactView(group, partner, PartnerForms.createContact.bindFromRequest().withGlobalError(e.getMessage))
+          case _: DuplicateEmailException => createContactView(group, partner, GsForms.contact.bindFromRequest().withError("email", "Email already exists"))
+          case NonFatal(e) => createContactView(group, partner, GsForms.contact.bindFromRequest().withGlobalError(e.getMessage))
         }
     )
   }
@@ -176,11 +176,11 @@ class PartnerCtrl(cc: ControllerComponents,
   }
 
   def editContact(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    editContactView(group, partner, contact, PartnerForms.createContact)
+    editContactView(group, partner, contact, GsForms.contact)
   }
 
   def doEditContact(group: Group.Slug, partner: Partner.Slug, contact: Contact.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    PartnerForms.createContact.bindFromRequest.fold(
+    GsForms.contact.bindFromRequest.fold(
       formWithErrors => editContactView(group, partner, contact, formWithErrors),
       data => (for {
         partnerElt <- OptionT(partnerRepo.find(partner))
@@ -190,8 +190,8 @@ class PartnerCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(contactRepo.edit(contact, data))
       } yield Redirect(routes.PartnerCtrl.detail(group, partner))).value.map(_.getOrElse(partnerNotFound(group, partner)))
         .recoverWith {
-          case _: DuplicateEmailException => editContactView(group, partner, contact, PartnerForms.createContact.bindFromRequest().withError("email", "Email already exists"))
-          case NonFatal(e) => editContactView(group, partner, contact, PartnerForms.createContact.bindFromRequest().withGlobalError(e.getMessage))
+          case _: DuplicateEmailException => editContactView(group, partner, contact, GsForms.contact.bindFromRequest().withError("email", "Email already exists"))
+          case NonFatal(e) => editContactView(group, partner, contact, GsForms.contact.bindFromRequest().withGlobalError(e.getMessage))
         }
     )
   }

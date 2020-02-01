@@ -1,14 +1,14 @@
 @import gospeak.core.domain.{Group, User, UserRequest}
 @import gospeak.core.services.slack.domain.SlackCredentials
+@import gospeak.libs.scala.domain.EmailAddress
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.partials.html.container
 @import gospeak.web.pages.orga.routes.GroupCtrl
-@import gospeak.web.pages.orga.settings.SettingsForms.MeetupAccount
 @import gospeak.web.pages.orga.settings.partials.html._
+@import gospeak.web.utils.GsForms
 @import gospeak.web.utils.OrgaReq
-@import gospeak.libs.scala.domain.EmailAddress
 
-@(settings: Group.Settings, orgas: Seq[User], invites: Seq[UserRequest.GroupInvite], meetupForm: Form[MeetupAccount], slackForm: Form[SlackCredentials], inviteOrgaForm: Form[EmailAddress])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(settings: Group.Settings, orgas: Seq[User], invites: Seq[UserRequest.GroupInvite], meetupForm: Form[GsForms.GroupAccount.Meetup], slackForm: Form[SlackCredentials], inviteOrgaForm: Form[EmailAddress])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${req.group.name.value} settings - Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>Settings</span>

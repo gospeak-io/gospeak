@@ -7,16 +7,15 @@ import gospeak.core.domain._
 import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Done, Page, Slides, Video}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb
 import gospeak.web.emails.Emails
 import gospeak.web.pages.orga.cfps.CfpCtrl
 import gospeak.web.pages.orga.cfps.proposals.ProposalCtrl._
-import gospeak.web.pages.user.talks.proposals.{ProposalForms => SpeakerProposalForms}
-import gospeak.web.utils.{GenericForm, OrgaReq, UICtrl}
-import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Done, Page, Slides, Video}
+import gospeak.web.utils.{GsForms, OrgaReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -45,7 +44,7 @@ class ProposalCtrl(cc: ControllerComponents,
   }
 
   def detail(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    proposalView(group, cfp, proposal, GenericForm.comment, GenericForm.comment)
+    proposalView(group, cfp, proposal, GsForms.comment, GsForms.comment)
   }
 
   def doRate(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, grade: Proposal.Rating.Grade): Action[AnyContent] = OrgaAction(group) { implicit req =>
@@ -57,8 +56,8 @@ class ProposalCtrl(cc: ControllerComponents,
   }
 
   def doSendComment(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, orga: Boolean): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    GenericForm.comment.bindFromRequest.fold(
-      formWithErrors => proposalView(group, cfp, proposal, if (orga) GenericForm.comment else formWithErrors, if (orga) formWithErrors else GenericForm.comment),
+    GsForms.comment.bindFromRequest.fold(
+      formWithErrors => proposalView(group, cfp, proposal, if (orga) GsForms.comment else formWithErrors, if (orga) formWithErrors else GsForms.comment),
       data => (for {
         proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
         cfpElt <- OptionT(cfpRepo.find(cfp))
@@ -86,16 +85,16 @@ class ProposalCtrl(cc: ControllerComponents,
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposal))
       events <- OptionT.liftF(eventRepo.list(proposalElt.event.map(_.id).toList))
       b = breadcrumb(proposalElt.cfp, proposalElt.proposal)
-      res = Ok(html.detail(proposalElt, speakers, ratings, comments, orgaComments, invites, events, SpeakerProposalForms.addSpeaker, GenericForm.embed, commentForm, orgaCommentForm)(b))
+      res = Ok(html.detail(proposalElt, speakers, ratings, comments, orgaComments, invites, events, GsForms.invite, GsForms.embed, commentForm, orgaCommentForm)(b))
     } yield res).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
   def edit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    editView(group, cfp, proposal, ProposalForms.create)
+    editView(group, cfp, proposal, GsForms.proposalOrga)
   }
 
   def doEdit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    ProposalForms.create.bindFromRequest.fold(
+    GsForms.proposalOrga.bindFromRequest.fold(
       formWithErrors => editView(group, cfp, proposal, formWithErrors),
       data => proposalRepo.edit(cfp, proposal, data).map { _ => Redirect(routes.ProposalCtrl.detail(group, cfp, proposal)) }
     )
@@ -112,7 +111,7 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def inviteSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
-    SpeakerProposalForms.addSpeaker.bindFromRequest.fold(
+    GsForms.invite.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       email => (for {
         proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
@@ -148,7 +147,7 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def doAddSlides(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
-    GenericForm.embed.bindFromRequest.fold(
+    GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
@@ -159,7 +158,7 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def doAddVideo(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
-    GenericForm.embed.bindFromRequest.fold(
+    GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))

@@ -1,19 +1,18 @@
 @import gospeak.core.domain.{Cfp, Group, Talk}
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.auth.routes.AuthCtrl
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
-@import gospeak.web.pages.published.cfps.CfpForms.Create
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.partials.html.container
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import gospeak.web.utils.Formats
+@import gospeak.web.utils.GsForms
 @import gospeak.web.utils.UserAwareReq
 @import java.util.concurrent.TimeUnit
 
-@import gospeak.libs.scala.domain.Page
-
-@(group: Group, cfp: Cfp, talks: Page[Talk], form: Form[Create])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(group: Group, cfp: Cfp, talks: Page[Talk], form: Form[GsForms.TalkLogged])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @talkItem(talk: Talk) = {
     <a href="@ProposalCtrl.create(talk.slug, cfp.slug)" class="list-group-item list-group-item-action">
         <h5 class="mb-0">@talk.title.value</h5>

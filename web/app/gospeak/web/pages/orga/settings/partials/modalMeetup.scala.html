@@ -1,10 +1,10 @@
 @import gospeak.core.services.meetup.domain.MeetupCredentials
-@import gospeak.web.pages.orga.settings.SettingsForms.MeetupAccount
 @import gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.GsForms
 @import gospeak.web.utils.OrgaReq
 
-@(id: String, meetupForm: Form[MeetupAccount], credsOpt: Option[MeetupCredentials])(implicit req: OrgaReq[AnyContent])
+@(id: String, meetupForm: Form[GsForms.GroupAccount.Meetup], credsOpt: Option[MeetupCredentials])(implicit req: OrgaReq[AnyContent])
 <div class="modal fade" id="@id" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">

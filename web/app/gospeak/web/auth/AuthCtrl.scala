@@ -16,7 +16,7 @@ import gospeak.web.auth.exceptions.{AccountValidationRequiredException, Duplicat
 import gospeak.web.auth.services.AuthSrv
 import gospeak.web.emails.Emails
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import gospeak.web.utils.{UICtrl, UserAwareReq}
+import gospeak.web.utils.{GsForms, UICtrl, UserAwareReq}
 import gospeak.libs.scala.domain.{CustomException, EmailAddress}
 import play.api.data.Form
 import play.api.mvc._
@@ -32,11 +32,11 @@ class AuthCtrl(cc: ControllerComponents,
                authSrv: AuthSrv,
                emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.Auth {
   def signup(redirect: Option[String]): Action[AnyContent] = UserAwareAction { implicit req =>
-    loggedRedirect(IO.pure(Ok(html.signup(AuthForms.signup, redirect))), redirect)
+    loggedRedirect(IO.pure(Ok(html.signup(GsForms.signup, redirect))), redirect)
   }
 
   def doSignup(redirect: Option[String]): Action[AnyContent] = UserAwareAction { implicit req =>
-    AuthForms.signup.bindFromRequest.fold(
+    GsForms.signup.bindFromRequest.fold(
       formWithErrors => IO.pure(BadRequest(html.signup(formWithErrors, redirect))),
       data => (for {
         user <- authSrv.createIdentity(data)
@@ -45,32 +45,32 @@ class AuthCtrl(cc: ControllerComponents,
         (authenticator, result) <- authSrv.login(user, data.rememberMe, loggedRedirect(redirect)(_))
       } yield result: Result).recoverWith {
         case e: AccountValidationRequiredException => authSrv.logout(e.identity, Redirect(routes.AuthCtrl.login(redirect)).flashing("warning" -> "Account created, you need to validate it by clicking on the email validation link"))
-        case _: DuplicateIdentityException => IO.pure(BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError("User already exists"), redirect)))
-        case e: DuplicateSlugException => IO.pure(BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError(s"Username ${e.slug.value} is already taken"), redirect)))
-        case NonFatal(e) => IO.pure(BadRequest(html.signup(AuthForms.signup.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), redirect)))
+        case _: DuplicateIdentityException => IO.pure(BadRequest(html.signup(GsForms.signup.fill(data).withGlobalError("User already exists"), redirect)))
+        case e: DuplicateSlugException => IO.pure(BadRequest(html.signup(GsForms.signup.fill(data).withGlobalError(s"Username ${e.slug.value} is already taken"), redirect)))
+        case NonFatal(e) => IO.pure(BadRequest(html.signup(GsForms.signup.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), redirect)))
       }
     )
   }
 
   def login(redirect: Option[String]): Action[AnyContent] = UserAwareAction { implicit req =>
-    loggedRedirect(IO.pure(Ok(html.login(AuthForms.login, redirect, authSrv.providerIds))), redirect)
+    loggedRedirect(IO.pure(Ok(html.login(GsForms.login, redirect, authSrv.providerIds))), redirect)
   }
 
   def doLogin(redirect: Option[String]): Action[AnyContent] = UserAwareAction { implicit req =>
-    AuthForms.login.bindFromRequest.fold(
+    GsForms.login.bindFromRequest.fold(
       formWithErrors => IO.pure(BadRequest(html.login(formWithErrors, redirect, authSrv.providerIds))),
       data => (for {
         user <- authSrv.getIdentity(data)
         (_, result) <- authSrv.login(user, data.rememberMe, loggedRedirect(redirect)(_))
       } yield result: Result).recover {
-        case _: AccountValidationRequiredException => Ok(html.login(AuthForms.login.fill(data).withGlobalError(
+        case _: AccountValidationRequiredException => Ok(html.login(GsForms.login.fill(data).withGlobalError(
           s"""You need to validate your account by clicking on the email validation link
              |<a href="${routes.AuthCtrl.resendEmailValidationExt(data.email)}" class="btn btn-danger btn-xs">Resend validation email</a>
              |""".stripMargin
         ), redirect, authSrv.providerIds))
-        case _: IdentityNotFoundException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), redirect, authSrv.providerIds))
-        case _: InvalidPasswordException => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError("Wrong login or password"), redirect, authSrv.providerIds))
-        case NonFatal(e) => BadRequest(html.login(AuthForms.login.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), redirect, authSrv.providerIds))
+        case _: IdentityNotFoundException => BadRequest(html.login(GsForms.login.fill(data).withGlobalError("Wrong login or password"), redirect, authSrv.providerIds))
+        case _: InvalidPasswordException => BadRequest(html.login(GsForms.login.fill(data).withGlobalError("Wrong login or password"), redirect, authSrv.providerIds))
+        case NonFatal(e) => BadRequest(html.login(GsForms.login.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), redirect, authSrv.providerIds))
       }
     )
   }
@@ -129,11 +129,11 @@ class AuthCtrl(cc: ControllerComponents,
   }
 
   def forgotPassword(redirect: Option[String]): Action[AnyContent] = UserAwareAction { implicit req =>
-    loggedRedirect(IO.pure(Ok(html.forgotPassword(AuthForms.forgotPassword, redirect))), redirect)
+    loggedRedirect(IO.pure(Ok(html.forgotPassword(GsForms.forgotPassword, redirect))), redirect)
   }
 
   def doForgotPassword(redirect: Option[String]): Action[AnyContent] = UserAwareAction { implicit req =>
-    AuthForms.forgotPassword.bindFromRequest.fold(
+    GsForms.forgotPassword.bindFromRequest.fold(
       formWithErrors => IO.pure(BadRequest(html.forgotPassword(formWithErrors, redirect))),
       data => (for {
         user <- OptionT(userRepo.find(data.email))
@@ -146,11 +146,11 @@ class AuthCtrl(cc: ControllerComponents,
   }
 
   def resetPassword(id: UserRequest.Id): Action[AnyContent] = UserAwareAction { implicit req =>
-    loggedRedirect(resetPasswordForm(id, AuthForms.resetPassword), None)
+    loggedRedirect(resetPasswordForm(id, GsForms.resetPassword), None)
   }
 
   def doResetPassword(id: UserRequest.Id): Action[AnyContent] = UserAwareAction { implicit req =>
-    AuthForms.resetPassword.bindFromRequest.fold(
+    GsForms.resetPassword.bindFromRequest.fold(
       formWithErrors => resetPasswordForm(id, formWithErrors),
       data => (for {
         passwordReset <- OptionT(userRequestRepo.findPendingPasswordResetRequest(id, req.now))
@@ -160,7 +160,7 @@ class AuthCtrl(cc: ControllerComponents,
     )
   }
 
-  private def resetPasswordForm(id: UserRequest.Id, form: Form[AuthForms.ResetPasswordData])(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
+  private def resetPasswordForm(id: UserRequest.Id, form: Form[GsForms.ResetPasswordData])(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     userRequestRepo.findPendingPasswordResetRequest(id, req.now).map { passwordResetOpt =>
       passwordResetOpt.map { passwordReset =>
         Ok(html.resetPassword(passwordReset, form))

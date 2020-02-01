@@ -18,9 +18,8 @@ import gospeak.web.domain.Breadcrumb
 import gospeak.web.emails.Emails
 import gospeak.web.pages.orga.GroupCtrl
 import gospeak.web.pages.orga.settings.SettingsCtrl._
-import gospeak.web.pages.orga.settings.SettingsForms.{AddAction, EventTemplateItem, MeetupAccount}
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import gospeak.web.utils.{GenericForm, OrgaReq, UICtrl}
+import gospeak.web.utils.{GsForms, OrgaReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
 import play.twirl.api.HtmlFormat
@@ -42,13 +41,13 @@ class SettingsCtrl(cc: ControllerComponents,
   }
 
   def createAction(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    IO.pure(Ok(createActionView(SettingsForms.addAction)))
+    IO.pure(Ok(createActionView(GsForms.groupAction)))
   }
 
   def doCreateAction(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
       settings <- groupSettingsRepo.find
-      res <- SettingsForms.addAction.bindFromRequest.fold(
+      res <- GsForms.groupAction.bindFromRequest.fold(
         formWithErrors => IO.pure(BadRequest(createActionView(formWithErrors))),
         data => groupSettingsRepo.set(createActionToSettings(settings, data))
           .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> "Action created"))
@@ -56,7 +55,7 @@ class SettingsCtrl(cc: ControllerComponents,
     } yield res
   }
 
-  private def createActionView(actionForm: Form[AddAction])(implicit req: OrgaReq[AnyContent]): HtmlFormat.Appendable = {
+  private def createActionView(actionForm: Form[GsForms.GroupAction])(implicit req: OrgaReq[AnyContent]): HtmlFormat.Appendable = {
     val b = breadcrumb("Create action" -> routes.SettingsCtrl.createAction(req.group.slug))
     html.actionCreate(actionForm)(b)
   }
@@ -65,14 +64,14 @@ class SettingsCtrl(cc: ControllerComponents,
     (for {
       settings <- OptionT.liftF(groupSettingsRepo.find)
       action <- OptionT(IO.pure(settings.actions.get(trigger).flatMap(_.lift(index))))
-      res = Ok(updateActionView(trigger, index, SettingsForms.addAction.fill(AddAction(trigger, action))))
+      res = Ok(updateActionView(trigger, index, GsForms.groupAction.fill(GsForms.GroupAction(trigger, action))))
     } yield res).value.map(_.getOrElse(groupNotFound(group)))
   }
 
   def doUpdateAction(group: Group.Slug, trigger: Group.Settings.Action.Trigger, index: Int): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
       settings <- groupSettingsRepo.find
-      res <- SettingsForms.addAction.bindFromRequest.fold(
+      res <- GsForms.groupAction.bindFromRequest.fold(
         formWithErrors => IO.pure(BadRequest(updateActionView(trigger, index, formWithErrors))),
         data => groupSettingsRepo.set(updateActionToSettings(settings, trigger, index, data))
           .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> "Action updated"))
@@ -80,7 +79,7 @@ class SettingsCtrl(cc: ControllerComponents,
     } yield res
   }
 
-  private def updateActionView(trigger: Group.Settings.Action.Trigger, index: Int, actionForm: Form[AddAction])(implicit req: OrgaReq[AnyContent]): HtmlFormat.Appendable = {
+  private def updateActionView(trigger: Group.Settings.Action.Trigger, index: Int, actionForm: Form[GsForms.GroupAction])(implicit req: OrgaReq[AnyContent]): HtmlFormat.Appendable = {
     val b = breadcrumb("Update action" -> routes.SettingsCtrl.createAction(req.group.slug))
     html.actionUpdate(trigger, index, actionForm)(b)
   }
@@ -93,7 +92,7 @@ class SettingsCtrl(cc: ControllerComponents,
   }
 
   def meetupAuthorize(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    SettingsForms.meetupAccount.bindFromRequest.fold(
+    GsForms.groupAccountMeetup.bindFromRequest.fold(
       formWithErrors => groupSettingsRepo.find.flatMap(settingsView(_, meetup = Some(formWithErrors))),
       data => {
         val redirectUri = routes.SettingsCtrl.meetupCallback(group, data.group).absoluteURL(meetupSrv.hasSecureCallback)
@@ -127,7 +126,7 @@ class SettingsCtrl(cc: ControllerComponents,
   def updateSlackAccount(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
       settings <- groupSettingsRepo.find
-      res <- SettingsForms.slackAccount(conf.app.aesKey).bindFromRequest.fold(
+      res <- GsForms.groupAccountSlack(conf.app.aesKey).bindFromRequest.fold(
         formWithErrors => settingsView(settings, slack = Some(formWithErrors)),
         creds => slackSrv.getInfos(creds.token, conf.app.aesKey)
           .flatMap(_ => groupSettingsRepo.set(settings.set(creds)))
@@ -148,9 +147,9 @@ class SettingsCtrl(cc: ControllerComponents,
   def updateEventTemplate(group: Group.Slug, templateId: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       settings <- OptionT.liftF(groupSettingsRepo.find)
-      template <- templateId.map(id => OptionT.fromOption[IO](settings.event.getTemplate(id)).map(t => Some(EventTemplateItem(id, t.asMarkdown))))
+      template <- templateId.map(id => OptionT.fromOption[IO](settings.event.getTemplate(id)).map(t => Some(GsForms.GroupEventTemplateItem(id, t.asMarkdown))))
         .getOrElse(OptionT.pure[IO](None))
-      form = template.map(SettingsForms.eventTemplateItem.fill).getOrElse(SettingsForms.eventTemplateItem)
+      form = template.map(GsForms.groupEventTemplateItem.fill).getOrElse(GsForms.groupEventTemplateItem)
     } yield updateEventTemplateView(templateId, settings, form))
       .value.map(_.getOrElse(groupNotFound(group)))
   }
@@ -158,10 +157,10 @@ class SettingsCtrl(cc: ControllerComponents,
   def doUpdateEventTemplate(group: Group.Slug, templateId: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
       settings <- groupSettingsRepo.find
-      res <- SettingsForms.eventTemplateItem.bindFromRequest.fold(
+      res <- GsForms.groupEventTemplateItem.bindFromRequest.fold(
         formWithErrors => IO.pure(updateEventTemplateView(templateId, settings, formWithErrors)),
         data => templateId.map(id => settings.updateEventTemplate(id, data.id, data.template)).getOrElse(settings.addEventTemplate(data.id, data.template.asText)).fold(
-          e => IO.pure(updateEventTemplateView(templateId, settings, SettingsForms.eventTemplateItem.bindFromRequest.withGlobalError(e.getMessage))),
+          e => IO.pure(updateEventTemplateView(templateId, settings, GsForms.groupEventTemplateItem.bindFromRequest.withGlobalError(e.getMessage))),
           updated => groupSettingsRepo.set(updated)
             .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Template '${data.id}' updated for events"))
         )
@@ -179,7 +178,7 @@ class SettingsCtrl(cc: ControllerComponents,
 
   def inviteOrga(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = Redirect(routes.SettingsCtrl.settings(group))
-    GenericForm.invite.bindFromRequest.fold(
+    GsForms.invite.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       email => for {
         invite <- userRequestRepo.invite(email)
@@ -209,7 +208,7 @@ class SettingsCtrl(cc: ControllerComponents,
   }
 
   private def settingsView(settings: Group.Settings,
-                           meetup: Option[Form[MeetupAccount]] = None,
+                           meetup: Option[Form[GsForms.GroupAccount.Meetup]] = None,
                            slack: Option[Form[SlackCredentials]] = None)
                           (implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     for {
@@ -219,15 +218,15 @@ class SettingsCtrl(cc: ControllerComponents,
       settings,
       orgas,
       invites,
-      meetup.getOrElse(settings.accounts.meetup.map(s => SettingsForms.meetupAccount.fill(MeetupAccount(s.group))).getOrElse(SettingsForms.meetupAccount)),
-      slack.getOrElse(settings.accounts.slack.map(s => SettingsForms.slackAccount(conf.app.aesKey).fill(s)).getOrElse(SettingsForms.slackAccount(conf.app.aesKey))),
-      GenericForm.invite
+      meetup.getOrElse(settings.accounts.meetup.map(s => GsForms.groupAccountMeetup.fill(GsForms.GroupAccount.Meetup(s.group))).getOrElse(GsForms.groupAccountMeetup)),
+      slack.getOrElse(settings.accounts.slack.map(s => GsForms.groupAccountSlack(conf.app.aesKey).fill(s)).getOrElse(GsForms.groupAccountSlack(conf.app.aesKey))),
+      GsForms.invite
     )(listBreadcrumb))
   }
 
   private def updateEventTemplateView(templateId: Option[String],
                                       settings: Group.Settings,
-                                      form: Form[EventTemplateItem])
+                                      form: Form[GsForms.GroupEventTemplateItem])
                                      (implicit req: OrgaReq[AnyContent]): Result = {
     val b = listBreadcrumb.add(
       "Event" -> routes.SettingsCtrl.settings(req.group.slug),
@@ -236,12 +235,12 @@ class SettingsCtrl(cc: ControllerComponents,
     Ok(html.updateEventTemplate(templateId, settings, form)(b))
   }
 
-  private def createActionToSettings(settings: Group.Settings, addAction: SettingsForms.AddAction): Group.Settings = {
+  private def createActionToSettings(settings: Group.Settings, addAction: GsForms.GroupAction): Group.Settings = {
     val actions = settings.actions.getOrElse(addAction.trigger, Seq()) :+ addAction.action
     settings.copy(actions = settings.actions + (addAction.trigger -> actions))
   }
 
-  private def updateActionToSettings(settings: Group.Settings, trigger: Group.Settings.Action.Trigger, index: Int, addAction: SettingsForms.AddAction): Group.Settings = {
+  private def updateActionToSettings(settings: Group.Settings, trigger: Group.Settings.Action.Trigger, index: Int, addAction: GsForms.GroupAction): Group.Settings = {
     if (addAction.trigger == trigger) {
       val actions = settings.actions.getOrElse(addAction.trigger, Seq()).zipWithIndex.map { case (a, i) => if (i == index) addAction.action else a }
       settings.copy(actions = settings.actions + (addAction.trigger -> actions))

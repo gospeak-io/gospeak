@@ -1,11 +1,11 @@
-@import gospeak.web.auth.AuthForms.SignupData
 @import gospeak.web.auth.partials.html._
 @import gospeak.web.auth.routes.AuthCtrl
 @import gospeak.web.domain.PageMeta
 @import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.GsForms
 @import gospeak.web.utils.UserAwareReq
 
-@(form: Form[SignupData], redirect: Option[String])(implicit req: UserAwareReq[AnyContent])
+@(form: Form[GsForms.SignupData], redirect: Option[String])(implicit req: UserAwareReq[AnyContent])
 @container("Signup - Gospeak", PageMeta.default())() {
     <div class="login">
         <div class="card bg-light shadow">
