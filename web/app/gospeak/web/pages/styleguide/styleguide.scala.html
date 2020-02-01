@@ -1,4 +1,5 @@
 @import gospeak.core.domain.{Cfp, CommonCfp, Event, Group, Proposal, Talk, User}
+@import gospeak.libs.scala.domain.{Page, Slides, Video}
 @import gospeak.web.domain.PageMeta
 @import gospeak.web.pages.orga.partials.{html => orga}
 @import gospeak.web.pages.partials.container.{html => container}
@@ -8,9 +9,8 @@
 @import gospeak.web.pages.published.partials.{html => published}
 @import gospeak.web.pages.styleguide.routes.StyleguideCtrl
 @import gospeak.web.pages.user.partials.{html => speaker}
-@import gospeak.web.utils.GenericForm
+@import gospeak.web.utils.GsForms
 @import gospeak.web.utils.{UserAwareReq, UserReq, OrgaReq}
-@import gospeak.libs.scala.domain.{Page, Slides, Video}
 
 @(user: User, group: Group, groupFull: Group.Full, cfp: Cfp, event: Event, eventFull: Event.Full, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, params: Page.Params)(implicit userAwareReq: UserAwareReq[AnyContent], userReq: UserReq[AnyContent], orgaReq: OrgaReq[AnyContent])
 @section(id: String, title: String, localization: String)(display: String => Html) = {
@@ -155,10 +155,10 @@
                 @example(name) { _ => @global.search(Page(1 to params.pageSize.value, params, Page.Total(200), Seq()), StyleguideCtrl.index(params)) }
             }
             @component("Add slides form", "@slidesFields(embedForm, MyCtrl.doAddSlides(talk.slug))") { name =>
-                @example(name) { _ => @global.slidesFields(GenericForm.embed, StyleguideCtrl.index(params)) }
+                @example(name) { _ => @global.slidesFields(GsForms.embed, StyleguideCtrl.index(params)) }
             }
             @component("Add video form", "@videoFields(embedForm, MyCtrl.doAddVideo(talk.slug))") { name =>
-                @example(name) { _ => @global.videoFields(GenericForm.embed, StyleguideCtrl.index(params)) }
+                @example(name) { _ => @global.videoFields(GsForms.embed, StyleguideCtrl.index(params)) }
             }
         }
 
@@ -221,13 +221,13 @@
 
         @section("global-form", "Global form components", "@import gospeak.web.pages.partials.form.html._") { _ =>
             @component("Local Date input", "@inputLocalDate(form(\"myField\"))") { name =>
-                @example(name) { _ => @form.inputLocalDate(GenericForm.embed("url")) }
+                @example(name) { _ => @form.inputLocalDate(GsForms.embed("url")) }
             }
             @component("Local Time input", "@inputLocalTime(form(\"myField\"))") { name =>
-                @example(name) { _ => @form.inputLocalTime(GenericForm.embed("url")) }
+                @example(name) { _ => @form.inputLocalTime(GsForms.embed("url")) }
             }
             @component("Local Datetime input", "@inputLocalDatetime(form(\"myField\"))") { name =>
-                @example(name) { _ => @form.inputLocalDatetime(GenericForm.embed("url")) }
+                @example(name) { _ => @form.inputLocalDatetime(GsForms.embed("url")) }
             }
         }
 

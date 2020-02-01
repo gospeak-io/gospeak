@@ -1,12 +1,12 @@
-@import gospeak.web.auth.AuthForms.LoginData
 @import gospeak.web.auth.routes.AuthCtrl
 @import gospeak.web.auth.partials.html.container
 @import gospeak.web.auth.partials.html.loginFields
 @import gospeak.web.domain.PageMeta
 @import gospeak.web.pages.partials.form.html.formElt
+@import gospeak.web.utils.GsForms
 @import gospeak.web.utils.UserAwareReq
 
-@(form: Form[LoginData], redirect: Option[String], providerIds: Seq[String])(implicit req: UserAwareReq[AnyContent])
+@(form: Form[GsForms.LoginData], redirect: Option[String], providerIds: Seq[String])(implicit req: UserAwareReq[AnyContent])
 @container("Login - Gospeak", PageMeta.default())() {
     <div class="login">
         <div class="card bg-light shadow">

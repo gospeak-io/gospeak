@@ -1,10 +1,10 @@
 @import gospeak.core.domain.Group
 @import gospeak.core.services.slack.domain.SlackCredentials
 @import gospeak.web.pages.orga.settings.routes.SettingsCtrl
-@import gospeak.web.pages.orga.settings.SettingsForms.MeetupAccount
+@import gospeak.web.utils.GsForms
 @import gospeak.web.utils.OrgaReq
 
-@(accounts: Group.Settings.Accounts, meetupForm: Form[MeetupAccount], slackForm: Form[SlackCredentials])(implicit req: OrgaReq[AnyContent])
+@(accounts: Group.Settings.Accounts, meetupForm: Form[GsForms.GroupAccount.Meetup], slackForm: Form[SlackCredentials])(implicit req: OrgaReq[AnyContent])
 <div class="card mb-3">
     <div class="card-header">Integrations</div>
     <div class="list-group list-group-flush p-2">

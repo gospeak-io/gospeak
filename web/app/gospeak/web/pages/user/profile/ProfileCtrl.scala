@@ -10,7 +10,7 @@ import gospeak.web.domain.Breadcrumb
 import gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublishedSpeakerRoutes}
 import gospeak.web.pages.user.profile.ProfileCtrl._
 import gospeak.web.pages.user.UserCtrl
-import gospeak.web.utils.{UICtrl, UserReq}
+import gospeak.web.utils.{GsForms, UICtrl, UserReq}
 import gospeak.libs.scala.domain.Page
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -30,11 +30,11 @@ class ProfileCtrl(cc: ControllerComponents,
   }
 
   def edit(): Action[AnyContent] = UserAction { implicit req =>
-    editView(ProfileForms.create)
+    editView(GsForms.user)
   }
 
   def doEdit(): Action[AnyContent] = UserAction { implicit req =>
-    ProfileForms.create.bindFromRequest.fold(
+    GsForms.user.bindFromRequest.fold(
       formWithErrors => editView(formWithErrors),
       data => userRepo.edit(data)
         .map(_ => Redirect(routes.ProfileCtrl.detail()).flashing("success" -> "Profile updated"))

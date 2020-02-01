@@ -17,7 +17,7 @@ import gospeak.web.domain.{Breadcrumb, MessageBuilder}
 import gospeak.web.emails.Emails
 import gospeak.web.pages.published.HomeCtrl
 import gospeak.web.pages.published.groups.GroupCtrl._
-import gospeak.web.utils.{GenericForm, UICtrl, UserAwareReq}
+import gospeak.web.utils.{GsForms, UICtrl, UserAwareReq}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
 import play.api.data.Form
@@ -102,7 +102,7 @@ class GroupCtrl(cc: ControllerComponents,
   }
 
   def event(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
-    eventView(group, event, GenericForm.comment)
+    eventView(group, event, GsForms.comment)
   }
 
   def eventAttendeesMeetup(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
@@ -119,7 +119,7 @@ class GroupCtrl(cc: ControllerComponents,
   }
 
   def doSendComment(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAction { implicit req =>
-    GenericForm.comment.bindFromRequest.fold(
+    GsForms.comment.bindFromRequest.fold(
       formWithErrors => eventView(group, event, formWithErrors)(req.userAware),
       data => (for {
         groupElt <- OptionT(groupRepo.find(group))

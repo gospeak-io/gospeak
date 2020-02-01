@@ -9,18 +9,17 @@ import gospeak.core.services.TemplateSrv
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.storage._
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Done, Html, Page}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.{Breadcrumb, GospeakMessageBus, MessageBuilder}
 import gospeak.web.emails.Emails
 import gospeak.web.pages.orga.GroupCtrl
 import gospeak.web.pages.orga.events.EventCtrl._
-import gospeak.web.pages.orga.events.EventForms.PublishOptions
-import gospeak.web.pages.orga.partners.PartnerForms
 import gospeak.web.services.EventSrv
-import gospeak.web.utils.{OrgaReq, UICtrl}
-import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Done, Html, Page}
+import gospeak.web.utils.GsForms.PublishOptions
+import gospeak.web.utils.{GsForms, OrgaReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -52,11 +51,11 @@ class EventCtrl(cc: ControllerComponents,
   }
 
   def create(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    createView(group, EventForms.create)
+    createView(group, GsForms.event)
   }
 
   def doCreate(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    EventForms.create.bindFromRequest.fold(
+    GsForms.event.bindFromRequest.fold(
       formWithErrors => createView(group, formWithErrors),
       data => (for {
         // TODO check if slug not already exist
@@ -85,7 +84,7 @@ class EventCtrl(cc: ControllerComponents,
       userRatings <- OptionT.liftF(proposalRepo.listRatings(proposals.items.map(_.id)))
       desc = eventSrv.buildDescription(e)
       b = breadcrumb(e.event)
-      res = Ok(html.detail(e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, userRatings, eventTemplates, EventForms.cfp, EventForms.notes.fill(e.event.orgaNotes.text))(b))
+      res = Ok(html.detail(e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, userRatings, eventTemplates, GsForms.eventCfp, GsForms.eventNotes.fill(e.event.orgaNotes.text))(b))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
@@ -102,17 +101,17 @@ class EventCtrl(cc: ControllerComponents,
   }
 
   def edit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    editView(group, event, EventForms.create)
+    editView(group, event, GsForms.event)
   }
 
   def doEdit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    EventForms.create.bindFromRequest.fold(
+    GsForms.event.bindFromRequest.fold(
       formWithErrors => editView(group, event, formWithErrors),
       data => for {
         eventOpt <- eventRepo.find(data.slug)
         res <- eventOpt match {
           case Some(duplicate) if data.slug != event =>
-            editView(group, event, EventForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by event: ${duplicate.name.value}"))
+            editView(group, event, GsForms.event.fillAndValidate(data).withError("slug", s"Slug already taken by event: ${duplicate.name.value}"))
           case _ =>
             eventRepo.edit(event, data).map { _ => Redirect(routes.EventCtrl.detail(group, data.slug)) }
         }
@@ -130,7 +129,7 @@ class EventCtrl(cc: ControllerComponents,
   }
 
   def doEditNotes(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    EventForms.notes.bindFromRequest.fold(
+    GsForms.eventNotes.bindFromRequest.fold(
       formWithErrors => IO.pure(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Unable to edit notes: ${req.formatErrors(formWithErrors)}")),
       notes => eventRepo.editNotes(event, notes).map(_ => Redirect(routes.EventCtrl.detail(group, event)))
     )
@@ -161,12 +160,12 @@ class EventCtrl(cc: ControllerComponents,
   def createVenue(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       eventElt <- OptionT(eventRepo.find(event))
-      res = Ok(html.createVenue(eventElt, PartnerForms.createVenueWithPartner)(createVenueBreadcrumb(eventElt)))
+      res = Ok(html.createVenue(eventElt, GsForms.venueWithPartner)(createVenueBreadcrumb(eventElt)))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
   def doCreateVenue(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    PartnerForms.createVenueWithPartner.bindFromRequest().fold(
+    GsForms.venueWithPartner.bindFromRequest().fold(
       formWithErrors => (for {
         eventElt <- OptionT(eventRepo.find(event))
         res = Ok(html.createVenue(eventElt, formWithErrors)(createVenueBreadcrumb(eventElt)))
@@ -182,7 +181,7 @@ class EventCtrl(cc: ControllerComponents,
   }
 
   def attachCfp(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    EventForms.cfp.bindFromRequest.fold(
+    GsForms.eventCfp.bindFromRequest.fold(
       formWithErrors => IO.pure(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Unable to attach CFP: ${req.formatErrors(formWithErrors)}")),
       cfp => eventRepo.attachCfp(event, cfp).map(_ => Redirect(routes.EventCtrl.detail(group, event)))
     )
@@ -226,11 +225,11 @@ class EventCtrl(cc: ControllerComponents,
   }
 
   def publish(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    publishView(group, event, EventForms.publish.fill(PublishOptions.default))
+    publishView(group, event, GsForms.eventPublish.fill(PublishOptions.default))
   }
 
   def doPublish(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    EventForms.publish.bindFromRequest.fold(
+    GsForms.eventPublish.bindFromRequest.fold(
       formWithErrors => publishView(group, event, formWithErrors),
       data => (for {
         e <- OptionT(eventSrv.getFullEvent(event))
@@ -271,11 +270,11 @@ class EventCtrl(cc: ControllerComponents,
 
 
   def contactRsvps(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    contactRsvpsView(group, event, EventForms.contactAttendees)
+    contactRsvpsView(group, event, GsForms.eventContact)
   }
 
   def doContactRsvps(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    EventForms.contactAttendees.bindFromRequest.fold(
+    GsForms.eventContact.bindFromRequest.fold(
       formWithErrors => contactRsvpsView(group, event, formWithErrors),
       data => (for {
         eventElt <- OptionT(eventRepo.find(event))
@@ -289,7 +288,7 @@ class EventCtrl(cc: ControllerComponents,
     }
   }
 
-  private def contactRsvpsView(group: Group.Slug, event: Event.Slug, form: Form[EventForms.ContactAttendees])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
+  private def contactRsvpsView(group: Group.Slug, event: Event.Slug, form: Form[GsForms.EventContact])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
       eventElt <- OptionT(eventRepo.find(event))
       b = breadcrumb(eventElt).add("Contact attendees" -> routes.EventCtrl.contactRsvps(group, event))

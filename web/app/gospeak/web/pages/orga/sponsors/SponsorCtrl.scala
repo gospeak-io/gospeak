@@ -34,11 +34,11 @@ class SponsorCtrl(cc: ControllerComponents,
   }
 
   def createPack(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    createPackView(SponsorForms.createPack)
+    createPackView(GsForms.sponsorPack)
   }
 
   def doCreatePack(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    SponsorForms.createPack.bindFromRequest.fold(
+    GsForms.sponsorPack.bindFromRequest.fold(
       formWithErrors => createPackView(formWithErrors),
       data => sponsorPackRepo.create(data).map(_ => Redirect(routes.SponsorCtrl.list(group)))
     )
@@ -50,12 +50,12 @@ class SponsorCtrl(cc: ControllerComponents,
   }
 
   def create(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    createView(pack, SponsorForms.create, partner)
+    createView(pack, GsForms.sponsor, partner)
   }
 
   def doCreate(group: Group.Slug, pack: SponsorPack.Slug, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = partner.map(p => PartnerRoutes.detail(group, p)).getOrElse(routes.SponsorCtrl.list(group))
-    SponsorForms.create.bindFromRequest.fold(
+    GsForms.sponsor.bindFromRequest.fold(
       formWithErrors => createView(pack, formWithErrors, partner),
       data => sponsorRepo.create(data).map(_ => Redirect(next))
     )
@@ -84,12 +84,12 @@ class SponsorCtrl(cc: ControllerComponents,
   }
 
   def edit(group: Group.Slug, sponsor: Sponsor.Id, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    updateView(sponsor, SponsorForms.create, partner)
+    updateView(sponsor, GsForms.sponsor, partner)
   }
 
   def doEdit(group: Group.Slug, sponsor: Sponsor.Id, partner: Option[Partner.Slug]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = partner.map(p => PartnerRoutes.detail(group, p)).getOrElse(routes.SponsorCtrl.list(group))
-    SponsorForms.create.bindFromRequest.fold(
+    GsForms.sponsor.bindFromRequest.fold(
       formWithErrors => updateView(sponsor, formWithErrors, partner),
       data => sponsorRepo.edit(sponsor, data).map(_ => Redirect(next))
     )

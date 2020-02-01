@@ -12,7 +12,7 @@ import gospeak.web.domain.Breadcrumb
 import gospeak.web.pages.orga.GroupCtrl
 import gospeak.web.pages.orga.cfps.CfpCtrl._
 import gospeak.web.pages.orga.events.routes.{EventCtrl => EventRoutes}
-import gospeak.web.utils.{OrgaReq, UICtrl}
+import gospeak.web.utils.{GsForms, OrgaReq, UICtrl}
 import gospeak.libs.scala.domain.Page
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -31,11 +31,11 @@ class CfpCtrl(cc: ControllerComponents,
   }
 
   def create(group: Group.Slug, event: Option[Event.Slug]): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    createView(group, CfpForms.create, event)
+    createView(group, GsForms.cfp, event)
   }
 
   def doCreate(group: Group.Slug, event: Option[Event.Slug]): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    CfpForms.create.bindFromRequest.fold(
+    GsForms.cfp.bindFromRequest.fold(
       formWithErrors => createView(group, formWithErrors, event),
       data => (for {
         // TODO check if slug not already exist
@@ -67,17 +67,17 @@ class CfpCtrl(cc: ControllerComponents,
   }
 
   def edit(group: Group.Slug, cfp: Cfp.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    editView(group, cfp, CfpForms.create)
+    editView(group, cfp, GsForms.cfp)
   }
 
   def doEdit(group: Group.Slug, cfp: Cfp.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    CfpForms.create.bindFromRequest.fold(
+    GsForms.cfp.bindFromRequest.fold(
       formWithErrors => editView(group, cfp, formWithErrors),
       data => (for {
         cfpOpt <- OptionT.liftF(cfpRepo.find(data.slug))
         res <- OptionT.liftF(cfpOpt match {
           case Some(duplicate) if data.slug != cfp =>
-            editView(group, cfp, CfpForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by cfp: ${duplicate.name.value}"))
+            editView(group, cfp, GsForms.cfp.fillAndValidate(data).withError("slug", s"Slug already taken by cfp: ${duplicate.name.value}"))
           case _ =>
             cfpRepo.edit(cfp, data).map { _ => Redirect(routes.CfpCtrl.detail(group, data.slug)) }
         })

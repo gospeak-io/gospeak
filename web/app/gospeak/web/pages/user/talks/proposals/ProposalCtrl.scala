@@ -16,7 +16,7 @@ import gospeak.web.pages.user.talks.TalkCtrl
 import gospeak.web.pages.user.talks.cfps.CfpCtrl
 import gospeak.web.pages.user.talks.cfps.routes.{CfpCtrl => CfpRoutes}
 import gospeak.web.pages.user.talks.proposals.ProposalCtrl._
-import gospeak.web.utils.{GenericForm, UICtrl, UserReq}
+import gospeak.web.utils.{GsForms, UICtrl, UserReq}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Page, Slides, Video}
 import play.api.data.Form
@@ -46,11 +46,11 @@ class ProposalCtrl(cc: ControllerComponents,
   }
 
   def create(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
-    createForm(ProposalForms.create, talk, cfp)
+    createForm(GsForms.proposal, talk, cfp)
   }
 
   def doCreate(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
-    ProposalForms.create.bindFromRequest.fold(
+    GsForms.proposal.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors, talk, cfp),
       data => {
         (for {
@@ -78,11 +78,11 @@ class ProposalCtrl(cc: ControllerComponents,
   }
 
   def detail(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
-    proposalView(talk, cfp, GenericForm.comment)
+    proposalView(talk, cfp, GsForms.comment)
   }
 
   def doSendComment(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
-    GenericForm.comment.bindFromRequest.fold(
+    GsForms.comment.bindFromRequest.fold(
       formWithErrors => proposalView(talk, cfp, formWithErrors),
       data => (for {
         proposalElt <- OptionT(proposalRepo.find(talk, cfp))
@@ -102,16 +102,16 @@ class ProposalCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(proposalFull.users))
       comments <- OptionT.liftF(commentRepo.getComments(proposalFull.id))
       b = breadcrumb(proposalFull)
-      res = Ok(html.detail(proposalFull, speakers, comments, invites, ProposalForms.addSpeaker, GenericForm.embed, commentForm)(b))
+      res = Ok(html.detail(proposalFull, speakers, comments, invites, GsForms.invite, GsForms.embed, commentForm)(b))
     } yield res).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
   }
 
   def edit(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
-    editView(talk, cfp, ProposalForms.create)
+    editView(talk, cfp, GsForms.proposal)
   }
 
   def doEdit(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
-    ProposalForms.create.bindFromRequest.fold(
+    GsForms.proposal.bindFromRequest.fold(
       formWithErrors => editView(talk, cfp, formWithErrors),
       data => proposalRepo.edit(talk, cfp, data).map(_ => Redirect(routes.ProposalCtrl.detail(talk, cfp)))
     )
@@ -127,7 +127,7 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def inviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
-    ProposalForms.addSpeaker.bindFromRequest.fold(
+    GsForms.invite.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       email => (for {
         proposalElt <- OptionT(proposalRepo.find(talk, cfp))
@@ -163,7 +163,7 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def doAddSlides(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
-    GenericForm.embed.bindFromRequest.fold(
+    GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
@@ -174,7 +174,7 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def doAddVideo(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
-    GenericForm.embed.bindFromRequest.fold(
+    GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))

@@ -14,13 +14,13 @@ import gospeak.core.domain.UserRequest.PasswordResetRequest
 import gospeak.core.domain.{Group, User}
 import gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
 import gospeak.infra.services.AvatarSrv
-import gospeak.web.auth.AuthConf
-import gospeak.web.auth.AuthForms.{LoginData, ResetPasswordData, SignupData}
-import gospeak.web.auth.domain.{AuthUser, CookieEnv, SocialProfile}
-import gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
-import gospeak.web.utils.{UserAwareReq, UserReq}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{CustomException, EmailAddress}
+import gospeak.web.auth.AuthConf
+import gospeak.web.auth.domain.{AuthUser, CookieEnv, SocialProfile}
+import gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
+import gospeak.web.utils.GsForms
+import gospeak.web.utils.{UserAwareReq, UserReq}
 import org.apache.http.auth.AuthenticationException
 import play.api.mvc.{AnyContent, Result}
 
@@ -41,7 +41,7 @@ class AuthSrv(userRepo: AuthUserRepo,
               avatarSrv: AvatarSrv) {
   implicit private val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 
-  def createIdentity(data: SignupData)(implicit req: UserAwareReq[AnyContent]): IO[AuthUser] = {
+  def createIdentity(data: GsForms.SignupData)(implicit req: UserAwareReq[AnyContent]): IO[AuthUser] = {
     val loginInfo = AuthSrv.loginInfo(data.email)
     val login = toDomain(loginInfo)
     val password = toDomain(passwordHasherRegistry.current.hash(data.password.decode))
@@ -66,7 +66,7 @@ class AuthSrv(userRepo: AuthUserRepo,
     } yield authUser
   }
 
-  def getIdentity(data: LoginData): IO[AuthUser] = {
+  def getIdentity(data: GsForms.LoginData): IO[AuthUser] = {
     for {
       loginInfo <- IO.fromFuture(IO(credentialsProvider.authenticate(Credentials(data.email.value, data.password.decode))))
       userOpt <- IO.fromFuture(IO(authRepo.retrieve(loginInfo)))
@@ -105,7 +105,7 @@ class AuthSrv(userRepo: AuthUserRepo,
     req.underlying.authenticator.map(auth => IO.fromFuture(IO(silhouette.env.authenticatorService.discard(auth, redirect)))).getOrElse(IO.pure(redirect))
   }
 
-  def updateIdentity(data: ResetPasswordData, passwordReset: PasswordResetRequest)(implicit req: UserAwareReq[AnyContent]): IO[AuthUser] = {
+  def updateIdentity(data: GsForms.ResetPasswordData, passwordReset: PasswordResetRequest)(implicit req: UserAwareReq[AnyContent]): IO[AuthUser] = {
     val loginInfo = AuthSrv.loginInfo(passwordReset.email)
     val login = toDomain(loginInfo)
     val password = toDomain(passwordHasherRegistry.current.hash(data.password.decode))

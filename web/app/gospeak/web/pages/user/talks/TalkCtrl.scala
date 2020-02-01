@@ -16,7 +16,7 @@ import gospeak.web.emails.Emails
 import gospeak.web.pages.user.UserCtrl
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import gospeak.web.pages.user.talks.TalkCtrl._
-import gospeak.web.utils.{GenericForm, UICtrl, UserReq}
+import gospeak.web.utils.{GsForms, UICtrl, UserReq}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -36,15 +36,15 @@ class TalkCtrl(cc: ControllerComponents,
   }
 
   def create(): Action[AnyContent] = UserAction { implicit req =>
-    createForm(TalkForms.create)
+    createForm(GsForms.talk)
   }
 
   def doCreate(): Action[AnyContent] = UserAction { implicit req =>
-    TalkForms.create.bindFromRequest.fold(
+    GsForms.talk.bindFromRequest.fold(
       formWithErrors => createForm(formWithErrors),
       data => talkRepo.find(data.slug).flatMap {
         case Some(duplicate) =>
-          createForm(TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
+          createForm(GsForms.talk.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
         case None =>
           talkRepo.create(data).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
@@ -62,19 +62,19 @@ class TalkCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(talkElt.users))
       proposals <- OptionT.liftF(proposalRepo.listFull(talkElt.id, Page.Params.defaults))
       b = breadcrumb(talkElt)
-    } yield Ok(html.detail(talkElt, speakers, invites, proposals, GenericForm.invite, GenericForm.embed)(b))).value.map(_.getOrElse(talkNotFound(talk)))
+    } yield Ok(html.detail(talkElt, speakers, invites, proposals, GsForms.invite, GsForms.embed)(b))).value.map(_.getOrElse(talkNotFound(talk)))
   }
 
   def edit(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
-    editForm(talk, TalkForms.create)
+    editForm(talk, GsForms.talk)
   }
 
   def doEdit(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
-    TalkForms.create.bindFromRequest.fold(
+    GsForms.talk.bindFromRequest.fold(
       formWithErrors => editForm(talk, formWithErrors),
       data => talkRepo.find(data.slug).flatMap {
         case Some(duplicate) if data.slug != talk =>
-          editForm(talk, TalkForms.create.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
+          editForm(talk, GsForms.talk.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
         case _ =>
           talkRepo.edit(talk, data).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
       }
@@ -94,7 +94,7 @@ class TalkCtrl(cc: ControllerComponents,
 
   def inviteSpeaker(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.TalkCtrl.detail(talk))
-    GenericForm.invite.bindFromRequest.fold(
+    GsForms.invite.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       email => (for {
         talkElt <- OptionT(talkRepo.find(talk))
@@ -130,7 +130,7 @@ class TalkCtrl(cc: ControllerComponents,
 
   def doAddSlides(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.TalkCtrl.detail(talk))
-    GenericForm.embed.bindFromRequest.fold(
+    GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
@@ -141,7 +141,7 @@ class TalkCtrl(cc: ControllerComponents,
 
   def doAddVideo(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.TalkCtrl.detail(talk))
-    GenericForm.embed.bindFromRequest.fold(
+    GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
@@ -155,11 +155,11 @@ class TalkCtrl(cc: ControllerComponents,
   }
 
   def addExternalProposal(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
-    addExternalProposalView(talk, TalkForms.createExternalProposal)
+    addExternalProposalView(talk, GsForms.externalProposal)
   }
 
   def doAddExternalProposal(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
-    TalkForms.createExternalProposal.bindFromRequest.fold(
+    GsForms.externalProposal.bindFromRequest.fold(
       formWithErrors => addExternalProposalView(talk, formWithErrors),
       data => {
         println(data)

@@ -1,13 +1,13 @@
 @import gospeak.core.domain.Event
+@import gospeak.libs.scala.domain.Markdown
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.events.routes.EventCtrl
-@import gospeak.web.pages.orga.events.EventForms.PublishOptions
 @import gospeak.web.pages.orga.partials.html.container
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.utils.Formats
+@import gospeak.web.utils.GsForms.PublishOptions
 @import gospeak.web.utils.OrgaReq
-@import gospeak.libs.scala.domain.Markdown
 
 @(event: Event, description: Markdown, form: Form[PublishOptions], hasMeetupAccount: Boolean)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"Publish ${event.name.value} - Gospeak", b)() {
