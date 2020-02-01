@@ -84,6 +84,9 @@ object PathBindables {
   implicit def externalCfpPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[ExternalCfp.Id] =
     stringEitherPathBindable[ExternalCfp.Id](ExternalCfp.Id.from, _.value)
 
+  implicit def externalProposalPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[ExternalProposal.Id] =
+    stringEitherPathBindable[ExternalProposal.Id](ExternalProposal.Id.from, _.value)
+
   private def stringEitherPathBindable[A](from: String => Either[CustomException, A], to: A => String)(implicit pb: PathBindable[String]): PathBindable[A] =
     new PathBindable[A] {
       override def bind(key: String, value: String): Either[String, A] = pb.bind(key, value).flatMap(from(_).left.map(_.getMessage))

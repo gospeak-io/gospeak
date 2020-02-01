@@ -7,19 +7,23 @@ import gospeak.core.domain.utils.UserCtx
 import gospeak.libs.scala.domain.{Done, Page, Tag}
 
 trait ExternalProposalRepo extends SpeakerExternalProposalRepo with SuggestExternalProposalRepo {
-  def edit(id: ExternalProposal.Id)(data: ExternalProposal.Data)(implicit ctx: UserCtx): IO[Done]
-
   def list(params: Page.Params): IO[Page[ExternalProposal]]
 
   def listAll(talk: Talk.Id): IO[Seq[ExternalProposal]]
-
-  def find(id: ExternalProposal.Id): IO[Option[ExternalProposal]]
 }
 
 trait SpeakerExternalProposalRepo {
   def create(talk: Talk.Id, event: ExternalEvent.Id, data: ExternalProposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[ExternalProposal]
 
+  def edit(id: ExternalProposal.Id)(data: ExternalProposal.Data)(implicit ctx: UserCtx): IO[Done]
+
+  def remove(id: ExternalProposal.Id)(implicit ctx: UserCtx): IO[Done]
+
+  def listPageCommon(talk: Talk.Id, params: Page.Params): IO[Page[CommonProposal]]
+
   def listAllCommon(talk: Talk.Id): IO[Seq[CommonProposal]]
+
+  def find(id: ExternalProposal.Id): IO[Option[ExternalProposal]]
 }
 
 trait SuggestExternalProposalRepo {

@@ -2,20 +2,19 @@
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.pages.user.partials.html.{container, externalProposalFields}
-@import gospeak.web.pages.user.talks.routes.TalkCtrl
+@import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import gospeak.web.utils.UserReq
 
-@(talk: Talk, event: ExternalEvent, form: Form[ExternalProposal.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@(talk: Talk, proposal: ExternalProposal, event: ExternalEvent, form: Form[ExternalProposal.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"'${talk.title.value}' - Gospeak", b)() {
-    @formElt(form, TalkCtrl.doCreateExternalProposal(talk.slug, event.id)) {
+    @formElt(form, ProposalCtrl.doEditExt(talk.slug, proposal.id)) {
         <div class="d-flex justify-content-between align-items-center">
-            <h1>Did you spoke at @event.name.value?</h1>
+            <h1>Edit your @event.name.value talk</h1>
             <div>
-                @btnCancel(TalkCtrl.detail(talk.slug))
-                @btnSubmit("Create")
+                @btnCancel(ProposalCtrl.detailExt(talk.slug, proposal.id))
+                @btnSubmit("Save")
             </div>
         </div>
-        <h3>Please, confirm the details of your talk:</h3>
 
         @externalProposalFields(form)
     }

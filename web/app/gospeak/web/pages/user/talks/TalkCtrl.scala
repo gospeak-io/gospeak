@@ -4,7 +4,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.utils.UserCtx
-import gospeak.core.domain.{CommonProposal, ExternalEvent, ExternalProposal, Talk, User, UserRequest}
+import gospeak.core.domain._
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._

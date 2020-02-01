@@ -105,6 +105,9 @@ abstract class UICtrl(cc: ControllerComponents,
   protected def extEventNotFound(talk: Talk.Slug, event: ExternalEvent.Id): Result =
     Redirect(pages.user.talks.routes.TalkCtrl.detail(talk)).flashing("warning" -> s"Unable to find this event")
 
+  protected def extProposalNotFound(talk: Talk.Slug, proposal: ExternalProposal.Id): Result =
+    Redirect(pages.user.talks.routes.TalkCtrl.detail(talk)).flashing("warning" -> s"Unable to find this proposal")
+
   protected def cfpNotFound(talk: Talk.Slug, cfp: Cfp.Slug): Result =
     Redirect(pages.user.talks.cfps.routes.CfpCtrl.list(talk)).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")
 
