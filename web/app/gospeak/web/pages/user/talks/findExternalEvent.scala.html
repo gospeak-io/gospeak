@@ -10,7 +10,7 @@
 @eventItem(event: ExternalEvent) = {
     <a href="@TalkCtrl.createExternalProposal(talk.slug, event.id)" class="list-group-item list-group-item-action">
         <h5 class="mb-1">@event.name.value</h5>
-        <span class="badge badge-primary">@Formats.date(event.start)</span>
+        @event.start.map { s => <span class="badge badge-primary">@Formats.date(s)</span> }
         @event.location.map { l => <span class="badge badge-primary">@l.locality.map(_ + ",") @l.country</span> }
     </a>
 }

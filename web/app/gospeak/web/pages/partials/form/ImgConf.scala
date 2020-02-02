@@ -73,14 +73,4 @@ object ImgConf {
       maxFiles = Some(1),
       ratio = Some(1),
       args = Seq())
-
-  def externalCfpLogo(cfpName: Field)(implicit req: UserReq[AnyContent]): ImgConf =
-    ImgConf(
-      folder = CloudinarySrvImpl.extCfpFolder(),
-      name = CloudinarySrvImpl.extCfpLogoFile(cfpName.value),
-      dynamicName = Some(cfpName.id),
-      tags = Seq(req.user.slug.value, req.user.id.value),
-      maxFiles = Some(1),
-      ratio = Some(1),
-      args = Seq())
 }

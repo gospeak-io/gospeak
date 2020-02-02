@@ -15,7 +15,7 @@
         <p>
             Have something interesting to share? Find a corresponding CFP and propose a talk!<br>
             Afraid of speaking? Take a look at theses <a href="@CfpCtrl.gettingStarted">getting started and helpful articles and testimonials</a>.<br>
-            A Conference is missing? <a class="btn btn-text btn-text-success" href="@CfpCtrl.add"> You can add it here</a>
+            A Conference is missing? <a class="btn btn-text btn-text-success" href="@CfpCtrl.findExternalEvent()"> You can add it here</a>
         </p>
     </div>
     @Formats.paginated[CommonCfp](cfps, CfpCtrl.list, cfpItem(_))

@@ -8,6 +8,7 @@ object Constants {
   val defaultZoneId: ZoneId = ZoneId.of("Europe/Paris")
 
   object Images {
+    val gospeakLogoSquare = "https://gospeak.io/logo.png"
     val gospeakLogoText = "https://res.cloudinary.com/gospeak/image/upload/gospeak/logo-text.svg"
   }
 

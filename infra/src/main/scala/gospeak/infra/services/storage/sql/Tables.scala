@@ -149,14 +149,14 @@ object Tables {
   val externalCfps: Table = Table.from(
     name = "external_cfps",
     prefix = "ec",
-    fields = Seq("id", "name", "logo", "description", "begin", "close", "url", "event_start", "event_finish", "event_url", "location", "location_id", "location_lat", "location_lng", "location_locality", "location_country", "tickets_url", "videos_url", "twitter_account", "twitter_hashtag", "tags", "created_at", "created_by", "updated_at", "updated_by"),
-    sort = Seq("close", "name"),
-    search = Seq("id", "name", "description", "url", "event_url", "location", "twitter_account", "twitter_hashtag", "tags")).get
+    fields = Seq("id", "event_id", "description", "begin", "close", "url", "created_at", "created_by", "updated_at", "updated_by"),
+    sort = Seq("close", "id"),
+    search = Seq("id", "description", "url")).get
 
   val externalProposals: Table = Table.from(
     name = "external_proposals",
     prefix = "ep",
-    fields = Seq("id", "talk_id", "event_id", "title", "duration", "description", "speakers", "slides", "video", "tags", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "talk_id", "event_id", "title", "duration", "description", "speakers", "slides", "video", "url", "tags", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("title", "created_at"),
     search = Seq("id", "title", "description", "tags")).get
 

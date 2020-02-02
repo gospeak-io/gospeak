@@ -2,7 +2,7 @@
 
 @(slides: Option[Slides] = None)
 @slides.map { slides =>
-    <a href="@slides.value" target="_blank"><i class="fab fa-slideshare"></i></a>
+    <a href="@slides.value" target="_blank" title="Slides"><i class="fab fa-slideshare"></i></a>
 }.getOrElse {
     <i class="fab fa-slideshare text-muted"></i>
 }

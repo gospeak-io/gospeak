@@ -21,6 +21,9 @@
 @fieldHorizontal(form("video"), Seq("label" -> "Video", "help" -> "Video of your proposal")) { (field, args) =>
     @inputEmbed(field, args)
 }
+@fieldHorizontal(form("url"), Seq("label" -> "Url", "help" -> "Link of the talk in the event program")) { (field, args) =>
+    @inputUrl(field, args)
+}
 @fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your proposal")) { (field, args) =>
     @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
 }

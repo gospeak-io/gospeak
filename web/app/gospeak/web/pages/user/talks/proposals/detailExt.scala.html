@@ -23,7 +23,7 @@
     </div>
     <h2>@proposal.title.value</h2>
 
-    <p class="mb-0">@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video) @tags(proposal.tags)</p>
+    <p class="mb-0">@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video) @websiteIcon(proposal.url) @tags(proposal.tags)</p>
     <div class="p">
         Speakers:
         @proposal.speakers.toList.map(id => speakers.find(_.id == id)).map {

@@ -6,23 +6,23 @@
 @import gospeak.web.utils.Formats
 @import gospeak.web.utils.UserAwareReq
 
-@(cfp: ExternalCfp)(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${cfp.name.value} - Gospeak", PageMeta.cfp(cfp), b)() {
+@(cfp: ExternalCfp.Full)(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container(s"${cfp.event.name.value} - Gospeak", PageMeta.cfp(cfp), b)() {
 <div class="w-lg-80 mx-lg-auto">
     <div class="card shadow-sm p-5 mb-5">
         <div class="text-center pb-5 mb-5">
             <div class="mb-3 mx-auto">
-                @cfp.logo.map { logo => <img src="@logo.url.value" alt="@cfp.name.value logo" class="img-fluid rounded-circle" width="110" height="110"/> }
+                @cfp.event.logo.map { logo => <img src="@logo.url.value" alt="@cfp.event.name.value logo" class="img-fluid rounded-circle" width="110" height="110"/> }
             </div>
-            <h1 class="h5">@cfp.name.value <a href="@CfpCtrl.edit(cfp.id)" class="text-muted x-small"><i class="fas fa-edit"></i></a></h1>
+            <h1 class="h5">@cfp.event.name.value <a href="@CfpCtrl.edit(cfp.id)" class="text-muted x-small"><i class="fas fa-edit"></i></a></h1>
             <span>
                 @cfp.begin.map { o => @if(o.isBefore(req.nowLDT)) { Opened } else { Will open } the @Formats.date(o.toLocalDate)<br/> }
-                @cfp.event.start.map { s => Event from @Formats.date(s.toLocalDate) @cfp.event.finish.map { f => to @Formats.date(f.toLocalDate)} }
+                @cfp.event.start.map { s => Event from @Formats.date(s.toLocalDate) @cfp.event.finish.map { f => to @Formats.date(f.toLocalDate) } }
             </span>
             <div class="mb-4">
-                @cfp.event.url.map { u => <a href="@u" class="font-size-1" target="_blank">@u</a> }
+                <a href="@cfp.event.url" class="font-size-1" target="_blank">@cfp.event.url</a>
                 <br/>
-                @tags(cfp.tags)
+                @tags(cfp.event.tags)
             </div>
             @if(cfp.isActive(req.nowLDT)) {
                 <div class="mb-2">

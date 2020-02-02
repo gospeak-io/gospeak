@@ -13,7 +13,7 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = ExternalProposalRepoSql.update(externalProposal.id)(externalProposal.data, user.id, now)
-        check(q, s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, tags=?, updated_at=?, updated_by=? WHERE id=? AND speakers LIKE ?")
+        check(q, s"UPDATE $table SET title=?, duration=?, description=?, slides=?, video=?, url=?, tags=?, updated_at=?, updated_by=? WHERE id=? AND speakers LIKE ?")
       }
       it("should build delete") {
         val q = ExternalProposalRepoSql.delete(externalProposal.id, user.id)
@@ -45,7 +45,7 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
 
 object ExternalProposalRepoSqlSpec {
   val table = "external_proposals ep"
-  val fields: String = mapFields("id, talk_id, event_id, title, duration, description, speakers, slides, video, tags, created_at, created_by, updated_at, updated_by", "ep." + _)
+  val fields: String = mapFields("id, talk_id, event_id, title, duration, description, speakers, slides, video, url, tags, created_at, created_by, updated_at, updated_by", "ep." + _)
   val orderBy = "ORDER BY ep.title IS NULL, ep.title, ep.created_at IS NULL, ep.created_at"
 
   val commonTable: String = "(" +

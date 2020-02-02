@@ -52,6 +52,6 @@ object CommonProposal {
 
   final case class EmbedExtEvent(id: ExternalEvent.Id,
                                  name: ExternalEvent.Name,
-                                 start: LocalDateTime)
+                                 start: Option[LocalDateTime])
 
 }

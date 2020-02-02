@@ -11,7 +11,7 @@
 @container(s"${cfp.name.value} proposals - Gospeak", b)() {
     <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h1>
     <p class="mt-2 mb-0">You voted on @Formats.plural(userRatings.length, "proposal") on a total of @proposals.total.value</p>
-    <div>
+    <div class="mb-1">
         Filters:
         @filterEnum(proposals, ProposalCtrl.list(req.group.slug, cfp.slug, _), "Status", "status", Seq("pending", "accepted", "declined"))
         @filterBool(proposals, ProposalCtrl.list(req.group.slug, cfp.slug, _), "With slides", "slides")

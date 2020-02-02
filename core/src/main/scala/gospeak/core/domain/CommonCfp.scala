@@ -53,11 +53,11 @@ object CommonCfp {
     tags = cfp.tags,
     group = Some(group.id -> group.slug))
 
-  def apply(cfp: ExternalCfp): CommonCfp = new CommonCfp(
+  def apply(cfp: ExternalCfp.Full): CommonCfp = new CommonCfp(
     id = Some(cfp.id),
     slug = None,
-    name = cfp.name.value,
-    logo = cfp.logo,
+    name = cfp.event.name.value,
+    logo = cfp.event.logo,
     url = Some(cfp.url),
     begin = cfp.begin,
     close = cfp.close,
@@ -65,11 +65,11 @@ object CommonCfp {
     description = cfp.description,
     eventStart = cfp.event.start,
     eventFinish = cfp.event.finish,
-    eventUrl = cfp.event.url,
+    eventUrl = Some(cfp.event.url),
     eventTickets = cfp.event.tickets,
     eventVideos = cfp.event.videos,
     twitterAccount = cfp.event.twitterAccount,
     twitterHashtag = cfp.event.twitterHashtag,
-    tags = cfp.tags,
+    tags = cfp.event.tags,
     group = None)
 }

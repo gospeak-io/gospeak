@@ -1,7 +1,7 @@
 package gospeak.infra.services.cloudinary
 
 import cats.effect.IO
-import gospeak.core.domain.{ExternalCfp, Group, Partner, User}
+import gospeak.core.domain.{ExternalEvent, Group, Partner, User}
 import gospeak.core.services.cloudinary.CloudinarySrv
 import gospeak.core.services.upload.UploadConf
 import gospeak.libs.cloudinary.CloudinaryClient
@@ -20,16 +20,6 @@ class CloudinarySrvImpl(client: CloudinaryClient) extends CloudinarySrv {
     )).flatMap(_.toIO(new IllegalStateException(_)))
       .flatMap(_.toUrl.toIO)
       .map(_.transform(Seq("ar_1", "c_crop")).toUrl).map(Avatar)
-  }
-
-  override def uploadExternalCfpLogo(cfp: ExternalCfp, logo: Logo): IO[Logo] = {
-    client.upload(CloudinaryUploadRequest(
-      file = logo.value,
-      folder = CloudinarySrvImpl.extCfpFolder(),
-      publicId = CloudinarySrvImpl.extCfpLogoFile(Some(cfp.name.value))
-    )).flatMap(_.toIO(new IllegalStateException(_)))
-      .flatMap(_.toUrl.toIO)
-      .map(_.transform(Seq("ar_1", "c_crop")).toUrl).map(Logo)
   }
 
   override def uploadGroupLogo(group: Group, logo: Logo): IO[Logo] = {
@@ -61,6 +51,16 @@ class CloudinarySrvImpl(client: CloudinaryClient) extends CloudinarySrv {
       .flatMap(_.toUrl.toIO)
       .map(_.transform(Seq("ar_1", "c_crop")).toUrl).map(Logo)
   }
+
+  override def uploadExternalEventLogo(event: ExternalEvent, logo: Logo): IO[Logo] = {
+    client.upload(CloudinaryUploadRequest(
+      file = logo.value,
+      folder = CloudinarySrvImpl.extEventFolder(),
+      publicId = CloudinarySrvImpl.extEventLogoFile(Some(event.name.value))
+    )).flatMap(_.toIO(new IllegalStateException(_)))
+      .flatMap(_.toUrl.toIO)
+      .map(_.transform(Seq("ar_1", "c_crop")).toUrl).map(Logo)
+  }
 }
 
 object CloudinarySrvImpl {
@@ -82,8 +82,6 @@ object CloudinarySrvImpl {
 
   def extEventLogoFile(eventName: Option[String]): Option[String] = eventName.filter(_.nonEmpty)
 
-  def extCfpLogoFile(cfpName: Option[String]): Option[String] = cfpName.filter(_.nonEmpty)
-
 
   def userFolder(user: User): Option[String] = Some(s"users/${user.slug.value}_${user.id.value}")
 
@@ -92,6 +90,4 @@ object CloudinarySrvImpl {
   def groupPartnerFolder(group: Group): Option[String] = groupFolder(group).map(_ + "/partners")
 
   def extEventFolder(): Option[String] = Some(s"ext-events")
-
-  def extCfpFolder(): Option[String] = Some(s"ext-cfps")
 }
