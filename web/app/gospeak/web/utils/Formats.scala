@@ -6,7 +6,7 @@ import java.util.Locale
 
 import gospeak.core.domain.Cfp
 import gospeak.core.domain.utils.Constants
-import gospeak.web.pages.partials.html.{pagination, search, sort}
+import gospeak.web.pages.partials.html.{pagination, search}
 import gospeak.libs.scala.domain.Page
 import play.api.mvc.{AnyContent, Call}
 import play.twirl.api.Html
@@ -104,7 +104,6 @@ object Formats {
          |  ${search(page, link(Page.Params.defaults))}
          |  ${pagination(page, link)}
          |</div>
-         |${sort(page, link)}
        """.stripMargin)
   }
 

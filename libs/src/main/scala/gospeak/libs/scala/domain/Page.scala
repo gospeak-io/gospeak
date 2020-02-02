@@ -152,7 +152,7 @@ object Page {
   }
 
   object Params {
-    val defaults = Params(No(1), Size(20), None, None, Map(), nullsFirst = false)
+    val defaults: Params = Params(No(1), Size(20), None, None, Map(), nullsFirst = false)
 
     def no(n: Int): Params = defaults.copy(page = No(n))
   }

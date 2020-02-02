@@ -3,18 +3,14 @@ package gospeak.core.domain
 import java.time.LocalDateTime
 
 import gospeak.core.domain.utils.Info
-import gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
 import gospeak.libs.scala.domain._
 
 case class ExternalCfp(id: ExternalCfp.Id,
-                       name: ExternalCfp.Name,
-                       logo: Option[Logo],
+                       event: ExternalEvent.Id,
                        description: Markdown,
                        begin: Option[LocalDateTime],
                        close: Option[LocalDateTime],
                        url: Url,
-                       event: ExternalCfp.Event,
-                       tags: Seq[Tag],
                        info: Info) {
   def data: ExternalCfp.Data = ExternalCfp.Data(this)
 
@@ -22,35 +18,36 @@ case class ExternalCfp(id: ExternalCfp.Id,
 }
 
 object ExternalCfp {
-  def apply(data: Data, info: Info): ExternalCfp =
-    new ExternalCfp(Id.generate(), data.name, data.logo, data.description, data.begin, data.close, data.url, data.event, data.tags, info)
+  def apply(d: Data, event: ExternalEvent.Id, info: Info): ExternalCfp =
+    new ExternalCfp(Id.generate(), event, d.description, d.begin, d.close, d.url, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
   object Id extends UuidIdBuilder[Id]("ExternalCfp.Id", new Id(_))
 
-  final case class Name(value: String) extends AnyVal
+  final case class Full(cfp: ExternalCfp, event: ExternalEvent) {
+    def id: Id = cfp.id
 
-  final case class Event(start: Option[LocalDateTime],
-                         finish: Option[LocalDateTime],
-                         url: Option[Url],
-                         location: Option[GMapPlace],
-                         tickets: Option[Url],
-                         videos: Option[Url],
-                         twitterAccount: Option[TwitterAccount],
-                         twitterHashtag: Option[TwitterHashtag])
+    def description: Markdown = cfp.description
 
-  final case class Data(name: Name,
-                        logo: Option[Logo],
-                        description: Markdown,
+    def begin: Option[LocalDateTime] = cfp.begin
+
+    def close: Option[LocalDateTime] = cfp.close
+
+    def url: Url = cfp.url
+
+    def data: Data = cfp.data
+
+    def isActive(now: LocalDateTime): Boolean = cfp.isActive(now)
+  }
+
+  final case class Data(description: Markdown,
                         begin: Option[LocalDateTime],
                         close: Option[LocalDateTime],
-                        url: Url,
-                        event: Event,
-                        tags: Seq[Tag])
+                        url: Url)
 
   object Data {
-    def apply(cfp: ExternalCfp): Data = new Data(cfp.name, cfp.logo, cfp.description, cfp.begin, cfp.close, cfp.url, cfp.event, cfp.tags)
+    def apply(c: ExternalCfp): Data = new Data(c.description, c.begin, c.close, c.url)
   }
 
   final case class DuplicateParams(cfpUrl: Option[String],

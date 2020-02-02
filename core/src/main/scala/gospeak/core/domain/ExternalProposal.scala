@@ -15,6 +15,7 @@ final case class ExternalProposal(id: ExternalProposal.Id,
                                   speakers: NonEmptyList[User.Id],
                                   slides: Option[Slides],
                                   video: Option[Video],
+                                  url: Option[Url],
                                   tags: Seq[Tag],
                                   info: Info) {
   def data: ExternalProposal.Data = ExternalProposal.Data(this)
@@ -24,7 +25,7 @@ final case class ExternalProposal(id: ExternalProposal.Id,
 
 object ExternalProposal {
   def apply(d: Data, talk: Talk.Id, event: ExternalEvent.Id, speakers: NonEmptyList[User.Id], info: Info): ExternalProposal =
-    new ExternalProposal(Id.generate(), talk, event, d.title, d.duration, d.description, speakers, d.slides, d.video, d.tags, info)
+    new ExternalProposal(Id.generate(), talk, event, d.title, d.duration, d.description, speakers, d.slides, d.video, d.url, d.tags, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -35,12 +36,13 @@ object ExternalProposal {
                         description: Markdown,
                         slides: Option[Slides],
                         video: Option[Video],
+                        url: Option[Url],
                         tags: Seq[Tag])
 
   object Data {
-    def apply(p: ExternalProposal): Data = new Data(p.title, p.duration, p.description, p.slides, p.video, p.tags)
+    def apply(p: ExternalProposal): Data = new Data(p.title, p.duration, p.description, p.slides, p.video, p.url, p.tags)
 
-    def apply(p: Talk): Data = new Data(p.title, p.duration, p.description, p.slides, p.video, p.tags)
+    def apply(t: Talk): Data = new Data(t.title, t.duration, t.description, t.slides, t.video, None, t.tags)
   }
 
 }

@@ -160,7 +160,7 @@ class TalkCtrl(cc: ControllerComponents,
     (for {
       talkElt <- OptionT(talkRepo.find(talk))
       events <- OptionT.liftF(externalEventRepo.list(params))
-      res = Ok(html.findExternalEvent(talkElt, events)(extEventsBredcrumb(talkElt)))
+      res = Ok(html.findExternalEvent(talkElt, events)(extEventsBreadcrumb(talkElt)))
     } yield res).value.map(_.getOrElse(talkNotFound(talk)))
   }
 
@@ -178,7 +178,7 @@ class TalkCtrl(cc: ControllerComponents,
   private def createExternalEventView(talk: Talk.Slug, form: Form[ExternalEvent.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
       talkElt <- OptionT(talkRepo.find(talk))
-      res = Ok(html.createExternalEvent(talkElt, form)(extEventsBredcrumb(talkElt).add("New" -> routes.TalkCtrl.createExternalEvent(talk))))
+      res = Ok(html.createExternalEvent(talkElt, form)(extEventsBreadcrumb(talkElt).add("New" -> routes.TalkCtrl.createExternalEvent(talk))))
     } yield res).value.map(_.getOrElse(talkNotFound(talk)))
   }
 
@@ -213,9 +213,9 @@ object TalkCtrl {
   def breadcrumb(talk: Talk)(implicit req: UserReq[AnyContent]): Breadcrumb =
     listBreadcrumb.addOpt(talk.title.value -> Some(routes.TalkCtrl.detail(talk.slug)).filter(_ => talk.hasSpeaker(req.user.id)))
 
-  def extEventsBredcrumb(talk: Talk)(implicit req: UserReq[AnyContent]): Breadcrumb =
+  def extEventsBreadcrumb(talk: Talk)(implicit req: UserReq[AnyContent]): Breadcrumb =
     breadcrumb(talk).add("Events" -> routes.TalkCtrl.findExternalEvent(talk.slug))
 
   def extEventBredcrumb(talk: Talk, event: ExternalEvent)(implicit req: UserReq[AnyContent]): Breadcrumb =
-    extEventsBredcrumb(talk).add(event.name.value -> routes.TalkCtrl.findExternalEvent(talk.slug))
+    extEventsBreadcrumb(talk).add(event.name.value -> routes.TalkCtrl.findExternalEvent(talk.slug))
 }

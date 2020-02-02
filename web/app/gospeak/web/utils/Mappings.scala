@@ -157,7 +157,6 @@ object Mappings {
   val contactLastName: Mapping[Contact.LastName] = nonEmptyTextMapping(Contact.LastName, _.value)
   val commentId: Mapping[Comment.Id] = idMapping(Comment.Id)
   val externalEventName: Mapping[ExternalEvent.Name] = nonEmptyTextMapping(ExternalEvent.Name, _.value, Constraints.maxLength(Values.maxLength.title))
-  val externalCfpName: Mapping[ExternalCfp.Name] = nonEmptyTextMapping(ExternalCfp.Name, _.value, Constraints.maxLength(Values.maxLength.title))
   val meetupGroupSlug: Mapping[MeetupGroup.Slug] = stringEitherMapping(MeetupGroup.Slug.from, _.value, formatError, Constraints.nonEmpty)
   val meetupEventId: Mapping[MeetupEvent.Id] = stringEitherMapping(MeetupEvent.Id.from, _.value.toString, formatError, Constraints.nonEmpty)
   val meetupVenueId: Mapping[MeetupVenue.Id] = stringEitherMapping(MeetupVenue.Id.from, _.value.toString, formatError, Constraints.nonEmpty)

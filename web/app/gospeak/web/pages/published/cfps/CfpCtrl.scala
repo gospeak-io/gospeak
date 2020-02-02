@@ -4,9 +4,10 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
-import gospeak.core.domain.{Cfp, ExternalCfp, Talk}
+import gospeak.core.domain.{Cfp, ExternalCfp, ExternalEvent, Talk}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
+import gospeak.libs.scala.domain.{CustomException, Page}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
@@ -17,7 +18,6 @@ import gospeak.web.pages.published.HomeCtrl
 import gospeak.web.pages.published.cfps.CfpCtrl._
 import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 import gospeak.web.utils.{GsForms, UICtrl, UserAwareReq, UserReq}
-import gospeak.libs.scala.domain.{CustomException, Page}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -31,6 +31,7 @@ class CfpCtrl(cc: ControllerComponents,
               talkRepo: SpeakerTalkRepo,
               proposalRepo: SpeakerProposalRepo,
               userRequestRepo: AuthUserRequestRepo,
+              externalEventRepo: PublicExternalEventRepo,
               externalCfpRepo: PublicExternalCfpRepo,
               authSrv: AuthSrv,
               emailSrv: EmailSrv,
@@ -43,23 +44,50 @@ class CfpCtrl(cc: ControllerComponents,
     IO.pure(Ok(html.gettingStarted()(listBreadcrumb().add("Getting Started" -> routes.CfpCtrl.gettingStarted))))
   }
 
-  def add(): Action[AnyContent] = UserAction { implicit req =>
-    IO.pure(Ok(html.create(GsForms.externalCfp)(listBreadcrumb().add("Add" -> routes.CfpCtrl.add))))
+  def findExternalEvent(params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
+    externalEventRepo.list(params).map(events => Ok(html.findExternalEvent(events)(extEventsBreadcrumb())))
   }
 
-  def doAdd(): Action[AnyContent] = UserAction { implicit req =>
-    GsForms.externalCfp.bindFromRequest.fold(
-      formWithErrors => IO.pure(Ok(html.create(formWithErrors)(listBreadcrumb().add("Add" -> routes.CfpCtrl.add)))),
-      data => for {
-        cfp <- externalCfpRepo.create(data)
-        _ <- mb.publishExternalCfpCreated(cfp)
-      } yield Redirect(routes.CfpCtrl.detailExt(cfp.id))
+  def createExternalEvent(): Action[AnyContent] = UserAction { implicit req =>
+    createExternalEventView(GsForms.externalEvent)
+  }
+
+  def doCreateExternalEvent(): Action[AnyContent] = UserAction { implicit req =>
+    GsForms.externalEvent.bindFromRequest.fold(
+      formWithErrors => createExternalEventView(formWithErrors),
+      data => externalEventRepo.create(data).map(e => Redirect(routes.CfpCtrl.createExternalCfp(e.id)))
     )
+  }
+
+  private def createExternalEventView(form: Form[ExternalEvent.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
+    IO.pure(Ok(html.createExternalEvent(form)(extEventsBreadcrumb().add("Add event" -> routes.CfpCtrl.createExternalEvent()))))
+  }
+
+  def createExternalCfp(event: ExternalEvent.Id): Action[AnyContent] = UserAction { implicit req =>
+    createExternalCfpView(event, GsForms.externalCfp)
+  }
+
+  def doCreateExternalCfp(event: ExternalEvent.Id): Action[AnyContent] = UserAction { implicit req =>
+    GsForms.externalCfp.bindFromRequest.fold(
+      formWithErrors => createExternalCfpView(event, formWithErrors),
+      data => (for {
+        eventElt <- OptionT(externalEventRepo.find(event))
+        cfpElt <- OptionT.liftF(externalCfpRepo.create(eventElt.id, data))
+        _ <- OptionT.liftF(mb.publishExternalCfpCreated(cfpElt, eventElt))
+      } yield Redirect(routes.CfpCtrl.detailExt(cfpElt.id))).value.map(_.getOrElse(extEventNotFound(event)))
+    )
+  }
+
+  private def createExternalCfpView(event: ExternalEvent.Id, form: Form[ExternalCfp.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
+    (for {
+      eventElt <- OptionT(externalEventRepo.find(event))
+      res = Ok(html.createExternalCfp(eventElt, form)(extEventsBreadcrumb().add("Add CFP" -> routes.CfpCtrl.createExternalCfp(event))))
+    } yield res).value.map(_.getOrElse(extEventNotFound(event)))
   }
 
   def detailExt(cfp: ExternalCfp.Id): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
-      cfpElt <- OptionT(externalCfpRepo.find(cfp))
+      cfpElt <- OptionT(externalCfpRepo.findFull(cfp))
       b = breadcrumb(cfpElt)
     } yield Ok(html.detailExt(cfpElt)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
   }
@@ -73,22 +101,26 @@ class CfpCtrl(cc: ControllerComponents,
   }
 
   def edit(cfp: ExternalCfp.Id): Action[AnyContent] = UserAction { implicit req =>
-    editView(cfp, GsForms.externalCfp)
+    editView(cfp, GsForms.externalCfpAndEvent)
   }
 
   def doEdit(cfp: ExternalCfp.Id): Action[AnyContent] = UserAction { implicit req =>
-    GsForms.externalCfp.bindFromRequest.fold(
+    GsForms.externalCfpAndEvent.bindFromRequest.fold(
       formWithErrors => editView(cfp, formWithErrors),
-      data => externalCfpRepo.edit(cfp)(data)
-        .map(_ => Redirect(routes.CfpCtrl.detailExt(cfp)).flashing("success" -> "CFP updated"))
+      data => (for {
+        cfpElt <- OptionT(externalCfpRepo.findFull(cfp))
+        _ <- OptionT.liftF(externalCfpRepo.edit(cfp)(data.cfp))
+        _ <- OptionT.liftF(externalEventRepo.edit(cfpElt.event.id)(data.event))
+        res = Redirect(routes.CfpCtrl.detailExt(cfp)).flashing("success" -> "CFP updated")
+      } yield res).value.map(_.getOrElse(extCfpNotFound(cfp)))
     )
   }
 
-  private def editView(cfp: ExternalCfp.Id, form: Form[ExternalCfp.Data])(implicit req: UserReq[AnyContent]): IO[Result] = {
+  private def editView(cfp: ExternalCfp.Id, form: Form[GsForms.ExternalCfpAndEvent])(implicit req: UserReq[AnyContent]): IO[Result] = {
     (for {
-      cfpElt <- OptionT(externalCfpRepo.find(cfp))
+      cfpElt <- OptionT(externalCfpRepo.findFull(cfp))
       b = breadcrumb(cfpElt).add("Edit" -> routes.CfpCtrl.edit(cfp))
-      filledForm = if (form.hasErrors) form else form.fill(cfpElt.data)
+      filledForm = if (form.hasErrors) form else form.fill(GsForms.ExternalCfpAndEvent(cfpElt.cfp.data, cfpElt.event.data))
     } yield Ok(html.edit(cfpElt, filledForm)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
   }
 
@@ -199,9 +231,12 @@ object CfpCtrl {
   def breadcrumb(cfp: Cfp): Breadcrumb =
     listBreadcrumb().add(cfp.name.value -> routes.CfpCtrl.detail(cfp.slug))
 
-  def breadcrumb(cfp: ExternalCfp): Breadcrumb =
-    listBreadcrumb().add(cfp.name.value -> routes.CfpCtrl.detailExt(cfp.id))
+  def breadcrumb(cfp: ExternalCfp.Full): Breadcrumb =
+    listBreadcrumb().add(cfp.event.name.value -> routes.CfpCtrl.detailExt(cfp.id))
 
   def proposeTalkBreadcrumb(cfp: Cfp): Breadcrumb =
     breadcrumb(cfp).add("Proposing a talk" -> routes.CfpCtrl.propose(cfp.slug))
+
+  def extEventsBreadcrumb(): Breadcrumb =
+    listBreadcrumb().add("Find event" -> routes.CfpCtrl.findExternalEvent())
 }

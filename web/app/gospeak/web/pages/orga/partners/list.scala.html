@@ -25,7 +25,7 @@
         <span class="text-capitalize">@Formats.plural(partners.total.value, "partner")</span>
         <a class="btn btn-primary" href="@PartnerCtrl.create(req.group.slug)" data-hotkey="+">Create a partner</a>
     </h1>
-    <div>
+    <div class="mb-1">
         Filters:
         @filterBool(partners, PartnerCtrl.list(req.group.slug, _), "With venues", "venues")
         @filterBool(partners, PartnerCtrl.list(req.group.slug, _), "With sponsors", "sponsors")

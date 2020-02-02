@@ -23,8 +23,8 @@ class MessageBuilder {
   def buildProposalCreated(group: Group, cfp: Cfp, proposal: Proposal)(implicit req: UserReq[AnyContent]): GsMessage.ProposalCreated =
     GsMessage.ProposalCreated(linked(group), linked(group, cfp), linked(group, cfp, proposal), req.user)
 
-  def buildExternalCfpCreated(cfp: ExternalCfp)(implicit req: UserReq[AnyContent]): GsMessage.ExternalCfpCreated =
-    GsMessage.ExternalCfpCreated(linked(cfp), req.user)
+  def buildExternalCfpCreated(cfp: ExternalCfp, event: ExternalEvent)(implicit req: UserReq[AnyContent]): GsMessage.ExternalCfpCreated =
+    GsMessage.ExternalCfpCreated(linked(cfp), event, req.user)
 
   def buildEventInfo(group: Group, event: Event, cfpOpt: Option[Cfp], venueOpt: Option[Venue.Full], talks: Seq[Proposal], speakers: Seq[User])(implicit req: BasicReq[AnyContent]): TemplateData.EventInfo = {
     TemplateData.eventInfo(

@@ -102,7 +102,6 @@ object Generators {
   implicit val aExternalEventId: Arbitrary[ExternalEvent.Id] = Arbitrary(Gen.uuid.map(id => ExternalEvent.Id.from(id.toString).get))
   implicit val aExternalEventName: Arbitrary[ExternalEvent.Name] = Arbitrary(nonEmptyStringGen.map(str => ExternalEvent.Name(str)))
   implicit val aExternalCfpId: Arbitrary[ExternalCfp.Id] = Arbitrary(Gen.uuid.map(id => ExternalCfp.Id.from(id.toString).get))
-  implicit val aExternalCfpName: Arbitrary[ExternalCfp.Name] = Arbitrary(nonEmptyStringGen.map(str => ExternalCfp.Name(str)))
   implicit val aExternalProposalId: Arbitrary[ExternalProposal.Id] = Arbitrary(Gen.uuid.map(id => ExternalProposal.Id.from(id.toString).get))
   implicit val aCommonProposalId: Arbitrary[CommonProposal.Id] = Arbitrary(Gen.uuid.map(id => CommonProposal.Id.from(id.toString).get))
 

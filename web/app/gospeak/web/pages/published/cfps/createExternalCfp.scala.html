@@ -1,0 +1,21 @@
+@import gospeak.core.domain.{ExternalEvent, ExternalCfp}
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.published.partials.html.{container, externalCfpFields}
+@import gospeak.web.utils.UserReq
+
+@(event: ExternalEvent, form: Form[ExternalCfp.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@container(s"Add a CFP - Gospeak", PageMeta.createCfp(), b)() {
+    @formElt(form, CfpCtrl.doCreateExternalCfp(event.id)) {
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Create the CFP</h1>
+            <div>
+                @btnCancel(CfpCtrl.list())
+                @btnSubmit("Create")
+            </div>
+        </div>
+
+        @externalCfpFields(form(""))
+    }
+}()(req.userAware)

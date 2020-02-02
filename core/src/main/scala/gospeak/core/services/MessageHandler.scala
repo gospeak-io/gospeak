@@ -67,7 +67,7 @@ class MessageHandler(appConf: ApplicationConf,
   private def handle(msg: GsMessage.ExternalCfpCreated): IO[Int] = {
     twitterSrv
       .filter(_ => msg.cfp.value.isActive(LocalDateTime.now()))
-      .map(srv => srv.tweet(Tweets.externalCfpCreated(msg.cfp.value, msg.cfp.link, msg.user))).sequence
+      .map(srv => srv.tweet(Tweets.externalCfpCreated(msg.cfp.value, msg.event, msg.cfp.link, msg.user))).sequence
       .map(_.map(_ => 1).getOrElse(0))
   }
 }

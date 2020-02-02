@@ -54,12 +54,12 @@ object ExternalProposalRepoSql {
     search = Seq("title").map(Field(_, "p")))
 
   private[sql] def insert(e: ExternalProposal): Insert[ExternalProposal] = {
-    val values = fr0"${e.id}, ${e.talk}, ${e.event}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, " ++ insertInfo(e.info)
+    val values = fr0"${e.id}, ${e.talk}, ${e.event}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.url}, ${e.tags}, " ++ insertInfo(e.info)
     table.insert[ExternalProposal](e, _ => values)
   }
 
   private[sql] def update(id: ExternalProposal.Id)(e: ExternalProposal.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"title=${e.title}, duration=${e.duration}, description=${e.description}, slides=${e.slides}, video=${e.video}, tags=${e.tags}, updated_at=$now, updated_by=$by"
+    val fields = fr0"title=${e.title}, duration=${e.duration}, description=${e.description}, slides=${e.slides}, video=${e.video}, url=${e.url}, tags=${e.tags}, updated_at=$now, updated_by=$by"
     table.update(fields, fr0"WHERE id=$id AND speakers LIKE ${"%" + by.value + "%"}")
   }
 

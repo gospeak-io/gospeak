@@ -357,11 +357,11 @@ object GsForms {
     "price" -> price
   )(Sponsor.Data.apply)(Sponsor.Data.unapply))
 
-  val externalEvent: Form[ExternalEvent.Data] = Form(mapping(
+  private val externalEventMapping = mapping(
     "name" -> externalEventName,
     "logo" -> optional(logo),
     "description" -> markdown,
-    "start" -> localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate),
+    "start" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),
     "finish" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(23, 59), _.toLocalDate)),
     "location" -> optional(gMapPlace),
     "url" -> url,
@@ -370,27 +370,23 @@ object GsForms {
     "twitterAccount" -> optional(twitterAccount),
     "twitterHashtag" -> optional(twitterHashtag),
     "tags" -> tags
-  )(ExternalEvent.Data.apply)(ExternalEvent.Data.unapply))
+  )(ExternalEvent.Data.apply)(ExternalEvent.Data.unapply)
+  val externalEvent: Form[ExternalEvent.Data] = Form(externalEventMapping)
 
-  val externalCfp: Form[ExternalCfp.Data] = Form(mapping(
-    "name" -> externalCfpName,
-    "logo" -> optional(logo),
+  private val externalCfpMapping = mapping(
     "description" -> markdown,
     "begin" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),
     "close" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(23, 59), _.toLocalDate)),
-    "url" -> url,
-    "event" -> mapping(
-      "start" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),
-      "finish" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(23, 59), _.toLocalDate)),
-      "url" -> optional(url),
-      "address" -> optional(gMapPlace),
-      "tickets" -> optional(url),
-      "videos" -> optional(url),
-      "twitterAccount" -> optional(twitterAccount),
-      "twitterHashtag" -> optional(twitterHashtag)
-    )(ExternalCfp.Event.apply)(ExternalCfp.Event.unapply),
-    "tags" -> tags
-  )(ExternalCfp.Data.apply)(ExternalCfp.Data.unapply))
+    "url" -> url
+  )(ExternalCfp.Data.apply)(ExternalCfp.Data.unapply)
+  val externalCfp: Form[ExternalCfp.Data] = Form(externalCfpMapping)
+
+  final case class ExternalCfpAndEvent(cfp: ExternalCfp.Data, event: ExternalEvent.Data)
+
+  val externalCfpAndEvent: Form[ExternalCfpAndEvent] = Form(mapping(
+    "cfp" -> externalCfpMapping,
+    "event" -> externalEventMapping
+  )(ExternalCfpAndEvent.apply)(ExternalCfpAndEvent.unapply))
 
   private val externalProposalMapping: Mapping[ExternalProposal.Data] = mapping(
     "title" -> talkTitle,
@@ -398,6 +394,7 @@ object GsForms {
     "description" -> markdown,
     "slides" -> optional(slides),
     "video" -> optional(video),
+    "url" -> optional(url),
     "tags" -> tags
   )(ExternalProposal.Data.apply)(ExternalProposal.Data.unapply)
   val externalProposal: Form[ExternalProposal.Data] = Form(externalProposalMapping)

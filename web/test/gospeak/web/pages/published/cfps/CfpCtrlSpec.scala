@@ -15,7 +15,7 @@ class CfpCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
   private val messageBus = new BasicMessageBus[GsMessage]()
   private val orgaMessageBus = new GsMessageBus(messageBus, messageBuilder)
 
-  private val ctrl = new CfpCtrl(cc, silhouette, conf, db.group, db.cfp, db.talk, db.proposal, db.userRequest, db.externalCfp, authSrv, emailSrv, orgaMessageBus)
+  private val ctrl = new CfpCtrl(cc, silhouette, conf, db.group, db.cfp, db.talk, db.proposal, db.userRequest, db.externalEvent, db.externalCfp, authSrv, emailSrv, orgaMessageBus)
 
   override def beforeEach(): Unit = db.migrate().unsafeRunSync()
 

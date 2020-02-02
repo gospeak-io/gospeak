@@ -16,7 +16,7 @@ object ApiExternalCfp {
                              logo: Option[String],
                              begin: Option[LocalDateTime],
                              close: Option[LocalDateTime],
-                             eventUrl: Option[String],
+                             eventUrl: String,
                              eventStart: Option[LocalDateTime],
                              eventFinish: Option[LocalDateTime],
                              eventLocation: Option[String],
@@ -28,21 +28,21 @@ object ApiExternalCfp {
     implicit val writes: Writes[Published] = Json.writes[Published]
   }
 
-  def published(cfp: ExternalCfp)(implicit ctx: BasicCtx): Published =
+  def published(cfp: ExternalCfp.Full)(implicit ctx: BasicCtx): Published =
     new Published(
       id = cfp.id.value,
       url = cfp.url.value,
-      name = cfp.name.value,
+      name = cfp.event.name.value,
       description = cfp.description.value,
-      logo = cfp.logo.map(_.url.value),
+      logo = cfp.event.logo.map(_.url.value),
       begin = cfp.begin,
       close = cfp.close,
-      eventUrl = cfp.event.url.map(_.value),
+      eventUrl = cfp.event.url.value,
       eventStart = cfp.event.start,
       eventFinish = cfp.event.finish,
       eventLocation = cfp.event.location.map(_.value),
       eventTwitterAccount = cfp.event.twitterAccount.map(_.url.value),
       eventTwitterHashtag = cfp.event.twitterHashtag.map(_.url),
-      tags = cfp.tags.map(_.value))
+      tags = cfp.event.tags.map(_.value))
 
 }

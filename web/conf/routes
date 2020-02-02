@@ -3,8 +3,11 @@ GET         /why                                                                
 
 GET         /cfps                                                                          gospeak.web.pages.published.cfps.CfpCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /cfps/getting-started                                                          gospeak.web.pages.published.cfps.CfpCtrl.gettingStarted()
-GET         /cfps/add                                                                      gospeak.web.pages.published.cfps.CfpCtrl.add()
-POST        /cfps/add                                                                      gospeak.web.pages.published.cfps.CfpCtrl.doAdd()
+GET         /cfps/events                                                                   gospeak.web.pages.published.cfps.CfpCtrl.findExternalEvent(params: Page.Params ?= Page.Params.defaults)
+GET         /cfps/events/create                                                            gospeak.web.pages.published.cfps.CfpCtrl.createExternalEvent()
+POST        /cfps/events/create                                                            gospeak.web.pages.published.cfps.CfpCtrl.doCreateExternalEvent()
+GET         /cfps/events/:event                                                            gospeak.web.pages.published.cfps.CfpCtrl.createExternalCfp(event: ExternalEvent.Id)
+POST        /cfps/events/:event                                                            gospeak.web.pages.published.cfps.CfpCtrl.doCreateExternalCfp(event: ExternalEvent.Id)
 GET         /cfps/ext/:cfp                                                                 gospeak.web.pages.published.cfps.CfpCtrl.detailExt(cfp: ExternalCfp.Id)
 GET         /cfps/ext/:cfp/edit                                                            gospeak.web.pages.published.cfps.CfpCtrl.edit(cfp: ExternalCfp.Id)
 POST        /cfps/ext/:cfp/edit                                                            gospeak.web.pages.published.cfps.CfpCtrl.doEdit(cfp: ExternalCfp.Id)

@@ -4,7 +4,7 @@ CREATE TABLE external_events
     name              VARCHAR(120)  NOT NULL UNIQUE,
     logo              VARCHAR(1024),
     description       VARCHAR(4096) NOT NULL,
-    start             TIMESTAMP     NOT NULL,
+    start             TIMESTAMP,
     finish            TIMESTAMP,
     location          VARCHAR(4096),
     location_id       VARCHAR(150),
@@ -39,6 +39,7 @@ CREATE TABLE external_proposals
     slides      VARCHAR(1024),
     video       VARCHAR(1024),
     tags        VARCHAR(150)  NOT NULL, -- 5 tags max
+    url         VARCHAR(1024),
     created_at  TIMESTAMP     NOT NULL,
     created_by  CHAR(36)      NOT NULL REFERENCES users (id),
     updated_at  TIMESTAMP     NOT NULL,
@@ -48,4 +49,69 @@ CREATE TABLE external_proposals
 CREATE INDEX external_proposals_talk_id_idx ON external_proposals (talk_id);
 CREATE INDEX external_proposals_event_id_idx ON external_proposals (event_id);
 
-/* TODO: update external CFP to link to an event */
+INSERT INTO external_events
+SELECT id,
+       name,
+       logo,
+       description,
+       event_start,
+       event_finish,
+       location,
+       location_id,
+       location_lat,
+       location_lng,
+       location_locality,
+       location_country,
+       event_url,
+       tickets_url,
+       videos_url,
+       twitter_account,
+       twitter_hashtag,
+       tags,
+       created_at,
+       created_by,
+       updated_at,
+       updated_by
+FROM external_cfps;
+
+ALTER TABLE external_cfps
+    ADD COLUMN event_id CHAR(36) REFERENCES external_events (id);
+
+UPDATE external_cfps
+SET event_id=id;
+
+ALTER TABLE external_cfps
+    ALTER COLUMN event_id SET NOT NULL;
+
+ALTER TABLE external_cfps
+    DROP COLUMN name;
+ALTER TABLE external_cfps
+    DROP COLUMN logo;
+ALTER TABLE external_cfps
+    DROP COLUMN event_start;
+ALTER TABLE external_cfps
+    DROP COLUMN event_finish;
+ALTER TABLE external_cfps
+    DROP COLUMN event_url;
+ALTER TABLE external_cfps
+    DROP COLUMN location;
+ALTER TABLE external_cfps
+    DROP COLUMN location_id;
+ALTER TABLE external_cfps
+    DROP COLUMN location_lat;
+ALTER TABLE external_cfps
+    DROP COLUMN location_lng;
+ALTER TABLE external_cfps
+    DROP COLUMN location_locality;
+ALTER TABLE external_cfps
+    DROP COLUMN location_country;
+ALTER TABLE external_cfps
+    DROP COLUMN tickets_url;
+ALTER TABLE external_cfps
+    DROP COLUMN videos_url;
+ALTER TABLE external_cfps
+    DROP COLUMN twitter_account;
+ALTER TABLE external_cfps
+    DROP COLUMN twitter_hashtag;
+ALTER TABLE external_cfps
+    DROP COLUMN tags;

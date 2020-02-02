@@ -1,0 +1,25 @@
+@import gospeak.core.domain.ExternalEvent
+@import gospeak.libs.scala.domain.Page
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserReq
+
+@(events: Page[ExternalEvent])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@eventItem(event: ExternalEvent) = {
+    <a href="@CfpCtrl.createExternalCfp(event.id)" class="list-group-item list-group-item-action">
+        <h5 class="mb-1">@event.name.value</h5>
+        @event.start.map { s => <span class="badge badge-primary">@Formats.date(s)</span> }
+        @event.location.map { l => <span class="badge badge-primary">@l.locality.map(_ + ",") @l.country</span> }
+    </a>
+}
+@container(s"Add a CFP - Gospeak", PageMeta.createCfp(), b)() {
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>Thanks for adding a CFP</h1>
+        <a class="btn btn-primary" href="@CfpCtrl.createExternalEvent()" title="If you don't find the event in the list, you can add it" data-toggle="tooltip">Add new event</a>
+    </div>
+    <h3>Select the CFP event, or add it if needed</h3>
+
+    @Formats.paginated[ExternalEvent](events, CfpCtrl.findExternalEvent, eventItem)
+}()(req.userAware)

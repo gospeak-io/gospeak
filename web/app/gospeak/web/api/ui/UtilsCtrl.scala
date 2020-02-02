@@ -58,7 +58,7 @@ class UtilsCtrl(cc: ControllerComponents,
   }
 
   def duplicatesExtCfp(params: ExternalCfp.DuplicateParams): Action[AnyContent] = UserAction[Seq[ApiExternalCfp.Published]] { implicit req =>
-    externalCfpRepo.listDuplicates(params).map(cfps => ApiResult.of(cfps.map(ApiExternalCfp.published)))
+    externalCfpRepo.listDuplicatesFull(params).map(cfps => ApiResult.of(cfps.map(ApiExternalCfp.published)))
   }
 
   def embed(url: Url): Action[AnyContent] = UserAwareAction { implicit req =>

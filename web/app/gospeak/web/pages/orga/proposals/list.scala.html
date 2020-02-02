@@ -10,7 +10,7 @@
 @(proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${req.group.name.value} proposals - Gospeak", b)() {
     <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") <small>(from any CFP)</small></h1>
-    <div>
+    <div class="mb-1">
         Filters:
         @filterEnum(proposals, ProposalCtrl.list(req.group.slug, _), "Status", "status", Seq("pending", "accepted", "declined"))
         @filterBool(proposals, ProposalCtrl.list(req.group.slug, _), "With slides", "slides")

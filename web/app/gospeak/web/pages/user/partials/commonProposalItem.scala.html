@@ -8,7 +8,7 @@
     @p.eventExt.map { event =>
         <a href="@ProposalCtrl.detailExt(p.talk.slug, p.id.external)" class="list-group-item list-group-item-action">
             <div class="d-flex w-100 justify-content-between align-items-center">
-                <h5 class="mb-1">@event.name.value - @Formats.date(event.start)</h5>
+                <h5 class="mb-1">@event.name.value @event.start.map { s => - @Formats.date(s) }</h5>
                 <div><span class="badge badge-dark">External</span></div>
             </div>
             <div class="d-flex w-100 justify-content-between align-items-center">

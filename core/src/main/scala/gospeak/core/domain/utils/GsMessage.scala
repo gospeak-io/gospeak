@@ -46,6 +46,7 @@ object GsMessage {
   sealed trait ExternalCfpMessage extends GsMessage
 
   final case class ExternalCfpCreated(cfp: Linked[ExternalCfp],
+                                      event: ExternalEvent,
                                       user: User) extends ExternalCfpMessage
 
   // nested classes
