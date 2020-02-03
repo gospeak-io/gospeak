@@ -145,6 +145,7 @@ object Mappings {
   val cfpName: Mapping[Cfp.Name] = nonEmptyTextMapping(Cfp.Name, _.value, Constraints.maxLength(Values.maxLength.title))
   val talkSlug: Mapping[Talk.Slug] = slugMapping(Talk.Slug)
   val talkTitle: Mapping[Talk.Title] = nonEmptyTextMapping(Talk.Title, _.value, Constraints.maxLength(Values.maxLength.title))
+  val proposalStatus: Mapping[Proposal.Status] = stringEitherMapping(Proposal.Status.from, _.value, formatError, Constraints.nonEmpty)
   val partnerId: Mapping[Partner.Id] = idMapping(Partner.Id)
   val partnerSlug: Mapping[Partner.Slug] = slugMapping(Partner.Slug)
   val partnerName: Mapping[Partner.Name] = nonEmptyTextMapping(Partner.Name, _.value, Constraints.maxLength(Values.maxLength.title))

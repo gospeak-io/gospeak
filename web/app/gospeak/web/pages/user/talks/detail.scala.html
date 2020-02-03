@@ -101,7 +101,7 @@
         }
         <a href="#" class="badge badge-pill badge-primary" data-toggle="modal" data-target="#inviteSpeakerModal"><i class="fas fa-plus"></i></a>
     </div>
-    <p>@markdown(talk.description)</p>
+    @markdown(talk.description)
 
     @if(talk.slides.isEmpty) { @slidesFields(embedForm, TalkCtrl.doAddSlides(talk.slug)) }
     @if(talk.video.isEmpty) { @videoFields(embedForm, TalkCtrl.doAddVideo(talk.slug)) }

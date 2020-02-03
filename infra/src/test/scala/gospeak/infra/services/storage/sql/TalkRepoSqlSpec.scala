@@ -66,7 +66,7 @@ class TalkRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = TalkRepoSql.update(talk.slug)(talkData1, user.id, now)
-        check(q, s"UPDATE $table SET slug=?, title=?, duration=?, description=?, slides=?, video=?, tags=?, updated_at=?, updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
+        check(q, s"UPDATE $table SET slug=?, title=?, duration=?, description=?, message=?, slides=?, video=?, tags=?, updated_at=?, updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
       }
       it("should build updateStatus") {
         val q = TalkRepoSql.updateStatus(talk.slug)(Talk.Status.Public, user.id)
@@ -118,6 +118,6 @@ class TalkRepoSqlSpec extends RepoSpec {
 
 object TalkRepoSqlSpec {
   val table = "talks t"
-  val fields: String = mapFields("id, slug, status, title, duration, description, speakers, slides, video, tags, created_at, created_by, updated_at, updated_by", "t." + _)
+  val fields: String = mapFields("id, slug, status, title, duration, description, message, speakers, slides, video, tags, created_at, created_by, updated_at, updated_by", "t." + _)
   val orderBy = "ORDER BY t.title IS NULL, t.title"
 }

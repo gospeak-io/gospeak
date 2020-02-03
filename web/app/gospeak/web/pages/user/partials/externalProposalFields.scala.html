@@ -1,6 +1,6 @@
 @import java.util.concurrent.TimeUnit
 
-@import gospeak.core.domain.ExternalProposal
+@import gospeak.core.domain.{ExternalProposal, Proposal}
 @import gospeak.web.api.ui.routes.SuggestCtrl
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.utils.UserReq
@@ -9,11 +9,17 @@
 @fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title of your talk")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
 }
+@fieldHorizontal(form("status"), Seq("label" -> "Status", "help" -> "The status of your proposal in the external CFP. Only accepted ones will be displayed on your speaker page")) { (field, args) =>
+    @inputSelect(field, Proposal.Status.all.map(s => s.value -> s.value), args = args)
+}
 @fieldHorizontal(form("duration"), Seq("label" -> "Duration", "help" -> "Duration of your proposal")) { (field, args) =>
     @inputDuration(field, Seq(TimeUnit.MINUTES), args = args)
 }
-@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Title of your talk")) { (field, args) =>
-    @inputMarkdown(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
+@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "The public description of your talk")) { (field, args) =>
+    @inputMarkdown(field, args)
+}
+@fieldHorizontal(form("message"), Seq("label" -> "Message", "help" -> "The private message to orgas")) { (field, args) =>
+    @inputMarkdown(field, args)
 }
 @fieldHorizontal(form("slides"), Seq("label" -> "Slides", "help" -> "Slides for your proposal")) { (field, args) =>
     @inputEmbed(field, args)

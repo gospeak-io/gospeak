@@ -9,7 +9,7 @@
         <a href="@ProposalCtrl.detailExt(p.talk.slug, p.id.external)" class="list-group-item list-group-item-action">
             <div class="d-flex w-100 justify-content-between align-items-center">
                 <h5 class="mb-1">@event.name.value @event.start.map { s => - @Formats.date(s) }</h5>
-                <div><span class="badge badge-dark">External</span></div>
+                <div><span class="badge badge-dark">External</span> @proposalStatus(p.status)</div>
             </div>
             <div class="d-flex w-100 justify-content-between align-items-center">
                 <p class="mb-1">
@@ -27,8 +27,8 @@
     @p.cfp.map { cfp =>
         <a href="@ProposalCtrl.detail(p.talk.slug, cfp.slug)" class="list-group-item list-group-item-action">
             <div class="d-flex w-100 justify-content-between align-items-center">
-                <h5 class="mb-1">@cfp.name.value @p.event.map { e => (@e.name.value - @Formats.date(e.start)) }</h5>
-                @p.status.map { s => <div>@proposalStatus(s)</div> }
+                <h5 class="mb-1">@p.event.map { e => @e.name.value - @Formats.date(e.start) }.getOrElse { @cfp.name.value }</h5>
+                <div>@proposalStatus(p.status)</div>
             </div>
             <div class="d-flex w-100 justify-content-between align-items-center">
                 <p class="mb-1">

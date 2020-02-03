@@ -10,7 +10,7 @@ import gospeak.core.domain.utils.{Info, UserCtx}
 import gospeak.core.services.storage.ExternalProposalRepo
 import gospeak.infra.services.storage.sql.ExternalProposalRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Sorts, Table, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import gospeak.infra.services.storage.sql.utils.{GenericQuery, GenericRepo}
 import gospeak.libs.scala.domain.{Done, Page, Tag}
 
@@ -43,8 +43,8 @@ object ExternalProposalRepoSql {
   private val _ = externalProposalIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.externalProposals
   private val commonTable = Table(
-    name = "((SELECT p.id, false as external, t.id as talk_id, t.slug as talk_slug, t.duration as talk_duration, c.id as cfp_id, c.slug as cfp_slug, c.name as cfp_name, e.id as event_id, e.slug as event_slug, e.name as event_name, e.start as event_start, null as event_ext_id, null   as event_ext_name, null    as event_ext_start, p.title,       p.status, p.duration, p.tags, p.created_at, p.created_by, p.updated_at, p.updated_by FROM proposals p          INNER JOIN talks t ON p.talk_id=t.id LEFT OUTER JOIN events e     ON p.event_id=e.id INNER JOIN cfps c ON p.cfp_id=c.id) " +
-      "UNION (SELECT p.id, true  as external, t.id as talk_id, t.slug as talk_slug, t.duration as talk_duration, null as cfp_id, null   as cfp_slug, null   as cfp_name, null as event_id, null   as event_slug, null   as event_name, null    as event_start, e.id as event_ext_id, e.name as event_ext_name, e.start as event_ext_start, p.title, null as status, p.duration, p.tags, p.created_at, p.created_by, p.updated_at, p.updated_by FROM external_proposals p INNER JOIN talks t ON p.talk_id=t.id INNER JOIN external_events e ON p.event_id=e.id))",
+    name = "((SELECT p.id, false as external, t.id as talk_id, t.slug as talk_slug, t.duration as talk_duration, c.id as cfp_id, c.slug as cfp_slug, c.name as cfp_name, e.id as event_id, e.slug as event_slug, e.name as event_name, e.start as event_start, null as event_ext_id, null   as event_ext_name, null    as event_ext_start, p.title, p.status, p.duration, p.tags, p.created_at, p.created_by, p.updated_at, p.updated_by FROM proposals p          INNER JOIN talks t ON p.talk_id=t.id LEFT OUTER JOIN events e     ON p.event_id=e.id INNER JOIN cfps c ON p.cfp_id=c.id) " +
+      "UNION (SELECT p.id, true  as external, t.id as talk_id, t.slug as talk_slug, t.duration as talk_duration, null as cfp_id, null   as cfp_slug, null   as cfp_name, null as event_id, null   as event_slug, null   as event_name, null    as event_start, e.id as event_ext_id, e.name as event_ext_name, e.start as event_ext_start, p.title, p.status, p.duration, p.tags, p.created_at, p.created_by, p.updated_at, p.updated_by FROM external_proposals p INNER JOIN talks t ON p.talk_id=t.id INNER JOIN external_events e ON p.event_id=e.id))",
     prefix = "p",
     joins = Seq(),
     fields = Seq("id", "external", "talk_id", "talk_slug", "talk_duration", "cfp_id", "cfp_slug", "cfp_name", "event_id", "event_slug", "event_name", "event_start", "event_ext_id", "event_ext_name", "event_ext_start", "title", "status", "duration", "tags", "created_at", "created_by", "updated_at", "updated_by").map(Field(_, "p")),
@@ -54,12 +54,12 @@ object ExternalProposalRepoSql {
     search = Seq("title").map(Field(_, "p")))
 
   private[sql] def insert(e: ExternalProposal): Insert[ExternalProposal] = {
-    val values = fr0"${e.id}, ${e.talk}, ${e.event}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.url}, ${e.tags}, " ++ insertInfo(e.info)
+    val values = fr0"${e.id}, ${e.talk}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.message}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.url}, ${e.tags}, " ++ insertInfo(e.info)
     table.insert[ExternalProposal](e, _ => values)
   }
 
   private[sql] def update(id: ExternalProposal.Id)(e: ExternalProposal.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"title=${e.title}, duration=${e.duration}, description=${e.description}, slides=${e.slides}, video=${e.video}, url=${e.url}, tags=${e.tags}, updated_at=$now, updated_by=$by"
+    val fields = fr0"status=${e.status}, title=${e.title}, duration=${e.duration}, description=${e.description}, message=${e.message}, slides=${e.slides}, video=${e.video}, url=${e.url}, tags=${e.tags}, updated_at=$now, updated_by=$by"
     table.update(fields, fr0"WHERE id=$id AND speakers LIKE ${"%" + by.value + "%"}")
   }
 

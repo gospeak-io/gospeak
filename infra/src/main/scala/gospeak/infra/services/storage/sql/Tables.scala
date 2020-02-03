@@ -30,9 +30,9 @@ object Tables {
   val talks: Table = Table.from(
     name = "talks",
     prefix = "t",
-    fields = Seq("id", "slug", "status", "title", "duration", "description", "speakers", "slides", "video", "tags", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "slug", "status", "title", "duration", "description", "message", "speakers", "slides", "video", "tags", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("title"),
-    search = Seq("id", "slug", "title", "description", "tags")).get
+    search = Seq("id", "slug", "status", "title", "description", "message", "tags")).get
 
   val groups: Table = Table.from(
     name = "groups",
@@ -100,9 +100,9 @@ object Tables {
   val proposals: Table = Table.from(
     name = "proposals",
     prefix = "p",
-    fields = Seq("id", "talk_id", "cfp_id", "event_id", "status", "title", "duration", "description", "speakers", "slides", "video", "tags", "orga_tags", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "talk_id", "cfp_id", "event_id", "status", "title", "duration", "description", "message", "speakers", "slides", "video", "tags", "orga_tags", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("-created_at"),
-    search = Seq("id", "title", "status", "description", "tags")).get
+    search = Seq("id", "title", "status", "description", "message", "tags")).get
 
   val proposalRatings: Table = Table.from(
     name = "proposal_ratings",
@@ -156,9 +156,9 @@ object Tables {
   val externalProposals: Table = Table.from(
     name = "external_proposals",
     prefix = "ep",
-    fields = Seq("id", "talk_id", "event_id", "title", "duration", "description", "speakers", "slides", "video", "url", "tags", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "talk_id", "event_id", "status", "title", "duration", "description", "message", "speakers", "slides", "video", "url", "tags", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("title", "created_at"),
-    search = Seq("id", "title", "description", "tags")).get
+    search = Seq("id", "title", "status", "description", "message", "tags")).get
 
   val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, groupSettings, groupMembers, cfps, partners, contacts, venues, events, eventRsvps, proposals, proposalRatings, sponsorPacks, sponsors, comments, userRequests, externalEvents, externalCfps, externalProposals)
 }
