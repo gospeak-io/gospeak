@@ -74,7 +74,9 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def list(user: User.Id, status: Talk.Status, params: Page.Params): IO[Page[Talk]] = selectPage(user, status, params).run(xa)
 
-  override def listActive(user: User.Id, cfp: Cfp.Id, params: Page.Params): IO[Page[Talk]] = selectPage(user, cfp, Talk.Status.active, params).run(xa)
+  override def listCurrent(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]] = selectPage(ctx.user.id, Talk.Status.current, params).run(xa)
+
+  override def listCurrent(user: User.Id, cfp: Cfp.Id, params: Page.Params): IO[Page[Talk]] = selectPage(user, cfp, Talk.Status.current, params).run(xa)
 
   override def find(talk: Talk.Slug)(implicit ctx: UserCtx): IO[Option[Talk]] = selectOne(ctx.user.id, talk).runOption(xa)
 
@@ -123,6 +125,9 @@ object TalkRepoSql {
 
   private[sql] def selectPage(user: User.Id, status: Talk.Status, params: Page.Params): SelectPage[Talk] =
     table.selectPage[Talk](params, fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.status=$status")
+
+  private[sql] def selectPage(user: User.Id, status: NonEmptyList[Talk.Status], params: Page.Params): SelectPage[Talk] =
+    table.selectPage[Talk](params, fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND " ++ Fragments.in(fr"t.status", status))
 
   private[sql] def selectPage(user: User.Id, cfp: Cfp.Id, status: NonEmptyList[Talk.Status], params: Page.Params): SelectPage[Talk] = {
     val cfpTalks = Tables.proposals.select(Seq(Field("talk_id", "p")), fr0"WHERE p.cfp_id=$cfp", Seq()).fr

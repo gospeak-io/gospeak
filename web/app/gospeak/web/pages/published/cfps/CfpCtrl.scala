@@ -154,7 +154,7 @@ class CfpCtrl(cc: ControllerComponents,
     (for {
       cfpElt <- OptionT(cfpRepo.findIncoming(cfp, req.now))
       groupElt <- OptionT(groupRepo.find(cfpElt.group))
-      talks <- OptionT.liftF(req.user.map(_.id).map(talkRepo.listActive(_, cfpElt.id, params)).getOrElse(IO.pure(Page.empty[Talk])))
+      talks <- OptionT.liftF(req.user.map(_.id).map(talkRepo.listCurrent(_, cfpElt.id, params)).getOrElse(IO.pure(Page.empty[Talk])))
       b = proposeTalkBreadcrumb(cfpElt)
     } yield Ok(html.propose(groupElt, cfpElt, talks, form)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
   }

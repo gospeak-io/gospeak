@@ -19,7 +19,9 @@ trait SpeakerExternalProposalRepo {
 
   def remove(id: ExternalProposal.Id)(implicit ctx: UserCtx): IO[Done]
 
-  def listPageCommon(talk: Talk.Id, params: Page.Params): IO[Page[CommonProposal]]
+  def listCommon(talk: Talk.Id, params: Page.Params): IO[Page[CommonProposal]]
+
+  def listCurrentCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]]
 
   def listAllCommon(talk: Talk.Id): IO[Seq[CommonProposal]]
 

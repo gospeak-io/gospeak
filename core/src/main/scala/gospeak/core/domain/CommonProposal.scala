@@ -2,6 +2,7 @@ package gospeak.core.domain
 
 import java.time.LocalDateTime
 
+import cats.data.NonEmptyList
 import gospeak.core.domain.utils.Info
 import gospeak.libs.scala.domain.{DataClass, IId, Tag, UuidIdBuilder}
 
@@ -16,15 +17,16 @@ final case class CommonProposal(id: CommonProposal.Id,
                                 title: Talk.Title,
                                 status: Proposal.Status,
                                 duration: FiniteDuration,
+                                speakers: NonEmptyList[User.Id],
                                 tags: Seq[Tag],
                                 info: Info)
 
 object CommonProposal {
   def apply(p: Proposal, t: Talk, c: Cfp, eOpt: Option[Event]): CommonProposal =
-    new CommonProposal(Id(p.id), external = false, EmbedTalk(t.id, t.slug, t.duration), Some(EmbedCfp(c.id, c.slug, c.name)), eOpt.map(e => EmbedEvent(e.id, e.slug, e.name, e.start)), None, p.title, p.status, p.duration, p.tags, p.info)
+    new CommonProposal(Id(p.id), external = false, EmbedTalk(t.id, t.slug, t.duration), Some(EmbedCfp(c.id, c.slug, c.name)), eOpt.map(e => EmbedEvent(e.id, e.slug, e.name, e.start)), None, p.title, p.status, p.duration, p.speakers, p.tags, p.info)
 
   def apply(p: ExternalProposal, t: Talk, e: ExternalEvent): CommonProposal =
-    new CommonProposal(Id(p.id), external = true, EmbedTalk(t.id, t.slug, t.duration), None, None, Some(EmbedExtEvent(e.id, e.name, e.start)), p.title, p.status, p.duration, p.tags, p.info)
+    new CommonProposal(Id(p.id), external = true, EmbedTalk(t.id, t.slug, t.duration), None, None, Some(EmbedExtEvent(e.id, e.name, e.start)), p.title, p.status, p.duration, p.speakers, p.tags, p.info)
 
   final class Id private(value: String) extends DataClass(value) with IId {
     def external: ExternalProposal.Id = ExternalProposal.Id.from(this)
