@@ -43,7 +43,7 @@ class ProposalCtrl(cc: ControllerComponents,
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(talk))
-      proposals <- OptionT.liftF(externalProposalRepo.listPageCommon(talkElt.id, params))
+      proposals <- OptionT.liftF(externalProposalRepo.listCommon(talkElt.id, params))
       b = listBreadcrumb(talkElt)
     } yield Ok(html.list(talkElt, proposals)(b))).value.map(_.getOrElse(talkNotFound(talk)))
   }

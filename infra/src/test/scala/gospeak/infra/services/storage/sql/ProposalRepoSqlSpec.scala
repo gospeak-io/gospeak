@@ -137,16 +137,16 @@ class ProposalRepoSqlSpec extends RepoSpec {
         val q = ProposalRepoSql.selectPageFull(talk.id, params)
         check(q, s"SELECT $fieldsFull, $fieldsFullAgg, $fieldsFullCustom FROM $tableFull WHERE p.talk_id=? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
-      it("should build selectSpeakerPageFull for a speaker") {
-        val q = ProposalRepoSql.selectSpeakerPageFull(params)
+      it("should build selectPageFullSpeaker for a speaker") {
+        val q = ProposalRepoSql.selectPageFullSpeaker(params)
         check(q, s"SELECT $fieldsFull, $fieldsFullAgg, $fieldsFullCustom FROM $tableFull WHERE p.speakers LIKE ? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
-      it("should build selectPagePublicFull for a speaker") {
-        val q = ProposalRepoSql.selectPagePublicFull(user.id, params)
+      it("should build selectPageFullPublic for a speaker") {
+        val q = ProposalRepoSql.selectPageFullPublic(user.id, params)
         check(q, s"SELECT $fieldsFull, $fieldsFullAgg, $fieldsFullCustom FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
-      it("should build selectPagePublicFull for a group") {
-        val q = ProposalRepoSql.selectPagePublicFull(group.id, params)
+      it("should build selectPageFullPublic for a group") {
+        val q = ProposalRepoSql.selectPageFullPublic(group.id, params)
         check(q, s"SELECT $fieldsFull, $fieldsFullAgg, $fieldsFullCustom FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectAll") {

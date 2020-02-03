@@ -6,6 +6,8 @@ import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.UserRequest
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.Page
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain._
@@ -13,8 +15,6 @@ import gospeak.web.emails.Emails
 import gospeak.web.pages.orga.routes.{GroupCtrl => GroupRoutes}
 import gospeak.web.pages.user.UserCtrl._
 import gospeak.web.utils.{UICtrl, UserReq}
-import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.Page
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 import scala.util.control.NonFatal
@@ -28,15 +28,16 @@ class UserCtrl(cc: ControllerComponents,
                userRequestRepo: UserUserRequestRepo,
                talkRepo: SpeakerTalkRepo,
                proposalRepo: SpeakerProposalRepo,
+               externalProposalRepo: SpeakerExternalProposalRepo,
                cfpRepo: SpeakerCfpRepo,
                emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) {
   def index(): Action[AnyContent] = UserAction { implicit req =>
     for {
       incomingEvents <- eventRepo.listIncoming(Page.Params.defaults)
       joinedGroups <- groupRepo.listJoined(Page.Params.defaults)
-      talks <- talkRepo.list(Page.Params.defaults)
-      proposals <- proposalRepo.listFull(Page.Params.defaults)
-    } yield Ok(html.index(incomingEvents, joinedGroups, talks, proposals)(breadcrumb))
+      currentTalks <- talkRepo.listCurrent(Page.Params.defaults)
+      currentProposals <- externalProposalRepo.listCurrentCommon(Page.Params.defaults)
+    } yield Ok(html.index(incomingEvents, joinedGroups, currentTalks, currentProposals)(breadcrumb))
   }
 
   def answerRequest(request: UserRequest.Id): Action[AnyContent] = UserAction { implicit req =>

@@ -120,11 +120,11 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def listFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(speaker, params).run(xa)
 
-  override def listFull(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectSpeakerPageFull(params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectPageFullSpeaker(params).run(xa)
 
-  override def listPublicFull(speaker: User.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Proposal.Full]] = selectPagePublicFull(speaker, params).run(xa)
+  override def listPublicFull(speaker: User.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Proposal.Full]] = selectPageFullPublic(speaker, params).run(xa)
 
-  override def listPublicFull(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Proposal.Full]] = selectPagePublicFull(group, params).run(xa)
+  override def listPublicFull(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Proposal.Full]] = selectPageFullPublic(group, params).run(xa)
 
   override def list(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = runNel(selectAll, ids)
 
@@ -261,13 +261,13 @@ object ProposalRepoSql {
   private[sql] def selectPageFull(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): SelectPage[Proposal.Full] =
     tableFull(ctx.user).selectPage[Proposal.Full](params, fr0"WHERE p.talk_id=$talk")
 
-  private[sql] def selectSpeakerPageFull(params: Page.Params)(implicit ctx: UserCtx): SelectPage[Proposal.Full] =
+  private[sql] def selectPageFullSpeaker(params: Page.Params)(implicit ctx: UserCtx): SelectPage[Proposal.Full] =
     tableFull(ctx.user).selectPage[Proposal.Full](params, fr0"WHERE p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
 
-  private[sql] def selectPagePublicFull(speaker: User.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Proposal.Full] =
+  private[sql] def selectPageFullPublic(speaker: User.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Proposal.Full] =
     tableFull(ctx.user).selectPage[Proposal.Full](params, fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"} AND e.published IS NOT NULL")
 
-  private[sql] def selectPagePublicFull(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Proposal.Full] =
+  private[sql] def selectPageFullPublic(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Proposal.Full] =
     tableFull(ctx.user).selectPage[Proposal.Full](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")
 
   private[sql] def selectAll(ids: NonEmptyList[Proposal.Id]): Select[Proposal] =

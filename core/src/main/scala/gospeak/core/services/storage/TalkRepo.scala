@@ -26,7 +26,9 @@ trait SpeakerTalkRepo {
 
   def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]]
 
-  def listActive(user: User.Id, cfp: Cfp.Id, params: Page.Params): IO[Page[Talk]]
+  def listCurrent(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]]
+
+  def listCurrent(user: User.Id, cfp: Cfp.Id, params: Page.Params): IO[Page[Talk]]
 
   def find(talk: Talk.Slug)(implicit ctx: UserCtx): IO[Option[Talk]]
 
