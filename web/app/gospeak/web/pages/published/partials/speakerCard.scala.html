@@ -8,7 +8,7 @@
     </div>
     <div class="card-body">
         <h5 class="card-title">@speaker.name.value</h5>
-        @speaker.bio.map { b => <p>@markdown(b)</p> }
+        @speaker.bio.map { b => @markdown(b) }
         <p class="text-secondary font-italic no-margin">
             @speaker.website.map { url => @websiteLink(url) <br> }
             @speaker.location.map { location => @locationDisplay(location)<br> }

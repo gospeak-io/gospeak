@@ -17,7 +17,7 @@
                         <span><small>@userProfileStatusIcon(req.user.status)</small> @req.user.name.value</span>
                         <a class="btn btn-primary btn-sm" href="@ProfileCtrl.edit()">Update</a>
                     </h5>
-                    @req.user.bio.map { b => <p>@markdown(b)</p> }
+                    @req.user.bio.map { b => @markdown(b) }
                     <p class="text-secondary font-italic mb-0">
                         @emailLink(req.user.email)<br>
                         @req.user.phone.map { phone => @phoneLink(phone)<br> }

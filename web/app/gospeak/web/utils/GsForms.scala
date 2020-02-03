@@ -236,6 +236,7 @@ object GsForms {
     "title" -> talkTitle,
     "duration" -> duration,
     "description" -> markdown,
+    "message" -> markdown,
     "slides" -> optional(slides),
     "video" -> optional(video),
     "tags" -> tags
@@ -272,6 +273,7 @@ object GsForms {
     "title" -> talkTitle,
     "duration" -> duration,
     "description" -> markdown,
+    "message" -> markdown,
     "slides" -> optional(slides),
     "video" -> optional(video),
     "tags" -> tags
@@ -389,9 +391,11 @@ object GsForms {
   )(ExternalCfpAndEvent.apply)(ExternalCfpAndEvent.unapply))
 
   private val externalProposalMapping: Mapping[ExternalProposal.Data] = mapping(
+    "status" -> proposalStatus,
     "title" -> talkTitle,
     "duration" -> duration,
     "description" -> markdown,
+    "message" -> markdown,
     "slides" -> optional(slides),
     "video" -> optional(video),
     "url" -> optional(url),

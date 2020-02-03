@@ -8,8 +8,8 @@ import scala.util.Try
 import scala.util.matching.Regex
 
 /**
-  * Like a single value case class but allows private constructor and no generated apply
-  */
+ * Like a single value case class but allows private constructor and no generated apply
+ */
 abstract class DataClass(val value: String) {
   def canEqual(other: Any): Boolean = other.isInstanceOf[DataClass]
 
@@ -34,6 +34,8 @@ trait IId {
 
 abstract class UuidIdBuilder[A <: IId](clazz: String, build: String => A) {
   def generate(): A = build(UUID.randomUUID().toString)
+
+  def from(id: IId): A = build(id.value)
 
   def from(in: String): Either[CustomException, A] = {
     val errs = errors(in)

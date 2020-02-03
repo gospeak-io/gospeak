@@ -19,8 +19,7 @@ import gospeak.libs.scala.domain.{CustomException, EmailAddress}
 import gospeak.web.auth.AuthConf
 import gospeak.web.auth.domain.{AuthUser, CookieEnv, SocialProfile}
 import gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
-import gospeak.web.utils.GsForms
-import gospeak.web.utils.{UserAwareReq, UserReq}
+import gospeak.web.utils.{GsForms, UserAwareReq, UserReq}
 import org.apache.http.auth.AuthenticationException
 import play.api.mvc.{AnyContent, Result}
 

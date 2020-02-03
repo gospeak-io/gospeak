@@ -88,12 +88,12 @@ object TalkRepoSql {
   private val table = Tables.talks
 
   private[sql] def insert(e: Talk): Insert[Talk] = {
-    val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
+    val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.message}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert(e, _ => values)
   }
 
-  private[sql] def update(talk: Talk.Slug)(data: Talk.Data, by: User.Id, now: Instant): Update = {
-    val fields = fr0"slug=${data.slug}, title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated_at=$now, updated_by=$by"
+  private[sql] def update(talk: Talk.Slug)(d: Talk.Data, by: User.Id, now: Instant): Update = {
+    val fields = fr0"slug=${d.slug}, title=${d.title}, duration=${d.duration}, description=${d.description}, message=${d.message}, slides=${d.slides}, video=${d.video}, tags=${d.tags}, updated_at=$now, updated_by=$by"
     table.update(fields, where(by, talk))
   }
 

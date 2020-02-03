@@ -12,6 +12,7 @@ final case class Talk(id: Talk.Id,
                       title: Talk.Title,
                       duration: FiniteDuration,
                       description: Markdown,
+                      message: Markdown,
                       speakers: NonEmptyList[User.Id],
                       slides: Option[Slides],
                       video: Option[Video],
@@ -25,11 +26,11 @@ final case class Talk(id: Talk.Id,
 }
 
 object Talk {
-  def apply(data: Data,
+  def apply(d: Data,
             status: Status,
             speakers: NonEmptyList[User.Id],
             info: Info): Talk =
-    new Talk(Id.generate(), data.slug, status, data.title, data.duration, data.description, speakers, data.slides, data.video, data.tags, info)
+    new Talk(Id.generate(), d.slug, status, d.title, d.duration, d.description, d.message, speakers, d.slides, d.video, d.tags, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -73,12 +74,13 @@ object Talk {
                         title: Talk.Title,
                         duration: FiniteDuration,
                         description: Markdown,
+                        message: Markdown,
                         slides: Option[Slides],
                         video: Option[Video],
                         tags: Seq[Tag])
 
   object Data {
-    def apply(talk: Talk): Data = Data(talk.slug, talk.title, talk.duration, talk.description, talk.slides, talk.video, talk.tags)
+    def apply(t: Talk): Data = Data(t.slug, t.title, t.duration, t.description, t.message, t.slides, t.video, t.tags)
   }
 
 }

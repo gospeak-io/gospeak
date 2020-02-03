@@ -12,7 +12,7 @@
     @if(invite.isPending(req.now)) {
         <h1>Nice!!! You have been invited to speak <i class="far fa-thumbs-up"></i></h1>
         <h3>@proposal.title.value</h3>
-        <p>@markdown(proposal.description)</p>
+        @markdown(proposal.description)
         @formBtn(UserCtrl.rejectRequest(invite.id), Seq("class" -> "btn-danger")) { Do not join }
         @formBtn(UserCtrl.acceptRequest(invite.id), Seq("class" -> "btn-success")) { Join <b>@speaker.name.value</b> to speak about <b>@proposal.title.value</b> }
     } else {

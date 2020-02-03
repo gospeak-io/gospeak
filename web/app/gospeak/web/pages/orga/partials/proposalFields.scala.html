@@ -12,7 +12,7 @@
 @fieldHorizontal(form("duration"), Seq("label" -> "Duration", "help" -> "Duration of your proposal")) { (field, args) =>
     @inputDuration(field, Seq(TimeUnit.MINUTES), args = args)
 }
-@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Give a abstract for your proposal, you should make orga and people listen at you")) { (field, args) =>
+@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "The public description of the proposal")) { (field, args) =>
     @inputMarkdown(field, args)
 }
 @fieldHorizontal(form("slides"), Seq("label" -> "Slides", "help" -> "Slides for your proposal")) { (field, args) =>

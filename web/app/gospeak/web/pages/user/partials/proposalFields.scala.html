@@ -14,6 +14,9 @@
 @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Give a abstract for your proposal, you should make orga and people listen at you")) { (field, args) =>
     @inputMarkdown(field, args)
 }
+@fieldHorizontal(form("message"), Seq("label" -> "Message", "help" -> "A private message for orgas, give more details about you, your talk and why they should select you")) { (field, args) =>
+    @inputMarkdown(field, args)
+}
 @fieldHorizontal(form("slides"), Seq("label" -> "Slides", "help" -> "Slides for your proposal")) { (field, args) =>
     @inputEmbed(field, args)
 }

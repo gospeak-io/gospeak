@@ -270,8 +270,8 @@
             }
             @component("proposalItem", "@commonProposalItem(proposalFull)") { name =>
                 @example(s"$name pending") { _ => @speaker.commonProposalItem(commonProposal.copy(event = None)) }
-                @example(s"$name accepted") { _ => @speaker.commonProposalItem(commonProposal.copy(status = Some(Proposal.Status.Accepted))) }
-                @example(s"$name declined") { _ => @speaker.commonProposalItem(commonProposal.copy(status = Some(Proposal.Status.Declined))) }
+                @example(s"$name accepted") { _ => @speaker.commonProposalItem(commonProposal.copy(status = Proposal.Status.Accepted)) }
+                @example(s"$name declined") { _ => @speaker.commonProposalItem(commonProposal.copy(status = Proposal.Status.Declined)) }
             }
         }
 
