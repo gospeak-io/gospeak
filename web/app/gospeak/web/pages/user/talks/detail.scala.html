@@ -7,7 +7,6 @@
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.user.partials.html.{container, commonProposalItem}
 @import gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
-@import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
 @import gospeak.web.utils.{Formats, UserReq}
 
@@ -116,7 +115,8 @@
                 <p class="card-text">
                     Now find some groups to speak or make it public to receive some speaking requests
                 </p>
-                <a href="@CfpCtrl.list(talk.slug)" class="btn btn-success">Find a CFP to propose your talk</a>
+                <a class="btn btn-success" href="@TalkCtrl.findExternalEvent(talk.slug)">Show where you gave this talk</a>
+                <a class="btn btn-success" href="@CfpCtrl.list(talk.slug)">Propose your talk to a CFP</a>
             </div>
         </div>
     } else {
@@ -131,7 +131,6 @@
             <ul class="list-group list-group-flush">
                 @proposals.map { proposal => @commonProposalItem(proposal) }
             </ul>
-            <div class="card-footer"><a href="@ProposalCtrl.list(talk.slug)">View all</a></div>
         </div>
     }
 

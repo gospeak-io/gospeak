@@ -31,7 +31,7 @@ object Tables {
     name = "talks",
     prefix = "t",
     fields = Seq("id", "slug", "status", "title", "duration", "description", "message", "speakers", "slides", "video", "tags", "created_at", "created_by", "updated_at", "updated_by"),
-    sort = Seq("title"),
+    sort = Seq("status = 'Archived'", "title"),
     search = Seq("id", "slug", "status", "title", "description", "message", "tags")).get
 
   val groups: Table = Table.from(
