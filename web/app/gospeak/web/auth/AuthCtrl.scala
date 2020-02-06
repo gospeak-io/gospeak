@@ -76,16 +76,13 @@ class AuthCtrl(cc: ControllerComponents,
   }
 
   def authenticate(providerID: String): Action[AnyContent] = UserAwareAction { implicit req =>
-    (for {
+    for {
       profileE <- authSrv.authenticate(providerID)
       result <- profileE.fold(IO.pure, profile => for {
         authUser <- authSrv.createOrEdit(profile)
         (_, authenticatorResult) <- authSrv.login(authUser, rememberMe = true, loggedRedirect(None)(_).map(_.flashing("success" -> s"Hi ${authUser.user.name.value}, welcome to Gospeak!")))
       } yield authenticatorResult)
-    } yield result).recover {
-      case CustomException(msg, _) => Redirect(routes.AuthCtrl.login()).flashing("error" -> msg)
-      case NonFatal(e) => Redirect(routes.AuthCtrl.login()).flashing("error" -> e.getMessage)
-    }
+    } yield result
   }
 
   def doLogout(): Action[AnyContent] = UserAction { implicit req =>
@@ -153,15 +150,16 @@ class AuthCtrl(cc: ControllerComponents,
     GsForms.resetPassword.bindFromRequest.fold(
       formWithErrors => resetPasswordForm(id, formWithErrors),
       data => (for {
-        passwordReset <- OptionT(userRequestRepo.findPendingPasswordResetRequest(id, req.now))
-        user <- OptionT.liftF(authSrv.updateIdentity(data, passwordReset))
-        (_, result) <- OptionT.liftF(authSrv.login(user, data.rememberMe, loggedRedirect(None)(_)))
+        passwordReset <- OptionT(userRequestRepo.findPendingPasswordResetRequest(id))
+        user <- OptionT(userRepo.find(passwordReset.email))
+        updatedUser <- OptionT.liftF(authSrv.updateIdentity(data, passwordReset, user))
+        (_, result) <- OptionT.liftF(authSrv.login(updatedUser, data.rememberMe, loggedRedirect(None)(_)))
       } yield result).value.map(_.getOrElse(notFound()))
     )
   }
 
   private def resetPasswordForm(id: UserRequest.Id, form: Form[GsForms.ResetPasswordData])(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
-    userRequestRepo.findPendingPasswordResetRequest(id, req.now).map { passwordResetOpt =>
+    userRequestRepo.findPendingPasswordResetRequest(id).map { passwordResetOpt =>
       passwordResetOpt.map { passwordReset =>
         Ok(html.resetPassword(passwordReset, form))
       }.getOrElse {

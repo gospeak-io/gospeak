@@ -104,15 +104,14 @@ class AuthSrv(userRepo: AuthUserRepo,
     req.underlying.authenticator.map(auth => IO.fromFuture(IO(silhouette.env.authenticatorService.discard(auth, redirect)))).getOrElse(IO.pure(redirect))
   }
 
-  def updateIdentity(data: GsForms.ResetPasswordData, passwordReset: PasswordResetRequest)(implicit req: UserAwareReq[AnyContent]): IO[AuthUser] = {
+  def updateIdentity(data: GsForms.ResetPasswordData, passwordReset: PasswordResetRequest, user: User)(implicit req: UserAwareReq[AnyContent]): IO[AuthUser] = {
     val loginInfo = AuthSrv.loginInfo(passwordReset.email)
     val login = toDomain(loginInfo)
     val password = toDomain(passwordHasherRegistry.current.hash(data.password.decode))
-    val credentials = User.Credentials(login, password)
     for {
-      _ <- userRepo.find(login).flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user for ${login.providerId}")))
-      _ <- userRequestRepo.resetPassword(passwordReset, credentials, req.now)
-      updatedUser <- userRepo.find(login).flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user for ${login.providerId}")))
+      _ <- userRequestRepo.resetPassword(passwordReset, User.Credentials(login, password), user)
+      updatedUser <- userRepo.find(login)
+        .flatMap(_.toIO(new IdentityNotFoundException(s"Unable to find user '${login.providerKey.value}' with provider '${login.providerId.value}'")))
       groups <- groupRepo.list(updatedUser.id)
       authUser = AuthUser(loginInfo, updatedUser, groups)
     } yield authUser

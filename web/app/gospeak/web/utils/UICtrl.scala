@@ -38,22 +38,24 @@ abstract class UICtrl(cc: ControllerComponents,
         case r: UserAwareReq[AnyContent] => r.user -> None
         case _: BasicReq[AnyContent] => None -> None
       }
-      val userStr = user.map(u => s" for user ${u.name.value} (${u.id.value})").getOrElse("")
-      val groupStr = group.map(g => s" in group ${g.name.value} (${g.id.value})").getOrElse("")
-      logger.error("Error in controller" + userStr + groupStr, e) // FIXME better error handling (send email or notif?)
+      val userStr = user.map(u => s", user ${u.name.value} (${u.id.value})").getOrElse("")
+      val groupStr = group.map(g => s", group ${g.name.value} (${g.id.value})").getOrElse("")
+      val msgStr = if(msg.isEmpty) "" else s": $msg"
+      // FIXME better error handling (send email or notif?)
+      logger.error(s"Error in controller for request ${req.customId}" + userStr + groupStr + msgStr, e)
     }
 
     val next = redirectToPreviousPageOr(gospeak.web.pages.published.routes.HomeCtrl.index())
     result.recover {
       case e: JdbcSQLSyntaxErrorException =>
         logError(e, s"\n  Message: ${e.getOriginalMessage}\n  SQL: ${e.getSQL}")
-        next.flashing("error" -> s"Unexpected SQL error")
+        next.flashing("error" -> s"Unexpected SQL error for request ${req.customId}")
       case e: JdbcSQLIntegrityConstraintViolationException =>
         logError(e, s"\n  Message: ${e.getOriginalMessage}\n  SQL: ${e.getSQL}")
-        next.flashing("error" -> s"Duplicate key SQL error")
+        next.flashing("error" -> s"Duplicate key SQL error for request ${req.customId}")
       case NonFatal(e) =>
         logError(e)
-        next.flashing("error" -> s"Unexpected error: ${e.getMessage} (${e.getClass.getSimpleName})")
+        next.flashing("error" -> s"Unexpected error for request ${req.customId} (${e.getClass.getSimpleName}):<br>${e.getMessage}")
     }.unsafeToFuture()
   }
 

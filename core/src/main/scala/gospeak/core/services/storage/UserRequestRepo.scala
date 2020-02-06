@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.effect.IO
 import gospeak.core.domain.UserRequest._
 import gospeak.core.domain._
-import gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.libs.scala.domain.{Done, EmailAddress, Page}
 
 trait UserRequestRepo extends OrgaUserRequestRepo with SpeakerUserRequestRepo with UserUserRequestRepo with AuthUserRequestRepo
@@ -87,9 +87,9 @@ trait AuthUserRequestRepo {
 
   def createPasswordResetRequest(email: EmailAddress, now: Instant): IO[PasswordResetRequest]
 
-  def resetPassword(passwordReset: PasswordResetRequest, credentials: User.Credentials, now: Instant): IO[Done]
+  def resetPassword(req: PasswordResetRequest, credentials: User.Credentials, user: User)(implicit ctx: UserAwareCtx): IO[Done]
 
-  def findPendingPasswordResetRequest(id: UserRequest.Id, now: Instant): IO[Option[PasswordResetRequest]]
+  def findPendingPasswordResetRequest(id: UserRequest.Id)(implicit ctx: UserAwareCtx): IO[Option[PasswordResetRequest]]
 
   def findPendingPasswordResetRequest(email: EmailAddress, now: Instant): IO[Option[PasswordResetRequest]]
 }
