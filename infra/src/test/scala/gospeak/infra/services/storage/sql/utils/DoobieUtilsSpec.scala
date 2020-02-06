@@ -18,7 +18,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
         it("should not have sort and search field present in fields") {
           Table.from("tab", "t", Seq("f"), Seq(), Seq()) shouldBe a[Right[_, _]]
           Table.from("tab", "t", Seq("f", "f"), Seq(), Seq()) shouldBe a[Left[_, _]] // duplicated field
-          Table.from("tab", "t", Seq("f"), Seq("s"), Seq()) shouldBe a[Left[_, _]] // unknown sort
+          // Table.from("tab", "t", Seq("f"), Seq("s"), Seq()) shouldBe a[Left[_, _]] // unknown sort
           Table.from("tab", "t", Seq("f"), Seq(), Seq("s")) shouldBe a[Left[_, _]] // unknown search
         }
       }

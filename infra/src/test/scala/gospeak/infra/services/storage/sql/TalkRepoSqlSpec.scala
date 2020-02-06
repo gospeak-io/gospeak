@@ -123,5 +123,5 @@ class TalkRepoSqlSpec extends RepoSpec {
 object TalkRepoSqlSpec {
   val table = "talks t"
   val fields: String = mapFields("id, slug, status, title, duration, description, message, speakers, slides, video, tags, created_at, created_by, updated_at, updated_by", "t." + _)
-  val orderBy = "ORDER BY t.title IS NULL, t.title"
+  val orderBy = "ORDER BY t.status = 'Archived' IS NULL, t.status = 'Archived', t.title IS NULL, t.title"
 }
