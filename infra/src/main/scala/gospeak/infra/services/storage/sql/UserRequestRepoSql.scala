@@ -7,7 +7,7 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import gospeak.core.domain.UserRequest._
 import gospeak.core.domain._
-import gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.UserRequestRepo
 import gospeak.infra.services.storage.sql.UserRequestRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
@@ -45,15 +45,21 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
 
   override def createPasswordResetRequest(email: EmailAddress, now: Instant): IO[PasswordResetRequest] =
-    PasswordReset.insert(PasswordResetRequest(UserRequest.Id.generate(), email, now, now.plus(Timeout.passwordReset), None)).run(xa)
+    PasswordReset.insert(PasswordResetRequest(UserRequest.Id.generate(), email, now.plus(Timeout.passwordReset), now, None)).run(xa)
 
-  override def resetPassword(passwordReset: PasswordResetRequest, credentials: User.Credentials, now: Instant): IO[Done] = for {
-    _ <- PasswordReset.accept(passwordReset.id, now).run(xa)
-    _ <- UserRepoSql.updateCredentials(credentials.login)(credentials.pass).run(xa)
-    _ <- UserRepoSql.validateAccount(passwordReset.email, now).run(xa)
+  override def resetPassword(req: PasswordResetRequest, credentials: User.Credentials, user: User)(implicit ctx: UserAwareCtx): IO[Done] = for {
+    _ <- PasswordReset.accept(req.id, ctx.now).run(xa)
+    userOpt <- UserRepoSql.selectOne(credentials.login).runOption(xa)
+    _ <- userOpt.map { _ =>
+      UserRepoSql.updateCredentials(credentials.login)(credentials.pass).run(xa)
+    }.getOrElse {
+      UserRepoSql.insertLoginRef(User.LoginRef(credentials.login, user.id)).run(xa)
+        .flatMap(_ => UserRepoSql.insertCredentials(credentials).run(xa)).map(_ => Done)
+    }
+    _ <- UserRepoSql.validateAccount(req.email, ctx.now).run(xa)
   } yield Done
 
-  override def findPendingPasswordResetRequest(id: UserRequest.Id, now: Instant): IO[Option[PasswordResetRequest]] = PasswordReset.selectPending(id, now).runOption(xa)
+  override def findPendingPasswordResetRequest(id: UserRequest.Id)(implicit ctx: UserAwareCtx): IO[Option[PasswordResetRequest]] = PasswordReset.selectPending(id, ctx.now).runOption(xa)
 
   override def findPendingPasswordResetRequest(email: EmailAddress, now: Instant): IO[Option[PasswordResetRequest]] = PasswordReset.selectPending(email, now).runOption(xa)
 
