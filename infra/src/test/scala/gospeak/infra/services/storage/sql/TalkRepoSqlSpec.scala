@@ -102,7 +102,7 @@ class TalkRepoSqlSpec extends RepoSpec {
       }
       it("should build selectAll for user and status") {
         val q = TalkRepoSql.selectAll(user.id, talk.status)
-        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.status=? $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.status=? $orderBy")
       }
       it("should build selectPage for user and list of status") {
         val q = TalkRepoSql.selectPage(user.id, Talk.Status.current, params)
