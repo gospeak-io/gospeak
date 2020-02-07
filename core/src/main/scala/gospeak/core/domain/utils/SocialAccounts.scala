@@ -15,7 +15,7 @@ final case class SocialAccounts(facebook: Option[FacebookAccount],
                                 slack: Option[SlackAccount],
                                 discord: Option[DiscordAccount],
                                 github: Option[GithubAccount]) {
-  def all: Seq[SocialAccount] = Seq(facebook, instagram, twitter, linkedIn, youtube, meetup, eventbrite, slack, discord, github).flatten
+  def all: Seq[SocialAccount] = Seq(facebook, twitter, instagram, linkedIn, youtube, meetup, eventbrite, github, slack, discord).flatten
 }
 
 object SocialAccounts {

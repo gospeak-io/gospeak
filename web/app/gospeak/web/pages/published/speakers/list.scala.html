@@ -1,84 +1,123 @@
 @import gospeak.core.domain.User
+@import gospeak.core.domain.utils.SocialAccounts
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import gospeak.web.pages.published.partials.html.{container, speakerItem}
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.UserAwareReq
-@import gospeak.libs.scala.domain.Page
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.pages.user.talks.routes.TalkCtrl
+@import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(speakers: Page[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@socialIcon(s: SocialAccounts.SocialAccount) = {
+    <li class="list-inline-item mr-0">
+        <a class="btn btn-sm btn-icon btn-soft-secondary rounded-circle" href="@s.link" target="_blank" title="@s.handle">
+            <span class="fab fa-@s.name btn-icon__inner"></span>
+        </a>
+    </li>
+}
+@speakerItem(u: User) = {
+    <div class="card position-relative mb-5">
+        <div class="card-body p-3">
+            <div class="row align-items-center">
+                <div class="col-sm-7 mb-3 mb-sm-0">
+                    <div class="d-flex">
+                        <a href="@SpeakerCtrl.detail(u.slug)" class="position-relative u-lg-avatar mr-3">
+                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
+                            <span class="badge badge-xs badge-outline-primary badge-pos badge-pos--bottom-left rounded-circle"></span>
+                        </a>
+                        <div class="mr-3">
+                            <div class="mb-2">
+                                <h2 class="h6 mb-0"><a href="@SpeakerCtrl.detail(u.slug)">@u.name.value</a></h2>
+                                <span class="small">@{(u.company.toList ++ u.location.toList).mkString(", ")}</span>
+                            </div>
+                            <ul class="list-inline mb-0">
+                                @u.social.all.map { s => @socialIcon(s) }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!--<div class="col-sm-5 align-self-sm-end">
+                    <div class="text-sm-right">
+                        <a class="btn btn-sm btn-soft-primary transition-3d-hover" href="#">
+                            <span class="far fa-envelope mr-2"></span>
+                            Send a Message
+                        </a>
+                    </div>
+                </div>-->
+            </div>
+            <!--<a class="btn btn-sm btn-icon btn-soft-warning btn-bg-transparent position-absolute top-0 right-0 rounded-circle mt-3 mr-3" title="Add to favorites" data-toggle="tooltip" data-placement="top">
+                <span class="far fa-star btn-icon__inner"></span>
+            </a>-->
+        </div>
+    </div>
+}
 @container("Speakers - Gospeak", PageMeta.default(), b, full = true)() {
+@* cf https://htmlstream.com/preview/front-v2.9.4/html/account/members-list.html *@
 <main id="content" role="main">
-    <div id="banner_gospeaker" class="svg-preloader position-relative bg-img-hero pt-40" style="background-image: url(@routes.Assets.versioned("web/img/banner-speaker3.jpg"));">
+    <div id="banner_speakers" class="svg-preloader position-relative bg-img-hero pt-40" style="background-image: url(@routes.Assets.versioned("web/img/banner-speaker3.jpg"));">
         <div class="container space-top-0 space-bottom-3 space-md-3 space-bottom-lg-4">
             <div class="w-md-65 w-lg-50">
-                <h1 class="h1 font-weight-medium text-white">Speaker</h1>
+                <h1 class="h1 font-weight-medium text-white">Gospeak</h1>
                 <h2 class="h1 btn-text-secondary font-weight-medium">Community</h2>
             </div>
         </div>
         <figure class="position-absolute right-0 bottom-0 left-0">
-            <img class="js-svg-injector" src="@routes.Assets.versioned("web/img/wave-banner-speaker.svg")" alt="Image Description" data-parent="#banner_gospeaker">
+            <img class="js-svg-injector" data-parent="#banner_speakers" src="@routes.Assets.versioned("web/img/wave-banner-speaker.svg")" alt="banner">
         </figure>
     </div>
     <div class="container position-relative z-index-2">
         <div class="row justify-content-center">
-            <div class="col-3 col-lg-2 mt-n11">
-                <div class="bg-white u-lg-avatar shadow-soft rounded-circle p-2 mx-auto">
-                    <img class="img-fluid rounded-circle" src="@routes.Assets.versioned("web/img/speaker_2.png")" alt="Image Description">
-                </div>
-            </div>
-            <div class="col-lg-2 d-none d-lg-inline-block mt-lg-n8">
-                <div class="bg-white u-xl-avatar shadow-soft rounded-circle p-2 mx-auto">
-                    <img class="img-fluid rounded-circle" src="@routes.Assets.versioned("web/img/speaker_1.png")" alt="Image Description">
-                </div>
-            </div>
-            <div class="col-3 col-lg-2 mt-n4">
-                <div class="bg-white u-lg-avatar shadow-soft rounded-circle p-2 mx-auto">
-                    <img class="img-fluid rounded-circle" src="@routes.Assets.versioned("web/img/speaker_2.png")" alt="Image Description">
-                </div>
-            </div>
-            <div class="col-3 col-lg-2 mt-n7">
-                <div class="bg-white u-lg-avatar shadow-soft rounded-circle p-2 mx-auto">
-                    <img class="img-fluid rounded-circle" src="@routes.Assets.versioned("web/img/speaker_1.png")" alt="Image Description">
-                </div>
-            </div>
-            <div class="col-lg-2 d-none d-lg-inline-block mt-lg-n11">
-                <div class="bg-white u-xl-avatar shadow-soft rounded-circle p-2 mx-auto">
-                    <img class="img-fluid rounded-circle" src="@routes.Assets.versioned("web/img/speaker_2.png")" alt="Image Description">
-                </div>
-            </div>
-            <div class="col-3 col-lg-2">
-                <div class="bg-white u-lg-avatar shadow-soft rounded-circle p-2 mx-auto">
-                    <img class="img-fluid rounded-circle" src="@routes.Assets.versioned("web/img/speaker_1.png")" alt="Image Description">
-                </div>
-            </div>
+            @scala.util.Random.shuffle(speakers.items).headOption.map { u =>
+                <a class="col-3 col-lg-2 mt-n11" href="@SpeakerCtrl.detail(u.slug)">
+                    <div class="bg-white u-lg-avatar shadow-soft rounded-circle p-2 mx-auto">
+                        <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
+                    </div>
+                </a>
+            }
+            @scala.util.Random.shuffle(speakers.items).headOption.map { u =>
+                <a class="col-lg-2 d-none d-lg-inline-block mt-lg-n8" href="@SpeakerCtrl.detail(u.slug)">
+                    <div class="bg-white u-xl-avatar shadow-soft rounded-circle p-2 mx-auto">
+                        <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
+                    </div>
+                </a>
+            }
+            @scala.util.Random.shuffle(speakers.items).headOption.map { u =>
+                <a class="col-3 col-lg-2 mt-n4" href="@SpeakerCtrl.detail(u.slug)">
+                    <div class="bg-white u-lg-avatar shadow-soft rounded-circle p-2 mx-auto">
+                        <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
+                    </div>
+                </a>
+            }
+            @scala.util.Random.shuffle(speakers.items).headOption.map { u =>
+                <a class="col-3 col-lg-2 mt-n7" href="@SpeakerCtrl.detail(u.slug)">
+                    <div class="bg-white u-lg-avatar shadow-soft rounded-circle p-2 mx-auto">
+                        <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
+                    </div>
+                </a>
+            }
+            @scala.util.Random.shuffle(speakers.items).headOption.map { u =>
+                <a class="col-lg-2 d-none d-lg-inline-block mt-lg-n11" href="@SpeakerCtrl.detail(u.slug)">
+                    <div class="bg-white u-xl-avatar shadow-soft rounded-circle p-2 mx-auto">
+                        <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
+                    </div>
+                </a>
+            }
+            @scala.util.Random.shuffle(speakers.items).headOption.map { u =>
+                <a class="col-3 col-lg-2" href="@SpeakerCtrl.detail(u.slug)">
+                    <div class="bg-white u-lg-avatar shadow-soft rounded-circle p-2 mx-auto">
+                        <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
+                    </div>
+                </a>
+            }
         </div>
     </div>
     <div class="container">
+        <div class="container mt-7">
+            @Formats.paginated[User](speakers, SpeakerCtrl.list, speakerItem)
+        </div>
         <div class="w-md-80 w-lg-50 text-center mx-md-auto">
             <h2 class="font-weight-medium">Not in this list?</h2>
-            <button class="btn btn-xs btn-soft-success mb-2" href="/add">Add your talk</button>
-        </div>
-        <div class="container space-2">
-            @Formats.paginationHeader[User](speakers, SpeakerCtrl.list)
-            @if(speakers.isEmpty) {
-                <div class="jumbotron text-center mt-2">
-                    <h2>No results <i class="far fa-sad-tear"></i></h2>
-                </div>
-            } else {
-                @speakers.items.grouped(3).map { row =>
-                    <div class="row align-items-center mb-4">
-                        @row.map { s =>
-                            <div class="card-deck d-block d-lg-flex card-lg-gutters-2">
-                                <div class="d-flex justify-content-between mt-2">
-                                    @speakerItem(s)
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-            }
-            @Formats.paginationFooter[User](speakers, SpeakerCtrl.list)
+            <a class="btn btn-soft-success mb-2" href="@TalkCtrl.create()">Add your talk</a>
         </div>
     </div>
 </main>

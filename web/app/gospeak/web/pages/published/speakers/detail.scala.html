@@ -8,8 +8,8 @@
 @import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(user: User, userGroups: Seq[Group.Full], userTalks: Seq[Talk], userProposals: Map[Talk.Id, Seq[CommonProposal]], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@socialItem(name: String, link: String, handle: String) = {
-    <a class="media mb-4" href="@link" target="_blank">
+@socialItem(name: String, link: String, handle: String, i: Int) = {
+    <a class="media @if(i != 0){mt-4}" href="@link" target="_blank">
         <div class="u-sm-avatar mr-3">
             <img class="img-fluid" src="@routes.Assets.versioned(s"web/img/logos/$name.png")" alt="Twitter logo">
         </div>
@@ -20,6 +20,7 @@
     </a>
 }
 @container(s"${user.name.value} - Gospeak", PageMeta.user(user), b)() {
+@* cf https://htmlstream.com/preview/front-v2.9.4/html/account/profile.html *@
 <div class="row">
     <div class="col-3">
         <div class="card p-1 mb-4">
@@ -44,17 +45,10 @@
                 <h3 class="h6 mb-0">Social Profiles</h3>
             </div>
             <div class="card-body pt-3 pb-4 px-4">
-                @user.website.map { url => @socialItem("website", url.value, url.value) }
-                @user.social.facebook.map { s => @socialItem(s.name, s.link, s.handle) }
-                @user.social.twitter.map { s => @socialItem(s.name, s.link, s.handle) }
-                @user.social.instagram.map { s => @socialItem(s.name, s.link, s.handle) }
-                @user.social.linkedIn.map { s => @socialItem(s.name, s.link, s.handle) }
-                @user.social.youtube.map { s => @socialItem(s.name, s.link, s.handle) }
-                @user.social.meetup.map { s => @socialItem(s.name, s.link, s.handle) }
-                @user.social.eventbrite.map { s => @socialItem(s.name, s.link, s.handle) }
-                @user.social.github.map { s => @socialItem(s.name, s.link, s.handle) }
-                @user.social.slack.map { s => @socialItem(s.name, s.link, s.handle) }
-                @user.social.discord.map { s => @socialItem(s.name, s.link, s.handle) }
+                @Seq(
+                    user.website.map(url => ("website", url.value, url.value)).toList,
+                    user.social.all.map(s => (s.name, s.link, s.handle))
+                ).flatten.zipWithIndex.map { case ((name, link, handle), i) => @socialItem(name, link, handle, i) }
             </div>
         </div>
     </div>
@@ -70,7 +64,11 @@
                             <a class="d-flex @if(i != 0){mt-5} no-style" href="@GroupCtrl.detail(group.slug)">
                                 <img class="u-avatar align-self-center mr-4" src="@group.logo.map(_.value).getOrElse(Constants.Placeholders.groupLogo)" alt="@group.name.value logo">
                                 <div>
-                                    <small class="d-block text-secondary">@Formats.plural(group.memberCount, "member")</small>
+                                    <small class="d-block text-secondary">
+                                        @Formats.plural(group.memberCount, "member"),
+                                        @Formats.plural(group.eventCount, "event"),
+                                        @Formats.plural(group.talkCount, "talk")
+                                    </small>
                                     <h4 class="h6 mb-0">@group.name.value</h4>
                                     <span class="d-block text-secondary">@group.location.map(_.formatted)</span>
                                 </div>
@@ -83,17 +81,23 @@
                         <h3 class="h5 mb-3">Current talks</h3>
                         @userTalks.zipWithIndex.map { case (talk, i) =>
                             <div class="align-items-center @if(i != 0){mt-5}">
-                                <small class="d-block text-secondary">@Formats.plural(userProposals.getOrElse(talk.id, Seq()).length, "proposal")</small>
-                                <h4 class="h6 mb-0">@talk.title.value</h4>
-                                <ul class="list-inline ml-3 mb-0">
-                                    @talk.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
-                                        <li class="list-inline-item ml-n3 mr-0">
-                                            <a class="u-sm-avatar u-sm-avatar--bordered rounded-circle" href="@SpeakerCtrl.detail(u.slug)">
-                                                <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value">
-                                            </a>
-                                        </li>
-                                    }
-                                </ul>
+                                <small class="d-block text-secondary">@Formats.plural(userProposals.getOrElse(talk.id, Seq()).length, "presentation")</small>
+                                <h4 class="h6 mb-0">
+                                    @talk.title.value
+                                    @talk.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
+                                    @talk.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+                                </h4>
+                                @if(talk.speakers.length > 1) {
+                                    <ul class="list-inline ml-3 mb-0">
+                                        @talk.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
+                                            <li class="list-inline-item ml-n3 mr-0">
+                                                <a class="u-sm-avatar u-sm-avatar--bordered rounded-circle" href="@SpeakerCtrl.detail(u.slug)">
+                                                    <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value">
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
                             </div>
                         }
                     </div>

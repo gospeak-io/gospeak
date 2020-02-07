@@ -251,9 +251,6 @@
             @component("cfpItem", "@cfpItem(cfp)") { name =>
                 @example(s"$name") { _ => @published.cfpItem(CommonCfp(group, cfp)) }
             }
-            @component("speakerItem", "@speakerItem(speaker)") { name =>
-                @example(s"$name") { _ => @published.speakerItem(user) }
-            }
         }
 
         @section("speaker", "Speaker components", "@import gospeak.web.pages.user.partials.html._") { _ =>
