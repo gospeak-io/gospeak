@@ -2,11 +2,11 @@ package gospeak.core.services.storage
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import gospeak.core.domain.{CommonProposal, ExternalEvent, ExternalProposal, Talk, User}
 import gospeak.core.domain.utils.UserCtx
+import gospeak.core.domain._
 import gospeak.libs.scala.domain.{Done, Page, Tag}
 
-trait ExternalProposalRepo extends SpeakerExternalProposalRepo with SuggestExternalProposalRepo {
+trait ExternalProposalRepo extends SpeakerExternalProposalRepo with PublicExternalProposalRepo with SuggestExternalProposalRepo {
   def list(params: Page.Params): IO[Page[ExternalProposal]]
 
   def listAll(talk: Talk.Id): IO[Seq[ExternalProposal]]
@@ -26,6 +26,10 @@ trait SpeakerExternalProposalRepo {
   def listAllCommon(talk: Talk.Id): IO[Seq[CommonProposal]]
 
   def find(id: ExternalProposal.Id): IO[Option[ExternalProposal]]
+}
+
+trait PublicExternalProposalRepo {
+  def listAllCommon(user: User.Id, status: Proposal.Status): IO[Seq[CommonProposal]]
 }
 
 trait SuggestExternalProposalRepo {

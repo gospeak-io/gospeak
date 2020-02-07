@@ -42,7 +42,7 @@ trait UserTalkRepo {
 trait AuthTalkRepo
 
 trait PublicTalkRepo {
-  def list(user: User.Id, status: Talk.Status, params: Page.Params): IO[Page[Talk]]
+  def listAll(user: User.Id, status: Talk.Status): IO[Seq[Talk]]
 }
 
 trait SuggestTalkRepo {

@@ -72,7 +72,7 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]] = selectPage(ctx.user.id, params).run(xa)
 
-  override def list(user: User.Id, status: Talk.Status, params: Page.Params): IO[Page[Talk]] = selectPage(user, status, params).run(xa)
+  override def listAll(user: User.Id, status: Talk.Status): IO[Seq[Talk]] = selectAll(user, status).runList(xa)
 
   override def listCurrent(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]] = selectPage(ctx.user.id, Talk.Status.current, params).run(xa)
 
@@ -123,8 +123,8 @@ object TalkRepoSql {
   private[sql] def selectPage(user: User.Id, params: Page.Params): SelectPage[Talk] =
     table.selectPage[Talk](params, fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"}")
 
-  private[sql] def selectPage(user: User.Id, status: Talk.Status, params: Page.Params): SelectPage[Talk] =
-    table.selectPage[Talk](params, fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.status=$status")
+  private[sql] def selectAll(user: User.Id, status: Talk.Status): Select[Talk] =
+    table.select[Talk](fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.status=$status")
 
   private[sql] def selectPage(user: User.Id, status: NonEmptyList[Talk.Status], params: Page.Params): SelectPage[Talk] =
     table.selectPage[Talk](params, fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND " ++ Fragments.in(fr"t.status", status))

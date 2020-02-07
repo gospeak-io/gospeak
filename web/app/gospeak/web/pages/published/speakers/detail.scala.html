@@ -1,25 +1,146 @@
-@import gospeak.core.domain.{Group, Talk, User}
+@import gospeak.core.domain.{CommonProposal, Group, Talk, User}
+@import gospeak.core.domain.utils.Constants
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
-@import gospeak.web.pages.published.partials.html.{container, groupItem, speakerCard, talkItem}
-@import gospeak.web.utils.UserAwareReq
-@import gospeak.libs.scala.domain.Page
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import gospeak.web.utils.{Formats, UserAwareReq}
 
-@(speaker: User, publicTalks: Page[Talk], ownedGroups: Seq[Group.Full], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${speaker.name.value} - Gospeak", PageMeta.user(speaker), b)() {
+@(user: User, userGroups: Seq[Group.Full], userTalks: Seq[Talk], userProposals: Map[Talk.Id, Seq[CommonProposal]], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@socialItem(name: String, link: String, handle: String) = {
+    <a class="media mb-4" href="@link" target="_blank">
+        <div class="u-sm-avatar mr-3">
+            <img class="img-fluid" src="@routes.Assets.versioned(s"web/img/logos/$name.png")" alt="Twitter logo">
+        </div>
+        <div class="media-body">
+            <span class="d-block text-dark text-capitalize">@name</span>
+            <small class="d-block text-secondary" style="max-width: 9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@handle</small>
+        </div>
+    </a>
+}
+@container(s"${user.name.value} - Gospeak", PageMeta.user(user), b)() {
 <div class="row">
-    <div class="col-4">@speakerCard(speaker)</div>
-    <div class="col-8">
-        @if(publicTalks.nonEmpty) {
-            <div class="mb-3">
-                <h2>Talks</h2>
-                @publicTalks.items.map { talk => @talkItem(talk) }
+    <div class="col-3">
+        <div class="card p-1 mb-4">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <img class="u-lg-avatar rounded-circle" src="@user.avatar.url.value" alt="@user.name.value avatar">
+                </div>
+                <div>
+                    <h1 class="h6 font-weight-medium mb-0">@user.name.value</h1>
+                    <small class="d-block text-muted">@{(user.company.toList ++ user.location.toList).mkString(", ")}</small>
+                </div>
+                <!--<div class="mb-2">
+                    <a class="btn btn-sm btn-soft-primary transition-3d-hover" href="#">
+                        <span class="far fa-envelope mr-2"></span>
+                        Send a Message
+                    </a>
+                </div>-->
+            </div>
+        </div>
+        <div class="card mb-4">
+            <div class="card-header pt-4 pb-3 px-0 mx-4">
+                <h3 class="h6 mb-0">Social Profiles</h3>
+            </div>
+            <div class="card-body pt-3 pb-4 px-4">
+                @user.website.map { url => @socialItem("website", url.value, url.value) }
+                @user.social.facebook.map { s => @socialItem(s.name, s.link, s.handle) }
+                @user.social.twitter.map { s => @socialItem(s.name, s.link, s.handle) }
+                @user.social.instagram.map { s => @socialItem(s.name, s.link, s.handle) }
+                @user.social.linkedIn.map { s => @socialItem(s.name, s.link, s.handle) }
+                @user.social.youtube.map { s => @socialItem(s.name, s.link, s.handle) }
+                @user.social.meetup.map { s => @socialItem(s.name, s.link, s.handle) }
+                @user.social.eventbrite.map { s => @socialItem(s.name, s.link, s.handle) }
+                @user.social.github.map { s => @socialItem(s.name, s.link, s.handle) }
+                @user.social.slack.map { s => @socialItem(s.name, s.link, s.handle) }
+                @user.social.discord.map { s => @socialItem(s.name, s.link, s.handle) }
+            </div>
+        </div>
+    </div>
+    <div class="col-9">
+        @user.bio.map { b => <div class="mb-4">@markdown(b)</div> }
+        @if(userGroups.nonEmpty || userTalks.nonEmpty) {
+            <hr class="my-7">
+            <div class="row mb-7">
+                @if(userGroups.nonEmpty) {
+                    <div class="col-md-6 mb-7 mb-md-0">
+                        <h3 class="h5 mb-3">Organizes</h3>
+                        @userGroups.zipWithIndex.map { case (group, i) =>
+                            <a class="d-flex @if(i != 0){mt-5} no-style" href="@GroupCtrl.detail(group.slug)">
+                                <img class="u-avatar align-self-center mr-4" src="@group.logo.map(_.value).getOrElse(Constants.Placeholders.groupLogo)" alt="@group.name.value logo">
+                                <div>
+                                    <small class="d-block text-secondary">@Formats.plural(group.memberCount, "member")</small>
+                                    <h4 class="h6 mb-0">@group.name.value</h4>
+                                    <span class="d-block text-secondary">@group.location.map(_.formatted)</span>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+                @if(userTalks.nonEmpty) {
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <h3 class="h5 mb-3">Current talks</h3>
+                        @userTalks.zipWithIndex.map { case (talk, i) =>
+                            <div class="align-items-center @if(i != 0){mt-5}">
+                                <small class="d-block text-secondary">@Formats.plural(userProposals.getOrElse(talk.id, Seq()).length, "proposal")</small>
+                                <h4 class="h6 mb-0">@talk.title.value</h4>
+                                <ul class="list-inline ml-3 mb-0">
+                                    @talk.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
+                                        <li class="list-inline-item ml-n3 mr-0">
+                                            <a class="u-sm-avatar u-sm-avatar--bordered rounded-circle" href="@SpeakerCtrl.detail(u.slug)">
+                                                <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value">
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                    </div>
+                }
             </div>
         }
-        @if(ownedGroups.nonEmpty) {
-            <div class="mb-3">
-                <h2>Organises</h2>
-                @ownedGroups.map { group => @groupItem(group, orgas) }
-            </div>
+        @if(userProposals.nonEmpty) {
+            <hr class="my-7">
+            <h3 class="h5 mb-3">Speaking history</h3>
+            <ul class="list-unstyled u-indicator-vertical-dashed">
+                @userProposals.values.flatten.toList.sortBy(-_.date.getEpochSecond).map { proposal =>
+                    <li class="media u-indicator-vertical-dashed-item">
+                        @proposal.event.map { event =>
+                            <span class="btn btn-xs btn-icon btn-primary rounded-circle mr-3">
+                                <span class="btn-icon__inner">@proposal.title.value.head</span>
+                            </span>
+                            <div class="media-body">
+                                <h5 class="font-size-1 mb-1">
+                                    <a href="@GroupCtrl.talk(proposal.group.get.slug, proposal.id.internal)">@proposal.title.value</a>
+                                    @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
+                                    @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+                                </h5>
+                                <p class="small mb-1">
+                                    At <a class="no-style" href="@GroupCtrl.event(proposal.group.get.slug, event.slug)">@event.name.value</a>,
+                                    @Formats.date(proposal.date)
+                                </p>
+                            </div>
+                        }
+                        @proposal.eventExt.map { event =>
+                            <span class="btn btn-xs btn-icon btn-danger rounded-circle mr-3">
+                                <span class="btn-icon__inner">@proposal.title.value.head</span>
+                            </span>
+                            <div class="media-body">
+                                <h5 class="font-size-1 mb-1">
+                                    @event.proposalUrl.map { u => <a href="@u.value" target="_blank">@proposal.title.value</a> }.getOrElse{ @proposal.title.value }
+                                    @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
+                                    @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+                                </h5>
+                                <p class="small mb-1">
+                                    At <a class="no-style" href="@event.url" target="_blank">@event.name.value</a>,
+                                    @Formats.date(proposal.date)
+                                </p>
+                            </div>
+                        }
+                    </li>
+                }
+            </ul>
         }
     </div>
 </div>

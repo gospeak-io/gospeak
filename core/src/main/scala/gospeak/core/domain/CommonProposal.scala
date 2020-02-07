@@ -1,16 +1,18 @@
 package gospeak.core.domain
 
-import java.time.LocalDateTime
+import java.time.{Instant, LocalDateTime}
 
 import cats.data.NonEmptyList
-import gospeak.core.domain.utils.Info
-import gospeak.libs.scala.domain.{DataClass, IId, Tag, UuidIdBuilder}
+import gospeak.core.domain.utils.{Constants, Info}
+import gospeak.libs.scala.TimeUtils
+import gospeak.libs.scala.domain._
 
 import scala.concurrent.duration.FiniteDuration
 
 final case class CommonProposal(id: CommonProposal.Id,
                                 external: Boolean,
                                 talk: CommonProposal.EmbedTalk,
+                                group: Option[CommonProposal.EmbedGroup],
                                 cfp: Option[CommonProposal.EmbedCfp],
                                 event: Option[CommonProposal.EmbedEvent],
                                 eventExt: Option[CommonProposal.EmbedExtEvent],
@@ -18,17 +20,29 @@ final case class CommonProposal(id: CommonProposal.Id,
                                 status: Proposal.Status,
                                 duration: FiniteDuration,
                                 speakers: NonEmptyList[User.Id],
+                                slides: Option[Slides],
+                                video: Option[Video],
                                 tags: Seq[Tag],
-                                info: Info)
+                                info: Info) {
+  def date: Instant = event.map(_.start).orElse(eventExt.flatMap(_.start)).map(TimeUtils.toInstant(_, Constants.defaultZoneId)).getOrElse(info.createdAt)
+}
 
 object CommonProposal {
-  def apply(p: Proposal, t: Talk, c: Cfp, eOpt: Option[Event]): CommonProposal =
-    new CommonProposal(Id(p.id), external = false, EmbedTalk(t.id, t.slug, t.duration), Some(EmbedCfp(c.id, c.slug, c.name)), eOpt.map(e => EmbedEvent(e.id, e.slug, e.name, e.start)), None, p.title, p.status, p.duration, p.speakers, p.tags, p.info)
+  def apply(p: Proposal, t: Talk, g: Group, c: Cfp, eOpt: Option[Event]): CommonProposal =
+    new CommonProposal(
+      Id(p.id), external = false,
+      EmbedTalk(t.id, t.slug, t.duration),
+      Some(EmbedGroup(g.id, g.slug, g.name, g.logo)),
+      Some(EmbedCfp(c.id, c.slug, c.name)),
+      eOpt.map(e => EmbedEvent(e.id, e.slug, e.name, e.start)),
+      None, p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.info)
 
   def apply(p: ExternalProposal, t: Talk, e: ExternalEvent): CommonProposal =
-    new CommonProposal(Id(p.id), external = true, EmbedTalk(t.id, t.slug, t.duration), None, None, Some(EmbedExtEvent(e.id, e.name, e.start)), p.title, p.status, p.duration, p.speakers, p.tags, p.info)
+    new CommonProposal(Id(p.id), external = true, EmbedTalk(t.id, t.slug, t.duration), None, None, None, Some(EmbedExtEvent(e.id, e.name, e.logo, e.start, e.url, p.url)), p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.info)
 
   final class Id private(value: String) extends DataClass(value) with IId {
+    def internal: Proposal.Id = Proposal.Id.from(this)
+
     def external: ExternalProposal.Id = ExternalProposal.Id.from(this)
   }
 
@@ -42,6 +56,11 @@ object CommonProposal {
                              slug: Talk.Slug,
                              duration: FiniteDuration)
 
+  final case class EmbedGroup(id: Group.Id,
+                              slug: Group.Slug,
+                              name: Group.Name,
+                              logo: Option[Logo])
+
   final case class EmbedCfp(id: Cfp.Id,
                             slug: Cfp.Slug,
                             name: Cfp.Name)
@@ -53,6 +72,9 @@ object CommonProposal {
 
   final case class EmbedExtEvent(id: ExternalEvent.Id,
                                  name: ExternalEvent.Name,
-                                 start: Option[LocalDateTime])
+                                 logo: Option[Logo],
+                                 start: Option[LocalDateTime],
+                                 url: Url,
+                                 proposalUrl: Option[Url])
 
 }

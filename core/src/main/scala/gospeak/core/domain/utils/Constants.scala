@@ -13,7 +13,7 @@ object Constants {
   }
 
   object Placeholders {
-    val groupLogo = "https://res.cloudinary.com/gospeak/image/upload/placeholders/group-logo.png"
+    val groupLogo = "https://res.cloudinary.com/gospeak/image/upload/placeholders/group-logo.png" // FIXME find better image
     val unknownUser = "https://res.cloudinary.com/gospeak/image/upload/placeholders/unknown-user.png"
     val unknownPartner = "https://res.cloudinary.com/gospeak/image/upload/placeholders/unknown-user.png" // FIXME find better image
     val noVenueForEvent = "https://res.cloudinary.com/gospeak/image/upload/placeholders/no-venue-for-event.png"

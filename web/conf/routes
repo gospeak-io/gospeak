@@ -32,7 +32,7 @@ GET         /groups/:group/speakers                                             
 GET         /groups/:group/members                                                         gospeak.web.pages.published.groups.GroupCtrl.members(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 
 GET         /speakers                                                                      gospeak.web.pages.published.speakers.SpeakerCtrl.list(params: Page.Params ?= Page.Params.defaults)
-GET         /speakers/:speaker                                                             gospeak.web.pages.published.speakers.SpeakerCtrl.detail(speaker: User.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /speakers/:speaker                                                             gospeak.web.pages.published.speakers.SpeakerCtrl.detail(speaker: User.Slug)
 
 GET         /signup                                                                        gospeak.web.auth.AuthCtrl.signup(redirect: Option[String] ?= None)
 POST        /signup                                                                        gospeak.web.auth.AuthCtrl.doSignup(redirect: Option[String] ?= None)
