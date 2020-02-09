@@ -83,11 +83,11 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
 
     val avatarSrv = new AvatarSrv()
 
-    def user(slug: String, email: String, firstName: String, lastName: String, status: User.Status = User.Status.Undefined, emailValidated: Option[Instant] = Some(now), emailValidationBeforeLogin: Boolean = false, avatar: Option[String] = None, bio: Option[Markdown] = None, company: Option[String] = None, location: Option[String] = None, phone: Option[String] = None, website: Option[Url] = None, social: SocialAccounts = SocialAccounts.fromUrls()): User = {
+    def user(slug: String, email: String, firstName: String, lastName: String, status: User.Status = User.Status.Undefined, emailValidated: Option[Instant] = Some(now), emailValidationBeforeLogin: Boolean = false, avatar: Option[String] = None, title: Option[String] = None, bio: Option[Markdown] = None, company: Option[String] = None, location: Option[String] = None, phone: Option[String] = None, website: Option[Url] = None, social: SocialAccounts = SocialAccounts.fromUrls()): User = {
       val emailAddr = EmailAddress.from(email).get
       val slugObj = User.Slug.from(slug).get
       val avatarObj = avatar.map(Url.from(_).get).map(Avatar).getOrElse(avatarSrv.getDefault(emailAddr, slugObj))
-      User(id = User.Id.generate(), slug = slugObj, status = status, firstName = firstName, lastName = lastName, email = emailAddr, emailValidated = emailValidated, emailValidationBeforeLogin = emailValidationBeforeLogin, avatar = avatarObj, bio = bio, company = company, location = location, phone = phone, website = website, social = social, createdAt = now, updatedAt = now)
+      User(id = User.Id.generate(), slug = slugObj, status = status, firstName = firstName, lastName = lastName, email = emailAddr, emailValidated = emailValidated, emailValidationBeforeLogin = emailValidationBeforeLogin, avatar = avatarObj, title = title, bio = bio, company = company, location = location, phone = phone, website = website, social = social, createdAt = now, updatedAt = now)
     }
 
     def group(slug: String, name: String, tags: Seq[String], by: User, location: Option[GMapPlace] = None, owners: Seq[User] = Seq(), logo: Option[String] = None, social: SocialAccounts = SocialAccounts.fromUrls(), email: Option[String] = None): Group =
@@ -124,8 +124,8 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
 
     def rsvp(event: Event, user: User, answer: Event.Rsvp.Answer = Event.Rsvp.Answer.Yes): Event.Rsvp = Event.Rsvp(event.id, answer, now, user)
 
-    def eventExt(name: String, start: Option[String], url: String, logo: Option[String] = None, description: String = "", finish: Option[String] = None, location: Option[GMapPlace] = None, ticketsUrl: Option[String] = None, videosUrl: Option[String] = None, twitterAccount: Option[String] = None, twitterHashtag: Option[String] = None, tags: Seq[String] = Seq(), by: User): ExternalEvent =
-      ExternalEvent(ExternalEvent.Id.generate(), ExternalEvent.Name(name), logo.map(Url.from(_).get).map(Logo), Markdown(description), start.map(s => LocalDateTime.parse(s + "T00:00:00")), finish.map(d => LocalDateTime.parse(d + "T00:00:00")), location, Url.from(url).get, ticketsUrl.map(Url.from(_).get), videosUrl.map(Url.from(_).get), twitterAccount.map(a => Url.from("https://twitter.com/" + a).get).map(TwitterAccount), twitterHashtag.map(TwitterHashtag.from(_).get), tags.map(Tag(_)), Info(by.id, now))
+    def eventExt(name: String, start: Option[String], url: Option[String] = None, logo: Option[String] = None, description: String = "", finish: Option[String] = None, location: Option[GMapPlace] = None, ticketsUrl: Option[String] = None, videosUrl: Option[String] = None, twitterAccount: Option[String] = None, twitterHashtag: Option[String] = None, tags: Seq[String] = Seq(), by: User): ExternalEvent =
+      ExternalEvent(ExternalEvent.Id.generate(), ExternalEvent.Name(name), ExternalEvent.Kind.Conference, logo.map(Url.from(_).get).map(Logo), Markdown(description), start.map(s => LocalDateTime.parse(s + "T00:00:00")), finish.map(d => LocalDateTime.parse(d + "T00:00:00")), location, url.map(Url.from(_).get), ticketsUrl.map(Url.from(_).get), videosUrl.map(Url.from(_).get), twitterAccount.map(a => Url.from("https://twitter.com/" + a).get).map(TwitterAccount), twitterHashtag.map(TwitterHashtag.from(_).get), tags.map(Tag(_)), Info(by.id, now))
 
     def cfpExt(event: ExternalEvent, url: String, begin: Option[String] = None, close: Option[String] = None, description: String = "", by: User): ExternalCfp =
       ExternalCfp(ExternalCfp.Id.generate(), event.id, Markdown(description), begin.map(d => LocalDateTime.parse(d + "T00:00:00")), close.map(d => LocalDateTime.parse(d + "T00:00:00")), Url.from(url).get, Info(by.id, now))
@@ -313,7 +313,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
 
     val eventRsvps = Seq(rsvp(event4, userDemo))
 
-    val devoxx2020 = eventExt("Devoxx France 2020", Some("2020-04-15"), "https://www.devoxx.fr", Some("https://www.devoxx.fr/wp-content/uploads/2019/09/favicon.ico"), "A super event", Some("2020-04-17"), Some(palaisDesCongres), Some("https://www.devoxx.fr/tickets/"), Some("https://www.youtube.com/channel/UCsVPQfo5RZErDL41LoWvk0A"), Some("DevoxxFR"), Some("DevoxxFR"), Seq("Tech", "Java"), userDemo)
+    val devoxx2020 = eventExt("Devoxx France 2020", Some("2020-04-15"), Some("https://www.devoxx.fr"), Some("https://www.devoxx.fr/wp-content/uploads/2019/09/favicon.ico"), "A super event", Some("2020-04-17"), Some(palaisDesCongres), Some("https://www.devoxx.fr/tickets/"), Some("https://www.youtube.com/channel/UCsVPQfo5RZErDL41LoWvk0A"), Some("DevoxxFR"), Some("DevoxxFR"), Seq("Tech", "Java"), userDemo)
     val eventExts = Seq(devoxx2020)
 
     val cfpDevoxx2020 = cfpExt(devoxx2020, "https://cfp.devoxx.fr", Some("2019-11-01"), Some("2020-02-16"), "Initialement très orienté Java, Devoxx France est maintenant une conférence généraliste", userDemo)

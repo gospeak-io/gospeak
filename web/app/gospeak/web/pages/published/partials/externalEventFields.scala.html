@@ -14,6 +14,9 @@
         @fieldHorizontal(form("name"), Seq("label" -> "Name")) { (field, args) =>
             @inputText(field, Seq("placeholder" -> "The event name") ++ args)
         }
+        @fieldHorizontal(form("kind"), Seq("label" -> "Kind")) { (field, args) =>
+            @inputSelect(field, ExternalEvent.Kind.all.map(k => k.value -> k.value), Seq("placeholder" -> "What kind of event is it?") ++ args)
+        }
         @fieldHorizontal(form("start"), Seq("label" -> "Dates")) { (field, args) =>
             <div class="row">
                 <div class="col">@inputLocalDate(field, Seq("placeholder" -> "Start date") ++ args)</div>

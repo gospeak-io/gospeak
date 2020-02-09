@@ -65,7 +65,7 @@ object CommonCfp {
     description = cfp.description,
     eventStart = cfp.event.start,
     eventFinish = cfp.event.finish,
-    eventUrl = Some(cfp.event.url),
+    eventUrl = cfp.event.url,
     eventTickets = cfp.event.tickets,
     eventVideos = cfp.event.videos,
     twitterAccount = cfp.event.twitterAccount,

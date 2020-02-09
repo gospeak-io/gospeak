@@ -74,7 +74,7 @@ object CommonProposal {
                                  name: ExternalEvent.Name,
                                  logo: Option[Logo],
                                  start: Option[LocalDateTime],
-                                 url: Url,
+                                 url: Option[Url],
                                  proposalUrl: Option[Url])
 
 }

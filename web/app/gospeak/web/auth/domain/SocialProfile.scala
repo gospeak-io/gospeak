@@ -29,6 +29,7 @@ object SocialProfile {
       lastName = profile.lastName.getOrElse(last),
       email = email,
       avatar = avatarOpt.getOrElse(defaultAvatar(email, slug)),
+      title = None,
       bio = None,
       company = None,
       location = None,

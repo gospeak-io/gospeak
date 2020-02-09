@@ -23,7 +23,7 @@ object GsForms {
    */
 
   final case class SignupData(slug: User.Slug, firstName: String, lastName: String, email: EmailAddress, password: Secret, rememberMe: Boolean) {
-    def data(avatar: Avatar): User.Data = User.Data(slug, User.Status.Undefined, firstName, lastName, email, avatar, None, None, None, None, None, SocialAccounts.fromUrls())
+    def data(avatar: Avatar): User.Data = User.Data(slug, User.Status.Undefined, firstName, lastName, email, avatar, None, None, None, None, None, None, SocialAccounts.fromUrls())
   }
 
   private val signupMapping: Mapping[SignupData] = mapping(
@@ -86,6 +86,7 @@ object GsForms {
     "last-name" -> text(1, Values.maxLength.title),
     "email" -> emailAddress,
     "avatar" -> avatar,
+    "title" -> optional(text),
     "bio" -> optional(markdown),
     "company" -> optional(text),
     "location" -> optional(text),
@@ -361,12 +362,13 @@ object GsForms {
 
   private val externalEventMapping = mapping(
     "name" -> externalEventName,
+    "kind" -> externalEventKind,
     "logo" -> optional(logo),
     "description" -> markdown,
     "start" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),
     "finish" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(23, 59), _.toLocalDate)),
     "location" -> optional(gMapPlace),
-    "url" -> url,
+    "url" -> optional(url),
     "tickets" -> optional(url),
     "videos" -> optional(url),
     "twitterAccount" -> optional(twitterAccount),

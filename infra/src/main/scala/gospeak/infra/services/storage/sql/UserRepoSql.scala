@@ -93,14 +93,14 @@ object UserRepoSql {
   private val proposalsWithCfpEvents = proposalsWithCfps.join(Tables.events, _.event_id -> _.id).get
 
   private[sql] def insert(e: User): Insert[User] = {
-    val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.emailValidationBeforeLogin}, ${e.avatar.url}, ${e.bio}, ${e.company}, ${e.location}, ${e.phone}, ${e.website}, " ++
+    val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.emailValidationBeforeLogin}, ${e.avatar.url}, ${e.title}, ${e.bio}, ${e.company}, ${e.location}, ${e.phone}, ${e.website}, " ++
       fr0"${e.social.facebook}, ${e.social.instagram}, ${e.social.twitter}, ${e.social.linkedIn}, ${e.social.youtube}, ${e.social.meetup}, ${e.social.eventbrite}, ${e.social.slack}, ${e.social.discord}, ${e.social.github}, " ++
       fr0"${e.createdAt}, ${e.updatedAt}"
     table.insert(e, _ => values)
   }
 
   private[sql] def update(user: User.Id)(d: User.Data, now: Instant): Update = {
-    val fields = fr0"slug=${d.slug}, status=${d.status}, first_name=${d.firstName}, last_name=${d.lastName}, email=${d.email}, avatar=${d.avatar.url}, bio=${d.bio}, company=${d.company}, location=${d.location}, phone=${d.phone}, website=${d.website}, " ++
+    val fields = fr0"slug=${d.slug}, status=${d.status}, first_name=${d.firstName}, last_name=${d.lastName}, email=${d.email}, avatar=${d.avatar.url}, title=${d.title}, bio=${d.bio}, company=${d.company}, location=${d.location}, phone=${d.phone}, website=${d.website}, " ++
       fr0"social_facebook=${d.social.facebook}, social_instagram=${d.social.instagram}, social_twitter=${d.social.twitter}, social_linkedIn=${d.social.linkedIn}, social_youtube=${d.social.youtube}, social_meetup=${d.social.meetup}, social_eventbrite=${d.social.eventbrite}, social_slack=${d.social.slack}, social_discord=${d.social.discord}, social_github=${d.social.github}, " ++
       fr0"updated_at=$now"
     table.update(fields, fr0"WHERE u.id=$user")

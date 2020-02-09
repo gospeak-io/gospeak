@@ -39,6 +39,9 @@
                 @fieldHorizontal(form("avatar"), Seq("label" -> "Avatar")) { (field, args) =>
                     @inputImg(field, ImgConf.userAvatar())
                 }
+                @fieldHorizontal(form("title"), Seq("label" -> "Title")) { (field, args) =>
+                    @inputText(field, Seq("placeholder" -> "Your job title, what you do or a very short intro"))
+                }
                 @fieldHorizontal(form("bio"), Seq("label" -> "Bio")) { (field, args) =>
                     @inputMarkdown(field, Seq("placeholder" -> "Tell people a bit more about you"))
                 }

@@ -9,9 +9,9 @@ object Tables {
   val users: Table = Table.from(
     name = "users",
     prefix = "u",
-    fields = Seq("id", "slug", "status", "first_name", "last_name", "email", "email_validated", "email_validation_before_login", "avatar", "bio", "company", "location", "phone", "website") ++ socialFields ++ Seq("created_at", "updated_at"),
+    fields = Seq("id", "slug", "status", "first_name", "last_name", "email", "email_validated", "email_validation_before_login", "avatar", "title", "bio", "company", "location", "phone", "website") ++ socialFields ++ Seq("created_at", "updated_at"),
     sort = Seq("first_name"),
-    search = Seq("id", "slug", "first_name", "last_name", "email")).get
+    search = Seq("id", "slug", "first_name", "last_name", "email", "title", "bio")).get
 
   val credentials: Table = Table.from(
     name = "credentials",
@@ -142,7 +142,7 @@ object Tables {
   val externalEvents: Table = Table.from(
     name = "external_events",
     prefix = "ee",
-    fields = Seq("id", "name", "logo", "description", "start", "finish", "location", "location_id", "location_lat", "location_lng", "location_locality", "location_country", "url", "tickets_url", "videos_url", "twitter_account", "twitter_hashtag", "tags", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "name", "kind", "logo", "description", "start", "finish", "location", "location_id", "location_lat", "location_lng", "location_locality", "location_country", "url", "tickets_url", "videos_url", "twitter_account", "twitter_hashtag", "tags", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("-start", "name"),
     search = Seq("id", "name", "description", "location", "url", "twitter_account", "twitter_hashtag", "tags")).get
 

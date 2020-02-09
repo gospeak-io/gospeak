@@ -80,38 +80,17 @@
                 }
             </div>
             <div class="col-sm-12 col-lg-6 p-5 ">
-                @group.social.twitter.map { t =>
+                @group.social.all.map { s =>
                     <div class="row mb-2">
-                        <a class="media align-items-center" href="@t.link">
-                            <div class="u-sm-avatar mr-3"><i class="fab fa-twitter"></i></div>
+                        <a class="media align-items-center" href="@s.link">
+                            <div class="u-sm-avatar mr-3"><i class="fab fa-@s.name"></i></div>
                             <div class="media-body">
-                                <h4 class="font-size-1 text-dark mb-0">Twitter</h4>
-                                <small class="d-block text-secondary"><a href="@t.link">@t.handle</a></small>
+                                <h4 class="font-size-1 text-dark mb-0">@s.name</h4>
+                                <small class="d-block text-secondary"><a href="@s.link">@s.handle</a></small>
                             </div>
                         </a>
                     </div>
-                }
-                @group.social.youtube.map { t =>
-                    <div class="row mb-2">
-                        <a class="media align-items-center" href="@t.link">
-                            <div class="u-sm-avatar mr-3"><i class="fab fa-youtube"></i></div>
-                            <div class="media-body">
-                                <h4 class="font-size-1 text-dark mb-0">Youtube</h4>
-                                <small class="d-block text-secondary"><a href="@t.link">View the channel</a></small>
-                            </div>
-                        </a>
-                    </div>
-                }
-                @group.social.meetup.map { t =>
-                    <div class="row mb-2">
-                        <a class="media align-items-center" href="@t.link">
-                            <div class="u-sm-avatar mr-3"><i class="fab fa-meetup"></i></div>
-                            <div class="media-body">
-                                <h4 class="font-size-1 text-dark mb-0">Slack</h4>
-                                <small class="d-block text-secondary"><a href="@t.link">Join the group</a></small>
-                            </div>
-                        </a>
-                    </div>
+
                 }
             </div>
         </div>

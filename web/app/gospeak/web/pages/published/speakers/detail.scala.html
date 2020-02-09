@@ -53,6 +53,7 @@
         </div>
     </div>
     <div class="col-9">
+        @user.title.map { t => <h2 class="h4">@t</h2> }
         @user.bio.map { b => <div class="mb-4">@markdown(b)</div> }
         @if(userGroups.nonEmpty || userTalks.nonEmpty) {
             <hr class="my-7">
