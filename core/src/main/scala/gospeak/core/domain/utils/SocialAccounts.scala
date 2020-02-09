@@ -66,7 +66,11 @@ object SocialAccounts {
   sealed abstract class SocialAccount(url: Url, val name: String) {
     def link: String = url.value
 
-    def handle: String = url.value.split("/").filter(_.nonEmpty).lastOption.getOrElse(url.value)
+    def handle: String =
+      url.value
+        .split("\\?").head
+        .split("/").filter(_.nonEmpty)
+        .lastOption.getOrElse(url.value)
   }
 
   object SocialAccount {
