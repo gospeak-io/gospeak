@@ -218,6 +218,7 @@ GET         /ui/suggest/:group/partners                                         
 GET         /ui/suggest/:group/partners/:partner/contacts                                  gospeak.web.api.ui.SuggestCtrl.suggestContacts(group: Group.Slug, partner: Partner.Id)
 GET         /ui/suggest/:group/venues                                                      gospeak.web.api.ui.SuggestCtrl.suggestVenues(group: Group.Slug)
 GET         /ui/suggest/:group/sponsor-packs                                               gospeak.web.api.ui.SuggestCtrl.suggestSponsorPacks(group: Group.Slug)
+GET         /ui/logos/ext-events                                                          gospeak.web.api.ui.SuggestCtrl.logosExternalEvents()
 GET         /ui/search/:group                                                              gospeak.web.api.ui.SuggestCtrl.searchRoot(group: Group.Slug)
 GET         /ui/search/:group/speakers                                                     gospeak.web.api.ui.SuggestCtrl.searchSpeakers(group: Group.Slug, q: String)
 GET         /ui/search/:group/proposals                                                    gospeak.web.api.ui.SuggestCtrl.searchProposals(group: Group.Slug, q: String)

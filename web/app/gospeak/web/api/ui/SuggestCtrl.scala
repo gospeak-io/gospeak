@@ -82,6 +82,10 @@ class SuggestCtrl(cc: ControllerComponents,
     list(req.group.id).map(results => ApiResult.of(results.map(format)))
   }
 
+  def logosExternalEvents(): Action[AnyContent] = UserAwareAction { implicit req =>
+    externalEventRepo.listLogos().map(logos => ApiResult.of(logos.map(_.value).sorted))
+  }
+
   def searchRoot(group: Group.Slug): Action[AnyContent] = OrgaAction[Seq[SearchResultItem]](group) { implicit req =>
     IO.pure(ApiResult.forbidden("this endpoint should not be requested"))
   }

@@ -58,6 +58,32 @@
         @if(userGroups.nonEmpty || userTalks.nonEmpty) {
             <hr class="my-7">
             <div class="row mb-7">
+                @if(userTalks.nonEmpty) {
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <h3 class="h5 mb-3">Current talks</h3>
+                        @userTalks.zipWithIndex.map { case (talk, i) =>
+                        <div class="align-items-center @if(i != 0){mt-5}">
+                            <small class="d-block text-secondary">@Formats.plural(userProposals.getOrElse(talk.id, Seq()).length, "presentation")</small>
+                            <h4 class="h6 mb-0">
+                                @talk.title.value
+                                @talk.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
+                                @talk.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+                            </h4>
+                            @if(talk.speakers.length > 1) {
+                                <ul class="list-inline ml-3 mb-0">
+                                @talk.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
+                                    <li class="list-inline-item ml-n3 mr-0">
+                                        <a class="u-sm-avatar u-sm-avatar--bordered rounded-circle" href="@SpeakerCtrl.detail(u.slug)">
+                                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value">
+                                        </a>
+                                    </li>
+                                }
+                                </ul>
+                            }
+                        </div>
+                        }
+                    </div>
+                }
                 @if(userGroups.nonEmpty) {
                     <div class="col-md-6 mb-7 mb-md-0">
                         <h3 class="h5 mb-3">Organizes</h3>
@@ -74,32 +100,6 @@
                                     <span class="d-block text-secondary">@group.location.map(_.formatted)</span>
                                 </div>
                             </a>
-                        }
-                    </div>
-                }
-                @if(userTalks.nonEmpty) {
-                    <div class="col-md-6 mb-3 mb-md-0">
-                        <h3 class="h5 mb-3">Current talks</h3>
-                        @userTalks.zipWithIndex.map { case (talk, i) =>
-                            <div class="align-items-center @if(i != 0){mt-5}">
-                                <small class="d-block text-secondary">@Formats.plural(userProposals.getOrElse(talk.id, Seq()).length, "presentation")</small>
-                                <h4 class="h6 mb-0">
-                                    @talk.title.value
-                                    @talk.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
-                                    @talk.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
-                                </h4>
-                                @if(talk.speakers.length > 1) {
-                                    <ul class="list-inline ml-3 mb-0">
-                                        @talk.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
-                                            <li class="list-inline-item ml-n3 mr-0">
-                                                <a class="u-sm-avatar u-sm-avatar--bordered rounded-circle" href="@SpeakerCtrl.detail(u.slug)">
-                                                    <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value">
-                                                </a>
-                                            </li>
-                                        }
-                                    </ul>
-                                }
-                            </div>
                         }
                     </div>
                 }
@@ -138,7 +138,7 @@
                                     @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
                                 </h5>
                                 <p class="small mb-1">
-                                    At <a class="no-style" href="@event.url" target="_blank">@event.name.value</a>,
+                                    At @event.url.map { u => <a class="no-style" href="@u" target="_blank">@event.name.value</a>, }.getOrElse{ @event.name.value, }
                                     @Formats.date(proposal.date)
                                 </p>
                             </div>

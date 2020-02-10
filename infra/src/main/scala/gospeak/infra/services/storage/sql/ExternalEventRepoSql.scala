@@ -11,7 +11,7 @@ import gospeak.infra.services.storage.sql.ExternalEventRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
 import gospeak.infra.services.storage.sql.utils.{GenericQuery, GenericRepo}
-import gospeak.libs.scala.domain.{Done, Page, Tag}
+import gospeak.libs.scala.domain.{Done, Logo, Page, Tag}
 
 class ExternalEventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ExternalEventRepo {
   override def create(data: ExternalEvent.Data)(implicit ctx: UserCtx): IO[ExternalEvent] =
@@ -25,10 +25,14 @@ class ExternalEventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends
   override def find(id: ExternalEvent.Id): IO[Option[ExternalEvent]] = selectOne(id).runOption(xa)
 
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
+
+  override def listLogos(): IO[Seq[Logo]] = selectLogos().runList(xa).map(_.flatten.distinct)
 }
 
 object ExternalEventRepoSql {
+
   import GenericQuery._
+
   private val _ = externalEventIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.externalEvents
   private val tableSelect = table.dropFields(_.name.startsWith("location_"))
@@ -51,4 +55,7 @@ object ExternalEventRepoSql {
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
     table.select[Seq[Tag]](Seq(Field("tags", "ee")), Seq())
+
+  private[sql] def selectLogos(): Select[Option[Logo]] =
+    table.select[Option[Logo]](Seq(Field("logo", "ee")), fr0"WHERE ee.logo IS NOT NULL", Seq())
 }

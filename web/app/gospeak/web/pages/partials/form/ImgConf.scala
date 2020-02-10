@@ -3,7 +3,8 @@ package gospeak.web.pages.partials.form
 import gospeak.infra.services.cloudinary.CloudinarySrvImpl
 import gospeak.web.utils.{OrgaReq, UserReq}
 import play.api.data.Field
-import play.api.mvc.AnyContent
+import play.api.mvc.{AnyContent, Call}
+import gospeak.web.api.ui.routes.SuggestCtrl
 
 final case class ImgConf(folder: Option[String],
                          name: Option[String],
@@ -11,6 +12,7 @@ final case class ImgConf(folder: Option[String],
                          tags: Seq[String],
                          maxFiles: Option[Int],
                          ratio: Option[Double],
+                         select: Option[Call],
                          args: Seq[(String, String)])
 
 object ImgConf {
@@ -22,6 +24,7 @@ object ImgConf {
       tags = Seq(req.user.slug.value, req.user.id.value),
       maxFiles = Some(1),
       ratio = Some(1),
+      select = None,
       args = Seq())
 
   def groupLogo(args: Seq[(String, String)])(implicit req: OrgaReq[AnyContent]): ImgConf =
@@ -32,6 +35,7 @@ object ImgConf {
       tags = Seq(req.user.slug.value, req.user.id.value),
       maxFiles = Some(1),
       ratio = Some(1),
+      select = None,
       args = args)
 
   def groupBanner(args: Seq[(String, String)])(implicit req: OrgaReq[AnyContent]): ImgConf =
@@ -42,6 +46,7 @@ object ImgConf {
       tags = Seq(req.user.slug.value, req.user.id.value),
       maxFiles = Some(1),
       ratio = Some(3),
+      select = None,
       args = args)
 
   def partnerLogo(partnerSlug: Field)(implicit req: OrgaReq[AnyContent]): ImgConf =
@@ -52,6 +57,7 @@ object ImgConf {
       tags = Seq(req.user.slug.value, req.user.id.value),
       maxFiles = Some(1),
       ratio = Some(1),
+      select = None,
       args = Seq())
 
   def slackBotAvatar(args: Seq[(String, String)])(implicit req: OrgaReq[AnyContent]): ImgConf =
@@ -62,6 +68,7 @@ object ImgConf {
       tags = Seq(req.user.slug.value, req.user.id.value),
       maxFiles = Some(1),
       ratio = Some(1),
+      select = None,
       args = Seq())
 
   def externalEventLogo(eventName: Field)(implicit req: UserReq[AnyContent]): ImgConf =
@@ -72,5 +79,6 @@ object ImgConf {
       tags = Seq(req.user.slug.value, req.user.id.value),
       maxFiles = Some(1),
       ratio = Some(1),
+      select = Some(SuggestCtrl.logosExternalEvents()),
       args = Seq())
 }

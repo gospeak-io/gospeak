@@ -299,9 +299,13 @@ declare const cloudinary;
     // see https://cloudinary.com/documentation/upload_widget
     $('.cloudinary-img-widget').each(function () {
         const $elt = $(this);
-        const $btn = $elt.find('button');
+        const $btn = $elt.find('button.upload');
         const $input = $elt.find('input[type="hidden"]');
         const $preview = $elt.find('.preview');
+
+        const $gallery = $elt.find('.gallery');
+        fetchGallery($gallery, $input, $preview);
+
         update($input, $preview); // run on page load
 
         const cloudName = $btn.attr('data-cloud-name');
@@ -309,7 +313,7 @@ declare const cloudinary;
         const apiKey = $btn.attr('data-api-key');
         const signUrl = $btn.attr('data-sign-url');
         const folder = $btn.attr('data-folder');
-        const name = $btn.attr('data-name');
+        const name = ($btn.attr('data-name') || '').replace(/#/g, '');
         const tagsStr = $btn.attr('data-tags');
         const maxFilesStr = $btn.attr('data-max-files');
         const ratioStr = $btn.attr('data-ratio');
@@ -341,7 +345,9 @@ declare const cloudinary;
 
         const cloudinaryWidget = cloudinary.createUploadWidget(opts, (error, result) => {
             if (!error && result && result.event === 'success') {
-                $input.val(cloudinaryUrl(result.info, cloudName, ratio));
+                const image = cloudinaryUrl(result.info, cloudName, ratio);
+                $input.val(image);
+                addToGallery($gallery, image);
                 update($input, $preview);
             }
         });
@@ -349,7 +355,7 @@ declare const cloudinary;
         const $dynamicNameInput = dynamicName ? $('#' + dynamicName) : undefined;
         if ($dynamicNameInput) {
             $dynamicNameInput.change(() => {
-                opts.publicId = $dynamicNameInput.val();
+                opts.publicId = ($dynamicNameInput.val() || '').replace(/#/g, '');
                 cloudinaryWidget.update({publicId: opts.publicId});
             });
         }
@@ -390,6 +396,29 @@ declare const cloudinary;
             type: 'GET',
             data: params_to_sign
         }).then(res => callback(res.data));
+    }
+
+    function fetchGallery($gallery, $input, $preview): void {
+        if($gallery) {
+            const url = $gallery.attr('data-remote');
+            fetch(url).then(res => res.json()).then(json => {
+                json.data.forEach((image: string) => addToGallery($gallery, image));
+            });
+            $gallery.on('click', 'img', function (e) {
+                e.preventDefault();
+                const image = $(this).attr('src');
+                $input.val(image);
+                update($input, $preview);
+            });
+        }
+    }
+
+    function addToGallery($gallery, image: string) {
+        if($gallery) {
+            const parts = image.split('?')[0].split('/').filter(p => p.length > 0);
+            const publicId = parts[parts.length - 1].split('.')[0];
+            $gallery.append(`<img src="${image}" title="${publicId}" style="height: 38px; margin-top: 5px; margin-right: 5px;">`)
+        }
     }
 })();
 

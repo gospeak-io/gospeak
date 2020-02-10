@@ -3,7 +3,7 @@ package gospeak.core.services.storage
 import cats.effect.IO
 import gospeak.core.domain.ExternalEvent
 import gospeak.core.domain.utils.UserCtx
-import gospeak.libs.scala.domain.{Done, Page, Tag}
+import gospeak.libs.scala.domain.{Done, Logo, Page, Tag}
 
 trait ExternalEventRepo extends SpeakerExternalEventRepo with PublicExternalEventRepo with SuggestExternalEventRepo
 
@@ -27,4 +27,6 @@ trait SpeakerExternalEventRepo {
 
 trait SuggestExternalEventRepo {
   def listTags(): IO[Seq[Tag]]
+
+  def listLogos(): IO[Seq[Logo]]
 }

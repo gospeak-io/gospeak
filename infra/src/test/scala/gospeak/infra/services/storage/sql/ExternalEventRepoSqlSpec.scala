@@ -25,6 +25,14 @@ class ExternalEventRepoSqlSpec extends RepoSpec {
         q.fr.query.sql shouldBe req
         check(q, req)
       }
+      it("should build selectTags") {
+        val q = ExternalEventRepoSql.selectTags()
+        check(q, s"SELECT ee.tags FROM $table")
+      }
+      it("should build selectLogos") {
+        val q = ExternalEventRepoSql.selectLogos()
+        check(q, s"SELECT ee.logo FROM $table WHERE ee.logo IS NOT NULL")
+      }
     }
   }
 }
