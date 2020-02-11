@@ -17,6 +17,9 @@ POST        /cfps/:cfp/propose                                                  
 POST        /cfps/:cfp/propose/signup                                                      gospeak.web.pages.published.cfps.CfpCtrl.doProposeSignup(cfp: Cfp.Slug)
 POST        /cfps/:cfp/propose/login                                                       gospeak.web.pages.published.cfps.CfpCtrl.doProposeLogin(cfp: Cfp.Slug)
 
+GET         /events                                                                        gospeak.web.pages.published.events.EventCtrl.list(params: Page.Params ?= Page.Params.defaults)
+GET         /events/ext/:event                                                             gospeak.web.pages.published.events.EventCtrl.detailExt(event: ExternalEvent.Id, params: Page.Params ?= Page.Params.defaults)
+
 GET         /groups                                                                        gospeak.web.pages.published.groups.GroupCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /groups/:group                                                                 gospeak.web.pages.published.groups.GroupCtrl.detail(group: Group.Slug)
 GET         /groups/:group/join                                                            gospeak.web.pages.published.groups.GroupCtrl.doJoin(group: Group.Slug)

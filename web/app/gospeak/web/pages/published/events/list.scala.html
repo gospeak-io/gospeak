@@ -1,0 +1,14 @@
+@import gospeak.core.domain.{CommonEvent, User}
+@import gospeak.libs.scala.domain.Page
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.published.events.routes.EventCtrl
+@import gospeak.web.pages.published.partials.html.{container, commonEventItem}
+@import gospeak.web.utils.{Formats, UserAwareReq}
+
+@(events: Page[CommonEvent], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container("Groups - Gospeak", PageMeta.default(), b)() {
+    <div class="w-md-80 w-lg-80 text-center mx-md-auto mb-5">
+        <h2 class="text-primary">Events</h2>
+    </div>
+    @Formats.paginated[CommonEvent](events, EventCtrl.list, commonEventItem(_))
+}()

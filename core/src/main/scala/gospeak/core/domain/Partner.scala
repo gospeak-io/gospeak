@@ -14,7 +14,7 @@ final case class Partner(id: Partner.Id,
                          info: Info) {
   def data: Partner.Data = Partner.Data(this)
 
-  def users: Seq[User.Id] = info.users
+  def users: List[User.Id] = info.users
 }
 
 object Partner {

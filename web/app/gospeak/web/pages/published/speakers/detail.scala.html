@@ -62,25 +62,25 @@
                     <div class="col-md-6 mb-3 mb-md-0">
                         <h3 class="h5 mb-3">Current talks</h3>
                         @userTalks.zipWithIndex.map { case (talk, i) =>
-                        <div class="align-items-center @if(i != 0){mt-5}">
-                            <small class="d-block text-secondary">@Formats.plural(userProposals.getOrElse(talk.id, Seq()).length, "presentation")</small>
-                            <h4 class="h6 mb-0">
-                                @talk.title.value
-                                @talk.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
-                                @talk.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
-                            </h4>
-                            @if(talk.speakers.length > 1) {
-                                <ul class="list-inline ml-3 mb-0">
-                                @talk.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
-                                    <li class="list-inline-item ml-n3 mr-0">
-                                        <a class="u-sm-avatar u-sm-avatar--bordered rounded-circle" href="@SpeakerCtrl.detail(u.slug)">
-                                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value">
-                                        </a>
-                                    </li>
+                            <div class="align-items-center @if(i != 0){mt-5}">
+                                <small class="d-block text-secondary">@Formats.plural(userProposals.getOrElse(talk.id, Seq()).length, "presentation")</small>
+                                <h4 class="h6 mb-0">
+                                    @talk.title.value
+                                    @talk.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
+                                    @talk.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+                                </h4>
+                                @if(talk.speakers.length > 1) {
+                                    <ul class="list-inline ml-3 mb-0">
+                                    @talk.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
+                                        <li class="list-inline-item ml-n3 mr-0">
+                                            <a class="u-sm-avatar u-sm-avatar--bordered rounded-circle" href="@SpeakerCtrl.detail(u.slug)">
+                                                <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value">
+                                            </a>
+                                        </li>
+                                    }
+                                    </ul>
                                 }
-                                </ul>
-                            }
-                        </div>
+                            </div>
                         }
                     </div>
                 }

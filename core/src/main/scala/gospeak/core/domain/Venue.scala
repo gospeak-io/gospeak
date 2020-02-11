@@ -14,7 +14,7 @@ final case class Venue(id: Venue.Id,
                        info: Info) {
   def data: Venue.Data = Venue.Data(this)
 
-  def users: Seq[User.Id] = info.users
+  def users: List[User.Id] = info.users
 }
 
 object Venue {
@@ -29,7 +29,7 @@ object Venue {
 
   // to add linked entities when selecting venues
   final case class Full(venue: Venue, partner: Partner, contact: Option[Contact]) {
-    def users: Seq[User.Id] = (venue.users ++ partner.users ++ contact.map(_.users).getOrElse(Seq())).distinct
+    def users: List[User.Id] = (venue.users ++ partner.users ++ contact.map(_.users).getOrElse(List())).distinct
 
     def id: Id = venue.id
 

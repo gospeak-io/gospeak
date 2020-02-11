@@ -1,15 +1,12 @@
 @import gospeak.core.domain.CommonCfp
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.partials.html.{cfpItem, container}
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.UserAwareReq
-@import gospeak.libs.scala.domain.Page
+@import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(cfps: Page[CommonCfp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container("CFPs - Gospeak", PageMeta.cfps(), b)() {
-<div id="listCFPs" class="">
-    <!-- Title -->
     <div class="w-md-80 w-lg-80 text-center mx-md-auto mb-5">
         <h2 class="text-primary">Open <span class="font-weight-semi-bold">Call For Proposals</span></h2>
         <p>
@@ -19,5 +16,4 @@
         </p>
     </div>
     @Formats.paginated[CommonCfp](cfps, CfpCtrl.list, cfpItem(_))
-</div>
 }()

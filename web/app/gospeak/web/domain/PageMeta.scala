@@ -1,8 +1,9 @@
 package gospeak.web.domain
 
 import gospeak.core.domain.utils.Constants
-import gospeak.core.domain.{Cfp, Event, ExternalCfp, Group, Proposal, User}
+import gospeak.core.domain._
 import gospeak.web.pages.published.cfps.routes.CfpCtrl
+import gospeak.web.pages.published.events.routes.EventCtrl
 import gospeak.web.pages.published.groups.routes.GroupCtrl
 import gospeak.web.pages.published.routes.HomeCtrl
 import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
@@ -30,6 +31,13 @@ object PageMeta {
     description = u.bio.map(_.value.take(200)).getOrElse(""),
     image = u.avatar.value,
     url = req.format(SpeakerCtrl.detail(u.slug)),
+    twitterCard = "summary")
+
+  def event(e: ExternalEvent)(implicit req: BasicReq[AnyContent]): PageMeta = PageMeta(
+    title = e.name.value.take(70),
+    description = e.description.value.take(200),
+    image = e.logo.map(_.value).getOrElse(Constants.Images.gospeakLogoSquare),
+    url = req.format(EventCtrl.detailExt(e.id)),
     twitterCard = "summary")
 
   def group(g: Group)(implicit req: BasicReq[AnyContent]): PageMeta = PageMeta(

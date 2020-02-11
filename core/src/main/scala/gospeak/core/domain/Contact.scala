@@ -13,7 +13,7 @@ final case class Contact(id: Contact.Id,
                          info: Info) {
   def data: Contact.Data = Contact.Data(this)
 
-  def users: Seq[User.Id] = info.users
+  def users: List[User.Id] = info.users
 
   def name = Contact.Name(s"${firstName.value} ${lastName.value}")
 }

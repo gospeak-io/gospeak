@@ -4,6 +4,7 @@
 @import gospeak.web.pages.partials.container.html.{alert, flash, main, navbarLink, userDropdown}
 @import gospeak.web.pages.partials.form.html.formBtn
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.routes.HomeCtrl
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
@@ -32,8 +33,9 @@
                             <li class="nav-item u-header__nav-item">@navbarLink(UserCtrl.index()) {Dashboard}</li>
                         }
                         <li class="nav-item u-header__nav-item">@navbarLink(CfpCtrl.list()) {Call For Proposals}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink(EventCtrl.list()) {Events}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink(SpeakerCtrl.list()) {Speakers}</li>
                         <li class="nav-item u-header__nav-item">@navbarLink(GroupCtrl.list()) {Groups}</li>
-                        @* <li class="nav-item u-header__nav-item">@navbarLink(SpeakerCtrl.list()) {Speakers}</li> *@
                         <li class="nav-item u-header__nav-last-item">
                             @req.secured.map { r =>
                                 @userDropdown(r.user, r.groups)

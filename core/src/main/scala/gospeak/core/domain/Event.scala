@@ -35,7 +35,7 @@ final case class Event(id: Event.Id,
 
   def move(talk: Proposal.Id, up: Boolean): Event = copy(talks = talks.swap(talk, up))
 
-  def users: Seq[User.Id] = orgaNotes.updatedBy +: info.users
+  def users: List[User.Id] = (orgaNotes.updatedBy +: info.users).distinct
 
   def isPublic: Boolean = published.isDefined
 
@@ -145,7 +145,7 @@ object Event {
 
     def refs: ExtRefs = event.refs
 
-    def users: Seq[User.Id] = event.users
+    def users: List[User.Id] = event.users
 
     def isFull(yesRsvps: Long): Boolean = event.maxAttendee.exists(_ <= yesRsvps.toInt)
 

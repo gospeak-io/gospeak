@@ -22,7 +22,7 @@ final case class Talk(id: Talk.Id,
 
   def hasSpeaker(user: User.Id): Boolean = speakers.toList.contains(user)
 
-  def users: Seq[User.Id] = (info.createdBy :: info.updatedBy :: speakers.toList).distinct
+  def users: List[User.Id] = (speakers.toList ++ info.users).distinct
 }
 
 object Talk {

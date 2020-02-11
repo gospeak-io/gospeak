@@ -10,7 +10,7 @@ sealed trait UserRequest {
   val id: UserRequest.Id
   val createdAt: Instant
 
-  def users: Seq[User.Id] = Seq()
+  def users: List[User.Id] = List()
 
   def isPending(now: Instant): Boolean
 }
@@ -27,7 +27,7 @@ object UserRequest {
     val rejected: Option[Meta]
     val canceled: Option[Meta]
 
-    override def users: Seq[User.Id] = Seq(createdBy) ++ accepted.map(_.by).toList ++ rejected.map(_.by).toList ++ canceled.map(_.by).toList
+    override def users: List[User.Id] = List(createdBy) ++ accepted.map(_.by).toList ++ rejected.map(_.by).toList ++ canceled.map(_.by).toList
 
     override def isPending(now: Instant): Boolean = accepted.isEmpty && rejected.isEmpty && canceled.isEmpty
   }
@@ -38,7 +38,7 @@ object UserRequest {
                                             createdAt: Instant,
                                             createdBy: User.Id,
                                             acceptedAt: Option[Instant]) extends UserRequest {
-    override def users: Seq[User.Id] = Seq(createdBy)
+    override def users: List[User.Id] = List(createdBy)
 
     override def isPending(now: Instant): Boolean = deadline.isAfter(now) && acceptedAt.isEmpty
   }

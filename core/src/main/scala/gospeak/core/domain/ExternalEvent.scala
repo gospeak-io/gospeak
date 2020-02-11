@@ -22,6 +22,8 @@ final case class ExternalEvent(id: ExternalEvent.Id,
                                tags: Seq[Tag],
                                info: Info) {
   def data: ExternalEvent.Data = ExternalEvent.Data(this)
+
+  def users: List[User.Id] = info.users
 }
 
 object ExternalEvent {

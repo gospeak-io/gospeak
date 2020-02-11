@@ -26,6 +26,8 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
 
   override def list(params: Page.Params): IO[Page[ExternalProposal]] = selectPage(params).run(xa)
 
+  override def list(event: ExternalEvent.Id, params: Page.Params): IO[Page[ExternalProposal]] = selectPage(event, params).run(xa)
+
   override def listCommon(talk: Talk.Id, params: Page.Params): IO[Page[CommonProposal]] = selectPageCommon(talk, params).run(xa)
 
   override def listCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommon(ctx.user.id, params).run(xa)
@@ -85,6 +87,9 @@ object ExternalProposalRepoSql {
 
   private[sql] def selectPage(params: Page.Params): SelectPage[ExternalProposal] =
     table.selectPage[ExternalProposal](params)
+
+  private[sql] def selectPage(event: ExternalEvent.Id, params: Page.Params): SelectPage[ExternalProposal] =
+    table.selectPage[ExternalProposal](params, fr0"WHERE ep.event_id=$event")
 
   private[sql] def selectPageCommon(talk: Talk.Id, params: Page.Params): SelectPage[CommonProposal] =
     commonTable.selectPage[CommonProposal](params, fr0"WHERE p.talk_id=$talk")

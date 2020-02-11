@@ -22,7 +22,7 @@ final case class ExternalProposal(id: ExternalProposal.Id,
                                   info: Info) {
   def data: ExternalProposal.Data = ExternalProposal.Data(this)
 
-  def users: Seq[User.Id] = speakers.toList ++ info.users
+  def users: List[User.Id] = (speakers.toList ++ info.users).distinct
 }
 
 object ExternalProposal {

@@ -17,7 +17,9 @@ final case class CommonEvent(id: CommonEvent.Id,
                              tags: Seq[Tag],
                              internal: Option[CommonEvent.Internal],
                              external: Option[CommonEvent.External],
-                             info: Info)
+                             info: Info) {
+  def users: List[User.Id] = info.users
+}
 
 object CommonEvent {
 
@@ -41,6 +43,7 @@ object CommonEvent {
                             cfpSlug: Option[Cfp.Slug],
                             cfpName: Option[Cfp.Name],
                             venueId: Option[Venue.Id],
+                            venueName: Option[Partner.Name],
                             venueLogo: Option[Logo],
                             eventSlug: Event.Slug,
                             description: MustacheMarkdownTmpl[TemplateData.EventInfo])

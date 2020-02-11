@@ -28,6 +28,10 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
         val q = ExternalProposalRepoSql.selectPage(params)
         check(q, s"SELECT $fields FROM $table $orderBy LIMIT 20 OFFSET 0")
       }
+      it("should build selectPage for event") {
+        val q = ExternalProposalRepoSql.selectPage(externalEvent.id, params)
+        check(q, s"SELECT $fields FROM $table WHERE ep.event_id=? $orderBy LIMIT 20 OFFSET 0")
+      }
       it("should build selectPageCommon for talk") {
         val q = ExternalProposalRepoSql.selectPageCommon(talk.id, params)
         val req = s"SELECT $commonFields FROM $commonTable WHERE p.talk_id=? $commonOrderBy LIMIT 20 OFFSET 0"

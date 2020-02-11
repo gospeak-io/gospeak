@@ -31,6 +31,8 @@ trait SpeakerExternalProposalRepo {
 }
 
 trait PublicExternalProposalRepo {
+  def list(event: ExternalEvent.Id, params: Page.Params): IO[Page[ExternalProposal]]
+
   def listAllCommon(user: User.Id, status: Proposal.Status): IO[Seq[CommonProposal]]
 }
 

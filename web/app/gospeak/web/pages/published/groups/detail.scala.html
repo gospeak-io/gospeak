@@ -1,11 +1,10 @@
 @import gospeak.core.domain.{Cfp, Event, Group, Sponsor, SponsorPack, User}
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.partials.display.html.markdown
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.UserAwareReq
 @import gospeak.web.pages.published.partials.html.{container, groupCard}
-@import gospeak.libs.scala.domain.Page
+@import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${group.name.value} - Gospeak", PageMeta.group(group.group), b)() {

@@ -8,7 +8,6 @@
 
 @(groups: Page[Group.Full], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container("Groups - Gospeak", PageMeta.default(), b)() {
-<div id="listGroups">
     <div class="w-md-80 w-lg-80 text-center mx-md-auto mb-5">
         <h2 class="text-primary">Gospeak <span class="font-weight-semi-bold">User groups</span></h2>
         <p>
@@ -17,5 +16,4 @@
         </p>
     </div>
     @Formats.paginated[Group.Full](groups, GroupCtrl.list, groupItem(_, orgas))
-</div>
 }()
