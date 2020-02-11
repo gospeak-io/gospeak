@@ -28,9 +28,15 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
         val q = ExternalProposalRepoSql.selectPage(params)
         check(q, s"SELECT $fields FROM $table $orderBy LIMIT 20 OFFSET 0")
       }
-      it("should build selectPageCommon") {
+      it("should build selectPageCommon for talk") {
         val q = ExternalProposalRepoSql.selectPageCommon(talk.id, params)
         val req = s"SELECT $commonFields FROM $commonTable WHERE p.talk_id=? $commonOrderBy LIMIT 20 OFFSET 0"
+        q.fr.query.sql shouldBe req
+        // check(q, req) // not null types become nullable when doing union, so it fails :(
+      }
+      it("should build selectPageCommon for user") {
+        val q = ExternalProposalRepoSql.selectPageCommon(user.id, params)
+        val req = s"SELECT $commonFields FROM $commonTable WHERE p.speakers LIKE ? $commonOrderBy LIMIT 20 OFFSET 0"
         q.fr.query.sql shouldBe req
         // check(q, req) // not null types become nullable when doing union, so it fails :(
       }

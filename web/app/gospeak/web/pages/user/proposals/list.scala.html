@@ -1,13 +1,13 @@
-@import gospeak.core.domain.Proposal
+@import gospeak.core.domain.CommonProposal
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
-@import gospeak.web.pages.user.partials.html.{container, proposalItem}
+@import gospeak.web.pages.user.partials.html.{container, commonProposalItem}
 @import gospeak.web.pages.user.proposals.routes.ProposalCtrl
 @import gospeak.web.utils.Formats
 @import gospeak.web.utils.UserReq
 @import gospeak.libs.scala.domain.Page
 
-@(proposals: Page[Proposal.Full])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@(proposals: Page[CommonProposal])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("My proposals - Gospeak", b)() {
     @if(proposals.isEmpty) {
         <div class="jumbotron">
@@ -23,6 +23,6 @@
             <span class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</span>
             <a class="btn btn-primary" href="@CfpCtrl.list()">Find a CFP</a>
         </h1>
-        @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list, proposalItem(_))
+        @Formats.paginated[CommonProposal](proposals, ProposalCtrl.list, commonProposalItem(_))
     }
 }()

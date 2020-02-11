@@ -28,6 +28,8 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
 
   override def listCommon(talk: Talk.Id, params: Page.Params): IO[Page[CommonProposal]] = selectPageCommon(talk, params).run(xa)
 
+  override def listCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommon(ctx.user.id, params).run(xa)
+
   override def listCurrentCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommonCurrent(ctx.user.id, ctx.now, params).run(xa)
 
   override def listAllCommon(talk: Talk.Id): IO[Seq[CommonProposal]] = selectAllCommon(talk).runList(xa)
@@ -86,6 +88,9 @@ object ExternalProposalRepoSql {
 
   private[sql] def selectPageCommon(talk: Talk.Id, params: Page.Params): SelectPage[CommonProposal] =
     commonTable.selectPage[CommonProposal](params, fr0"WHERE p.talk_id=$talk")
+
+  private[sql] def selectPageCommon(speaker: User.Id, params: Page.Params): SelectPage[CommonProposal] =
+    commonTable.selectPage[CommonProposal](params, fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"}")
 
   private[sql] def selectPageCommonCurrent(speaker: User.Id, now: Instant, params: Page.Params): SelectPage[CommonProposal] = {
     val pending = fr0"p.status=${Proposal.Status.Pending: Proposal.Status}"
