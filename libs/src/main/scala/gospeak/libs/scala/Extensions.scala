@@ -18,6 +18,14 @@ import scala.util.{Failure, Success, Try}
 
 object Extensions {
 
+  implicit class AExtension[A](val in: A) extends AnyVal {
+    def some: Option[A] = Some(in)
+
+    def right[E]: Either[E, A] = Right(in)
+
+    def left[B]: Either[A, B] = Left(in)
+  }
+
   implicit class BooleanExtension(val in: Boolean) extends AnyVal {
     def reverse: Boolean = !in
 
@@ -301,6 +309,13 @@ object Extensions {
     def toIO(f: E => Throwable): IO[A] = in match {
       case Right(a) => IO.pure(a)
       case Left(e) => IO.raiseError(f(e))
+    }
+  }
+
+  implicit class EitherOptionExtension[E, A](val in: Either[E, Option[A]]) extends AnyVal {
+    def sequence: Option[Either[E, A]] = in match {
+      case Left(e) => Some(Left(e))
+      case Right(opt) => opt.map(Right(_))
     }
   }
 

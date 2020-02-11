@@ -1,7 +1,5 @@
 package gospeak.web.pages.published.groups
 
-import java.time.Instant
-
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
@@ -9,8 +7,9 @@ import gospeak.core.domain.{Comment, Event, Group, Proposal}
 import gospeak.core.services.TemplateSrv
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.meetup.MeetupSrv
-import gospeak.core.services.meetup.domain.{MeetupAttendee, MeetupUser}
 import gospeak.core.services.storage._
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain._
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.{Breadcrumb, MessageBuilder}
@@ -18,8 +17,6 @@ import gospeak.web.emails.Emails
 import gospeak.web.pages.published.HomeCtrl
 import gospeak.web.pages.published.groups.GroupCtrl._
 import gospeak.web.utils.{GsForms, UICtrl, UserAwareReq}
-import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain._
 import play.api.data.Form
 import play.api.mvc._
 
@@ -110,10 +107,11 @@ class GroupCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(group))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
       creds <- OptionT(groupSettingsRepo.findMeetup(groupElt.id))
-      attendees <- OptionT(eventElt.event.refs.meetup.map(r => meetupSrv.getAttendees(r.group, r.event, conf.app.aesKey, creds)).sequence)
-      cleanAttendees = attendees.filter(a => a.id.value != 0L && a.response == "yes" && !a.host)
-      attendee = Random.shuffle(cleanAttendees).headOption
-        .getOrElse(MeetupAttendee(MeetupUser.Id(0), "No attendee", None, Some(Avatar(Image.AdorableUrl("0", None).toUrl)), host = false, "no", 0, Instant.now()))
+      attendees <- OptionT.liftF(eventElt.event.refs.meetup.map { r =>
+        meetupSrv.getAttendees(r.group, r.event, conf.app.aesKey, creds).map(_.right[String]).recover { case NonFatal(e) => Left(e.getMessage) }
+      }.getOrElse(IO.pure(Left("No meetup ref"))))
+      cleanAttendees = attendees.map(_.filter(a => a.id.value != 0L && a.response == "yes" && !a.host))
+      attendee = cleanAttendees.map(Random.shuffle(_).headOption).sequence.getOrElse(Left("Empty attendee list"))
       res = Ok(html.attendeeDraw(group, event, attendee))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }

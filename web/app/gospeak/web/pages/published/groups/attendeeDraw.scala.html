@@ -5,8 +5,8 @@
 @import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
 @import gospeak.web.utils.UserAwareReq
 
-@(group: Group.Slug, event: Event.Slug, attendee: MeetupAttendee)(implicit req: UserAwareReq[AnyContent])
-@main(s"Draw attendee: ${attendee.name} - Gospeak", PageMeta.default(), style = Html(
+@(group: Group.Slug, event: Event.Slug, attendee: Either[String, MeetupAttendee])(implicit req: UserAwareReq[AnyContent])
+@main(s"Draw attendee: ${attendee.fold(identity, _.name)} - Gospeak", PageMeta.default(), style = Html(
     """<style>
       |html, body, .container, .row { height: 100% }
       |
@@ -78,16 +78,21 @@
         <div class="row align-items-center">
             <div class="col"></div>
             <div class="col userMain">
-                <div class="userBlock">
-                    <div class="backgrounImg"><img src="https://preview.ibb.co/miQjb7/photography4.jpg"/></div>
-                    <div class="userImg"><img src="@attendee.avatar.map(_.value).getOrElse(s"https://api.adorable.io/avatars/200/${attendee.id.value}.png")"/></div>
-                    <div class="userDescription">
-                        <h5>@attendee.name</h5>
-                        @attendee.bio.map { bio => <p>@bio</p> }
-                        <a href="@PublicGroupCtrl.eventAttendeesMeetup(group, event)"><button class="btn">Draw again</button></a>
-                    </div>
-                </div>
-            </div>
+                @attendee match {
+                    case Right(a) => {
+                        <div class="userBlock">
+                            <div class="backgrounImg"><img src="https://preview.ibb.co/miQjb7/photography4.jpg" alt="background"/></div>
+                                <div class="userImg"><img src="@a.avatar.map(_.value).getOrElse(s"https://api.adorable.io/avatars/200/${a.id.value}.png")" alt="@a.name avatar"/></div>
+                                <div class="userDescription">
+                                    <h5>@a.name</h5>
+                                    @a.bio.map { bio => <p>@bio</p> }
+                                    <a href="@PublicGroupCtrl.eventAttendeesMeetup(group, event)"><button class="btn">Draw again</button></a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    case Left(err) => {<div class="alert alert-danger" role="alert">@err</div>}
+                }
             <div class="col"></div>
         </div>
     </div>

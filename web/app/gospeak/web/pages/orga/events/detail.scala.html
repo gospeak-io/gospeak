@@ -45,7 +45,7 @@
             </button>
             <span class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" href="@EventCtrl.edit(req.group.slug, event.slug)">Edit</a>
-                @event.refs.meetup.map { _ =>
+                @event.refs.meetup.filter(_ => event.isPublic).map { _ =>
                     <a class="dropdown-item" href="@PublicGroupCtrl.eventAttendeesMeetup(req.group.slug, event.slug)" target="_blank">Draw meetup attendee</a>
                 }
                 @eventTemplates.keys.map { id =>
