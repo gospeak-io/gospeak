@@ -8,7 +8,7 @@ import gospeak.libs.scala.domain._
 
 final case class ExternalEvent(id: ExternalEvent.Id,
                                name: ExternalEvent.Name,
-                               kind: ExternalEvent.Kind,
+                               kind: Event.Kind,
                                logo: Option[Logo],
                                description: Markdown,
                                start: Option[LocalDateTime],
@@ -34,26 +34,8 @@ object ExternalEvent {
 
   final case class Name(value: String) extends AnyVal
 
-  sealed trait Kind extends StringEnum {
-    def value: String = toString
-  }
-
-  object Kind extends EnumBuilder[Kind]("ExternalEvent.Kind") {
-
-    final case object Conference extends Kind
-
-    final case object Meetup extends Kind
-
-    final case object Training extends Kind
-
-    final case object PrivateEvent extends Kind
-
-    val all: Seq[Kind] = Seq(Conference, Meetup, Training, PrivateEvent)
-
-  }
-
   final case class Data(name: Name,
-                        kind: Kind,
+                        kind: Event.Kind,
                         logo: Option[Logo],
                         description: Markdown,
                         start: Option[LocalDateTime],

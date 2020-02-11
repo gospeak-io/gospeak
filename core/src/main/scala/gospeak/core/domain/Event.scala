@@ -14,6 +14,7 @@ final case class Event(id: Event.Id,
                        cfp: Option[Cfp.Id],
                        slug: Event.Slug,
                        name: Event.Name,
+                       kind: Event.Kind,
                        start: LocalDateTime,
                        maxAttendee: Option[Int],
                        allowRsvp: Boolean,
@@ -45,7 +46,7 @@ final case class Event(id: Event.Id,
 
 object Event {
   def create(group: Group.Id, d: Data, info: Info): Event =
-    new Event(Id.generate(), group, d.cfp, d.slug, d.name, d.start, d.maxAttendee, d.allowRsvp, d.description, Notes("", info.updatedAt, info.updatedBy), d.venue, Seq(), d.tags, None, ExtRefs(), info)
+    new Event(Id.generate(), group, d.cfp, d.slug, d.name, d.kind, d.start, d.maxAttendee, d.allowRsvp, d.description, Notes("", info.updatedAt, info.updatedBy), d.venue, Seq(), d.tags, None, ExtRefs(), info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -56,6 +57,24 @@ object Event {
   object Slug extends SlugBuilder[Slug]("Event.Slug", new Slug(_))
 
   final case class Name(value: String) extends AnyVal
+
+  sealed trait Kind extends StringEnum {
+    def value: String = toString
+  }
+
+  object Kind extends EnumBuilder[Kind]("Event.Kind") {
+
+    final case object Conference extends Kind
+
+    final case object Meetup extends Kind
+
+    final case object Training extends Kind
+
+    final case object PrivateEvent extends Kind
+
+    val all: Seq[Kind] = Seq(Conference, Meetup, Training, PrivateEvent)
+
+  }
 
   final case class Notes(text: String,
                          updatedAt: Instant,
@@ -106,6 +125,8 @@ object Event {
 
     def name: Name = event.name
 
+    def kind: Kind = event.kind
+
     def description: MustacheMarkdownTmpl[TemplateData.EventInfo] = event.description
 
     def orgaNotes: Notes = event.orgaNotes
@@ -138,6 +159,7 @@ object Event {
   final case class Data(cfp: Option[Cfp.Id],
                         slug: Slug,
                         name: Name,
+                        kind: Kind,
                         start: LocalDateTime,
                         maxAttendee: Option[Int],
                         allowRsvp: Boolean,
@@ -147,7 +169,7 @@ object Event {
                         refs: Event.ExtRefs)
 
   object Data {
-    def apply(e: Event): Data = new Data(e.cfp, e.slug, e.name, e.start, e.maxAttendee, e.allowRsvp, e.venue, e.description, e.tags, e.refs)
+    def apply(e: Event): Data = new Data(e.cfp, e.slug, e.name, e.kind, e.start, e.maxAttendee, e.allowRsvp, e.venue, e.description, e.tags, e.refs)
   }
 
 }

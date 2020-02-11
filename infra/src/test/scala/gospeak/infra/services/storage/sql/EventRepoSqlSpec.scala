@@ -43,7 +43,7 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = EventRepoSql.update(group.id, event.slug)(eventData1, user.id, now)
-        check(q, s"UPDATE $table SET cfp_id=?, slug=?, name=?, start=?, max_attendee=?, allow_rsvp=?, description=?, venue=?, tags=?, meetupGroup=?, meetupEvent=?, updated_at=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
+        check(q, s"UPDATE $table SET cfp_id=?, slug=?, name=?, kind=?, start=?, max_attendee=?, allow_rsvp=?, description=?, venue=?, tags=?, meetupGroup=?, meetupEvent=?, updated_at=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
       it("should build updateNotes") {
         val q = EventRepoSql.updateNotes(group.id, event.slug)("notes", user.id, now)
@@ -156,7 +156,7 @@ object EventRepoSqlSpec {
   import RepoSpec._
 
   val table = "events e"
-  val fields: String = mapFields("id, group_id, cfp_id, slug, name, start, max_attendee, allow_rsvp, description, orga_notes, orga_notes_updated_at, orga_notes_updated_by, venue, talks, tags, published, meetupGroup, meetupEvent, created_at, created_by, updated_at, updated_by", "e." + _)
+  val fields: String = mapFields("id, group_id, cfp_id, slug, name, kind, start, max_attendee, allow_rsvp, description, orga_notes, orga_notes_updated_at, orga_notes_updated_by, venue, talks, tags, published, meetupGroup, meetupEvent, created_at, created_by, updated_at, updated_by", "e." + _)
   val orderBy = "ORDER BY e.start IS NULL, e.start DESC"
 
   private val tableWithVenue = s"$table LEFT OUTER JOIN $venueTable ON e.venue=v.id"

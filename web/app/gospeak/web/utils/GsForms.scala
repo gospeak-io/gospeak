@@ -152,6 +152,7 @@ object GsForms {
     "cfp" -> optional(cfpId),
     "slug" -> eventSlug,
     "name" -> eventName,
+    "kind" -> eventKind,
     "start" -> myLocalDateTime,
     "max-attendee" -> optional(number),
     "allow-rsvp" -> boolean,
@@ -362,7 +363,7 @@ object GsForms {
 
   private val externalEventMapping = mapping(
     "name" -> externalEventName,
-    "kind" -> externalEventKind,
+    "kind" -> eventKind,
     "logo" -> optional(logo),
     "description" -> markdown,
     "start" -> optional(localDate(localDateFormat).transform[LocalDateTime](_.atTime(0, 0), _.toLocalDate)),

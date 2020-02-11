@@ -31,7 +31,7 @@
                             </span>
                             <span class="media-body">
                                 <span class="d-block font-size-1">
-                                    <a href="@EventCtrl.detail(req.group.slug, event.slug)" class="no-propagation" id="collapse-title-@event.slug.value">@event.name.value</a>
+                                    <a href="@EventCtrl.detail(req.group.slug, event.slug)" class="no-propagation" id="collapse-title-@event.slug.value">@eventKindIcon(event.kind) @event.name.value</a>
                                     @event.refs.meetup.map { ref =>
                                         <a href="@ref.link" target="_blank" class="no-propagation"><i class="fab fa-meetup"></i></a>
                                     }

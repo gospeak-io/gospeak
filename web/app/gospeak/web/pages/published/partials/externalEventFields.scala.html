@@ -1,4 +1,4 @@
-@import gospeak.core.domain.ExternalEvent
+@import gospeak.core.domain.Event
 @import gospeak.web.api.ui.routes.SuggestCtrl
 @import gospeak.web.pages.partials.form.ImgConf
 @import gospeak.web.pages.partials.form.html._
@@ -15,7 +15,7 @@
             @inputText(field, Seq("placeholder" -> "The event name") ++ args)
         }
         @fieldHorizontal(form("kind"), Seq("label" -> "Kind")) { (field, args) =>
-            @inputSelect(field, ExternalEvent.Kind.all.map(k => k.value -> k.value), Seq("placeholder" -> "What kind of event is it?") ++ args)
+            @inputSelect(field, Event.Kind.all.map(k => k.value -> k.value), Seq("placeholder" -> "What kind of event is it?") ++ args)
         }
         @fieldHorizontal(form("start"), Seq("label" -> "Dates")) { (field, args) =>
             <div class="row">

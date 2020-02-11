@@ -19,6 +19,9 @@
         @fieldVertical(form("name"), Seq("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
             @inputText(field, Seq("placeholder" -> "Event name", "autofocus" -> "true") ++ args)
         }
+        @fieldVertical(form("kind"), Seq("label" -> "Kind")) { (field, args) =>
+            @inputSelect(field, Event.Kind.all.map(k => k.value -> k.value), Seq("placeholder" -> "What kind of event is it?") ++ args)
+        }
         @fieldVertical(form("start"), Seq("label" -> "Date", "help" -> "Local date and time when the event will start")) { (field, args) =>
             @inputLocalDatetime(field, args)
         }
