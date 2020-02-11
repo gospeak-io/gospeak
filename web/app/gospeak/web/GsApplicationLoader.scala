@@ -204,6 +204,7 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val apiStatusCtrl = wire[api.StatusCtrl]
   lazy val apiSwaggerCtrl = wire[api.swagger.SwaggerCtrl]
   lazy val apiGroupCtrl = wire[api.published.GroupCtrl]
+  lazy val apiEventCtrl = wire[api.published.EventCtrl]
   lazy val apiCfpCtrl = wire[api.published.CfpCtrl]
   lazy val apiSpeakerCtrl = wire[api.published.SpeakerCtrl]
   lazy val apiOrgaEventCtrl = wire[api.orga.ApiEventCtrl]

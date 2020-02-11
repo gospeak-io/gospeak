@@ -7,7 +7,7 @@ import gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
 import gospeak.libs.scala.domain._
 
 final case class ExternalEvent(id: ExternalEvent.Id,
-                               name: ExternalEvent.Name,
+                               name: Event.Name,
                                kind: Event.Kind,
                                logo: Option[Logo],
                                description: Markdown,
@@ -32,9 +32,7 @@ object ExternalEvent {
 
   object Id extends UuidIdBuilder[Id]("ExternalEvent.Id", new Id(_))
 
-  final case class Name(value: String) extends AnyVal
-
-  final case class Data(name: Name,
+  final case class Data(name: Event.Name,
                         kind: Event.Kind,
                         logo: Option[Logo],
                         description: Markdown,

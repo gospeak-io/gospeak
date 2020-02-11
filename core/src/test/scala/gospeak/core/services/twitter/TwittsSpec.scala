@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
-import gospeak.core.domain.{ExternalCfp, ExternalEvent, User}
+import gospeak.core.domain.{Event, ExternalCfp, ExternalEvent, User}
 import gospeak.core.testingutils.Generators._
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{GMapPlace, Tag, TwitterHashtag, Url}
@@ -22,7 +22,7 @@ class TwittsSpec extends FunSpec with Matchers with RandomDataGenerator {
     it("should format externalCfpCreated when cfp is mostly empty") {
       val cfp = cfpExt.copy(close = None)
       val event = eventExt.copy(
-        name = ExternalEvent.Name("Devoxx"),
+        name = Event.Name("Devoxx"),
         start = None,
         location = None,
         twitterAccount = None,
@@ -40,7 +40,7 @@ class TwittsSpec extends FunSpec with Matchers with RandomDataGenerator {
     it("should format externalCfpCreated when cfp is full") {
       val cfp = cfpExt.copy(close = Some(ldt))
       val event = eventExt.copy(
-        name = ExternalEvent.Name("Devoxx"),
+        name = Event.Name("Devoxx"),
         start = Some(ldt),
         location = Some(place.copy(country = "France", locality = Some("Paris"))),
         twitterAccount = Some(TwitterAccount(Url.from("https://twitter.com/devoxx").get)),

@@ -362,7 +362,7 @@ object GsForms {
   )(Sponsor.Data.apply)(Sponsor.Data.unapply))
 
   private val externalEventMapping = mapping(
-    "name" -> externalEventName,
+    "name" -> eventName,
     "kind" -> eventKind,
     "logo" -> optional(logo),
     "description" -> markdown,

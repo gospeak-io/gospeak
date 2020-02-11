@@ -3,8 +3,8 @@ package gospeak.web.api.domain
 import java.time.{Instant, LocalDateTime}
 
 import gospeak.core.domain.utils.{BasicCtx, OrgaCtx}
-import gospeak.core.domain.{Event, Proposal, User}
-import gospeak.web.api.domain.utils.ApiInfo
+import gospeak.core.domain.{CommonEvent, Event, Proposal, User}
+import gospeak.web.api.domain.utils.{ApiInfo, ApiPlace}
 import play.api.libs.json.{Json, Writes}
 
 object ApiEvent {
@@ -69,6 +69,28 @@ object ApiEvent {
       proposals = e.talks.map(ApiProposal.embed(_, proposals, users)),
       tags = e.event.tags.map(_.value),
       meetup = e.refs.meetup.map(_.link))
+
+  final case class Common(kind: String,
+                          id: String,
+                          name: String,
+                          format: String,
+                          start: Option[LocalDateTime],
+                          location: Option[ApiPlace],
+                          tags: Seq[String])
+
+  object Common {
+    implicit val writes: Writes[Common] = Json.writes[Common]
+  }
+
+  def common(e: CommonEvent)(implicit ctx: BasicCtx): Common =
+    new Common(
+      kind = if (e.internal.isDefined) "internal" else "external",
+      id = e.id.value,
+      name = e.name.value,
+      format = e.kind.value,
+      start = e.start,
+      location = e.location.map(ApiPlace.from),
+      tags = e.tags.map(_.value))
 
   // embedded data in other models, should be public
   final case class Embed(slug: String,
