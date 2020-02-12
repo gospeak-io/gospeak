@@ -11,7 +11,9 @@
 @import gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import gospeak.web.pages.published.routes.HomeCtrl
 @import gospeak.web.pages.published.cfps.routes.{CfpCtrl => PublicCfpCtrl}
+@import gospeak.web.pages.published.events.routes.{EventCtrl => PublicEventCtrl}
 @import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
+@import gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublicSpeakerCtrl}
 @import gospeak.web.pages.partials.container.html.{alert, flash, main, navbarLink, userDropdown}
 @import gospeak.web.pages.partials.form.html.formBtn
 @import gospeak.web.pages.user.routes.UserCtrl
@@ -37,8 +39,9 @@
                     <ul class="navbar-nav u-header__navbar-nav">
                         <li class="nav-item u-header__nav-item">@navbarLink(UserCtrl.index()) {Dashboard}</li>
                         <li class="nav-item u-header__nav-item">@navbarLink(PublicCfpCtrl.list()) {Call For Proposals}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink(PublicEventCtrl.list()) {Events}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink(PublicSpeakerCtrl.list()) {Speakers}</li>
                         <li class="nav-item u-header__nav-item">@navbarLink(PublicGroupCtrl.list()) {Groups}</li>
-                        @* <li class="nav-item u-header__nav-item">@navbarLink(PublicSpeakerCtrl.list()) {Speakers}</li> *@
                         <li class="nav-item u-header__nav-last-item">@userDropdown(req.user, req.groups, Some(req.group))</li>
                     </ul>
                 </div>

@@ -2,6 +2,7 @@
 @import gospeak.core.domain.utils.Constants
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.partials.html.container
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
@@ -133,7 +134,7 @@
                             </span>
                             <div class="media-body">
                                 <h5 class="font-size-1 mb-1">
-                                    @event.proposalUrl.map { u => <a href="@u.value" target="_blank">@proposal.title.value</a> }.getOrElse{ @proposal.title.value }
+                                    <a href="@EventCtrl.proposalExt(event.id, proposal.id.external)" target="_blank">@proposal.title.value</a>
                                     @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
                                     @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
                                 </h5>
