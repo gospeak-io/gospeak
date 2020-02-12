@@ -9,6 +9,11 @@
 @container("Groups - Gospeak", PageMeta.default(), b)() {
     <div class="w-md-80 w-lg-80 text-center mx-md-auto mb-5">
         <h2 class="text-primary">Events</h2>
+        <p>
+            Here are events interesting the Gospeak community.<br>
+            <a class="btn btn-text btn-text-success" href="">Add missing events</a> or
+            <a class="btn btn-text btn-text-success" href="">Create you owns</a>
+        </p>
     </div>
     @Formats.paginated[CommonEvent](events, EventCtrl.list, commonEventItem(_))
 }()

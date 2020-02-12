@@ -19,6 +19,7 @@ POST        /cfps/:cfp/propose/login                                            
 
 GET         /events                                                                        gospeak.web.pages.published.events.EventCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /events/ext/:event                                                             gospeak.web.pages.published.events.EventCtrl.detailExt(event: ExternalEvent.Id, params: Page.Params ?= Page.Params.defaults)
+GET         /events/ext/:event/talks/:proposal                                             gospeak.web.pages.published.events.EventCtrl.proposalExt(event: ExternalEvent.Id, proposal: ExternalProposal.Id)
 
 GET         /groups                                                                        gospeak.web.pages.published.groups.GroupCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /groups/:group                                                                 gospeak.web.pages.published.groups.GroupCtrl.detail(group: Group.Slug)

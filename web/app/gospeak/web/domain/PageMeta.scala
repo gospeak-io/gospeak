@@ -61,6 +61,13 @@ object PageMeta {
     url = req.format(GroupCtrl.talk(g.slug, p.id)),
     twitterCard = "summary")
 
+  def talk(e: ExternalEvent, p: ExternalProposal)(implicit req: BasicReq[AnyContent]): PageMeta = PageMeta(
+    title = p.title.value.take(70),
+    description = p.description.value.take(200),
+    image = e.logo.map(_.value).getOrElse(Constants.Images.gospeakLogoSquare),
+    url = req.format(EventCtrl.proposalExt(e.id, p.id)),
+    twitterCard = "summary")
+
   def cfps()(implicit req: BasicReq[AnyContent]): PageMeta = PageMeta(
     title = "Gospeak - All the CFPs in one place",
     description = "Gospeak help people speak publicly. Find advices, mentoring and places to speak. Then publish your experiences and improve your personal branding.",

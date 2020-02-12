@@ -1,0 +1,28 @@
+@import gospeak.core.domain.{ExternalEvent, ExternalProposal, User}
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.published.events.routes.EventCtrl
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import gospeak.web.utils.UserAwareReq
+
+@(event: ExternalEvent, proposal: ExternalProposal, users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container(s"${proposal.title.value} - Gospeak", PageMeta.event(event), b)() {
+    <a href="@EventCtrl.detailExt(event.id)"><i class="fas fa-chevron-left"></i> @event.name.value</a>
+    <h1>
+        @proposal.title.value
+        @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
+        @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+    </h1>
+    @proposal.url.map { u => <a href="@u">@u</a><br> }
+    <ul class="list-inline mb-3">
+        @proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
+            <li class="list-inline-item">
+                <a href="@SpeakerCtrl.detail(u.slug)">
+                    <span class="u-sm-avatar"><img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar"></span> @u.name.value
+                </a>
+            </li>
+        }
+    </ul>
+    <div class="mb-3">@markdown(proposal.description)</div>
+}()

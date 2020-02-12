@@ -130,6 +130,9 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     def cfpExt(event: ExternalEvent, url: String, begin: Option[String] = None, close: Option[String] = None, description: String = "", by: User): ExternalCfp =
       ExternalCfp(ExternalCfp.Id.generate(), event.id, Markdown(description), begin.map(d => LocalDateTime.parse(d + "T00:00:00")), close.map(d => LocalDateTime.parse(d + "T00:00:00")), Url.from(url).get, Info(by.id, now))
 
+    def proposalExt(talk: Talk, event: ExternalEvent, status: Proposal.Status = Proposal.Status.Accepted, url: Option[Url] = None): ExternalProposal =
+      ExternalProposal(ExternalProposal.Id.generate(), talk.id, event.id, status, talk.title, talk.duration, talk.description, talk.message, talk.speakers, talk.slides, talk.video, url, talk.tags, talk.info)
+
     val groupDefaultSettings = gsConf.defaultGroupSettings
 
     val parisPlace = GMapPlace(
@@ -212,8 +215,8 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     val credentials = users.filterNot(_.slug.value == "exist").map(u => User.Credentials("credentials", u.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None)) // pwd: demo
     val loginRefs = users.filterNot(_.slug.value == "exist").map(u => User.LoginRef("credentials", u.email.value, u.id))
 
-    val talk1 = talk(userDemo, "why-fp", "Why FP", status = Talk.Status.Private, tags = Seq("FP"))
-    val talk2 = talk(userDemo, "scala-best-practices", "Scala Best Practices", speakers = Seq(userSpeaker),
+    val whyFP = talk(userDemo, "why-fp", "Why FP", status = Talk.Status.Public, tags = Seq("FP"))
+    val scalaBestPractices = talk(userDemo, "scala-best-practices", "Scala Best Practices", speakers = Seq(userSpeaker),
       slides = Some(Slides.from("https://docs.google.com/presentation/d/1wWRKbxz81AzhBJJqc505yUkileRPn5b-bNH1Th852f4").get),
       video = Some(Video.from("https://www.youtube.com/watch?v=Tm-qyMukBq4").get),
       description =
@@ -223,12 +226,12 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
           |- never use null
           |- go functional
         """.stripMargin.trim, tags = Seq("tech", "scala", "beginner"))
-    val talk3 = talk(userDemo, "nodejs-news", "NodeJs news", status = Talk.Status.Draft)
-    val talk4 = talk(userSpeaker, "scalajs-react", "ScalaJS + React = <3", status = Talk.Status.Draft, speakers = Seq(userDemo), duration = 50, tags = Seq("Scala"))
-    val talk5 = talk(userSpeaker, "gagner-1-million", "Gagner 1 Million au BlackJack avec Akka", status = Talk.Status.Private, duration = 15)
-    val talk6 = talk(userSpeaker, "demarrer-avec-spark", "7 conseils pour demarrer avec Spark", duration = 45)
-    val talk7 = talk(userSpeaker, "big-talk", "Big Talk")
-    val talks = Seq(talk1, talk2, talk3, talk4, talk5, talk6, talk7)
+    val nodeNews = talk(userDemo, "nodejs-news", "NodeJs news", status = Talk.Status.Draft)
+    val scalaReact = talk(userSpeaker, "scalajs-react", "ScalaJS + React = <3", status = Talk.Status.Draft, speakers = Seq(userDemo), duration = 50, tags = Seq("Scala"))
+    val akkaBlackJack = talk(userSpeaker, "gagner-1-million", "Gagner 1 Million au BlackJack avec Akka", status = Talk.Status.Private, duration = 15)
+    val startWithSpark = talk(userSpeaker, "demarrer-avec-spark", "7 conseils pour demarrer avec Spark", duration = 45)
+    val bigTalk = talk(userSpeaker, "big-talk", "Big Talk")
+    val talks = Seq(whyFP, scalaBestPractices, nodeNews, scalaReact, akkaBlackJack, startWithSpark, bigTalk)
 
     val humanTalks = group("ht-paris", "HumanTalks Paris", Seq("tech"), userDemo, location = Some(parisPlace), owners = Seq(userOrga), email = Some("paris@humantalks.com"), logo = Some("https://res.cloudinary.com/gospeak/image/upload/ar_1,c_crop/v1576793051/groups/humantalks-paris_7bf00e98-2298-47b1-a001-35e5e307249f/logo.png"), social = social)
     val parisJs = group("paris-js", "Paris.Js", Seq("JavaScript"), userOrga)
@@ -254,11 +257,11 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     val cfp4 = cfp(parisJs, "paris-js", "Paris.Js", None, Some("2019-05-21"), "Submit your talk to exchange with the Paris JS community", Seq(), userOrga)
     val cfps = Seq(cfp1, cfp2, cfp3, cfp4)
 
-    val proposal1 = proposal(talk1, cfp1)
-    val proposal2 = proposal(talk2, cfp1, orgaTags = Seq("accepted", "1st round"))
-    val proposal3 = proposal(talk2, cfp4)
-    val proposal4 = proposal(talk3, cfp1, status = Proposal.Status.Declined)
-    val proposal5 = proposal(talk4, cfp3)
+    val proposal1 = proposal(whyFP, cfp1)
+    val proposal2 = proposal(scalaBestPractices, cfp1, orgaTags = Seq("accepted", "1st round"))
+    val proposal3 = proposal(scalaBestPractices, cfp4)
+    val proposal4 = proposal(nodeNews, cfp1, status = Proposal.Status.Declined)
+    val proposal5 = proposal(scalaReact, cfp3)
     val proposals = Seq(proposal1, proposal2, proposal3, proposal4, proposal5)
 
     val zeeneaHT = partner(humanTalks, "Zeenea", "Recrute des devs Scala et Angular", Some("A startup building a data catalog"), 1, userDemo, social = social)
@@ -319,6 +322,9 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     val cfpDevoxx2020 = cfpExt(devoxx2020, "https://cfp.devoxx.fr", Some("2019-11-01"), Some("2020-02-16"), "Initialement très orienté Java, Devoxx France est maintenant une conférence généraliste", userDemo)
     val cfpExts = Seq(cfpDevoxx2020)
 
+    val whyFPDevoxx2020 = proposalExt(whyFP, devoxx2020)
+    val proposalExts = Seq(whyFPDevoxx2020)
+
     val generated = (1 to 25).map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
@@ -326,7 +332,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), None, None, Markdown("Only your best talks !"), Seq(), Info(userOrga.id, now))
       val e = Event(Event.Id.generate(), bigGroup.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), Event.Kind.Meetup, LocalDateTime.parse("2019-03-12T19:00:00"), Some(100), allowRsvp = false, MustacheMarkdownTmpl(""), Event.Notes("", now, userOrga.id), None, Seq(), Seq(), Some(now), Event.ExtRefs(), Info(userOrga.id, now))
       val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Status.Draft, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), Markdown(""), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Info(userSpeaker.id, now))
-      val p = Proposal(Proposal.Id.generate(), talk7.id, cfpId, None, Proposal.Status.Pending, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Markdown("temporary description"), Markdown(""), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Seq(), Info(userSpeaker.id, now))
+      val p = Proposal(Proposal.Id.generate(), bigTalk.id, cfpId, None, Proposal.Status.Pending, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Markdown("temporary description"), Markdown(""), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Seq(), Info(userSpeaker.id, now))
       val pa = Partner(Partner.Id.generate(), bigGroup.id, Partner.Slug.from(s"z-partner-$i").get, Partner.Name(s"Z Partner $i"), Markdown(""), None, Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-3.png").map(Logo).get, SocialAccounts.fromUrls(), Info(userOrga.id, now))
       (g, c, e, t, p, pa)
     }
@@ -351,6 +357,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       _ <- eventRsvps.map(EventRepoSql.insertRsvp(_).run(xa)).sequence
       _ <- eventExts.map(ExternalEventRepoSql.insert(_).run(xa)).sequence
       _ <- cfpExts.map(ExternalCfpRepoSql.insert(_).run(xa)).sequence
+      _ <- proposalExts.map(ExternalProposalRepoSql.insert(_).run(xa)).sequence
     } yield Done
   }
 

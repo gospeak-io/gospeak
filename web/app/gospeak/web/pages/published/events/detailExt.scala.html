@@ -3,58 +3,61 @@
 @import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.partials.display.html._
-@import gospeak.web.pages.published.partials.html.container
-@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import gospeak.web.utils.UserAwareReq
+@import gospeak.web.pages.published.partials.html.{container, externalProposalItem}
+@import gospeak.web.pages.published.events.routes.EventCtrl
+@import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(event: ExternalEvent, proposals: Page[ExternalProposal], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${event.name.value} - Gospeak", PageMeta.event(event), b)() {
-<div class="row">
-    <div class="col-3">
-        <div class="card p-1 mb-4">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <img class="u-lg-avatar rounded-circle" src="@event.logo.map(_.value).getOrElse(Constants.Placeholders.eventLogo)" alt="@event.name.value avatar">
+    <div class="row">
+        <div class="col-8">
+            <div class="media mb-3">
+                <div class="u-lg-avatar mr-3">
+                    <img src="@event.logo.map(_.value).getOrElse(Constants.Placeholders.eventLogo)" alt="@event.name.value logo" class="img-fluid rounded-circle" width="160" height="160">
                 </div>
-                <div>
-                    <h1 class="h6 font-weight-medium mb-0">@event.name.value</h1>
-                    <small class="d-block text-muted">@event.kind.value</small>
+                <div class="media-body">
+                    <div class="row">
+                        <div class="col-lg-6 mb-3 mb-lg-0">
+                            <h1 class="h4 mb-1">@event.name.value</h1>
+                            @event.url.map { u => <a class="font-size-1" href="@u" target="_blank">@u</a><br> }
+                            <span class="text-muted font-size-1">@event.kind.value</span> @tags(event.tags)
+                        </div>
+                    </div>
                 </div>
-                    <!--<div class="mb-2">
-                    <a class="btn btn-sm btn-soft-primary transition-3d-hover" href="#">
-                        <span class="far fa-envelope mr-2"></span>
-                        Send a Message
-                    </a>
-                </div>-->
+            </div>
+            <div class="mb-3">@markdown(event.description)</div>
+        </div>
+        <div class="col-4">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body p-5">
+                    @event.location.map { location =>
+                        <div class="media mb-3">
+                            <div class="min-width-4 text-center text-primary mr-3"><span class="fas fa-map-marked-alt"></span></div>
+                            <div class="media-body">
+                                <span class="d-block font-weight-medium">@location.name</span>
+                                <small class="d-block text-secondary"> @address(location)</small>
+                            </div>
+                        </div>
+                    }
+                    @event.start.map { start =>
+                        <div class="media mb-3">
+                            <div class="min-width-4 text-center text-primary mr-3"><span class="fas fa-clock"></span></div>
+                            <div class="media-body">
+                                <span class="d-block font-weight-medium">@Formats.date(start)</span>
+                                @if(start.getHour != 0 && start.getMinute != 0) { <small class="d-block text-secondary">@Formats.time(start)</small> }
+                            </div>
+                        </div>
+                    }
+                    @event.tickets.map { u => <a class="badge badge-primary" href="@u" target="_blank">Tickets <i class="fas fa-external-link-alt"></i></a> }
+                    @event.videos.map { u => <a class="badge badge-primary" href="@u" target="_blank">Videos <i class="fas fa-external-link-alt"></i></a> }
+                </div>
             </div>
         </div>
     </div>
-    <div class="col">
-        <div class="mb-4">@markdown(event.description)</div>
-        @if(proposals.nonEmpty) {
-            <hr class="my-7">
-            <div class="mb-7">
-                <h3 class="h5 mb-3">Talks</h3>
-                @proposals.items.zipWithIndex.map { case (proposal, i) =>
-                    <div class="align-items-center @if(i != 0){mt-5}">
-                        <h4 class="h6 mb-0">
-                            @proposal.title.value
-                            @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
-                            @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
-                        </h4>
-                        <ul class="list-inline ml-3 mb-0">
-                            @proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
-                                <li class="list-inline-item ml-n3 mr-0">
-                                    <a class="u-sm-avatar u-sm-avatar--bordered rounded-circle" href="@SpeakerCtrl.detail(u.slug)">
-                                        <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value">
-                                    </a>
-                                </li>
-                            }
-                        </ul>
-                    </div>
-                }
-            </div>
-        }
-    </div>
-</div>
+    @if(proposals.nonEmpty) {
+        <div class="mb-3">
+            <h3 class="h5 mb-3">Talks</h3>
+            @Formats.paginated[ExternalProposal](proposals, EventCtrl.detailExt(event.id, _), externalProposalItem(_, users))
+        </div>
+    }
 }()

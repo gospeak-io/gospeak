@@ -19,6 +19,8 @@ trait SpeakerExternalProposalRepo {
 
   def remove(id: ExternalProposal.Id)(implicit ctx: UserCtx): IO[Done]
 
+  def find(id: ExternalProposal.Id): IO[Option[ExternalProposal]]
+
   def listCommon(talk: Talk.Id, params: Page.Params): IO[Page[CommonProposal]]
 
   def listCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]]
@@ -26,11 +28,11 @@ trait SpeakerExternalProposalRepo {
   def listCurrentCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]]
 
   def listAllCommon(talk: Talk.Id): IO[Seq[CommonProposal]]
-
-  def find(id: ExternalProposal.Id): IO[Option[ExternalProposal]]
 }
 
 trait PublicExternalProposalRepo {
+  def find(id: ExternalProposal.Id): IO[Option[ExternalProposal]]
+
   def list(event: ExternalEvent.Id, params: Page.Params): IO[Page[ExternalProposal]]
 
   def listAllCommon(user: User.Id, status: Proposal.Status): IO[Seq[CommonProposal]]

@@ -141,6 +141,9 @@ abstract class UICtrl(cc: ControllerComponents,
   protected def publicProposalNotFound(group: Group.Slug, proposal: Proposal.Id): Result =
     Redirect(pages.published.groups.routes.GroupCtrl.talks(group)).flashing("warning" -> s"Unable to find talk with id '${proposal.value}'")
 
+  protected def publicProposalNotFound(event: ExternalEvent.Id, proposal: ExternalProposal.Id): Result =
+    Redirect(pages.published.events.routes.EventCtrl.detailExt(event)).flashing("warning" -> s"Unable to find proposal")
+
   protected def publicCfpNotFound(group: Group.Slug, cfp: Cfp.Slug): Result =
     Redirect(pages.published.groups.routes.GroupCtrl.detail(group)).flashing("warning" -> s"Unable to find CFP with slug '${cfp.value}'")
 

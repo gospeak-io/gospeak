@@ -9,7 +9,7 @@ import gospeak.web.utils.UICtrl
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import EventCtrl._
 import cats.data.OptionT
-import gospeak.core.domain.ExternalEvent
+import gospeak.core.domain.{ExternalEvent, ExternalProposal}
 import gospeak.web.domain.Breadcrumb
 import gospeak.web.pages.published.HomeCtrl
 
@@ -34,6 +34,15 @@ class EventCtrl(cc: ControllerComponents,
       res = Ok(html.detailExt(eventElt, proposals, users)(breadcrumb(eventElt)))
     } yield res).value.map(_.getOrElse(publicEventNotFound(event)))
   }
+
+  def proposalExt(event: ExternalEvent.Id, proposal: ExternalProposal.Id): Action[AnyContent] = UserAwareAction { implicit req =>
+    (for {
+      eventElt <- OptionT(externalEventRepo.find(event))
+      proposalElt <- OptionT(externalProposalRepo.find(proposal))
+      users <- OptionT.liftF(userRepo.list((eventElt.users ++ proposalElt.users).distinct))
+      res = Ok(html.proposalExt(eventElt, proposalElt, users)(breadcrumb(eventElt, proposalElt)))
+    } yield res).value.map(_.getOrElse(publicProposalNotFound(event, proposal)))
+  }
 }
 
 object EventCtrl {
@@ -42,4 +51,7 @@ object EventCtrl {
 
   def breadcrumb(event: ExternalEvent): Breadcrumb =
     listBreadcrumb().add(event.name.value -> routes.EventCtrl.detailExt(event.id))
+
+  def breadcrumb(event: ExternalEvent, proposal: ExternalProposal): Breadcrumb =
+    breadcrumb(event).add("Talks" -> routes.EventCtrl.detailExt(event.id)).add(proposal.title.value -> routes.EventCtrl.proposalExt(event.id, proposal.id))
 }
