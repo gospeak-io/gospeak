@@ -53,10 +53,10 @@ object DoobieUtils {
   final case class TableJoin(kind: String,
                              name: String,
                              prefix: String,
-                             on: NonEmptyList[(Field, Field)],
+                             on: List[(Field, Field)],
                              where: Option[Fragment]) {
     def value: Fragment = {
-      val join = on.map { case (l, r) => const0(s"${l.value}=${r.value}") }.toList ++ where.toList
+      val join = on.map { case (l, r) => const0(s"${l.value}=${r.value}") } ++ where.toList
       const0(s"$kind $name $prefix ON ") ++ join.reduce(_ ++ fr0" AND " ++ _)
     }
   }
@@ -116,19 +116,19 @@ object DoobieUtils {
 
     def dropField(f: Table => Either[CustomException, Field]): Either[CustomException, Table] = f(this).flatMap(dropField)
 
-    def join(rightTable: Table, on: Table.BuildJoinFields, more: Table.BuildJoinFields*): Either[CustomException, Table] =
-      doJoin("INNER JOIN", rightTable, NonEmptyList.of(on, more: _*), None)
+    def join(rightTable: Table, on: Table.BuildJoinFields*): Either[CustomException, Table] =
+      doJoin("INNER JOIN", rightTable, on.toList, None)
 
-    def join(rightTable: Table, on: Table.BuildJoinFields, where: Fragment): Either[CustomException, Table] =
-      doJoin("INNER JOIN", rightTable, NonEmptyList.of(on), Some(where))
+    def join(rightTable: Table, where: Fragment, on: Table.BuildJoinFields*): Either[CustomException, Table] =
+      doJoin("INNER JOIN", rightTable, on.toList, Some(where))
 
-    def joinOpt(rightTable: Table, on: Table.BuildJoinFields, more: Table.BuildJoinFields*): Either[CustomException, Table] =
-      doJoin("LEFT OUTER JOIN", rightTable, NonEmptyList.of(on, more: _*), None)
+    def joinOpt(rightTable: Table, on: Table.BuildJoinFields*): Either[CustomException, Table] =
+      doJoin("LEFT OUTER JOIN", rightTable, on.toList, None)
 
-    def joinOpt(rightTable: Table, on: Table.BuildJoinFields, where: Fragment): Either[CustomException, Table] =
-      doJoin("LEFT OUTER JOIN", rightTable, NonEmptyList.of(on), Some(where))
+    def joinOpt(rightTable: Table, where: Fragment, on: Table.BuildJoinFields*): Either[CustomException, Table] =
+      doJoin("LEFT OUTER JOIN", rightTable, on.toList, Some(where))
 
-    private def doJoin(kind: String, rightTable: Table, on: NonEmptyList[Table.BuildJoinFields], where: Option[Fragment]): Either[CustomException, Table] = for {
+    private def doJoin(kind: String, rightTable: Table, on: List[Table.BuildJoinFields], where: Option[Fragment]): Either[CustomException, Table] = for {
       joinFields <- on
         .map(f => f(this, rightTable))
         .map { case (leftField, rightField) => leftField.flatMap(lf => rightField.map(rf => (lf, rf))) }.sequence

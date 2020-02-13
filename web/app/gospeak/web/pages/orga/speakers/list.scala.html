@@ -6,8 +6,8 @@
 @import gospeak.web.utils.OrgaReq
 @import gospeak.libs.scala.domain.Page
 
-@(speakers: Page[User])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(speakers: Page[User.Full])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${req.group.name.value} speakers - Gospeak", b)() {
     <h1 class="text-capitalize">@Formats.plural(speakers.total.value, "speaker")</h1>
-    @Formats.paginated[User](speakers, SpeakerCtrl.list(req.group.slug, _), speakerItem(_))
+    @Formats.paginated[User.Full](speakers, SpeakerCtrl.list(req.group.slug, _), speakerItem(_))
 }()

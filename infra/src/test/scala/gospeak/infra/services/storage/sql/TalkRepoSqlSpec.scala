@@ -97,8 +97,8 @@ class TalkRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.slug=? $orderBy")
       }
       it("should build selectOne by slug and status") {
-        val q = TalkRepoSql.selectOne(talk.slug, talk.status)
-        check(q, s"SELECT $fields FROM $table WHERE t.slug=? AND t.status=? LIMIT 1")
+        val q = TalkRepoSql.selectOne(user.id, talk.slug, talk.status)
+        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.slug=? AND t.status=? LIMIT 1")
       }
       it("should build selectPage for user") {
         val q = TalkRepoSql.selectPage(user.id, params)

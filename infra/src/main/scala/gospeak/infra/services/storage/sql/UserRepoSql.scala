@@ -11,7 +11,7 @@ import gospeak.core.domain.{Group, User}
 import gospeak.core.services.storage.UserRepo
 import gospeak.infra.services.storage.sql.UserRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Done, EmailAddress, Page}
@@ -54,22 +54,22 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def find(id: User.Id): IO[Option[User]] = selectOne(id).runOption(xa)
 
-  override def findPublic(slug: User.Slug): IO[Option[User]] = selectOnePublic(slug).runOption(xa)
+  override def findPublic(slug: User.Slug): IO[Option[User.Full]] = selectOnePublic(slug).runOption(xa)
 
   // FIXME should be done in only one query: joining on speakers array or splitting speakers string
-  override def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User]] = {
+  override def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User.Full]] = {
     val speakerIdsQuery = proposalsWithCfps.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=${ctx.group.id}")
     for {
       speakerIds <- speakerIdsQuery.runList(xa).map(_.flatMap(_.toList).distinct)
-      res <- NonEmptyList.fromList(speakerIds).map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User]))
+      res <- NonEmptyList.fromList(speakerIds).map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User.Full]))
     } yield res
   }
 
-  override def speakersPublic(group: Group.Id, params: Page.Params): IO[Page[User]] = {
+  override def speakersPublic(group: Group.Id, params: Page.Params): IO[Page[User.Full]] = {
     val speakerIdsQuery = proposalsWithCfpEvents.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group AND e.published IS NOT NULL")
     for {
       speakerIds <- speakerIdsQuery.runList(xa).map(_.flatMap(_.toList).distinct)
-      res <- NonEmptyList.fromList(speakerIds).map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User]))
+      res <- NonEmptyList.fromList(speakerIds).map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User.Full]))
     } yield res
   }
 
@@ -78,7 +78,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
       .runList(xa).map(_.flatMap(_.toList).distinct.length.toLong)
   }
 
-  override def listPublic(params: Page.Params): IO[Page[User]] = selectPagePublic(params).run(xa)
+  override def listPublic(params: Page.Params): IO[Page[User.Full]] = selectPagePublic(params).run(xa)
 
   override def list(ids: Seq[User.Id]): IO[Seq[User]] = runNel(selectAll, ids)
 }
@@ -91,6 +91,20 @@ object UserRepoSql {
   private val tableWithLogin = table.join(loginsTable, _.id -> _.user_id).get
   private val proposalsWithCfps = Tables.proposals.join(Tables.cfps, _.cfp_id -> _.id).get
   private val proposalsWithCfpEvents = proposalsWithCfps.join(Tables.events, _.event_id -> _.id).get
+  private val tableFull = table
+    .joinOpt(Tables.groups, fr0"g.owners LIKE CONCAT('%', u.id, '%')").get.dropFields(_.prefix == Tables.groups.prefix)
+    .joinOpt(Tables.talks, fr0"t.speakers LIKE CONCAT('%', u.id, '%')").get.dropFields(_.prefix == Tables.talks.prefix)
+    .joinOpt(Tables.proposals, fr0"p.speakers LIKE CONCAT('%', u.id, '%') AND p.status='Accepted'").get.dropFields(_.prefix == Tables.proposals.prefix)
+    .joinOpt(Tables.externalProposals, fr0"ep.speakers LIKE CONCAT('%', u.id, '%') AND ep.status='Accepted'").get.dropFields(_.prefix == Tables.externalProposals.prefix)
+    .aggregate("COALESCE(COUNT(DISTINCT g.id), 0)", "groupCount")
+    .aggregate("COALESCE(COUNT(DISTINCT t.id), 0)", "talkCount")
+    .aggregate("COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0)", "proposalCount")
+    .setSorts(
+      "proposals" -> Seq(
+        Field("-(COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0))", ""),
+        Field("-COALESCE(COUNT(DISTINCT t.id), 0)", ""),
+        Field("-MAX(p.created_at)", ""),
+        Field("created_at", "u")))
 
   private[sql] def insert(e: User): Insert[User] = {
     val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.emailValidationBeforeLogin}, ${e.avatar.url}, ${e.title}, ${e.bio}, ${e.company}, ${e.location}, ${e.phone}, ${e.website}, " ++
@@ -140,9 +154,9 @@ object UserRepoSql {
   private[sql] def selectOne(id: User.Id): Select[User] =
     table.select[User](fr0"WHERE u.id=$id")
 
-  private[sql] def selectOnePublic(slug: User.Slug): Select[User] = {
+  private[sql] def selectOnePublic(slug: User.Slug): Select[User.Full] = {
     val public: User.Status = User.Status.Public
-    table.select[User](fr0"WHERE u.status=$public AND u.slug=$slug")
+    tableFull.selectOne[User.Full](fr0"WHERE u.status=$public AND u.slug=$slug", Seq())
   }
 
   // should replace def selectPage(ids: NonEmptyList[User.Id], params: Page.Params) when split or array works...
@@ -151,13 +165,13 @@ object UserRepoSql {
     table.selectPage[User](params, fr0"WHERE u.id IN (" ++ speakerIds ++ fr0")")
   } */
 
-  private[sql] def selectPagePublic(params: Page.Params): SelectPage[User] = {
+  private[sql] def selectPagePublic(params: Page.Params): SelectPage[User.Full] = {
     val public: User.Status = User.Status.Public
-    table.selectPage[User](params, fr0"WHERE u.status=$public")
+    tableFull.selectPage[User.Full](params, fr0"WHERE u.status=$public")
   }
 
-  private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params): SelectPage[User] =
-    table.selectPage[User](params, fr0"WHERE " ++ Fragments.in(fr"u.id", ids))
+  private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params): SelectPage[User.Full] =
+    tableFull.selectPage[User.Full](params, fr0"WHERE " ++ Fragments.in(fr"u.id", ids))
 
   private[sql] def selectAll(ids: NonEmptyList[User.Id]): Select[User] =
     table.select[User](fr0"WHERE " ++ Fragments.in(fr"u.id", ids))

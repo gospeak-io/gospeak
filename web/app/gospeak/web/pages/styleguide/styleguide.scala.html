@@ -12,7 +12,7 @@
 @import gospeak.web.utils.GsForms
 @import gospeak.web.utils.{UserAwareReq, UserReq, OrgaReq}
 
-@(user: User, group: Group, groupFull: Group.Full, cfp: Cfp, event: Event, eventFull: Event.Full, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, commonProposal: CommonProposal, params: Page.Params)(implicit userAwareReq: UserAwareReq[AnyContent], userReq: UserReq[AnyContent], orgaReq: OrgaReq[AnyContent])
+@(user: User, userFull: User.Full, group: Group, groupFull: Group.Full, cfp: Cfp, event: Event, eventFull: Event.Full, talk: Talk, proposal: Proposal, proposalFull: Proposal.Full, commonProposal: CommonProposal, params: Page.Params)(implicit userAwareReq: UserAwareReq[AnyContent], userReq: UserReq[AnyContent], orgaReq: OrgaReq[AnyContent])
 @section(id: String, title: String, localization: String)(display: String => Html) = {
     <div id="@id" class="section">
         <h2>@title: <code style="font-size: 1rem">@localization</code></h2>
@@ -292,7 +292,7 @@
                 @example(s"$name declined") { _ => @orga.proposalItem1(cfp, proposal.copy(status = Proposal.Status.Declined), Seq(user), Seq()) }
             }
             @component("speakerItem", "@speakerItem(group, speaker)") { name =>
-                @example(s"$name") { _ => @orga.speakerItem(user) }
+                @example(s"$name") { _ => @orga.speakerItem(userFull) }
             }
         }
     </div>

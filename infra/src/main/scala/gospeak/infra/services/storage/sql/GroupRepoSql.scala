@@ -109,8 +109,8 @@ object GroupRepoSql {
   private val tableSelect = table.dropFields(_.name.startsWith("location_"))
   private val memberTable = Tables.groupMembers
   private val tableFull = tableSelect
-    .joinOpt(memberTable, _.id("g") -> _.group_id, fr0"gm.leaved_at IS NULL").get
-    .joinOpt(Tables.events, _.id("g") -> _.group_id, fr0"e.published IS NOT NULL").get
+    .joinOpt(memberTable, fr0"gm.leaved_at IS NULL", _.id("g") -> _.group_id).get
+    .joinOpt(Tables.events, fr0"e.published IS NOT NULL", _.id("g") -> _.group_id).get
     .joinOpt(Tables.proposals, _.id("e") -> _.event_id).get
     .aggregate("COALESCE(COUNT(DISTINCT gm.user_id), 0)", "memberCount")
     .aggregate("COALESCE(COUNT(DISTINCT e.id), 0)", "eventCount")
@@ -121,7 +121,7 @@ object GroupRepoSql {
   private val tableWithMember = tableSelect
     .join(memberTableWithUser, _.id -> _.group_id).get
   private val statTable = table
-    .joinOpt(memberTable, _.id("g") -> _.group_id, fr0"gm.leaved_at IS NULL").get
+    .joinOpt(memberTable, fr0"gm.leaved_at IS NULL", _.id("g") -> _.group_id).get
     .joinOpt(Tables.cfps, _.id("g") -> _.group_id).get
     .joinOpt(Tables.proposals, _.id("c") -> _.cfp_id).get
     .joinOpt(Tables.events, _.id("g") -> _.group_id).get

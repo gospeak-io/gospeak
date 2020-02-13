@@ -3,7 +3,7 @@
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.utils.OrgaReq
 
-@(speaker: User)(implicit req: OrgaReq[AnyContent])
+@(speaker: User.Full)(implicit req: OrgaReq[AnyContent])
 <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
     <div>
         <img src="@speaker.avatar.url.value" alt="@speaker.name.value avatar" class="avatar avatar-list">

@@ -80,7 +80,7 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def find(talk: Talk.Slug)(implicit ctx: UserCtx): IO[Option[Talk]] = selectOne(ctx.user.id, talk).runOption(xa)
 
-  override def findPublic(talk: Talk.Slug): IO[Option[Talk]] = selectOne(talk, Talk.Status.Public).runOption(xa)
+  override def findPublic(talk: Talk.Slug, speaker: User.Id): IO[Option[Talk]] = selectOne(speaker, talk, Talk.Status.Public).runOption(xa)
 
   override def exists(talk: Talk.Slug): IO[Boolean] = selectOne(talk).runExists(xa)
 
@@ -122,8 +122,8 @@ object TalkRepoSql {
   private[sql] def selectOne(user: User.Id, talk: Talk.Slug): Select[Talk] =
     table.select[Talk](where(user, talk))
 
-  private[sql] def selectOne(talk: Talk.Slug, status: Talk.Status): Select[Talk] =
-    table.selectOne[Talk](fr0"WHERE t.slug=$talk AND t.status=$status", Seq())
+  private[sql] def selectOne(user: User.Id, talk: Talk.Slug, status: Talk.Status): Select[Talk] =
+    table.selectOne[Talk](fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.slug=$talk AND t.status=$status", Seq())
 
   private[sql] def selectPage(user: User.Id, params: Page.Params): SelectPage[Talk] =
     table.selectPage[Talk](params, fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"}")

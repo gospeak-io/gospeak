@@ -8,7 +8,7 @@
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.utils.{Formats, UserAwareReq}
 
-@(user: User, userGroups: Seq[Group.Full], userTalks: Seq[Talk], userProposals: Map[Talk.Id, Seq[CommonProposal]], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(user: User.Full, userGroups: Seq[Group.Full], userTalks: Seq[Talk], userProposals: Map[Talk.Id, Seq[CommonProposal]], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @eventLink(p: CommonProposal) = @{
     p.event.map(e => GroupCtrl.event(p.group.get.slug, e.slug))
         .orElse(p.eventExt.map(e => EventCtrl.detailExt(e.id))).get
@@ -28,7 +28,7 @@
         </div>
     </a>
 }
-@container(s"${user.name.value} - Gospeak", PageMeta.user(user), b)() {
+@container(s"${user.name.value} - Gospeak", PageMeta.user(user.user), b)() {
 @* cf https://htmlstream.com/preview/front-v2.9.4/html/account/profile.html *@
 <div class="row">
     <div class="col-3">

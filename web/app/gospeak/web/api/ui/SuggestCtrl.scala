@@ -91,7 +91,7 @@ class SuggestCtrl(cc: ControllerComponents,
   }
 
   def searchSpeakers(group: Group.Slug, q: String): Action[AnyContent] = OrgaAction[Seq[SearchResultItem]](group) { implicit req =>
-    makeSearch[User](userRepo.speakers, s => SearchResultItem(s.name.value, SpeakerCtrl.detail(group, s.slug).toString))(group, q)
+    makeSearch[User.Full](userRepo.speakers, s => SearchResultItem(s.name.value, SpeakerCtrl.detail(group, s.slug).toString))(group, q)
   }
 
   def searchProposals(group: Group.Slug, q: String): Action[AnyContent] = OrgaAction[Seq[SearchResultItem]](group) { implicit req =>

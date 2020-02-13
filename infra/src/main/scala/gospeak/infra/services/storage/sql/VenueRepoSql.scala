@@ -85,8 +85,8 @@ object VenueRepoSql {
 
   private def publicTableFull(group: Group.Id): DoobieUtils.Table = tableSelect
     .join(Tables.partners, _.partner_id -> _.id).get
-    .join(Tables.groups, _.group_id("pa") -> _.id, fr0"g.id != $group").get.dropFields(_.name.startsWith("location_"))
-    .join(Tables.events, _.id("g") -> _.group_id, fr0"e.venue=v.id AND e.published IS NOT NULL").get
+    .join(Tables.groups, fr0"g.id != $group", _.group_id("pa") -> _.id).get.dropFields(_.name.startsWith("location_"))
+    .join(Tables.events, fr0"e.venue=v.id AND e.published IS NOT NULL", _.id("g") -> _.group_id).get
     .aggregate("MAX(v.id)", "id")
     .aggregate("COALESCE(COUNT(e.id), 0)", "events")
     .copy(fields = Seq(Field("slug", "pa"), Field("name", "pa"), Field("logo", "pa"), Field("address", "v")))

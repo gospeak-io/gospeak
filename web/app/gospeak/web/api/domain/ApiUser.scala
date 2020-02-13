@@ -23,7 +23,7 @@ object ApiUser {
     implicit val writes: Writes[Published] = Json.writes[Published]
   }
 
-  def published(user: User)(implicit ctx: BasicCtx): Published =
+  def published(user: User.Full)(implicit ctx: BasicCtx): Published =
     new Published(
       slug = user.slug.value,
       firstName = user.firstName,

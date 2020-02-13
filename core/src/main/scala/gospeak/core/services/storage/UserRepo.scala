@@ -14,7 +14,7 @@ trait OrgaUserRepo {
 
   def find(id: User.Id): IO[Option[User]]
 
-  def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User]]
+  def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User.Full]]
 
   def list(ids: Seq[User.Id]): IO[Seq[User]]
 }
@@ -62,17 +62,17 @@ trait AuthUserRepo {
 }
 
 trait PublicUserRepo {
-  def speakersPublic(group: Group.Id, params: Page.Params): IO[Page[User]]
+  def speakersPublic(group: Group.Id, params: Page.Params): IO[Page[User.Full]]
 
   def speakerCountPublic(group: Group.Id): IO[Long]
 
-  def listPublic(params: Page.Params): IO[Page[User]]
+  def listPublic(params: Page.Params): IO[Page[User.Full]]
 
   def list(ids: Seq[User.Id]): IO[Seq[User]]
 
-  def findPublic(user: User.Slug): IO[Option[User]]
+  def findPublic(user: User.Slug): IO[Option[User.Full]]
 }
 
 trait SuggestUserRepo {
-  def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User]]
+  def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User.Full]]
 }

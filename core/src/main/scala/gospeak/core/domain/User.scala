@@ -99,6 +99,36 @@ object User {
       new Credentials(Login(ProviderId(providerId), ProviderKey(providerKey)), Password(Hasher(hasher), PasswordValue(password), salt.map(Salt)))
   }
 
+  final case class Full(user: User, groupCount: Long, talkCount: Long, proposalCount: Long) {
+    def id: Id = user.id
+
+    def slug: Slug = user.slug
+
+    def firstName: String = user.firstName
+
+    def lastName: String = user.lastName
+
+    def name: Name = user.name
+
+    def email: EmailAddress = user.email
+
+    def avatar: Avatar = user.avatar
+
+    def title: Option[String] = user.title
+
+    def bio: Option[Markdown] = user.bio
+
+    def company: Option[String] = user.company
+
+    def location: Option[String] = user.location
+
+    def website: Option[Url] = user.website
+
+    def social: SocialAccounts = user.social
+
+    def isPublic: Boolean = user.isPublic
+  }
+
   final case class Data(slug: User.Slug,
                         status: User.Status,
                         firstName: String,

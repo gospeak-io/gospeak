@@ -3,6 +3,10 @@ package gospeak.infra.services.storage.sql
 import cats.data.NonEmptyList
 import gospeak.core.domain.User._
 import gospeak.infra.services.storage.sql.UserRepoSqlSpec._
+import gospeak.infra.services.storage.sql.GroupRepoSqlSpec.{table => groupTable}
+import gospeak.infra.services.storage.sql.TalkRepoSqlSpec.{table => talkTable}
+import gospeak.infra.services.storage.sql.ProposalRepoSqlSpec.{table => proposalTable}
+import gospeak.infra.services.storage.sql.ExternalProposalRepoSqlSpec.{table => externalProposalTable}
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 import TablesSpec.socialFields
@@ -104,15 +108,15 @@ class UserRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOnePublic with slug") {
         val q = UserRepoSql.selectOnePublic(user.slug)
-        check(q, s"SELECT $fields FROM $table WHERE u.status=? AND u.slug=? $orderBy")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE u.status=? AND u.slug=? $groupByFull LIMIT 1")
       }
       it("should build selectPagePublic") {
         val q = UserRepoSql.selectPagePublic(params)
-        check(q, s"SELECT $fields FROM $table WHERE u.status=? $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE u.status=? $groupByFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectPage") {
         val q = UserRepoSql.selectPage(NonEmptyList.of(user.id), params)
-        check(q, s"SELECT $fields FROM $table WHERE u.id IN (?)  $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE u.id IN (?)  $groupByFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectAll with ids") {
         val q = UserRepoSql.selectAll(NonEmptyList.of(user.id, user.id))
@@ -134,4 +138,12 @@ object UserRepoSqlSpec {
   val orderBy = "ORDER BY u.first_name IS NULL, u.first_name"
 
   val tableWithLogin = s"$table INNER JOIN $loginsTable ON u.id=lg.user_id"
+
+  private val tableFull = s"$table LEFT OUTER JOIN $groupTable ON g.owners LIKE CONCAT('%', u.id, '%') LEFT OUTER JOIN $talkTable ON t.speakers LIKE CONCAT('%', u.id, '%') LEFT OUTER JOIN $proposalTable ON p.speakers LIKE CONCAT('%', u.id, '%') AND p.status='Accepted' LEFT OUTER JOIN $externalProposalTable ON ep.speakers LIKE CONCAT('%', u.id, '%') AND ep.status='Accepted'"
+  private val fieldsFull = s"$fields, COALESCE(COUNT(DISTINCT g.id), 0) as groupCount, COALESCE(COUNT(DISTINCT t.id), 0) as talkCount, COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0) as proposalCount"
+  private val groupByFull = s"GROUP BY $fields"
+  private val orderByFull = "ORDER BY (COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0)) IS NULL, (COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0)) DESC, " +
+    "COALESCE(COUNT(DISTINCT t.id), 0) IS NULL, COALESCE(COUNT(DISTINCT t.id), 0) DESC, " +
+    "MAX(p.created_at) IS NULL, MAX(p.created_at) DESC, " +
+    "u.created_at IS NULL, u.created_at"
 }
