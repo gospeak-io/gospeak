@@ -96,6 +96,10 @@ class TalkRepoSqlSpec extends RepoSpec {
         val q = TalkRepoSql.selectOne(user.id, talk.slug)
         check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.slug=? $orderBy")
       }
+      it("should build selectOne by slug and status") {
+        val q = TalkRepoSql.selectOne(talk.slug, talk.status)
+        check(q, s"SELECT $fields FROM $table WHERE t.slug=? AND t.status=? LIMIT 1")
+      }
       it("should build selectPage for user") {
         val q = TalkRepoSql.selectPage(user.id, params)
         check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? $orderBy LIMIT 20 OFFSET 0")
@@ -106,11 +110,11 @@ class TalkRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage for user and list of status") {
         val q = TalkRepoSql.selectPage(user.id, Talk.Status.current, params)
-        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.status IN (?, ?, ?, ?)  $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.status IN (?, ?)  $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPage for user, cfp and status") {
         val q = TalkRepoSql.selectPage(user.id, cfp.id, Talk.Status.current, params)
-        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.id NOT IN (SELECT p.talk_id FROM $proposalTable WHERE p.cfp_id=?) AND t.status IN (?, ?, ?, ?)  $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.id NOT IN (SELECT p.talk_id FROM $proposalTable WHERE p.cfp_id=?) AND t.status IN (?, ?)  $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectTags") {
         val q = TalkRepoSql.selectTags()

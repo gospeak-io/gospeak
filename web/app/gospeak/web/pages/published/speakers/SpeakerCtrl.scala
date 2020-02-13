@@ -35,6 +35,16 @@ class SpeakerCtrl(cc: ControllerComponents,
       res = Ok(html.detail(speakerElt, groups, talks, proposals.groupBy(_.talk.id), users)(breadcrumb(speakerElt)))
     } yield res).value.map(_.getOrElse(publicUserNotFound(user)))
   }
+
+  def talk(user: User.Slug, talk: Talk.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
+    (for {
+      userElt <- OptionT(userRepo.findPublic(user))
+      talkElt <- OptionT(talkRepo.findPublic(talk))
+      proposals <- OptionT.liftF(externalProposalRepo.listAllCommon(talkElt.id, Proposal.Status.Accepted))
+      users <- OptionT.liftF(userRepo.list((talkElt.users ++ proposals.flatMap(_.users)).distinct))
+      res = Ok(html.talk(userElt, talkElt, proposals, users)(breadcrumb(userElt, talkElt)))
+    } yield res).value.map(_.getOrElse(publicTalkNotFound(user, talk)))
+  }
 }
 
 object SpeakerCtrl {
@@ -43,4 +53,7 @@ object SpeakerCtrl {
 
   def breadcrumb(speaker: User): Breadcrumb =
     listBreadcrumb().add(speaker.name.value -> routes.SpeakerCtrl.detail(speaker.slug))
+
+  def breadcrumb(speaker: User, talk: Talk): Breadcrumb =
+    breadcrumb(speaker).add("Talks" -> routes.SpeakerCtrl.detail(speaker.slug)).add(talk.title.value -> routes.SpeakerCtrl.talk(speaker.slug, talk.slug))
 }

@@ -4,11 +4,19 @@
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
-@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.pages.published.partials.html.{container, speakingHistory}
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(user: User, userGroups: Seq[Group.Full], userTalks: Seq[Talk], userProposals: Map[Talk.Id, Seq[CommonProposal]], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@eventLink(p: CommonProposal) = @{
+    p.event.map(e => GroupCtrl.event(p.group.get.slug, e.slug))
+        .orElse(p.eventExt.map(e => EventCtrl.detailExt(e.id))).get
+}
+@proposalLink(p: CommonProposal) = @{
+    p.event.map(e => GroupCtrl.talk(p.group.get.slug, p.id.internal))
+        .orElse(p.eventExt.map(e => EventCtrl.proposalExt(e.id, p.id.external))).get
+}
 @socialItem(name: String, link: String, handle: String, i: Int) = {
     <a class="media @if(i != 0){mt-4}" href="@link" target="_blank">
         <div class="u-sm-avatar mr-3">
@@ -58,23 +66,27 @@
     <div class="col-9">
         @user.title.map { t => <h2 class="h4">@t</h2> }
         @user.bio.map { b => <div class="mb-4">@markdown(b)</div> }
-        @if(userGroups.nonEmpty || userTalks.nonEmpty) {
+        @if(userGroups.nonEmpty || (userTalks.nonEmpty && !(userTalks.length == 1 && userProposals.values.flatten.size == 1))) {
             @if(user.title.isDefined || user.bio.isDefined) { <hr class="my-7"> }
             <div class="row mb-7">
-                @if(userTalks.nonEmpty) {
+                @if(userTalks.nonEmpty && !(userTalks.length == 1 && userProposals.values.flatten.size == 1)) {
                     <div class="col-md-6 mb-3 mb-md-0">
                         <h3 class="h5 mb-3">Current talks</h3>
                         @userTalks.zipWithIndex.map { case (talk, i) =>
                             <div class="align-items-center @if(i != 0){mt-5}">
-                                <small class="d-block text-secondary">
-                                    @userProposals.getOrElse(talk.id, Seq()) match {
-                                        case Seq() => {Not presented yet}
-                                        case Seq(proposal) => {@proposal.event.map(_.name).orElse(proposal.eventExt.map(_.name)).map { name => Presented at @name.value }.getOrElse("Presented once")}
-                                        case proposals => {@proposals.length presentations}
+                                @userProposals.getOrElse(talk.id, Seq()) match {
+                                    case Seq() => {
+                                        <small class="d-block text-secondary">Not presented yet</small>
                                     }
-                                </small>
+                                    case Seq(proposal) => {
+                                        <small class="d-block text-secondary">Presented at <a href="@eventLink(proposal)" class="no-style">@proposal.eventName.get.value</a></small>
+                                    }
+                                    case proposals => {
+                                        <small class="d-block text-secondary">@proposals.length presentations</small>
+                                    }
+                                }
                                 <h4 class="h6 mb-0">
-                                    @talk.title.value
+                                    <a href="@SpeakerCtrl.talk(user.slug, talk.slug)">@talk.title.value</a>
                                     @talk.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
                                     @talk.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
                                 </h4>
@@ -117,44 +129,7 @@
         @if(userProposals.nonEmpty) {
             <hr class="my-7">
             <h3 class="h5 mb-3">Speaking history</h3>
-            <ul class="list-unstyled u-indicator-vertical-dashed">
-                @userProposals.values.flatten.toList.sortBy(-_.date.getEpochSecond).map { proposal =>
-                    <li class="media u-indicator-vertical-dashed-item">
-                        @proposal.event.map { event =>
-                            <span class="btn btn-xs btn-icon btn-primary rounded-circle mr-3">
-                                <span class="btn-icon__inner">@proposal.title.value.head</span>
-                            </span>
-                            <div class="media-body">
-                                <h5 class="font-size-1 mb-1">
-                                    <a href="@GroupCtrl.talk(proposal.group.get.slug, proposal.id.internal)">@proposal.title.value</a>
-                                    @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
-                                    @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
-                                </h5>
-                                <p class="small mb-1">
-                                    At <a class="no-style" href="@GroupCtrl.event(proposal.group.get.slug, event.slug)">@event.name.value</a>,
-                                    @Formats.date(proposal.date)
-                                </p>
-                            </div>
-                        }
-                        @proposal.eventExt.map { event =>
-                            <span class="btn btn-xs btn-icon btn-danger rounded-circle mr-3">
-                                <span class="btn-icon__inner">@proposal.title.value.head</span>
-                            </span>
-                            <div class="media-body">
-                                <h5 class="font-size-1 mb-1">
-                                    <a href="@EventCtrl.proposalExt(event.id, proposal.id.external)" target="_blank">@proposal.title.value</a>
-                                    @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
-                                    @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
-                                </h5>
-                                <p class="small mb-1">
-                                    At @event.url.map { u => <a class="no-style" href="@u" target="_blank">@event.name.value</a>, }.getOrElse{ @event.name.value, }
-                                    @Formats.date(proposal.date)
-                                </p>
-                            </div>
-                        }
-                    </li>
-                }
-            </ul>
+            @speakingHistory(userProposals.values.flatten.toList)
         }
     </div>
 </div>

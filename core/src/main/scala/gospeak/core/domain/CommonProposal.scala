@@ -24,7 +24,11 @@ final case class CommonProposal(id: CommonProposal.Id,
                                 video: Option[Video],
                                 tags: Seq[Tag],
                                 info: Info) {
+  def users: List[User.Id] = (speakers.toList ++ info.users).distinct
+
   def date: Instant = event.map(_.start).orElse(eventExt.flatMap(_.start)).map(TimeUtils.toInstant(_, Constants.defaultZoneId)).getOrElse(info.createdAt)
+
+  def eventName: Option[Event.Name] = event.map(_.name).orElse(eventExt.map(_.name))
 }
 
 object CommonProposal {
@@ -34,11 +38,11 @@ object CommonProposal {
       EmbedTalk(t.id, t.slug, t.duration),
       Some(EmbedGroup(g.id, g.slug, g.name, g.logo)),
       Some(EmbedCfp(c.id, c.slug, c.name)),
-      eOpt.map(e => EmbedEvent(e.id, e.slug, e.name, e.start)),
+      eOpt.map(e => EmbedEvent(e.id, e.slug, e.name, e.kind, e.start)),
       None, p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.info)
 
   def apply(p: ExternalProposal, t: Talk, e: ExternalEvent): CommonProposal =
-    new CommonProposal(Id(p.id), external = true, EmbedTalk(t.id, t.slug, t.duration), None, None, None, Some(EmbedExtEvent(e.id, e.name, e.logo, e.start, e.url, p.url)), p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.info)
+    new CommonProposal(Id(p.id), external = true, EmbedTalk(t.id, t.slug, t.duration), None, None, None, Some(EmbedExtEvent(e.id, e.name, e.kind, e.logo, e.start, e.url, p.url)), p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.info)
 
   final class Id private(value: String) extends DataClass(value) with IId {
     def internal: Proposal.Id = Proposal.Id.from(this)
@@ -68,10 +72,12 @@ object CommonProposal {
   final case class EmbedEvent(id: Event.Id,
                               slug: Event.Slug,
                               name: Event.Name,
+                              kind: Event.Kind,
                               start: LocalDateTime)
 
   final case class EmbedExtEvent(id: ExternalEvent.Id,
                                  name: Event.Name,
+                                 kind: Event.Kind,
                                  logo: Option[Logo],
                                  start: Option[LocalDateTime],
                                  url: Option[Url],

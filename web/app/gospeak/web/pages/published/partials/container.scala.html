@@ -11,9 +11,9 @@
 @import gospeak.web.pages.user.routes.UserCtrl
 @import gospeak.web.utils.UserAwareReq
 
-@(title: String, m: PageMeta, b: Breadcrumb, full: Boolean = false, hideAlert: Boolean = false)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
+@(title: String, m: PageMeta, b: Breadcrumb, full: Boolean = false, dark: Boolean = false, hideAlert: Boolean = false)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserAwareReq[AnyContent])
 @main(title, m, style, script) {
-<header id="header" class="u-header u-header--abs-top-md u-header--bg-transparent u-header--show-hide-md" data-header-fix-moment="500" data-header-fix-effect="slide">
+<header id="header" class="u-header u-header--abs-top-md u-header--bg-transparent u-header--show-hide-md @if(dark){dark}" data-header-fix-moment="500" data-header-fix-effect="slide">
     <div class="u-header__section">
         <div id="logoAndNav" class="container">
             <nav class="js-mega-menu navbar navbar-expand-md u-header__navbar u-header__navbar--no-space">

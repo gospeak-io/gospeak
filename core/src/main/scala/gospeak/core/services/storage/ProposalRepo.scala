@@ -89,7 +89,7 @@ trait UserProposalRepo {
 trait AuthProposalRepo
 
 trait PublicProposalRepo {
-  def listPublicFull(speaker: User.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Proposal.Full]]
+  def listAllPublicFull(speaker: User.Id)(implicit ctx: UserAwareCtx): IO[List[Proposal.Full]]
 
   def listPublicFull(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Proposal.Full]]
 

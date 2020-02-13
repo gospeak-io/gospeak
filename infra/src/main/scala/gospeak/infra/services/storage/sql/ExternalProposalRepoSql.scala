@@ -38,6 +38,8 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
 
   override def listAllCommon(user: User.Id, status: Proposal.Status): IO[Seq[CommonProposal]] = selectAllCommon(user, status).runList(xa)
 
+  override def listAllCommon(talk: Talk.Id, status: Proposal.Status): IO[List[CommonProposal]] = selectAllCommon(talk, status).runList(xa)
+
   override def listAll(talk: Talk.Id): IO[Seq[ExternalProposal]] = selectAll(talk).runList(xa)
 
   override def find(id: ExternalProposal.Id): IO[Option[ExternalProposal]] = selectOne(id).runOption(xa)
@@ -52,8 +54,8 @@ object ExternalProposalRepoSql {
   private val _ = externalProposalIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.externalProposals
   private val commonTable = Table(
-    name = "((SELECT p.id, false as external, t.id as talk_id, t.slug as talk_slug, t.duration as talk_duration, g.id as group_id, g.slug as group_slug, g.name as group_name, g.logo as group_logo, c.id as cfp_id, c.slug as cfp_slug, c.name as cfp_name, e.id as event_id, e.slug as event_slug, e.name as event_name, e.start as event_start, null as event_ext_id, null   as event_ext_name, null   as event_ext_logo, null    as event_ext_start, null  as event_ext_url, null  as event_ext_proposal_url, p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.created_at, p.created_by, p.updated_at, p.updated_by FROM proposals p          INNER JOIN talks t ON p.talk_id=t.id LEFT OUTER JOIN events e     ON p.event_id=e.id INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN groups g ON c.group_id=g.id) " +
-      "UNION (SELECT p.id, true  as external, t.id as talk_id, t.slug as talk_slug, t.duration as talk_duration, null as group_id, null   as group_slug, null   as group_name, null   as group_logo, null as cfp_id, null   as cfp_slug, null   as cfp_name, null as event_id, null   as event_slug, null   as event_name, null    as event_start, e.id as event_ext_id, e.name as event_ext_name, e.logo as event_ext_logo, e.start as event_ext_start, e.url as event_ext_url, p.url as event_ext_proposal_url, p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.created_at, p.created_by, p.updated_at, p.updated_by FROM external_proposals p INNER JOIN talks t ON p.talk_id=t.id INNER JOIN external_events e ON p.event_id=e.id))",
+    name = "((SELECT p.id, false as external, t.id as talk_id, t.slug as talk_slug, t.duration as talk_duration, g.id as group_id, g.slug as group_slug, g.name as group_name, g.logo as group_logo, c.id as cfp_id, c.slug as cfp_slug, c.name as cfp_name, e.id as event_id, e.slug as event_slug, e.name as event_name, e.kind as event_kind, e.start as event_start, null as event_ext_id, null   as event_ext_name, null   as event_ext_kind, null   as event_ext_logo, null    as event_ext_start, null  as event_ext_url, null  as event_ext_proposal_url, p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.created_at, p.created_by, p.updated_at, p.updated_by FROM proposals p          INNER JOIN talks t ON p.talk_id=t.id LEFT OUTER JOIN events e     ON p.event_id=e.id INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN groups g ON c.group_id=g.id) " +
+      "UNION (SELECT p.id, true  as external, t.id as talk_id, t.slug as talk_slug, t.duration as talk_duration, null as group_id, null   as group_slug, null   as group_name, null   as group_logo, null as cfp_id, null   as cfp_slug, null   as cfp_name, null as event_id, null   as event_slug, null   as event_name, null   as event_kind, null    as event_start, e.id as event_ext_id, e.name as event_ext_name, e.kind as event_ext_kind, e.logo as event_ext_logo, e.start as event_ext_start, e.url as event_ext_url, p.url as event_ext_proposal_url, p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.created_at, p.created_by, p.updated_at, p.updated_by FROM external_proposals p INNER JOIN talks t ON p.talk_id=t.id INNER JOIN external_events e ON p.event_id=e.id))",
     prefix = "p",
     joins = Seq(),
     fields = Seq(
@@ -61,8 +63,8 @@ object ExternalProposalRepoSql {
       "talk_id", "talk_slug", "talk_duration",
       "group_id", "group_slug", "group_name", "group_logo",
       "cfp_id", "cfp_slug", "cfp_name",
-      "event_id", "event_slug", "event_name", "event_start",
-      "event_ext_id", "event_ext_name", "event_ext_logo", "event_ext_start", "event_ext_url", "event_ext_proposal_url",
+      "event_id", "event_slug", "event_name", "event_kind", "event_start",
+      "event_ext_id", "event_ext_name", "event_ext_kind", "event_ext_logo", "event_ext_start", "event_ext_url", "event_ext_proposal_url",
       "title", "status", "duration", "speakers", "slides", "video", "tags", "created_at", "created_by", "updated_at", "updated_by").map(Field(_, "p")),
     aggFields = Seq(),
     customFields = Seq(),
@@ -110,6 +112,9 @@ object ExternalProposalRepoSql {
 
   private[sql] def selectAllCommon(user: User.Id, status: Proposal.Status): Select[CommonProposal] =
     commonTable.select[CommonProposal](fr0"WHERE p.speakers LIKE ${"%" + user.value + "%"} AND p.status=$status")
+
+  private[sql] def selectAllCommon(talk: Talk.Id, status: Proposal.Status): Select[CommonProposal] =
+    commonTable.select[CommonProposal](fr0"WHERE p.talk_id=$talk AND p.status=$status")
 
   private[sql] def selectAll(talk: Talk.Id): Select[ExternalProposal] =
     table.select[ExternalProposal](fr0"WHERE ep.talk_id=$talk")

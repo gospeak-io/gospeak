@@ -51,7 +51,7 @@
         </div>
     </div>
 }
-@container("Speakers - Gospeak", PageMeta.default(), b, full = true)() {
+@container("Speakers - Gospeak", PageMeta.default(), b, full = true, dark = true)() {
 @* cf https://htmlstream.com/preview/front-v2.9.4/html/account/members-list.html *@
 <main id="content" role="main">
     <div id="banner_speakers" class="svg-preloader position-relative bg-img-hero pt-40" style="background-image: url(@routes.Assets.versioned("web/img/banner-speaker3.jpg"));">
@@ -65,60 +65,61 @@
             <img class="js-svg-injector" data-parent="#banner_speakers" src="@routes.Assets.versioned("web/img/wave-banner-speaker.svg")" alt="banner">
         </figure>
     </div>
-    <div class="container position-relative z-index-2">
-        <div class="row justify-content-center">
-            @scala.util.Random.shuffle(speakers.items).headOption.map { u =>
-                <a class="col-3 col-lg-2 mt-n11" href="@SpeakerCtrl.detail(u.slug)">
-                    <div class="bg-white u-lg-avatar shadow-soft rounded-circle p-2 mx-auto">
-                        <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
-                    </div>
-                </a>
-            }
-            @scala.util.Random.shuffle(speakers.items).headOption.map { u =>
-                <a class="col-lg-2 d-none d-lg-inline-block mt-lg-n8" href="@SpeakerCtrl.detail(u.slug)">
-                    <div class="bg-white u-xl-avatar shadow-soft rounded-circle p-2 mx-auto">
-                        <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
-                    </div>
-                </a>
-            }
-            @scala.util.Random.shuffle(speakers.items).headOption.map { u =>
-                <a class="col-3 col-lg-2 mt-n4" href="@SpeakerCtrl.detail(u.slug)">
-                    <div class="bg-white u-lg-avatar shadow-soft rounded-circle p-2 mx-auto">
-                        <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
-                    </div>
-                </a>
-            }
-            @scala.util.Random.shuffle(speakers.items).headOption.map { u =>
-                <a class="col-3 col-lg-2 mt-n7" href="@SpeakerCtrl.detail(u.slug)">
-                    <div class="bg-white u-lg-avatar shadow-soft rounded-circle p-2 mx-auto">
-                        <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
-                    </div>
-                </a>
-            }
-            @scala.util.Random.shuffle(speakers.items).headOption.map { u =>
-                <a class="col-lg-2 d-none d-lg-inline-block mt-lg-n11" href="@SpeakerCtrl.detail(u.slug)">
-                    <div class="bg-white u-xl-avatar shadow-soft rounded-circle p-2 mx-auto">
-                        <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
-                    </div>
-                </a>
-            }
-            @scala.util.Random.shuffle(speakers.items).headOption.map { u =>
-                <a class="col-3 col-lg-2" href="@SpeakerCtrl.detail(u.slug)">
-                    <div class="bg-white u-lg-avatar shadow-soft rounded-circle p-2 mx-auto">
-                        <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
-                    </div>
-                </a>
-            }
+    @Some(scala.util.Random.shuffle(speakers.items)).map { s =>
+        <div class="container position-relative z-index-2">
+            <div class="row justify-content-center">
+                @s.headOption.map { u =>
+                    <a href="@SpeakerCtrl.detail(u.slug)" class="col-3 col-lg-2 mt-n11">
+                        <div class="bg-white shadow-soft rounded-circle p-2 mx-auto u-lg-avatar">
+                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
+                        </div>
+                    </a>
+                }
+                @s.drop(1).headOption.map { u =>
+                    <a href="@SpeakerCtrl.detail(u.slug)" class="col-lg-2 d-none d-lg-inline-block mt-lg-n8">
+                        <div class="bg-white shadow-soft rounded-circle p-2 mx-auto u-xl-avatar">
+                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
+                        </div>
+                    </a>
+                }
+                @s.drop(2).headOption.map { u =>
+                    <a href="@SpeakerCtrl.detail(u.slug)" class="col-3 col-lg-2 mt-n4">
+                        <div class="bg-white shadow-soft rounded-circle p-2 mx-auto u-lg-avatar">
+                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
+                        </div>
+                    </a>
+                }
+                @s.drop(3).headOption.map { u =>
+                    <a href="@SpeakerCtrl.detail(u.slug)" class="col-3 col-lg-2 mt-n7">
+                        <div class="bg-white shadow-soft rounded-circle p-2 mx-auto u-lg-avatar">
+                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
+                        </div>
+                    </a>
+                }
+                @s.drop(4).headOption.map { u =>
+                    <a href="@SpeakerCtrl.detail(u.slug)" class="col-lg-2 d-none d-lg-inline-block mt-lg-n11">
+                        <div class="bg-white shadow-soft rounded-circle p-2 mx-auto u-xl-avatar">
+                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
+                        </div>
+                    </a>
+                }
+                @s.drop(5).headOption.map { u =>
+                    <a href="@SpeakerCtrl.detail(u.slug)" class="col-3 col-lg-2">
+                        <div class="bg-white shadow-soft rounded-circle p-2 mx-auto u-lg-avatar">
+                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
+                        </div>
+                    </a>
+                }
+            </div>
         </div>
-    </div>
+    }
     <div class="container">
         <div class="container mt-7">
             @Formats.paginated[User](speakers, SpeakerCtrl.list, speakerItem)
         </div>
-        <div class="w-md-80 w-lg-50 text-center mx-md-auto">
-            <h2 class="font-weight-medium">Not in this list?</h2>
-            <a class="btn btn-soft-success mb-2" href="@TalkCtrl.create()">Add your talk</a>
-        </div>
+        <h2 class="text-center font-weight-medium" style="margin-bottom: 10rem">
+            Not in this list? <a class="btn btn-soft-success" href="@TalkCtrl.create()">Add your talk</a>
+        </h2>
     </div>
 </main>
 }()

@@ -42,6 +42,8 @@ trait UserTalkRepo {
 trait AuthTalkRepo
 
 trait PublicTalkRepo {
+  def findPublic(talk: Talk.Slug): IO[Option[Talk]]
+
   def listAll(user: User.Id, status: Talk.Status): IO[Seq[Talk]]
 }
 

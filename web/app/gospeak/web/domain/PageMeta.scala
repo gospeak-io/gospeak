@@ -54,14 +54,21 @@ object PageMeta {
     url = req.format(GroupCtrl.event(g.slug, e.slug)),
     twitterCard = "summary")
 
-  def talk(g: Group, p: Proposal)(implicit req: BasicReq[AnyContent]): PageMeta = PageMeta(
+  def talk(u: User, t: Talk)(implicit req: BasicReq[AnyContent]): PageMeta = PageMeta(
+    title = t.title.value.take(70),
+    description = t.description.value.take(200),
+    image = u.avatar.value,
+    url = req.format(SpeakerCtrl.talk(u.slug, t.slug)),
+    twitterCard = "summary")
+
+  def proposal(g: Group, p: Proposal)(implicit req: BasicReq[AnyContent]): PageMeta = PageMeta(
     title = p.title.value.take(70),
     description = p.description.value.take(200),
     image = g.logo.map(_.value).getOrElse(Constants.Images.gospeakLogoSquare),
     url = req.format(GroupCtrl.talk(g.slug, p.id)),
     twitterCard = "summary")
 
-  def talk(e: ExternalEvent, p: ExternalProposal)(implicit req: BasicReq[AnyContent]): PageMeta = PageMeta(
+  def proposal(e: ExternalEvent, p: ExternalProposal)(implicit req: BasicReq[AnyContent]): PageMeta = PageMeta(
     title = p.title.value.take(70),
     description = p.description.value.take(200),
     image = e.logo.map(_.value).getOrElse(Constants.Images.gospeakLogoSquare),

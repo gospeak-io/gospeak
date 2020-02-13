@@ -141,9 +141,9 @@ class ProposalRepoSqlSpec extends RepoSpec {
         val q = ProposalRepoSql.selectPageFullSpeaker(params)
         check(q, s"SELECT $fieldsFull, $fieldsFullAgg, $fieldsFullCustom FROM $tableFull WHERE p.speakers LIKE ? GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
       }
-      it("should build selectPageFullPublic for a speaker") {
-        val q = ProposalRepoSql.selectPageFullPublic(user.id, params)
-        check(q, s"SELECT $fieldsFull, $fieldsFullAgg, $fieldsFullCustom FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
+      it("should build selectAllFullPublic for a speaker") {
+        val q = ProposalRepoSql.selectAllFullPublic(user.id)
+        check(q, s"SELECT $fieldsFull, $fieldsFullAgg, $fieldsFullCustom FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL GROUP BY $fieldsFull ORDER BY p.created_at IS NULL, p.created_at DESC")
       }
       it("should build selectPageFullPublic for a group") {
         val q = ProposalRepoSql.selectPageFullPublic(group.id, params)

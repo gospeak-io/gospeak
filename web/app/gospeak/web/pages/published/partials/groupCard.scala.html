@@ -1,160 +1,107 @@
 @import gospeak.core.domain.{Cfp, Group, Sponsor, SponsorPack, User}
-@import gospeak.core.domain.utils.Constants.Placeholders
 @import gospeak.web.domain.Breadcrumb
-@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.utils.UserAwareReq
 
-@(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], users: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 <div class="col-lg-4 mb-9 mb-lg-0">
     <div class="card shadow-sm p-5 mb-5">
-        <div class="border-bottom text-center pb-5 mb-5">
-            <div class="mb-3 mx-auto">
+        <div class="text-center">
+            <div class="mx-auto mb-3">
                 @group.logo.map { logo => <img src="@logo.url.value" alt="@group.name.value logo" class="img-fluid rounded-circle" width="110" height="110"/> }
             </div>
-
             <h1 class="h5">@group.name.value</h1>
-
-            <div class="mb-4">
-                <a class="font-size-1" href="@group.website">Website</a>
-            </div>
-
-            <div class="mb-4">
-                @cfps.length match {
-                    case 0 => {}
-                    case _ => { <a class="btn btn-sm btn-soft-primary transition-3d-hover" href="@CfpCtrl.propose(cfps.head.slug)">Propose a talk</a> }
+            @group.website.map { u =>
+                <div class="mb-3">
+                    <a class="font-size-1" href="@u.value" target="_blank">Website</a>
+                </div>
+            }
+            @cfps match {
+                case Seq() => {}
+                case Seq(cfp) => {
+                    <div class="mb-3">
+                        <a class="btn btn-sm btn-soft-primary transition-3d-hover" href="@CfpCtrl.propose(cfp.slug)">Propose a talk</a>
+                    </div>
                 }
-            </div>
-
-            <div class="mb-4">
-                @userMembership.map { _ =>
-                    <a class="text-muted small" href="@GroupCtrl.doLeave(group.slug)"><small class="fas fa-flag mr-1"></small> Leave the group</a>
-                }.getOrElse {
-                    <a class="btn btn-sm btn-soft-success transition-3d-hover mr-1" href="@GroupCtrl.doJoin(group.slug)">Join this group</a>
-                }
-            </div>
-
-            <div class="mt-2">
-                Organized by <br>
-                @group.owners.toList.map { id =>
-                    @orgas.find(_.id == id).map { user =>
-                        <li class="list-inline-item ml-n3 mr-0">
-                            <img src="@user.avatar.url.value"
-                                alt="@user.name.value avatar"
-                                title="@user.name.value"
-                                data-toggle="tooltip"
-                                data-placement="top"
-                                class="u-sm-avatar u-sm-avatar--bordered rounded-circle img-fluid rounded-circle">
-                        </li>
-                    }.getOrElse {
-                        <li class="list-inline-item ml-n3 mr-0">
-                            <div class="u-sm-avatar u-sm-avatar--bordered rounded-circle">
-                                <img src="@Placeholders.unknownUser" alt="Unknown user avatar" title="Unknow user" class="img-fluid rounded-circle">
+                case cfps => {
+                    <div class="mb-3">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-soft-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Propose a talk
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                @cfps.map { cfp =>
+                                    <a class="dropdown-item" href="@CfpCtrl.propose(cfp.slug)">@cfp.name.value</a>
+                                }
                             </div>
-                        </li>
-                    }
+                        </div>
+                    </div>
+                }
+            }
+            <div class="mb-3">
+                @userMembership.map { _ =>
+                    <a class="text-muted small" href="@GroupCtrl.doLeave(group.slug)"><i class="fas fa-flag"></i> Leave the group</a>
+                }.getOrElse {
+                    <a class="btn btn-sm btn-soft-success transition-3d-hover" href="@GroupCtrl.doJoin(group.slug)">Join this group</a>
+                }
+            </div>
+            <div>
+                Organized by<br>
+                @group.owners.toList.flatMap(id => users.find(_.id == id)).map { user =>
+                    <li class="list-inline-item ml-n3 mr-0">
+                        <img src="@user.avatar.value"
+                            alt="@user.name.value avatar"
+                            title="@user.name.value"
+                            data-toggle="tooltip"
+                            data-placement="top"
+                            class="u-sm-avatar u-sm-avatar--bordered rounded-circle img-fluid rounded-circle">
+                    </li>
                 }
             </div>
         </div>
 
-        <div class="row border-bottom pb-5 mb-5">
-            <div class="col-6 mb-5">
-                <div class="text-center">
-                    <a href="@GroupCtrl.members(group.slug)">
-                        <span class="h5 d-block font-weight-bold mb-0 mt-1">@group.memberCount</span>
-                        <span class="d-block text-secondary font-size-1">Members</span>
-                    </a>
-                </div>
+        <hr class="mt-5 mb-5">
+
+        <div class="row">
+            <div class="col text-center">
+                <a href="@GroupCtrl.members(group.slug)">
+                    <span class="h5 d-block font-weight-bold mb-0 mt-1">@group.memberCount</span>
+                    <span class="d-block text-secondary font-size-1">Members</span>
+                </a>
             </div>
-            <div class="col-6 mb-5">
-                <div class="text-center">
-                    <a href="@GroupCtrl.events(group.slug)">
-                        <span class="h5 d-block font-weight-bold mb-0 mt-1">@group.eventCount</span>
-                        <span class="d-block text-secondary font-size-1">Events</span>
-                    </a>
-                </div>
+            <div class="col text-center">
+                <a href="@GroupCtrl.events(group.slug)">
+                    <span class="h5 d-block font-weight-bold mb-0 mt-1">@group.eventCount</span>
+                    <span class="d-block text-secondary font-size-1">Events</span>
+                </a>
             </div>
-            <div class="col-6 mb-5">
-                <div class="text-center">
-                    <a href="@GroupCtrl.speakers(group.slug)">
-                        <span class="h5 d-block font-weight-bold mb-0 mt-1">@speakerCount</span>
-                        <span class="d-block text-secondary font-size-1">Speakers</span>
-                    </a>
-                </div>
+        </div>
+        <div class="row">
+            <div class="col text-center">
+                <a href="@GroupCtrl.speakers(group.slug)">
+                    <span class="h5 d-block font-weight-bold mb-0 mt-1">@speakerCount</span>
+                    <span class="d-block text-secondary font-size-1">Speakers</span>
+                </a>
             </div>
-            <div class="col-6 mb-5">
-                <div class="text-center">
-                    <a href="@GroupCtrl.talks(group.slug)">
-                        <span class="h5 d-block font-weight-bold mb-0 mt-1">@group.talkCount</span>
-                        <span class="d-block text-secondary font-size-1">Talks</span>
-                    </a>
-                </div>
+            <div class="col text-center">
+                <a href="@GroupCtrl.talks(group.slug)">
+                    <span class="h5 d-block font-weight-bold mb-0 mt-1">@group.talkCount</span>
+                    <span class="d-block text-secondary font-size-1">Talks</span>
+                </a>
             </div>
         </div>
 
-        <div class="mb-5">
+        <hr class="mt-5 mb-5">
+
+        <div>
             <h4 class="font-size-1 font-weight-semi-bold text-uppercase mb-3">Linked accounts</h4>
-            @group.social.twitter.map { t =>
-                <a class="media align-items-center mb-2" href="@t.link" target="_blank">
-                    <div class="u-sm-avatar mr-3"><i class="fab fa-twitter"></i></div>
+            @group.social.all.zipWithIndex.map { case (s, i) =>
+                <a class="media align-items-center @if(i != 0){mt-2}" href="@s.link" target="_blank">
+                    <div class="u-sm-avatar mr-3"><i class="fab fa-@s.name"></i></div>
                     <div class="media-body">
-                        <h4 class="font-size-1 text-dark mb-0">Twitter</h4>
-                        <small class="d-block text-secondary">@t.handle</small>
-                    </div>
-                </a>
-            }
-            @group.social.youtube.map { t =>
-                <a class="media align-items-center mb-2" href="@t.link" target="_blank">
-                    <div class="u-sm-avatar mr-3"><i class="fab fa-youtube"></i></div>
-                    <div class="media-body">
-                        <h4 class="font-size-1 text-dark mb-0">Youtube</h4>
-                        <small class="d-block text-secondary">View the channel</small>
-                    </div>
-                </a>
-            }
-            @group.social.facebook.map { t =>
-                <a class="media align-items-center mb-2" href="@t.link" target="_blank">
-                    <div class="u-sm-avatar mr-3"><i class="fab fa-facebook"></i></div>
-                    <div class="media-body">
-                        <h4 class="font-size-1 text-dark mb-0">Facebook</h4>
-                        <small class="d-block text-secondary">View the page</small>
-                    </div>
-                </a>
-            }
-            @group.social.instagram.map { t =>
-                <a class="media align-items-center mb-2" href="@t.link" target="_blank">
-                    <div class="u-sm-avatar mr-3"><i class="fab fa-instagram"></i></div>
-                    <div class="media-body">
-                        <h4 class="font-size-1 text-dark mb-0">Instagram</h4>
-                        <small class="d-block text-secondary">Follow us</small>
-                    </div>
-                </a>
-            }
-            @group.social.slack.map { t =>
-                <a class="media align-items-center mb-2" href="@t.link" target="_blank">
-                    <div class="u-sm-avatar mr-3"><i class="fab fa-slack"></i></div>
-                    <div class="media-body">
-                        <h4 class="font-size-1 text-dark mb-0">Slack</h4>
-                        <small class="d-block text-secondary">Join the group</small>
-                    </div>
-                </a>
-            }
-            @group.social.github.map { t =>
-                <a class="media align-items-center mb-2" href="@t.link" target="_blank">
-                    <div class="u-sm-avatar mr-3"><i class="fab fa-github"></i></div>
-                    <div class="media-body">
-                        <h4 class="font-size-1 text-dark mb-0">Github</h4>
-                        <small class="d-block text-secondary">View the repo</small>
-                    </div>
-                </a>
-            }
-            @group.social.meetup.map { t =>
-                <a class="media align-items-center mb-2" href="@t.link" target="_blank">
-                    <div class="u-sm-avatar mr-3"><i class="fab fa-meetup"></i></div>
-                    <div class="media-body">
-                        <h4 class="font-size-1 text-dark mb-0">Meetup</h4>
-                        <small class="d-block text-secondary">View the group</small>
+                        <h4 class="font-size-1 text-dark mb-0 text-capitalize">@s.name</h4>
+                        <small class="d-block text-secondary">@s.handle</small>
                     </div>
                 </a>
             }

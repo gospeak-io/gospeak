@@ -1,21 +1,21 @@
-@import gospeak.core.domain.{Group, Proposal, User}
+@import gospeak.core.domain.{CommonProposal, Talk, User}
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.partials.display.html._
-@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.pages.published.partials.html.{container, speakingHistory}
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import gospeak.web.pages.published.partials.html.container
-@import gospeak.web.utils.Formats
 @import gospeak.web.utils.UserAwareReq
 
-@(group: Group, talk: Proposal.Full, users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${talk.title.value} at ${group.name.value} - Gospeak", PageMeta.proposal(group, talk.proposal), b)() {
-    <a href="@GroupCtrl.detail(group.slug)"><i class="fas fa-chevron-left"></i> @group.name.value</a>
+@(user: User, talk: Talk, proposals: List[CommonProposal], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container(s"${talk.title.value} - Gospeak", PageMeta.talk(user, talk), b)() {
+    <a href="@SpeakerCtrl.detail(user.slug)"><i class="fas fa-chevron-left"></i> @user.name.value</a>
     <h1>
         @talk.title.value
         @talk.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
         @talk.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
     </h1>
-    @talk.event.map { event => <div class="text-muted mb-3">@Formats.date(event.start) at <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a></div> }
+    <div class="mb-3">
+        @duration(talk.duration) @tags(talk.tags)
+    </div>
     <ul class="list-inline mb-3">
         @talk.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
             <li class="list-inline-item">
@@ -26,4 +26,9 @@
         }
     </ul>
     <div class="mb-3">@markdown(talk.description)</div>
+    @if(proposals.nonEmpty) {
+        <hr class="my-7">
+        <h3 class="h5 mb-3">Speaking history</h3>
+        @speakingHistory(proposals)
+    }
 }()

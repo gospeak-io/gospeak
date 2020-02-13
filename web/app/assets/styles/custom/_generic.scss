@@ -120,6 +120,18 @@ a.no-style {
   padding: 0;
 }
 
+.u-header.dark {
+  .u-header__nav-link.active,
+  .u-sidebar--account__toggle-text,
+  .u-sidebar--account__toggle-bg:hover {
+    color: $gray-300;
+  }
+
+  .u-sidebar--account__toggle-bg {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
 .footer {
   margin-top: 20px;
   padding: 40px 0;
