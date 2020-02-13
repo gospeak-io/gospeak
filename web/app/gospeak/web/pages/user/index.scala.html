@@ -15,29 +15,37 @@
 
 @(incomingEvents: Page[(Event.Full, Option[Event.Rsvp])], joinedGroups: Page[(Group, Group.Member)], currentTalks: Page[Talk], currentProposals: Page[CommonProposal])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @incomingEventsCard() = {
-    <div class="event-card card mb-3">
-        <h5 class="card-header">Incoming events</h5>
-        @if(incomingEvents.isEmpty) {
-            <div class="card-body text-center">
-                <h5 class="card-title">No incoming event</h5>
-                <p class="card-text">Follow more groups to discover interesting events near you</p>
-                <a href="@PublicGroupCtrl.list()" class="btn btn-success">Discover new groups</a>
-            </div>
-        } else {
-            <div class="list-group list-group-flush">
+    @if(joinedGroups.nonEmpty) {
+        <div class="event-card card mb-3">
+            <h5 class="card-header">Incoming events</h5>
+            @if(incomingEvents.isEmpty) {
+                <div class="card-body text-center">
+                    <h5 class="card-title">No incoming event</h5>
+                    <p class="card-text">Follow more groups to discover interesting events near you</p>
+                    <a href="@PublicGroupCtrl.list()" class="btn btn-success">Discover new groups</a>
+                </div>
+            } else {
+                <div class="list-group list-group-flush">
                 @incomingEvents.items.map { case (e, r) =>
-                    <a href="@PublicGroupCtrl.event(e.group.slug, e.event.slug)" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        @e.event.name.value
-                        @r.map(_.answer).map {
-                            case Event.Rsvp.Answer.Yes => {<span class="badge badge-success">Yes</span>}
-                            case Event.Rsvp.Answer.Wait => {<span class="badge badge-warning">Wait list</span>}
-                            case Event.Rsvp.Answer.No => {<span class="badge badge-danger">No</span>}
+                <a href="@PublicGroupCtrl.event(e.group.slug, e.event.slug)" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    @e.event.name.value
+                    @r.map(_.answer).map {
+                        case Event.Rsvp.Answer.Yes => {
+                            <span class="badge badge-success">Yes</span>
                         }
-                    </a>
+                        case Event.Rsvp.Answer.Wait => {
+                            <span class="badge badge-warning">Wait list</span>
+                        }
+                        case Event.Rsvp.Answer.No => {
+                            <span class="badge badge-danger">No</span>
+                        }
+                    }
+                </a>
                 }
-            </div>
-        }
-    </div>
+                </div>
+            }
+        </div>
+    }
 }
 @userGroupsCard() = {
     <div class="group-card card mb-3">
@@ -144,30 +152,6 @@
     </div>
 }
 @container("Dashboard - Gospeak", b)() {
-    @if(currentTalks.nonEmpty && req.user.status.isUndefined) {
-        <div class="alert alert-info" role="alert">
-            <h4 class="alert-heading d-flex justify-content-between align-items-center">
-                <span>Hi speaker!</span>
-                <span>
-                    @formBtn(ProfileCtrl.doEditStatus(User.Status.Private), Seq(
-                        "class" -> "btn-secondary btn-sm",
-                        "title" -> User.Status.Private.description,
-                        "data-toggle" -> "tooltip",
-                        "data-placement" -> "bottom")) {Make it private}
-                    @formBtn(ProfileCtrl.doEditStatus(User.Status.Public), Seq(
-                        "class" -> "btn-primary btn-sm",
-                        "title" -> User.Status.Public.description,
-                        "data-toggle" -> "tooltip",
-                        "data-placement" -> "bottom")) {Make it public}
-                </span>
-            </h4>
-            <p class="mb-0">
-                Gospeak allows you to have a public page to promote your talks.
-                Enable it with a <b>Public</b> profile or keep your info <b>Private</b> if you prefer.
-                This can be changed at any time in your profile settings.
-            </p>
-        </div>
-    }
     <div class="row">
         <div class="col-6">
             @incomingEventsCard()

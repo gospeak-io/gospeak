@@ -48,26 +48,20 @@ object Talk {
 
   object Status extends EnumBuilder[Status]("Talk.Status") {
 
-    case object Draft extends Status
+    case object Public extends Status {
+      def description = s"Talk on your speaker public page. Organizers can contact you to perform it."
+    }
 
     case object Private extends Status {
-      def description = "Only you can see it, you can propose it to groups but organizers will not see it"
-    }
-
-    case object Listed extends Status {
-      def description = "Only group organizers can see it, they will be able to ask you for a proposal for their group."
-    }
-
-    case object Public extends Status {
-      def description = s"Like '$Listed', plus the talk will be in your speaker page if your profile is public "
+      def description = "Only you can see it, you can propose it to groups but organizers can't search for it."
     }
 
     case object Archived extends Status {
-      def description = "When your talk is not actual anymore. It will be hidden everywhere"
+      def description = "When your talk is not actual anymore. Will be hidden everywhere."
     }
 
-    val all: Seq[Status] = Seq(Draft, Private, Listed, Public, Archived)
-    val current: NonEmptyList[Status] = NonEmptyList.of(Draft, Private, Listed, Public)
+    val all: Seq[Status] = Seq(Public, Private, Archived)
+    val current: NonEmptyList[Status] = NonEmptyList.of(Public, Private)
   }
 
   final case class Data(slug: Talk.Slug,

@@ -83,7 +83,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
 
     val avatarSrv = new AvatarSrv()
 
-    def user(slug: String, email: String, firstName: String, lastName: String, status: User.Status = User.Status.Undefined, emailValidated: Option[Instant] = Some(now), emailValidationBeforeLogin: Boolean = false, avatar: Option[String] = None, title: Option[String] = None, bio: Option[Markdown] = None, company: Option[String] = None, location: Option[String] = None, phone: Option[String] = None, website: Option[Url] = None, social: SocialAccounts = SocialAccounts.fromUrls()): User = {
+    def user(slug: String, email: String, firstName: String, lastName: String, status: User.Status = User.Status.Public, emailValidated: Option[Instant] = Some(now), emailValidationBeforeLogin: Boolean = false, avatar: Option[String] = None, title: Option[String] = None, bio: Option[Markdown] = None, company: Option[String] = None, location: Option[String] = None, phone: Option[String] = None, website: Option[Url] = None, social: SocialAccounts = SocialAccounts.fromUrls()): User = {
       val emailAddr = EmailAddress.from(email).get
       val slugObj = User.Slug.from(slug).get
       val avatarObj = avatar.map(Url.from(_).get).map(Avatar).getOrElse(avatarSrv.getDefault(emailAddr, slugObj))
@@ -226,8 +226,8 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
           |- never use null
           |- go functional
         """.stripMargin.trim, tags = Seq("tech", "scala", "beginner"))
-    val nodeNews = talk(userDemo, "nodejs-news", "NodeJs news", status = Talk.Status.Draft)
-    val scalaReact = talk(userSpeaker, "scalajs-react", "ScalaJS + React = <3", status = Talk.Status.Draft, speakers = Seq(userDemo), duration = 50, tags = Seq("Scala"))
+    val nodeNews = talk(userDemo, "nodejs-news", "NodeJs news", status = Talk.Status.Private)
+    val scalaReact = talk(userSpeaker, "scalajs-react", "ScalaJS + React = <3", speakers = Seq(userDemo), duration = 50, tags = Seq("Scala"))
     val akkaBlackJack = talk(userSpeaker, "gagner-1-million", "Gagner 1 Million au BlackJack avec Akka", status = Talk.Status.Private, duration = 15)
     val startWithSpark = talk(userSpeaker, "demarrer-avec-spark", "7 conseils pour demarrer avec Spark", duration = 45)
     val bigTalk = talk(userSpeaker, "big-talk", "Big Talk")
@@ -331,7 +331,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), None, None, None, None, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), None, NonEmptyList.of(userOrga.id), SocialAccounts.fromUrls(), Seq(), Group.Status.Active, Info(userOrga.id, now))
       val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), None, None, Markdown("Only your best talks !"), Seq(), Info(userOrga.id, now))
       val e = Event(Event.Id.generate(), bigGroup.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), Event.Kind.Meetup, LocalDateTime.parse("2019-03-12T19:00:00"), Some(100), allowRsvp = false, MustacheMarkdownTmpl(""), Event.Notes("", now, userOrga.id), None, Seq(), Seq(), Some(now), Event.ExtRefs(), Info(userOrga.id, now))
-      val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Status.Draft, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), Markdown(""), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Info(userSpeaker.id, now))
+      val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Status.Public, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), Markdown(""), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Info(userSpeaker.id, now))
       val p = Proposal(Proposal.Id.generate(), bigTalk.id, cfpId, None, Proposal.Status.Pending, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Markdown("temporary description"), Markdown(""), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Seq(), Info(userSpeaker.id, now))
       val pa = Partner(Partner.Id.generate(), bigGroup.id, Partner.Slug.from(s"z-partner-$i").get, Partner.Name(s"Z Partner $i"), Markdown(""), None, Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-3.png").map(Logo).get, SocialAccounts.fromUrls(), Info(userOrga.id, now))
       (g, c, e, t, p, pa)

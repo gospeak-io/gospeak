@@ -55,9 +55,9 @@ class TalkRepoSqlSpec extends RepoSpec {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
       val ctx = FakeCtx(now, user)
       talkRepo.create(talkData1)(ctx).unsafeRunSync()
-      talkRepo.find(talkData1.slug)(ctx).unsafeRunSync().map(_.status) shouldBe Some(Talk.Status.Draft)
-      talkRepo.editStatus(talkData1.slug, Talk.Status.Public)(ctx).unsafeRunSync()
       talkRepo.find(talkData1.slug)(ctx).unsafeRunSync().map(_.status) shouldBe Some(Talk.Status.Public)
+      talkRepo.editStatus(talkData1.slug, Talk.Status.Archived)(ctx).unsafeRunSync()
+      talkRepo.find(talkData1.slug)(ctx).unsafeRunSync().map(_.status) shouldBe Some(Talk.Status.Archived)
     }
     describe("Queries") {
       it("should build insert") {

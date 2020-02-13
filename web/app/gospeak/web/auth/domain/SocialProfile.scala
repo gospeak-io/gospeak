@@ -24,7 +24,7 @@ object SocialProfile {
       (first, last) = email.guessNames
     } yield User.Data(
       slug = slug,
-      status = User.Status.Undefined,
+      status = User.Status.Public,
       firstName = profile.firstName.getOrElse(first),
       lastName = profile.lastName.getOrElse(last),
       email = email,

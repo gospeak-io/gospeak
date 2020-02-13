@@ -1,9 +1,6 @@
 @import gospeak.core.domain.User
 @(s: User.Status)
 @s match {
-    case User.Status.Undefined => {
-        <i class="fas fa-question" title="@User.Status.Undefined.description"></i>
-    }
     case User.Status.Public => {
         <i class="fas fa-eye" title="@User.Status.Public.description"></i>
     }

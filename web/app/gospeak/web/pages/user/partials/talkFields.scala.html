@@ -1,10 +1,9 @@
-@import gospeak.core.domain.Talk
 @import gospeak.web.api.ui.routes.SuggestCtrl
 @import gospeak.web.pages.partials.form.html._
-@import gospeak.web.utils.UserReq
+@import gospeak.web.utils.UserAwareReq
 @import java.util.concurrent.TimeUnit
 
-@(form: Form[Talk.Data])(implicit req: UserReq[AnyContent])
+@(form: Field /*Form[Talk.Data]*/)(implicit req: UserAwareReq[AnyContent])
 @fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title of your talk")) { (field, args) =>
     @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
 }

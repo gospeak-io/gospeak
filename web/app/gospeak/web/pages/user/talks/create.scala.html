@@ -15,6 +15,6 @@
                 @btnSubmit("Create")
             </div>
         </div>
-        @talkFields(form)
+        @talkFields(form(""))(req.userAware)
     }
 }()

@@ -6,11 +6,9 @@
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.pages.user.partials.html.talkFields
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.GsForms
-@import gospeak.web.utils.UserAwareReq
-@import java.util.concurrent.TimeUnit
+@import gospeak.web.utils.{Formats, GsForms, UserAwareReq}
 
 @(group: Group, cfp: Cfp, talks: Page[Talk], form: Form[GsForms.TalkLogged])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @talkItem(talk: Talk) = {
@@ -33,46 +31,12 @@
         }
     }
     @formElt(form, CfpCtrl.doPropose(cfp.slug)) {
-        @fieldHorizontal(form("talk.title"), Seq("label" -> "Title", "help" -> "Title for your proposal (you can adapt your talk title)")) { (field, args) =>
-            @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
-        }
-        @fieldHorizontal(form("talk.description"), Seq("label" -> "Description", "help" -> "Give a abstract of your talk, you should make orga and people listen at you")) { (field, args) =>
-            @inputMarkdown(field, args)
-        }
-        @fieldHorizontal(form("talk.duration"), Seq("label" -> "Duration", "help" -> "Duration of your talk")) { (field, args) =>
-            @inputDuration(field, Seq(TimeUnit.MINUTES), args)
-        }
-        @fieldHorizontal(form("talk.slides"), Seq("label" -> "Slides", "help" -> "Slides for your talk")) { (field, args) =>
-            @inputEmbed(field, args)
-        }
-        @fieldHorizontal(form("talk.video"), Seq("label" -> "Video", "help" -> "Video of your talk")) { (field, args) =>
-            @inputEmbed(field, args)
-        }
-        @fieldHorizontal(form("talk.slug"), Seq("label" -> "Slug", "help" -> "Reference for your talk (in urls for example)")) { (field, args) =>
-            @inputText(field, Seq("placeholder" -> "Talk slug", "slug-for" -> form("talk.title").id) ++ args)
-        }
+        @talkFields(form("talk"))
         @actionsHorizontal() {
-            @req.user.map { user =>
-                <h4>Logged as:</h4>
-                <div class="card mb-3" style="max-width: 300px">
-                    <div class="row no-gutters">
-                        <div class="col-md-4">
-                            <img src="@user.avatar.url" alt="@user.name.value avatar" class="card-img" style="border-radius: 0">
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card-body">
-                                <h5 class="card-title" style="margin-bottom: 0">@user.name.value</h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
             @btnCancel(CfpCtrl.detail(cfp.slug))
             @btnSubmit("Propose your talk")
             @if(req.user.isEmpty) {
-                or
-                <a class="btn btn-primary" href="@AuthCtrl.login(Some(CfpCtrl.propose(cfp.slug).toString))">
-                    Login to choose an existing one</a>
+                or <a class="btn btn-primary" href="@AuthCtrl.login(Some(CfpCtrl.propose(cfp.slug).toString))">Login to choose an existing one</a>
             }
         }
     }

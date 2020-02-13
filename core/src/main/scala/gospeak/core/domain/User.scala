@@ -53,29 +53,22 @@ object User {
   sealed trait Status extends StringEnum {
     def value: String = toString
 
-    def isUndefined: Boolean = this == Status.Undefined
+    def isPublic: Boolean = this == Status.Public
 
     def isPrivate: Boolean = this == Status.Private
-
-    def isPublic: Boolean = this == Status.Public
   }
 
   object Status extends EnumBuilder[Status]("User.Status") {
 
-    case object Undefined extends Status {
-      def description = s"Profile privacy still undefined, choose if you want it $Public or $Private"
+    case object Public extends Status {
+      def description = "Promote your name with your speaker page featuring your public talks and interventions you have done in groups"
     }
 
     case object Private extends Status {
       def description = "Stay under cover, your speaker page is not accessible and you are not in the public list of speakers"
     }
 
-    case object Public extends Status {
-      def description = "Promote your name with your speaker page featuring your public talks and interventions you have done in groups"
-    }
-
-    val all: Seq[Status] = Seq(Undefined, Private, Public)
-    val selectable: Seq[Status] = Seq(Private, Public)
+    val all: Seq[Status] = Seq(Public, Private)
   }
 
   final case class ProviderId(value: String) extends AnyVal

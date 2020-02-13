@@ -45,19 +45,6 @@ class ProfileCtrl(cc: ControllerComponents,
     val filledForm = if (form.hasErrors) form else form.fill(req.user.data)
     IO(Ok(html.edit(filledForm)(editBreadcrumb)))
   }
-
-  def doEditStatus(status: User.Status): Action[AnyContent] = UserAction { implicit req =>
-    val next = redirectToPreviousPageOr(routes.ProfileCtrl.detail())
-    val msg = status match {
-      case User.Status.Undefined =>
-        "Still unsure about what to do? Your profile is <b>Private</b> by default."
-      case User.Status.Private =>
-        "Great decision, one step at a time, keep things private and make them public later eventually."
-      case User.Status.Public =>
-        s"""Nice! You are now officially a public speaker on Gospeak. Here is your <a href="${PublishedSpeakerRoutes.detail(req.user.slug)}" target="_blank">public page</a>."""
-    }
-    userRepo.editStatus(status).map(_ => next.flashing("success" -> msg))
-  }
 }
 
 object ProfileCtrl {

@@ -98,7 +98,6 @@ GET         /u/proposals                                                        
 GET         /u/profile                                                                     gospeak.web.pages.user.profile.ProfileCtrl.detail(params: Page.Params ?= Page.Params.defaults)
 GET         /u/profile/edit                                                                gospeak.web.pages.user.profile.ProfileCtrl.edit
 POST        /u/profile/edit                                                                gospeak.web.pages.user.profile.ProfileCtrl.doEdit
-POST        /u/profile/status/:status                                                      gospeak.web.pages.user.profile.ProfileCtrl.doEditStatus(status: User.Status)
 
 GET         /u/groups/create                                                               gospeak.web.pages.orga.GroupCtrl.create
 POST        /u/groups/create                                                               gospeak.web.pages.orga.GroupCtrl.doCreate

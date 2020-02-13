@@ -23,7 +23,7 @@ object GsForms {
    */
 
   final case class SignupData(slug: User.Slug, firstName: String, lastName: String, email: EmailAddress, password: Secret, rememberMe: Boolean) {
-    def data(avatar: Avatar): User.Data = User.Data(slug, User.Status.Undefined, firstName, lastName, email, avatar, None, None, None, None, None, None, SocialAccounts.fromUrls())
+    def data(avatar: Avatar): User.Data = User.Data(slug, User.Status.Public, firstName, lastName, email, avatar, None, None, None, None, None, None, SocialAccounts.fromUrls())
   }
 
   private val signupMapping: Mapping[SignupData] = mapping(

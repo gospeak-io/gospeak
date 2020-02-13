@@ -21,7 +21,7 @@
             <div class="card-header" data-toggle="collapse" data-target="#basicCollapse">Basic infos</div>
             <div class="card-body collapse show" id="basicCollapse">
                 @fieldHorizontal(form("status"), Seq("label" -> "Status")) { (field, args) =>
-                    @inputSelect(field, User.Status.selectable.map(s => (s.value, s.value)))
+                    @inputSelect(field, User.Status.all.map(s => (s.value, s.value)))
                     <small class="form-text text-muted">
                         If your profile is <b>Public</b>, it will be listed in <a href="@PublicSpeakerCtrl.list()" target="_blank">Gospeak speakers</a>.
                         Otherwise, you can stay under the radar.

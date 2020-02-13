@@ -41,30 +41,38 @@
                 </div>-->
             </div>
         </div>
-        <div class="card mb-4">
-            <div class="card-header pt-4 pb-3 px-0 mx-4">
-                <h3 class="h6 mb-0">Social Profiles</h3>
+        @if(user.website.isDefined || user.social.all.nonEmpty) {
+            <div class="card mb-4">
+                <div class="card-header pt-4 pb-3 px-0 mx-4">
+                    <h3 class="h6 mb-0">Social Profiles</h3>
+                </div>
+                <div class="card-body pt-3 pb-4 px-4">
+                    @Seq(
+                        user.website.map(url => ("website", url.value, url.value)).toList,
+                        user.social.all.map(s => (s.name, s.link, s.handle))
+                    ).flatten.zipWithIndex.map { case ((name, link, handle), i) => @socialItem(name, link, handle, i) }
+                </div>
             </div>
-            <div class="card-body pt-3 pb-4 px-4">
-                @Seq(
-                    user.website.map(url => ("website", url.value, url.value)).toList,
-                    user.social.all.map(s => (s.name, s.link, s.handle))
-                ).flatten.zipWithIndex.map { case ((name, link, handle), i) => @socialItem(name, link, handle, i) }
-            </div>
-        </div>
+        }
     </div>
     <div class="col-9">
         @user.title.map { t => <h2 class="h4">@t</h2> }
         @user.bio.map { b => <div class="mb-4">@markdown(b)</div> }
         @if(userGroups.nonEmpty || userTalks.nonEmpty) {
-            <hr class="my-7">
+            @if(user.title.isDefined || user.bio.isDefined) { <hr class="my-7"> }
             <div class="row mb-7">
                 @if(userTalks.nonEmpty) {
                     <div class="col-md-6 mb-3 mb-md-0">
                         <h3 class="h5 mb-3">Current talks</h3>
                         @userTalks.zipWithIndex.map { case (talk, i) =>
                             <div class="align-items-center @if(i != 0){mt-5}">
-                                <small class="d-block text-secondary">@Formats.plural(userProposals.getOrElse(talk.id, Seq()).length, "presentation")</small>
+                                <small class="d-block text-secondary">
+                                    @userProposals.getOrElse(talk.id, Seq()) match {
+                                        case Seq() => {Not presented yet}
+                                        case Seq(proposal) => {@proposal.event.map(_.name).orElse(proposal.eventExt.map(_.name)).map { name => Presented at @name.value }.getOrElse("Presented once")}
+                                        case proposals => {@proposals.length presentations}
+                                    }
+                                </small>
                                 <h4 class="h6 mb-0">
                                     @talk.title.value
                                     @talk.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }

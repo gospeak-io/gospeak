@@ -19,7 +19,7 @@ import gospeak.libs.scala.domain._
 class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with TalkRepo {
   override def create(data: Talk.Data)(implicit ctx: UserCtx): IO[Talk] =
     find(data.slug).flatMap {
-      case None => insert(Talk(data, Talk.Status.Draft, NonEmptyList.one(ctx.user.id), ctx.info)).run(xa)
+      case None => insert(Talk(data, Talk.Status.Public, NonEmptyList.one(ctx.user.id), ctx.info)).run(xa)
       case _ => IO.raiseError(CustomException(s"Talk slug '${data.slug}' is already used"))
     }
 
