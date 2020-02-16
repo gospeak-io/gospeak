@@ -74,11 +74,9 @@ class EventCtrl(cc: ControllerComponents,
 
   def proposalExt(event: ExternalEvent.Id, proposal: ExternalProposal.Id): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
-      eventElt <- OptionT(externalEventRepo.find(event))
-      proposalElt <- OptionT(externalProposalRepo.find(proposal))
-      talkElt <- OptionT(talkRepo.find(proposalElt.talk))
-      users <- OptionT.liftF(userRepo.list((eventElt.users ++ proposalElt.users).distinct))
-      res = Ok(html.proposalExt(eventElt, talkElt, proposalElt, users)(breadcrumb(eventElt, proposalElt)))
+      proposalElt <- OptionT(externalProposalRepo.findFull(proposal)).filter(_.event.id == event)
+      users <- OptionT.liftF(userRepo.list(proposalElt.users))
+      res = Ok(html.proposalExt(proposalElt, users)(breadcrumb(proposalElt)))
     } yield res).value.map(_.getOrElse(publicProposalNotFound(event, proposal)))
   }
 }
@@ -90,6 +88,8 @@ object EventCtrl {
   def breadcrumb(event: ExternalEvent): Breadcrumb =
     listBreadcrumb().add(event.name.value -> routes.EventCtrl.detailExt(event.id))
 
-  def breadcrumb(event: ExternalEvent, proposal: ExternalProposal): Breadcrumb =
-    breadcrumb(event).add("Talks" -> routes.EventCtrl.detailExt(event.id)).add(proposal.title.value -> routes.EventCtrl.proposalExt(event.id, proposal.id))
+  def breadcrumb(proposal: ExternalProposal.Full): Breadcrumb =
+    breadcrumb(proposal.event)
+      .add("Talks" -> routes.EventCtrl.detailExt(proposal.event.id))
+      .add(proposal.title.value -> routes.EventCtrl.proposalExt(proposal.event.id, proposal.id))
 }

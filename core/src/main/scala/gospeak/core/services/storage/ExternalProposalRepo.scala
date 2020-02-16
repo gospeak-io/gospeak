@@ -27,7 +27,7 @@ trait SpeakerExternalProposalRepo {
 }
 
 trait PublicExternalProposalRepo {
-  def find(id: ExternalProposal.Id): IO[Option[ExternalProposal]]
+  def findFull(id: ExternalProposal.Id): IO[Option[ExternalProposal.Full]]
 
   def list(event: ExternalEvent.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[ExternalProposal]]
 

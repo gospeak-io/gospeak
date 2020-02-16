@@ -1,56 +1,12 @@
 @import gospeak.core.domain.User
-@import gospeak.core.domain.utils.SocialAccounts
 @import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.pages.published.partials.html.{container, userItem}
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
 @import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(speakers: Page[User.Full])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@socialIcon(s: SocialAccounts.SocialAccount) = {
-    <li class="list-inline-item mr-0">
-        <a class="btn btn-sm btn-icon btn-soft-secondary rounded-circle" href="@s.link" target="_blank" title="@s.handle">
-            <span class="fab fa-@s.name btn-icon__inner"></span>
-        </a>
-    </li>
-}
-@speakerItem(u: User.Full) = {
-    <div class="card position-relative mb-5">
-        <div class="card-body p-3">
-            <div class="row align-items-center">
-                <div class="col-sm-7 mb-3 mb-sm-0">
-                    <div class="d-flex">
-                        <a href="@SpeakerCtrl.detail(u.slug)" class="position-relative u-lg-avatar mr-3">
-                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
-                            <!--<span class="badge badge-xs badge-outline-primary badge-pos badge-pos--bottom-left rounded-circle"></span>-->
-                        </a>
-                        <div class="mr-3">
-                            <div class="mb-2">
-                                <h2 class="h6 mb-0"><a href="@SpeakerCtrl.detail(u.slug)">@u.name.value</a></h2>
-                                <span class="small">@{(u.company.toList ++ u.location.toList).mkString(", ")}</span>
-                            </div>
-                            <ul class="list-inline mb-0">
-                                @u.social.all.map { s => @socialIcon(s) }
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <!--<div class="col-sm-5 align-self-sm-end">
-                    <div class="text-sm-right">
-                        <a class="btn btn-sm btn-soft-primary transition-3d-hover" href="#">
-                            <span class="far fa-envelope mr-2"></span>
-                            Send a Message
-                        </a>
-                    </div>
-                </div>-->
-            </div>
-            <!--<a class="btn btn-sm btn-icon btn-soft-warning btn-bg-transparent position-absolute top-0 right-0 rounded-circle mt-3 mr-3" title="Add to favorites" data-toggle="tooltip" data-placement="top">
-                <span class="far fa-star btn-icon__inner"></span>
-            </a>-->
-        </div>
-    </div>
-}
 @container("Speakers - Gospeak", PageMeta.default(), b, full = true, dark = true)() {
 @* cf https://htmlstream.com/preview/front-v2.9.4/html/account/members-list.html *@
 <main id="content" role="main">
@@ -115,7 +71,7 @@
     }
     <div class="container">
         <div class="container mt-7">
-            @Formats.paginated[User.Full](speakers, SpeakerCtrl.list, speakerItem)
+            @Formats.paginated[User.Full](speakers, SpeakerCtrl.list, u => userItem(u.user))
         </div>
         <h2 class="text-center font-weight-medium" style="margin-bottom: 10rem">
             Not in this list? <a class="btn btn-soft-success" href="@TalkCtrl.create()">Add your talk</a>

@@ -47,6 +47,8 @@ sealed class BasicReq[A] protected(protected val request: Request[A],
 
   def isSpeaker(p: ExternalProposal): Boolean = userOpt.exists(u => p.hasSpeaker(u.id))
 
+  def isSpeaker(p: ExternalProposal.Full): Boolean = userOpt.exists(u => p.hasSpeaker(u.id))
+
   def isSpeaker(p: CommonProposal): Boolean = userOpt.exists(u => p.hasSpeaker(u.id))
 
   def isOrga(p: CommonProposal): Boolean = userOpt.exists(u => p.hasOrga(u.id))

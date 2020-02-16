@@ -13,6 +13,7 @@ import gospeak.infra.services.storage.sql.ExternalProposalRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import gospeak.infra.services.storage.sql.utils.{GenericQuery, GenericRepo}
+import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Done, Page, Tag}
 
 class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ExternalProposalRepo {
@@ -40,6 +41,8 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
 
   override def find(id: ExternalProposal.Id): IO[Option[ExternalProposal]] = selectOne(id).runOption(xa)
 
+  override def findFull(id: ExternalProposal.Id): IO[Option[ExternalProposal.Full]] = selectOneFull(id).runOption(xa)
+
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 }
 
@@ -49,6 +52,9 @@ object ExternalProposalRepoSql {
 
   private val _ = externalProposalIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.externalProposals
+  private val tableFull = table
+    .join(Tables.talks, _.talk_id -> _.id).get
+    .join(Tables.externalEvents, _.event_id -> _.id).get.dropFields(_.name.startsWith("location_"))
   private val commonTable = Table(
     name = "((SELECT p.id, false as external, t.id as talk_id, t.slug as talk_slug, t.duration as talk_duration, g.id as group_id, g.slug as group_slug, g.name as group_name, g.logo as group_logo, g.owners as group_owners, c.id as cfp_id, c.slug as cfp_slug, c.name as cfp_name, e.id as event_id, e.slug as event_slug, e.name as event_name, e.kind as event_kind, e.start as event_start, null as event_ext_id, null   as event_ext_name, null   as event_ext_kind, null   as event_ext_logo, null    as event_ext_start, null  as event_ext_url, null  as event_ext_proposal_url, p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.created_at, p.created_by, p.updated_at, p.updated_by FROM proposals p          INNER JOIN talks t ON p.talk_id=t.id LEFT OUTER JOIN events e     ON p.event_id=e.id INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN groups g ON c.group_id=g.id WHERE e.published IS NOT NULL) " +
       "UNION (SELECT p.id, true  as external, t.id as talk_id, t.slug as talk_slug, t.duration as talk_duration, null as group_id, null   as group_slug, null   as group_name, null   as group_logo, null     as group_owners, null as cfp_id, null   as cfp_slug, null   as cfp_name, null as event_id, null   as event_slug, null   as event_name, null   as event_kind, null    as event_start, e.id as event_ext_id, e.name as event_ext_name, e.kind as event_ext_kind, e.logo as event_ext_logo, e.start as event_ext_start, e.url as event_ext_url, p.url as event_ext_proposal_url, p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.created_at, p.created_by, p.updated_at, p.updated_by FROM external_proposals p INNER JOIN talks t ON p.talk_id=t.id INNER JOIN external_events e ON p.event_id=e.id))",
@@ -83,6 +89,9 @@ object ExternalProposalRepoSql {
 
   private[sql] def selectOne(id: ExternalProposal.Id): Select[ExternalProposal] =
     table.selectOne[ExternalProposal](fr0"WHERE ep.id=$id", Seq())
+
+  private[sql] def selectOneFull(id: ExternalProposal.Id): Select[ExternalProposal.Full] =
+    tableFull.selectOne[ExternalProposal.Full](fr0"WHERE ep.id=$id", Seq())
 
   private[sql] def selectPage(event: ExternalEvent.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[ExternalProposal, UserAwareCtx] =
     table.selectPage[ExternalProposal, UserAwareCtx](params, fr0"WHERE ep.event_id=$event")

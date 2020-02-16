@@ -1,7 +1,9 @@
 package gospeak.infra.services.storage.sql
 
 import gospeak.core.domain.Proposal
+import gospeak.infra.services.storage.sql.ExternalEventRepoSqlSpec.{fields => externalEventFields, table => externalEventTable}
 import gospeak.infra.services.storage.sql.ExternalProposalRepoSqlSpec._
+import gospeak.infra.services.storage.sql.TalkRepoSqlSpec.{fields => talkFields, table => talkTable}
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 
@@ -23,6 +25,10 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
       it("should build selectOne") {
         val q = ExternalProposalRepoSql.selectOne(externalProposal.id)
         check(q, s"SELECT $fields FROM $table WHERE ep.id=? LIMIT 1")
+      }
+      it("should build selectOneFull") {
+        val q = ExternalProposalRepoSql.selectOneFull(externalProposal.id)
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE ep.id=? LIMIT 1")
       }
       it("should build selectPage for event") {
         val q = ExternalProposalRepoSql.selectPage(externalEvent.id, params)
@@ -73,6 +79,9 @@ object ExternalProposalRepoSqlSpec {
   val table = "external_proposals ep"
   val fields: String = mapFields("id, talk_id, event_id, status, title, duration, description, message, speakers, slides, video, url, tags, created_at, created_by, updated_at, updated_by", "ep." + _)
   val orderBy = "ORDER BY ep.title IS NULL, ep.title, ep.created_at IS NULL, ep.created_at"
+
+  val tableFull = s"$table INNER JOIN $talkTable ON ep.talk_id=t.id INNER JOIN $externalEventTable ON ep.event_id=ee.id"
+  val fieldsFull = s"$fields, $talkFields, $externalEventFields"
 
   val commonTable: String = "(" +
     "(SELECT p.id, false as external, t.id as talk_id, t.slug as talk_slug, t.duration as talk_duration, g.id as group_id, g.slug as group_slug, g.name as group_name, g.logo as group_logo, g.owners as group_owners, c.id as cfp_id, c.slug as cfp_slug, c.name as cfp_name, e.id as event_id, e.slug as event_slug, e.name as event_name, e.kind as event_kind, e.start as event_start, null as event_ext_id, null   as event_ext_name, null   as event_ext_kind, null   as event_ext_logo, null    as event_ext_start, null  as event_ext_url, null  as event_ext_proposal_url, p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.created_at, p.created_by, p.updated_at, p.updated_by FROM proposals p          INNER JOIN talks t ON p.talk_id=t.id LEFT OUTER JOIN events e     ON p.event_id=e.id INNER JOIN cfps c ON p.cfp_id=c.id INNER JOIN groups g ON c.group_id=g.id WHERE e.published IS NOT NULL) UNION " +

@@ -35,6 +35,26 @@ object ExternalProposal {
 
   object Id extends UuidIdBuilder[Id]("ExternalProposal.Id", new Id(_))
 
+  final case class Full(proposal: ExternalProposal, talk: Talk, event: ExternalEvent) {
+    def id: Id = proposal.id
+
+    def title: Talk.Title = proposal.title
+
+    def description: Markdown = proposal.description
+
+    def speakers: NonEmptyList[User.Id] = proposal.speakers
+
+    def slides: Option[Slides] = proposal.slides
+
+    def video: Option[Video] = proposal.video
+
+    def url: Option[Url] = proposal.url
+
+    def hasSpeaker(user: User.Id): Boolean = proposal.hasSpeaker(user)
+
+    def users: List[User.Id] = (proposal.users ++ talk.users ++ event.users).distinct
+  }
+
   final case class Data(status: Proposal.Status,
                         title: Talk.Title,
                         duration: FiniteDuration,
