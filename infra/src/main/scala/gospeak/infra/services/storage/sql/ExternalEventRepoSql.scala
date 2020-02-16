@@ -36,7 +36,12 @@ object ExternalEventRepoSql {
   import GenericQuery._
 
   private val _ = externalEventIdMeta // for intellij not remove DoobieUtils.Mappings import
-  private val table = Tables.externalEvents
+  val table: Table = Tables.externalEvents.copy(filters = Seq(
+    Filter.Enum.fromEnum("type", "Type", "ee.kind", Seq(
+      "conference" -> Event.Kind.Conference.value,
+      "meetup" -> Event.Kind.Meetup.value,
+      "training" -> Event.Kind.Training.value,
+      "private event" -> Event.Kind.PrivateEvent.value))))
   private val tableSelect = table.dropFields(_.name.startsWith("location_"))
   val commonTable: Table = Table(
     name = "((SELECT e.id, e.name, e.kind, e.start, v.address as location, g.social_twitter as twitter_account, null as twitter_hashtag, e.tags, g.id as int_group_id, g.slug as int_group_slug, g.name as int_group_name, g.logo as int_group_logo, c.id as int_cfp_id, c.slug as int_cfp_slug, c.name as int_cfp_name, v.id as int_venue_id, p.name as int_venue_name, p.logo as int_venue_logo, e.slug as int_event_slug, e.description as int_description, null   as ext_logo, null          as ext_description, null  as ext_url, null          as ext_tickets, null         as ext_videos, e.created_at, e.created_by, e.updated_at, e.updated_by FROM events e INNER JOIN groups g ON e.group_id=g.id LEFT OUTER JOIN cfps c ON e.cfp_id=c.id LEFT OUTER JOIN venues v ON e.venue=v.id LEFT OUTER JOIN partners p ON v.partner_id=p.id WHERE e.published IS NOT NULL) " +
