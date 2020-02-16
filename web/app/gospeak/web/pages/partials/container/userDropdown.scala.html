@@ -1,7 +1,7 @@
 @import gospeak.core.domain.{Group, User}
 @import gospeak.web.auth.routes.AuthCtrl
 @import gospeak.web.pages.orga.routes.GroupCtrl
-@import gospeak.web.pages.user.profile.routes.ProfileCtrl
+@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.user.routes.UserCtrl
 
 @(user: User, groups: Seq[Group], group: Option[Group] = None)
@@ -14,7 +14,7 @@
     </a>
     <div aria-labelledby="dropdown-user" class="dropdown-menu dropdown-menu-right">
         <a class="dropdown-item" href="@UserCtrl.index()">Dashboard</a>
-        <a class="dropdown-item" href="@ProfileCtrl.detail()">My profile</a>
+        <a class="dropdown-item" href="@SpeakerCtrl.detail(user.slug)">My profile</a>
         <div class="dropdown-divider"></div>
         <h6 class="dropdown-header">My groups</h6>
         <a class="dropdown-item" href="mailto:contact@@gospeak.io?subject=Would like to create a group!&body=Don't be shy, email us :p">&nbsp;&nbsp;<b>Create a group</b></a>

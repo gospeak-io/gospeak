@@ -7,6 +7,7 @@
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.partials.html.{container, speakingHistory}
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import gospeak.web.pages.user.profile.routes.ProfileCtrl
 @import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(user: User.Full, userGroups: Seq[Group.Full], userTalks: Seq[Talk], userProposals: Map[Talk.Id, Seq[CommonProposal]], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
@@ -32,6 +33,7 @@
 <div class="row">
     <div class="col-3">
         <div class="card p-1 mb-4">
+            @if(req.user.exists(_.id == user.id)) { <a href="@ProfileCtrl.edit()" class="hover-edit"><i class="fas fa-edit"></i></a> }
             <div class="card-body text-center">
                 <div>
                     <img class="u-lg-avatar rounded-circle" src="@user.avatar.url.value" alt="@user.name.value avatar">
@@ -146,7 +148,7 @@
             <h3 class="h5 mb-0">Speaking history</h3>
             <div class="text-muted mb-3">
                 @userProposals.values.flatten.toList.groupBy(p => p.event.map(_.kind).orElse(p.eventExt.map(_.kind)).get).map { case (kind, proposals) =>
-                    <span class="badge badge-pill badge-@Formats.color(kind)">@eventKindIcon(kind) @proposals.length @kind.label</span>
+                    <span class="badge badge-pill badge-@Formats.color(kind)">@eventKindIcon(kind) @Formats.plural(proposals.length, kind.label)</span>
                 }
             </div>
             @speakingHistory(userProposals.values.flatten.toList)

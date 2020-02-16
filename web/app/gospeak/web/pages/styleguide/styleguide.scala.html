@@ -260,11 +260,6 @@
             @component("talkItem", "@talkItem(talk)") { name =>
                 @example(s"$name") { _ => @speaker.talkItem(talk) }
             }
-            @component("proposalItem", "@proposalItem(proposalFull)") { name =>
-                @example(s"$name pending") { _ => @speaker.proposalItem(proposalFull.copy(event = None)) }
-                @example(s"$name accepted") { _ => @speaker.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Accepted))) }
-                @example(s"$name declined") { _ => @speaker.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Declined))) }
-            }
             @component("proposalItem", "@commonProposalItem(proposalFull)") { name =>
                 @example(s"$name pending") { _ => @speaker.commonProposalItem(commonProposal.copy(event = None)) }
                 @example(s"$name accepted") { _ => @speaker.commonProposalItem(commonProposal.copy(status = Proposal.Status.Accepted)) }

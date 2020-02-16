@@ -96,7 +96,6 @@ POST        /u/talks/:talk/proposals/:cfp/speakers/:speaker                     
 POST        /u/talks/:talk/proposals/:cfp/slides                                           gospeak.web.pages.user.talks.proposals.ProposalCtrl.doAddSlides(talk: Talk.Slug, cfp: Cfp.Slug)
 POST        /u/talks/:talk/proposals/:cfp/video                                            gospeak.web.pages.user.talks.proposals.ProposalCtrl.doAddVideo(talk: Talk.Slug, cfp: Cfp.Slug)
 GET         /u/proposals                                                                   gospeak.web.pages.user.proposals.ProposalCtrl.list(params: Page.Params ?= Page.Params.defaults)
-GET         /u/profile                                                                     gospeak.web.pages.user.profile.ProfileCtrl.detail(params: Page.Params ?= Page.Params.defaults)
 GET         /u/profile/edit                                                                gospeak.web.pages.user.profile.ProfileCtrl.edit
 POST        /u/profile/edit                                                                gospeak.web.pages.user.profile.ProfileCtrl.doEdit
 

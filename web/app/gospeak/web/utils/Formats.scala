@@ -93,7 +93,7 @@ object Formats {
     case Event.Kind.Conference => "danger"
     case Event.Kind.Meetup => "success"
     case Event.Kind.Training => "primary"
-    case Event.Kind.PrivateEvent => "dark"
+    case Event.Kind.PrivateEvent => "secondary"
   }
 
   def mkHtml(list: Seq[Html], sep: Html): Html = list match {
