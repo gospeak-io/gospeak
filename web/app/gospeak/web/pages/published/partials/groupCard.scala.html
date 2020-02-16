@@ -2,6 +2,7 @@
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.utils.UserAwareReq
 
 @(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], users: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
@@ -50,12 +51,9 @@
                 Organized by<br>
                 @group.owners.toList.flatMap(id => users.find(_.id == id)).map { user =>
                     <li class="list-inline-item ml-n3 mr-0">
-                        <img src="@user.avatar.value"
-                            alt="@user.name.value avatar"
-                            title="@user.name.value"
-                            data-toggle="tooltip"
-                            data-placement="top"
-                            class="u-sm-avatar u-sm-avatar--bordered rounded-circle img-fluid rounded-circle">
+                        <a href="@SpeakerCtrl.detail(user.slug)" title="@user.name.value" data-toggle="tooltip">
+                            <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@user.avatar.value" alt="@user.name.value avatar">
+                        </a>
                     </li>
                 }
             </div>
@@ -98,7 +96,7 @@
             <h4 class="font-size-1 font-weight-semi-bold text-uppercase mb-3">Linked accounts</h4>
             @group.social.all.zipWithIndex.map { case (s, i) =>
                 <a class="media align-items-center @if(i != 0){mt-2}" href="@s.link" target="_blank">
-                    <div class="u-sm-avatar mr-3"><i class="fab fa-@s.name"></i></div>
+                    <i class="fab fa-@s.name mr-3"></i>
                     <div class="media-body">
                         <h4 class="font-size-1 text-dark mb-0 text-capitalize">@s.name</h4>
                         <small class="d-block text-secondary">@s.handle</small>

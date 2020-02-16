@@ -58,19 +58,19 @@ object Event {
 
   final case class Name(value: String) extends AnyVal
 
-  sealed trait Kind extends StringEnum {
+  sealed abstract class Kind(val label: String) extends StringEnum {
     def value: String = toString
   }
 
   object Kind extends EnumBuilder[Kind]("Event.Kind") {
 
-    final case object Conference extends Kind
+    final case object Conference extends Kind("Conference")
 
-    final case object Meetup extends Kind
+    final case object Meetup extends Kind("Meetup")
 
-    final case object Training extends Kind
+    final case object Training extends Kind("Training")
 
-    final case object PrivateEvent extends Kind
+    final case object PrivateEvent extends Kind("Private event")
 
     val all: Seq[Kind] = Seq(Conference, Meetup, Training, PrivateEvent)
 

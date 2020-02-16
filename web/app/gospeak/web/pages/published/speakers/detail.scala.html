@@ -1,5 +1,6 @@
 @import gospeak.core.domain.{CommonProposal, Group, Talk, User}
 @import gospeak.core.domain.utils.Constants
+@import gospeak.libs.scala.Extensions._
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.events.routes.EventCtrl
@@ -19,9 +20,7 @@
 }
 @socialItem(name: String, link: String, handle: String, i: Int) = {
     <a class="media @if(i != 0){mt-4}" href="@link" target="_blank">
-        <div class="u-sm-avatar mr-3">
-            <img class="img-fluid" src="@routes.Assets.versioned(s"web/img/logos/$name.png")" alt="Twitter logo">
-        </div>
+        <img class="u-sm-avatar mr-3" src="@routes.Assets.versioned(s"web/img/logos/$name.png")" alt="@name logo">
         <div class="media-body">
             <span class="d-block text-dark text-capitalize">@name</span>
             <small class="d-block text-secondary" style="max-width: 9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@handle</small>
@@ -34,19 +33,35 @@
     <div class="col-3">
         <div class="card p-1 mb-4">
             <div class="card-body text-center">
-                <div class="mb-3">
+                <div>
                     <img class="u-lg-avatar rounded-circle" src="@user.avatar.url.value" alt="@user.name.value avatar">
                 </div>
-                <div>
+                <div class="mt-3">
                     <h1 class="h6 font-weight-medium mb-0">@user.name.value</h1>
                     <small class="d-block text-muted">@{(user.company.toList ++ user.location.toList).mkString(", ")}</small>
                 </div>
-                <!--<div class="mb-2">
+                <!--<div class="mt-3">
                     <a class="btn btn-sm btn-soft-primary transition-3d-hover" href="#">
                         <span class="far fa-envelope mr-2"></span>
                         Send a Message
                     </a>
                 </div>-->
+                @defining(userProposals.values.flatten.toList.filter(p => p.logo.isDefined && p.eventName.isDefined).sortBy(p => (p.eventKind.map(_.value).getOrElse(""), -p.date.getEpochSecond)).distinctBy(_.logo).take(8).reverse) { proposals: List[CommonProposal] =>
+                    @if(proposals.nonEmpty) {
+                        <div class="mt-3">
+                            Spoke at<br>
+                            <ul class="list-inline ml-3 mb-0">
+                            @proposals.map { p =>
+                                <li class="list-inline-item ml-n3 mr-0">
+                                    <a href="@eventLink(p)" title="@p.eventName.map(_.value).getOrElse("")" data-toggle="tooltip">
+                                        <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@p.logo.get.value" alt="@p.eventName.map(_.value).getOrElse("") logo">
+                                    </a>
+                                </li>
+                            }
+                            </ul>
+                        </div>
+                    }
+                }
             </div>
         </div>
         @if(user.website.isDefined || user.social.all.nonEmpty) {
@@ -66,10 +81,10 @@
     <div class="col-9">
         @user.title.map { t => <h2 class="h4">@t</h2> }
         @user.bio.map { b => <div class="mb-4">@markdown(b)</div> }
-        @if(userGroups.nonEmpty || (userTalks.nonEmpty && !(userTalks.length == userProposals.values.flatten.size))) {
+        @if(userGroups.nonEmpty || (userTalks.nonEmpty && !(userTalks.map(_.title.value).toList.sorted == userProposals.values.flatten.map(_.title.value).toList.sorted))) {
             @if(user.title.isDefined || user.bio.isDefined) { <hr class="my-7"> }
             <div class="row mb-7">
-                @if(userTalks.nonEmpty && !(userTalks.length == userProposals.values.flatten.size)) {
+                @if(userTalks.nonEmpty && !(userTalks.map(_.title.value).toList.sorted == userProposals.values.flatten.map(_.title.value).toList.sorted)) {
                     <div class="col-md-6 mb-3 mb-md-0">
                         <h3 class="h5 mb-3">Current talks</h3>
                         @userTalks.zipWithIndex.map { case (talk, i) =>
@@ -94,8 +109,8 @@
                                     <ul class="list-inline ml-3 mb-0">
                                     @talk.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
                                         <li class="list-inline-item ml-n3 mr-0">
-                                            <a class="u-sm-avatar u-sm-avatar--bordered rounded-circle" href="@SpeakerCtrl.detail(u.slug)">
-                                                <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value">
+                                            <a href="@SpeakerCtrl.detail(u.slug)" title="@u.name.value" data-toggle="tooltip">
+                                                <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
                                             </a>
                                         </li>
                                     }
@@ -128,7 +143,12 @@
         }
         @if(userProposals.nonEmpty) {
             <hr class="my-7">
-            <h3 class="h5 mb-3">Speaking history</h3>
+            <h3 class="h5 mb-0">Speaking history</h3>
+            <div class="text-muted mb-3">
+                @userProposals.values.flatten.toList.groupBy(p => p.event.map(_.kind).orElse(p.eventExt.map(_.kind)).get).map { case (kind, proposals) =>
+                    <span class="badge badge-pill badge-@Formats.color(kind)">@eventKindIcon(kind) @proposals.length @kind.label</span>
+                }
+            </div>
             @speakingHistory(userProposals.values.flatten.toList)
         }
     </div>

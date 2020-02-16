@@ -4,7 +4,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate, LocalDateTime}
 import java.util.Locale
 
-import gospeak.core.domain.Cfp
+import gospeak.core.domain.{Cfp, Event}
 import gospeak.core.domain.utils.Constants
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Filter
 import gospeak.web.pages.partials.html
@@ -87,6 +87,13 @@ object Formats {
     case (None, Some(end)) if end.isAfter(req.nowLDT) => s"closing ${date(end)}"
     case (None, Some(end)) => s"closed ${date(end)}"
     case (None, None) => "always open"
+  }
+
+  def color(kind: Event.Kind): String = kind match {
+    case Event.Kind.Conference => "danger"
+    case Event.Kind.Meetup => "success"
+    case Event.Kind.Training => "primary"
+    case Event.Kind.PrivateEvent => "dark"
   }
 
   def mkHtml(list: Seq[Html], sep: Html): Html = list match {

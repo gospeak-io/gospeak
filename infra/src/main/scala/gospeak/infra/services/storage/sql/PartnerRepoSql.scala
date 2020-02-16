@@ -12,7 +12,7 @@ import gospeak.core.domain.{Group, Partner, User}
 import gospeak.core.services.storage.PartnerRepo
 import gospeak.infra.services.storage.sql.PartnerRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Filter, Insert, Select, SelectPage, Table, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{CustomException, Done, Page}

@@ -77,11 +77,11 @@
                                     by
                                     @p.speakers.toList.map { sId =>
                                         @speakers.find(_.id == sId).map { s =>
-                                            <a href="@SpeakerCtrl.detail(req.group.slug, s.slug)">
-                                                <img class="u-sm-avatar rounded-circle" src="@s.avatar.value" alt="@s.name.value avatar" title="@s.name.value" data-toggle="tooltip">
+                                            <a href="@SpeakerCtrl.detail(req.group.slug, s.slug)" title="@s.name.value" data-toggle="tooltip">
+                                                <img class="u-sm-avatar rounded-circle" src="@s.avatar.value" alt="@s.name.value avatar">
                                             </a>
                                         }.getOrElse {
-                                            <img class="u-sm-avatar rounded-circle" src="@Placeholders.unknownUser" alt="Unknown user" title="Unknown user" data-toggle="tooltip">
+                                            <img class="u-sm-avatar rounded-circle" src="@Placeholders.unknownUser" alt="Unknown user avatar" title="Unknown user" data-toggle="tooltip">
                                         }
                                     }
                                 </span>

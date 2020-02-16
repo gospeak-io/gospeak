@@ -17,7 +17,7 @@
     @proposals.sortBy(-_.date.getEpochSecond).map { proposal =>
         <li class="media u-indicator-vertical-dashed-item">
             @proposal.event.map { event =>
-                <span class="btn btn-xs btn-icon btn-primary rounded-circle mr-3">
+                <span class="btn btn-xs btn-icon btn-@Formats.color(event.kind) rounded-circle mr-3">
                     <span class="btn-icon__inner">@eventKindIcon(event.kind)</span>
                 </span>
                 <div class="media-body">
@@ -32,7 +32,7 @@
                 </div>
             }
             @proposal.eventExt.map { event =>
-                <span class="btn btn-xs btn-icon btn-danger rounded-circle mr-3">
+                <span class="btn btn-xs btn-icon btn-@Formats.color(event.kind) rounded-circle mr-3">
                     <span class="btn-icon__inner">@eventKindIcon(event.kind)</span>
                 </span>
                 <div class="media-body">

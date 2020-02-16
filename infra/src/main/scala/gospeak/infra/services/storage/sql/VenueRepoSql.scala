@@ -12,7 +12,7 @@ import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.services.storage.VenueRepo
 import gospeak.infra.services.storage.sql.VenueRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Sorts, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import gospeak.infra.services.storage.sql.utils.{DoobieUtils, GenericRepo}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Done, Markdown, Page}

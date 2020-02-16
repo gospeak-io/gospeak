@@ -28,7 +28,11 @@ final case class CommonProposal(id: CommonProposal.Id,
 
   def date: Instant = event.map(_.start).orElse(eventExt.flatMap(_.start)).map(TimeUtils.toInstant(_, Constants.defaultZoneId)).getOrElse(info.createdAt)
 
+  def logo: Option[Logo] = eventExt.flatMap(_.logo).orElse(group.flatMap(_.logo))
+
   def eventName: Option[Event.Name] = event.map(_.name).orElse(eventExt.map(_.name))
+
+  def eventKind: Option[Event.Kind] = event.map(_.kind).orElse(eventExt.map(_.kind))
 }
 
 object CommonProposal {

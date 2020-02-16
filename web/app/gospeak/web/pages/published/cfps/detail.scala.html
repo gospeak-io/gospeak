@@ -83,10 +83,10 @@
                 @group.social.all.map { s =>
                     <div class="row mb-2">
                         <a class="media align-items-center" href="@s.link">
-                            <div class="u-sm-avatar mr-3"><i class="fab fa-@s.name"></i></div>
+                            <i class="fab fa-@s.name mr-3"></i>
                             <div class="media-body">
                                 <h4 class="font-size-1 text-dark mb-0">@s.name</h4>
-                                <small class="d-block text-secondary"><a href="@s.link">@s.handle</a></small>
+                                <small class="text-secondary d-inline-block text-truncate" style="max-width: 200px;"><a href="@s.link">@s.handle</a></small>
                             </div>
                         </a>
                     </div>

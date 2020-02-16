@@ -319,7 +319,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     val devoxx2020 = eventExt("Devoxx France 2020", Some("2020-04-15"), Some("https://www.devoxx.fr"), Some("https://www.devoxx.fr/wp-content/uploads/2019/09/favicon.ico"), "A super event", Some("2020-04-17"), Some(palaisDesCongres), Some("https://www.devoxx.fr/tickets/"), Some("https://www.youtube.com/channel/UCsVPQfo5RZErDL41LoWvk0A"), Some("DevoxxFR"), Some("DevoxxFR"), Seq("Tech", "Java"), userDemo)
     val eventExts = Seq(devoxx2020)
 
-    val cfpDevoxx2020 = cfpExt(devoxx2020, "https://cfp.devoxx.fr", Some("2019-11-01"), Some("2020-02-16"), "Initialement très orienté Java, Devoxx France est maintenant une conférence généraliste", userDemo)
+    val cfpDevoxx2020 = cfpExt(devoxx2020, "https://cfp.devoxx.fr", Some("2019-11-01"), Some("2020-04-16"), "Initialement très orienté Java, Devoxx France est maintenant une conférence généraliste", userDemo)
     val cfpExts = Seq(cfpDevoxx2020)
 
     val whyFPDevoxx2020 = proposalExt(whyFP, devoxx2020)

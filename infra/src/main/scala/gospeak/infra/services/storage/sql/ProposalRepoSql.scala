@@ -12,7 +12,7 @@ import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.ProposalRepo
 import gospeak.infra.services.storage.sql.ProposalRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{CustomField, Field, Filter, Insert, Select, SelectPage, Table, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import gospeak.infra.services.storage.sql.utils.{DoobieUtils, GenericRepo}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._

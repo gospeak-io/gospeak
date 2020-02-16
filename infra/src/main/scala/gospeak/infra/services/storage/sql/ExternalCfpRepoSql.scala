@@ -9,7 +9,7 @@ import gospeak.core.domain.utils.{Info, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.ExternalCfpRepo
 import gospeak.infra.services.storage.sql.ExternalCfpRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Sorts, Table, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Done, Page}

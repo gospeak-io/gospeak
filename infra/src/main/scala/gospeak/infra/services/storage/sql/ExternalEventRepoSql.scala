@@ -9,7 +9,7 @@ import gospeak.core.domain.{CommonEvent, Event, ExternalEvent, User}
 import gospeak.core.services.storage.ExternalEventRepo
 import gospeak.infra.services.storage.sql.ExternalEventRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Filter, Insert, Select, SelectPage, Sorts, Table, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import gospeak.infra.services.storage.sql.utils.{GenericQuery, GenericRepo}
 import gospeak.libs.scala.domain.{Done, Logo, Page, Tag}
 

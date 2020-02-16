@@ -81,7 +81,7 @@
                 <h4 class="font-size-1 font-weight-semi-bold text-uppercase mb-3">Linked accounts</h4>
                 @cfp.event.videos.map { v =>
                     <a href="@v" class="media align-items-center mb-3" target="_blank">
-                        <div class="u-sm-avatar m-3"><i class="fab fa-youtube"></i></div>
+                        <i class="fab fa-youtube mr-3"></i>
                         <div class="media-body">
                             <h4 class="font-size-1 text-dark mb-0">Videos</h4>
                             <small class="text-secondary d-inline-block text-truncate" style="max-width: 200px;">@v</small>
@@ -90,7 +90,7 @@
                 }
                 @cfp.event.tickets.map { t =>
                     <a href="@t" class="media align-items-center mb-3" target="_blank">
-                        <div class="u-sm-avatar m-3"><i class="fas fa-ticket-alt"></i></div>
+                        <i class="fas fa-ticket-alt mr-3"></i>
                         <div class="media-body">
                             <h4 class="font-size-1 text-dark mb-0">Tickets</h4>
                             <small class="text-secondary d-inline-block text-truncate" style="max-width: 200px;">@t</small>
@@ -99,10 +99,10 @@
                 }
                 @cfp.event.twitterAccount.map { a =>
                     <a href="@a.url" class="media align-items-center mb-3" target="_blank">
-                        <div class="u-sm-avatar m-3"><i class="fab fa-twitter"></i></div>
+                        <i class="fab fa-twitter mr-3"></i>
                         <div class="media-body">
                             <h4 class="font-size-1 text-dark mb-0">Twitter</h4>
-                            <small class="d-block text-secondary">@a.handle</small>
+                            <small class="text-secondary d-inline-block text-truncate" style="max-width: 200px;">@a.handle</small>
                         </div>
                     </a>
                 }

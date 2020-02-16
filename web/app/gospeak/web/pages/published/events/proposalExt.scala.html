@@ -18,9 +18,7 @@
     <ul class="list-inline mb-3">
         @proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
             <li class="list-inline-item">
-                <a href="@SpeakerCtrl.detail(u.slug)">
-                    <span class="u-sm-avatar"><img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar"></span> @u.name.value
-                </a>
+                <a href="@SpeakerCtrl.detail(u.slug)"><img class="u-sm-avatar rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar"> @u.name.value</a>
             </li>
         }
     </ul>
