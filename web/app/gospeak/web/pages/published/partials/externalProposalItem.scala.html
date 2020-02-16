@@ -3,7 +3,7 @@
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 
 @(proposal: ExternalProposal, users: Seq[User])
-<div class="card">
+<div class="card mb-3">
     <div class="card-body d-flex justify-content-between align-items-center">
         <h4 class="h6 mb-0">
             <a href="@EventCtrl.proposalExt(proposal.event, proposal.id)">@proposal.title.value</a>
@@ -13,8 +13,8 @@
         <ul class="list-inline ml-3 mb-0">
             @proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
                 <li class="list-inline-item ml-n3 mr-0">
-                    <a class="u-sm-avatar" href="@SpeakerCtrl.detail(u.slug)" title="@u.name.value" data-toggle="tooltip">
-                        <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
+                    <a href="@SpeakerCtrl.detail(u.slug)" title="@u.name.value" data-toggle="tooltip">
+                        <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
                     </a>
                 </li>
             }

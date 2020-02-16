@@ -110,7 +110,7 @@ abstract class UICtrl(cc: ControllerComponents,
     Redirect(pages.user.talks.routes.TalkCtrl.detail(talk)).flashing("warning" -> s"Unable to find this event")
 
   protected def extEventNotFound(event: ExternalEvent.Id): Result =
-    Redirect(pages.published.cfps.routes.CfpCtrl.list()).flashing("warning" -> s"Unable to find this event")
+    Redirect(pages.published.events.routes.EventCtrl.list()).flashing("warning" -> s"Unable to find this event")
 
   protected def extCfpNotFound(cfp: ExternalCfp.Id): Result =
     Redirect(pages.published.cfps.routes.CfpCtrl.list()).flashing("warning" -> s"Unable to find this CFP")

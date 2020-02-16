@@ -12,9 +12,7 @@
     <div class="row">
         <div class="col-8">
             <div class="media mb-3">
-                <div class="u-lg-avatar mr-3">
-                    <img src="@event.logo.map(_.value).getOrElse(Constants.Placeholders.eventLogo)" alt="@event.name.value logo" class="img-fluid rounded-circle" width="160" height="160">
-                </div>
+                <img src="@event.logo.map(_.value).getOrElse(Constants.Placeholders.eventLogo)" alt="@event.name.value logo" class="u-lg-avatar rounded-circle mr-3">
                 <div class="media-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <h1 class="h4 mb-1">@event.name.value</h1>
@@ -65,5 +63,9 @@
             <h3 class="h5 mb-3">Talks</h3>
             @Formats.paginated[ExternalProposal](proposals, EventCtrl.detailExt(event.id, _), externalProposalItem(_, users))
         </div>
+        <h2 class="text-center font-weight-medium" style="margin-bottom: 10rem">
+            Spoke at @event.name.value?
+            <a class="btn btn-soft-success" href="@EventCtrl.findTalk(event.id)">Add you talk here</a>
+        </h2>
     }
 }()

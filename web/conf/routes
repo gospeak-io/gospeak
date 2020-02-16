@@ -23,6 +23,11 @@ POST        /events/create                                                      
 GET         /events/ext/:event                                                             gospeak.web.pages.published.events.EventCtrl.detailExt(event: ExternalEvent.Id, params: Page.Params ?= Page.Params.defaults)
 GET         /events/ext/:event/edit                                                        gospeak.web.pages.published.events.EventCtrl.edit(event: ExternalEvent.Id)
 POST        /events/ext/:event/edit                                                        gospeak.web.pages.published.events.EventCtrl.doEdit(event: ExternalEvent.Id)
+GET         /events/ext/:event/add-talk                                                    gospeak.web.pages.published.events.EventCtrl.findTalk(event: ExternalEvent.Id, params: Page.Params ?= Page.Params.defaults)
+GET         /events/ext/:event/add-talk/create                                             gospeak.web.pages.published.events.EventCtrl.createTalk(event: ExternalEvent.Id)
+POST        /events/ext/:event/add-talk/create                                             gospeak.web.pages.published.events.EventCtrl.doCreateTalk(event: ExternalEvent.Id)
+GET         /events/ext/:event/add-talk/:talk                                              gospeak.web.pages.published.events.EventCtrl.createExternalProposal(event: ExternalEvent.Id, talk: Talk.Slug)
+POST        /events/ext/:event/add-talk/:talk                                              gospeak.web.pages.published.events.EventCtrl.doCreateExternalProposal(event: ExternalEvent.Id, talk: Talk.Slug)
 GET         /events/ext/:event/talks/:proposal                                             gospeak.web.pages.published.events.EventCtrl.proposalExt(event: ExternalEvent.Id, proposal: ExternalProposal.Id)
 
 GET         /groups                                                                        gospeak.web.pages.published.groups.GroupCtrl.list(params: Page.Params ?= Page.Params.defaults)

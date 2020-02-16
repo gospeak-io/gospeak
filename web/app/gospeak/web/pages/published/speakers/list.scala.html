@@ -1,5 +1,6 @@
 @import gospeak.core.domain.User
 @import gospeak.libs.scala.domain.Page
+@import gospeak.web.auth.routes.AuthCtrl
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.published.partials.html.{container, userItem}
@@ -25,46 +26,46 @@
         <div class="container position-relative z-index-2">
             <div class="row justify-content-center">
                 @s.headOption.map { u =>
-                    <a href="@SpeakerCtrl.detail(u.slug)" class="col-3 col-lg-2 mt-n11">
-                        <div class="bg-white shadow-soft rounded-circle p-2 mx-auto u-lg-avatar">
-                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
-                        </div>
-                    </a>
+                    <div class="col-3 col-lg-2 mt-n11">
+                        <a href="@SpeakerCtrl.detail(u.slug)">
+                            <img class="u-lg-avatar u-xl-avatar--bordered rounded-circle shadow-soft" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value" data-toggle="tooltip">
+                        </a>
+                    </div>
                 }
                 @s.drop(1).headOption.map { u =>
-                    <a href="@SpeakerCtrl.detail(u.slug)" class="col-lg-2 d-none d-lg-inline-block mt-lg-n8">
-                        <div class="bg-white shadow-soft rounded-circle p-2 mx-auto u-xl-avatar">
-                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
-                        </div>
-                    </a>
+                    <div class="col-lg-2 d-none d-lg-inline-block mt-lg-n8">
+                        <a href="@SpeakerCtrl.detail(u.slug)">
+                            <img class="u-xl-avatar u-xl-avatar--bordered rounded-circle shadow-soft" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value" data-toggle="tooltip">
+                        </a>
+                    </div>
                 }
                 @s.drop(2).headOption.map { u =>
-                    <a href="@SpeakerCtrl.detail(u.slug)" class="col-3 col-lg-2 mt-n4">
-                        <div class="bg-white shadow-soft rounded-circle p-2 mx-auto u-lg-avatar">
-                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
-                        </div>
-                    </a>
+                    <div class="col-3 col-lg-2 mt-n4">
+                        <a href="@SpeakerCtrl.detail(u.slug)">
+                            <img class="u-lg-avatar u-xl-avatar--bordered rounded-circle shadow-soft" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value" data-toggle="tooltip">
+                        </a>
+                    </div>
                 }
                 @s.drop(3).headOption.map { u =>
-                    <a href="@SpeakerCtrl.detail(u.slug)" class="col-3 col-lg-2 mt-n7">
-                        <div class="bg-white shadow-soft rounded-circle p-2 mx-auto u-lg-avatar">
-                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
-                        </div>
-                    </a>
+                    <div class="col-3 col-lg-2 mt-n7">
+                        <a href="@SpeakerCtrl.detail(u.slug)">
+                            <img class="u-lg-avatar u-xl-avatar--bordered rounded-circle shadow-soft" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value" data-toggle="tooltip">
+                        </a>
+                    </div>
                 }
                 @s.drop(4).headOption.map { u =>
-                    <a href="@SpeakerCtrl.detail(u.slug)" class="col-lg-2 d-none d-lg-inline-block mt-lg-n11">
-                        <div class="bg-white shadow-soft rounded-circle p-2 mx-auto u-xl-avatar">
-                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
-                        </div>
-                    </a>
+                    <div class="col-lg-2 d-none d-lg-inline-block mt-lg-n11">
+                        <a href="@SpeakerCtrl.detail(u.slug)">
+                            <img class="u-xl-avatar u-xl-avatar--bordered rounded-circle shadow-soft" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value" data-toggle="tooltip">
+                        </a>
+                    </div>
                 }
                 @s.drop(5).headOption.map { u =>
-                    <a href="@SpeakerCtrl.detail(u.slug)" class="col-3 col-lg-2">
-                        <div class="bg-white shadow-soft rounded-circle p-2 mx-auto u-lg-avatar">
-                            <img class="img-fluid rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar" style="width: 10rem">
-                        </div>
-                    </a>
+                    <div class="col-3 col-lg-2">
+                        <a href="@SpeakerCtrl.detail(u.slug)">
+                            <img class="u-lg-avatar u-xl-avatar--bordered rounded-circle shadow-soft" src="@u.avatar.value" alt="@u.name.value avatar" title="@u.name.value" data-toggle="tooltip">
+                        </a>
+                    </div>
                 }
             </div>
         </div>
@@ -74,7 +75,7 @@
             @Formats.paginated[User.Full](speakers, SpeakerCtrl.list, u => userItem(u.user))
         </div>
         <h2 class="text-center font-weight-medium" style="margin-bottom: 10rem">
-            Not in this list? <a class="btn btn-soft-success" href="@TalkCtrl.create()">Add your talk</a>
+            Want your speaker profile? <a class="btn btn-soft-success" href="@AuthCtrl.signup()">Create it now</a>
         </h2>
     </div>
 </main>

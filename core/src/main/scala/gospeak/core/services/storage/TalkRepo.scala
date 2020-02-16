@@ -42,9 +42,15 @@ trait UserTalkRepo {
 trait AuthTalkRepo
 
 trait PublicTalkRepo {
+  def create(data: Talk.Data)(implicit ctx: UserCtx): IO[Talk]
+
   def findPublic(talk: Talk.Slug, speaker: User.Id): IO[Option[Talk]]
 
   def find(talk: Talk.Id): IO[Option[Talk]]
+
+  def find(talk: Talk.Slug)(implicit ctx: UserCtx): IO[Option[Talk]]
+
+  def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]]
 
   def listAll(user: User.Id, status: Talk.Status): IO[Seq[Talk]]
 }

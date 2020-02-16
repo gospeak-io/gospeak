@@ -27,9 +27,11 @@ trait SpeakerExternalProposalRepo {
 }
 
 trait PublicExternalProposalRepo {
+  def create(talk: Talk.Id, event: ExternalEvent.Id, data: ExternalProposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[ExternalProposal]
+
   def findFull(id: ExternalProposal.Id): IO[Option[ExternalProposal.Full]]
 
-  def list(event: ExternalEvent.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[ExternalProposal]]
+  def listPublic(event: ExternalEvent.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[ExternalProposal]]
 
   def listAllCommon(user: User.Id, status: Proposal.Status): IO[Seq[CommonProposal]]
 
