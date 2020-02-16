@@ -12,7 +12,7 @@ import gospeak.core.domain.{Group, Partner, User}
 import gospeak.core.services.storage.PartnerRepo
 import gospeak.infra.services.storage.sql.PartnerRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Filter, Insert, Select, SelectPage, Table, Update}
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{CustomException, Done, Page}
@@ -37,9 +37,9 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def remove(partner: Partner.Slug)(implicit ctx: OrgaCtx): IO[Done] = delete(ctx.group.id, partner).run(xa)
 
-  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner]] = selectPage(ctx.group.id, params).run(xa)
+  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner]] = selectPage(params).run(xa)
 
-  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner.Full]] = selectPageFull(ctx.group.id, params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner.Full]] = selectPageFull(params).run(xa)
 
   override def list(group: Group.Id): IO[Seq[Partner]] = selectAll(group).runList(xa)
 
@@ -55,14 +55,17 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 object PartnerRepoSql {
   private val _ = partnerIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.partners
-  private val tableFull = table
+  val tableFull: Table = table
     .joinOpt(Tables.venues, _.id("pa") -> _.partner_id).get
     .joinOpt(Tables.sponsors, _.id("pa") -> _.partner_id).get
     .joinOpt(Tables.contacts, _.id("pa") -> _.partner_id).get
     .aggregate("COALESCE(COUNT(DISTINCT v.id), 0)", "venueCount")
     .aggregate("COALESCE(COUNT(DISTINCT s.id), 0)", "sponsorCount")
     .aggregate("COALESCE(COUNT(DISTINCT ct.id), 0)", "contactCount")
-    .copy(fields = table.fields)
+    .copy(fields = table.fields, filters = Seq(
+      Filter.Bool.fromCount("venues", "With venues", "v.id"),
+      Filter.Bool.fromCount("sponsors", "With sponsors", "s.id"),
+      Filter.Bool.fromCount("contacts", "With contacts", "ct.id")))
   private val tableWithGroup = table
     .join(Tables.groups, _.group_id -> _.id).get
     .dropFields(_.name.startsWith("location_"))
@@ -84,30 +87,11 @@ object PartnerRepoSql {
   private[sql] def delete(group: Group.Id, partner: Partner.Slug): Delete =
     table.delete(where(group, partner))
 
-  private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[Partner] =
-    table.selectPage[Partner](params, fr0"WHERE pa.group_id=$group")
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Partner, OrgaCtx] =
+    table.selectPage[Partner, OrgaCtx](params, fr0"WHERE pa.group_id=${ctx.group.id}")
 
-  private[sql] def selectPageFull(group: Group.Id, params: Page.Params): SelectPage[Partner.Full] = {
-    val filters = Seq(
-      params.filters.get("venues") match {
-        case Some("true") => Some(fr0"COALESCE(COUNT(DISTINCT v.id), 0) > 0")
-        case Some("false") => Some(fr0"COALESCE(COUNT(DISTINCT v.id), 0) = 0")
-        case _ => None
-      },
-      params.filters.get("sponsors") match {
-        case Some("true") => Some(fr0"COALESCE(COUNT(DISTINCT s.id), 0) > 0")
-        case Some("false") => Some(fr0"COALESCE(COUNT(DISTINCT s.id), 0) = 0")
-        case _ => None
-      },
-      params.filters.get("contacts") match {
-        case Some("true") => Some(fr0"COALESCE(COUNT(DISTINCT ct.id), 0) > 0")
-        case Some("false") => Some(fr0"COALESCE(COUNT(DISTINCT ct.id), 0) = 0")
-        case _ => None
-      }
-    ).flatten
-    val having = filters.headOption.map(_ => fr0"HAVING " ++ filters.reduce(_ ++ fr0" AND " ++ _)).getOrElse(fr0"")
-    tableFull.selectPage[Partner.Full](params, fr0"WHERE pa.group_id=$group", having)
-  }
+  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Partner.Full, OrgaCtx] =
+    tableFull.selectPage[Partner.Full, OrgaCtx](params, fr0"WHERE pa.group_id=${ctx.group.id}")
 
   private[sql] def selectAll(group: Group.Id): Select[Partner] =
     table.select[Partner](fr0"WHERE pa.group_id=$group")

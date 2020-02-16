@@ -11,15 +11,15 @@ import org.scalatest.{FunSpec, Matchers}
 class DoobieUtilsSpec extends FunSpec with Matchers {
   describe("DoobieUtils") {
     describe("Table") {
-      val table1 = Table.from("table1", "t1", Seq("id", "name"), Seq("name"), Seq("name")).get
-      val table2 = Table.from("table2", "t2", Seq("id", "ref1"), Seq("id"), Seq("ref1")).get
-      val table3 = Table.from("table3", "t3", Seq("id", "ref2"), Seq("id"), Seq("ref2")).get
+      val table1 = Table.from("table1", "t1", Seq("id", "name"), Seq("name"), Seq("name"), Seq()).get
+      val table2 = Table.from("table2", "t2", Seq("id", "ref1"), Seq("id"), Seq("ref1"), Seq()).get
+      val table3 = Table.from("table3", "t3", Seq("id", "ref2"), Seq("id"), Seq("ref2"), Seq()).get
       describe("from") {
         it("should not have sort and search field present in fields") {
-          Table.from("tab", "t", Seq("f"), Seq(), Seq()) shouldBe a[Right[_, _]]
-          Table.from("tab", "t", Seq("f", "f"), Seq(), Seq()) shouldBe a[Left[_, _]] // duplicated field
-          // Table.from("tab", "t", Seq("f"), Seq("s"), Seq()) shouldBe a[Left[_, _]] // unknown sort
-          Table.from("tab", "t", Seq("f"), Seq(), Seq("s")) shouldBe a[Left[_, _]] // unknown search
+          Table.from("tab", "t", Seq("f"), Seq(), Seq(), Seq()) shouldBe a[Right[_, _]]
+          Table.from("tab", "t", Seq("f", "f"), Seq(), Seq(), Seq()) shouldBe a[Left[_, _]] // duplicated field
+          // Table.from("tab", "t", Seq("f"), Seq("s"), Seq(), Seq()) shouldBe a[Left[_, _]] // unknown sort
+          Table.from("tab", "t", Seq("f"), Seq(), Seq("s"), Seq()) shouldBe a[Left[_, _]] // unknown search
         }
       }
       describe("field") {

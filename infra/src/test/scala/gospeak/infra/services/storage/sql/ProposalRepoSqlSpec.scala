@@ -1,7 +1,7 @@
 package gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
-import gospeak.core.domain.utils.{FakeCtx, OrgaCtx, UserAwareCtx}
+import gospeak.core.domain.utils.FakeCtx
 import gospeak.core.domain.{Cfp, Proposal, Talk}
 import gospeak.infra.services.storage.sql.CfpRepoSqlSpec.{fields => cfpFields, table => cfpTable}
 import gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{fields => contactFields, table => contactTable}
@@ -15,9 +15,6 @@ import gospeak.infra.services.storage.sql.VenueRepoSqlSpec.{fields => venueField
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
 
 class ProposalRepoSqlSpec extends RepoSpec {
-  implicit private val orgaCtx: OrgaCtx = FakeCtx(now, user, group)
-  implicit private val userAwareCtx: UserAwareCtx = FakeCtx(now, Some(user))
-
   describe("ProposalRepoSql") {
     it("should create and retrieve a proposal for a group and talk") {
       val (user, group, cfp, talk) = createUserGroupCfpAndTalk().unsafeRunSync()
@@ -112,10 +109,6 @@ class ProposalRepoSqlSpec extends RepoSpec {
       it("should build selectOnePublicFull for id") {
         val q = ProposalRepoSql.selectOnePublicFull(group.id, proposal.id)
         check(q, s"SELECT $fieldsFull, $fieldsFullAgg, $fieldsFullCustom FROM $tableFull WHERE c.group_id=? AND p.id=? AND e.published IS NOT NULL GROUP BY $fieldsFull $orderByFull")
-      }
-      it("should build selectPage for a cfp and status") {
-        val q = ProposalRepoSql.selectPage(cfp.id, Proposal.Status.Pending, params)
-        check(q, s"SELECT $fields FROM $table WHERE p.cfp_id=? AND p.status=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull for a cfp") {
         val q = ProposalRepoSql.selectPageFull(cfp.slug, params)

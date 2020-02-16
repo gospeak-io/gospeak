@@ -11,18 +11,16 @@ import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.UserRequestRepo
 import gospeak.infra.services.storage.sql.UserRequestRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, Update}
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Done, EmailAddress, Page}
+import gospeak.libs.scala.domain.{Done, EmailAddress}
 
 class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
                          groupRepo: GroupRepoSql,
                          talkRepo: TalkRepoSql,
                          proposalRepo: ProposalRepoSql) extends GenericRepo with UserRequestRepo {
   override def find(id: UserRequest.Id): IO[Option[UserRequest]] = selectOne(id).runOption(xa)
-
-  override def list(user: User.Id, params: Page.Params): IO[Page[UserRequest]] = selectPage(user, params).run(xa)
 
   override def listPendingGroupRequests(implicit ctx: OrgaCtx): IO[Seq[UserRequest]] = selectAllPending(ctx.group.id, ctx.now).runList(xa)
 
@@ -160,9 +158,6 @@ object UserRequestRepoSql {
 
   private[sql] def selectOnePending(group: Group.Id, req: UserRequest.Id, now: Instant): Select[UserRequest] =
     table.select[UserRequest](fr0"WHERE ur.id=$req AND ur.group_id=$group" ++ andIsPending ++ andNotExpired(now))
-
-  private[sql] def selectPage(user: User.Id, params: Page.Params): SelectPage[UserRequest] =
-    table.selectPage[UserRequest](params, fr0"WHERE ur.created_by=$user")
 
   private[sql] def selectAllPending(group: Group.Id, now: Instant): Select[UserRequest] =
     table.select[UserRequest](fr0"WHERE ur.group_id=$group" ++ andIsPending ++ andNotExpired(now))

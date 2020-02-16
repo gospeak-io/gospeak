@@ -74,20 +74,16 @@ class EventRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? AND e.published IS NOT NULL $orderBy")
       }
       it("should build selectPage") {
-        val q = EventRepoSql.selectPage(group.id, params)
+        val q = EventRepoSql.selectPage(params)
         check(q, s"SELECT $fields FROM $table WHERE e.group_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull") {
-        val q = EventRepoSql.selectPageFull(group.id, params)
+        val q = EventRepoSql.selectPageFull(params)
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPagePublished") {
         val q = EventRepoSql.selectPagePublished(group.id, params)
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL $orderBy LIMIT 20 OFFSET 0")
-      }
-      it("should build selectPagePublic") {
-        val q = EventRepoSql.selectPagePublic(venue.address, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE v.address=? AND e.published IS NOT NULL $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectAll") {
         val q = EventRepoSql.selectAll(NonEmptyList.of(event.id))
@@ -102,11 +98,11 @@ class EventRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fieldsWithVenue FROM $tableWithVenue WHERE e.group_id=? AND v.partner_id=? $orderBy")
       }
       it("should build selectPageAfterFull") {
-        val q = EventRepoSql.selectPageAfterFull(group.id, now, params)
+        val q = EventRepoSql.selectPageAfterFull(params)
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.start > ? $orderBy LIMIT 20 OFFSET 0", checkCount = false)
       }
       it("should build selectPageIncoming") {
-        val q = EventRepoSql.selectPageIncoming(user.id, now, params)
+        val q = EventRepoSql.selectPageIncoming(params)
         check(q, s"SELECT $fieldsFullWithMemberAndRsvp FROM $tableFullWithMemberAndRsvp WHERE e.start > ? AND e.published IS NOT NULL AND gm.user_id=? $orderBy LIMIT 20 OFFSET 0", checkCount = false)
       }
       it("should build selectTags") {
@@ -125,10 +121,6 @@ class EventRepoSqlSpec extends RepoSpec {
         it("should build updateRsvp") {
           val q = EventRepoSql.updateRsvp(event.id, user.id, rsvp.answer, now)
           check(q, s"UPDATE $rsvpTable SET answer=?, answered_at=? WHERE er.event_id=? AND er.user_id=?")
-        }
-        it("should build selectPageRsvps") {
-          val q = EventRepoSql.selectPageRsvps(event.id, params)
-          check(q, s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? $rsvpOrderBy LIMIT 20 OFFSET 0")
         }
         it("should build selectAllRsvp") {
           val q = EventRepoSql.selectAllRsvp(event.id)

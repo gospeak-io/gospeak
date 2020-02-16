@@ -1,9 +1,7 @@
 package gospeak.core.services.storage
 
-import java.time.Instant
-
 import cats.effect.IO
-import gospeak.core.domain.utils.UserCtx
+import gospeak.core.domain.utils.{UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Cfp, CommonCfp, ExternalCfp, ExternalEvent}
 import gospeak.libs.scala.domain.{Done, Page}
 
@@ -14,7 +12,7 @@ trait PublicExternalCfpRepo {
 
   def edit(id: ExternalCfp.Id)(data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[Done]
 
-  def listIncoming(now: Instant, params: Page.Params): IO[Page[CommonCfp]]
+  def listIncoming(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonCfp]]
 
   def listDuplicatesFull(p: ExternalCfp.DuplicateParams): IO[Seq[ExternalCfp.Full]]
 

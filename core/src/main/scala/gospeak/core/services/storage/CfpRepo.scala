@@ -1,10 +1,8 @@
 package gospeak.core.services.storage
 
-import java.time.Instant
-
 import cats.effect.IO
 import gospeak.core.domain._
-import gospeak.core.domain.utils.OrgaCtx
+import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.libs.scala.domain.{Done, Page, Tag}
 
 trait CfpRepo extends OrgaCfpRepo with SpeakerCfpRepo with UserCfpRepo with AuthCfpRepo with PublicCfpRepo with SuggestCfpRepo
@@ -26,7 +24,7 @@ trait OrgaCfpRepo {
 }
 
 trait SpeakerCfpRepo {
-  def availableFor(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]]
+  def availableFor(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[Cfp]]
 
   def find(id: Cfp.Id): IO[Option[Cfp]]
 
@@ -38,15 +36,13 @@ trait UserCfpRepo
 trait AuthCfpRepo
 
 trait PublicCfpRepo {
-  def listIncoming(now: Instant, params: Page.Params): IO[Page[Cfp]]
-
-  def listAllIncoming(group: Group.Id, now: Instant): IO[Seq[Cfp]]
+  def listAllIncoming(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Seq[Cfp]]
 
   def find(id: Cfp.Id): IO[Option[Cfp]]
 
   def findRead(cfp: Cfp.Slug): IO[Option[Cfp]]
 
-  def findIncoming(cfp: Cfp.Slug, now: Instant): IO[Option[Cfp]]
+  def findIncoming(cfp: Cfp.Slug)(implicit ctx: UserAwareCtx): IO[Option[Cfp]]
 }
 
 trait SuggestCfpRepo {

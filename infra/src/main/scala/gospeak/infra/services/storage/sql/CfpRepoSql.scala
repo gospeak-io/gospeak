@@ -8,7 +8,7 @@ import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import gospeak.core.domain._
-import gospeak.core.domain.utils.OrgaCtx
+import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.CfpRepo
 import gospeak.infra.services.storage.sql.CfpRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
@@ -40,19 +40,17 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
 
   override def find(id: Event.Id): IO[Option[Cfp]] = selectOne(id).runOption(xa)
 
-  override def findIncoming(slug: Cfp.Slug, now: Instant): IO[Option[Cfp]] = selectOneIncoming(slug, now).runOption(xa)
+  override def findIncoming(slug: Cfp.Slug)(implicit ctx: UserAwareCtx): IO[Option[Cfp]] = selectOneIncoming(slug, ctx.now).runOption(xa)
 
-  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Cfp]] = selectPage(ctx.group.id, params).run(xa)
+  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Cfp]] = selectPage(params).run(xa)
 
-  override def availableFor(talk: Talk.Id, params: Page.Params): IO[Page[Cfp]] = selectPage(talk, params).run(xa)
-
-  override def listIncoming(now: Instant, params: Page.Params): IO[Page[Cfp]] = selectPageIncoming(now, params).run(xa)
+  override def availableFor(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[Cfp]] = selectPage(talk, params).run(xa)
 
   override def list(ids: Seq[Cfp.Id]): IO[Seq[Cfp]] = runNel(selectAll, ids)
 
   override def list(group: Group.Id): IO[Seq[Cfp]] = selectAll(group).runList(xa)
 
-  override def listAllIncoming(group: Group.Id, now: Instant): IO[Seq[Cfp]] = selectAllIncoming(group, now).runList(xa)
+  override def listAllIncoming(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Seq[Cfp]] = selectAllIncoming(group, ctx.now).runList(xa)
 
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 }
@@ -87,16 +85,13 @@ object CfpRepoSql {
   private[sql] def selectOneIncoming(slug: Cfp.Slug, now: Instant): Select[Cfp] =
     table.select[Cfp](where(slug, now))
 
-  private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[Cfp] =
-    table.selectPage[Cfp](params, fr0"WHERE c.group_id=$group")
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Cfp, OrgaCtx] =
+    table.selectPage[Cfp, OrgaCtx](params, fr0"WHERE c.group_id=${ctx.group.id}")
 
-  private[sql] def selectPage(talk: Talk.Id, params: Page.Params): SelectPage[Cfp] = {
+  private[sql] def selectPage(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): SelectPage[Cfp, UserCtx] = {
     val talkCfps = Tables.proposals.select(Seq(Field("cfp_id", "p")), fr0"WHERE p.talk_id=$talk", Seq())
-    table.selectPage[Cfp](params, fr0"WHERE c.id NOT IN (" ++ talkCfps.fr ++ fr0")")
+    table.selectPage[Cfp, UserCtx](params, fr0"WHERE c.id NOT IN (" ++ talkCfps.fr ++ fr0")")
   }
-
-  private[sql] def selectPageIncoming(now: Instant, params: Page.Params): SelectPage[Cfp] =
-    table.selectPage[Cfp](params, where(now))
 
   private[sql] def selectAll(group: Group.Id): Select[Cfp] =
     table.select[Cfp](fr0"WHERE c.group_id=$group")

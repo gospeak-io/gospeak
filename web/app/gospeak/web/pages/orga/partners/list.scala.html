@@ -7,6 +7,7 @@
 @import gospeak.web.utils.OrgaReq
 @import gospeak.libs.scala.domain.Page
 
+@import gospeak.infra.services.storage.sql.PartnerRepoSql
 @(partners: Page[Partner.Full])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @partnerItem(partner: Partner.Full) = {
     <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
@@ -25,11 +26,5 @@
         <span class="text-capitalize">@Formats.plural(partners.total.value, "partner")</span>
         <a class="btn btn-primary" href="@PartnerCtrl.create(req.group.slug)" data-hotkey="+">Create a partner</a>
     </h1>
-    <div class="mb-1">
-        Filters:
-        @filterBool(partners, PartnerCtrl.list(req.group.slug, _), "With venues", "venues")
-        @filterBool(partners, PartnerCtrl.list(req.group.slug, _), "With sponsors", "sponsors")
-        @filterBool(partners, PartnerCtrl.list(req.group.slug, _), "With contacts", "contacts")
-    </div>
-    @Formats.paginated[Partner.Full](partners, PartnerCtrl.list(req.group.slug, _), partnerItem)
+    @Formats.paginated[Partner.Full](partners, PartnerCtrl.list(req.group.slug, _), partnerItem, PartnerRepoSql.tableFull.filters)
 }()

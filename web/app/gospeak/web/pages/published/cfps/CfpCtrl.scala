@@ -37,7 +37,7 @@ class CfpCtrl(cc: ControllerComponents,
               emailSrv: EmailSrv,
               mb: GsMessageBus) extends UICtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
-    externalCfpRepo.listIncoming(req.now, params).map(cfps => Ok(html.list(cfps)(listBreadcrumb())))
+    externalCfpRepo.listIncoming(params).map(cfps => Ok(html.list(cfps)(listBreadcrumb())))
   }
 
   def gettingStarted(): Action[AnyContent] = UserAwareAction { implicit req =>
@@ -152,9 +152,9 @@ class CfpCtrl(cc: ControllerComponents,
 
   private def proposeForm(cfp: Cfp.Slug, form: Form[GsForms.TalkLogged], params: Page.Params)(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     (for {
-      cfpElt <- OptionT(cfpRepo.findIncoming(cfp, req.now))
+      cfpElt <- OptionT(cfpRepo.findIncoming(cfp))
       groupElt <- OptionT(groupRepo.find(cfpElt.group))
-      talks <- OptionT.liftF(req.user.map(_.id).map(talkRepo.listCurrent(_, cfpElt.id, params)).getOrElse(IO.pure(Page.empty[Talk])))
+      talks <- OptionT.liftF(req.secured.map(talkRepo.listCurrent(cfpElt.id, params)(_)).getOrElse(IO.pure(Page.empty[Talk])))
       b = proposeTalkBreadcrumb(cfpElt)
     } yield Ok(html.propose(groupElt, cfpElt, talks, form)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))
   }
@@ -211,7 +211,7 @@ class CfpCtrl(cc: ControllerComponents,
 
   private def proposeConnectForm(cfp: Cfp.Slug, signupForm: Form[GsForms.TalkSignup], loginForm: Form[GsForms.TalkLogin])(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     (for {
-      cfpElt <- OptionT(cfpRepo.findIncoming(cfp, req.now))
+      cfpElt <- OptionT(cfpRepo.findIncoming(cfp))
       groupElt <- OptionT(groupRepo.find(cfpElt.group))
       b = proposeTalkBreadcrumb(cfpElt)
     } yield Ok(html.proposeConnect(groupElt, cfpElt, signupForm, loginForm)(b))).value.map(_.getOrElse(publicCfpNotFound(cfp)))

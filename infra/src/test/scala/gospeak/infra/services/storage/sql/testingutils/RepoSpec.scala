@@ -9,7 +9,7 @@ import doobie.scalatest.IOChecker
 import doobie.util.testing.Analyzable
 import gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
 import gospeak.core.domain._
-import gospeak.core.domain.utils.{FakeCtx, OrgaCtx}
+import gospeak.core.domain.utils._
 import gospeak.core.testingutils.Generators._
 import gospeak.infra.services.storage.sql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
@@ -71,6 +71,10 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val speakers: NonEmptyList[User.Id] = NonEmptyList.fromListUnsafe(random[User.Id](3).toList)
   protected val params: Page.Params = Page.Params()
 
+  protected implicit val orgaCtx: OrgaCtx = FakeOrgaCtx(now, user, group)
+  protected implicit val userCtx: UserCtx = FakeUserCtx(now, user)
+  protected implicit val userAwareCtx: UserAwareCtx = FakeUserAwareCtx(now, Some(user))
+
   override def beforeEach(): Unit = db.migrate().unsafeRunSync()
 
   override def afterEach(): Unit = db.dropTables().unsafeRunSync()
@@ -82,9 +86,9 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   } yield (user, group, ctx)
 
   protected def createPartnerAndVenue(user: User, group: Group)(implicit ctx: OrgaCtx): IO[(Partner, Venue)] = for {
-    partner <- partnerRepo.create(partnerData1)
-    contact <- venueData1.contact.map(_ => contactRepo.create(contactData1.copy(partner = partner.id))).sequence
-    venue <- venueRepo.create(partner.id, venueData1.copy(contact = contact.map(_.id)))
+    partner <- partnerRepo.create(partnerData1)(ctx)
+    contact <- venueData1.contact.map(_ => contactRepo.create(contactData1.copy(partner = partner.id))(ctx)).sequence
+    venue <- venueRepo.create(partner.id, venueData1.copy(contact = contact.map(_.id)))(ctx)
   } yield (partner, venue)
 
   protected def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk)] = for {
@@ -115,7 +119,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
     check(q.query)
   }
 
-  protected def check[A](q: SelectPage[A], req: String, checkCount: Boolean = true)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
+  protected def check[A, C <: BasicCtx](q: SelectPage[A, C], req: String, checkCount: Boolean = true)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
     q.fr.query.sql shouldBe req
     check(q.query)
     if (checkCount) {

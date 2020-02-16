@@ -24,8 +24,8 @@ class ExternalEventRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fields FROM $table $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPageCommon") {
-        val q = ExternalEventRepoSql.selectPageCommon(params, now)
-        val req = s"SELECT $commonFields FROM $commonTable WHERE true=true $commonOrderBy LIMIT 20 OFFSET 0"
+        val q = ExternalEventRepoSql.selectPageCommon(params)
+        val req = s"SELECT $commonFields FROM $commonTable $commonOrderBy LIMIT 20 OFFSET 0"
         q.fr.query.sql shouldBe req
         // check(q, req) // not null types become nullable when doing union, so it fails :(
       }

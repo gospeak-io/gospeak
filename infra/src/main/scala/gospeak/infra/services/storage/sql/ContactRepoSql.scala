@@ -10,9 +10,9 @@ import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.services.storage.ContactRepo
 import gospeak.infra.services.storage.sql.ContactRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, Update}
 import gospeak.infra.services.storage.sql.utils.GenericRepo
-import gospeak.libs.scala.domain.{Done, EmailAddress, Page}
+import gospeak.libs.scala.domain.{Done, EmailAddress}
 
 class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ContactRepo {
   override def create(data: Contact.Data)(implicit ctx: OrgaCtx): IO[Contact] = insert(Contact(data, ctx.info)).run(xa)
@@ -24,8 +24,6 @@ class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
   override def find(id: Contact.Id): IO[Option[Contact]] = selectOne(id).runOption(xa)
 
   override def list(partner: Partner.Id): IO[Seq[Contact]] = selectAll(partner).runList(xa)
-
-  override def list(partner: Partner.Id, params: Page.Params): IO[Page[Contact]] = selectPage(partner, params).run(xa)
 
   override def exists(partner: Partner.Id, email: EmailAddress): IO[Boolean] = selectOne(partner, email).runExists(xa)
 }
@@ -46,9 +44,6 @@ object ContactRepoSql {
 
   private[sql] def delete(group: Group.Id, partner: Partner.Id, contact: Contact.Id)(by: User.Id, now: Instant): Delete =
     table.delete(where(contact))
-
-  private[sql] def selectPage(partner: Partner.Id, params: Page.Params): SelectPage[Contact] =
-    table.selectPage[Contact](params, where(partner))
 
   private[sql] def selectAll(partner: Partner.Id): Select[Contact] =
     table.select[Contact](where(partner))

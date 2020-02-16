@@ -17,10 +17,6 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         val q = UserRequestRepoSql.selectOnePending(group.id, userRequest.id, now)
         check(q, s"SELECT $fields FROM $table WHERE ur.id=? AND ur.group_id=? AND $isPending AND $notExpired $orderBy")
       }
-      it("should build selectPage for user") {
-        val q = UserRequestRepoSql.selectPage(user.id, params)
-        check(q, s"SELECT $fields FROM $table WHERE ur.created_by=? $orderBy LIMIT 20 OFFSET 0")
-      }
       it("should build selectAllPending for group") {
         val q = UserRequestRepoSql.selectAllPending(group.id, now)
         check(q, s"SELECT $fields FROM $table WHERE ur.group_id=? AND $isPending AND $notExpired $orderBy")

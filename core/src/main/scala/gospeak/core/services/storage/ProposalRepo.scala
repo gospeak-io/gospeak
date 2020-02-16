@@ -41,8 +41,6 @@ trait OrgaProposalRepo {
 
   def listFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]]
 
-  def list(cfp: Cfp.Id, status: Proposal.Status, params: Page.Params): IO[Page[Proposal]]
-
   def list(ids: Seq[Proposal.Id]): IO[Seq[Proposal]]
 
   def find(cfp: Cfp.Slug, id: Proposal.Id): IO[Option[Proposal]]

@@ -6,7 +6,7 @@ import cats.effect.IO
 import gospeak.core.domain.UserRequest._
 import gospeak.core.domain._
 import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
-import gospeak.libs.scala.domain.{Done, EmailAddress, Page}
+import gospeak.libs.scala.domain.{Done, EmailAddress}
 
 trait UserRequestRepo extends OrgaUserRequestRepo with SpeakerUserRequestRepo with UserUserRequestRepo with AuthUserRequestRepo
 
@@ -56,8 +56,6 @@ trait SpeakerUserRequestRepo {
 
 trait UserUserRequestRepo {
   def find(request: UserRequest.Id): IO[Option[UserRequest]]
-
-  def list(user: User.Id, params: Page.Params): IO[Page[UserRequest]]
 
 
   def accept(invite: UserRequest.GroupInvite)(implicit ctx: UserCtx): IO[Done]

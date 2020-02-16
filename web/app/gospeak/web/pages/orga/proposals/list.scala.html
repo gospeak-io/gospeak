@@ -1,8 +1,8 @@
 @import gospeak.core.domain.{Proposal, User}
+@import gospeak.infra.services.storage.sql.ProposalRepoSql
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.partials.html.{container, proposalItem}
 @import gospeak.web.pages.orga.proposals.routes.ProposalCtrl
-@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.utils.Formats
 @import gospeak.web.utils.OrgaReq
 @import gospeak.libs.scala.domain.Page
@@ -10,11 +10,5 @@
 @(proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${req.group.name.value} proposals - Gospeak", b)() {
     <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") <small>(from any CFP)</small></h1>
-    <div class="mb-1">
-        Filters:
-        @filterEnum(proposals, ProposalCtrl.list(req.group.slug, _), "Status", "status", Seq("pending", "accepted", "declined"))
-        @filterBool(proposals, ProposalCtrl.list(req.group.slug, _), "With slides", "slides")
-        @filterBool(proposals, ProposalCtrl.list(req.group.slug, _), "With video", "video")
-    </div>
-    @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list(req.group.slug, _), proposalItem(_, speakers, userRatings))
+    @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list(req.group.slug, _), proposalItem(_, speakers, userRatings), ProposalRepoSql.tableFullBase.filters)
 }()

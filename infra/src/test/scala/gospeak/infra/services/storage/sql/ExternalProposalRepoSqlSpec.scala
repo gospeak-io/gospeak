@@ -24,10 +24,6 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
         val q = ExternalProposalRepoSql.selectOne(externalProposal.id)
         check(q, s"SELECT $fields FROM $table WHERE ep.id=? LIMIT 1")
       }
-      it("should build selectPage") {
-        val q = ExternalProposalRepoSql.selectPage(params)
-        check(q, s"SELECT $fields FROM $table $orderBy LIMIT 20 OFFSET 0")
-      }
       it("should build selectPage for event") {
         val q = ExternalProposalRepoSql.selectPage(externalEvent.id, params)
         check(q, s"SELECT $fields FROM $table WHERE ep.event_id=? $orderBy LIMIT 20 OFFSET 0")
@@ -39,13 +35,13 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
         // check(q, req) // not null types become nullable when doing union, so it fails :(
       }
       it("should build selectPageCommon for user") {
-        val q = ExternalProposalRepoSql.selectPageCommon(user.id, params)
+        val q = ExternalProposalRepoSql.selectPageCommon(params)
         val req = s"SELECT $commonFields FROM $commonTable WHERE p.speakers LIKE ? $commonOrderBy LIMIT 20 OFFSET 0"
         q.fr.query.sql shouldBe req
         // check(q, req) // not null types become nullable when doing union, so it fails :(
       }
       it("should build selectPageCommonCurrent") {
-        val q = ExternalProposalRepoSql.selectPageCommonCurrent(user.id, now, params)
+        val q = ExternalProposalRepoSql.selectPageCommonCurrent(params)
         val current = "((p.status=?) OR (p.status=? AND (p.event_start > ? OR p.event_ext_start > ?)) OR (p.status=? AND p.updated_at > ?))"
         val req = s"SELECT $commonFields FROM $commonTable WHERE p.speakers LIKE ? AND $current $commonOrderBy LIMIT 20 OFFSET 0"
         q.fr.query.sql shouldBe req
@@ -68,10 +64,6 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
         val req = s"SELECT $commonFields FROM $commonTable WHERE p.talk_id=? AND p.status=? $commonOrderBy"
         q.fr.query.sql shouldBe req
         // check(q, req) // not null types become nullable when doing union, so it fails :(
-      }
-      it("should build selectAll") {
-        val q = ExternalProposalRepoSql.selectAll(talk.id)
-        check(q, s"SELECT $fields FROM $table WHERE ep.talk_id=? $orderBy")
       }
     }
   }

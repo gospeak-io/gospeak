@@ -68,16 +68,12 @@ class CfpRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fields FROM $table WHERE (c.close IS NULL OR c.close > ?) AND c.slug=? $orderBy")
       }
       it("should build selectPage for a group") {
-        val q = CfpRepoSql.selectPage(group.id, params)
+        val q = CfpRepoSql.selectPage(params)
         check(q, s"SELECT $fields FROM $table WHERE c.group_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPage for a talk") {
         val q = CfpRepoSql.selectPage(talk.id, params)
         check(q, s"SELECT $fields FROM $table WHERE c.id NOT IN (SELECT p.cfp_id FROM proposals p WHERE p.talk_id=?) $orderBy LIMIT 20 OFFSET 0")
-      }
-      it("should build selectPage for a date") {
-        val q = CfpRepoSql.selectPageIncoming(now, params)
-        check(q, s"SELECT $fields FROM $table WHERE (c.close IS NULL OR c.close > ?) $orderBy LIMIT 20 OFFSET 0", checkCount = false)
       }
       it("should build selectAll for group id") {
         val q = CfpRepoSql.selectAll(group.id)

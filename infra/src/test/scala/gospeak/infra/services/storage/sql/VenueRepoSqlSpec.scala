@@ -32,7 +32,7 @@ class VenueRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? AND v.id=? $orderBy")
       }
       it("should build selectPageFull") {
-        val q = VenueRepoSql.selectPageFull(group.id, params)
+        val q = VenueRepoSql.selectPageFull(params)
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectAllFull for group id") {
@@ -52,7 +52,7 @@ class VenueRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fields FROM $table WHERE v.contact_id=? $orderBy")
       }
       it("should build selectPagePublic") {
-        val q = VenueRepoSql.selectPagePublic(group.id, params)
+        val q = VenueRepoSql.selectPagePublic(params)
         check(q, s"SELECT $fieldsPublic FROM $tablePublic GROUP BY pa.slug, pa.name, pa.logo, v.address $orderByPublic LIMIT 20 OFFSET 0")
       }
       it("should build selectOnePublic") {
@@ -60,7 +60,7 @@ class VenueRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fieldsPublic FROM $tablePublic WHERE v.id=? GROUP BY pa.slug, pa.name, pa.logo, v.address $orderByPublic")
       }
       it("should build selectPageCommon") {
-        val q = VenueRepoSql.selectPageCommon(group.id, params)
+        val q = VenueRepoSql.selectPageCommon(params)
         q.fr.query.sql shouldBe s"SELECT $commonFields FROM $commonTable $commonOrderBy LIMIT 20 OFFSET 0"
         // ignored because of fake nullable columns
         // check(q, s"SELECT $commonFields FROM $commonTable $commonOrderBy LIMIT 20 OFFSET 0")

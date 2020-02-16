@@ -115,7 +115,7 @@ class UserRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE u.status=? $groupByFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectPage") {
-        val q = UserRepoSql.selectPage(NonEmptyList.of(user.id), params)
+        val q = UserRepoSql.selectPage(NonEmptyList.of(user.id), params)(orgaCtx)
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE u.id IN (?)  $groupByFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectAll with ids") {

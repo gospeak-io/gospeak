@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
-import gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Group, User}
 import gospeak.core.services.storage.GroupRepo
 import gospeak.infra.services.storage.sql.GroupRepoSql._
@@ -60,9 +60,9 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
       case None => IO.raiseError(new IllegalArgumentException("unreachable group"))
     }
 
-  override def listFull(params: Page.Params): IO[Page[Group.Full]] = selectPage(params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Full]] = selectPage(params).run(xa)
 
-  override def listJoinable(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Group]] = selectPageJoinable(ctx.user.id, params).run(xa)
+  override def listJoinable(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Group]] = selectPageJoinable(params).run(xa)
 
   override def list(user: User.Id): IO[Seq[Group]] = selectAll(user).runList(xa)
 
@@ -72,7 +72,7 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def list(ids: Seq[Group.Id]): IO[Seq[Group]] = runNel(selectAll, ids)
 
-  override def listJoined(params: Page.Params)(implicit ctx: UserCtx): IO[Page[(Group, Group.Member)]] = selectPageJoined(ctx.user.id, params).run(xa)
+  override def listJoined(params: Page.Params)(implicit ctx: UserCtx): IO[Page[(Group, Group.Member)]] = selectPageJoined(params).run(xa)
 
   override def find(group: Group.Id): IO[Option[Group]] = selectOne(group).runOption(xa)
 
@@ -96,7 +96,7 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listMembers(implicit ctx: OrgaCtx): IO[Seq[Group.Member]] = selectAllActiveMembers(ctx.group.id).runList(xa)
 
-  override def listMembers(group: Group.Id, params: Page.Params): IO[Page[Group.Member]] = selectPageActiveMembers(group, params).run(xa)
+  override def listMembers(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Member]] = selectPageActiveMembers(group, params).run(xa)
 
   override def findActiveMember(group: Group.Id, user: User.Id): IO[Option[Group.Member]] = selectOneActiveMember(group, user).runOption(xa)
 
@@ -147,14 +147,14 @@ object GroupRepoSql {
   private[sql] def updateOwners(group: Group.Id)(owners: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
     table.update(fr0"owners=$owners, updated_at=$now, updated_by=$by", fr0"WHERE g.id=$group")
 
-  private[sql] def selectPage(params: Page.Params): SelectPage[Group.Full] =
-    tableFull.selectPage[Group.Full](params)
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Group.Full, UserAwareCtx] =
+    tableFull.selectPage[Group.Full, UserAwareCtx](params)
 
-  private[sql] def selectPageJoinable(user: User.Id, params: Page.Params): SelectPage[Group] =
-    tableSelect.selectPage[Group](params, fr0"WHERE g.owners NOT LIKE ${"%" + user.value + "%"}")
+  private[sql] def selectPageJoinable(params: Page.Params)(implicit ctx: UserCtx): SelectPage[Group, UserCtx] =
+    tableSelect.selectPage[Group, UserCtx](params, fr0"WHERE g.owners NOT LIKE ${"%" + ctx.user.id.value + "%"}")
 
-  private[sql] def selectPageJoined(user: User.Id, params: Page.Params): SelectPage[(Group, Group.Member)] =
-    tableWithMember.selectPage[(Group, Group.Member)](params, fr0"WHERE gm.user_id=$user")
+  private[sql] def selectPageJoined(params: Page.Params)(implicit ctx: UserCtx): SelectPage[(Group, Group.Member), UserCtx] =
+    tableWithMember.selectPage[(Group, Group.Member), UserCtx](params, fr0"WHERE gm.user_id=${ctx.user.id}")
 
   private[sql] def selectAll(user: User.Id): Select[Group] =
     tableSelect.select[Group](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"}")
@@ -189,8 +189,8 @@ object GroupRepoSql {
   private[sql] def enableMember(m: Group.Member, now: Instant): Update =
     memberTable.update(fr0"gm.joined_at=$now, gm.leaved_at=${Option.empty[Instant]}", fr0"WHERE gm.group_id=${m.group} AND gm.user_id=${m.user.id}")
 
-  private[sql] def selectPageActiveMembers(group: Group.Id, params: Page.Params): SelectPage[Group.Member] =
-    memberTableWithUser.selectPage(params, fr0"WHERE gm.group_id=$group AND gm.leaved_at IS NULL")
+  private[sql] def selectPageActiveMembers(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Group.Member, UserAwareCtx] =
+    memberTableWithUser.selectPage[Group.Member, UserAwareCtx](params, fr0"WHERE gm.group_id=$group AND gm.leaved_at IS NULL")
 
   private[sql] def selectAllActiveMembers(group: Group.Id): Select[Group.Member] =
     memberTableWithUser.select(fr0"WHERE gm.group_id=$group AND gm.leaved_at IS NULL")

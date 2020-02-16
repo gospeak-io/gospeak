@@ -3,7 +3,7 @@ package gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
-import gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Group, User}
 import gospeak.libs.scala.domain.{Done, EmailAddress, Page}
 
@@ -62,11 +62,11 @@ trait AuthUserRepo {
 }
 
 trait PublicUserRepo {
-  def speakersPublic(group: Group.Id, params: Page.Params): IO[Page[User.Full]]
+  def speakersPublic(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[User.Full]]
 
   def speakerCountPublic(group: Group.Id): IO[Long]
 
-  def listPublic(params: Page.Params): IO[Page[User.Full]]
+  def listPublic(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[User.Full]]
 
   def list(ids: Seq[User.Id]): IO[Seq[User]]
 

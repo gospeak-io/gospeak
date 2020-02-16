@@ -1,4 +1,5 @@
 @import gospeak.core.domain.{Cfp, Proposal, User}
+@import gospeak.infra.services.storage.sql.ProposalRepoSql
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import gospeak.web.pages.orga.partials.html.{container, proposalItem}
@@ -31,11 +32,5 @@
 
     <h2 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h2>
     <p class="mt-2 mb-0">You voted on @Formats.plural(userRatings.length, "proposal") on a total of @proposals.total.value</p>
-    <div class="mb-1">
-        Filters:
-        @filterEnum(proposals, CfpCtrl.detail(req.group.slug, cfp.slug, _), "Status", "status", Seq("pending", "accepted", "declined"))
-        @filterBool(proposals, CfpCtrl.detail(req.group.slug, cfp.slug, _), "With slides", "slides")
-        @filterBool(proposals, CfpCtrl.detail(req.group.slug, cfp.slug, _), "With video", "video")
-    </div>
-    @Formats.paginated[Proposal.Full](proposals, CfpCtrl.detail(req.group.slug, cfp.slug, _), proposalItem(_, speakers, userRatings))
+    @Formats.paginated[Proposal.Full](proposals, CfpCtrl.detail(req.group.slug, cfp.slug, _), proposalItem(_, speakers, userRatings), ProposalRepoSql.tableFullBase.filters)
 }()

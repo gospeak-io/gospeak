@@ -12,7 +12,7 @@ import doobie.util.{Meta, Read}
 import gospeak.core.ApplicationConf
 import gospeak.core.domain._
 import gospeak.core.domain.utils.SocialAccounts.SocialAccount._
-import gospeak.core.domain.utils.TemplateData
+import gospeak.core.domain.utils.{BasicCtx, TemplateData}
 import gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup}
 import gospeak.core.services.slack.domain.SlackAction
 import gospeak.core.services.storage.DbConf
@@ -82,6 +82,43 @@ object DoobieUtils {
     }
   }
 
+  sealed trait Filter {
+    val key: String
+    val label: String
+    val aggregation: Boolean
+
+    def filter(value: String)(implicit ctx: BasicCtx): Option[Fragment]
+  }
+
+  object Filter {
+
+    final case class Bool(key: String, label: String, aggregation: Boolean, onTrue: BasicCtx => Fragment, onFalse: BasicCtx => Fragment) extends Filter {
+      override def filter(value: String)(implicit ctx: BasicCtx): Option[Fragment] = value match {
+        case "true" => Some(onTrue(ctx))
+        case "false" => Some(onFalse(ctx))
+        case _ => None
+      }
+    }
+
+    object Bool {
+      def fromNullable(key: String, label: String, field: String, aggregation: Boolean = false): Bool =
+        new Bool(key, label, aggregation, onTrue = _ => const0(s"$field IS NOT NULL"), onFalse = _ => const0(s"$field IS NULL"))
+
+      def fromCount(key: String, label: String, field: String): Bool =
+        new Bool(key, label, aggregation = true, onTrue = _ => const0(s"COALESCE(COUNT(DISTINCT $field), 0) > 0"), onFalse = _ => const0(s"COALESCE(COUNT(DISTINCT $field), 0) = 0"))
+    }
+
+    final case class Enum(key: String, label: String, aggregation: Boolean, values: Seq[(String, BasicCtx => Fragment)]) extends Filter {
+      override def filter(value: String)(implicit ctx: BasicCtx): Option[Fragment] = values.find(_._1 == value).map(_._2(ctx))
+    }
+
+    object Enum {
+      def fromEnum(key: String, label: String, field: String, values: Seq[(String, String)], aggregation: Boolean = false): Enum =
+        new Enum(key, label, aggregation, values.map { case (paramValue, fieldValue) => (paramValue, (_: BasicCtx) => const0(s"$field='$fieldValue'")) })
+    }
+
+  }
+
   final case class Table(name: String,
                          prefix: String,
                          joins: Seq[TableJoin],
@@ -89,7 +126,8 @@ object DoobieUtils {
                          aggFields: Seq[AggregateField],
                          customFields: Seq[CustomField],
                          sorts: Sorts,
-                         search: Seq[Field]) extends Dynamic {
+                         search: Seq[Field],
+                         filters: Seq[Filter]) extends Dynamic {
     def value: Fragment = const0(s"$name $prefix") ++ joins.foldLeft(fr0"")(_ ++ fr0" " ++ _.value)
 
     private def field(field: Field): Either[CustomException, Field] = fields.find(_ == field).toEither(CustomException(s"Unable to find field '${field.value}' in table '${value.query.sql}'"))
@@ -140,7 +178,8 @@ object DoobieUtils {
         aggFields = aggFields ++ rightTable.aggFields,
         customFields = customFields ++ rightTable.customFields,
         sorts = sorts,
-        search = search ++ rightTable.search)
+        search = search ++ rightTable.search,
+        filters = filters ++ rightTable.filters)
     } yield res
 
     def aggregate(formula: String, name: String): Table = copy(aggFields = aggFields :+ AggregateField(formula, name))
@@ -171,21 +210,21 @@ object DoobieUtils {
 
     def selectOne[A: Read](where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort, Map()), Some(1))
 
-    def selectPage[A: Read](params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, customFields, None, None, params, sorts, search)
+    def selectPage[A: Read, C <: BasicCtx](params: Page.Params)(implicit ctx: C): SelectPage[A, C] = SelectPage[A, C](value, prefix, fields, aggFields, customFields, None, None, params, sorts, search, filters, ctx)
 
-    def selectPage[A: Read](params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, customFields, Some(fr0" " ++ where), None, params, sorts, search)
+    def selectPage[A: Read, C <: BasicCtx](params: Page.Params, where: Fragment)(implicit ctx: C): SelectPage[A, C] = SelectPage[A, C](value, prefix, fields, aggFields, customFields, Some(fr0" " ++ where), None, params, sorts, search, filters, ctx)
 
-    def selectPage[A: Read](params: Page.Params, where: Fragment, having: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, customFields, Some(fr0" " ++ where), Some(fr0" " ++ having), params, sorts, search)
+    def selectPage[A: Read, C <: BasicCtx](params: Page.Params, where: Fragment, having: Fragment)(implicit ctx: C): SelectPage[A, C] = SelectPage[A, C](value, prefix, fields, aggFields, customFields, Some(fr0" " ++ where), Some(fr0" " ++ having), params, sorts, search, filters, ctx)
 
-    def selectPage[A: Read](fields: Seq[Field], params: Page.Params): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, customFields, None, None, params, sorts, search)
+    def selectPage[A: Read, C <: BasicCtx](fields: Seq[Field], params: Page.Params)(implicit ctx: C): SelectPage[A, C] = SelectPage[A, C](value, prefix, fields, aggFields, customFields, None, None, params, sorts, search, filters, ctx)
 
-    def selectPage[A: Read](fields: Seq[Field], params: Page.Params, where: Fragment): SelectPage[A] = SelectPage[A](value, prefix, fields, aggFields, customFields, Some(fr0" " ++ where), None, params, sorts, search)
+    def selectPage[A: Read, C <: BasicCtx](fields: Seq[Field], params: Page.Params, where: Fragment)(implicit ctx: C): SelectPage[A, C] = SelectPage[A, C](value, prefix, fields, aggFields, customFields, Some(fr0" " ++ where), None, params, sorts, search, filters, ctx)
   }
 
   object Table {
     private type BuildJoinFields = (Table, Table) => (Either[CustomException, Field], Either[CustomException, Field])
 
-    def from(name: String, prefix: String, fields: Seq[String], sort: Seq[String], search: Seq[String]): Either[CustomException, Table] =
+    def from(name: String, prefix: String, fields: Seq[String], sort: Seq[String], search: Seq[String], filters: Seq[Filter]): Either[CustomException, Table] =
       from(
         name = name,
         prefix = prefix,
@@ -194,9 +233,10 @@ object DoobieUtils {
         customFields = Seq(),
         aggFields = Seq(),
         sorts = Sorts(sort.map(f => Field(f, prefix)), Map()),
-        search = search.map(f => Field(f, prefix)))
+        search = search.map(f => Field(f, prefix)),
+        filters = filters)
 
-    private def from(name: String, prefix: String, joins: Seq[TableJoin], fields: Seq[Field], customFields: Seq[CustomField], aggFields: Seq[AggregateField], sorts: Sorts, search: Seq[Field]): Either[CustomException, Table] = {
+    private def from(name: String, prefix: String, joins: Seq[TableJoin], fields: Seq[Field], customFields: Seq[CustomField], aggFields: Seq[AggregateField], sorts: Sorts, search: Seq[Field], filters: Seq[Filter]): Either[CustomException, Table] = {
       val duplicateFields = fields.diff(fields.distinct).distinct
       // val invalidSort = sorts.all.flatten.map(s => s.copy(name = s.name.stripPrefix("-")).value).diff(fields.map(_.value) ++ aggFields.map(_.formula))
       val invalidSearch = search.diff(fields)
@@ -213,7 +253,8 @@ object DoobieUtils {
         customFields = customFields,
         aggFields = aggFields,
         sorts = sorts,
-        search = search)))
+        search = search,
+        filters = filters)))
     }
   }
 
@@ -273,28 +314,37 @@ object DoobieUtils {
     def runExists(xa: doobie.Transactor[IO]): IO[Boolean] = query.option.map(_.isDefined).transact(xa)
   }
 
-  final case class SelectPage[A: Read](table: Fragment,
-                                       prefix: String,
-                                       fields: Seq[Field],
-                                       aggFields: Seq[AggregateField],
-                                       customFields: Seq[CustomField],
-                                       whereOpt: Option[Fragment],
-                                       havingOpt: Option[Fragment],
-                                       params: Page.Params,
-                                       sorts: Sorts,
-                                       searchFields: Seq[Field]) {
+  final case class SelectPage[A: Read, C <: BasicCtx](table: Fragment,
+                                                      prefix: String,
+                                                      fields: Seq[Field],
+                                                      aggFields: Seq[AggregateField],
+                                                      customFields: Seq[CustomField],
+                                                      whereOpt: Option[Fragment],
+                                                      havingOpt: Option[Fragment],
+                                                      params: Page.Params,
+                                                      sorts: Sorts,
+                                                      searchFields: Seq[Field],
+                                                      filters: Seq[Filter],
+                                                      ctx: C) {
     private val select: Fragment = const0(s"SELECT ${(fields.map(_.value) ++ aggFields.map(_.value)).mkString(", ")}") ++ customFields.map(fr0", " ++ _.value).foldLeft(fr0"")(_ ++ _) ++ fr0" FROM " ++ table
     private val groupBy: Fragment = aggFields.headOption.map(_ => const0(s" GROUP BY ${fields.map(_.label).mkString(", ")}")).getOrElse(fr0"")
-    private val having: Fragment = havingOpt.getOrElse(fr0"")
+    private val having: Fragment = filterClause(havingOpt, aggregation = true).getOrElse(fr0"")
+
+    private def filterClause(current: Option[Fragment], aggregation: Boolean): Option[Fragment] = {
+      val keyword = if (aggregation) "HAVING" else "WHERE"
+      filters.filter(_.aggregation == aggregation).flatMap(f => params.filters.get(f.key).flatMap(f.filter(_)(ctx))).foldLeft(current) { (acc, item) =>
+        Some(acc.map(w => w ++ fr0" AND (" ++ item ++ fr0")").getOrElse(const0(s" $keyword (") ++ item ++ fr0")"))
+      }
+    }
 
     def fr: Fragment = {
-      val (where, orderBy, limit) = paginationFragment(prefix, whereOpt, params, sorts, searchFields)
+      val (where, orderBy, limit) = paginationFragment(prefix, filterClause(whereOpt, aggregation = false), params, sorts, searchFields)
       select ++ where ++ groupBy ++ having ++ orderBy ++ limit
     }
 
     def countFr: Fragment = {
       val select = const0(s"SELECT ${fields.headOption.map(_.value).getOrElse("*")} FROM ") ++ table
-      val where = whereFragment(whereOpt, params.search, searchFields).getOrElse(fr0"")
+      val where = whereFragment(filterClause(whereOpt, aggregation = false), params.search, searchFields).getOrElse(fr0"")
       fr0"SELECT count(*) FROM (" ++ select ++ where ++ groupBy ++ having ++ fr0") as cnt"
     }
 

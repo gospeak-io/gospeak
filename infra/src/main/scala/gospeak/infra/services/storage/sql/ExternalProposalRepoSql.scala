@@ -7,7 +7,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
 import gospeak.core.domain._
-import gospeak.core.domain.utils.{Info, UserCtx}
+import gospeak.core.domain.utils.{Info, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.ExternalProposalRepo
 import gospeak.infra.services.storage.sql.ExternalProposalRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
@@ -24,23 +24,19 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
 
   override def remove(id: ExternalProposal.Id)(implicit ctx: UserCtx): IO[Done] = delete(id, ctx.user.id).run(xa)
 
-  override def list(params: Page.Params): IO[Page[ExternalProposal]] = selectPage(params).run(xa)
+  override def list(event: ExternalEvent.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[ExternalProposal]] = selectPage(event, params).run(xa)
 
-  override def list(event: ExternalEvent.Id, params: Page.Params): IO[Page[ExternalProposal]] = selectPage(event, params).run(xa)
+  override def listCommon(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommon(talk, params).run(xa)
 
-  override def listCommon(talk: Talk.Id, params: Page.Params): IO[Page[CommonProposal]] = selectPageCommon(talk, params).run(xa)
+  override def listCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommon(params).run(xa)
 
-  override def listCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommon(ctx.user.id, params).run(xa)
-
-  override def listCurrentCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommonCurrent(ctx.user.id, ctx.now, params).run(xa)
+  override def listCurrentCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommonCurrent(params).run(xa)
 
   override def listAllCommon(talk: Talk.Id): IO[Seq[CommonProposal]] = selectAllCommon(talk).runList(xa)
 
   override def listAllCommon(user: User.Id, status: Proposal.Status): IO[Seq[CommonProposal]] = selectAllCommon(user, status).runList(xa)
 
   override def listAllCommon(talk: Talk.Id, status: Proposal.Status): IO[List[CommonProposal]] = selectAllCommon(talk, status).runList(xa)
-
-  override def listAll(talk: Talk.Id): IO[Seq[ExternalProposal]] = selectAll(talk).runList(xa)
 
   override def find(id: ExternalProposal.Id): IO[Option[ExternalProposal]] = selectOne(id).runOption(xa)
 
@@ -69,7 +65,8 @@ object ExternalProposalRepoSql {
     aggFields = Seq(),
     customFields = Seq(),
     sorts = Sorts(Seq("-created_at").map(Field(_, "p")), Map()),
-    search = Seq("title").map(Field(_, "p")))
+    search = Seq("title").map(Field(_, "p")),
+    filters = Seq())
 
   private[sql] def insert(e: ExternalProposal): Insert[ExternalProposal] = {
     val values = fr0"${e.id}, ${e.talk}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.message}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.url}, ${e.tags}, " ++ insertInfo(e.info)
@@ -87,24 +84,21 @@ object ExternalProposalRepoSql {
   private[sql] def selectOne(id: ExternalProposal.Id): Select[ExternalProposal] =
     table.selectOne[ExternalProposal](fr0"WHERE ep.id=$id", Seq())
 
-  private[sql] def selectPage(params: Page.Params): SelectPage[ExternalProposal] =
-    table.selectPage[ExternalProposal](params)
+  private[sql] def selectPage(event: ExternalEvent.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[ExternalProposal, UserAwareCtx] =
+    table.selectPage[ExternalProposal, UserAwareCtx](params, fr0"WHERE ep.event_id=$event")
 
-  private[sql] def selectPage(event: ExternalEvent.Id, params: Page.Params): SelectPage[ExternalProposal] =
-    table.selectPage[ExternalProposal](params, fr0"WHERE ep.event_id=$event")
+  private[sql] def selectPageCommon(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): SelectPage[CommonProposal, UserCtx] =
+    commonTable.selectPage[CommonProposal, UserCtx](params, fr0"WHERE p.talk_id=$talk")
 
-  private[sql] def selectPageCommon(talk: Talk.Id, params: Page.Params): SelectPage[CommonProposal] =
-    commonTable.selectPage[CommonProposal](params, fr0"WHERE p.talk_id=$talk")
+  private[sql] def selectPageCommon(params: Page.Params)(implicit ctx: UserCtx): SelectPage[CommonProposal, UserCtx] =
+    commonTable.selectPage[CommonProposal, UserCtx](params, fr0"WHERE p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
 
-  private[sql] def selectPageCommon(speaker: User.Id, params: Page.Params): SelectPage[CommonProposal] =
-    commonTable.selectPage[CommonProposal](params, fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"}")
-
-  private[sql] def selectPageCommonCurrent(speaker: User.Id, now: Instant, params: Page.Params): SelectPage[CommonProposal] = {
+  private[sql] def selectPageCommonCurrent(params: Page.Params)(implicit ctx: UserCtx): SelectPage[CommonProposal, UserCtx] = {
     val pending = fr0"p.status=${Proposal.Status.Pending: Proposal.Status}"
-    val accepted = fr0"p.status=${Proposal.Status.Accepted: Proposal.Status} AND (p.event_start > $now OR p.event_ext_start > $now)"
-    val declined = fr0"p.status=${Proposal.Status.Declined: Proposal.Status} AND p.updated_at > ${now.minus(30, ChronoUnit.DAYS)}"
+    val accepted = fr0"p.status=${Proposal.Status.Accepted: Proposal.Status} AND (p.event_start > ${ctx.now} OR p.event_ext_start > ${ctx.now})"
+    val declined = fr0"p.status=${Proposal.Status.Declined: Proposal.Status} AND p.updated_at > ${ctx.now.minus(30, ChronoUnit.DAYS)}"
     val current = fr0"((" ++ pending ++ fr0") OR (" ++ accepted ++ fr0") OR (" ++ declined ++ fr0"))"
-    commonTable.selectPage[CommonProposal](params, fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"} AND " ++ current)
+    commonTable.selectPage[CommonProposal, UserCtx](params, fr0"WHERE p.speakers LIKE ${"%" + ctx.user.id.value + "%"} AND " ++ current)
   }
 
   private[sql] def selectAllCommon(talk: Talk.Id): Select[CommonProposal] =
@@ -115,9 +109,6 @@ object ExternalProposalRepoSql {
 
   private[sql] def selectAllCommon(talk: Talk.Id, status: Proposal.Status): Select[CommonProposal] =
     commonTable.select[CommonProposal](fr0"WHERE p.talk_id=$talk AND p.status=$status")
-
-  private[sql] def selectAll(talk: Talk.Id): Select[ExternalProposal] =
-    table.select[ExternalProposal](fr0"WHERE ep.talk_id=$talk")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
     table.select[Seq[Tag]](Seq(Field("tags", "ep")), Seq())

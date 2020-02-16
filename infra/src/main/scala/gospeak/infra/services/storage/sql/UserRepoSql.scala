@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
-import gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import gospeak.core.domain.utils.{BasicCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Group, User}
 import gospeak.core.services.storage.UserRepo
 import gospeak.infra.services.storage.sql.UserRepoSql._
@@ -65,7 +65,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
     } yield res
   }
 
-  override def speakersPublic(group: Group.Id, params: Page.Params): IO[Page[User.Full]] = {
+  override def speakersPublic(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[User.Full]] = {
     val speakerIdsQuery = proposalsWithCfpEvents.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group AND e.published IS NOT NULL")
     for {
       speakerIds <- speakerIdsQuery.runList(xa).map(_.flatMap(_.toList).distinct)
@@ -78,7 +78,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
       .runList(xa).map(_.flatMap(_.toList).distinct.length.toLong)
   }
 
-  override def listPublic(params: Page.Params): IO[Page[User.Full]] = selectPagePublic(params).run(xa)
+  override def listPublic(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[User.Full]] = selectPagePublic(params).run(xa)
 
   override def list(ids: Seq[User.Id]): IO[Seq[User]] = runNel(selectAll, ids)
 }
@@ -165,13 +165,13 @@ object UserRepoSql {
     table.selectPage[User](params, fr0"WHERE u.id IN (" ++ speakerIds ++ fr0")")
   } */
 
-  private[sql] def selectPagePublic(params: Page.Params): SelectPage[User.Full] = {
+  private[sql] def selectPagePublic(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[User.Full, UserAwareCtx] = {
     val public: User.Status = User.Status.Public
-    tableFull.selectPage[User.Full](params, fr0"WHERE u.status=$public")
+    tableFull.selectPage[User.Full, UserAwareCtx](params, fr0"WHERE u.status=$public")
   }
 
-  private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params): SelectPage[User.Full] =
-    tableFull.selectPage[User.Full](params, fr0"WHERE " ++ Fragments.in(fr"u.id", ids))
+  private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params)(implicit ctx: BasicCtx): SelectPage[User.Full, BasicCtx] =
+    tableFull.selectPage[User.Full, BasicCtx](params, fr0"WHERE " ++ Fragments.in(fr"u.id", ids))
 
   private[sql] def selectAll(ids: NonEmptyList[User.Id]): Select[User] =
     table.select[User](fr0"WHERE " ++ Fragments.in(fr"u.id", ids))

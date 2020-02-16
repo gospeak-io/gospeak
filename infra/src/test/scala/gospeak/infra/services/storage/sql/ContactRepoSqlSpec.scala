@@ -50,10 +50,6 @@ class ContactRepoSqlSpec extends RepoSpec {
         val q = ContactRepoSql.delete(group.id, partner.id, contact.id)(user.id, now)
         check(q, s"DELETE FROM $table WHERE ct.id=?")
       }
-      it("should build selectPage") {
-        val q = ContactRepoSql.selectPage(partner.id, params)
-        check(q, s"SELECT $fields FROM $table WHERE ct.partner_id=? $orderBy LIMIT 20 OFFSET 0")
-      }
       it("should build selectAll") {
         val q = ContactRepoSql.selectAll(partner.id)
         check(q, s"SELECT $fields FROM $table WHERE ct.partner_id=? $orderBy")

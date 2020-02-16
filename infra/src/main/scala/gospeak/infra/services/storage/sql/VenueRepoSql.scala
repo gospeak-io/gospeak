@@ -51,13 +51,13 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
   override def remove(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Done] = delete(ctx.group.id, venue).run(xa)
 
-  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Full]] = selectPageFull(ctx.group.id, params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Full]] = selectPageFull(params).run(xa)
 
   override def listAllFull()(implicit ctx: OrgaCtx): IO[Seq[Venue.Full]] = selectAllFull(ctx.group.id).runList(xa)
 
-  override def listCommon(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Common]] = selectPageCommon(ctx.group.id, params).run(xa)
+  override def listCommon(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Common]] = selectPageCommon(params).run(xa)
 
-  override def listPublic(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Public]] = selectPagePublic(ctx.group.id, params).run(xa)
+  override def listPublic(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Public]] = selectPagePublic(params).run(xa)
 
   override def findPublic(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Option[Venue.Public]] = selectOnePublic(ctx.group.id, venue).runOption(xa)
 
@@ -111,8 +111,8 @@ object VenueRepoSql {
   private[sql] def selectOneFull(group: Group.Id, id: Venue.Id): Select[Venue.Full] =
     tableFull.select[Venue.Full](fr0"WHERE pa.group_id=$group AND v.id=$id")
 
-  private[sql] def selectPageFull(group: Group.Id, params: Page.Params): SelectPage[Venue.Full] =
-    tableFull.selectPage[Venue.Full](params, fr0"WHERE pa.group_id=$group")
+  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Venue.Full, OrgaCtx] =
+    tableFull.selectPage[Venue.Full, OrgaCtx](params, fr0"WHERE pa.group_id=${ctx.group.id}")
 
   private[sql] def selectAllFull(group: Group.Id): Select[Venue.Full] =
     tableFull.select[Venue.Full](fr0"WHERE pa.group_id=$group")
@@ -126,22 +126,22 @@ object VenueRepoSql {
   private[sql] def selectAll(group: Group.Id, contact: Contact.Id): Select[Venue] =
     tableSelect.select[Venue](fr0"WHERE v.contact_id=$contact")
 
-  private[sql] def selectPagePublic(group: Group.Id, params: Page.Params): SelectPage[Venue.Public] =
-    publicTableFull(group).selectPage[Venue.Public](params)
+  private[sql] def selectPagePublic(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Venue.Public, OrgaCtx] =
+    publicTableFull(ctx.group.id).selectPage[Venue.Public, OrgaCtx](params)
 
   private[sql] def selectOnePublic(group: Group.Id, id: Venue.Id): Select[Venue.Public] =
     publicTableFull(group).select[Venue.Public](fr0"WHERE v.id=$id")
 
-  private[sql] def selectPageCommon(group: Group.Id, params: Page.Params): SelectPage[Venue.Common] = {
+  private[sql] def selectPageCommon(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Venue.Common, OrgaCtx] = {
     val g = tableWithPartner.select[Venue.Full](
       fields = Seq(Field("false", "", "public"), Field("slug", "pa"), Field("name", "pa"), Field("logo", "pa"), Field("address", "v"), Field("id", "v"), Field("0", "", "events")),
-      where = fr0"WHERE pa.group_id=$group",
+      where = fr0"WHERE pa.group_id=${ctx.group.id}",
       sort = Seq())
-    val p = publicTableFull(group).select[Venue.Public](
-      fields = Seq(Field("true", "", "public")) ++ publicTableFull(group).fields,
+    val p = publicTableFull(ctx.group.id).select[Venue.Public](
+      fields = Seq(Field("true", "", "public")) ++ publicTableFull(ctx.group.id).fields,
       sort = Seq())
 
-    SelectPage[Venue.Common](
+    SelectPage[Venue.Common, OrgaCtx](
       table = fr0"((" ++ g.fr ++ fr0") UNION (" ++ p.fr ++ fr0")) v",
       prefix = "v",
       fields = Seq("id", "slug", "name", "logo", "address", "events", "public").map(Field(_, "v")),
@@ -151,7 +151,9 @@ object VenueRepoSql {
       havingOpt = None,
       params = params,
       sorts = Sorts(Seq(Field("public", "v"), Field("name", "v"), Field("-events", "v")), Map()),
-      searchFields = Seq(Field("name", "v"), Field("address", "v")))
+      searchFields = Seq(Field("name", "v"), Field("address", "v")),
+      filters = Seq(),
+      ctx = ctx)
   }
 
   private def where(group: Group.Id, id: Venue.Id): Fragment =

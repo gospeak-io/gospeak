@@ -4,13 +4,12 @@ import java.time.Instant
 
 import cats.effect.IO
 import doobie.implicits._
-import doobie.util.fragment.Fragment
 import gospeak.core.domain.utils.{Info, UserAwareCtx, UserCtx}
-import gospeak.core.domain.{CommonEvent, ExternalEvent, User}
+import gospeak.core.domain.{CommonEvent, Event, ExternalEvent, User}
 import gospeak.core.services.storage.ExternalEventRepo
 import gospeak.infra.services.storage.sql.ExternalEventRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Sorts, Table, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Filter, Insert, Select, SelectPage, Sorts, Table, Update}
 import gospeak.infra.services.storage.sql.utils.{GenericQuery, GenericRepo}
 import gospeak.libs.scala.domain.{Done, Logo, Page, Tag}
 
@@ -21,9 +20,9 @@ class ExternalEventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends
   override def edit(id: ExternalEvent.Id)(data: ExternalEvent.Data)(implicit ctx: UserCtx): IO[Done] =
     update(id)(data, ctx.user.id, ctx.now).run(xa)
 
-  override def list(params: Page.Params): IO[Page[ExternalEvent]] = selectPage(params).run(xa)
+  override def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[ExternalEvent]] = selectPage(params).run(xa)
 
-  override def listCommon(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonEvent]] = selectPageCommon(params, ctx.now).run(xa)
+  override def listCommon(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonEvent]] = selectPageCommon(params).run(xa)
 
   override def find(id: ExternalEvent.Id): IO[Option[ExternalEvent]] = selectOne(id).runOption(xa)
 
@@ -39,7 +38,7 @@ object ExternalEventRepoSql {
   private val _ = externalEventIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.externalEvents
   private val tableSelect = table.dropFields(_.name.startsWith("location_"))
-  private val commonTable = Table(
+  val commonTable: Table = Table(
     name = "((SELECT e.id, e.name, e.kind, e.start, v.address as location, g.social_twitter as twitter_account, null as twitter_hashtag, e.tags, g.id as int_group_id, g.slug as int_group_slug, g.name as int_group_name, g.logo as int_group_logo, c.id as int_cfp_id, c.slug as int_cfp_slug, c.name as int_cfp_name, v.id as int_venue_id, p.name as int_venue_name, p.logo as int_venue_logo, e.slug as int_event_slug, e.description as int_description, null   as ext_logo, null          as ext_description, null  as ext_url, null          as ext_tickets, null         as ext_videos, e.created_at, e.created_by, e.updated_at, e.updated_by FROM events e INNER JOIN groups g ON e.group_id=g.id LEFT OUTER JOIN cfps c ON e.cfp_id=c.id LEFT OUTER JOIN venues v ON e.venue=v.id LEFT OUTER JOIN partners p ON v.partner_id=p.id WHERE e.published IS NOT NULL) " +
       "UNION (SELECT e.id, e.name, e.kind, e.start,            e.location,                   e.twitter_account,       e.twitter_hashtag, e.tags, null as int_group_id, null   as int_group_slug, null   as int_group_name, null   as int_group_logo, null as int_cfp_id, null   as int_cfp_slug, null   as int_cfp_name, null as int_venue_id, null   as int_venue_name, null   as int_venue_logo, null   as int_event_slug, null          as int_description, e.logo as ext_logo, e.description as ext_description, e.url as ext_url, e.tickets_url as ext_tickets, e.videos_url as ext_videos, e.created_at, e.created_by, e.updated_at, e.updated_by FROM external_events e))",
     prefix = "e",
@@ -52,7 +51,15 @@ object ExternalEventRepoSql {
     aggFields = Seq(),
     customFields = Seq(),
     sorts = Sorts(Seq("-start", "-created_at").map(Field(_, "e")), Map()),
-    search = Seq("name", "kind", "location", "twitter_account", "tags", "int_group_name", "int_cfp_name", "int_description", "ext_description").map(Field(_, "e")))
+    search = Seq("name", "kind", "location", "twitter_account", "tags", "int_group_name", "int_cfp_name", "int_description", "ext_description").map(Field(_, "e")),
+    filters = Seq(
+      Filter.Enum.fromEnum("type", "Type", "e.kind", Seq(
+        "conference" -> Event.Kind.Conference.value,
+        "meetup" -> Event.Kind.Meetup.value,
+        "training" -> Event.Kind.Training.value,
+        "private event" -> Event.Kind.PrivateEvent.value)),
+      Filter.Bool.fromNullable("video", "With video", "e.ext_videos"),
+      Filter.Bool("past", "Is past", aggregation = false, ctx => fr0"e.start < ${ctx.now}", ctx => fr0"e.start > ${ctx.now}")))
 
   private[sql] def insert(e: ExternalEvent): Insert[ExternalEvent] = {
     val values = fr0"${e.id}, ${e.name}, ${e.kind}, ${e.logo}, ${e.description}, ${e.start}, ${e.finish}, " ++ insertLocation(e.location) ++ fr0", ${e.url}, ${e.tickets}, ${e.videos}, ${e.twitterAccount}, ${e.twitterHashtag}, ${e.tags}, " ++ insertInfo(e.info)
@@ -67,36 +74,15 @@ object ExternalEventRepoSql {
   private[sql] def selectOne(id: ExternalEvent.Id): Select[ExternalEvent] =
     tableSelect.selectOne[ExternalEvent](fr0"WHERE ee.id=$id", Seq())
 
-  private[sql] def selectPage(params: Page.Params): SelectPage[ExternalEvent] =
-    tableSelect.selectPage[ExternalEvent](params)
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: UserCtx): SelectPage[ExternalEvent, UserCtx] =
+    tableSelect.selectPage[ExternalEvent, UserCtx](params)
 
-  private[sql] def selectPageCommon(params: Page.Params, now: Instant): SelectPage[CommonEvent] =
-    commonTable.selectPage[CommonEvent](params, fr0"WHERE true=true" ++ pageFiltersCommon(params, now))
+  private[sql] def selectPageCommon(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[CommonEvent, UserAwareCtx] =
+    commonTable.selectPage[CommonEvent, UserAwareCtx](params)
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
     table.select[Seq[Tag]](Seq(Field("tags", "ee")), Seq())
 
   private[sql] def selectLogos(): Select[Option[Logo]] =
     table.select[Option[Logo]](Seq(Field("logo", "ee")), fr0"WHERE ee.logo IS NOT NULL", Seq())
-
-  private def pageFiltersCommon(params: Page.Params, now: Instant): Fragment = {
-    val kindFilter = params.filters.get("type") match {
-      case Some("conference") => fr0" AND e.kind='Conference'"
-      case Some("meetup") => fr0" AND e.kind='Meetup'"
-      case Some("training") => fr0" AND e.kind='Training'"
-      case Some("private event") => fr0" AND e.kind='PrivateEvent'"
-      case _ => fr0""
-    }
-    val videoFilter = params.filters.get("video") match {
-      case Some("true") => fr0" AND e.ext_videos IS NOT NULL"
-      case Some("false") => fr0" AND e.ext_videos IS NULL"
-      case _ => fr0""
-    }
-    val pastFilter = params.filters.get("past") match {
-      case Some("true") => fr0" AND e.start < $now"
-      case Some("false") => fr0" AND e.start > $now"
-      case _ => fr0""
-    }
-    kindFilter ++ videoFilter ++ pastFilter
-  }
 }

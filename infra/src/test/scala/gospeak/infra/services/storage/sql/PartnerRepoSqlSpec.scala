@@ -27,12 +27,12 @@ class PartnerRepoSqlSpec extends RepoSpec {
         check(q, s"DELETE FROM $table WHERE pa.group_id=? AND pa.slug=?")
       }
       it("should build selectPage") {
-        val q = PartnerRepoSql.selectPage(group.id, params)
+        val q = PartnerRepoSql.selectPage(params)
         check(q, s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPageFull") {
-        val q = PartnerRepoSql.selectPageFull(group.id, params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? $groupByFull  $orderBy LIMIT 20 OFFSET 0")
+        val q = PartnerRepoSql.selectPageFull(params)
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? $groupByFull $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectAll") {
         val q = PartnerRepoSql.selectAll(group.id)

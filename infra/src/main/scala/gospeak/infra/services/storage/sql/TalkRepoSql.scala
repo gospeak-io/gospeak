@@ -70,13 +70,13 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def find(talk: Talk.Id): IO[Option[Talk]] = selectOne(talk).runOption(xa)
 
-  override def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]] = selectPage(ctx.user.id, params).run(xa)
+  override def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]] = selectPage(params).run(xa)
 
   override def listAll(user: User.Id, status: Talk.Status): IO[Seq[Talk]] = selectAll(user, status).runList(xa)
 
-  override def listCurrent(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]] = selectPage(ctx.user.id, Talk.Status.current, params).run(xa)
+  override def listCurrent(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]] = selectPage(Talk.Status.current, params).run(xa)
 
-  override def listCurrent(user: User.Id, cfp: Cfp.Id, params: Page.Params): IO[Page[Talk]] = selectPage(user, cfp, Talk.Status.current, params).run(xa)
+  override def listCurrent(cfp: Cfp.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]] = selectPage(cfp, Talk.Status.current, params).run(xa)
 
   override def find(talk: Talk.Slug)(implicit ctx: UserCtx): IO[Option[Talk]] = selectOne(ctx.user.id, talk).runOption(xa)
 
@@ -125,18 +125,18 @@ object TalkRepoSql {
   private[sql] def selectOne(user: User.Id, talk: Talk.Slug, status: Talk.Status): Select[Talk] =
     table.selectOne[Talk](fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.slug=$talk AND t.status=$status", Seq())
 
-  private[sql] def selectPage(user: User.Id, params: Page.Params): SelectPage[Talk] =
-    table.selectPage[Talk](params, fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"}")
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: UserCtx): SelectPage[Talk, UserCtx] =
+    table.selectPage[Talk, UserCtx](params, fr0"WHERE t.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
 
   private[sql] def selectAll(user: User.Id, status: Talk.Status): Select[Talk] =
     table.select[Talk](fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.status=$status")
 
-  private[sql] def selectPage(user: User.Id, status: NonEmptyList[Talk.Status], params: Page.Params): SelectPage[Talk] =
-    table.selectPage[Talk](params, fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND " ++ Fragments.in(fr"t.status", status))
+  private[sql] def selectPage(status: NonEmptyList[Talk.Status], params: Page.Params)(implicit ctx: UserCtx): SelectPage[Talk, UserCtx] =
+    table.selectPage[Talk, UserCtx](params, fr0"WHERE t.speakers LIKE ${"%" + ctx.user.id.value + "%"} AND " ++ Fragments.in(fr"t.status", status))
 
-  private[sql] def selectPage(user: User.Id, cfp: Cfp.Id, status: NonEmptyList[Talk.Status], params: Page.Params): SelectPage[Talk] = {
+  private[sql] def selectPage(cfp: Cfp.Id, status: NonEmptyList[Talk.Status], params: Page.Params)(implicit ctx: UserCtx): SelectPage[Talk, UserCtx] = {
     val cfpTalks = Tables.proposals.select(Seq(Field("talk_id", "p")), fr0"WHERE p.cfp_id=$cfp", Seq()).fr
-    table.selectPage[Talk](params, fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.id NOT IN (" ++ cfpTalks ++ fr0") AND " ++ Fragments.in(fr"t.status", status))
+    table.selectPage[Talk, UserCtx](params, fr0"WHERE t.speakers LIKE ${"%" + ctx.user.id.value + "%"} AND t.id NOT IN (" ++ cfpTalks ++ fr0") AND " ++ Fragments.in(fr"t.status", status))
   }
 
   private[sql] def selectTags(): Select[Seq[Tag]] =

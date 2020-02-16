@@ -3,7 +3,7 @@ package gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
-import gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Group, User}
 import gospeak.libs.scala.domain.{Done, Page, Tag}
 
@@ -46,7 +46,7 @@ trait AuthGroupRepo {
 }
 
 trait PublicGroupRepo {
-  def listFull(params: Page.Params): IO[Page[Group.Full]]
+  def listFull(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Full]]
 
   def listFull(user: User.Id): IO[Seq[Group.Full]]
 
@@ -58,7 +58,7 @@ trait PublicGroupRepo {
 
   def find(group: Group.Id): IO[Option[Group]]
 
-  def listMembers(group: Group.Id, params: Page.Params): IO[Page[Group.Member]]
+  def listMembers(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Member]]
 
   def findActiveMember(group: Group.Id, user: User.Id): IO[Option[Group.Member]]
 

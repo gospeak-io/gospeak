@@ -10,7 +10,7 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import gospeak.core.domain.Event.Rsvp.Answer
 import gospeak.core.domain._
-import gospeak.core.domain.utils.{OrgaCtx, UserCtx}
+import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.EventRepo
 import gospeak.infra.services.storage.sql.EventRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
@@ -52,23 +52,21 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def findPublished(group: Group.Id, event: Event.Slug): IO[Option[Event.Full]] = selectOnePublished(group, event).runOption(xa)
 
-  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]] = selectPage(ctx.group.id, params).run(xa)
+  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]] = selectPage(params).run(xa)
 
-  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]] = selectPageFull(ctx.group.id, params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]] = selectPageFull(params).run(xa)
 
   override def list(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Seq[Event]] = selectAll(ctx.group.id, venue).runList(xa)
 
   override def list(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Seq[(Event, Venue)]] = selectAll(ctx.group.id, partner).runList(xa)
 
-  override def listPublished(group: Group.Id, params: Page.Params): IO[Page[Event.Full]] = selectPagePublished(group, params).run(xa)
-
-  override def listPublic(address: GMapPlace, params: Page.Params): IO[Page[Event.Full]] = selectPagePublic(address, params).run(xa)
+  override def listPublished(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Event.Full]] = selectPagePublished(group, params).run(xa)
 
   override def list(ids: Seq[Event.Id]): IO[Seq[Event]] = runNel(selectAll, ids)
 
-  override def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]] = selectPageAfterFull(ctx.group.id, ctx.now.truncatedTo(ChronoUnit.DAYS), params).run(xa)
+  override def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]] = selectPageAfterFull(params).run(xa)
 
-  override def listIncoming(params: Page.Params)(implicit ctx: UserCtx): IO[Page[(Event.Full, Option[Event.Rsvp])]] = selectPageIncoming(ctx.user.id, ctx.now, params).run(xa)
+  override def listIncoming(params: Page.Params)(implicit ctx: UserCtx): IO[Page[(Event.Full, Option[Event.Rsvp])]] = selectPageIncoming(params).run(xa)
 
   override def countYesRsvp(event: Event.Id): IO[Long] = countRsvp(event, Event.Rsvp.Answer.Yes).runOption(xa).map(_.getOrElse(0))
 
@@ -142,17 +140,14 @@ object EventRepoSql {
   private[sql] def selectOnePublished(group: Group.Id, event: Event.Slug): Select[Event.Full] =
     tableFull.select[Event.Full](fr0"WHERE e.group_id=$group AND e.slug=$event AND e.published IS NOT NULL")
 
-  private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[Event] =
-    table.selectPage[Event](params, fr0"WHERE e.group_id=$group")
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Event, OrgaCtx] =
+    table.selectPage[Event, OrgaCtx](params, fr0"WHERE e.group_id=${ctx.group.id}")
 
-  private[sql] def selectPageFull(group: Group.Id, params: Page.Params): SelectPage[Event.Full] =
-    tableFull.selectPage[Event.Full](params, fr0"WHERE e.group_id=$group")
+  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Event.Full, OrgaCtx] =
+    tableFull.selectPage[Event.Full, OrgaCtx](params, fr0"WHERE e.group_id=${ctx.group.id}")
 
-  private[sql] def selectPagePublished(group: Group.Id, params: Page.Params): SelectPage[Event.Full] =
-    tableFull.selectPage[Event.Full](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")
-
-  private[sql] def selectPagePublic(address: GMapPlace, params: Page.Params): SelectPage[Event.Full] =
-    tableFull.selectPage[Event.Full](params, fr0"WHERE v.address=$address AND e.published IS NOT NULL")
+  private[sql] def selectPagePublished(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Event.Full, UserAwareCtx] =
+    tableFull.selectPage[Event.Full, UserAwareCtx](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")
 
   private[sql] def selectAll(ids: NonEmptyList[Event.Id]): Select[Event] =
     table.select[Event](fr0"WHERE " ++ Fragments.in(fr"e.id", ids))
@@ -163,11 +158,11 @@ object EventRepoSql {
   private[sql] def selectAll(group: Group.Id, partner: Partner.Id): Select[(Event, Venue)] =
     tableWithVenue.select[(Event, Venue)](fr0"WHERE e.group_id=$group AND v.partner_id=$partner")
 
-  private[sql] def selectPageAfterFull(group: Group.Id, now: Instant, params: Page.Params): SelectPage[Event.Full] =
-    tableFull.selectPage[Event.Full](params, fr0"WHERE e.group_id=$group AND e.start > $now")
+  private[sql] def selectPageAfterFull(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Event.Full, OrgaCtx] =
+    tableFull.selectPage[Event.Full, OrgaCtx](params, fr0"WHERE e.group_id=${ctx.group.id} AND e.start > ${ctx.now.truncatedTo(ChronoUnit.DAYS)}")
 
-  private[sql] def selectPageIncoming(user: User.Id, now: Instant, params: Page.Params): SelectPage[(Event.Full, Option[Event.Rsvp])] =
-    tableFullWithMemberAndRsvp.selectPage[(Event.Full, Option[Event.Rsvp])](params, fr0"WHERE e.start > $now AND e.published IS NOT NULL AND gm.user_id=$user")
+  private[sql] def selectPageIncoming(params: Page.Params)(implicit ctx: UserCtx): SelectPage[(Event.Full, Option[Event.Rsvp]), UserCtx] =
+    tableFullWithMemberAndRsvp.selectPage[(Event.Full, Option[Event.Rsvp]), UserCtx](params, fr0"WHERE e.start > ${ctx.now} AND e.published IS NOT NULL AND gm.user_id=${ctx.user.id}")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
     table.select[Seq[Tag]](Seq(Field("tags", "e")), Seq())
@@ -182,9 +177,6 @@ object EventRepoSql {
 
   private[sql] def updateRsvp(event: Event.Id, user: User.Id, answer: Answer, now: Instant): Update =
     rsvpTable.update(fr0"answer=$answer, answered_at=$now", fr0"WHERE er.event_id=$event AND er.user_id=$user")
-
-  private[sql] def selectPageRsvps(event: Event.Id, params: Page.Params): SelectPage[Event.Rsvp] =
-    rsvpTableWithUser.selectPage[Event.Rsvp](params, fr0"WHERE er.event_id=$event")
 
   private[sql] def selectAllRsvp(event: Event.Id): Select[Event.Rsvp] =
     rsvpTableWithUser.select[Event.Rsvp](fr0"WHERE er.event_id=$event")

@@ -34,7 +34,7 @@ class ExternalCfpRepoSqlSpec extends RepoSpec {
         // check(q, req) // not null types become nullable when doing union, so it fails :(
       }
       it("should build selectCommonPage") {
-        val q = ExternalCfpRepoSql.selectCommonPageIncoming(now, params)
+        val q = ExternalCfpRepoSql.selectCommonPageIncoming(params)
         val req = s"SELECT $commonFields FROM $commonTable " +
           s"WHERE (c.close IS NULL OR c.close >= ?) " +
           s"ORDER BY c.close IS NULL, c.close, c.name IS NULL, c.name " +

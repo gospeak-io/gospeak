@@ -26,7 +26,7 @@ class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def find(sponsor: Sponsor.Id)(implicit ctx: OrgaCtx): IO[Option[Sponsor]] = selectOne(ctx.group.id, sponsor).runOption(xa)
 
-  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Sponsor.Full]] = selectPage(ctx.group.id, params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Sponsor.Full]] = selectPage(params).run(xa)
 
   override def listCurrentFull(group: Group.Id, now: Instant): IO[Seq[Sponsor.Full]] = selectCurrent(group, now).runList(xa)
 
@@ -61,8 +61,8 @@ object SponsorRepoSql {
   private[sql] def selectOne(group: Group.Id, pack: Sponsor.Id): Select[Sponsor] =
     table.select[Sponsor](where(group, pack))
 
-  private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[Sponsor.Full] =
-    tableFull.selectPage[Sponsor.Full](params, fr0"WHERE s.group_id=$group")
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Sponsor.Full, OrgaCtx] =
+    tableFull.selectPage[Sponsor.Full, OrgaCtx](params, fr0"WHERE s.group_id=${ctx.group.id}")
 
   private[sql] def selectCurrent(group: Group.Id, now: Instant): Select[Sponsor.Full] =
     tableFull.select[Sponsor.Full](fr0"WHERE s.group_id=$group AND s.start < $now AND s.finish > $now")

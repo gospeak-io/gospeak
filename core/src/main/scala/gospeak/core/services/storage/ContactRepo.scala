@@ -3,7 +3,7 @@ package gospeak.core.services.storage
 import cats.effect.IO
 import gospeak.core.domain._
 import gospeak.core.domain.utils.OrgaCtx
-import gospeak.libs.scala.domain.{Done, EmailAddress, Page}
+import gospeak.libs.scala.domain.{Done, EmailAddress}
 
 trait ContactRepo extends SuggestContactRepo {
   def list(partner: Partner.Id): IO[Seq[Contact]]
@@ -13,8 +13,6 @@ trait ContactRepo extends SuggestContactRepo {
   def edit(contact: Contact.Id, data: Contact.Data)(implicit ctx: OrgaCtx): IO[Done]
 
   def remove(partner: Partner.Id, contact: Contact.Id)(implicit ctx: OrgaCtx): IO[Done]
-
-  def list(partner: Partner.Id, params: Page.Params): IO[Page[Contact]]
 
   def find(id: Contact.Id): IO[Option[Contact]]
 

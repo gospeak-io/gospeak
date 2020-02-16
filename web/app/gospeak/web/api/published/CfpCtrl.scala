@@ -19,7 +19,7 @@ class CfpCtrl(cc: ControllerComponents,
               externalCfpRepo: PublicExternalCfpRepo) extends ApiCtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiCfp.Published]] { implicit req =>
     for {
-      cfps <- externalCfpRepo.listIncoming(req.now, params)
+      cfps <- externalCfpRepo.listIncoming(params)
       groups <- groupRepo.list(cfps.items.flatMap(_.group.map(_._1)))
     } yield ApiResult.of(cfps, (cfp: CommonCfp) => ApiCfp.published(cfp, groups))
   }

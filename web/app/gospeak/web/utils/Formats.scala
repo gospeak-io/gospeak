@@ -6,7 +6,8 @@ import java.util.Locale
 
 import gospeak.core.domain.Cfp
 import gospeak.core.domain.utils.Constants
-import gospeak.web.pages.partials.html.{pagination, search}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils.Filter
+import gospeak.web.pages.partials.html
 import gospeak.libs.scala.domain.Page
 import play.api.mvc.{AnyContent, Call}
 import play.twirl.api.Html
@@ -94,17 +95,18 @@ object Formats {
     case Seq(head, tail@_*) => Html(tail.foldLeft(new StringBuilder(head.body.trim))((b, html) => b.append(sep.body + html.body.trim)).toString())
   }
 
-  def paginated[A](page: Page[A], link: Page.Params => Call, item: A => Html): Html = {
-    Html(paginationHeader(page, link).body + paginationBody(page, item).body + paginationFooter(page, link).body)
+  def paginated[A](page: Page[A], link: Page.Params => Call, item: A => Html, filters: Seq[Filter] = Seq()): Html = {
+    Html(paginationHeader(page, link, filters).body + paginationBody(page, item).body + paginationFooter(page, link).body)
   }
 
-  def paginationHeader[A](page: Page[A], link: Page.Params => Call): Html = {
+  def paginationHeader[A](page: Page[A], link: Page.Params => Call, filters: Seq[Filter]): Html = {
     Html(
       s"""<div class="d-flex justify-content-between align-items-center mb-3"${if (page.hasManyPages || page.params.search.nonEmpty) "" else " style=\"display: none !important;\""}>
-         |  ${search(page, link(Page.Params.defaults))}
-         |  ${pagination(page, link)}
+         |  ${html.search(page, link(Page.Params.defaults))}
+         |  ${html.pagination(page, link)}
          |</div>
-       """.stripMargin)
+         |${html.filters(page, link, filters)}
+       """.stripMargin.trim)
   }
 
   def paginationBody[A](page: Page[A], item: A => Html): Html = {
@@ -124,6 +126,6 @@ object Formats {
   }
 
   def paginationFooter[A](page: Page[A], link: Page.Params => Call): Html = {
-    Html(s"""<div class="d-flex justify-content-end mb-3">${pagination(page, link)}</div>""")
+    Html(s"""<div class="d-flex justify-content-end mb-3">${html.pagination(page, link)}</div>""")
   }
 }

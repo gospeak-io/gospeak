@@ -4,8 +4,8 @@ import java.time.Instant
 
 import cats.effect.IO
 import doobie.implicits._
-import gospeak.core.domain.utils.{Info, UserCtx}
 import gospeak.core.domain._
+import gospeak.core.domain.utils.{Info, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.ExternalCfpRepo
 import gospeak.infra.services.storage.sql.ExternalCfpRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
@@ -21,7 +21,7 @@ class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
   override def edit(cfp: ExternalCfp.Id)(data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[Done] =
     update(cfp)(data, ctx.user.id, ctx.now).run(xa)
 
-  override def listIncoming(now: Instant, params: Page.Params): IO[Page[CommonCfp]] = selectCommonPageIncoming(now, params).run(xa)
+  override def listIncoming(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonCfp]] = selectCommonPageIncoming(params).run(xa)
 
   override def listDuplicatesFull(p: ExternalCfp.DuplicateParams): IO[Seq[ExternalCfp.Full]] = selectDuplicatesFull(p).runList(xa)
 
@@ -46,7 +46,8 @@ object ExternalCfpRepoSql {
     aggFields = Seq(),
     customFields = Seq(),
     sorts = Sorts(Seq("close", "name").map(Field(_, "c")), Map()),
-    search = Seq("name", "description", "tags").map(Field(_, "c")))
+    search = Seq("name", "description", "tags").map(Field(_, "c")),
+    filters = Seq())
 
   private[sql] def insert(e: ExternalCfp): Insert[ExternalCfp] = {
     val values = fr0"${e.id}, ${e.event}, ${e.description}, ${e.begin}, ${e.close}, ${e.url}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
@@ -67,8 +68,8 @@ object ExternalCfpRepoSql {
   private[sql] def selectOneCommon(id: ExternalCfp.Id): Select[CommonCfp] =
     commonTable.selectOne[CommonCfp](fr0"WHERE c.id=$id", Seq())
 
-  private[sql] def selectCommonPageIncoming(now: Instant, params: Page.Params): SelectPage[CommonCfp] =
-    commonTable.selectPage[CommonCfp](params, fr0"WHERE (c.close IS NULL OR c.close >= $now)")
+  private[sql] def selectCommonPageIncoming(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[CommonCfp, UserAwareCtx] =
+    commonTable.selectPage[CommonCfp, UserAwareCtx](params, fr0"WHERE (c.close IS NULL OR c.close >= ${ctx.now})")
 
   private[sql] def selectDuplicatesFull(p: ExternalCfp.DuplicateParams): Select[ExternalCfp.Full] = {
     val filters = Seq(

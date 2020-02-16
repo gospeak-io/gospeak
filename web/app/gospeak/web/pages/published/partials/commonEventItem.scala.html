@@ -16,7 +16,7 @@
                 <h5 class="card-title mb-0"><a href="@event.internal.map(i => GroupCtrl.event(i.groupSlug, i.eventSlug)).getOrElse(EventCtrl.detailExt(event.id.external))">
                     <small class="text-muted">@eventKindIcon(event.kind)</small> @event.name.value
                 </a></h5>
-                @event.location.map { l => <small class="text-muted">@l.short</small> }
+                @event.location.map { l => <small class="text-muted">@l.valueShort</small> }
             </div>
             <div class="d-flex justify-content-between align-items-center">
                 <span>
