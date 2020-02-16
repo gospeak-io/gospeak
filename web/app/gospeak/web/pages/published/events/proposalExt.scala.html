@@ -14,7 +14,7 @@
         @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
         @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
     </h1>
-    @proposal.url.map { u => <a href="@u">@u</a><br> }
+    @proposal.url.map { u => <a href="@u" target="_blank">@u</a><br> }
     <ul class="list-inline mb-3">
         @proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
             <li class="list-inline-item">

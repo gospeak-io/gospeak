@@ -138,6 +138,8 @@ object Page {
 
     def withFilter(key: String, value: String): Params = copy(filters = filters + (key -> value))
 
+    def withFilters(f: (String, String)*): Params = copy(filters = f.toMap)
+
     def dropFilter(key: String): Params = copy(filters = filters - key)
 
     def toggleFilter(key: String): Params = filters.get(key) match {

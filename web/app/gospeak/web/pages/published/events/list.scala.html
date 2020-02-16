@@ -1,6 +1,7 @@
 @import gospeak.core.domain.{CommonEvent, User}
 @import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.partials.html.{container, commonEventItem}
 @import gospeak.web.utils.{Formats, UserAwareReq}
@@ -13,6 +14,12 @@
             Here are events interesting the Gospeak community.<br>
             <a class="btn btn-text btn-text-success" href="@EventCtrl.create()">Add a missing event</a>
         </p>
+    </div>
+    <div class="mb-3">
+        Filters:
+        @filterEnum(events, EventCtrl.list, "Type", "type", Seq("conference", "meetup", "training", "private event"))
+        @filterBool(events, EventCtrl.list, "With video", "video")
+        @filterBool(events, EventCtrl.list, "Is past", "past")
     </div>
     @Formats.paginated[CommonEvent](events, EventCtrl.list, commonEventItem(_))
 }()

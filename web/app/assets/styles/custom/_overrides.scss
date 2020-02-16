@@ -29,3 +29,10 @@
 .u-xl-avatar {
   display: inline-block;
 }
+
+.badge-outline-primary {
+  color: $primary;
+  background: $white;
+  border-color: $primary;
+  border-width: 1px;
+}

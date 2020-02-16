@@ -86,15 +86,19 @@ a.no-style {
 
 .markdown {
   margin-bottom: 1rem;
-}
 
-.markdown ul {
-  color: $gray-700;
-}
+  ul {
+    color: $gray-700;
+  }
 
-.markdown p:last-child,
-.markdown ul:last-child {
-  margin-bottom: 0;
+  p:last-child,
+  ul:last-child {
+    margin-bottom: 0;
+  }
+
+  img {
+    max-width: 100%;
+  }
 }
 
 .markdown-editor {

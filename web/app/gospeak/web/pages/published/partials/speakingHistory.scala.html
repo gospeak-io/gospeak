@@ -37,12 +37,12 @@
                 </span>
                 <div class="media-body">
                     <h5 class="font-size-1 mb-1">
-                        <a href="@proposalLink(proposal)" target="_blank">@proposal.title.value</a>
+                        <a href="@proposalLink(proposal)">@proposal.title.value</a>
                         @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
                         @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
                     </h5>
                     <p class="small mb-1">
-                        At <a class="no-style" href="@eventLink(proposal)" target="_blank">@event.name.value</a>,
+                        At <a href="@eventLink(proposal)" class="no-style">@event.name.value</a>,
                         @Formats.date(proposal.date)
                     </p>
                 </div>

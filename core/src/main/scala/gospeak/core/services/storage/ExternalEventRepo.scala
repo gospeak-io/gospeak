@@ -2,7 +2,7 @@ package gospeak.core.services.storage
 
 import cats.effect.IO
 import gospeak.core.domain.{CommonEvent, ExternalEvent}
-import gospeak.core.domain.utils.UserCtx
+import gospeak.core.domain.utils.{UserAwareCtx, UserCtx}
 import gospeak.libs.scala.domain.{Done, Logo, Page, Tag}
 
 trait ExternalEventRepo extends SpeakerExternalEventRepo with PublicExternalEventRepo with SuggestExternalEventRepo
@@ -14,7 +14,7 @@ trait PublicExternalEventRepo {
 
   def list(params: Page.Params): IO[Page[ExternalEvent]]
 
-  def listCommon(params: Page.Params): IO[Page[CommonEvent]]
+  def listCommon(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonEvent]]
 
   def find(id: ExternalEvent.Id): IO[Option[ExternalEvent]]
 }

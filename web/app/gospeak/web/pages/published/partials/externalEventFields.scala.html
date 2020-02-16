@@ -36,7 +36,7 @@
 </div>
 <div class="card mb-3">
     <div class="card-header" data-toggle="collapse" data-target="#moreCollapse">More infos</div>
-    <div id="moreCollapse" class="card-body collapse @if(Seq("tickets", "videos", "twitterAccount", "twitterHashtag", "description").exists(f => form(f).value.isDefined)){show}">
+    <div class="card-body collapse show" id="moreCollapse">
         @fieldHorizontal(form("tickets"), Seq("label" -> "Tickets")) { (field, args) =>
             @inputUrl(field, Seq("placeholder" -> "Url to buy tickets") ++ args)
         }

@@ -66,10 +66,10 @@
     <div class="col-9">
         @user.title.map { t => <h2 class="h4">@t</h2> }
         @user.bio.map { b => <div class="mb-4">@markdown(b)</div> }
-        @if(userGroups.nonEmpty || (userTalks.nonEmpty && !(userTalks.length == 1 && userProposals.values.flatten.size == 1))) {
+        @if(userGroups.nonEmpty || (userTalks.nonEmpty && !(userTalks.length == userProposals.values.flatten.size))) {
             @if(user.title.isDefined || user.bio.isDefined) { <hr class="my-7"> }
             <div class="row mb-7">
-                @if(userTalks.nonEmpty && !(userTalks.length == 1 && userProposals.values.flatten.size == 1)) {
+                @if(userTalks.nonEmpty && !(userTalks.length == userProposals.values.flatten.size)) {
                     <div class="col-md-6 mb-3 mb-md-0">
                         <h3 class="h5 mb-3">Current talks</h3>
                         @userTalks.zipWithIndex.map { case (talk, i) =>

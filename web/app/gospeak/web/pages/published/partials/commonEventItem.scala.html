@@ -1,15 +1,31 @@
 @import gospeak.core.domain.CommonEvent
+@import gospeak.core.domain.utils.Constants
+@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.utils.Formats
 
 @(event: CommonEvent)
-<a class="card mb-3" href="@event.internal.map(i => GroupCtrl.event(i.groupSlug, i.eventSlug)).getOrElse(EventCtrl.detailExt(event.id.external))">
-    <div class="card-body">
-        <h5 class="card-title">@event.name.value</h5>
-        <p class="card-text d-flex justify-content-between align-items-center">
-            @event.start.map { d => <small class="text-muted">@Formats.date(d)</small> }
-            @event.location.map { l => <small class="text-muted">at @l.value</small> }
-        </p>
+<div class="card mb-3 p-3">
+    <div class="media">
+        <a href="@event.internal.map(i => GroupCtrl.event(i.groupSlug, i.eventSlug)).getOrElse(EventCtrl.detailExt(event.id.external))">
+            <img src="@event.logo.map(_.value).getOrElse(Constants.Placeholders.eventLogo)" alt="@event.name.value logo" class="mr-3 u-avatar rounded-circle">
+        </a>
+        <div class="media-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><a href="@event.internal.map(i => GroupCtrl.event(i.groupSlug, i.eventSlug)).getOrElse(EventCtrl.detailExt(event.id.external))">
+                    <small class="text-muted">@eventKindIcon(event.kind)</small> @event.name.value
+                </a></h5>
+                @event.location.map { l => <small class="text-muted">@l.short</small> }
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span>
+                    @event.external.flatMap(_.url).map { u => <a class="badge badge-outline-primary mr-2" href="@u" target="_blank">Site <i class="fas fa-external-link-alt"></i></a> }
+                    @event.external.flatMap(_.videos).map { u => <a class="badge badge-outline-primary mr-2" href="@u" target="_blank">Videos <i class="fas fa-external-link-alt"></i></a> }
+                    @event.external.flatMap(_.tickets).map { u => <a class="badge badge-outline-primary mr-2" href="@u" target="_blank">Tickets <i class="fas fa-external-link-alt"></i></a> }
+                </span>
+                @event.start.map { d => <small class="text-muted"><b>@Formats.date(d)</b></small> }
+            </div>
+        </div>
     </div>
-</a>
+</div>

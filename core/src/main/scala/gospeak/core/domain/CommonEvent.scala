@@ -18,6 +18,8 @@ final case class CommonEvent(id: CommonEvent.Id,
                              internal: Option[CommonEvent.Internal],
                              external: Option[CommonEvent.External],
                              info: Info) {
+  def logo: Option[Logo] = internal.flatMap(i => i.groupLogo.orElse(i.venueLogo)).orElse(external.flatMap(_.logo))
+
   def users: List[User.Id] = info.users
 }
 
@@ -50,6 +52,8 @@ object CommonEvent {
 
   final case class External(logo: Option[Logo],
                             description: Markdown,
-                            url: Option[Url])
+                            url: Option[Url],
+                            tickets: Option[Url],
+                            videos: Option[Url])
 
 }

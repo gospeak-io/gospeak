@@ -16,6 +16,8 @@ case class GMapPlace(id: String,
                      utcOffset: Int) { // in minutes
   def value: String = formatted
 
+  def valueShort: String = locality.map(_ + ", ").getOrElse("") + country
+
   def trim: GMapPlace = GMapPlace(
     id = id.trim,
     name = name.trim,
