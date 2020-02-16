@@ -5,13 +5,13 @@
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
 @import gospeak.web.utils.UserReq
 
-@(talk: Talk, form: Form[Talk.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@(talk: Talk, form: Form[Talk.Data], redirect: Option[String])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"Edit '${talk.title.value}' - Gospeak", b)() {
-    @formElt(form, TalkCtrl.doEdit(talk.slug)) {
+    @formElt(form, TalkCtrl.doEdit(talk.slug, redirect)) {
         <div class="d-flex justify-content-between align-items-center">
             <h1>Edit @talk.title.value</h1>
             <div>
-                @btnCancel(TalkCtrl.detail(talk.slug))
+                @btnCancel(TalkCtrl.detail(talk.slug), redirect)
                 @btnSubmit("Edit")
             </div>
         </div>

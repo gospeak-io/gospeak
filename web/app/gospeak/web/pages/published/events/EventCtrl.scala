@@ -4,7 +4,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.{ExternalEvent, ExternalProposal}
-import gospeak.core.services.storage.{PublicExternalEventRepo, PublicExternalProposalRepo, PublicUserRepo}
+import gospeak.core.services.storage.{PublicExternalEventRepo, PublicExternalProposalRepo, PublicTalkRepo, PublicUserRepo}
 import gospeak.libs.scala.domain.Page
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
@@ -19,6 +19,7 @@ class EventCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
                 conf: AppConf,
                 userRepo: PublicUserRepo,
+                talkRepo: PublicTalkRepo,
                 externalEventRepo: PublicExternalEventRepo,
                 externalProposalRepo: PublicExternalProposalRepo) extends UICtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
@@ -75,8 +76,9 @@ class EventCtrl(cc: ControllerComponents,
     (for {
       eventElt <- OptionT(externalEventRepo.find(event))
       proposalElt <- OptionT(externalProposalRepo.find(proposal))
+      talkElt <- OptionT(talkRepo.find(proposalElt.talk))
       users <- OptionT.liftF(userRepo.list((eventElt.users ++ proposalElt.users).distinct))
-      res = Ok(html.proposalExt(eventElt, proposalElt, users)(breadcrumb(eventElt, proposalElt)))
+      res = Ok(html.proposalExt(eventElt, talkElt, proposalElt, users)(breadcrumb(eventElt, proposalElt)))
     } yield res).value.map(_.getOrElse(publicProposalNotFound(event, proposal)))
   }
 }

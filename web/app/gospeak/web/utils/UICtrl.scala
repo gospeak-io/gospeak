@@ -40,7 +40,7 @@ abstract class UICtrl(cc: ControllerComponents,
       }
       val userStr = user.map(u => s", user ${u.name.value} (${u.id.value})").getOrElse("")
       val groupStr = group.map(g => s", group ${g.name.value} (${g.id.value})").getOrElse("")
-      val msgStr = if(msg.isEmpty) "" else s": $msg"
+      val msgStr = if (msg.isEmpty) "" else s": $msg"
       // FIXME better error handling (send email or notif?)
       logger.error(s"Error in controller for request ${req.customId}" + userStr + groupStr + msgStr, e)
     }
@@ -59,12 +59,14 @@ abstract class UICtrl(cc: ControllerComponents,
     }.unsafeToFuture()
   }
 
-  protected def redirectToPreviousPageOr[A](default: => Call)(implicit req: Request[A]): Result = {
-    HttpUtils.getReferer(req.headers)
+  protected def redirectOr[A](redirect: Option[String], default: => Call)(implicit req: Request[A]): Result =
+    redirect
       .filterNot(url => url.contains("login") || url.contains("signup"))
       .map(Redirect(_))
       .getOrElse(Redirect(default))
-  }
+
+  protected def redirectToPreviousPageOr[A](default: => Call)(implicit req: Request[A]): Result =
+    redirectOr(HttpUtils.getReferer(req.headers), default)
 
   // orga redirects
   protected def groupNotFound(group: Group.Slug): Result =

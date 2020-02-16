@@ -89,24 +89,24 @@ class ProposalCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
-  def edit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    editView(group, cfp, proposal, GsForms.proposalOrga)
+  def edit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, redirect: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
+    editView(group, cfp, proposal, GsForms.proposalOrga, redirect)
   }
 
-  def doEdit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
+  def doEdit(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, redirect: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     GsForms.proposalOrga.bindFromRequest.fold(
-      formWithErrors => editView(group, cfp, proposal, formWithErrors),
-      data => proposalRepo.edit(cfp, proposal, data).map { _ => Redirect(routes.ProposalCtrl.detail(group, cfp, proposal)) }
+      formWithErrors => editView(group, cfp, proposal, formWithErrors, redirect),
+      data => proposalRepo.edit(cfp, proposal, data).map { _ => redirectOr(redirect, routes.ProposalCtrl.detail(group, cfp, proposal)) }
     )
   }
 
-  private def editView(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, form: Form[Proposal.DataOrga])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
+  private def editView(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, form: Form[Proposal.DataOrga], redirect: Option[String])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
       cfpElt <- OptionT(cfpRepo.find(cfp))
       proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
       b = breadcrumb(cfpElt, proposalElt).add("Edit" -> routes.ProposalCtrl.edit(group, cfp, proposal))
       filledForm = if (form.hasErrors) form else form.fill(proposalElt.dataOrga)
-    } yield Ok(html.edit(cfpElt, proposalElt, filledForm)(b))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
+    } yield Ok(html.edit(cfpElt, proposalElt, filledForm, redirect)(b))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
   def inviteSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>

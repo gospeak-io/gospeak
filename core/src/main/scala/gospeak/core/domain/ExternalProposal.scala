@@ -22,6 +22,8 @@ final case class ExternalProposal(id: ExternalProposal.Id,
                                   info: Info) {
   def data: ExternalProposal.Data = ExternalProposal.Data(this)
 
+  def hasSpeaker(user: User.Id): Boolean = speakers.toList.contains(user)
+
   def users: List[User.Id] = (speakers.toList ++ info.users).distinct
 }
 

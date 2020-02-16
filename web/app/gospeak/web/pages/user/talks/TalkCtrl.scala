@@ -67,28 +67,27 @@ class TalkCtrl(cc: ControllerComponents,
     } yield Ok(html.detail(talkElt, speakers, invites, proposals, GsForms.invite, GsForms.embed)(b))).value.map(_.getOrElse(talkNotFound(talk)))
   }
 
-  def edit(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
-    editForm(talk, GsForms.talk)
+  def edit(talk: Talk.Slug, redirect: Option[String]): Action[AnyContent] = UserAction { implicit req =>
+    editForm(talk, GsForms.talk, redirect)
   }
 
-  def doEdit(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
+  def doEdit(talk: Talk.Slug, redirect: Option[String]): Action[AnyContent] = UserAction { implicit req =>
     GsForms.talk.bindFromRequest.fold(
-      formWithErrors => editForm(talk, formWithErrors),
+      formWithErrors => editForm(talk, formWithErrors, redirect),
       data => talkRepo.find(data.slug).flatMap {
         case Some(duplicate) if data.slug != talk =>
-          editForm(talk, GsForms.talk.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"))
-        case _ =>
-          talkRepo.edit(talk, data).map { _ => Redirect(routes.TalkCtrl.detail(data.slug)) }
+          editForm(talk, GsForms.talk.fillAndValidate(data).withError("slug", s"Slug already taken by talk: ${duplicate.title.value}"), redirect)
+        case _ => talkRepo.edit(talk, data).map { _ => redirectOr(redirect, routes.TalkCtrl.detail(data.slug)) }
       }
     )
   }
 
-  private def editForm(talk: Talk.Slug, form: Form[Talk.Data])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
+  private def editForm(talk: Talk.Slug, form: Form[Talk.Data], redirect: Option[String])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
     talkRepo.find(talk).map {
       case Some(talkElt) =>
         val filledForm = if (form.hasErrors) form else form.fill(talkElt.data)
         val b = breadcrumb(talkElt).add("Edit" -> routes.TalkCtrl.edit(talk))
-        Ok(html.edit(talkElt, filledForm)(b))
+        Ok(html.edit(talkElt, filledForm, redirect)(b))
       case None =>
         talkNotFound(talk)
     }

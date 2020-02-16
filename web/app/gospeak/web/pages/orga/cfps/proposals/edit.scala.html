@@ -6,13 +6,13 @@
 @import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import gospeak.web.utils.OrgaReq
 
-@(cfp: Cfp, proposal: Proposal, form: Form[Proposal.DataOrga])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(cfp: Cfp, proposal: Proposal, form: Form[Proposal.DataOrga], redirect: Option[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"Edit '${proposal.title.value}' - Gospeak", b)() {
-    @formElt(form, ProposalCtrl.doEdit(req.group.slug, cfp.slug, proposal.id)) {
+    @formElt(form, ProposalCtrl.doEdit(req.group.slug, cfp.slug, proposal.id, redirect)) {
         <div class="d-flex justify-content-between align-items-center">
             <h1>Update @proposal.title.value at @cfp.name.value</h1>
             <div>
-                @btnCancel(ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id))
+                @btnCancel(ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id), redirect)
                 @btnSubmit("Edit Speaker's Proposal")
             </div>
         </div>

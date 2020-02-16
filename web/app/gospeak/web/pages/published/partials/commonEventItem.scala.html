@@ -9,7 +9,7 @@
 <div class="card mb-3 p-3">
     <div class="media">
         <a href="@event.internal.map(i => GroupCtrl.event(i.groupSlug, i.eventSlug)).getOrElse(EventCtrl.detailExt(event.id.external))">
-            <img src="@event.logo.map(_.value).getOrElse(Constants.Placeholders.eventLogo)" alt="@event.name.value logo" class="mr-3 u-avatar rounded-circle">
+            <img src="@event.logo.map(_.value).getOrElse(Constants.Placeholders.eventLogo)" alt="@event.name.value logo" class="u-avatar rounded-circle mr-3">
         </a>
         <div class="media-body">
             <div class="d-flex justify-content-between align-items-center">

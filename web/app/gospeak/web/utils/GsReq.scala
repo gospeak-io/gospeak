@@ -6,10 +6,10 @@ import java.util.UUID
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import gospeak.core.domain.utils._
-import gospeak.core.domain.{Group, User}
+import gospeak.core.domain._
+import gospeak.libs.scala.domain.EmailAddress
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.{AuthUser, CookieEnv}
-import gospeak.libs.scala.domain.EmailAddress
 import play.api.data.{Field, Form, FormError}
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.libs.json.JsonValidationError
@@ -28,6 +28,30 @@ sealed class BasicReq[A] protected(protected val request: Request[A],
   def userOpt: Option[User] = None
 
   def groupsOpt: Option[Seq[Group]] = None
+
+  def isLogged(u: User.Id): Boolean = userOpt.exists(_.id == u)
+
+  def isLogged(u: User): Boolean = isLogged(u.id)
+
+  def isLogged(u: User.Full): Boolean = isLogged(u.id)
+
+  def isSpeaker(t: Talk): Boolean = userOpt.exists(u => t.hasSpeaker(u.id))
+
+  def isOrga(g: Group): Boolean = userOpt.exists(u => g.hasOrga(u.id))
+
+  def isOrga(g: Group.Full): Boolean = isOrga(g.group)
+
+  def isSpeaker(p: Proposal.Full): Boolean = userOpt.exists(u => p.hasSpeaker(u.id))
+
+  def isOrga(p: Proposal.Full): Boolean = userOpt.exists(u => p.hasSpeaker(u.id))
+
+  def isSpeaker(p: ExternalProposal): Boolean = userOpt.exists(u => p.hasSpeaker(u.id))
+
+  def isSpeaker(p: CommonProposal): Boolean = userOpt.exists(u => p.hasSpeaker(u.id))
+
+  def isOrga(p: CommonProposal): Boolean = userOpt.exists(u => p.hasOrga(u.id))
+
+  def referer: Option[String] = HttpUtils.getReferer(headers)
 
   def nowLDT: LocalDateTime = LocalDateTime.ofInstant(now, Constants.defaultZoneId)
 

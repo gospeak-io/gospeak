@@ -28,6 +28,8 @@ final case class Group(id: Group.Id,
                        info: Info) {
   def data: Group.Data = Group.Data(this)
 
+  def hasOrga(user: User.Id): Boolean = owners.toList.contains(user)
+
   def senders(user: User): Seq[EmailAddress.Contact] = Seq(
     contact.map(email => EmailAddress.Contact(email, Some(name.value))),
     Some(EmailAddress.Contact(user.email, Some(user.name.value))),

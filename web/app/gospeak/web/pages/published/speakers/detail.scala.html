@@ -2,12 +2,14 @@
 @import gospeak.core.domain.utils.Constants
 @import gospeak.libs.scala.Extensions._
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.orga.routes.{GroupCtrl => OrgaGroupCtrl}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.partials.html.{container, speakingHistory}
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.user.profile.routes.ProfileCtrl
+@import gospeak.web.pages.user.talks.routes.TalkCtrl
 @import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(user: User.Full, userGroups: Seq[Group.Full], userTalks: Seq[Talk], userProposals: Map[Talk.Id, Seq[CommonProposal]], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
@@ -33,7 +35,7 @@
 <div class="row">
     <div class="col-3">
         <div class="card p-1 mb-4">
-            @if(req.user.exists(_.id == user.id)) { <a href="@ProfileCtrl.edit()" class="hover-edit"><i class="fas fa-edit"></i></a> }
+            @if(req.isLogged(user)) { <a href="@ProfileCtrl.edit()" class="hover-edit"><i class="fas fa-edit"></i></a> }
             <div class="card-body text-center">
                 <div>
                     <img class="u-lg-avatar rounded-circle" src="@user.avatar.url.value" alt="@user.name.value avatar">
@@ -68,6 +70,7 @@
         </div>
         @if(user.website.isDefined || user.social.all.nonEmpty) {
             <div class="card mb-4">
+                @if(req.isLogged(user)) { <a href="@ProfileCtrl.edit()" class="hover-edit"><i class="fas fa-edit"></i></a> }
                 <div class="card-header pt-4 pb-3 px-0 mx-4">
                     <h3 class="h6 mb-0">Social Profiles</h3>
                 </div>
@@ -106,6 +109,10 @@
                                     <a href="@SpeakerCtrl.talk(user.slug, talk.slug)">@talk.title.value</a>
                                     @talk.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
                                     @talk.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+                                    @if(req.isSpeaker(talk)) {
+                                        <a href="@TalkCtrl.detail(talk.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
+                                        <a href="@TalkCtrl.edit(talk.slug, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
+                                    }
                                 </h4>
                                 @if(talk.speakers.length > 1) {
                                     <ul class="list-inline ml-3 mb-0">
@@ -126,18 +133,25 @@
                     <div class="col-md-6 mb-7 mb-md-0">
                         <h3 class="h5 mb-3">Organizes</h3>
                         @userGroups.zipWithIndex.map { case (group, i) =>
-                            <a class="d-flex @if(i != 0){mt-5} no-style" href="@GroupCtrl.detail(group.slug)">
-                                <img class="u-avatar align-self-center mr-4" src="@group.logo.map(_.value).getOrElse(Constants.Placeholders.groupLogo)" alt="@group.name.value logo">
+                            <div class="d-flex @if(i != 0){mt-5}">
+                                <a href="@GroupCtrl.detail(group.slug)">
+                                    <img class="u-avatar rounded-circle align-self-center mr-4" src="@group.logo.map(_.value).getOrElse(Constants.Placeholders.groupLogo)" alt="@group.name.value logo">
+                                </a>
                                 <div>
                                     <small class="d-block text-secondary">
                                         @Formats.plural(group.memberCount, "member"),
                                         @Formats.plural(group.eventCount, "event"),
                                         @Formats.plural(group.talkCount, "talk")
                                     </small>
-                                    <h4 class="h6 mb-0">@group.name.value</h4>
+                                    <h4 class="h6 mb-0">
+                                        <a href="@GroupCtrl.detail(group.slug)">@group.name.value</a>
+                                        @if(req.isOrga(group)) {
+                                            <a href="@OrgaGroupCtrl.detail(group.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
+                                        }
+                                    </h4>
                                     <span class="d-block text-secondary">@group.location.map(_.formatted)</span>
                                 </div>
-                            </a>
+                            </div>
                         }
                     </div>
                 }
@@ -151,7 +165,7 @@
                     <span class="badge badge-pill badge-@Formats.color(kind)">@eventKindIcon(kind) @Formats.plural(proposals.length, kind.label)</span>
                 }
             </div>
-            @speakingHistory(userProposals.values.flatten.toList)
+            @speakingHistory(user, userProposals.values.flatten.toList)
         }
     </div>
 </div>

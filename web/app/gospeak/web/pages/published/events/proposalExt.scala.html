@@ -1,18 +1,23 @@
-@import gospeak.core.domain.{ExternalEvent, ExternalProposal, User}
+@import gospeak.core.domain.{ExternalEvent, ExternalProposal, Talk, User}
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.partials.html.container
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import gospeak.web.utils.UserAwareReq
 
-@(event: ExternalEvent, proposal: ExternalProposal, users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(event: ExternalEvent, talk: Talk, proposal: ExternalProposal, users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${proposal.title.value} - Gospeak", PageMeta.event(event), b)() {
     <a href="@EventCtrl.detailExt(event.id)"><i class="fas fa-chevron-left"></i> @event.name.value</a>
     <h1>
         @proposal.title.value
         @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
         @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+        @if(req.isSpeaker(proposal)) {
+            <a href="@ProposalCtrl.detailExt(talk.slug, proposal.id)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
+            <a href="@ProposalCtrl.editExt(talk.slug, proposal.id, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
+        }
     </h1>
     @proposal.url.map { u => <a href="@u" target="_blank">@u</a><br> }
     <ul class="list-inline mb-3">

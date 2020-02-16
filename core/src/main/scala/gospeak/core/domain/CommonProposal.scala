@@ -33,6 +33,10 @@ final case class CommonProposal(id: CommonProposal.Id,
   def eventName: Option[Event.Name] = event.map(_.name).orElse(eventExt.map(_.name))
 
   def eventKind: Option[Event.Kind] = event.map(_.kind).orElse(eventExt.map(_.kind))
+
+  def hasSpeaker(user: User.Id): Boolean = speakers.toList.contains(user)
+
+  def hasOrga(user: User.Id): Boolean = group.exists(_.owners.toList.contains(user))
 }
 
 object CommonProposal {
@@ -40,7 +44,7 @@ object CommonProposal {
     new CommonProposal(
       Id(p.id), external = false,
       EmbedTalk(t.id, t.slug, t.duration),
-      Some(EmbedGroup(g.id, g.slug, g.name, g.logo)),
+      Some(EmbedGroup(g.id, g.slug, g.name, g.logo, g.owners)),
       Some(EmbedCfp(c.id, c.slug, c.name)),
       eOpt.map(e => EmbedEvent(e.id, e.slug, e.name, e.kind, e.start)),
       None, p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.info)
@@ -67,7 +71,8 @@ object CommonProposal {
   final case class EmbedGroup(id: Group.Id,
                               slug: Group.Slug,
                               name: Group.Name,
-                              logo: Option[Logo])
+                              logo: Option[Logo],
+                              owners: NonEmptyList[User.Id])
 
   final case class EmbedCfp(id: Cfp.Id,
                             slug: Cfp.Slug,

@@ -1,27 +1,37 @@
 @import gospeak.core.domain.{Group, Proposal, User}
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.orga.cfps.proposals.routes.{ProposalCtrl => OrgaProposalCtrl}
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.pages.user.talks.proposals.routes.{ProposalCtrl => SpeakerProposalCtrl}
 @import gospeak.web.utils.Formats
 @import gospeak.web.utils.UserAwareReq
 
-@(group: Group, talk: Proposal.Full, users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${talk.title.value} at ${group.name.value} - Gospeak", PageMeta.proposal(group, talk.proposal), b)() {
+@(group: Group, proposal: Proposal.Full, users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container(s"${proposal.title.value} at ${group.name.value} - Gospeak", PageMeta.proposal(group, proposal.proposal), b)() {
     <a href="@GroupCtrl.detail(group.slug)"><i class="fas fa-chevron-left"></i> @group.name.value</a>
     <h1>
-        @talk.title.value
-        @talk.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
-        @talk.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+        @proposal.title.value
+        @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
+        @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+        @if(req.isSpeaker(proposal)) {
+            <a href="@SpeakerProposalCtrl.detail(proposal.talk.slug, proposal.cfp.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
+            <a href="@SpeakerProposalCtrl.edit(proposal.talk.slug, proposal.cfp.slug, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
+        }
+        @if(req.isOrga(proposal) && !req.isSpeaker(proposal)) {
+            <a href="@OrgaProposalCtrl.detail(proposal.group.slug, proposal.cfp.slug, proposal.id)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
+            <a href="@OrgaProposalCtrl.edit(proposal.group.slug, proposal.cfp.slug, proposal.id, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
+        }
     </h1>
-    @talk.event.map { event => <div class="text-muted mb-3">@Formats.date(event.start) at <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a></div> }
+    @proposal.event.map { event => <div class="text-muted mb-3">@Formats.date(event.start) at <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a></div> }
     <ul class="list-inline mb-3">
-        @talk.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
+        @proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
             <li class="list-inline-item">
                 <a href="@SpeakerCtrl.detail(u.slug)"><img class="u-sm-avatar rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar"> @u.name.value</a>
             </li>
         }
     </ul>
-    <div class="mb-3">@markdown(talk.description)</div>
+    <div class="mb-3">@markdown(proposal.description)</div>
 }()

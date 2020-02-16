@@ -27,6 +27,8 @@ final case class Proposal(id: Proposal.Id,
 
   def dataOrga: Proposal.DataOrga = Proposal.DataOrga(this)
 
+  def hasSpeaker(user: User.Id): Boolean = speakers.toList.contains(user)
+
   def users: List[User.Id] = (speakers.toList ++ info.users).distinct
 }
 
@@ -97,6 +99,10 @@ object Proposal {
     def info: Info = proposal.info
 
     def data: Data = proposal.data
+
+    def hasSpeaker(user: User.Id): Boolean = proposal.hasSpeaker(user)
+
+    def hasOrga(user: User.Id): Boolean = group.hasOrga(user)
 
     def users: List[User.Id] = proposal.users
   }

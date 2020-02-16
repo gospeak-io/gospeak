@@ -58,25 +58,25 @@ class ProposalCtrl(cc: ControllerComponents,
     } yield Ok(html.detailExt(talkElt, proposalElt, eventElt, speakers)(b))).value.map(_.getOrElse(extProposalNotFound(talk, proposal)))
   }
 
-  def editExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
-    editExtView(talk, proposal, GsForms.externalProposal)
+  def editExt(talk: Talk.Slug, proposal: ExternalProposal.Id, redirect: Option[String]): Action[AnyContent] = UserAction { implicit req =>
+    editExtView(talk, proposal, GsForms.externalProposal, redirect)
   }
 
-  def doEditExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
+  def doEditExt(talk: Talk.Slug, proposal: ExternalProposal.Id, redirect: Option[String]): Action[AnyContent] = UserAction { implicit req =>
     GsForms.externalProposal.bindFromRequest.fold(
-      formWithErrors => editExtView(talk, proposal, formWithErrors),
-      data => externalProposalRepo.edit(proposal)(data).map(_ => Redirect(routes.ProposalCtrl.detailExt(talk, proposal)))
+      formWithErrors => editExtView(talk, proposal, formWithErrors, redirect),
+      data => externalProposalRepo.edit(proposal)(data).map(_ => redirectOr(redirect, routes.ProposalCtrl.detailExt(talk, proposal)))
     )
   }
 
-  private def editExtView(talk: Talk.Slug, proposal: ExternalProposal.Id, form: Form[ExternalProposal.Data])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
+  private def editExtView(talk: Talk.Slug, proposal: ExternalProposal.Id, form: Form[ExternalProposal.Data], redirect: Option[String])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
     (for {
       talkElt <- OptionT(talkRepo.find(talk))
       proposalElt <- OptionT(externalProposalRepo.find(proposal))
       eventElt <- OptionT(externalEventRepo.find(proposalElt.event))
       filledForm = if (form.hasErrors) form else form.fill(proposalElt.data)
       b = breadcrumb(talkElt, eventElt, proposalElt).add("Edit" -> routes.ProposalCtrl.editExt(talk, proposal))
-    } yield Ok(html.editExt(talkElt, proposalElt, eventElt, filledForm)(b))).value.map(_.getOrElse(extProposalNotFound(talk, proposal)))
+    } yield Ok(html.editExt(talkElt, proposalElt, eventElt, filledForm, redirect)(b))).value.map(_.getOrElse(extProposalNotFound(talk, proposal)))
   }
 
   def doRemoveExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
@@ -144,23 +144,23 @@ class ProposalCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
   }
 
-  def edit(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
-    editView(talk, cfp, GsForms.proposal)
+  def edit(talk: Talk.Slug, cfp: Cfp.Slug, redirect: Option[String]): Action[AnyContent] = UserAction { implicit req =>
+    editView(talk, cfp, GsForms.proposal, redirect)
   }
 
-  def doEdit(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
+  def doEdit(talk: Talk.Slug, cfp: Cfp.Slug, redirect: Option[String]): Action[AnyContent] = UserAction { implicit req =>
     GsForms.proposal.bindFromRequest.fold(
-      formWithErrors => editView(talk, cfp, formWithErrors),
-      data => proposalRepo.edit(talk, cfp, data).map(_ => Redirect(routes.ProposalCtrl.detail(talk, cfp)))
+      formWithErrors => editView(talk, cfp, formWithErrors, redirect),
+      data => proposalRepo.edit(talk, cfp, data).map(_ => redirectOr(redirect, routes.ProposalCtrl.detail(talk, cfp)))
     )
   }
 
-  private def editView(talk: Talk.Slug, cfp: Cfp.Slug, form: Form[Proposal.Data])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
+  private def editView(talk: Talk.Slug, cfp: Cfp.Slug, form: Form[Proposal.Data], redirect: Option[String])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
     (for {
       proposalFull <- OptionT(proposalRepo.findFull(talk, cfp))
       filledForm = if (form.hasErrors) form else form.fill(proposalFull.data)
       b = breadcrumb(proposalFull).add("Edit" -> routes.ProposalCtrl.edit(talk, cfp))
-    } yield Ok(html.edit(filledForm, proposalFull)(b))).value.map(_.getOrElse(talkNotFound(talk)))
+    } yield Ok(html.edit(filledForm, proposalFull, redirect)(b))).value.map(_.getOrElse(talkNotFound(talk)))
   }
 
   def inviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
