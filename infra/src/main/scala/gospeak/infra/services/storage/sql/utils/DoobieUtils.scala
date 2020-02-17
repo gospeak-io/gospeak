@@ -510,33 +510,33 @@ object DoobieUtils {
       _.map(_.value).mkString(","))
 
     implicit val userRequestRead: Read[UserRequest] =
-      Read[(UserRequest.Id, String, Option[Group.Id], Option[Cfp.Id], Option[Event.Id], Option[Talk.Id], Option[Proposal.Id], Option[ExternalEvent.Id], Option[ExternalCfp.Id], Option[ExternalProposal.Id], Option[EmailAddress], Option[String], Option[Instant], Instant, Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id])].map {
-        case (id, "AccountValidation", _, _, _, _, _, _, _, _, Some(email), _, Some(deadline), created, Some(createdBy), accepted, _, _, _, _, _) =>
+      Read[(UserRequest.Id, String, Option[Group.Id], Option[Cfp.Id], Option[Event.Id], Option[Talk.Id], Option[Proposal.Id], Option[ExternalEvent.Id], Option[ExternalCfp.Id], Option[ExternalProposal.Id], Option[EmailAddress], Option[String], Instant, Instant, Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id])].map {
+        case (id, "AccountValidation", _, _, _, _, _, _, _, _, Some(email), _, deadline, created, Some(createdBy), accepted, _, _, _, _, _) =>
           UserRequest.AccountValidationRequest(id, email, deadline, created, createdBy, accepted)
-        case (id, "PasswordReset", _, _, _, _, _, _, _, _, Some(email), _, Some(deadline), created, _, accepted, _, _, _, _, _) =>
+        case (id, "PasswordReset", _, _, _, _, _, _, _, _, Some(email), _, deadline, created, _, accepted, _, _, _, _, _) =>
           UserRequest.PasswordResetRequest(id, email, deadline, created, accepted)
-        case (id, "UserAskToJoinAGroup", Some(groupId), _, _, _, _, _, _, _, _, _, _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
-          UserRequest.UserAskToJoinAGroupRequest(id, groupId, created, createdBy,
+        case (id, "UserAskToJoinAGroup", Some(groupId), _, _, _, _, _, _, _, _, _, deadline, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+          UserRequest.UserAskToJoinAGroupRequest(id, groupId, deadline, created, createdBy,
             accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
             rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
             canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
-        case (id, "GroupInvite", Some(groupId), _, _, _, _, _, _, _, Some(email), _, _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
-          UserRequest.GroupInvite(id, groupId, email, created, createdBy,
+        case (id, "GroupInvite", Some(groupId), _, _, _, _, _, _, _, Some(email), _, deadline, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+          UserRequest.GroupInvite(id, groupId, email, deadline, created, createdBy,
             accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
             rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
             canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
-        case (id, "TalkInvite", _, _, _, Some(talkId), _, _, _, _, Some(email), _, _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
-          UserRequest.TalkInvite(id, talkId, email, created, createdBy,
+        case (id, "TalkInvite", _, _, _, Some(talkId), _, _, _, _, Some(email), _, deadline, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+          UserRequest.TalkInvite(id, talkId, email, deadline, created, createdBy,
             accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
             rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
             canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
-        case (id, "ProposalInvite", _, _, _, _, Some(proposalId), _, _, _, Some(email), _, _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
-          UserRequest.ProposalInvite(id, proposalId, email, created, createdBy,
+        case (id, "ProposalInvite", _, _, _, _, Some(proposalId), _, _, _, Some(email), _, deadline, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+          UserRequest.ProposalInvite(id, proposalId, email, deadline, created, createdBy,
             accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
             rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
             canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))
-        case (id, "ExternalProposalInvite", _, _, _, _, _, _, _, Some(externalProposalId), Some(email), _, _, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
-          UserRequest.ExternalProposalInvite(id, externalProposalId, email, created, createdBy,
+        case (id, "ExternalProposalInvite", _, _, _, _, _, _, _, Some(externalProposalId), Some(email), _, deadline, created, Some(createdBy), accepted, acceptedBy, rejected, rejectedBy, canceled, canceledBy) =>
+          UserRequest.ExternalProposalInvite(id, externalProposalId, email, deadline, created, createdBy,
             accepted.flatMap(date => acceptedBy.map(UserRequest.Meta(date, _))),
             rejected.flatMap(date => rejectedBy.map(UserRequest.Meta(date, _))),
             canceled.flatMap(date => canceledBy.map(UserRequest.Meta(date, _))))

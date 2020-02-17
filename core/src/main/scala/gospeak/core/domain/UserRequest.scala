@@ -8,6 +8,7 @@ import scala.concurrent.duration._
 
 sealed trait UserRequest {
   val id: UserRequest.Id
+  val deadline: Instant
   val createdAt: Instant
 
   def users: List[User.Id] = List()
@@ -53,6 +54,7 @@ object UserRequest {
 
   final case class UserAskToJoinAGroupRequest(id: Id,
                                               group: Group.Id,
+                                              deadline: Instant,
                                               createdAt: Instant,
                                               createdBy: User.Id,
                                               accepted: Option[Meta],
@@ -62,6 +64,7 @@ object UserRequest {
   final case class GroupInvite(id: Id,
                                group: Group.Id,
                                email: EmailAddress,
+                               deadline: Instant,
                                createdAt: Instant,
                                createdBy: User.Id,
                                accepted: Option[Meta],
@@ -71,6 +74,7 @@ object UserRequest {
   final case class TalkInvite(id: Id,
                               talk: Talk.Id,
                               email: EmailAddress,
+                              deadline: Instant,
                               createdAt: Instant,
                               createdBy: User.Id,
                               accepted: Option[Meta],
@@ -80,6 +84,7 @@ object UserRequest {
   final case class ProposalInvite(id: Id,
                                   proposal: Proposal.Id,
                                   email: EmailAddress,
+                                  deadline: Instant,
                                   createdAt: Instant,
                                   createdBy: User.Id,
                                   accepted: Option[Meta],
@@ -89,6 +94,7 @@ object UserRequest {
   final case class ExternalProposalInvite(id: Id,
                                           externalProposal: ExternalProposal.Id,
                                           email: EmailAddress,
+                                          deadline: Instant,
                                           createdAt: Instant,
                                           createdBy: User.Id,
                                           accepted: Option[Meta],
@@ -98,6 +104,7 @@ object UserRequest {
   final case class Meta(date: Instant, by: User.Id)
 
   object Timeout {
+    val default: FiniteDuration = 7.days
     val accountValidation: FiniteDuration = 1.day
     val passwordReset: FiniteDuration = 1.hour
   }

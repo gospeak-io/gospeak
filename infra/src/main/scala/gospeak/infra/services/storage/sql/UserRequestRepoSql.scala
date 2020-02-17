@@ -64,7 +64,7 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
 
   override def createUserAskToJoinAGroup(group: Group.Id)(implicit ctx: UserCtx): IO[UserAskToJoinAGroupRequest] =
-    UserAskToJoinAGroup.insert(UserAskToJoinAGroupRequest(UserRequest.Id.generate(), group, ctx.now, ctx.user.id, None, None, None)).run(xa)
+    UserAskToJoinAGroup.insert(UserAskToJoinAGroupRequest(UserRequest.Id.generate(), group, ctx.now.plus(Timeout.default), ctx.now, ctx.user.id, None, None, None)).run(xa)
 
   override def acceptUserToJoinAGroup(req: UserAskToJoinAGroupRequest)(implicit ctx: OrgaCtx): IO[Done] = for {
     _ <- UserAskToJoinAGroup.accept(req.id, ctx.user.id, ctx.now).run(xa)
@@ -77,7 +77,7 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
 
   override def invite(email: EmailAddress)(implicit ctx: OrgaCtx): IO[GroupInvite] =
-    GroupInviteQueries.insert(GroupInvite(UserRequest.Id.generate(), ctx.group.id, email, ctx.now, ctx.user.id, None, None, None)).run(xa)
+    GroupInviteQueries.insert(GroupInvite(UserRequest.Id.generate(), ctx.group.id, email, ctx.now.plus(Timeout.default), ctx.now, ctx.user.id, None, None, None)).run(xa)
 
   override def cancelGroupInvite(id: Id)(implicit ctx: OrgaCtx): IO[GroupInvite] =
     GroupInviteQueries.cancel(id, ctx.user.id, ctx.now).run(xa).flatMap(_ => GroupInviteQueries.selectOne(id).runUnique(xa))
@@ -93,7 +93,7 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
 
   override def invite(talk: Talk.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[TalkInvite] =
-    TalkInviteQueries.insert(TalkInvite(UserRequest.Id.generate(), talk, email, ctx.now, ctx.user.id, None, None, None)).run(xa)
+    TalkInviteQueries.insert(TalkInvite(UserRequest.Id.generate(), talk, email, ctx.now.plus(Timeout.default), ctx.now, ctx.user.id, None, None, None)).run(xa)
 
   override def cancelTalkInvite(id: UserRequest.Id)(implicit ctx: UserCtx): IO[TalkInvite] =
     TalkInviteQueries.cancel(id, ctx.user.id, ctx.now).run(xa).flatMap(_ => TalkInviteQueries.selectOne(id).runUnique(xa))
@@ -108,17 +108,19 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
   override def listPendingInvites(talk: Talk.Id): IO[Seq[TalkInvite]] = TalkInviteQueries.selectAllPending(talk).runList(xa)
 
 
-  override def invite(proposal: Proposal.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[ProposalInvite] =
-    ProposalInviteQueries.insert(ProposalInvite(UserRequest.Id.generate(), proposal, email, ctx.now, ctx.user.id, None, None, None)).run(xa)
+  override def invite(proposal: Proposal.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[ProposalInvite] = invite(proposal, email, ctx.user.id, ctx.now)
 
-  override def invite(proposal: Proposal.Id, email: EmailAddress)(implicit ctx: OrgaCtx): IO[ProposalInvite] =
-    ProposalInviteQueries.insert(ProposalInvite(UserRequest.Id.generate(), proposal, email, ctx.now, ctx.user.id, None, None, None)).run(xa)
+  override def invite(proposal: Proposal.Id, email: EmailAddress)(implicit ctx: OrgaCtx): IO[ProposalInvite] = invite(proposal, email, ctx.user.id, ctx.now)
 
-  override def cancelProposalInvite(id: Id)(implicit ctx: UserCtx): IO[ProposalInvite] =
-    ProposalInviteQueries.cancel(id, ctx.user.id, ctx.now).run(xa).flatMap(_ => ProposalInviteQueries.selectOne(id).runUnique(xa))
+  private def invite(proposal: Proposal.Id, email: EmailAddress, user: User.Id, now: Instant): IO[ProposalInvite] =
+    ProposalInviteQueries.insert(ProposalInvite(UserRequest.Id.generate(), proposal, email, now.plus(Timeout.default), now, user, None, None, None)).run(xa)
 
-  override def cancelProposalInvite(id: Id)(implicit ctx: OrgaCtx): IO[ProposalInvite] =
-    ProposalInviteQueries.cancel(id, ctx.user.id, ctx.now).run(xa).flatMap(_ => ProposalInviteQueries.selectOne(id).runUnique(xa))
+  override def cancelProposalInvite(id: Id)(implicit ctx: UserCtx): IO[ProposalInvite] = cancelProposalInvite(id, ctx.user.id, ctx.now)
+
+  override def cancelProposalInvite(id: Id)(implicit ctx: OrgaCtx): IO[ProposalInvite] = cancelProposalInvite(id, ctx.user.id, ctx.now)
+
+  private def cancelProposalInvite(id: Id, user: User.Id, now: Instant): IO[ProposalInvite] =
+    ProposalInviteQueries.cancel(id, user, now).run(xa).flatMap(_ => ProposalInviteQueries.selectOne(id).runUnique(xa))
 
   override def accept(invite: UserRequest.ProposalInvite)(implicit ctx: UserCtx): IO[Done] = for {
     _ <- ProposalInviteQueries.accept(invite.id, ctx.user.id, ctx.now).run(xa)
@@ -131,7 +133,7 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
 
   override def invite(proposal: ExternalProposal.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[ExternalProposalInvite] =
-    ExternalProposalInviteQueries.insert(ExternalProposalInvite(UserRequest.Id.generate(), proposal, email, ctx.now, ctx.user.id, None, None, None)).run(xa)
+    ExternalProposalInviteQueries.insert(ExternalProposalInvite(UserRequest.Id.generate(), proposal, email, ctx.now.plus(Timeout.default), ctx.now, ctx.user.id, None, None, None)).run(xa)
 
   override def cancelExternalProposalInvite(id: UserRequest.Id)(implicit ctx: UserCtx): IO[ExternalProposalInvite] =
     ExternalProposalInviteQueries.cancel(id, ctx.user.id, ctx.now).run(xa).flatMap(_ => ExternalProposalInviteQueries.selectOne(id).runUnique(xa))
@@ -151,7 +153,7 @@ object UserRequestRepoSql {
   private val table = Tables.userRequests
   private val andIsPending = fr0" AND ur.accepted_at IS NULL AND ur.rejected_at IS NULL AND ur.canceled_at IS NULL"
 
-  private def andNotExpired(now: Instant): Fragment = fr0" AND (ur.deadline IS NULL OR ur.deadline > $now)"
+  private def andNotExpired(now: Instant): Fragment = fr0" AND ur.deadline > $now"
 
   private def wherePending(kind: String): Fragment = fr0"WHERE ur.kind=$kind" ++ andIsPending
 
@@ -186,9 +188,9 @@ object UserRequestRepoSql {
     private val kind = "AccountValidation"
     private val fields = Seq("id", "kind", "email", "deadline", "created_at", "created_by", "accepted_at").map(n => Field(n, table.prefix))
 
-    private[sql] def insert(elt: AccountValidationRequest): Insert[AccountValidationRequest] = {
-      val values = fr0"${elt.id}, $kind, ${elt.email}, ${elt.deadline}, ${elt.createdAt}, ${elt.createdBy}, ${elt.acceptedAt}"
-      table.insertPartial[AccountValidationRequest](fields, elt, _ => values)
+    private[sql] def insert(e: AccountValidationRequest): Insert[AccountValidationRequest] = {
+      val values = fr0"${e.id}, $kind, ${e.email}, ${e.deadline}, ${e.createdAt}, ${e.createdBy}, ${e.acceptedAt}"
+      table.insertPartial[AccountValidationRequest](fields, e, _ => values)
     }
 
     private[sql] def accept(req: UserRequest.Id, now: Instant): Update =
@@ -205,9 +207,9 @@ object UserRequestRepoSql {
     private val kind = "PasswordReset"
     private val fields = Seq("id", "kind", "email", "deadline", "created_at", "accepted_at").map(n => Field(n, table.prefix))
 
-    private[sql] def insert(elt: PasswordResetRequest): Insert[PasswordResetRequest] = {
-      val values = fr0"${elt.id}, $kind, ${elt.email}, ${elt.deadline}, ${elt.createdAt}, ${elt.acceptedAt}"
-      table.insertPartial[PasswordResetRequest](fields, elt, _ => values)
+    private[sql] def insert(e: PasswordResetRequest): Insert[PasswordResetRequest] = {
+      val values = fr0"${e.id}, $kind, ${e.email}, ${e.deadline}, ${e.createdAt}, ${e.acceptedAt}"
+      table.insertPartial[PasswordResetRequest](fields, e, _ => values)
     }
 
     private[sql] def accept(req: UserRequest.Id, now: Instant): Update =
@@ -222,12 +224,12 @@ object UserRequestRepoSql {
 
   object UserAskToJoinAGroup {
     private val kind = "UserAskToJoinAGroup"
-    private val fields = Seq("id", "kind", "group_id", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by").map(n => Field(n, table.prefix))
+    private val fields = Seq("id", "kind", "group_id", "deadline", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by").map(n => Field(n, table.prefix))
     private val selectFields = fields.filter(_.name != "kind")
 
-    private[sql] def insert(elt: UserAskToJoinAGroupRequest): Insert[UserAskToJoinAGroupRequest] = {
-      val values = fr0"${elt.id}, $kind, ${elt.group}, ${elt.createdAt}, ${elt.createdBy}, ${elt.accepted.map(_.date)}, ${elt.accepted.map(_.by)}, ${elt.rejected.map(_.date)}, ${elt.rejected.map(_.by)}, ${elt.canceled.map(_.date)}, ${elt.canceled.map(_.by)}"
-      table.insertPartial[UserAskToJoinAGroupRequest](fields, elt, _ => values)
+    private[sql] def insert(e: UserAskToJoinAGroupRequest): Insert[UserAskToJoinAGroupRequest] = {
+      val values = fr0"${e.id}, $kind, ${e.group}, ${e.deadline}, ${e.createdAt}, ${e.createdBy}, ${e.accepted.map(_.date)}, ${e.accepted.map(_.by)}, ${e.rejected.map(_.date)}, ${e.rejected.map(_.by)}, ${e.canceled.map(_.date)}, ${e.canceled.map(_.by)}"
+      table.insertPartial[UserAskToJoinAGroupRequest](fields, e, _ => values)
     }
 
     private[sql] def accept(req: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"accepted_at=$now, accepted_by=$by", wherePending(kind, req, now))
@@ -245,12 +247,12 @@ object UserRequestRepoSql {
 
   object GroupInviteQueries {
     private val kind = "GroupInvite"
-    private val fields = Seq("id", "kind", "group_id", "email", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by").map(n => Field(n, table.prefix))
+    private val fields = Seq("id", "kind", "group_id", "email", "deadline", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by").map(n => Field(n, table.prefix))
     private val selectFields = fields.filter(_.name != "kind")
 
-    private[sql] def insert(elt: GroupInvite): Insert[GroupInvite] = {
-      val values = fr0"${elt.id}, $kind, ${elt.group}, ${elt.email}, ${elt.createdAt}, ${elt.createdBy}, ${elt.accepted.map(_.date)}, ${elt.accepted.map(_.by)}, ${elt.rejected.map(_.date)}, ${elt.rejected.map(_.by)}, ${elt.canceled.map(_.date)}, ${elt.canceled.map(_.by)}"
-      table.insertPartial[GroupInvite](fields, elt, _ => values)
+    private[sql] def insert(e: GroupInvite): Insert[GroupInvite] = {
+      val values = fr0"${e.id}, $kind, ${e.group}, ${e.email}, ${e.deadline}, ${e.createdAt}, ${e.createdBy}, ${e.accepted.map(_.date)}, ${e.accepted.map(_.by)}, ${e.rejected.map(_.date)}, ${e.rejected.map(_.by)}, ${e.canceled.map(_.date)}, ${e.canceled.map(_.by)}"
+      table.insertPartial[GroupInvite](fields, e, _ => values)
     }
 
     private[sql] def accept(req: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"accepted_at=$now, accepted_by=$by", wherePending(kind, req, now))
@@ -267,12 +269,12 @@ object UserRequestRepoSql {
 
   object TalkInviteQueries {
     private val kind = "TalkInvite"
-    private val fields = Seq("id", "kind", "talk_id", "email", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by").map(n => Field(n, table.prefix))
+    private val fields = Seq("id", "kind", "talk_id", "email", "deadline", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by").map(n => Field(n, table.prefix))
     private val selectFields = fields.filter(_.name != "kind")
 
-    private[sql] def insert(elt: TalkInvite): Insert[TalkInvite] = {
-      val values = fr0"${elt.id}, $kind, ${elt.talk}, ${elt.email}, ${elt.createdAt}, ${elt.createdBy}, ${elt.accepted.map(_.date)}, ${elt.accepted.map(_.by)}, ${elt.rejected.map(_.date)}, ${elt.rejected.map(_.by)}, ${elt.canceled.map(_.date)}, ${elt.canceled.map(_.by)}"
-      table.insertPartial[TalkInvite](fields, elt, _ => values)
+    private[sql] def insert(e: TalkInvite): Insert[TalkInvite] = {
+      val values = fr0"${e.id}, $kind, ${e.talk}, ${e.email}, ${e.deadline}, ${e.createdAt}, ${e.createdBy}, ${e.accepted.map(_.date)}, ${e.accepted.map(_.by)}, ${e.rejected.map(_.date)}, ${e.rejected.map(_.by)}, ${e.canceled.map(_.date)}, ${e.canceled.map(_.by)}"
+      table.insertPartial[TalkInvite](fields, e, _ => values)
     }
 
     private[sql] def accept(req: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"accepted_at=$now, accepted_by=$by", wherePending(kind, req, now))
@@ -290,11 +292,11 @@ object UserRequestRepoSql {
 
   object ProposalInviteQueries {
     private val kind = "ProposalInvite"
-    private val fields = Seq("id", "kind", "proposal_id", "email", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by").map(n => Field(n, table.prefix))
+    private val fields = Seq("id", "kind", "proposal_id", "email", "deadline", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by").map(n => Field(n, table.prefix))
     private val selectFields = fields.filter(_.name != "kind")
 
     private[sql] def insert(e: ProposalInvite): Insert[ProposalInvite] = {
-      val values = fr0"${e.id}, $kind, ${e.proposal}, ${e.email}, ${e.createdAt}, ${e.createdBy}, ${e.accepted.map(_.date)}, ${e.accepted.map(_.by)}, ${e.rejected.map(_.date)}, ${e.rejected.map(_.by)}, ${e.canceled.map(_.date)}, ${e.canceled.map(_.by)}"
+      val values = fr0"${e.id}, $kind, ${e.proposal}, ${e.email}, ${e.deadline}, ${e.createdAt}, ${e.createdBy}, ${e.accepted.map(_.date)}, ${e.accepted.map(_.by)}, ${e.rejected.map(_.date)}, ${e.rejected.map(_.by)}, ${e.canceled.map(_.date)}, ${e.canceled.map(_.by)}"
       table.insertPartial[ProposalInvite](fields, e, _ => values)
     }
 
@@ -312,12 +314,12 @@ object UserRequestRepoSql {
 
   object ExternalProposalInviteQueries {
     private val kind = "ExternalProposalInvite"
-    private val fields = Seq("id", "kind", "external_proposal_id", "email", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by").map(n => Field(n, table.prefix))
+    private val fields = Seq("id", "kind", "external_proposal_id", "email", "deadline", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by").map(n => Field(n, table.prefix))
     private val selectFields = fields.filter(_.name != "kind")
 
-    private[sql] def insert(elt: ExternalProposalInvite): Insert[ExternalProposalInvite] = {
-      val values = fr0"${elt.id}, $kind, ${elt.externalProposal}, ${elt.email}, ${elt.createdAt}, ${elt.createdBy}, ${elt.accepted.map(_.date)}, ${elt.accepted.map(_.by)}, ${elt.rejected.map(_.date)}, ${elt.rejected.map(_.by)}, ${elt.canceled.map(_.date)}, ${elt.canceled.map(_.by)}"
-      table.insertPartial[ExternalProposalInvite](fields, elt, _ => values)
+    private[sql] def insert(e: ExternalProposalInvite): Insert[ExternalProposalInvite] = {
+      val values = fr0"${e.id}, $kind, ${e.externalProposal}, ${e.email}, ${e.deadline}, ${e.createdAt}, ${e.createdBy}, ${e.accepted.map(_.date)}, ${e.accepted.map(_.by)}, ${e.rejected.map(_.date)}, ${e.rejected.map(_.by)}, ${e.canceled.map(_.date)}, ${e.canceled.map(_.by)}"
+      table.insertPartial[ExternalProposalInvite](fields, e, _ => values)
     }
 
     private[sql] def accept(req: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"accepted_at=$now, accepted_by=$by", wherePending(kind, req, now))

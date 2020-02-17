@@ -64,10 +64,10 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         }
       }
       describe("UserAskToJoinAGroup") {
-        val req = UserAskToJoinAGroupRequest(UserRequest.Id.generate(), group.id, now, user.id, None, None, None)
+        val req = UserAskToJoinAGroupRequest(UserRequest.Id.generate(), group.id, now, now, user.id, None, None, None)
         it("should build insert") {
           val q = UserRequestRepoSql.UserAskToJoinAGroup.insert(req)
-          check(q, s"INSERT INTO ${table.replaceAll(" ur", "")} (id, kind, group_id, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+          check(q, s"INSERT INTO ${table.replaceAll(" ur", "")} (id, kind, group_id, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         }
         it("should build accept") {
           val q = UserRequestRepoSql.UserAskToJoinAGroup.accept(req.id, user.id, now)
@@ -93,10 +93,10 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         }
       }
       describe("GroupInviteQueries") {
-        val req = GroupInvite(UserRequest.Id.generate(), group.id, user.email, now, user.id, None, None, None)
+        val req = GroupInvite(UserRequest.Id.generate(), group.id, user.email, now, now, user.id, None, None, None)
         it("should build insert") {
           val q = UserRequestRepoSql.GroupInviteQueries.insert(req)
-          check(q, s"INSERT INTO ${table.replaceAll(" ur", "")} (id, kind, group_id, email, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+          check(q, s"INSERT INTO ${table.replaceAll(" ur", "")} (id, kind, group_id, email, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         }
         it("should build accept") {
           val q = UserRequestRepoSql.GroupInviteQueries.accept(req.id, user.id, now)
@@ -122,10 +122,10 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         }
       }
       describe("TalkInviteQueries") {
-        val req = TalkInvite(UserRequest.Id.generate(), talk.id, user.email, now, user.id, None, None, None)
+        val req = TalkInvite(UserRequest.Id.generate(), talk.id, user.email, now, now, user.id, None, None, None)
         it("should build insert") {
           val q = UserRequestRepoSql.TalkInviteQueries.insert(req)
-          check(q, s"INSERT INTO ${table.replaceAll(" ur", "")} (id, kind, talk_id, email, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+          check(q, s"INSERT INTO ${table.replaceAll(" ur", "")} (id, kind, talk_id, email, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         }
         it("should build accept") {
           val q = UserRequestRepoSql.TalkInviteQueries.accept(req.id, user.id, now)
@@ -151,10 +151,10 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         }
       }
       describe("ProposalInviteQueries") {
-        val req = ProposalInvite(UserRequest.Id.generate(), proposal.id, user.email, now, user.id, None, None, None)
+        val req = ProposalInvite(UserRequest.Id.generate(), proposal.id, user.email, now, now, user.id, None, None, None)
         it("should build insert") {
           val q = UserRequestRepoSql.ProposalInviteQueries.insert(req)
-          check(q, s"INSERT INTO ${table.replaceAll(" ur", "")} (id, kind, proposal_id, email, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+          check(q, s"INSERT INTO ${table.replaceAll(" ur", "")} (id, kind, proposal_id, email, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         }
         it("should build accept") {
           val q = UserRequestRepoSql.ProposalInviteQueries.accept(req.id, user.id, now)
@@ -180,10 +180,10 @@ class UserRequestRepoSqlSpec extends RepoSpec {
         }
       }
       describe("ExternalProposalInviteQueries") {
-        val req = ExternalProposalInvite(UserRequest.Id.generate(), externalProposal.id, user.email, now, user.id, None, None, None)
+        val req = ExternalProposalInvite(UserRequest.Id.generate(), externalProposal.id, user.email, now, now, user.id, None, None, None)
         it("should build insert") {
           val q = UserRequestRepoSql.ExternalProposalInviteQueries.insert(req)
-          check(q, s"INSERT INTO ${table.replaceAll(" ur", "")} (id, kind, external_proposal_id, email, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+          check(q, s"INSERT INTO ${table.replaceAll(" ur", "")} (id, kind, external_proposal_id, email, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         }
         it("should build accept") {
           val q = UserRequestRepoSql.ExternalProposalInviteQueries.accept(req.id, user.id, now)
@@ -216,14 +216,14 @@ object UserRequestRepoSqlSpec {
   val table = "user_requests ur"
   val fields: String = mapFields("id, kind, group_id, cfp_id, event_id, talk_id, proposal_id, external_event_id, external_cfp_id, external_proposal_id, email, payload, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
   val isPending = "ur.accepted_at IS NULL AND ur.rejected_at IS NULL AND ur.canceled_at IS NULL"
-  val notExpired = "(ur.deadline IS NULL OR ur.deadline > ?)"
+  val notExpired = "ur.deadline > ?"
   val orderBy = "ORDER BY ur.created_at IS NULL, ur.created_at DESC"
 
   val accountValidationFields: String = mapFields("id, email, deadline, created_at, created_by, accepted_at", "ur." + _)
   val resetPasswordFields: String = mapFields("id, email, deadline, created_at, accepted_at", "ur." + _)
-  val userAskToJoinAGroupFields: String = mapFields("id, group_id, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
-  val groupInviteFields: String = mapFields("id, group_id, email, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
-  val talkInviteFields: String = mapFields("id, talk_id, email, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
-  val proposalInviteFields: String = mapFields("id, proposal_id, email, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
-  val externalProposalInviteFields: String = mapFields("id, external_proposal_id, email, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
+  val userAskToJoinAGroupFields: String = mapFields("id, group_id, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
+  val groupInviteFields: String = mapFields("id, group_id, email, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
+  val talkInviteFields: String = mapFields("id, talk_id, email, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
+  val proposalInviteFields: String = mapFields("id, proposal_id, email, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
+  val externalProposalInviteFields: String = mapFields("id, external_proposal_id, email, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
 }
