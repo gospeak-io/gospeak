@@ -86,6 +86,15 @@ object UserRequest {
                                   rejected: Option[Meta],
                                   canceled: Option[Meta]) extends StdUserRequest
 
+  final case class ExternalProposalInvite(id: Id,
+                                          externalProposal: ExternalProposal.Id,
+                                          email: EmailAddress,
+                                          createdAt: Instant,
+                                          createdBy: User.Id,
+                                          accepted: Option[Meta],
+                                          rejected: Option[Meta],
+                                          canceled: Option[Meta]) extends StdUserRequest
+
   final case class Meta(date: Instant, by: User.Id)
 
   object Timeout {

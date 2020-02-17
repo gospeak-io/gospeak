@@ -67,10 +67,10 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
   override val event = new EventRepoSql(xa)
   override val proposal = new ProposalRepoSql(xa)
   override val comment = new CommentRepoSql(xa)
-  override val userRequest = new UserRequestRepoSql(xa, group, talk, proposal)
   override val externalEvent = new ExternalEventRepoSql(xa)
   override val externalCfp = new ExternalCfpRepoSql(xa)
   override val externalProposal = new ExternalProposalRepoSql(xa)
+  override val userRequest = new UserRequestRepoSql(xa, group, talk, proposal, externalProposal)
 
   def insertMockData(): IO[Done] = {
     val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import

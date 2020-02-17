@@ -47,11 +47,18 @@ trait SpeakerUserRequestRepo {
   def listPendingInvites(talk: Talk.Id): IO[Seq[TalkInvite]]
 
 
-  def invite(talk: Proposal.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[ProposalInvite]
+  def invite(proposal: Proposal.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[ProposalInvite]
 
   def cancelProposalInvite(id: UserRequest.Id)(implicit ctx: UserCtx): IO[ProposalInvite]
 
   def listPendingInvites(proposal: Proposal.Id): IO[Seq[ProposalInvite]]
+
+
+  def invite(proposal: ExternalProposal.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[ExternalProposalInvite]
+
+  def cancelExternalProposalInvite(id: UserRequest.Id)(implicit ctx: UserCtx): IO[ExternalProposalInvite]
+
+  def listPendingInvites(proposal: ExternalProposal.Id): IO[Seq[ExternalProposalInvite]]
 }
 
 trait UserUserRequestRepo {
@@ -71,6 +78,11 @@ trait UserUserRequestRepo {
   def accept(invite: UserRequest.ProposalInvite)(implicit ctx: UserCtx): IO[Done]
 
   def reject(invite: UserRequest.ProposalInvite)(implicit ctx: UserCtx): IO[Done]
+
+
+  def accept(invite: UserRequest.ExternalProposalInvite)(implicit ctx: UserCtx): IO[Done]
+
+  def reject(invite: UserRequest.ExternalProposalInvite)(implicit ctx: UserCtx): IO[Done]
 }
 
 trait AuthUserRequestRepo {

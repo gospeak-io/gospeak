@@ -179,13 +179,42 @@ class UserRequestRepoSqlSpec extends RepoSpec {
           // check(q) // ignored because missing "NOT NULL" on 'proposal_id', 'email' and 'created_by'... due to sealed trait
         }
       }
+      describe("ExternalProposalInviteQueries") {
+        val req = ExternalProposalInvite(UserRequest.Id.generate(), externalProposal.id, user.email, now, user.id, None, None, None)
+        it("should build insert") {
+          val q = UserRequestRepoSql.ExternalProposalInviteQueries.insert(req)
+          check(q, s"INSERT INTO ${table.replaceAll(" ur", "")} (id, kind, external_proposal_id, email, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+        }
+        it("should build accept") {
+          val q = UserRequestRepoSql.ExternalProposalInviteQueries.accept(req.id, user.id, now)
+          check(q, s"UPDATE $table SET accepted_at=?, accepted_by=? WHERE ur.kind=? AND ur.id=? AND $isPending AND $notExpired")
+        }
+        it("should build reject") {
+          val q = UserRequestRepoSql.ExternalProposalInviteQueries.reject(req.id, user.id, now)
+          check(q, s"UPDATE $table SET rejected_at=?, rejected_by=? WHERE ur.kind=? AND ur.id=? AND $isPending AND $notExpired")
+        }
+        it("should build cancel") {
+          val q = UserRequestRepoSql.ExternalProposalInviteQueries.cancel(req.id, user.id, now)
+          check(q, s"UPDATE $table SET canceled_at=?, canceled_by=? WHERE ur.kind=? AND ur.id=? AND $isPending AND $notExpired")
+        }
+        it("should build selectOne") {
+          val q = UserRequestRepoSql.ExternalProposalInviteQueries.selectOne(req.id)
+          q.fr.update.sql shouldBe s"SELECT $externalProposalInviteFields FROM $table WHERE ur.id=? $orderBy"
+          // check(q) // ignored because missing "NOT NULL" on 'external_proposal_id', 'email' and 'created_by'... due to sealed trait
+        }
+        it("should build selectAllPending") {
+          val q = UserRequestRepoSql.ExternalProposalInviteQueries.selectAllPending(externalProposal.id)
+          q.fr.update.sql shouldBe s"SELECT $externalProposalInviteFields FROM $table WHERE ur.kind=? AND ur.external_proposal_id=? AND $isPending $orderBy"
+          // check(q) // ignored because missing "NOT NULL" on 'external_proposal_id', 'email' and 'created_by'... due to sealed trait
+        }
+      }
     }
   }
 }
 
 object UserRequestRepoSqlSpec {
   val table = "user_requests ur"
-  val fields: String = mapFields("id, kind, group_id, cfp_id, event_id, talk_id, proposal_id, email, payload, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
+  val fields: String = mapFields("id, kind, group_id, cfp_id, event_id, talk_id, proposal_id, external_event_id, external_cfp_id, external_proposal_id, email, payload, deadline, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
   val isPending = "ur.accepted_at IS NULL AND ur.rejected_at IS NULL AND ur.canceled_at IS NULL"
   val notExpired = "(ur.deadline IS NULL OR ur.deadline > ?)"
   val orderBy = "ORDER BY ur.created_at IS NULL, ur.created_at DESC"
@@ -196,4 +225,5 @@ object UserRequestRepoSqlSpec {
   val groupInviteFields: String = mapFields("id, group_id, email, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
   val talkInviteFields: String = mapFields("id, talk_id, email, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
   val proposalInviteFields: String = mapFields("id, proposal_id, email, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
+  val externalProposalInviteFields: String = mapFields("id, external_proposal_id, email, created_at, created_by, accepted_at, accepted_by, rejected_at, rejected_by, canceled_at, canceled_by", "ur." + _)
 }

@@ -57,6 +57,11 @@ class UserCtrl(cc: ControllerComponents,
         speakerElt <- OptionT(userRepo.find(r.createdBy))
         res = Ok(html.answerProposalInvite(r, proposalElt, speakerElt)(breadcrumb))
       } yield res).value.map(_.getOrElse(Redirect(routes.UserCtrl.index())))
+      case Some(r: UserRequest.ExternalProposalInvite) => (for {
+        proposalElt <- OptionT(externalProposalRepo.findFull(r.externalProposal))
+        speakerElt <- OptionT(userRepo.find(r.createdBy))
+        res = Ok(html.answerExternalProposalInvite(r, proposalElt, speakerElt)(breadcrumb))
+      } yield res).value.map(_.getOrElse(Redirect(routes.UserCtrl.index())))
       case _ =>
         // TODO: add log here
         IO.pure(Redirect(routes.UserCtrl.index()).flashing("error" -> "Invalid request"))
@@ -83,6 +88,12 @@ class UserCtrl(cc: ControllerComponents,
         _ <- OptionT.liftF(userRequestRepo.accept(r))
         _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalAccepted(r, proposalFull, speakerElt)))
       } yield s"Invitation to <b>${proposalFull.title.value}</b> accepted").value
+      case Some(r: UserRequest.ExternalProposalInvite) => (for {
+        proposalFull <- OptionT(externalProposalRepo.findFull(r.externalProposal))
+        speakerElt <- OptionT(userRepo.find(r.createdBy))
+        _ <- OptionT.liftF(userRequestRepo.accept(r))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToExtProposalAccepted(r, proposalFull, speakerElt)))
+      } yield s"Invitation to <b>${proposalFull.title.value}</b> accepted").value
       case _ => IO.pure(Some("Request not found or unhandled"))
     }.map(msg => Redirect(routes.UserCtrl.index()).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))
       .recover { case NonFatal(e) => Redirect(routes.UserCtrl.index()).flashing("error" -> s"Unexpected error: ${e.getMessage}") }
@@ -107,6 +118,12 @@ class UserCtrl(cc: ControllerComponents,
         speakerElt <- OptionT(userRepo.find(r.createdBy))
         _ <- OptionT.liftF(userRequestRepo.reject(r))
         _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposalRejected(r, proposalFull, speakerElt)))
+      } yield s"Invitation to <b>${proposalFull.title.value}</b> rejected").value
+      case Some(r: UserRequest.ExternalProposalInvite) => (for {
+        proposalFull <- OptionT(externalProposalRepo.findFull(r.externalProposal))
+        speakerElt <- OptionT(userRepo.find(r.createdBy))
+        _ <- OptionT.liftF(userRequestRepo.reject(r))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToExtProposalRejected(r, proposalFull, speakerElt)))
       } yield s"Invitation to <b>${proposalFull.title.value}</b> rejected").value
       case _ => IO.pure(Some("Request not found or unhandled"))
     }.map(msg => Redirect(routes.UserCtrl.index()).flashing(msg.map("success" -> _).getOrElse("error" -> "Unexpected error :(")))

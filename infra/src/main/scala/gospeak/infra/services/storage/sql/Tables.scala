@@ -153,7 +153,7 @@ object Tables {
   val userRequests: Table = Table.from(
     name = "user_requests",
     prefix = "ur",
-    fields = Seq("id", "kind", "group_id", "cfp_id", "event_id", "talk_id", "proposal_id", "email", "payload", "deadline", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by"),
+    fields = Seq("id", "kind", "group_id", "cfp_id", "event_id", "talk_id", "proposal_id", "external_event_id", "external_cfp_id", "external_proposal_id", "email", "payload", "deadline", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by"),
     sort = Seq("-created_at"),
     search = Seq("id", "email", "group_id", "created_by"),
     filters = Seq()).get

@@ -50,12 +50,11 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def detailExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
     (for {
-      talkElt <- OptionT(talkRepo.find(talk))
-      proposalElt <- OptionT(externalProposalRepo.find(proposal))
-      eventElt <- OptionT(externalEventRepo.find(proposalElt.event))
+      proposalElt <- OptionT(externalProposalRepo.findFull(proposal))
+      invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposalElt.id))
       speakers <- OptionT.liftF(userRepo.list(proposalElt.users))
-      b = breadcrumb(talkElt, eventElt, proposalElt)
-    } yield Ok(html.detailExt(talkElt, proposalElt, eventElt, speakers)(b))).value.map(_.getOrElse(extProposalNotFound(talk, proposal)))
+      b = breadcrumb(proposalElt.talk, proposalElt.event, proposalElt.proposal)
+    } yield Ok(html.detailExt(proposalElt, invites, speakers)(b))).value.map(_.getOrElse(extProposalNotFound(talk, proposal)))
   }
 
   def editExt(talk: Talk.Slug, proposal: ExternalProposal.Id, redirect: Option[String]): Action[AnyContent] = UserAction { implicit req =>
@@ -77,6 +76,64 @@ class ProposalCtrl(cc: ControllerComponents,
       filledForm = if (form.hasErrors) form else form.fill(proposalElt.data)
       b = breadcrumb(talkElt, eventElt, proposalElt).add("Edit" -> routes.ProposalCtrl.editExt(talk, proposal))
     } yield Ok(html.editExt(talkElt, proposalElt, eventElt, filledForm, redirect)(b))).value.map(_.getOrElse(extProposalNotFound(talk, proposal)))
+  }
+
+  def inviteSpeakerExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
+    val next = Redirect(routes.ProposalCtrl.detailExt(talk, proposal))
+    GsForms.invite.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      data => (for {
+        proposalElt <- OptionT(externalProposalRepo.findFull(proposal)).filter(_.talk.slug == talk)
+        invite <- OptionT.liftF(userRequestRepo.invite(proposalElt.id, data.email))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToExtProposal(invite, proposalElt, data.message)))
+      } yield next.flashing("success" -> s"<b>${invite.email.value}</b> is invited as speaker")).value.map(_.getOrElse(extProposalNotFound(talk, proposal)))
+    )
+  }
+
+  def cancelInviteSpeakerExt(talk: Talk.Slug, proposal: ExternalProposal.Id, request: UserRequest.Id): Action[AnyContent] = UserAction { implicit req =>
+    (for {
+      proposalElt <- OptionT(externalProposalRepo.findFull(proposal)).filter(_.talk.slug == talk)
+      invite <- OptionT.liftF(userRequestRepo.cancelExternalProposalInvite(request))
+      _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToExtProposalCanceled(invite, proposalElt)))
+      next = Redirect(routes.ProposalCtrl.detailExt(talk, proposal)).flashing("success" -> s"Invitation to <b>${invite.email.value}</b> has been canceled")
+    } yield next).value.map(_.getOrElse(extProposalNotFound(talk, proposal)))
+  }
+
+  def removeSpeakerExt(talk: Talk.Slug, proposal: ExternalProposal.Id, speaker: User.Slug): Action[AnyContent] = UserAction { implicit req =>
+    val next = Redirect(routes.ProposalCtrl.detailExt(talk, proposal))
+    (for {
+      proposalElt <- OptionT(externalProposalRepo.findFull(proposal)).filter(_.talk.slug == talk)
+      speakerElt <- OptionT(userRepo.find(speaker))
+      res <- OptionT.liftF {
+        externalProposalRepo.removeSpeaker(proposal, speakerElt.id).flatMap { _ =>
+          if (speakerElt.id == req.user.id) IO.pure(Redirect(UserRoutes.index()).flashing("success" -> s"You removed yourself from <b>$talk</b> proposal"))
+          else emailSrv.send(Emails.speakerRemovedFromExtProposal(proposalElt, speakerElt))
+            .map(_ => next.flashing("success" -> s"<b>${speakerElt.name.value}</b> removed from speakers"))
+        }.recover { case NonFatal(e) => next.flashing("error" -> s"<b>${speakerElt.name.value}</b> not removed: ${e.getMessage}") }
+      }
+    } yield res).value.map(_.getOrElse(extProposalNotFound(talk, proposal)))
+  }
+
+  def doAddSlidesExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
+    val next = Redirect(routes.ProposalCtrl.detailExt(talk, proposal))
+    GsForms.embed.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      data => Slides.from(data) match {
+        case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
+        case Right(slides) => externalProposalRepo.editSlides(proposal, slides).map(_ => next)
+      }
+    )
+  }
+
+  def doAddVideoExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
+    val next = Redirect(routes.ProposalCtrl.detailExt(talk, proposal))
+    GsForms.embed.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      data => Video.from(data) match {
+        case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
+        case Right(video) => externalProposalRepo.editVideo(proposal, video).map(_ => next)
+      }
+    )
   }
 
   def doRemoveExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>

@@ -19,7 +19,8 @@ import gospeak.libs.scala.domain.{Done, EmailAddress}
 class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
                          groupRepo: GroupRepoSql,
                          talkRepo: TalkRepoSql,
-                         proposalRepo: ProposalRepoSql) extends GenericRepo with UserRequestRepo {
+                         proposalRepo: ProposalRepoSql,
+                         externalProposalRepo: ExternalProposalRepoSql) extends GenericRepo with UserRequestRepo {
   override def find(id: UserRequest.Id): IO[Option[UserRequest]] = selectOne(id).runOption(xa)
 
   override def listPendingGroupRequests(implicit ctx: OrgaCtx): IO[Seq[UserRequest]] = selectAllPending(ctx.group.id, ctx.now).runList(xa)
@@ -127,6 +128,22 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
   override def reject(invite: UserRequest.ProposalInvite)(implicit ctx: UserCtx): IO[Done] = ProposalInviteQueries.reject(invite.id, ctx.user.id, ctx.now).run(xa)
 
   override def listPendingInvites(proposal: Proposal.Id): IO[Seq[ProposalInvite]] = ProposalInviteQueries.selectAllPending(proposal).runList(xa)
+
+
+  override def invite(proposal: ExternalProposal.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[ExternalProposalInvite] =
+    ExternalProposalInviteQueries.insert(ExternalProposalInvite(UserRequest.Id.generate(), proposal, email, ctx.now, ctx.user.id, None, None, None)).run(xa)
+
+  override def cancelExternalProposalInvite(id: UserRequest.Id)(implicit ctx: UserCtx): IO[ExternalProposalInvite] =
+    ExternalProposalInviteQueries.cancel(id, ctx.user.id, ctx.now).run(xa).flatMap(_ => ExternalProposalInviteQueries.selectOne(id).runUnique(xa))
+
+  override def accept(invite: UserRequest.ExternalProposalInvite)(implicit ctx: UserCtx): IO[Done] = for {
+    _ <- ExternalProposalInviteQueries.accept(invite.id, ctx.user.id, ctx.now).run(xa)
+    _ <- externalProposalRepo.addSpeaker(invite.externalProposal, invite.createdBy)
+  } yield Done
+
+  override def reject(invite: UserRequest.ExternalProposalInvite)(implicit ctx: UserCtx): IO[Done] = ExternalProposalInviteQueries.reject(invite.id, ctx.user.id, ctx.now).run(xa)
+
+  override def listPendingInvites(proposal: ExternalProposal.Id): IO[Seq[ExternalProposalInvite]] = ExternalProposalInviteQueries.selectAllPending(proposal).runList(xa)
 }
 
 object UserRequestRepoSql {
@@ -145,6 +162,8 @@ object UserRequestRepoSql {
   private def wherePending(kind: String, talk: Talk.Id): Fragment = fr0"WHERE ur.kind=$kind AND ur.talk_id=$talk" ++ andIsPending
 
   private def wherePending(kind: String, proposal: Proposal.Id): Fragment = fr0"WHERE ur.kind=$kind AND ur.proposal_id=$proposal" ++ andIsPending
+
+  private def wherePending(kind: String, proposal: ExternalProposal.Id): Fragment = fr0"WHERE ur.kind=$kind AND ur.external_proposal_id=$proposal" ++ andIsPending
 
   private def wherePending(kind: String, req: UserRequest.Id, now: Instant): Fragment = fr0"WHERE ur.kind=$kind AND ur.id=$req" ++ andIsPending ++ andNotExpired(now)
 
@@ -289,6 +308,29 @@ object UserRequestRepoSql {
 
     private[sql] def selectAllPending(proposal: Proposal.Id): Select[ProposalInvite] =
       table.select[ProposalInvite](selectFields, wherePending(kind, proposal))
+  }
+
+  object ExternalProposalInviteQueries {
+    private val kind = "ExternalProposalInvite"
+    private val fields = Seq("id", "kind", "external_proposal_id", "email", "created_at", "created_by", "accepted_at", "accepted_by", "rejected_at", "rejected_by", "canceled_at", "canceled_by").map(n => Field(n, table.prefix))
+    private val selectFields = fields.filter(_.name != "kind")
+
+    private[sql] def insert(elt: ExternalProposalInvite): Insert[ExternalProposalInvite] = {
+      val values = fr0"${elt.id}, $kind, ${elt.externalProposal}, ${elt.email}, ${elt.createdAt}, ${elt.createdBy}, ${elt.accepted.map(_.date)}, ${elt.accepted.map(_.by)}, ${elt.rejected.map(_.date)}, ${elt.rejected.map(_.by)}, ${elt.canceled.map(_.date)}, ${elt.canceled.map(_.by)}"
+      table.insertPartial[ExternalProposalInvite](fields, elt, _ => values)
+    }
+
+    private[sql] def accept(req: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"accepted_at=$now, accepted_by=$by", wherePending(kind, req, now))
+
+    private[sql] def reject(req: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"rejected_at=$now, rejected_by=$by", wherePending(kind, req, now))
+
+    private[sql] def cancel(req: UserRequest.Id, by: User.Id, now: Instant): Update = table.update(fr0"canceled_at=$now, canceled_by=$by", wherePending(kind, req, now))
+
+    private[sql] def selectOne(id: UserRequest.Id): Select[ExternalProposalInvite] =
+      table.select[ExternalProposalInvite](selectFields, fr0"WHERE ur.id=$id")
+
+    private[sql] def selectAllPending(externalProposal: ExternalProposal.Id): Select[ExternalProposalInvite] =
+      table.select[ExternalProposalInvite](selectFields, wherePending(kind, externalProposal))
   }
 
 }

@@ -1,4 +1,4 @@
-@import gospeak.core.domain.{Proposal, User, UserRequest}
+@import gospeak.core.domain.{ExternalProposal, User, UserRequest}
 @import gospeak.core.domain.utils.Constants
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.partials.display.html.markdown
@@ -7,16 +7,17 @@
 @import gospeak.web.pages.user.routes.UserCtrl
 @import gospeak.web.utils.UserReq
 
-@(invite: UserRequest.ProposalInvite, proposal: Proposal, speaker: User)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(s"Invitation for '${proposal.title.value}' proposal - Gospeak", b, hideAlert = true)() {
+@(invite: UserRequest.ExternalProposalInvite, proposal: ExternalProposal.Full, speaker: User)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@container(s"Invitation for '${proposal.title.value}' proposal ar ${proposal.event.name.value} - Gospeak", b, hideAlert = true)() {
     @if(invite.isPending(req.now)) {
-        <h1>Nice!!! You have been invited to speak <i class="far fa-thumbs-up"></i></h1>
-        <h3>@proposal.title.value</h3>
+        <h1>Nice!!! You have been added to a proposal <i class="far fa-thumbs-up"></i></h1>
+        <h3>"@proposal.title.value"</h3>
+        <h4>At @proposal.event.name.value</h4>
         @markdown(proposal.description)
         @formBtn(UserCtrl.rejectRequest(invite.id), Seq("class" -> "btn-danger")) { Do not join }
         @formBtn(UserCtrl.acceptRequest(invite.id), Seq("class" -> "btn-success")) { Join <b>@speaker.name.value</b> to speak about <b>@proposal.title.value</b> }
     } else {
-        <h1>Invitation to the proposal '@proposal.title.value' by @speaker.name.value</h1>
+        <h1>Invitation to the proposal '@proposal.title.value' as @proposal.event.name.value by @speaker.name.value</h1>
         <h3 class="text-danger">Oups, this invite is expired</h3>
         <p>
             If it is strange, please contact the person who invited you (<a href="mailto:@speaker.email.value">@speaker.name.value</a>) to check if everything is alright

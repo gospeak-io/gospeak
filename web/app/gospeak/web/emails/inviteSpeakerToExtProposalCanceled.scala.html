@@ -1,0 +1,10 @@
+@import gospeak.core.domain.{ExternalProposal, UserRequest}
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.published.events.routes.EventCtrl
+@import gospeak.web.utils.UserReq
+
+@(invite: UserRequest.ExternalProposalInvite, proposal: ExternalProposal.Full)(implicit req: UserReq[AnyContent])
+<p>Hi,</p>
+<p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has canceled your invitation for <b>@proposal.title.value</b> at <a href="@EventCtrl.detailExt(proposal.event.id)">@proposal.event.name.value</a>.</p>
+<p>We hope everything is alright, you can <a href="@req.format(CfpCtrl.list())">propose a new talk</a> at any time ;)</p>
+<p>The Gospeak team</p>

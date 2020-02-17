@@ -154,6 +154,41 @@ object Emails {
       subject = s"${req.user.name.value} removed you from the speakers of '${proposal.title.value}' proposal :(",
       content = HtmlContent(html.speakerRemovedFromProposal(proposal, speaker).body))
 
+  def inviteSpeakerToExtProposal(invite: UserRequest.ExternalProposalInvite, proposal: ExternalProposal.Full, message: Markdown)(implicit req: UserReq[AnyContent]): Email =
+    Email(
+      from = Constants.Contact.noReply.withName(req.user.name.value),
+      to = Seq(EmailAddress.Contact(invite.email)),
+      subject = s"Add you to '${proposal.title.value}' at ${proposal.event.name.value}",
+      content = HtmlContent(html.inviteSpeakerToExtProposal(invite, proposal, message).body))
+
+  def inviteSpeakerToExtProposalCanceled(invite: UserRequest.ExternalProposalInvite, proposal: ExternalProposal.Full)(implicit req: UserReq[AnyContent]): Email =
+    Email(
+      from = Constants.Contact.noReply,
+      to = Seq(EmailAddress.Contact(invite.email)),
+      subject = s"Your invitation for '${proposal.title.value}' has been canceled :(",
+      content = HtmlContent(html.inviteSpeakerToExtProposalCanceled(invite, proposal).body))
+
+  def inviteSpeakerToExtProposalAccepted(invite: UserRequest.ExternalProposalInvite, proposal: ExternalProposal.Full, speaker: User)(implicit req: UserReq[AnyContent]): Email =
+    Email(
+      from = Constants.Contact.noReply,
+      to = Seq(speaker.asContact),
+      subject = s"${req.user.name.value} has accepted your invitation for '${proposal.title.value}'",
+      content = HtmlContent(html.inviteSpeakerToExtProposalAccepted(invite, proposal, speaker).body))
+
+  def inviteSpeakerToExtProposalRejected(invite: UserRequest.ExternalProposalInvite, proposal: ExternalProposal.Full, speaker: User)(implicit req: UserReq[AnyContent]): Email =
+    Email(
+      from = Constants.Contact.noReply,
+      to = Seq(speaker.asContact),
+      subject = s"Oups, ${req.user.name.value} rejected your invitation for '${proposal.title.value}' :(",
+      content = HtmlContent(html.inviteSpeakerToExtProposalRejected(invite, proposal, speaker).body))
+
+  def speakerRemovedFromExtProposal(proposal: ExternalProposal.Full, speaker: User)(implicit req: UserReq[AnyContent]): Email =
+    Email(
+      from = Constants.Contact.noReply,
+      to = Seq(speaker.asContact),
+      subject = s"${req.user.name.value} removed you from the speakers of '${proposal.title.value}' at ${proposal.event.name.value} :(",
+      content = HtmlContent(html.speakerRemovedFromExtProposal(proposal, speaker).body))
+
   def movedFromWaitingListToAttendees(group: Group, event: Event, attendee: User)(implicit req: UserReq[AnyContent]): Email =
     Email(
       from = Constants.Contact.noReply,

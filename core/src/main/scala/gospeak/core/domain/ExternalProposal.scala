@@ -38,9 +38,15 @@ object ExternalProposal {
   final case class Full(proposal: ExternalProposal, talk: Talk, event: ExternalEvent) {
     def id: Id = proposal.id
 
+    def status: Proposal.Status = proposal.status
+
     def title: Talk.Title = proposal.title
 
+    def duration: FiniteDuration = proposal.duration
+
     def description: Markdown = proposal.description
+
+    def message: Markdown = proposal.message
 
     def speakers: NonEmptyList[User.Id] = proposal.speakers
 
@@ -49,6 +55,10 @@ object ExternalProposal {
     def video: Option[Video] = proposal.video
 
     def url: Option[Url] = proposal.url
+
+    def tags: Seq[Tag] = proposal.tags
+
+    def info: Info = proposal.info
 
     def hasSpeaker(user: User.Id): Boolean = proposal.hasSpeaker(user)
 

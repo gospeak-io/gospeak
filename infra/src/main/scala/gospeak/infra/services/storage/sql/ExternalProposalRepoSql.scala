@@ -6,6 +6,7 @@ import java.time.temporal.ChronoUnit
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
+import doobie.util.fragment.Fragment
 import gospeak.core.domain._
 import gospeak.core.domain.utils.{Info, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.ExternalProposalRepo
@@ -14,7 +15,7 @@ import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import gospeak.infra.services.storage.sql.utils.{GenericQuery, GenericRepo}
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Done, Page, Tag}
+import gospeak.libs.scala.domain.{Done, Page, Slides, Tag, Video}
 
 class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ExternalProposalRepo {
   override def create(talk: Talk.Id, event: ExternalEvent.Id, data: ExternalProposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[ExternalProposal] =
@@ -22,6 +23,40 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
 
   override def edit(id: ExternalProposal.Id)(data: ExternalProposal.Data)(implicit ctx: UserCtx): IO[Done] =
     update(id)(data, ctx.user.id, ctx.now).run(xa)
+
+  override def editStatus(id: ExternalProposal.Id, status: Proposal.Status)(implicit ctx: UserCtx): IO[Done] = updateStatus(id)(status, ctx.user.id).run(xa)
+
+  override def editSlides(id: ExternalProposal.Id, slides: Slides)(implicit ctx: UserCtx): IO[Done] = updateSlides(id)(slides, ctx.user.id, ctx.now).run(xa)
+
+  override def editVideo(id: ExternalProposal.Id, video: Video)(implicit ctx: UserCtx): IO[Done] = updateVideo(id)(video, ctx.user.id, ctx.now).run(xa)
+
+  override def addSpeaker(id: ExternalProposal.Id, by: User.Id)(implicit ctx: UserCtx): IO[Done] =
+    find(id).flatMap {
+      case Some(externalProposal) =>
+        if (externalProposal.speakers.toList.contains(ctx.user.id)) {
+          IO.raiseError(new IllegalArgumentException("speaker already added"))
+        } else {
+          updateSpeakers(externalProposal.id)(externalProposal.speakers.append(ctx.user.id), by, ctx.now).run(xa)
+        }
+      case None => IO.raiseError(new IllegalArgumentException("unreachable talk"))
+    }
+
+  override def removeSpeaker(id: ExternalProposal.Id, speaker: User.Id)(implicit ctx: UserCtx): IO[Done] =
+    find(id).flatMap {
+      case Some(externalProposal) =>
+        if (externalProposal.info.createdBy == speaker) {
+          IO.raiseError(new IllegalArgumentException("talk creator can't be removed"))
+        } else if (externalProposal.speakers.toList.contains(speaker)) {
+          NonEmptyList.fromList(externalProposal.speakers.filter(_ != speaker)).map { speakers =>
+            updateSpeakers(id)(speakers, ctx.user.id, ctx.now).run(xa)
+          }.getOrElse {
+            IO.raiseError(new IllegalArgumentException("last speaker can't be removed"))
+          }
+        } else {
+          IO.raiseError(new IllegalArgumentException("user is not a speaker"))
+        }
+      case None => IO.raiseError(new IllegalArgumentException("unreachable talk"))
+    }
 
   override def remove(id: ExternalProposal.Id)(implicit ctx: UserCtx): IO[Done] = delete(id, ctx.user.id).run(xa)
 
@@ -84,6 +119,18 @@ object ExternalProposalRepoSql {
     table.update(fields, fr0"WHERE id=$id AND speakers LIKE ${"%" + by.value + "%"}")
   }
 
+  private[sql] def updateStatus(id: ExternalProposal.Id)(status: Proposal.Status, by: User.Id): Update =
+    table.update(fr0"status=$status", where(id, by))
+
+  private[sql] def updateSlides(id: ExternalProposal.Id)(slides: Slides, by: User.Id, now: Instant): Update =
+    table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by", where(id, by))
+
+  private[sql] def updateVideo(id: ExternalProposal.Id)(video: Video, by: User.Id, now: Instant): Update =
+    table.update(fr0"video=$video, updated_at=$now, updated_by=$by", where(id, by))
+
+  private[sql] def updateSpeakers(id: ExternalProposal.Id)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
+    table.update(fr0"speakers=$speakers, updated_at=$now, updated_by=$by", where(id, by))
+
   private[sql] def delete(id: ExternalProposal.Id, by: User.Id): Delete =
     table.delete(fr0"WHERE ep.id=$id AND ep.speakers LIKE ${"%" + by.value + "%"}")
 
@@ -121,4 +168,7 @@ object ExternalProposalRepoSql {
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
     table.select[Seq[Tag]](Seq(Field("tags", "ep")), Seq())
+
+  private def where(id: ExternalProposal.Id, user: User.Id): Fragment =
+    fr0"WHERE ep.id=$id AND ep.speakers LIKE ${"%" + user.value + "%"}"
 }

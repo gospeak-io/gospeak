@@ -18,6 +18,22 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
         val q = ExternalProposalRepoSql.update(externalProposal.id)(externalProposal.data, user.id, now)
         check(q, s"UPDATE $table SET status=?, title=?, duration=?, description=?, message=?, slides=?, video=?, url=?, tags=?, updated_at=?, updated_by=? WHERE id=? AND speakers LIKE ?")
       }
+      it("should build updateStatus") {
+        val q = ExternalProposalRepoSql.updateStatus(externalProposal.id)(Proposal.Status.Accepted, user.id)
+        check(q, s"UPDATE $table SET status=? WHERE ep.id=? AND ep.speakers LIKE ?")
+      }
+      it("should build updateSlides") {
+        val q = ExternalProposalRepoSql.updateSlides(externalProposal.id)(slides, user.id, now)
+        check(q, s"UPDATE $table SET slides=?, updated_at=?, updated_by=? WHERE ep.id=? AND ep.speakers LIKE ?")
+      }
+      it("should build updateVideo") {
+        val q = ExternalProposalRepoSql.updateVideo(externalProposal.id)(video, user.id, now)
+        check(q, s"UPDATE $table SET video=?, updated_at=?, updated_by=? WHERE ep.id=? AND ep.speakers LIKE ?")
+      }
+      it("should build updateSpeakers") {
+        val q = ExternalProposalRepoSql.updateSpeakers(externalProposal.id)(talk.speakers, user.id, now)
+        check(q, s"UPDATE $table SET speakers=?, updated_at=?, updated_by=? WHERE ep.id=? AND ep.speakers LIKE ?")
+      }
       it("should build delete") {
         val q = ExternalProposalRepoSql.delete(externalProposal.id, user.id)
         check(q, s"DELETE FROM $table WHERE ep.id=? AND ep.speakers LIKE ?")
