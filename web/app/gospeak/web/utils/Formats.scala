@@ -133,6 +133,6 @@ object Formats {
   }
 
   def paginationFooter[A](page: Page[A], link: Page.Params => Call): Html = {
-    Html(s"""<div class="d-flex justify-content-end mb-3">${html.pagination(page, link)}</div>""")
+    Html(s"""<div class="d-flex justify-content-end mb-3"${if (page.hasManyPages || page.params.search.nonEmpty) "" else " style=\"display: none !important;\""}>${html.pagination(page, link)}</div>""")
   }
 }

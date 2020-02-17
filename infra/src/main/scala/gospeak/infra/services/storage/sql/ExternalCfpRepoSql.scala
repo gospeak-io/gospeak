@@ -21,6 +21,8 @@ class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
   override def edit(cfp: ExternalCfp.Id)(data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[Done] =
     update(cfp)(data, ctx.user.id, ctx.now).run(xa)
 
+  override def listAll(event: ExternalEvent.Id): IO[Seq[ExternalCfp]] = selectAll(event).runList(xa)
+
   override def listIncoming(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonCfp]] = selectCommonPageIncoming(params).run(xa)
 
   override def listDuplicatesFull(p: ExternalCfp.DuplicateParams): IO[Seq[ExternalCfp.Full]] = selectDuplicatesFull(p).runList(xa)
@@ -58,6 +60,9 @@ object ExternalCfpRepoSql {
     val fields = fr0"description=${e.description}, begin=${e.begin}, close=${e.close}, url=${e.url}, updated_at=$now, updated_by=$by"
     table.update(fields, fr0"WHERE id=$id")
   }
+
+  private[sql] def selectAll(id: ExternalEvent.Id): Select[ExternalCfp] =
+    table.select[ExternalCfp](fr0"WHERE ec.event_id=$id")
 
   private[sql] def selectOneFull(id: ExternalCfp.Id): Select[ExternalCfp.Full] =
     tableFull.selectOne[ExternalCfp.Full](fr0"WHERE ec.id=$id", Seq())

@@ -14,7 +14,11 @@ case class ExternalCfp(id: ExternalCfp.Id,
                        info: Info) {
   def data: ExternalCfp.Data = ExternalCfp.Data(this)
 
-  def isActive(now: LocalDateTime): Boolean = begin.forall(_.isBefore(now)) && close.forall(_.isAfter(now))
+  def isPast(now: LocalDateTime): Boolean = close.exists(_.isBefore(now))
+
+  def isFuture(now: LocalDateTime): Boolean = begin.exists(_.isAfter(now))
+
+  def isActive(now: LocalDateTime): Boolean = !isPast(now) && !isFuture(now)
 }
 
 object ExternalCfp {
