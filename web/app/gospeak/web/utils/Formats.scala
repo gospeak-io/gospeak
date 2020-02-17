@@ -9,6 +9,7 @@ import gospeak.core.domain.utils.Constants
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Filter
 import gospeak.web.pages.partials.html
 import gospeak.libs.scala.domain.Page
+import play.api.data.Field
 import play.api.mvc.{AnyContent, Call}
 import play.twirl.api.Html
 

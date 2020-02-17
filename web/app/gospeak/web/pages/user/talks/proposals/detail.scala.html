@@ -1,5 +1,4 @@
 @import gospeak.core.domain.{Proposal, Comment, User, UserRequest}
-@import gospeak.libs.scala.domain.Url
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
@@ -8,12 +7,11 @@
 @import gospeak.web.pages.user.partials.html.container
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.UserReq
+@import gospeak.web.utils.{Formats, UserReq}
 
-@(proposal: Proposal.Full, speakers: Seq[User], comments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite], embedForm: Form[Url], commentForm: Form[Comment.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@(proposal: Proposal.Full, speakers: Seq[User], comments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"${proposal.title.value} - Gospeak", b)() {
-    <a href="@TalkCtrl.detail(proposal.talk.slug)"><i class="fas fa-chevron-left"></i> Back to talk</a>
+    @if(req.isSpeaker(proposal.talk)){ <a href="@TalkCtrl.detail(proposal.talk.slug)"><i class="fas fa-chevron-left"></i> Back to talk</a> }
     <div class="d-flex justify-content-between align-items-center">
         <h1>@proposal.title.value</h1>
         <span class="btn-group">
@@ -56,10 +54,10 @@
         @markdown(proposal.message)
     }
 
-    @if(proposal.slides.isEmpty) { @slidesFields(embedForm, ProposalCtrl.doAddSlides(proposal.talk.slug, proposal.cfp.slug)) }
-    @if(proposal.video.isEmpty) { @videoFields(embedForm, ProposalCtrl.doAddVideo(proposal.talk.slug, proposal.cfp.slug)) }
+    @if(proposal.slides.isEmpty) { @slidesFields(ProposalCtrl.doAddSlides(proposal.talk.slug, proposal.cfp.slug)) }
+    @if(proposal.video.isEmpty) { @videoFields(ProposalCtrl.doAddVideo(proposal.talk.slug, proposal.cfp.slug)) }
 
-    @commentSection(comments, commentForm, ProposalCtrl.doSendComment(proposal.talk.slug, proposal.cfp.slug), ProposalCtrl.detail(proposal.talk.slug, proposal.cfp.slug))(req.userAware)
+    @commentSection(comments, ProposalCtrl.doSendComment(proposal.talk.slug, proposal.cfp.slug), ProposalCtrl.detail(proposal.talk.slug, proposal.cfp.slug))(req.userAware)
 
     <p>@info(proposal.info, speakers)</p>
 

@@ -15,6 +15,7 @@ import gospeak.web.domain.Breadcrumb
 import gospeak.web.emails.Emails
 import gospeak.web.pages.orga.cfps.CfpCtrl
 import gospeak.web.pages.orga.cfps.proposals.ProposalCtrl._
+import gospeak.web.utils.Extensions._
 import gospeak.web.utils.{GsForms, OrgaReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -44,7 +45,7 @@ class ProposalCtrl(cc: ControllerComponents,
   }
 
   def detail(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    proposalView(group, cfp, proposal, GsForms.comment, GsForms.comment)
+    proposalView(group, cfp, proposal)
   }
 
   def doRate(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, grade: Proposal.Rating.Grade): Action[AnyContent] = OrgaAction(group) { implicit req =>
@@ -56,8 +57,9 @@ class ProposalCtrl(cc: ControllerComponents,
   }
 
   def doSendComment(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, orga: Boolean): Action[AnyContent] = OrgaAction(group) { implicit req =>
+    val next = redirectToPreviousPageOr(routes.ProposalCtrl.detail(group, cfp, proposal))
     GsForms.comment.bindFromRequest.fold(
-      formWithErrors => proposalView(group, cfp, proposal, if (orga) GsForms.comment else formWithErrors, if (orga) formWithErrors else GsForms.comment),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => (for {
         proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
         cfpElt <- OptionT(cfpRepo.find(cfp))
@@ -71,11 +73,11 @@ class ProposalCtrl(cc: ControllerComponents,
             _ <- speakers.map(s => emailSrv.send(Emails.proposalCommentAddedForSpeaker(cfpElt, talkElt, proposalElt, s, comment))).sequence
           } yield Done
         })
-      } yield Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
+      } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
     )
   }
 
-  private def proposalView(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, commentForm: Form[Comment.Data], orgaCommentForm: Form[Comment.Data])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
+  private def proposalView(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(implicit req: OrgaReq[AnyContent]): IO[Result] = {
     (for {
       proposalElt <- OptionT(proposalRepo.findFull(cfp, proposal))
       speakers <- OptionT.liftF(userRepo.list(proposalElt.users))
@@ -85,7 +87,7 @@ class ProposalCtrl(cc: ControllerComponents,
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposal))
       events <- OptionT.liftF(eventRepo.list(proposalElt.event.map(_.id).toList))
       b = breadcrumb(proposalElt.cfp, proposalElt.proposal)
-      res = Ok(html.detail(proposalElt, speakers, ratings, comments, orgaComments, invites, events, GsForms.embed, commentForm, orgaCommentForm)(b))
+      res = Ok(html.detail(proposalElt, speakers, ratings, comments, orgaComments, invites, events)(b))
     } yield res).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
 
@@ -112,7 +114,7 @@ class ProposalCtrl(cc: ControllerComponents,
   def inviteSpeaker(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
     GsForms.invite.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => (for {
         cfpElt <- OptionT(cfpRepo.find(cfp))
         proposalElt <- OptionT(proposalRepo.find(cfp, proposal))
@@ -150,7 +152,7 @@ class ProposalCtrl(cc: ControllerComponents,
   def doAddSlides(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
     GsForms.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(slides) => proposalRepo.editSlides(cfp, proposal, slides).map(_ => next)
@@ -161,7 +163,7 @@ class ProposalCtrl(cc: ControllerComponents,
   def doAddVideo(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
     GsForms.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(video) => proposalRepo.editVideo(cfp, proposal, video).map(_ => next)

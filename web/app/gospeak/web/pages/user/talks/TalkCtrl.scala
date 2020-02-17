@@ -3,8 +3,8 @@ package gospeak.web.pages.user.talks
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import gospeak.core.domain.utils.UserCtx
 import gospeak.core.domain._
+import gospeak.core.domain.utils.UserCtx
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
@@ -16,6 +16,7 @@ import gospeak.web.emails.Emails
 import gospeak.web.pages.user.UserCtrl
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import gospeak.web.pages.user.talks.TalkCtrl._
+import gospeak.web.utils.Extensions._
 import gospeak.web.utils.{GsForms, UICtrl, UserReq}
 import play.api.data.Form
 import play.api.mvc._
@@ -64,7 +65,7 @@ class TalkCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(talkElt.users))
       proposals <- OptionT.liftF(externalProposalRepo.listAllCommon(talkElt.id))
       b = breadcrumb(talkElt)
-    } yield Ok(html.detail(talkElt, speakers, invites, proposals, GsForms.embed)(b))).value.map(_.getOrElse(talkNotFound(talk)))
+    } yield Ok(html.detail(talkElt, speakers, invites, proposals)(b))).value.map(_.getOrElse(talkNotFound(talk)))
   }
 
   def edit(talk: Talk.Slug, redirect: Option[String]): Action[AnyContent] = UserAction { implicit req =>
@@ -96,7 +97,7 @@ class TalkCtrl(cc: ControllerComponents,
   def inviteSpeaker(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.TalkCtrl.detail(talk))
     GsForms.invite.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => (for {
         talkElt <- OptionT(talkRepo.find(talk))
         invite <- OptionT.liftF(userRequestRepo.invite(talkElt.id, data.email))
@@ -132,7 +133,7 @@ class TalkCtrl(cc: ControllerComponents,
   def doAddSlides(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.TalkCtrl.detail(talk))
     GsForms.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(slides) => talkRepo.editSlides(talk, slides).map(_ => next)
@@ -143,7 +144,7 @@ class TalkCtrl(cc: ControllerComponents,
   def doAddVideo(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.TalkCtrl.detail(talk))
     GsForms.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(video) => talkRepo.editVideo(talk, video).map(_ => next)

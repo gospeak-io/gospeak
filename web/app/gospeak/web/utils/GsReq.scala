@@ -55,6 +55,10 @@ sealed class BasicReq[A] protected(protected val request: Request[A],
 
   def referer: Option[String] = HttpUtils.getReferer(headers)
 
+  def getFlash(key: String): Option[String] = flash.get(key)
+
+  def getOrElseFlash(key: String, default: => String): String = flash.get(key).getOrElse(default)
+
   def nowLDT: LocalDateTime = LocalDateTime.ofInstant(now, Constants.defaultZoneId)
 
   def nowLD: LocalDate = nowLDT.toLocalDate

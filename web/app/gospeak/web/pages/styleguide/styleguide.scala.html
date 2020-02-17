@@ -154,11 +154,11 @@
             @component("Search", "@search(page, MyCtrl.list(params))") { name =>
                 @example(name) { _ => @global.search(Page(1 to params.pageSize.value, params, Page.Total(200), Seq()), StyleguideCtrl.index(params)) }
             }
-            @component("Add slides form", "@slidesFields(embedForm, MyCtrl.doAddSlides(talk.slug))") { name =>
-                @example(name) { _ => @global.slidesFields(GsForms.embed, StyleguideCtrl.index(params)) }
+            @component("Add slides form", "@slidesFields(MyCtrl.doAddSlides(talk.slug))") { name =>
+                @example(name) { _ => @global.slidesFields(StyleguideCtrl.index(params)) }
             }
-            @component("Add video form", "@videoFields(embedForm, MyCtrl.doAddVideo(talk.slug))") { name =>
-                @example(name) { _ => @global.videoFields(GsForms.embed, StyleguideCtrl.index(params)) }
+            @component("Add video form", "@videoFields(MyCtrl.doAddVideo(talk.slug))") { name =>
+                @example(name) { _ => @global.videoFields(StyleguideCtrl.index(params)) }
             }
         }
 

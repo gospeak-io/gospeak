@@ -1,10 +1,10 @@
 @import gospeak.core.domain.Comment
+@import gospeak.web.auth.routes.AuthCtrl
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
-@import gospeak.web.auth.routes.AuthCtrl
-@import gospeak.web.utils.UserAwareReq
+@import gospeak.web.utils.{GsForms, UserAwareReq}
 
-@(comments: Seq[Comment.Full], commentForm: Form[Comment.Data], sendComment: Call, pageUrl: Call, tabindex: Int = 10)(implicit req: UserAwareReq[AnyContent])
+@(comments: Seq[Comment.Full], sendComment: Call, pageUrl: Call, tabindex: Int = 10)(implicit req: UserAwareReq[AnyContent])
 <div class="comment-section mb-3">
     @if(comments.nonEmpty) {
         <div class="border-bottom mb-3">
@@ -24,7 +24,7 @@
     }
     <div class="comment-submit">
         @req.user.map { user =>
-            @formElt(commentForm, sendComment) {
+            @formElt(GsForms.comment, sendComment) {
                 <div class="media">
                     <img class="u-avatar rounded-circle mr-3" src="@user.avatar.url.value" alt="@user.name.value avatar">
                     <div class="media-body">
@@ -32,7 +32,7 @@
                             @user.name.value
                             <button type="submit" class="btn btn-primary btn-sm" tabindex="@{tabindex + 1}">Send</button>
                         </h5>
-                        @inputTextarea(commentForm("text"), Seq("placeholder" -> "Add comment...", "tabindex" -> tabindex.toString))
+                        @inputTextarea(GsForms.comment("text"), Seq("placeholder" -> "Add comment...", "tabindex" -> tabindex.toString, "value" -> req.getOrElseFlash("text", "")))
                     </div>
                 </div>
             }

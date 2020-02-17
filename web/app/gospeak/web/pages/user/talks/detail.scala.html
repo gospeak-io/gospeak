@@ -1,5 +1,5 @@
 @import gospeak.core.domain.{CommonProposal, Talk, User, UserRequest}
-@import gospeak.libs.scala.domain.{Page, Url}
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
@@ -10,7 +10,7 @@
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
 @import gospeak.web.utils.{Formats, UserReq}
 
-@(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Seq[CommonProposal], embedForm: Form[Url])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Seq[CommonProposal])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"${talk.title.value} - Gospeak", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@talk.title.value</span>
@@ -70,8 +70,8 @@
     </div>
     @markdown(talk.description)
 
-    @if(talk.slides.isEmpty) { @slidesFields(embedForm, TalkCtrl.doAddSlides(talk.slug)) }
-    @if(talk.video.isEmpty) { @videoFields(embedForm, TalkCtrl.doAddVideo(talk.slug)) }
+    @if(talk.slides.isEmpty) { @slidesFields(TalkCtrl.doAddSlides(talk.slug)) }
+    @if(talk.video.isEmpty) { @videoFields(TalkCtrl.doAddVideo(talk.slug)) }
 
     <p>@info(talk.info, speakers)</p>
 

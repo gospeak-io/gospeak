@@ -19,6 +19,7 @@ import gospeak.web.emails.Emails
 import gospeak.web.pages.orga.GroupCtrl
 import gospeak.web.pages.orga.settings.SettingsCtrl._
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
+import gospeak.web.utils.Extensions._
 import gospeak.web.utils.{GsForms, OrgaReq, UICtrl}
 import play.api.data.Form
 import play.api.mvc._
@@ -179,7 +180,7 @@ class SettingsCtrl(cc: ControllerComponents,
   def inviteOrga(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = Redirect(routes.SettingsCtrl.settings(group))
     GsForms.invite.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => for {
         invite <- userRequestRepo.invite(data.email)
         _ <- emailSrv.send(Emails.inviteOrgaToGroup(invite, data.message))

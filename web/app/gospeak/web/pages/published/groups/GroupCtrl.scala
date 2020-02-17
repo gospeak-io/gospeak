@@ -3,7 +3,7 @@ package gospeak.web.pages.published.groups
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import gospeak.core.domain.{Comment, Event, Group, Proposal}
+import gospeak.core.domain.{Event, Group, Proposal}
 import gospeak.core.services.TemplateSrv
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.meetup.MeetupSrv
@@ -16,8 +16,8 @@ import gospeak.web.domain.{Breadcrumb, MessageBuilder}
 import gospeak.web.emails.Emails
 import gospeak.web.pages.published.HomeCtrl
 import gospeak.web.pages.published.groups.GroupCtrl._
+import gospeak.web.utils.Extensions._
 import gospeak.web.utils.{GsForms, UICtrl, UserAwareReq}
-import play.api.data.Form
 import play.api.mvc._
 
 import scala.util.Random
@@ -99,7 +99,7 @@ class GroupCtrl(cc: ControllerComponents,
   }
 
   def event(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
-    eventView(group, event, GsForms.comment)
+    eventView(group, event)
   }
 
   def eventAttendeesMeetup(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
@@ -117,19 +117,20 @@ class GroupCtrl(cc: ControllerComponents,
   }
 
   def doSendComment(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAction { implicit req =>
+    val next = redirectToPreviousPageOr(routes.GroupCtrl.event(group, event))
     GsForms.comment.bindFromRequest.fold(
-      formWithErrors => eventView(group, event, formWithErrors)(req.userAware),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => (for {
         groupElt <- OptionT(groupRepo.find(group))
         eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
         orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
         comment <- OptionT.liftF(commentRepo.addComment(eventElt.id, data))
         _ <- OptionT.liftF(orgas.map(o => emailSrv.send(Emails.eventCommentAdded(groupElt, eventElt.event, o, comment))).sequence)
-      } yield Redirect(routes.GroupCtrl.event(group, event))).value.map(_.getOrElse(publicEventNotFound(group, event)))
+      } yield next).value.map(_.getOrElse(publicEventNotFound(group, event)))
     )
   }
 
-  private def eventView(group: Group.Slug, event: Event.Slug, commentForm: Form[Comment.Data])(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
+  private def eventView(group: Group.Slug, event: Event.Slug)(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
@@ -143,7 +144,7 @@ class GroupCtrl(cc: ControllerComponents,
       data = builder.buildEventInfo(eventElt, eventElt.cfp, proposals, speakers)
       description = templateSrv.render(eventElt.description, data).getOrElse(Markdown(eventElt.description.value))
       b = breadcrumbEvent(groupElt, eventElt)
-      res = Ok(html.event(groupElt, eventElt, description, proposals, speakers, comments, commentForm, yesRsvp, userMembership, userRsvp, rsvps)(b))
+      res = Ok(html.event(groupElt, eventElt, description, proposals, speakers, comments, yesRsvp, userMembership, userRsvp, rsvps)(b))
     } yield res).value.map(_.getOrElse(publicEventNotFound(group, event)))
   }
 

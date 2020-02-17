@@ -6,8 +6,9 @@
 @import gospeak.web.pages.user.partials.html.container
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
-@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import gospeak.web.utils.{Formats, GsForms, UserReq}
+@import gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublicSpeakerCtrl}
+@import gospeak.web.pages.published.events.routes.{EventCtrl => PublicEventCtrl}
+@import gospeak.web.utils.{Formats, UserReq}
 
 @(proposal: ExternalProposal.Full, invites: Seq[UserRequest.ExternalProposalInvite], speakers: Seq[User])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"${proposal.title.value} - Gospeak", b)() {
@@ -24,7 +25,11 @@
             </span>
         </span>
     </div>
-    <h2>@proposalStatusIcon(proposal.status) @proposal.event.name.value @proposal.event.start.map { s => - @Formats.date(s) }</h2>
+    <h2>
+        @proposalStatusIcon(proposal.status)
+        <a href="@PublicEventCtrl.detailExt(proposal.event.id)">@proposal.event.name.value</a>
+        @proposal.event.start.map { s => - @Formats.date(s) }
+    </h2>
 
     <p class="mb-0">@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video) @websiteIcon(proposal.url)</p>
     @if(proposal.tags.nonEmpty) { <p class="mb-0">@tags(proposal.tags)</p> }
@@ -33,7 +38,7 @@
         @proposal.speakers.toList.map(id => speakers.find(_.id == id)).map {
             case Some(speaker) => {
                 <span class="badge badge-pill badge-primary">
-                    @if(speaker.isPublic) { <a href="@SpeakerCtrl.detail(speaker.slug)">@speaker.name.value</a> } else { @speaker.name.value }
+                    @if(speaker.isPublic) { <a href="@PublicSpeakerCtrl.detail(speaker.slug)">@speaker.name.value</a> } else { @speaker.name.value }
                     @if(speaker.id != proposal.info.createdBy) {
                         @formBtn(ProposalCtrl.removeSpeakerExt(proposal.talk.slug, proposal.id, speaker.slug), Seq("title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
                     }
@@ -55,8 +60,8 @@
         @markdown(proposal.message)
     }
 
-    @if(proposal.slides.isEmpty) { @slidesFields(GsForms.embed, ProposalCtrl.doAddSlidesExt(proposal.talk.slug, proposal.id)) }
-    @if(proposal.video.isEmpty) { @videoFields(GsForms.embed, ProposalCtrl.doAddVideoExt(proposal.talk.slug, proposal.id)) }
+    @if(proposal.slides.isEmpty) { @slidesFields(ProposalCtrl.doAddSlidesExt(proposal.talk.slug, proposal.id)) }
+    @if(proposal.video.isEmpty) { @videoFields(ProposalCtrl.doAddVideoExt(proposal.talk.slug, proposal.id)) }
 
     <p>@info(proposal.info, speakers)</p>
 

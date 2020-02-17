@@ -19,6 +19,7 @@ import gospeak.web.pages.user.talks.cfps.CfpCtrl
 import gospeak.web.pages.user.talks.cfps.routes.{CfpCtrl => CfpRoutes}
 import gospeak.web.pages.user.talks.proposals.ProposalCtrl._
 import gospeak.web.pages.user.talks.routes.{TalkCtrl => TalkRoutes}
+import gospeak.web.utils.Extensions._
 import gospeak.web.utils.{GsForms, UICtrl, UserReq}
 import play.api.data.Form
 import play.api.mvc._
@@ -81,7 +82,7 @@ class ProposalCtrl(cc: ControllerComponents,
   def inviteSpeakerExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detailExt(talk, proposal))
     GsForms.invite.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => (for {
         proposalElt <- OptionT(externalProposalRepo.findFull(proposal)).filter(_.talk.slug == talk)
         invite <- OptionT.liftF(userRequestRepo.invite(proposalElt.id, data.email))
@@ -117,7 +118,7 @@ class ProposalCtrl(cc: ControllerComponents,
   def doAddSlidesExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detailExt(talk, proposal))
     GsForms.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(slides) => externalProposalRepo.editSlides(proposal, slides).map(_ => next)
@@ -128,7 +129,7 @@ class ProposalCtrl(cc: ControllerComponents,
   def doAddVideoExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detailExt(talk, proposal))
     GsForms.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(video) => externalProposalRepo.editVideo(proposal, video).map(_ => next)
@@ -173,12 +174,13 @@ class ProposalCtrl(cc: ControllerComponents,
   }
 
   def detail(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
-    proposalView(talk, cfp, GsForms.comment)
+    proposalView(talk, cfp)
   }
 
   def doSendComment(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
+    val next = redirectToPreviousPageOr(routes.ProposalCtrl.detail(talk, cfp))
     GsForms.comment.bindFromRequest.fold(
-      formWithErrors => proposalView(talk, cfp, formWithErrors),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => (for {
         proposalElt <- OptionT(proposalRepo.find(talk, cfp))
         cfpElt <- OptionT(cfpRepo.find(proposalElt.cfp))
@@ -186,18 +188,18 @@ class ProposalCtrl(cc: ControllerComponents,
         orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
         comment <- OptionT.liftF(commentRepo.addComment(proposalElt.id, data))
         _ <- OptionT.liftF(orgas.map(o => emailSrv.send(Emails.proposalCommentAddedForOrga(groupElt, cfpElt, proposalElt, o, comment))).sequence)
-      } yield Redirect(routes.ProposalCtrl.detail(talk, cfp))).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
+      } yield next).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
     )
   }
 
-  private def proposalView(talk: Talk.Slug, cfp: Cfp.Slug, commentForm: Form[Comment.Data])(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
+  private def proposalView(talk: Talk.Slug, cfp: Cfp.Slug)(implicit req: UserReq[AnyContent], ctx: UserCtx): IO[Result] = {
     (for {
       proposalFull <- OptionT(proposalRepo.findFull(talk, cfp))
       invites <- OptionT.liftF(userRequestRepo.listPendingInvites(proposalFull.id))
       speakers <- OptionT.liftF(userRepo.list(proposalFull.users))
       comments <- OptionT.liftF(commentRepo.getComments(proposalFull.id))
       b = breadcrumb(proposalFull)
-      res = Ok(html.detail(proposalFull, speakers, comments, invites, GsForms.embed, commentForm)(b))
+      res = Ok(html.detail(proposalFull, speakers, comments, invites)(b))
     } yield res).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
   }
 
@@ -223,7 +225,7 @@ class ProposalCtrl(cc: ControllerComponents,
   def inviteSpeaker(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     GsForms.invite.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => (for {
         cfpElt <- OptionT(cfpRepo.findRead(cfp))
         proposalElt <- OptionT(proposalRepo.find(talk, cfp))
@@ -261,7 +263,7 @@ class ProposalCtrl(cc: ControllerComponents,
   def doAddSlides(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     GsForms.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => Slides.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(slides) => proposalRepo.editSlides(talk, cfp, slides).map(_ => next)
@@ -272,7 +274,7 @@ class ProposalCtrl(cc: ControllerComponents,
   def doAddVideo(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     GsForms.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => Video.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(video) => proposalRepo.editVideo(talk, cfp, video).map(_ => next)
