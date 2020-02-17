@@ -1,10 +1,12 @@
-@import gospeak.core.domain.{Proposal, UserRequest}
+@import gospeak.core.domain.{Cfp, Event, Proposal, UserRequest}
+@import gospeak.libs.scala.domain.Markdown
+@import gospeak.web.pages.partials.display.html.markdown
 @import gospeak.web.pages.user.routes.UserCtrl
 @import gospeak.web.utils.UserReq
 
-@(invite: UserRequest.ProposalInvite, proposal: Proposal)(implicit req: UserReq[AnyContent])
-<p>Hi,</p>
-<p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has invited you to speak about <b>@proposal.title.value</b>.</p>
+@(invite: UserRequest.ProposalInvite, cfp: Cfp, event: Option[Event], proposal: Proposal, message: Markdown)(implicit req: UserReq[AnyContent])
+@if(message.nonEmpty) { @markdown(message)<br> } else { <p>Hi,</p> }
+<p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has invited you to speak about <b>@proposal.title.value</b> at <b>@event.map(_.name.value).getOrElse(cfp.name.value)</b>.</p>
 <p>You can <a href="@req.format(UserCtrl.answerRequest(invite.id))">accept or deny</a> this invitation.</p>
 <p>We wish you the best in your public speaking adventure!</p>
 <p>The Gospeak team</p>

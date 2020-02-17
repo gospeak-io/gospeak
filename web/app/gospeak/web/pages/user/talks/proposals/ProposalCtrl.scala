@@ -140,7 +140,7 @@ class ProposalCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(proposalFull.users))
       comments <- OptionT.liftF(commentRepo.getComments(proposalFull.id))
       b = breadcrumb(proposalFull)
-      res = Ok(html.detail(proposalFull, speakers, comments, invites, GsForms.invite, GsForms.embed, commentForm)(b))
+      res = Ok(html.detail(proposalFull, speakers, comments, invites, GsForms.embed, commentForm)(b))
     } yield res).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
   }
 
@@ -167,11 +167,13 @@ class ProposalCtrl(cc: ControllerComponents,
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     GsForms.invite.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
-      email => (for {
+      data => (for {
+        cfpElt <- OptionT(cfpRepo.findRead(cfp))
         proposalElt <- OptionT(proposalRepo.find(talk, cfp))
-        invite <- OptionT.liftF(userRequestRepo.invite(proposalElt.id, email))
-        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposal(invite, proposalElt)))
-      } yield next.flashing("success" -> s"<b>$email</b> is invited as speaker")).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
+        eventElt <- proposalElt.event.map(id => OptionT(eventRepo.find(id))).sequence
+        invite <- OptionT.liftF(userRequestRepo.invite(proposalElt.id, data.email))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposal(invite, cfpElt, eventElt, proposalElt, data.message)))
+      } yield next.flashing("success" -> s"<b>${invite.email.value}</b> is invited as speaker")).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
     )
   }
 

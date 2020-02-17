@@ -1,5 +1,5 @@
 @import gospeak.core.domain.{Proposal, Comment, User, UserRequest}
-@import gospeak.libs.scala.domain.{EmailAddress, Url}
+@import gospeak.libs.scala.domain.Url
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
@@ -11,7 +11,7 @@
 @import gospeak.web.utils.Formats
 @import gospeak.web.utils.UserReq
 
-@(proposal: Proposal.Full, speakers: Seq[User], comments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url], commentForm: Form[Comment.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@(proposal: Proposal.Full, speakers: Seq[User], comments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite], embedForm: Form[Url], commentForm: Form[Comment.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"${proposal.title.value} - Gospeak", b)() {
     <a href="@TalkCtrl.detail(proposal.talk.slug)"><i class="fas fa-chevron-left"></i> Back to talk</a>
     <div class="d-flex justify-content-between align-items-center">
@@ -48,7 +48,7 @@
                 @formBtn(ProposalCtrl.cancelInviteSpeaker(proposal.talk.slug, proposal.cfp.slug, i.id), Seq("title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
             </span>
         }
-        <a href="#" class="badge badge-pill badge-primary" data-toggle="modal" data-target="#inviteSpeakerModal"><i class="fas fa-plus"></i></a>
+        <a href="#" class="badge badge-pill badge-primary" data-toggle="modal" data-target="#inviteUserModal"><i class="fas fa-plus"></i></a>
     </div>
     @markdown(proposal.description)
     @if(proposal.message.nonEmpty) {
@@ -63,25 +63,5 @@
 
     <p>@info(proposal.info, speakers)</p>
 
-    <div class="modal fade" id="inviteSpeakerModal" tabindex="-1" role="dialog" aria-labelledby="inviteSpeakerModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                @formElt(inviteSpeakerForm, ProposalCtrl.inviteSpeaker(proposal.talk.slug, proposal.cfp.slug)) {
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="inviteSpeakerModalLabel">Add a speaker to <b>@proposal.title.value</b> proposal</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    </div>
-                    <div class="modal-body">
-                        @fieldVertical(inviteSpeakerForm("email"), Seq("label" -> "Email", "help" -> "Email of your co-speaker")) {(field, args) =>
-                            @inputText(field, Seq("placeholder" -> "ex: the-speaker@mail.com", "autofocus" -> "true") ++ args)
-                        }
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        @btnSubmit("Invite as speaker")
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
+    @inviteUserModal(ProposalCtrl.inviteSpeaker(proposal.talk.slug, proposal.cfp.slug), proposal.title.value, "co-speaker")
 }()

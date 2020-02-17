@@ -1,5 +1,5 @@
 @import gospeak.core.domain.{Event, Proposal, Comment, User, UserRequest}
-@import gospeak.libs.scala.domain.{EmailAddress, Url}
+@import gospeak.libs.scala.domain.Url
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import gospeak.web.pages.orga.events.routes.EventCtrl
@@ -11,7 +11,7 @@
 @import gospeak.web.utils.Formats
 @import gospeak.web.utils.OrgaReq
 
-@(proposal: Proposal.Full, speakers: Seq[User], ratings: Seq[Proposal.Rating.Full], comments: Seq[Comment.Full], orgaComments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite], events: Seq[Event], inviteSpeakerForm: Form[EmailAddress], embedForm: Form[Url], commentForm: Form[Comment.Data], orgaCommentForm: Form[Comment.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(proposal: Proposal.Full, speakers: Seq[User], ratings: Seq[Proposal.Rating.Full], comments: Seq[Comment.Full], orgaComments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite], events: Seq[Event], embedForm: Form[Url], commentForm: Form[Comment.Data], orgaCommentForm: Form[Comment.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${proposal.title.value} - Gospeak", b)() {
     <div class="d-flex justify-content-between align-items-center">
         <h1>@proposal.title.value</h1>
@@ -58,7 +58,7 @@
                         @formBtn(ProposalCtrl.cancelInviteSpeaker(req.group.slug, proposal.cfp.slug, proposal.id, i.id), Seq("title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
                     </span>
                 }
-                <a href="#" class="badge badge-pill badge-primary" data-toggle="modal" data-target="#inviteSpeakerModal"><i class="fas fa-plus"></i></a>
+                <a href="#" class="badge badge-pill badge-primary" data-toggle="modal" data-target="#inviteUserModal"><i class="fas fa-plus"></i></a>
             </div>
             @markdown(proposal.description)
             @if(proposal.message.nonEmpty) {
@@ -100,25 +100,5 @@
 
     <p>@info(proposal.info, speakers, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug)))</p>
 
-    <div class="modal fade" id="inviteSpeakerModal" tabindex="-1" role="dialog" aria-labelledby="inviteSpeakerModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                @formElt(inviteSpeakerForm, ProposalCtrl.inviteSpeaker(req.group.slug, proposal.cfp.slug, proposal.id)) {
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="inviteSpeakerModalLabel">Add a speaker to <b>@proposal.title.value</b> proposal</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    </div>
-                    <div class="modal-body">
-                        @fieldVertical(inviteSpeakerForm("email"), Seq("label" -> "Email", "help" -> "Email of your co-speaker")) {(field, args) =>
-                            @inputText(field, Seq("placeholder" -> "ex: the-speaker@mail.com", "autofocus" -> "true") ++ args)
-                        }
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        @btnSubmit("Invite as speaker")
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
+    @inviteUserModal(ProposalCtrl.inviteSpeaker(req.group.slug, proposal.cfp.slug, proposal.id), proposal.title.value, "co-speaker")
 }()

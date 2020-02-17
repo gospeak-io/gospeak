@@ -48,6 +48,8 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def find(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event]] = selectOne(ctx.group.id, event).runOption(xa)
 
+  override def find(event: Event.Id): IO[Option[Event]] = selectOne(event).runOption(xa)
+
   override def findFull(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event.Full]] = selectOneFull(ctx.group.id, event).runOption(xa)
 
   override def findPublished(group: Group.Id, event: Event.Slug): IO[Option[Event.Full]] = selectOnePublished(group, event).runOption(xa)
@@ -131,14 +133,17 @@ object EventRepoSql {
   private[sql] def updatePublished(group: Group.Id, event: Event.Slug)(by: User.Id, now: Instant): Update =
     table.update(fr0"published=$now, updated_at=$now, updated_by=$by", where(group, event))
 
+  private[sql] def selectOne(event: Event.Id): Select[Event] =
+    table.selectOne[Event](fr0"WHERE e.id=$event", Seq())
+
   private[sql] def selectOne(group: Group.Id, event: Event.Slug): Select[Event] =
-    table.select[Event](where(group, event))
+    table.selectOne[Event](where(group, event), Seq())
 
   private[sql] def selectOneFull(group: Group.Id, event: Event.Slug): Select[Event.Full] =
-    tableFull.select[Event.Full](where(group, event))
+    tableFull.selectOne[Event.Full](where(group, event), Seq())
 
   private[sql] def selectOnePublished(group: Group.Id, event: Event.Slug): Select[Event.Full] =
-    tableFull.select[Event.Full](fr0"WHERE e.group_id=$group AND e.slug=$event AND e.published IS NOT NULL")
+    tableFull.selectOne[Event.Full](fr0"WHERE e.group_id=$group AND e.slug=$event AND e.published IS NOT NULL", Seq())
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Event, OrgaCtx] =
     table.selectPage[Event, OrgaCtx](params, fr0"WHERE e.group_id=${ctx.group.id}")

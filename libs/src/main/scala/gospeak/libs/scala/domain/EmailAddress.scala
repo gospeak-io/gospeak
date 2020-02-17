@@ -16,7 +16,6 @@ object EmailAddress {
     else Left(CustomException(s"'$in' is an invalid EmailAddress", errs))
   }
 
-  // FIXME: improve
   private def errors(in: String): Seq[CustomError] =
     Seq(
       if (in.contains("@")) None else Some("Missing @")
@@ -24,6 +23,8 @@ object EmailAddress {
 
   final case class Contact(address: EmailAddress, name: Option[String]) {
     def format: String = name.map(n => s"$n<${address.value}>").getOrElse(address.value)
+
+    def withName(n: String): Contact = copy(name = Some(n))
   }
 
   object Contact {

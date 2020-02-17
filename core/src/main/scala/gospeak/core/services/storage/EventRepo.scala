@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import gospeak.core.domain._
 import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
-import gospeak.libs.scala.domain.{Done, GMapPlace, Page, Tag}
+import gospeak.libs.scala.domain.{Done, Page, Tag}
 
 trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with PublicEventRepo with SuggestEventRepo
 
@@ -35,6 +35,8 @@ trait OrgaEventRepo {
 
   def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]]
 
+  def find(event: Event.Id): IO[Option[Event]]
+
   def find(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event]]
 
   def findFull(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event.Full]]
@@ -46,6 +48,8 @@ trait OrgaEventRepo {
 
 trait SpeakerEventRepo {
   def list(ids: Seq[Event.Id]): IO[Seq[Event]]
+
+  def find(event: Event.Id): IO[Option[Event]]
 }
 
 trait UserEventRepo {

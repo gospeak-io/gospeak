@@ -64,7 +64,7 @@ class TalkCtrl(cc: ControllerComponents,
       speakers <- OptionT.liftF(userRepo.list(talkElt.users))
       proposals <- OptionT.liftF(externalProposalRepo.listAllCommon(talkElt.id))
       b = breadcrumb(talkElt)
-    } yield Ok(html.detail(talkElt, speakers, invites, proposals, GsForms.invite, GsForms.embed)(b))).value.map(_.getOrElse(talkNotFound(talk)))
+    } yield Ok(html.detail(talkElt, speakers, invites, proposals, GsForms.embed)(b))).value.map(_.getOrElse(talkNotFound(talk)))
   }
 
   def edit(talk: Talk.Slug, redirect: Option[String]): Action[AnyContent] = UserAction { implicit req =>
@@ -97,11 +97,11 @@ class TalkCtrl(cc: ControllerComponents,
     val next = Redirect(routes.TalkCtrl.detail(talk))
     GsForms.invite.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
-      email => (for {
+      data => (for {
         talkElt <- OptionT(talkRepo.find(talk))
-        invite <- OptionT.liftF(userRequestRepo.invite(talkElt.id, email))
-        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToTalk(invite, talkElt)))
-      } yield next.flashing("success" -> s"<b>$email</b> is invited as speaker")).value.map(_.getOrElse(talkNotFound(talk)))
+        invite <- OptionT.liftF(userRequestRepo.invite(talkElt.id, data.email))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToTalk(invite, talkElt, data.message)))
+      } yield next.flashing("success" -> s"<b>${invite.email.value}</b> is invited as speaker")).value.map(_.getOrElse(talkNotFound(talk)))
     )
   }
 

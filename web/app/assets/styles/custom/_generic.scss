@@ -115,6 +115,19 @@ a.no-style {
   max-width: 21px;
 }
 
+.hover-grow {
+  .u-sm-avatar {
+    transition: all 300ms;
+
+    &:hover {
+      width: 3rem;
+      height: 3rem;
+      margin-top: -1.5rem;
+      margin-left: -0.5rem;
+    }
+  }
+}
+
 // Markdown
 
 .markdown {

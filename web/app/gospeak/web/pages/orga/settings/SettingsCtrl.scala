@@ -180,10 +180,10 @@ class SettingsCtrl(cc: ControllerComponents,
     val next = Redirect(routes.SettingsCtrl.settings(group))
     GsForms.invite.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
-      email => for {
-        invite <- userRequestRepo.invite(email)
-        _ <- emailSrv.send(Emails.inviteOrgaToGroup(invite))
-      } yield next.flashing("success" -> s"<b>$email</b> is invited as orga")
+      data => for {
+        invite <- userRequestRepo.invite(data.email)
+        _ <- emailSrv.send(Emails.inviteOrgaToGroup(invite, data.message))
+      } yield next.flashing("success" -> s"<b>${invite.email.value}</b> is invited as orga")
     )
   }
 
@@ -219,8 +219,7 @@ class SettingsCtrl(cc: ControllerComponents,
       orgas,
       invites,
       meetup.getOrElse(settings.accounts.meetup.map(s => GsForms.groupAccountMeetup.fill(GsForms.GroupAccount.Meetup(s.group))).getOrElse(GsForms.groupAccountMeetup)),
-      slack.getOrElse(settings.accounts.slack.map(s => GsForms.groupAccountSlack(conf.app.aesKey).fill(s)).getOrElse(GsForms.groupAccountSlack(conf.app.aesKey))),
-      GsForms.invite
+      slack.getOrElse(settings.accounts.slack.map(s => GsForms.groupAccountSlack(conf.app.aesKey).fill(s)).getOrElse(GsForms.groupAccountSlack(conf.app.aesKey)))
     )(listBreadcrumb))
   }
 

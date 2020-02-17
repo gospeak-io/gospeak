@@ -54,10 +54,10 @@
                     @if(proposals.nonEmpty) {
                         <div class="mt-3">
                             Spoke at<br>
-                            <ul class="list-inline ml-3 mb-0">
+                            <ul class="list-inline hover-grow ml-3 mb-0">
                             @proposals.map { p =>
                                 <li class="list-inline-item ml-n3 mr-0">
-                                    <a href="@eventLink(p)" title="@p.eventName.map(_.value).getOrElse("")" data-toggle="tooltip">
+                                    <a href="@eventLink(p)" title="@p.eventName.map(_.value).getOrElse("")" data-toggle="tooltip" data-placement="bottom">
                                         <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@p.logo.get.value" alt="@p.eventName.map(_.value).getOrElse("") logo">
                                     </a>
                                 </li>
@@ -115,10 +115,10 @@
                                     }
                                 </h4>
                                 @if(talk.speakers.length > 1) {
-                                    <ul class="list-inline ml-3 mb-0">
+                                    <ul class="list-inline hover-grow ml-3 mb-0">
                                     @talk.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
                                         <li class="list-inline-item ml-n3 mr-0">
-                                            <a href="@SpeakerCtrl.detail(u.slug)" title="@u.name.value" data-toggle="tooltip">
+                                            <a href="@SpeakerCtrl.detail(u.slug)" title="@u.name.value" data-toggle="tooltip" data-placement="bottom">
                                                 <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
                                             </a>
                                         </li>

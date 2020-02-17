@@ -66,8 +66,12 @@ object GsForms {
   val embed: Form[Url] = Form(single(
     "url" -> url))
 
-  val invite: Form[EmailAddress] = Form(single(
-    "email" -> emailAddress))
+  final case class Invite(email: EmailAddress, message: Markdown)
+
+  val invite: Form[Invite] = Form(mapping(
+    "email" -> emailAddress,
+    "message" -> markdown
+  )(Invite.apply)(Invite.unapply))
 
   val comment: Form[Comment.Data] = Form(mapping(
     "answers" -> optional(commentId),

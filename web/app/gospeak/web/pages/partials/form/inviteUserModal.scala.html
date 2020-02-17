@@ -1,0 +1,28 @@
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.{BasicReq, GsForms}
+
+@(call: Call, item: String, role: String)(implicit req: BasicReq[AnyContent])
+<div id="inviteUserModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="inviteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            @formElt(GsForms.invite, call) {
+                <div class="modal-header">
+                    <h5 class="modal-title" id="inviteUserModalLabel">Invite a @role to <b>@item</b></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    @fieldVertical(GsForms.invite("email"), Seq("label" -> "Email", "help" -> s"Email of your $role")) { (field, args) =>
+                        @inputText(field, Seq("placeholder" -> "ex: example@mail.com", "autofocus" -> "true") ++ args)
+                    }
+                    @fieldVertical(GsForms.invite("message"), Seq("label" -> "Message")) { (field, args) =>
+                        @inputMarkdown(field, args)
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    @btnSubmit("Send invite")
+                </div>
+            }
+        </div>
+    </div>
+</div>

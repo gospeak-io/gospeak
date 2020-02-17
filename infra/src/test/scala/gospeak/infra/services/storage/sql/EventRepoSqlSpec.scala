@@ -61,17 +61,21 @@ class EventRepoSqlSpec extends RepoSpec {
         val q = EventRepoSql.updatePublished(group.id, event.slug)(user.id, now)
         check(q, s"UPDATE $table SET published=?, updated_at=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
-      it("should build selectOne") {
+      it("should build selectOne by id") {
+        val q = EventRepoSql.selectOne(event.id)
+        check(q, s"SELECT $fields FROM $table WHERE e.id=? LIMIT 1")
+      }
+      it("should build selectOne by group and slug") {
         val q = EventRepoSql.selectOne(group.id, event.slug)
-        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.slug=? $orderBy")
+        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.slug=? LIMIT 1")
       }
       it("should build selectOneFull") {
         val q = EventRepoSql.selectOneFull(group.id, event.slug)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? $orderBy")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? LIMIT 1")
       }
       it("should build selectOnePublished") {
         val q = EventRepoSql.selectOnePublished(group.id, event.slug)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? AND e.published IS NOT NULL $orderBy")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? AND e.published IS NOT NULL LIMIT 1")
       }
       it("should build selectPage") {
         val q = EventRepoSql.selectPage(params)

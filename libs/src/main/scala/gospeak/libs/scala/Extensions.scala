@@ -4,7 +4,7 @@ import java.time.{Instant, LocalDateTime, ZoneId}
 import java.util.Optional
 
 import cats.MonadError
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, OptionT}
 import cats.effect.IO
 import gospeak.libs.scala.domain.MultiException
 
@@ -233,6 +233,13 @@ object Extensions {
       case Some(Right(a)) => Right(Some(a))
       case Some(Left(e)) => Left(e)
       case None => Right(None)
+    }
+  }
+
+  implicit class OptionOptionTExtension[A](val in: Option[OptionT[IO, A]]) extends AnyVal {
+    def sequence: OptionT[IO, Option[A]] = in match {
+      case Some(v) => v.map(Option(_))
+      case None => OptionT(IO.pure(Option(Option.empty[A])))
     }
   }
 

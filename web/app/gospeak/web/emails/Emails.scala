@@ -49,12 +49,12 @@ object Emails {
       subject = s"Your application to ${req.group.name.value} group was rejected :(",
       content = HtmlContent(html.joinGroupRejected(rejectedUser).body))
 
-  def inviteOrgaToGroup(invite: UserRequest.GroupInvite)(implicit req: OrgaReq[AnyContent]): Email =
+  def inviteOrgaToGroup(invite: UserRequest.GroupInvite, message: Markdown)(implicit req: OrgaReq[AnyContent]): Email =
     Email(
-      from = Constants.Contact.noReply,
+      from = Constants.Contact.noReply.withName(req.user.name.value),
       to = Seq(EmailAddress.Contact(invite.email)),
-      subject = s"You have been invited to join ${req.user.name.value} in the ${req.group.name.value} group",
-      content = HtmlContent(html.inviteOrgaToGroup(invite).body))
+      subject = s"Hi, join me in ${req.group.name.value} orga",
+      content = HtmlContent(html.inviteOrgaToGroup(invite, message).body))
 
   def inviteOrgaToGroupCanceled(invite: UserRequest.GroupInvite)(implicit req: OrgaReq[AnyContent]): Email =
     Email(
@@ -84,12 +84,12 @@ object Emails {
       subject = s"${req.user.name.value} removed you from the organizers of ${req.group.name.value} :(",
       content = HtmlContent(html.orgaRemovedFromGroup(orga).body))
 
-  def inviteSpeakerToTalk(invite: UserRequest.TalkInvite, talk: Talk)(implicit req: UserReq[AnyContent]): Email =
+  def inviteSpeakerToTalk(invite: UserRequest.TalkInvite, talk: Talk, message: Markdown)(implicit req: UserReq[AnyContent]): Email =
     Email(
-      from = Constants.Contact.noReply,
+      from = Constants.Contact.noReply.withName(req.user.name.value),
       to = Seq(EmailAddress.Contact(invite.email)),
-      subject = s"You have been invited to join ${req.user.name.value} for a talk '${talk.title.value}'",
-      content = HtmlContent(html.inviteSpeakerToTalk(invite, talk).body))
+      subject = s"Hi, let's make '${talk.title.value}' together",
+      content = HtmlContent(html.inviteSpeakerToTalk(invite, talk, message).body))
 
   def inviteSpeakerToTalkCanceled(invite: UserRequest.TalkInvite, talk: Talk)(implicit req: UserReq[AnyContent]): Email =
     Email(
@@ -119,12 +119,12 @@ object Emails {
       subject = s"${req.user.name.value} removed you from the speakers of '${talk.title.value}' :(",
       content = HtmlContent(html.speakerRemovedFromTalk(talk, speaker).body))
 
-  def inviteSpeakerToProposal(invite: UserRequest.ProposalInvite, proposal: Proposal)(implicit req: UserReq[AnyContent]): Email =
+  def inviteSpeakerToProposal(invite: UserRequest.ProposalInvite, cfp: Cfp, event: Option[Event], proposal: Proposal, message: Markdown)(implicit req: UserReq[AnyContent]): Email =
     Email(
-      from = Constants.Contact.noReply,
+      from = Constants.Contact.noReply.withName(req.user.name.value),
       to = Seq(EmailAddress.Contact(invite.email)),
-      subject = s"You have been invited to join ${req.user.name.value} to speak about '${proposal.title.value}'",
-      content = HtmlContent(html.inviteSpeakerToProposal(invite, proposal).body))
+      subject = s"Hi, let's make '${proposal.title.value}' together at ${event.map(_.name.value).getOrElse(cfp.name.value)}",
+      content = HtmlContent(html.inviteSpeakerToProposal(invite, cfp, event, proposal, message).body))
 
   def inviteSpeakerToProposalCanceled(invite: UserRequest.ProposalInvite, proposal: Proposal)(implicit req: UserReq[AnyContent]): Email =
     Email(
