@@ -304,7 +304,7 @@ declare const cloudinary;
         const $preview = $elt.find('.preview');
 
         const $gallery = $elt.find('.gallery');
-        fetchGallery($gallery, $input, $preview);
+        initGallery($gallery, $input, $preview);
 
         update($input, $preview); // run on page load
 
@@ -313,7 +313,7 @@ declare const cloudinary;
         const apiKey = $btn.attr('data-api-key');
         const signUrl = $btn.attr('data-sign-url');
         const folder = $btn.attr('data-folder');
-        const name = ($btn.attr('data-name') || '').replace(/#/g, '');
+        const name = toPublicId($btn.attr('data-name') || '');
         const tagsStr = $btn.attr('data-tags');
         const maxFilesStr = $btn.attr('data-max-files');
         const ratioStr = $btn.attr('data-ratio');
@@ -345,9 +345,9 @@ declare const cloudinary;
 
         const cloudinaryWidget = cloudinary.createUploadWidget(opts, (error, result) => {
             if (!error && result && result.event === 'success') {
-                const image = cloudinaryUrl(result.info, cloudName, ratio);
-                $input.val(image);
-                addToGallery($gallery, image);
+                const imageUrl: string = cloudinaryUrl(result.info, cloudName, ratio);
+                $input.val(imageUrl);
+                addToGallery($gallery, parseImageUrl(imageUrl));
                 update($input, $preview);
             }
         });
@@ -355,7 +355,7 @@ declare const cloudinary;
         const $dynamicNameInput = dynamicName ? $('#' + dynamicName) : undefined;
         if ($dynamicNameInput) {
             $dynamicNameInput.change(() => {
-                opts.publicId = ($dynamicNameInput.val() || '').replace(/#/g, '');
+                opts.publicId = toPublicId($dynamicNameInput.val() || '');
                 cloudinaryWidget.update({publicId: opts.publicId});
             });
         }
@@ -398,27 +398,63 @@ declare const cloudinary;
         }).then(res => callback(res.data));
     }
 
-    function fetchGallery($gallery, $input, $preview): void {
-        if($gallery) {
+    function initGallery($gallery, $input, $preview): void {
+        if ($gallery) {
+            const $search = $gallery.find('input');
             const url = $gallery.attr('data-remote');
             fetch(url).then(res => res.json()).then(json => {
-                json.data.forEach((image: string) => addToGallery($gallery, image));
+                json.data
+                    .map(parseImageUrl)
+                    .sort((a, b) => a.publicId.localeCompare(b.publicId))
+                    .forEach(image => addToGallery($gallery, image));
             });
-            $gallery.on('click', 'img', function (e) {
+            $gallery.on('shown.bs.collapse', function () {
+                $search.focus();
+            });
+            $gallery.on('hidden.bs.collapse', function () {
+                $search.val('');
+                $gallery.find('.logo').each(function (i, logo) {
+                    logo.style.display = 'inline-block';
+                });
+            });
+            $search.on('keyup', function (e) {
+                const search = $(this).val().toLowerCase();
+                $gallery.find('.logo').each(function (i, logo) {
+                    const title = (logo.getAttribute('title') || logo.getAttribute('data-original-title') || '').toLowerCase();
+                    if (title.includes(search)) {
+                        logo.style.display = 'inline-block';
+                    } else {
+                        logo.style.display = 'none';
+                    }
+                });
+            });
+            $gallery.on('click', '.logo', function (e) {
                 e.preventDefault();
-                const image = $(this).attr('src');
+                const image = $(this).find('img').attr('src');
                 $input.val(image);
                 update($input, $preview);
+                $gallery.collapse('hide');
             });
         }
     }
 
-    function addToGallery($gallery, image: string) {
-        if($gallery) {
-            const parts = image.split('?')[0].split('/').filter(p => p.length > 0);
-            const publicId = parts[parts.length - 1].split('.')[0];
-            $gallery.append(`<img src="${image}" title="${publicId}" style="height: 38px; margin-top: 5px; margin-right: 5px;">`)
+    function addToGallery($gallery, image: { url: string, publicId: string }) {
+        if ($gallery) {
+            $gallery.append(`<div class="logo" title="${image.publicId}" style="display: inline-block; cursor: pointer">
+                <img src="${image.url}" alt="${image.publicId}" style="height: 50px; margin-top: 5px; margin-right: 5px;">
+            </div>`);
+            $gallery.find('.logo').tooltip('enable');
         }
+    }
+
+    function parseImageUrl(url: string): { url: string, publicId: string } {
+        const parts = url.split('?')[0].split('/').filter(p => p.length > 0);
+        const publicId = decodeURIComponent(parts[parts.length - 1].split('.')[0]);
+        return {url, publicId};
+    }
+
+    function toPublicId(str: string): string {
+        return str.replace(/[ \/?&#]/g, '-').replace(/-+/g, '-');
     }
 })();
 

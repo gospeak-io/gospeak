@@ -28,7 +28,13 @@
                 <img class="preview" src="" style="height: 38px; display: none;"/>
             </div>
             @inputHidden(field)
-            @conf.select.map { url => <div id="collapseGallery" class="collapse gallery" data-remote="@url"></div> }
+            @conf.select.map { url =>
+                <div id="collapseGallery" class="collapse gallery" data-remote="@url">
+                    <div class="form-inline mt-1">
+                        <input type="text" class="form-control" placeholder="Search for logo...">
+                    </div>
+                </div>
+            }
         </div>
     }
 }
