@@ -24,7 +24,8 @@
                     @conf.dynamicName.map { v => data-dynamic-name="@v" }
                     @if(conf.tags.nonEmpty) { data-tags="@conf.tags.mkString(",")" }
                     @conf.maxFiles.map { v => data-max-files="@v" }
-                    @conf.ratio.map { v => data-ratio="@v" }>Upload image</button>
+                    @conf.ratio.map { v => data-ratio="@v" }
+                    @if(conf.select.isDefined){ title="Will use search text as public id of the image" data-toggle="tooltip" }>Upload image</button>
                 <img class="preview" src="" style="height: 38px; display: none;"/>
             </div>
             @inputHidden(field)

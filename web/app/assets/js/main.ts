@@ -322,6 +322,9 @@ declare const cloudinary;
         const maxFiles = maxFilesStr ? parseInt(maxFilesStr) : undefined;
         const ratio = ratioStr ? parseFloat(ratioStr) : undefined;
 
+        const $dynamicNameInput = dynamicName ? $('#' + dynamicName) : undefined;
+        const $selectSearch = $gallery ? $gallery.find('input') : undefined;
+
         // see https://cloudinary.com/documentation/upload_widget#upload_widget_options
         const opts = {
             cloudName: cloudName,
@@ -352,20 +355,18 @@ declare const cloudinary;
             }
         });
 
-        const $dynamicNameInput = dynamicName ? $('#' + dynamicName) : undefined;
-        if ($dynamicNameInput) {
-            $dynamicNameInput.change(() => {
-                opts.publicId = toPublicId($dynamicNameInput.val() || '');
-                cloudinaryWidget.update({publicId: opts.publicId});
-            });
-        }
-
         $btn.click(function (e) {
             e.preventDefault();
+            const publicId = toPublicId(($selectSearch && $selectSearch.val()) || ($dynamicNameInput && $dynamicNameInput.val()) || '');
+            opts.publicId = publicId;
+
             if (!apiKey) {
                 // needed as unsigned upload can't override, use signed upload instead (add `creds` in app config, see UploadConf)
-                cloudinaryWidget.update({publicId: `${opts.publicId}-${Date.now()}`});
+                cloudinaryWidget.update({publicId: `${publicId}-${Date.now()}`});
+            } else {
+                cloudinaryWidget.update({publicId: publicId});
             }
+
             cloudinaryWidget.open();
         });
     });
@@ -449,12 +450,12 @@ declare const cloudinary;
 
     function parseImageUrl(url: string): { url: string, publicId: string } {
         const parts = url.split('?')[0].split('/').filter(p => p.length > 0);
-        const publicId = decodeURIComponent(parts[parts.length - 1].split('.')[0]);
+        const publicId = decodeURIComponent(parts[parts.length - 1].split('.')[0]).replace(/-/g, ' ');
         return {url, publicId};
     }
 
     function toPublicId(str: string): string {
-        return str.replace(/[ \/?&#]/g, '-').replace(/-+/g, '-');
+        return str.replace(/[ \/?&#]/g, '-').replace(/-+/g, '-').toLowerCase();
     }
 })();
 
