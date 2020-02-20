@@ -1,4 +1,5 @@
 @import gospeak.core.domain.ExternalCfp
+@import gospeak.core.domain.utils.Constants
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.partials.html.container
@@ -10,39 +11,35 @@
 @container(s"${cfp.event.name.value} - Gospeak", PageMeta.cfp(cfp), b)() {
 <div class="w-lg-80 mx-lg-auto">
     <div class="card shadow-sm p-5 mb-5">
-        <div class="text-center pb-5 mb-5">
-            <div class="mb-3 mx-auto">
-                @cfp.event.logo.map { logo => <img src="@logo.url.value" alt="@cfp.event.name.value logo" class="img-fluid rounded-circle" width="110" height="110"/> }
-            </div>
-            <h1 class="h5">@cfp.event.name.value <a href="@CfpCtrl.edit(cfp.id)" class="text-muted x-small"><i class="fas fa-edit"></i></a></h1>
-            <span>
+        <div class="text-center">
+            <img class="u-lg-avatar rounded-circle" src="@cfp.event.logo.map(_.url.value).getOrElse(Constants.Placeholders.eventLogo)" alt="@cfp.event.name.value logo">
+
+            <h1 class="h5 mt-3">@cfp.event.name.value <a href="@CfpCtrl.edit(cfp.id)" class="text-muted x-small"><i class="fas fa-edit"></i></a></h1>
+            <div>
                 @cfp.begin.map { o => @if(o.isBefore(req.nowLDT)) { Opened } else { Will open } the @Formats.date(o.toLocalDate)<br/> }
                 @cfp.event.start.map { s => Event from @Formats.date(s.toLocalDate) @cfp.event.finish.map { f => to @Formats.date(f.toLocalDate) } }
-            </span>
-            <div class="mb-4">
-                <a href="@cfp.event.url" class="font-size-1" target="_blank">@cfp.event.url</a>
-                <br/>
+            </div>
+            <div>
+                <a href="@cfp.event.url" class="font-size-1" target="_blank">@cfp.event.url</a><br/>
                 @tags(cfp.event.tags)
             </div>
             @if(cfp.isActive(req.nowLDT)) {
-                <div class="mb-2">
-                    <a class="btn btn-sm btn-soft-success transition-3d-hover mr-1" target="_blank" href="@cfp.url.value">Propose a talk</a>
+                <div class="mt-3">
+                    <a class="btn btn-soft-success transition-3d-hover" target="_blank" href="@cfp.url.value">Propose a talk</a>
                 </div>
             }
-            <span class="text-muted small">
-                @cfp.close.map { c => <small class="fas fa-flag mr-1"></small> Close the @Formats.date(c.toLocalDate) }
-            </span>
+            @cfp.close.map { c => <div class="text-muted small mt-3"><i class="fas fa-flag mr-1"></i> Close the @Formats.date(c.toLocalDate)</div> }
         </div>
 
-        <blockquote>@markdown(cfp.description)</blockquote>
+        <div class="mt-5 mb-4">@markdown(cfp.description)</div>
 
-        <div class="text-center border-top my-6 py-6">
-            <h4 class="h6 mb-4">Interested?</h4>
-            <a class="bbtn btn-sm btn-primary btn-wide mb-2 mx-1" target="_blank" href="@cfp.url.value">Propose a talk</a>
+        <div class="text-center mb-5">
+            <h4 class="h6 mb-3">Interested?</h4>
+            <a class="btn btn-primary btn-wide" target="_blank" href="@cfp.url.value">Propose a talk</a>
         </div>
 
         <div class="row">
-            <div class="col-sm-6 col-lg-6 u-ver-divider u-ver-divider--none-lg">
+            <div class="col-lg-6 u-ver-divider u-ver-divider--none-lg">
                 <div class="text-center p-5">
                     <figure id="icon8" class="ie-height-56 max-width-8 mx-auto mb-3" style="">
                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 120 120" style="enable-background:new 0 0 120 120;" xml:space="preserve" class="injected-svg js-svg-injector" data-parent="#icon8">
@@ -74,10 +71,10 @@
                         </svg>
                     </figure>
                     <h2 class="h6 mb-0">Address</h2>
-                    <p class="mb-0">@cfp.event.location.map { a => <a href="@a.url" target="_blank"> @a.value</a>}</p>
+                    @cfp.event.location.map { a => <p class="mb-0"><a href="@a.url" target="_blank">@a.value</a></p> }
                 </div>
             </div>
-            <div class="col-sm-6 col-lg-6">
+            <div class="col-lg-6">
                 <h4 class="font-size-1 font-weight-semi-bold text-uppercase mb-3">Linked accounts</h4>
                 @cfp.event.videos.map { v =>
                     <a href="@v" class="media align-items-center mb-3" target="_blank">

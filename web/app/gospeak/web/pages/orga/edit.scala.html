@@ -8,9 +8,9 @@
 @import gospeak.web.pages.partials.form.ImgConf
 @import gospeak.web.utils.OrgaReq
 
-@(form: Form[Group.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(form: Form[Group.Data], redirect: Option[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"Edit ${req.group.name.value} - Gospeak", b)() {
-    @formElt(form, GroupCtrl.doEdit(req.group.slug)) {
+    @formElt(form, GroupCtrl.doEdit(req.group.slug, redirect)) {
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>Edit @req.group.name.value infos</h1>
             <div>

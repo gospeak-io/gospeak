@@ -84,28 +84,28 @@ class GroupCtrl(cc: ControllerComponents,
     } yield Ok(html.detail(stats, events, proposals, speakers, currentSponsors, pastSponsors, packs, requests, requestUsers)(breadcrumb))
   }
 
-  def edit(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    editForm(GsForms.group)
+  def edit(group: Group.Slug, redirect: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
+    editForm(GsForms.group, redirect)
   }
 
-  def doEdit(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
+  def doEdit(group: Group.Slug, redirect: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     GsForms.group.bindFromRequest.fold(
-      formWithErrors => editForm(formWithErrors),
+      formWithErrors => editForm(formWithErrors, redirect),
       data => for {
         newSlugExits <- groupRepo.exists(data.slug)
         res <- if (newSlugExits && data.slug != group) {
-          editForm(GsForms.group.fillAndValidate(data).withError("slug", s"Slug ${data.slug.value} already taken by an other group"))
+          editForm(GsForms.group.fillAndValidate(data).withError("slug", s"Slug ${data.slug.value} already taken by an other group"), redirect)
         } else {
-          groupRepo.edit(data).map(_ => Redirect(SettingsRoutes.settings(data.slug)))
+          groupRepo.edit(data).map(_ => redirectOr(redirect, SettingsRoutes.settings(data.slug)))
         }
       } yield res
     )
   }
 
-  private def editForm(form: Form[Group.Data])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
+  private def editForm(form: Form[Group.Data], redirect: Option[String])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
     val filledForm = if (form.hasErrors) form else form.fill(req.group.data)
     val b = SettingsCtrl.listBreadcrumb.add("Edit group" -> routes.GroupCtrl.edit(req.group.slug))
-    IO.pure(Ok(html.edit(filledForm)(b)))
+    IO.pure(Ok(html.edit(filledForm, redirect)(b)))
   }
 
   def acceptJoin(group: Group.Slug, userRequest: UserRequest.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>

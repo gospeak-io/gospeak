@@ -1,26 +1,29 @@
 @import gospeak.core.domain.{Cfp, Group, Proposal, Sponsor, SponsorPack, User}
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
-@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.published.partials.html.{container, groupCard}
 @import gospeak.web.utils.Formats
 @import gospeak.web.utils.UserAwareReq
-@import gospeak.libs.scala.domain.Page
 
 @(group: Group.Full, speakerCount: Long, talks: Page[Proposal.Full], cfps: Seq[Cfp], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @talkItem(group: Group.Full, talk: Proposal.Full, speakers: Seq[User]) = {
     <div class="card mb-3">
         <div class="card-body">
-            <h5 class="card-title">
-                @slidesIcon(talk.slides)
-                @videoIcon(talk.video)
+            <h5 class="card-title mb-0">
                 <a href="@GroupCtrl.talk(group.slug, talk.id)">@talk.title.value</a>
+                @talk.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
+                @talk.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
             </h5>
-            <p>By @talk.speakers.toList.map { id => @speaker(speakers, id, s => Some(SpeakerCtrl.detail(s.slug)).filter(_ => s.isPublic)) }</p>
-            @markdown(talk.description)
-            @if(talk.tags.nonEmpty) { <p>@tags(talk.tags)</p> }
-            @talk.event.map { event => <p>At <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a> on @Formats.date(event.start)</p> }
+            <ul class="list-inline">
+                @talk.speakers.toList.flatMap(id => speakers.find(_.id == id)).filter(_.isPublic).map { u =>
+                    <li class="list-inline-item">
+                        <a href="@SpeakerCtrl.detail(u.slug)"><img class="u-sm-avatar rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar"> @u.name.value</a>
+                    </li>
+                }
+            </ul>
+            @talk.event.map { event => <p class="mb-0">At <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a> on @Formats.date(event.start)</p> }
         </div>
     </div>
 }

@@ -121,24 +121,24 @@ class PartnerCtrl(cc: ControllerComponents,
     } yield Ok(html.createVenue(form, partnerElt, meetupAccount.isDefined)(b))).value.map(_.getOrElse(partnerNotFound(group, partner)))
   }
 
-  def editVenue(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    editVenueView(group, partner, venue, GsForms.venue)
+  def editVenue(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id, redirect: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
+    editVenueView(group, partner, venue, GsForms.venue, redirect)
   }
 
-  def doEditVenue(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
+  def doEditVenue(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id, redirect: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     GsForms.venue.bindFromRequest.fold(
-      formWithErrors => editVenueView(group, partner, venue, formWithErrors),
-      data => venueRepo.edit(venue, data).map(_ => Redirect(routes.PartnerCtrl.detail(group, partner)))
+      formWithErrors => editVenueView(group, partner, venue, formWithErrors, redirect),
+      data => venueRepo.edit(venue, data).map(_ => redirectOr(redirect, routes.PartnerCtrl.detail(group, partner)))
     )
   }
 
-  private def editVenueView(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id, form: Form[Venue.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
+  private def editVenueView(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id, form: Form[Venue.Data], redirect: Option[String])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
       venueElt <- OptionT(venueRepo.findFull(venue))
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup)
       filledForm = if (form.hasErrors) form else form.fill(venueElt.data)
       b = venueBreadcrumb(venueElt).add("Edit" -> routes.PartnerCtrl.editVenue(group, partner, venue))
-    } yield Ok(html.editVenue(filledForm, venueElt, meetupAccount.isDefined)(b))).value.map(_.getOrElse(venueNotFound(group, partner, venue)))
+    } yield Ok(html.editVenue(filledForm, venueElt, meetupAccount.isDefined, redirect)(b))).value.map(_.getOrElse(venueNotFound(group, partner, venue)))
   }
 
   def doRemoveVenue(group: Group.Slug, partner: Partner.Slug, venue: Venue.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>

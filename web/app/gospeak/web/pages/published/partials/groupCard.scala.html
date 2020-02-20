@@ -1,6 +1,7 @@
 @import gospeak.core.domain.{Cfp, Group, Sponsor, SponsorPack, User}
 @import gospeak.core.domain.utils.Constants
 @import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.routes.{GroupCtrl => OrgaGroupCtrl}
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
@@ -13,7 +14,13 @@
             <a href="@GroupCtrl.detail(group.slug)">
                 <img class="u-lg-avatar rounded-circle mb-3" src="@group.logo.map(_.url.value).getOrElse(Constants.Placeholders.groupLogo)" alt="@group.name.value logo"/>
             </a>
-            <h1 class="h5">@group.name.value</h1>
+            <h1 class="h5">
+                @group.name.value
+                @if(req.isOrga(group)) {
+                    <a href="@OrgaGroupCtrl.detail(group.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
+                    <a href="@OrgaGroupCtrl.edit(group.slug, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
+                }
+            </h1>
             @group.website.map { u =>
                 <div class="mb-3">
                     <a class="font-size-1" href="@u.value" target="_blank">Website</a>
@@ -23,13 +30,13 @@
                 case Seq() => {}
                 case Seq(cfp) => {
                     <div class="mb-3">
-                        <a class="btn btn-sm btn-soft-primary transition-3d-hover" href="@CfpCtrl.propose(cfp.slug)">Propose a talk</a>
+                        <a class="btn btn-soft-primary transition-3d-hover" href="@CfpCtrl.propose(cfp.slug)">Propose a talk</a>
                     </div>
                 }
                 case cfps => {
                     <div class="mb-3">
                         <div class="dropdown">
-                            <button class="btn btn-sm btn-soft-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <button class="btn btn-soft-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 Propose a talk
                             </button>
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">

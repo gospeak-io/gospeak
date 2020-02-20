@@ -90,7 +90,7 @@
             @if(user.title.isDefined || user.bio.isDefined) { <hr class="my-5"> }
             <div class="row">
                 @if(userTalks.nonEmpty && !(userTalks.map(_.title.value).toList.sorted == userProposals.values.flatten.map(_.title.value).toList.sorted)) {
-                    <div class="col-md-6 mb-3 mb-md-0">
+                    <div class="col-md-6 mb-5 mb-md-0">
                         <h3 class="h5 mb-3">Current talks</h3>
                         @userTalks.zipWithIndex.map { case (talk, i) =>
                             <div class="align-items-center @if(i != 0){mt-5}">

@@ -66,31 +66,29 @@ class CfpCtrl(cc: ControllerComponents,
     } yield Ok(html.detail(cfpElt, proposals, speakers, userRatings)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
   }
 
-  def edit(group: Group.Slug, cfp: Cfp.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    editView(group, cfp, GsForms.cfp)
+  def edit(group: Group.Slug, cfp: Cfp.Slug, redirect: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
+    editView(group, cfp, GsForms.cfp, redirect)
   }
 
-  def doEdit(group: Group.Slug, cfp: Cfp.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
+  def doEdit(group: Group.Slug, cfp: Cfp.Slug, redirect: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     GsForms.cfp.bindFromRequest.fold(
-      formWithErrors => editView(group, cfp, formWithErrors),
+      formWithErrors => editView(group, cfp, formWithErrors, redirect),
       data => (for {
         cfpOpt <- OptionT.liftF(cfpRepo.find(data.slug))
         res <- OptionT.liftF(cfpOpt match {
-          case Some(duplicate) if data.slug != cfp =>
-            editView(group, cfp, GsForms.cfp.fillAndValidate(data).withError("slug", s"Slug already taken by cfp: ${duplicate.name.value}"))
-          case _ =>
-            cfpRepo.edit(cfp, data).map { _ => Redirect(routes.CfpCtrl.detail(group, data.slug)) }
+          case Some(duplicate) if data.slug != cfp => editView(group, cfp, GsForms.cfp.fillAndValidate(data).withError("slug", s"Slug already taken by cfp: ${duplicate.name.value}"), redirect)
+          case _ => cfpRepo.edit(cfp, data).map { _ => redirectOr(redirect, routes.CfpCtrl.detail(group, data.slug)) }
         })
       } yield res).value.map(_.getOrElse(groupNotFound(group)))
     )
   }
 
-  private def editView(group: Group.Slug, cfp: Cfp.Slug, form: Form[Cfp.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
+  private def editView(group: Group.Slug, cfp: Cfp.Slug, form: Form[Cfp.Data], redirect: Option[String])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
       cfpElt <- OptionT(cfpRepo.find(cfp))
       filledForm = if (form.hasErrors) form else form.fill(cfpElt.data)
       b = breadcrumb(cfpElt).add("Edit" -> routes.CfpCtrl.edit(group, cfp))
-    } yield Ok(html.edit(cfpElt, filledForm)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
+    } yield Ok(html.edit(cfpElt, filledForm, redirect)(b))).value.map(_.getOrElse(cfpNotFound(group, cfp)))
   }
 }
 

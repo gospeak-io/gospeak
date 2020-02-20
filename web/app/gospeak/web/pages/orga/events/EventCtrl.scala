@@ -100,32 +100,32 @@ class EventCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
-  def edit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    editView(group, event, GsForms.event)
+  def edit(group: Group.Slug, event: Event.Slug, redirect: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
+    editView(group, event, GsForms.event, redirect)
   }
 
-  def doEdit(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
+  def doEdit(group: Group.Slug, event: Event.Slug, redirect: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     GsForms.event.bindFromRequest.fold(
-      formWithErrors => editView(group, event, formWithErrors),
+      formWithErrors => editView(group, event, formWithErrors, redirect),
       data => for {
         eventOpt <- eventRepo.find(data.slug)
         res <- eventOpt match {
           case Some(duplicate) if data.slug != event =>
-            editView(group, event, GsForms.event.fillAndValidate(data).withError("slug", s"Slug already taken by event: ${duplicate.name.value}"))
-          case _ =>
-            eventRepo.edit(event, data).map { _ => Redirect(routes.EventCtrl.detail(group, data.slug)) }
+            val form = GsForms.event.fillAndValidate(data).withError("slug", s"Slug already taken by event: ${duplicate.name.value}")
+            editView(group, event, form, redirect)
+          case _ => eventRepo.edit(event, data).map { _ => redirectOr(redirect, routes.EventCtrl.detail(group, data.slug)) }
         }
       } yield res
     )
   }
 
-  private def editView(group: Group.Slug, event: Event.Slug, form: Form[Event.Data])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
+  private def editView(group: Group.Slug, event: Event.Slug, form: Form[Event.Data], redirect: Option[String])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
       eventElt <- OptionT(eventRepo.find(event))
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup)
       b = breadcrumb(eventElt).add("Edit" -> routes.EventCtrl.edit(group, event))
       filledForm = if (form.hasErrors) form else form.fill(eventElt.data)
-    } yield Ok(html.edit(meetupAccount.isDefined, eventElt, filledForm)(b))).value.map(_.getOrElse(eventNotFound(group, event)))
+    } yield Ok(html.edit(meetupAccount.isDefined, eventElt, filledForm, redirect)(b))).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
   def doEditNotes(group: Group.Slug, event: Event.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
