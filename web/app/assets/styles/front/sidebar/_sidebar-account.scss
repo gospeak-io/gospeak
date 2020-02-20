@@ -57,11 +57,6 @@
 	  font-size: .75rem;
 	  vertical-align: middle;
 	  margin-right: .3125rem;
-
-	  // Small Devices
-		@include media-breakpoint-down(sm) {
-			display: none;
-		}
 	}
 
 	&-img {

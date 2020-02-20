@@ -1,0 +1,20 @@
+@import gospeak.core.domain.Event
+@import gospeak.core.domain.utils.Constants
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.utils.Formats
+
+@(e: Event.Full)
+<a class="card mb-3" href="@GroupCtrl.event(e.group.slug, e.slug)">
+    <div class="card-body">
+        <div class="media">
+            <img src="@e.venue.map(_.partner.logo.value).getOrElse(Constants.Placeholders.eventLogo)" alt="" class="u-avatar rounded-circle mr-3">
+            <div class="media-body">
+                <h5 class="mb-0">@e.name.value</h5>
+                <p class="card-text d-flex justify-content-between align-items-center">
+                    <small class="text-muted">@Formats.date(e.start)</small>
+                    @e.venue.map { v => <small class="text-muted">at @v.partner.name.value</small> }
+                </p>
+            </div>
+        </div>
+    </div>
+</a>

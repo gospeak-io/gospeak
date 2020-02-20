@@ -109,9 +109,9 @@ object Formats {
 
   def paginationHeader[A](page: Page[A], link: Page.Params => Call, filters: Seq[Filter]): Html = {
     Html(
-      s"""<div class="d-flex justify-content-between align-items-center mb-3"${if (page.hasManyPages || page.params.search.nonEmpty) "" else " style=\"display: none !important;\""}>
-         |  ${html.search(page, link(Page.Params.defaults))}
-         |  ${html.pagination(page, link)}
+      s"""<div class="row"${if (page.hasManyPages || page.params.search.nonEmpty) "" else " style=\"display: none !important;\""}>
+         |  <div class="col-lg-6 col-md-12 mb-3">${html.search(page, link(Page.Params.defaults))}</div>
+         |  <div class="col-lg-6 col-md-12 mb-3 d-flex justify-content-end">${html.pagination(page, link)}</div>
          |</div>
          |${html.filters(page, link, filters)}
        """.stripMargin.trim)

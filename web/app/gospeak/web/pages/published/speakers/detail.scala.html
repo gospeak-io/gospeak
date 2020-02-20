@@ -33,8 +33,8 @@
 @container(s"${user.name.value} - Gospeak", PageMeta.user(user.user), b)() {
 @* cf https://htmlstream.com/preview/front-v2.9.4/html/account/profile.html *@
 <div class="row">
-    <div class="col-3">
-        <div class="card p-1 mb-4">
+    <div class="col-lg-3 mb-lg-3">
+        <div class="card p-1 mb-3">
             @if(req.isLogged(user)) { <a href="@ProfileCtrl.edit()" class="hover-edit"><i class="fas fa-edit"></i></a> }
             <div class="card-body text-center">
                 <div>
@@ -69,7 +69,7 @@
             </div>
         </div>
         @if(user.website.isDefined || user.social.all.nonEmpty) {
-            <div class="card mb-4">
+            <div class="card mb-3">
                 @if(req.isLogged(user)) { <a href="@ProfileCtrl.edit()" class="hover-edit"><i class="fas fa-edit"></i></a> }
                 <div class="card-header pt-4 pb-3 px-0 mx-4">
                     <h3 class="h6 mb-0">Social Profiles</h3>
@@ -83,12 +83,12 @@
             </div>
         }
     </div>
-    <div class="col-9">
+    <div class="col-lg-9">
         @user.title.map { t => <h2 class="h4">@t</h2> }
-        @user.bio.map { b => <div class="mb-4">@markdown(b)</div> }
+        @user.bio.map { b => @markdown(b) }
         @if(userGroups.nonEmpty || (userTalks.nonEmpty && !(userTalks.map(_.title.value).toList.sorted == userProposals.values.flatten.map(_.title.value).toList.sorted))) {
-            @if(user.title.isDefined || user.bio.isDefined) { <hr class="my-7"> }
-            <div class="row mb-7">
+            @if(user.title.isDefined || user.bio.isDefined) { <hr class="my-5"> }
+            <div class="row">
                 @if(userTalks.nonEmpty && !(userTalks.map(_.title.value).toList.sorted == userProposals.values.flatten.map(_.title.value).toList.sorted)) {
                     <div class="col-md-6 mb-3 mb-md-0">
                         <h3 class="h5 mb-3">Current talks</h3>
@@ -130,7 +130,7 @@
                     </div>
                 }
                 @if(userGroups.nonEmpty) {
-                    <div class="col-md-6 mb-7 mb-md-0">
+                    <div class="col-md-6">
                         <h3 class="h5 mb-3">Organizes</h3>
                         @userGroups.zipWithIndex.map { case (group, i) =>
                             <div class="d-flex @if(i != 0){mt-5}">
@@ -158,7 +158,7 @@
             </div>
         }
         @if(userProposals.nonEmpty) {
-            <hr class="my-7">
+            <hr class="my-5">
             <h3 class="h5 mb-0">Speaking history</h3>
             <div class="text-muted mb-3">
                 @userProposals.values.flatten.toList.groupBy(p => p.event.map(_.kind).orElse(p.eventExt.map(_.kind)).get).map { case (kind, proposals) =>

@@ -23,6 +23,7 @@
         </div>
         @inputText(form("slug"), Seq("placeholder" -> "Username", "slug-for" -> Seq(form("first-name"), form("last-name")).map(_.id).mkString(",")))
     </div>
+    <small class="form-text text-muted">Should be lowercase alphanum with - and _ allowed.</small>
     <div class="invalid-feedback">@req.formatErrors(form("slug"))</div>
 </div>
 

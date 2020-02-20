@@ -1,4 +1,5 @@
 @import gospeak.core.domain.{Cfp, Group, Sponsor, SponsorPack, User}
+@import gospeak.core.domain.utils.Constants
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
@@ -6,12 +7,12 @@
 @import gospeak.web.utils.UserAwareReq
 
 @(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], users: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-<div class="col-lg-4 mb-9 mb-lg-0">
-    <div class="card shadow-sm p-5 mb-5">
+<div class="col-lg-4 mb-3 mb-lg-0">
+    <div class="card shadow-sm p-5">
         <div class="text-center">
-            <div class="mx-auto mb-3">
-                @group.logo.map { logo => <img src="@logo.url.value" alt="@group.name.value logo" class="img-fluid rounded-circle" width="110" height="110"/> }
-            </div>
+            <a href="@GroupCtrl.detail(group.slug)">
+                <img class="u-lg-avatar rounded-circle mb-3" src="@group.logo.map(_.url.value).getOrElse(Constants.Placeholders.groupLogo)" alt="@group.name.value logo"/>
+            </a>
             <h1 class="h5">@group.name.value</h1>
             @group.website.map { u =>
                 <div class="mb-3">
@@ -49,13 +50,15 @@
             </div>
             <div>
                 Organized by<br>
-                @group.owners.toList.flatMap(id => users.find(_.id == id)).map { user =>
-                    <li class="list-inline-item ml-n3 mr-0">
-                        <a href="@SpeakerCtrl.detail(user.slug)" title="@user.name.value" data-toggle="tooltip">
-                            <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@user.avatar.value" alt="@user.name.value avatar">
-                        </a>
-                    </li>
-                }
+                <ul class="list-inline hover-grow ml-3 mb-0">
+                    @group.owners.toList.flatMap(id => users.find(_.id == id)).map { user =>
+                        <li class="list-inline-item ml-n3 mr-0">
+                            <a href="@SpeakerCtrl.detail(user.slug)" title="@user.name.value" data-toggle="tooltip">
+                                <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@user.avatar.value" alt="@user.name.value avatar">
+                            </a>
+                        </li>
+                    }
+                </ul>
             </div>
         </div>
 

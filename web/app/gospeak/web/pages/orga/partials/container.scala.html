@@ -1,4 +1,5 @@
 @import gospeak.core.domain.utils.Constants.{Images, Placeholders}
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.auth.routes.AuthCtrl
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.orga.routes.GroupCtrl
@@ -21,15 +22,15 @@
 
 @(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: OrgaReq[AnyContent])
 @main(title, PageMeta.default(), style, script) {
-<header id="header" class="u-header u-header--abs-top-md u-header--bg-transparent u-header--show-hide-md" data-header-fix-moment="500" data-header-fix-effect="slide">
+<header id="header" class="u-header">
     <div class="u-header__section">
-        <div id="logoAndNav" class="container-fluid px-10">
-            <nav class="js-mega-menu navbar navbar-expand-md u-header__navbar u-header__navbar--no-space">
-                <a class="navbar-brand u-header__navbar-brand u-header__navbar-brand-center" href="@HomeCtrl.index()" aria-label="Gospeak">
+        <div id="logoAndNav" class="container-fluid">
+            <nav class="navbar navbar-expand-md u-header__navbar u-header__navbar--no-space">
+                <a class="navbar-brand u-header__navbar-brand u-header__navbar-brand-center my-3" href="@HomeCtrl.index()" aria-label="Gospeak">
                     <img class="img-fluid" src="@Images.gospeakLogoText" alt="Gospeak logo">
                 </a>
 
-                <button type="button" class="navbar-toggler btn u-hamburger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navBar" data-toggle="collapse" data-target="#navBar">
+                <button type="button" class="navbar-toggler btn u-hamburger" data-toggle="collapse" data-target="#navBar" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navBar">
                     <span id="hamburgerTrigger" class="u-hamburger__box">
                         <span class="u-hamburger__inner"></span>
                     </span>
@@ -39,18 +40,17 @@
                     <ul class="navbar-nav u-header__navbar-nav">
                         <li class="nav-item u-header__nav-item">@navbarLink(UserCtrl.index()) {Dashboard}</li>
                         <li class="nav-item u-header__nav-item">@navbarLink(PublicCfpCtrl.list()) {Call For Proposals}</li>
-                        <li class="nav-item u-header__nav-item">@navbarLink(PublicEventCtrl.list()) {Events}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink(PublicEventCtrl.list(Page.Params.defaults.withFilters("type" -> "conference", "video" -> "true"))) {Events}</li>
                         <li class="nav-item u-header__nav-item">@navbarLink(PublicSpeakerCtrl.list()) {Speakers}</li>
                         <li class="nav-item u-header__nav-item">@navbarLink(PublicGroupCtrl.list()) {Groups}</li>
-                        <li class="nav-item u-header__nav-last-item">@userDropdown(req.user, req.groups, Some(req.group))</li>
+                        @userDropdown(req.user, req.groups, Some(req.group))
                     </ul>
                 </div>
             </nav>
         </div>
     </div>
 </header>
-
-<div class="container-fluid space-2 px-10">
+<main id="content" role="main" class="container-fluid mt-3 mb-10">
     @if(req.user.emailValidated.isEmpty) {
         @alert("warning", "d-flex justify-content-between align-items-center") {
             <span class="align-self-center">
@@ -60,7 +60,7 @@
         }
     }
     <div class="row ">
-        <div class="col-md-3 col-lg-2 u-ver-divider u-ver-divider--none-md mb-9 mb-md-0">
+        <div class="col-md-3 col-lg-2 u-ver-divider u-ver-divider--none-md mb-5 mb-md-0">
             <div class="card p-1 mr-lg-2">
                 <div class="card-body">
                     <div class="mb-7">
@@ -91,57 +91,54 @@
                             <li class="nav-item">@navbarLink(CfpCtrl.list(req.group.slug), "data-hotkey" -> "2") {CFPs}</li>
                             <li class="nav-item">@navbarLink(ProposalCtrl.list(req.group.slug), "data-hotkey" -> "3") {Proposals}</li>
                             <li class="nav-item">@navbarLink(SpeakerCtrl.list(req.group.slug), "data-hotkey" -> "4") {Speakers}</li>
-                            <li class="nav-item">@navbarLink(PartnerCtrl.list(req.group.slug), "data-hotkey" -> "3") {Partners}</li>
-                            <li class="nav-item">@navbarLink(SponsorCtrl.list(req.group.slug), "data-hotkey" -> "7") {Sponsors}</li>
+                            <li class="nav-item">@navbarLink(PartnerCtrl.list(req.group.slug), "data-hotkey" -> "5") {Partners}</li>
+                            <li class="nav-item">@navbarLink(SponsorCtrl.list(req.group.slug), "data-hotkey" -> "6") {Sponsors}</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-9 col-lg-10">
-            <div class="container">
-                @flash(req.flash)
-                @content
-            </div>
-            <div class="row">
-                <div class="modal fade" id="hotkeysModal" tabindex="-1" role="dialog" aria-labelledby="hotkeysModalLabel" aria-hidden="true" data-hotkey="?">
-                    <div class="modal-dialog modal-lg" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="hotkeysModalLabel">Gospeak hotkeys</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <p>Hi power user, you can use theses shortcuts to be more productive in Gospeak</p>
-                                <div class="row">
-                                    <div class="col">
-                                        <h4>Navigation</h4>
-                                        <p class="mb-1"><span class="float-right"><kbd>?</kbd></span>Hotkey help</p>
-                                        <p class="mb-1"><span class="float-right"><kbd>/</kbd></span>Focus search</p>
-                                        <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>h</kbd></span>Go to your Home</p>
-                                        <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>g</kbd></span>Go to your first Group</p>
-                                        <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>p</kbd></span>Go to Public page</p>
-                                        <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>s</kbd></span>Go to Settings</p>
-                                        <p class="mb-1"><span class="float-right"><kbd>1</kbd> or <kbd>2</kbd> or <kbd>3</kbd>...</span>Navigate to menu X</p>
-                                        <p class="mb-1"><span class="float-right"><kbd>shift</kbd>+<kbd>right</kbd></span>Next page</p>
-                                        <p class="mb-1"><span class="float-right"><kbd>shift</kbd>+<kbd>left</kbd></span>Previous page</p>
-                                    </div>
-                                    <div class="col">
-                                        <h4>Actions</h4>
-                                        <p class="mb-1"><span class="float-right"><kbd>+</kbd></span>Toggle create button</p>
-                                    </div>
+            @flash(req.flash)
+            @content
+
+            <div class="modal fade" id="hotkeysModal" tabindex="-1" role="dialog" aria-labelledby="hotkeysModalLabel" aria-hidden="true" data-hotkey="?">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="hotkeysModalLabel">Gospeak hotkeys</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Hi power user, you can use theses shortcuts to be more productive in Gospeak</p>
+                            <div class="row">
+                                <div class="col">
+                                    <h4>Navigation</h4>
+                                    <p class="mb-1"><span class="float-right"><kbd>?</kbd></span>Hotkey help</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>/</kbd></span>Focus search</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>h</kbd></span>Go to your Home</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>g</kbd></span>Go to your first Group</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>p</kbd></span>Go to Public page</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>s</kbd></span>Go to Settings</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>1</kbd> or <kbd>2</kbd> or <kbd>3</kbd>...</span>Navigate to menu X</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>shift</kbd>+<kbd>right</kbd></span>Next page</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>shift</kbd>+<kbd>left</kbd></span>Previous page</p>
+                                </div>
+                                <div class="col">
+                                    <h4>Actions</h4>
+                                    <p class="mb-1"><span class="float-right"><kbd>+</kbd></span>Toggle create button</p>
                                 </div>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</main>
 }

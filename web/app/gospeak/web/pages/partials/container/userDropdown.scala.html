@@ -5,14 +5,14 @@
 @import gospeak.web.pages.user.routes.UserCtrl
 
 @(user: User, groups: Seq[Group], group: Option[Group] = None)
-<div class="nav-item dropdown list-inline-item">
-    <a id="dropdown-user" data-toggle="dropdown" class="btn btn-xs btn-text-secondary u-sidebar--account__toggle-bg nav-link dropdown-toggle" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+<li class="nav-item u-header__nav-item dropdown">
+    <a id="account-dropdown" class="btn btn-xs btn-text-secondary u-sidebar--account__toggle-bg nav-link" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
         <span class="position-relative pl-1">
             <span class="u-sidebar--account__toggle-text">@user.name.value</span>
             <img class="u-sidebar--account__toggle-img" src="@user.avatar.url.value" alt="@user.name.value avatar">
         </span>
     </a>
-    <div aria-labelledby="dropdown-user" class="dropdown-menu dropdown-menu-right">
+    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="account-dropdown">
         <a class="dropdown-item" href="@UserCtrl.index()">Dashboard</a>
         <a class="dropdown-item" href="@SpeakerCtrl.detail(user.slug)">My profile</a>
         <div class="dropdown-divider"></div>
@@ -24,4 +24,4 @@
         <div class="dropdown-divider"></div>
         <a class="dropdown-item" href="@AuthCtrl.doLogout()">Logout</a>
     </div>
-</div>
+</li>

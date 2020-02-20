@@ -11,7 +11,7 @@
 @(event: ExternalEvent, cfps: Seq[ExternalCfp], proposals: Page[ExternalProposal], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${event.name.value} - Gospeak", PageMeta.event(event), b)() {
     <div class="row">
-        <div class="col-8">
+        <div class="col-lg-8">
             <div class="media mb-3">
                 <img src="@event.logo.map(_.value).getOrElse(Constants.Placeholders.eventLogo)" alt="@event.name.value logo" class="u-lg-avatar rounded-circle mr-3">
                 <div class="media-body">
@@ -32,7 +32,7 @@
             </div>
             <div class="mb-3">@markdown(event.description)</div>
         </div>
-        <div class="col-4">
+        <div class="col-lg-4">
             <div class="card border-0 shadow-sm mb-3">
                 <div class="card-body p-5">
                     @event.location.map { location =>

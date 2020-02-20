@@ -2,5 +2,5 @@
 @import gospeak.web.pages.published.partials.html.{container => published_container}
 @import gospeak.web.utils.UserReq
 
-@(title: String, b: Breadcrumb, full: Boolean = false, dark: Boolean = false, hideAlert: Boolean = false)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserReq[AnyContent])
-@published_container(title, PageMeta.default(), b, full = full, dark = dark, hideAlert = hideAlert)(style)(content)(script)(req.userAware)
+@(title: String, b: Breadcrumb, full: Boolean = false, hideAlert: Boolean = false)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserReq[AnyContent])
+@published_container(title, PageMeta.default(), b, full = full, hideAlert = hideAlert)(style)(content)(script)(req.userAware)

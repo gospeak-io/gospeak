@@ -6,13 +6,13 @@
         @page.params.orderBy.filter(_.nonEmpty).map { p => <input type="hidden" name="@p.key" value="@p.value"> }
         @Some(page.params.pageSize).filter(_.nonEmpty).map { p => <input type="hidden" name="@p.key" value="@p.value"> }
         <div class="form-row">
-            <div class="col-6 col-sm-8">
+            <div class="col-8">
                 <label class="sr-only" for="@Page.Search.key">Search</label>
                 <div class="input-group @classes">
                     <input type="text" class="form-control" id="@Page.Search.key" name="@Page.Search.key" value="@page.params.search.map(_.value)" placeholder="Search...">
                 </div>
             </div>
-            <div class="col-sm-4">
+            <div class="col-4">
                 <button type="submit" class="btn btn-primary">Search</button>
             </div>
         </div>

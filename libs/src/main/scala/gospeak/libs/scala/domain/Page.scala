@@ -22,7 +22,7 @@ final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total,
 
   def map[B](f: A => B): Page[B] = Page(items.map(f), params, total, sorts)
 
-  private val width = 2
+  private val width = 1
   private val middleStart: Int = (params.page.value - width).max(1)
   private val middleEnd: Int = (params.page.value + width).min(last)
 

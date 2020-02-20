@@ -3,8 +3,8 @@
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.partials.display.html.markdown
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
-@import gospeak.web.pages.published.partials.html.{container, groupCard}
-@import gospeak.web.utils.{Formats, UserAwareReq}
+@import gospeak.web.pages.published.partials.html.{container, eventItem, groupCard}
+@import gospeak.web.utils.UserAwareReq
 
 @(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${group.name.value} - Gospeak", PageMeta.group(group.group), b)() {
@@ -13,47 +13,34 @@
 
     <div class="col-lg-8">
         <div class="pl-lg-4">
-            <div class="mb-3">
-                <h4 class="h5 mb-0">About @group.name.value</h4>
-            </div>
-
-            <div class="border-bottom pb-5 mb-5">
+            <div class="mb-5">
+                <h2 class="h5 mb-3">About @group.name.value</h2>
                 @markdown(group.description)
             </div>
+            <hr class="mb-5">
 
             @if(sponsors.nonEmpty) {
-                <div class="border-bottom pb-5 mb-5">
-                    <div class="mb-4">
-                        <h2 class="h5">Sponsors</h2>
-                    </div>
+                <div class="mb-5">
+                    <h2 class="h5 mb-3">Sponsors</h2>
                     <div class="row">
                         @sponsors.sortBy(-_.price.amount).map { sponsor =>
-                            <img src="@sponsor.partner.logo.value"
+                            <img class="u-lg-avatar mr-3"
+                                src="@sponsor.partner.logo.value"
                                 alt="@sponsor.partner.name.value logo"
                                 title="@sponsor.pack.name.value sponsoring by @sponsor.partner.name.value"
-                                class="rounded"
-                                style="height: 100px; padding: 5px">
+                                data-toggle="tooltip">
                         }
                     </div>
                 </div>
+                <hr class="mb-5">
             }
-            <div class="border-bottom pb-5 mb-5">
-                <div class="mb-4">
-                    <h2 class="h5">Lasts events</h2>
-                </div>
-                @events.items.map { e =>
-                    <a class="card mb-3" href="@GroupCtrl.event(group.slug, e.slug)">
-                        <div class="card-body">
-                            <h5 class="card-title">@e.name.value</h5>
-                            <p class="card-text d-flex justify-content-between align-items-center">
-                                <small class="text-muted">@Formats.date(e.start)</small>
-                                @e.venue.map { v => <small class="text-muted">at @v.partner.name.value</small> }
-                            </p>
-                        </div>
-                    </a>
-                }
+            <div class="mb-5">
+                <h2 class="h5 mb-3">Lasts events</h2>
+                @events.items.map { e => @eventItem(e) }
                 @if(!events.isLast) {
-                    <a href="@GroupCtrl.events(group.slug, Page.Params.no(2))">Previous events</a>
+                    <div class="d-flex justify-content-end align-items-center">
+                        <a href="@GroupCtrl.events(group.slug, Page.Params.no(2))">Previous events</a>
+                    </div>
                 }
             </div>
         </div>
