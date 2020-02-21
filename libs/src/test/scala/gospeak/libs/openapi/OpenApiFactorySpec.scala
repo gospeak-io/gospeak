@@ -3,10 +3,11 @@ package gospeak.libs.openapi
 import gospeak.libs.openapi.error.{OpenApiError, OpenApiErrors}
 import gospeak.libs.openapi.models._
 import gospeak.libs.openapi.models.utils._
-import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json.Json
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class OpenApiFactorySpec extends FunSpec with Matchers {
+class OpenApiFactorySpec extends AnyFunSpec with Matchers {
   describe("OpenApiFactory") {
     it("should parse a simple OpenApi spec") {
       val json = Json.parse(

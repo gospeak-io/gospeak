@@ -1,8 +1,9 @@
 package gospeak.libs.scala.domain
 
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class PageSpec extends FunSpec with Matchers {
+class PageSpec extends AnyFunSpec with Matchers {
   describe("Page") {
     describe("hasManyPages") {
       it("should return true when total > size") {

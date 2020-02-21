@@ -2,10 +2,11 @@ package gospeak.libs.openapi.models
 
 import gospeak.libs.openapi.OpenApiFactory.Formats._
 import gospeak.libs.openapi.models.utils.Markdown
-import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json.{JsSuccess, Json}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class PathItemSpec extends FunSpec with Matchers {
+class PathItemSpec extends AnyFunSpec with Matchers {
   describe("PathItem") {
     it("should parse and serialize") {
       val json = Json.parse(PathItemSpec.jsonStr)

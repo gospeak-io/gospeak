@@ -2,10 +2,11 @@ package gospeak.web.api.swagger
 
 import gospeak.libs.openapi.OpenApiFactory
 import gospeak.web.utils.{JsonUtils, OpenApiUtils, RoutesUtils}
-import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json._
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class SwaggerCtrlSpec extends FunSpec with Matchers {
+class SwaggerCtrlSpec extends AnyFunSpec with Matchers {
   describe("SwaggerCtrl") {
     it("should load, parse and serialize the spec") {
       // "X-vars" is an extension, it's not handled now :(

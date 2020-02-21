@@ -1,9 +1,10 @@
 package gospeak.libs.openapi.models.utils
 
 import gospeak.libs.openapi.error.OpenApiError
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class VersionSpec extends FunSpec with Matchers {
+class VersionSpec extends AnyFunSpec with Matchers {
   describe("Version") {
     it("should parse valid Versions") {
       Version.from("1.2.3") shouldBe Right(Version(1, 2, 3))

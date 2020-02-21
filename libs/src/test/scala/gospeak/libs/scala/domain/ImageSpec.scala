@@ -1,8 +1,9 @@
 package gospeak.libs.scala.domain
 
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class ImageSpec extends FunSpec with Matchers {
+class ImageSpec extends AnyFunSpec with Matchers {
   describe("Image") {
     describe("CloudinaryUrl") {
       val baseUrl = Image.CloudinaryUrl(

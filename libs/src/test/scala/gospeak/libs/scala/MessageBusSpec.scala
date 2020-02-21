@@ -2,9 +2,10 @@ package gospeak.libs.scala
 
 import cats.effect.IO
 import MessageBusSpec._
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class MessageBusSpec extends FunSpec with Matchers {
+class MessageBusSpec extends AnyFunSpec with Matchers {
   describe("MessageBus") {
     it("should be specialized for a message type") {
       val mb = create[MyEvents]()

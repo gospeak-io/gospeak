@@ -1,9 +1,10 @@
 package gospeak.infra.services
 
 import gospeak.libs.scala.domain.{Html, Markdown}
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class MarkdownSrvImplSpec extends FunSpec with Matchers {
+class MarkdownSrvImplSpec extends AnyFunSpec with Matchers {
   describe("MarkdownUtils") {
     it("should parse and render basic markdown") {
       MarkdownSrvImpl.render(Markdown(

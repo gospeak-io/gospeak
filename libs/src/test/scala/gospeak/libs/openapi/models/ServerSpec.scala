@@ -3,10 +3,11 @@ package gospeak.libs.openapi.models
 import gospeak.libs.openapi.OpenApiFactory.Formats._
 import gospeak.libs.openapi.error.OpenApiError
 import gospeak.libs.openapi.models.utils.{Markdown, TODO, Url}
-import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json.{JsSuccess, Json}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class ServerSpec extends FunSpec with Matchers {
+class ServerSpec extends AnyFunSpec with Matchers {
   describe("Server") {
     it("should parse and serialize") {
       val json = Json.parse(ServerSpec.jsonStr)

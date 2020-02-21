@@ -2,10 +2,11 @@ package gospeak.libs.openapi.models
 
 import gospeak.libs.openapi.OpenApiFactory.Formats._
 import gospeak.libs.openapi.models.utils.TODO
-import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json.{JsSuccess, Json}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class MediaTypeSpec extends FunSpec with Matchers {
+class MediaTypeSpec extends AnyFunSpec with Matchers {
   describe("MediaType") {
     it("should parse and serialize") {
       val json = Json.parse(MediaTypeSpec.jsonStr)

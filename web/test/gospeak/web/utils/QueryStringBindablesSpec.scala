@@ -6,9 +6,10 @@ import java.time.{LocalDate, LocalDateTime}
 import gospeak.core.domain.UserRequest
 import gospeak.web.utils.QueryStringBindables._
 import gospeak.libs.scala.domain.{Page, Url}
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class QueryStringBindablesSpec extends FunSpec with Matchers {
+class QueryStringBindablesSpec extends AnyFunSpec with Matchers {
   describe("QueryStringBindables") {
     describe("LocalDateTime") {
       it("should parse and format dates") {

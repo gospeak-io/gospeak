@@ -1,8 +1,9 @@
 package gospeak.web.utils
 
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class RoutesUtilsSpec extends FunSpec with Matchers {
+class RoutesUtilsSpec extends AnyFunSpec with Matchers {
   describe("RoutesUtils") {
     it("should parse simple routes") {
       RoutesUtils.parseRoute(1, "GET     /       gospeak.HomeCtrl.index") shouldBe Right(Route(1, "GET", "/", "gospeak.HomeCtrl.index"))

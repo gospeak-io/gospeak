@@ -8,9 +8,10 @@ import gospeak.core.domain.{Event, ExternalCfp, ExternalEvent, User}
 import gospeak.core.testingutils.Generators._
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{GMapPlace, Tag, TwitterHashtag, Url}
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class TwittsSpec extends FunSpec with Matchers with RandomDataGenerator {
+class TwittsSpec extends AnyFunSpec with Matchers with RandomDataGenerator {
   private val ldt = LocalDateTime.of(2020, 2, 10, 19, 0)
   protected val user: User = random[User]
   protected val eventExt: ExternalEvent = random[ExternalEvent]

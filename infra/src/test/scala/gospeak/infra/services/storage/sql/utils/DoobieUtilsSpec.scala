@@ -6,9 +6,10 @@ import gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import gospeak.infra.services.storage.sql.utils.DoobieUtilsSpec.Entity
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Page
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class DoobieUtilsSpec extends FunSpec with Matchers {
+class DoobieUtilsSpec extends AnyFunSpec with Matchers {
   describe("DoobieUtils") {
     describe("Table") {
       val table1 = Table.from("table1", "t1", Seq("id", "name"), Seq("name"), Seq("name"), Seq()).get

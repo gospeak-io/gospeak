@@ -1,9 +1,10 @@
 package gospeak.libs.openapi.models.utils
 
 import gospeak.libs.openapi.error.OpenApiError
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class UrlSpec extends FunSpec with Matchers {
+class UrlSpec extends AnyFunSpec with Matchers {
   describe("Url") {
     it("should validate correct urls") {
       Url.from("https://gospeak.io") shouldBe Right(Url("https://gospeak.io"))

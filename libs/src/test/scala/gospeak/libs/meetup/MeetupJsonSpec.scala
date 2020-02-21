@@ -4,9 +4,10 @@ import gospeak.libs.meetup.MeetupJson._
 import gospeak.libs.meetup.domain._
 import gospeak.libs.scala.FileUtils
 import io.circe.parser.decode
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class MeetupJsonSpec extends FunSpec with Matchers {
+class MeetupJsonSpec extends AnyFunSpec with Matchers {
   private val basePath = Some("libs/src/test/resources/meetup").filter(FileUtils.exists).getOrElse("src/test/resources/meetup")
 
   it("should parse access token response") {

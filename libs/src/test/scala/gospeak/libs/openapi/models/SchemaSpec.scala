@@ -4,10 +4,11 @@ import gospeak.libs.openapi.OpenApiFactory.Formats._
 import gospeak.libs.openapi.error.OpenApiError
 import gospeak.libs.openapi.models.utils.{Js, Markdown}
 import gospeak.libs.openapi.JsonUtils._
-import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json.{JsError, JsSuccess, Json}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class SchemaSpec extends FunSpec with Matchers {
+class SchemaSpec extends AnyFunSpec with Matchers {
   describe("Schema") {
     it("should parse and serialize") {
       val json = Json.parse(HeaderSpec.jsonStr)

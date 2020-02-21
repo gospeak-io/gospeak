@@ -2,9 +2,10 @@ package gospeak.libs.matomo
 
 import gospeak.libs.http.HttpClient
 import gospeak.libs.scala.domain.Secret
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class MatomoClientSpec extends FunSpec with Matchers {
+class MatomoClientSpec extends AnyFunSpec with Matchers {
   private val conf = MatomoClient.Conf(
     baseUrl = "https://???.matomo.cloud",
     site = 1,

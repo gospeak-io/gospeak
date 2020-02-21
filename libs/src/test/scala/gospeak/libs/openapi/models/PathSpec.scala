@@ -1,8 +1,9 @@
 package gospeak.libs.openapi.models
 
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class PathSpec extends FunSpec with Matchers {
+class PathSpec extends AnyFunSpec with Matchers {
   describe("Path") {
     it("should extract variables") {
       Path("/api").variables shouldBe Seq()

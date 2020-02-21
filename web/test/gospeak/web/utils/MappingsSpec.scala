@@ -9,13 +9,14 @@ import gospeak.core.testingutils.Generators._
 import gospeak.web.utils.Mappings._
 import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import gospeak.libs.scala.domain._
-import org.scalatest.{FunSpec, Matchers}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.data.FormError
 
 import scala.concurrent.duration.FiniteDuration
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
+class MappingsSpec extends AnyFunSpec with Matchers with ScalaCheckPropertyChecks {
   describe("Mappings") {
     it("should bind & unbind a Double") {
       forAll { v: Double =>

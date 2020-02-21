@@ -1,9 +1,10 @@
 package gospeak.libs.openapi.models.utils
 
 import gospeak.libs.openapi.error.OpenApiError
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class EmailSpec extends FunSpec with Matchers {
+class EmailSpec extends AnyFunSpec with Matchers {
   describe("Email") {
     it("should validate correct emails") {
       Email.from("loicknuchel@gmail.com") shouldBe Right(Email("loicknuchel@gmail.com"))
