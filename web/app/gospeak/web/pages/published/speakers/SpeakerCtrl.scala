@@ -6,6 +6,7 @@ import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.{Proposal, Talk, User}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
+import gospeak.libs.scala.domain.EmailAddress.Contact
 import gospeak.libs.scala.domain.{Page, Tweet}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
@@ -30,6 +31,17 @@ class SpeakerCtrl(cc: ControllerComponents,
     userRepo.listPublic(params).map(speakers => Ok(html.list(speakers)(listBreadcrumb())))
   }
 
+  def contactSpeaker(user: User.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
+    val next = Redirect(routes.SpeakerCtrl.detail(user))
+    GsForms.speakerContact.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      data => (for {
+        speakerElt <- OptionT(userRepo.findPublic(user))
+        _ <- OptionT.liftF(emailSrv.send(Emails.contactSpeaker(Contact(speakerElt.email), data.subject, data.content, speakerElt.user)))
+        res = Redirect(routes.SpeakerCtrl.detail(user)).flashing("success" -> "The contact email has been sent!")
+      } yield res).value.map(_.getOrElse(publicUserNotFound(user))))
+  }
+
   def detail(user: User.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       speakerElt <- OptionT(userRepo.findPublic(user))
@@ -37,7 +49,7 @@ class SpeakerCtrl(cc: ControllerComponents,
       talks <- OptionT.liftF(talkRepo.listAll(speakerElt.id, Talk.Status.Public))
       proposals <- OptionT.liftF(externalProposalRepo.listAllCommon(speakerElt.id, Proposal.Status.Accepted))
       users <- OptionT.liftF(userRepo.list((groups.flatMap(_.owners.toList) ++ talks.flatMap(_.users)).distinct))
-      res = Ok(html.detail(speakerElt, groups, talks, proposals.groupBy(_.talk.id), users)(breadcrumb(speakerElt)))
+      res = Ok(html.detail(speakerElt, groups, talks, proposals.groupBy(_.talk.id), users, GsForms.speakerContact)(breadcrumb(speakerElt)))
     } yield res).value.map(_.getOrElse(publicUserNotFound(user)))
   }
 
