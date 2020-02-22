@@ -126,6 +126,13 @@ object GsForms {
     "content" -> markdown
   )(GroupContact.apply)(GroupContact.unapply))
 
+  final case class SpeakerContact(subject: String, content: Markdown)
+
+  val speakerContact: Form[SpeakerContact] = Form(mapping(
+    "subject" -> nonEmptyText,
+    "content" -> markdown
+  )(SpeakerContact.apply)(SpeakerContact.unapply))
+
   object GroupAccount {
 
     final case class Meetup(group: MeetupGroup.Slug)

@@ -5,8 +5,8 @@ import gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetR
 import gospeak.core.domain._
 import gospeak.core.domain.utils.Constants
 import gospeak.core.services.email.EmailSrv.{Email, HtmlContent}
-import gospeak.web.utils.{OrgaReq, UserAwareReq, UserReq}
 import gospeak.libs.scala.domain.{EmailAddress, Markdown}
+import gospeak.web.utils.{OrgaReq, UserAwareReq, UserReq}
 import play.api.mvc.AnyContent
 
 object Emails {
@@ -238,4 +238,12 @@ object Emails {
       to = Seq(rsvp.user.asContact),
       subject = subject,
       content = HtmlContent(html.eventMessage(event, text, rsvp).body))
+
+
+  def contactSpeaker(sender: EmailAddress.Contact, subject: String, text: Markdown, speaker: User): Email =
+    Email(
+      from = sender,
+      to = Seq(speaker.asContact),
+      subject = subject,
+      content = HtmlContent(html.contactSpeaker(text).body))
 }
