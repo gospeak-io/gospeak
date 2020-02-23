@@ -1,9 +1,10 @@
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.pages.published.routes.HomeCtrl
 @import gospeak.web.utils.UserAwareReq
 
 @()(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container("Gospeak is for you!", PageMeta.default(), b)() {
+@container("Gospeak is for you!", PageMeta.default(HomeCtrl.why()), b)() {
 <h1 class="home-title">Why use <b>Gospeak</b>?</h1>
 
 <p>

@@ -21,7 +21,7 @@
 @import gospeak.web.utils.OrgaReq
 
 @(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: OrgaReq[AnyContent])
-@main(title, PageMeta.default(), style, script) {
+@main(title, PageMeta.default(HomeCtrl.index()), style, script) {
 <header id="header" class="u-header">
     <div class="u-header__section">
         <div id="logoAndNav" class="container-fluid">
@@ -59,11 +59,11 @@
             @formBtn(AuthCtrl.resendEmailValidation(), Seq("class" -> "btn-sm btn-warning")) {Resend validation email}
         }
     }
-    <div class="row ">
+    <div class="row">
         <div class="col-md-3 col-lg-2 u-ver-divider u-ver-divider--none-md mb-5 mb-md-0">
-            <div class="card p-1 mr-lg-2">
+            <div class="card">
                 <div class="card-body">
-                    <div class="mb-7">
+                    <div>
                         <div class="text-center mx-auto mb-3">
                             <span class="position-relative">
                                 <a href="@GroupCtrl.detail(req.group.slug)">
@@ -82,9 +82,10 @@
                                 </span>
                             </span>
                         </div>
-                        <a class="btn btn-sm btn-block btn-primary transition-3d-hover" href="@EventCtrl.create(req.group.slug)" data-hotkey="+">Create an event</a>
+                        <a class="btn btn-block btn-primary transition-3d-hover" href="@EventCtrl.create(req.group.slug)" data-hotkey="+">Create an event</a>
                     </div>
-                    <div class="mb-md-7">
+                    <hr class="my-5">
+                    <div>
                         <h1 class="h6 font-weight-semi-bold">Menu</h1>
                         <ul class="nav flex-column">
                             <li class="nav-item">@navbarLink(EventCtrl.list(req.group.slug), "data-hotkey" -> "1") {Events}</li>

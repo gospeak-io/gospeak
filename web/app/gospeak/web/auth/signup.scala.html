@@ -6,7 +6,7 @@
 @import gospeak.web.utils.UserAwareReq
 
 @(form: Form[GsForms.SignupData], redirect: Option[String])(implicit req: UserAwareReq[AnyContent])
-@container("Signup - Gospeak", PageMeta.default())() {
+@container("Signup - Gospeak", PageMeta.default(AuthCtrl.signup()))() {
     <div class="login">
         <div class="card bg-light shadow">
             <div class="card-body">

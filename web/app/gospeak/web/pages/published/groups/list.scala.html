@@ -1,13 +1,12 @@
 @import gospeak.core.domain.{Group, User}
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.partials.html.{container, groupItem}
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.UserAwareReq
-@import gospeak.libs.scala.domain.Page
+@import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(groups: Page[Group.Full], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container("Groups - Gospeak", PageMeta.default(), b)() {
+@container("Groups - Gospeak", PageMeta.default(GroupCtrl.list()), b)() {
     <div class="w-md-80 w-lg-80 text-center mx-md-auto mb-5">
         <h2 class="text-primary">Gospeak <span class="font-weight-semi-bold">User groups</span></h2>
         <p>

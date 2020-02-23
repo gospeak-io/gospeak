@@ -2,11 +2,11 @@
 @import gospeak.core.services.meetup.domain.MeetupAttendee
 @import gospeak.web.domain.PageMeta
 @import gospeak.web.pages.partials.container.html.main
-@import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.utils.UserAwareReq
 
 @(group: Group.Slug, event: Event.Slug, attendee: Either[String, MeetupAttendee])(implicit req: UserAwareReq[AnyContent])
-@main(s"Draw attendee: ${attendee.fold(identity, _.name)} - Gospeak", PageMeta.default(), style = Html(
+@main(s"Draw attendee: ${attendee.fold(identity, _.name)} - Gospeak", PageMeta.default(GroupCtrl.eventAttendeesMeetup(group, event)), style = Html(
     """<style>
       |html, body, .container, .row { height: 100% }
       |
@@ -86,7 +86,7 @@
                                 <div class="userDescription">
                                     <h5>@a.name</h5>
                                     @a.bio.map { bio => <p>@bio</p> }
-                                    <a href="@PublicGroupCtrl.eventAttendeesMeetup(group, event)"><button class="btn">Draw again</button></a>
+                                    <a href="@GroupCtrl.eventAttendeesMeetup(group, event)"><button class="btn">Draw again</button></a>
                                 </div>
                             </div>
                         </div>

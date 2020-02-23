@@ -1,9 +1,10 @@
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.utils.UserAwareReq
 
 @()(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container("Start speaking - Gospeak", PageMeta.default(), b)() {
+@container("Start speaking - Gospeak", PageMeta.default(CfpCtrl.gettingStarted()), b)() {
     <h1>Afraid of speaking?</h1>
     <h3>Good news, your are a normal person!!!</h3>
     <p>

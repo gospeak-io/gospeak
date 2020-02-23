@@ -8,7 +8,7 @@
 @import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(speakers: Page[User.Full])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container("Speakers - Gospeak", PageMeta.default(), b, full = true)() {
+@container("Speakers - Gospeak", PageMeta.default(SpeakerCtrl.list()), b, full = true)() {
 @* cf https://htmlstream.com/preview/front-v2.9.4/html/account/members-list.html *@
 <main id="content" role="main">
     <div id="banner_speakers" class="svg-preloader position-relative bg-img-hero" style="background-image: url(@routes.Assets.versioned("web/img/banner-speaker3.jpg"));">

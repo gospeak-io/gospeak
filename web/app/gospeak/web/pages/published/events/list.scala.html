@@ -7,7 +7,7 @@
 @import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(events: Page[CommonEvent], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container("Events - Gospeak", PageMeta.default(), b)() {
+@container("Events - Gospeak", PageMeta.default(EventCtrl.list()), b)() {
     <div class="w-md-80 w-lg-80 text-center mx-md-auto mb-5">
         <h2 class="text-primary">Events</h2>
         <p>

@@ -47,43 +47,43 @@ class PageSpec extends FunSpec with Matchers {
     }
     describe("firstPages") {
       it("should return first pages to show when current page is not in the first pages") {
-        page(no = 1, size = 5, total = 103).firstPages shouldBe None
-        page(no = 6, size = 5, total = 103).firstPages shouldBe None
-        page(no = 7, size = 5, total = 103).firstPages.map(_.map(_.page.value)) shouldBe Some(Seq(1, 2))
-        page(no = 21, size = 5, total = 103).firstPages.map(_.map(_.page.value)) shouldBe Some(Seq(1, 2))
+        page(no = 1, size = 5, total = 103).firstPages.map(_.map(_.page.value)) shouldBe None
+        page(no = 6, size = 5, total = 103).firstPages.map(_.map(_.page.value)) shouldBe Some(Seq(1))
+        page(no = 7, size = 5, total = 103).firstPages.map(_.map(_.page.value)) shouldBe Some(Seq(1))
+        page(no = 21, size = 5, total = 103).firstPages.map(_.map(_.page.value)) shouldBe Some(Seq(1))
       }
     }
     describe("lastPages") {
       it("should return last pages to show when current page is not in the last pages") {
-        page(no = 1, size = 5, total = 103).lastPages.map(_.map(_.page.value)) shouldBe Some(Seq(20, 21))
-        page(no = 15, size = 5, total = 103).lastPages.map(_.map(_.page.value)) shouldBe Some(Seq(20, 21))
-        page(no = 16, size = 5, total = 103).lastPages shouldBe None
-        page(no = 21, size = 5, total = 103).lastPages shouldBe None
+        page(no = 1, size = 5, total = 103).lastPages.map(_.map(_.page.value)) shouldBe Some(Seq(21))
+        page(no = 15, size = 5, total = 103).lastPages.map(_.map(_.page.value)) shouldBe Some(Seq(21))
+        page(no = 16, size = 5, total = 103).lastPages.map(_.map(_.page.value)) shouldBe Some(Seq(21))
+        page(no = 21, size = 5, total = 103).lastPages.map(_.map(_.page.value)) shouldBe None
       }
     }
     describe("middlePages") {
       it("should return pages to show next to the current one") {
-        page(no = 1, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(1, 2, 3)
-        page(no = 2, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(1, 2, 3, 4)
-        page(no = 3, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(1, 2, 3, 4, 5)
-        page(no = 4, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(1, 2, 3, 4, 5, 6)
-        page(no = 5, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(1, 2, 3, 4, 5, 6, 7)
-        page(no = 6, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(1, 2, 3, 4, 5, 6, 7, 8)
-        page(no = 7, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(5, 6, 7, 8, 9)
-        page(no = 8, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(6, 7, 8, 9, 10)
-        page(no = 9, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(7, 8, 9, 10, 11)
-        page(no = 10, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(8, 9, 10, 11, 12)
-        page(no = 11, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(9, 10, 11, 12, 13)
-        page(no = 12, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(10, 11, 12, 13, 14)
-        page(no = 13, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(11, 12, 13, 14, 15)
-        page(no = 14, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(12, 13, 14, 15, 16)
-        page(no = 15, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(13, 14, 15, 16, 17)
-        page(no = 16, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(14, 15, 16, 17, 18, 19, 20, 21)
-        page(no = 17, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(15, 16, 17, 18, 19, 20, 21)
-        page(no = 18, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(16, 17, 18, 19, 20, 21)
-        page(no = 19, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(17, 18, 19, 20, 21)
-        page(no = 20, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(18, 19, 20, 21)
-        page(no = 21, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(19, 20, 21)
+        page(no = 1, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(1, 2)
+        page(no = 2, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(1, 2, 3)
+        page(no = 3, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(1, 2, 3, 4)
+        page(no = 4, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(1, 2, 3, 4, 5)
+        page(no = 5, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(4, 5, 6)
+        page(no = 6, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(5, 6, 7)
+        page(no = 7, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(6, 7, 8)
+        page(no = 8, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(7, 8, 9)
+        page(no = 9, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(8, 9, 10)
+        page(no = 10, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(9, 10, 11)
+        page(no = 11, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(10, 11, 12)
+        page(no = 12, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(11, 12, 13)
+        page(no = 13, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(12, 13, 14)
+        page(no = 14, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(13, 14, 15)
+        page(no = 15, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(14, 15, 16)
+        page(no = 16, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(15, 16, 17)
+        page(no = 17, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(16, 17, 18)
+        page(no = 18, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(17, 18, 19, 20, 21)
+        page(no = 19, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(18, 19, 20, 21)
+        page(no = 20, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(19, 20, 21)
+        page(no = 21, size = 5, total = 103).middlePages.map(_.page.value) shouldBe Seq(20, 21)
       }
     }
     it("should not have too much items") {
@@ -91,7 +91,7 @@ class PageSpec extends FunSpec with Matchers {
     }
   }
 
-  def params(no: Int, size: Int) = Page.Params(Page.No(no), Page.Size(size))
+  def params(no: Int, size: Int): Page.Params = Page.Params(Page.No(no), Page.Size(size))
 
-  def page(no: Int, size: Int, total: Int) = Page(Seq(1, 5, 3, 4, 2), params(no, size), Page.Total(total), Seq())
+  def page(no: Int, size: Int, total: Int): Page[Int] = Page(Seq(1, 5, 3, 4, 2), params(no, size), Page.Total(total), Seq())
 }
