@@ -83,9 +83,9 @@ object Page {
 
     def nonEmpty: Boolean = value > Params.defaults.page.value
 
-    def +(v: Int): No = No(value + 1)
+    def +(v: Int): No = No(value + v)
 
-    def -(v: Int): No = No(math.max(value - 1, 1))
+    def -(v: Int): No = No(math.max(value - v, 1))
   }
 
   object No {

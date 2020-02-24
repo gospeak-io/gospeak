@@ -19,7 +19,7 @@ final case class Schemas(value: Map[String, Schema]) extends AnyVal {
       }.sequence.map(p => p.map { case (k, v) => v.map(k -> _) }.sequence).map(_.map(p => s.copy(properties = p.toMap)))
     case s: Schema.ReferenceVal => s.$ref.localRef match {
       case Some(("schemas", name)) => get(name).toRight(NonEmptyList.of(OpenApiError.missingReference(s.$ref.value).atPath(".$ref"))).flatMap(resolve)
-      case Some((component, name)) => Left(NonEmptyList.of(OpenApiError.badReference(s.$ref.value, component, "schemas")))
+      case Some((component, _)) => Left(NonEmptyList.of(OpenApiError.badReference(s.$ref.value, component, "schemas")))
       case None => Right(None)
     }
     case s: Schema.CombinationVal => s.oneOf.map(_.zipWithIndex.map { case (s, i) =>
