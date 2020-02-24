@@ -1,4 +1,5 @@
 @import gospeak.core.domain.User
+@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 
 @(user: User)
@@ -8,17 +9,21 @@
             <div class="col-sm-9 mb-3 mb-sm-0">
                 <div class="d-flex align-items-center">
                     @if(user.isPublic) {
-                        <a href="@SpeakerCtrl.detail(user.slug)" class="mr-3 position-relative u-avatar">
-                            <img class="u-avatar rounded-circle" src="@user.avatar.value" alt="@user.name.value avatar">
+                        <a href="@SpeakerCtrl.detail(user.slug)" class="u-lg-avatar position-relative mr-3">
+                            <img class="u-lg-avatar rounded-circle" src="@user.avatar.value" alt="@user.name.value avatar">
                             @user.mentoring.map { mentoring =>
-                                <span class="badge badge-xs badge-primary badge-pos badge-pos--bottom-right rounded-circle" data-toggle="popover" data-content="@mentoring.value" data-trigger="hover"></span>
+                                <div class="badge badge-xs badge-primary badge-bordered badge-pos badge-pos--bottom-right rounded-circle" data-toggle="html-popover" data-trigger="hover" data-title="Gospeak mentor">
+                                    <div class="content">@markdown(mentoring)</div>
+                                </div>
                             }
                         </a>
                     } else {
-                        <span class="mr-3 position-relative u-avatar">
-                            <img class="u-avatar rounded-circle" src="@user.avatar.value" alt="@user.name.value avatar">
+                        <span class="u-lg-avatar position-relative mr-3">
+                            <img class="u-lg-avatar rounded-circle" src="@user.avatar.value" alt="@user.name.value avatar">
                             @user.mentoring.map { mentoring =>
-                                <span class="badge badge-xs badge-primary badge-pos badge-pos--bottom-right rounded-circle" data-toggle="popover" data-content="@mentoring.value" data-trigger="hover"></span>
+                                <div class="badge badge-xs badge-primary badge-bordered badge-pos badge-pos--bottom-right rounded-circle" data-toggle="html-popover" data-trigger="hover" data-title="Gospeak mentor">
+                                    <div class="content">@markdown(mentoring)</div>
+                                </div>
                             }
                         </span>
                     }

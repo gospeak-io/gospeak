@@ -19,14 +19,12 @@ import gospeak.core.domain.utils.GsMessage
 import gospeak.core.services._
 import gospeak.core.services.cloudinary.CloudinarySrv
 import gospeak.core.services.email.EmailSrv
-import gospeak.core.services.matomo.MatomoSrv
 import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.storage._
 import gospeak.core.services.twitter.TwitterSrv
 import gospeak.libs.slack.SlackClient
 import gospeak.infra.services.email.EmailSrvFactory
-import gospeak.infra.services.matomo.MatomoSrvImpl
 import gospeak.infra.services.meetup.MeetupSrvImpl
 import gospeak.infra.services.slack.SlackSrvImpl
 import gospeak.infra.services.storage.sql._
@@ -102,7 +100,6 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val twitterSrv: Option[TwitterSrv] = conf.twitter.map(new TwitterSrvImpl(_, conf.app.env.isProd))
   lazy val meetupSrv: MeetupSrv = MeetupSrvImpl.from(conf.meetup, conf.app.baseUrl, conf.app.env.isProd)
   lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient(), templateSrv)
-  lazy val matomoSrv: Option[MatomoSrv] = conf.matomo.map(MatomoSrvImpl.from)
   lazy val messageBuilder: MessageBuilder = wire[MessageBuilder]
   lazy val messageBus: MessageBus[GsMessage] = wire[BasicMessageBus[GsMessage]]
   lazy val orgaMessageBus: GsMessageBus = wire[GsMessageBus]

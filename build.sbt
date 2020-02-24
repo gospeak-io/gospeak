@@ -22,11 +22,10 @@ val commonSettings: Seq[Setting[_]] = Seq(
  * Dependencies
  */
 
-val circeVersion = "0.13.0"
-
 val cats = Seq(
   "org.typelevel" %% "cats-core" % "2.1.0",
   "org.typelevel" %% "cats-effect" % "2.1.1")
+val circeVersion = "0.13.0"
 val circe = Seq(
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
@@ -34,7 +33,7 @@ val circe = Seq(
   "io.circe" %% "circe-literal" % circeVersion,
   "io.circe" %% "circe-generic-extras" % circeVersion,
   "io.circe" %% "circe-java8" % "0.11.1")
-val doobieVersion = "0.8.7"
+val doobieVersion = "0.8.6" // "0.8.7" version causes: Can't infer the SQL type to use for an instance of java.time.Instant. Use setObject() with an explicit Types value to specify the type to use.
 val doobie = Seq(
   "org.tpolecat" %% "doobie-core",
   "org.tpolecat" %% "doobie-h2",

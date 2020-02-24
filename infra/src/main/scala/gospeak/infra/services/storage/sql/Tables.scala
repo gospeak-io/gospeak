@@ -5,13 +5,14 @@ import gospeak.libs.scala.Extensions._
 
 object Tables {
   private val socialFields = Seq("facebook", "instagram", "twitter", "linkedIn", "youtube", "meetup", "eventbrite", "slack", "discord", "github").map("social_" + _)
+  private val locationFields = Seq("location", "location_id", "location_lat", "location_lng", "location_locality", "location_country")
 
   val users: Table = Table.from(
     name = "users",
     prefix = "u",
     fields = Seq("id", "slug", "status", "first_name", "last_name", "email", "email_validated", "email_validation_before_login", "avatar", "title", "bio", "mentoring", "company", "location", "phone", "website") ++ socialFields ++ Seq("created_at", "updated_at"),
     sort = Seq("first_name"),
-    search = Seq("id", "slug", "first_name", "last_name", "email", "title", "bio"),
+    search = Seq("id", "slug", "first_name", "last_name", "email", "title", "bio", "mentoring"),
     filters = Seq()).get
 
   val credentials: Table = Table.from(
@@ -41,7 +42,7 @@ object Tables {
   val groups: Table = Table.from(
     name = "groups",
     prefix = "g",
-    fields = Seq("id", "slug", "name", "logo", "banner", "contact", "website", "description", "location", "location_id", "location_lat", "location_lng", "location_locality", "location_country", "owners") ++ socialFields ++ Seq("tags", "status", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "slug", "name", "logo", "banner", "contact", "website", "description") ++ locationFields ++ Seq("owners") ++ socialFields ++ Seq("tags", "status", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("name"),
     search = Seq("id", "slug", "name", "contact", "description", "location_locality", "location_country", "tags"),
     filters = Seq()).get
@@ -161,7 +162,7 @@ object Tables {
   val externalEvents: Table = Table.from(
     name = "external_events",
     prefix = "ee",
-    fields = Seq("id", "name", "kind", "logo", "description", "start", "finish", "location", "location_id", "location_lat", "location_lng", "location_locality", "location_country", "url", "tickets_url", "videos_url", "twitter_account", "twitter_hashtag", "tags", "created_at", "created_by", "updated_at", "updated_by"),
+    fields = Seq("id", "name", "kind", "logo", "description", "start", "finish") ++ locationFields ++ Seq("url", "tickets_url", "videos_url", "twitter_account", "twitter_hashtag", "tags", "created_at", "created_by", "updated_at", "updated_by"),
     sort = Seq("-start", "name"),
     search = Seq("id", "name", "description", "location", "url", "twitter_account", "twitter_hashtag", "tags"),
     filters = Seq()).get

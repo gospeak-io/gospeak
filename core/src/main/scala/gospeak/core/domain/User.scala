@@ -119,6 +119,8 @@ object User {
 
     def bio: Option[Markdown] = user.bio
 
+    def mentoring: Option[Markdown] = user.mentoring
+
     def company: Option[String] = user.company
 
     def location: Option[String] = user.location

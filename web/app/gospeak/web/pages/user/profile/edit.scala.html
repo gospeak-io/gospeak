@@ -46,7 +46,12 @@
                     @inputMarkdown(field, Seq("placeholder" -> "Tell people a bit more about you"))
                 }
                 @fieldHorizontal(form("mentoring"), Seq("label" -> "Mentoring")) { (field, args) =>
-                    @inputMarkdown(field, Seq("placeholder" -> "Tell people a bit more about your mentoring"))
+                    @inputMarkdown(field, Seq("placeholder" -> "Help new people become speaker..."))
+                    <small class="form-text text-muted">
+                        Gospeak encourage people to become speakers. If you have some experience, take some time to mentor them. It will be very kind.<br>
+                        You can offer to to review CFP proposal, slides, give advices, propose repetitions or even be a co-speaker.<br>
+                        Use this area to describe what you can do and on which topics.
+                    </small>
                 }
             </div>
         </div>

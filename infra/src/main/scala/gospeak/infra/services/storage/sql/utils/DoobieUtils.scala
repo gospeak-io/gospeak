@@ -25,6 +25,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.language.dynamics
+import scala.util.control.NonFatal
 
 object DoobieUtils {
   private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
@@ -264,7 +265,7 @@ object DoobieUtils {
     def fr: Fragment = const0(s"INSERT INTO $table (${fields.map(_.name).mkString(", ")}) VALUES (") ++ build(elt) ++ fr0")"
 
     def run(xa: doobie.Transactor[IO]): IO[A] =
-      fr.update.run.transact(xa).flatMap {
+      exec(fr, _.update.run, xa).flatMap {
         case 1 => IO.pure(elt)
         case code => IO.raiseError(CustomException(s"Failed to insert $elt in $table (code: $code)"))
       }
@@ -274,7 +275,7 @@ object DoobieUtils {
     def fr: Fragment = fr0"UPDATE " ++ table ++ fr0" SET " ++ fields ++ where
 
     def run(xa: doobie.Transactor[IO]): IO[Done] =
-      fr.update.run.transact(xa).flatMap {
+      exec(fr, _.update.run, xa).flatMap {
         case 1 => IO.pure(Done)
         case code => IO.raiseError(CustomException(s"Failed to update ${fr.update} (code: $code)"))
       }
@@ -284,7 +285,7 @@ object DoobieUtils {
     def fr: Fragment = fr0"DELETE FROM " ++ table ++ where
 
     def run(xa: doobie.Transactor[IO]): IO[Done] =
-      fr.update.run.transact(xa).flatMap {
+      exec(fr, _.update.run, xa).flatMap {
         case 1 => IO.pure(Done)
         case code => IO.raiseError(CustomException(s"Failed to delete ${fr.update} (code: $code)"))
       }
@@ -307,13 +308,13 @@ object DoobieUtils {
 
     def query: doobie.Query0[A] = fr.query[A]
 
-    def runList(xa: doobie.Transactor[IO]): IO[List[A]] = query.to[List].transact(xa)
+    def runList(xa: doobie.Transactor[IO]): IO[List[A]] = exec(fr, _.query[A].to[List], xa)
 
-    def runOption(xa: doobie.Transactor[IO]): IO[Option[A]] = query.option.transact(xa)
+    def runOption(xa: doobie.Transactor[IO]): IO[Option[A]] = exec(fr, _.query[A].option, xa)
 
-    def runUnique(xa: doobie.Transactor[IO]): IO[A] = query.unique.transact(xa)
+    def runUnique(xa: doobie.Transactor[IO]): IO[A] = exec(fr, _.query[A].unique, xa)
 
-    def runExists(xa: doobie.Transactor[IO]): IO[Boolean] = query.option.map(_.isDefined).transact(xa)
+    def runExists(xa: doobie.Transactor[IO]): IO[Boolean] = exec(fr, _.query[A].option.map(_.isDefined), xa)
   }
 
   final case class SelectPage[A: Read, C <: BasicCtx](table: Fragment,
@@ -354,11 +355,14 @@ object DoobieUtils {
 
     def countQuery: doobie.Query0[Long] = countFr.query[Long]
 
-    def run(xa: doobie.Transactor[IO]): IO[Page[A]] = (for {
-      elts <- query.to[List]
-      total <- countQuery.unique
-    } yield Page(elts, params, Page.Total(total), sorts.names)).transact(xa)
+    def run(xa: doobie.Transactor[IO]): IO[Page[A]] = exec(fr, fr => for {
+      elts <- fr.query[A].to[List]
+      total <- countFr.query[Long].unique
+    } yield Page(elts, params, Page.Total(total), sorts.names), xa)
   }
+
+  private def exec[A](fr: Fragment, run: Fragment => doobie.ConnectionIO[A], xa: doobie.Transactor[IO]): IO[A] =
+    run(fr).transact(xa).recoverWith { case NonFatal(e) => IO.raiseError(new Exception(s"Fail on ${fr.query.sql}: ${e.getMessage}", e)) }
 
   def whereFragment(whereOpt: Option[Fragment], search: Option[Page.Search], fields: Seq[Field]): Option[Fragment] = {
     search.filter(_ => fields.nonEmpty)

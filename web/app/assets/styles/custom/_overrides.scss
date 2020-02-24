@@ -1,6 +1,7 @@
 /*
  * Bootstrap & theme global overrides
  */
+@import "overrides/badge";
 @import "overrides/buttons";
 @import "overrides/cards";
 @import "overrides/dropdowns";
@@ -9,6 +10,7 @@
 @import "overrides/links";
 @import "overrides/lists";
 @import "overrides/text";
+@import "overrides/popover";
 
 .popover {
   max-width: 600px;
