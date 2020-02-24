@@ -1,0 +1,20 @@
+@import gospeak.core.domain.SponsorPack
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.partials.html.{container, sponsorPackFields}
+@import gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
+
+@(form: Form[SponsorPack.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container("New sponsor pack - Gospeak", b)() {
+    @formElt(form, SponsorCtrl.doCreatePack(req.group.slug)) {
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Create a sponsor pack</h1>
+            <div>
+                @btnCancel(SponsorCtrl.list(req.group.slug))
+                @btnSubmit("Create")
+            </div>
+        </div>
+        @sponsorPackFields(form)
+    }
+}()

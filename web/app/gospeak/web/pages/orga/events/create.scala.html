@@ -1,0 +1,34 @@
+@import gospeak.core.domain.Event
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.events.routes.EventCtrl
+@import gospeak.web.pages.orga.partials.html.container
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
+
+@(hasMeetupAccount: Boolean, form: Form[Event.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container("New Event - Gospeak", b)() {
+    @formElt(form, EventCtrl.doCreate(req.group.slug)) {
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Create an event</h1>
+            <div>
+                @btnCancel(EventCtrl.list(req.group.slug))
+                @btnSubmit("Create")
+            </div>
+        </div>
+
+        @fieldVertical(form("name"), Seq("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "Event name", "autofocus" -> "true") ++ args)
+        }
+        @fieldVertical(form("kind"), Seq("label" -> "Kind")) { (field, args) =>
+            @inputSelect(field, Event.Kind.all.map(k => k.value -> k.value), Seq("placeholder" -> "What kind of event is it?") ++ args)
+        }
+        @fieldVertical(form("start"), Seq("label" -> "Date", "help" -> "Local date and time when the event will start")) { (field, args) =>
+            @inputLocalDatetime(field, args)
+        }
+        @inputHidden(form("description.kind"), Seq("value" -> "Mustache"))
+        @inputHidden(form("description.value"))
+        @fieldVertical(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the event (in urls for example)")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "Event slug", "slug-for" -> form("name").id) ++ args)
+        }
+    }
+}()

@@ -9,7 +9,7 @@
         <appender-ref ref="STDOUT"/>
     </appender>
 
-    <logger name="fr.gospeak" level="INFO"/>
+    <logger name="gospeak" level="INFO"/>
     <logger name="org.flywaydb" level="WARN"/>
 
     <root level="WARN">

@@ -1,0 +1,34 @@
+@import "variables";
+
+@mixin envStyles($color, $text) {
+  .navbar-brand {
+    position: relative;
+    color: $color;
+
+    &:hover,
+    &:focus {
+      color: darken($color, 20%);
+    }
+
+    &::after {
+      position: absolute;
+      top: -25px;
+      left: 0;
+      font-size: 1rem;
+      color: $color;
+      content: $text;
+    }
+  }
+}
+
+html.Local {
+  @include envStyles($local-color, "Local env");
+}
+
+html.Dev {
+  @include envStyles($dev-color, "Dev env");
+}
+
+html.Staging {
+  @include envStyles($staging-color, "Staging env");
+}

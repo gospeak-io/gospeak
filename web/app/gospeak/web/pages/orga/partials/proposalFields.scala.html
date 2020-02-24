@@ -1,0 +1,29 @@
+@import java.util.concurrent.TimeUnit
+
+@import gospeak.core.domain.Proposal
+@import gospeak.web.api.ui.routes.SuggestCtrl
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
+
+@(form: Form[Proposal.DataOrga])(implicit req: OrgaReq[AnyContent])
+@fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title for your proposal (you can adapt your talk title)")) { (field, args) =>
+    @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
+}
+@fieldHorizontal(form("duration"), Seq("label" -> "Duration", "help" -> "Duration of your proposal")) { (field, args) =>
+    @inputDuration(field, Seq(TimeUnit.MINUTES), args = args)
+}
+@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "The public description of the proposal")) { (field, args) =>
+    @inputMarkdown(field, args)
+}
+@fieldHorizontal(form("slides"), Seq("label" -> "Slides", "help" -> "Slides for your proposal")) { (field, args) =>
+    @inputEmbed(field, args)
+}
+@fieldHorizontal(form("video"), Seq("label" -> "Video", "help" -> "Video of your proposal")) { (field, args) =>
+    @inputEmbed(field, args)
+}
+@fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your proposal")) { (field, args) =>
+    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
+}
+@fieldHorizontal(form("orgaTags"), Seq("label" -> "Orga tags", "help" -> "For orga only, they are not visible to speakers")) { (field, args) =>
+    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestOrgaTags(req.group.slug).toString))
+}

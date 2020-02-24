@@ -1,0 +1,47 @@
+@import gospeak.web.auth.routes.AuthCtrl
+@import gospeak.web.auth.partials.html.container
+@import gospeak.web.auth.partials.html.loginFields
+@import gospeak.web.domain.PageMeta
+@import gospeak.web.pages.partials.form.html.formElt
+@import gospeak.web.utils.GsForms
+@import gospeak.web.utils.UserAwareReq
+
+@(form: Form[GsForms.LoginData], redirect: Option[String], providerIds: Seq[String])(implicit req: UserAwareReq[AnyContent])
+@container("Login - Gospeak", PageMeta.default(AuthCtrl.login()))() {
+    <div class="login">
+        <div class="card bg-light shadow">
+            <div class="card-body">
+                @if(req.conf.app.env.isLocal || req.conf.app.env.isDev) {
+                    <div class="alert alert-info" role="alert">
+                        This is a test instance, data is reset at each restart.<br>
+                        You can connect with a demo account:<br>
+                        <ul class="mb-0">
+                            <li>demo@@mail.com</li>
+                            <li>demo</li>
+                        </ul>
+                    </div>
+                }
+                @formElt(form, AuthCtrl.doLogin(redirect)) {
+                    @loginFields(form(""))
+                    <button type="submit" class="btn btn-primary btn-lg btn-block">Login</button>
+                }
+                @if(providerIds.nonEmpty) {
+                    <div class="social-login" style="display: none">
+                        <div class="or-block"><hr><div>or</div></div>
+                        <div class="row">
+                        @for(id <- providerIds) {
+                            <div class="col">
+                                <a href="@AuthCtrl.authenticate(id)" class="btn btn-outline-primary btn-block btn-@id">@id</a>
+                            </div>
+                        }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="mt-2 d-flex justify-content-between align-items-center">
+            <a href="@AuthCtrl.forgotPassword(redirect)" class="text-muted">Forgot password ?</a>
+            <a href="@AuthCtrl.signup(redirect)" class="text-muted">Create new account</a>
+        </div>
+    </div>
+}()

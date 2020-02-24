@@ -1,0 +1,24 @@
+@import gospeak.core.domain.{CommonProposal, Talk}
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.user.partials.html.{container, commonProposalItem}
+@import gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
+@import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserReq
+@import gospeak.libs.scala.domain.Page
+
+@(talk: Talk, proposals: Page[CommonProposal])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@container(s"${talk.title.value} proposals - Gospeak", b)() {
+    @if(proposals.isEmpty) {
+        <div class="jumbotron">
+            <h1>Still no proposal for @talk.title.value <i class="far fa-sad-tear"></i></h1>
+            <p class="lead">Find some CFP and propose it</p>
+            <p class="text-center">
+                <a href="@CfpCtrl.list(talk.slug)" class="btn btn-lg btn-success">Find a CFP to propose your talk</a>
+            </p>
+        </div>
+    } else {
+        <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") for @talk.title.value</h1>
+        @Formats.paginated[CommonProposal](proposals, ProposalCtrl.list(talk.slug, _), commonProposalItem(_))
+    }
+}()

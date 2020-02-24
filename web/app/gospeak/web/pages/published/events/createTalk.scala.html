@@ -1,0 +1,21 @@
+@import gospeak.core.domain.{ExternalEvent, Talk}
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.published.events.routes.EventCtrl
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.pages.user.partials.html.talkFields
+@import gospeak.web.utils.UserReq
+
+@(event: ExternalEvent, form: Form[Talk.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@container(s"New talk - Gospeak", PageMeta.event(event), b)() {
+    @formElt(form, EventCtrl.doCreateTalk(event.id)) {
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Create a talk</h1>
+            <div>
+                @btnCancel(EventCtrl.findTalk(event.id))
+                @btnSubmit("Create")
+            </div>
+        </div>
+        @talkFields(form(""))(req.userAware)
+    }
+}()(req.userAware)

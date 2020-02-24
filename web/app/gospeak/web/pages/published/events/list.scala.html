@@ -1,0 +1,19 @@
+@import gospeak.core.domain.{CommonEvent, User}
+@import gospeak.infra.services.storage.sql.ExternalEventRepoSql
+@import gospeak.libs.scala.domain.Page
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.published.events.routes.EventCtrl
+@import gospeak.web.pages.published.partials.html.{container, commonEventItem}
+@import gospeak.web.utils.{Formats, UserAwareReq}
+
+@(events: Page[CommonEvent], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container("Events - Gospeak", PageMeta.default(EventCtrl.list()), b)() {
+    <div class="w-md-80 w-lg-80 text-center mx-md-auto mb-5">
+        <h2 class="text-primary">Events</h2>
+        <p>
+            Here are events interesting the Gospeak community.<br>
+            <a class="btn btn-text btn-text-success" href="@EventCtrl.create()">Add a missing event</a>
+        </p>
+    </div>
+    @Formats.paginated[CommonEvent](events, EventCtrl.list, commonEventItem(_), ExternalEventRepoSql.commonTable.filters)
+}()

@@ -1,0 +1,20 @@
+@import gospeak.core.domain.Proposal
+@import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
+
+@(proposal: Proposal.Full, userGrade: Option[Proposal.Rating.Grade], btnClass: String = "")(implicit req: OrgaReq[AnyContent])
+@userGrade match {
+    case Some(Proposal.Rating.Grade.Like) => {
+        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), Seq("class" -> s"btn-secondary $btnClass")) {@proposal.dislikes <i class="far fa-thumbs-down"></i>}
+        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Like), Seq("class" -> s"btn-success $btnClass")) {@proposal.likes <i class="far fa-thumbs-up"></i>}
+    }
+    case Some(Proposal.Rating.Grade.Dislike) => {
+        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), Seq("class" -> s"btn-danger $btnClass")) {@proposal.dislikes <i class="far fa-thumbs-down"></i>}
+        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Like), Seq("class" -> s"btn-secondary $btnClass")) {@proposal.likes <i class="far fa-thumbs-up"></i>}
+    }
+    case None => {
+        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), Seq("class" -> s"btn-danger $btnClass")) {@proposal.dislikes <i class="far fa-thumbs-down"></i>}
+        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Like), Seq("class" -> s"btn-success $btnClass")) {@proposal.likes <i class="far fa-thumbs-up"></i>}
+    }
+}

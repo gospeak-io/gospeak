@@ -1,0 +1,32 @@
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.partials.html.container
+@import gospeak.web.pages.orga.routes.GroupCtrl
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.GsForms
+@import gospeak.web.utils.OrgaReq
+
+@(form: Form[GsForms.GroupContact])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(s"Contact ${req.group.name.value} members - Gospeak", b)() {
+    <h1>Contact @req.group.name.value members</h1>
+
+    @formElt(form, GroupCtrl.doContactMembers(req.group.slug)) {
+        @fieldHorizontal(form("from"), Seq("label" -> "Sender")) { (field, args) =>
+            @req.senders.zipWithIndex.map { case (contact, i) =>
+                <div class="custom-control custom-radio">
+                    <input type="radio" class="custom-control-input" id="@field.id-@i" name="@field.name" value="@contact.address.value"@if(i == 0){ checked} required>
+                    <label class="custom-control-label" for="@field.id-@i">@contact.format</label>
+                </div>
+            }
+        }
+        @fieldHorizontal(form("subject"), Seq("label" -> "Subject")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "ex: Hey, what's up friends?", "autofocus" -> "true") ++ args)
+        }
+        @fieldHorizontal(form("content"), Seq("label" -> "Message")) { (field, args) =>
+            @inputMarkdown(field, args)
+        }
+        @actionsHorizontal() {
+            @btnCancel(GroupCtrl.detail(req.group.slug))
+            @btnSubmit("Send message")
+        }
+    }
+}()

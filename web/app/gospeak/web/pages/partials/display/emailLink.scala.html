@@ -1,0 +1,4 @@
+@import gospeak.libs.scala.domain.EmailAddress
+
+@(email: EmailAddress)
+<span class="email-link"><i class="fas fa-envelope" title="Email"></i> <a href="mailto:@email.value" class="no-style" target="_blank">@email.value</a></span>

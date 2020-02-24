@@ -1,0 +1,43 @@
+/*
+ * Bootstrap & theme global overrides
+ */
+@import "overrides/buttons";
+@import "overrides/cards";
+@import "overrides/dropdowns";
+@import "overrides/forms";
+@import "overrides/header";
+@import "overrides/links";
+@import "overrides/lists";
+@import "overrides/text";
+
+.popover {
+  max-width: 600px;
+}
+
+[data-toggle="collapse"] {
+  cursor: pointer;
+}
+
+.pagination {
+  margin-bottom: 0;
+}
+
+.u-sidebar--account__toggle-bg {
+  border-radius: 6.1875rem;
+}
+
+.u-avatar,
+.u-xs-avatar,
+.u-sm-avatar,
+.u-lg-avatar,
+.u-xl-avatar {
+  display: inline-block;
+  background: $white;
+}
+
+.badge-outline-primary {
+  color: $primary;
+  background: $white;
+  border-color: $primary;
+  border-width: 1px;
+}

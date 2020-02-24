@@ -1,0 +1,21 @@
+@import gospeak.core.domain.ExternalEvent
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.published.events.routes.EventCtrl
+@import gospeak.web.pages.published.partials.html.{container, externalEventFields}
+@import gospeak.web.utils.UserReq
+
+@(form: Form[ExternalEvent.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@container("Add event - Gospeak", PageMeta.default(EventCtrl.create()), b)() {
+    @formElt(form, EventCtrl.doCreate()) {
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Add new event</h1>
+            <div>
+                @btnCancel(EventCtrl.list())
+                @btnSubmit("Add event")
+            </div>
+        </div>
+
+        @externalEventFields(form(""))
+    }
+}()(req.userAware)

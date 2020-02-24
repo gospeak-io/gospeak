@@ -1,0 +1,5 @@
+@(flash: Flash)
+@flash.get("success").map { msg => @alert("success")(Html(msg)) }
+@flash.get("info").map { msg => @alert("info")(Html(msg)) }
+@flash.get("warning").map { msg => @alert("warning")(Html(msg)) }
+@flash.get("error").map { msg => @alert("danger")(Html(msg)) }

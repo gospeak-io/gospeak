@@ -1,0 +1,38 @@
+@import gospeak.core.domain.{User, UserRequest}
+@import gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.OrgaReq
+
+@(orgas: Seq[User], invites: Seq[UserRequest.GroupInvite])(implicit req: OrgaReq[AnyContent])
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Organizers</span>
+        <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#inviteUserModal">Invite orga</button>
+    </div>
+    <ul class="list-group list-group-flush px-2">
+        @orgas.map { orga =>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>@orga.name.value</span>
+                <span>
+                    @formBtn(SettingsCtrl.doRemoveOrga(req.group.slug, orga.slug), Seq(
+                        "class" -> "btn btn-danger btn-xs",
+                        "title" -> "Remove this orga",
+                        "confirm" -> s"Remove ${orga.name.value} from ${req.group.name.value} group?")) {Remove}
+                </span>
+            </li>
+        }
+        @invites.map { invite =>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span class="text-muted">@invite.email.value</span>
+                <span>
+                    @formBtn(SettingsCtrl.cancelInviteOrga(req.group.slug, invite.id), Seq(
+                        "class" -> "btn btn-danger btn-xs",
+                        "title" -> "Cancel this invite",
+                        "confirm" -> s"Cancel invite for ${invite.email.value} to ${req.group.name.value} group?")) {Cancel}
+                </span>
+            </li>
+        }
+    </ul>
+
+    @inviteUserModal(SettingsCtrl.inviteOrga(req.group.slug), req.group.name.value, "co-orga")
+</div>

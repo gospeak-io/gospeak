@@ -1,0 +1,49 @@
+@import gospeak.web.pages.partials.container.html.{favicon, analytics}
+@import gospeak.web.utils.UserAwareReq
+
+@()(implicit req: UserAwareReq[AnyContent])
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="@routes.Assets.versioned("swagger-ui-dist/swagger-ui.css")">
+        <style>
+                html {
+                    box-sizing: border-box;
+                    overflow: -moz-scrollbars-vertical;
+                    overflow-y: scroll;
+                }
+
+                *,
+                *:before,
+                *:after {
+                    box-sizing: inherit;
+                }
+
+                body {
+                    margin: 0;
+                    background: #fafafa;
+                }
+        </style>
+        <title>[API doc] Gospeak</title>
+        @favicon()
+    </head>
+    <body>
+        <div id="swagger-ui"></div>
+        <script type="text/javascript" src="@routes.Assets.versioned("swagger-ui-dist/swagger-ui-bundle.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("swagger-ui-dist/swagger-ui-standalone-preset.js")"></script>
+        <script>
+                window.onload = function () {
+                    // see https://github.com/swagger-api/swagger-ui/blob/master/docs/usage/configuration.md
+                    window.ui = SwaggerUIBundle({
+                        url: "api/openapi.json",
+                        dom_id: '#swagger-ui',
+                        deepLinking: true,
+                        presets: [SwaggerUIBundle.presets.apis]
+                    });
+                }
+        </script>
+        @analytics()
+    </body>
+</html>

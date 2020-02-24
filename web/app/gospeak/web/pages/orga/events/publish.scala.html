@@ -1,0 +1,41 @@
+@import gospeak.core.domain.Event
+@import gospeak.libs.scala.domain.Markdown
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.events.routes.EventCtrl
+@import gospeak.web.pages.orga.partials.html.container
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.GsForms.PublishOptions
+@import gospeak.web.utils.OrgaReq
+
+@(event: Event, description: Markdown, form: Form[PublishOptions], hasMeetupAccount: Boolean)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(s"Publish ${event.name.value} - Gospeak", b)() {
+    <h1>Let's review your event before publishing</h1>
+
+    @formElt(form, EventCtrl.doPublish(req.group.slug, event.slug)) {
+        <h3 class="d-flex justify-content-between align-items-center">
+            @event.name.value
+            @event.maxAttendee.map { max =>  <span>@Formats.plural(max, "place")</span> }
+        </h3>
+
+        <h4 class="mt-3">Options</h4>
+        <div class="custom-control custom-switch">
+            @inputSwitch(form("notifyMembers"), Seq("label" -> "Notify group members"))
+        </div>
+        @if(hasMeetupAccount) {
+            <div class="custom-control custom-switch">
+                @inputSwitch(form("meetup.publish"), Seq("label" -> "Publish on Meetup (create a draft event)"))
+            </div>
+            @inputHidden(form("meetup.draft"))
+        }
+
+        <h4 class="mt-3">Description</h4>
+        @markdown(description)
+
+        @actionsVertical() {
+            @btnCancel(EventCtrl.detail(req.group.slug, event.slug))
+            @btnSubmit("Publish it!")
+        }
+    }
+}()

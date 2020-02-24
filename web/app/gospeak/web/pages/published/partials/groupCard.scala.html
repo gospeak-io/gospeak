@@ -1,0 +1,118 @@
+@import gospeak.core.domain.{Cfp, Group, Sponsor, SponsorPack, User}
+@import gospeak.core.domain.utils.Constants
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.routes.{GroupCtrl => OrgaGroupCtrl}
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import gospeak.web.utils.UserAwareReq
+
+@(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], users: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+<div class="col-lg-4 mb-3 mb-lg-0">
+    <div class="card shadow-sm p-5">
+        <div class="text-center">
+            <a href="@GroupCtrl.detail(group.slug)">
+                <img class="u-lg-avatar rounded-circle mb-3" src="@group.logo.map(_.url.value).getOrElse(Constants.Placeholders.groupLogo)" alt="@group.name.value logo"/>
+            </a>
+            <h1 class="h5">
+                @group.name.value
+                @if(req.isOrga(group)) {
+                    <a href="@OrgaGroupCtrl.detail(group.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
+                    <a href="@OrgaGroupCtrl.edit(group.slug, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
+                }
+            </h1>
+            @group.website.map { u =>
+                <div class="mb-3">
+                    <a class="font-size-1" href="@u.value" target="_blank">Website</a>
+                </div>
+            }
+            @cfps match {
+                case Seq() => {}
+                case Seq(cfp) => {
+                    <div class="mb-3">
+                        <a class="btn btn-soft-primary transition-3d-hover" href="@CfpCtrl.propose(cfp.slug)">Propose a talk</a>
+                    </div>
+                }
+                case cfps => {
+                    <div class="mb-3">
+                        <div class="dropdown">
+                            <button class="btn btn-soft-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Propose a talk
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                @cfps.map { cfp =>
+                                    <a class="dropdown-item" href="@CfpCtrl.propose(cfp.slug)">@cfp.name.value</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            <div class="mb-3">
+                @userMembership.map { _ =>
+                    <a class="text-muted small" href="@GroupCtrl.doLeave(group.slug)"><i class="fas fa-flag"></i> Leave the group</a>
+                }.getOrElse {
+                    <a class="btn btn-sm btn-soft-success transition-3d-hover" href="@GroupCtrl.doJoin(group.slug)">Join this group</a>
+                }
+            </div>
+            <div>
+                Organized by<br>
+                <ul class="list-inline hover-grow ml-3 mb-0">
+                    @group.owners.toList.flatMap(id => users.find(_.id == id)).map { user =>
+                        <li class="list-inline-item ml-n3 mr-0">
+                            <a href="@SpeakerCtrl.detail(user.slug)" title="@user.name.value" data-toggle="tooltip">
+                                <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@user.avatar.value" alt="@user.name.value avatar">
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <hr class="mt-5 mb-5">
+
+        <div class="row">
+            <div class="col text-center">
+                <a href="@GroupCtrl.members(group.slug)">
+                    <span class="h5 d-block font-weight-bold mb-0 mt-1">@group.memberCount</span>
+                    <span class="d-block text-secondary font-size-1">Members</span>
+                </a>
+            </div>
+            <div class="col text-center">
+                <a href="@GroupCtrl.events(group.slug)">
+                    <span class="h5 d-block font-weight-bold mb-0 mt-1">@group.eventCount</span>
+                    <span class="d-block text-secondary font-size-1">Events</span>
+                </a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col text-center">
+                <a href="@GroupCtrl.speakers(group.slug)">
+                    <span class="h5 d-block font-weight-bold mb-0 mt-1">@speakerCount</span>
+                    <span class="d-block text-secondary font-size-1">Speakers</span>
+                </a>
+            </div>
+            <div class="col text-center">
+                <a href="@GroupCtrl.talks(group.slug)">
+                    <span class="h5 d-block font-weight-bold mb-0 mt-1">@group.talkCount</span>
+                    <span class="d-block text-secondary font-size-1">Talks</span>
+                </a>
+            </div>
+        </div>
+
+        <hr class="mt-5 mb-5">
+
+        <div>
+            <h4 class="font-size-1 font-weight-semi-bold text-uppercase mb-3">Linked accounts</h4>
+            @group.social.all.zipWithIndex.map { case (s, i) =>
+                <a class="media align-items-center @if(i != 0){mt-2}" href="@s.link" target="_blank">
+                    <i class="fab fa-@s.name mr-3"></i>
+                    <div class="media-body">
+                        <h4 class="font-size-1 text-dark mb-0 text-capitalize">@s.name</h4>
+                        <small class="d-block text-secondary">@s.handle</small>
+                    </div>
+                </a>
+            }
+        </div>
+    </div>
+</div>

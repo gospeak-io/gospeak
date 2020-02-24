@@ -1,0 +1,30 @@
+@import gospeak.web.api.ui.routes.SuggestCtrl
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.UserAwareReq
+@import java.util.concurrent.TimeUnit
+
+@(form: Field /*Form[Talk.Data]*/)(implicit req: UserAwareReq[AnyContent])
+@fieldHorizontal(form("title"), Seq("label" -> "Title", "help" -> "Title of your talk")) { (field, args) =>
+    @inputText(field, Seq("placeholder" -> "ex: Awesome FP, the practical way", "autofocus" -> "true") ++ args)
+}
+@fieldHorizontal(form("duration"), Seq("label" -> "Duration", "help" -> "Duration of your talk")) { (field, args) =>
+    @inputDuration(field, Seq(TimeUnit.MINUTES), args = args)
+}
+@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Give a abstract for your talk, you should make orga and people listen at you")) { (field, args) =>
+    @inputMarkdown(field, args)
+}
+@fieldHorizontal(form("message"), Seq("label" -> "Message", "help" -> "A private message for orgas, give more details about you, your talk and why they should select you")) { (field, args) =>
+    @inputMarkdown(field, args)
+}
+@fieldHorizontal(form("slides"), Seq("label" -> "Slides", "help" -> "Slides for your talk")) { (field, args) =>
+    @inputEmbed(field, Seq("placeholder" -> "ex: https://www.slideshare.net/loicknuchel/scala-bad-practices-scalaio-2019") ++ args)
+}
+@fieldHorizontal(form("video"), Seq("label" -> "Video", "help" -> "Video of your talk")) { (field, args) =>
+    @inputEmbed(field, Seq("placeholder" -> "ex: https://www.youtube.com/watch?v=Tm-qyMukBq4") ++ args)
+}
+@fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your talk")) { (field, args) =>
+    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
+}
+@fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference for your talk (in urls for example)")) { (field, args) =>
+    @inputText(field, Seq("placeholder" -> "Talk slug", "slug-for" -> form("title").id) ++ args)
+}

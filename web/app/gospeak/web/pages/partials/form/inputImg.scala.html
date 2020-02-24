@@ -1,0 +1,41 @@
+@import gospeak.core.services.upload.UploadConf
+@import gospeak.web.pages.partials.form.ImgConf
+@import gospeak.web.api.ui.routes.UtilsCtrl
+@import gospeak.web.utils.UserReq
+
+@(field: Field, conf: ImgConf)(implicit req: UserReq[AnyContent])
+@req.conf.upload match {
+    case _: UploadConf.Url => {
+        <div class="input-imageurl">
+            @inputText(field, conf.args ++ Seq("placeholder" -> "ex: https://gospeak.io/logo.png"))
+            <img class="preview" src="" style="height: 50px; margin-top: 5px; display: none;"/>
+        </div>
+    }
+    case UploadConf.Cloudinary(cloudName, uploadPreset, creds) => {
+        <div class="cloudinary-img-widget">
+            <div class="d-flex flex-row align-items-center">
+                @conf.select.map { _ => <span class="btn btn-secondary select mr-1" role="button" data-toggle="collapse" href="#collapseGallery">Select image</span> }
+                <button class="btn btn-primary upload mr-1"
+                    data-cloud-name="@cloudName"
+                    @uploadPreset.map { v => data-upload-preset="@v" }
+                    @creds.map { v => data-api-key="@v.key" data-sign-url="@UtilsCtrl.cloudinarySignature()" }
+                    @conf.folder.map { v => data-folder="@v" }
+                    @conf.name.map { v => data-name="@v" }
+                    @conf.dynamicName.map { v => data-dynamic-name="@v" }
+                    @if(conf.tags.nonEmpty) { data-tags="@conf.tags.mkString(",")" }
+                    @conf.maxFiles.map { v => data-max-files="@v" }
+                    @conf.ratio.map { v => data-ratio="@v" }
+                    @if(conf.select.isDefined){ title="Will use search text as public id of the image" data-toggle="tooltip" }>Upload image</button>
+                <img class="preview" src="" style="height: 38px; display: none;"/>
+            </div>
+            @inputHidden(field)
+            @conf.select.map { url =>
+                <div id="collapseGallery" class="collapse gallery" data-remote="@url">
+                    <div class="form-inline mt-1">
+                        <input type="text" class="form-control" placeholder="Search for logo...">
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}

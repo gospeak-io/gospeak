@@ -1,9 +1,0 @@
-@import fr.gospeak.core.domain.Group
-@import fr.gospeak.web.pages.partials.display.html._
-@import fr.gospeak.web.pages.published.groups.routes.GroupCtrl
-
-@(group: Group)
-<a class="list-group-item list-group-item-action" href="@GroupCtrl.detail(group.slug)">
-    <h5 class="mb-0">@group.name.value</h5>
-    @tags(group.tags)
-</a>

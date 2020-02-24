@@ -14,7 +14,7 @@
 
     <logger name="play" level="INFO"/>
     <logger name="application" level="INFO"/>
-    <logger name="fr.gospeak" level="INFO"/>
+    <logger name="gospeak" level="INFO"/>
 
     <logger name="com.gargoylesoftware.htmlunit.javascript" level="OFF"/>
 

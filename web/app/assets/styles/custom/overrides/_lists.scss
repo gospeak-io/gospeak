@@ -1,0 +1,18 @@
+/*
+ * Bootstrap & theme global overrides
+ */
+@import "../../front/variables";
+
+.list-group-flush .list-group-item {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.list-group-item ul,
+.list-group-item ol {
+  margin-bottom: 0;
+}
+
+.list-group-item.inactive a {
+  color: $gray-600;
+}

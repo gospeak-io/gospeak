@@ -4,6 +4,8 @@
 [![Codacy Badge](https://img.shields.io/codacy/grade/45ed63364ff14a87b7f1dad81ffee091.svg)](https://www.codacy.com/app/loicknuchel/gospeak?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=loicknuchel/gospeak&amp;utm_campaign=Badge_Grade)
 [![Codacy Badge](https://img.shields.io/codacy/coverage/45ed63364ff14a87b7f1dad81ffee091.svg)](https://www.codacy.com/app/loicknuchel/gospeak?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=loicknuchel/gospeak&amp;utm_campaign=Badge_Grade)
 
+Social links: [@GospeakApp](https://twitter.com/GospeakApp)
+
 Finally an app to help meetup (or small conference) orgas and speaker to fulfill their goal.
 
 On the **organizer** side, they can *create a group* (like a meetup group) and then manage their *events*, *CFPs* and even *sponsors*.

@@ -1,0 +1,28 @@
+@import gospeak.web.pages.partials.form.Utils
+@import java.util.concurrent.TimeUnit
+
+@(field: Field, timeUnits: Seq[TimeUnit] = Utils.timeUnits, args: Seq[(String, String)] = Seq())
+@display(lengthField: Field, unitField: Field) = {
+    <div class="row">
+        <div class="col">
+            @inputNumber(lengthField, args)
+        </div>
+        <div class="col">
+            @if(timeUnits.length == 1) {
+                @inputHidden(unitField, ("value", timeUnits.head.name()) +: args)
+                <input type="text" class="form-control-plaintext" value="@timeUnits.head.name().toLowerCase.capitalize" readonly tabindex="-1" />
+            } else {
+                @inputSelect(unitField, timeUnits.map(u => (u.name(), u.name().toLowerCase.capitalize)), ("placeholder", "time unit") +: args)
+            }
+        </div>
+    </div>
+}
+@if(timeUnits.exists(u => field("unit").value.contains(u.name()))) {
+    @display(field("length"), field("unit"))
+} else {
+    @timeUnits.headOption.map { u =>
+        @display(Utils.convert(field("length"), field("unit").value, u), field("unit").copy(value = Some(u.name())))
+    }.getOrElse {
+        @display(field("length"), field("unit"))
+    }
+}

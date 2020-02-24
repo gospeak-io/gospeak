@@ -1,0 +1,56 @@
+@import gospeak.core.domain.Event
+@import gospeak.web.api.ui.routes.SuggestCtrl
+@import gospeak.web.pages.partials.form.ImgConf
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.UserReq
+
+@(form: Field /*Form[ExternalEvent.Data]*/)(implicit req: UserReq[AnyContent])
+<div class="card mb-3">
+    <div class="card-header" data-toggle="collapse" data-target="#eventCollapse">Event infos</div>
+    <div class="card-body collapse show" id="eventCollapse">
+        @fieldHorizontal(form("url"), Seq("label" -> "Url", "help" -> "The link to the event website")) { (field, args) =>
+            @inputUrl(field, Seq("placeholder" -> "ex: http://2018.breizhcamp.org", "autofocus" -> "true") ++ args)
+        }
+        @fieldHorizontal(form("name"), Seq("label" -> "Name")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "The event name") ++ args)
+        }
+        @fieldHorizontal(form("kind"), Seq("label" -> "Kind")) { (field, args) =>
+            @inputSelect(field, Event.Kind.all.map(k => k.value -> k.value), Seq("placeholder" -> "What kind of event is it?") ++ args)
+        }
+        @fieldHorizontal(form("start"), Seq("label" -> "Dates")) { (field, args) =>
+            <div class="row">
+                <div class="col">@inputLocalDate(field, Seq("placeholder" -> "Start date") ++ args)</div>
+                <div class="col">@inputLocalDate(form("finish"), Seq("placeholder" -> "End date") ++ args)</div>
+            </div>
+        }
+        @fieldHorizontal(form("logo"), Seq("label" -> "Logo")) { (field, args) =>
+            @inputImg(field, ImgConf.externalEventLogo(form("name")))
+        }
+        @fieldHorizontal(form("location"), Seq("label" -> "Location")) { (field, args) =>
+            @inputGMapPlace(field, Seq("placeholder" -> "Location of the event (address or city)") ++ args)
+        }
+        @fieldHorizontal(form("tags"), Seq("label" -> "Tags")) { (field, args) =>
+            @inputTags(field, Seq("remote" -> SuggestCtrl.suggestTags().toString, "placeholder" -> "Main topics of this event") ++ args)
+        }
+    </div>
+</div>
+<div class="card mb-3">
+    <div class="card-header" data-toggle="collapse" data-target="#moreCollapse">More infos</div>
+    <div class="card-body collapse show" id="moreCollapse">
+        @fieldHorizontal(form("tickets"), Seq("label" -> "Tickets")) { (field, args) =>
+            @inputUrl(field, Seq("placeholder" -> "Url to buy tickets") ++ args)
+        }
+        @fieldHorizontal(form("videos"), Seq("label" -> "Videos")) { (field, args) =>
+            @inputUrl(field, Seq("placeholder" -> "Url to find videos") ++ args)
+        }
+        @fieldHorizontal(form("twitterAccount"), Seq("label" -> "Twitter account")) { (field, args) =>
+            @inputTwitterAccount(field, Seq("placeholder" -> "ex: https://twitter.com/DevoxxFR") ++ args)
+        }
+        @fieldHorizontal(form("twitterHashtag"), Seq("label" -> "Twitter hashtag")) { (field, args) =>
+            @inputTwitterHashtag(field, Seq("placeholder" -> "ex: #DevoxxFR") ++ args)
+        }
+        @fieldHorizontal(form("description"), Seq("label" -> "Description")) { (field, args) =>
+            @inputMarkdown(field, Seq("placeholder" -> "Tell us a bit more about this event") ++ args)
+        }
+    </div>
+</div>

@@ -1,0 +1,18 @@
+/*
+ * Bootstrap & theme global overrides
+ */
+@import "../../front/variables";
+
+.text-capitalize {
+  text-transform: none !important;
+}
+
+.text-capitalize::first-letter {
+  text-transform: uppercase;
+}
+
+.p {
+  color: $gray-700;
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}

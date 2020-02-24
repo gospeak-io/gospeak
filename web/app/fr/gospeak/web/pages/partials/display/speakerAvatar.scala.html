@@ -1,8 +1,0 @@
-@import fr.gospeak.core.domain.User
-@import fr.gospeak.core.domain.utils.Constants.Image
-@(speakers: Seq[User], id: User.Id, call: Option[User => Call] = None)
-@(speakers.find(_.id == id), call) match {
-    case (Some(user), Some(url)) => {<a href="@url(user)" title="@user.nameAndCompany" data-toggle="tooltip" data-placement="top"><img src="@user.avatar.url.value" alt="@user.name.value avatar" class="u-sm-avatar rounded-circle"></a>}
-    case (Some(user), None) => {<span title="@user.nameAndCompany" data-toggle="tooltip" data-placement="top"><img src="@user.avatar.url.value" alt="@user.name.value avatar" class="u-sm-avatar rounded-circle"></span>}
-    case (None, _) => {<span title="Unknow user" data-toggle="tooltip" data-placement="top" data-user-id="@id.value"><img src="@Image.placeholderUnknownUser" alt="Unknown user avatar" class="u-sm-avatar rounded-circle"></span>}
-}

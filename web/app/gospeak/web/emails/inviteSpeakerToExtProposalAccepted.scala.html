@@ -1,0 +1,9 @@
+@import gospeak.core.domain.{ExternalProposal, User, UserRequest}
+@import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
+@import gospeak.web.utils.UserReq
+
+@(invite: UserRequest.ExternalProposalInvite, proposal: ExternalProposal.Full, speaker: User)(implicit req: UserReq[AnyContent])
+<p>Hi @speaker.name.value,</p>
+<p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has <b>accepted</b> your invitation to <a href="@req.format(ProposalCtrl.detailExt(proposal.talk.slug, proposal.id))">@proposal.title.value</a> proposal.</p>
+<p>Together you are stronger, keep going!</p>
+<p>The Gospeak team</p>

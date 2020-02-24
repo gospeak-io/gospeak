@@ -1,0 +1,10 @@
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.{GsForms, UserReq}
+
+@(call: Call)(implicit req: UserReq[AnyContent])
+@formElt(GsForms.embed, call, Seq("class" -> "mb-2")) {
+    <div class="row">
+        <div class="col-9">@inputEmbed(GsForms.embed("url"), Seq("placeholder" -> "Slides (ex: https://fr.slideshare.net/loicknuchel/scala-bad-practices-scalaio-2019)", "class" -> "form-control-xs"))</div>
+        <div class="col">@btnSubmit("Add slides", "btn btn-secondary btn-sm")</div>
+    </div>
+}

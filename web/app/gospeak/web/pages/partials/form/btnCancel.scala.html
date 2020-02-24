@@ -1,0 +1,5 @@
+@import gospeak.web.utils.HttpUtils
+@import gospeak.web.utils.BasicReq
+
+@(call: => Call, redirect: Option[String] = None, name: String = "Cancel", classes: String = "btn btn-soft-secondary")(implicit req: BasicReq[AnyContent])
+<a href="@HttpUtils.cancelUrl(req, call)" class="@classes">@name</a>

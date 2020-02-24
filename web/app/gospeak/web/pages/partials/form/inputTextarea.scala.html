@@ -1,0 +1,14 @@
+@import gospeak.web.pages.partials.form.Utils
+
+@(field: Field, args: Seq[(String, String)] = Seq())
+<textarea
+    @Utils.idAttr(field, args)
+    @Utils.nameAttr(field, args)
+    @Utils.classAttr(field, args, "form-control")
+    @Utils.placeholderAttr(args)
+    @Utils.requiredAttr(field, args)
+    @Utils.patternAttr(field)
+    @Utils.autofocusAttr(args)
+    @Utils.helpAttr(args)
+    @Utils.otherAttrs(args)
+    >@Utils.value(field, args)</textarea>

@@ -1,3 +1,0 @@
-@import fr.gospeak.web.pages.partials.form.Utils.ArgsWrapper
-@(field: Field, args: Seq[(String, String)] = Seq())
-@inputText(field, ArgsWrapper(args).replace("type", "text").extend("class", " input-time").toArgs)

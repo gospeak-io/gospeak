@@ -1,0 +1,66 @@
+@import gospeak.core.domain.{CommonProposal, User}
+@import gospeak.web.pages.orga.cfps.proposals.routes.{ProposalCtrl => OrgaProposalCtrl}
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.published.events.routes.EventCtrl
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.pages.user.talks.proposals.routes.{ProposalCtrl => SpeakerProposalCtrl}
+@import gospeak.web.utils.{Formats, UserAwareReq}
+
+@(user: User.Full, proposals: List[CommonProposal])(implicit req: UserAwareReq[AnyContent])
+@eventLink(p: CommonProposal) = @{
+    p.event.map(e => GroupCtrl.event(p.group.get.slug, e.slug))
+            .orElse(p.eventExt.map(e => EventCtrl.detailExt(e.id))).get
+}
+@proposalLink(p: CommonProposal) = @{
+    p.event.map(e => GroupCtrl.talk(p.group.get.slug, p.id.internal))
+            .orElse(p.eventExt.map(e => EventCtrl.proposalExt(e.id, p.id.external))).get
+}
+<ul class="list-unstyled u-indicator-vertical-dashed">
+    @proposals.sortBy(-_.date.getEpochSecond).map { proposal =>
+        <li class="media u-indicator-vertical-dashed-item">
+            @proposal.event.map { event =>
+                <span class="btn btn-xs btn-icon btn-@Formats.color(event.kind) rounded-circle mr-3">
+                    <span class="btn-icon__inner">@eventKindIcon(event.kind)</span>
+                </span>
+                <div class="media-body">
+                    <h5 class="font-size-1 mb-1">
+                        <a href="@proposalLink(proposal)">@proposal.title.value</a>
+                        @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
+                        @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+                        @if(req.isSpeaker(proposal)) {
+                            <a href="@SpeakerProposalCtrl.detail(proposal.talk.slug, proposal.cfp.get.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
+                            <a href="@SpeakerProposalCtrl.edit(proposal.talk.slug, proposal.cfp.get.slug, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
+                        }
+                        @if(req.isOrga(proposal) && !req.isSpeaker(proposal)) {
+                            <a href="@OrgaProposalCtrl.detail(proposal.group.get.slug, proposal.cfp.get.slug, proposal.id.internal)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
+                            <a href="@OrgaProposalCtrl.edit(proposal.group.get.slug, proposal.cfp.get.slug, proposal.id.internal, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
+                        }
+                    </h5>
+                    <p class="small mb-1">
+                        At <a class="no-style" href="@eventLink(proposal)">@event.name.value</a>, @Formats.date(proposal.date)
+                    </p>
+                </div>
+            }
+            @proposal.eventExt.map { event =>
+                <span class="btn btn-xs btn-icon btn-@Formats.color(event.kind) rounded-circle mr-3">
+                    <span class="btn-icon__inner">@eventKindIcon(event.kind)</span>
+                </span>
+                <div class="media-body">
+                    <h5 class="font-size-1 mb-1">
+                        <a href="@proposalLink(proposal)">@proposal.title.value</a>
+                        @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
+                        @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+                        @if(req.isSpeaker(proposal)) {
+                            <a href="@SpeakerProposalCtrl.detailExt(proposal.talk.slug, proposal.id.external)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
+                            <a href="@SpeakerProposalCtrl.editExt(proposal.talk.slug, proposal.id.external, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
+                        }
+                    </h5>
+                    <p class="small mb-1">
+                        At <a href="@eventLink(proposal)" class="no-style">@event.name.value</a>,
+                        @Formats.date(proposal.date)
+                    </p>
+                </div>
+            }
+        </li>
+    }
+</ul>

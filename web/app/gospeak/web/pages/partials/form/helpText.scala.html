@@ -1,0 +1,10 @@
+@import gospeak.web.pages.partials.form.Utils
+@import gospeak.web.utils.BasicReq
+
+@(field: Field, args: Seq[(String, String)], help: String)(implicit req: BasicReq[AnyContent])
+<span id="@Utils.helpId(args, field)" class="text-muted">
+@Seq(
+    Some(help),
+    Utils.hasPattern(field).map(req.format)
+).flatten.mkString(", ")
+</span>

@@ -1,0 +1,106 @@
+@import gospeak.core.domain.{CommonProposal, Talk, User, UserRequest}
+@import gospeak.libs.scala.domain.Page
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.partials.html.{slidesFields, videoFields}
+@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import gospeak.web.pages.user.partials.html.{container, commonProposalItem}
+@import gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
+@import gospeak.web.pages.user.talks.routes.TalkCtrl
+@import gospeak.web.utils.{Formats, UserReq}
+
+@(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Seq[CommonProposal])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@container(s"${talk.title.value} - Gospeak", b)() {
+    <h1 class="d-flex justify-content-between align-items-center">
+        <span>@talk.title.value</span>
+        <span class="btn-group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-cog"></i>
+            </button>
+            <span class="dropdown-menu dropdown-menu-right">
+                <a class="dropdown-item" href="@TalkCtrl.edit(talk.slug)">Edit</a>
+                @if(talk.status != Talk.Status.Public) {
+                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Public), Seq(
+                        "class" -> "dropdown-item",
+                        "title" -> Talk.Status.Public.description,
+                        "data-toggle" -> "tooltip",
+                        "data-placement" -> "left")) {Make it public}
+                }
+                @if(talk.status != Talk.Status.Private) {
+                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Private), Seq(
+                        "class" -> "dropdown-item",
+                        "title" -> Talk.Status.Private.description,
+                        "data-toggle" -> "tooltip",
+                        "data-placement" -> "left")) {Make it private}
+                }
+                @if(talk.status != Talk.Status.Archived) {
+                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Archived), Seq(
+                        "class" -> "dropdown-item",
+                        "title" -> Talk.Status.Archived.description,
+                        "data-toggle" -> "tooltip",
+                        "data-placement" -> "left")) {Archive it}
+                }
+            </span>
+        </span>
+    </h1>
+
+    <p class="mb-0">@talkStatus(talk.status) @duration(talk.duration) @slidesIcon(talk.slides) @videoIcon(talk.video)</p>
+    <p class="mb-0">@tags(talk.tags)</p>
+    <div class="p">
+        Speakers:
+        @talk.speakers.toList.map(id => speakers.find(_.id == id)).map {
+            case Some(speaker) => {
+                <span class="badge badge-pill badge-primary">
+                    @if(speaker.isPublic) { <a href="@SpeakerCtrl.detail(speaker.slug)">@speaker.name.value</a> } else { @speaker.name.value }
+                    @if(speaker.id != talk.info.createdBy) {
+                        @formBtn(TalkCtrl.removeSpeaker(talk.slug, speaker.slug), Seq("title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
+                    }
+                </span>
+            }
+            case None => { <span class="badge badge-pill badge-primary">Unknown user</span> }
+        }
+        @invites.map { i =>
+            <span class="badge badge-pill badge-secondary" title="Speaker invitation, still not a speaker">
+                @i.email.value
+                @formBtn(TalkCtrl.cancelInviteSpeaker(talk.slug, i.id), Seq("title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
+            </span>
+        }
+        <a href="#" class="badge badge-pill badge-primary" data-toggle="modal" data-target="#inviteUserModal"><i class="fas fa-plus"></i></a>
+    </div>
+    @markdown(talk.description)
+
+    @if(talk.slides.isEmpty) { @slidesFields(TalkCtrl.doAddSlides(talk.slug)) }
+    @if(talk.video.isEmpty) { @videoFields(TalkCtrl.doAddVideo(talk.slug)) }
+
+    <p>@info(talk.info, speakers)</p>
+
+    @if(proposals.isEmpty) {
+        <div class="card">
+            <h5 class="card-header">Your talk was not proposed to any CFP</h5>
+            <div class="card-body text-center">
+                <h5 class="card-title">Well done! You have a new talk</h5>
+                <p class="card-text">
+                    Now find some groups to speak or make it public to receive some speaking requests
+                </p>
+                <a class="btn btn-success" href="@TalkCtrl.findExternalEvent(talk.slug, Page.Params.defaults.withFilters("type" -> "conference"))">Show where you gave this talk</a>
+                <a class="btn btn-success" href="@CfpCtrl.list(talk.slug)">Propose your talk to a CFP</a>
+            </div>
+        </div>
+    } else {
+        <div class="card">
+            <h5 class="card-header d-flex justify-content-between align-items-center">
+                <span>Talk proposed to @Formats.plural(proposals.length, "CFP")</span>
+                <span>
+                    <a class="btn btn-primary btn-sm" href="@TalkCtrl.findExternalEvent(talk.slug, Page.Params.defaults.withFilters("type" -> "conference"))">Show where you gave this talk</a>
+                    <a class="btn btn-primary btn-sm" href="@CfpCtrl.list(talk.slug)">Propose your talk to a CFP</a>
+                </span>
+            </h5>
+            <ul class="list-group list-group-flush">
+                @proposals.map { proposal => @commonProposalItem(proposal) }
+            </ul>
+        </div>
+    }
+
+    @inviteUserModal(TalkCtrl.inviteSpeaker(talk.slug), talk.title.value, "co-speaker")
+}()

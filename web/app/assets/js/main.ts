@@ -1,5 +1,9 @@
 declare const $;
 
+interface ApiResponse<T> {
+    data: T
+}
+
 // JS redirect urls (because it's a PITA to do in DNS ^^)
 (function () {
     const url = window.location.href;
@@ -114,16 +118,21 @@ declare const autosize;
         }
     });
 
+    interface ValidationResult {
+        message: string
+        valid: boolean
+    }
+
     function update($input, url): void {
         const value = $input.val();
         if (value) {
-            $.getJSON(url.replace('%7B%7Binput%7D%7D', value), res => {
+            $.getJSON(url.replace('%7B%7Binput%7D%7D', value), (res: ApiResponse<ValidationResult>) => {
                 if ($input.val() === value) {
                     removeFeedback($input);
-                    if (res.valid) {
-                        addValidFeedback($input, res);
+                    if (res.data.valid) {
+                        addValidFeedback($input, res.data);
                     } else {
-                        addInvalidFeedback($input, res);
+                        addInvalidFeedback($input, res.data);
                     }
                 }
             });
@@ -141,14 +150,14 @@ declare const autosize;
         }
     }
 
-    function addValidFeedback($input, res): void {
+    function addValidFeedback($input, res: ValidationResult): void {
         $input.addClass('is-valid');
         if (res.message) {
             $input.after('<span class="valid-feedback">' + res.message + '</span>');
         }
     }
 
-    function addInvalidFeedback($input, res): void {
+    function addInvalidFeedback($input, res: ValidationResult): void {
         $input.addClass('is-invalid');
         if (res.message) {
             $input.after('<span class="invalid-feedback">' + res.message + '</span>');
@@ -192,10 +201,16 @@ declare const autosize;
         }
     }
 
+    interface SuggestedItem {
+        id: string
+        text: string
+    }
+
     function fetchAndSetOptions($select, url): void {
-        $.getJSON(url, res => {
-            const values = ($select.attr('value') || '').split(',').filter(v => v.length > 0); // currently selected values
-            const options = res.concat(values.map(v => ({id: v, text: v}))).filter((v, i, arr) => arr.indexOf(v) === i); // add values not in suggestions
+        $.getJSON(url, (res: ApiResponse<SuggestedItem[]>) => {
+            const values: string[] = ($select.attr('value') || '').split(',').filter(v => v.length > 0); // currently selected values
+            const valuesSuggestions = values.map(v => ({id: v, text: v}));
+            const options = res.data.concat(valuesSuggestions).filter((v, i, arr) => arr.indexOf(v) === i); // add values not in suggestions
             $select.find('option[value]').remove(); // remove non empty existing options before adding new ones
             options.map(item => {
                 if ($select.find('option[value="' + item.id + '"]').length === 0) { // do not add item if it already exists
@@ -284,9 +299,13 @@ declare const cloudinary;
     // see https://cloudinary.com/documentation/upload_widget
     $('.cloudinary-img-widget').each(function () {
         const $elt = $(this);
-        const $btn = $elt.find('button');
+        const $btn = $elt.find('button.upload');
         const $input = $elt.find('input[type="hidden"]');
         const $preview = $elt.find('.preview');
+
+        const $gallery = $elt.find('.gallery');
+        initGallery($gallery, $input, $preview);
+
         update($input, $preview); // run on page load
 
         const cloudName = $btn.attr('data-cloud-name');
@@ -294,7 +313,7 @@ declare const cloudinary;
         const apiKey = $btn.attr('data-api-key');
         const signUrl = $btn.attr('data-sign-url');
         const folder = $btn.attr('data-folder');
-        const name = $btn.attr('data-name');
+        const name = toPublicId($btn.attr('data-name') || '');
         const tagsStr = $btn.attr('data-tags');
         const maxFilesStr = $btn.attr('data-max-files');
         const ratioStr = $btn.attr('data-ratio');
@@ -302,6 +321,9 @@ declare const cloudinary;
         const tags = tagsStr ? tagsStr.split(',') : undefined;
         const maxFiles = maxFilesStr ? parseInt(maxFilesStr) : undefined;
         const ratio = ratioStr ? parseFloat(ratioStr) : undefined;
+
+        const $dynamicNameInput = dynamicName ? $('#' + dynamicName) : undefined;
+        const $selectSearch = $gallery ? $gallery.find('input') : undefined;
 
         // see https://cloudinary.com/documentation/upload_widget#upload_widget_options
         const opts = {
@@ -326,25 +348,25 @@ declare const cloudinary;
 
         const cloudinaryWidget = cloudinary.createUploadWidget(opts, (error, result) => {
             if (!error && result && result.event === 'success') {
-                $input.val(cloudinaryUrl(result.info, cloudName, ratio));
+                const imageUrl: string = cloudinaryUrl(result.info, cloudName, ratio);
+                $input.val(imageUrl);
+                addToGallery($gallery, parseImageUrl(imageUrl));
                 update($input, $preview);
             }
         });
 
-        const $dynamicNameInput = dynamicName ? $('#' + dynamicName) : undefined;
-        if($dynamicNameInput) {
-            $dynamicNameInput.change(() => {
-                opts.publicId = $dynamicNameInput.val();
-                cloudinaryWidget.update({publicId: opts.publicId});
-            });
-        }
-
         $btn.click(function (e) {
             e.preventDefault();
+            const publicId = toPublicId(($selectSearch && $selectSearch.val()) || ($dynamicNameInput && $dynamicNameInput.val()) || '');
+            opts.publicId = publicId;
+
             if (!apiKey) {
                 // needed as unsigned upload can't override, use signed upload instead (add `creds` in app config, see UploadConf)
-                cloudinaryWidget.update({publicId: `${opts.publicId}-${Date.now()}`});
+                cloudinaryWidget.update({publicId: `${publicId}-${Date.now()}`});
+            } else {
+                cloudinaryWidget.update({publicId: publicId});
             }
+
             cloudinaryWidget.open();
         });
     });
@@ -370,13 +392,70 @@ declare const cloudinary;
     }
 
     function generateSignature(signUrl: string) {
-        return (callback, params_to_sign) => $.ajax({
+        return (callback, params_to_sign): void => $.ajax({
             url: signUrl,
             type: 'GET',
-            dataType: 'text',
-            data: params_to_sign,
-            success: callback
-        });
+            data: params_to_sign
+        }).then(res => callback(res.data));
+    }
+
+    function initGallery($gallery, $input, $preview): void {
+        if ($gallery) {
+            const $search = $gallery.find('input');
+            const url = $gallery.attr('data-remote');
+            fetch(url).then(res => res.json()).then(json => {
+                json.data
+                    .map(parseImageUrl)
+                    .sort((a, b) => a.publicId.localeCompare(b.publicId))
+                    .forEach(image => addToGallery($gallery, image));
+            });
+            $gallery.on('shown.bs.collapse', function () {
+                $search.focus();
+            });
+            $gallery.on('hidden.bs.collapse', function () {
+                $search.val('');
+                $gallery.find('.logo').each(function (i, logo) {
+                    logo.style.display = 'inline-block';
+                });
+            });
+            $search.on('keyup', function (e) {
+                const search = $(this).val().toLowerCase();
+                $gallery.find('.logo').each(function (i, logo) {
+                    const title = (logo.getAttribute('title') || logo.getAttribute('data-original-title') || '').toLowerCase();
+                    if (title.includes(search)) {
+                        logo.style.display = 'inline-block';
+                    } else {
+                        logo.style.display = 'none';
+                    }
+                });
+            });
+            $gallery.on('click', '.logo', function (e) {
+                e.preventDefault();
+                const image = $(this).find('img').attr('src');
+                $input.val(image);
+                update($input, $preview);
+                $gallery.collapse('hide');
+            });
+        }
+    }
+
+    function addToGallery($gallery, image: { url: string, publicId: string }) {
+        if ($gallery) {
+            $gallery.append(`<div class="logo" title="${image.publicId}" style="display: inline-block; cursor: pointer">
+                <img src="${image.url}" alt="${image.publicId}" style="height: 50px; margin-top: 5px; margin-right: 5px;">
+            </div>`);
+            $gallery.find('.logo').tooltip('enable');
+        }
+    }
+
+    function parseImageUrl(url: string): { url: string, publicId: string } {
+        const parts = url.split('?')[0].split('/').filter(p => p.length > 0);
+        const publicId = decodeURIComponent(parts[parts.length - 1].split('.')[0]).replace(/-/g, ' ');
+        return {url, publicId};
+    }
+
+    function toPublicId(str: string): string {
+        return str.replace(/[ \/?&#]/g, '-').replace(/-+/g, '-').toLowerCase();
     }
 })();
 
@@ -398,10 +477,15 @@ declare const cloudinary;
         });
     });
 
-    function fetchHtml(md) {
-        return fetch('/ui/utils/markdown-to-html', {method: 'POST', body: md}).then(function (res) {
-            return res.text();
-        });
+    function fetchHtml(md: string): Promise<string> {
+        return fetch('/ui/utils/markdown-to-html', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(md)
+        }).then(res => res.json()).then(json => json.data);
     }
 })();
 
@@ -458,14 +542,15 @@ declare const cloudinary;
         const tmpl = $input.val();
         fetchTemplate(tmpl, ref, markdown).then(tmpl => {
             if (tmpl.error) {
-                console.warn('Template error', tmpl.error);
+                previewPane.html(`<pre class="alert alert-warning mb-0" role="alert">${tmpl.error}</pre>`);
+            } else {
+                previewPane.html(tmpl.result);
             }
-            previewPane.html(tmpl.result);
         });
     }
 
     function fetchData(ref) {
-        return fetch('/ui/utils/template-data/' + ref).then(res => res.json());
+        return fetch('/ui/utils/template-data/' + ref).then(res => res.json()).then(json => json.data);
     }
 
     function fetchTemplate(tmpl, ref, markdown) {
@@ -480,7 +565,7 @@ declare const cloudinary;
                 ref: ref,
                 markdown: markdown
             })
-        }).then(res => res.json());
+        }).then(res => res.json()).then(json => json.data ? json.data : {error: json.message});
     }
 })();
 
@@ -518,7 +603,7 @@ declare const cloudinary;
     }
 
     function fetchEmbedCode(url) {
-        return fetch('/ui/utils/embed?url=' + url).then(res => res.text());
+        return fetch('/ui/utils/embed?url=' + url).then(res => res.json()).then(json => json.data);
     }
 })();
 
@@ -562,6 +647,27 @@ declare const Bloodhound;
             if (item.url) {
                 window.location.href = item.url; // navigate to url when item is selected (with keyboard)
             }
+        });
+    });
+})();
+
+// svg injector (cf home page)
+(function () {
+    $.HSCore.components.HSSVGIngector.init('.js-svg-injector');
+})();
+
+// typing animation (cf home page), https://github.com/mattboldt/typed.js
+declare const Typed;
+(function () {
+    $('.js-typed').each(function () {
+        const $elt = $(this);
+        const strings = ($elt.attr('data-strings') || '').split(',');
+        new Typed('.js-typed', {
+            strings: strings,
+            typeSpeed: 60,
+            loop: true,
+            backSpeed: 25,
+            backDelay: 1500
         });
     });
 })();

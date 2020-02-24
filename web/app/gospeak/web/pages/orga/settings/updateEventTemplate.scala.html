@@ -1,0 +1,41 @@
+@import gospeak.core.domain.Group
+@import gospeak.core.domain.utils.TemplateData
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.partials.html.container
+@import gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.GsForms
+@import gospeak.web.utils.OrgaReq
+
+@(templateId: Option[String], settings: Group.Settings, form: Form[GsForms.GroupEventTemplateItem])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(s"Edit template - ${req.group.name.value} settings - Gospeak", b)() {
+    @templateId match {
+        case Some(id) => {
+            <h1>Update template event '@id'</h1>
+        }
+        case None => {
+            <h1>Create</h1>
+        }
+    }
+
+    @formElt(form, SettingsCtrl.doUpdateEventTemplate(req.group.slug, templateId)) {
+        <div class="row">
+            <div class="col-6">
+                @fieldVertical(form("template"), Seq("label" -> "Your template:")) { (field, args) =>
+                    @inputTemplate(field, Some(TemplateData.EventInfo.ref), markdown = templateId.exists(!settings.event.templates.contains(_)), args = args ++ Seq("autofocus" -> "true"))
+                }
+            </div>
+            <div class="col-6">
+                @displayTemplateData(Some(TemplateData.EventInfo.ref))
+            </div>
+        </div>
+        @fieldHorizontal(form("id"), Seq("label" -> "Template id", "help" -> "It should be a unique identifier describing the template")) { (field, args) =>
+            @inputText(field, Seq("placeholder" -> "ex: Intro slides") ++ args)
+        }
+        @actionsVertical() {
+            @btnCancel(SettingsCtrl.settings(req.group.slug))
+            @btnSubmit(templateId.map(id => s"Update template event '$id'").getOrElse("Create new template"))
+        }
+    }
+}()

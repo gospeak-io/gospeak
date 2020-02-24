@@ -1,0 +1,39 @@
+@import gospeak.core.domain.CommonCfp
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.partials.display.html.tags
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserAwareReq
+
+@(cfp: CommonCfp)(implicit req: UserAwareReq[AnyContent])
+<div class="mb-2">
+    <a class="card card-frame card-text-dark" href="@cfp.ref.fold(id => CfpCtrl.detailExt(id), slug => CfpCtrl.detail(slug))">
+        <span class="card-body p-4">
+            <span class="row align-items-center">
+                <span class="col-sm-2 mb-2 mb-sm-0">
+                    @cfp.close match {
+                        case Some(d) if cfp.closesInDays(10, req.now) => {
+                            <span class="btn btn-xs btn-soft-danger btn-block">Closes @Formats.date(d)</span>
+                        }
+                        case Some(d) if cfp.closesInDays(30, req.now) => {
+                            <span class="btn btn-xs btn-soft-warning btn-block">Closes @Formats.date(d)</span>
+                        }
+                        case Some(d) => {
+                            <span class="btn btn-xs btn-soft-primary btn-block">Closes @Formats.date(d)</span>
+                        }
+                        case None => {
+                            <span class="btn btn-xs btn-soft-success btn-block">Always open</span>
+                        }
+                    }
+                </span>
+                <span class="col-sm-4">@cfp.name @cfp.eventStart.map { s => (@Formats.date(s))}</span>
+
+                <span class="col-sm-6 text-primary text-sm-right">
+                    @cfp.location.map { l => @l.locality.map(_+",") @l.country }
+                    <span class="fas fa-arrow-right small ml-2"></span>
+                </span>
+            </span>
+        </span>
+        @* @tags(cfp.tags) *@
+        @* TODO event location, event date (if available), isBeginnerFriendly *@
+    </a>
+</div>

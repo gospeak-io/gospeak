@@ -1,0 +1,10 @@
+@import gospeak.core.domain.User
+@(s: User.Status)
+@s match {
+    case User.Status.Public => {
+        <i class="fas fa-eye" title="@User.Status.Public.description"></i>
+    }
+    case User.Status.Private => {
+        <i class="fas fa-shield-alt" title="@User.Status.Private.description"></i>
+    }
+}

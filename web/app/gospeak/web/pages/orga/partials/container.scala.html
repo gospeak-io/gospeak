@@ -1,0 +1,145 @@
+@import gospeak.core.domain.utils.Constants.{Images, Placeholders}
+@import gospeak.libs.scala.domain.Page
+@import gospeak.web.auth.routes.AuthCtrl
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.orga.routes.GroupCtrl
+@import gospeak.web.pages.orga.events.routes.EventCtrl
+@import gospeak.web.pages.orga.cfps.routes.CfpCtrl
+@import gospeak.web.pages.orga.proposals.routes.ProposalCtrl
+@import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
+@import gospeak.web.pages.orga.partners.routes.PartnerCtrl
+@import gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
+@import gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import gospeak.web.pages.published.routes.HomeCtrl
+@import gospeak.web.pages.published.cfps.routes.{CfpCtrl => PublicCfpCtrl}
+@import gospeak.web.pages.published.events.routes.{EventCtrl => PublicEventCtrl}
+@import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
+@import gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublicSpeakerCtrl}
+@import gospeak.web.pages.partials.container.html.{alert, flash, main, navbarLink, userDropdown}
+@import gospeak.web.pages.partials.form.html.formBtn
+@import gospeak.web.pages.user.routes.UserCtrl
+@import gospeak.web.utils.OrgaReq
+
+@(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: OrgaReq[AnyContent])
+@main(title, PageMeta.default(HomeCtrl.index()), style, script) {
+<header id="header" class="u-header">
+    <div class="u-header__section">
+        <div id="logoAndNav" class="container-fluid">
+            <nav class="navbar navbar-expand-md u-header__navbar u-header__navbar--no-space">
+                <a class="navbar-brand u-header__navbar-brand u-header__navbar-brand-center my-3" href="@HomeCtrl.index()" aria-label="Gospeak">
+                    <img class="img-fluid" src="@Images.gospeakLogoText" alt="Gospeak logo">
+                </a>
+
+                <button type="button" class="navbar-toggler btn u-hamburger" data-toggle="collapse" data-target="#navBar" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navBar">
+                    <span id="hamburgerTrigger" class="u-hamburger__box">
+                        <span class="u-hamburger__inner"></span>
+                    </span>
+                </button>
+
+                <div id="navBar" class="collapse navbar-collapse u-header__navbar-collapse">
+                    <ul class="navbar-nav u-header__navbar-nav">
+                        <li class="nav-item u-header__nav-item">@navbarLink(UserCtrl.index()) {Dashboard}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink(PublicCfpCtrl.list()) {Call For Proposals}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink(PublicEventCtrl.list(Page.Params.defaults.withFilters("type" -> "conference", "video" -> "true"))) {Events}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink(PublicSpeakerCtrl.list()) {Speakers}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink(PublicGroupCtrl.list()) {Groups}</li>
+                        @userDropdown(req.user, req.groups, Some(req.group))
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+</header>
+<main id="content" role="main" class="container-fluid mt-3 mb-10">
+    @if(req.user.emailValidated.isEmpty) {
+        @alert("warning", "d-flex justify-content-between align-items-center") {
+            <span class="align-self-center">
+                Your email is not validated, please click on the validation link in the signup email
+            </span>
+            @formBtn(AuthCtrl.resendEmailValidation(), Seq("class" -> "btn-sm btn-warning")) {Resend validation email}
+        }
+    }
+    <div class="row">
+        <div class="col-md-3 col-lg-2 u-ver-divider u-ver-divider--none-md mb-5 mb-md-0">
+            <div class="card">
+                <div class="card-body">
+                    <div>
+                        <div class="text-center mx-auto mb-3">
+                            <span class="position-relative">
+                                <a href="@GroupCtrl.detail(req.group.slug)">
+                                    <img class="img-fluid rounded-circle" src="@req.group.logo.map(_.url.value).getOrElse(Placeholders.groupLogo)" alt="@req.group.name.value logo" width="100">
+                                </a>
+                                <span class="badge badge-light badge-pos rounded-circle p-2">
+                                    <div class="nav-item dropdown">
+                                        <a href="#" id="navbarDropdownSettings" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fas fa-cogs"></i>
+                                        </a>
+                                        <div class="dropdown-menu" aria-labelledby="navbarDropdownSettings">
+                                            <a class="dropdown-item" href="@GroupCtrl.contactMembers(req.group.slug)">Contact members</a>
+                                            <a class="dropdown-item" href="@SettingsCtrl.settings(req.group.slug)" data-hotkey="g s">Settings</a>
+                                        </div>
+                                    </div>
+                                </span>
+                            </span>
+                        </div>
+                        <a class="btn btn-block btn-primary transition-3d-hover" href="@EventCtrl.create(req.group.slug)" data-hotkey="+">Create an event</a>
+                    </div>
+                    <hr class="my-5">
+                    <div>
+                        <h1 class="h6 font-weight-semi-bold">Menu</h1>
+                        <ul class="nav flex-column">
+                            <li class="nav-item">@navbarLink(EventCtrl.list(req.group.slug), "data-hotkey" -> "1") {Events}</li>
+                            <li class="nav-item">@navbarLink(CfpCtrl.list(req.group.slug), "data-hotkey" -> "2") {CFPs}</li>
+                            <li class="nav-item">@navbarLink(ProposalCtrl.list(req.group.slug), "data-hotkey" -> "3") {Proposals}</li>
+                            <li class="nav-item">@navbarLink(SpeakerCtrl.list(req.group.slug), "data-hotkey" -> "4") {Speakers}</li>
+                            <li class="nav-item">@navbarLink(PartnerCtrl.list(req.group.slug), "data-hotkey" -> "5") {Partners}</li>
+                            <li class="nav-item">@navbarLink(SponsorCtrl.list(req.group.slug), "data-hotkey" -> "6") {Sponsors}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-9 col-lg-10">
+            @flash(req.flash)
+            @content
+
+            <div class="modal fade" id="hotkeysModal" tabindex="-1" role="dialog" aria-labelledby="hotkeysModalLabel" aria-hidden="true" data-hotkey="?">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="hotkeysModalLabel">Gospeak hotkeys</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Hi power user, you can use theses shortcuts to be more productive in Gospeak</p>
+                            <div class="row">
+                                <div class="col">
+                                    <h4>Navigation</h4>
+                                    <p class="mb-1"><span class="float-right"><kbd>?</kbd></span>Hotkey help</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>/</kbd></span>Focus search</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>h</kbd></span>Go to your Home</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>g</kbd></span>Go to your first Group</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>p</kbd></span>Go to Public page</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>g</kbd> <kbd>s</kbd></span>Go to Settings</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>1</kbd> or <kbd>2</kbd> or <kbd>3</kbd>...</span>Navigate to menu X</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>shift</kbd>+<kbd>right</kbd></span>Next page</p>
+                                    <p class="mb-1"><span class="float-right"><kbd>shift</kbd>+<kbd>left</kbd></span>Previous page</p>
+                                </div>
+                                <div class="col">
+                                    <h4>Actions</h4>
+                                    <p class="mb-1"><span class="float-right"><kbd>+</kbd></span>Toggle create button</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+}

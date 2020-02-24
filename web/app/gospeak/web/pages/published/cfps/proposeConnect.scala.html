@@ -1,0 +1,75 @@
+@import gospeak.core.domain.{Cfp, Group}
+@import gospeak.libs.scala.domain.Markdown
+@import gospeak.web.auth.partials.html._
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.partials.display.html.markdown
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.utils.GsForms
+@import gospeak.web.utils.UserAwareReq
+
+@(group: Group, cfp: Cfp, signupForm: Form[GsForms.TalkSignup], loginForm: Form[GsForms.TalkLogin])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@displayField(key: String, label: String)(display: String => Html) = {
+    @loginForm(key).value.filter(_.nonEmpty).map { value =>
+        <div class="row">
+            <div class="col-2">@label</div>
+            <div class="col-10">@display(value)</div>
+        </div>
+    }
+}
+@container(s"Proposal for ${cfp.name.value} - Gospeak", PageMeta.cfp(group, cfp), b)() {
+    <div class="w-md-80 w-lg-80 text-center mx-md-auto mb-5">
+        <h2 class="text-primary">Connect to
+            <span class="font-weight-semi-bold">submit</span>
+        </h2>
+        <h4>@displayField("talk.title","") { value => @value } at <span class="text-primary"><b>@cfp.name.value</b></span></h4>
+    </div>
+
+    <div class="mb-3">
+        @displayField("talk.title", "Title") { value => @value }
+        @displayField("talk.description", "Description") { value => @markdown(Markdown(value)) }
+        @displayField("talk.duration", "Duration") { value => @value minutes }
+        @displayField("talk.slides", "Slides") { value => <a href="@value" target="_blank">@value</a> }
+        @displayField("talk.video", "Video") { value => <a href="@value" target="_blank">@value</a> }
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <h5 class="card-header">Login</h5>
+                <div class="card-body">
+                @formElt(loginForm, CfpCtrl.doProposeLogin(cfp.slug)) {
+                    @inputHidden(loginForm("talk.title"))
+                    @inputHidden(loginForm("talk.description"))
+                    @inputHidden(loginForm("talk.duration.length"))
+                    @inputHidden(loginForm("talk.duration.unit"))
+                    @inputHidden(loginForm("talk.slides"))
+                    @inputHidden(loginForm("talk.video"))
+                    @inputHidden(loginForm("talk.slug"))
+                    @loginFields(loginForm("user"))
+                    <button type="submit" class="btn btn-sm btn-primary transition-3d-hover mr-1">Login</button>
+                }
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card">
+                <h5 class="card-header">Signup</h5>
+                <div class="card-body">
+                @formElt(signupForm, CfpCtrl.doProposeSignup(cfp.slug)) {
+                    @inputHidden(signupForm("talk.title"))
+                    @inputHidden(signupForm("talk.description"))
+                    @inputHidden(signupForm("talk.duration.length"))
+                    @inputHidden(signupForm("talk.duration.unit"))
+                    @inputHidden(signupForm("talk.slides"))
+                    @inputHidden(signupForm("talk.video"))
+                    @inputHidden(signupForm("talk.slug"))
+                    @signupFields(signupForm("user"))
+                    <button type="submit" class="btn btn-sm btn-primary transition-3d-hover mr-1">Signup</button>
+                }
+                </div>
+            </div>
+        </div>
+    </div>
+}()

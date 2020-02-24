@@ -1,0 +1,19 @@
+@import gospeak.core.domain.{Cfp, Group, Sponsor, SponsorPack, User}
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.pages.published.partials.html.{container, groupCard, userItem}
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.UserAwareReq
+@import gospeak.libs.scala.domain.Page
+
+@(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], speakers: Page[User.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container(s"${group.name.value} speakers - Gospeak", PageMeta.group(group.group), b)() {
+<div class="row">
+    @groupCard(group, speakerCount, cfps, sponsors, packs, orgas, userMembership)(b)
+
+    <div class="col-lg-8 m">
+        <h3>@Formats.plural(speakers.total.value, "speaker") came to @group.name.value</h3>
+        @Formats.paginated[User.Full](speakers, GroupCtrl.speakers(group.slug, _), s => userItem(s.user))
+    </div>
+</div>
+}()

@@ -1,0 +1,120 @@
+@import gospeak.core.domain.{ExternalCfp, ExternalEvent, ExternalProposal, User}
+@import gospeak.core.domain.utils.Constants
+@import gospeak.libs.scala.domain.Page
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.published.partials.html.{container, externalProposalItem}
+@import gospeak.web.pages.published.cfps.routes.CfpCtrl
+@import gospeak.web.pages.published.events.routes.EventCtrl
+@import gospeak.web.utils.{Formats, UserAwareReq}
+
+@(event: ExternalEvent, cfps: Seq[ExternalCfp], proposals: Page[ExternalProposal], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container(s"${event.name.value} - Gospeak", PageMeta.event(event), b)() {
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="media mb-3">
+                <img src="@event.logo.map(_.value).getOrElse(Constants.Placeholders.eventLogo)" alt="@event.name.value logo" class="u-lg-avatar rounded-circle mr-3">
+                <div class="media-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h1 class="h4 mb-1">@event.name.value</h1>
+                        <div class="dropdown">
+                            <button class="btn btn-text text-muted" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+                                <a class="dropdown-item" href="@EventCtrl.edit(event.id)">Edit</a>
+                            </div>
+                        </div>
+                    </div>
+                    @event.url.map { u => <a class="font-size-1" href="@u" target="_blank">@u</a><br> }
+                    <span class="text-muted font-size-1">@event.kind.value</span> @tags(event.tags)
+                </div>
+            </div>
+            <div class="mb-3">@markdown(event.description)</div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body p-5">
+                    @event.location.map { location =>
+                        <div class="media mb-3">
+                            <div class="min-width-4 text-center text-primary mr-3"><span class="fas fa-map-marked-alt"></span></div>
+                            <div class="media-body">
+                                <span class="d-block font-weight-medium">@location.name</span>
+                                <small class="d-block text-secondary"> @address(location)</small>
+                            </div>
+                        </div>
+                    }
+                    @event.start.map { start =>
+                        <div class="media mb-3">
+                            <div class="min-width-4 text-center text-primary mr-3"><span class="fas fa-clock"></span></div>
+                            <div class="media-body">
+                                <span class="d-block font-weight-medium">@Formats.date(start)</span>
+                                @if(start.getHour != 0 && start.getMinute != 0) { <small class="d-block text-secondary">@Formats.time(start)</small> }
+                            </div>
+                        </div>
+                    }
+                    @if(event.tickets.isDefined || event.videos.isDefined) {
+                        <div class="mb-3">
+                            @event.tickets.map { u => <a class="badge badge-primary" href="@u" target="_blank">Tickets <i class="fas fa-external-link-alt"></i></a> }
+                            @event.videos.map { u => <a class="badge badge-primary" href="@u" target="_blank">Videos <i class="fas fa-external-link-alt"></i></a> }
+                        </div>
+                    }
+                    @cfps match {
+                        case Seq() => {}
+                        case Seq(cfp) => {
+                            <div class="text-center mt-5">
+                                @if(cfp.isPast(req.nowLDT)) {
+                                    <a href="@CfpCtrl.detailExt(cfp.id)" class="btn btn-sm btn-soft-secondary" @cfp.close.map { d => title="closed on @Formats.date(d)" data-toggle="tooltip" }>
+                                        <span class="far fa-envelope mr-2"></span> CFP closed
+                                    </a>
+                                } else {
+                                    @if(cfp.isFuture(req.nowLDT)) {
+                                        <a href="@CfpCtrl.detailExt(cfp.id)" class="btn btn-sm btn-soft-secondary" @cfp.begin.map { d => title="will open on @Formats.date(d)" data-toggle="tooltip" }>
+                                            <span class="far fa-envelope mr-2"></span> CFP not open yet
+                                        </a>
+                                    } else {
+                                        <a href="@CfpCtrl.detailExt(cfp.id)" class="btn btn-sm btn-soft-primary transition-3d-hover" @cfp.close.map { d => title="closes on @Formats.date(d)" data-toggle="tooltip" }>
+                                            <span class="far fa-envelope mr-2"></span> Propose a talk
+                                        </a>
+                                    }
+                                }
+                            </div>
+                        }
+                        case cfps => {
+                            <div class="dropdown text-center mt-5">
+                                <button class="btn btn-sm btn-soft-primary dropdown-toggle" type="button" id="dropdownCFPS" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span class="far fa-envelope mr-2"></span> Propose a talk
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="dropdownCFPS">
+                                    @cfps.map { cfp =>
+                                        <a class="dropdown-item" href="@CfpCtrl.detailExt(cfp.id)">
+                                            @if(cfp.isPast(req.nowLDT)) {
+                                                Closed CFP @cfp.close.map { d => - since @Formats.date(d) }
+                                            } else {
+                                                @if(cfp.isFuture(req.nowLDT)) {
+                                                    CFP will open @cfp.begin.map { d => on @Formats.date(d) }
+                                                } else {
+                                                    CFP open @cfp.close.map { d => until @Formats.date(d) }
+                                                }
+                                            }
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    @if(proposals.nonEmpty) {
+        <div class="mb-3">
+            <h3 class="h5 mb-3">Talks</h3>
+            @Formats.paginated[ExternalProposal](proposals, EventCtrl.detailExt(event.id, _), externalProposalItem(_, users))
+        </div>
+        <h2 class="text-center font-weight-medium mt-5" style="margin-bottom: 10rem">
+            Spoke at @event.name.value?
+            <a class="btn btn-soft-success" href="@EventCtrl.findTalk(event.id)">Add you talk here</a>
+        </h2>
+    }
+}()

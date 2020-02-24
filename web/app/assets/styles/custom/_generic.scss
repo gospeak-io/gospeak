@@ -1,0 +1,222 @@
+/*------------------------------------
+  File for your custom SCSS style
+------------------------------------*/
+@import "variables";
+@import "../front/variables";
+
+a {
+  fill: $primary;
+
+  &:hover {
+    fill: $primary-darker;
+  }
+}
+
+a.no-style {
+  color: inherit;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.badge a {
+  color: inherit;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.x-small {
+  font-size: 60%;
+  font-weight: 300;
+}
+
+.xx-small {
+  font-size: 50%;
+  font-weight: 300;
+}
+
+.btn-form {
+  display: inline;
+}
+
+.btn-form > .btn.no-style,
+.badge > .btn-form > .btn {
+  display: inline;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 1;
+  color: inherit;
+  font-size: inherit;
+}
+
+*:hover > .hover-edit {
+  display: block;
+  opacity: 1;
+}
+
+.hover-edit {
+  opacity: 0.4;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: $gray-400;
+
+  &:hover {
+    color: $gray-600;
+  }
+}
+
+*:hover > .hover-edit-inline {
+  display: inline;
+}
+
+.hover-edit-inline, a.hover-edit-inline {
+  display: none;
+  color: $gray-400;
+
+  &:hover {
+    color: $gray-600;
+  }
+}
+
+// Avatar
+
+.avatar {
+  height: 31px;
+  min-width: 31px;
+  border-radius: 0.25em;
+}
+
+.avatar.avatar-lg {
+  max-width: 50px;
+}
+
+.avatar.avatar-list {
+  height: 70px;
+  min-width: 71px;
+  border-radius: 50%;
+}
+
+.card .avatar-lg {
+  max-width: 200px;
+  width: 100%;
+  border-radius: 50%;
+}
+
+.media .avatar {
+  height: 100px;
+  min-width: 100px;
+}
+
+.dropdown .avatar {
+  max-width: 21px;
+}
+
+.hover-grow {
+  .u-sm-avatar {
+    transition: all 300ms;
+
+    &:hover {
+      width: 3rem;
+      height: 3rem;
+      margin-top: -1rem;
+      margin-left: -0.5rem;
+    }
+  }
+}
+
+// Markdown
+
+.markdown {
+  margin-bottom: 1rem;
+
+  ul {
+    color: $gray-700;
+  }
+
+  p:last-child,
+  ul:last-child {
+    margin-bottom: 0;
+  }
+
+  img {
+    max-width: 100%;
+  }
+}
+
+.markdown-editor {
+  .tab-content {
+    margin-top: 5px;
+  }
+
+  .tab-pane.preview {
+    padding: 10px;
+  }
+}
+
+.template-editor {
+  .tab-pane.preview {
+    padding: 10px;
+  }
+}
+
+// Other
+
+.no-margin {
+  margin: 0;
+  padding: 0;
+}
+
+.u-header.dark {
+  .u-header__nav-link.active,
+  .u-sidebar--account__toggle-text,
+  .u-sidebar--account__toggle-bg:hover {
+    color: $gray-300;
+  }
+
+  .u-sidebar--account__toggle-bg {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.footer {
+  margin-top: 20px;
+  padding: 40px 0;
+  color: #999;
+  text-align: center;
+  background-color: #f9f9f9;
+  border-top: 1px solid #e5e5e5;
+}
+
+.eventbrite-icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: text-top;
+  margin: 1px 0 0 0;
+}
+
+.comment-section {
+  .avatar {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+
+  .comment-list {
+    .comment {
+      border: 1px solid rgba(0, 0, 0, 0.125);
+      border-radius: 0.25rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+
+      .text {
+        white-space: pre-line;
+      }
+    }
+  }
+}

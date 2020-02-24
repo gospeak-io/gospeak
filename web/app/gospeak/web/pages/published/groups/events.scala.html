@@ -1,0 +1,24 @@
+@import gospeak.core.domain.{Cfp, Event, Group, Sponsor, SponsorPack, User}
+@import gospeak.libs.scala.domain.Page
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.orga.events.routes.{EventCtrl => OrgaEventCtrl}
+@import gospeak.web.pages.published.groups.routes.GroupCtrl
+@import gospeak.web.pages.published.partials.html.{container, eventItem, groupCard}
+@import gospeak.web.utils.{Formats, UserAwareReq}
+
+@(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container(s"${group.name.value} events - Gospeak", PageMeta.group(group.group), b)() {
+<div class="row">
+    @groupCard(group, speakerCount, cfps, sponsors, packs, orgas, userMembership)(b)
+
+    <div class="col-lg-8 m">
+        <h3>
+            @Formats.plural(events.total.value, "event") planned by @group.name.value
+            @if(req.isOrga(group)) {
+                <a href="@OrgaEventCtrl.list(group.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
+            }
+        </h3>
+        @Formats.paginated[Event.Full](events, GroupCtrl.events(group.slug, _), eventItem(_))
+    </div>
+</div>
+}()

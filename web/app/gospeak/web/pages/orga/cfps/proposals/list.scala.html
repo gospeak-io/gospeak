@@ -1,0 +1,15 @@
+@import gospeak.core.domain.{Cfp, Proposal, User}
+@import gospeak.infra.services.storage.sql.ProposalRepoSql
+@import gospeak.libs.scala.domain.Page
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
+@import gospeak.web.pages.orga.partials.html.{container, proposalItem}
+@import gospeak.web.utils.Formats
+@import gospeak.web.utils.OrgaReq
+
+@(cfp: Cfp, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(s"${cfp.name.value} proposals - Gospeak", b)() {
+    <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h1>
+    <p class="mt-2 mb-0">You voted on @Formats.plural(userRatings.length, "proposal") on a total of @proposals.total.value</p>
+    @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list(req.group.slug, cfp.slug, _), proposalItem(_, speakers, userRatings), ProposalRepoSql.tableFullBase.filters)
+}()

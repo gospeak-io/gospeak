@@ -1,0 +1,23 @@
+@import gospeak.core.domain.{ExternalProposal, User}
+@import gospeak.web.pages.published.events.routes.EventCtrl
+@import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+
+@(proposal: ExternalProposal, users: Seq[User])
+<div class="card mb-3">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <h4 class="h6 mb-0">
+            <a href="@EventCtrl.proposalExt(proposal.event, proposal.id)">@proposal.title.value</a>
+            @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
+            @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+        </h4>
+        <ul class="list-inline ml-3 mb-0">
+            @proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
+                <li class="list-inline-item ml-n3 mr-0">
+                    <a href="@SpeakerCtrl.detail(u.slug)" title="@u.name.value" data-toggle="tooltip">
+                        <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+</div>

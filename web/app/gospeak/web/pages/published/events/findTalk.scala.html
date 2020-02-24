@@ -1,0 +1,27 @@
+@import gospeak.core.domain.{ExternalEvent, Talk}
+@import gospeak.libs.scala.domain.Page
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.pages.partials.display.html.{duration, tags, talkStatus}
+@import gospeak.web.pages.published.events.routes.EventCtrl
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.utils.{Formats, UserReq}
+
+@(event: ExternalEvent, talks: Page[Talk])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@talkItem(talk: Talk) = {
+    <a href="@EventCtrl.createExternalProposal(event.id, talk.slug)" class="list-group-item list-group-item-action">
+        <h5 class="mb-1">@talk.title.value</h5>
+        @talkStatus(talk.status)
+        @duration(talk.duration)
+        @tags(talk.tags)
+    </a>
+}
+@container(s"${event.name.value} - Gospeak", PageMeta.event(event), b)() {
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>Spoke at @event.name.value?</h1>
+        <a class="btn btn-primary" href="@EventCtrl.createTalk(event.id)" title="If your talk does not exist yet, you can create it" data-toggle="tooltip">New talk</a>
+    </div>
+    <h3>Select your talk or create it</h3>
+    <p class="text-muted">Talks are generics presentations, you can have small differences for the proposal to match the event schedule.</p>
+
+    @Formats.paginated[Talk](talks, EventCtrl.findTalk(event.id, _), talkItem)
+}()(req.userAware)

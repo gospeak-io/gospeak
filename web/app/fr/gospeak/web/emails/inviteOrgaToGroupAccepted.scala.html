@@ -1,9 +1,0 @@
-@import fr.gospeak.core.domain.{Group, User, UserRequest}
-@import fr.gospeak.web.pages.orga.routes.GroupCtrl
-@import fr.gospeak.web.utils.UserReq
-
-@(invite: UserRequest.GroupInvite, group: Group, orga: User)(implicit req: UserReq[AnyContent])
-<p>Hi @orga.name.value,</p>
-<p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has <b>accepted</b> your invitation to <a href="@GroupCtrl.detail(group.slug).absoluteURL()">@group.name.value</a>.</p>
-<p>Together you are stronger, keep going!</p>
-<p>The Gospeak team</p>
