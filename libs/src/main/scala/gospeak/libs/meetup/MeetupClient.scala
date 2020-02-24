@@ -8,7 +8,7 @@ import gospeak.libs.http.HttpClient.Response
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Geo, Secret, Url}
 import io.circe.parser.decode
-import io.circe.{Decoder, Encoder}
+import io.circe.Decoder
 
 import scala.util.{Failure, Try}
 
@@ -174,11 +174,6 @@ class MeetupClient(conf: MeetupClient.Conf, appBaseUrl: String, performWriteOps:
   // when body is not a JSON, transform it to JSON
   private def transformBody(body: String): String =
     if (body == "()") "{}" else body
-
-  private def toJson[A](value: A)(implicit e: Encoder[A]): String = {
-    import io.circe.syntax._
-    value.asJson.noSpaces
-  }
 }
 
 object MeetupClient {
