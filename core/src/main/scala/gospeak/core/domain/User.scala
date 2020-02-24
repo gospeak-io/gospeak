@@ -16,6 +16,7 @@ final case class User(id: User.Id,
                       avatar: Avatar,
                       title: Option[String],
                       bio: Option[Markdown],
+                      mentoring: Option[Markdown],
                       company: Option[String],
                       location: Option[String],
                       phone: Option[String],
@@ -34,7 +35,7 @@ final case class User(id: User.Id,
 
 object User {
   def apply(d: Data, now: Instant, emailValidated: Option[Instant] = None): User =
-    new User(Id.generate(), d.slug, d.status, d.firstName, d.lastName, d.email, emailValidated, emailValidationBeforeLogin = false, avatar = d.avatar, title = d.title, bio = d.bio, company = d.company, location = d.location, phone = d.phone, website = d.website, social = d.social, createdAt = now, updatedAt = now)
+    new User(Id.generate(), d.slug, d.status, d.firstName, d.lastName, d.email, emailValidated, emailValidationBeforeLogin = false, avatar = d.avatar, title = d.title, bio = d.bio, mentoring = d.mentoring, company = d.company, location = d.location, phone = d.phone, website = d.website, social = d.social, createdAt = now, updatedAt = now)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -137,6 +138,7 @@ object User {
                         avatar: Avatar,
                         title: Option[String],
                         bio: Option[Markdown],
+                        mentoring: Option[Markdown],
                         company: Option[String],
                         location: Option[String],
                         phone: Option[String],
@@ -144,7 +146,7 @@ object User {
                         social: SocialAccounts)
 
   object Data {
-    def apply(u: User): Data = new Data(u.slug, u.status, u.firstName, u.lastName, u.email, u.avatar, u.title, u.bio, u.company, u.location, u.phone, u.website, u.social)
+    def apply(u: User): Data = new Data(u.slug, u.status, u.firstName, u.lastName, u.email, u.avatar, u.title, u.bio, u.mentoring, u.company, u.location, u.phone, u.website, u.social)
   }
 
 }

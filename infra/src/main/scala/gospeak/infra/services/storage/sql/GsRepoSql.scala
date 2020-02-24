@@ -83,11 +83,11 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
 
     val avatarSrv = new AvatarSrv()
 
-    def user(slug: String, email: String, firstName: String, lastName: String, status: User.Status = User.Status.Public, emailValidated: Option[Instant] = Some(now), emailValidationBeforeLogin: Boolean = false, avatar: Option[String] = None, title: Option[String] = None, bio: Option[Markdown] = None, company: Option[String] = None, location: Option[String] = None, phone: Option[String] = None, website: Option[Url] = None, social: SocialAccounts = SocialAccounts.fromUrls()): User = {
+    def user(slug: String, email: String, firstName: String, lastName: String, status: User.Status = User.Status.Public, emailValidated: Option[Instant] = Some(now), emailValidationBeforeLogin: Boolean = false, avatar: Option[String] = None, title: Option[String] = None, bio: Option[Markdown] = None, mentoring: Option[Markdown] = None, company: Option[String] = None, location: Option[String] = None, phone: Option[String] = None, website: Option[Url] = None, social: SocialAccounts = SocialAccounts.fromUrls()): User = {
       val emailAddr = EmailAddress.from(email).get
       val slugObj = User.Slug.from(slug).get
       val avatarObj = avatar.map(Url.from(_).get).map(Avatar).getOrElse(avatarSrv.getDefault(emailAddr, slugObj))
-      User(id = User.Id.generate(), slug = slugObj, status = status, firstName = firstName, lastName = lastName, email = emailAddr, emailValidated = emailValidated, emailValidationBeforeLogin = emailValidationBeforeLogin, avatar = avatarObj, title = title, bio = bio, company = company, location = location, phone = phone, website = website, social = social, createdAt = now, updatedAt = now)
+      User(id = User.Id.generate(), slug = slugObj, status = status, firstName = firstName, lastName = lastName, email = emailAddr, emailValidated = emailValidated, emailValidationBeforeLogin = emailValidationBeforeLogin, avatar = avatarObj, title = title, bio = bio, mentoring = mentoring, company = company, location = location, phone = phone, website = website, social = social, createdAt = now, updatedAt = now)
     }
 
     def group(slug: String, name: String, tags: Seq[String], by: User, location: Option[GMapPlace] = None, owners: Seq[User] = Seq(), logo: Option[String] = None, social: SocialAccounts = SocialAccounts.fromUrls(), email: Option[String] = None): Group =

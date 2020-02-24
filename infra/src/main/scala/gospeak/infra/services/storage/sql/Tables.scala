@@ -9,7 +9,7 @@ object Tables {
   val users: Table = Table.from(
     name = "users",
     prefix = "u",
-    fields = Seq("id", "slug", "status", "first_name", "last_name", "email", "email_validated", "email_validation_before_login", "avatar", "title", "bio", "company", "location", "phone", "website") ++ socialFields ++ Seq("created_at", "updated_at"),
+    fields = Seq("id", "slug", "status", "first_name", "last_name", "email", "email_validated", "email_validation_before_login", "avatar", "title", "bio", "mentoring", "company", "location", "phone", "website") ++ socialFields ++ Seq("created_at", "updated_at"),
     sort = Seq("first_name"),
     search = Seq("id", "slug", "first_name", "last_name", "email", "title", "bio"),
     filters = Seq()).get
