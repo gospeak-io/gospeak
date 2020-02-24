@@ -31,6 +31,7 @@ object SocialProfile {
       avatar = avatarOpt.getOrElse(defaultAvatar(email, slug)),
       title = None,
       bio = None,
+      mentoring = None,
       company = None,
       location = None,
       phone = None,

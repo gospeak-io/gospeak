@@ -45,6 +45,9 @@
                 @fieldHorizontal(form("bio"), Seq("label" -> "Bio")) { (field, args) =>
                     @inputMarkdown(field, Seq("placeholder" -> "Tell people a bit more about you"))
                 }
+                @fieldHorizontal(form("mentoring"), Seq("label" -> "Mentoring")) { (field, args) =>
+                    @inputMarkdown(field, Seq("placeholder" -> "Tell people a bit more about your mentoring"))
+                }
             </div>
         </div>
         <div class="card mb-3">
