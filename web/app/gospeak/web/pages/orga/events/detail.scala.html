@@ -49,7 +49,7 @@
                     <a class="dropdown-item" href="@PublicGroupCtrl.eventAttendeesMeetup(req.group.slug, event.slug)" target="_blank">Draw meetup attendee</a>
                 }
                 @eventTemplates.keys.map { id =>
-                    <a class="dropdown-item" href="@EventCtrl.showTemplate(req.group.slug, event.slug, id)">Show @id template</a>
+                    <a class="dropdown-item" href="@EventCtrl.showTemplate(req.group.slug, event.slug, id)" target="_blank">Show @id template</a>
                 }
                 <a class="dropdown-item" href="@EventCtrl.contactRsvps(req.group.slug, event.slug)">Contact attendees</a>
             </span>
