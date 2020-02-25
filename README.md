@@ -4,7 +4,7 @@
 [![Codacy Badge](https://img.shields.io/codacy/grade/45ed63364ff14a87b7f1dad81ffee091.svg)](https://www.codacy.com/app/loicknuchel/gospeak?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=loicknuchel/gospeak&amp;utm_campaign=Badge_Grade)
 [![Codacy Badge](https://img.shields.io/codacy/coverage/45ed63364ff14a87b7f1dad81ffee091.svg)](https://www.codacy.com/app/loicknuchel/gospeak?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=loicknuchel/gospeak&amp;utm_campaign=Badge_Grade)
 
-Social links: [@GospeakApp](https://twitter.com/GospeakApp)
+Social links: [@gospeak_io](https://twitter.com/gospeak_io)
 
 Finally an app to help meetup (or small conference) orgas and speaker to fulfill their goal.
 
@@ -22,7 +22,7 @@ Finally, Gospeak will also gather a list of external CFPs (like big conferences)
 We really believe that public speaking is an awesome experience and we hope more and more people will do it.
 One of the **Gospeak** goal is to help everybody try public speaking and help them in the way.
 
-If you have any idea or suggestion about that, we will be happy to discuss it with you, feel free to reach us at [contact@gospeak.io](mailto:contact@gospeak.io) or [@GospeakApp](https://twitter.com/GospeakApp)
+If you have any idea or suggestion about that, we will be happy to discuss it with you, feel free to reach us at [contact@gospeak.io](mailto:contact@gospeak.io) or [@gospeak_io](https://twitter.com/gospeak_io)
 
 ## Dev
 

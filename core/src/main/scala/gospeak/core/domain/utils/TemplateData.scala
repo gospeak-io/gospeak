@@ -97,7 +97,7 @@ object TemplateData {
     private val talkRemoved = TalkRemoved(group = group, event = event, cfp = cfp, proposal = proposal1, user = user)
     private val eventPublished = EventPublished(group = group, event = event, user = user)
     private val proposalCreated = ProposalCreated(group, cfp, proposal1, user)
-    val eventInfo = EventInfo(group, event, Some(eventVenue), Some(cfp), Seq(eventTalk1, eventTalk2))
+    val eventInfo: EventInfo = EventInfo(group, event, Some(eventVenue), Some(cfp), Seq(eventTalk1, eventTalk2))
 
     private[utils] val all = Seq(eventCreated, talkAdded, talkRemoved, eventPublished, proposalCreated, eventInfo)
     private val map = all.map(d => (d.ref, d)).toMap

@@ -101,6 +101,7 @@ object UserRepoSql {
     .aggregate("COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0)", "proposalCount")
     .setSorts(
       "proposals" -> Seq(
+        Field("mentoring IS NULL", "u"),
         Field("-(COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0))", ""),
         Field("-COALESCE(COUNT(DISTINCT t.id), 0)", ""),
         Field("-MAX(p.created_at)", ""),

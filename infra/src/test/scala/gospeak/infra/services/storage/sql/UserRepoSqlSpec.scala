@@ -142,7 +142,7 @@ object UserRepoSqlSpec {
   private val tableFull = s"$table LEFT OUTER JOIN $groupTable ON g.owners LIKE CONCAT('%', u.id, '%') LEFT OUTER JOIN $talkTable ON t.speakers LIKE CONCAT('%', u.id, '%') LEFT OUTER JOIN $proposalTable ON p.speakers LIKE CONCAT('%', u.id, '%') AND p.status='Accepted' LEFT OUTER JOIN $externalProposalTable ON ep.speakers LIKE CONCAT('%', u.id, '%') AND ep.status='Accepted'"
   private val fieldsFull = s"$fields, COALESCE(COUNT(DISTINCT g.id), 0) as groupCount, COALESCE(COUNT(DISTINCT t.id), 0) as talkCount, COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0) as proposalCount"
   private val groupByFull = s"GROUP BY $fields"
-  private val orderByFull = "ORDER BY (COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0)) IS NULL, (COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0)) DESC, " +
+  private val orderByFull = "ORDER BY u.mentoring IS NULL IS NULL, u.mentoring IS NULL, (COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0)) IS NULL, (COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0)) DESC, " +
     "COALESCE(COUNT(DISTINCT t.id), 0) IS NULL, COALESCE(COUNT(DISTINCT t.id), 0) DESC, " +
     "MAX(p.created_at) IS NULL, MAX(p.created_at) DESC, " +
     "u.created_at IS NULL, u.created_at"
