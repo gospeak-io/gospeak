@@ -40,11 +40,14 @@ object ExternalCfpRepoSql {
   private val tableFull = table
     .join(Tables.externalEvents.dropFields(_.name.startsWith("location_")), _.event_id -> _.id).get
   private val commonTable = Table(
-    name = "((SELECT c.id,       c.slug, c.name, g.logo, null as url, c.begin, c.close, g.location, c.description, null    as event_start, null     as event_finish, null  as event_url, null as tickets_url, null as videos_url, null as twitter_account, null as twitter_hashtag, c.tags, g.id as group_id, g.slug as group_slug FROM cfps c INNER JOIN groups g ON c.group_id=g.id) " +
-      "UNION (SELECT c.id, null as slug, e.name, e.logo,       c.url, c.begin, c.close, e.location, c.description, e.start as event_start, e.finish as event_finish, e.url as event_url,       e.tickets_url,       e.videos_url,       e.twitter_account,       e.twitter_hashtag, e.tags, null as group_id,   null as group_slug FROM external_cfps c INNER JOIN external_events e ON c.event_id=e.id))",
+    name = "((SELECT c.name, g.logo, c.begin, c.close, g.location, c.description, c.tags, null as ext_id, null  as ext_url, null    as ext_event_start, null     as ext_event_finish, null  as ext_event_url, null          as ext_tickets_url, null         as ext_videos_url, null as twitter_account, null as twitter_hashtag, c.slug as int_slug, g.id as group_id, g.slug as group_slug FROM cfps c INNER JOIN groups g ON c.group_id=g.id) " +
+      "UNION (SELECT e.name, e.logo, c.begin, c.close, e.location, c.description, e.tags, c.id as ext_id, c.url as ext_url, e.start as ext_event_start, e.finish as ext_event_finish, e.url as ext_event_url, e.tickets_url as ext_tickets_url, e.videos_url as ext_videos_url,       e.twitter_account,       e.twitter_hashtag, null   as int_slug, null as group_id,   null as group_slug FROM external_cfps c INNER JOIN external_events e ON c.event_id=e.id))",
     prefix = "c",
     joins = Seq(),
-    fields = Seq("id", "slug", "name", "logo", "url", "begin", "close", "location", "description", "event_start", "event_finish", "event_url", "tickets_url", "videos_url", "twitter_account", "twitter_hashtag", "tags", "group_id", "group_slug").map(Field(_, "c")),
+    fields = Seq(
+      "name", "logo", "begin", "close", "location", "description", "tags",
+      "ext_id", "ext_url", "ext_event_start", "ext_event_finish", "ext_event_url", "ext_tickets_url", "ext_videos_url", "twitter_account", "twitter_hashtag",
+      "int_slug", "group_id", "group_slug").map(Field(_, "c")),
     aggFields = Seq(),
     customFields = Seq(),
     sorts = Sorts(Seq("close", "name").map(Field(_, "c")), Map()),

@@ -58,24 +58,24 @@ object ApiCfp {
 
   def published(cfp: CommonCfp, groups: Seq[Group])(implicit ctx: BasicCtx): Published =
     new Published(
-      kind = if (cfp.slug.isDefined) "internal" else "external",
-      ref = cfp.slug.map(_.value).orElse(cfp.id.map(_.value)).getOrElse("fail-ref"),
+      kind = cfp.fold(_ => "external")(_ => "internal"),
+      ref = cfp.fold(_.id.value)(_.slug.value),
       name = cfp.name,
       logo = cfp.logo.map(_.value),
-      url = cfp.url.map(_.value),
+      url = cfp.external.map(_.url.value),
       begin = cfp.begin,
       close = cfp.close,
       location = cfp.location.map(ApiPlace.from),
       description = cfp.description.value,
-      eventStart = cfp.eventStart,
-      eventFinish = cfp.eventFinish,
+      eventStart = cfp.external.flatMap(_.event.start),
+      eventFinish = cfp.external.flatMap(_.event.finish),
       tags = cfp.tags.map(_.value),
-      eventUrl = cfp.eventUrl.map(_.value),
-      eventTickets = cfp.eventTickets.map(_.value),
-      eventVideos = cfp.eventVideos.map(_.value),
-      twitterAccount = cfp.twitterAccount.map(_.url.value),
-      twitterHashtag = cfp.twitterHashtag.map(_.value),
-      group = cfp.group.flatMap { case (id, _) => groups.find(_.id == id) }.map(ApiGroup.embed))
+      eventUrl = cfp.external.flatMap(_.event.url).map(_.value),
+      eventTickets = cfp.external.flatMap(_.event.tickets).map(_.value),
+      eventVideos = cfp.external.flatMap(_.event.videos).map(_.value),
+      twitterAccount = cfp.external.flatMap(_.event.twitterAccount).map(_.url.value),
+      twitterHashtag = cfp.external.flatMap(_.event.twitterHashtag).map(_.value),
+      group = cfp.internal.flatMap(i => groups.find(_.id == i.group.id)).map(ApiGroup.embed))
 
   // embedded data in other models, should be public
   final case class Embed(slug: String,

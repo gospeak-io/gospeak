@@ -500,10 +500,8 @@ object DoobieUtils {
     implicit val memberRoleMeta: Meta[Group.Member.Role] = Meta[String].timap(Group.Member.Role.from(_).get)(_.value)
     implicit val rsvpAnswerMeta: Meta[Event.Rsvp.Answer] = Meta[String].timap(Event.Rsvp.Answer.from(_).get)(_.value)
     implicit val externalEventIdMeta: Meta[ExternalEvent.Id] = Meta[String].timap(ExternalEvent.Id.from(_).get)(_.value)
-    implicit val commonEventIdMeta: Meta[CommonEvent.Id] = Meta[String].timap(CommonEvent.Id.from(_).get)(_.value)
     implicit val externalCfpIdMeta: Meta[ExternalCfp.Id] = Meta[String].timap(ExternalCfp.Id.from(_).get)(_.value)
     implicit val externalProposalIdMeta: Meta[ExternalProposal.Id] = Meta[String].timap(ExternalProposal.Id.from(_).get)(_.value)
-    implicit val commonProposalIdMeta: Meta[CommonProposal.Id] = Meta[String].timap(CommonProposal.Id.from(_).get)(_.value)
     implicit val voteMeta: Meta[Proposal.Rating.Grade] = Meta[Int].timap(Proposal.Rating.Grade.from(_).get)(_.value)
 
     implicit val userIdNelMeta: Meta[NonEmptyList[User.Id]] = Meta[String].timap(
@@ -512,6 +510,13 @@ object DoobieUtils {
     implicit val proposalIdSeqMeta: Meta[Seq[Proposal.Id]] = Meta[String].timap(
       _.split(",").filter(_.nonEmpty).map(Proposal.Id.from(_).get).toSeq)(
       _.map(_.value).mkString(","))
+
+    implicit def eitherRead[A, B](implicit r: Read[(Option[A], Option[B])]): Read[Either[A, B]] = Read[(Option[A], Option[B])].map {
+      case (Some(a), None) => Left(a)
+      case (None, Some(b)) => Right(b)
+      case (None, None) => throw new Exception(s"Unable to read Either, no side is defined")
+      case (Some(a), Some(b)) => throw new Exception(s"Unable to read Either, both sides are defined: Left($a) / Right($b)")
+    }
 
     implicit val userRequestRead: Read[UserRequest] =
       Read[(UserRequest.Id, String, Option[Group.Id], Option[Cfp.Id], Option[Event.Id], Option[Talk.Id], Option[Proposal.Id], Option[ExternalEvent.Id], Option[ExternalCfp.Id], Option[ExternalProposal.Id], Option[EmailAddress], Option[String], Instant, Instant, Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id], Option[Instant], Option[User.Id])].map {

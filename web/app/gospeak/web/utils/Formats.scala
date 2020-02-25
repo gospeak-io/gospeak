@@ -4,12 +4,11 @@ import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate, LocalDateTime}
 import java.util.Locale
 
-import gospeak.core.domain.{Cfp, Event}
 import gospeak.core.domain.utils.Constants
+import gospeak.core.domain.{Cfp, Event}
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Filter
-import gospeak.web.pages.partials.html
 import gospeak.libs.scala.domain.Page
-import play.api.data.Field
+import gospeak.web.pages.partials.html
 import play.api.mvc.{AnyContent, Call}
 import play.twirl.api.Html
 
@@ -96,6 +95,17 @@ object Formats {
     case Event.Kind.Training => "primary"
     case Event.Kind.PrivateEvent => "secondary"
   }
+
+  def icon(kind: Event.Kind): Html = kind match {
+    case Event.Kind.Conference => Html("<i class=\"fas fa-bullhorn\" title=\"Conference\"></i>")
+    case Event.Kind.Meetup => Html("<i class=\"fas fa-calendar-day\" title=\"Meetup\"></i>")
+    case Event.Kind.Training => Html("<i class=\"fas fa-book-reader\" title=\"Training\"></i>")
+    case Event.Kind.PrivateEvent => Html("<i class=\"fas fa-lock\" title=\"Private event\"></i>")
+  }
+
+  def color(kind: Option[Event.Kind]): String = kind.map(color).getOrElse("dark")
+
+  def icon(kind: Option[Event.Kind]): Html = kind.map(icon).getOrElse(Html("<i class=\"fas fa-question\" title=\"Undefined event\"></i>"))
 
   def mkHtml(list: Seq[Html], sep: Html): Html = list match {
     case Seq() => Html("")

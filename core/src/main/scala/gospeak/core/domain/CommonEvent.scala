@@ -2,55 +2,55 @@ package gospeak.core.domain
 
 import java.time.LocalDateTime
 
-import gospeak.core.domain.utils.{Info, TemplateData}
 import gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
+import gospeak.core.domain.utils.{Info, TemplateData}
 import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
-import gospeak.libs.scala.domain.{DataClass, GMapPlace, IId, Logo, Markdown, Tag, TwitterHashtag, Url, UuidIdBuilder}
+import gospeak.libs.scala.domain._
 
-final case class CommonEvent(id: CommonEvent.Id,
-                             name: Event.Name,
+final case class CommonEvent(name: Event.Name,
                              kind: Event.Kind,
                              start: Option[LocalDateTime],
                              location: Option[GMapPlace],
                              twitterAccount: Option[TwitterAccount],
                              twitterHashtag: Option[TwitterHashtag],
                              tags: Seq[Tag],
-                             internal: Option[CommonEvent.Internal],
-                             external: Option[CommonEvent.External],
+                             extra: Either[CommonEvent.External, CommonEvent.Internal],
                              info: Info) {
-  def logo: Option[Logo] = internal.flatMap(i => i.groupLogo.orElse(i.venueLogo)).orElse(external.flatMap(_.logo))
+  def logo: Option[Logo] = extra.fold(_.logo, i => i.group.logo.orElse(i.venue.map(_.logo)))
 
   def users: List[User.Id] = info.users
+
+  def fold[A](f: CommonEvent.External => A)(g: CommonEvent.Internal => A): A = extra.fold(f, g)
+
+  def internal: Option[CommonEvent.Internal] = extra.right.toOption
+
+  def external: Option[CommonEvent.External] = extra.left.toOption
 }
 
 object CommonEvent {
 
-  final class Id private(value: String) extends DataClass(value) with IId {
-    def internal: Event.Id = Event.Id.from(this)
+  final case class InternalGroup(id: Group.Id,
+                                 slug: Group.Slug,
+                                 name: Group.Name,
+                                 logo: Option[Logo])
 
-    def external: ExternalEvent.Id = ExternalEvent.Id.from(this)
-  }
+  final case class InternalCfp(id: Cfp.Id,
+                               slug: Cfp.Slug,
+                               name: Cfp.Name)
 
-  object Id extends UuidIdBuilder[Id]("CommonEvent.Id", new Id(_)) {
-    def apply(id: Event.Id): Id = new Id(id.value)
+  final case class InternalVenue(id: Venue.Id,
+                                 name: Partner.Name,
+                                 logo: Logo)
 
-    def apply(id: ExternalEvent.Id): Id = new Id(id.value)
-  }
+  final case class Internal(id: Event.Id,
+                            slug: Event.Slug,
+                            description: MustacheMarkdownTmpl[TemplateData.EventInfo],
+                            group: InternalGroup,
+                            cfp: Option[InternalCfp],
+                            venue: Option[InternalVenue])
 
-  final case class Internal(groupId: Group.Id,
-                            groupSlug: Group.Slug,
-                            groupName: Group.Name,
-                            groupLogo: Option[Logo],
-                            cfpId: Option[Cfp.Id],
-                            cfpSlug: Option[Cfp.Slug],
-                            cfpName: Option[Cfp.Name],
-                            venueId: Option[Venue.Id],
-                            venueName: Option[Partner.Name],
-                            venueLogo: Option[Logo],
-                            eventSlug: Event.Slug,
-                            description: MustacheMarkdownTmpl[TemplateData.EventInfo])
-
-  final case class External(logo: Option[Logo],
+  final case class External(id: ExternalEvent.Id,
+                            logo: Option[Logo],
                             description: Markdown,
                             url: Option[Url],
                             tickets: Option[Url],

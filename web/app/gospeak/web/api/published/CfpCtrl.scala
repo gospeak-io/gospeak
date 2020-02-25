@@ -20,14 +20,14 @@ class CfpCtrl(cc: ControllerComponents,
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiCfp.Published]] { implicit req =>
     for {
       cfps <- externalCfpRepo.listIncoming(params)
-      groups <- groupRepo.list(cfps.items.flatMap(_.group.map(_._1)))
+      groups <- groupRepo.list(cfps.items.flatMap(_.internal.map(_.group.id)))
     } yield ApiResult.of(cfps, (cfp: CommonCfp) => ApiCfp.published(cfp, groups))
   }
 
   def detail(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction[ApiCfp.Published] { implicit req =>
     (for {
       cfpElt <- OptionT(externalCfpRepo.findCommon(cfp))
-      groups <- OptionT.liftF(groupRepo.list(cfpElt.group.map(_._1).toList))
+      groups <- OptionT.liftF(groupRepo.list(cfpElt.internal.map(_.group.id).toList))
       res = ApiResult.of(ApiCfp.published(cfpElt, groups))
     } yield res).value.map(_.getOrElse(cfpNotFound(cfp)))
   }
@@ -35,7 +35,7 @@ class CfpCtrl(cc: ControllerComponents,
   def detailExt(cfp: ExternalCfp.Id): Action[AnyContent] = UserAwareAction[ApiCfp.Published] { implicit req =>
     (for {
       cfpElt <- OptionT(externalCfpRepo.findCommon(cfp))
-      groups <- OptionT.liftF(groupRepo.list(cfpElt.group.map(_._1).toList))
+      groups <- OptionT.liftF(groupRepo.list(cfpElt.internal.map(_.group.id).toList))
       res = ApiResult.of(ApiCfp.published(cfpElt, groups))
     } yield res).value.map(_.getOrElse(cfpNotFound(cfp)))
   }

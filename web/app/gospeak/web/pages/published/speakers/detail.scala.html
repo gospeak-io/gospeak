@@ -14,12 +14,10 @@
 
 @(user: User.Full, userGroups: Seq[Group.Full], userTalks: Seq[Talk], userProposals: Map[Talk.Id, Seq[CommonProposal]], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @eventLink(p: CommonProposal) = @{
-    p.event.map(e => GroupCtrl.event(p.group.get.slug, e.slug))
-        .orElse(p.eventExt.map(e => EventCtrl.detailExt(e.id))).get
+    p.fold(e => EventCtrl.detailExt(e.event.id))(i => i.event.map(e => GroupCtrl.event(i.group.slug, e.slug)).getOrElse(GroupCtrl.detail(i.group.slug)))
 }
 @proposalLink(p: CommonProposal) = @{
-    p.event.map(e => GroupCtrl.talk(p.group.get.slug, p.id.internal))
-        .orElse(p.eventExt.map(e => EventCtrl.proposalExt(e.id, p.id.external))).get
+    p.fold(e => EventCtrl.proposalExt(e.event.id, e.id))(i => GroupCtrl.talk(i.group.slug, i.id))
 }
 @socialItem(name: String, link: String, handle: String, i: Int) = {
     <a class="media @if(i != 0){mt-4}" href="@link" target="_blank">
@@ -50,15 +48,15 @@
                         Send a Message
                     </a>
                 </div>-->
-                @defining(userProposals.values.flatten.toList.filter(p => p.logo.isDefined && p.eventName.isDefined).sortBy(p => (p.eventKind.map(_.value).getOrElse(""), -p.date.getEpochSecond)).distinctBy(_.logo).take(8).reverse) { proposals: List[CommonProposal] =>
+                @defining(userProposals.values.flatten.toList.filter(_.logo.isDefined).sortBy(p => (p.eventKind.map(_.value).getOrElse(""), -p.date.getEpochSecond)).distinctBy(_.logo).take(8).reverse) { proposals: List[CommonProposal] =>
                     @if(proposals.nonEmpty) {
                         <div class="mt-3">
                             Spoke at<br>
                             <ul class="list-inline hover-grow ml-3 mb-0">
                             @proposals.map { p =>
                                 <li class="list-inline-item ml-n3 mr-0">
-                                    <a href="@eventLink(p)" title="@p.eventName.map(_.value).getOrElse("")" data-toggle="tooltip" data-placement="bottom">
-                                        <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@p.logo.get.value" alt="@p.eventName.map(_.value).getOrElse("") logo">
+                                    <a href="@eventLink(p)" title="@p.eventName" data-toggle="tooltip" data-placement="bottom">
+                                        <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@p.logo.get.value" alt="@p.eventName logo">
                                     </a>
                                 </li>
                             }
@@ -109,7 +107,7 @@
                                         <small class="d-block text-secondary">Not presented yet</small>
                                     }
                                     case Seq(proposal) => {
-                                        <small class="d-block text-secondary">Presented at <a href="@eventLink(proposal)" class="no-style">@proposal.eventName.get.value</a></small>
+                                        <small class="d-block text-secondary">Presented at <a href="@eventLink(proposal)" class="no-style">@proposal.eventName</a></small>
                                     }
                                     case proposals => {
                                         <small class="d-block text-secondary">@proposals.length presentations</small>
@@ -171,8 +169,8 @@
             <hr class="my-5">
             <h3 class="h5 mb-0">Speaking history</h3>
             <div class="text-muted mb-3">
-                @userProposals.values.flatten.toList.groupBy(p => p.event.map(_.kind).orElse(p.eventExt.map(_.kind)).get).map { case (kind, proposals) =>
-                    <span class="badge badge-pill badge-@Formats.color(kind)">@eventKindIcon(kind) @Formats.plural(proposals.length, kind.label)</span>
+                @userProposals.values.flatten.toList.groupBy(_.eventKind).map { case (kind, proposals) =>
+                    <span class="badge badge-pill badge-@Formats.color(kind)">@Formats.icon(kind) @Formats.plural(proposals.length, kind.map(_.label).getOrElse("Undefined event"))</span>
                 }
             </div>
             @speakingHistory(user, userProposals.values.flatten.toList)

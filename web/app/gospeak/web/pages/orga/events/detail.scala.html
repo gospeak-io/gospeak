@@ -1,5 +1,6 @@
 @import gospeak.core.domain.utils.TemplateData
 @import gospeak.core.domain.{Cfp, Event, Proposal, User, Venue}
+@import gospeak.libs.scala.domain.{Markdown, MustacheTmpl, Page}
 @import gospeak.web.api.ui.routes.SuggestCtrl
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
@@ -8,13 +9,11 @@
 @import gospeak.web.pages.orga.partials.html.{container, proposalRating}
 @import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.orga.partners.routes.PartnerCtrl
-@import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.pages.partials.html.{pagination, search}
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.OrgaReq
-@import gospeak.libs.scala.domain.{Markdown, MustacheTmpl, Page}
+@import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
+@import gospeak.web.utils.{Formats, OrgaReq}
 
 @(event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Id], notesForm: Form[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${event.name.value} - Gospeak", b)() {
@@ -34,7 +33,7 @@
 
     <h1 class="d-flex justify-content-between align-items-center">
         <span>
-            @eventKindIcon(event.kind)
+            @Formats.icon(event.kind)
             @event.name.value
             @if(event.isPublic) { <a href="@PublicGroupCtrl.event(req.group.slug, event.slug)" target="_blank" title="View public page"><i class="fas fa-eye"></i></a> }
             @event.refs.meetup.map { ref => <a href="@ref.link" target="_blank" title="View meetup page"><i class="fab fa-meetup"></i></a> }

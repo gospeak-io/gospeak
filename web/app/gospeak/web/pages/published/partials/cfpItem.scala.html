@@ -1,12 +1,10 @@
 @import gospeak.core.domain.CommonCfp
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
-@import gospeak.web.pages.partials.display.html.tags
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.UserAwareReq
+@import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(cfp: CommonCfp)(implicit req: UserAwareReq[AnyContent])
 <div class="mb-2">
-    <a class="card card-frame card-text-dark" href="@cfp.ref.fold(id => CfpCtrl.detailExt(id), slug => CfpCtrl.detail(slug))">
+    <a class="card card-frame card-text-dark" href="@cfp.fold(e => CfpCtrl.detailExt(e.id))(i => CfpCtrl.detail(i.slug))">
         <span class="card-body p-4">
             <span class="row align-items-center">
                 <span class="col-sm-2 mb-2 mb-sm-0">
@@ -25,7 +23,7 @@
                         }
                     }
                 </span>
-                <span class="col-sm-4">@cfp.name @cfp.eventStart.map { s => (@Formats.date(s))}</span>
+                <span class="col-sm-4">@cfp.name @cfp.external.flatMap(_.event.start).map { s => (@Formats.date(s)) }</span>
 
                 <span class="col-sm-6 text-primary text-sm-right">
                     @cfp.location.map { l => @l.locality.map(_+",") @l.country }

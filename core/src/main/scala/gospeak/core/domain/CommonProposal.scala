@@ -9,87 +9,102 @@ import gospeak.libs.scala.domain._
 
 import scala.concurrent.duration.FiniteDuration
 
-final case class CommonProposal(id: CommonProposal.Id,
-                                external: Boolean,
-                                talk: CommonProposal.EmbedTalk,
-                                group: Option[CommonProposal.EmbedGroup],
-                                cfp: Option[CommonProposal.EmbedCfp],
-                                event: Option[CommonProposal.EmbedEvent],
-                                eventExt: Option[CommonProposal.EmbedExtEvent],
-                                title: Talk.Title,
+final case class CommonProposal(title: Talk.Title,
                                 status: Proposal.Status,
                                 duration: FiniteDuration,
                                 speakers: NonEmptyList[User.Id],
                                 slides: Option[Slides],
                                 video: Option[Video],
                                 tags: Seq[Tag],
+                                talk: CommonProposal.EmbedTalk,
+                                extra: Either[CommonProposal.External, CommonProposal.Internal],
                                 info: Info) {
   def users: List[User.Id] = (speakers.toList ++ info.users).distinct
 
-  def date: Instant = event.map(_.start).orElse(eventExt.flatMap(_.start)).map(TimeUtils.toInstant(_, Constants.defaultZoneId)).getOrElse(info.createdAt)
+  def date: Instant = extra.fold(_.event.start, _.event.map(_.start)).map(TimeUtils.toInstant(_, Constants.defaultZoneId)).getOrElse(info.createdAt)
 
-  def logo: Option[Logo] = eventExt.flatMap(_.logo).orElse(group.flatMap(_.logo))
+  def logo: Option[Logo] = extra.fold(_.event.logo, _.group.logo)
 
-  def eventName: Option[Event.Name] = event.map(_.name).orElse(eventExt.map(_.name))
+  def eventName: String = extra.fold(_.event.name.value, i => i.event.map(_.name.value).getOrElse(i.group.name.value))
 
-  def eventKind: Option[Event.Kind] = event.map(_.kind).orElse(eventExt.map(_.kind))
+  def eventKind: Option[Event.Kind] = extra.fold(e => Some(e.event.kind), _.event.map(_.kind))
 
   def hasSpeaker(user: User.Id): Boolean = speakers.toList.contains(user)
 
-  def hasOrga(user: User.Id): Boolean = group.exists(_.owners.toList.contains(user))
+  def hasOrga(user: User.Id): Boolean = extra.exists(_.group.owners.toList.contains(user))
+
+  def fold[A](f: CommonProposal.External => A)(g: CommonProposal.Internal => A): A = extra.fold(f, g)
+
+  def internal: Option[CommonProposal.Internal] = extra.right.toOption
+
+  def external: Option[CommonProposal.External] = extra.left.toOption
 }
 
 object CommonProposal {
   def apply(p: Proposal, t: Talk, g: Group, c: Cfp, eOpt: Option[Event]): CommonProposal =
     new CommonProposal(
-      Id(p.id), external = false,
-      EmbedTalk(t.id, t.slug, t.duration),
-      Some(EmbedGroup(g.id, g.slug, g.name, g.logo, g.owners)),
-      Some(EmbedCfp(c.id, c.slug, c.name)),
-      eOpt.map(e => EmbedEvent(e.id, e.slug, e.name, e.kind, e.start)),
-      None, p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.info)
+      title = p.title,
+      status = p.status,
+      duration = p.duration,
+      speakers = p.speakers,
+      slides = p.slides,
+      video = p.video,
+      tags = p.tags,
+      talk = EmbedTalk(t.id, t.slug, t.duration),
+      extra = Right(Internal(
+        id = p.id,
+        group = InternalGroup(g.id, g.slug, g.name, g.logo, g.owners),
+        cfp = InternalCfp(c.id, c.slug, c.name),
+        event = eOpt.map(e => InternalEvent(e.id, e.slug, e.name, e.kind, e.start)))),
+      info = p.info)
 
   def apply(p: ExternalProposal, t: Talk, e: ExternalEvent): CommonProposal =
-    new CommonProposal(Id(p.id), external = true, EmbedTalk(t.id, t.slug, t.duration), None, None, None, Some(EmbedExtEvent(e.id, e.name, e.kind, e.logo, e.start, e.url, p.url)), p.title, p.status, p.duration, p.speakers, p.slides, p.video, p.tags, p.info)
-
-  final class Id private(value: String) extends DataClass(value) with IId {
-    def internal: Proposal.Id = Proposal.Id.from(this)
-
-    def external: ExternalProposal.Id = ExternalProposal.Id.from(this)
-  }
-
-  object Id extends UuidIdBuilder[Id]("CommonProposal.Id", new Id(_)) {
-    def apply(id: Proposal.Id): Id = new Id(id.value)
-
-    def apply(id: ExternalProposal.Id): Id = new Id(id.value)
-  }
+    new CommonProposal(
+      title = p.title,
+      status = p.status,
+      duration = p.duration,
+      speakers = p.speakers,
+      slides = p.slides,
+      video = p.video,
+      tags = p.tags,
+      talk = EmbedTalk(t.id, t.slug, t.duration),
+      extra = Left(External(p.id, ExternalExternalEvent(e.id, e.name, e.kind, e.logo, e.start, e.url, p.url))),
+      info = p.info)
 
   final case class EmbedTalk(id: Talk.Id,
                              slug: Talk.Slug,
                              duration: FiniteDuration)
 
-  final case class EmbedGroup(id: Group.Id,
-                              slug: Group.Slug,
-                              name: Group.Name,
-                              logo: Option[Logo],
-                              owners: NonEmptyList[User.Id])
+  final case class InternalGroup(id: Group.Id,
+                                 slug: Group.Slug,
+                                 name: Group.Name,
+                                 logo: Option[Logo],
+                                 owners: NonEmptyList[User.Id])
 
-  final case class EmbedCfp(id: Cfp.Id,
-                            slug: Cfp.Slug,
-                            name: Cfp.Name)
+  final case class InternalCfp(id: Cfp.Id,
+                               slug: Cfp.Slug,
+                               name: Cfp.Name)
 
-  final case class EmbedEvent(id: Event.Id,
-                              slug: Event.Slug,
-                              name: Event.Name,
-                              kind: Event.Kind,
-                              start: LocalDateTime)
-
-  final case class EmbedExtEvent(id: ExternalEvent.Id,
+  final case class InternalEvent(id: Event.Id,
+                                 slug: Event.Slug,
                                  name: Event.Name,
                                  kind: Event.Kind,
-                                 logo: Option[Logo],
-                                 start: Option[LocalDateTime],
-                                 url: Option[Url],
-                                 proposalUrl: Option[Url])
+                                 start: LocalDateTime)
+
+  final case class Internal(id: Proposal.Id,
+                            group: InternalGroup,
+                            cfp: InternalCfp,
+                            event: Option[InternalEvent])
+
+  final case class ExternalExternalEvent(id: ExternalEvent.Id,
+                                         name: Event.Name,
+                                         kind: Event.Kind,
+                                         logo: Option[Logo],
+                                         start: Option[LocalDateTime],
+                                         url: Option[Url],
+                                         proposalUrl: Option[Url])
+
+  final case class External(id: ExternalProposal.Id,
+                            event: ExternalExternalEvent)
 
 }

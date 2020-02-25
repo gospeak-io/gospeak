@@ -4,9 +4,7 @@
 @import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.orga.partners.routes.PartnerCtrl
-@import gospeak.web.pages.partials.display.html._
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.OrgaReq
+@import gospeak.web.utils.{Formats, OrgaReq}
 
 @(event: Event.Full, proposals: Seq[Proposal], speakers: Seq[User])(implicit req: OrgaReq[AnyContent])
 <div id="collapse-@event.slug.value" class="card mb-3">
@@ -31,7 +29,7 @@
                             </span>
                             <span class="media-body">
                                 <span class="d-block font-size-1">
-                                    <a href="@EventCtrl.detail(req.group.slug, event.slug)" class="no-propagation" id="collapse-title-@event.slug.value">@eventKindIcon(event.kind) @event.name.value</a>
+                                    <a href="@EventCtrl.detail(req.group.slug, event.slug)" class="no-propagation" id="collapse-title-@event.slug.value">@Formats.icon(event.kind) @event.name.value</a>
                                     @event.refs.meetup.map { ref =>
                                         <a href="@ref.link" target="_blank" class="no-propagation"><i class="fab fa-meetup"></i></a>
                                     }

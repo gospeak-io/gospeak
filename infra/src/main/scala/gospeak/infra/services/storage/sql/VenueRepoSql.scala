@@ -157,5 +157,5 @@ object VenueRepoSql {
   }
 
   private def where(group: Group.Id, id: Venue.Id): Fragment =
-    fr0"WHERE v.id=(" ++ tableFull.select(Seq(Field("id", "v")), fr0"WHERE pa.group_id=$group AND v.id=$id", Seq()).fr ++ fr0")"
+    fr0"WHERE v.id=(" ++ tableFull.select[Venue.Id](Seq(Field("id", "v")), fr0"WHERE pa.group_id=$group AND v.id=$id", Seq()).fr ++ fr0")"
 }

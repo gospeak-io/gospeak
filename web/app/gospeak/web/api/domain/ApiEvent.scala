@@ -84,8 +84,8 @@ object ApiEvent {
 
   def common(e: CommonEvent)(implicit ctx: BasicCtx): Common =
     new Common(
-      kind = if (e.internal.isDefined) "internal" else "external",
-      id = e.id.value,
+      kind = e.fold(_ => "external")(_ => "internal"),
+      id = e.fold(_.id.value)(_.id.value),
       name = e.name.value,
       format = e.kind.value,
       start = e.start,

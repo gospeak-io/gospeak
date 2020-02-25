@@ -135,7 +135,7 @@ object TalkRepoSql {
     table.selectPage[Talk, UserCtx](params, fr0"WHERE t.speakers LIKE ${"%" + ctx.user.id.value + "%"} AND " ++ Fragments.in(fr"t.status", status))
 
   private[sql] def selectPage(cfp: Cfp.Id, status: NonEmptyList[Talk.Status], params: Page.Params)(implicit ctx: UserCtx): SelectPage[Talk, UserCtx] = {
-    val cfpTalks = Tables.proposals.select(Seq(Field("talk_id", "p")), fr0"WHERE p.cfp_id=$cfp", Seq()).fr
+    val cfpTalks = Tables.proposals.select[Talk.Id](Seq(Field("talk_id", "p")), fr0"WHERE p.cfp_id=$cfp", Seq()).fr
     table.selectPage[Talk, UserCtx](params, fr0"WHERE t.speakers LIKE ${"%" + ctx.user.id.value + "%"} AND t.id NOT IN (" ++ cfpTalks ++ fr0") AND " ++ Fragments.in(fr"t.status", status))
   }
 

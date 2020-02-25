@@ -1,8 +1,0 @@
-@import gospeak.core.domain.Event
-@(kind: Event.Kind)
-@kind match {
-    case Event.Kind.Conference => {<i class="fas fa-bullhorn" title="Conference"></i>}
-    case Event.Kind.Meetup => {<i class="fas fa-calendar-day" title="Meetup"></i>}
-    case Event.Kind.Training => {<i class="fas fa-book-reader" title="Training"></i>}
-    case Event.Kind.PrivateEvent => {<i class="fas fa-lock" title="Private event"></i>}
-}
