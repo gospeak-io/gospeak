@@ -7,7 +7,8 @@
 @import gospeak.web.utils.Formats
 @import gospeak.web.utils.UserAwareReq
 
-@(group: Group.Full, speakerCount: Long, talks: Page[Proposal.Full], cfps: Seq[Cfp], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@import gospeak.web.utils.GsForms
+@(group: Group.Full, speakerCount: Long, talks: Page[Proposal.Full], cfps: Seq[Cfp], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member], form: Form[GsForms.OrgaContact])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @talkItem(group: Group.Full, talk: Proposal.Full, speakers: Seq[User]) = {
     <div class="card mb-3">
         <div class="card-body">
@@ -29,7 +30,7 @@
 }
 @container(s"${group.name.value} talks - Gospeak", PageMeta.group(group.group), b)() {
 <div class="row">
-    @groupCard(group, speakerCount, cfps, sponsors, packs, orgas, userMembership)(b)
+    @groupCard(group, speakerCount, cfps, sponsors, packs, orgas, userMembership, form)(b)
 
     <div class="col-lg-8 m">
         <h3>@Formats.plural(talks.total.value, "talk") given at @group.name.value</h3>

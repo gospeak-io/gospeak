@@ -3,12 +3,13 @@ package gospeak.web.pages.published.groups
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import gospeak.core.domain.{Event, Group, Proposal}
+import gospeak.core.domain.{Event, Group, Proposal, User}
 import gospeak.core.services.TemplateSrv
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.EmailAddress.Contact
 import gospeak.libs.scala.domain._
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
@@ -56,7 +57,7 @@ class GroupCtrl(cc: ControllerComponents,
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
-      res = Ok(html.detail(groupElt, speakerCount, cfps, events, sponsors, packs, orgas, userMembership)(breadcrumb(groupElt.group)))
+      res = Ok(html.detail(groupElt, speakerCount, cfps, events, sponsors, packs, orgas, userMembership, GsForms.orgaContact)(breadcrumb(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   }
 
@@ -94,7 +95,7 @@ class GroupCtrl(cc: ControllerComponents,
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
-      res = Ok(html.events(groupElt, speakerCount, cfps, events, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
+      res = Ok(html.events(groupElt, speakerCount, cfps, events, sponsors, packs, orgas, userMembership, GsForms.orgaContact)(breadcrumbEvents(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   }
 
@@ -199,7 +200,7 @@ class GroupCtrl(cc: ControllerComponents,
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
-      res = Ok(html.talks(groupElt, speakerCount, proposals, cfps, speakers, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
+      res = Ok(html.talks(groupElt, speakerCount, proposals, cfps, speakers, sponsors, packs, orgas, userMembership, GsForms.orgaContact)(breadcrumbEvents(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   }
 
@@ -222,7 +223,7 @@ class GroupCtrl(cc: ControllerComponents,
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
-      res = Ok(html.speakers(groupElt, speakerCount, cfps, speakers, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
+      res = Ok(html.speakers(groupElt, speakerCount, cfps, speakers, sponsors, packs, orgas, userMembership, GsForms.orgaContact)(breadcrumbEvents(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   }
 
@@ -236,8 +237,21 @@ class GroupCtrl(cc: ControllerComponents,
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
-      res = Ok(html.members(groupElt, speakerCount, cfps, members, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
+      res = Ok(html.members(groupElt, speakerCount, cfps, members, sponsors, packs, orgas, userMembership, GsForms.orgaContact)(breadcrumbEvents(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
+  }
+
+
+  def contactOrga(group: Group.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
+    val next = Redirect(routes.GroupCtrl.detail(group))
+    GsForms.orgaContact.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
+      data => (for {
+        groupElt <- OptionT(groupRepo.find(group))
+        orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
+        _ <- OptionT.liftF(orgas.map(o => emailSrv.send(Emails.contactOrga(Contact(o.email), data.subject, data.content, o))).sequence)
+        res = Redirect(routes.GroupCtrl.detail(group)).flashing("success" -> "The message has been sent!")
+      } yield res).value.map(_.getOrElse(groupNotFound(group))))
   }
 }
 

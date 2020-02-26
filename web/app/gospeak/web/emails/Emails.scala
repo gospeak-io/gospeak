@@ -246,4 +246,12 @@ object Emails {
       to = Seq(speaker.asContact),
       subject = subject,
       content = HtmlContent(html.contactSpeaker(text).body))
+
+
+  def contactOrga(sender: EmailAddress.Contact, subject: String, text: Markdown, orga: User): Email =
+    Email(
+      from = sender,
+      to = Seq(orga.asContact),
+      subject = subject,
+      content = HtmlContent(html.contactSpeaker(text).body))
 }

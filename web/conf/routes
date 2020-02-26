@@ -43,6 +43,7 @@ GET         /groups/:group/talks                                                
 GET         /groups/:group/talks/:proposal                                                 gospeak.web.pages.published.groups.GroupCtrl.talk(group: Group.Slug, proposal: Proposal.Id)
 GET         /groups/:group/speakers                                                        gospeak.web.pages.published.groups.GroupCtrl.speakers(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
 GET         /groups/:group/members                                                         gospeak.web.pages.published.groups.GroupCtrl.members(group: Group.Slug, params: Page.Params ?= Page.Params.defaults)
+GET         /groups/:group/contact                                                         gospeak.web.pages.published.groups.GroupCtrl.contactOrga(group: Group.Slug)
 
 GET         /speakers                                                                      gospeak.web.pages.published.speakers.SpeakerCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /speakers/:speaker                                                             gospeak.web.pages.published.speakers.SpeakerCtrl.detail(speaker: User.Slug)
