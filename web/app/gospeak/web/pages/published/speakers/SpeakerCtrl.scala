@@ -38,7 +38,7 @@ class SpeakerCtrl(cc: ControllerComponents,
       data => (for {
         speakerElt <- OptionT(userRepo.findPublic(user))
         _ <- OptionT.liftF(emailSrv.send(Emails.contactSpeaker(Contact(speakerElt.email), data.subject, data.content, speakerElt.user)))
-        res = Redirect(routes.SpeakerCtrl.detail(user)).flashing("success" -> "The contact email has been sent!")
+        res = Redirect(routes.SpeakerCtrl.detail(user)).flashing("success" -> "The message has been sent!")
       } yield res).value.map(_.getOrElse(publicUserNotFound(user))))
   }
 
