@@ -8,10 +8,11 @@
 @import gospeak.web.pages.published.partials.html.{container, eventItem, groupCard}
 @import gospeak.web.utils.UserAwareReq
 
-@(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@import gospeak.web.utils.GsForms
+@(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member], form: Form[GsForms.OrgaContact])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${group.name.value} - Gospeak", PageMeta.group(group.group), b)() {
 <div class="row">
-    @groupCard(group, speakerCount, cfps, sponsors, packs, orgas, userMembership)(b)
+    @groupCard(group, speakerCount, cfps, sponsors, packs, orgas, userMembership, form)(b)
 
     <div class="col-lg-8">
         <div class="pl-lg-4">
