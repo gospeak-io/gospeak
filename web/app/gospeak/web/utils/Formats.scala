@@ -6,7 +6,7 @@ import java.util.Locale
 
 import gospeak.core.domain.utils.Constants
 import gospeak.core.domain.{Cfp, Event}
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.Filter
+import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Filter, Sort}
 import gospeak.libs.scala.domain.Page
 import gospeak.web.pages.partials.html
 import play.api.mvc.{AnyContent, Call}
@@ -113,17 +113,20 @@ object Formats {
     case Seq(head, tail@_*) => Html(tail.foldLeft(new StringBuilder(head.body.trim))((b, html) => b.append(sep.body + html.body.trim)).toString())
   }
 
-  def paginated[A](page: Page[A], link: Page.Params => Call, item: A => Html, filters: Seq[Filter] = Seq()): Html = {
-    Html(paginationHeader(page, link, filters).body + paginationBody(page, item).body + paginationFooter(page, link).body)
+  def paginated[A](page: Page[A], link: Page.Params => Call, item: A => Html, filters: Seq[Filter] = Seq(), sorts: Seq[Sort] = Seq()): Html = {
+    Html(paginationHeader(page, link, filters, sorts).body + paginationBody(page, item).body + paginationFooter(page, link).body)
   }
 
-  def paginationHeader[A](page: Page[A], link: Page.Params => Call, filters: Seq[Filter]): Html = {
+  def paginationHeader[A](page: Page[A], link: Page.Params => Call, filters: Seq[Filter], sorts: Seq[Sort]): Html = {
     Html(
-      s"""<div class="row"${if (page.hasManyPages || page.params.search.nonEmpty) "" else " style=\"display: none !important;\""}>
+      s"""<div class="row"${if (page.params.search.isEmpty && !page.hasManyPages) " style=\"display: none !important;\"" else ""}>
          |  <div class="col-lg-6 col-md-12 mb-3">${html.search(page, link(Page.Params.defaults))}</div>
          |  <div class="col-lg-6 col-md-12 mb-3 d-flex justify-content-end">${html.pagination(page, link)}</div>
          |</div>
-         |${html.filters(page, link, filters)}
+         |<div class="mb-3"${if(filters.isEmpty && sorts.isEmpty) " style=\"display: none !important;\"" else ""}>
+         |  ${html.filters(page, link, filters)}
+         |  ${html.sorts(page, link, sorts)}
+         |</div>
        """.stripMargin.trim)
   }
 

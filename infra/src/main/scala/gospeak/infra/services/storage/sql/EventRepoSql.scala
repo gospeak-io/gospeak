@@ -14,7 +14,7 @@ import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.EventRepo
 import gospeak.infra.services.storage.sql.EventRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Sort, Update}
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
@@ -134,16 +134,16 @@ object EventRepoSql {
     table.update(fr0"published=$now, updated_at=$now, updated_by=$by", where(group, event))
 
   private[sql] def selectOne(event: Event.Id): Select[Event] =
-    table.selectOne[Event](fr0"WHERE e.id=$event", Seq())
+    table.selectOne[Event](fr0"WHERE e.id=$event")
 
   private[sql] def selectOne(group: Group.Id, event: Event.Slug): Select[Event] =
-    table.selectOne[Event](where(group, event), Seq())
+    table.selectOne[Event](where(group, event))
 
   private[sql] def selectOneFull(group: Group.Id, event: Event.Slug): Select[Event.Full] =
-    tableFull.selectOne[Event.Full](where(group, event), Seq())
+    tableFull.selectOne[Event.Full](where(group, event))
 
   private[sql] def selectOnePublished(group: Group.Id, event: Event.Slug): Select[Event.Full] =
-    tableFull.selectOne[Event.Full](fr0"WHERE e.group_id=$group AND e.slug=$event AND e.published IS NOT NULL", Seq())
+    tableFull.selectOne[Event.Full](fr0"WHERE e.group_id=$group AND e.slug=$event AND e.published IS NOT NULL")
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Event, OrgaCtx] =
     table.selectPage[Event, OrgaCtx](params, fr0"WHERE e.group_id=${ctx.group.id}")
@@ -170,12 +170,12 @@ object EventRepoSql {
     tableFullWithMemberAndRsvp.selectPage[(Event.Full, Option[Event.Rsvp]), UserCtx](params, fr0"WHERE e.start > ${ctx.now} AND e.published IS NOT NULL AND gm.user_id=${ctx.user.id}")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "e")), Seq())
+    table.select[Seq[Tag]](Seq(Field("tags", "e")))
 
   private def where(group: Group.Id, event: Event.Slug): Fragment = fr0"WHERE e.group_id=$group AND e.slug=$event"
 
   private[sql] def countRsvp(event: Event.Id, answer: Event.Rsvp.Answer): Select[Long] =
-    rsvpTable.select[Long](Seq(Field("count(*)", "")), fr0"WHERE er.event_id=$event AND er.answer=$answer GROUP BY er.event_id, er.answer", Seq())
+    rsvpTable.select[Long](Seq(Field("count(*)", "")), fr0"WHERE er.event_id=$event AND er.answer=$answer GROUP BY er.event_id, er.answer")
 
   private[sql] def insertRsvp(e: Event.Rsvp): Insert[Event.Rsvp] =
     rsvpTable.insert[Event.Rsvp](e, _ => fr0"${e.event}, ${e.user.id}, ${e.answer}, ${e.answeredAt}")
@@ -193,5 +193,5 @@ object EventRepoSql {
     rsvpTableWithUser.select[Event.Rsvp](fr0"WHERE er.event_id=$event AND er.user_id=$user")
 
   private[sql] def selectFirstRsvp(event: Event.Id, answer: Answer): Select[Event.Rsvp] =
-    rsvpTableWithUser.selectOne[Event.Rsvp](fr0"WHERE er.event_id=$event AND er.answer=$answer", sort = Seq(Field("answered_at", "er")))
+    rsvpTableWithUser.selectOne[Event.Rsvp](fr0"WHERE er.event_id=$event AND er.answer=$answer", sort = Sort("answer", Field("answered_at", "er")))
 }

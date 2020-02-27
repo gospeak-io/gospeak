@@ -73,7 +73,7 @@ class UserRepoSqlSpec extends RepoSpec {
         }
         it("should build selectCredentials") {
           val q = UserRepoSql.selectCredentials(login)
-          check(q, s"SELECT $credentialsFields FROM $credentialsTable WHERE cd.provider_id=? AND cd.provider_key=?")
+          check(q, s"SELECT $credentialsFields FROM $credentialsTable WHERE cd.provider_id=? AND cd.provider_key=? $credentialsOrderBy")
         }
       }
       it("should build insert") {
@@ -108,7 +108,7 @@ class UserRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOnePublic with slug") {
         val q = UserRepoSql.selectOnePublic(user.slug)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE u.status=? AND u.slug=? $groupByFull LIMIT 1")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE u.status=? AND u.slug=? $groupByFull $orderByFull LIMIT 1")
       }
       it("should build selectPagePublic") {
         val q = UserRepoSql.selectPagePublic(params)
@@ -129,13 +129,15 @@ class UserRepoSqlSpec extends RepoSpec {
 object UserRepoSqlSpec {
   val loginsTable = "logins lg"
   val loginsFields: String = mapFields("provider_id, provider_key, user_id", "lg." + _)
+  val loginsOrderBy = "ORDER BY cd.provider_id IS NULL, cd.provider_id, cd.provider_key IS NULL, cd.provider_key"
 
   val credentialsTable = "credentials cd"
   val credentialsFields: String = mapFields("provider_id, provider_key, hasher, password, salt", "cd." + _)
+  val credentialsOrderBy = "ORDER BY cd.provider_id IS NULL, cd.provider_id, cd.provider_key IS NULL, cd.provider_key"
 
   val table = "users u"
   val fields: String = mapFields(s"id, slug, status, first_name, last_name, email, email_validated, email_validation_before_login, avatar, title, bio, mentoring, company, location, phone, website, $socialFields, created_at, updated_at", "u." + _)
-  val orderBy = "ORDER BY u.first_name IS NULL, u.first_name"
+  val orderBy = "ORDER BY u.last_name IS NULL, u.last_name, u.first_name IS NULL, u.first_name"
 
   val tableWithLogin = s"$table INNER JOIN $loginsTable ON u.id=lg.user_id"
 

@@ -90,7 +90,7 @@ object VenueRepoSql {
     .aggregate("MAX(v.id)", "id")
     .aggregate("COALESCE(COUNT(e.id), 0)", "events")
     .copy(fields = Seq(Field("slug", "pa"), Field("name", "pa"), Field("logo", "pa"), Field("address", "v")))
-    .copy(sorts = Sorts(Seq(Field("name", "pa")), Map()))
+    .setSorts(Sort("name", "pa"))
 
   private[sql] def insert(e: Venue): Insert[Venue] = {
     val values = fr0"${e.id}, ${e.partner}, ${e.contact}, ${e.address}, ${e.address.id}, ${e.address.geo.lat}, ${e.address.geo.lng}, ${e.address.locality}, ${e.address.country}, ${e.notes}, ${e.roomSize}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.venue)}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
@@ -135,11 +135,9 @@ object VenueRepoSql {
   private[sql] def selectPageCommon(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Venue.Common, OrgaCtx] = {
     val g = tableWithPartner.select[Venue.Full](
       fields = Seq(Field("false", "", "public"), Field("slug", "pa"), Field("name", "pa"), Field("logo", "pa"), Field("address", "v"), Field("id", "v"), Field("0", "", "events")),
-      where = fr0"WHERE pa.group_id=${ctx.group.id}",
-      sort = Seq())
+      where = fr0"WHERE pa.group_id=${ctx.group.id}")
     val p = publicTableFull(ctx.group.id).select[Venue.Public](
-      fields = Seq(Field("true", "", "public")) ++ publicTableFull(ctx.group.id).fields,
-      sort = Seq())
+      fields = Seq(Field("true", "", "public")) ++ publicTableFull(ctx.group.id).fields)
 
     SelectPage[Venue.Common, OrgaCtx](
       table = fr0"((" ++ g.fr ++ fr0") UNION (" ++ p.fr ++ fr0")) v",
@@ -150,12 +148,12 @@ object VenueRepoSql {
       whereOpt = None,
       havingOpt = None,
       params = params,
-      sorts = Sorts(Seq(Field("public", "v"), Field("name", "v"), Field("-events", "v")), Map()),
+      sorts = Sorts("name", Field("public", "v"), Field("name", "v"), Field("-events", "v")),
       searchFields = Seq(Field("name", "v"), Field("address", "v")),
       filters = Seq(),
       ctx = ctx)
   }
 
   private def where(group: Group.Id, id: Venue.Id): Fragment =
-    fr0"WHERE v.id=(" ++ tableFull.select[Venue.Id](Seq(Field("id", "v")), fr0"WHERE pa.group_id=$group AND v.id=$id", Seq()).fr ++ fr0")"
+    fr0"WHERE v.id=(" ++ tableFull.select[Venue.Id](Seq(Field("id", "v")), fr0"WHERE pa.group_id=$group AND v.id=$id").fr ++ fr0")"
 }

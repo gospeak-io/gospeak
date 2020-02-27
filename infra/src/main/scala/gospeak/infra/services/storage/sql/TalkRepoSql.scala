@@ -123,7 +123,7 @@ object TalkRepoSql {
     table.select[Talk](where(user, talk))
 
   private[sql] def selectOne(user: User.Id, talk: Talk.Slug, status: Talk.Status): Select[Talk] =
-    table.selectOne[Talk](fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.slug=$talk AND t.status=$status", Seq())
+    table.selectOne[Talk](fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.slug=$talk AND t.status=$status")
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: UserCtx): SelectPage[Talk, UserCtx] =
     table.selectPage[Talk, UserCtx](params, fr0"WHERE t.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
@@ -135,12 +135,12 @@ object TalkRepoSql {
     table.selectPage[Talk, UserCtx](params, fr0"WHERE t.speakers LIKE ${"%" + ctx.user.id.value + "%"} AND " ++ Fragments.in(fr"t.status", status))
 
   private[sql] def selectPage(cfp: Cfp.Id, status: NonEmptyList[Talk.Status], params: Page.Params)(implicit ctx: UserCtx): SelectPage[Talk, UserCtx] = {
-    val cfpTalks = Tables.proposals.select[Talk.Id](Seq(Field("talk_id", "p")), fr0"WHERE p.cfp_id=$cfp", Seq()).fr
+    val cfpTalks = Tables.proposals.select[Talk.Id](Seq(Field("talk_id", "p")), fr0"WHERE p.cfp_id=$cfp").fr
     table.selectPage[Talk, UserCtx](params, fr0"WHERE t.speakers LIKE ${"%" + ctx.user.id.value + "%"} AND t.id NOT IN (" ++ cfpTalks ++ fr0") AND " ++ Fragments.in(fr"t.status", status))
   }
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "t")), Seq())
+    table.select[Seq[Tag]](Seq(Field("tags", "t")))
 
   private def where(user: User.Id, talk: Talk.Slug): Fragment =
     fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.slug=$talk"

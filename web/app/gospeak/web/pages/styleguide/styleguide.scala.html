@@ -136,13 +136,13 @@
         </ul>
         @section("global", "Global components", "@import gospeak.web.pages.partials.html._") { _ =>
             @component("pagination", "@pagination(page, MyCtrl.list)") { name =>
-                @example(s"$name with no element") { _ => @global.pagination(Page(Seq.empty[Int], params, Page.Total(0), Seq()), StyleguideCtrl.index) }
-                @example(s"$name with 5 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(5), Seq()), StyleguideCtrl.index) }
-                @example(s"$name with 15 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(15), Seq()), StyleguideCtrl.index) }
-                @example(s"$name with 30 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(30), Seq()), StyleguideCtrl.index) }
-                @example(s"$name with 100 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(100), Seq()), StyleguideCtrl.index) }
-                @example(s"$name with 200 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(200), Seq()), StyleguideCtrl.index) }
-                @example(s"$name with 1000 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(1000), Seq()), StyleguideCtrl.index) }
+                @example(s"$name with no element") { _ => @global.pagination(Page(Seq.empty[Int], params, Page.Total(0)), StyleguideCtrl.index) }
+                @example(s"$name with 5 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(5)), StyleguideCtrl.index) }
+                @example(s"$name with 15 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(15)), StyleguideCtrl.index) }
+                @example(s"$name with 30 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(30)), StyleguideCtrl.index) }
+                @example(s"$name with 100 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(100)), StyleguideCtrl.index) }
+                @example(s"$name with 200 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(200)), StyleguideCtrl.index) }
+                @example(s"$name with 1000 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(1000)), StyleguideCtrl.index) }
                 @example("") { _ =>
                     <div>
                         Try to change page size:
@@ -152,7 +152,7 @@
                 }
             }
             @component("Search", "@search(page, MyCtrl.list(params))") { name =>
-                @example(name) { _ => @global.search(Page(1 to params.pageSize.value, params, Page.Total(200), Seq()), StyleguideCtrl.index(params)) }
+                @example(name) { _ => @global.search(Page(1 to params.pageSize.value, params, Page.Total(200)), StyleguideCtrl.index(params)) }
             }
             @component("Add slides form", "@slidesFields(MyCtrl.doAddSlides(talk.slug))") { name =>
                 @example(name) { _ => @global.slidesFields(StyleguideCtrl.index(params)) }

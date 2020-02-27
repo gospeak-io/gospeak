@@ -55,7 +55,7 @@ object ExternalEventRepoSql {
       "created_at", "created_by", "updated_at", "updated_by").map(Field(_, "e")),
     aggFields = Seq(),
     customFields = Seq(),
-    sorts = Sorts(Seq("-start", "-created_at").map(Field(_, "e")), Map()),
+    sorts = Sorts("start", Field("-start", "e"), Field("-created_at", "e")),
     search = Seq("name", "kind", "location", "twitter_account", "tags", "int_group_name", "int_cfp_name", "int_description", "ext_description").map(Field(_, "e")),
     filters = Seq(
       Filter.Enum.fromEnum("type", "Type", "e.kind", Seq(
@@ -77,7 +77,7 @@ object ExternalEventRepoSql {
   }
 
   private[sql] def selectOne(id: ExternalEvent.Id): Select[ExternalEvent] =
-    tableSelect.selectOne[ExternalEvent](fr0"WHERE ee.id=$id", Seq())
+    tableSelect.selectOne[ExternalEvent](fr0"WHERE ee.id=$id")
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: UserCtx): SelectPage[ExternalEvent, UserCtx] =
     tableSelect.selectPage[ExternalEvent, UserCtx](params)
@@ -86,8 +86,8 @@ object ExternalEventRepoSql {
     commonTable.selectPage[CommonEvent, UserAwareCtx](params)
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "ee")), Seq())
+    table.select[Seq[Tag]](Seq(Field("tags", "ee")))
 
   private[sql] def selectLogos(): Select[Option[Logo]] =
-    table.select[Option[Logo]](Seq(Field("logo", "ee")), fr0"WHERE ee.logo IS NOT NULL", Seq())
+    table.select[Option[Logo]](Seq(Field("logo", "ee")), fr0"WHERE ee.logo IS NOT NULL")
 }

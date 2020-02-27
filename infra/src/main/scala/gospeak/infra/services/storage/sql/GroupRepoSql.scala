@@ -178,7 +178,7 @@ object GroupRepoSql {
     statTable.select[Group.Stats](fr0"WHERE g.slug=$group")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    tableSelect.select[Seq[Tag]](Seq(Field("tags", "g")), Seq())
+    tableSelect.select[Seq[Tag]](Seq(Field("tags", "g")))
 
   private[sql] def insertMember(m: Group.Member): Insert[Group.Member] =
     memberTable.insert[Group.Member](m, e => fr0"${e.group}, ${e.user.id}, ${e.role}, ${e.presentation}, ${e.joinedAt}, ${e.leavedAt}")

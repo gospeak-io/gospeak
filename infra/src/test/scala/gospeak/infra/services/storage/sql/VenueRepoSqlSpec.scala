@@ -17,11 +17,11 @@ class VenueRepoSqlSpec extends RepoSpec {
       }
       it("should build update") {
         val q = VenueRepoSql.update(group.id, venue.id)(venue.data, user.id, now)
-        check(q, s"UPDATE $table SET contact_id=?, address=?, address_id=?, address_lat=?, address_lng=?, address_locality=?, address_country=?, notes=?, room_size=?, meetupGroup=?, meetupVenue=?, updated_at=?, updated_by=? WHERE v.id=(SELECT v.id FROM $tableFull WHERE pa.group_id=? AND v.id=?)")
+        check(q, s"UPDATE $table SET contact_id=?, address=?, address_id=?, address_lat=?, address_lng=?, address_locality=?, address_country=?, notes=?, room_size=?, meetupGroup=?, meetupVenue=?, updated_at=?, updated_by=? WHERE v.id=(SELECT v.id FROM $tableFull WHERE pa.group_id=? AND v.id=? $orderByFull)")
       }
       it("should build delete") {
         val q = VenueRepoSql.delete(group.id, venue.id)
-        check(q, s"DELETE FROM $table WHERE v.id=(SELECT v.id FROM $tableFull WHERE pa.group_id=? AND v.id=?)")
+        check(q, s"DELETE FROM $table WHERE v.id=(SELECT v.id FROM $tableFull WHERE pa.group_id=? AND v.id=? $orderByFull)")
       }
       it("should build selectOneFull") {
         val q = VenueRepoSql.selectOneFull(venue.id)
@@ -82,14 +82,15 @@ object VenueRepoSqlSpec {
 
   private val tableFull = s"$tableWithPartner LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id"
   private val fieldsFull = s"$fields, $partnerFields, $contactFields"
+  private val orderByFull = "ORDER BY v.created_at IS NULL, v.created_at"
 
   private val tablePublic = s"$tableWithPartner INNER JOIN $groupTable ON pa.group_id=g.id AND g.id != ? INNER JOIN $eventTable ON g.id=e.group_id AND e.venue=v.id AND e.published IS NOT NULL"
   private val fieldsPublic = s"pa.slug, pa.name, pa.logo, v.address, MAX(v.id) as id, COALESCE(COUNT(e.id), 0) as events"
   private val orderByPublic = "ORDER BY pa.name IS NULL, pa.name"
 
   private val commonTable = s"(" +
-    s"(SELECT false as public, pa.slug, pa.name, pa.logo, v.address, v.id, 0 as events FROM $tableWithPartner WHERE pa.group_id=?) UNION " +
-    s"(SELECT true as public, $fieldsPublic FROM $tablePublic GROUP BY public, pa.slug, pa.name, pa.logo, v.address)) v"
+    s"(SELECT false as public, pa.slug, pa.name, pa.logo, v.address, v.id, 0 as events FROM $tableWithPartner WHERE pa.group_id=? ORDER BY v.created_at IS NULL, v.created_at) UNION " +
+    s"(SELECT true as public, $fieldsPublic FROM $tablePublic GROUP BY public, pa.slug, pa.name, pa.logo, v.address ORDER BY pa.name IS NULL, pa.name)) v"
   private val commonFields = "v.id, v.slug, v.name, v.logo, v.address, v.events, v.public"
   private val commonOrderBy = "ORDER BY v.public IS NULL, v.public, v.name IS NULL, v.name, v.events IS NULL, v.events DESC"
 }

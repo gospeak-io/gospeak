@@ -10,5 +10,10 @@
 @(proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${req.group.name.value} proposals - Gospeak", b)() {
     <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") <small>(from any CFP)</small></h1>
-    @Formats.paginated[Proposal.Full](proposals, ProposalCtrl.list(req.group.slug, _), proposalItem(_, speakers, userRatings), ProposalRepoSql.tableFullBase.filters)
+    @Formats.paginated[Proposal.Full](
+        proposals,
+        ProposalCtrl.list(req.group.slug, _),
+        proposalItem(_, speakers, userRatings),
+        ProposalRepoSql.tableFullBase.filters,
+        ProposalRepoSql.tableFullBase.sorts.toList)
 }()

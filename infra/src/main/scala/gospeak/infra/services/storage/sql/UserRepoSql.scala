@@ -91,7 +91,7 @@ object UserRepoSql {
   private val tableWithLogin = table.join(loginsTable, _.id -> _.user_id).get
   private val proposalsWithCfps = Tables.proposals.join(Tables.cfps, _.cfp_id -> _.id).get
   private val proposalsWithCfpEvents = proposalsWithCfps.join(Tables.events, _.event_id -> _.id).get
-  private val tableFull = table
+  val tableFull: Table = table
     .joinOpt(Tables.groups, fr0"g.owners LIKE CONCAT('%', u.id, '%')").get.dropFields(_.prefix == Tables.groups.prefix)
     .joinOpt(Tables.talks, fr0"t.speakers LIKE CONCAT('%', u.id, '%')").get.dropFields(_.prefix == Tables.talks.prefix)
     .joinOpt(Tables.proposals, fr0"p.speakers LIKE CONCAT('%', u.id, '%') AND p.status='Accepted'").get.dropFields(_.prefix == Tables.proposals.prefix)
@@ -99,13 +99,18 @@ object UserRepoSql {
     .aggregate("COALESCE(COUNT(DISTINCT g.id), 0)", "groupCount")
     .aggregate("COALESCE(COUNT(DISTINCT t.id), 0)", "talkCount")
     .aggregate("COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0)", "proposalCount")
+    .copy(filters = Seq(
+      Filter.Bool.fromNullable("mentor", "Is mentor", "u.mentoring")))
     .setSorts(
-      "proposals" -> Seq(
+      Sort("contribution",
         Field("mentoring IS NULL", "u"),
         Field("-(COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0))", ""),
         Field("-COALESCE(COUNT(DISTINCT t.id), 0)", ""),
         Field("-MAX(p.created_at)", ""),
-        Field("created_at", "u")))
+        Field("created_at", "u")),
+      Sort("name", Field("LOWER(u.last_name)", ""), Field("LOWER(u.first_name)", "")),
+      Sort("created", Field("-created_at", "u")),
+      Sort("updated", Field("-updated_at", "u")))
 
   private[sql] def insert(e: User): Insert[User] = {
     val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.emailValidationBeforeLogin}, ${e.avatar.url}, ${e.title}, ${e.bio}, ${e.mentoring}, ${e.company}, ${e.location}, ${e.phone}, ${e.website}, " ++
@@ -157,7 +162,7 @@ object UserRepoSql {
 
   private[sql] def selectOnePublic(slug: User.Slug): Select[User.Full] = {
     val public: User.Status = User.Status.Public
-    tableFull.selectOne[User.Full](fr0"WHERE u.status=$public AND u.slug=$slug", Seq())
+    tableFull.selectOne[User.Full](fr0"WHERE u.status=$public AND u.slug=$slug")
   }
 
   // should replace def selectPage(ids: NonEmptyList[User.Id], params: Page.Params) when split or array works...

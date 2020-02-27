@@ -17,31 +17,31 @@ class GroupSettingsRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne group settings") {
         val q = GroupSettingsRepoSql.selectOne(group.id)
-        check(q, s"SELECT $fieldsSelect FROM $table WHERE gs.group_id=?")
+        check(q, s"SELECT $fieldsSelect FROM $table WHERE gs.group_id=? $orderBy")
       }
       it("should build selectOneAccounts group settings") {
         val q = GroupSettingsRepoSql.selectOneAccounts(group.id)
-        check(q, s"SELECT $meetupFields, $slackFields FROM $table WHERE gs.group_id=?")
+        check(q, s"SELECT $meetupFields, $slackFields FROM $table WHERE gs.group_id=? $orderBy")
       }
       it("should build selectOneMeetup group settings") {
         val q = GroupSettingsRepoSql.selectOneMeetup(group.id)
-        check(q, s"SELECT $meetupFields FROM $table WHERE gs.group_id=?")
+        check(q, s"SELECT $meetupFields FROM $table WHERE gs.group_id=? $orderBy")
       }
       it("should build selectOneSlack group settings") {
         val q = GroupSettingsRepoSql.selectOneSlack(group.id)
-        check(q, s"SELECT $slackFields FROM $table WHERE gs.group_id=?")
+        check(q, s"SELECT $slackFields FROM $table WHERE gs.group_id=? $orderBy")
       }
       it("should build selectOneEventDescription group settings") {
         val q = GroupSettingsRepoSql.selectOneEventDescription(group.id)
-        check(q, s"SELECT gs.event_description FROM $table WHERE gs.group_id=?")
+        check(q, s"SELECT gs.event_description FROM $table WHERE gs.group_id=? $orderBy")
       }
       it("should build selectOneEventTemplates group settings") {
         val q = GroupSettingsRepoSql.selectOneEventTemplates(group.id)
-        check(q, s"SELECT gs.event_templates FROM $table WHERE gs.group_id=?")
+        check(q, s"SELECT gs.event_templates FROM $table WHERE gs.group_id=? $orderBy")
       }
       it("should build selectOneActions group settings") {
         val q = GroupSettingsRepoSql.selectOneActions(group.id)
-        check(q, s"SELECT gs.actions FROM $table WHERE gs.group_id=?")
+        check(q, s"SELECT gs.actions FROM $table WHERE gs.group_id=? $orderBy")
       }
     }
   }
@@ -55,4 +55,5 @@ object GroupSettingsRepoSqlSpec {
   val table = "group_settings gs"
   val fields = s"gs.group_id, $meetupFields, $slackFields, $eventFields, gs.actions, gs.updated_at, gs.updated_by"
   val fieldsSelect = s"$meetupFields, $slackFields, $eventFields, gs.actions"
+  val orderBy = "ORDER BY gs.group_id IS NULL, gs.group_id"
 }

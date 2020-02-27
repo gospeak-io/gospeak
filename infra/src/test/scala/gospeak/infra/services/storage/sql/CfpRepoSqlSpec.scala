@@ -73,7 +73,8 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage for a talk") {
         val q = CfpRepoSql.selectPage(talk.id, params)
-        check(q, s"SELECT $fields FROM $table WHERE c.id NOT IN (SELECT p.cfp_id FROM proposals p WHERE p.talk_id=?) $orderBy LIMIT 20 OFFSET 0")
+        val sub = "SELECT p.cfp_id FROM proposals p WHERE p.talk_id=? ORDER BY p.created_at IS NULL, p.created_at DESC"
+        check(q, s"SELECT $fields FROM $table WHERE c.id NOT IN ($sub) $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectAll for group id") {
         val q = CfpRepoSql.selectAll(group.id)
@@ -89,7 +90,7 @@ class CfpRepoSqlSpec extends RepoSpec {
       }
       it("should build selectTags") {
         val q = CfpRepoSql.selectTags()
-        check(q, s"SELECT c.tags FROM $table")
+        check(q, s"SELECT c.tags FROM $table $orderBy")
       }
     }
   }

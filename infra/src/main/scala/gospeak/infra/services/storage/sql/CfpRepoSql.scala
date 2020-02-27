@@ -89,7 +89,7 @@ object CfpRepoSql {
     table.selectPage[Cfp, OrgaCtx](params, fr0"WHERE c.group_id=${ctx.group.id}")
 
   private[sql] def selectPage(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): SelectPage[Cfp, UserCtx] = {
-    val talkCfps = Tables.proposals.select[Cfp.Id](Seq(Field("cfp_id", "p")), fr0"WHERE p.talk_id=$talk", Seq())
+    val talkCfps = Tables.proposals.select[Cfp.Id](Seq(Field("cfp_id", "p")), fr0"WHERE p.talk_id=$talk")
     table.selectPage[Cfp, UserCtx](params, fr0"WHERE c.id NOT IN (" ++ talkCfps.fr ++ fr0")")
   }
 
@@ -103,7 +103,7 @@ object CfpRepoSql {
     table.select[Cfp](where(group, now))
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "c")), Seq())
+    table.select[Seq[Tag]](Seq(Field("tags", "c")))
 
   private def where(group: Group.Id, slug: Cfp.Slug): Fragment =
     fr0"WHERE c.group_id=$group AND c.slug=$slug"

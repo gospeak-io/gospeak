@@ -152,11 +152,11 @@ class ProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build selectTags") {
         val q = ProposalRepoSql.selectTags()
-        check(q, s"SELECT p.tags FROM $table")
+        check(q, s"SELECT p.tags FROM $table $orderBy")
       }
       it("should build selectOrgaTags") {
         val q = ProposalRepoSql.selectOrgaTags(group.id)
-        check(q, s"SELECT p.orga_tags FROM $tableWithCfp WHERE c.group_id=?")
+        check(q, s"SELECT p.orga_tags FROM $tableWithCfp WHERE c.group_id=? $orderBy")
       }
       it("should build insert Rating") {
         val q = ProposalRepoSql.insert(rating)

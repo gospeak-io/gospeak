@@ -59,13 +59,25 @@ object PartnerRepoSql {
     .joinOpt(Tables.venues, _.id("pa") -> _.partner_id).get
     .joinOpt(Tables.sponsors, _.id("pa") -> _.partner_id).get
     .joinOpt(Tables.contacts, _.id("pa") -> _.partner_id).get
+    .joinOpt(Tables.events, _.id("v") -> _.venue).get
+    .dropFields(_.prefix != table.prefix)
     .aggregate("COALESCE(COUNT(DISTINCT v.id), 0)", "venueCount")
     .aggregate("COALESCE(COUNT(DISTINCT s.id), 0)", "sponsorCount")
+    .aggregate("MAX(s.finish)", "lastSponsorDate")
     .aggregate("COALESCE(COUNT(DISTINCT ct.id), 0)", "contactCount")
-    .copy(fields = table.fields, filters = Seq(
+    .aggregate("COALESCE(COUNT(DISTINCT e.id), 0)", "eventCount")
+    .aggregate("MAX(e.start)", "lastEventDate")
+    .copy(filters = Seq(
       Filter.Bool.fromCount("venues", "With venues", "v.id"),
       Filter.Bool.fromCount("sponsors", "With sponsors", "s.id"),
-      Filter.Bool.fromCount("contacts", "With contacts", "ct.id")))
+      Filter.Bool.fromCount("contacts", "With contacts", "ct.id"),
+      Filter.Bool.fromCount("events", "With events", "e.id")))
+    .setSorts(
+      Sort("name", Field("LOWER(pa.name)", "")),
+      Sort("sponsor", "last sponsor date", Field("-MAX(s.finish)", ""), Field("LOWER(pa.name)", "")),
+      Sort("event", "last event date", Field("-MAX(s.start)", ""), Field("LOWER(pa.name)", "")),
+      Sort("created", Field("-created_at", "pa")),
+      Sort("updated", Field("-updated_at", "pa")))
   private val tableWithGroup = table
     .join(Tables.groups, _.group_id -> _.id).get
     .dropFields(_.name.startsWith("location_"))

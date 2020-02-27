@@ -71,7 +71,7 @@ class GroupCtrl(cc: ControllerComponents,
   def detail(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
       stats <- groupRepo.getStats
-      events <- eventRepo.listAfter(Page.Params.defaults.orderBy("start"))
+      events <- eventRepo.listAfter(Page.Params.defaults.withOrderBy("start"))
       proposals <- proposalRepo.list(events.items.flatMap(_.talks))
       speakers <- userRepo.list(proposals.flatMap(_.users).distinct)
       sponsors <- sponsorRepo.listAll.map(_.groupBy(_.partner))

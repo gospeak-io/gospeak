@@ -1,6 +1,8 @@
 package gospeak.libs.scala.domain
 
-final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total, sorts: Seq[String]) {
+import cats.data.NonEmptyList
+
+final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total) {
   assert(items.length <= params.pageSize.value, s"Page can't have more items (${items.length}) than its size (${params.pageSize.value})")
   private val last: Int = math.ceil(total.value.toDouble / params.pageSize.value).toInt
 
@@ -20,7 +22,7 @@ final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total,
 
   def isCurrent(i: Page.Params): Boolean = params.page == i.page
 
-  def map[B](f: A => B): Page[B] = Page(items.map(f), params, total, sorts)
+  def map[B](f: A => B): Page[B] = Page(items.map(f), params, total)
 
   private val width = 1
   private val middleStart: Int = (params.page.value - width).max(1)
@@ -38,9 +40,9 @@ final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total,
 }
 
 object Page {
-  def empty[A]: Page[A] = Page[A](Seq(), Params.defaults, Total(0), Seq())
+  def empty[A]: Page[A] = Page[A](Seq(), Params.defaults, Total(0))
 
-  def empty[A](params: Params): Page[A] = Page[A](Seq(), params, Total(0), Seq())
+  def empty[A](params: Params): Page[A] = Page[A](Seq(), params, Total(0))
 
   final case class Search(value: String) extends AnyVal {
     def key: String = Search.key
@@ -52,7 +54,7 @@ object Page {
     val key = "q"
   }
 
-  final case class OrderBy(values: Seq[String]) extends AnyVal {
+  final case class OrderBy(values: NonEmptyList[String]) extends AnyVal {
     def prefix(p: String): OrderBy = OrderBy(values.map(v =>
       if (v.contains(".")) v
       else if (v.startsWith("-")) s"-$p.${v.stripPrefix("-")}"
@@ -61,19 +63,17 @@ object Page {
 
     def key: String = OrderBy.key
 
-    def nonEmpty: Boolean = values.nonEmpty
-
-    def value: String = values.mkString(",")
+    def value: String = values.toList.mkString(",")
   }
 
   object OrderBy {
     val key = "sort"
 
-    def apply(value: String): OrderBy = new OrderBy(Seq(value))
+    def apply(value: String, other: String*): OrderBy = new OrderBy(NonEmptyList.of(value, other: _*))
 
     def parse(value: String): Option[OrderBy] = {
-      val values = value.split(',').map(_.trim).filter(_.nonEmpty)
-      values.headOption.map(_ => OrderBy(values))
+      val values = value.split(',').map(_.trim).filter(_.nonEmpty).toList
+      NonEmptyList.fromList(values).map(OrderBy(_))
     }
   }
 
@@ -126,11 +126,11 @@ object Page {
 
     def search(q: String): Params = copy(search = Some(Search(q)))
 
-    def defaultOrderBy(fields: String*): Params = if (orderBy == Params.defaults.orderBy) copy(orderBy = Some(OrderBy(fields))) else this
+    def sorts: Seq[String] = orderBy.map(_.values.toList).getOrElse(Seq())
 
-    def orderBy(fields: String*): Params = copy(orderBy = Some(OrderBy(fields)))
+    def defaultOrderBy(fields: String*): Params = if (orderBy == Params.defaults.orderBy) withOrderBy(fields: _*) else this
 
-    def hasOrderBy(o: String): Boolean = orderBy.exists(_.values == Seq(o))
+    def withOrderBy(fields: String*): Params = copy(orderBy = OrderBy.parse(fields.mkString(",")))
 
     def withFilter(key: String, value: String): Params = copy(filters = filters + (key -> value))
 

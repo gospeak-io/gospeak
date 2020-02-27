@@ -11,15 +11,15 @@ import org.scalatest.{FunSpec, Matchers}
 class DoobieUtilsSpec extends FunSpec with Matchers {
   describe("DoobieUtils") {
     describe("Table") {
-      val table1 = Table.from("table1", "t1", Seq("id", "name"), Seq("name"), Seq("name"), Seq()).get
-      val table2 = Table.from("table2", "t2", Seq("id", "ref1"), Seq("id"), Seq("ref1"), Seq()).get
-      val table3 = Table.from("table3", "t3", Seq("id", "ref2"), Seq("id"), Seq("ref2"), Seq()).get
+      val table1 = Table.from("table1", "t1", Seq("id", "name"), Sort("name", "t1"), Seq("name"), Seq()).get
+      val table2 = Table.from("table2", "t2", Seq("id", "ref1"), Sort("id", "t2"), Seq("ref1"), Seq()).get
+      val table3 = Table.from("table3", "t3", Seq("id", "ref2"), Sort("id", "t3"), Seq("ref2"), Seq()).get
       describe("from") {
-        it("should not have sort and search field present in fields") {
-          Table.from("tab", "t", Seq("f"), Seq(), Seq(), Seq()) shouldBe a[Right[_, _]]
-          Table.from("tab", "t", Seq("f", "f"), Seq(), Seq(), Seq()) shouldBe a[Left[_, _]] // duplicated field
-          // Table.from("tab", "t", Seq("f"), Seq("s"), Seq(), Seq()) shouldBe a[Left[_, _]] // unknown sort
-          Table.from("tab", "t", Seq("f"), Seq(), Seq("s"), Seq()) shouldBe a[Left[_, _]] // unknown search
+        it("should not have search field present in fields") {
+          Table.from("tab", "t", Seq("f"), Sort("f", "t"), Seq(), Seq()) shouldBe a[Right[_, _]]
+          Table.from("tab", "t", Seq("f", "f"), Sort("f", "t"), Seq(), Seq()) shouldBe a[Left[_, _]] // duplicated field
+          // Table.from("tab", "t", Seq("f"), Seq("s"), Sort("f", "t"), Seq()) shouldBe a[Left[_, _]] // unknown sort
+          Table.from("tab", "t", Seq("f"), Sort("f", "t"), Seq("s"), Seq()) shouldBe a[Left[_, _]] // unknown search
         }
       }
       describe("field") {
@@ -110,7 +110,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
     describe("Select") {
       it("should build a select") {
         val e = Entity(1, "n")
-        val sql = Select(fr0"table t", Seq(Field("id", "t"), Field("name", "t")), Seq(), Seq(), Some(fr0" WHERE t.id=${e.id}"), Sorts(Seq(Field("name", "t")), Map()), Some(3)).fr.update.sql
+        val sql = Select(fr0"table t", Seq(Field("id", "t"), Field("name", "t")), Seq(), Seq(), Some(fr0" WHERE t.id=${e.id}"), Sorts("name", "t"), Some(3)).fr.update.sql
         sql shouldBe "SELECT t.id, t.name FROM table t WHERE t.id=? ORDER BY t.name IS NULL, t.name LIMIT 3"
       }
     }
@@ -151,7 +151,7 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
       val where = fr0"WHERE t.id=${e.id}"
       val p = Page.Params.defaults
       val fields = Seq(Field("name", "t"), Field("desc", "t"))
-      val sorts = Sorts(Seq(Field("created", "t")), Map())
+      val sorts = Sorts("created", "t")
       val prefix = "t"
       it("should build pagination") {
         val (w, o, l) = paginationFragment(prefix, None, p, sorts, fields)
@@ -170,11 +170,11 @@ class DoobieUtilsSpec extends FunSpec with Matchers {
         (w ++ o ++ l).query.sql shouldBe "WHERE t.id=? AND (t.name ILIKE ? OR t.desc ILIKE ?) ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
       }
       it("should build pagination with sort") {
-        val (w, o, l) = paginationFragment(prefix, None, p.orderBy("name"), sorts, fields)
+        val (w, o, l) = paginationFragment(prefix, None, p.withOrderBy("name"), sorts, fields)
         (w ++ o ++ l).query.sql shouldBe " ORDER BY t.name IS NULL, t.name LIMIT 20 OFFSET 0"
       }
       it("should build pagination with sort search and where") {
-        val (w, o, l) = paginationFragment(prefix, Some(where), p.orderBy("name"), sorts, fields)
+        val (w, o, l) = paginationFragment(prefix, Some(where), p.withOrderBy("name"), sorts, fields)
         (w ++ o ++ l).query.sql shouldBe "WHERE t.id=? ORDER BY t.name IS NULL, t.name LIMIT 20 OFFSET 0"
       }
     }

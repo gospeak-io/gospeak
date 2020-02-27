@@ -93,5 +93,5 @@ class PageSpec extends FunSpec with Matchers {
 
   def params(no: Int, size: Int): Page.Params = Page.Params(Page.No(no), Page.Size(size))
 
-  def page(no: Int, size: Int, total: Int): Page[Int] = Page(Seq(1, 5, 3, 4, 2), params(no, size), Page.Total(total), Seq())
+  def page(no: Int, size: Int, total: Int): Page[Int] = Page(Seq(1, 5, 3, 4, 2), params(no, size), Page.Total(total))
 }

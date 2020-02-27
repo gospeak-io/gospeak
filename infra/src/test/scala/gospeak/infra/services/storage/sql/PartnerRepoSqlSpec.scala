@@ -32,7 +32,7 @@ class PartnerRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPageFull") {
         val q = PartnerRepoSql.selectPageFull(params)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? $groupByFull $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? $groupByFull $orderByFull LIMIT 20 OFFSET 0")
       }
       it("should build selectAll") {
         val q = PartnerRepoSql.selectAll(group.id)
@@ -59,7 +59,8 @@ object PartnerRepoSqlSpec {
   val fields: String = mapFields(s"id, group_id, slug, name, notes, description, logo, $socialFields, created_at, created_by, updated_at, updated_by", "pa." + _)
   val orderBy = "ORDER BY pa.name IS NULL, pa.name"
 
-  private val tableFull = s"$table LEFT OUTER JOIN $venueTable ON pa.id=v.partner_id LEFT OUTER JOIN $sponsorTable ON pa.id=s.partner_id LEFT OUTER JOIN $contactTable ON pa.id=ct.partner_id"
-  private val fieldsFull = s"$fields, COALESCE(COUNT(DISTINCT v.id), 0) as venueCount, COALESCE(COUNT(DISTINCT s.id), 0) as sponsorCount, COALESCE(COUNT(DISTINCT ct.id), 0) as contactCount"
+  private val tableFull = s"$table LEFT OUTER JOIN $venueTable ON pa.id=v.partner_id LEFT OUTER JOIN $sponsorTable ON pa.id=s.partner_id LEFT OUTER JOIN $contactTable ON pa.id=ct.partner_id LEFT OUTER JOIN events e ON v.id=e.venue"
+  private val fieldsFull = s"$fields, COALESCE(COUNT(DISTINCT v.id), 0) as venueCount, COALESCE(COUNT(DISTINCT s.id), 0) as sponsorCount, MAX(s.finish) as lastSponsorDate, COALESCE(COUNT(DISTINCT ct.id), 0) as contactCount, COALESCE(COUNT(DISTINCT e.id), 0) as eventCount, MAX(e.start) as lastEventDate"
   private val groupByFull = s"GROUP BY $fields"
+  private val orderByFull = "ORDER BY LOWER(pa.name) IS NULL, LOWER(pa.name)"
 }

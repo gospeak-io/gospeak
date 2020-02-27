@@ -10,7 +10,7 @@ import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.services.storage.SponsorRepo
 import gospeak.infra.services.storage.sql.SponsorRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Done, Page}
@@ -40,10 +40,12 @@ class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 object SponsorRepoSql {
   private val _ = sponsorIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.sponsors
-  private val tableFull = table
+  val tableFull: Table = table
     .join(Tables.sponsorPacks, _.sponsor_pack_id -> _.id).get
     .join(Tables.partners, _.partner_id -> _.id).get
     .joinOpt(Tables.contacts, _.contact_id -> _.id).get
+    .copy(filters = Seq(
+      Filter.Bool.fromNow("active", "Is active", "s.start", "s.finish")))
 
   private[sql] def insert(e: Sponsor): Insert[Sponsor] = {
     val values = fr0"${e.id}, ${e.group}, ${e.partner}, ${e.pack}, ${e.contact}, ${e.start}, ${e.finish}, ${e.paid}, ${e.price.amount}, ${e.price.currency}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"

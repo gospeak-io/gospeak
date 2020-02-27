@@ -62,25 +62,50 @@ object DoobieUtils {
     }
   }
 
-  final case class Sorts(default: Seq[Field],
-                         other: Map[String, Seq[Field]]) {
-    def all: Seq[Seq[Field]] = default :: other.values.toList
+  final case class Sort(key: String, label: String, fields: NonEmptyList[Field]) {
+    def is(value: String): Boolean = key == value.stripPrefix("-")
 
-    def names: Seq[String] = other.keySet.toList
+    def keyDesc: String = s"-$key"
+  }
 
-    def get(orderBy: Option[Page.OrderBy], prefix: String): Seq[Field] = {
+  object Sort {
+    def apply(key: String, fields: NonEmptyList[Field]): Sort = new Sort(key, key, fields)
+
+    def apply(key: String, field: Field, others: Field*): Sort = new Sort(key, key, NonEmptyList.of(field, others: _*))
+
+    def apply(key: String, label: String, field: Field, others: Field*): Sort = new Sort(key, label, NonEmptyList.of(field, others: _*))
+
+    def apply(field: String, prefix: String): Sort = new Sort(field, field, NonEmptyList.of(Field(field, prefix)))
+  }
+
+  final case class Sorts(sorts: NonEmptyList[Sort]) {
+    def default: NonEmptyList[Field] = sorts.head.fields
+
+    def get(orderBy: Option[Page.OrderBy], prefix: String): NonEmptyList[Field] = {
       orderBy.map { o =>
         o.values.flatMap { sort =>
-          other.get(sort.stripPrefix("-")).map(_.map { field =>
+          sorts.find(_.is(sort)).map(_.fields.map { field =>
             (sort.startsWith("-"), field.name.startsWith("-")) match {
               case (true, true) => field.copy(name = field.name.stripPrefix("-"))
               case (true, false) => field.copy(name = "-" + field.name)
               case (false, _) => field
             }
-          }).getOrElse(Seq(Field(sort, if (sort.contains(".")) "" else prefix)))
+          }).getOrElse(NonEmptyList.of(Field(sort, if (sort.contains(".")) "" else prefix)))
         }
-      }.getOrElse(default)
+      }.getOrElse(sorts.head.fields)
     }
+
+    def toList: List[Sort] = sorts.toList
+  }
+
+  object Sorts {
+    def apply(first: Sort, others: Sort*): Sorts = Sorts(NonEmptyList.of(first, others: _*))
+
+    def apply(key: String, field: Field, others: Field*): Sorts = Sorts(Sort(key, NonEmptyList.of(field, others: _*)))
+
+    def apply(key: String, label: String, field: Field, others: Field*): Sorts = Sorts(Sort(key, label, NonEmptyList.of(field, others: _*)))
+
+    def apply(field: String, prefix: String): Sorts = Sorts(Sort(field, prefix))
   }
 
   sealed trait Filter {
@@ -107,6 +132,9 @@ object DoobieUtils {
 
       def fromCount(key: String, label: String, field: String): Bool =
         new Bool(key, label, aggregation = true, onTrue = _ => const0(s"COALESCE(COUNT(DISTINCT $field), 0) > 0"), onFalse = _ => const0(s"COALESCE(COUNT(DISTINCT $field), 0) = 0"))
+
+      def fromNow(key: String, label: String, startField: String, endField: String, aggregation: Boolean = false): Bool =
+        new Filter.Bool(key, label, aggregation, onTrue = ctx => const0(startField) ++ fr0" < ${ctx.now} AND ${ctx.now} < " ++ const0(endField), onFalse = ctx => fr0"${ctx.now}" ++ const0(s" < $startField OR $endField < ") ++ fr0"${ctx.now}")
     }
 
     final case class Enum(key: String, label: String, aggregation: Boolean, values: Seq[(String, BasicCtx => Fragment)]) extends Filter {
@@ -185,7 +213,7 @@ object DoobieUtils {
 
     def aggregate(formula: String, name: String): Table = copy(aggFields = aggFields :+ AggregateField(formula, name))
 
-    def setSorts(default: (String, Seq[Field]), other: (String, Seq[Field])*): Table = copy(sorts = Sorts(default._2, (default +: other).toMap))
+    def setSorts(first: Sort, others: Sort*): Table = copy(sorts = Sorts(first, others: _*))
 
     def insert[A](elt: A, build: A => Fragment): Insert[A] = Insert[A](name, fields, elt, build)
 
@@ -199,19 +227,19 @@ object DoobieUtils {
 
     def select[A: Read](where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, None)
 
-    def select[A: Read](where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort, Map()), None)
+    def select[A: Read](where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), None)
 
     def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, customFields, None, sorts, None)
 
-    def select[A: Read](fields: Seq[Field], sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, customFields, None, Sorts(sort, Map()), None)
+    def select[A: Read](fields: Seq[Field], sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, None, Sorts(sort), None)
 
     def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, None)
 
-    def select[A: Read](fields: Seq[Field], where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort, Map()), None)
+    def select[A: Read](fields: Seq[Field], where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), None)
 
     def selectOne[A: Read](where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, Some(1))
 
-    def selectOne[A: Read](where: Fragment, sort: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort, Map()), Some(1))
+    def selectOne[A: Read](where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), Some(1))
 
     def selectPage[A: Read, C <: BasicCtx](params: Page.Params)(implicit ctx: C): SelectPage[A, C] = SelectPage[A, C](value, prefix, fields, aggFields, customFields, None, None, params, sorts, search, filters, ctx)
 
@@ -227,7 +255,7 @@ object DoobieUtils {
   object Table {
     private type BuildJoinFields = (Table, Table) => (Either[CustomException, Field], Either[CustomException, Field])
 
-    def from(name: String, prefix: String, fields: Seq[String], sort: Seq[String], search: Seq[String], filters: Seq[Filter]): Either[CustomException, Table] =
+    def from(name: String, prefix: String, fields: Seq[String], sort: Sort, search: Seq[String], filters: Seq[Filter]): Either[CustomException, Table] =
       from(
         name = name,
         prefix = prefix,
@@ -235,7 +263,7 @@ object DoobieUtils {
         fields = fields.map(f => Field(f, prefix)),
         customFields = Seq(),
         aggFields = Seq(),
-        sorts = Sorts(sort.map(f => Field(f, prefix)), Map()),
+        sorts = Sorts(sort),
         search = search.map(f => Field(f, prefix)),
         filters = filters)
 
@@ -302,7 +330,7 @@ object DoobieUtils {
       val select = const0(s"SELECT ${(fields.map(_.value) ++ aggFields.map(_.value)).mkString(", ")}") ++ customFields.map(fr0", " ++ _.value).foldLeft(fr0"")(_ ++ _) ++ fr0" FROM " ++ table
       val where = whereOpt.getOrElse(fr0"")
       val groupBy = aggFields.headOption.map(_ => const0(s" GROUP BY ${fields.map(_.label).mkString(", ")}")).getOrElse(fr0"")
-      val orderBy = NonEmptyList.fromList(sorts.default.toList).map(orderByFragment(_)).getOrElse(fr0"")
+      val orderBy = orderByFragment(sorts.default)
       select ++ where ++ groupBy ++ orderBy ++ limit.map(l => const0(s" LIMIT $l")).getOrElse(fr0"")
     }
 
@@ -358,7 +386,7 @@ object DoobieUtils {
     def run(xa: doobie.Transactor[IO]): IO[Page[A]] = exec(fr, fr => for {
       elts <- fr.query[A].to[List]
       total <- countFr.query[Long].unique
-    } yield Page(elts, params, Page.Total(total), sorts.names), xa)
+    } yield Page(elts, params.defaultOrderBy(sorts.sorts.head.key), Page.Total(total)), xa)
   }
 
   private def exec[A](fr: Fragment, run: Fragment => doobie.ConnectionIO[A], xa: doobie.Transactor[IO]): IO[A] =

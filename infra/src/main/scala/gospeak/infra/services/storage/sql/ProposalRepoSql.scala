@@ -161,10 +161,6 @@ object ProposalRepoSql {
     .aggregate("COALESCE(SUM(pr.grade), 0)", "score")
     .aggregate("COALESCE((COUNT(pr.grade) + SUM(pr.grade)) / 2, 0)", "likes")
     .aggregate("COALESCE((COUNT(pr.grade) - SUM(pr.grade)) / 2, 0)", "dislikes")
-    .setSorts(
-      "score" -> Seq(Field("-COALESCE(SUM(pr.grade), 0)", ""), Field("-COALESCE(COUNT(pr.grade), 0)", ""), Field("-created_at", "p")),
-      "created" -> Seq(Field("created_at", "p")),
-      "title" -> Seq(Field("LOWER(p.title)", "")))
     .copy(filters = Seq(
       Filter.Enum.fromEnum("status", "Status", "p.status", Seq(
         "pending" -> Proposal.Status.Pending.value,
@@ -172,6 +168,11 @@ object ProposalRepoSql {
         "declined" -> Proposal.Status.Declined.value)),
       Filter.Bool.fromNullable("slides", "With slides", "p.slides"),
       Filter.Bool.fromNullable("video", "With video", "p.video")))
+    .setSorts(
+      Sort("score", Field("-COALESCE(SUM(pr.grade), 0)", ""), Field("-COALESCE(COUNT(pr.grade), 0)", ""), Field("-created_at", "p")),
+      Sort("title", Field("LOWER(p.title)", "")),
+      Sort("created", Field("-created_at", "p")),
+      Sort("updated", Field("-updated_at", "p")))
 
   private def userGrade(user: User) = fr0"(SELECT grade from proposal_ratings WHERE created_by=${user.id} AND proposal_id=p.id)"
 
@@ -267,7 +268,7 @@ object ProposalRepoSql {
     tableFull(ctx.user).selectPage[Proposal.Full, UserCtx](params, fr0"WHERE p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
 
   private[sql] def selectAllFullPublic(speaker: User.Id)(implicit ctx: UserAwareCtx): Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full](fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"} AND e.published IS NOT NULL", Seq(Field("-created_at", "p")))
+    tableFull(ctx.user).select[Proposal.Full](fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"} AND e.published IS NOT NULL", Sort("created", Field("-created_at", "p")))
 
   private[sql] def selectPageFullPublic(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Proposal.Full, UserAwareCtx] =
     tableFull(ctx.user).selectPage[Proposal.Full, UserAwareCtx](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")
@@ -279,10 +280,10 @@ object ProposalRepoSql {
     tableWithEvent.select[Proposal](fr0"WHERE " ++ Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "p")), Seq())
+    table.select[Seq[Tag]](Seq(Field("tags", "p")))
 
   private[sql] def selectOrgaTags(group: Group.Id): Select[Seq[Tag]] =
-    tableWithCfp.select[Seq[Tag]](Seq(Field("orga_tags", "p")), fr0"WHERE c.group_id=$group", Seq())
+    tableWithCfp.select[Seq[Tag]](Seq(Field("orga_tags", "p")), fr0"WHERE c.group_id=$group")
 
   private[sql] def selectOneRating(id: Proposal.Id, user: User.Id): Select[Proposal.Rating] =
     ratingTable.select[Proposal.Rating](fr0"WHERE pr.proposal_id=$id AND pr.created_by=$user")

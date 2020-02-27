@@ -15,8 +15,9 @@
             <h5 class="mb-1"><a href="@PartnerCtrl.detail(req.group.slug, partner.slug)">@partner.name.value</a></h5>
             @socialIcons(partner.social)
             @partner.venueCount venues,
-            @partner.sponsorCount sponsors,
-            @partner.contactCount contacts
+            <span @partner.lastSponsorDate.map { d => title="last on @Formats.date(d)" data-toggle="tooltip" }>@partner.sponsorCount sponsors</span>,
+            @partner.contactCount contacts,
+            <span @partner.lastEventDate.map { d => title="last on @Formats.date(d)" data-toggle="tooltip" }>@partner.eventCount events</span>
         </div>
         <img src="@partner.logo.value" alt="@partner.name.value logo" class="avatar avatar-lg"  style="height: 50px">
     </div>
@@ -26,5 +27,5 @@
         <span class="text-capitalize">@Formats.plural(partners.total.value, "partner")</span>
         <a class="btn btn-primary" href="@PartnerCtrl.create(req.group.slug)" data-hotkey="+">Create a partner</a>
     </h1>
-    @Formats.paginated[Partner.Full](partners, PartnerCtrl.list(req.group.slug, _), partnerItem, PartnerRepoSql.tableFull.filters)
+    @Formats.paginated[Partner.Full](partners, PartnerCtrl.list(req.group.slug, _), partnerItem, PartnerRepoSql.tableFull.filters, PartnerRepoSql.tableFull.sorts.toList)
 }()

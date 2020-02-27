@@ -85,7 +85,7 @@ class GroupRepoSqlSpec extends RepoSpec {
       }
       it("should build selectTags") {
         val q = GroupRepoSql.selectTags()
-        check(q, s"SELECT g.tags FROM $table")
+        check(q, s"SELECT g.tags FROM $table $orderBy")
       }
       describe("member") {
         it("should build insertMember") {

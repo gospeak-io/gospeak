@@ -48,7 +48,7 @@ object QueryStringBindables {
           Some(value.page).filter(_.nonEmpty).map(p => intBinder.unbind(p.key, p.value)),
           Some(value.pageSize).filter(_.nonEmpty).map(p => intBinder.unbind(p.key, p.value)),
           value.search.filter(_.nonEmpty).map(p => stringBinder.unbind(p.key, p.value)),
-          value.orderBy.filter(_.nonEmpty).map(p => stringBinder.unbind(p.key, p.value))
+          value.orderBy.map(p => stringBinder.unbind(p.key, p.value))
         ).flatten ++ value.filters.map { case (key, value) => stringBinder.unbind(key, value) }).mkString("&")
     }
 

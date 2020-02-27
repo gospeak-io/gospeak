@@ -2,7 +2,7 @@ package gospeak.infra.services.storage.sql
 
 import gospeak.core.domain.Talk
 import gospeak.core.domain.utils.FakeCtx
-import gospeak.infra.services.storage.sql.ProposalRepoSqlSpec.{table => proposalTable}
+import gospeak.infra.services.storage.sql.ProposalRepoSqlSpec.{table => proposalTable, orderBy => proposalOrderBy}
 import gospeak.infra.services.storage.sql.TalkRepoSqlSpec._
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
@@ -98,7 +98,7 @@ class TalkRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne by slug and status") {
         val q = TalkRepoSql.selectOne(user.id, talk.slug, talk.status)
-        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.slug=? AND t.status=? LIMIT 1")
+        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.slug=? AND t.status=? $orderBy LIMIT 1")
       }
       it("should build selectPage for user") {
         val q = TalkRepoSql.selectPage(params)
@@ -114,11 +114,11 @@ class TalkRepoSqlSpec extends RepoSpec {
       }
       it("should build selectPage for user, cfp and status") {
         val q = TalkRepoSql.selectPage(cfp.id, Talk.Status.current, params)
-        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.id NOT IN (SELECT p.talk_id FROM $proposalTable WHERE p.cfp_id=?) AND t.status IN (?, ?)  $orderBy LIMIT 20 OFFSET 0")
+        check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.id NOT IN (SELECT p.talk_id FROM $proposalTable WHERE p.cfp_id=? $proposalOrderBy) AND t.status IN (?, ?)  $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectTags") {
         val q = TalkRepoSql.selectTags()
-        check(q, s"SELECT t.tags FROM $table")
+        check(q, s"SELECT t.tags FROM $table $orderBy")
       }
     }
   }

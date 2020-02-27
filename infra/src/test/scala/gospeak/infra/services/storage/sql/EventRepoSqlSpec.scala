@@ -63,19 +63,19 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne by id") {
         val q = EventRepoSql.selectOne(event.id)
-        check(q, s"SELECT $fields FROM $table WHERE e.id=? LIMIT 1")
+        check(q, s"SELECT $fields FROM $table WHERE e.id=? $orderBy LIMIT 1")
       }
       it("should build selectOne by group and slug") {
         val q = EventRepoSql.selectOne(group.id, event.slug)
-        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.slug=? LIMIT 1")
+        check(q, s"SELECT $fields FROM $table WHERE e.group_id=? AND e.slug=? $orderBy LIMIT 1")
       }
       it("should build selectOneFull") {
         val q = EventRepoSql.selectOneFull(group.id, event.slug)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? LIMIT 1")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? $orderBy LIMIT 1")
       }
       it("should build selectOnePublished") {
         val q = EventRepoSql.selectOnePublished(group.id, event.slug)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? AND e.published IS NOT NULL LIMIT 1")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.slug=? AND e.published IS NOT NULL $orderBy LIMIT 1")
       }
       it("should build selectPage") {
         val q = EventRepoSql.selectPage(params)
@@ -111,12 +111,12 @@ class EventRepoSqlSpec extends RepoSpec {
       }
       it("should build selectTags") {
         val q = EventRepoSql.selectTags()
-        check(q, s"SELECT e.tags FROM $table")
+        check(q, s"SELECT e.tags FROM $table $orderBy")
       }
       describe("rsvp") {
         it("should build countRsvp") {
           val q = EventRepoSql.countRsvp(event.id, rsvp.answer)
-          check(q, s"SELECT count(*) FROM $rsvpTable WHERE er.event_id=? AND er.answer=? GROUP BY er.event_id, er.answer")
+          check(q, s"SELECT count(*) FROM $rsvpTable WHERE er.event_id=? AND er.answer=? GROUP BY er.event_id, er.answer $rsvpOrderBy")
         }
         it("should build insertRsvp") {
           val q = EventRepoSql.insertRsvp(rsvp)

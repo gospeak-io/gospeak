@@ -105,7 +105,7 @@ object ExternalProposalRepoSql {
       "created_at", "created_by", "updated_at", "updated_by").map(Field(_, "p")),
     aggFields = Seq(),
     customFields = Seq(),
-    sorts = Sorts(Seq("-created_at").map(Field(_, "p")), Map()),
+    sorts = Sorts("created", Field("-created_at", "p")),
     search = Seq("title").map(Field(_, "p")),
     filters = Seq())
 
@@ -135,10 +135,10 @@ object ExternalProposalRepoSql {
     table.delete(fr0"WHERE ep.id=$id AND ep.speakers LIKE ${"%" + by.value + "%"}")
 
   private[sql] def selectOne(id: ExternalProposal.Id): Select[ExternalProposal] =
-    table.selectOne[ExternalProposal](fr0"WHERE ep.id=$id", Seq())
+    table.selectOne[ExternalProposal](fr0"WHERE ep.id=$id")
 
   private[sql] def selectOneFull(id: ExternalProposal.Id): Select[ExternalProposal.Full] =
-    tableFull.selectOne[ExternalProposal.Full](fr0"WHERE ep.id=$id", Seq())
+    tableFull.selectOne[ExternalProposal.Full](fr0"WHERE ep.id=$id")
 
   private[sql] def selectPage(event: ExternalEvent.Id, status: Proposal.Status, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[ExternalProposal, UserAwareCtx] =
     table.selectPage[ExternalProposal, UserAwareCtx](params, fr0"WHERE ep.event_id=$event AND ep.status=$status")
@@ -167,7 +167,7 @@ object ExternalProposalRepoSql {
     commonTable.select[CommonProposal](fr0"WHERE p.talk_id=$talk AND p.status=$status")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "ep")), Seq())
+    table.select[Seq[Tag]](Seq(Field("tags", "ep")))
 
   private def where(id: ExternalProposal.Id, user: User.Id): Fragment =
     fr0"WHERE ep.id=$id AND ep.speakers LIKE ${"%" + user.value + "%"}"

@@ -1,5 +1,7 @@
 package gospeak.core.domain
 
+import java.time.{LocalDate, LocalDateTime}
+
 import gospeak.core.domain.utils.{Info, SocialAccounts}
 import gospeak.libs.scala.domain._
 
@@ -33,7 +35,13 @@ object Partner {
 
   final case class Name(value: String) extends AnyVal
 
-  final case class Full(partner: Partner, venueCount: Long, sponsorCount: Long, contactCount: Long) {
+  final case class Full(partner: Partner,
+                        venueCount: Long,
+                        sponsorCount: Long,
+                        lastSponsorDate: Option[LocalDate],
+                        contactCount: Long,
+                        eventCount: Long,
+                        lastEventDate: Option[LocalDateTime]) {
     def slug: Slug = partner.slug
 
     def name: Name = partner.name

@@ -40,11 +40,11 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne") {
         val q = ExternalProposalRepoSql.selectOne(externalProposal.id)
-        check(q, s"SELECT $fields FROM $table WHERE ep.id=? LIMIT 1")
+        check(q, s"SELECT $fields FROM $table WHERE ep.id=? $orderBy LIMIT 1")
       }
       it("should build selectOneFull") {
         val q = ExternalProposalRepoSql.selectOneFull(externalProposal.id)
-        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE ep.id=? LIMIT 1")
+        check(q, s"SELECT $fieldsFull FROM $tableFull WHERE ep.id=? $orderBy LIMIT 1")
       }
       it("should build selectPage for event") {
         val q = ExternalProposalRepoSql.selectPage(externalEvent.id, Proposal.Status.Accepted, params)

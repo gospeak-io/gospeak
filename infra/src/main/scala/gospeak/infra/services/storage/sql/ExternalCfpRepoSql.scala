@@ -2,6 +2,7 @@ package gospeak.infra.services.storage.sql
 
 import java.time.Instant
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
 import gospeak.core.domain._
@@ -50,7 +51,7 @@ object ExternalCfpRepoSql {
       "int_slug", "group_id", "group_slug").map(Field(_, "c")),
     aggFields = Seq(),
     customFields = Seq(),
-    sorts = Sorts(Seq("close", "name").map(Field(_, "c")), Map()),
+    sorts = Sorts("close", "close date", Field("close", "c"), Field("name", "c")),
     search = Seq("name", "description", "tags").map(Field(_, "c")),
     filters = Seq())
 
@@ -68,13 +69,13 @@ object ExternalCfpRepoSql {
     table.select[ExternalCfp](fr0"WHERE ec.event_id=$id")
 
   private[sql] def selectOneFull(id: ExternalCfp.Id): Select[ExternalCfp.Full] =
-    tableFull.selectOne[ExternalCfp.Full](fr0"WHERE ec.id=$id", Seq())
+    tableFull.selectOne[ExternalCfp.Full](fr0"WHERE ec.id=$id")
 
   private[sql] def selectOneCommon(slug: Cfp.Slug): Select[CommonCfp] =
-    commonTable.selectOne[CommonCfp](fr0"WHERE c.slug=$slug", Seq())
+    commonTable.selectOne[CommonCfp](fr0"WHERE c.slug=$slug")
 
   private[sql] def selectOneCommon(id: ExternalCfp.Id): Select[CommonCfp] =
-    commonTable.selectOne[CommonCfp](fr0"WHERE c.id=$id", Seq())
+    commonTable.selectOne[CommonCfp](fr0"WHERE c.id=$id")
 
   private[sql] def selectCommonPageIncoming(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[CommonCfp, UserAwareCtx] =
     commonTable.selectPage[CommonCfp, UserAwareCtx](params, fr0"WHERE (c.close IS NULL OR c.close >= ${ctx.now})")

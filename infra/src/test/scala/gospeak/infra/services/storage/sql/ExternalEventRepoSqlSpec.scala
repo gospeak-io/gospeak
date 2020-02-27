@@ -17,7 +17,7 @@ class ExternalEventRepoSqlSpec extends RepoSpec {
       }
       it("should build selectOne") {
         val q = ExternalEventRepoSql.selectOne(externalEvent.id)
-        check(q, s"SELECT $fields FROM $table WHERE ee.id=? LIMIT 1")
+        check(q, s"SELECT $fields FROM $table WHERE ee.id=? $orderBy LIMIT 1")
       }
       it("should build selectPage") {
         val q = ExternalEventRepoSql.selectPage(params)
@@ -31,11 +31,11 @@ class ExternalEventRepoSqlSpec extends RepoSpec {
       }
       it("should build selectTags") {
         val q = ExternalEventRepoSql.selectTags()
-        check(q, s"SELECT ee.tags FROM $table")
+        check(q, s"SELECT ee.tags FROM $table $orderBy")
       }
       it("should build selectLogos") {
         val q = ExternalEventRepoSql.selectLogos()
-        check(q, s"SELECT ee.logo FROM $table WHERE ee.logo IS NOT NULL")
+        check(q, s"SELECT ee.logo FROM $table WHERE ee.logo IS NOT NULL $orderBy")
       }
     }
   }

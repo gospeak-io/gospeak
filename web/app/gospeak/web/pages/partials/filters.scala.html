@@ -4,10 +4,8 @@
 
 @(page: Page[_], link: Page.Params => Call, filters: Seq[Filter])
 @if(filters.nonEmpty) {
-    <div class="mb-3">
-        Filters: @filters.map {
-            case f: Filter.Bool => {@filterBool(page, link, f.key, f.label)}
-            case f: Filter.Enum => {@filterEnum(page, link, f.key, f.label, f.values.map(_._1))}
-        }
-    </div>
+    Filters: @filters.map {
+        case f: Filter.Bool => {@filterBool(page, link, f.key, f.label)}
+        case f: Filter.Enum => {@filterEnum(page, link, f.key, f.label, f.values.map(_._1))}
+    }
 }

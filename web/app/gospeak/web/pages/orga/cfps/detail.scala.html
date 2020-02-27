@@ -32,5 +32,10 @@
 
     <h2 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h2>
     <p class="mt-2 mb-0">You voted on @Formats.plural(userRatings.length, "proposal") on a total of @proposals.total.value</p>
-    @Formats.paginated[Proposal.Full](proposals, CfpCtrl.detail(req.group.slug, cfp.slug, _), proposalItem(_, speakers, userRatings), ProposalRepoSql.tableFullBase.filters)
+    @Formats.paginated[Proposal.Full](
+        proposals,
+        CfpCtrl.detail(req.group.slug, cfp.slug, _),
+        proposalItem(_, speakers, userRatings),
+        ProposalRepoSql.tableFullBase.filters,
+        ProposalRepoSql.tableFullBase.sorts.toList)
 }()

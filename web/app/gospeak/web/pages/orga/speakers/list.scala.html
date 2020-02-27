@@ -1,4 +1,5 @@
 @import gospeak.core.domain.User
+@import gospeak.infra.services.storage.sql.UserRepoSql
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.partials.html.{container, speakerItem}
 @import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
@@ -9,5 +10,10 @@
 @(speakers: Page[User.Full])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${req.group.name.value} speakers - Gospeak", b)() {
     <h1 class="text-capitalize">@Formats.plural(speakers.total.value, "speaker")</h1>
-    @Formats.paginated[User.Full](speakers, SpeakerCtrl.list(req.group.slug, _), speakerItem(_))
+    @Formats.paginated[User.Full](
+        speakers,
+        SpeakerCtrl.list(req.group.slug, _),
+        speakerItem(_),
+        UserRepoSql.tableFull.filters,
+        UserRepoSql.tableFull.sorts.toList)
 }()
