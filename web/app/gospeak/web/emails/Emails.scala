@@ -198,9 +198,9 @@ object Emails {
 
   def eventPublished(event: Event, venueOpt: Option[Venue.Full], member: Group.Member)(implicit req: OrgaReq[AnyContent]): Email =
     Email(
-      from = Constants.Contact.noReply,
+      from = Constants.Contact.noReply.withName(req.group.name.value),
       to = Seq(member.user.asContact),
-      subject = s"New event from ${req.group.name.value}: ${event.name.value}",
+      subject = s"New upcoming event: ${event.name.value}",
       content = HtmlContent(html.eventPublished(event, venueOpt, member).body))
 
   def proposalCommentAddedForSpeaker(cfp: Cfp, talk: Talk, proposal: Proposal, speaker: User, comment: Comment)(implicit req: OrgaReq[AnyContent]): Email =

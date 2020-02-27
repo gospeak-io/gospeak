@@ -241,6 +241,10 @@ object DoobieUtils {
 
     def selectOne[A: Read](where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), Some(1))
 
+    def selectOne[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, Some(1))
+
+    def selectOne[A: Read](fields: Seq[Field], where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), Some(1))
+
     def selectPage[A: Read, C <: BasicCtx](params: Page.Params)(implicit ctx: C): SelectPage[A, C] = SelectPage[A, C](value, prefix, fields, aggFields, customFields, None, None, params, sorts, search, filters, ctx)
 
     def selectPage[A: Read, C <: BasicCtx](params: Page.Params, where: Fragment)(implicit ctx: C): SelectPage[A, C] = SelectPage[A, C](value, prefix, fields, aggFields, customFields, Some(fr0" " ++ where), None, params, sorts, search, filters, ctx)

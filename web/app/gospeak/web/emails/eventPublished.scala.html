@@ -5,7 +5,7 @@
 
 @(event: Event, venueOpt: Option[Venue.Full], member: Group.Member)(implicit req: OrgaReq[AnyContent])
 <p>Hi @member.user.firstName,</p>
-<p>The <b>@req.group.name.value</b> have published a new event: <a href="@req.format(GroupCtrl.event(req.group.slug, event.slug))">@event.name.value</a>.</p>
+<p><b>@req.group.name.value</b> have published a new event: <a href="@req.format(GroupCtrl.event(req.group.slug, event.slug))">@event.name.value</a>.</p>
 <p>It's the @Formats.datetime(event.start)@venueOpt.map { v => at @v.address.formatted}.</p>
 @if(event.allowRsvp) {<p>You can <a href="@req.format(GroupCtrl.doRsvp(req.group.slug, event.slug, Event.Rsvp.Answer.Yes))">book your seat</a> right now if you want.</p>
 }<p>We hope you will enjoy it!</p>

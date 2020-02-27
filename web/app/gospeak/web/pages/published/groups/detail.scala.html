@@ -45,6 +45,7 @@
                     Lasts events
                     @if(req.isOrga(group)) {
                         <a href="@OrgaEventCtrl.list(group.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
+                        <a href="@OrgaEventCtrl.create(group.slug)" class="hover-edit-inline"><i class="fas fa-plus"></i></a>
                     }
                 </h2>
                 @events.items.map { e => @eventItem(e) }
