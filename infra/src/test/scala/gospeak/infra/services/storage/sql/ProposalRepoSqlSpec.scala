@@ -4,6 +4,7 @@ import cats.data.NonEmptyList
 import gospeak.core.domain.utils.FakeCtx
 import gospeak.core.domain.{Cfp, Proposal, Talk}
 import gospeak.infra.services.storage.sql.CfpRepoSqlSpec.{fields => cfpFields, table => cfpTable}
+import gospeak.infra.services.storage.sql.CommentRepoSqlSpec.{table => commentTable}
 import gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{fields => contactFields, table => contactTable}
 import gospeak.infra.services.storage.sql.EventRepoSqlSpec.{fields => eventFields, table => eventTable}
 import gospeak.infra.services.storage.sql.GroupRepoSqlSpec.{fields => groupFields, table => groupTable}
@@ -22,8 +23,8 @@ class ProposalRepoSqlSpec extends RepoSpec {
       proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe Seq()
       proposalRepo.listFull(cfp.slug, params).unsafeRunSync().items shouldBe Seq()
       val proposal = proposalRepo.create(talk.id, cfp.id, proposalData1, speakers)(ctx).unsafeRunSync()
-      proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None, None, 0L, 0L, 0L, None))
-      proposalRepo.listFull(cfp.slug, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None, None, 0L, 0L, 0L, None))
+      proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None, None, 0L, None, 0L, None, 0L, 0L, 0L, None))
+      proposalRepo.listFull(cfp.slug, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None, None, 0L, None, 0L, None, 0L, 0L, 0L, None))
       proposalRepo.find(cfp.slug, proposal.id).unsafeRunSync() shouldBe Some(proposal)
     }
     it("should fail to create a proposal when talk does not exists") {
@@ -215,9 +216,11 @@ object ProposalRepoSqlSpec {
     s"LEFT OUTER JOIN $venueTable ON e.venue=v.id " +
     s"LEFT OUTER JOIN $partnerTable ON v.partner_id=pa.id " +
     s"LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id " +
+    s"LEFT OUTER JOIN ${commentTable.replace(" co", " sco")} ON p.id=sco.proposal_id AND sco.kind=? " +
+    s"LEFT OUTER JOIN ${commentTable.replace(" co", " oco")} ON p.id=oco.proposal_id AND oco.kind=? " +
     s"LEFT OUTER JOIN $ratingTable ON p.id=pr.proposal_id"
   private val fieldsFull = s"$fields, $cfpFields, $groupFields, $talkFields, $eventFields, $venueFields, $partnerFields, $contactFields"
-  private val fieldsFullAgg = "COALESCE(SUM(pr.grade), 0) as score, COALESCE((COUNT(pr.grade) + SUM(pr.grade)) / 2, 0) as likes, COALESCE((COUNT(pr.grade) - SUM(pr.grade)) / 2, 0) as dislikes"
+  private val fieldsFullAgg = "COALESCE(COUNT(sco.id), 0) as speakerCommentCount, MAX(sco.created_at) as speakerLastComment, COALESCE(COUNT(oco.id), 0) as orgaCommentCount, MAX(oco.created_at) as orgaLastComment, COALESCE(SUM(pr.grade), 0) as score, COALESCE((COUNT(pr.grade) + SUM(pr.grade)) / 2, 0) as likes, COALESCE((COUNT(pr.grade) - SUM(pr.grade)) / 2, 0) as dislikes"
   private val fieldsFullCustom = "(SELECT grade from proposal_ratings WHERE created_by=? AND proposal_id=p.id) as user_grade"
   private val orderByFull = "ORDER BY COALESCE(SUM(pr.grade), 0) IS NULL, COALESCE(SUM(pr.grade), 0) DESC, COALESCE(COUNT(pr.grade), 0) IS NULL, COALESCE(COUNT(pr.grade), 0) DESC, p.created_at IS NULL, p.created_at DESC"
 

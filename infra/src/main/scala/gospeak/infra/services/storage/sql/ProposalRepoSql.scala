@@ -157,7 +157,13 @@ object ProposalRepoSql {
     .joinOpt(Tables.venues.dropFields(_.name.startsWith("address_")), _.venue("e") -> _.id).get
     .joinOpt(Tables.partners, _.partner_id("v") -> _.id).get
     .joinOpt(Tables.contacts, _.contact_id("v") -> _.id).get
+    .joinOpt(Tables.comments.setPrefix("sco"), fr0"sco.kind=${Comment.Kind.Proposal: Comment.Kind}", _.id("p") -> _.proposal_id).get.dropFields(_.prefix == "sco")
+    .joinOpt(Tables.comments.setPrefix("oco"), fr0"oco.kind=${Comment.Kind.ProposalOrga: Comment.Kind}", _.id("p") -> _.proposal_id).get.dropFields(_.prefix == "oco")
     .joinOpt(ratingTable, _.id("p") -> _.proposal_id).get.dropFields(_.prefix == ratingTable.prefix)
+    .aggregate(s"COALESCE(COUNT(sco.id), 0)", "speakerCommentCount")
+    .aggregate(s"MAX(sco.created_at)", "speakerLastComment")
+    .aggregate(s"COALESCE(COUNT(oco.id), 0)", "orgaCommentCount")
+    .aggregate(s"MAX(oco.created_at)", "orgaLastComment")
     .aggregate("COALESCE(SUM(pr.grade), 0)", "score")
     .aggregate("COALESCE((COUNT(pr.grade) + SUM(pr.grade)) / 2, 0)", "likes")
     .aggregate("COALESCE((COUNT(pr.grade) - SUM(pr.grade)) / 2, 0)", "dislikes")
@@ -167,10 +173,12 @@ object ProposalRepoSql {
         "accepted" -> Proposal.Status.Accepted.value,
         "declined" -> Proposal.Status.Declined.value)),
       Filter.Bool.fromNullable("slides", "With slides", "p.slides"),
-      Filter.Bool.fromNullable("video", "With video", "p.video")))
+      Filter.Bool.fromNullable("video", "With video", "p.video"),
+      Filter.Bool.fromCountExpr("comment", "With comments", "COALESCE(COUNT(DISTINCT sco.id), 0) + COALESCE(COUNT(DISTINCT oco.id), 0)")))
     .setSorts(
       Sort("score", Field("-COALESCE(SUM(pr.grade), 0)", ""), Field("-COALESCE(COUNT(pr.grade), 0)", ""), Field("-created_at", "p")),
       Sort("title", Field("LOWER(p.title)", "")),
+      Sort("comment", "last comment", Field("-MAX(GREATEST(sco.created_at, oco.created_at))", "")),
       Sort("created", Field("-created_at", "p")),
       Sort("updated", Field("-updated_at", "p")))
 

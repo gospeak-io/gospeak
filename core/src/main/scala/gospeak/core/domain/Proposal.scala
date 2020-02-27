@@ -63,13 +63,16 @@ object Proposal {
     val all: Seq[Status] = Seq(Pending, Accepted, Declined)
   }
 
-  // TODO: add speakerComments: Long & orgaComments: Long
   final case class Full(proposal: Proposal,
                         cfp: Cfp,
                         group: Group,
                         talk: Talk,
                         event: Option[Event],
                         venue: Option[Venue.Full],
+                        speakerCommentCount: Long,
+                        speakerLastComment: Option[Instant],
+                        orgaCommentCount: Long,
+                        orgaLastComment: Option[Instant],
                         score: Long,
                         likes: Long,
                         dislikes: Long,
@@ -105,6 +108,10 @@ object Proposal {
     def hasOrga(user: User.Id): Boolean = group.hasOrga(user)
 
     def users: List[User.Id] = proposal.users
+
+    def commentCount: Long = speakerCommentCount + orgaCommentCount
+
+    def lastComment: Option[Instant] = speakerLastComment.map(s => orgaLastComment.map(o => if (s.isAfter(o)) s else o).getOrElse(s)).orElse(orgaLastComment)
   }
 
   final case class Rating(proposal: Id,

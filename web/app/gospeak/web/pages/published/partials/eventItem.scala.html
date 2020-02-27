@@ -8,7 +8,11 @@
     <div class="card-body">
         <div class="media">
             <a href="@GroupCtrl.event(e.group.slug, e.slug)">
-                <img class="u-avatar rounded-circle mr-3" src="@e.venue.map(_.partner.logo.value).getOrElse(Constants.Placeholders.eventLogo)" alt="">
+                <img class="u-avatar rounded-circle mr-3"
+                    src="@e.venue.map(_.partner.logo.value).orElse(e.group.logo.map(_.value)).getOrElse(Constants.Placeholders.eventLogo)"
+                    alt="@e.venue.map(_.partner.name.value).getOrElse(e.group.name.value) logo"
+                    title="@e.venue.map(_.partner.name.value).getOrElse("No defined venue")"
+                    data-toggle="tooltip">
             </a>
             <div class="media-body">
                 <h5 class="mb-0">

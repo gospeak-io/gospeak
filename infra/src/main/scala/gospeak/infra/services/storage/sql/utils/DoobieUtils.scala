@@ -131,7 +131,10 @@ object DoobieUtils {
         new Bool(key, label, aggregation, onTrue = _ => const0(s"$field IS NOT NULL"), onFalse = _ => const0(s"$field IS NULL"))
 
       def fromCount(key: String, label: String, field: String): Bool =
-        new Bool(key, label, aggregation = true, onTrue = _ => const0(s"COALESCE(COUNT(DISTINCT $field), 0) > 0"), onFalse = _ => const0(s"COALESCE(COUNT(DISTINCT $field), 0) = 0"))
+        fromCountExpr(key, label, s"COALESCE(COUNT(DISTINCT $field), 0)")
+
+      def fromCountExpr(key: String, label: String, expression: String): Bool =
+        new Bool(key, label, aggregation = true, onTrue = _ => const0(s"$expression > 0"), onFalse = _ => const0(s"$expression = 0"))
 
       def fromNow(key: String, label: String, startField: String, endField: String, aggregation: Boolean = false): Bool =
         new Filter.Bool(key, label, aggregation, onTrue = ctx => const0(startField) ++ fr0" < ${ctx.now} AND ${ctx.now} < " ++ const0(endField), onFalse = ctx => fr0"${ctx.now}" ++ const0(s" < $startField OR $endField < ") ++ fr0"${ctx.now}")
@@ -158,6 +161,11 @@ object DoobieUtils {
                          search: Seq[Field],
                          filters: Seq[Filter]) extends Dynamic {
     def value: Fragment = const0(s"$name $prefix") ++ joins.foldLeft(fr0"")(_ ++ fr0" " ++ _.value)
+
+    def setPrefix(value: String): Table = copy(
+      prefix = value,
+      fields = fields.map(_.copy(prefix = value)),
+      search = search.map(_.copy(prefix = value)))
 
     private def field(field: Field): Either[CustomException, Field] = fields.find(_ == field).toEither(CustomException(s"Unable to find field '${field.value}' in table '${value.query.sql}'"))
 

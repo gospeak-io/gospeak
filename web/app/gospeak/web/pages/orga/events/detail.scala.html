@@ -142,11 +142,13 @@
                 @proposals.items.map { proposal =>
                     <div class="list-group-item p-1 d-flex justify-content-between align-items-center">
                         <div>
-                            @formBtn(EventCtrl.addToTalks(req.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Add this proposal to the event")){<i class="fas fa-plus"></i>}
-                            @formBtn(EventCtrl.rejectProposal(req.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link badge text-danger", "title" -> "Reject this proposal", "confirm" -> s"Reject proposal: ${proposal.title.value}?")){<i class="fas fa-comment-slash"></i>}
+                            @formBtn(EventCtrl.addToTalks(req.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Add this proposal to the event", "data-toggle" -> "tooltip")){<i class="fas fa-plus"></i>}
+                            @formBtn(EventCtrl.rejectProposal(req.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link badge text-danger", "title" -> "Reject this proposal", "data-toggle" -> "tooltip", "confirm" -> s"Reject proposal: ${proposal.title.value}?")){<i class="fas fa-comment-slash"></i>}
                             @duration(proposal.duration)
                             @slidesIcon(proposal.slides)
                             @videoIcon(proposal.video)
+                            @commentsIcon(proposal.speakerCommentCount, proposal.speakerLastComment, "speaker")
+                            @commentsIcon(proposal.orgaCommentCount, proposal.orgaLastComment, "orga")
                             @proposalRating(proposal, userRatings.find(_.proposal == proposal.id).map(_.grade), "badge")
                             <a href="@ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
                             @tags(proposal.tags)

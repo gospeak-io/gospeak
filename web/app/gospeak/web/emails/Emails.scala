@@ -1,5 +1,6 @@
 package gospeak.web.emails
 
+import cats.data.NonEmptyList
 import gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest}
 import gospeak.core.domain._
 import gospeak.core.domain.utils.Constants
@@ -203,19 +204,19 @@ object Emails {
       subject = s"New upcoming event: ${event.name.value}",
       content = HtmlContent(html.eventPublished(event, venueOpt, member).body))
 
-  def proposalCommentAddedForSpeaker(cfp: Cfp, talk: Talk, proposal: Proposal, speaker: User, comment: Comment)(implicit req: OrgaReq[AnyContent]): Email =
+  def proposalCommentAddedForSpeaker(cfp: Cfp, talk: Talk, proposal: Proposal, speakers: NonEmptyList[User], comment: Comment)(implicit req: OrgaReq[AnyContent]): Email =
     Email(
-      from = Constants.Contact.noReply,
-      to = Seq(speaker.asContact),
-      subject = s"New comment on your proposal '${proposal.title.value}' at ${cfp.name.value}",
-      content = HtmlContent(html.proposalCommentAddedForSpeaker(cfp, talk, proposal, speaker, comment).body))
+      from = Constants.Contact.noReply.withName(req.user.name.value),
+      to = speakers.map(_.asContact).toList,
+      subject = s"New comment on your '${proposal.title.value}' proposal for ${cfp.name.value}",
+      content = HtmlContent(html.proposalCommentAddedForSpeaker(cfp, talk, proposal, speakers, comment).body))
 
-  def proposalCommentAddedForOrga(group: Group, cfp: Cfp, proposal: Proposal, orga: User, comment: Comment)(implicit req: UserReq[AnyContent]): Email =
+  def proposalCommentAddedForOrga(group: Group, cfp: Cfp, proposal: Proposal, orgas: NonEmptyList[User], comment: Comment)(implicit req: UserReq[AnyContent]): Email =
     Email(
-      from = Constants.Contact.noReply,
-      to = Seq(orga.asContact),
-      subject = s"New comment on the '${proposal.title.value}' proposal for ${cfp.name.value}",
-      content = HtmlContent(html.proposalCommentAddedForOrga(group, cfp, proposal, orga, comment).body))
+      from = Constants.Contact.noReply.withName(req.user.name.value),
+      to = orgas.map(_.asContact).toList,
+      subject = s"New comment on ${cfp.name.value} CFP for '${proposal.title.value}' proposal",
+      content = HtmlContent(html.proposalCommentAddedForOrga(group, cfp, proposal, orgas, comment).body))
 
   def eventCommentAdded(group: Group, event: Event, orga: User, comment: Comment)(implicit req: UserReq[AnyContent]): Email =
     Email(

@@ -1,0 +1,5 @@
+@import java.time.Instant
+@import gospeak.web.utils.Formats
+
+@(commentCount: Long, lastComment: Option[Instant], commentKind: String)
+<span class="text-muted" title="@lastComment.map { d => Last @commentKind comment on @Formats.date(d) }.getOrElse{@Formats.plural(commentCount, s"$commentKind comment")}" data-toggle="tooltip">@commentCount <i class="fas fa-comments"></i></span>

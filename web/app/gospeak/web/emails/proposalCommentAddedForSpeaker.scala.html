@@ -1,11 +1,15 @@
+@import cats.data.NonEmptyList
 @import gospeak.core.domain.{Cfp, Comment, Proposal, Talk, User}
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import gospeak.web.utils.OrgaReq
 
-@(cfp: Cfp, talk: Talk, proposal: Proposal, speaker: User, comment: Comment)(implicit req: OrgaReq[AnyContent])
-<p>Hi @speaker.firstName,</p>
-<p>@req.user.name.value left you a message about your proposal <b>@proposal.title.value</b> for <b>@cfp.name.value</b>:</p>
-<div style="white-space: pre-line;">@comment.text</div>
-<br>
-<p>You can view it on <a href="@req.format(ProposalCtrl.detail(talk.slug, cfp.slug))">Gospeak</a> to answer if you want.</p>
+@(cfp: Cfp, talk: Talk, proposal: Proposal, speakers: NonEmptyList[User], comment: Comment)(implicit req: OrgaReq[AnyContent])
+@if(speakers.length == 1) {
+    <p>Hi @speakers.head.firstName,</p>
+} else {
+    <p>Hi @speakers.tail.map(_.firstName).mkString(", ") and @speakers.head.firstName,</p>
+}
+<p><b>@req.user.name.value</b> left you a message about your <b>@proposal.title.value</b> proposal for <b>@cfp.name.value</b>:</p>
+<p style="white-space: pre-line;">@comment.text</p><br>
+<p>Answer it on <a href="@req.format(ProposalCtrl.detail(talk.slug, cfp.slug))">Gospeak</a> if you want.</p>
 <p>The Gospeak team</p>
