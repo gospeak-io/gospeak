@@ -1,5 +1,6 @@
 @import gospeak.core.domain.{CommonProposal, Event, Group, Proposal, Talk}
 @import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.routes.{GroupCtrl => OrgaGroupCtrl}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
@@ -66,6 +67,18 @@
             </div>
         }
     </div>
+}
+@orgaGroupsCard() = {
+    @if(req.groups.nonEmpty) {
+        <div class="orga-card card mb-3">
+            <h5 class="card-header">Owned groups</h5>
+            <div class="list-group list-group-flush">
+                @req.groups.map { g =>
+                    <a href="@OrgaGroupCtrl.detail(g.slug)" class="list-group-item list-group-item-action">@g.name.value</a>
+                }
+            </div>
+        </div>
+    }
 }
 @talksCard() = {
     <div class="talk-card card mb-3">
@@ -154,6 +167,7 @@
             @userGroupsCard()
         </div>
         <div class="col-lg-6">
+            @orgaGroupsCard()
             @talksCard()
             @proposalsCard()
         </div>

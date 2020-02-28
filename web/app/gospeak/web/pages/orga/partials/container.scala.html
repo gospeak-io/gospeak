@@ -90,10 +90,10 @@
                         <ul class="nav flex-column">
                             <li class="nav-item">@navbarLink(EventCtrl.list(req.group.slug), "data-hotkey" -> "1") {Events}</li>
                             <li class="nav-item">@navbarLink(CfpCtrl.list(req.group.slug), "data-hotkey" -> "2") {CFPs}</li>
-                            <li class="nav-item">@navbarLink(ProposalCtrl.list(req.group.slug), "data-hotkey" -> "3") {Proposals}</li>
+                            <li class="nav-item">@navbarLink(ProposalCtrl.list(req.group.slug, Page.Params.defaults.withFilters("status" -> "pending")), "data-hotkey" -> "3") {Proposals}</li>
                             <li class="nav-item">@navbarLink(SpeakerCtrl.list(req.group.slug), "data-hotkey" -> "4") {Speakers}</li>
                             <li class="nav-item">@navbarLink(PartnerCtrl.list(req.group.slug), "data-hotkey" -> "5") {Partners}</li>
-                            <li class="nav-item">@navbarLink(SponsorCtrl.list(req.group.slug), "data-hotkey" -> "6") {Sponsors}</li>
+                            <li class="nav-item">@navbarLink(SponsorCtrl.list(req.group.slug, Page.Params.defaults.withFilters("active" -> "true")), "data-hotkey" -> "6") {Sponsors}</li>
                         </ul>
                     </div>
                 </div>
