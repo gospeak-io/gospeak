@@ -16,7 +16,7 @@ class EventRepoSqlSpec extends RepoSpec {
   describe("EventRepoSql") {
     it("should create and retrieve an event for a group") {
       val (user, group, ctx) = createUserAndGroup().unsafeRunSync()
-      val (partner, venue) = createPartnerAndVenue(user, group)(ctx).unsafeRunSync()
+      val (partner, venue, contact) = createPartnerAndVenue(user, group)(ctx).unsafeRunSync()
       val eventData = eventData1.copy(venue = eventData1.venue.map(_ => venue.id))
       eventRepo.list(params)(ctx).unsafeRunSync().items shouldBe Seq()
       eventRepo.find(eventData.slug)(ctx).unsafeRunSync() shouldBe None
@@ -31,7 +31,7 @@ class EventRepoSqlSpec extends RepoSpec {
     }
     it("should fail on duplicate slug for the same group") {
       val (user, group, ctx) = createUserAndGroup().unsafeRunSync()
-      val (partner, venue) = createPartnerAndVenue(user, group)(ctx).unsafeRunSync()
+      val (partner, venue, contact) = createPartnerAndVenue(user, group)(ctx).unsafeRunSync()
       val eventData = eventData1.copy(venue = eventData1.venue.map(_ => venue.id))
       eventRepo.create(eventData)(ctx).unsafeRunSync()
       an[Exception] should be thrownBy eventRepo.create(eventData)(ctx).unsafeRunSync()

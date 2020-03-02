@@ -159,14 +159,13 @@ object ProposalRepoSql {
     .joinOpt(Tables.contacts, _.contact_id("v") -> _.id).get
     .joinOpt(Tables.comments.setPrefix("sco"), fr0"sco.kind=${Comment.Kind.Proposal: Comment.Kind}", _.id("p") -> _.proposal_id).get.dropFields(_.prefix == "sco")
     .joinOpt(Tables.comments.setPrefix("oco"), fr0"oco.kind=${Comment.Kind.ProposalOrga: Comment.Kind}", _.id("p") -> _.proposal_id).get.dropFields(_.prefix == "oco")
-    .joinOpt(ratingTable, _.id("p") -> _.proposal_id).get.dropFields(_.prefix == ratingTable.prefix)
-    .aggregate(s"COALESCE(COUNT(sco.id), 0)", "speakerCommentCount")
+    .aggregate(s"COALESCE(COUNT(DISTINCT sco.id), 0)", "speakerCommentCount")
     .aggregate(s"MAX(sco.created_at)", "speakerLastComment")
-    .aggregate(s"COALESCE(COUNT(oco.id), 0)", "orgaCommentCount")
+    .aggregate(s"COALESCE(COUNT(DISTINCT oco.id), 0)", "orgaCommentCount")
     .aggregate(s"MAX(oco.created_at)", "orgaLastComment")
-    .aggregate("COALESCE(SUM(pr.grade), 0)", "score")
-    .aggregate("COALESCE((COUNT(pr.grade) + SUM(pr.grade)) / 2, 0)", "likes")
-    .aggregate("COALESCE((COUNT(pr.grade) - SUM(pr.grade)) / 2, 0)", "dislikes")
+    .addField(CustomField(fr0"(SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings WHERE proposal_id=p.id)", "score"))
+    .addField(CustomField(fr0"(SELECT COUNT(grade) FROM proposal_ratings WHERE proposal_id=p.id AND grade=${Proposal.Rating.Grade.Like: Proposal.Rating.Grade})", "likes"))
+    .addField(CustomField(fr0"(SELECT COUNT(grade) FROM proposal_ratings WHERE proposal_id=p.id AND grade=${Proposal.Rating.Grade.Dislike: Proposal.Rating.Grade})", "dislikes"))
     .copy(filters = Seq(
       Filter.Enum.fromEnum("status", "Status", "p.status", Seq(
         "pending" -> Proposal.Status.Pending.value,
@@ -176,13 +175,13 @@ object ProposalRepoSql {
       Filter.Bool.fromNullable("video", "With video", "p.video"),
       Filter.Bool.fromCountExpr("comment", "With comments", "COALESCE(COUNT(DISTINCT sco.id), 0) + COALESCE(COUNT(DISTINCT oco.id), 0)")))
     .setSorts(
-      Sort("score", Field("-COALESCE(SUM(pr.grade), 0)", ""), Field("-COALESCE(COUNT(pr.grade), 0)", ""), Field("-created_at", "p")),
+      Sort("score", Field("-(SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings WHERE proposal_id=p.id)", ""), Field("-created_at", "p")),
       Sort("title", Field("LOWER(p.title)", "")),
       Sort("comment", "last comment", Field("-MAX(GREATEST(sco.created_at, oco.created_at))", "")),
       Sort("created", Field("-created_at", "p")),
       Sort("updated", Field("-updated_at", "p")))
 
-  private def userGrade(user: User) = fr0"(SELECT grade from proposal_ratings WHERE created_by=${user.id} AND proposal_id=p.id)"
+  private def userGrade(user: User) = fr0"(SELECT grade FROM proposal_ratings WHERE created_by=${user.id} AND proposal_id=p.id)"
 
   private def tableFull(user: Option[User]): DoobieUtils.Table = tableFullBase.addField(CustomField(user.map(userGrade).getOrElse(fr0"null"), "user_grade"))
 

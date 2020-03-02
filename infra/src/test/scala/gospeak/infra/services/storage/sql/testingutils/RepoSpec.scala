@@ -31,6 +31,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val eventRepo: EventRepoSql = db.event
   protected val proposalRepo: ProposalRepoSql = db.proposal
   protected val contactRepo: ContactRepoSql = db.contact
+  protected val commentRepo: CommentRepoSql = db.comment
   protected val now: Instant = random[Instant]
   protected val ldt: LocalDateTime = random[LocalDateTime]
   protected val user: User = random[User]
@@ -69,6 +70,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val Seq(talkData1, talkData2) = random[Talk.Data](2)
   protected val proposalData1: Proposal.Data = random[Proposal.Data]
   protected val speakers: NonEmptyList[User.Id] = NonEmptyList.fromListUnsafe(random[User.Id](3).toList)
+  protected val Seq(commentData1, commentData2, commentData3) = random[Comment.Data](3)
   protected val params: Page.Params = Page.Params()
 
   protected implicit val orgaCtx: OrgaCtx = FakeOrgaCtx(now, user, group)
@@ -85,17 +87,29 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
     ctx = FakeCtx(now, user, group)
   } yield (user, group, ctx)
 
-  protected def createPartnerAndVenue(user: User, group: Group)(implicit ctx: OrgaCtx): IO[(Partner, Venue)] = for {
-    partner <- partnerRepo.create(partnerData1)(ctx)
-    contact <- venueData1.contact.map(_ => contactRepo.create(contactData1.copy(partner = partner.id))(ctx)).sequence
-    venue <- venueRepo.create(partner.id, venueData1.copy(contact = contact.map(_.id)))(ctx)
-  } yield (partner, venue)
-
-  protected def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk)] = for {
+  protected def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk, OrgaCtx)] = for {
     (user, group, ctx) <- createUserAndGroup()
     cfp <- cfpRepo.create(cfpData1)(ctx)
     talk <- talkRepo.create(talkData1)(ctx)
-  } yield (user, group, cfp, talk)
+  } yield (user, group, cfp, talk, ctx)
+
+  protected def createPartnerAndVenue(user: User, group: Group)(implicit ctx: OrgaCtx): IO[(Partner, Venue, Option[Contact])] = for {
+    partner <- partnerRepo.create(partnerData1)(ctx)
+    contact <- venueData1.contact.map(_ => contactRepo.create(contactData1.copy(partner = partner.id))(ctx)).sequence
+    venue <- venueRepo.create(partner.id, venueData1.copy(contact = contact.map(_.id)))(ctx)
+  } yield (partner, venue, contact)
+
+  protected def createProposal(): IO[(User, Group, Cfp, Partner, Venue, Option[Contact], Event, Talk, Proposal, OrgaCtx)] = for {
+    (user, group, cfp, talk, ctx) <- createUserGroupCfpAndTalk()
+    (partner, venue, contact) <- createPartnerAndVenue(user, group)(ctx)
+    event <- eventRepo.create(eventData1.copy(cfp = Some(cfp.id), venue = Some(venue.id)))(ctx)
+    proposal <- proposalRepo.create(talk.id, cfp.id, proposalData1, talk.speakers)(ctx)
+
+    _ <- eventRepo.editTalks(event.slug, event.add(proposal.id).talks)(ctx)
+    _ <- proposalRepo.accept(cfp.slug, proposal.id, event.id)
+    eventWithProposal = event.copy(talks = Seq(proposal.id))
+    proposalWithEvent = proposal.copy(event = Some(event.id), status = Proposal.Status.Accepted)
+  } yield (user, group, cfp, partner, venue, contact, eventWithProposal, talk, proposalWithEvent, ctx)
 
   protected def mapFields(fields: String, f: String => String): String = RepoSpec.mapFields(fields, f)
 

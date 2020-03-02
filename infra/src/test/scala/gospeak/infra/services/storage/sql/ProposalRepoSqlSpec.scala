@@ -2,7 +2,7 @@ package gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
 import gospeak.core.domain.utils.FakeCtx
-import gospeak.core.domain.{Cfp, Proposal, Talk}
+import gospeak.core.domain.{Cfp, Proposal, Talk, Venue}
 import gospeak.infra.services.storage.sql.CfpRepoSqlSpec.{fields => cfpFields, table => cfpTable}
 import gospeak.infra.services.storage.sql.CommentRepoSqlSpec.{table => commentTable}
 import gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{fields => contactFields, table => contactTable}
@@ -18,14 +18,37 @@ import gospeak.infra.services.storage.sql.testingutils.RepoSpec
 class ProposalRepoSqlSpec extends RepoSpec {
   describe("ProposalRepoSql") {
     it("should create and retrieve a proposal for a group and talk") {
-      val (user, group, cfp, talk) = createUserGroupCfpAndTalk().unsafeRunSync()
-      val ctx = FakeCtx(now, user)
+      val (user, group, cfp, talk, ctx) = createUserGroupCfpAndTalk().unsafeRunSync()
       proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe Seq()
       proposalRepo.listFull(cfp.slug, params).unsafeRunSync().items shouldBe Seq()
       val proposal = proposalRepo.create(talk.id, cfp.id, proposalData1, speakers)(ctx).unsafeRunSync()
       proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None, None, 0L, None, 0L, None, 0L, 0L, 0L, None))
       proposalRepo.listFull(cfp.slug, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None, None, 0L, None, 0L, None, 0L, 0L, 0L, None))
       proposalRepo.find(cfp.slug, proposal.id).unsafeRunSync() shouldBe Some(proposal)
+    }
+    it("should compute score and comments") {
+      val (user, group, cfp, partner, venue, contact, event, talk, proposal, ctx) = createProposal().unsafeRunSync()
+      val c1 = commentRepo.addComment(proposal.id, commentData1.copy(answers = None))(ctx).unsafeRunSync()
+      val c2 = commentRepo.addComment(proposal.id, commentData2.copy(answers = None))(ctx).unsafeRunSync()
+      val c3 = commentRepo.addOrgaComment(proposal.id, commentData3.copy(answers = None))(ctx).unsafeRunSync()
+      proposalRepo.rate(cfp.slug, proposal.id, Proposal.Rating.Grade.Like)(ctx).unsafeRunSync()
+
+      val proposalFull = proposalRepo.findFull(proposal.id)(ctx).unsafeRunSync().get
+
+      proposalFull.proposal shouldBe proposal
+      proposalFull.cfp shouldBe cfp
+      proposalFull.group shouldBe group
+      proposalFull.talk shouldBe talk
+      proposalFull.event shouldBe Some(event)
+      proposalFull.venue shouldBe Some(Venue.Full(venue, partner, contact))
+      proposalFull.userGrade shouldBe Some(Proposal.Rating.Grade.Like)
+      proposalFull.speakerCommentCount shouldBe 2
+      proposalFull.speakerLastComment shouldBe Some(c2.createdAt)
+      proposalFull.orgaCommentCount shouldBe 1
+      proposalFull.orgaLastComment shouldBe Some(c3.createdAt)
+      proposalFull.score shouldBe 1
+      proposalFull.likes shouldBe 1
+      proposalFull.dislikes shouldBe 0
     }
     it("should fail to create a proposal when talk does not exists") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
@@ -41,8 +64,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       an[Exception] should be thrownBy proposalRepo.create(talk.id, Cfp.Id.generate(), proposalData1, speakers)(ctx).unsafeRunSync()
     }
     it("should fail on duplicate cfp and talk") {
-      val (user, _, cfp, talk) = createUserGroupCfpAndTalk().unsafeRunSync()
-      val ctx = FakeCtx(now, user)
+      val (user, _, cfp, talk, ctx) = createUserGroupCfpAndTalk().unsafeRunSync()
       proposalRepo.create(talk.id, cfp.id, proposalData1, speakers)(ctx).unsafeRunSync()
       an[Exception] should be thrownBy proposalRepo.create(talk.id, cfp.id, proposalData1, speakers)(ctx).unsafeRunSync()
     }
@@ -217,12 +239,11 @@ object ProposalRepoSqlSpec {
     s"LEFT OUTER JOIN $partnerTable ON v.partner_id=pa.id " +
     s"LEFT OUTER JOIN $contactTable ON v.contact_id=ct.id " +
     s"LEFT OUTER JOIN ${commentTable.replace(" co", " sco")} ON p.id=sco.proposal_id AND sco.kind=? " +
-    s"LEFT OUTER JOIN ${commentTable.replace(" co", " oco")} ON p.id=oco.proposal_id AND oco.kind=? " +
-    s"LEFT OUTER JOIN $ratingTable ON p.id=pr.proposal_id"
+    s"LEFT OUTER JOIN ${commentTable.replace(" co", " oco")} ON p.id=oco.proposal_id AND oco.kind=?"
   private val fieldsFull = s"$fields, $cfpFields, $groupFields, $talkFields, $eventFields, $venueFields, $partnerFields, $contactFields"
-  private val fieldsFullAgg = "COALESCE(COUNT(sco.id), 0) as speakerCommentCount, MAX(sco.created_at) as speakerLastComment, COALESCE(COUNT(oco.id), 0) as orgaCommentCount, MAX(oco.created_at) as orgaLastComment, COALESCE(SUM(pr.grade), 0) as score, COALESCE((COUNT(pr.grade) + SUM(pr.grade)) / 2, 0) as likes, COALESCE((COUNT(pr.grade) - SUM(pr.grade)) / 2, 0) as dislikes"
-  private val fieldsFullCustom = "(SELECT grade from proposal_ratings WHERE created_by=? AND proposal_id=p.id) as user_grade"
-  private val orderByFull = "ORDER BY COALESCE(SUM(pr.grade), 0) IS NULL, COALESCE(SUM(pr.grade), 0) DESC, COALESCE(COUNT(pr.grade), 0) IS NULL, COALESCE(COUNT(pr.grade), 0) DESC, p.created_at IS NULL, p.created_at DESC"
+  private val fieldsFullAgg = "COALESCE(COUNT(DISTINCT sco.id), 0) as speakerCommentCount, MAX(sco.created_at) as speakerLastComment, COALESCE(COUNT(DISTINCT oco.id), 0) as orgaCommentCount, MAX(oco.created_at) as orgaLastComment"
+  private val fieldsFullCustom = "(SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings WHERE proposal_id=p.id) as score, (SELECT COUNT(grade) FROM proposal_ratings WHERE proposal_id=p.id AND grade=?) as likes, (SELECT COUNT(grade) FROM proposal_ratings WHERE proposal_id=p.id AND grade=?) as dislikes, (SELECT grade FROM proposal_ratings WHERE created_by=? AND proposal_id=p.id) as user_grade"
+  private val orderByFull = "ORDER BY (SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings WHERE proposal_id=p.id) IS NULL, (SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings WHERE proposal_id=p.id) DESC, p.created_at IS NULL, p.created_at DESC"
 
   private val ratingTableFull = s"$ratingTable INNER JOIN $userTable ON pr.created_by=u.id INNER JOIN $table ON pr.proposal_id=p.id"
   private val ratingFieldsFull = s"$ratingFields, $userFields, $fields"
