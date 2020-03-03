@@ -6,7 +6,6 @@ import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.{Proposal, Talk, User}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
-import gospeak.libs.scala.domain.EmailAddress.Contact
 import gospeak.libs.scala.domain.Page
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
@@ -14,6 +13,7 @@ import gospeak.web.domain.Breadcrumb
 import gospeak.web.emails.Emails
 import gospeak.web.pages.published.HomeCtrl
 import gospeak.web.pages.published.speakers.SpeakerCtrl._
+import gospeak.web.utils.Extensions._
 import gospeak.web.utils.{GsForms, UICtrl}
 import play.api.mvc._
 
@@ -30,17 +30,6 @@ class SpeakerCtrl(cc: ControllerComponents,
     userRepo.listPublic(params).map(speakers => Ok(html.list(speakers)(listBreadcrumb())))
   }
 
-  def contactSpeaker(user: User.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
-    val next = Redirect(routes.SpeakerCtrl.detail(user))
-    GsForms.speakerContact.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing("error" -> req.formatErrors(formWithErrors))),
-      data => (for {
-        speakerElt <- OptionT(userRepo.findPublic(user))
-        _ <- OptionT.liftF(emailSrv.send(Emails.contactSpeaker(Contact(speakerElt.email), data.subject, data.content, speakerElt.user)))
-        res = Redirect(routes.SpeakerCtrl.detail(user)).flashing("success" -> "The message has been sent!")
-      } yield res).value.map(_.getOrElse(publicUserNotFound(user))))
-  }
-
   def detail(user: User.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       speakerElt <- OptionT(userRepo.findPublic(user))
@@ -48,7 +37,7 @@ class SpeakerCtrl(cc: ControllerComponents,
       talks <- OptionT.liftF(talkRepo.listAll(speakerElt.id, Talk.Status.Public))
       proposals <- OptionT.liftF(externalProposalRepo.listAllCommon(speakerElt.id, Proposal.Status.Accepted))
       users <- OptionT.liftF(userRepo.list((groups.flatMap(_.owners.toList) ++ talks.flatMap(_.users)).distinct))
-      res = Ok(html.detail(speakerElt, groups, talks, proposals.groupBy(_.talk.id), users, GsForms.speakerContact)(breadcrumb(speakerElt)))
+      res = Ok(html.detail(speakerElt, groups, talks, proposals.groupBy(_.talk.id), users)(breadcrumb(speakerElt)))
     } yield res).value.map(_.getOrElse(publicUserNotFound(user)))
   }
 
@@ -60,6 +49,17 @@ class SpeakerCtrl(cc: ControllerComponents,
       users <- OptionT.liftF(userRepo.list((talkElt.users ++ proposals.flatMap(_.users)).distinct))
       res = Ok(html.talk(userElt, talkElt, proposals, users)(breadcrumb(userElt, talkElt)))
     } yield res).value.map(_.getOrElse(publicTalkNotFound(user, talk)))
+  }
+
+  def contactSpeaker(user: User.Slug): Action[AnyContent] = UserAction { implicit req =>
+    val next = Redirect(routes.SpeakerCtrl.detail(user))
+    GsForms.speakerContact.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
+      data => (for {
+        speakerElt <- OptionT(userRepo.findPublic(user))
+        _ <- OptionT.liftF(emailSrv.send(Emails.contactSpeaker(data.subject, data.content, speakerElt.user)))
+        res = next.flashing("success" -> "The message has been sent!")
+      } yield res).value.map(_.getOrElse(publicUserNotFound(user))))
   }
 }
 

@@ -11,13 +11,11 @@
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.user.profile.routes.ProfileCtrl
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
-@import gospeak.web.utils.{Formats, UserAwareReq}
+@import gospeak.web.utils.{Formats, GsForms, UserAwareReq}
 
-@import gospeak.web.utils.GsForms
-@(user: User.Full, userGroups: Seq[Group.Full], userTalks: Seq[Talk], userProposals: Map[Talk.Id, Seq[CommonProposal]], users: Seq[User], form: Form[GsForms.SpeakerContact])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(user: User.Full, userGroups: Seq[Group.Full], userTalks: Seq[Talk], userProposals: Map[Talk.Id, Seq[CommonProposal]], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @eventLink(p: CommonProposal) = @{
-    p.fold(e => EventCtrl.detailExt(e.event.id))(i => i.event.map(e => GroupCtrl.event(i.group.slug, e.slug))
-            .getOrElse(GroupCtrl.detail(i.group.slug)))
+    p.fold(e => EventCtrl.detailExt(e.event.id))(i => i.event.map(e => GroupCtrl.event(i.group.slug, e.slug)).getOrElse(GroupCtrl.detail(i.group.slug)))
 }
 @proposalLink(p: CommonProposal) = @{
     p.fold(e => EventCtrl.proposalExt(e.event.id, e.id))(i => GroupCtrl.talk(i.group.slug, i.id))
@@ -27,18 +25,15 @@
         <img class="u-sm-avatar mr-3" src="@routes.Assets.versioned(s"web/img/logos/$name.png")" alt="@name logo">
         <div class="media-body">
             <span class="d-block text-dark text-capitalize">@name</span>
-            <small class="d-block text-secondary" style="max-width: 9rem;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;">@handle</small>
+            <small class="d-block text-secondary" style="max-width: 9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@handle</small>
         </div>
     </a>
 }
 @container(s"${user.name.value} - Gospeak", PageMeta.user(user.user), b)() {
-    @* cf https://htmlstream.com/preview/front-v2.9.4/html/account/profile.html *@
-    <div class="row">
-        <div class="col-lg-3 mb-lg-3">
-            <div class="card p-1 mb-3">
+@* cf https://htmlstream.com/preview/front-v2.9.4/html/account/profile.html *@
+<div class="row">
+    <div class="col-lg-3 mb-lg-3">
+        <div class="card p-1 mb-3">
             @if(req.isLogged(user)) { <a href="@ProfileCtrl.edit()" class="hover-edit"><i class="fas fa-edit"></i></a> }
             <div class="card-body text-center">
                 <div>
@@ -68,45 +63,45 @@
                         </div>
                     }
                 }
-                </div>
             </div>
-            @if(user.website.isDefined || user.social.all.nonEmpty) {
-                <div class="card mb-3">
-                    <div class="card-header pt-4 pb-3 px-0 mx-4">
-                        <h3 class="h6 mb-0">Social Profiles</h3>
-                    </div>
-                    <div class="card-body pt-3 pb-4 px-4">
+        </div>
+        @if(user.website.isDefined || user.social.all.nonEmpty) {
+            <div class="card mb-3">
+                <div class="card-header pt-4 pb-3 px-0 mx-4">
+                    <h3 class="h6 mb-0">Social Profiles</h3>
+                </div>
+                <div class="card-body pt-3 pb-4 px-4">
                     @Seq(
                         user.website.map(url => ("website", url.value, url.value)).toList,
                         user.social.all.map(s => (s.name, s.link, s.handle))
                     ).flatten.zipWithIndex.map { case ((name, link, handle), i) => @socialItem(name, link, handle, i) }
-                    </div>
                 </div>
-            }
-        </div>
-        <div class="col-lg-9">
-            @user.title.map { t => <h2 class="h4">@t</h2> }
-            @user.bio.map { b => @markdown(b) }
-            @user.mentoring.map { m =>
-                <ul class="list-inline d-flex align-items-center">
-                    <li class="list-inline-item" data-toggle="html-popover" data-trigger="hover" data-title="Gospeak mentor">
-                        <div class="content">@markdown(m)</div>
-                        <div class="d-flex align-items-center">
-                            <img class="mr-2" src="@routes.Assets.versioned(s"web/img/icons/user-mentor.svg")" alt="Gospeak mentor" style="width: 40px;">
-                            <div class="text-secondary">Gospeak mentor</div>
-                        </div>
-                    </li>
-                </ul>
-            }
+            </div>
+        }
+    </div>
+    <div class="col-lg-9">
+        @user.title.map { t => <h2 class="h4">@t</h2> }
+        @user.bio.map { b => @markdown(b) }
+        @user.mentoring.map { m =>
+            <ul class="list-inline d-flex align-items-center">
+                <li class="list-inline-item" data-toggle="html-popover" data-trigger="hover" data-title="Gospeak mentor">
+                    <div class="content">@markdown(m)</div>
+                    <div class="d-flex align-items-center">
+                        <img class="mr-2" src="@routes.Assets.versioned(s"web/img/icons/user-mentor.svg")" alt="Gospeak mentor" style="width: 40px;">
+                        <div class="text-secondary">Gospeak mentor</div>
+                    </div>
+                </li>
+            </ul>
+        }
         @if(userGroups.nonEmpty || (userTalks.nonEmpty && !(userTalks.map(_.title.value).toList.sorted == userProposals.values.flatten.map(_.title.value).toList.sorted))) {
-                @if(user.title.isDefined || user.bio.isDefined) {
-                    <hr class="my-5">
-                }
-                <div class="row">
-                    @if(userTalks.nonEmpty && !(userTalks.map(_.title.value).toList.sorted == userProposals.values.flatten.map(_.title.value).toList.sorted)) {
-                        <div class="col-md-6 mb-5 mb-md-0">
-                            <h3 class="h5 mb-3">Current talks</h3>
-                            @userTalks.zipWithIndex.map { case (talk, i) =>
+            @if(user.title.isDefined || user.bio.isDefined) {
+                <hr class="my-5">
+            }
+            <div class="row">
+                @if(userTalks.nonEmpty && !(userTalks.map(_.title.value).toList.sorted == userProposals.values.flatten.map(_.title.value).toList.sorted)) {
+                    <div class="col-md-6 mb-5 mb-md-0">
+                        <h3 class="h5 mb-3">Current talks</h3>
+                        @userTalks.zipWithIndex.map { case (talk, i) =>
                             <div class="align-items-center @if(i != 0) {mt-5}">
                                 @userProposals.getOrElse(talk.id, Seq()) match {
                                     case Seq() => {
@@ -140,13 +135,13 @@
                                     </ul>
                                 }
                             </div>
-                            }
-                        </div>
-                    }
-                    @if(userGroups.nonEmpty) {
-                        <div class="col-md-6">
-                            <h3 class="h5 mb-3">Organizes</h3>
-                            @userGroups.zipWithIndex.map { case (group, i) =>
+                        }
+                    </div>
+                }
+                @if(userGroups.nonEmpty) {
+                    <div class="col-md-6">
+                        <h3 class="h5 mb-3">Organizes</h3>
+                        @userGroups.zipWithIndex.map { case (group, i) =>
                             <div class="d-flex @if(i != 0) {mt-5}">
                                 <a href="@GroupCtrl.detail(group.slug)">
                                     <img class="u-avatar rounded-circle align-self-center mr-4" src="@group.logo.map(_.value).getOrElse(Constants.Placeholders.groupLogo)" alt="@group.name.value logo">
@@ -164,46 +159,46 @@
                                         }
                                     </h4>
                                     <span class="d-block text-secondary">@group.location.map(_.formatted)</span>
+                                </div>
                             </div>
-                            </div>
-                            }
-                        </div>
-                    }
-                </div>
-            }
-            @if(userProposals.nonEmpty) {
-                <hr class="my-5">
-                <h3 class="h5 mb-0">Speaking history</h3>
-                <div class="text-muted mb-3">
-                @userProposals.values.flatten.toList.groupBy(_.eventKind).map { case (kind, proposals) =>
-                <span class="badge badge-pill badge-@Formats.color(kind)">@Formats.icon(kind) @Formats.plural(proposals.length, kind.map(_.label).getOrElse("Undefined event"))</span>
+                        }
+                    </div>
                 }
-                </div>
-                @speakingHistory(user, userProposals.values.flatten.toList)
-            }
-        </div>
+            </div>
+        }
+        @if(userProposals.nonEmpty) {
+            <hr class="my-5">
+            <h3 class="h5 mb-0">Speaking history</h3>
+            <div class="text-muted mb-3">
+                @userProposals.values.flatten.toList.groupBy(_.eventKind).map { case (kind, proposals) =>
+                    <span class="badge badge-pill badge-@Formats.color(kind)">@Formats.icon(kind) @Formats.plural(proposals.length, kind.map(_.label).getOrElse("Undefined event"))</span>
+                }
+            </div>
+            @speakingHistory(user, userProposals.values.flatten.toList)
+        }
     </div>
+</div>
 
-    <div class="modal fade" id="sendMailModal" tabindex="-1" role="dialog" aria-labelledby="sendMailModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-            @formElt(form, SpeakerCtrl.contactSpeaker(user.slug)) {
+<div class="modal fade" id="sendMailModal" tabindex="-1" role="dialog" aria-labelledby="sendMailModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            @formElt(GsForms.speakerContact, SpeakerCtrl.contactSpeaker(user.slug)) {
                 <div class="modal-body">
-                    @fieldHorizontal(form("subject"), Seq("label" -> "Subject")) { (field, args) =>
+                    @fieldHorizontal(GsForms.speakerContact("subject"), Seq("label" -> "Subject")) { (field, args) =>
                         @inputText(field, Seq("placeholder" -> "ex: Availability for a BBL", "autofocus" -> "true") ++ args)
                     }
-                    @fieldHorizontal(form("content"), Seq("label" -> "Message")) { (field, args) =>
+                    @fieldHorizontal(GsForms.speakerContact("content"), Seq("label" -> "Message")) { (field, args) =>
                         @inputMarkdown(field, args)
                     }
                 </div>
                 <div class="modal-footer">
-                @actionsVertical() {
-                    @btnCancel(SpeakerCtrl.detail(user.slug))
-                    @btnSubmit("Send message")
-                }
+                    @actionsVertical() {
+                        @btnCancel(SpeakerCtrl.detail(user.slug))
+                        @btnSubmit("Send message")
+                    }
                 </div>
             }
-            </div>
         </div>
     </div>
+</div>
 }()

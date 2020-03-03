@@ -1,13 +1,12 @@
 @import gospeak.core.domain.{Group, Proposal, User}
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
-@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.orga.cfps.proposals.routes.{ProposalCtrl => OrgaProposalCtrl}
+@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.published.partials.html.container
 @import gospeak.web.pages.user.talks.proposals.routes.{ProposalCtrl => SpeakerProposalCtrl}
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.UserAwareReq
+@import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(group: Group, proposal: Proposal.Full, users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${proposal.title.value} at ${group.name.value} - Gospeak", PageMeta.proposal(group, proposal.proposal), b)() {
