@@ -240,18 +240,18 @@ object Emails {
       content = HtmlContent(html.eventMessage(event, text, rsvp).body))
 
 
-  def contactSpeaker(sender: EmailAddress.Contact, subject: String, text: Markdown, speaker: User): Email =
+  def contactSpeaker(subject: String, text: Markdown, speaker: User)(implicit req: UserReq[AnyContent]): Email =
     Email(
-      from = sender,
+      from = req.user.asContact,
       to = Seq(speaker.asContact),
       subject = subject,
       content = HtmlContent(html.contactSpeaker(text).body))
 
 
-  def contactOrga(sender: EmailAddress.Contact, subject: String, text: Markdown, orga: User): Email =
+  def contactOrga(subject: String, text: Markdown, orgas: NonEmptyList[User])(implicit req: UserReq[AnyContent]): Email =
     Email(
-      from = sender,
-      to = Seq(orga.asContact),
+      from = req.user.asContact,
+      to = orgas.map(_.asContact).toList,
       subject = subject,
       content = HtmlContent(html.contactSpeaker(text).body))
 }

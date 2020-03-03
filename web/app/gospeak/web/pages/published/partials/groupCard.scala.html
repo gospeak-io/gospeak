@@ -3,20 +3,13 @@
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.routes.{GroupCtrl => OrgaGroupCtrl}
 @import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import gospeak.web.utils.UserAwareReq
+@import gospeak.web.utils.{GsForms, UserAwareReq}
 
-@import gospeak.web.utils.GsForms
-@import gospeak.web.pages.partials.form.html.formElt
-@import gospeak.web.pages.partials.form.html.fieldHorizontal
-@import gospeak.web.pages.partials.form.html.inputMarkdown
-@import gospeak.web.pages.partials.form.html.actionsVertical
-@import gospeak.web.pages.partials.form.html.btnCancel
-@import gospeak.web.pages.partials.form.html.btnSubmit
-@import gospeak.web.pages.partials.form.html.inputText
-@(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], users: Seq[User], userMembership: Option[Group.Member], form: Form[GsForms.OrgaContact])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], users: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 <div class="col-lg-4 mb-3 mb-lg-0">
     <div class="card shadow-sm p-5">
         <div class="text-center">
@@ -49,22 +42,18 @@
                                 Propose a talk
                             </button>
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            @cfps.map { cfp =>
-                                <a class="dropdown-item" href="@CfpCtrl.propose(cfp.slug)">@cfp.name.value</a>
-                            }
+                                @cfps.map { cfp => <a class="dropdown-item" href="@CfpCtrl.propose(cfp.slug)">@cfp.name.value</a> }
                             </div>
                         </div>
                     </div>
                 }
             }
-            <div class="mb-3">
-            @userMembership.map { _ =>
-            <a class="text-muted small" href="@GroupCtrl.doLeave(group.slug)"><i class="fas fa-flag"></i>
-                Leave the group</a>
-            }.getOrElse {
-                <a class="btn btn-sm btn-soft-success transition-3d-hover" href="@GroupCtrl.doJoin(group.slug)">
-                    Join this group</a>
-            }
+            <div class="mt-3">
+                @userMembership.map { _ =>
+                    <a class="text-muted small" href="@GroupCtrl.doLeave(group.slug)"><i class="fas fa-flag"></i> Leave the group</a>
+                }.getOrElse {
+                    <a class="btn btn-sm btn-soft-success transition-3d-hover" href="@GroupCtrl.doJoin(group.slug)">Join this group</a>
+                }
             </div>
             <div class="mt-3">
                 <a href="#" class="btn btn-sm btn-soft-primary transition-3d-hover" data-toggle="modal" data-target="#contactModal">
@@ -72,7 +61,7 @@
                     Send a Message
                 </a>
             </div>
-            <div>
+            <div class="mt-3">
                 Organized by<br>
                 @avatars(group.owners, users, Some(u => SpeakerCtrl.detail(u.slug)))
             </div>
@@ -114,35 +103,36 @@
         <div>
             <h4 class="font-size-1 font-weight-semi-bold text-uppercase mb-3">Linked accounts</h4>
             @group.social.all.zipWithIndex.map { case (s, i) =>
-            <a class="media align-items-center @if(i != 0) {mt-2}" href="@s.link" target="_blank">
-                <i class="fab fa-@s.name mr-3"></i>
-                <div class="media-body">
-                    <h4 class="font-size-1 text-dark mb-0 text-capitalize">@s.name</h4>
-                    <small class="d-block text-secondary">@s.handle</small>
-            </div>
-            </a>
+                <a class="media align-items-center @if(i != 0) {mt-2}" href="@s.link" target="_blank">
+                    <i class="fab fa-@s.name mr-3"></i>
+                    <div class="media-body">
+                        <h4 class="font-size-1 text-dark mb-0 text-capitalize">@s.name</h4>
+                        <small class="d-block text-secondary">@s.handle</small>
+                    </div>
+                </a>
             }
         </div>
     </div>
+
     <div class="modal fade" id="contactModal" tabindex="-1" role="dialog" aria-labelledby="contactModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-            @formElt(form, GroupCtrl.contactOrga(group.slug)) {
-                <div class="modal-body">
-                    @fieldHorizontal(form("subject"), Seq("label" -> "Subject")) { (field, args) =>
-                        @inputText(field, Seq("placeholder" -> "ex: Availability for a BBL", "autofocus" -> "true") ++ args)
-                    }
-                    @fieldHorizontal(form("content"), Seq("label" -> "Message")) { (field, args) =>
-                        @inputMarkdown(field, args)
-                    }
-                </div>
-                <div class="modal-footer">
-                @actionsVertical() {
-                    @btnCancel(GroupCtrl.detail(group.slug))
-                    @btnSubmit("Send message")
+                @formElt(GsForms.orgaContact, GroupCtrl.contactOrga(group.slug)) {
+                    <div class="modal-body">
+                        @fieldHorizontal(GsForms.orgaContact("subject"), Seq("label" -> "Subject")) { (field, args) =>
+                            @inputText(field, Seq("placeholder" -> "ex: Availability for a BBL", "autofocus" -> "true") ++ args)
+                        }
+                        @fieldHorizontal(GsForms.orgaContact("content"), Seq("label" -> "Message")) { (field, args) =>
+                            @inputMarkdown(field, args)
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        @actionsVertical() {
+                            @btnCancel(GroupCtrl.detail(group.slug))
+                            @btnSubmit("Send message")
+                        }
+                    </div>
                 }
-                </div>
-            }
             </div>
         </div>
     </div>
