@@ -1,4 +1,5 @@
 @import gospeak.core.domain.{ExternalProposal, User}
+@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 
@@ -10,14 +11,6 @@
             @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
             @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
         </h4>
-        <ul class="list-inline ml-3 mb-0">
-            @proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
-                <li class="list-inline-item ml-n3 mr-0">
-                    <a href="@SpeakerCtrl.detail(u.slug)" title="@u.name.value" data-toggle="tooltip">
-                        <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
-                    </a>
-                </li>
-            }
-        </ul>
+        @avatars(proposal.speakers, users, Some(u => SpeakerCtrl.detail(u.slug)))
     </div>
 </div>

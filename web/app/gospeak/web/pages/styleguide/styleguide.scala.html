@@ -212,10 +212,10 @@
                 @example(s"$name without link") { _ => @display.speaker(Seq(user), user.id) }
                 @example(s"$name not found") { _ => @display.speaker(Seq(), user.id) }
             }
-            @component("speakerAvatar", "@speakerAvatar(users, user.id, Some(u => MyCtrl.detail(u.slug)))") { name =>
-                @example(s"$name") { _ => @display.speakerAvatar(Seq(user), user.id, Some(_ => StyleguideCtrl.index(params))) }
-                @example(s"$name without link") { _ => @display.speakerAvatar(Seq(user), user.id) }
-                @example(s"$name not found") { _ => @display.speakerAvatar(Seq(), user.id) }
+            @component("avatar", "@avatars(NonEmptyList.of(user.id), users, Some(u => MyCtrl.detail(u.slug)))") { name =>
+                @example(s"$name") { _ => @display.avatars(talk.speakers, Seq(user), Some(_ => StyleguideCtrl.index(params))) }
+                @example(s"$name without link") { _ => @display.avatars(talk.speakers, Seq(user)) }
+                @example(s"$name not found") { _ => @display.avatars(talk.speakers, Seq()) }
             }
         }
 

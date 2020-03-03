@@ -104,19 +104,19 @@
             <div class="list-group list-group-flush">
             @event.talks.map { tId =>
                 <div class="list-group-item p-1 d-flex justify-content-between align-items-center">
-                    @talks.find(_.id == tId).map { talk =>
+                    @talks.find(_.id == tId).map { proposal =>
                         <div>
-                            @formBtn(EventCtrl.cancelTalk(req.group.slug, event.slug, talk.id, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Remove this talk from the event")) { <i class="fas fa-minus"></i> }
-                            @formBtn(EventCtrl.moveTalk(req.group.slug, event.slug, talk.id, true, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Move this talk up")) { <i class="fas fa-arrow-up"></i> }
-                            @formBtn(EventCtrl.moveTalk(req.group.slug, event.slug, talk.id, false, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Move this talk down")) { <i class="fas fa-arrow-down"></i> }
-                            @duration(talk.duration)
-                            @slidesIcon(talk.slides)
-                            @videoIcon(talk.video)
-                            @cfpOpt.map { cfp => <a href="@ProposalCtrl.detail(req.group.slug, cfp.slug, talk.id)">@talk.title.value</a> }.getOrElse { <span>@talk.title.value</span> }
-                            @tags(talk.tags)
-                            @tags(talk.orgaTags, color="info", title="orga tag")
+                            @formBtn(EventCtrl.cancelTalk(req.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Remove this talk from the event")) { <i class="fas fa-minus"></i> }
+                            @formBtn(EventCtrl.moveTalk(req.group.slug, event.slug, proposal.id, true, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Move this talk up")) { <i class="fas fa-arrow-up"></i> }
+                            @formBtn(EventCtrl.moveTalk(req.group.slug, event.slug, proposal.id, false, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Move this talk down")) { <i class="fas fa-arrow-down"></i> }
+                            @duration(proposal.duration)
+                            @slidesIcon(proposal.slides)
+                            @videoIcon(proposal.video)
+                            @cfpOpt.map { cfp => <a href="@ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id)">@proposal.title.value</a> }.getOrElse { <span>@proposal.title.value</span> }
+                            @tags(proposal.tags)
+                            @tags(proposal.orgaTags, color="info", title="orga tag")
                         </div>
-                        <div>@talk.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug))) }</div>
+                        @avatars(proposal.speakers, speakers, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug)))
                     }.getOrElse { Unknown (@tId.value) }
                 </div>
             }
@@ -155,9 +155,7 @@
                             @tags(proposal.orgaTags, color="info", title="orga tag")
                             <small title="Proposal date">(since @Formats.date(proposal.info.createdAt))</small>
                         </div>
-                        <div>
-                            @proposal.speakers.toList.map { sId => @speakerAvatar(speakers, sId, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug))) }
-                        </div>
+                        @avatars(proposal.speakers, speakers, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug)))
                     </div>
                 }
                 </div>

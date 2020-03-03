@@ -38,6 +38,11 @@ a.no-style {
   font-weight: 300;
 }
 
+ul.no-padding, ol.no-padding {
+  list-style-position: inside;
+  padding-left: 0;
+}
+
 .btn-form {
   display: inline;
 }
@@ -116,15 +121,28 @@ a.no-style {
 }
 
 .hover-grow {
-  .u-sm-avatar {
+  .u-xs-avatar, .u-sm-avatar, .u-avatar {
     transition: all 300ms;
 
     &:hover {
-      width: 3rem;
-      height: 3rem;
       margin-top: -1rem;
       margin-left: -0.5rem;
     }
+  }
+
+  .u-xs-avatar:hover {
+    width: 2.375rem;
+    height: 2.375rem;
+  }
+
+  .u-sm-avatar:hover {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .u-avatar:hover {
+    width: 4.125rem;
+    height: 4.125rem;
   }
 }
 
@@ -133,12 +151,13 @@ a.no-style {
 .markdown {
   margin-bottom: 1rem;
 
-  ul {
+  ul, ol {
     color: $gray-700;
   }
 
   p:last-child,
-  ul:last-child {
+  ul:last-child,
+  ol:last-child {
     margin-bottom: 0;
   }
 

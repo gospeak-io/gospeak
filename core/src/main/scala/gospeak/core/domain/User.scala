@@ -28,7 +28,7 @@ final case class User(id: User.Id,
 
   def name: User.Name = User.Name(firstName, lastName)
 
-  def nameAndCompany: String = name.value + company.map(c => s" ($c)").getOrElse("")
+  def nameAndCompany: String = name.value + company.orElse(User.companyFromEmail(email)).map(c => s" ($c)").getOrElse("")
 
   def isPublic: Boolean = status.isPublic
 }
@@ -151,4 +151,8 @@ object User {
     def apply(u: User): Data = new Data(u.slug, u.status, u.firstName, u.lastName, u.email, u.avatar, u.title, u.bio, u.mentoring, u.company, u.location, u.phone, u.website, u.social)
   }
 
+  private[domain] def companyFromEmail(email: EmailAddress): Option[String] =
+    email.value.split("@").drop(1).headOption
+      .flatMap(_.split("\\.").headOption)
+      .filter(c => !Seq("gmail", "yahoo", "hotmail", "outlook", "protonmail", "mailoo", "mail", "missing-email").contains(c.toLowerCase))
 }

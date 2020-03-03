@@ -42,7 +42,10 @@
                 @proposal.speakers.toList.map(id => speakers.find(_.id == id)).map {
                     case Some(speaker) => {
                         <span class="badge badge-pill badge-primary">
-                            <a href="@SpeakerCtrl.detail(req.group.slug, speaker.slug)">@speaker.name.value</a>
+                            <a href="@SpeakerCtrl.detail(req.group.slug, speaker.slug)">
+                                <img class="u-xs-avatar rounded-circle" src="@speaker.avatar.value" alt="@speaker.name.value avatar">
+                                @speaker.name.value
+                            </a>
                             @if(speaker.id != proposal.info.createdBy) {
                                 @formBtn(ProposalCtrl.removeSpeaker(req.group.slug, proposal.cfp.slug, proposal.id, speaker.slug), Seq("title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
                             }

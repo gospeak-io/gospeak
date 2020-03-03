@@ -31,5 +31,5 @@
             <small>Proposed on @Formats.date(proposal.info.createdAt)</small>
         </div>
     </div>
-    <div style="white-space: nowrap">@proposal.speakers.toList.map { id => @speakerAvatar(speakers, id, Some(s => SpeakerCtrl.detail(req.group.slug, s.slug))) }</div>
+    @avatars(proposal.speakers, speakers, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug)), "u-avatar")
 </div>

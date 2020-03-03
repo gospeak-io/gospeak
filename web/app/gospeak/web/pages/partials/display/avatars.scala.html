@@ -1,0 +1,24 @@
+@import cats.data.NonEmptyList
+@import gospeak.core.domain.User
+@import gospeak.core.domain.utils.Constants.Placeholders
+
+@(ids: NonEmptyList[User.Id], users: Seq[User], call: Option[User => Call] = None, avatarClass: String = "u-sm-avatar")
+<span class="hover-grow">
+    @ids.toList.zipWithIndex.map { case (id, i) =>
+        @users.find(_.id == id).map { u =>
+            @call.map { url =>
+                <a href="@url(u)" title="@u.nameAndCompany" data-toggle="tooltip" data-placement="bottom" @if(i != 0){class="ml-n3"}>
+                    <img class="@avatarClass u-sm-avatar--bordered rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
+                </a>
+            }.getOrElse {
+                <span title="@u.nameAndCompany" data-toggle="tooltip" data-placement="bottom" @if(i != 0){class="ml-n3"}>
+                    <img class="@avatarClass u-sm-avatar--bordered rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">
+                </span>
+            }
+        }.getOrElse {
+            <span title="Unknown user" data-toggle="tooltip" data-placement="bottom" @if(i != 0){class="ml-n3"} data-user-id="@id.value">
+                <img class="@avatarClass u-sm-avatar--bordered rounded-circle" src="@Placeholders.unknownUser" alt="Unknown user avatar">
+            </span>
+        }
+    }
+</span>

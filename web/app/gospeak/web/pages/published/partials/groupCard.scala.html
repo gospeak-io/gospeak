@@ -2,6 +2,7 @@
 @import gospeak.core.domain.utils.Constants
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.routes.{GroupCtrl => OrgaGroupCtrl}
+@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
@@ -57,15 +58,7 @@
             </div>
             <div>
                 Organized by<br>
-                <ul class="list-inline hover-grow ml-3 mb-0">
-                    @group.owners.toList.flatMap(id => users.find(_.id == id)).map { user =>
-                        <li class="list-inline-item ml-n3 mr-0">
-                            <a href="@SpeakerCtrl.detail(user.slug)" title="@user.name.value" data-toggle="tooltip">
-                                <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@user.avatar.value" alt="@user.name.value avatar">
-                            </a>
-                        </li>
-                    }
-                </ul>
+                @avatars(group.owners, users, Some(u => SpeakerCtrl.detail(u.slug)))
             </div>
         </div>
 

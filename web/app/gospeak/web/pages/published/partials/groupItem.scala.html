@@ -19,15 +19,7 @@
                         <small class="text-muted">@group.location.map { l => @l.valueShort }.getOrElse{ &nbsp; }</small><br>
                         <small class="text-dark">@Formats.plural(group.eventCount, "event")</small> @tags(group.tags)
                     </div>
-                    <ul class="list-inline hover-grow ml-3 mb-0">
-                        @group.owners.toList.flatMap(id => orgas.find(_.id == id)).map { user =>
-                            <li class="list-inline-item ml-n3 mr-0">
-                                <a href="@SpeakerCtrl.detail(user.slug)" title="@user.name.value" data-toggle="tooltip">
-                                    <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@user.avatar.url.value" alt="@user.name.value avatar">
-                                </a>
-                            </li>
-                        }
-                    </ul>
+                    @avatars(group.owners, orgas, Some(u => SpeakerCtrl.detail(u.slug)))
                 </div>
             </div>
         </div>

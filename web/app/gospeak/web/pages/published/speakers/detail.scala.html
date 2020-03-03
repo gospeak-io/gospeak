@@ -52,15 +52,13 @@
                     @if(proposals.nonEmpty) {
                         <div class="mt-3">
                             Spoke at<br>
-                            <ul class="list-inline hover-grow ml-3 mb-0">
-                            @proposals.map { p =>
-                                <li class="list-inline-item ml-n3 mr-0">
-                                    <a href="@eventLink(p)" title="@p.eventName" data-toggle="tooltip" data-placement="bottom">
+                            <span class="hover-grow">
+                                @proposals.zipWithIndex.map { case (p, i) =>
+                                    <a href="@eventLink(p)" title="@p.eventName" data-toggle="tooltip" data-placement="bottom" @if(i != 0){class="ml-n3"}>
                                         <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@p.logo.get.value" alt="@p.eventName logo">
                                     </a>
-                                </li>
-                            }
-                            </ul>
+                                }
+                            </span>
                         </div>
                     }
                 }
