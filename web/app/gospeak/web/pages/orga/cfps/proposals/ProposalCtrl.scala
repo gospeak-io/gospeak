@@ -188,6 +188,14 @@ class ProposalCtrl(cc: ControllerComponents,
       next = redirectToPreviousPageOr(routes.ProposalCtrl.detail(group, cfp, proposal))
     } yield next).value.map(_.getOrElse(proposalNotFound(group, cfp, proposal)))
   }
+
+  def doEditOrgaTags(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id, redirect: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
+    val next = redirectToPreviousPageOr(redirect, routes.ProposalCtrl.detail(group, cfp, proposal))
+    GsForms.updateTags.bindFromRequest.fold(
+      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
+      data => proposalRepo.editOrgaTags(cfp, proposal, data).map { _ => next }
+    )
+  }
 }
 
 object ProposalCtrl {

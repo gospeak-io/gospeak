@@ -32,11 +32,12 @@
         </span>
     </div>
 
+    <h2>@proposalStatusIcon(proposal.status) @proposal.event.map { e => @event(events, e.id, Some(e => EventCtrl.detail(req.group.slug, e.slug))) - @Formats.date(e.start) }.getOrElse { @proposal.cfp.name.value }</h2>
+
     <div class="row">
-        <div class="col-9">
-            <h2>@proposalStatusIcon(proposal.status) @proposal.event.map { e => @event(events, e.id, Some(e => EventCtrl.detail(req.group.slug, e.slug))) - @Formats.date(e.start) }.getOrElse { @proposal.cfp.name.value }</h2>
+        <div class="col-lg-7">
             <p class="mb-0">@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video)</p>
-            @if(proposal.tags.nonEmpty || proposal.orgaTags.nonEmpty) { <p class="mb-0">@tags(proposal.tags) @tags(proposal.orgaTags, color="info", title="orga tag")</p> }
+            @if(proposal.tags.nonEmpty || proposal.orgaTags.nonEmpty) { <p class="mb-0">@tags(proposal.tags)</p> }
             <div class="p">
                 Speakers:
                 @proposal.speakers.toList.map(id => speakers.find(_.id == id)).map {
@@ -69,37 +70,48 @@
 
             @if(proposal.slides.isEmpty) { @slidesFields(ProposalCtrl.doAddSlides(req.group.slug, proposal.cfp.slug, proposal.id)) }
             @if(proposal.video.isEmpty) { @videoFields(ProposalCtrl.doAddVideo(req.group.slug, proposal.cfp.slug, proposal.id)) }
-        </div>
-        <div class="col">
-            <h3 class="d-flex justify-content-between align-items-center">
-                <span>Ratings</span>
-                <div>@proposalRating(proposal, ratings.find(_.createdBy == req.user.id).map(_.grade), "btn-xs")</div>
-            </h3>
-            @ratings.sortBy(_.grade).map { rating =>
-                <div>
-                    @if(rating.grade == Proposal.Rating.Grade.Like) {
-                        <span class="badge badge-success"><i class="far fa-thumbs-up"></i></span>
-                    } else {
-                        <span class="badge badge-danger"><i class="far fa-thumbs-down"></i></span>
-                    }
-                    @rating.user.name.value
-                </div>
-            }
-        </div>
-    </div>
 
-    <div class="row">
-        <div class="col pt-3 pb-3">
-            <h3>Discussion with speakers:</h3>
+            <h4>Discussion with speakers:</h4>
             @commentSection(comments, ProposalCtrl.doSendComment(req.group.slug, proposal.cfp.slug, proposal.id, orga = false), ProposalCtrl.detail(req.group.slug, proposal.cfp.slug, proposal.id), u => Some(SpeakerCtrl.detail(req.group.slug, u.slug)), 8)(req.userAware)
         </div>
-        <div class="col pt-3 pb-3 bg-light">
-            <h3>Discussion between orgas:</h3>
-            @commentSection(orgaComments, ProposalCtrl.doSendComment(req.group.slug, proposal.cfp.slug, proposal.id, orga = true), ProposalCtrl.detail(req.group.slug, proposal.cfp.slug, proposal.id), u => Some(SpeakerCtrl.detail(req.group.slug, u.slug)))(req.userAware)
+        <div class="col-lg-5 bg-300">
+            <h3>Orga section:</h3>
+
+            <div class="mb-3">
+                Tags: @tags(proposal.orgaTags, color="info", title="orga tag")
+                <a href="#" class="badge badge-pill badge-info" data-toggle="modal" data-target="#updateTagModal"><i class="fas fa-plus"></i></a>
+            </div>
+
+            <div class="mb-3">
+                <h4 class="d-flex justify-content-between align-items-center">
+                    <span>Ratings</span>
+                    <span>@proposalRating(proposal, ratings.find(_.createdBy == req.user.id).map(_.grade), "btn-xs")</span>
+                </h4>
+                @if(ratings.isEmpty) {
+                    <p>No rating yet :(</p>
+                } else {
+                    @ratings.sortBy(_.grade).map { rating =>
+                        <div>
+                            @if(rating.grade == Proposal.Rating.Grade.Like) {
+                                <span class="badge badge-success"><i class="far fa-thumbs-up"></i></span>
+                            } else {
+                                <span class="badge badge-danger"><i class="far fa-thumbs-down"></i></span>
+                            }
+                            @rating.user.name.value
+                        </div>
+                    }
+                }
+            </div>
+
+            <div>
+                <h4>Discussion between orgas:</h4>
+                @commentSection(orgaComments, ProposalCtrl.doSendComment(req.group.slug, proposal.cfp.slug, proposal.id, orga = true), ProposalCtrl.detail(req.group.slug, proposal.cfp.slug, proposal.id), u => Some(SpeakerCtrl.detail(req.group.slug, u.slug)))(req.userAware)
+            </div>
         </div>
     </div>
 
     <p>@info(proposal.info, speakers, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug)))</p>
 
     @inviteUserModal(ProposalCtrl.inviteSpeaker(req.group.slug, proposal.cfp.slug, proposal.id), proposal.title.value, "co-speaker")
+    @updateTagModal(ProposalCtrl.doEditOrgaTags(req.group.slug, proposal.cfp.slug, proposal.id), proposal.orgaTags, proposal.title.value, "orga tags")
 }()

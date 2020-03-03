@@ -101,6 +101,10 @@ class ProposalRepoSqlSpec extends RepoSpec {
         val q = ProposalRepoSql.updateVideo(user.id, talk.slug, cfp.slug)(video, user.id, now)
         check(q, s"UPDATE $table SET video=?, updated_at=?, updated_by=? WHERE p.id=$whereCfpAndTalk")
       }
+      it("should build updateOrgaTags by cfp and proposal") {
+        val q = ProposalRepoSql.updateOrgaTags(cfp.slug, proposal.id)(Seq(tag), user.id, now)
+        check(q, s"UPDATE $table SET orga_tags=? WHERE p.id=$whereCfp")
+      }
       it("should build updateSpeakers by id") {
         val q = ProposalRepoSql.updateSpeakers(proposal.id)(proposal.speakers, user.id, now)
         check(q, s"UPDATE $table SET speakers=?, updated_at=?, updated_by=? WHERE p.id=?")

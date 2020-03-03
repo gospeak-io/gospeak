@@ -39,6 +39,9 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def editVideo(talk: Talk.Slug, cfp: Cfp.Slug, video: Video)(implicit ctx: UserCtx): IO[Done] =
     updateVideo(ctx.user.id, talk, cfp)(video, ctx.user.id, ctx.now).run(xa)
 
+  override def editOrgaTags(cfp: Cfp.Slug, id: Proposal.Id, orgaTags: Seq[Tag])(implicit ctx: OrgaCtx): IO[Done] =
+    updateOrgaTags(cfp, id)(orgaTags, ctx.user.id, ctx.now).run(xa)
+
   override def addSpeaker(proposal: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
     find(proposal).flatMap {
       case Some(proposalElt) =>
@@ -233,6 +236,9 @@ object ProposalRepoSql {
 
   private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Video, by: User.Id, now: Instant): Update =
     table.update(fr0"video=$video, updated_at=$now, updated_by=$by", where(speaker, talk, cfp))
+
+  private[sql] def updateOrgaTags(cfp: Cfp.Slug, id: Proposal.Id)(orgaTags: Seq[Tag], by: User.Id, now: Instant): Update =
+    table.update(fr0"orga_tags=$orgaTags", where(cfp, id))
 
   private[sql] def updateSpeakers(id: Proposal.Id)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
     table.update(fr0"speakers=$speakers, updated_at=$now, updated_by=$by", fr0"WHERE p.id=$id")

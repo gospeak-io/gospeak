@@ -15,7 +15,7 @@ import gospeak.infra.services.storage.sql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
 import gospeak.infra.testingutils.Values
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Page, Slides, Video}
+import gospeak.libs.scala.domain.{Page, Slides, Tag, Video}
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
 
 class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterEach with RandomDataGenerator {
@@ -59,6 +59,7 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val userRequest: UserRequest = accountValidationRequest
   protected val member: Group.Member = random[Group.Member]
   protected val rsvp: Event.Rsvp = random[Event.Rsvp]
+  protected val tag: Tag = random[Tag]
 
   protected val Seq(userData1, userData2, userData3) = random[User.Data](10).distinctBy(_.email).take(3)
   protected val Seq(groupData1, groupData2) = random[Group.Data](2)

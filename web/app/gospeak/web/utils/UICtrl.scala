@@ -68,6 +68,9 @@ abstract class UICtrl(cc: ControllerComponents,
   protected def redirectToPreviousPageOr[A](default: => Call)(implicit req: Request[A]): Result =
     redirectOr(HttpUtils.getReferer(req.headers), default)
 
+  protected def redirectToPreviousPageOr[A](redirect: Option[String], default: => Call)(implicit req: Request[A]): Result =
+    redirectOr(HttpUtils.getReferer(req.headers).orElse(redirect), default)
+
   // orga redirects
   protected def groupNotFound(group: Group.Slug): Result =
     Redirect(pages.user.routes.UserCtrl.index()).flashing("warning" -> s"Unable to find group with slug '${group.value}'")

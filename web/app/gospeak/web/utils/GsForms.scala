@@ -78,6 +78,9 @@ object GsForms {
     "text" -> nonEmptyText
   )(Comment.Data.apply)(Comment.Data.unapply))
 
+  val updateTags: Form[Seq[Tag]] = Form(single(
+    "tags" -> tags))
+
 
   /**
    * Models forms
