@@ -1,11 +1,12 @@
 @import gospeak.core.domain.{Proposal, User}
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import gospeak.web.pages.orga.events.routes.EventCtrl
 @import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.utils.{Formats, OrgaReq}
 
-@(proposal: Proposal.Full, speakers: Seq[User], userRatings: Seq[Proposal.Rating])(implicit req: OrgaReq[AnyContent])
+@(proposal: Proposal.Full, speakers: Seq[User], userRatings: Seq[Proposal.Rating], params: Page.Params, link: Page.Params => Call)(implicit req: OrgaReq[AnyContent])
 <div class="list-group-item d-flex justify-content-between align-items-center pl-5">
     <div class="">
         <div class="row align-items-center">
@@ -26,8 +27,8 @@
             @commentsIcon(proposal.speakerCommentCount, proposal.speakerLastComment, "speaker")
             @commentsIcon(proposal.orgaCommentCount, proposal.orgaLastComment, "orga")
 
-            @tags(proposal.tags)
-            @tags(proposal.orgaTags, color="info", title="orga tag")
+            @tags(proposal.tags, link = Some(t => link(params.withFilter("tags", t.value))))
+            @tags(proposal.orgaTags, link = Some(t => link(params.withFilter("orga-tags", t.value))), color="info", title="orga tag")
             <small>Proposed on @Formats.date(proposal.info.createdAt)</small>
         </div>
     </div>

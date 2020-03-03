@@ -57,7 +57,7 @@
     @if(proposal.slides.isEmpty) { @slidesFields(ProposalCtrl.doAddSlides(proposal.talk.slug, proposal.cfp.slug)) }
     @if(proposal.video.isEmpty) { @videoFields(ProposalCtrl.doAddVideo(proposal.talk.slug, proposal.cfp.slug)) }
 
-    @commentSection(comments, ProposalCtrl.doSendComment(proposal.talk.slug, proposal.cfp.slug), ProposalCtrl.detail(proposal.talk.slug, proposal.cfp.slug))(req.userAware)
+    @commentSection(comments, ProposalCtrl.doSendComment(proposal.talk.slug, proposal.cfp.slug), ProposalCtrl.detail(proposal.talk.slug, proposal.cfp.slug), u => if(u.isPublic) Some(SpeakerCtrl.detail(u.slug)) else None)(req.userAware)
 
     <p>@info(proposal.info, speakers)</p>
 

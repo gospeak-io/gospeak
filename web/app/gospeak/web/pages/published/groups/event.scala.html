@@ -127,7 +127,7 @@
         }
 
         <h2 class="h5">Comments</h2>
-        @commentSection(comments, GroupCtrl.doSendComment(group.slug, event.slug), GroupCtrl.event(group.slug, event.slug))
+        @commentSection(comments, GroupCtrl.doSendComment(group.slug, event.slug), GroupCtrl.event(group.slug, event.slug), u => if(u.isPublic) Some(SpeakerCtrl.detail(u.slug)) else None)
     </div>
 
     <div class="col-lg-4">

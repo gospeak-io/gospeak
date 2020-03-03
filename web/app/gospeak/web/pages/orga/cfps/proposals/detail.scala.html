@@ -91,11 +91,11 @@
     <div class="row">
         <div class="col pt-3 pb-3">
             <h3>Discussion with speakers:</h3>
-            @commentSection(comments, ProposalCtrl.doSendComment(req.group.slug, proposal.cfp.slug, proposal.id, orga = false), ProposalCtrl.detail(req.group.slug, proposal.cfp.slug, proposal.id), 8)(req.userAware)
+            @commentSection(comments, ProposalCtrl.doSendComment(req.group.slug, proposal.cfp.slug, proposal.id, orga = false), ProposalCtrl.detail(req.group.slug, proposal.cfp.slug, proposal.id), u => Some(SpeakerCtrl.detail(req.group.slug, u.slug)), 8)(req.userAware)
         </div>
         <div class="col pt-3 pb-3 bg-light">
             <h3>Discussion between orgas:</h3>
-            @commentSection(orgaComments, ProposalCtrl.doSendComment(req.group.slug, proposal.cfp.slug, proposal.id, orga = true), ProposalCtrl.detail(req.group.slug, proposal.cfp.slug, proposal.id))(req.userAware)
+            @commentSection(orgaComments, ProposalCtrl.doSendComment(req.group.slug, proposal.cfp.slug, proposal.id, orga = true), ProposalCtrl.detail(req.group.slug, proposal.cfp.slug, proposal.id), u => Some(SpeakerCtrl.detail(req.group.slug, u.slug)))(req.userAware)
         </div>
     </div>
 

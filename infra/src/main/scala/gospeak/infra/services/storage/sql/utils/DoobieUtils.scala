@@ -149,6 +149,20 @@ object DoobieUtils {
         new Enum(key, label, aggregation, values.map { case (paramValue, fieldValue) => (paramValue, (_: BasicCtx) => const0(s"$field='$fieldValue'")) })
     }
 
+    final case class Value(key: String, label: String, aggregation: Boolean, f: String => Fragment) extends Filter {
+      override def filter(value: String)(implicit ctx: BasicCtx): Option[Fragment] = Some(f(value))
+    }
+
+    object Value {
+      def fromField(key: String, label: String, field: String, aggregation: Boolean = false): Value =
+        new Value(key, label, aggregation, v => v.toLowerCase
+          .split(",")
+          .map(_.trim)
+          .filter(_.nonEmpty)
+          .map(f => const0(s"LOWER($field) LIKE ") ++ fr0"${"%" + f + "%"}")
+          .reduce((acc, cur) => acc ++ fr0" AND " ++ cur))
+    }
+
   }
 
   final case class Table(name: String,

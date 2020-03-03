@@ -215,7 +215,7 @@ object Emails {
     Email(
       from = Constants.Contact.noReply.withName(req.user.name.value),
       to = orgas.map(_.asContact).toList,
-      subject = s"New comment on ${cfp.name.value} CFP for '${proposal.title.value}' proposal",
+      subject = s"New comment about '${proposal.title.value}' proposal on ${cfp.name.value} CFP",
       content = HtmlContent(html.proposalCommentAddedForOrga(group, cfp, proposal, orgas, comment).body))
 
   def eventCommentAdded(group: Group, event: Event, orga: User, comment: Comment)(implicit req: UserReq[AnyContent]): Email =

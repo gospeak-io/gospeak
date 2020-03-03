@@ -173,7 +173,9 @@ object ProposalRepoSql {
         "declined" -> Proposal.Status.Declined.value)),
       Filter.Bool.fromNullable("slides", "With slides", "p.slides"),
       Filter.Bool.fromNullable("video", "With video", "p.video"),
-      Filter.Bool.fromCountExpr("comment", "With comments", "COALESCE(COUNT(DISTINCT sco.id), 0) + COALESCE(COUNT(DISTINCT oco.id), 0)")))
+      Filter.Bool.fromCountExpr("comment", "With comments", "COALESCE(COUNT(DISTINCT sco.id), 0) + COALESCE(COUNT(DISTINCT oco.id), 0)"),
+      Filter.Value.fromField("tags", "With tag", "p.tags"),
+      Filter.Value.fromField("orga-tags", "With orga tag", "p.orga_tags")))
     .setSorts(
       Sort("score", Field("-(SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings WHERE proposal_id=p.id)", ""), Field("-created_at", "p")),
       Sort("title", Field("LOWER(p.title)", "")),
