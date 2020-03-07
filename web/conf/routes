@@ -214,6 +214,9 @@ POST        /u/groups/:group/settings/orgas                                     
 POST        /u/groups/:group/settings/orgas/cancel/:request                                gospeak.web.pages.orga.settings.SettingsCtrl.cancelInviteOrga(group: Group.Slug, request: UserRequest.Id)
 POST        /u/groups/:group/settings/orgas/:user/remove                                   gospeak.web.pages.orga.settings.SettingsCtrl.doRemoveOrga(group: Group.Slug, user: User.Slug)
 
+GET         /a                                                                             gospeak.web.pages.admin.AdminCtrl.index
+GET         /a/check-user-templates                                                        gospeak.web.pages.admin.AdminCtrl.checkUserTemplates(params: Page.Params ?= Page.Params.defaults)
+
 GET         /styleguide                                                                    gospeak.web.pages.styleguide.StyleguideCtrl.index(params: Page.Params ?= Page.Params.defaults)
 GET         /styleguide/published/:id                                                      gospeak.web.pages.styleguide.StyleguideCtrl.published(id: String)
 GET         /styleguide/speaker/:id                                                        gospeak.web.pages.styleguide.StyleguideCtrl.speaker(id: String)

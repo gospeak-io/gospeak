@@ -10,7 +10,7 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import gospeak.core.domain.Event.Rsvp.Answer
 import gospeak.core.domain._
-import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
+import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.EventRepo
 import gospeak.infra.services.storage.sql.EventRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
@@ -65,6 +65,8 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def listPublished(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Event.Full]] = selectPagePublished(group, params).run(xa)
 
   override def list(ids: Seq[Event.Id]): IO[Seq[Event]] = runNel(selectAll, ids)
+
+  override def listAllFromGroups(groups: Seq[Group.Id])(implicit ctx: AdminCtx): IO[List[Event]] = runNel[Group.Id, Event](selectAllFromGroups(_), groups)
 
   override def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]] = selectPageAfterFull(params).run(xa)
 
@@ -156,6 +158,9 @@ object EventRepoSql {
 
   private[sql] def selectAll(ids: NonEmptyList[Event.Id]): Select[Event] =
     table.select[Event](fr0"WHERE " ++ Fragments.in(fr"e.id", ids))
+
+  private[sql] def selectAllFromGroups(groups: NonEmptyList[Group.Id])(implicit ctx: AdminCtx): Select[Event] =
+    table.select[Event](fr0"WHERE " ++ Fragments.in(fr"e.group_id", groups))
 
   private[sql] def selectAll(group: Group.Id, venue: Venue.Id): Select[Event] =
     table.select[Event](fr0"WHERE e.group_id=$group AND e.venue=$venue")

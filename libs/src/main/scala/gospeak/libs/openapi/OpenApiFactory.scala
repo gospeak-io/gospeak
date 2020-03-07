@@ -91,7 +91,6 @@ object OpenApiFactory {
   private def formatError(errs: (JsPath, Seq[JsonValidationError])): OpenApiError =
     OpenApiError(
       path = errs._1.path.map(_.toJsonString),
-      errors = NonEmptyList.fromList(errs._2.map(err => ErrorMessage(err.message, err.args.map(_.toString).toList)).toList)
-        .getOrElse(NonEmptyList.of(ErrorMessage.noMessage())))
+      errors = errs._2.map(err => ErrorMessage(err.message, err.args.map(_.toString).toList)).toNel.getOrElse(NonEmptyList.of(ErrorMessage.noMessage())))
 
 }

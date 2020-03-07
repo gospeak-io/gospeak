@@ -6,7 +6,7 @@ import java.util.Optional
 import cats.MonadError
 import cats.data.{NonEmptyList, OptionT}
 import cats.effect.IO
-import gospeak.libs.scala.domain.MultiException
+import gospeak.libs.scala.domain.{CustomException, MultiException}
 
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
@@ -48,7 +48,17 @@ object Extensions {
     def tryDouble: Try[Double] = Try(in.toDouble)
   }
 
+  implicit class ArrayExtension[A](val in: Array[A]) extends AnyVal {
+    def toNel: Either[CustomException, NonEmptyList[A]] = NonEmptyList.fromList(in.toList).toEither(CustomException("Array should not be empty"))
+
+    def toNelUnsafe: NonEmptyList[A] = NonEmptyList.fromListUnsafe(in.toList)
+  }
+
   implicit class TraversableOnceExtension[A, M[X] <: TraversableOnce[X]](val in: M[A]) extends AnyVal {
+    def toNel: Either[CustomException, NonEmptyList[A]] = NonEmptyList.fromList(in.toList).toEither(CustomException("List should not be empty"))
+
+    def toNelUnsafe: NonEmptyList[A] = NonEmptyList.fromListUnsafe(in.toList)
+
     def one: Either[Int, A] = in.toList match {
       case head :: Nil => Right(head)
       case list => Left(list.length)
@@ -374,9 +384,7 @@ object Extensions {
 
   private def sequenceResultEither[E, A, M[X] <: TraversableOnce[X]](in: (mutable.Builder[A, M[A]], Seq[E])): Either[NonEmptyList[E], M[A]] = {
     val (results, errors) = in
-    NonEmptyList.fromList(errors.reverse.toList)
-      .map(errs => Left(errs))
-      .getOrElse(Right(results.result()))
+    errors.reverse.toNel.swap.map(_ => results.result())
   }
 
 }

@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
-import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
+import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Group, User}
 import gospeak.core.services.storage.GroupRepo
 import gospeak.infra.services.storage.sql.GroupRepoSql._
@@ -49,7 +49,7 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
     find(ctx.group.id).flatMap {
       case Some(groupElt) =>
         if (groupElt.owners.toList.contains(owner)) {
-          NonEmptyList.fromList(groupElt.owners.filter(_ != owner)).map { owners =>
+          groupElt.owners.filter(_ != owner).toNel.map { owners =>
             updateOwners(ctx.group.id)(owners, ctx.user.id, ctx.now).run(xa)
           }.getOrElse {
             IO.raiseError(new IllegalArgumentException("last owner can't be removed"))
@@ -60,9 +60,11 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
       case None => IO.raiseError(new IllegalArgumentException("unreachable group"))
     }
 
-  override def listFull(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Full]] = selectPage(params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Full]] = selectPageFull(params).run(xa)
 
   override def listJoinable(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Group]] = selectPageJoinable(params).run(xa)
+
+  override def list(params: Page.Params)(implicit ctx: AdminCtx): IO[Page[Group]] = selectPage(params).run(xa)
 
   override def list(user: User.Id): IO[Seq[Group]] = selectAll(user).runList(xa)
 
@@ -147,7 +149,10 @@ object GroupRepoSql {
   private[sql] def updateOwners(group: Group.Id)(owners: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
     table.update(fr0"owners=$owners, updated_at=$now, updated_by=$by", fr0"WHERE g.id=$group")
 
-  private[sql] def selectPage(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Group.Full, UserAwareCtx] =
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: AdminCtx): SelectPage[Group, AdminCtx] =
+    tableSelect.selectPage[Group, AdminCtx](params)
+
+  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Group.Full, UserAwareCtx] =
     tableFull.selectPage[Group.Full, UserAwareCtx](params)
 
   private[sql] def selectPageJoinable(params: Page.Params)(implicit ctx: UserCtx): SelectPage[Group, UserCtx] =

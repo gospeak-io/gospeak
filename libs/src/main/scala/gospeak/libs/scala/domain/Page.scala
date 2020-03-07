@@ -1,6 +1,7 @@
 package gospeak.libs.scala.domain
 
 import cats.data.NonEmptyList
+import gospeak.libs.scala.Extensions._
 
 final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total) {
   assert(items.length <= params.pageSize.value, s"Page can't have more items (${items.length}) than its size (${params.pageSize.value})")
@@ -71,10 +72,8 @@ object Page {
 
     def apply(value: String, other: String*): OrderBy = new OrderBy(NonEmptyList.of(value, other: _*))
 
-    def parse(value: String): Option[OrderBy] = {
-      val values = value.split(',').map(_.trim).filter(_.nonEmpty).toList
-      NonEmptyList.fromList(values).map(OrderBy(_))
-    }
+    def parse(value: String): Option[OrderBy] =
+      value.split(',').map(_.trim).filter(_.nonEmpty).toNel.map(OrderBy(_)).toOption
   }
 
   // should be at least 1

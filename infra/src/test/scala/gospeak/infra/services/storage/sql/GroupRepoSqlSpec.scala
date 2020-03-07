@@ -52,7 +52,11 @@ class GroupRepoSqlSpec extends RepoSpec {
         check(q, s"UPDATE $table SET owners=?, updated_at=?, updated_by=? WHERE g.id=?")
       }
       it("should build selectPage") {
-        val q = GroupRepoSql.selectPage(params)
+        val q = GroupRepoSql.selectPage(params)(adminCtx)
+        check(q, s"SELECT $fields FROM $table $orderBy LIMIT 20 OFFSET 0")
+      }
+      it("should build selectPageFull") {
+        val q = GroupRepoSql.selectPageFull(params)
         check(q, s"SELECT $fieldsFull FROM $tableFull $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectPageJoinable") {

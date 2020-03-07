@@ -174,6 +174,8 @@ sealed class UserReq[A] protected(override val request: Request[A],
     user = user,
     groups = groups)
 
+  def isAdmin: Boolean = conf.app.admins.exists(_ == user.email)
+
   override def userOpt: Option[User] = Some(user)
 
   override def groupsOpt: Option[Seq[Group]] = Some(groups)
@@ -181,6 +183,8 @@ sealed class UserReq[A] protected(override val request: Request[A],
   def userAware: UserAwareReq[A] = UserAwareReq.from(this)
 
   def orga(group: Group): OrgaReq[A] = OrgaReq.from(this, group)
+
+  private[utils] def admin: AdminReq[A] = AdminReq.from(this)
 }
 
 object UserReq {
@@ -234,4 +238,19 @@ final class OrgaReq[A] protected(override val request: Request[A],
 object OrgaReq {
   def from[A](r: UserReq[A], group: Group): OrgaReq[A] =
     new OrgaReq[A](r.request, r.messages, r.customId, r.now, r.conf, r.underlying, r.user, r.groups, group)
+}
+
+
+final class AdminReq[A] protected(override val request: Request[A],
+                                  override val messages: Messages,
+                                  override val customId: String,
+                                  override val now: Instant,
+                                  override val conf: AppConf,
+                                  override val underlying: SecuredRequest[CookieEnv, A],
+                                  override val user: User,
+                                  override val groups: Seq[Group]) extends UserReq[A](request, messages, customId, now, conf, underlying, user, groups) with AdminCtx
+
+object AdminReq {
+  def from[A](r: UserReq[A]): AdminReq[A] =
+    new AdminReq[A](r.request, r.messages, r.customId, r.now, r.conf, r.underlying, r.user, r.groups)
 }

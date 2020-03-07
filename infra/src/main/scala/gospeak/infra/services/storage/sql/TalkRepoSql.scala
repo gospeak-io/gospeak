@@ -14,6 +14,7 @@ import gospeak.infra.services.storage.sql.TalkRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
 import gospeak.infra.services.storage.sql.utils.GenericRepo
+import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
 
 class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with TalkRepo {
@@ -57,7 +58,7 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
         if (talkElt.info.createdBy == speaker) {
           IO.raiseError(new IllegalArgumentException("talk creator can't be removed"))
         } else if (talkElt.speakers.toList.contains(speaker)) {
-          NonEmptyList.fromList(talkElt.speakers.filter(_ != speaker)).map { speakers =>
+          talkElt.speakers.filter(_ != speaker).toNel.map { speakers =>
             updateSpeakers(talk)(speakers, ctx.user.id, ctx.now).run(xa)
           }.getOrElse {
             IO.raiseError(new IllegalArgumentException("last speaker can't be removed"))

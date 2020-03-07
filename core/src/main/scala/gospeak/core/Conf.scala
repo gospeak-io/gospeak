@@ -1,14 +1,16 @@
 package gospeak.core
 
+import cats.data.NonEmptyList
 import gospeak.core.GsConf.EventConf
 import gospeak.core.domain.Group
 import gospeak.core.domain.messages.Message
 import gospeak.libs.scala.Crypto.AesSecretKey
-import gospeak.libs.scala.domain.{EnumBuilder, Mustache, StringEnum}
+import gospeak.libs.scala.domain.{EmailAddress, EnumBuilder, Mustache, StringEnum}
 
 final case class ApplicationConf(env: ApplicationConf.Env,
                                  baseUrl: String,
-                                 aesKey: AesSecretKey)
+                                 aesKey: AesSecretKey,
+                                 admins: NonEmptyList[EmailAddress])
 
 object ApplicationConf {
 

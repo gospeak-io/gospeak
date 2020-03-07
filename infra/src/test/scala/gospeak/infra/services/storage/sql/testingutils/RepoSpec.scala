@@ -70,10 +70,11 @@ class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterE
   protected val eventData1: Event.Data = random[Event.Data].copy(cfp = None)
   protected val Seq(talkData1, talkData2) = random[Talk.Data](2)
   protected val proposalData1: Proposal.Data = random[Proposal.Data]
-  protected val speakers: NonEmptyList[User.Id] = NonEmptyList.fromListUnsafe(random[User.Id](3).toList)
+  protected val speakers: NonEmptyList[User.Id] = random[User.Id](3).toNelUnsafe
   protected val Seq(commentData1, commentData2, commentData3) = random[Comment.Data](3)
   protected val params: Page.Params = Page.Params()
 
+  protected val adminCtx: AdminCtx = FakeAdminCtx(now, user)
   protected implicit val orgaCtx: OrgaCtx = FakeOrgaCtx(now, user, group)
   protected implicit val userCtx: UserCtx = FakeUserCtx(now, user)
   protected implicit val userAwareCtx: UserAwareCtx = FakeUserAwareCtx(now, Some(user))

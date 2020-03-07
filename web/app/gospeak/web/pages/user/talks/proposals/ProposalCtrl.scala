@@ -1,6 +1,6 @@
 package gospeak.web.pages.user.talks.proposals
 
-import cats.data.{NonEmptyList, OptionT}
+import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain._
@@ -190,7 +190,7 @@ class ProposalCtrl(cc: ControllerComponents,
         groupElt <- OptionT(groupRepo.find(cfpElt.group))
         orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
         comment <- OptionT.liftF(commentRepo.addComment(proposalElt.id, data))
-        _ <- OptionT.liftF(NonEmptyList.fromList(orgas.toList).map(o => emailSrv.send(Emails.proposalCommentAddedForOrga(groupElt, cfpElt, proposalElt, o, comment))).sequence)
+        _ <- OptionT.liftF(orgas.toNel.map(o => emailSrv.send(Emails.proposalCommentAddedForOrga(groupElt, cfpElt, proposalElt, o, comment))).sequence)
       } yield next).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
     )
   }

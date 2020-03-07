@@ -1,5 +1,6 @@
 package gospeak.web
 
+import cats.data.NonEmptyList
 import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
 import com.typesafe.config.Config
 import gospeak.core.services.email.EmailConf
@@ -10,7 +11,7 @@ import gospeak.core.services.upload.UploadConf
 import gospeak.core.{ApplicationConf, GsConf}
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Creds, Mustache, Secret}
+import gospeak.libs.scala.domain.{Creds, EmailAddress, Mustache, Secret}
 import gospeak.web.auth.AuthConf
 import play.api.Configuration
 import play.api.mvc.Cookie.SameSite
@@ -44,6 +45,9 @@ object AppConf {
 
     import pureconfig.generic.semiauto._
 
+    private def convertErr(cur: ConfigCursor, toType: String, because: String): ConfigReaderFailures =
+      ConfigReaderFailures(ConvertFailure(CannotConvert(cur.toString, toType, because), cur.location, cur.path))
+
     private implicit val secretReader: ConfigReader[Secret] = deriveReader[Secret]
     private implicit val credsReader: ConfigReader[Creds] = deriveReader[Creds]
     private implicit val credsOptReader: ConfigReader[Option[Creds]] = (cur: ConfigCursor) => {
@@ -60,13 +64,17 @@ object AppConf {
       }
     }
     private implicit val aesSecretKeyReader: ConfigReader[AesSecretKey] = (cur: ConfigCursor) => cur.asString.map(AesSecretKey)
+    private implicit val adminsReader: ConfigReader[NonEmptyList[EmailAddress]] = (cur: ConfigCursor) => cur.asString.flatMap { admins =>
+      admins.split(',').toList.map(EmailAddress.from).sequence.flatMap(_.toNel)
+        .left.map(e => convertErr(cur, "NonEmptyList[EmailAddress]", e.getMessage))
+    }
 
     private implicit val applicationConfEnvReader: ConfigReader[ApplicationConf.Env] = (cur: ConfigCursor) => cur.asString.flatMap {
       case "local" => Right(ApplicationConf.Env.Local)
       case "dev" => Right(ApplicationConf.Env.Dev)
       case "staging" => Right(ApplicationConf.Env.Staging)
       case "prod" => Right(ApplicationConf.Env.Prod)
-      case _ => Left(ConfigReaderFailures(ConvertFailure(CannotConvert(cur.toString, "ApplicationConf.Env", "Invalid value"), cur.location, cur.path)))
+      case _ => Left(convertErr(cur, "ApplicationConf.Env", "Invalid value"))
     }
 
     private implicit val sameSiteReader: ConfigReader[SameSite] = ConfigReader.fromString[SameSite](str => SameSite.parse(str).toEither(CannotConvert(str, "SameSite", s"possible values: '${SameSite.Strict.value}' or '${SameSite.Lax.value}'")))
@@ -82,7 +90,7 @@ object AppConf {
     private implicit val twitterAuthConfReader: ConfigReader[AuthConf.TwitterConf] = deriveReader[AuthConf.TwitterConf]
 
     private implicit val databaseConfReader: ConfigReader[DbConf] = (cur: ConfigCursor) => cur.asString
-      .flatMap(DbConf.from(_).leftMap(_ => ConfigReaderFailures(ConvertFailure(CannotConvert(cur.toString, "DatabaseConf", "Invalid value"), cur.location, cur.path))))
+      .flatMap(DbConf.from(_).leftMap(_ => convertErr(cur, "DatabaseConf", "Invalid value")))
 
     private implicit val emailConfConsoleReader: ConfigReader[EmailConf.Console] = deriveReader[EmailConf.Console]
     private implicit val emailConfInMemoryReader: ConfigReader[EmailConf.InMemory] = deriveReader[EmailConf.InMemory]

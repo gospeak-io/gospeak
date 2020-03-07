@@ -19,6 +19,12 @@
       content: $text;
     }
   }
+
+  .navbar-brand.admin {
+    &::after {
+      top: -10px;
+    }
+  }
 }
 
 html.Local {

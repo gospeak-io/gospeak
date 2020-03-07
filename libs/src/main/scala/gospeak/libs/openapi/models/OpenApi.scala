@@ -4,6 +4,7 @@ import cats.data.NonEmptyList
 import gospeak.libs.openapi.OpenApiUtils
 import gospeak.libs.openapi.error.OpenApiError
 import gospeak.libs.openapi.models.utils.{TODO, Version}
+import gospeak.libs.scala.Extensions._
 
 /**
  * A parsed OpenAPI Specification
@@ -57,6 +58,6 @@ object OpenApi {
 
   def groupErrors(errors: List[OpenApiError]): List[OpenApiError] =
     errors.groupBy(_.path).flatMap { case (path, errors) =>
-      NonEmptyList.fromList(errors.flatMap(_.errors.toList)).map(errs => OpenApiError(path, errs))
+      errors.toNel.map(errs => OpenApiError(path, errs.flatMap(_.errors))).toOption
     }.toList.sortBy(_.path.mkString)
 }

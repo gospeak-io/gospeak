@@ -3,11 +3,11 @@ package gospeak.core.services.storage
 import java.time.Instant
 
 import cats.effect.IO
-import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
+import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Group, User}
 import gospeak.libs.scala.domain.{Done, Page, Tag}
 
-trait GroupRepo extends OrgaGroupRepo with SpeakerGroupRepo with UserGroupRepo with AuthGroupRepo with PublicGroupRepo with SuggestGroupRepo
+trait GroupRepo extends OrgaGroupRepo with SpeakerGroupRepo with UserGroupRepo with AuthGroupRepo with PublicGroupRepo with AdminGroupRepo with SuggestGroupRepo
 
 trait OrgaGroupRepo {
   def find(group: Group.Id): IO[Option[Group]]
@@ -67,6 +67,10 @@ trait PublicGroupRepo {
   def join(group: Group.Id)(user: User, now: Instant): IO[Done]
 
   def leave(member: Group.Member)(user: User.Id, now: Instant): IO[Done]
+}
+
+trait AdminGroupRepo {
+  def list(params: Page.Params)(implicit ctx: AdminCtx): IO[Page[Group]]
 }
 
 trait SuggestGroupRepo {

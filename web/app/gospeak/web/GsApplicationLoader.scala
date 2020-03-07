@@ -191,6 +191,7 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val orgaPartnerCtrl = wire[orga.partners.PartnerCtrl]
   lazy val orgaSponsorCtrl = wire[orga.sponsors.SponsorCtrl]
   lazy val orgaSettingsCtrl = wire[orga.settings.SettingsCtrl]
+  lazy val adminCtrl = wire[admin.AdminCtrl]
   lazy val uiSuggestCtrl = wire[api.ui.SuggestCtrl]
   lazy val uiUtilsCtrl = wire[api.ui.UtilsCtrl]
 

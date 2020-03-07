@@ -1,6 +1,6 @@
 package gospeak.web.pages.published.groups
 
-import cats.data.{NonEmptyList, OptionT}
+import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.{Event, Group, Proposal}
@@ -247,7 +247,7 @@ class GroupCtrl(cc: ControllerComponents,
       data => (for {
         groupElt <- OptionT(groupRepo.find(group))
         orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
-        _ <- OptionT.liftF(NonEmptyList.fromList(orgas.toList).map(o => emailSrv.send(Emails.contactOrga(data.subject, data.content, o))).sequence)
+        _ <- OptionT.liftF(orgas.toNel.map(o => emailSrv.send(Emails.contactOrga(data.subject, data.content, o))).sequence)
         res = next.flashing("success" -> "The message has been sent!")
       } yield res).value.map(_.getOrElse(groupNotFound(group))))
   }

@@ -18,7 +18,11 @@ final case class Cfp(id: Cfp.Id,
 
   def users: List[User.Id] = info.users
 
-  def isActive(now: LocalDateTime): Boolean = begin.forall(_.isBefore(now)) && close.forall(_.isAfter(now))
+  def isPast(now: LocalDateTime): Boolean = close.exists(_.isBefore(now))
+
+  def isFuture(now: LocalDateTime): Boolean = begin.exists(_.isAfter(now))
+
+  def isActive(now: LocalDateTime): Boolean = !isPast(now) && !isFuture(now)
 }
 
 object Cfp {

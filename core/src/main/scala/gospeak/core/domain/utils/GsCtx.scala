@@ -19,9 +19,10 @@ trait UserCtx extends BasicCtx {
 }
 
 trait OrgaCtx extends UserCtx {
-  val user: User
   val group: Group
 }
+
+trait AdminCtx extends UserCtx
 
 object FakeCtx {
   def apply(now: Instant): BasicCtx = FakeBasicCtx(now)
@@ -40,3 +41,5 @@ final case class FakeUserAwareCtx(now: Instant, user: Option[User]) extends User
 final case class FakeUserCtx(now: Instant, user: User) extends UserCtx
 
 final case class FakeOrgaCtx(now: Instant, user: User, group: Group) extends OrgaCtx
+
+final case class FakeAdminCtx(now: Instant, user: User) extends AdminCtx

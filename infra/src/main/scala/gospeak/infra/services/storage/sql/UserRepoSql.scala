@@ -61,7 +61,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
     val speakerIdsQuery = proposalsWithCfps.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=${ctx.group.id}")
     for {
       speakerIds <- speakerIdsQuery.runList(xa).map(_.flatMap(_.toList).distinct)
-      res <- NonEmptyList.fromList(speakerIds).map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User.Full]))
+      res <- speakerIds.toNel.map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User.Full]))
     } yield res
   }
 
@@ -69,7 +69,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
     val speakerIdsQuery = proposalsWithCfpEvents.select[NonEmptyList[User.Id]](Seq(Field("speakers", "p")), fr0"WHERE c.group_id=$group AND e.published IS NOT NULL")
     for {
       speakerIds <- speakerIdsQuery.runList(xa).map(_.flatMap(_.toList).distinct)
-      res <- NonEmptyList.fromList(speakerIds).map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User.Full]))
+      res <- speakerIds.toNel.map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User.Full]))
     } yield res
   }
 

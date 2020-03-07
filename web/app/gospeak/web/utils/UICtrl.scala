@@ -163,6 +163,8 @@ abstract class UICtrl(cc: ControllerComponents,
 }
 
 object UICtrl {
+  private val home = pages.published.routes.HomeCtrl.index()
+  private val userHome = pages.user.routes.UserCtrl.index()
 
   trait Auth {
     self: UICtrl =>
@@ -174,12 +176,12 @@ object UICtrl {
     def loggedRedirect(redirect: Option[String])(implicit req: UserReq[AnyContent]): IO[Result] = {
       IO.pure(redirect.map(Redirect(_))
         .orElse(if (req.groups.length == 1) Some(Redirect(pages.orga.routes.GroupCtrl.detail(req.groups.head.slug))) else None)
-        .getOrElse(Redirect(pages.user.routes.UserCtrl.index())))
+        .getOrElse(Redirect(userHome)))
         .map(_.flashing(req.flash))
     }
 
     def logoutRedirect(implicit req: UserReq[AnyContent]): IO[Result] = {
-      IO.pure(Redirect(pages.published.routes.HomeCtrl.index()))
+      IO.pure(Redirect(home))
     }
   }
 
@@ -191,9 +193,19 @@ object UICtrl {
       UserAction { req =>
         groupRepo.find(group).flatMap {
           case Some(groupElt) if groupElt.owners.toList.contains(req.user.id) => block(req.orga(groupElt))
-          case Some(_) => IO.pure(Redirect(pages.user.routes.UserCtrl.index()).flashing("warning" -> s"You are not a '${group.value}' group owner"))
-          case None => IO.pure(Redirect(pages.user.routes.UserCtrl.index()).flashing("warning" -> s"Unable to find group with slug '${group.value}'"))
+          case Some(_) => IO.pure(Redirect(userHome).flashing("warning" -> s"You are not a '${group.value}' group owner"))
+          case None => IO.pure(Redirect(userHome).flashing("warning" -> s"Unable to find group with slug '${group.value}'"))
         }
+      }
+    }
+  }
+
+  trait AdminAction {
+    self: UICtrl =>
+
+    protected def AdminAction(block: AdminReq[AnyContent] => IO[Result]): Action[AnyContent] = {
+      UserAction { req =>
+        if (req.isAdmin) block(req.admin) else IO.pure(Redirect(userHome).flashing("warning" -> s"Restricted to admins"))
       }
     }
   }

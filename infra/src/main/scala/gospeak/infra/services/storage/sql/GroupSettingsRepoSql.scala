@@ -2,13 +2,15 @@ package gospeak.infra.services.storage.sql
 
 import java.time.Instant
 
+import cats.data.NonEmptyList
 import cats.effect.IO
+import doobie.Fragments
 import doobie.implicits._
 import gospeak.core.GsConf
 import gospeak.core.domain.Group.Settings
 import gospeak.core.domain.Group.Settings.Action
 import gospeak.core.domain.messages.Message
-import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx}
+import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx}
 import gospeak.core.domain.{Group, User}
 import gospeak.core.services.meetup.domain.MeetupCredentials
 import gospeak.core.services.slack.domain.SlackCredentials
@@ -20,6 +22,17 @@ import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.domain.{Done, Mustache}
 
 class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: GsConf) extends GenericRepo with GroupSettingsRepo {
+  override def set(settings: Group.Settings)(implicit ctx: OrgaCtx): IO[Done] =
+    selectOne(ctx.group.id).runOption(xa).flatMap { opt =>
+      opt.map { _ =>
+        update(ctx.group.id, settings, ctx.user.id, ctx.now).run(xa)
+      }.getOrElse {
+        insert(ctx.group.id, settings, ctx.user.id, ctx.now).run(xa).map(_ => Done)
+      }
+    }
+
+  override def list(groups: Seq[Group.Id])(implicit ctx: AdminCtx): IO[List[(Group.Id, Group.Settings)]] = runNel[Group.Id, (Group.Id, Group.Settings)](selectAll(_), groups)
+
   override def find(implicit ctx: OrgaCtx): IO[Group.Settings] =
     selectOne(ctx.group.id).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings))
 
@@ -43,15 +56,6 @@ class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: G
 
   override def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]] =
     selectOneActions(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.actions))
-
-  override def set(settings: Group.Settings)(implicit ctx: OrgaCtx): IO[Done] =
-    selectOne(ctx.group.id).runOption(xa).flatMap { opt =>
-      opt.map { _ =>
-        update(ctx.group.id, settings, ctx.user.id, ctx.now).run(xa)
-      }.getOrElse {
-        insert(ctx.group.id, settings, ctx.user.id, ctx.now).run(xa).map(_ => Done)
-      }
-    }
 }
 
 object GroupSettingsRepoSql {
@@ -75,6 +79,9 @@ object GroupSettingsRepoSql {
       fr0"actions=${settings.actions}, updated_at=$now, updated_by=$by"
     table.update(fields, where(group))
   }
+
+  private[sql] def selectAll(ids: NonEmptyList[Group.Id])(implicit ctx: AdminCtx): Select[(Group.Id, Group.Settings)] =
+    table.select[(Group.Id, Group.Settings)](table.fields.dropRight(2), fr0"WHERE " ++ Fragments.in(fr"gs.group_id", ids))
 
   private[sql] def selectOne(group: Group.Id): Select[Group.Settings] =
     table.select[Group.Settings](table.fields.drop(1).dropRight(2), where(group))

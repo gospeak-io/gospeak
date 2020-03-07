@@ -47,7 +47,7 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
         if (externalProposal.info.createdBy == speaker) {
           IO.raiseError(new IllegalArgumentException("talk creator can't be removed"))
         } else if (externalProposal.speakers.toList.contains(speaker)) {
-          NonEmptyList.fromList(externalProposal.speakers.filter(_ != speaker)).map { speakers =>
+          externalProposal.speakers.filter(_ != speaker).toNel.map { speakers =>
             updateSpeakers(id)(speakers, ctx.user.id, ctx.now).run(xa)
           }.getOrElse {
             IO.raiseError(new IllegalArgumentException("last speaker can't be removed"))

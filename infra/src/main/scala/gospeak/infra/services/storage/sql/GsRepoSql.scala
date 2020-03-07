@@ -245,7 +245,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
         Group.Settings.Action.Trigger.OnEventCreated -> Seq(
           Group.Settings.Action.Slack(SlackAction.PostMessage(
             Mustache.Text("{{event.start.year}}_{{event.start.month}}"),
-            Mustache.Markdown("Meetup [{{event.name}}]({{event.link}}) créé !"),
+            Mustache.Markdown("Meetup [{{event.name}}]({{event.orgaLink}}) créé !"),
             createdChannelIfNotExist = true,
             inviteEverybody = true)))),
       event = groupDefaultSettings.event.copy(

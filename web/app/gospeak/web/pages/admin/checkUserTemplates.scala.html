@@ -1,0 +1,46 @@
+@import gospeak.libs.scala.domain.{Markdown, Mustache, Page}
+@import gospeak.web.pages.admin.AdminCtrl.UserTemplateReport
+@import gospeak.web.pages.admin.partials.html.container
+@import gospeak.web.pages.admin.routes.AdminCtrl
+@import gospeak.web.utils.{AdminReq, Formats}
+
+@(groupReports: Page[UserTemplateReport], defaultEventDescription: Either[Mustache.Error, Markdown])(implicit req: AdminReq[AnyContent])
+@templateReport(r: UserTemplateReport) = {
+    <div class="card mb-3">
+        <div class="card-body">
+            @if(r.errorCount > 0) {
+                <div class="d-flex justify-content-between align-items-center" data-toggle="collapse" data-target="#collapse-@r.group.slug.value">
+                    <span>@r.group.name.value, @r.templateCount templates</span>
+                    <span class="text-danger">@r.errorCount errors</span>
+                </div>
+                <div class="collapse" id="collapse-@r.group.slug.value">
+                    <ol class="mt-1 mb-0">
+                        @r.groupSettingsActionsErrors.map { case (trigger, index, action, attr, err) =>
+                            <li><b>@err.message</b> in attribute '@attr' from @action action on @trigger.value trigger (index: @index)</li>
+                        }
+                        @r.groupSettingsEventErrors.map { case (name, err) =>
+                            <li><b>@err.message</b> in event template '@name' (see group settings)</li>
+                        }
+                        @r.eventErrors.map { case (e, err) =>
+                            <li><b>@err.message</b> in '@e.name.value' event description</li>
+                        }
+                    </ol>
+                </div>
+            } else {
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>@r.group.name.value, @r.templateCount templates</span>
+                    <span class="text-muted">no error</span>
+                </div>
+            }
+        </div>
+    </div>
+}
+@container(s"Admin - Gospeak")() {
+    <h1>User templates</h1>
+    @defaultEventDescription.swap.toOption.map { err =>
+        <div class="alert alert-danger" role="alert">
+            <b>@err.message</b> for default event description (cf application.conf) :(
+        </div>
+    }
+    @Formats.paginated(groupReports, AdminCtrl.checkUserTemplates, templateReport)
+}()

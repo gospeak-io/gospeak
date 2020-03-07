@@ -443,7 +443,7 @@ object DoobieUtils {
   def paginationFragment(prefix: String, whereOpt: Option[Fragment], params: Page.Params, sorts: Sorts, searchFields: Seq[Field]): (Fragment, Fragment, Fragment) = {
     val where = whereFragment(whereOpt, params.search, searchFields).getOrElse(fr0"")
     val sortFields = sorts.get(params.orderBy, prefix)
-    val orderBy = NonEmptyList.fromList(sortFields.toList).map(orderByFragment(_, params.nullsFirst)).getOrElse(fr0"")
+    val orderBy = orderByFragment(sortFields, params.nullsFirst)
     val limit = limitFragment(params.pageSize, params.offset)
     (where, orderBy, limit)
   }
@@ -559,7 +559,7 @@ object DoobieUtils {
     implicit val voteMeta: Meta[Proposal.Rating.Grade] = Meta[Int].timap(Proposal.Rating.Grade.from(_).get)(_.value)
 
     implicit val userIdNelMeta: Meta[NonEmptyList[User.Id]] = Meta[String].timap(
-      s => NonEmptyList.fromListUnsafe(s.split(",").filter(_.nonEmpty).map(User.Id.from(_).get).toList))(
+      _.split(",").filter(_.nonEmpty).map(User.Id.from(_).get).toNelUnsafe)(
       _.map(_.value).toList.mkString(","))
     implicit val proposalIdSeqMeta: Meta[Seq[Proposal.Id]] = Meta[String].timap(
       _.split(",").filter(_.nonEmpty).map(Proposal.Id.from(_).get).toSeq)(

@@ -5,10 +5,10 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import gospeak.core.domain._
-import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
+import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.libs.scala.domain.{Done, Page, Tag}
 
-trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with PublicEventRepo with SuggestEventRepo
+trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with PublicEventRepo with AdminEventRepo with SuggestEventRepo
 
 trait OrgaEventRepo {
   def create(data: Event.Data)(implicit ctx: OrgaCtx): IO[Event]
@@ -74,6 +74,10 @@ trait PublicEventRepo {
   def editRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done]
 
   def listRsvps(event: Event.Id): IO[Seq[Event.Rsvp]]
+}
+
+trait AdminEventRepo {
+  def listAllFromGroups(groups: Seq[Group.Id])(implicit ctx: AdminCtx): IO[List[Event]]
 }
 
 trait SuggestEventRepo {

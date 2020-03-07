@@ -1,5 +1,6 @@
 package gospeak.infra.services.storage.sql
 
+import cats.data.NonEmptyList
 import gospeak.infra.services.storage.sql.GroupSettingsRepoSqlSpec._
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
@@ -14,6 +15,10 @@ class GroupSettingsRepoSqlSpec extends RepoSpec {
       it("should build update group settings") {
         val q = GroupSettingsRepoSql.update(group.id, groupSettings, user.id, now)
         check(q, s"UPDATE $table SET ${fields.split(", ").drop(1).map(_.stripPrefix("gs.") + "=?").mkString(", ")} WHERE gs.group_id=?")
+      }
+      it("should build selectAll group settings") {
+        val q = GroupSettingsRepoSql.selectAll(NonEmptyList.of(group.id))(adminCtx)
+        check(q, s"SELECT gs.group_id, $fieldsSelect FROM $table WHERE gs.group_id IN (?)  $orderBy")
       }
       it("should build selectOne group settings") {
         val q = GroupSettingsRepoSql.selectOne(group.id)

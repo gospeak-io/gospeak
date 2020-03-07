@@ -65,7 +65,7 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
         if (proposalElt.info.createdBy == speaker) {
           IO.raiseError(new IllegalArgumentException("proposal creator can't be removed"))
         } else if (proposalElt.speakers.toList.contains(speaker)) {
-          NonEmptyList.fromList(proposalElt.speakers.filter(_ != speaker)).map { speakers =>
+          proposalElt.speakers.filter(_ != speaker).toNel.map { speakers =>
             updateSpeakers(proposalElt.id)(speakers, by, now).run(xa)
           }.getOrElse {
             IO.raiseError(new IllegalArgumentException("last speaker can't be removed"))
@@ -142,7 +142,7 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def listRatings(cfp: Cfp.Slug)(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]] = selectAllRatings(cfp, ctx.user.id).runList(xa)
 
   override def listRatings(proposals: Seq[Proposal.Id])(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]] =
-    NonEmptyList.fromList(proposals.toList).map(selectAllRatings(ctx.user.id, _).runList(xa)).getOrElse(IO.pure(Seq()))
+    proposals.toNel.map(selectAllRatings(ctx.user.id, _).runList(xa)).getOrElse(IO.pure(Seq()))
 }
 
 object ProposalRepoSql {
