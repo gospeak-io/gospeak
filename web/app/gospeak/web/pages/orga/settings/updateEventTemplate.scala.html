@@ -1,5 +1,5 @@
 @import gospeak.core.domain.Group
-@import gospeak.core.domain.utils.TemplateData
+@import gospeak.core.domain.messages.Message
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.partials.html.container
 @import gospeak.web.pages.orga.settings.routes.SettingsCtrl
@@ -23,11 +23,11 @@
         <div class="row">
             <div class="col-6">
                 @fieldVertical(form("template"), Seq("label" -> "Your template:")) { (field, args) =>
-                    @inputTemplate(field, Some(TemplateData.EventInfo.ref), markdown = templateId.exists(!settings.event.templates.contains(_)), args = args ++ Seq("autofocus" -> "true"))
+                    @inputTemplate(field, Some(Message.Ref.eventInfo), markdown = templateId.exists(!settings.event.templates.contains(_)), args = args ++ Seq("autofocus" -> "true"))
                 }
             </div>
             <div class="col-6">
-                @displayTemplateData(Some(TemplateData.EventInfo.ref))
+                @displayTemplateData(Some(Message.Ref.eventInfo))
             </div>
         </div>
         @fieldHorizontal(form("id"), Seq("label" -> "Template id", "help" -> "It should be a unique identifier describing the template")) { (field, args) =>

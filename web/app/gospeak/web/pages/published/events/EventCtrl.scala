@@ -3,14 +3,17 @@ package gospeak.web.pages.published.events
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import gospeak.core.domain.messages.Message
 import gospeak.core.domain.{ExternalEvent, ExternalProposal, Talk}
 import gospeak.core.services.storage._
+import gospeak.libs.scala.MessageBus
 import gospeak.libs.scala.domain.Page
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb
 import gospeak.web.pages.published.HomeCtrl
 import gospeak.web.pages.published.events.EventCtrl._
+import gospeak.web.services.MessageSrv
 import gospeak.web.utils.{GsForms, UICtrl, UserReq}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -22,7 +25,9 @@ class EventCtrl(cc: ControllerComponents,
                 talkRepo: PublicTalkRepo,
                 externalEventRepo: PublicExternalEventRepo,
                 externalCfpRepo: PublicExternalCfpRepo,
-                externalProposalRepo: PublicExternalProposalRepo) extends UICtrl(cc, silhouette, conf) {
+                externalProposalRepo: PublicExternalProposalRepo,
+                ms: MessageSrv,
+                bus: MessageBus[Message]) extends UICtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     for {
       events <- externalEventRepo.listCommon(params)
@@ -37,7 +42,10 @@ class EventCtrl(cc: ControllerComponents,
   def doCreate(): Action[AnyContent] = UserAction { implicit req =>
     GsForms.externalEvent.bindFromRequest.fold(
       formWithErrors => createView(formWithErrors),
-      data => externalEventRepo.create(data).map(e => Redirect(routes.EventCtrl.detailExt(e.id)))
+      data => for {
+        e <- externalEventRepo.create(data)
+        _ <- ms.externalEventCreated(e).map(bus.publish)
+      } yield Redirect(routes.EventCtrl.detailExt(e.id))
     )
   }
 
@@ -62,7 +70,12 @@ class EventCtrl(cc: ControllerComponents,
   def doEdit(event: ExternalEvent.Id): Action[AnyContent] = UserAction { implicit req =>
     GsForms.externalEvent.bindFromRequest.fold(
       formWithErrors => editView(event, formWithErrors),
-      data => externalEventRepo.edit(event)(data).map(_ => Redirect(routes.EventCtrl.detailExt(event)).flashing("success" -> "Event updated"))
+      data => (for {
+        _ <- OptionT.liftF(externalEventRepo.edit(event)(data))
+        eventElt <- OptionT(externalEventRepo.find(event))
+        _ <- OptionT.liftF(ms.externalEventUpdated(eventElt).map(bus.publish))
+        res = Redirect(routes.EventCtrl.detailExt(event)).flashing("success" -> "Event updated")
+      } yield res).value.map(_.getOrElse(extEventNotFound(event)))
     )
   }
 

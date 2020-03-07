@@ -2,9 +2,9 @@ package gospeak.core.domain
 
 import java.time.LocalDateTime
 
+import gospeak.core.domain.messages.Message
+import gospeak.core.domain.utils.Info
 import gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
-import gospeak.core.domain.utils.{Info, TemplateData}
-import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import gospeak.libs.scala.domain._
 
 final case class CommonEvent(name: Event.Name,
@@ -44,7 +44,7 @@ object CommonEvent {
 
   final case class Internal(id: Event.Id,
                             slug: Event.Slug,
-                            description: MustacheMarkdownTmpl[TemplateData.EventInfo],
+                            description: Mustache.Markdown[Message.EventInfo],
                             group: InternalGroup,
                             cfp: Option[InternalCfp],
                             venue: Option[InternalVenue])

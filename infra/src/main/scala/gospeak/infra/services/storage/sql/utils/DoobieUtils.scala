@@ -11,13 +11,13 @@ import doobie.util.transactor.Transactor
 import doobie.util.{Meta, Read}
 import gospeak.core.ApplicationConf
 import gospeak.core.domain._
+import gospeak.core.domain.messages.Message
+import gospeak.core.domain.utils.BasicCtx
 import gospeak.core.domain.utils.SocialAccounts.SocialAccount._
-import gospeak.core.domain.utils.{BasicCtx, TemplateData}
 import gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup}
 import gospeak.core.services.slack.domain.SlackAction
 import gospeak.core.services.storage.DbConf
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import gospeak.libs.scala.domain._
 import io.circe._
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
@@ -474,11 +474,11 @@ object DoobieUtils {
     implicit val videoMeta: Meta[Video] = urlMeta.timap(Video.from(_).get)(_.url)
     implicit val twitterHashtagMeta: Meta[TwitterHashtag] = Meta[String].timap(TwitterHashtag.from(_).get)(_.value)
     implicit val currencyMeta: Meta[Price.Currency] = Meta[String].timap(Price.Currency.from(_).get)(_.value)
-    implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown)(_.value)
+    implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown(_))(_.value)
 
-    implicit def mustacheMarkdownTemplateMeta[A: TypeTag]: Meta[MustacheMarkdownTmpl[A]] = Meta[String].timap(MustacheMarkdownTmpl[A])(_.value)
+    implicit def mustacheMarkdownMeta[A: TypeTag]: Meta[Mustache.Markdown[A]] = Meta[String].timap(Mustache.Markdown[A])(_.value)
 
-    implicit def mustacheTextTemplateMeta[A: TypeTag]: Meta[MustacheTextTmpl[A]] = Meta[String].timap(MustacheTextTmpl[A])(_.value)
+    implicit def mustacheTextMeta[A: TypeTag]: Meta[Mustache.Text[A]] = Meta[String].timap(Mustache.Text[A])(_.value)
 
     implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))
     implicit val gMapPlaceMeta: Meta[GMapPlace] = {
@@ -488,16 +488,16 @@ object DoobieUtils {
       implicit val gMapPlaceEncoder: Encoder[GMapPlace] = deriveEncoder[GMapPlace]
       Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
     }
-    implicit val groupSettingsEventTemplatesMeta: Meta[Map[String, MustacheTextTmpl[TemplateData.EventInfo]]] = {
-      implicit val textTemplateDecoder: Decoder[MustacheTextTmpl[TemplateData.EventInfo]] = deriveDecoder[MustacheTextTmpl[TemplateData.EventInfo]]
-      implicit val textTemplateEncoder: Encoder[MustacheTextTmpl[TemplateData.EventInfo]] = deriveEncoder[MustacheTextTmpl[TemplateData.EventInfo]]
-      Meta[String].timap(fromJson[Map[String, MustacheTextTmpl[TemplateData.EventInfo]]](_).get)(toJson)
+    implicit val groupSettingsEventTemplatesMeta: Meta[Map[String, Mustache.Text[Message.EventInfo]]] = {
+      implicit val textTemplateDecoder: Decoder[Mustache.Text[Message.EventInfo]] = deriveDecoder[Mustache.Text[Message.EventInfo]]
+      implicit val textTemplateEncoder: Encoder[Mustache.Text[Message.EventInfo]] = deriveEncoder[Mustache.Text[Message.EventInfo]]
+      Meta[String].timap(fromJson[Map[String, Mustache.Text[Message.EventInfo]]](_).get)(toJson)
     }
     implicit val groupSettingsActionsMeta: Meta[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]] = {
-      implicit val textTemplateDecoder: Decoder[MustacheTextTmpl[TemplateData]] = deriveDecoder[MustacheTextTmpl[TemplateData]]
-      implicit val textTemplateEncoder: Encoder[MustacheTextTmpl[TemplateData]] = deriveEncoder[MustacheTextTmpl[TemplateData]]
-      implicit val markdownTemplateDecoder: Decoder[MustacheMarkdownTmpl[TemplateData]] = deriveDecoder[MustacheMarkdownTmpl[TemplateData]]
-      implicit val markdownTemplateEncoder: Encoder[MustacheMarkdownTmpl[TemplateData]] = deriveEncoder[MustacheMarkdownTmpl[TemplateData]]
+      implicit val mustacheTextDecoder: Decoder[Mustache.Text[Any]] = deriveDecoder[Mustache.Text[Any]]
+      implicit val mustacheTextEncoder: Encoder[Mustache.Text[Any]] = deriveEncoder[Mustache.Text[Any]]
+      implicit val mustacheMarkdownDecoder: Decoder[Mustache.Markdown[Any]] = deriveDecoder[Mustache.Markdown[Any]]
+      implicit val mustacheMarkdownEncoder: Encoder[Mustache.Markdown[Any]] = deriveEncoder[Mustache.Markdown[Any]]
       implicit val slackActionPostMessageDecoder: Decoder[SlackAction.PostMessage] = deriveDecoder[SlackAction.PostMessage]
       implicit val slackActionPostMessageEncoder: Encoder[SlackAction.PostMessage] = deriveEncoder[SlackAction.PostMessage]
       implicit val slackActionDecoder: Decoder[SlackAction] = deriveDecoder[SlackAction]

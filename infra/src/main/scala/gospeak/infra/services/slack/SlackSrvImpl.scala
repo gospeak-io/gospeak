@@ -2,35 +2,33 @@ package gospeak.infra.services.slack
 
 import cats.data.EitherT
 import cats.effect.IO
-import gospeak.core.domain.utils.TemplateData
-import gospeak.core.services.TemplateSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.slack.domain.SlackAction.PostMessage
 import gospeak.core.services.slack.domain._
-import gospeak.libs.slack.{SlackClient, domain => api}
 import gospeak.infra.services.slack.SlackSrvImpl._
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{CustomException, Markdown}
+import gospeak.libs.slack.{SlackClient, domain => api}
+import io.circe.Json
 
 import scala.util.Try
 
 // SlackSrv should not use Slack classes in the API, it's independent and the implementation should do the needed conversion
-class SlackSrvImpl(client: SlackClient,
-                   templateSrv: TemplateSrv) extends SlackSrv {
+class SlackSrvImpl(client: SlackClient) extends SlackSrv {
   override def getInfos(token: SlackToken, key: AesSecretKey): IO[SlackTokenInfo] =
     toSlack(token, key).toIO.flatMap(client.info).map(_.map(toGospeak)).flatMap(toIO)
 
-  override def exec(action: SlackAction, data: TemplateData, creds: SlackCredentials, key: AesSecretKey): IO[Unit] = action match {
+  override def exec(action: SlackAction, data: Json, creds: SlackCredentials, key: AesSecretKey): IO[Unit] = action match {
     case a: PostMessage => postMessage(a, data, creds, key).map(_ => ())
   }
 
-  private def postMessage(action: PostMessage, data: TemplateData, creds: SlackCredentials, key: AesSecretKey): IO[Either[api.SlackError, api.SlackMessage]] = {
+  private def postMessage(action: PostMessage, data: Json, creds: SlackCredentials, key: AesSecretKey): IO[Either[api.SlackError, api.SlackMessage]] = {
     val sender = api.SlackSender.Bot(creds.name, creds.avatar.map(_.value))
     for {
       token <- toSlack(creds.token, key).toIO
-      channel <- templateSrv.render(action.channel, data).map(toSlackName).toIO(CustomException(_))
-      message <- templateSrv.render(action.message, data).map(toSlack).toIO(CustomException(_))
+      channel <- action.channel.render(data).map(toSlackName).toIO(e => CustomException(e.message))
+      message <- action.message.render(data).map(toSlack).toIO(e => CustomException(e.message))
       attempt1 <- client.postMessage(token, sender, channel, message)
       attempt2 <- attempt1 match {
         case Left(api.SlackError(false, "channel_not_found", _, _)) if action.createdChannelIfNotExist =>
@@ -54,8 +52,8 @@ class SlackSrvImpl(client: SlackClient,
   private def toSlack(md: Markdown): api.SlackContent.Markdown =
     api.SlackContent.Markdown(md.value)
 
-  private def toSlackName(md: Markdown): api.SlackChannel.Name =
-    api.SlackChannel.Name(md.value)
+  private def toSlackName(name: String): api.SlackChannel.Name =
+    api.SlackChannel.Name(name)
 
   private def toGospeak(id: api.SlackUser.Id): SlackUser.Id =
     SlackUser.Id(id.value)

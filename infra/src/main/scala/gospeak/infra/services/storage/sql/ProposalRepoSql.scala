@@ -129,6 +129,8 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def list(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = runNel(selectAll, ids)
 
+  override def listFull(ids: Seq[Proposal.Id])(implicit ctx: UserAwareCtx): IO[Seq[Proposal.Full]] = runNel(selectAllFull, ids)
+
   override def listPublic(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = runNel(selectAllPublic, ids)
 
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
@@ -290,6 +292,9 @@ object ProposalRepoSql {
 
   private[sql] def selectAll(ids: NonEmptyList[Proposal.Id]): Select[Proposal] =
     table.select[Proposal](fr0"WHERE " ++ Fragments.in(fr"id", ids))
+
+  private[sql] def selectAllFull(ids: NonEmptyList[Proposal.Id])(implicit ctx: UserAwareCtx): Select[Proposal.Full] =
+    tableFull(ctx.user).select[Proposal.Full](fr0"WHERE " ++ Fragments.in(fr"p.id", ids))
 
   private[sql] def selectAllPublic(ids: NonEmptyList[Proposal.Id]): Select[Proposal] =
     tableWithEvent.select[Proposal](fr0"WHERE " ++ Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")

@@ -5,12 +5,12 @@ import java.time.LocalDateTime
 import cats.data.NonEmptyList
 import gospeak.core.domain.Group.Settings
 import gospeak.core.domain._
-import gospeak.core.domain.utils.{SocialAccounts, TemplateData}
+import gospeak.core.domain.messages.Message
+import gospeak.core.domain.utils.SocialAccounts
 import gospeak.core.services.meetup.domain.MeetupGroup
 import gospeak.core.services.slack.domain.SlackCredentials
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import gospeak.libs.scala.domain._
 import gospeak.web.utils.Mappings._
 import play.api.data.Forms._
@@ -163,11 +163,11 @@ object GsForms {
     "action" -> groupSettingsAction
   )(GroupAction.apply)(GroupAction.unapply))
 
-  final case class GroupEventTemplateItem(id: String, template: MustacheMarkdownTmpl[TemplateData.EventInfo])
+  final case class GroupEventTemplateItem(id: String, template: Mustache.Markdown[Message.EventInfo])
 
   val groupEventTemplateItem: Form[GroupEventTemplateItem] = Form(mapping(
     "id" -> nonEmptyText,
-    "template" -> template[TemplateData.EventInfo]
+    "template" -> template[Message.EventInfo]
   )(GroupEventTemplateItem.apply)(GroupEventTemplateItem.unapply))
 
   val event: Form[Event.Data] = Form(mapping(
@@ -179,7 +179,7 @@ object GsForms {
     "max-attendee" -> optional(number),
     "allow-rsvp" -> boolean,
     "venue" -> optional(venueId),
-    "description" -> template[TemplateData.EventInfo],
+    "description" -> template[Message.EventInfo],
     "tags" -> tags,
     "refs" -> eventRefs
   )(Event.Data.apply)(Event.Data.unapply))

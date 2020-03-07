@@ -4,20 +4,22 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain._
+import gospeak.core.domain.messages.Message
 import gospeak.core.domain.utils.OrgaCtx
-import gospeak.core.services.TemplateSrv
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Done, Html, Page}
+import gospeak.libs.scala.MessageBus
+import gospeak.libs.scala.domain.{Done, Html, Markdown, Page}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
-import gospeak.web.domain.{Breadcrumb, GsMessageBus, MessageBuilder}
+import gospeak.web.domain.Breadcrumb
 import gospeak.web.emails.Emails
 import gospeak.web.pages.orga.GroupCtrl
 import gospeak.web.pages.orga.events.EventCtrl._
-import gospeak.web.services.EventSrv
+import gospeak.web.services.MessageSrv
+import gospeak.web.services.MessageSrv._
 import gospeak.web.utils.GsForms.PublishOptions
 import gospeak.web.utils.{GsForms, OrgaReq, UICtrl}
 import play.api.data.Form
@@ -36,12 +38,10 @@ class EventCtrl(cc: ControllerComponents,
                 venueRepo: OrgaVenueRepo,
                 proposalRepo: OrgaProposalRepo,
                 groupSettingsRepo: GroupSettingsRepo,
-                builder: MessageBuilder,
-                templateSrv: TemplateSrv,
-                eventSrv: EventSrv,
                 meetupSrv: MeetupSrv,
                 emailSrv: EmailSrv,
-                mb: GsMessageBus) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
+                ms: MessageSrv,
+                bus: MessageBus[Message]) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
       events <- eventRepo.listFull(params)
@@ -60,7 +60,7 @@ class EventCtrl(cc: ControllerComponents,
       data => (for {
         // TODO check if slug not already exist
         eventElt <- OptionT.liftF(eventRepo.create(data))
-        _ <- OptionT.liftF(mb.publishEventCreated(eventElt))
+        _ <- OptionT.liftF(ms.eventCreated(eventElt).map(bus.publish))
       } yield Redirect(routes.EventCtrl.detail(group, data.slug))).value.map(_.getOrElse(groupNotFound(group)))
     )
   }
@@ -77,26 +77,29 @@ class EventCtrl(cc: ControllerComponents,
   def detail(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val customParams = params.defaultSize(40).defaultOrderBy(proposalRepo.fields.created)
     (for {
-      e <- OptionT(eventSrv.getFullEvent(event))
+      e <- OptionT(eventRepo.findFull(event))
+      eventProposals <- OptionT.liftF(proposalRepo.list(e.talks))
       eventTemplates <- OptionT.liftF(groupSettingsRepo.findEventTemplates)
-      proposals <- OptionT.liftF(e.cfpOpt.map(cfp => proposalRepo.listFull(cfp.slug, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal.Full])))
-      speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.users).distinct))
-      userRatings <- OptionT.liftF(proposalRepo.listRatings(proposals.items.map(_.id)))
-      desc = eventSrv.buildDescription(e)
+      cfpProposals <- OptionT.liftF(e.cfp.map(cfp => proposalRepo.listFull(cfp.slug, Proposal.Status.Pending, customParams)).getOrElse(IO.pure(Page.empty[Proposal.Full])))
+      speakers <- OptionT.liftF(userRepo.list((eventProposals.flatMap(_.users) ++ cfpProposals.items.flatMap(_.users)).distinct))
+      userRatings <- OptionT.liftF(proposalRepo.listRatings(cfpProposals.items.map(_.id)))
+      info <- OptionT.liftF(ms.eventInfo(e.event))
+      desc = e.description.render(info).getOrElse(Markdown("")) // FIXME
       b = breadcrumb(e.event)
-      res = Ok(html.detail(e.event, e.venueOpt, e.talks, desc, e.cfpOpt, proposals, e.speakers ++ speakers, userRatings, eventTemplates, GsForms.eventCfp, GsForms.eventNotes.fill(e.event.orgaNotes.text))(b))
+      res = Ok(html.detail(e.event, e.venue, eventProposals, desc, e.cfp, cfpProposals, speakers, userRatings, eventTemplates, GsForms.eventNotes.fill(e.orgaNotes.text))(b))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
   def showTemplate(group: Group.Slug, event: Event.Slug, templateId: String): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
-      e <- OptionT(eventSrv.getFullEvent(event))
+      eventElt <- OptionT(eventRepo.find(event))
+      info <- OptionT.liftF(ms.eventInfo(eventElt))
       eventTemplates <- OptionT.liftF(groupSettingsRepo.findEventTemplates)
-      data = builder.buildEventInfo(e)
-      res = eventTemplates.get(templateId)
-        .flatMap(template => templateSrv.render(template, data).toOption)
-        .map(text => Ok(html.showTemplate(Html(text))))
-        .getOrElse(Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"Invalid template '$templateId'"))
+      res = eventTemplates.get(templateId).toEither(s"Template '$templateId' not found")
+        .flatMap(_.render(info).left.map(_.message))
+        .fold(
+          err => Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> err),
+          text => Ok(html.showTemplate(Html(text))))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
@@ -137,10 +140,10 @@ class EventCtrl(cc: ControllerComponents,
 
   def setVenue(group: Group.Slug, event: Event.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
-      e <- OptionT(eventSrv.getFullEvent(event))
+      e <- OptionT(eventRepo.findFull(event))
       venues <- OptionT.liftF(venueRepo.listCommon(params))
       groupVenues <- OptionT.liftF(venueRepo.listAllFull())
-      res = Ok(html.setVenue(e.event, e.venueOpt, venues, groupVenues)(setVenueBreadcrumb(e.event)))
+      res = Ok(html.setVenue(e.event, e.venue, venues, groupVenues)(setVenueBreadcrumb(e.event)))
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
@@ -194,7 +197,7 @@ class EventCtrl(cc: ControllerComponents,
       proposalElt <- OptionT(proposalRepo.find(cfpElt.slug, talk))
       _ <- OptionT.liftF(eventRepo.editTalks(event, eventElt.add(talk).talks))
       _ <- OptionT.liftF(proposalRepo.accept(cfpElt.slug, talk, eventElt.id))
-      _ <- OptionT.liftF(mb.publishTalkAdded(eventElt, cfpElt, proposalElt))
+      _ <- OptionT(ms.proposalAddedToEvent(cfpElt, proposalElt, eventElt)).map(bus.publish)
     } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
@@ -205,7 +208,7 @@ class EventCtrl(cc: ControllerComponents,
       proposalElt <- OptionT(proposalRepo.find(cfpElt.slug, talk))
       _ <- OptionT.liftF(eventRepo.editTalks(event, eventElt.remove(talk).talks))
       _ <- OptionT.liftF(proposalRepo.cancel(cfpElt.slug, talk, eventElt.id))
-      _ <- OptionT.liftF(mb.publishTalkRemoved(eventElt, cfpElt, proposalElt))
+      _ <- OptionT(ms.proposalRemovedFromEvent(cfpElt, proposalElt, eventElt)).map(bus.publish)
     } yield Redirect(routes.EventCtrl.detail(group, event, params))).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
@@ -232,26 +235,27 @@ class EventCtrl(cc: ControllerComponents,
     GsForms.eventPublish.bindFromRequest.fold(
       formWithErrors => publishView(group, event, formWithErrors),
       data => (for {
-        e <- OptionT(eventSrv.getFullEvent(event))
-        description = eventSrv.buildDescription(e)
+        e <- OptionT(eventRepo.findFull(event))
+        info <- OptionT.liftF(ms.eventInfo(e.event))
+        description = e.description.render(info).getOrElse(Markdown("")) // FIXME
         meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup)
         meetup <- OptionT.liftF((for {
           creds <- meetupAccount
           info <- data.meetup if info.publish
-        } yield meetupSrv.publish(e.event, e.venueOpt, description, info.draft, conf.app.aesKey, creds)).sequence)
-        _ <- OptionT.liftF(meetup.map(_._1).filter(_ => e.event.refs.meetup.isEmpty)
-          .map(ref => e.event.copy(refs = e.event.refs.copy(meetup = Some(ref))))
+        } yield meetupSrv.publish(e.event, e.venue, description, info.draft, conf.app.aesKey, creds)).sequence)
+        _ <- OptionT.liftF(meetup.map(_._1).filter(_ => e.refs.meetup.isEmpty)
+          .map(ref => e.event.copy(refs = e.refs.copy(meetup = Some(ref))))
           .map(eventElt => eventRepo.edit(event, eventElt.data)).sequence)
-        _ <- OptionT.liftF(meetup.flatMap(m => m._2.flatMap(r => e.venueOpt.map(v => (r, v)))).filter { case (_, v) => v.refs.meetup.isEmpty }
+        _ <- OptionT.liftF(meetup.flatMap(m => m._2.flatMap(r => e.venue.map(v => (r, v)))).filter { case (_, v) => v.refs.meetup.isEmpty }
           .map { case (ref, venue) => venueRepo.edit(venue.id, venue.data.copy(refs = venue.refs.copy(meetup = Some(ref)))) }.sequence)
         _ <- OptionT.liftF(eventRepo.publish(event))
         _ <- if (data.notifyMembers) {
           OptionT.liftF(groupRepo.listMembers
-            .flatMap(members => members.map(m => emailSrv.send(Emails.eventPublished(e.event, e.venueOpt, m))).sequence))
+            .flatMap(members => members.map(m => emailSrv.send(Emails.eventPublished(e.event, e.venue, m))).sequence))
         } else {
           OptionT.liftF(IO.pure(Seq.empty[Done]))
         }
-        _ <- OptionT.liftF(mb.publishEventPublished(e.event))
+        _ <- OptionT.liftF(ms.eventPublished(e.event).map(bus.publish))
       } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))))
       .recover {
         case NonFatal(e) => Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> s"An error happened: ${e.getMessage}")
@@ -260,11 +264,12 @@ class EventCtrl(cc: ControllerComponents,
 
   private def publishView(group: Group.Slug, event: Event.Slug, form: Form[PublishOptions])(implicit req: OrgaReq[AnyContent], ctx: OrgaCtx): IO[Result] = {
     (for {
-      e <- OptionT(eventSrv.getFullEvent(event))
-      description = eventSrv.buildDescription(e)
+      e <- OptionT(eventRepo.find(event))
+      info <- OptionT.liftF(ms.eventInfo(e))
+      description = e.description.render(info).getOrElse(Markdown("")) // FIXME
       meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup)
-      b = breadcrumb(e.event).add("Publish" -> routes.EventCtrl.publish(group, event))
-      res = Ok(html.publish(e.event, description, form, meetupAccount.isDefined)(b))
+      b = breadcrumb(e).add("Publish" -> routes.EventCtrl.publish(group, event))
+      res = Ok(html.publish(e, description, form, meetupAccount.isDefined)(b))
     } yield res).value.map(_.getOrElse(groupNotFound(group)))
   }
 

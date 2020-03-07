@@ -4,19 +4,22 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
+import gospeak.core.domain.messages.Message
 import gospeak.core.domain.{Cfp, ExternalCfp, ExternalEvent, Talk}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
+import gospeak.libs.scala.MessageBus
 import gospeak.libs.scala.domain.{CustomException, Page}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
 import gospeak.web.auth.services.AuthSrv
-import gospeak.web.domain.{Breadcrumb, GsMessageBus}
+import gospeak.web.domain.Breadcrumb
 import gospeak.web.emails.Emails
 import gospeak.web.pages.published.HomeCtrl
 import gospeak.web.pages.published.cfps.CfpCtrl._
 import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
+import gospeak.web.services.MessageSrv
 import gospeak.web.utils.{GsForms, UICtrl, UserAwareReq, UserReq}
 import play.api.data.Form
 import play.api.mvc._
@@ -35,7 +38,8 @@ class CfpCtrl(cc: ControllerComponents,
               externalCfpRepo: PublicExternalCfpRepo,
               authSrv: AuthSrv,
               emailSrv: EmailSrv,
-              mb: GsMessageBus) extends UICtrl(cc, silhouette, conf) {
+              ms: MessageSrv,
+              bus: MessageBus[Message]) extends UICtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     externalCfpRepo.listIncoming(params).map(cfps => Ok(html.list(cfps)(listBreadcrumb())))
   }
@@ -55,7 +59,10 @@ class CfpCtrl(cc: ControllerComponents,
   def doCreateExternalEvent(): Action[AnyContent] = UserAction { implicit req =>
     GsForms.externalEvent.bindFromRequest.fold(
       formWithErrors => createExternalEventView(formWithErrors),
-      data => externalEventRepo.create(data).map(e => Redirect(routes.CfpCtrl.createExternalCfp(e.id)))
+      data => for {
+        e <- externalEventRepo.create(data)
+        _ <- ms.externalEventCreated(e).map(bus.publish)
+      } yield Redirect(routes.CfpCtrl.createExternalCfp(e.id))
     )
   }
 
@@ -73,7 +80,7 @@ class CfpCtrl(cc: ControllerComponents,
       data => (for {
         eventElt <- OptionT(externalEventRepo.find(event))
         cfpElt <- OptionT.liftF(externalCfpRepo.create(eventElt.id, data))
-        _ <- OptionT.liftF(mb.publishExternalCfpCreated(cfpElt, eventElt))
+        _ <- OptionT.liftF(ms.externalCfpCreated(eventElt, cfpElt).map(bus.publish))
       } yield Redirect(routes.CfpCtrl.detailExt(cfpElt.id))).value.map(_.getOrElse(extEventNotFound(event)))
     )
   }
@@ -109,8 +116,10 @@ class CfpCtrl(cc: ControllerComponents,
       formWithErrors => editView(cfp, formWithErrors),
       data => (for {
         cfpElt <- OptionT(externalCfpRepo.findFull(cfp))
-        _ <- OptionT.liftF(externalCfpRepo.edit(cfp)(data.cfp))
         _ <- OptionT.liftF(externalEventRepo.edit(cfpElt.event.id)(data.event))
+        _ <- OptionT.liftF(externalCfpRepo.edit(cfp)(data.cfp))
+        _ <- OptionT.liftF(ms.externalEventUpdated(cfpElt.event).map(bus.publish))
+        _ <- OptionT.liftF(ms.externalCfpUpdated(cfpElt.event, cfpElt.cfp).map(bus.publish))
         res = Redirect(routes.CfpCtrl.detailExt(cfp)).flashing("success" -> "CFP updated")
       } yield res).value.map(_.getOrElse(extCfpNotFound(cfp)))
     )
@@ -137,8 +146,7 @@ class CfpCtrl(cc: ControllerComponents,
           _ <- if (cfpElt.isActive(req.nowLDT)) OptionT.liftF(IO.pure(())) else OptionT.liftF(IO.raiseError(CustomException("Can't propose a talk, CFP is not open")))
           talkElt <- OptionT.liftF(talkRepo.create(data.talk)(secured))
           proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.proposal, talkElt.speakers)(secured))
-          groupElt <- OptionT(groupRepo.find(cfpElt.group))
-          _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt)(secured))
+          _ <- OptionT(ms.proposalCreated(cfpElt, proposalElt)(secured)).map(bus.publish)
           msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
         } yield Redirect(ProposalCtrl.detail(talkElt.slug, cfp)).flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp)))
       }.getOrElse {
@@ -173,8 +181,7 @@ class CfpCtrl(cc: ControllerComponents,
         secured = req.secured(identity, auth)
         talkElt <- OptionT.liftF(talkRepo.create(data.talk)(secured))
         proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.proposal, talkElt.speakers)(secured))
-        groupElt <- OptionT(groupRepo.find(cfpElt.group))
-        _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt)(secured))
+        _ <- OptionT(ms.proposalCreated(cfpElt, proposalElt)(secured)).map(bus.publish)
         msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
       } yield result.flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp))).recoverWith {
         case _: AccountValidationRequiredException => proposeConnectForm(cfp, signupData = Some(data), error = "Account activated, you need to validate it by clicking on the email validation link before submitting a talk")
@@ -197,8 +204,7 @@ class CfpCtrl(cc: ControllerComponents,
         secured = req.secured(identity, auth)
         talkElt <- OptionT.liftF(talkRepo.create(data.talk)(secured))
         proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data.proposal, talkElt.speakers)(secured))
-        groupElt <- OptionT(groupRepo.find(cfpElt.group))
-        _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt)(secured))
+        _ <- OptionT(ms.proposalCreated(cfpElt, proposalElt)(secured)).map(bus.publish)
         msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
       } yield result.flashing("success" -> msg)).value.map(_.getOrElse(publicCfpNotFound(cfp))).recoverWith {
         case _: AccountValidationRequiredException => proposeConnectForm(cfp, loginData = Some(data), error = "You need to validate your account by clicking on the email validation link")

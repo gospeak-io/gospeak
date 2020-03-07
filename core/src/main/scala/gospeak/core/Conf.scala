@@ -2,10 +2,9 @@ package gospeak.core
 
 import gospeak.core.GsConf.EventConf
 import gospeak.core.domain.Group
-import gospeak.core.domain.utils.TemplateData
+import gospeak.core.domain.messages.Message
 import gospeak.libs.scala.Crypto.AesSecretKey
-import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
-import gospeak.libs.scala.domain.{EnumBuilder, StringEnum}
+import gospeak.libs.scala.domain.{EnumBuilder, Mustache, StringEnum}
 
 final case class ApplicationConf(env: ApplicationConf.Env,
                                  baseUrl: String,
@@ -63,6 +62,6 @@ final case class GsConf(event: EventConf) {
 
 object GsConf {
 
-  final case class EventConf(description: MustacheMarkdownTmpl[TemplateData.EventInfo])
+  final case class EventConf(description: Mustache.Markdown[Message.EventInfo])
 
 }

@@ -16,7 +16,6 @@ import gospeak.web.emails.Emails
 import gospeak.web.utils.{OrgaReq, UICtrl, UserAwareReq}
 import gospeak.web.{AppConf, pages}
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import gospeak.libs.scala.domain._
 import org.joda.time.DateTime
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -102,7 +101,7 @@ class StyleguideCtrl(cc: ControllerComponents,
     start = ldt,
     maxAttendee = Some(100),
     allowRsvp = false,
-    description = MustacheMarkdownTmpl(""),
+    description = Mustache.Markdown(""),
     orgaNotes = Event.Notes("", now, user.id),
     venue = None,
     talks = Seq(),

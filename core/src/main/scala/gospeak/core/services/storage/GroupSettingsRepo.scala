@@ -2,11 +2,11 @@ package gospeak.core.services.storage
 
 import cats.effect.IO
 import gospeak.core.domain.Group
-import gospeak.core.domain.utils.{OrgaCtx, TemplateData, UserAwareCtx}
+import gospeak.core.domain.messages.Message
+import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx}
 import gospeak.core.services.meetup.domain.MeetupCredentials
 import gospeak.core.services.slack.domain.SlackCredentials
-import gospeak.libs.scala.domain.Done
-import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
+import gospeak.libs.scala.domain.{Done, Mustache}
 
 trait GroupSettingsRepo extends OrgaGroupSettingsRepo with PublicGroupSettingsRepo
 
@@ -19,9 +19,9 @@ trait OrgaGroupSettingsRepo {
 
   def findSlack(group: Group.Id): IO[Option[SlackCredentials]]
 
-  def findEventDescription(implicit ctx: OrgaCtx): IO[MustacheMarkdownTmpl[TemplateData.EventInfo]]
+  def findEventDescription(implicit ctx: OrgaCtx): IO[Mustache.Markdown[Message.EventInfo]]
 
-  def findEventTemplates(implicit ctx: OrgaCtx): IO[Map[String, MustacheTextTmpl[TemplateData.EventInfo]]]
+  def findEventTemplates(implicit ctx: OrgaCtx): IO[Map[String, Mustache.Text[Message.EventInfo]]]
 
   def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]]
 

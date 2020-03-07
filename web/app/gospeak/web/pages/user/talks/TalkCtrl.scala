@@ -4,10 +4,12 @@ import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain._
+import gospeak.core.domain.messages.Message
 import gospeak.core.domain.utils.UserCtx
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.MessageBus
 import gospeak.libs.scala.domain.{Page, Slides, Video}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
@@ -16,6 +18,7 @@ import gospeak.web.emails.Emails
 import gospeak.web.pages.user.UserCtrl
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import gospeak.web.pages.user.talks.TalkCtrl._
+import gospeak.web.services.MessageSrv
 import gospeak.web.utils.Extensions._
 import gospeak.web.utils.{GsForms, UICtrl, UserReq}
 import play.api.data.Form
@@ -33,7 +36,9 @@ class TalkCtrl(cc: ControllerComponents,
                proposalRepo: SpeakerProposalRepo,
                externalEventRepo: SpeakerExternalEventRepo,
                externalProposalRepo: SpeakerExternalProposalRepo,
-               emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) {
+               emailSrv: EmailSrv,
+               ms: MessageSrv,
+               bus: MessageBus[Message]) extends UICtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     talkRepo.list(params).map(talks => Ok(html.list(talks)(listBreadcrumb)))
   }
@@ -171,7 +176,10 @@ class TalkCtrl(cc: ControllerComponents,
   def doCreateExternalEvent(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
     GsForms.externalEvent.bindFromRequest.fold(
       formWithErrors => createExternalEventView(talk, formWithErrors),
-      data => externalEventRepo.create(data).map(e => Redirect(routes.TalkCtrl.createExternalProposal(talk, e.id)))
+      data => for {
+        e <- externalEventRepo.create(data)
+        _ <- ms.externalEventCreated(e).map(bus.publish)
+      } yield Redirect(routes.TalkCtrl.createExternalProposal(talk, e.id))
     )
   }
 

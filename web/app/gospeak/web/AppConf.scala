@@ -8,11 +8,10 @@ import gospeak.core.services.storage.DbConf
 import gospeak.core.services.twitter.TwitterConf
 import gospeak.core.services.upload.UploadConf
 import gospeak.core.{ApplicationConf, GsConf}
-import gospeak.web.auth.AuthConf
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
-import gospeak.libs.scala.domain.{Creds, Secret}
+import gospeak.libs.scala.domain.{Creds, Mustache, Secret}
+import gospeak.web.auth.AuthConf
 import play.api.Configuration
 import play.api.mvc.Cookie.SameSite
 import pureconfig.error.{CannotConvert, ConfigReaderFailure, ConfigReaderFailures, ConvertFailure}
@@ -92,7 +91,7 @@ object AppConf {
     private implicit val uploadConfUrlReader: ConfigReader[UploadConf.Url] = deriveReader[UploadConf.Url]
     private implicit val uploadConfCloudinaryReader: ConfigReader[UploadConf.Cloudinary] = deriveReader[UploadConf.Cloudinary]
 
-    private implicit def markdownTmplReader[A]: ConfigReader[MustacheMarkdownTmpl[A]] = (cur: ConfigCursor) => cur.asString.map(_.stripPrefix("\n")).map(MustacheMarkdownTmpl[A])
+    private implicit def markdownTmplReader[A]: ConfigReader[Mustache.Markdown[A]] = (cur: ConfigCursor) => cur.asString.map(_.stripPrefix("\n")).map(Mustache.Markdown[A])
 
     private implicit val gospeakEventConfReader: ConfigReader[GsConf.EventConf] = deriveReader[GsConf.EventConf]
 

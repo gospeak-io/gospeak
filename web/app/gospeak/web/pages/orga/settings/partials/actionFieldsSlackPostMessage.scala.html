@@ -4,7 +4,7 @@
 @(field: Field, templateTarget: String)(implicit req: OrgaReq[AnyContent])
 @inputHidden(field("kind"), Seq("value" -> "Slack.PostMessage"))
 @fieldVertical(field("channel"), Seq("label" -> "Channel", "help" -> "Which channel should be used")) { (field, args) =>
-    @inputTemplate(field, target = Some(templateTarget), multiline = false)
+    @inputTemplate(field, target = Some(templateTarget), multiline = false, markdown = false)
 }
 @fieldVertical(field("message"), Seq("label" -> "Message")) { (field, args) =>
     @inputTemplate(field, target = Some(templateTarget))

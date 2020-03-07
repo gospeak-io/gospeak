@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit
 import gospeak.core.domain._
 import gospeak.core.testingutils.Generators._
 import gospeak.web.utils.Mappings._
-import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import gospeak.libs.scala.domain._
 import org.scalatest.{FunSpec, Matchers}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
@@ -207,7 +206,7 @@ class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
       }
     }
     it("should bind & unbind a Template") {
-      forAll { v: MustacheMarkdownTmpl[Any] =>
+      forAll { v: Mustache.Markdown[Any] =>
         val data = template.unbind(v)
         template.bind(data) shouldBe Right(v)
       }

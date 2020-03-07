@@ -9,7 +9,6 @@ import gospeak.core.domain.utils.{Constants, Info}
 import gospeak.core.services.meetup.domain.MeetupGroup
 import gospeak.libs.scala.Crypto
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import gospeak.libs.scala.domain.TimePeriod.PeriodUnit
 import gospeak.libs.scala.domain._
 import org.scalacheck.ScalacheckShapeless._
@@ -120,7 +119,7 @@ object Generators {
   implicit val aUserRequest = implicitly[Arbitrary[UserRequest]]
   implicit val aExternalCfp = implicitly[Arbitrary[ExternalCfp]]
 
-  implicit val aTemplate = implicitly[Arbitrary[MustacheMarkdownTmpl[Any]]]
+  implicit val aTemplate = implicitly[Arbitrary[Mustache.Markdown[Any]]]
   implicit val aGroupSettingsActionTrigger = implicitly[Arbitrary[Group.Settings.Action.Trigger]]
   implicit val aGroupSettingsAction = implicitly[Arbitrary[Group.Settings.Action]]
 }

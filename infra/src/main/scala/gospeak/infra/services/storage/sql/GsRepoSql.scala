@@ -6,8 +6,8 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import gospeak.core.domain.Contact.{FirstName, LastName}
 import gospeak.core.domain._
+import gospeak.core.domain.messages.Message
 import gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
-import gospeak.core.domain.utils.TemplateData.EventInfo
 import gospeak.core.domain.utils._
 import gospeak.core.services.slack.domain.SlackAction
 import gospeak.core.services.storage.{DbConf, GsRepo}
@@ -17,7 +17,6 @@ import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import gospeak.infra.services.storage.sql.utils.{DoobieUtils, FlywayUtils}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.StringUtils
-import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import gospeak.libs.scala.domain.TimePeriod._
 import gospeak.libs.scala.domain._
 import org.slf4j.LoggerFactory
@@ -102,11 +101,11 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     def proposal(talk: Talk, cfp: Cfp, status: Proposal.Status = Proposal.Status.Pending, orgaTags: Seq[String] = Seq()): Proposal =
       Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, status, talk.title, talk.duration, talk.description, Markdown(""), talk.speakers, talk.slides, talk.video, talk.tags, orgaTags.map(Tag(_)), talk.info)
 
-    def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, maxAttendee: Option[Int], allowRsvp: Boolean = false, venue: Option[Venue] = None, description: MustacheMarkdownTmpl[EventInfo] = MustacheMarkdownTmpl[EventInfo](""), tags: Seq[String] = Seq(), published: Boolean = true): Event =
+    def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, maxAttendee: Option[Int], allowRsvp: Boolean = false, venue: Option[Venue] = None, description: Mustache.Markdown[Message.EventInfo] = Mustache.Markdown[Message.EventInfo](""), tags: Seq[String] = Seq(), published: Boolean = true): Event =
       Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), Event.Kind.Meetup, LocalDateTime.parse(s"${date}T19:00:00"), maxAttendee, allowRsvp, description, Event.Notes("", now, by.id), venue.map(_.id), Seq(), tags.map(Tag(_)), if (published) Some(Instant.parse(date + "T06:06:24.074Z")) else None, Event.ExtRefs(), Info(by.id, now))
 
     def partner(g: Group, name: String, notes: String, description: Option[String], logo: Int, by: User, social: SocialAccounts = SocialAccounts.fromUrls()): Partner =
-      Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(notes), description.map(Markdown), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").map(Logo).get, social, Info(by.id, now))
+      Partner(Partner.Id.generate(), g.id, Partner.Slug.from(StringUtils.slugify(name)).get, Partner.Name(name), Markdown(notes), description.map(Markdown(_)), Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-$logo.png").map(Logo).get, social, Info(by.id, now))
 
     def contact(partner: Partner, email: String, firstName: String, lastName: String, by: User, description: String = ""): Contact =
       Contact(Contact.Id.generate(), partner.id, FirstName(firstName), LastName(lastName), EmailAddress.from(email).get, Markdown(description), Info(by.id, now))
@@ -245,13 +244,13 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       actions = Map(
         Group.Settings.Action.Trigger.OnEventCreated -> Seq(
           Group.Settings.Action.Slack(SlackAction.PostMessage(
-            MustacheMarkdownTmpl("{{event.start.year}}_{{event.start.month}}"),
-            MustacheMarkdownTmpl("Meetup [{{event.name}}]({{event.link}}) créé !"),
+            Mustache.Text("{{event.start.year}}_{{event.start.month}}"),
+            Mustache.Markdown("Meetup [{{event.name}}]({{event.link}}) créé !"),
             createdChannelIfNotExist = true,
             inviteEverybody = true)))),
       event = groupDefaultSettings.event.copy(
         templates = Map(
-          "ROTI" -> MustacheTextTmpl[TemplateData.EventInfo](humanTalksRoti))))
+          "ROTI" -> Mustache.Text[Message.EventInfo](humanTalksRoti))))
 
     val cfp1 = cfp(humanTalks, "ht-paris", "HumanTalks Paris", None, None, "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq("tag1", "tag2"), userDemo)
     val cfp2 = cfp(humanTalks, "ht-paris-day-1", "HumanTalks Paris Day - Edition 1", None, Some("2018-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
@@ -309,7 +308,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     val packs = Seq(base, premium, old)
 
     val sponsor1 = sponsor(humanTalks, zeeneaHT, base, userDemo, "2018-01-01", "2019-01-01", Some(zeeneaHTJean))
-    val sponsor2 = sponsor(humanTalks, zeeneaHT, premium, userDemo, "2019-01-01", "2020-01-01")
+    val sponsor2 = sponsor(humanTalks, zeeneaHT, premium, userDemo, "2020-01-01", "2021-01-01")
     val sponsor3 = sponsor(humanTalks, nexeo, base, userDemo, "2018-01-01", "2019-01-01")
     val sponsors = Seq(sponsor1, sponsor2, sponsor3)
 
@@ -332,7 +331,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       val cfpId = Cfp.Id.generate()
       val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), None, None, None, None, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), None, NonEmptyList.of(userOrga.id), SocialAccounts.fromUrls(), Seq(), Group.Status.Active, Info(userOrga.id, now))
       val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), None, None, Markdown("Only your best talks !"), Seq(), Info(userOrga.id, now))
-      val e = Event(Event.Id.generate(), bigGroup.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), Event.Kind.Meetup, LocalDateTime.parse("2019-03-12T19:00:00"), Some(100), allowRsvp = false, MustacheMarkdownTmpl(""), Event.Notes("", now, userOrga.id), None, Seq(), Seq(), Some(now), Event.ExtRefs(), Info(userOrga.id, now))
+      val e = Event(Event.Id.generate(), bigGroup.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), Event.Kind.Meetup, LocalDateTime.parse("2019-03-12T19:00:00"), Some(100), allowRsvp = false, Mustache.Markdown(""), Event.Notes("", now, userOrga.id), None, Seq(), Seq(), Some(now), Event.ExtRefs(), Info(userOrga.id, now))
       val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Status.Public, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), Markdown(""), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Info(userSpeaker.id, now))
       val p = Proposal(Proposal.Id.generate(), bigTalk.id, cfpId, None, Proposal.Status.Pending, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Markdown("temporary description"), Markdown(""), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Seq(), Info(userSpeaker.id, now))
       val pa = Partner(Partner.Id.generate(), bigGroup.id, Partner.Slug.from(s"z-partner-$i").get, Partner.Name(s"Z Partner $i"), Markdown(""), None, Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-3.png").map(Logo).get, SocialAccounts.fromUrls(), Info(userOrga.id, now))
@@ -372,186 +371,250 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     s"""<!doctype html>
        |<html lang="en">
        |<head>
-       |  <meta charset="utf-8">
-       |  <meta name='viewport' content='width=device-width, initial-scale=1' />
-       |  <title>{{event.name}} ROTI</title>
-       |  <style>
-       |    body {
-       |      font-family: helvetica;
-       |      display: flex;
-       |      flex-direction:column;
-       |      height: 100vh;
-       |      max-height: calc(100vh - 20px);
-       |      padding: 10px;
-       |      margin: 0;
-       |    }
-       |    h1 {
-       |      text-align: center;
-       |      font-size: 3rem;
-       |      font-weight: normal;
-       |      flex-shrink: 0;
-       |      margin: 20px 0;
-       |      margin-left: -20px;
-       |      font-weight: bold;
-       |      color: #790257;
-       |    }
-       |    .grid {
-       |      display: grid;
-       |      height: calc(100% - 95px);
-       |      grid-template-columns: 20% repeat(3, 1fr);
-       |      grid-template-rows: 75px repeat(5, 1fr);
-       |      border: 2px solid #790257;
-       |      border-top: none;
-       |      flex-grow: 1;
-       |      border-radius: 15px;
-       |      overflow: hidden;
-       |    }
-       |    .grid > :nth-child(4n + 1) {
-       |      border-left: none;
-       |    }
-       |    .grid > :nth-child(4n) {
-       |      border-right: none;
-       |    }
-       |    .grid > :nth-last-child(1),
-       |    .grid > :nth-last-child(2),
-       |    .grid > :nth-last-child(3),
-       |    .grid > :nth-last-child(4) {
-       |      border-bottom: none;
-       |    }
-       |    .grid > :nth-child(1),
-       |    .grid > :nth-child(2),
-       |    .grid > :nth-child(3),
-       |    .grid > :nth-child(4) {
-       |      border-top: none;
-       |    }
-       |    .grid > * {
-       |      border: 1px solid #790257;
-       |      display: flex;
-       |      align-items: center;
-       |      align-content: center;
-       |      flex-wrap: wrap;
-       |      position: relative;
-       |    }
-       |    .good, .average, .bad {
-       |      justify-content: center;
-       |    }
-       |    .title {
-       |      padding: 10px;
-       |      font-size: 1.2rem;
-       |    }
-       |    .title > span {
-       |      max-width: 100%;
-       |    }
-       |    .talker {
-       |      width: calc(100% - 50px);
-       |      font-size: 1rem;
-       |      font-style: italic;
-       |      color: darkgrey;
-       |    }
-       |    .logo {
-       |      width: 100px;
-       |      transform: rotate(-15deg);
-       |      display: block;
-       |      margin-top: -40px;
-       |    }
-       |    .date {
-       |      display: flex;
-       |      align-items: center;
-       |      justify-content: center;
-       |      font-size: 1.5rem;
-       |      color: darkgrey;
-       |      text-align: center;
-       |      font-style: italic;
-       |      text-transform: capitalize;
-       |    }
-       |    .main-title {
-       |      display: flex;
-       |      align-items: center;
-       |      justify-content: center;
-       |      height: 80px;
-       |      padding-top: 10px;
-       |    }
-       |    .title-cell.date {
-       |      justify-content: space-around;
-       |    }
-       |    .title-cell {
-       |      -webkit-print-color-adjust: exact;
-       |      background-color: #790257;
-       |      border-left-color: white;
-       |      border-right-color: white;
-       |      color: white;
-       |    }
-       |    .title-cell:first-child {
-       |        border-left-color: #790257;
-       |    }
-       |    .title-cell:nth-child(4) {
-       |        border-right-color: #790257;
-       |    }
-       |    .avatar {
-       |      position: absolute;
-       |      right: 5px;
-       |      bottom: 5px;
-       |    }
-       |    .avatar > img {
-       |      display: block;
-       |      margin-left: auto;
-       |      border-radius: 50%;
-       |      width: 50px;
-       |    }
-       |    .sponsor {
-       |        display: block;
-       |        margin: 0 auto;
-       |        margin-top: 10px;
-       |        text-align: center;
-       |    }
-       |    .sponsor > img {
-       |        height: 50px;
-       |    }
-       |    .url {
-       |      font-size: 0.8rem;
-       |      font-weight: bold;
-       |      font-style: italic;
-       |      text-align: right;
-       |      margin-top: 5px;
-       |      margin-right: 15px;
-       |    }
-       |    @media print {
-       |      body {
-       |        margin: 0;
-       |      }
-       |    }
-       |  </style>
+       |    <meta charset="utf-8">
+       |    <meta name='viewport' content='width=device-width, initial-scale=1'/>
+       |    <title>ROTI - {{event.name}}</title>
+       |    <style>
+       |        body {
+       |            font-family: helvetica;
+       |            display: flex;
+       |            flex-direction: column;
+       |            height: 100vh;
+       |            max-height: calc(100vh - 20px);
+       |            padding: 10px;
+       |            margin: 0;
+       |        }
+       |
+       |        h1 {
+       |            text-align: center;
+       |            font-size: 3rem;
+       |            font-weight: normal;
+       |            flex-shrink: 0;
+       |            margin: 20px 0;
+       |            margin-left: -20px;
+       |            font-weight: bold;
+       |            color: #790257;
+       |        }
+       |
+       |        .grid {
+       |            display: grid;
+       |            height: calc(100% - 95px);
+       |            grid-template-columns: 20% repeat(3, 1fr);
+       |            grid-template-rows: 75px repeat(5, 1fr);
+       |            border: 2px solid #790257;
+       |            border-top: none;
+       |            flex-grow: 1;
+       |            border-radius: 15px;
+       |            overflow: hidden;
+       |        }
+       |
+       |        .grid > :nth-child(4n + 1) {
+       |            border-left: none;
+       |        }
+       |
+       |        .grid > :nth-child(4n) {
+       |            border-right: none;
+       |        }
+       |
+       |        .grid > :nth-last-child(1),
+       |        .grid > :nth-last-child(2),
+       |        .grid > :nth-last-child(3),
+       |        .grid > :nth-last-child(4) {
+       |            border-bottom: none;
+       |        }
+       |
+       |        .grid > :nth-child(1),
+       |        .grid > :nth-child(2),
+       |        .grid > :nth-child(3),
+       |        .grid > :nth-child(4) {
+       |            border-top: none;
+       |        }
+       |
+       |        .grid > * {
+       |            border: 1px solid #790257;
+       |            display: flex;
+       |            align-items: center;
+       |            align-content: center;
+       |            flex-wrap: wrap;
+       |            position: relative;
+       |        }
+       |
+       |        .good, .average, .bad {
+       |            justify-content: center;
+       |        }
+       |
+       |        .title {
+       |            padding: 10px;
+       |            font-size: 1.2rem;
+       |        }
+       |
+       |        .title > span {
+       |            max-width: 100%;
+       |        }
+       |
+       |        .talker {
+       |            width: calc(100% - 50px);
+       |            font-size: 1rem;
+       |            font-style: italic;
+       |            color: darkgrey;
+       |        }
+       |
+       |        .logo {
+       |            width: 100px;
+       |            transform: rotate(-15deg);
+       |            display: block;
+       |            margin-top: -40px;
+       |        }
+       |
+       |        .date {
+       |            display: flex;
+       |            align-items: center;
+       |            justify-content: center;
+       |            font-size: 1.5rem;
+       |            color: darkgrey;
+       |            text-align: center;
+       |            font-style: italic;
+       |            text-transform: capitalize;
+       |        }
+       |
+       |        .main-title {
+       |            display: flex;
+       |            align-items: center;
+       |            justify-content: center;
+       |            height: 80px;
+       |            padding-top: 10px;
+       |        }
+       |
+       |        .title-cell.date {
+       |            justify-content: space-around;
+       |        }
+       |
+       |        .title-cell {
+       |            -webkit-print-color-adjust: exact;
+       |            background-color: #790257;
+       |            border-left-color: white;
+       |            border-right-color: white;
+       |            color: white;
+       |        }
+       |
+       |        .title-cell:first-child {
+       |            border-left-color: #790257;
+       |        }
+       |
+       |        .title-cell:nth-child(4) {
+       |            border-right-color: #790257;
+       |        }
+       |
+       |        .avatar {
+       |            position: absolute;
+       |            right: 5px;
+       |            bottom: 5px;
+       |        }
+       |
+       |        .avatar > img {
+       |            display: block;
+       |            margin-left: auto;
+       |            border-radius: 50%;
+       |            width: 50px;
+       |        }
+       |
+       |        .sponsor {
+       |            display: block;
+       |            margin: 0 auto;
+       |            margin-top: 10px;
+       |            text-align: center;
+       |        }
+       |
+       |        .sponsor > img {
+       |            height: 50px;
+       |        }
+       |
+       |        .url {
+       |            font-size: 0.8rem;
+       |            font-weight: bold;
+       |            font-style: italic;
+       |            text-align: right;
+       |            margin-top: 5px;
+       |            margin-right: 15px;
+       |        }
+       |
+       |        @media print {
+       |            body {
+       |                margin: 0;
+       |            }
+       |        }
+       |    </style>
        |</head>
        |<body>
-       |  <div class="main-title">
+       |<div class="main-title">
        |    <h1>Donnez votre avis !</h1>
-       |  </div>
-       |  <div class="grid">
-       |    <div class="date title-cell">juillet<br/>2019</div>
-       |    <div class="good title-cell"><svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 5.8208332 5.8208335"><g transform="translate(-11.33-290.78)"><circle r="5.5" cy="542.35" cx="488.27" stroke="white" fill="none" stroke-width="0.75" transform="matrix(.43294 0 0 .43294-197.15 58.882)"/><g transform="translate(-12.12 3.336)" fill="none" fill-rule="evenodd" stroke="white" stroke-linecap="round" stroke-width=".3"><path d="m24.674 290.11c.003-.572.683-.632.815-.107"/><path d="m27.24 289.86c.003-.572.683-.632.815-.107"/><path d="m25.03 290.76c.755.849 1.97.693 2.676-.081"/></g></g></svg></div>
-       |    <div class="average title-cell"><svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 5.8208332 5.8208335"><g transform="matrix(-.43294 0 0 .43294 209.54-231.57)"><circle cx="469.83" cy="542.55" r="5.5" transform="translate(7.44-.975)" stroke="white" fill="none"stroke-width="0.75"/><g transform="translate(-10.87 -1)" fill="white"><circle cx="485.13" cy="542.3" r=".9"/><circle cx="491.15" cy="542.3" r=".9"/></g><path d="m475.38 544.35c0 0 .19-.614 1.402-.55.267.014.678.165.938.393.653.573 1.452.309 1.452.309" fill="none" fill-rule="evenodd" stroke="white" stroke-linecap="round" stroke-width=".75"/></g></svg></div>
-       |    <div class="bad title-cell"><svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 5.8208332 5.8208335"><g transform="matrix(.29032 0 0 .29032 2.065-82.47)"><g transform="matrix(1.49127 0 0 1.49127-725.23-514.71)"><circle r="5.5" cy="542.35" cx="488.27" stroke="white" fill="none"stroke-width="0.75"/><g fill="white"><circle cx="485.18" cy="542.3" r=".9"/><circle cx="491.35" cy="542.3" r=".9"/></g></g><path d="m1.455 298.59c.476-1.323 2.476-1.323 2.91 0" fill="none" fill-rule="evenodd" stroke="white" stroke-linejoin="round" stroke-linecap="round" stroke-width="1.25"/></g></svg></div>
-       |    {{#talks}}
+       |</div>
+       |<div class="grid">
+       |    <div class="date title-cell">{{event.start.monthStr}}<br/>{{event.start.year}}</div>
+       |    <div class="good title-cell">
+       |        <svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 5.8208332 5.8208335">
+       |            <g transform="translate(-11.33-290.78)">
+       |                <circle r="5.5" cy="542.35" cx="488.27" stroke="white" fill="none" stroke-width="0.75"
+       |                        transform="matrix(.43294 0 0 .43294-197.15 58.882)"/>
+       |                <g transform="translate(-12.12 3.336)" fill="none" fill-rule="evenodd" stroke="white"
+       |                   stroke-linecap="round" stroke-width=".3">
+       |                    <path d="m24.674 290.11c.003-.572.683-.632.815-.107"/>
+       |                    <path d="m27.24 289.86c.003-.572.683-.632.815-.107"/>
+       |                    <path d="m25.03 290.76c.755.849 1.97.693 2.676-.081"/>
+       |                </g>
+       |            </g>
+       |        </svg>
+       |    </div>
+       |    <div class="average title-cell">
+       |        <svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 5.8208332 5.8208335">
+       |            <g transform="matrix(-.43294 0 0 .43294 209.54-231.57)">
+       |                <circle cx="469.83" cy="542.55" r="5.5" transform="translate(7.44-.975)" stroke="white" fill="none"
+       |                        stroke-width="0.75"/>
+       |                <g transform="translate(-10.87 -1)" fill="white">
+       |                    <circle cx="485.13" cy="542.3" r=".9"/>
+       |                    <circle cx="491.15" cy="542.3" r=".9"/>
+       |                </g>
+       |                <path d="m475.38 544.35c0 0 .19-.614 1.402-.55.267.014.678.165.938.393.653.573 1.452.309 1.452.309"
+       |                      fill="none" fill-rule="evenodd" stroke="white" stroke-linecap="round" stroke-width=".75"/>
+       |            </g>
+       |        </svg>
+       |    </div>
+       |    <div class="bad title-cell">
+       |        <svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 5.8208332 5.8208335">
+       |            <g transform="matrix(.29032 0 0 .29032 2.065-82.47)">
+       |                <g transform="matrix(1.49127 0 0 1.49127-725.23-514.71)">
+       |                    <circle r="5.5" cy="542.35" cx="488.27" stroke="white" fill="none" stroke-width="0.75"/>
+       |                    <g fill="white">
+       |                        <circle cx="485.18" cy="542.3" r=".9"/>
+       |                        <circle cx="491.35" cy="542.3" r=".9"/>
+       |                    </g>
+       |                </g>
+       |                <path d="m1.455 298.59c.476-1.323 2.476-1.323 2.91 0" fill="none" fill-rule="evenodd" stroke="white"
+       |                      stroke-linejoin="round" stroke-linecap="round" stroke-width="1.25"/>
+       |            </g>
+       |        </svg>
+       |    </div>
+       |    {{#event.proposals}}
        |    <div class="title">
-       |      <span>{{title}}</span>
-       |      {{#speakers}}<span class="talker">Par {{name}}</span>{{/speakers}}
-       |      {{#speakers}}{{#-first}}<span class="avatar"><img src="{{avatar}}"/></span>{{/-first}}{{/speakers}}
+       |        <span>{{title}}</span>
+       |        {{#speakers}}<span class="talker">Par {{name}}</span>{{/speakers}}
+       |        {{#speakers}}{{#-first}}<span class="avatar"><img src="{{avatar}}"/></span>{{/-first}}{{/speakers}}
        |    </div>
        |    <div class="good"></div>
        |    <div class="average"></div>
        |    <div class="bad"></div>
-       |    {{/talks}}
-       |    {{#venue}}
+       |    {{/event.proposals}}
+       |    {{#event.venue}}
        |    <div class="title">
-       |      <span>La salle et le buffet</span>
-       |      <span class="sponsor"><img src="{{logoUrl}}"/></span>
+       |        <span>La salle et le buffet</span>
+       |        <span class="sponsor"><img src="{{logo}}"/></span>
        |    </div>
        |    <div class="good"></div>
        |    <div class="average"></div>
        |    <div class="bad"></div>
-       |    {{/venue}}
-       |  </div>
-       |  <div class="url">http://humantalks.com/paris</div>
+       |    {{/event.venue}}
+       |</div>
+       |<div class="url">https://gospeak.io/groups/humantalks-paris</div>
        |</body>
        |</html>
     """.stripMargin

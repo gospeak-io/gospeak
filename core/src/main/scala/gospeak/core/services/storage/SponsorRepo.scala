@@ -25,6 +25,8 @@ trait OrgaSponsorRepo {
   def listAll(contact: Contact.Id)(implicit ctx: OrgaCtx): IO[Seq[Sponsor]]
 
   def listAllFull(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Seq[Sponsor.Full]]
+
+  def listCurrentFull(group: Group.Id, now: Instant): IO[Seq[Sponsor.Full]]
 }
 
 trait PublicSponsorRepo {

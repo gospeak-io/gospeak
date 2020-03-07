@@ -1,5 +1,5 @@
 @import gospeak.core.domain.Group
-@import gospeak.core.domain.utils.TemplateData
+@import gospeak.core.domain.messages.Message
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.utils.GsForms
@@ -7,7 +7,7 @@
 
 @(actionForm: Form[GsForms.GroupAction])(implicit req: OrgaReq[AnyContent])
 @fieldHorizontal(actionForm("trigger"), Seq("label" -> "Trigger", "help" -> "Choose the trigger you want for your action")) { (field, args) =>
-    @inputSelect(field, Group.Settings.Action.Trigger.all.map(t => (t.toString, t.name)), Seq("placeholder" -> "") ++ args)
+    @inputSelect(field, Group.Settings.Action.Trigger.all.map(t => (t.message.value, t.label)), Seq("placeholder" -> "") ++ args)
 }
 <div class="row">
     <div class="col-7">
@@ -18,6 +18,6 @@
         ), 4)
     </div>
     <div class="col-5">
-        @displayTemplateData(ref = actionForm("trigger").value.flatMap(v => TemplateData.Ref.from(v).toOption), target = Some(actionForm("trigger").id))
+        @displayTemplateData(ref = actionForm("trigger").value.flatMap(v => Message.Ref.from(v).toOption), target = Some(actionForm("trigger").id))
     </div>
 </div>

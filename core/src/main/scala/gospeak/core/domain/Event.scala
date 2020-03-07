@@ -3,10 +3,10 @@ package gospeak.core.domain
 import java.time.{Instant, LocalDateTime}
 
 import gospeak.core.domain.Event.Notes
-import gospeak.core.domain.utils.{Constants, Info, TemplateData}
+import gospeak.core.domain.messages.Message
+import gospeak.core.domain.utils.{Constants, Info}
 import gospeak.core.services.meetup.domain.MeetupEvent
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
 import gospeak.libs.scala.domain._
 
 final case class Event(id: Event.Id,
@@ -19,7 +19,7 @@ final case class Event(id: Event.Id,
                        maxAttendee: Option[Int],
                        allowRsvp: Boolean,
                        // duration: Option[Duration]
-                       description: MustacheMarkdownTmpl[TemplateData.EventInfo],
+                       description: Mustache.Markdown[Message.EventInfo],
                        orgaNotes: Notes,
                        venue: Option[Venue.Id],
                        talks: Seq[Proposal.Id],
@@ -127,7 +127,7 @@ object Event {
 
     def kind: Kind = event.kind
 
-    def description: MustacheMarkdownTmpl[TemplateData.EventInfo] = event.description
+    def description: Mustache.Markdown[Message.EventInfo] = event.description
 
     def orgaNotes: Notes = event.orgaNotes
 
@@ -164,7 +164,7 @@ object Event {
                         maxAttendee: Option[Int],
                         allowRsvp: Boolean,
                         venue: Option[Venue.Id],
-                        description: MustacheMarkdownTmpl[TemplateData.EventInfo],
+                        description: Mustache.Markdown[Message.EventInfo],
                         tags: Seq[Tag],
                         refs: Event.ExtRefs)
 

@@ -1,5 +1,5 @@
 @import gospeak.core.domain.Event
-@import gospeak.core.domain.utils.TemplateData
+@import gospeak.core.domain.messages.Message
 @import gospeak.web.api.ui.routes.SuggestCtrl
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.events.routes.EventCtrl
@@ -46,10 +46,10 @@
         @fieldVertical(form("description"), Seq("label" -> "Description", "help" -> "Description of your event")) { (field, args) =>
             <div class="row">
                 <div class="col-6">
-                    @inputTemplate(field, ref = Some(TemplateData.EventInfo.ref), args = Seq("placeholder" -> "Event description") ++ args)
+                    @inputTemplate(field, ref = Some(Message.Ref.eventInfo), args = Seq("placeholder" -> "Event description") ++ args)
                 </div>
                 <div class="col-6">
-                    @displayTemplateData(Some(TemplateData.EventInfo.ref))
+                    @displayTemplateData(Some(Message.Ref.eventInfo))
                 </div>
             </div>
         }

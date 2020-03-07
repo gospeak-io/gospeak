@@ -4,7 +4,6 @@ import cats.data.{NonEmptyList, OptionT}
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.{Event, Group, Proposal}
-import gospeak.core.services.TemplateSrv
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.storage._
@@ -12,10 +11,12 @@ import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
-import gospeak.web.domain.{Breadcrumb, MessageBuilder}
+import gospeak.web.domain.Breadcrumb
 import gospeak.web.emails.Emails
 import gospeak.web.pages.published.HomeCtrl
 import gospeak.web.pages.published.groups.GroupCtrl._
+import gospeak.web.services.MessageSrv
+import gospeak.web.services.MessageSrv._
 import gospeak.web.utils.Extensions._
 import gospeak.web.utils.{GsForms, UICtrl, UserAwareReq}
 import play.api.mvc._
@@ -37,8 +38,7 @@ class GroupCtrl(cc: ControllerComponents,
                 groupSettingsRepo: PublicGroupSettingsRepo,
                 meetupSrv: MeetupSrv,
                 emailSrv: EmailSrv,
-                builder: MessageBuilder,
-                templateSrv: TemplateSrv) extends UICtrl(cc, silhouette, conf) {
+                ms: MessageSrv) extends UICtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     for {
       groups <- groupRepo.listFull(params)
@@ -141,8 +141,8 @@ class GroupCtrl(cc: ControllerComponents,
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
       userRsvp <- OptionT.liftF(req.user.map(_.id).map(eventRepo.findRsvp(eventElt.id, _)).sequence.map(_.flatten))
       rsvps <- OptionT.liftF(eventRepo.listRsvps(eventElt.id))
-      data = builder.buildEventInfo(eventElt, eventElt.cfp, proposals, speakers)
-      description = templateSrv.render(eventElt.description, data).getOrElse(Markdown(eventElt.description.value))
+      info <- OptionT.liftF(ms.eventInfo(groupElt, eventElt.event))
+      description = eventElt.description.render(info).getOrElse(Markdown("")) // FIXME
       b = breadcrumbEvent(groupElt, eventElt)
       res = Ok(html.event(groupElt, eventElt, description, proposals, speakers, comments, yesRsvp, userMembership, userRsvp, rsvps)(b))
     } yield res).value.map(_.getOrElse(publicEventNotFound(group, event)))

@@ -3,11 +3,11 @@ package gospeak.core.domain
 import java.time.Instant
 
 import cats.data.NonEmptyList
-import gospeak.core.domain.utils.{Constants, Info, SocialAccounts, TemplateData}
+import gospeak.core.domain.messages.Message
+import gospeak.core.domain.utils.{Constants, Info, SocialAccounts}
 import gospeak.core.services.meetup.domain.MeetupCredentials
 import gospeak.core.services.slack.domain.{SlackAction, SlackCredentials}
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.MustacheTmpl.{MustacheMarkdownTmpl, MustacheTextTmpl}
 import gospeak.libs.scala.domain._
 
 import scala.util.{Failure, Success, Try}
@@ -34,6 +34,8 @@ final case class Group(id: Group.Id,
     contact.map(email => EmailAddress.Contact(email, Some(name.value))),
     Some(EmailAddress.Contact(user.email, Some(user.name.value))),
     Some(Constants.Contact.noReply)).flatten
+
+  def users: List[User.Id] = (owners.toList ++ info.users).distinct
 }
 
 object Group {
@@ -163,13 +165,13 @@ object Group {
       case _ => Failure(new IllegalArgumentException(s"Account '$kind' does not exists"))
     }
 
-    def addEventTemplate(id: String, tmpl: MustacheTextTmpl[TemplateData.EventInfo]): Try[Settings] =
+    def addEventTemplate(id: String, tmpl: Mustache.Text[Message.EventInfo]): Try[Settings] =
       event.addTemplate(id, tmpl).map(e => copy(event = e))
 
     def removeEventTemplate(id: String): Try[Settings] =
       event.removeTemplate(id).map(e => copy(event = e))
 
-    def updateEventTemplate(oldId: String, newId: String, tmpl: MustacheMarkdownTmpl[TemplateData.EventInfo]): Try[Settings] =
+    def updateEventTemplate(oldId: String, newId: String, tmpl: Mustache.Markdown[Message.EventInfo]): Try[Settings] =
       event.updateTemplate(oldId, newId, tmpl).map(e => copy(event = e))
   }
 
@@ -178,53 +180,48 @@ object Group {
     final case class Accounts(meetup: Option[MeetupCredentials],
                               slack: Option[SlackCredentials])
 
-    // twitter: Option[String],
-    // youtube: Option[String])
-
     sealed trait Action
 
     object Action {
 
-      sealed abstract class Trigger(val name: String) extends StringEnum {
-        def value: String = toString
-
-        def getClassName: String = getClass.getName.split("[.$]").toList.last
+      sealed abstract class Trigger(val message: Message.Ref, val label: String) extends StringEnum {
+        def value: String = getClass.getName.split("[.$]").toList.last // like getSimpleName but avoid "Malformed class name"
       }
 
       object Trigger extends EnumBuilder[Trigger]("Group.Settings.Action.Trigger") {
 
-        case object OnEventCreated extends Trigger("When an Event is created")
+        case object OnEventCreated extends Trigger(Message.Ref.eventCreated, "When an Event is created")
 
-        case object OnEventAddTalk extends Trigger("When a Talk is added to an Event")
+        case object OnEventPublish extends Trigger(Message.Ref.eventPublished, "When an Event is published")
 
-        case object OnEventRemoveTalk extends Trigger("When a Talk is removed from an Event")
+        case object OnProposalCreated extends Trigger(Message.Ref.proposalCreated, "When a Proposal is submitted to a CFP")
 
-        case object OnEventPublish extends Trigger("When an Event is published")
+        case object OnEventAddTalk extends Trigger(Message.Ref.proposalAddedToEvent, "When a Talk is added to an Event")
 
-        case object OnProposalCreated extends Trigger("When a Proposal is submitted to a CFP")
+        case object OnEventRemoveTalk extends Trigger(Message.Ref.proposalRemovedFromEvent, "When a Talk is removed from an Event")
 
-        val all: Seq[Trigger] = Seq(OnEventCreated, OnEventAddTalk, OnEventRemoveTalk, OnEventPublish, OnProposalCreated)
+        val all: Seq[Trigger] = Seq(OnEventCreated, OnEventPublish, OnProposalCreated, OnEventAddTalk, OnEventRemoveTalk)
       }
 
-      final case class Email(to: MustacheTextTmpl[TemplateData],
-                             subject: MustacheTextTmpl[TemplateData],
-                             content: MustacheMarkdownTmpl[TemplateData]) extends Action
+      final case class Email(to: Mustache.Text[Any],
+                             subject: Mustache.Text[Any],
+                             content: Mustache.Markdown[Any]) extends Action
 
       final case class Slack(value: SlackAction) extends Action
 
     }
 
-    final case class Event(description: MustacheMarkdownTmpl[TemplateData.EventInfo],
-                           templates: Map[String, MustacheTextTmpl[TemplateData.EventInfo]]) {
-      private def defaultTemplates: Map[String, MustacheTmpl[TemplateData.EventInfo]] = Map(
+    final case class Event(description: Mustache.Markdown[Message.EventInfo],
+                           templates: Map[String, Mustache.Text[Message.EventInfo]]) {
+      private def defaultTemplates: Map[String, Mustache.Markdown[Message.EventInfo]] = Map(
         Event.descriptionTmplId -> Some(description),
       ).collect { case (id, Some(tmpl)) => (id, tmpl) }
 
-      def allTemplates: Seq[(String, Boolean, MustacheTmpl[TemplateData.EventInfo])] =
+      def allTemplates: Seq[(String, Boolean, Mustache[Message.EventInfo])] =
         defaultTemplates.toSeq.map { case (id, t) => (id, true, t) } ++
           templates.toSeq.map { case (id, t) => (id, false, t) }.sortBy(_._1)
 
-      def getTemplate(id: String): Option[MustacheTmpl[TemplateData.EventInfo]] =
+      def getTemplate(id: String): Option[Mustache[Message.EventInfo]] =
         defaultTemplates.get(id).orElse(templates.get(id))
 
       def removeTemplate(id: String): Try[Event] =
@@ -232,11 +229,11 @@ object Group {
         else if (Event.defaultTmplIds.contains(id)) Failure(new IllegalArgumentException(s"Template '$id' is a default one, unable to remove it"))
         else Failure(new IllegalArgumentException(s"Template '$id' does not exists, unable to remove it"))
 
-      def addTemplate(id: String, tmpl: MustacheTextTmpl[TemplateData.EventInfo]): Try[Event] =
+      def addTemplate(id: String, tmpl: Mustache.Text[Message.EventInfo]): Try[Event] =
         if (templates.contains(id) || Event.defaultTmplIds.contains(id)) Failure(new IllegalArgumentException(s"Template '$id' already exists, unable to add it"))
         else Success(copy(templates = templates ++ Map(id -> tmpl)))
 
-      def updateTemplate(oldId: String, newId: String, tmpl: MustacheTmpl[TemplateData.EventInfo]): Try[Event] =
+      def updateTemplate(oldId: String, newId: String, tmpl: Mustache[Message.EventInfo]): Try[Event] =
         if (newId == Event.descriptionTmplId) Success(copy(description = tmpl.asMarkdown))
         else removeTemplate(oldId).mapFailure(e => new IllegalArgumentException(s"Template '$oldId' does not exists, unable to update it", e))
           .flatMap(_.addTemplate(newId, tmpl.asText).mapFailure(e => new IllegalArgumentException(s"Template '$newId' already exists, unable to rename to it", e)))

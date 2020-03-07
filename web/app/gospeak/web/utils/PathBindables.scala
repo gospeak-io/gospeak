@@ -1,7 +1,7 @@
 package gospeak.web.utils
 
 import gospeak.core.domain._
-import gospeak.core.domain.utils.TemplateData
+import gospeak.core.domain.messages.Message
 import gospeak.core.services.meetup.domain.MeetupGroup
 import gospeak.libs.scala.domain.{CustomException, EmailAddress}
 import play.api.mvc.PathBindable
@@ -66,8 +66,8 @@ object PathBindables {
   implicit def contactIdPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Contact.Id] =
     stringEitherPathBindable[Contact.Id](Contact.Id.from, _.value)
 
-  implicit def templateDataRefPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[TemplateData.Ref] =
-    stringEitherPathBindable[TemplateData.Ref](TemplateData.Ref.from, _.value)
+  implicit def messageRefPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[Message.Ref] =
+    stringEitherPathBindable[Message.Ref](Message.Ref.from, _.value)
 
   implicit def sponsorPackSlugPathBinder(implicit stringBinder: PathBindable[String]): PathBindable[SponsorPack.Slug] =
     stringEitherPathBindable[SponsorPack.Slug](SponsorPack.Slug.from, _.value)

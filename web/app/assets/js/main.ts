@@ -403,12 +403,14 @@ declare const cloudinary;
         if ($gallery) {
             const $search = $gallery.find('input');
             const url = $gallery.attr('data-remote');
-            fetch(url).then(res => res.json()).then(json => {
-                json.data
-                    .map(parseImageUrl)
-                    .sort((a, b) => a.publicId.localeCompare(b.publicId))
-                    .forEach(image => addToGallery($gallery, image));
-            });
+            if (url) {
+                fetch(url).then(res => res.json()).then(json => {
+                    json.data
+                        .map(parseImageUrl)
+                        .sort((a, b) => a.publicId.localeCompare(b.publicId))
+                        .forEach(image => addToGallery($gallery, image));
+                });
+            }
             $gallery.on('shown.bs.collapse', function () {
                 $search.focus();
             });

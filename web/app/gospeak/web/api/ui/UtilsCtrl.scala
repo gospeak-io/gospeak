@@ -3,22 +3,21 @@ package gospeak.web.api.ui
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.ExternalCfp
-import gospeak.core.domain.utils.TemplateData
+import gospeak.core.domain.messages.Message
 import gospeak.core.services.cloudinary.CloudinarySrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.slack.domain.SlackToken
 import gospeak.core.services.storage.PublicExternalCfpRepo
-import gospeak.core.services.{MarkdownSrv, TemplateSrv}
-import gospeak.infra.services.{EmbedSrv, TemplateSrvImpl}
+import gospeak.infra.services.EmbedSrv
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Html, Markdown, Mustache, Url}
 import gospeak.web.AppConf
 import gospeak.web.api.domain.ApiExternalCfp
 import gospeak.web.api.domain.utils.ApiResult
 import gospeak.web.api.ui.helpers.JsonFormats._
 import gospeak.web.auth.domain.CookieEnv
+import gospeak.web.services.MessageSrv
 import gospeak.web.utils.ApiCtrl
-import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.MustacheTmpl.MustacheMarkdownTmpl
-import gospeak.libs.scala.domain.{Html, Markdown, Url}
 import play.api.libs.json._
 import play.api.mvc._
 import play.twirl.api.HtmlFormat
@@ -29,7 +28,7 @@ case class ValidationResult(valid: Boolean, message: String)
 
 case class TemplateDataResponse(data: JsValue)
 
-case class TemplateRequest(template: MustacheMarkdownTmpl[TemplateData], ref: Option[TemplateData.Ref], markdown: Boolean)
+case class TemplateRequest(template: Mustache.Markdown[Any], ref: Option[Message.Ref], markdown: Boolean)
 
 case class TemplateResponse(result: Option[Html], error: Option[String])
 
@@ -39,8 +38,7 @@ class UtilsCtrl(cc: ControllerComponents,
                 externalCfpRepo: PublicExternalCfpRepo,
                 cloudinarySrv: Option[CloudinarySrv],
                 slackSrv: SlackSrv,
-                templateSrv: TemplateSrv,
-                markdownSrv: MarkdownSrv) extends ApiCtrl(cc, silhouette, conf) {
+                ms: MessageSrv) extends ApiCtrl(cc, silhouette, conf) {
   def cloudinarySignature(): Action[AnyContent] = UserAction[String] { implicit req =>
     val queryParams = req.queryString.flatMap { case (key, values) => values.headOption.map(value => (key, value)) }
     IO.pure(cloudinarySrv.map(_.signRequest(queryParams)) match {
@@ -66,28 +64,21 @@ class UtilsCtrl(cc: ControllerComponents,
   }
 
   def markdownToHtml(): Action[JsValue] = UserAwareActionJson[String, String] { implicit req =>
-    val md = Markdown(req.body)
-    val html = markdownSrv.render(md)
+    val html = Markdown(req.body).render
     IO.pure(ApiResult.of(html.value))
   }
 
-  def templateData(ref: TemplateData.Ref): Action[AnyContent] = UserAction[TemplateDataResponse] { implicit req =>
-    val data = TemplateData.Sample
-      .fromRef(ref)
-      .map(TemplateSrvImpl.asData)
-      .map(circeToPlay)
-      .getOrElse(Json.obj())
+  def templateData(ref: Message.Ref): Action[AnyContent] = UserAction[TemplateDataResponse] { implicit req =>
+    val data = circeToPlay(ms.sample(Some(ref)))
     IO.pure(ApiResult.of(TemplateDataResponse(data)))
   }
 
   def renderTemplate(): Action[JsValue] = UserActionJson[TemplateRequest, TemplateResponse] { implicit req =>
-    val template = req.body.ref
-      .flatMap(TemplateData.Sample.fromRef)
-      .map(templateSrv.render(req.body.template, _))
-      .getOrElse(templateSrv.render(req.body.template))
-    val res = template match {
-      case Left(err) => TemplateResponse(None, Some(err))
-      case Right(tmpl) if req.body.markdown => TemplateResponse(Some(markdownSrv.render(tmpl)), None)
+    val data = ms.sample(req.body.ref)(req.withBody(AnyContent()))
+    val tmpl = req.body.template.render(data)
+    val res = tmpl match {
+      case Left(err) => TemplateResponse(None, Some(err.message))
+      case Right(tmpl) if req.body.markdown => TemplateResponse(Some(tmpl.render), None)
       case Right(tmpl) => TemplateResponse(Some(Html(s"<pre>${HtmlFormat.escape(tmpl.value)}</pre>")), None)
     }
     IO.pure(ApiResult.of(res))

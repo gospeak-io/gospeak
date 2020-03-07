@@ -228,7 +228,7 @@ GET         /ui/cfps/duplicates                                                 
 GET         /ui/utils/embed                                                                gospeak.web.api.ui.UtilsCtrl.embed(url: Url)
 + nocsrf
 POST        /ui/utils/markdown-to-html                                                     gospeak.web.api.ui.UtilsCtrl.markdownToHtml
-GET         /ui/utils/template-data/:ref                                                   gospeak.web.api.ui.UtilsCtrl.templateData(ref: utils.TemplateData.Ref)
+GET         /ui/utils/template-data/:ref                                                   gospeak.web.api.ui.UtilsCtrl.templateData(ref: messages.Message.Ref)
 + nocsrf
 POST        /ui/utils/render-template                                                      gospeak.web.api.ui.UtilsCtrl.renderTemplate
 GET         /ui/suggest/tags                                                               gospeak.web.api.ui.SuggestCtrl.suggestTags

@@ -28,7 +28,7 @@ trait OrgaVenueRepo {
 
   def listAllFull(partner: Partner.Id): IO[Seq[Venue.Full]]
 
-  def listAllFull(venues: Seq[Venue.Id])(implicit ctx: OrgaCtx): IO[Seq[Venue.Full]]
+  def listAllFull(group: Group.Id, venues: Seq[Venue.Id]): IO[Seq[Venue.Full]]
 
   def findFull(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Option[Venue.Full]]
 

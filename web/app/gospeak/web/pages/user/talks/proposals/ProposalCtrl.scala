@@ -4,14 +4,16 @@ import cats.data.{NonEmptyList, OptionT}
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain._
+import gospeak.core.domain.messages.Message
 import gospeak.core.domain.utils.UserCtx
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.MessageBus
 import gospeak.libs.scala.domain.{Page, Slides, Video}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
-import gospeak.web.domain.{Breadcrumb, GsMessageBus}
+import gospeak.web.domain.Breadcrumb
 import gospeak.web.emails.Emails
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import gospeak.web.pages.user.talks.TalkCtrl
@@ -19,6 +21,7 @@ import gospeak.web.pages.user.talks.cfps.CfpCtrl
 import gospeak.web.pages.user.talks.cfps.routes.{CfpCtrl => CfpRoutes}
 import gospeak.web.pages.user.talks.proposals.ProposalCtrl._
 import gospeak.web.pages.user.talks.routes.{TalkCtrl => TalkRoutes}
+import gospeak.web.services.MessageSrv
 import gospeak.web.utils.Extensions._
 import gospeak.web.utils.{GsForms, UICtrl, UserReq}
 import play.api.data.Form
@@ -40,7 +43,8 @@ class ProposalCtrl(cc: ControllerComponents,
                    externalEventRepo: SpeakerExternalEventRepo,
                    commentRepo: SpeakerCommentRepo,
                    emailSrv: EmailSrv,
-                   mb: GsMessageBus) extends UICtrl(cc, silhouette, conf) {
+                   ms: MessageSrv,
+                   bus: MessageBus[Message]) extends UICtrl(cc, silhouette, conf) {
   def list(talk: Talk.Slug, params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     (for {
       talkElt <- OptionT(talkRepo.find(talk))
@@ -153,8 +157,7 @@ class ProposalCtrl(cc: ControllerComponents,
           talkElt <- OptionT(talkRepo.find(talk))
           cfpElt <- OptionT(cfpRepo.findRead(cfp))
           proposalElt <- OptionT.liftF(proposalRepo.create(talkElt.id, cfpElt.id, data, talkElt.speakers))
-          groupElt <- OptionT(groupRepo.find(cfpElt.group))
-          _ <- OptionT.liftF(mb.publishProposalCreated(groupElt, cfpElt, proposalElt))
+          _ <- OptionT(ms.proposalCreated(cfpElt, proposalElt)).map(bus.publish)
           msg = s"Well done! Your proposal <b>${proposalElt.title.value}</b> is proposed to <b>${cfpElt.name.value}</b>"
         } yield Redirect(routes.ProposalCtrl.detail(talk, cfp)).flashing("success" -> msg)).value.map(_.getOrElse(cfpNotFound(talk, cfp)))
       }

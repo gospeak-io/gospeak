@@ -15,29 +15,27 @@ import com.mohiva.play.silhouette.impl.providers.{DefaultSocialStateHandler, Soc
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.softwaremill.macwire.wire
 import gospeak.core.ApplicationConf
-import gospeak.core.domain.utils.GsMessage
-import gospeak.core.services._
+import gospeak.core.domain.messages.Message
 import gospeak.core.services.cloudinary.CloudinarySrv
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.storage._
 import gospeak.core.services.twitter.TwitterSrv
-import gospeak.libs.slack.SlackClient
+import gospeak.infra.services.AvatarSrv
 import gospeak.infra.services.email.EmailSrvFactory
 import gospeak.infra.services.meetup.MeetupSrvImpl
 import gospeak.infra.services.slack.SlackSrvImpl
 import gospeak.infra.services.storage.sql._
 import gospeak.infra.services.twitter.TwitterSrvImpl
 import gospeak.infra.services.upload.UploadSrvFactory
-import gospeak.infra.services.{AvatarSrv, MarkdownSrvImpl, TemplateSrvImpl}
+import gospeak.libs.scala.{BasicMessageBus, MessageBus}
+import gospeak.libs.slack.SlackClient
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
 import gospeak.web.auth.{AuthConf, AuthCtrl}
-import gospeak.web.domain.{GsMessageBus, MessageBuilder}
 import gospeak.web.pages._
-import gospeak.web.services.EventSrv
-import gospeak.libs.scala.{BasicMessageBus, MessageBus}
+import gospeak.web.services.{MessageHandler, MessageSrv}
 import org.slf4j.LoggerFactory
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.Cookie.SameSite
@@ -91,19 +89,16 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val externalProposal: ExternalProposalRepo = db.externalProposal
   lazy val authRepo: AuthRepo = wire[AuthRepo]
 
-  lazy val eventSrv: EventSrv = wire[EventSrv]
-  lazy val markdownSrv: MarkdownSrv = wire[MarkdownSrvImpl]
-  lazy val templateSrv: TemplateSrv = wire[TemplateSrvImpl]
   lazy val avatarSrv: AvatarSrv = wire[AvatarSrv]
   lazy val emailSrv: EmailSrv = EmailSrvFactory.from(conf.email)
   lazy val cloudinarySrv: Option[CloudinarySrv] = UploadSrvFactory.from(conf.upload)
   lazy val twitterSrv: Option[TwitterSrv] = conf.twitter.map(new TwitterSrvImpl(_, conf.app.env.isProd))
   lazy val meetupSrv: MeetupSrv = MeetupSrvImpl.from(conf.meetup, conf.app.baseUrl, conf.app.env.isProd)
-  lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient(), templateSrv)
-  lazy val messageBuilder: MessageBuilder = wire[MessageBuilder]
-  lazy val messageBus: MessageBus[GsMessage] = wire[BasicMessageBus[GsMessage]]
-  lazy val orgaMessageBus: GsMessageBus = wire[GsMessageBus]
+  lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient())
+  lazy val messageSrv: MessageSrv = wire[MessageSrv]
+  lazy val messageBus: MessageBus[Message] = wire[BasicMessageBus[Message]]
   lazy val messageHandler: MessageHandler = wire[MessageHandler]
+
   // start:Silhouette conf
   lazy val clock: Clock = Clock()
   lazy val idGenerator: SecureRandomIDGenerator = new SecureRandomIDGenerator()
@@ -231,7 +226,9 @@ class GsComponents(context: ApplicationLoader.Context)
       db.insertMockData().unsafeRunSync()
     }
 
-    messageBus.subscribe(messageHandler.handle)
+    messageBus.subscribe(messageHandler.logHandler)
+    messageBus.subscribe(messageHandler.gospeakHandler)
+    messageBus.subscribe(messageHandler.groupActionHandler)
 
     logger.info("Application initialized")
   }

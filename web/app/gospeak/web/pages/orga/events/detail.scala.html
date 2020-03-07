@@ -1,6 +1,6 @@
-@import gospeak.core.domain.utils.TemplateData
 @import gospeak.core.domain.{Cfp, Event, Proposal, User, Venue}
-@import gospeak.libs.scala.domain.{Markdown, MustacheTmpl, Page}
+@import gospeak.core.domain.messages.Message
+@import gospeak.libs.scala.domain.{Markdown, Mustache, Page}
 @import gospeak.web.api.ui.routes.SuggestCtrl
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
@@ -13,9 +13,9 @@
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.pages.partials.html.{pagination, search}
 @import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
-@import gospeak.web.utils.{Formats, OrgaReq}
+@import gospeak.web.utils.{Formats, GsForms, OrgaReq}
 
-@(event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, MustacheTmpl.MustacheTextTmpl[TemplateData.EventInfo]], cfpForm: Form[Cfp.Id], notesForm: Form[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, Mustache.Text[Message.EventInfo]], notesForm: Form[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${event.name.value} - Gospeak", b)() {
     @if(!event.isPublic) {
         <div class="alert alert-info" role="alert">
@@ -167,8 +167,8 @@
             <h5 class="card-header">No attached CFP</h5>
             <div class="card-body mx-auto text-center">
                 <p class="card-text">Your event has no attached CFP, so you will not be able to add talk proposals</p>
-                @formElt(cfpForm, EventCtrl.attachCfp(req.group.slug, event.slug), Seq("class" -> "form-inline")) {
-                    @inputSelect(cfpForm("cfp"), Seq(), Seq(
+                @formElt(GsForms.eventCfp, EventCtrl.attachCfp(req.group.slug, event.slug), Seq("class" -> "form-inline")) {
+                    @inputSelect(GsForms.eventCfp("cfp"), Seq(), Seq(
                         "placeholder" -> "-- Attach a CFP to this event",
                         "remote" -> SuggestCtrl.suggestCfps(req.group.slug).toString,
                         "style" -> "width: 500px",
