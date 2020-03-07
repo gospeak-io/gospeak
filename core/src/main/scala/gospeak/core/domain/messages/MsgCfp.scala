@@ -3,7 +3,11 @@ package gospeak.core.domain.messages
 import gospeak.core.domain.Cfp
 import gospeak.libs.scala.Extensions._
 
-final case class MsgCfp(slug: Cfp.Slug)
+final case class MsgCfp(slug: Cfp.Slug,
+                        name: Cfp.Name,
+                        active: Boolean,
+                        publicLink: String,
+                        orgaLink: String)
 
 object MsgCfp {
 

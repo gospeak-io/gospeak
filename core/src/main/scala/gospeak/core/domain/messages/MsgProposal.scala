@@ -7,7 +7,16 @@ import gospeak.libs.scala.domain.{Markdown, Slides, Tag, Video}
 
 import scala.concurrent.duration._
 
-final case class MsgProposal(id: Proposal.Id)
+final case class MsgProposal(id: Proposal.Id,
+                             title: Talk.Title,
+                             duration: FiniteDuration,
+                             description: Markdown,
+                             speakers: NonEmptyList[MsgUser.Embed],
+                             slides: Option[Slides],
+                             video: Option[Video],
+                             tags: Seq[Tag],
+                             publicLink: String,
+                             orgaLink: String)
 
 object MsgProposal {
 

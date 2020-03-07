@@ -4,7 +4,9 @@ import gospeak.core.domain.Partner
 import gospeak.libs.scala.domain.Logo
 
 final case class MsgPartner(id: Partner.Id,
-                            name: Partner.Name)
+                            name: Partner.Name,
+                            slug: Partner.Slug,
+                            logo: Logo)
 
 object MsgPartner {
 

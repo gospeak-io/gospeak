@@ -45,21 +45,21 @@ class MessageSrv(groupRepo: OrgaGroupRepo,
     group <- OptionT(groupRepo.find(cfp.group))
     sponsors <- OptionT.liftF(sponsorRepo.listCurrentFull(group.id, req.now))
     users <- OptionT.liftF(userRepo.list(group.users ++ proposal.users))
-  } yield ProposalCreated(msg(group, sponsors, users), msg(cfp), msg(proposal), embed(req.user), req.now)).value
+  } yield ProposalCreated(msg(group, sponsors, users), msg(group, cfp), msg(group, cfp, proposal, users), embed(req.user), req.now)).value
 
   def proposalAddedToEvent(cfp: Cfp, proposal: Proposal, event: Event)(implicit req: OrgaReq[AnyContent]): IO[Option[ProposalAddedToEvent]] = (for {
     group <- OptionT(groupRepo.find(cfp.group))
     sponsors <- OptionT.liftF(sponsorRepo.listCurrentFull(group.id, req.now))
     (cfps, venues, proposals) <- OptionT.liftF(eventData(event)(req.userAware))
     users <- OptionT.liftF(userRepo.list(group.users ++ proposals.flatMap(_.users) ++ proposal.users))
-  } yield ProposalAddedToEvent(msg(group, sponsors, users), msg(cfp), msg(proposal), msg(group, event, cfps, venues, proposals, users), embed(req.user), req.now)).value
+  } yield ProposalAddedToEvent(msg(group, sponsors, users), msg(group, cfp), msg(group, cfp, proposal, users), msg(group, event, cfps, venues, proposals, users), embed(req.user), req.now)).value
 
   def proposalRemovedFromEvent(cfp: Cfp, proposal: Proposal, event: Event)(implicit req: OrgaReq[AnyContent]): IO[Option[ProposalRemovedFromEvent]] = (for {
     group <- OptionT(groupRepo.find(cfp.group))
     sponsors <- OptionT.liftF(sponsorRepo.listCurrentFull(group.id, req.now))
     (cfps, venues, proposals) <- OptionT.liftF(eventData(event)(req.userAware))
     users <- OptionT.liftF(userRepo.list(group.users ++ proposals.flatMap(_.users) ++ proposal.users))
-  } yield ProposalRemovedFromEvent(msg(group, sponsors, users), msg(cfp), msg(proposal), msg(group, event, cfps, venues, proposals, users), embed(req.user), req.now)).value
+  } yield ProposalRemovedFromEvent(msg(group, sponsors, users), msg(group, cfp), msg(group, cfp, proposal, users), msg(group, event, cfps, venues, proposals, users), embed(req.user), req.now)).value
 
   def externalEventCreated(event: ExternalEvent)(implicit req: UserReq[AnyContent]): IO[ExternalEventCreated] =
     IO.pure(ExternalEventCreated(msg(event), embed(req.user), req.now))
@@ -398,11 +398,11 @@ object MessageSrv {
 
     def msgGroup(implicit req: BasicReq[AnyContent]): MsgGroup = msg(group, sponsors, users)
 
-    def msgCfp(implicit req: BasicReq[AnyContent]): MsgCfp = msg(cfp)
+    def msgCfp(implicit req: BasicReq[AnyContent]): MsgCfp = msg(group, cfp)
 
     def msgEvent(implicit req: BasicReq[AnyContent]): MsgEvent = msg(group, event, cfps, venues, proposals, users)
 
-    def msgProposal(implicit req: BasicReq[AnyContent]): MsgProposal = msg(proposal)
+    def msgProposal(implicit req: BasicReq[AnyContent]): MsgProposal = msg(group, cfp, proposal, users)
 
     def msgExternalEvent(implicit req: BasicReq[AnyContent]): MsgExternalEvent = msg(externalEvent)
 
@@ -425,9 +425,13 @@ object MessageSrv {
       publicLink = req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.detail(g.slug)),
       orgaLink = req.format(gospeak.web.pages.orga.routes.GroupCtrl.detail(g.slug)))
 
-  private def msg(c: Cfp)(implicit req: BasicReq[AnyContent]): MsgCfp =
+  private def msg(g: Group, c: Cfp)(implicit req: BasicReq[AnyContent]): MsgCfp =
     MsgCfp(
-      slug = c.slug)
+      slug = c.slug,
+      name = c.name,
+      active = c.isActive(req.nowLDT),
+      publicLink = req.format(gospeak.web.pages.published.cfps.routes.CfpCtrl.detail(c.slug)),
+      orgaLink = req.format(gospeak.web.pages.orga.cfps.routes.CfpCtrl.detail(g.slug, c.slug)))
 
   private def msg(g: Group, e: Event, cfps: Seq[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal.Full], users: Seq[User])(implicit req: BasicReq[AnyContent]): MsgEvent =
     MsgEvent(
@@ -445,9 +449,18 @@ object MessageSrv {
       orgaLink = req.format(gospeak.web.pages.orga.events.routes.EventCtrl.detail(g.slug, e.slug)),
       meetupLink = e.refs.meetup.map(_.link))
 
-  private def msg(p: Proposal)(implicit req: BasicReq[AnyContent]): MsgProposal =
+  private def msg(g: Group, c: Cfp, p: Proposal, users: Seq[User])(implicit req: BasicReq[AnyContent]): MsgProposal =
     MsgProposal(
-      id = p.id)
+      id = p.id,
+      title = p.title,
+      duration = p.duration,
+      description = p.description,
+      speakers = p.speakers.map(id => users.find(_.id == id).map(embed).getOrElse(MsgUser.Embed.unknown(id))),
+      slides = p.slides,
+      video = p.video,
+      tags = p.tags,
+      publicLink = req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.talk(g.slug, p.id)),
+      orgaLink = req.format(gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl.detail(g.slug, c.slug, p.id)))
 
   private def msg(e: ExternalEvent)(implicit req: BasicReq[AnyContent]): MsgExternalEvent =
     MsgExternalEvent(
