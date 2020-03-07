@@ -2,6 +2,7 @@ package gospeak.core.domain.messages
 
 import java.time.Instant
 
+import gospeak.core.domain.Group
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.CustomException
 
@@ -73,7 +74,10 @@ object Message {
       externalEventCreated, externalEventUpdated,
       externalCfpCreated, externalCfpUpdated)
 
-    def from(in: String): Either[CustomException, Ref] = all.find(_.value == in).toEither(CustomException(s"Unknown Message.Ref '$in'"))
+    def from(in: String): Either[CustomException, Ref] =
+      all.find(_.value == in)
+        .orElse(Group.Settings.Action.Trigger.all.find(_.value == in).map(_.message))
+        .toEither(CustomException(s"Unknown Message.Ref '$in'"))
   }
 
 }
