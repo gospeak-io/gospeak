@@ -44,11 +44,19 @@
             </button>
             <span class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" href="@EventCtrl.edit(req.group.slug, event.slug)">Edit</a>
-                @event.refs.meetup.filter(_ => event.isPublic).map { _ =>
-                    <a class="dropdown-item" href="@PublicGroupCtrl.eventAttendeesMeetup(req.group.slug, event.slug)" target="_blank">Draw meetup attendee</a>
+                @event.refs.meetup.map { _ =>
+                    @if(event.isPublic) {
+                        <a class="dropdown-item"href="@PublicGroupCtrl.eventDrawMeetupAttendee(req.group.slug, event.slug)" target="_blank">Draw meetup attendee</a>
+                    } else {
+                        <span class="dropdown-item text-muted" title="Event should be published" data-toggle="tooltip">Draw meetup attendee</span>
+                    }
                 }
                 @eventTemplates.keys.map { id =>
-                    <a class="dropdown-item" href="@EventCtrl.showTemplate(req.group.slug, event.slug, id)" target="_blank">Show @id template</a>
+                    @if(event.isPublic) {
+                        <a class="dropdown-item" href="@PublicGroupCtrl.showTemplate(req.group.slug, event.slug, id)" target="_blank">Show @id template</a>
+                    } else {
+                        <span class="dropdown-item text-muted" title="Event should be published" data-toggle="tooltip">Show @id template</span>
+                    }
                 }
                 <a class="dropdown-item" href="@EventCtrl.contactRsvps(req.group.slug, event.slug)">Contact attendees</a>
             </span>

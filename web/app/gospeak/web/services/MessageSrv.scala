@@ -445,6 +445,9 @@ object MessageSrv {
       proposals = e.talks.map(id => proposals.find(_.id == id).map(embed(_, users)).getOrElse(MsgProposal.Embed.unknown(id))),
       tags = e.tags,
       published = e.published.isDefined,
+      links = Map(
+        "drawAttendee" -> req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.eventDrawMeetupAttendee(g.slug, e.slug))
+      ),
       publicLink = req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.event(g.slug, e.slug)),
       orgaLink = req.format(gospeak.web.pages.orga.events.routes.EventCtrl.detail(g.slug, e.slug)),
       meetupLink = e.refs.meetup.map(_.link))

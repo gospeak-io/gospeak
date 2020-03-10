@@ -20,6 +20,7 @@ import gospeak.web.services.MessageSrv._
 import gospeak.web.utils.Extensions._
 import gospeak.web.utils.{GsForms, UICtrl, UserAwareReq}
 import play.api.mvc._
+import play.filters.headers.SecurityHeadersFilter
 
 import scala.util.Random
 import scala.util.control.NonFatal
@@ -102,18 +103,32 @@ class GroupCtrl(cc: ControllerComponents,
     eventView(group, event)
   }
 
-  def eventAttendeesMeetup(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
+  def eventDrawMeetupAttendee(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
-      creds <- OptionT(groupSettingsRepo.findMeetup(groupElt.id))
-      attendees <- OptionT.liftF(eventElt.event.refs.meetup.map { r =>
-        meetupSrv.getAttendees(r.group, r.event, conf.app.aesKey, creds).map(_.right[String]).recover { case NonFatal(e) => Left(e.getMessage) }
-      }.getOrElse(IO.pure(Left("No meetup ref"))))
+      creds <- OptionT.liftF(groupSettingsRepo.findMeetup(groupElt.id))
+      attendees <- OptionT.liftF(eventElt.event.refs.meetup.flatMap { r =>
+        creds.map(c => meetupSrv.getAttendees(r.group, r.event, conf.app.aesKey, c).map(_.right[String]).recover { case NonFatal(e) => Left(e.getMessage) })
+      }.getOrElse(IO.pure(Left("No meetup reference for this event or configured credentials"))))
       cleanAttendees = attendees.map(_.filter(a => a.id.value != 0L && a.response == "yes" && !a.host))
       attendee = cleanAttendees.map(Random.shuffle(_).headOption).sequence.getOrElse(Left("Empty attendee list"))
       res = Ok(html.attendeeDraw(group, event, attendee))
-    } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
+    } yield res).value.map(_.getOrElse(publicEventNotFound(group, event)))
+  }
+
+  def showTemplate(group: Group.Slug, event: Event.Slug, templateId: String): Action[AnyContent] = UserAwareAction { implicit req =>
+    (for {
+      groupElt <- OptionT(groupRepo.find(group))
+      eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
+      info <- OptionT.liftF(ms.eventInfo(groupElt, eventElt.event))
+      eventTemplates <- OptionT.liftF(groupSettingsRepo.findEventTemplates(groupElt.id))
+      res = eventTemplates.get(templateId).toEither(s"Template '$templateId' not found")
+        .flatMap(_.render(info).left.map(_.message))
+        .fold(
+          err => Redirect(routes.GroupCtrl.event(group, event)).flashing("error" -> err),
+          text => Ok(html.showTemplate(Html(text))).withHeaders(SecurityHeadersFilter.X_FRAME_OPTIONS_HEADER -> "SAMEORIGIN"))
+    } yield res).value.map(_.getOrElse(publicEventNotFound(group, event)))
   }
 
   def doSendComment(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAction { implicit req =>

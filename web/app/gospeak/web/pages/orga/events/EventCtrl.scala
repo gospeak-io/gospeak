@@ -90,19 +90,6 @@ class EventCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
-  def showTemplate(group: Group.Slug, event: Event.Slug, templateId: String): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    (for {
-      eventElt <- OptionT(eventRepo.find(event))
-      info <- OptionT.liftF(ms.eventInfo(eventElt))
-      eventTemplates <- OptionT.liftF(groupSettingsRepo.findEventTemplates)
-      res = eventTemplates.get(templateId).toEither(s"Template '$templateId' not found")
-        .flatMap(_.render(info).left.map(_.message))
-        .fold(
-          err => Redirect(routes.EventCtrl.detail(group, event)).flashing("error" -> err),
-          text => Ok(html.showTemplate(Html(text))))
-    } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
-  }
-
   def edit(group: Group.Slug, event: Event.Slug, redirect: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     editView(group, event, GsForms.event, redirect)
   }

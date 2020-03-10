@@ -52,7 +52,7 @@ class GroupCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
-  def eventAttendeesMeetup(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction[Seq[ApiAttendee.Published]] { implicit req =>
+  def eventDrawMeetupAttendee(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction[Seq[ApiAttendee.Published]] { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))

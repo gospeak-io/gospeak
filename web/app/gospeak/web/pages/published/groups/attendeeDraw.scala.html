@@ -6,7 +6,7 @@
 @import gospeak.web.utils.UserAwareReq
 
 @(group: Group.Slug, event: Event.Slug, attendee: Either[String, MeetupAttendee])(implicit req: UserAwareReq[AnyContent])
-@main(s"Draw attendee: ${attendee.fold(identity, _.name)} - Gospeak", PageMeta.default(GroupCtrl.eventAttendeesMeetup(group, event)), style = Html(
+@main(s"Draw attendee: ${attendee.fold(identity, _.name)} - Gospeak", PageMeta.default(GroupCtrl.eventDrawMeetupAttendee(group, event)), style = Html(
     """<style>
       |html, body, .container, .row { height: 100% }
       |
@@ -86,7 +86,7 @@
                                 <div class="userDescription">
                                     <h5>@a.name</h5>
                                     @a.bio.map { bio => <p>@bio</p> }
-                                    <a href="@GroupCtrl.eventAttendeesMeetup(group, event)"><button class="btn">Draw again</button></a>
+                                    <a href="@GroupCtrl.eventDrawMeetupAttendee(group, event)"><button class="btn">Draw again</button></a>
                                 </div>
                             </div>
                         </div>

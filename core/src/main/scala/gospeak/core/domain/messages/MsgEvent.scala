@@ -15,6 +15,7 @@ final case class MsgEvent(slug: Event.Slug,
                           proposals: Seq[MsgProposal.Embed],
                           tags: Seq[Tag],
                           published: Boolean,
+                          links: Map[String, String],
                           publicLink: String,
                           orgaLink: String,
                           meetupLink: Option[String])

@@ -12,6 +12,8 @@ trait GroupSettingsRepo extends PublicGroupSettingsRepo with OrgaGroupSettingsRe
 
 trait PublicGroupSettingsRepo {
   def findMeetup(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Option[MeetupCredentials]]
+
+  def findEventTemplates(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Map[String, Mustache.Text[Message.EventInfo]]]
 }
 
 trait OrgaGroupSettingsRepo {

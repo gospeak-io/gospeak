@@ -1,0 +1,5 @@
+@import gospeak.libs.scala.domain.{Html => GsHtml}
+@import gospeak.web.utils.UserAwareReq
+
+@(html: GsHtml)(implicit req: UserAwareReq[AnyContent])
+@Html(html.value)
