@@ -1,6 +1,7 @@
 package gospeak.libs.http
 
 import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 import cats.effect.IO
 import gospeak.libs.scala.domain.CustomException
@@ -24,7 +25,11 @@ object HttpClient {
       Response(
         status = res.status.code,
         headers = res.headers,
-        body = res.entity.content.toString)
+        body = res.entity match {
+          case Entity.EmptyEntity => ""
+          case e: Entity.StringEntity => e.body
+          case e: Entity.ByteArrayEntity => new String(e.body, StandardCharsets.UTF_8)
+        })
   }
 
   private implicit val interpreter: InterpTrans[IO] = ApacheInterpreter.instance[IO]

@@ -18,7 +18,7 @@
         <div class="tab-pane write fade show active" id="@Utils.id(field, args)-write" role="tabpanel" aria-labelledby="@Utils.id(field, args)-write-tab">
             @inputHidden(field("kind"), Seq("value" -> "Mustache"))
             @if(multiline) {
-                @inputTextarea(field("value"), args)
+                @inputTextarea(field("value"), args, html = true)
             } else {
                 @inputText(field("value"), args)
             }

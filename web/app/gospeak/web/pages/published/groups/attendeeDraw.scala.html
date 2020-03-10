@@ -43,7 +43,7 @@
                                 </div>
                                 <div class="col-md-8">
                                     <div class="card-body">
-                                        <h2 class="card-title">@a.name</h2>
+                                        <h2 class="card-title">@a.name @event.refs.meetup.map { r => <a href="@a.meetupUrl(r.group)" target="_blank"><i class="fab fa-meetup"></i></a> }</h2>
                                         @a.bio.map { bio => <p class="card-text">@bio</p> }
                                         <p class="text-right mb-0">
                                             <button type="button" class="btn btn-outline-secondary btn-lg attendee-draw">Draw again</button>

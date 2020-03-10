@@ -11,4 +11,6 @@ final case class MeetupAttendee(id: MeetupUser.Id,
                                 host: Boolean,
                                 response: String,
                                 guests: Int,
-                                updated: Instant)
+                                updated: Instant) {
+  def meetupUrl(group: MeetupGroup.Slug): String = s"https://www.meetup.com/${group.value}/members/${id.value}/profile"
+}

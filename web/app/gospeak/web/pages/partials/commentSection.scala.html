@@ -6,9 +6,27 @@
 
 @(comments: Seq[Comment.Full], sendComment: Call, pageUrl: Call, userProfile: User => Option[Call], tabindex: Int = 10)(implicit req: UserAwareReq[AnyContent])
 <div class="comment-section mb-3">
+    <div class="comment-submit">
+        @req.user.map { user =>
+            @formElt(GsForms.comment, sendComment) {
+                <div class="media">
+                    <img class="u-avatar rounded-circle mr-3" src="@user.avatar.url.value" alt="@user.name.value avatar">
+                    <div class="media-body">
+                        <h5 class="d-flex justify-content-between align-items-center">
+                            @user.name.value
+                            <button type="submit" class="btn btn-primary btn-sm" tabindex="@{tabindex + 1}">Send</button>
+                        </h5>
+                        @inputTextarea(GsForms.comment("text"), Seq("placeholder" -> "Add comment...", "tabindex" -> tabindex.toString, "value" -> req.getOrElseFlash("text", "")))
+                    </div>
+                </div>
+            }
+        }.getOrElse {
+            <a href="@AuthCtrl.login(redirect = Some(pageUrl.toString))" class="btn btn-success">Login to comment</a>
+        }
+    </div>
     @if(comments.nonEmpty) {
         <div class="border-bottom mb-3">
-            @comments.map { comment =>
+            @comments.sortBy(-_.createdAt.getNano).map { comment =>
                 <div class="media mb-3">
                     @userProfile(comment.createdBy).map { url =>
                         <a href="@url"><img class="u-avatar rounded-circle" src="@comment.createdBy.avatar.url.value" alt="@comment.createdBy.name.value avatar"></a>
@@ -30,22 +48,4 @@
             }
         </div>
     }
-    <div class="comment-submit">
-        @req.user.map { user =>
-            @formElt(GsForms.comment, sendComment) {
-                <div class="media">
-                    <img class="u-avatar rounded-circle mr-3" src="@user.avatar.url.value" alt="@user.name.value avatar">
-                    <div class="media-body">
-                        <h5 class="d-flex justify-content-between align-items-center">
-                            @user.name.value
-                            <button type="submit" class="btn btn-primary btn-sm" tabindex="@{tabindex + 1}">Send</button>
-                        </h5>
-                        @inputTextarea(GsForms.comment("text"), Seq("placeholder" -> "Add comment...", "tabindex" -> tabindex.toString, "value" -> req.getOrElseFlash("text", "")))
-                    </div>
-                </div>
-            }
-        }.getOrElse {
-            <a href="@AuthCtrl.login(redirect = Some(pageUrl.toString))" class="btn btn-success">Login to comment</a>
-        }
-    </div>
 </div>

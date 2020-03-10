@@ -173,7 +173,7 @@ class MeetupClient(conf: MeetupClient.Conf, appBaseUrl: String, performWriteOps:
 
   // when body is not a JSON, transform it to JSON
   private def transformBody(body: String): String =
-    if (body == "()") "{}" else body
+    if (body == "") "{}" else body
 }
 
 object MeetupClient {
