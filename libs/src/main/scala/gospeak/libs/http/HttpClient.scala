@@ -27,7 +27,7 @@ object HttpClient {
         headers = res.headers,
         body = res.entity match {
           case Entity.EmptyEntity => ""
-          case e: Entity.StringEntity => new String(e.body.getBytes, StandardCharsets.UTF_8)
+          case e: Entity.StringEntity => e.body
           case e: Entity.ByteArrayEntity => new String(e.body, StandardCharsets.UTF_8)
         })
   }
