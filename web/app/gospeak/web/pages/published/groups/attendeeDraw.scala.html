@@ -13,6 +13,7 @@
       |}
       |.attendee-card {
       |  display: none;
+      |  margin: auto;
       |}
       |</style>
       |""".stripMargin), script = Html(
@@ -27,27 +28,34 @@
       |</script>
       |""".stripMargin)) {
     <div class="container d-flex justify-content-center align-items-center">
-        @attendeesEither match {
-            case Right(attendees) => {
-                <button type="button" class="btn btn-primary btn-lg attendee-draw attendee-draw-first">Draw attendee</button>
-                @attendees.map { a =>
-                    <div class="card attendee-card mb-3" style="max-width: 540px;">
-                        <div class="row no-gutters">
-                            <div class="col-md-4 d-flex align-items-center">
-                                <img src="@a.avatar.map(_.value).getOrElse(s"https://api.adorable.io/avatars/200/${a.id.value}.png")" class="card-img" alt="@a.name avatar">
-                            </div>
-                            <div class="col-md-8">
-                                <div class="card-body">
-                                    <h5 class="card-title">@a.name</h5>
-                                    @a.bio.map { bio => <p class="card-text">@bio</p> }
-                                    <button type="button" class="btn btn-outline-secondary attendee-draw">Draw again</button>
+        <div>
+            <h1 class="mb-10">@event.name.value</h1>
+            @attendeesEither match {
+                case Right(attendees) => {
+                    <div class="text-center">
+                        <button type="button" class="btn btn-primary btn-lg attendee-draw attendee-draw-first">Draw attendee</button>
+                    </div>
+                    @attendees.map { a =>
+                        <div class="card attendee-card mb-3">
+                            <div class="row no-gutters">
+                                <div class="col-md-4 d-flex align-items-center">
+                                    <img src="@a.avatar.map(_.value).getOrElse(s"https://api.adorable.io/avatars/200/${a.id.value}.png")" class="card-img" alt="@a.name avatar">
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card-body">
+                                        <h2 class="card-title">@a.name</h2>
+                                        @a.bio.map { bio => <p class="card-text">@bio</p> }
+                                        <p class="text-right mb-0">
+                                            <button type="button" class="btn btn-outline-secondary btn-lg attendee-draw">Draw again</button>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    }
                 }
+                case Left(err) => {<div class="alert alert-danger" role="alert">@err</div>}
             }
-            case Left(err) => {<div class="alert alert-danger" role="alert">@err</div>}
-        }
+        </div>
     </div>
 }
