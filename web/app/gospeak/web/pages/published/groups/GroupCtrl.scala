@@ -22,7 +22,6 @@ import gospeak.web.utils.{GsForms, UICtrl, UserAwareReq}
 import play.api.mvc._
 import play.filters.headers.SecurityHeadersFilter
 
-import scala.util.Random
 import scala.util.control.NonFatal
 
 class GroupCtrl(cc: ControllerComponents,
@@ -112,8 +111,7 @@ class GroupCtrl(cc: ControllerComponents,
         creds.map(c => meetupSrv.getAttendees(r.group, r.event, conf.app.aesKey, c).map(_.right[String]).recover { case NonFatal(e) => Left(e.getMessage) })
       }.getOrElse(IO.pure(Left("No meetup reference for this event or configured credentials"))))
       cleanAttendees = attendees.map(_.filter(a => a.id.value != 0L && a.response == "yes" && !a.host))
-      attendee = cleanAttendees.map(Random.shuffle(_).headOption).sequence.getOrElse(Left("Empty attendee list"))
-      res = Ok(html.attendeeDraw(group, event, attendee))
+      res = Ok(html.attendeeDraw(eventElt, cleanAttendees)).withHeaders(SecurityHeadersFilter.X_FRAME_OPTIONS_HEADER -> "SAMEORIGIN")
     } yield res).value.map(_.getOrElse(publicEventNotFound(group, event)))
   }
 

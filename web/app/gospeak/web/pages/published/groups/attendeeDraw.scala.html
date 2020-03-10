@@ -1,99 +1,53 @@
-@import gospeak.core.domain.{Group, Event}
+@import gospeak.core.domain.Event
 @import gospeak.core.services.meetup.domain.MeetupAttendee
 @import gospeak.web.domain.PageMeta
 @import gospeak.web.pages.partials.container.html.main
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.utils.UserAwareReq
 
-@(group: Group.Slug, event: Event.Slug, attendee: Either[String, MeetupAttendee])(implicit req: UserAwareReq[AnyContent])
-@main(s"Draw attendee: ${attendee.fold(identity, _.name)} - Gospeak", PageMeta.default(GroupCtrl.eventDrawMeetupAttendee(group, event)), style = Html(
+@(event: Event.Full, attendeesEither: Either[String, Seq[MeetupAttendee]])(implicit req: UserAwareReq[AnyContent])
+@main(s"Attendee draw for ${event.name.value} - Gospeak", PageMeta.default(GroupCtrl.eventDrawMeetupAttendee(event.group.slug, event.slug)), style = Html(
     """<style>
-      |html, body, .container, .row { height: 100% }
-      |
-      |.userMain .userBlock{
-      |    float: left;
-      |    width: 100%;
-      |    box-shadow: 0px 0px 23px -3px #ccc;
-      |    padding-bottom: 12px;
-      |    margin-bottom: 30px;
-      |    overflow: hidden;
-      |    background:#fff;
+      |html, body, .container {
+      |  height: 100%;
       |}
-      |.userMain .userBlock .backgrounImg{
-      |    float: left;
-      |    overflow: hidden;
-      |    height: 157px;
-      |}
-      |.userMain .userBlock .backgrounImg img{
-      |    width: auto;
-      |}
-      |.userMain .userBlock .userImg{
-      |    text-align: center;
-      |}
-      |.userMain .userBlock .userImg img{
-      |    width: 160px;
-      |    height: 160px;
-      |    margin-top: -79px;
-      |    border-radius: 100%;
-      |    border: 5px solid #fff;
-      |}
-      |.userMain .userBlock .userDescription{
-      |    text-align: center;
-      |}
-      |.userMain .userBlock .userDescription h5{
-      |    margin-bottom: 2px;
-      |    font-weight: 600;
-      |    font-size: 2rem;
-      |}
-      |.userMain .userBlock .userDescription p{
-      |    margin-bottom: 5px;
-      |    font-size: 1.3rem;
-      |}
-      |.userMain .userBlock .userDescription .btn{
-      |    padding: 0px 30px 0px 30px;
-      |    height: 32px;
-      |    border-radius: 0;
-      |    font-size: 16px;
-      |    background: #0198dd;
-      |    color: #fff;
-      |}
-      |.userMain .userBlock .userDescription .btn:hover{
-      |    opacity:0.7;
-      |}
-      |.userMain .userBlock .followrs{
-      |    display: inline-flex;
-      |    margin-right: 10px;
-      |    border-right: 1px solid #ccc;
-      |    padding-right: 10px;
-      |}
-      |.userMain .userBlock .followrs .number{
-      |    font-size: 15px;
-      |    font-weight: bold;
-      |    margin-right: 5px;
-      |    margin-top: -1px;
+      |.attendee-card {
+      |  display: none;
       |}
       |</style>
-      |""".stripMargin), script = Html("")) {
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col"></div>
-            <div class="col userMain">
-                @attendee match {
-                    case Right(a) => {
-                        <div class="userBlock">
-                            <div class="backgrounImg"><img src="https://preview.ibb.co/miQjb7/photography4.jpg" alt="background"/></div>
-                                <div class="userImg"><img src="@a.avatar.map(_.value).getOrElse(s"https://api.adorable.io/avatars/200/${a.id.value}.png")" alt="@a.name avatar"/></div>
-                                <div class="userDescription">
-                                    <h5>@a.name</h5>
-                                    @a.bio.map { bio => <p>@bio</p> }
-                                    <a href="@GroupCtrl.eventDrawMeetupAttendee(group, event)"><button class="btn">Draw again</button></a>
+      |""".stripMargin), script = Html(
+    """<script>
+      |  const attendees = $('.attendee-card');
+      |  $('.attendee-draw').click(function (e) {
+      |     $('.attendee-draw-first').hide();
+      |     attendees.hide();
+      |     const i = Math.floor(Math.random() * attendees.length);
+      |     $(attendees[i]).show();
+      |  });
+      |</script>
+      |""".stripMargin)) {
+    <div class="container d-flex justify-content-center align-items-center">
+        @attendeesEither match {
+            case Right(attendees) => {
+                <button type="button" class="btn btn-primary btn-lg attendee-draw attendee-draw-first">Draw attendee</button>
+                @attendees.map { a =>
+                    <div class="card attendee-card mb-3" style="max-width: 540px;">
+                        <div class="row no-gutters">
+                            <div class="col-md-4 d-flex align-items-center">
+                                <img src="@a.avatar.map(_.value).getOrElse(s"https://api.adorable.io/avatars/200/${a.id.value}.png")" class="card-img" alt="@a.name avatar">
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card-body">
+                                    <h5 class="card-title">@a.name</h5>
+                                    @a.bio.map { bio => <p class="card-text">@bio</p> }
+                                    <button type="button" class="btn btn-outline-secondary attendee-draw">Draw again</button>
                                 </div>
                             </div>
                         </div>
-                    }
-                    case Left(err) => {<div class="alert alert-danger" role="alert">@err</div>}
+                    </div>
                 }
-            <div class="col"></div>
-        </div>
+            }
+            case Left(err) => {<div class="alert alert-danger" role="alert">@err</div>}
+        }
     </div>
 }
