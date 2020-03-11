@@ -146,8 +146,12 @@ class GroupCtrl(cc: ControllerComponents,
   private def eventView(group: Group.Slug, event: Event.Slug)(implicit req: UserAwareReq[AnyContent]): IO[Result] = {
     (for {
       groupElt <- OptionT(groupRepo.find(group))
+      proposalTweetTmpl <- OptionT.liftF(groupSettingsRepo.findProposalTweet(groupElt.id))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
-      proposals <- OptionT.liftF(proposalRepo.listPublic(eventElt.talks))
+      proposals <- OptionT.liftF(proposalRepo.listPublicFull(eventElt.talks))
+      proposalsWithTweet <- OptionT.liftF(proposals.map(p => ms.proposalInfo(p).map { i =>
+        p -> Tweet.from(proposalTweetTmpl, i, routes.GroupCtrl.talk(group, p.id).absoluteURL()).toOption
+      }).sequence)
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.speakers.toList).distinct))
       comments <- OptionT.liftF(commentRepo.getComments(eventElt.id))
       yesRsvp <- OptionT.liftF(eventRepo.countYesRsvp(eventElt.id))
@@ -157,7 +161,7 @@ class GroupCtrl(cc: ControllerComponents,
       info <- OptionT.liftF(ms.eventInfo(groupElt, eventElt.event))
       description = eventElt.description.render(info).getOrElse(Markdown("")) // FIXME
       b = breadcrumbEvent(groupElt, eventElt)
-      res = Ok(html.event(groupElt, eventElt, description, proposals, speakers, comments, yesRsvp, userMembership, userRsvp, rsvps)(b))
+      res = Ok(html.event(groupElt, eventElt, description, proposalsWithTweet, speakers, comments, yesRsvp, userMembership, userRsvp, rsvps)(b))
     } yield res).value.map(_.getOrElse(publicEventNotFound(group, event)))
   }
 
@@ -204,24 +208,30 @@ class GroupCtrl(cc: ControllerComponents,
   def talks(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.findFull(group))
+      proposalTweetTmpl <- OptionT.liftF(groupSettingsRepo.findProposalTweet(groupElt.id))
       speakerCount <- OptionT.liftF(userRepo.speakerCountPublic(groupElt.id))
       proposals <- OptionT.liftF(proposalRepo.listPublicFull(groupElt.id, params.defaultOrderBy("title")))
+      proposalsWithTweet <- OptionT.liftF(proposals.items.map(p => ms.proposalInfo(p).map { i =>
+        p -> Tweet.from(proposalTweetTmpl, i, routes.GroupCtrl.talk(group, p.id).absoluteURL()).toOption
+      }).sequence.map(p => proposals.copy(items = p)))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.speakers.toList).distinct))
       cfps <- OptionT.liftF(cfpRepo.listAllIncoming(groupElt.id))
       sponsors <- OptionT.liftF(sponsorRepo.listCurrentFull(groupElt.id, req.now))
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
-      res = Ok(html.talks(groupElt, speakerCount, proposals, cfps, speakers, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
+      res = Ok(html.talks(groupElt, speakerCount, proposalsWithTweet, cfps, speakers, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   }
 
   def talk(group: Group.Slug, proposal: Proposal.Id): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(group))
+      proposalTweetTmpl <- OptionT.liftF(groupSettingsRepo.findProposalTweet(groupElt.id))
       proposalElt <- OptionT(proposalRepo.findPublicFull(groupElt.id, proposal))
+      tweet <- OptionT.liftF(ms.proposalInfo(proposalElt).map(i => Tweet.from(proposalTweetTmpl, i, routes.GroupCtrl.talk(group, proposalElt.id).absoluteURL()).toOption))
       speakers <- OptionT.liftF(userRepo.list(proposalElt.speakers.toList))
-      res = Ok(html.talk(groupElt, proposalElt, speakers)(breadcrumbTalk(groupElt, proposalElt)))
+      res = Ok(html.talk(groupElt, proposalElt, tweet, speakers)(breadcrumbTalk(groupElt, proposalElt)))
     } yield res).value.map(_.getOrElse(publicProposalNotFound(group, proposal)))
   }
 

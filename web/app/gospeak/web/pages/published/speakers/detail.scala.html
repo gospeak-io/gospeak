@@ -80,6 +80,9 @@
         }
     </div>
     <div class="col-lg-9">
+        @if(!user.isPublic) {
+            <div class="alert alert-primary" role="alert">You profile is <b>private</b>, only you can see it!</div>
+        }
         @user.title.map { t => <h2 class="h4">@t</h2> }
         @user.bio.map { b => @markdown(b) }
         @user.mentoring.map { m =>

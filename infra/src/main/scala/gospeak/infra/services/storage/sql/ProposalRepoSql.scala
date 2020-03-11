@@ -133,6 +133,8 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def listPublic(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = runNel(selectAllPublic, ids)
 
+  override def listPublicFull(ids: Seq[Proposal.Id])(implicit ctx: UserAwareCtx): IO[Seq[Proposal.Full]] = runNel[Proposal.Id, Proposal.Full](selectAllFullPublic(_), ids)
+
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 
   override def listOrgaTags()(implicit ctx: OrgaCtx): IO[Seq[Tag]] = selectOrgaTags(ctx.group.id).runList(xa).map(_.flatten.distinct)
@@ -298,6 +300,9 @@ object ProposalRepoSql {
 
   private[sql] def selectAllPublic(ids: NonEmptyList[Proposal.Id]): Select[Proposal] =
     tableWithEvent.select[Proposal](fr0"WHERE " ++ Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
+
+  private[sql] def selectAllFullPublic(ids: NonEmptyList[Proposal.Id])(implicit ctx: UserAwareCtx): Select[Proposal.Full] =
+    tableFull(ctx.user).select[Proposal.Full](fr0"WHERE " ++ Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
 
   private[sql] def selectTags(): Select[Seq[Tag]] =
     table.select[Seq[Tag]](Seq(Field("tags", "p")))

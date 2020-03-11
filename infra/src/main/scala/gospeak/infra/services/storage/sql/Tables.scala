@@ -50,7 +50,7 @@ object Tables {
   val groupSettings: Table = Table.from(
     name = "group_settings",
     prefix = "gs",
-    fields = Seq("group_id", "meetup_access_token", "meetup_refresh_token", "meetup_group_slug", "meetup_logged_user_id", "meetup_logged_user_name", "slack_token", "slack_bot_name", "slack_bot_avatar", "event_description", "event_templates", "actions", "updated_at", "updated_by"),
+    fields = Seq("group_id", "meetup_access_token", "meetup_refresh_token", "meetup_group_slug", "meetup_logged_user_id", "meetup_logged_user_name", "slack_token", "slack_bot_name", "slack_bot_avatar", "event_description", "event_templates", "proposal_tweet", "actions", "updated_at", "updated_by"),
     sort = Sort("group_id", "gs"),
     search = Seq(),
     filters = Seq()).get

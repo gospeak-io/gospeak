@@ -152,6 +152,7 @@ object Group {
 
   final case class Settings(accounts: Settings.Accounts,
                             event: Settings.Event,
+                            proposal: Settings.Proposal,
                             actions: Map[Settings.Action.Trigger, Seq[Settings.Action]]) {
     def set(meetup: MeetupCredentials): Settings = copy(accounts = accounts.copy(meetup = Some(meetup)))
 
@@ -244,6 +245,8 @@ object Group {
 
       val defaultTmplIds: Seq[String] = Seq(descriptionTmplId)
     }
+
+    final case class Proposal(tweet: Mustache.Text[Message.ProposalInfo])
 
   }
 

@@ -61,6 +61,16 @@ class MessageSrv(groupRepo: OrgaGroupRepo,
     users <- OptionT.liftF(userRepo.list(group.users ++ proposals.flatMap(_.users) ++ proposal.users))
   } yield ProposalRemovedFromEvent(msg(group, sponsors, users), msg(group, cfp), msg(group, cfp, proposal, users), msg(group, event, cfps, venues, proposals, users), embed(req.user), req.now)).value
 
+  def proposalInfo(proposal: Proposal.Full)(implicit req: UserAwareReq[AnyContent]): IO[ProposalInfo] = for {
+    sponsors <- sponsorRepo.listCurrentFull(proposal.group.id, req.now)
+    venues <- venueRepo.listAllFull(proposal.group.id, proposal.event.flatMap(_.venue).toList)
+    users <- userRepo.list((proposal.users ++ venues.flatMap(_.users)).distinct)
+    msgGroup = msg(proposal.group, sponsors, users)
+    msgCfp = msg(proposal.group, proposal.cfp)
+    msgProposal = msg(proposal.group, proposal.cfp, proposal.proposal, users)
+    msgEvent = proposal.event.map(e => embed(proposal.group, e, venues))
+  } yield ProposalInfo(msgGroup, msgCfp, msgProposal, msgEvent)
+
   def externalEventCreated(event: ExternalEvent)(implicit req: UserReq[AnyContent]): IO[ExternalEventCreated] =
     IO.pure(ExternalEventCreated(msg(event), embed(req.user), req.now))
 
@@ -96,6 +106,7 @@ class MessageSrv(groupRepo: OrgaGroupRepo,
       case Some(Message.Ref.proposalCreated) => eProposalCreated(Message.ProposalCreated(msgGroup, msgCfp, msgProposal, msgUser, now))
       case Some(Message.Ref.proposalAddedToEvent) => eProposalAddedToEvent(Message.ProposalAddedToEvent(msgGroup, msgCfp, msgProposal, msgEvent, msgUser, now))
       case Some(Message.Ref.proposalRemovedFromEvent) => eProposalRemovedFromEvent(Message.ProposalRemovedFromEvent(msgGroup, msgCfp, msgProposal, msgEvent, msgUser, now))
+      case Some(Message.Ref.proposalInfo) => eProposalInfo(Message.ProposalInfo(msgGroup, msgCfp, msgProposal, Some(msgEvent.embed)))
       case Some(Message.Ref.externalEventCreated) => eExternalEventCreated(Message.ExternalEventCreated(msgExternalEvent, msgUser, now))
       case Some(Message.Ref.externalEventUpdated) => eExternalEventUpdated(Message.ExternalEventUpdated(msgExternalEvent, msgUser, now))
       case Some(Message.Ref.externalCfpCreated) => eExternalCfpCreated(Message.ExternalCfpCreated(msgExternalEvent, msgExternalCfp, msgUser, now))
@@ -141,7 +152,9 @@ object MessageSrv {
     "full" -> Json.fromString(v.value),
     "city" -> Json.fromString(v.valueShort),
     "link" -> Json.fromString(v.url))
-  private implicit val eSocialAccounts: Encoder[SocialAccounts] = (v: SocialAccounts) => Json.obj(v.all.map(a => (a.name, Json.fromString(a.link))): _*)
+  private implicit val eSocialAccounts: Encoder[SocialAccounts] = (v: SocialAccounts) => Json.obj(v.all.map(a => (a.name, Json.obj(
+    "link" -> Json.fromString(a.link),
+    "handle" -> Json.fromString(a.handle)))): _*)
   private implicit val eTwitterAccount: Encoder[TwitterAccount] = (v: TwitterAccount) => Json.fromString(v.link)
   private implicit val eTwitterHashtag: Encoder[TwitterHashtag] = (v: TwitterHashtag) => Json.fromString(v.value)
   private implicit val eTag: Encoder[Tag] = (v: Tag) => Json.fromString(v.value)
@@ -172,6 +185,7 @@ object MessageSrv {
   private implicit val eMsgPartnerEmbed: Encoder[MsgPartner.Embed] = deriveConfiguredEncoder[MsgPartner.Embed]
   private implicit val eMsgVenueEmbed: Encoder[MsgVenue.Embed] = deriveConfiguredEncoder[MsgVenue.Embed]
   private implicit val eMsgProposalEmbed: Encoder[MsgProposal.Embed] = deriveConfiguredEncoder[MsgProposal.Embed]
+  private implicit val eMsgEventEmbed: Encoder[MsgEvent.Embed] = deriveConfiguredEncoder[MsgEvent.Embed]
   private implicit val eMsgSponsorEmbed: Encoder[MsgSponsor.Embed] = deriveConfiguredEncoder[MsgSponsor.Embed]
   private implicit val eMsgUser: Encoder[MsgUser] = deriveConfiguredEncoder[MsgUser]
   private implicit val eMsgGroup: Encoder[MsgGroup] = deriveConfiguredEncoder[MsgGroup]
@@ -189,6 +203,7 @@ object MessageSrv {
   implicit val eProposalCreated: Encoder[ProposalCreated] = deriveConfiguredEncoder[ProposalCreated]
   implicit val eProposalAddedToEvent: Encoder[ProposalAddedToEvent] = deriveConfiguredEncoder[ProposalAddedToEvent]
   implicit val eProposalRemovedFromEvent: Encoder[ProposalRemovedFromEvent] = deriveConfiguredEncoder[ProposalRemovedFromEvent]
+  implicit val eProposalInfo: Encoder[ProposalInfo] = deriveConfiguredEncoder[ProposalInfo]
   implicit val eExternalEventCreated: Encoder[ExternalEventCreated] = deriveConfiguredEncoder[ExternalEventCreated]
   implicit val eExternalEventUpdated: Encoder[ExternalEventUpdated] = deriveConfiguredEncoder[ExternalEventUpdated]
   implicit val eExternalCfpCreated: Encoder[ExternalCfpCreated] = deriveConfiguredEncoder[ExternalCfpCreated]
@@ -271,7 +286,7 @@ object MessageSrv {
       description = Some(Markdown("A platform to **help** everyone to become a speaker")),
       logo = Logo(Url.from("https://gospeak.io/logo.png").get),
       social = SocialAccounts.fromUrls(
-        twitter = Some(Url.from("https://twitter.com/gospeak_io").get)),
+        twitter = Some(Constants.Twitter.gospeakUrl)),
       info = Info(user.id, now))
     private val contact: Contact = Contact(
       id = Contact.Id.generate(),
@@ -446,8 +461,7 @@ object MessageSrv {
       tags = e.tags,
       published = e.published.isDefined,
       links = Map(
-        "drawAttendee" -> req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.eventDrawMeetupAttendee(g.slug, e.slug))
-      ),
+        "drawAttendee" -> req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.eventDrawMeetupAttendee(g.slug, e.slug))),
       publicLink = req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.event(g.slug, e.slug)),
       orgaLink = req.format(gospeak.web.pages.orga.events.routes.EventCtrl.detail(g.slug, e.slug)),
       meetupLink = e.refs.meetup.map(_.link))
@@ -499,6 +513,22 @@ object MessageSrv {
       active = c.isActive(req.nowLDT),
       publicLink = req.format(gospeak.web.pages.published.cfps.routes.CfpCtrl.detail(c.slug)),
       orgaLink = req.format(gospeak.web.pages.orga.cfps.routes.CfpCtrl.detail(g.slug, c.slug)))
+
+  private def embed(g: Group, e: Event, venues: Seq[Venue.Full])(implicit req: BasicReq[AnyContent]): MsgEvent.Embed =
+    MsgEvent.Embed(
+      slug = e.slug,
+      name = e.name,
+      kind = e.kind,
+      start = e.start,
+      description = e.description,
+      venue = e.venue.map(id => venues.find(_.id == id).map(embed).getOrElse(MsgVenue.Embed.unknown(id))),
+      tags = e.tags,
+      published = e.published.isDefined,
+      links = Map(
+        "drawAttendee" -> req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.eventDrawMeetupAttendee(g.slug, e.slug))),
+      publicLink = req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.event(g.slug, e.slug)),
+      orgaLink = req.format(gospeak.web.pages.orga.events.routes.EventCtrl.detail(g.slug, e.slug)),
+      meetupLink = e.refs.meetup.map(_.link))
 
   private def embed(v: Venue.Full): MsgVenue.Embed =
     MsgVenue.Embed(

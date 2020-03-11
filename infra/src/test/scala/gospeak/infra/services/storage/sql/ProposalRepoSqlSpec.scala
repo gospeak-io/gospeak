@@ -181,6 +181,10 @@ class ProposalRepoSqlSpec extends RepoSpec {
         val q = ProposalRepoSql.selectAllPublic(NonEmptyList.of(proposal.id))
         check(q, s"SELECT $fields FROM $tableWithEvent WHERE p.id IN (?) AND e.published IS NOT NULL $orderBy")
       }
+      it("should build selectAllFullPublic") {
+        val q = ProposalRepoSql.selectAllFullPublic(NonEmptyList.of(proposal.id))
+        check(q, s"SELECT $fieldsFull, $fieldsFullAgg, $fieldsFullCustom FROM $tableFull WHERE p.id IN (?) AND e.published IS NOT NULL GROUP BY $fieldsFull $orderByFull")
+      }
       it("should build selectTags") {
         val q = ProposalRepoSql.selectTags()
         check(q, s"SELECT p.tags FROM $table $orderBy")

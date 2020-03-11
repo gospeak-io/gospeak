@@ -11,6 +11,8 @@ import scala.collection.mutable
 sealed trait Mustache[A] {
   val value: String
 
+  def as[B]: Mustache[B]
+
   def asText: Mustache.Text[A] = Mustache.Text[A](value)
 
   def asMarkdown: Mustache.Markdown[A] = Mustache.Markdown[A](value)
@@ -19,12 +21,16 @@ sealed trait Mustache[A] {
 object Mustache {
 
   final case class Text[A](value: String) extends Mustache[A] {
+    def as[B]: Text[B] = Text[B](value)
+
     def render(data: Json): Either[Error, String] = Mustache.render(value, data)
 
     def render(data: A)(implicit e: Encoder[A]): Either[Error, String] = Mustache.render(value, e.apply(data))
   }
 
   final case class Markdown[A](value: String) extends Mustache[A] {
+    def as[B]: Markdown[B] = Markdown[B](value)
+
     def render(data: Json): Either[Error, Md] = Mustache.render(value, data).map(Md(_))
 
     def render(data: A)(implicit e: Encoder[A]): Either[Error, Md] = Mustache.render(value, e.apply(data)).map(Md(_))
@@ -93,4 +99,5 @@ object Mustache {
         jsonObject = (o: JsonObject) => Context.fromMap(o.toMap.mapValues(jsonToValue)))
     }
   }
+
 }

@@ -54,7 +54,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def find(id: User.Id): IO[Option[User]] = selectOne(id).runOption(xa)
 
-  override def findPublic(slug: User.Slug): IO[Option[User.Full]] = selectOnePublic(slug).runOption(xa)
+  override def findPublic(slug: User.Slug)(implicit ctx: UserAwareCtx): IO[Option[User.Full]] = selectOnePublic(slug).runOption(xa)
 
   // FIXME should be done in only one query: joining on speakers array or splitting speakers string
   override def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User.Full]] = {
@@ -160,10 +160,8 @@ object UserRepoSql {
   private[sql] def selectOne(id: User.Id): Select[User] =
     table.select[User](fr0"WHERE u.id=$id")
 
-  private[sql] def selectOnePublic(slug: User.Slug): Select[User.Full] = {
-    val public: User.Status = User.Status.Public
-    tableFull.selectOne[User.Full](fr0"WHERE u.status=$public AND u.slug=$slug")
-  }
+  private[sql] def selectOnePublic(slug: User.Slug)(implicit ctx: UserAwareCtx): Select[User.Full] =
+    tableFull.selectOne[User.Full](fr0"WHERE u.slug=$slug AND (u.status=${User.Status.Public: User.Status} OR u.id=${ctx.user.map(_.id.value).getOrElse("")})")
 
   // should replace def selectPage(ids: NonEmptyList[User.Id], params: Page.Params) when split or array works...
   /* private[sql] def selectPage(group: Group.Id, params: Page.Params): SelectPage[User] = {

@@ -97,6 +97,8 @@ trait PublicProposalRepo {
 
   def listPublic(ids: Seq[Proposal.Id]): IO[Seq[Proposal]]
 
+  def listPublicFull(ids: Seq[Proposal.Id])(implicit ctx: UserAwareCtx): IO[Seq[Proposal.Full]]
+
   def findPublicFull(group: Group.Id, proposal: Proposal.Id)(implicit ctx: UserAwareCtx): IO[Option[Proposal.Full]]
 }
 

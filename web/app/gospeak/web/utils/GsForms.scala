@@ -81,6 +81,9 @@ object GsForms {
   val updateTags: Form[Seq[Tag]] = Form(single(
     "tags" -> tags))
 
+  val templateForm: Form[Mustache.Text[Nothing]] = Form(single(
+    "template" -> templateText))
+
 
   /**
    * Models forms

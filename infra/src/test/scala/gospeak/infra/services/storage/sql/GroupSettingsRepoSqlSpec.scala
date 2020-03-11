@@ -44,6 +44,10 @@ class GroupSettingsRepoSqlSpec extends RepoSpec {
         val q = GroupSettingsRepoSql.selectOneEventTemplates(group.id)
         check(q, s"SELECT gs.event_templates FROM $table WHERE gs.group_id=? $orderBy")
       }
+      it("should build selectOneProposalTweet group settings") {
+        val q = GroupSettingsRepoSql.selectOneProposalTweet(group.id)
+        check(q, s"SELECT gs.proposal_tweet FROM $table WHERE gs.group_id=? $orderBy")
+      }
       it("should build selectOneActions group settings") {
         val q = GroupSettingsRepoSql.selectOneActions(group.id)
         check(q, s"SELECT gs.actions FROM $table WHERE gs.group_id=? $orderBy")
@@ -56,9 +60,10 @@ object GroupSettingsRepoSqlSpec {
   val meetupFields: String = mapFields("meetup_access_token, meetup_refresh_token, meetup_group_slug, meetup_logged_user_id, meetup_logged_user_name", "gs." + _)
   val slackFields: String = mapFields("slack_token, slack_bot_name, slack_bot_avatar", "gs." + _)
   val eventFields: String = mapFields("event_description, event_templates", "gs." + _)
+  val proposalFields: String = mapFields("proposal_tweet", "gs." + _)
 
   val table = "group_settings gs"
-  val fields = s"gs.group_id, $meetupFields, $slackFields, $eventFields, gs.actions, gs.updated_at, gs.updated_by"
-  val fieldsSelect = s"$meetupFields, $slackFields, $eventFields, gs.actions"
+  val fields = s"gs.group_id, $meetupFields, $slackFields, $eventFields, $proposalFields, gs.actions, gs.updated_at, gs.updated_by"
+  val fieldsSelect = s"$meetupFields, $slackFields, $eventFields, $proposalFields, gs.actions"
   val orderBy = "ORDER BY gs.group_id IS NULL, gs.group_id"
 }

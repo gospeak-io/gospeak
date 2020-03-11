@@ -107,7 +107,7 @@ object Proposal {
 
     def hasOrga(user: User.Id): Boolean = group.hasOrga(user)
 
-    def users: List[User.Id] = proposal.users
+    def users: List[User.Id] = (proposal.users ++ cfp.users ++ group.users ++ talk.users ++ event.map(_.users).getOrElse(List()) ++ venue.map(_.users).getOrElse(List())).distinct
 
     def commentCount: Long = speakerCommentCount + orgaCommentCount
 

@@ -2,7 +2,8 @@ package gospeak.core.domain.utils
 
 import java.time.ZoneId
 
-import gospeak.libs.scala.domain.EmailAddress
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{EmailAddress, Url}
 
 object Constants {
   val defaultZoneId: ZoneId = ZoneId.of("Europe/Paris")
@@ -23,6 +24,15 @@ object Constants {
   object Contact {
     val admin: EmailAddress.Contact = EmailAddress.Contact(EmailAddress.from("contact@gospeak.io").right.get, Some("Gospeak"))
     val noReply: EmailAddress.Contact = EmailAddress.Contact(EmailAddress.from("noreply@gospeak.io").right.get, Some("Gospeak"))
+  }
+
+  object Twitter {
+    val gospeakHandle = "@gospeak_io"
+    val gospeakUrl: Url = Url.from("https://twitter.com/gospeak_io").get
+  }
+
+  object LinkedIn {
+    val gospeakUrl: Url = Url.from("https://www.linkedin.com/company/gospeak").get
   }
 
   object Slack {

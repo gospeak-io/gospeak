@@ -56,7 +56,7 @@ class SpeakerCtrl(cc: ControllerComponents,
     GsForms.speakerContact.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => (for {
-        speakerElt <- OptionT(userRepo.findPublic(user))
+        speakerElt <- OptionT(userRepo.findPublic(user)(req.userAware))
         _ <- OptionT.liftF(emailSrv.send(Emails.contactSpeaker(data.subject, data.content, speakerElt.user)))
         res = next.flashing("success" -> "The message has been sent!")
       } yield res).value.map(_.getOrElse(publicUserNotFound(user))))

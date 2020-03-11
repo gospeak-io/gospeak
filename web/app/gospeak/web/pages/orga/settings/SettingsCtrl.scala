@@ -3,6 +3,7 @@ package gospeak.web.pages.orga.settings
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
+import gospeak.core.domain.messages.Message
 import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.domain.{Group, User, UserRequest}
 import gospeak.core.services.email.EmailSrv
@@ -10,8 +11,9 @@ import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.meetup.domain.{MeetupCredentials, MeetupException, MeetupGroup}
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.slack.domain.SlackCredentials
-import gospeak.core.services.storage.{GroupSettingsRepo, OrgaGroupRepo, OrgaUserRepo, OrgaUserRequestRepo}
+import gospeak.core.services.storage.{OrgaGroupRepo, OrgaGroupSettingsRepo, OrgaUserRepo, OrgaUserRequestRepo}
 import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.Mustache
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb
@@ -31,7 +33,7 @@ class SettingsCtrl(cc: ControllerComponents,
                    silhouette: Silhouette[CookieEnv],
                    conf: AppConf,
                    val groupRepo: OrgaGroupRepo,
-                   groupSettingsRepo: GroupSettingsRepo,
+                   groupSettingsRepo: OrgaGroupSettingsRepo,
                    userRepo: OrgaUserRepo,
                    userRequestRepo: OrgaUserRequestRepo,
                    emailSrv: EmailSrv,
@@ -177,6 +179,21 @@ class SettingsCtrl(cc: ControllerComponents,
     } yield Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Template '$templateId' removed for events")
   }
 
+  def updateProposalTweet(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
+    updateEventTemplateView(group, GsForms.templateForm)
+  }
+
+  def doUpdateProposalTweet(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
+    GsForms.templateForm.bindFromRequest.fold(
+      formWithErrors => updateEventTemplateView(group, formWithErrors),
+      data => for {
+        settings <- groupSettingsRepo.find
+        updated = settings.copy(proposal = settings.proposal.copy(tweet = data.as[Message.ProposalInfo]))
+        _ <- groupSettingsRepo.set(updated)
+      } yield Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Proposal tweet template updated")
+    )
+  }
+
   def inviteOrga(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = Redirect(routes.SettingsCtrl.settings(group))
     GsForms.invite.bindFromRequest.fold(
@@ -233,6 +250,22 @@ class SettingsCtrl(cc: ControllerComponents,
       "Templates" -> routes.SettingsCtrl.settings(req.group.slug),
       templateId.getOrElse("New") -> routes.SettingsCtrl.updateEventTemplate(req.group.slug, templateId))
     Ok(html.updateEventTemplate(templateId, settings, form)(b))
+  }
+
+  private def updateEventTemplateView(group: Group.Slug, form: Form[Mustache.Text[Nothing]])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
+    for {
+      tweet <- groupSettingsRepo.findProposalTweet(req.group.id)
+      filledForm = if (form.hasErrors) form else form.fill(tweet.as[Nothing])
+      b = listBreadcrumb.add(
+        "Proposal" -> routes.SettingsCtrl.settings(req.group.slug),
+        "Tweet" -> routes.SettingsCtrl.updateProposalTweet(req.group.slug))
+      res = Ok(html.updateTemplate(
+        "Proposal tweet",
+        filledForm,
+        Message.Ref.proposalInfo,
+        routes.SettingsCtrl.doUpdateProposalTweet(group),
+        markdown = false)(b))
+    } yield res
   }
 
   private def createActionToSettings(settings: Group.Settings, addAction: GsForms.GroupAction): Group.Settings = {

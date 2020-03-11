@@ -12,7 +12,9 @@ object Values {
   private val dbConf = DbConf.H2(s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1")
   private val gsConf = GsConf(
     event = GsConf.EventConf(
-      description = Mustache.Markdown[Message.EventInfo]("Default event description")))
+      description = Mustache.Markdown[Message.EventInfo]("Default event description")),
+    proposal = GsConf.ProposalConf(
+      tweet = Mustache.Text[Message.ProposalInfo]("tweet")))
 
   val db = new GsRepoSql(dbConf, gsConf)
 }

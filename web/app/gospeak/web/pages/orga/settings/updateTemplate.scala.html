@@ -1,0 +1,30 @@
+@import gospeak.core.domain.messages.Message
+@import gospeak.libs.scala.domain.Mustache
+@import gospeak.web.domain.Breadcrumb
+@import gospeak.web.pages.orga.partials.html.container
+@import gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils.{GsForms, OrgaReq}
+
+@(name: String, form: Form[Mustache.Text[Nothing]], templateRef: Message.Ref, update: Call, markdown: Boolean = true)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(s"Edit $name template - ${req.group.name.value} settings - Gospeak", b)() {
+    <h1>Update @name template</h1>
+
+    @formElt(form, update) {
+        <div class="row">
+            <div class="col-6">
+                @fieldVertical(form("template"), Seq("label" -> "Your template:")) { (field, args) =>
+                    @inputTemplate(field, Some(templateRef), markdown = markdown, args = args ++ Seq("autofocus" -> "true"))
+                }
+            </div>
+            <div class="col-6">
+                @displayTemplateData(Some(templateRef))
+            </div>
+        </div>
+        @actionsVertical() {
+            @btnCancel(SettingsCtrl.settings(req.group.slug))
+            @btnSubmit(s"Update $name template")
+        }
+    }
+}()

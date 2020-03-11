@@ -2,8 +2,9 @@
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+@import gospeak.web.utils.UserAwareReq
 
-@(proposal: ExternalProposal, users: Seq[User])
+@(proposal: ExternalProposal, users: Seq[User])(implicit req: UserAwareReq[AnyContent])
 <div class="card mb-3">
     <div class="card-body d-flex justify-content-between align-items-center">
         <h4 class="h6 mb-0">
@@ -11,6 +12,9 @@
             @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
             @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
         </h4>
-        @avatars(proposal.speakers, users, Some(u => SpeakerCtrl.detail(u.slug)))
+        <span>
+            @avatars(proposal.speakers, users, Some(u => SpeakerCtrl.detail(u.slug)))
+            @tweetButton(Some(proposal.tweet(users, EventCtrl.proposalExt(proposal.event, proposal.id).absoluteURL())))
+        </span>
     </div>
 </div>

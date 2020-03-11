@@ -18,10 +18,23 @@ final case class MsgEvent(slug: Event.Slug,
                           links: Map[String, String],
                           publicLink: String,
                           orgaLink: String,
-                          meetupLink: Option[String])
+                          meetupLink: Option[String]) {
+  def embed: MsgEvent.Embed = MsgEvent.Embed(slug, name, kind, start, description, venue, tags, published, links, publicLink, orgaLink, meetupLink)
+}
 
 object MsgEvent {
 
-  final case class Embed(id: Event.Id)
+  final case class Embed(slug: Event.Slug,
+                         name: Event.Name,
+                         kind: Event.Kind,
+                         start: LocalDateTime,
+                         description: Mustache.Markdown[Message.EventInfo],
+                         venue: Option[MsgVenue.Embed],
+                         tags: Seq[Tag],
+                         published: Boolean,
+                         links: Map[String, String],
+                         publicLink: String,
+                         orgaLink: String,
+                         meetupLink: Option[String])
 
 }

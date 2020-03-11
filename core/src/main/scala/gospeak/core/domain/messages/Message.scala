@@ -43,6 +43,8 @@ object Message {
 
   final case class ProposalRemovedFromEvent(group: MsgGroup, cfp: MsgCfp, proposal: MsgProposal, event: MsgEvent, by: MsgUser.Embed, at: Instant) extends GroupMessage
 
+  final case class ProposalInfo(group: MsgGroup, cfp: MsgCfp, proposal: MsgProposal, event: Option[MsgEvent.Embed]) extends GroupMessage
+
 
   final case class ExternalEventCreated(event: MsgExternalEvent, by: MsgUser.Embed, at: Instant) extends Message
 
@@ -63,6 +65,7 @@ object Message {
     val proposalCreated: Ref = Ref(classOf[ProposalCreated].getSimpleName)
     val proposalAddedToEvent: Ref = Ref(classOf[ProposalAddedToEvent].getSimpleName)
     val proposalRemovedFromEvent: Ref = Ref(classOf[ProposalRemovedFromEvent].getSimpleName)
+    val proposalInfo: Ref = Ref(classOf[ProposalInfo].getSimpleName)
     val externalEventCreated: Ref = Ref(classOf[ExternalEventCreated].getSimpleName)
     val externalEventUpdated: Ref = Ref(classOf[ExternalEventUpdated].getSimpleName)
     val externalCfpCreated: Ref = Ref(classOf[ExternalCfpCreated].getSimpleName)
@@ -70,7 +73,7 @@ object Message {
 
     val all = List(
       eventCreated, eventPublished, eventInfo,
-      proposalCreated, proposalAddedToEvent, proposalRemovedFromEvent,
+      proposalCreated, proposalAddedToEvent, proposalRemovedFromEvent, proposalInfo,
       externalEventCreated, externalEventUpdated,
       externalCfpCreated, externalCfpUpdated)
 

@@ -210,6 +210,8 @@ POST        /u/groups/:group/settings/event-template                            
 GET         /u/groups/:group/settings/event-template/:templateId                           gospeak.web.pages.orga.settings.SettingsCtrl.updateEventTemplate(group: Group.Slug, templateId: Option[String])
 POST        /u/groups/:group/settings/event-template/:templateId                           gospeak.web.pages.orga.settings.SettingsCtrl.doUpdateEventTemplate(group: Group.Slug, templateId: Option[String])
 POST        /u/groups/:group/settings/event-template/:templateId/remove                    gospeak.web.pages.orga.settings.SettingsCtrl.doRemoveEventTemplate(group: Group.Slug, templateId: String)
+GET         /u/groups/:group/settings/proposal/tweet                                       gospeak.web.pages.orga.settings.SettingsCtrl.updateProposalTweet(group: Group.Slug)
+POST        /u/groups/:group/settings/proposal/tweet                                       gospeak.web.pages.orga.settings.SettingsCtrl.doUpdateProposalTweet(group: Group.Slug)
 POST        /u/groups/:group/settings/orgas                                                gospeak.web.pages.orga.settings.SettingsCtrl.inviteOrga(group: Group.Slug)
 POST        /u/groups/:group/settings/orgas/cancel/:request                                gospeak.web.pages.orga.settings.SettingsCtrl.cancelInviteOrga(group: Group.Slug, request: UserRequest.Id)
 POST        /u/groups/:group/settings/orgas/:user/remove                                   gospeak.web.pages.orga.settings.SettingsCtrl.doRemoveOrga(group: Group.Slug, user: User.Slug)

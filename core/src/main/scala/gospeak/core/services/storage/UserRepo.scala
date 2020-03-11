@@ -70,7 +70,7 @@ trait PublicUserRepo {
 
   def list(ids: Seq[User.Id]): IO[Seq[User]]
 
-  def findPublic(user: User.Slug): IO[Option[User.Full]]
+  def findPublic(user: User.Slug)(implicit ctx: UserAwareCtx): IO[Option[User.Full]]
 }
 
 trait SuggestUserRepo {

@@ -99,9 +99,12 @@ object AppConf {
     private implicit val uploadConfUrlReader: ConfigReader[UploadConf.Url] = deriveReader[UploadConf.Url]
     private implicit val uploadConfCloudinaryReader: ConfigReader[UploadConf.Cloudinary] = deriveReader[UploadConf.Cloudinary]
 
+    private implicit def textTmplReader[A]: ConfigReader[Mustache.Text[A]] = (cur: ConfigCursor) => cur.asString.map(_.stripPrefix("\n")).map(Mustache.Text[A])
+
     private implicit def markdownTmplReader[A]: ConfigReader[Mustache.Markdown[A]] = (cur: ConfigCursor) => cur.asString.map(_.stripPrefix("\n")).map(Mustache.Markdown[A])
 
     private implicit val gospeakEventConfReader: ConfigReader[GsConf.EventConf] = deriveReader[GsConf.EventConf]
+    private implicit val gospeakProposalConfReader: ConfigReader[GsConf.ProposalConf] = deriveReader[GsConf.ProposalConf]
 
     private implicit val applicationConfReader: ConfigReader[ApplicationConf] = deriveReader[ApplicationConf]
     private implicit val authConfReader: ConfigReader[AuthConf] = deriveReader[AuthConf]

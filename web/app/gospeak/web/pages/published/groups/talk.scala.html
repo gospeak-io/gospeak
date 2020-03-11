@@ -1,4 +1,5 @@
 @import gospeak.core.domain.{Group, Proposal, User}
+@import gospeak.libs.scala.domain.Tweet
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.orga.cfps.proposals.routes.{ProposalCtrl => OrgaProposalCtrl}
 @import gospeak.web.pages.partials.display.html._
@@ -8,13 +9,14 @@
 @import gospeak.web.pages.user.talks.proposals.routes.{ProposalCtrl => SpeakerProposalCtrl}
 @import gospeak.web.utils.{Formats, UserAwareReq}
 
-@(group: Group, proposal: Proposal.Full, users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(group: Group, proposal: Proposal.Full, tweet: Option[Tweet], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${proposal.title.value} at ${group.name.value} - Gospeak", PageMeta.proposal(group, proposal.proposal), b)() {
     <a href="@GroupCtrl.detail(group.slug)"><i class="fas fa-chevron-left"></i> @group.name.value</a>
     <h1>
         @proposal.title.value
         @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
         @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+        @tweetButton(tweet)
         @if(req.isSpeaker(proposal)) {
             <a href="@SpeakerProposalCtrl.detail(proposal.talk.slug, proposal.cfp.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
             <a href="@SpeakerProposalCtrl.edit(proposal.talk.slug, proposal.cfp.slug, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>

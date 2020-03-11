@@ -7,7 +7,7 @@
 @(accounts: Group.Settings.Accounts, meetupForm: Form[GsForms.GroupAccount.Meetup], slackForm: Form[SlackCredentials])(implicit req: OrgaReq[AnyContent])
 <div class="card mb-3">
     <div class="card-header">Integrations</div>
-    <div class="list-group list-group-flush p-2">
+    <div class="list-group list-group-flush">
         @displayIntegration("Meetup", accounts.meetup, id => modalMeetup(id, meetupForm, accounts.meetup), SettingsCtrl.removeAccount(req.group.slug, "meetup"))
         @displayIntegration("Slack", accounts.slack, id => modalSlack(id, slackForm), SettingsCtrl.removeAccount(req.group.slug, "slack"))
         @* displayIntegration("Twitter", accounts.twitter, id => modalTwitter(), SettingsCtrl.removeAccount(group.slug, "twitter")) *@

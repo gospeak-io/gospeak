@@ -1,7 +1,7 @@
 package gospeak.core
 
 import cats.data.NonEmptyList
-import gospeak.core.GsConf.EventConf
+import gospeak.core.GsConf.{EventConf, ProposalConf}
 import gospeak.core.domain.Group
 import gospeak.core.domain.messages.Message
 import gospeak.libs.scala.Crypto.AesSecretKey
@@ -49,7 +49,7 @@ object ApplicationConf {
 
 }
 
-final case class GsConf(event: EventConf) {
+final case class GsConf(event: EventConf, proposal: ProposalConf) {
   def defaultGroupSettings: Group.Settings = Group.Settings(
     accounts = Group.Settings.Accounts(
       meetup = None,
@@ -59,11 +59,15 @@ final case class GsConf(event: EventConf) {
     event = Group.Settings.Event(
       description = event.description,
       templates = Map()),
+    proposal = Group.Settings.Proposal(
+      tweet = proposal.tweet),
     actions = Map())
 }
 
 object GsConf {
 
   final case class EventConf(description: Mustache.Markdown[Message.EventInfo])
+
+  final case class ProposalConf(tweet: Mustache.Text[Message.ProposalInfo])
 
 }

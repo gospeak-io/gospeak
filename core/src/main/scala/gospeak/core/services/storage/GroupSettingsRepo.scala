@@ -14,6 +14,8 @@ trait PublicGroupSettingsRepo {
   def findMeetup(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Option[MeetupCredentials]]
 
   def findEventTemplates(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Map[String, Mustache.Text[Message.EventInfo]]]
+
+  def findProposalTweet(group: Group.Id): IO[Mustache.Text[Message.ProposalInfo]]
 }
 
 trait OrgaGroupSettingsRepo {
@@ -28,6 +30,8 @@ trait OrgaGroupSettingsRepo {
   def findEventDescription(implicit ctx: OrgaCtx): IO[Mustache.Markdown[Message.EventInfo]]
 
   def findEventTemplates(implicit ctx: OrgaCtx): IO[Map[String, Mustache.Text[Message.EventInfo]]]
+
+  def findProposalTweet(group: Group.Id): IO[Mustache.Text[Message.ProposalInfo]]
 
   def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]]
 

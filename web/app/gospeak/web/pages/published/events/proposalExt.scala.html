@@ -14,6 +14,7 @@
         @proposal.title.value
         @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
         @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+        @tweetButton(Some(proposal.tweet(users, EventCtrl.proposalExt(proposal.event.id, proposal.id).absoluteURL())))
         @if(req.isSpeaker(proposal)) {
             <a href="@ProposalCtrl.detailExt(proposal.talk.slug, proposal.id)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
             <a href="@ProposalCtrl.editExt(proposal.talk.slug, proposal.id, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>

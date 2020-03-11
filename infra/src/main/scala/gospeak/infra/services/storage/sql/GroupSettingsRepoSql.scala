@@ -57,6 +57,9 @@ class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: G
   override def findEventTemplates(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Map[String, Mustache.Text[Message.EventInfo]]] =
     selectOneEventTemplates(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.event.templates))
 
+  override def findProposalTweet(group: Group.Id): IO[Mustache.Text[Message.ProposalInfo]] =
+    selectOneProposalTweet(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.proposal.tweet))
+
   override def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]] =
     selectOneActions(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.actions))
 }
@@ -71,14 +74,14 @@ object GroupSettingsRepoSql {
     val values = fr0"$group, " ++
       fr0"${settings.accounts.meetup.map(_.accessToken)}, ${settings.accounts.meetup.map(_.refreshToken)}, ${settings.accounts.meetup.map(_.group)}, ${settings.accounts.meetup.map(_.loggedUserId)}, ${settings.accounts.meetup.map(_.loggedUserName)}, " ++
       fr0"${settings.accounts.slack.map(_.token)}, ${settings.accounts.slack.map(_.name)}, ${settings.accounts.slack.flatMap(_.avatar)}, " ++
-      fr0"${settings.event.description}, ${settings.event.templates}, ${settings.actions}, $now, $by"
+      fr0"${settings.event.description}, ${settings.event.templates}, ${settings.proposal.tweet}, ${settings.actions}, $now, $by"
     table.insert(settings, _ => values)
   }
 
   private[sql] def update(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): Update = {
     val fields = fr0"meetup_access_token=${settings.accounts.meetup.map(_.accessToken)}, meetup_refresh_token=${settings.accounts.meetup.map(_.refreshToken)}, meetup_group_slug=${settings.accounts.meetup.map(_.group)}, meetup_logged_user_id=${settings.accounts.meetup.map(_.loggedUserId)}, meetup_logged_user_name=${settings.accounts.meetup.map(_.loggedUserName)}, " ++
       fr0"slack_token=${settings.accounts.slack.map(_.token)}, slack_bot_name=${settings.accounts.slack.map(_.name)}, slack_bot_avatar=${settings.accounts.slack.flatMap(_.avatar)}, " ++
-      fr0"event_description=${settings.event.description}, event_templates=${settings.event.templates}, " ++
+      fr0"event_description=${settings.event.description}, event_templates=${settings.event.templates}, proposal_tweet=${settings.proposal.tweet}, " ++
       fr0"actions=${settings.actions}, updated_at=$now, updated_by=$by"
     table.update(fields, where(group))
   }
@@ -103,6 +106,9 @@ object GroupSettingsRepoSql {
 
   private[sql] def selectOneEventTemplates(group: Group.Id): Select[Map[String, Mustache.Text[Message.EventInfo]]] =
     table.select[Map[String, Mustache.Text[Message.EventInfo]]](Seq(Field("event_templates", "gs")), where(group))
+
+  private[sql] def selectOneProposalTweet(group: Group.Id): Select[Mustache.Text[Message.ProposalInfo]] =
+    table.select[Mustache.Text[Message.ProposalInfo]](Seq(Field("proposal_tweet", "gs")), where(group))
 
   private[sql] def selectOneActions(group: Group.Id): Select[Map[Action.Trigger, Seq[Settings.Action]]] =
     table.select[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]](Seq(Field("actions", "gs")), where(group))

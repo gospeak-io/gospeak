@@ -1,0 +1,19 @@
+@import gospeak.core.domain.Group
+@import gospeak.web.pages.orga.settings.routes.SettingsCtrl
+@import gospeak.web.utils.OrgaReq
+
+@(settings: Group.Settings.Proposal)(implicit req: OrgaReq[AnyContent])
+<div class="card mb-3">
+    <div class="card-header">Proposal settings</div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Public tweet</span>
+            <span class="d-flex">
+                <a href="@SettingsCtrl.updateProposalTweet(req.group.slug)" class="ml-1 btn btn-primary btn-xs" data-toggle="html-popover" data-trigger="hover">
+                    <div class="content" style="white-space: pre-line; width: 500px">@settings.tweet.value.take(1000)</div>
+                    Update
+                </a>
+            </span>
+        </li>
+    </ul>
+</div>
