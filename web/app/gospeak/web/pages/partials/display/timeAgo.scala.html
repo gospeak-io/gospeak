@@ -3,4 +3,4 @@
 @import gospeak.web.utils.Formats
 
 @(i: Instant)(implicit req: BasicReq[AnyContent])
-<span title="@Formats.datetime(i)">@Formats.timeAgo(i, req.now)</span>
+<span title="@Formats.datetime(i)" data-toggle="tooltip">@Formats.timeAgo(i, req.now)</span>

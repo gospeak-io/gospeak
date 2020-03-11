@@ -5,7 +5,7 @@
 @import gospeak.web.utils.{GsForms, UserAwareReq}
 
 @(comments: Seq[Comment.Full], sendComment: Call, pageUrl: Call, userProfile: User => Option[Call], tabindex: Int = 10)(implicit req: UserAwareReq[AnyContent])
-<div class="comment-section mb-3">
+<div class="comment-section">
     <div class="comment-submit">
         @req.user.map { user =>
             @formElt(GsForms.comment, sendComment) {
@@ -25,27 +25,25 @@
         }
     </div>
     @if(comments.nonEmpty) {
-        <div class="border-bottom mb-3">
-            @comments.sortBy(-_.createdAt.getNano).map { comment =>
-                <div class="media mb-3">
-                    @userProfile(comment.createdBy).map { url =>
-                        <a href="@url"><img class="u-avatar rounded-circle" src="@comment.createdBy.avatar.url.value" alt="@comment.createdBy.name.value avatar"></a>
-                    }.getOrElse {
-                        <img class="u-avatar rounded-circle" src="@comment.createdBy.avatar.url.value" alt="@comment.createdBy.name.value avatar">
-                    }
-                    <div class="media-body ml-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            @userProfile(comment.createdBy).map { url =>
-                                <a href="@url" class="no-style">@comment.createdBy.name.value</a>
-                            }.getOrElse {
-                                @comment.createdBy.name.value
-                            }
-                            <small class="text-muted">@timeAgo(comment.createdAt)</small>
-                        </div>
-                        <p class="mb-0" style="white-space: pre-line;">@comment.text</p>
+        @comments.sortBy(-_.createdAt.getEpochSecond).map { comment =>
+            <div class="media mt-3">
+                @userProfile(comment.createdBy).map { url =>
+                    <a href="@url"><img class="u-avatar rounded-circle" src="@comment.createdBy.avatar.url.value" alt="@comment.createdBy.name.value avatar"></a>
+                }.getOrElse {
+                    <img class="u-avatar rounded-circle" src="@comment.createdBy.avatar.url.value" alt="@comment.createdBy.name.value avatar">
+                }
+                <div class="media-body ml-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        @userProfile(comment.createdBy).map { url =>
+                            <a href="@url" class="no-style">@comment.createdBy.name.value</a>
+                        }.getOrElse {
+                            @comment.createdBy.name.value
+                        }
+                        <small class="text-muted">@timeAgo(comment.createdAt)</small>
                     </div>
+                    <p class="mb-0" style="white-space: pre-line;">@comment.text</p>
                 </div>
-            }
-        </div>
+            </div>
+        }
     }
 </div>
