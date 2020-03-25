@@ -189,10 +189,10 @@ object GroupRepoSql {
     memberTable.insert[Group.Member](m, e => fr0"${e.group}, ${e.user.id}, ${e.role}, ${e.presentation}, ${e.joinedAt}, ${e.leavedAt}")
 
   private[sql] def disableMember(m: Group.Member, now: Instant): Update =
-    memberTable.update(fr0"gm.leaved_at=$now", fr0"WHERE gm.group_id=${m.group} AND gm.user_id=${m.user.id}")
+    memberTable.update(fr0"leaved_at=$now", fr0"WHERE gm.group_id=${m.group} AND gm.user_id=${m.user.id}")
 
   private[sql] def enableMember(m: Group.Member, now: Instant): Update =
-    memberTable.update(fr0"gm.joined_at=$now, gm.leaved_at=${Option.empty[Instant]}", fr0"WHERE gm.group_id=${m.group} AND gm.user_id=${m.user.id}")
+    memberTable.update(fr0"joined_at=$now, leaved_at=${Option.empty[Instant]}", fr0"WHERE gm.group_id=${m.group} AND gm.user_id=${m.user.id}")
 
   private[sql] def selectPageActiveMembers(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Group.Member, UserAwareCtx] =
     memberTableWithUser.selectPage[Group.Member, UserAwareCtx](params, fr0"WHERE gm.group_id=$group AND gm.leaved_at IS NULL")
