@@ -8,7 +8,7 @@
 @import gospeak.web.utils.UserReq
 
 @(form: Form[Proposal.Data], talk: Talk, cfp: Cfp)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(s"New proposal for '${talk.title.value}' - Gospeak", b)() {
+@container(s"New proposal for '${talk.title.value}'", b)() {
     @formElt(form, ProposalCtrl.doCreate(talk.slug, cfp.slug)) {
         <div class="d-flex justify-content-between align-items-center">
             <h1>Propose to @cfp.name.value</h1>

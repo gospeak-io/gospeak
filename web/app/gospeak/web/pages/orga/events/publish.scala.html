@@ -10,7 +10,7 @@
 @import gospeak.web.utils.OrgaReq
 
 @(event: Event, description: Markdown, form: Form[PublishOptions], hasMeetupAccount: Boolean)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(s"Publish ${event.name.value} - Gospeak", b)() {
+@container(s"Publish ${event.name.value}", b)() {
     <h1>Let's review your event before publishing</h1>
 
     @formElt(form, EventCtrl.doPublish(req.group.slug, event.slug)) {

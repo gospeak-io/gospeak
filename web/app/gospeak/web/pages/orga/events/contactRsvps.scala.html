@@ -8,7 +8,7 @@
 @import gospeak.web.utils.OrgaReq
 
 @(event: Event, senders: Seq[EmailAddress.Contact], form: Form[GsForms.EventContact])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(s"Contact ${req.group.name.value} RSVPs - Gospeak", b)() {
+@container(s"Contact ${req.group.name.value} RSVPs", b)() {
     <h1>Contact attendees of @event.name.value</h1>
 
     @formElt(form, EventCtrl.doContactRsvps(req.group.slug, event.slug)) {

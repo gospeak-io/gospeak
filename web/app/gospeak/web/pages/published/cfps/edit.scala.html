@@ -1,4 +1,5 @@
 @import gospeak.core.domain.ExternalCfp
+@import gospeak.core.domain.utils.Constants
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.partials.html.{container, externalCfpFields, externalEventFields}
@@ -7,7 +8,7 @@
 @import gospeak.web.utils.GsForms
 
 @(cfp: ExternalCfp.Full, form: Form[GsForms.ExternalCfpAndEvent])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(s"Edit ${cfp.event.name.value} CFP - Gospeak", PageMeta.cfp(cfp), b)() {
+@container(s"${Constants.Emoji.cfp} Edit ${cfp.event.name.value} CFP", PageMeta.cfp(cfp), b)() {
     @formElt(form, CfpCtrl.doEdit(cfp.id)) {
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>Edit @cfp.event.name.value</h1>

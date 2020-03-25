@@ -8,7 +8,7 @@
 @import gospeak.libs.scala.domain.Page
 
 @(proposals: Page[CommonProposal])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container("My proposals - Gospeak", b)() {
+@container("My proposals", b)() {
     @if(proposals.isEmpty) {
         <div class="jumbotron">
             <h1>You have no proposal <i class="far fa-sad-tear"></i></h1>

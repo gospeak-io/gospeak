@@ -1,4 +1,5 @@
 @import gospeak.core.domain.{Cfp, Group, Talk}
+@import gospeak.core.domain.utils.Constants
 @import gospeak.libs.scala.domain.Page
 @import gospeak.web.auth.routes.AuthCtrl
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
@@ -17,7 +18,7 @@
         <span>@talkStatus(talk.status) @duration(talk.duration)</span>
     </a>
 }
-@container(s"Proposal for ${cfp.name.value} - Gospeak", PageMeta.cfp(group, cfp), b)() {
+@container(s"${Constants.Emoji.cfp} Propose a talk for ${cfp.name.value}", PageMeta.cfp(group, cfp), b)() {
     <h1>Propose a talk to @cfp.name.value</h1>
     <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
 

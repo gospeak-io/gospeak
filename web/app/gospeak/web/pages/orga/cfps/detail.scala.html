@@ -10,7 +10,7 @@
 @import gospeak.libs.scala.domain.Page
 
 @(cfp: Cfp, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(s"${cfp.name.value} - Gospeak", b)() {
+@container(cfp.name.value, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@cfp.name.value</span>
         <span class="btn-group">

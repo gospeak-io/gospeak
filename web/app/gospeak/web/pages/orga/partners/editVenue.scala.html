@@ -6,7 +6,7 @@
 @import gospeak.web.utils.OrgaReq
 
 @(form: Form[Venue.Data], venue: Venue.Full, hasMeetupAccount: Boolean, redirect: Option[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(s"Edit ${venue.partner.name.value} venue - Gospeak", b)() {
+@container(s"Edit ${venue.partner.name.value} venue", b)() {
     @formElt(form, PartnerCtrl.doEditVenue(req.group.slug, venue.partner.slug, venue.id, redirect)) {
         <div class="d-flex justify-content-between align-items-center">
             <h1>Edit @venue.partner.name.value venue</h1>

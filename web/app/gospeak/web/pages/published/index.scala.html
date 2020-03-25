@@ -1,11 +1,12 @@
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.core.domain.utils.Constants
 @import gospeak.web.pages.published.partials.html.container
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.routes.HomeCtrl
 @import gospeak.web.utils.UserAwareReq
 
 @()(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container("Gospeak", PageMeta.default(HomeCtrl.index()), b, full = true)() {
+@container(s"${Constants.Emoji.gospeak} Gospeak", PageMeta.default(HomeCtrl.index()), b, full = true)() {
 <div class="d-lg-flex position-relative">
     <div class="container d-lg-flex align-items-lg-center space-top-2 space-top-md-5 space-lg-0 min-height-lg-100vh">
         <div class="row w-100">

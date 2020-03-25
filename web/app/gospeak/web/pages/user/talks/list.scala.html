@@ -7,7 +7,7 @@
 @import gospeak.web.utils.UserReq
 
 @(talks: Page[Talk])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container("My talks - Gospeak", b)() {
+@container("My talks", b)() {
     @if(talks.isEmpty) {
         <div class="jumbotron">
             <h1>You have no talk <i class="far fa-sad-tear"></i></h1>

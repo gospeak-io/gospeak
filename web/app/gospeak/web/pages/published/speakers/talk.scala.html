@@ -1,4 +1,5 @@
 @import gospeak.core.domain.{CommonProposal, Talk, User}
+@import gospeak.core.domain.utils.Constants
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.partials.html.{container, speakingHistory}
@@ -7,7 +8,7 @@
 @import gospeak.web.utils.UserAwareReq
 
 @(user: User.Full, talk: Talk, proposals: List[CommonProposal], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${talk.title.value} - Gospeak", PageMeta.talk(user.user, talk), b)() {
+@container(s"${Constants.Emoji.talk} ${talk.title.value} by ${user.name.value}", PageMeta.talk(user.user, talk), b)() {
     <a href="@SpeakerCtrl.detail(user.slug)"><i class="fas fa-chevron-left"></i> @user.name.value</a>
     <h1>
         @talk.title.value

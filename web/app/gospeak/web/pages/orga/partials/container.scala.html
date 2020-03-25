@@ -21,7 +21,7 @@
 @import gospeak.web.utils.OrgaReq
 
 @(title: String, b: Breadcrumb)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: OrgaReq[AnyContent])
-@main(title, PageMeta.default(HomeCtrl.index()), style, script) {
+@main(s"$title - ${req.group.name.value}", PageMeta.default(HomeCtrl.index()), style, script) {
 <header id="header" class="u-header">
     <div class="u-header__section">
         <div id="logoAndNav" class="container-fluid">

@@ -8,7 +8,7 @@
 @import gospeak.web.utils.UserReq
 
 @(invite: UserRequest.ExternalProposalInvite, proposal: ExternalProposal.Full, speaker: User)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(s"Invitation for '${proposal.title.value}' proposal ar ${proposal.event.name.value} - Gospeak", b, hideAlert = true)() {
+@container(s"Invitation for '${proposal.title.value}' proposal ar ${proposal.event.name.value}", b, hideAlert = true)() {
     @if(invite.isPending(req.now)) {
         <h1>Nice!!! You have been added to a proposal <i class="far fa-thumbs-up"></i></h1>
         <h3>"@proposal.title.value"</h3>

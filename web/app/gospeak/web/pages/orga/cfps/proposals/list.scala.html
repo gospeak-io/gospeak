@@ -8,7 +8,7 @@
 @import gospeak.web.utils.OrgaReq
 
 @(cfp: Cfp, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(s"${cfp.name.value} proposals - Gospeak", b)() {
+@container(s"${cfp.name.value} proposals", b)() {
     <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h1>
     <p class="mt-2 mb-0">You voted on @Formats.plural(userRatings.length, "proposal") on a total of @proposals.total.value</p>
     @Formats.paginated[Proposal.Full](

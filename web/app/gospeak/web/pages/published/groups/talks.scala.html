@@ -1,4 +1,5 @@
 @import gospeak.core.domain.{Cfp, Group, Proposal, Sponsor, SponsorPack, User}
+@import gospeak.core.domain.utils.Constants
 @import gospeak.libs.scala.domain.{Page, Tweet}
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.partials.display.html._
@@ -28,7 +29,7 @@
         </div>
     </div>
 }
-@container(s"${group.name.value} talks - Gospeak", PageMeta.group(group.group), b)() {
+@container(s"${Constants.Emoji.group} ${group.name.value} talks", PageMeta.group(group.group), b)() {
 <div class="row">
     @groupCard(group, speakerCount, cfps, sponsors, packs, orgas, userMembership)(b)
 

@@ -22,7 +22,7 @@
         <img src="@partner.logo.value" alt="@partner.name.value logo" class="avatar avatar-lg"  style="height: 50px">
     </div>
 }
-@container(s"${req.group.name.value} partners - Gospeak", b)() {
+@container(s"${req.group.name.value} partners", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span class="text-capitalize">@Formats.plural(partners.total.value, "partner")</span>
         <a class="btn btn-primary" href="@PartnerCtrl.create(req.group.slug)" data-hotkey="+">Create a partner</a>

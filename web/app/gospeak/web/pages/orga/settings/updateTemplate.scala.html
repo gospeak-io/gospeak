@@ -8,7 +8,7 @@
 @import gospeak.web.utils.{GsForms, OrgaReq}
 
 @(name: String, form: Form[Mustache.Text[Nothing]], templateRef: Message.Ref, update: Call, markdown: Boolean = true)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(s"Edit $name template - ${req.group.name.value} settings - Gospeak", b)() {
+@container(s"Edit $name template", b)() {
     <h1>Update @name template</h1>
 
     @formElt(form, update) {

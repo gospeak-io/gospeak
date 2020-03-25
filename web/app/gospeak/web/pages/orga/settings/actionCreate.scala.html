@@ -7,7 +7,7 @@
 @import gospeak.web.utils.OrgaReq
 
 @(actionForm: Form[GsForms.GroupAction])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(s"New action - ${req.group.name.value} settings - Gospeak", b)() {
+@container("New action", b)() {
     @formElt(actionForm, SettingsCtrl.doCreateAction(req.group.slug)) {
         <div class="d-flex justify-content-between align-items-center">
             <h1>Create an action for @req.group.name.value</h1>

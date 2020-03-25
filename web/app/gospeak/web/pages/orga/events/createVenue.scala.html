@@ -8,7 +8,7 @@
 @import gospeak.web.utils.OrgaReq
 
 @(event: Event, form: Form[GsForms.VenueWithPartnerData])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container("Create venue - Gospeak", b)() {
+@container("Create venue", b)() {
     @formElt(form, EventCtrl.doCreateVenue(req.group.slug, event.slug)) {
         <div class="d-flex justify-content-between align-items-center">
             <h1>Create venue</h1>

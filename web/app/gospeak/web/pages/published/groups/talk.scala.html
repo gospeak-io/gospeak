@@ -1,4 +1,5 @@
 @import gospeak.core.domain.{Group, Proposal, User}
+@import gospeak.core.domain.utils.Constants
 @import gospeak.libs.scala.domain.Tweet
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.orga.cfps.proposals.routes.{ProposalCtrl => OrgaProposalCtrl}
@@ -10,7 +11,7 @@
 @import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(group: Group, proposal: Proposal.Full, tweet: Option[Tweet], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${proposal.title.value} at ${group.name.value} - Gospeak", PageMeta.proposal(group, proposal.proposal), b)() {
+@container(s"${Constants.Emoji.proposal} ${proposal.title.value} ${Constants.Emoji.group} ${group.name.value}", PageMeta.proposal(group, proposal.proposal), b)() {
     <a href="@GroupCtrl.detail(group.slug)"><i class="fas fa-chevron-left"></i> @group.name.value</a>
     <h1>
         @proposal.title.value

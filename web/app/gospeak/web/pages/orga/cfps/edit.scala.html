@@ -6,7 +6,7 @@
 @import gospeak.web.utils.OrgaReq
 
 @(cfp: Cfp, form: Form[Cfp.Data], redirect: Option[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(s"Edit ${cfp.name.value} - Gospeak", b)() {
+@container(s"Edit ${cfp.name.value}", b)() {
     @formElt(form, CfpCtrl.doEdit(req.group.slug, cfp.slug, redirect)) {
         <div class="d-flex justify-content-between align-items-center">
             <h1>Edit @cfp.name.value</h1>

@@ -8,7 +8,7 @@
 @import gospeak.libs.scala.domain.Page
 
 @(proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(s"${req.group.name.value} proposals - Gospeak", b)() {
+@container(s"${req.group.name.value} proposals", b)() {
     <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") <small>(from any CFP)</small></h1>
     @Formats.paginated[Proposal.Full](
         proposals,

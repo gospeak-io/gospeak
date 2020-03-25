@@ -7,7 +7,7 @@
 @import gospeak.libs.scala.domain.Page
 
 @(talk: Talk, cfps: Page[Cfp])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(s"Find CFPs for '${talk.title.value}' - Gospeak", b)() {
+@container(s"Find CFPs for '${talk.title.value}'", b)() {
     @if(cfps.isEmpty) {
         <div class="jumbotron">
             <h1>No available CFP to propose @talk.title.value <i class="far fa-sad-tear"></i></h1>

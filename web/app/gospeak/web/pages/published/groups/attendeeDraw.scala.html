@@ -1,4 +1,5 @@
 @import gospeak.core.domain.Event
+@import gospeak.core.domain.utils.Constants
 @import gospeak.core.services.meetup.domain.MeetupAttendee
 @import gospeak.web.domain.PageMeta
 @import gospeak.web.pages.partials.container.html.main
@@ -6,7 +7,7 @@
 @import gospeak.web.utils.UserAwareReq
 
 @(event: Event.Full, attendeesEither: Either[String, Seq[MeetupAttendee]])(implicit req: UserAwareReq[AnyContent])
-@main(s"Attendee draw for ${event.name.value} - Gospeak", PageMeta.default(GroupCtrl.eventDrawMeetupAttendee(event.group.slug, event.slug)), style = Html(
+@main(s"${Constants.Emoji.event} Attendee draw for ${event.name.value}", PageMeta.default(GroupCtrl.eventDrawMeetupAttendee(event.group.slug, event.slug)), style = Html(
     """<style>
       |html, body, .container {
       |  height: 100%;

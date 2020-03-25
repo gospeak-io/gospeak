@@ -1,3 +1,4 @@
+@import gospeak.core.domain.utils.Constants
 @import gospeak.web.domain.PageMeta
 @import gospeak.web.utils.BasicReq
 
@@ -10,7 +11,7 @@
         <meta name="request-id" content="@req.customId">
         @metas(m)
         @favicon()
-        <title>@if(!req.conf.app.env.isProd){[@req.conf.app.env] }@title</title>
+        <title>@if(!req.conf.app.env.isProd){[@req.conf.app.env] }@title@if(!title.startsWith(s"${Constants.Emoji.gospeak} Gospeak")){ @Constants.Emoji.gospeak Gospeak}</title>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
         <link rel="stylesheet" href="@routes.Assets.versioned("select2/dist/css/select2.min.css")">
         <link rel="stylesheet" href="@routes.Assets.versioned("select2-bootstrap-theme/dist/select2-bootstrap.min.css")">

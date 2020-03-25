@@ -7,7 +7,7 @@
 @import gospeak.libs.scala.domain.Page
 
 @(cfps: Page[Cfp])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(s"${req.group.name.value} CFPs - Gospeak", b)() {
+@container(s"${req.group.name.value} CFPs", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span class="text-capitalize">@Formats.plural(cfps.total.value, "Call For Paper")</span>
         <a class="btn btn-primary" href="@CfpCtrl.create(req.group.slug)" data-hotkey="+">Create a CFP</a>

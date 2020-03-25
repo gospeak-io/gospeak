@@ -9,7 +9,7 @@
 @import gospeak.web.utils.OrgaReq
 
 @(templateId: Option[String], settings: Group.Settings, form: Form[GsForms.GroupEventTemplateItem])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(s"Edit template - ${req.group.name.value} settings - Gospeak", b)() {
+@container(templateId.map(id => s"Edit $id template for event").getOrElse("Create event template"), b)() {
     @templateId match {
         case Some(id) => {
             <h1>Update template event '@id'</h1>

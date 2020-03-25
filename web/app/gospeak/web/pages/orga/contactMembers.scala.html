@@ -6,7 +6,7 @@
 @import gospeak.web.utils.OrgaReq
 
 @(form: Form[GsForms.GroupContact])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(s"Contact ${req.group.name.value} members - Gospeak", b)() {
+@container(s"Contact ${req.group.name.value} members", b)() {
     <h1>Contact @req.group.name.value members</h1>
 
     @formElt(form, GroupCtrl.doContactMembers(req.group.slug)) {

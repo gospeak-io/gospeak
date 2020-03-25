@@ -1,4 +1,5 @@
 @import gospeak.core.domain.{ExternalProposal, User}
+@import gospeak.core.domain.utils.Constants
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.events.routes.EventCtrl
@@ -8,7 +9,7 @@
 @import gospeak.web.utils.UserAwareReq
 
 @(proposal: ExternalProposal.Full, users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${proposal.title.value} - Gospeak", PageMeta.event(proposal.event), b)() {
+@container(s"${Constants.Emoji.proposal} ${proposal.title.value}", PageMeta.event(proposal.event), b)() {
     <a href="@EventCtrl.detailExt(proposal.event.id)"><i class="fas fa-chevron-left"></i> @proposal.event.name.value</a>
     <h1>
         @proposal.title.value

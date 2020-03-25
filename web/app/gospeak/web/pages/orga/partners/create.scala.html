@@ -6,7 +6,7 @@
 @import gospeak.web.utils.OrgaReq
 
 @(form: Form[Partner.Data])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container("New partner - Gospeak", b)() {
+@container("New partner", b)() {
     @formElt(form, PartnerCtrl.doCreate(req.group.slug)) {
         <div class="d-flex justify-content-between align-items-center">
             <h1>Create a partner</h1>

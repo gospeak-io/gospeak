@@ -15,7 +15,7 @@
         @event.location.map { l => <span class="badge badge-primary">@l.valueShort</span> }
     </a>
 }
-@container(s"${talk.title.value} - Gospeak", b)() {
+@container(talk.title.value, b)() {
     <div class="d-flex justify-content-between align-items-center">
         <h1>@talk.title.value</h1>
         <a class="btn btn-primary" href="@TalkCtrl.createExternalEvent(talk.slug)" title="If you don't find the event in the list, you can add it" data-toggle="tooltip">Add new event</a>
