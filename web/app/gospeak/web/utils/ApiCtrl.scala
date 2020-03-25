@@ -64,7 +64,6 @@ class ApiCtrl(cc: ControllerComponents,
         case r: OrgaReq[_] => Some(r.user) -> Some(r.group)
         case r: UserReq[_] => Some(r.user) -> None
         case r: UserAwareReq[_] => r.user -> None
-        case _: BasicReq[_] => None -> None
       }
       val userStr = user.map(u => s" for user ${u.name.value} (${u.id.value})").getOrElse("")
       val groupStr = group.map(g => s" in group ${g.name.value} (${g.id.value})").getOrElse("")

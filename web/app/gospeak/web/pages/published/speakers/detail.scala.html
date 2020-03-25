@@ -83,7 +83,7 @@
         @if(!user.isPublic) {
             <div class="alert alert-primary" role="alert">You profile is <b>private</b>, only you can see it!</div>
         }
-        @user.title.map { t => <h2 class="h4">@t</h2> }
+        <h2 class="h4" id="profile-info">@user.title.getOrElse(s"About ${user.name.value}")</h2>
         @user.bio.map { b => @markdown(b) }
         @user.mentoring.map { m =>
             <ul class="list-inline d-flex align-items-center">
@@ -103,7 +103,7 @@
             <div class="row">
                 @if(userTalks.nonEmpty && !(userTalks.map(_.title.value).toList.sorted == userProposals.values.flatten.map(_.title.value).toList.sorted)) {
                     <div class="col-md-6 mb-5 mb-md-0">
-                        <h3 class="h5 mb-3">Current talks</h3>
+                        <h3 id="current-talks" class="h5 mb-3">Current talks</h3>
                         @userTalks.zipWithIndex.map { case (talk, i) =>
                             <div class="align-items-center @if(i != 0) {mt-5}">
                                 @userProposals.getOrElse(talk.id, Seq()) match {
@@ -143,7 +143,7 @@
                 }
                 @if(userGroups.nonEmpty) {
                     <div class="col-md-6">
-                        <h3 class="h5 mb-3">Organizes</h3>
+                        <h3 id="owned-groups" class="h5 mb-3">Organizes</h3>
                         @userGroups.zipWithIndex.map { case (group, i) =>
                             <div class="d-flex @if(i != 0) {mt-5}">
                                 <a href="@GroupCtrl.detail(group.slug)">
@@ -171,7 +171,7 @@
         }
         @if(userProposals.nonEmpty) {
             <hr class="my-5">
-            <h3 class="h5 mb-0">Speaking history</h3>
+            <h3 id="speaking-history" class="h5 mb-0">Speaking history</h3>
             <div class="text-muted mb-3">
                 @userProposals.values.flatten.toList.groupBy(_.eventKind).map { case (kind, proposals) =>
                     <span class="badge badge-pill badge-@Formats.color(kind)">@Formats.icon(kind) @Formats.plural(proposals.length, kind.map(_.label).getOrElse("Undefined event"))</span>

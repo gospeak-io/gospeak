@@ -36,7 +36,6 @@ abstract class UICtrl(cc: ControllerComponents,
         case r: OrgaReq[AnyContent] => Some(r.user) -> Some(r.group)
         case r: UserReq[AnyContent] => Some(r.user) -> None
         case r: UserAwareReq[AnyContent] => r.user -> None
-        case _: BasicReq[AnyContent] => None -> None
       }
       val userStr = user.map(u => s", user ${u.name.value} (${u.id.value})").getOrElse("")
       val groupStr = group.map(g => s", group ${g.name.value} (${g.id.value})").getOrElse("")

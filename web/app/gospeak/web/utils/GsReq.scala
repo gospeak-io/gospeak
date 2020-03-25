@@ -18,16 +18,14 @@ import play.api.mvc._
 import scala.collection.Seq
 import scala.util.matching.Regex
 
-sealed class BasicReq[A] protected(protected val request: Request[A],
+sealed abstract class BasicReq[A] protected(protected val request: Request[A],
                                    protected val messages: Messages,
                                    val customId: String,
                                    val now: Instant,
                                    val conf: AppConf) extends WrappedRequest[A](request) with BasicCtx {
-  override def withBody[B](body: B): BasicReq[B] = new BasicReq(request.withBody(body), messages, customId, now, conf)
+  def userOpt: Option[User]
 
-  def userOpt: Option[User] = None
-
-  def groupsOpt: Option[Seq[Group]] = None
+  def groupsOpt: Option[Seq[Group]]
 
   def isLogged(u: User.Id): Boolean = userOpt.exists(_.id == u)
 
@@ -92,9 +90,6 @@ sealed class BasicReq[A] protected(protected val request: Request[A],
 }
 
 object BasicReq {
-  def from[A](conf: AppConf, messagesApi: MessagesApi, r: Request[A]): BasicReq[A] =
-    new BasicReq[A](r, messagesApi.preferred(r), buildId(r), Instant.now(), conf)
-
   def buildId[A](r: Request[A]): String =
     r.headers.get("X-Request-Id") // header added by heroku
       .getOrElse(UUID.randomUUID().toString)
@@ -174,11 +169,11 @@ sealed class UserReq[A] protected(override val request: Request[A],
     user = user,
     groups = groups)
 
-  def isAdmin: Boolean = conf.app.admins.exists(_ == user.email)
-
   override def userOpt: Option[User] = Some(user)
 
   override def groupsOpt: Option[Seq[Group]] = Some(groups)
+
+  def isAdmin: Boolean = conf.app.admins.exists(_ == user.email)
 
   def userAware: UserAwareReq[A] = UserAwareReq.from(this)
 
