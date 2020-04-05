@@ -33,8 +33,8 @@ class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
       }
       instant.bind(Map("" -> "2019-07-14T17:53:18")) shouldBe Right(Instant.ofEpochMilli(1563119598000L))
       instant.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
-      instant.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.datetime"), Seq())))
-      instant.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.datetime"), Seq())))
+      instant.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.datetime"), Seq("Text '' could not be parsed at index 0"))))
+      instant.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.datetime"), Seq("Text 'wrong' could not be parsed at index 0"))))
     }
     it("should bind & unbind a LocalDateTime") {
       forAll { v: LocalDateTime =>
@@ -68,8 +68,8 @@ class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
         timeUnit.bind(data) shouldBe Right(v)
       }
       timeUnit.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
-      timeUnit.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
-      timeUnit.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
+      timeUnit.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq("No enum constant java.util.concurrent.TimeUnit."))))
+      timeUnit.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq("No enum constant java.util.concurrent.TimeUnit.wrong"))))
     }
     it("should bind & unbind a FiniteDuration") {
       forAll { v: FiniteDuration =>
@@ -77,8 +77,12 @@ class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
         duration.bind(data).map(_.toMinutes) shouldBe Right(v.toMinutes)
       }
       duration.bind(Map()) shouldBe Left(Seq(FormError("length", Seq("error.required"), Seq()), FormError("unit", Seq("error.required"), Seq())))
-      duration.bind(Map("length" -> "", "unit" -> "")) shouldBe Left(Seq(FormError("length", Seq("error.number"), Seq()), FormError("unit", Seq("error.format"), Seq())))
-      duration.bind(Map("length" -> "wrong", "unit" -> "wrong")) shouldBe Left(Seq(FormError("length", Seq("error.number"), Seq()), FormError("unit", Seq("error.format"), Seq())))
+      duration.bind(Map("length" -> "", "unit" -> "")) shouldBe Left(Seq(
+        FormError("length", Seq("error.number"), Seq()),
+        FormError("unit", Seq("error.format"), Seq("No enum constant java.util.concurrent.TimeUnit."))))
+      duration.bind(Map("length" -> "wrong", "unit" -> "wrong")) shouldBe Left(Seq(
+        FormError("length", Seq("error.number"), Seq()),
+        FormError("unit", Seq("error.format"), Seq("No enum constant java.util.concurrent.TimeUnit.wrong"))))
     }
     it("should bind & unbind a EmailAddress") {
       forAll { v: EmailAddress =>
@@ -95,8 +99,8 @@ class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
         url.bind(data) shouldBe Right(v)
       }
       url.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
-      url.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
-      url.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
+      url.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq("'' is an invalid Url: no protocol: "))))
+      url.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq("'wrong' is an invalid Url: no protocol: wrong"))))
     }
     it("should bind & unbind a Slides") {
       forAll { v: Slides =>
@@ -104,8 +108,8 @@ class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
         slides.bind(data) shouldBe Right(v)
       }
       slides.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
-      slides.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
-      slides.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
+      slides.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq("'' is an invalid Url: no protocol: "))))
+      slides.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq("'wrong' is an invalid Url: no protocol: wrong"))))
     }
     it("should bind & unbind a Video") {
       forAll { v: Video =>
@@ -113,8 +117,8 @@ class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
         video.bind(data) shouldBe Right(v)
       }
       video.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
-      video.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
-      video.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq())))
+      video.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq("'' is an invalid Url: no protocol: "))))
+      video.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq("'wrong' is an invalid Url: no protocol: wrong"))))
     }
     it("should bind & unbind a Secret") {
       forAll { v: Secret =>

@@ -15,7 +15,10 @@ object Constants {
 
   object Emoji {
     // https://coolsymbol.com/emojis/emoji-for-copy-and-paste.html
+    // https://unicode.org/emoji/charts/full-emoji-list.html
     val sparkles = "✨"
+    val nerdFace = "\uD83E\uDD13"
+    val grinningFace = "\uD83D\uDE00"
     val rocket = "\uD83D\uDE80"
     val speakingHead = "\uD83D\uDDE3"
     val speechBalloon = "\uD83D\uDCAC"
@@ -25,7 +28,7 @@ object Constants {
     val calendar = "\uD83D\uDCC6"
 
     val gospeak: String = sparkles
-    val user: String = speakingHead
+    val user: String = nerdFace
     val talk: String = speechBalloon
     val group: String = directHit
     val cfp: String = loudSpeaker
@@ -48,11 +51,11 @@ object Constants {
 
   object Twitter {
     val gospeakHandle = "@gospeak_io"
-    val gospeakUrl: Url = Url.from("https://twitter.com/gospeak_io").get
+    val gospeakUrl: Url.Twitter = Url.Twitter.from("https://twitter.com/gospeak_io").get
   }
 
   object LinkedIn {
-    val gospeakUrl: Url = Url.from("https://www.linkedin.com/company/gospeak").get
+    val gospeakUrl: Url.LinkedIn = Url.LinkedIn.from("https://www.linkedin.com/company/gospeak").get
   }
 
   object Slack {

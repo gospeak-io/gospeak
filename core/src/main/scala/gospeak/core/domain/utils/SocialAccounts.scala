@@ -21,14 +21,14 @@ final case class SocialAccounts(facebook: Option[FacebookAccount],
 object SocialAccounts {
   def fromUrls(facebook: Option[Url] = None,
                instagram: Option[Url] = None,
-               twitter: Option[Url] = None,
-               linkedIn: Option[Url] = None,
-               youtube: Option[Url] = None,
-               meetup: Option[Url] = None,
+               twitter: Option[Url.Twitter] = None,
+               linkedIn: Option[Url.LinkedIn] = None,
+               youtube: Option[Url.YouTube] = None,
+               meetup: Option[Url.Meetup] = None,
                eventbrite: Option[Url] = None,
                slack: Option[Url] = None,
                discord: Option[Url] = None,
-               github: Option[Url] = None): SocialAccounts =
+               github: Option[Url.Github] = None): SocialAccounts =
     new SocialAccounts(
       facebook = facebook.map(FacebookAccount),
       instagram = instagram.map(InstagramAccount),
@@ -53,51 +53,53 @@ object SocialAccounts {
                   github: Option[String] = None): Either[CustomException, SocialAccounts] = for {
     facebookUrl <- facebook.map(Url.from).sequence
     instagramUrl <- instagram.map(Url.from).sequence
-    twitterUrl <- twitter.map(Url.from).sequence
-    linkedInUrl <- linkedIn.map(Url.from).sequence
-    youtubeUrl <- youtube.map(Url.from).sequence
-    meetupUrl <- meetup.map(Url.from).sequence
+    twitterUrl <- twitter.map(Url.Twitter.from).sequence
+    linkedInUrl <- linkedIn.map(Url.LinkedIn.from).sequence
+    youtubeUrl <- youtube.map(Url.YouTube.from).sequence
+    meetupUrl <- meetup.map(Url.Meetup.from).sequence
     eventbriteUrl <- eventbrite.map(Url.from).sequence
     slackUrl <- slack.map(Url.from).sequence
     discordUrl <- discord.map(Url.from).sequence
-    githubUrl <- github.map(Url.from).sequence
+    githubUrl <- github.map(Url.Github.from).sequence
   } yield fromUrls(facebookUrl, instagramUrl, twitterUrl, linkedInUrl, youtubeUrl, meetupUrl, eventbriteUrl, slackUrl, discordUrl, githubUrl)
 
   sealed abstract class SocialAccount(url: Url, val name: String) {
     def link: String = url.value
 
-    def handle: String =
-      url.value
-        .split("\\?").head
-        .split("/").filter(_.nonEmpty)
-        .lastOption.getOrElse(url.value)
+    def handle: String = url.handle
   }
 
   object SocialAccount {
 
-    final case class FacebookAccount(url: Url) extends SocialAccount(url, "facebook")
-
-    final case class InstagramAccount(url: Url) extends SocialAccount(url, "instagram")
-
-    final case class TwitterAccount(url: Url) extends SocialAccount(url, "twitter") {
-      override def handle: String = "@" + url.value.split("/").filter(_.nonEmpty).last
+    final case class FacebookAccount(url: Url) extends SocialAccount(url, "facebook") {
+      override def handle: String = url.path.lastOption.getOrElse(url.handle)
     }
 
-    final case class LinkedInAccount(url: Url) extends SocialAccount(url, "linkedin")
+    final case class InstagramAccount(url: Url) extends SocialAccount(url, "instagram") {
+      override def handle: String = url.path.lastOption.getOrElse(url.handle)
+    }
 
-    final case class YoutubeAccount(url: Url) extends SocialAccount(url, "youtube")
+    final case class TwitterAccount(url: Url.Twitter) extends SocialAccount(url, "twitter")
 
-    final case class MeetupAccount(url: Url) extends SocialAccount(url, "meetup")
+    final case class LinkedInAccount(url: Url.LinkedIn) extends SocialAccount(url, "linkedin")
 
-    final case class EventbriteAccount(url: Url) extends SocialAccount(url, "eventbrite")
+    final case class YoutubeAccount(url: Url.YouTube) extends SocialAccount(url, "youtube")
+
+    final case class MeetupAccount(url: Url.Meetup) extends SocialAccount(url, "meetup")
+
+    final case class EventbriteAccount(url: Url) extends SocialAccount(url, "eventbrite") {
+      override def handle: String = url.path.lastOption.getOrElse(url.handle)
+    }
 
     final case class SlackAccount(url: Url) extends SocialAccount(url, "slack") {
-      override def handle: String = url.value.split("\\.").head.replace("https://", "").replace("http://", "")
+      override def handle: String = url.host.split('.').head
     }
 
-    final case class DiscordAccount(url: Url) extends SocialAccount(url, "discord")
+    final case class DiscordAccount(url: Url) extends SocialAccount(url, "discord") {
+      override def handle: String = url.path.lastOption.getOrElse(url.handle)
+    }
 
-    final case class GithubAccount(url: Url) extends SocialAccount(url, "github")
+    final case class GithubAccount(url: Url.Github) extends SocialAccount(url, "github")
 
   }
 

@@ -44,20 +44,25 @@ object Generators {
   implicit val aSlides: Arbitrary[Slides] = Arbitrary(slugGen.map(slug => Slides.from(s"http://docs.google.com/presentation/d/${slug.take(82)}").get))
   implicit val aVideo: Arbitrary[Video] = Arbitrary(slugGen.map(slug => Video.from(s"http://youtu.be/${slug.take(104)}").get))
   implicit val aEmailAddress: Arbitrary[EmailAddress] = Arbitrary(nonEmptyStringGen.map(slug => EmailAddress.from(slug.take(110) + "e@mail.com").get)) // TODO improve
-  implicit val aUrl: Arbitrary[Url] = Arbitrary(stringGen.map(_ => Url.from("https://www.youtube.com/watch").get)) // TODO improve
+  implicit val aUrl: Arbitrary[Url] = Arbitrary(stringGen.map(u => Url.from(s"https://loicknuchel.fr#$u").get)) // TODO improve
+  implicit val aTwitterUrl: Arbitrary[Url.Twitter] = Arbitrary(stringGen.map(u => Url.Twitter.from(s"https://twitter.com/gospeak_io#$u").get)) // TODO improve
+  implicit val aLinkedInUrl: Arbitrary[Url.LinkedIn] = Arbitrary(stringGen.map(u => Url.LinkedIn.from(s"https://linkedin.com/in/loicknuchel#$u").get)) // TODO improve
+  implicit val aYouTubeUrl: Arbitrary[Url.YouTube] = Arbitrary(stringGen.map(u => Url.YouTube.from(s"https://www.youtube.com/watch?v=QfmVc9c_8Po#$u").get)) // TODO improve
+  implicit val aMeetupUrl: Arbitrary[Url.Meetup] = Arbitrary(stringGen.map(u => Url.Meetup.from(s"https://www.meetup.com/HumanTalks-Paris#$u").get)) // TODO improve
+  implicit val aGithubUrl: Arbitrary[Url.Github] = Arbitrary(stringGen.map(u => Url.Github.from(s"https://github.com/gospeak-io#$u").get)) // TODO improve
   implicit val aLogo: Arbitrary[Logo] = Arbitrary(aUrl.arbitrary.map(Logo))
   implicit val aBanner: Arbitrary[Banner] = Arbitrary(aUrl.arbitrary.map(Banner))
   implicit val aAvatar: Arbitrary[Avatar] = Arbitrary(aEmailAddress.arbitrary.map(e => Avatar(Url.from(s"https://secure.gravatar.com/avatar/${Crypto.md5(e.value)}").get))) // TODO improve
   implicit val aFacebookAccount: Arbitrary[FacebookAccount] = Arbitrary(aUrl.arbitrary.map(FacebookAccount))
   implicit val aInstagramAccount: Arbitrary[InstagramAccount] = Arbitrary(aUrl.arbitrary.map(InstagramAccount))
-  implicit val aTwitterAccount: Arbitrary[TwitterAccount] = Arbitrary(aUrl.arbitrary.map(TwitterAccount))
-  implicit val aLinkedInAccount: Arbitrary[LinkedInAccount] = Arbitrary(aUrl.arbitrary.map(LinkedInAccount))
-  implicit val aYoutubeAccount: Arbitrary[YoutubeAccount] = Arbitrary(aUrl.arbitrary.map(YoutubeAccount))
-  implicit val aMeetupAccount: Arbitrary[MeetupAccount] = Arbitrary(aUrl.arbitrary.map(MeetupAccount))
+  implicit val aTwitterAccount: Arbitrary[TwitterAccount] = Arbitrary(aTwitterUrl.arbitrary.map(TwitterAccount))
+  implicit val aLinkedInAccount: Arbitrary[LinkedInAccount] = Arbitrary(aLinkedInUrl.arbitrary.map(LinkedInAccount))
+  implicit val aYoutubeAccount: Arbitrary[YoutubeAccount] = Arbitrary(aYouTubeUrl.arbitrary.map(YoutubeAccount))
+  implicit val aMeetupAccount: Arbitrary[MeetupAccount] = Arbitrary(aMeetupUrl.arbitrary.map(MeetupAccount))
   implicit val aEventbriteAccount: Arbitrary[EventbriteAccount] = Arbitrary(aUrl.arbitrary.map(EventbriteAccount))
   implicit val aSlackAccount: Arbitrary[SlackAccount] = Arbitrary(aUrl.arbitrary.map(SlackAccount))
   implicit val aDiscordAccount: Arbitrary[DiscordAccount] = Arbitrary(aUrl.arbitrary.map(DiscordAccount))
-  implicit val aGithubAccount: Arbitrary[GithubAccount] = Arbitrary(aUrl.arbitrary.map(GithubAccount))
+  implicit val aGithubAccount: Arbitrary[GithubAccount] = Arbitrary(aGithubUrl.arbitrary.map(GithubAccount))
   implicit val aTwitterHashtag: Arbitrary[TwitterHashtag] = Arbitrary(nonEmptyStringGen.map(e => TwitterHashtag.from(e.replaceAll(" ", "")).get))
   implicit val aTag: Arbitrary[Tag] = Arbitrary(nonEmptyStringGen.map(str => Tag(str.take(Tag.maxSize))))
   implicit val aTags: Arbitrary[Seq[Tag]] = Arbitrary(Gen.listOf(aTag.arbitrary).map(_.take(Tag.maxNumber)))

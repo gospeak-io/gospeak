@@ -10,7 +10,7 @@ class SocialAccountsSpec extends FunSpec with Matchers {
     describe("SocialAccount") {
       it("should ignore query params when build handle") {
         val url = "https://www.meetup.com/fr-FR/members/68834382/?op=&memberId=68834382"
-        MeetupAccount(Url.from(url).get).handle shouldBe "68834382"
+        MeetupAccount(Url.Meetup.from(url).get).handle shouldBe "68834382"
       }
     }
   }

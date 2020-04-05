@@ -40,38 +40,55 @@ object Mappings {
   val localDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern(localDateFormat)
 
   val double: Mapping[Double] = of(doubleFormat)
-  val instant: Mapping[Instant] = stringEitherMapping(s => Try(LocalDateTime.parse(s)).map(_.toInstant(Constants.defaultZoneId)).toEither, _.atZone(Constants.defaultZoneId).toLocalDateTime.toString, datetimeError)
+  val instant: Mapping[Instant] = stringEitherMapping[Instant, Throwable](
+    from = s => Try(LocalDateTime.parse(s)).map(_.toInstant(Constants.defaultZoneId)).toEither,
+    to = _.atZone(Constants.defaultZoneId).toLocalDateTime.toString,
+    errorMessage = datetimeError,
+    errorArgs = _.getMessage :: Nil)
   val myLocalDateTime: Mapping[LocalDateTime] = mapping(
     "date" -> localDate("dd/MM/yyyy"),
     "time" -> localTime("HH:mm")
   )({ case (d, t) => LocalDateTime.of(d, t) })(dt => Some(dt.toLocalDate -> dt.toLocalTime))
-  val chronoUnit: Mapping[ChronoUnit] = stringEitherMapping(d => Try(ChronoUnit.valueOf(d)).toEither, _.name(), formatError)
-  val periodUnit: Mapping[TimePeriod.PeriodUnit] = stringEitherMapping(d => TimePeriod.PeriodUnit.all.find(_.value == d).toEither, _.value, formatError)
+  val chronoUnit: Mapping[ChronoUnit] = stringEitherMapping[ChronoUnit, Throwable](
+    from = d => Try(ChronoUnit.valueOf(d)).toEither,
+    to = _.name(),
+    errorMessage = formatError,
+    errorArgs = _.getMessage :: Nil)
+  val periodUnit: Mapping[TimePeriod.PeriodUnit] = stringEitherMapping[TimePeriod.PeriodUnit, String](
+    from = d => TimePeriod.PeriodUnit.all.find(_.value == d).toEither(s"No period '$d'"),
+    to = _.value,
+    errorMessage = formatError,
+    errorArgs = Seq(_))
   val period: Mapping[TimePeriod] = mapping(
     "length" -> longNumber,
     "unit" -> periodUnit
   )(TimePeriod.apply)(TimePeriod.unapply)
-  val timeUnit: Mapping[TimeUnit] = stringEitherMapping(d => Try(TimeUnit.valueOf(d)).toEither, _.name(), formatError)
+  val timeUnit: Mapping[TimeUnit] = stringEitherMapping[TimeUnit, Throwable](d => Try(TimeUnit.valueOf(d)).toEither, _.name(), formatError, _.getMessage :: Nil)
   val duration: Mapping[FiniteDuration] = mapping(
     "length" -> longNumber,
     "unit" -> timeUnit
   )(new FiniteDuration(_, _))(d => Some(d.length -> d.unit))
   val emailAddress: Mapping[EmailAddress] = WrappedMapping(nonEmptyText.verifying(Constraints.emailAddress(), Constraints.maxLength(Values.maxLength.email)), (s: String) => EmailAddress.from(s).get, _.value)
-  val url: Mapping[Url] = stringEitherMapping(Url.from, _.value, formatError, Constraints.maxLength(Values.maxLength.url))
+  val url: Mapping[Url] = stringEitherMapping[Url, CustomException](Url.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val twitterUrl: Mapping[Url.Twitter] = stringEitherMapping[Url.Twitter, CustomException](Url.Twitter.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val linkedInUrl: Mapping[Url.LinkedIn] = stringEitherMapping[Url.LinkedIn, CustomException](Url.LinkedIn.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val youTubeUrl: Mapping[Url.YouTube] = stringEitherMapping[Url.YouTube, CustomException](Url.YouTube.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val meetupUrl: Mapping[Url.Meetup] = stringEitherMapping[Url.Meetup, CustomException](Url.Meetup.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val githubUrl: Mapping[Url.Github] = stringEitherMapping[Url.Github, CustomException](Url.Github.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
   val avatar: Mapping[Avatar] = url.transform(Avatar, _.url)
   val logo: Mapping[Logo] = url.transform(Logo, _.url)
   val banner: Mapping[Banner] = url.transform(Banner, _.url)
   val slides: Mapping[Slides] = url.transform(Slides.from(_).get, _.url)
   val video: Mapping[Video] = url.transform(Video.from(_).get, _.url)
-  val twitterAccount: Mapping[TwitterAccount] = url.transform(TwitterAccount, _.url)
-  val twitterHashtag: Mapping[TwitterHashtag] = stringEitherMapping(TwitterHashtag.from, _.value, formatError, Constraints.maxLength(Values.maxLength.title))
+  val twitterAccount: Mapping[TwitterAccount] = twitterUrl.transform(TwitterAccount, _.url)
+  val twitterHashtag: Mapping[TwitterHashtag] = stringEitherMapping[TwitterHashtag, CustomException](TwitterHashtag.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.title))
   val secret: Mapping[Secret] = textMapping(Secret, _.decode)
   val password: Mapping[Secret] = secret.verifying(Constraint[Secret](passwordConstraint) { o =>
     if (o.decode.length >= 8) PlayValid
     else PlayInvalid(ValidationError(passwordError))
   })
   val markdown: Mapping[Markdown] = textMapping(Markdown(_), _.value, Constraints.maxLength(Values.maxLength.text))
-  val currency: Mapping[Price.Currency] = stringEitherMapping(Price.Currency.from(_).toEither, _.value, formatError)
+  val currency: Mapping[Price.Currency] = stringEitherMapping[Price.Currency, String](c => Price.Currency.from(c).toEither(s"No currency '$c'"), _.value, formatError, Seq(_))
   val price: Mapping[Price] = mapping(
     "amount" -> double,
     "currency" -> currency
@@ -119,33 +136,33 @@ object Mappings {
   val socialAccounts: Mapping[SocialAccounts] = mapping(
     "facebook" -> optional(url.transform[FacebookAccount](FacebookAccount, _.url)),
     "instagram" -> optional(url.transform[InstagramAccount](InstagramAccount, _.url)),
-    "twitter" -> optional(url.transform[TwitterAccount](TwitterAccount, _.url)),
-    "linkedIn" -> optional(url.transform[LinkedInAccount](LinkedInAccount, _.url)),
-    "youtube" -> optional(url.transform[YoutubeAccount](YoutubeAccount, _.url)),
-    "meetup" -> optional(url.transform[MeetupAccount](MeetupAccount, _.url)),
+    "twitter" -> optional(twitterUrl.transform[TwitterAccount](TwitterAccount, _.url)),
+    "linkedIn" -> optional(linkedInUrl.transform[LinkedInAccount](LinkedInAccount, _.url)),
+    "youtube" -> optional(youTubeUrl.transform[YoutubeAccount](YoutubeAccount, _.url)),
+    "meetup" -> optional(meetupUrl.transform[MeetupAccount](MeetupAccount, _.url)),
     "eventbrite" -> optional(url.transform[EventbriteAccount](EventbriteAccount, _.url)),
     "slack" -> optional(url.transform[SlackAccount](SlackAccount, _.url)),
     "discord" -> optional(url.transform[DiscordAccount](DiscordAccount, _.url)),
-    "github" -> optional(url.transform[GithubAccount](GithubAccount, _.url))
+    "github" -> optional(githubUrl.transform[GithubAccount](GithubAccount, _.url))
   )(SocialAccounts.apply)(SocialAccounts.unapply)
 
   private val tag: Mapping[Tag] = WrappedMapping[String, Tag](text(1, Tag.maxSize), s => Tag(s.trim), _.value)
   val tags: Mapping[Seq[Tag]] = seq(tag).verifying(s"Can't add more than ${Tag.maxNumber} tags", _.length <= Tag.maxNumber)
 
   val userSlug: Mapping[User.Slug] = slugMapping(User.Slug)
-  val userStatus: Mapping[User.Status] = stringEitherMapping(User.Status.from, _.value, formatError)
+  val userStatus: Mapping[User.Status] = stringEitherMapping[User.Status, CustomException](User.Status.from, _.value, formatError, _.getMessage :: Nil)
   val groupSlug: Mapping[Group.Slug] = slugMapping(Group.Slug)
   val groupName: Mapping[Group.Name] = nonEmptyTextMapping(Group.Name, _.value, Constraints.maxLength(Values.maxLength.title))
   val eventId: Mapping[Event.Id] = idMapping(Event.Id)
   val eventSlug: Mapping[Event.Slug] = slugMapping(Event.Slug)
   val eventName: Mapping[Event.Name] = nonEmptyTextMapping(Event.Name, _.value, Constraints.maxLength(Values.maxLength.title))
-  val eventKind: Mapping[Event.Kind] = stringEitherMapping(Event.Kind.from, _.value, formatError, Constraints.nonEmpty)
+  val eventKind: Mapping[Event.Kind] = stringEitherMapping[Event.Kind, CustomException](Event.Kind.from, _.value, formatError, _.getMessage :: Nil, Constraints.nonEmpty)
   val cfpId: Mapping[Cfp.Id] = idMapping(Cfp.Id)
   val cfpSlug: Mapping[Cfp.Slug] = slugMapping(Cfp.Slug)
   val cfpName: Mapping[Cfp.Name] = nonEmptyTextMapping(Cfp.Name, _.value, Constraints.maxLength(Values.maxLength.title))
   val talkSlug: Mapping[Talk.Slug] = slugMapping(Talk.Slug)
   val talkTitle: Mapping[Talk.Title] = nonEmptyTextMapping(Talk.Title, _.value, Constraints.maxLength(Values.maxLength.title))
-  val proposalStatus: Mapping[Proposal.Status] = stringEitherMapping(Proposal.Status.from, _.value, formatError, Constraints.nonEmpty)
+  val proposalStatus: Mapping[Proposal.Status] = stringEitherMapping[Proposal.Status, CustomException](Proposal.Status.from, _.value, formatError, _.getMessage :: Nil, Constraints.nonEmpty)
   val partnerId: Mapping[Partner.Id] = idMapping(Partner.Id)
   val partnerSlug: Mapping[Partner.Slug] = slugMapping(Partner.Slug)
   val partnerName: Mapping[Partner.Name] = nonEmptyTextMapping(Partner.Name, _.value, Constraints.maxLength(Values.maxLength.title))
@@ -157,9 +174,9 @@ object Mappings {
   val contactFirstName: Mapping[Contact.FirstName] = nonEmptyTextMapping(Contact.FirstName, _.value)
   val contactLastName: Mapping[Contact.LastName] = nonEmptyTextMapping(Contact.LastName, _.value)
   val commentId: Mapping[Comment.Id] = idMapping(Comment.Id)
-  val meetupGroupSlug: Mapping[MeetupGroup.Slug] = stringEitherMapping(MeetupGroup.Slug.from, _.value, formatError, Constraints.nonEmpty)
-  val meetupEventId: Mapping[MeetupEvent.Id] = stringEitherMapping(MeetupEvent.Id.from, _.value.toString, formatError, Constraints.nonEmpty)
-  val meetupVenueId: Mapping[MeetupVenue.Id] = stringEitherMapping(MeetupVenue.Id.from, _.value.toString, formatError, Constraints.nonEmpty)
+  val meetupGroupSlug: Mapping[MeetupGroup.Slug] = stringEitherMapping[MeetupGroup.Slug, CustomException](MeetupGroup.Slug.from, _.value, formatError, _.getMessage :: Nil, Constraints.nonEmpty)
+  val meetupEventId: Mapping[MeetupEvent.Id] = stringEitherMapping[MeetupEvent.Id, CustomException](MeetupEvent.Id.from, _.value.toString, formatError, _.getMessage :: Nil, Constraints.nonEmpty)
+  val meetupVenueId: Mapping[MeetupVenue.Id] = stringEitherMapping[MeetupVenue.Id, CustomException](MeetupVenue.Id.from, _.value.toString, formatError, _.getMessage :: Nil, Constraints.nonEmpty)
   val eventRefs: Mapping[Event.ExtRefs] = mapping(
     "meetup" -> optional(mapping(
       "group" -> meetupGroupSlug,
@@ -173,7 +190,7 @@ object Mappings {
     )(MeetupVenue.Ref.apply)(MeetupVenue.Ref.unapply))
   )(Venue.ExtRefs.apply)(Venue.ExtRefs.unapply)
 
-  def slackToken(key: AesSecretKey): Mapping[SlackToken] = stringEitherMapping(SlackToken.from(_, key).toEither, _.decode(key).get, formatError, Constraints.nonEmpty)
+  def slackToken(key: AesSecretKey): Mapping[SlackToken] = stringEitherMapping[SlackToken, Throwable](SlackToken.from(_, key).toEither, _.decode(key).get, formatError, _.getMessage :: Nil, Constraints.nonEmpty)
 
   private def templateFormatter[A]: Formatter[Mustache.Markdown[A]] = new Formatter[Mustache.Markdown[A]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Mustache.Markdown[A]] =
@@ -251,8 +268,8 @@ object Mappings {
     def nonEmptyTextMapping[A](from: String => A, to: A => String, constraints: Constraint[String]*): Mapping[A] =
       WrappedMapping(nonEmptyText.verifying(constraints: _*), from, to)
 
-    def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, errorMessage: String, constraints: Constraint[String]*): Mapping[A] =
-      WrappedMapping(text.verifying(constraints: _*).verifying(format(from, errorMessage)), (s: String) => from(s).get, to)
+    def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, errorMessage: String, errorArgs: E => Seq[String], constraints: Constraint[String]*): Mapping[A] =
+      WrappedMapping(text.verifying(constraints: _*).verifying(format(from, errorMessage, errorArgs)), (s: String) => from(s).get, to)
 
     def idMapping[A <: IId](builder: UuidIdBuilder[A]): Mapping[A] =
       WrappedMapping(text.verifying(Constraints.nonEmpty()), (s: String) => builder.from(s).get, _.value)
@@ -260,11 +277,10 @@ object Mappings {
     def slugMapping[A <: ISlug](builder: SlugBuilder[A]): Mapping[A] =
       WrappedMapping(text.verifying(Constraints.nonEmpty(), Constraints.pattern(SlugBuilder.pattern), Constraints.maxLength(SlugBuilder.maxLength)), (s: String) => builder.from(s).get, _.value)
 
-    private def format[E, A](parse: String => Either[E, A], errorMessage: String = formatError): Constraint[String] =
+    private def format[E, A](parse: String => Either[E, A], errorMessage: String = formatError, errorArgs: E => Seq[String] = (_: E) => Seq()): Constraint[String] =
       Constraint[String](formatConstraint) { o =>
-        if (o == null) PlayInvalid(ValidationError(errorMessage))
-        else if (parse(o.trim).isLeft) PlayInvalid(ValidationError(errorMessage))
-        else PlayValid
+        if (o == null) PlayInvalid(ValidationError(requiredError))
+        else parse(o.trim).fold(err => PlayInvalid(ValidationError(errorMessage, errorArgs(err): _*)), _ => PlayValid)
       }
   }
 

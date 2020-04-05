@@ -1,2 +1,2 @@
-error.format=Wrong format: {0}
+error.format={0} (bad format)
 error.password=Your password should contain at least 8 characters

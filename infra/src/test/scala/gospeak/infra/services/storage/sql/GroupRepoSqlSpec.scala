@@ -98,11 +98,11 @@ class GroupRepoSqlSpec extends RepoSpec {
         }
         it("should build disableMember") {
           val q = GroupRepoSql.disableMember(member, now)
-          check(q, s"UPDATE $memberTable SET gm.leaved_at=? WHERE gm.group_id=? AND gm.user_id=?")
+          check(q, s"UPDATE $memberTable SET leaved_at=? WHERE gm.group_id=? AND gm.user_id=?")
         }
         it("should build enableMember") {
           val q = GroupRepoSql.enableMember(member, now)
-          check(q, s"UPDATE $memberTable SET gm.joined_at=?, gm.leaved_at=? WHERE gm.group_id=? AND gm.user_id=?")
+          check(q, s"UPDATE $memberTable SET joined_at=?, leaved_at=? WHERE gm.group_id=? AND gm.user_id=?")
         }
         it("should build selectPageActiveMembers") {
           val q = GroupRepoSql.selectPageActiveMembers(group.id, params)

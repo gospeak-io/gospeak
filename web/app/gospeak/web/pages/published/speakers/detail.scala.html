@@ -72,7 +72,7 @@
                 </div>
                 <div class="card-body pt-3 pb-4 px-4">
                     @Seq(
-                        user.website.map(url => ("website", url.value, url.value)).toList,
+                        user.website.map(url => ("website", url.value, url.handle)).toList,
                         user.social.all.map(s => (s.name, s.link, s.handle))
                     ).flatten.zipWithIndex.map { case ((name, link, handle), i) => @socialItem(name, link, handle, i) }
                 </div>

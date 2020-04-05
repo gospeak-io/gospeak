@@ -65,13 +65,13 @@ class TwittsSpec extends FunSpec with Matchers with RandomDataGenerator {
         event = event.copy(
           start = Some(ldt),
           location = Some(place.copy(country = "France", locality = Some("Paris"))),
-          twitterAccount = Some(TwitterAccount(Url.from("https://twitter.com/devoxx").get)),
+          twitterAccount = Some(TwitterAccount(Url.Twitter.from("https://twitter.com/devoxx").get)),
           twitterHashtag = Some(TwitterHashtag.from("#Devoxx").get),
           tags = Seq(Tag("tech"), Tag("big data"))),
         cfp = cfp.copy(
           close = Some(ldt)),
         by = user.copy(
-          links = SocialAccounts.fromUrls(twitter = Some(Url.from("https://twitter.com/jack").get))),
+          links = SocialAccounts.fromUrls(twitter = Some(Url.Twitter.from("https://twitter.com/jack").get))),
         at = now)
       Tweets.externalCfpCreated(msg) shouldBe
         s"""!!Speaker announcement!!

@@ -248,7 +248,7 @@ object MessageSrv {
       phone = Some("06 66 66 66 66"),
       website = Some(Url.from("http://loic.knuchel.org/").get),
       social = SocialAccounts.fromUrls(
-        twitter = Some(Url.from("https://twitter.com/loicknuchel").get)),
+        twitter = Some(Url.Twitter.from("https://twitter.com/loicknuchel").get)),
       createdAt = now,
       updatedAt = now)
     private val group: Group = Group(
@@ -263,7 +263,7 @@ object MessageSrv {
       location = Some(paris),
       owners = NonEmptyList.of(user.id),
       social = SocialAccounts.fromUrls(
-        twitter = Some(Url.from("https://twitter.com/HumanTalksParis").get)),
+        twitter = Some(Url.Twitter.from("https://twitter.com/HumanTalksParis").get)),
       tags = Seq(Tag("tech"), Tag("meetup")),
       status = Group.Status.Active,
       info = Info(user.id, now))
@@ -386,7 +386,7 @@ object MessageSrv {
       url = Some(Url.from("https://2019.sunny-tech.io").get),
       tickets = Some(Url.from("http://register.ncrafts.io").get),
       videos = Some(Url.from("https://www.youtube.com/playlist?list=PLuZ_sYdawLiXq_8YaaROhaUazHQVPiELa").get),
-      twitterAccount = Some(TwitterAccount(Url.from("https://twitter.com/sunnytech_mtp").get)),
+      twitterAccount = Some(TwitterAccount(Url.Twitter.from("https://twitter.com/sunnytech_mtp").get)),
       twitterHashtag = Some(TwitterHashtag.from("#SunnyTech2019").get),
       tags = Seq(Tag("tech")),
       info = Info(user.id, now))
