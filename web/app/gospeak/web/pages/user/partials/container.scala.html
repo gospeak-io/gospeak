@@ -4,4 +4,4 @@
 @import gospeak.web.utils.UserReq
 
 @(title: String, b: Breadcrumb, full: Boolean = false, hideAlert: Boolean = false)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: UserReq[AnyContent])
-@published_container(title, PageMeta.default(HomeCtrl.index()), b, full = full, hideAlert = hideAlert)(style)(content)(script)(req.userAware)
+@published_container(title, PageMeta.noIndex, b, full = full, hideAlert = hideAlert)(style)(content)(script)(req.userAware)

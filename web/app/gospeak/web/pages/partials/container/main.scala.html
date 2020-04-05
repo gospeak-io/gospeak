@@ -13,11 +13,11 @@
 
         @Constants.devMessage.split("\n").map { l => <!-- @Html(l) --> }
 
-        <title>@if(!req.conf.app.env.isProd){[@req.conf.app.env] }@title@if(!title.startsWith(s"${Constants.Emoji.gospeak} Gospeak")){ @Constants.Emoji.gospeak Gospeak}</title>
+        <title>@if(!req.conf.app.env.isProd){[@req.conf.app.env] }@title@if(!title.startsWith(s"${Constants.Emoji.gospeak} Gospeak")){ - Gospeak}</title>
         <meta name="description" content="@m.description">
         <meta name="author" content="Loïc Knuchel,Samir Bouaked">
         <meta name="keywords" content="speaking,public,cfp,conference,meetup,tech">
-        <meta name="robots" content="index, follow">
+        @if(m.index) { <meta name="robots" content="index, follow"> } else { <meta name="robots" content="noindex"> }
         <link rel="canonical" href="@m.url">
 
         <meta property="og:site_name" content="Gospeak">

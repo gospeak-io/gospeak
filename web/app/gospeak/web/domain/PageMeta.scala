@@ -26,7 +26,8 @@ final case class PageMeta(kind: String,
                           event: Option[PageMeta.SEOEvent] = None,
                           start: Option[PageMeta.SEODate] = None,
                           end: Option[PageMeta.SEODate] = None,
-                          location: Option[PageMeta.SEOLocation] = None)
+                          location: Option[PageMeta.SEOLocation] = None,
+                          index: Boolean = true)
 
 object PageMeta {
 
@@ -54,9 +55,11 @@ object PageMeta {
   }
 
   final case class SEODate(private val value: LocalDateTime) {
-    def human: String = if (value.getHour == 0) Formats.date(value) else Formats.datetime(value)
+    def human: String = if (hasTime) Formats.datetime(value) else Formats.date(value)
 
-    def iso: String = if (value.getHour == 0) value.toLocalDate.toString else value.toString
+    def iso: String = if (hasTime) value.toString else value.toLocalDate.toString
+
+    private def hasTime: Boolean = !((value.getHour == 0 && value.getMinute == 0) || (value.getHour == 23 && value.getMinute == 59))
   }
 
   final case class SEOLocation(name: String,
@@ -78,14 +81,18 @@ object PageMeta {
 
   private val gospeakOrganization = SEOOrganization(Constants.Gospeak.name, Constants.Gospeak.url, Constants.Gospeak.logo)
 
-  def default(call: Call)(implicit req: BasicReq[AnyContent]): PageMeta = PageMeta(
+  val noIndex: PageMeta = PageMeta(
     kind = "website",
     title = s"${Constants.Emoji.rocket} Helping people to become speaker with a welcoming community",
     description = "Gospeak help people speak publicly. Find advices, mentoring and places to speak. Then publish your experiences and improve your personal branding.",
     icon = Constants.Gospeak.logo.value,
-    url = req.toAbsolute(call),
+    url = Constants.Gospeak.url.value,
     breadcrumb = Breadcrumb("Home", HomeCtrl.index()),
-    organization = gospeakOrganization)
+    organization = gospeakOrganization,
+    index = false)
+
+  def default(call: Call)(implicit req: BasicReq[AnyContent]): PageMeta =
+    noIndex.copy(url = req.toAbsolute(call), index = true)
 
   def user(u: User, b: Breadcrumb)(implicit req: BasicReq[AnyContent]): PageMeta = PageMeta(
     kind = "article",
@@ -122,7 +129,6 @@ object PageMeta {
     url = req.toAbsolute(CfpCtrl.detail(c.slug)),
     breadcrumb = b,
     organization = SEOOrganization(g),
-    start = c.begin.map(SEODate),
     end = c.close.map(SEODate))
 
   def cfp(c: ExternalCfp.Full, b: Breadcrumb)(implicit req: BasicReq[AnyContent]): PageMeta = PageMeta(
@@ -133,7 +139,6 @@ object PageMeta {
     url = req.toAbsolute(CfpCtrl.detailExt(c.id)),
     breadcrumb = b,
     organization = gospeakOrganization,
-    start = c.begin.map(SEODate),
     end = c.close.map(SEODate))
 
   def event(e: Event.Full, description: Markdown, b: Breadcrumb)(implicit req: BasicReq[AnyContent]): PageMeta = PageMeta(
