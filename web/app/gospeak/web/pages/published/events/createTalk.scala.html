@@ -8,7 +8,7 @@
 @import gospeak.web.utils.UserReq
 
 @(event: ExternalEvent, form: Form[Talk.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(s"${Constants.Emoji.talk} New talk", PageMeta.event(event), b)() {
+@container(s"${Constants.Emoji.talk} New talk", PageMeta.event(event, b), b)() {
     @formElt(form, EventCtrl.doCreateTalk(event.id)) {
         <div class="d-flex justify-content-between align-items-center">
             <h1>Create a talk</h1>

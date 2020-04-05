@@ -8,7 +8,7 @@
 @import gospeak.web.utils.UserAwareReq
 
 @(user: User.Full, talk: Talk, proposals: List[CommonProposal], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${Constants.Emoji.talk} ${talk.title.value} by ${user.name.value}", PageMeta.talk(user.user, talk), b)() {
+@container(s"${Constants.Emoji.talk} ${talk.title.value} by ${user.name.value}", PageMeta.talk(user.user, talk, b), b)() {
     <a href="@SpeakerCtrl.detail(user.slug)"><i class="fas fa-chevron-left"></i> @user.name.value</a>
     <h1>
         @talk.title.value

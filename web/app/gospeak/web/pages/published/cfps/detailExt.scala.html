@@ -8,7 +8,7 @@
 @import gospeak.web.utils.UserAwareReq
 
 @(cfp: ExternalCfp.Full)(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${Constants.Emoji.cfp} ${cfp.event.name.value}", PageMeta.cfp(cfp), b)() {
+@container(s"${Constants.Emoji.cfp} ${cfp.event.name.value}", PageMeta.cfp(cfp, b), b)() {
 <div class="w-lg-80 mx-lg-auto">
     <div class="card shadow-sm p-5 mb-5">
         <div class="text-center">

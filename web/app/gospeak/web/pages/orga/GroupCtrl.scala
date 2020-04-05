@@ -157,5 +157,5 @@ object GroupCtrl {
     UserCtrl.breadcrumb.add("Groups" -> UserRoutes.index())
 
   def breadcrumb(implicit req: OrgaReq[AnyContent]): Breadcrumb =
-    Breadcrumb(req.group.name.value -> routes.GroupCtrl.detail(req.group.slug))
+    Breadcrumb(req.group.name.value, routes.GroupCtrl.detail(req.group.slug))
 }

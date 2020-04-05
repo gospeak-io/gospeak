@@ -23,5 +23,5 @@ class HomeCtrl(cc: ControllerComponents,
 
 object HomeCtrl {
   def breadcrumb(): Breadcrumb =
-    Breadcrumb("Home" -> routes.HomeCtrl.index())
+    Breadcrumb("Home", routes.HomeCtrl.index())
 }

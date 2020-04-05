@@ -11,7 +11,7 @@
 @import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(group: Group, proposal: Proposal.Full, tweet: Option[Tweet], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${Constants.Emoji.proposal} ${proposal.title.value} ${Constants.Emoji.group} ${group.name.value}", PageMeta.proposal(group, proposal.proposal), b)() {
+@container(s"${Constants.Emoji.proposal} ${proposal.title.value} ${Constants.Emoji.group} ${group.name.value}", PageMeta.proposal(group, proposal.proposal, b), b)() {
     <a href="@GroupCtrl.detail(group.slug)"><i class="fas fa-chevron-left"></i> @group.name.value</a>
     <h1>
         @proposal.title.value

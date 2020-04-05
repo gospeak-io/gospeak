@@ -13,7 +13,7 @@
 @import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(group: Group, event: Event.Full, description: Markdown, proposals: Seq[(Proposal.Full, Option[Tweet])], speakers: Seq[User], comments: Seq[Comment.Full], yesRsvp: Long, userMembership: Option[Group.Member], userRsvp: Option[Event.Rsvp], rsvps: Seq[Event.Rsvp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${Constants.Emoji.event} ${event.name.value}", PageMeta.event(group, event.event), b)() {
+@container(s"${Constants.Emoji.event} ${event.name.value}", PageMeta.event(group, event.event, b), b)() {
 <div class="media mb-5">
     <a href="@GroupCtrl.detail(group.slug)">
         <img class="u-lg-avatar rounded-circle mr-3" src="@group.logo.map(_.url.value).getOrElse(Constants.Placeholders.groupLogo)" alt="@group.name.value logo">

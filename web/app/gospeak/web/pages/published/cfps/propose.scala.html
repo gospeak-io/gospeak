@@ -18,7 +18,7 @@
         <span>@talkStatus(talk.status) @duration(talk.duration)</span>
     </a>
 }
-@container(s"${Constants.Emoji.cfp} Propose a talk for ${cfp.name.value}", PageMeta.cfp(group, cfp), b)() {
+@container(s"${Constants.Emoji.cfp} Propose a talk for ${cfp.name.value}", PageMeta.cfp(group, cfp, b), b)() {
     <h1>Propose a talk to @cfp.name.value</h1>
     <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
 

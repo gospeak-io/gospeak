@@ -6,19 +6,63 @@
 <!doctype html>
 <html lang="en"@if(!req.conf.app.env.isProd){ class="@req.conf.app.env"}>
     <head>
-        <meta charset="utf-8">
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta name="request-id" content="@req.customId">
-        @metas(m)
-        @favicon()
+
         <title>@if(!req.conf.app.env.isProd){[@req.conf.app.env] }@title@if(!title.startsWith(s"${Constants.Emoji.gospeak} Gospeak")){ @Constants.Emoji.gospeak Gospeak}</title>
-        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
+        <meta name="description" content="@m.description">
+        <meta name="author" content="Loïc Knuchel,Samir Bouaked">
+        <meta name="keywords" content="speaking,public,cfp,conference,meetup,tech">
+        <link rel="canonical" href="@m.url">
+
+        <meta property="og:site_name" content="Gospeak">
+        <meta property="og:type" content="website">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:title" content="@m.title">
+        <meta property="og:description" content="@m.description">
+        <meta property="og:url" content="@m.url">
+        <meta property="og:image" content="@m.icon">
+
+        <meta name="twitter:image" content="@m.icon">
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="@m.title">
+        <meta name="twitter:description" content="@m.description">
+        <meta name="twitter:url" content="@m.url">
+        <meta name="twitter:site" content="@Constants.Twitter.gospeakHandle">
+        <meta name="twitter:creator" content="@Constants.Twitter.gospeakHandle">
+
+        <script type="application/ld+json">
+        {
+            "@@context": "https://schema.org",
+            "@@type": "Organization",
+            "url": "https://gospeak.io",
+            "logo": "https://gospeak.io/logo.png"
+        }
+        </script>
+        <script type="application/ld+json">
+        {
+            "@@context": "https://schema.org",
+            "@@type": "BreadcrumbList",
+            "itemListElement": [
+                @m.breadcrumb.links.zipWithIndex.map { case (l, i) =>
+                    @if(i != 0){,}
+                    {"@@type": "ListItem", "position": @{i+1}, "name": "@l.name", "item": "@l.link.absoluteURL()"}
+                }
+            ]
+        }
+        </script>
+
+        <link rel="stylesheet" href="//use.fontawesome.com/releases/v5.6.3/css/all.css">
         <link rel="stylesheet" href="@routes.Assets.versioned("select2/dist/css/select2.min.css")">
         <link rel="stylesheet" href="@routes.Assets.versioned("select2-bootstrap-theme/dist/select2-bootstrap.min.css")">
         <link rel="stylesheet" href="@routes.Assets.versioned("bootstrap-datepicker/dist/css/bootstrap-datepicker3.min.css")">
         <link rel="stylesheet" href="@routes.Assets.versioned("typeahead.js-bootstrap4-css/typeaheadjs.css")">
         <link rel="stylesheet" href="@routes.Assets.versioned("web/styles/main.css")">
         @style
+
+        @favicon()
     </head>
     <body class="bg-light">
         @content

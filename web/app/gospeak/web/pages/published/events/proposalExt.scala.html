@@ -9,7 +9,7 @@
 @import gospeak.web.utils.UserAwareReq
 
 @(proposal: ExternalProposal.Full, users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${Constants.Emoji.proposal} ${proposal.title.value}", PageMeta.event(proposal.event), b)() {
+@container(s"${Constants.Emoji.proposal} ${proposal.title.value}", PageMeta.proposal(proposal.event, proposal.proposal, b), b)() {
     <a href="@EventCtrl.detailExt(proposal.event.id)"><i class="fas fa-chevron-left"></i> @proposal.event.name.value</a>
     <h1>
         @proposal.title.value

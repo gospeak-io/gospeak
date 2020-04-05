@@ -29,7 +29,7 @@
         </div>
     </div>
 }
-@container(s"${Constants.Emoji.group} ${group.name.value} talks", PageMeta.group(group.group), b)() {
+@container(s"${Constants.Emoji.group} ${group.name.value} talks", PageMeta.group(group.group, b), b)() {
 <div class="row">
     @groupCard(group, speakerCount, cfps, sponsors, packs, orgas, userMembership)(b)
 

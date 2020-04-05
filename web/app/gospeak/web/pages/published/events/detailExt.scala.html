@@ -9,7 +9,7 @@
 @import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(event: ExternalEvent, cfps: Seq[ExternalCfp], proposals: Page[ExternalProposal], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${Constants.Emoji.event} ${event.name.value}", PageMeta.event(event), b)() {
+@container(s"${Constants.Emoji.event} ${event.name.value}", PageMeta.event(event, b), b)() {
     <div class="row">
         <div class="col-lg-8">
             <div class="media mb-3">

@@ -16,7 +16,7 @@
         @tags(talk.tags)
     </a>
 }
-@container(s"${Constants.Emoji.event} ${event.name.value}", PageMeta.event(event), b)() {
+@container(s"${Constants.Emoji.event} ${event.name.value}", PageMeta.event(event, b), b)() {
     <div class="d-flex justify-content-between align-items-center">
         <h1>Spoke at @event.name.value?</h1>
         <a class="btn btn-primary" href="@EventCtrl.createTalk(event.id)" title="If your talk does not exist yet, you can create it" data-toggle="tooltip">New talk</a>

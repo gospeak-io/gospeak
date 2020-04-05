@@ -10,7 +10,7 @@
 @import gospeak.web.utils.UserAwareReq
 
 @(group: Group, cfp: Cfp)(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@container(s"${Constants.Emoji.cfp} ${cfp.name.value}", PageMeta.cfp(group, cfp), b)() {
+@container(s"${Constants.Emoji.cfp} ${cfp.name.value}", PageMeta.cfp(group, cfp, b), b)() {
 <div class="w-lg-80 mx-lg-auto">
     <div class="card shadow-sm p-5 mb-5">
         <div class="text-center">

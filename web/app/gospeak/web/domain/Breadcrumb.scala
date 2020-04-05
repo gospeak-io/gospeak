@@ -3,15 +3,15 @@ package gospeak.web.domain
 import play.api.mvc.Call
 
 final case class Breadcrumb(links: Seq[Breadcrumb.Link]) {
-  def add(l: (String, Call)*): Breadcrumb = copy(links = links ++ l.map { case (name, link) => Breadcrumb.Link(name, Some(link)) })
+  def add(name: String, link: Call, showLink: Boolean): Breadcrumb = copy(links = links :+ Breadcrumb.Link(name, link, showLink))
 
-  def addOpt(l: (String, Option[Call])*): Breadcrumb = copy(links = links ++ l.map { case (name, link) => Breadcrumb.Link(name, link) })
+  def add(l: (String, Call)*): Breadcrumb = copy(links = links ++ l.map { case (name, link) => Breadcrumb.Link(name, link, showLink = true) })
 }
 
 object Breadcrumb {
 
-  final case class Link(name: String, link: Option[Call])
+  final case class Link(name: String, link: Call, showLink: Boolean)
 
-  def apply(link: (String, Call)): Breadcrumb =
-    new Breadcrumb(Seq(Link(link._1, Some(link._2))))
+  def apply(name: String, link: Call): Breadcrumb =
+    new Breadcrumb(Seq(Link(name, link, showLink = true)))
 }

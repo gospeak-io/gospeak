@@ -219,7 +219,7 @@ object TalkCtrl {
     UserCtrl.breadcrumb.add("Talks" -> routes.TalkCtrl.list())
 
   def breadcrumb(talk: Talk)(implicit req: UserReq[AnyContent]): Breadcrumb =
-    listBreadcrumb.addOpt(talk.title.value -> Some(routes.TalkCtrl.detail(talk.slug)).filter(_ => talk.hasSpeaker(req.user.id)))
+    listBreadcrumb.add(talk.title.value, routes.TalkCtrl.detail(talk.slug), talk.hasSpeaker(req.user.id))
 
   def extEventsBreadcrumb(talk: Talk)(implicit req: UserReq[AnyContent]): Breadcrumb =
     breadcrumb(talk).add("Events" -> routes.TalkCtrl.findExternalEvent(talk.slug))

@@ -288,7 +288,7 @@ class ProposalCtrl(cc: ControllerComponents,
 
 object ProposalCtrl {
   def listBreadcrumb(talk: Talk)(implicit req: UserReq[AnyContent]): Breadcrumb =
-    TalkCtrl.breadcrumb(talk).addOpt("Proposals" -> Some(routes.ProposalCtrl.list(talk.slug)).filter(_ => talk.hasSpeaker(req.user.id)))
+    TalkCtrl.breadcrumb(talk).add("Proposals", routes.ProposalCtrl.list(talk.slug), talk.hasSpeaker(req.user.id))
 
   def breadcrumb(proposal: Proposal.Full)(implicit req: UserReq[AnyContent]): Breadcrumb =
     listBreadcrumb(proposal.talk).add(proposal.cfp.name.value -> CfpRoutes.list(proposal.talk.slug))

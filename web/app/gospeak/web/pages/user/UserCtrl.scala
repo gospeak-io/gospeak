@@ -133,7 +133,7 @@ class UserCtrl(cc: ControllerComponents,
 
 object UserCtrl {
   def breadcrumb(implicit req: UserReq[AnyContent]): Breadcrumb =
-    Breadcrumb(req.user.name.value -> routes.UserCtrl.index())
+    Breadcrumb(req.user.name.value, routes.UserCtrl.index())
 
   def groupBreadcrumb(implicit req: UserReq[AnyContent]): Breadcrumb =
     UserCtrl.breadcrumb.add("Groups" -> routes.UserCtrl.index())

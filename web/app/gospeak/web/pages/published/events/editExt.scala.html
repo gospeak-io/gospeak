@@ -7,7 +7,7 @@
 @import gospeak.web.utils.UserReq
 
 @(event: ExternalEvent, form: Form[ExternalEvent.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@container(s"${Constants.Emoji.event} Edit ${event.name.value}", PageMeta.event(event), b)() {
+@container(s"${Constants.Emoji.event} Edit ${event.name.value}", PageMeta.event(event, b), b)() {
     @formElt(form, EventCtrl.doEdit(event.id)) {
         <div class="d-flex justify-content-between align-items-center">
             <h1>Edit @event.name.value</h1>
