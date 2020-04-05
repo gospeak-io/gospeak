@@ -59,6 +59,8 @@ trait UserEventRepo {
 trait AuthEventRepo
 
 trait PublicEventRepo {
+  def listAllPublishedSlugs()(implicit ctx: UserAwareCtx): IO[Seq[(Group.Id, Event.Slug)]]
+
   def listPublished(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Event.Full]]
 
   def findPublished(group: Group.Id, event: Event.Slug): IO[Option[Event.Full]]

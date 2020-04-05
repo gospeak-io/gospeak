@@ -48,6 +48,8 @@ trait AuthGroupRepo {
 }
 
 trait PublicGroupRepo {
+  def listAllSlugs()(implicit ctx: UserAwareCtx): IO[Seq[(Group.Id, Group.Slug)]]
+
   def listFull(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Full]]
 
   def listFull(user: User.Id): IO[Seq[Group.Full]]

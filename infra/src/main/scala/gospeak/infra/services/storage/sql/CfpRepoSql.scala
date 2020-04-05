@@ -50,6 +50,8 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
 
   override def list(group: Group.Id): IO[Seq[Cfp]] = selectAll(group).runList(xa)
 
+  override def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[Seq[Cfp.Slug]] = selectAllPublicSlugs().runList(xa)
+
   override def listAllIncoming(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Seq[Cfp]] = selectAllIncoming(group, ctx.now).runList(xa)
 
   override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
@@ -98,6 +100,9 @@ object CfpRepoSql {
 
   private[sql] def selectAll(ids: NonEmptyList[Cfp.Id]): Select[Cfp] =
     table.select[Cfp](fr0"WHERE " ++ Fragments.in(fr"c.id", ids))
+
+  private[sql] def selectAllPublicSlugs(): Select[Cfp.Slug] =
+    table.select[Cfp.Slug](Seq(Field("slug", "c")))
 
   private[sql] def selectAllIncoming(group: Group.Id, now: Instant): Select[Cfp] =
     table.select[Cfp](where(group, now))

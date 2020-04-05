@@ -17,6 +17,10 @@ class ExternalCfpRepoSqlSpec extends RepoSpec {
         val q = ExternalCfpRepoSql.update(externalCfp.id)(externalCfp.data, user.id, now)
         check(q, s"UPDATE $table SET description=?, begin=?, close=?, url=?, updated_at=?, updated_by=? WHERE id=?")
       }
+      it("should build selectAllIds") {
+        val q = ExternalCfpRepoSql.selectAllIds()
+        check(q, s"SELECT ec.id FROM $table $orderBy")
+      }
       it("should build selectAll for event") {
         val q = ExternalCfpRepoSql.selectAll(externalEvent.id)
         check(q, s"SELECT $fields FROM $table WHERE ec.event_id=? $orderBy")

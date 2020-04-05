@@ -78,6 +78,8 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
       .runList(xa).map(_.flatMap(_.toList).distinct.length.toLong)
   }
 
+  override def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[Seq[(User.Id, User.Slug)]] = selectAllPublicSlugs().runList(xa)
+
   override def listPublic(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[User.Full]] = selectPagePublic(params).run(xa)
 
   override def list(ids: Seq[User.Id]): IO[Seq[User]] = runNel(selectAll, ids)
@@ -168,6 +170,9 @@ object UserRepoSql {
     val speakerIds = fr0"SELECT p.speakers FROM ${Tables.proposals.name} INNER JOIN ${Tables.cfps.name} ON c.id=p.cfp_id WHERE c.group_id=$group"
     table.selectPage[User](params, fr0"WHERE u.id IN (" ++ speakerIds ++ fr0")")
   } */
+
+  private[sql] def selectAllPublicSlugs()(implicit ctx: UserAwareCtx): Select[(User.Id, User.Slug)] =
+    table.select[(User.Id, User.Slug)](Seq(Field("id", "u"), Field("slug", "u")), fr0"WHERE u.status=${User.Status.Public: User.Status}")
 
   private[sql] def selectPagePublic(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[User.Full, UserAwareCtx] = {
     val public: User.Status = User.Status.Public

@@ -36,6 +36,8 @@ trait UserCfpRepo
 trait AuthCfpRepo
 
 trait PublicCfpRepo {
+  def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[Seq[Cfp.Slug]]
+
   def listAllIncoming(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Seq[Cfp]]
 
   def find(id: Cfp.Id): IO[Option[Cfp]]

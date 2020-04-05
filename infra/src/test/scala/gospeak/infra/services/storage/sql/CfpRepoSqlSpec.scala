@@ -84,6 +84,10 @@ class CfpRepoSqlSpec extends RepoSpec {
         val q = CfpRepoSql.selectAll(NonEmptyList.of(cfp.id, cfp.id, cfp.id))
         check(q, s"SELECT $fields FROM $table WHERE c.id IN (?, ?, ?)  $orderBy")
       }
+      it("should build selectAllPublicSlugs") {
+        val q = CfpRepoSql.selectAllPublicSlugs()
+        check(q, s"SELECT c.slug FROM $table $orderBy")
+      }
       it("should build selectAll for group and date") {
         val q = CfpRepoSql.selectAllIncoming(group.id, now)
         check(q, s"SELECT $fields FROM $table WHERE (c.close IS NULL OR c.close > ?) AND c.group_id=? $orderBy")

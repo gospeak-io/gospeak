@@ -19,6 +19,10 @@ class ExternalEventRepoSqlSpec extends RepoSpec {
         val q = ExternalEventRepoSql.selectOne(externalEvent.id)
         check(q, s"SELECT $fields FROM $table WHERE ee.id=? $orderBy LIMIT 1")
       }
+      it("should build selectAllIds") {
+        val q = ExternalEventRepoSql.selectAllIds()
+        check(q, s"SELECT ee.id FROM $table $orderBy")
+      }
       it("should build selectPage") {
         val q = ExternalEventRepoSql.selectPage(params)
         check(q, s"SELECT $fields FROM $table $orderBy LIMIT 20 OFFSET 0")

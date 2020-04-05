@@ -12,6 +12,8 @@ trait PublicExternalEventRepo {
 
   def edit(id: ExternalEvent.Id)(data: ExternalEvent.Data)(implicit ctx: UserCtx): IO[Done]
 
+  def listAllIds()(implicit ctx: UserAwareCtx): IO[Seq[ExternalEvent.Id]]
+
   def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[ExternalEvent]]
 
   def listCommon(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonEvent]]

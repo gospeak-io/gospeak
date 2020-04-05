@@ -110,6 +110,10 @@ class UserRepoSqlSpec extends RepoSpec {
         val q = UserRepoSql.selectOnePublic(user.slug)
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE u.slug=? AND (u.status=? OR u.id=?) $groupByFull $orderByFull LIMIT 1")
       }
+      it("should build selectAllPublicSlugs") {
+        val q = UserRepoSql.selectAllPublicSlugs()
+        check(q, s"SELECT u.id, u.slug FROM $table WHERE u.status=? $orderBy")
+      }
       it("should build selectPagePublic") {
         val q = UserRepoSql.selectPagePublic(params)
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE u.status=? $groupByFull $orderByFull LIMIT 20 OFFSET 0")

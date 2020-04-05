@@ -85,6 +85,10 @@ class EventRepoSqlSpec extends RepoSpec {
         val q = EventRepoSql.selectPageFull(params)
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? $orderBy LIMIT 20 OFFSET 0")
       }
+      it("should build selectAllPublishedSlugs") {
+        val q = EventRepoSql.selectAllPublishedSlugs()
+        check(q, s"SELECT e.group_id, e.slug FROM $table WHERE e.published IS NOT NULL $orderBy")
+      }
       it("should build selectPagePublished") {
         val q = EventRepoSql.selectPagePublished(group.id, params)
         check(q, s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL $orderBy LIMIT 20 OFFSET 0")

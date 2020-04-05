@@ -1,5 +1,6 @@
 GET         /                                                                              gospeak.web.pages.published.HomeCtrl.index
 GET         /why                                                                           gospeak.web.pages.published.HomeCtrl.why
+GET         /sitemap.xml                                                                   gospeak.web.pages.published.HomeCtrl.sitemap
 
 GET         /cfps                                                                          gospeak.web.pages.published.cfps.CfpCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /cfps/getting-started                                                          gospeak.web.pages.published.cfps.CfpCtrl.gettingStarted()

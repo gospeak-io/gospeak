@@ -66,6 +66,8 @@ trait PublicUserRepo {
 
   def speakerCountPublic(group: Group.Id): IO[Long]
 
+  def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[Seq[(User.Id, User.Slug)]]
+
   def listPublic(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[User.Full]]
 
   def list(ids: Seq[User.Id]): IO[Seq[User]]

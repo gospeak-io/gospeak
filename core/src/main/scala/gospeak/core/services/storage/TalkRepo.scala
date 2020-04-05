@@ -1,5 +1,6 @@
 package gospeak.core.services.storage
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import gospeak.core.domain.utils.UserCtx
 import gospeak.core.domain.{Cfp, Talk, User}
@@ -53,6 +54,8 @@ trait PublicTalkRepo {
   def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]]
 
   def listAll(user: User.Id, status: Talk.Status): IO[Seq[Talk]]
+
+  def listAllPublicSlugs(): IO[Seq[(Talk.Slug, NonEmptyList[User.Id])]]
 }
 
 trait SuggestTalkRepo {

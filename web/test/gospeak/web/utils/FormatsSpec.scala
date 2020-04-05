@@ -17,7 +17,7 @@ class FormatsSpec extends FunSpec with Matchers {
     }
     describe("datetime") {
       it("should format instant depending on locale") {
-        Formats.datetime(i) shouldBe "02 Feb 2019 at 14:46:49.899 (UTC)"
+        Formats.datetime(i) shouldBe "02 Feb 2019 at 14:46 (UTC)"
       }
     }
     describe("timeAgo") {

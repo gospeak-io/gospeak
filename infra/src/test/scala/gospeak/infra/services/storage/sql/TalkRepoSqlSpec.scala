@@ -108,6 +108,10 @@ class TalkRepoSqlSpec extends RepoSpec {
         val q = TalkRepoSql.selectAll(user.id, talk.status)
         check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.status=? $orderBy")
       }
+      it("should build selectAllPublicSlugs") {
+        val q = TalkRepoSql.selectAllPublicSlugs()
+        check(q, s"SELECT t.slug, t.speakers FROM $table WHERE t.status=? $orderBy")
+      }
       it("should build selectPage for user and list of status") {
         val q = TalkRepoSql.selectPage(Talk.Status.current, params)
         check(q, s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.status IN (?, ?)  $orderBy LIMIT 20 OFFSET 0")

@@ -12,6 +12,8 @@ trait PublicExternalCfpRepo {
 
   def edit(id: ExternalCfp.Id)(data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[Done]
 
+  def listAllIds(): IO[Seq[ExternalCfp.Id]]
+
   def listAll(event: ExternalEvent.Id): IO[Seq[ExternalCfp]]
 
   def listIncoming(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonCfp]]

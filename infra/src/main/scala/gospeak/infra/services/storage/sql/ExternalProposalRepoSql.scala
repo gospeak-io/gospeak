@@ -60,6 +60,8 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
 
   override def remove(id: ExternalProposal.Id)(implicit ctx: UserCtx): IO[Done] = delete(id, ctx.user.id).run(xa)
 
+  override def listAllPublicIds(): IO[Seq[(ExternalEvent.Id, ExternalProposal.Id)]] = selectAllPublicIds().runList(xa)
+
   override def listPublic(event: ExternalEvent.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[ExternalProposal]] = selectPage(event, Proposal.Status.Accepted, params).run(xa)
 
   override def listCommon(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommon(talk, params).run(xa)
@@ -139,6 +141,9 @@ object ExternalProposalRepoSql {
 
   private[sql] def selectOneFull(id: ExternalProposal.Id): Select[ExternalProposal.Full] =
     tableFull.selectOne[ExternalProposal.Full](fr0"WHERE ep.id=$id")
+
+  private[sql] def selectAllPublicIds(): Select[(ExternalEvent.Id, ExternalProposal.Id)] =
+    table.select[(ExternalEvent.Id, ExternalProposal.Id)](Seq(Field("event_id", "ep"), Field("id", "ep")), fr0"WHERE ep.status=${Proposal.Status.Accepted: Proposal.Status}")
 
   private[sql] def selectPage(event: ExternalEvent.Id, status: Proposal.Status, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[ExternalProposal, UserAwareCtx] =
     table.selectPage[ExternalProposal, UserAwareCtx](params, fr0"WHERE ep.event_id=$event AND ep.status=$status")

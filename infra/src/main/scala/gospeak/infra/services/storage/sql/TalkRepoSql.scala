@@ -75,6 +75,8 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def listAll(user: User.Id, status: Talk.Status): IO[Seq[Talk]] = selectAll(user, status).runList(xa)
 
+  override def listAllPublicSlugs(): IO[Seq[(Talk.Slug, NonEmptyList[User.Id])]] = selectAllPublicSlugs().runList(xa)
+
   override def listCurrent(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]] = selectPage(Talk.Status.current, params).run(xa)
 
   override def listCurrent(cfp: Cfp.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]] = selectPage(cfp, Talk.Status.current, params).run(xa)
@@ -131,6 +133,9 @@ object TalkRepoSql {
 
   private[sql] def selectAll(user: User.Id, status: Talk.Status): Select[Talk] =
     table.select[Talk](fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.status=$status")
+
+  private[sql] def selectAllPublicSlugs(): Select[(Talk.Slug, NonEmptyList[User.Id])] =
+    table.select[(Talk.Slug, NonEmptyList[User.Id])](Seq(Field("slug", "t"), Field("speakers", "t")), fr0"WHERE t.status=${Talk.Status.Public: Talk.Status}")
 
   private[sql] def selectPage(status: NonEmptyList[Talk.Status], params: Page.Params)(implicit ctx: UserCtx): SelectPage[Talk, UserCtx] =
     table.selectPage[Talk, UserCtx](params, fr0"WHERE t.speakers LIKE ${"%" + ctx.user.id.value + "%"} AND " ++ Fragments.in(fr"t.status", status))

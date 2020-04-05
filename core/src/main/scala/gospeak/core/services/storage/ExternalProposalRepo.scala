@@ -45,6 +45,8 @@ trait PublicExternalProposalRepo {
 
   def findFull(id: ExternalProposal.Id): IO[Option[ExternalProposal.Full]]
 
+  def listAllPublicIds(): IO[Seq[(ExternalEvent.Id, ExternalProposal.Id)]]
+
   def listPublic(event: ExternalEvent.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[ExternalProposal]]
 
   def listAllCommon(user: User.Id, status: Proposal.Status): IO[Seq[CommonProposal]]

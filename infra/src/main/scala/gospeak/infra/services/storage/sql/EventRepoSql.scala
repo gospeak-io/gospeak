@@ -62,6 +62,8 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def list(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Seq[(Event, Venue)]] = selectAll(ctx.group.id, partner).runList(xa)
 
+  override def listAllPublishedSlugs()(implicit ctx: UserAwareCtx): IO[Seq[(Group.Id, Event.Slug)]] = selectAllPublishedSlugs().runList(xa)
+
   override def listPublished(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Event.Full]] = selectPagePublished(group, params).run(xa)
 
   override def list(ids: Seq[Event.Id]): IO[Seq[Event]] = runNel(selectAll, ids)
@@ -152,6 +154,9 @@ object EventRepoSql {
 
   private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Event.Full, OrgaCtx] =
     tableFull.selectPage[Event.Full, OrgaCtx](params, fr0"WHERE e.group_id=${ctx.group.id}")
+
+  private[sql] def selectAllPublishedSlugs()(implicit ctx: UserAwareCtx): Select[(Group.Id, Event.Slug)] =
+    table.select[(Group.Id, Event.Slug)](Seq(Field("group_id", "e"), Field("slug", "e")), fr0"WHERE e.published IS NOT NULL")
 
   private[sql] def selectPagePublished(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Event.Full, UserAwareCtx] =
     tableFull.selectPage[Event.Full, UserAwareCtx](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")

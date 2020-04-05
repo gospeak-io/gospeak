@@ -60,6 +60,8 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
       case None => IO.raiseError(new IllegalArgumentException("unreachable group"))
     }
 
+  override def listAllSlugs()(implicit ctx: UserAwareCtx): IO[Seq[(Group.Id, Group.Slug)]] = selectAllSlugs().runList(xa)
+
   override def listFull(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Full]] = selectPageFull(params).run(xa)
 
   override def listJoinable(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Group]] = selectPageJoinable(params).run(xa)
@@ -148,6 +150,9 @@ object GroupRepoSql {
 
   private[sql] def updateOwners(group: Group.Id)(owners: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
     table.update(fr0"owners=$owners, updated_at=$now, updated_by=$by", fr0"WHERE g.id=$group")
+
+  private[sql] def selectAllSlugs()(implicit ctx: UserAwareCtx): Select[(Group.Id, Group.Slug)] =
+    table.select[(Group.Id, Group.Slug)](Seq(Field("id", "g"), Field("slug", "g")))
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: AdminCtx): SelectPage[Group, AdminCtx] =
     tableSelect.selectPage[Group, AdminCtx](params)

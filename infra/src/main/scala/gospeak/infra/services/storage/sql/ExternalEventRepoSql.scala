@@ -20,6 +20,8 @@ class ExternalEventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends
   override def edit(id: ExternalEvent.Id)(data: ExternalEvent.Data)(implicit ctx: UserCtx): IO[Done] =
     update(id)(data, ctx.user.id, ctx.now).run(xa)
 
+  override def listAllIds()(implicit ctx: UserAwareCtx): IO[Seq[ExternalEvent.Id]] = selectAllIds().runList(xa)
+
   override def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[ExternalEvent]] = selectPage(params).run(xa)
 
   override def listCommon(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonEvent]] = selectPageCommon(params).run(xa)
@@ -78,6 +80,9 @@ object ExternalEventRepoSql {
 
   private[sql] def selectOne(id: ExternalEvent.Id): Select[ExternalEvent] =
     tableSelect.selectOne[ExternalEvent](fr0"WHERE ee.id=$id")
+
+  private[sql] def selectAllIds()(implicit ctx: UserAwareCtx): Select[ExternalEvent.Id] =
+    table.select[ExternalEvent.Id](Seq(Field("id", "ee")))
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: UserCtx): SelectPage[ExternalEvent, UserCtx] =
     tableSelect.selectPage[ExternalEvent, UserCtx](params)

@@ -123,6 +123,8 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def listFull(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectPageFullSpeaker(params).run(xa)
 
+  override def listAllPublicIds()(implicit ctx: UserAwareCtx): IO[List[(Group.Id, Proposal.Id)]] = selectAllPublicIds().runList(xa)
+
   override def listAllPublicFull(speaker: User.Id)(implicit ctx: UserAwareCtx): IO[List[Proposal.Full]] = selectAllFullPublic(speaker).runList(xa)
 
   override def listPublicFull(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Proposal.Full]] = selectPageFullPublic(group, params).run(xa)
@@ -285,6 +287,9 @@ object ProposalRepoSql {
 
   private[sql] def selectPageFullSpeaker(params: Page.Params)(implicit ctx: UserCtx): SelectPage[Proposal.Full, UserCtx] =
     tableFull(ctx.user).selectPage[Proposal.Full, UserCtx](params, fr0"WHERE p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
+
+  private[sql] def selectAllPublicIds()(implicit ctx: UserAwareCtx): Select[(Group.Id, Proposal.Id)] =
+    tableWithEvent.select[(Group.Id, Proposal.Id)](Seq(Field("group_id", "e"), Field("id", "p")), fr0"WHERE e.published IS NOT NULL")
 
   private[sql] def selectAllFullPublic(speaker: User.Id)(implicit ctx: UserAwareCtx): Select[Proposal.Full] =
     tableFull(ctx.user).select[Proposal.Full](fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"} AND e.published IS NOT NULL", Sort("created", Field("-created_at", "p")))

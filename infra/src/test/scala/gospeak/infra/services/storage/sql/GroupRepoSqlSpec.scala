@@ -51,6 +51,10 @@ class GroupRepoSqlSpec extends RepoSpec {
         val q = GroupRepoSql.updateOwners(group.id)(NonEmptyList.of(user.id), user.id, now)
         check(q, s"UPDATE $table SET owners=?, updated_at=?, updated_by=? WHERE g.id=?")
       }
+      it("should build selectAllSlugs") {
+        val q = GroupRepoSql.selectAllSlugs()
+        check(q, s"SELECT g.id, g.slug FROM $table $orderBy")
+      }
       it("should build selectPage") {
         val q = GroupRepoSql.selectPage(params)(adminCtx)
         check(q, s"SELECT $fields FROM $table $orderBy LIMIT 20 OFFSET 0")
