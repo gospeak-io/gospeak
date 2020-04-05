@@ -5,5 +5,5 @@
 @(invite: UserRequest.GroupInvite)(implicit req: OrgaReq[AnyContent])
 <p>Hi,</p>
 <p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has canceled your invitation to <b>@req.group.name.value</b> group.</p>
-<p>We hope everything is alright, you still can <a href="@req.format(GroupCtrl.join())">apply to existing groups</a> or <a href="@req.format(GroupCtrl.create())">create your own</a>.</p>
+<p>We hope everything is alright, you still can <a href="@req.toAbsolute(GroupCtrl.join())">apply to existing groups</a> or <a href="@req.toAbsolute(GroupCtrl.create())">create your own</a>.</p>
 <p>The Gospeak team</p>

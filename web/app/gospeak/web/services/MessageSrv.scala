@@ -437,16 +437,16 @@ object MessageSrv {
       tags = g.tags,
       orgas = g.owners.map(id => users.find(_.id == id).map(embed).getOrElse(MsgUser.Embed.unknown(id))),
       sponsors = sponsors.map(embed),
-      publicLink = req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.detail(g.slug)),
-      orgaLink = req.format(gospeak.web.pages.orga.routes.GroupCtrl.detail(g.slug)))
+      publicLink = req.toAbsolute(gospeak.web.pages.published.groups.routes.GroupCtrl.detail(g.slug)),
+      orgaLink = req.toAbsolute(gospeak.web.pages.orga.routes.GroupCtrl.detail(g.slug)))
 
   private def msg(g: Group, c: Cfp)(implicit req: BasicReq[AnyContent]): MsgCfp =
     MsgCfp(
       slug = c.slug,
       name = c.name,
       active = c.isActive(req.nowLDT),
-      publicLink = req.format(gospeak.web.pages.published.cfps.routes.CfpCtrl.detail(c.slug)),
-      orgaLink = req.format(gospeak.web.pages.orga.cfps.routes.CfpCtrl.detail(g.slug, c.slug)))
+      publicLink = req.toAbsolute(gospeak.web.pages.published.cfps.routes.CfpCtrl.detail(c.slug)),
+      orgaLink = req.toAbsolute(gospeak.web.pages.orga.cfps.routes.CfpCtrl.detail(g.slug, c.slug)))
 
   private def msg(g: Group, e: Event, cfps: Seq[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal.Full], users: Seq[User])(implicit req: BasicReq[AnyContent]): MsgEvent =
     MsgEvent(
@@ -461,9 +461,9 @@ object MessageSrv {
       tags = e.tags,
       published = e.published.isDefined,
       links = Map(
-        "drawAttendee" -> req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.eventDrawMeetupAttendee(g.slug, e.slug))),
-      publicLink = req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.event(g.slug, e.slug)),
-      orgaLink = req.format(gospeak.web.pages.orga.events.routes.EventCtrl.detail(g.slug, e.slug)),
+        "drawAttendee" -> req.toAbsolute(gospeak.web.pages.published.groups.routes.GroupCtrl.eventDrawMeetupAttendee(g.slug, e.slug))),
+      publicLink = req.toAbsolute(gospeak.web.pages.published.groups.routes.GroupCtrl.event(g.slug, e.slug)),
+      orgaLink = req.toAbsolute(gospeak.web.pages.orga.events.routes.EventCtrl.detail(g.slug, e.slug)),
       meetupLink = e.refs.meetup.map(_.link))
 
   private def msg(g: Group, c: Cfp, p: Proposal, users: Seq[User])(implicit req: BasicReq[AnyContent]): MsgProposal =
@@ -476,8 +476,8 @@ object MessageSrv {
       slides = p.slides,
       video = p.video,
       tags = p.tags,
-      publicLink = req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.talk(g.slug, p.id)),
-      orgaLink = req.format(gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl.detail(g.slug, c.slug, p.id)))
+      publicLink = req.toAbsolute(gospeak.web.pages.published.groups.routes.GroupCtrl.talk(g.slug, p.id)),
+      orgaLink = req.toAbsolute(gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl.detail(g.slug, c.slug, p.id)))
 
   private def msg(e: ExternalEvent)(implicit req: BasicReq[AnyContent]): MsgExternalEvent =
     MsgExternalEvent(
@@ -487,13 +487,13 @@ object MessageSrv {
       twitterAccount = e.twitterAccount,
       twitterHashtag = e.twitterHashtag,
       tags = e.tags,
-      publicLink = req.format(gospeak.web.pages.published.events.routes.EventCtrl.detailExt(e.id)))
+      publicLink = req.toAbsolute(gospeak.web.pages.published.events.routes.EventCtrl.detailExt(e.id)))
 
   private def msg(c: ExternalCfp)(implicit req: BasicReq[AnyContent]): MsgExternalCfp =
     MsgExternalCfp(
       begin = c.begin,
       close = c.close,
-      publicLink = req.format(gospeak.web.pages.published.cfps.routes.CfpCtrl.detailExt(c.id)))
+      publicLink = req.toAbsolute(gospeak.web.pages.published.cfps.routes.CfpCtrl.detailExt(c.id)))
 
   private def embed(u: User): MsgUser.Embed =
     MsgUser.Embed(
@@ -511,8 +511,8 @@ object MessageSrv {
       slug = c.slug,
       name = c.name,
       active = c.isActive(req.nowLDT),
-      publicLink = req.format(gospeak.web.pages.published.cfps.routes.CfpCtrl.detail(c.slug)),
-      orgaLink = req.format(gospeak.web.pages.orga.cfps.routes.CfpCtrl.detail(g.slug, c.slug)))
+      publicLink = req.toAbsolute(gospeak.web.pages.published.cfps.routes.CfpCtrl.detail(c.slug)),
+      orgaLink = req.toAbsolute(gospeak.web.pages.orga.cfps.routes.CfpCtrl.detail(g.slug, c.slug)))
 
   private def embed(g: Group, e: Event, venues: Seq[Venue.Full])(implicit req: BasicReq[AnyContent]): MsgEvent.Embed =
     MsgEvent.Embed(
@@ -525,9 +525,9 @@ object MessageSrv {
       tags = e.tags,
       published = e.published.isDefined,
       links = Map(
-        "drawAttendee" -> req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.eventDrawMeetupAttendee(g.slug, e.slug))),
-      publicLink = req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.event(g.slug, e.slug)),
-      orgaLink = req.format(gospeak.web.pages.orga.events.routes.EventCtrl.detail(g.slug, e.slug)),
+        "drawAttendee" -> req.toAbsolute(gospeak.web.pages.published.groups.routes.GroupCtrl.eventDrawMeetupAttendee(g.slug, e.slug))),
+      publicLink = req.toAbsolute(gospeak.web.pages.published.groups.routes.GroupCtrl.event(g.slug, e.slug)),
+      orgaLink = req.toAbsolute(gospeak.web.pages.orga.events.routes.EventCtrl.detail(g.slug, e.slug)),
       meetupLink = e.refs.meetup.map(_.link))
 
   private def embed(v: Venue.Full): MsgVenue.Embed =
@@ -548,8 +548,8 @@ object MessageSrv {
       slides = p.slides,
       video = p.video,
       tags = p.tags,
-      publicLink = req.format(gospeak.web.pages.published.groups.routes.GroupCtrl.talk(p.group.slug, p.id)),
-      orgaLink = req.format(gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl.detail(p.group.slug, p.cfp.slug, p.id)))
+      publicLink = req.toAbsolute(gospeak.web.pages.published.groups.routes.GroupCtrl.talk(p.group.slug, p.id)),
+      orgaLink = req.toAbsolute(gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl.detail(p.group.slug, p.cfp.slug, p.id)))
 
   private def embed(p: Partner): MsgPartner.Embed =
     MsgPartner.Embed(

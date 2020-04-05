@@ -69,7 +69,7 @@
             "itemListElement": [
                 @m.breadcrumb.links.zipWithIndex.map { case (l, i) =>
                     @if(i != 0){,}
-                    {"@@type": "ListItem", "position": @{i+1}, "name": "@l.name", "item": "@l.link.absoluteURL()"}
+                    {"@@type": "ListItem", "position": @{i+1}, "name": "@l.name", "item": "@req.toAbsolute(l.link)"}
                 }
             ]
         }

@@ -21,26 +21,26 @@
 )(implicit req: UserAwareReq[AnyContent])
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    <url><loc>@AuthCtrl.login().absoluteURL()</loc></url>
-    <url><loc>@AuthCtrl.signup().absoluteURL()</loc></url>
-    <url><loc>@HomeCtrl.index().absoluteURL()</loc></url>
-    <url><loc>@HomeCtrl.why().absoluteURL()</loc></url>
-    <url><loc>@SpeakerCtrl.list().absoluteURL()</loc></url>
-    <url><loc>@GroupCtrl.list().absoluteURL()</loc></url>
-    <url><loc>@CfpCtrl.list().absoluteURL()</loc></url>
-    <url><loc>@CfpCtrl.gettingStarted().absoluteURL()</loc></url>
-    <url><loc>@EventCtrl.list().absoluteURL()</loc></url>
-    @users.values.map { user => <url><loc>@SpeakerCtrl.detail(user).absoluteURL()</loc></url>}
-    @talks.map { case (talk, speakers) => @speakers.toList.flatMap(users.get).map { user => <url><loc>@SpeakerCtrl.talk(user, talk).absoluteURL()</loc></url>}}
-    @groups.values.map { group => <url><loc>@GroupCtrl.detail(group).absoluteURL()</loc></url>}
-    @groups.values.map { group => <url><loc>@GroupCtrl.events(group).absoluteURL()</loc></url>}
-    @groups.values.map { group => <url><loc>@GroupCtrl.talks(group).absoluteURL()</loc></url>}
-    @groups.values.map { group => <url><loc>@GroupCtrl.speakers(group).absoluteURL()</loc></url>}
-    @groups.values.map { group => <url><loc>@GroupCtrl.members(group).absoluteURL()</loc></url>}
-    @events.map { case (id, event) => @groups.get(id).map { group => <url><loc>@GroupCtrl.event(group, event).absoluteURL()</loc></url>}}
-    @proposals.map { case (id, proposal) => @groups.get(id).map { group => <url><loc>@GroupCtrl.talk(group, proposal).absoluteURL()</loc></url>}}
-    @cfps.map { cfp => <url><loc>@CfpCtrl.detail(cfp).absoluteURL()</loc></url>}
-    @extCfps.map { cfp => <url><loc>@CfpCtrl.detailExt(cfp).absoluteURL()</loc></url>}
-    @extEvents.map { event => <url><loc>@EventCtrl.detailExt(event).absoluteURL()</loc></url>}
-    @extProposals.map { case (event, proposal) => <url><loc>@EventCtrl.proposalExt(event, proposal).absoluteURL()</loc></url>}
+    <url><loc>@req.toAbsolute(AuthCtrl.login())</loc></url>
+    <url><loc>@req.toAbsolute(AuthCtrl.signup())</loc></url>
+    <url><loc>@req.toAbsolute(HomeCtrl.index())</loc></url>
+    <url><loc>@req.toAbsolute(HomeCtrl.why())</loc></url>
+    <url><loc>@req.toAbsolute(SpeakerCtrl.list())</loc></url>
+    <url><loc>@req.toAbsolute(GroupCtrl.list())</loc></url>
+    <url><loc>@req.toAbsolute(CfpCtrl.list())</loc></url>
+    <url><loc>@req.toAbsolute(CfpCtrl.gettingStarted())</loc></url>
+    <url><loc>@req.toAbsolute(EventCtrl.list())</loc></url>
+    @users.values.map { user => <url><loc>@req.toAbsolute(SpeakerCtrl.detail(user))</loc></url>}
+    @talks.map { case (talk, speakers) => @speakers.toList.flatMap(users.get).map { user => <url><loc>@req.toAbsolute(SpeakerCtrl.talk(user, talk))</loc></url>}}
+    @groups.values.map { group => <url><loc>@req.toAbsolute(GroupCtrl.detail(group))</loc></url>}
+    @groups.values.map { group => <url><loc>@req.toAbsolute(GroupCtrl.events(group))</loc></url>}
+    @groups.values.map { group => <url><loc>@req.toAbsolute(GroupCtrl.talks(group))</loc></url>}
+    @groups.values.map { group => <url><loc>@req.toAbsolute(GroupCtrl.speakers(group))</loc></url>}
+    @groups.values.map { group => <url><loc>@req.toAbsolute(GroupCtrl.members(group))</loc></url>}
+    @events.map { case (id, event) => @groups.get(id).map { group => <url><loc>@req.toAbsolute(GroupCtrl.event(group, event))</loc></url>}}
+    @proposals.map { case (id, proposal) => @groups.get(id).map { group => <url><loc>@req.toAbsolute(GroupCtrl.talk(group, proposal))</loc></url>}}
+    @cfps.map { cfp => <url><loc>@req.toAbsolute(CfpCtrl.detail(cfp))</loc></url>}
+    @extCfps.map { cfp => <url><loc>@req.toAbsolute(CfpCtrl.detailExt(cfp))</loc></url>}
+    @extEvents.map { event => <url><loc>@req.toAbsolute(EventCtrl.detailExt(event))</loc></url>}
+    @extProposals.map { case (event, proposal) => <url><loc>@req.toAbsolute(EventCtrl.proposalExt(event, proposal))</loc></url>}
 </urlset>

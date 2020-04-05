@@ -4,6 +4,6 @@
 
 @(invite: UserRequest.ExternalProposalInvite, proposal: ExternalProposal.Full, speaker: User)(implicit req: UserReq[AnyContent])
 <p>Hi @speaker.name.value,</p>
-<p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has <b>rejected</b> your invitation to <a href="@req.format(ProposalCtrl.detailExt(proposal.talk.slug, proposal.id))">@proposal.title.value</a>.</p>
+<p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has <b>rejected</b> your invitation to <a href="@req.toAbsolute(ProposalCtrl.detailExt(proposal.talk.slug, proposal.id))">@proposal.title.value</a>.</p>
 <p>It's juste a small inconvenience, brace yourself and share your experiences with the world</p>
 <p>The Gospeak team</p>

@@ -14,7 +14,7 @@
         </h4>
         <span>
             @avatars(proposal.speakers, users, Some(u => SpeakerCtrl.detail(u.slug)))
-            @tweetButton(Some(proposal.tweet(users, EventCtrl.proposalExt(proposal.event, proposal.id).absoluteURL())))
+            @tweetButton(Some(proposal.tweet(users, req.toAbsolute(EventCtrl.proposalExt(proposal.event, proposal.id)))))
         </span>
     </div>
 </div>

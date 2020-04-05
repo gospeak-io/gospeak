@@ -5,6 +5,6 @@
 @(acceptedUser: User)(implicit req: OrgaReq[AnyContent])
 <p>Hello @acceptedUser.firstName,</p>
 <p>Good news! Your application to <b>@req.group.name.value</b> was accepted by @req.user.firstName \o/</p>
-<p>You can now <a href="@req.format(GroupCtrl.detail(req.group.slug))">access</a> to the group and fully participate to it.</p>
+<p>You can now <a href="@req.toAbsolute(GroupCtrl.detail(req.group.slug))">access</a> to the group and fully participate to it.</p>
 <p>Make awesome events and help people get together.</p>
 <p>The Gospeak team</p>

@@ -5,5 +5,5 @@
 @(proposal: Proposal, speaker: User)(implicit req: UserReq[AnyContent])
 <p>Hi @speaker.name.value,</p>
 <p>Just to let you know that <a href="mailto:@req.user.email.value">@req.user.name.value</a> removed you from the <b>@proposal.title.value</b> speaking proposal.</p>
-<p>Keep going and submit <a href="@req.format(CfpCtrl.list())">new talks</a> to spread the world \o/</p>
+<p>Keep going and submit <a href="@req.toAbsolute(CfpCtrl.list())">new talks</a> to spread the world \o/</p>
 <p>The Gospeak team</p>

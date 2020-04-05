@@ -150,7 +150,7 @@ class GroupCtrl(cc: ControllerComponents,
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
       proposals <- OptionT.liftF(proposalRepo.listPublicFull(eventElt.talks))
       proposalsWithTweet <- OptionT.liftF(proposals.map(p => ms.proposalInfo(p).map { i =>
-        p -> Tweet.from(proposalTweetTmpl, i, routes.GroupCtrl.talk(group, p.id).absoluteURL()).toOption
+        p -> Tweet.from(proposalTweetTmpl, i, req.toAbsolute(routes.GroupCtrl.talk(group, p.id))).toOption
       }).sequence)
       speakers <- OptionT.liftF(userRepo.list(proposals.flatMap(_.speakers.toList).distinct))
       comments <- OptionT.liftF(commentRepo.getComments(eventElt.id))
@@ -212,7 +212,7 @@ class GroupCtrl(cc: ControllerComponents,
       speakerCount <- OptionT.liftF(userRepo.speakerCountPublic(groupElt.id))
       proposals <- OptionT.liftF(proposalRepo.listPublicFull(groupElt.id, params.defaultOrderBy("title")))
       proposalsWithTweet <- OptionT.liftF(proposals.items.map(p => ms.proposalInfo(p).map { i =>
-        p -> Tweet.from(proposalTweetTmpl, i, routes.GroupCtrl.talk(group, p.id).absoluteURL()).toOption
+        p -> Tweet.from(proposalTweetTmpl, i, req.toAbsolute(routes.GroupCtrl.talk(group, p.id))).toOption
       }).sequence.map(p => proposals.copy(items = p)))
       speakers <- OptionT.liftF(userRepo.list(proposals.items.flatMap(_.speakers.toList).distinct))
       cfps <- OptionT.liftF(cfpRepo.listAllIncoming(groupElt.id))
@@ -229,7 +229,7 @@ class GroupCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(group))
       proposalTweetTmpl <- OptionT.liftF(groupSettingsRepo.findProposalTweet(groupElt.id))
       proposalElt <- OptionT(proposalRepo.findPublicFull(groupElt.id, proposal))
-      tweet <- OptionT.liftF(ms.proposalInfo(proposalElt).map(i => Tweet.from(proposalTweetTmpl, i, routes.GroupCtrl.talk(group, proposalElt.id).absoluteURL()).toOption))
+      tweet <- OptionT.liftF(ms.proposalInfo(proposalElt).map(i => Tweet.from(proposalTweetTmpl, i, req.toAbsolute(routes.GroupCtrl.talk(group, proposalElt.id))).toOption))
       speakers <- OptionT.liftF(userRepo.list(proposalElt.speakers.toList))
       res = Ok(html.talk(groupElt, proposalElt, tweet, speakers)(breadcrumbTalk(groupElt, proposalElt)))
     } yield res).value.map(_.getOrElse(publicProposalNotFound(group, proposal)))

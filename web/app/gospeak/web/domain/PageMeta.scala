@@ -83,7 +83,7 @@ object PageMeta {
     title = s"${Constants.Emoji.rocket} Helping people to become speaker with a welcoming community",
     description = "Gospeak help people speak publicly. Find advices, mentoring and places to speak. Then publish your experiences and improve your personal branding.",
     icon = Constants.Gospeak.logo.value,
-    url = req.format(call),
+    url = req.toAbsolute(call),
     breadcrumb = Breadcrumb("Home", HomeCtrl.index()),
     organization = gospeakOrganization)
 
@@ -92,7 +92,7 @@ object PageMeta {
     title = s"${Constants.Emoji.user} ${(u.name.value + u.title.map(t => " - " + t).getOrElse("")).take(67)}",
     description = u.bio.map(_.toText.take(200)).getOrElse(""),
     icon = u.avatar.value,
-    url = req.format(SpeakerCtrl.detail(u.slug)),
+    url = req.toAbsolute(SpeakerCtrl.detail(u.slug)),
     breadcrumb = b,
     organization = gospeakOrganization)
 
@@ -101,7 +101,7 @@ object PageMeta {
     title = s"${Constants.Emoji.talk} ${t.title.value.take(67)}",
     description = t.description.toText.take(200),
     icon = u.avatar.value,
-    url = req.format(SpeakerCtrl.talk(u.slug, t.slug)),
+    url = req.toAbsolute(SpeakerCtrl.talk(u.slug, t.slug)),
     breadcrumb = b,
     organization = gospeakOrganization)
 
@@ -110,7 +110,7 @@ object PageMeta {
     title = s"${Constants.Emoji.group} ${g.name.value.take(67)}",
     description = g.description.toText.take(200),
     icon = g.logo.getOrElse(Constants.Gospeak.logo).value,
-    url = req.format(GroupCtrl.detail(g.slug)),
+    url = req.toAbsolute(GroupCtrl.detail(g.slug)),
     breadcrumb = b,
     organization = SEOOrganization(g))
 
@@ -119,7 +119,7 @@ object PageMeta {
     title = s"${Constants.Emoji.cfp} ${c.name.value.take(67)}",
     description = c.description.toText.take(200),
     icon = g.logo.getOrElse(Constants.Gospeak.logo).value,
-    url = req.format(CfpCtrl.detail(c.slug)),
+    url = req.toAbsolute(CfpCtrl.detail(c.slug)),
     breadcrumb = b,
     organization = SEOOrganization(g),
     start = c.begin.map(SEODate),
@@ -130,7 +130,7 @@ object PageMeta {
     title = s"${Constants.Emoji.cfp} ${c.event.name.value.take(67)}",
     description = c.description.toText.take(200),
     icon = c.event.logo.getOrElse(Constants.Gospeak.logo).value,
-    url = req.format(CfpCtrl.detailExt(c.id)),
+    url = req.toAbsolute(CfpCtrl.detailExt(c.id)),
     breadcrumb = b,
     organization = gospeakOrganization,
     start = c.begin.map(SEODate),
@@ -141,7 +141,7 @@ object PageMeta {
     title = s"${Constants.Emoji.event} ${e.name.value.take(67)}",
     description = s"${SEODate(e.start).human}: ${description.toText}".take(200),
     icon = e.group.logo.getOrElse(Constants.Gospeak.logo).value,
-    url = req.format(GroupCtrl.event(e.group.slug, e.slug)),
+    url = req.toAbsolute(GroupCtrl.event(e.group.slug, e.slug)),
     breadcrumb = b,
     organization = SEOOrganization(e.group),
     event = Some(SEOEvent(e)),
@@ -153,7 +153,7 @@ object PageMeta {
     title = s"${Constants.Emoji.event} ${e.name.value.take(67)}",
     description = s"${e.start.map(SEODate(_).human + ": ").getOrElse("")}${e.description.toText}".take(200),
     icon = e.logo.getOrElse(Constants.Gospeak.logo).value,
-    url = req.format(EventCtrl.detailExt(e.id)),
+    url = req.toAbsolute(EventCtrl.detailExt(e.id)),
     breadcrumb = b,
     organization = gospeakOrganization,
     event = Some(SEOEvent(e)),
@@ -166,7 +166,7 @@ object PageMeta {
     title = s"${Constants.Emoji.proposal} ${p.title.value.take(67)}",
     description = p.description.toText.take(200),
     icon = g.logo.getOrElse(Constants.Gospeak.logo).value,
-    url = req.format(GroupCtrl.talk(g.slug, p.id)),
+    url = req.toAbsolute(GroupCtrl.talk(g.slug, p.id)),
     breadcrumb = b,
     organization = SEOOrganization(g))
 
@@ -175,7 +175,7 @@ object PageMeta {
     title = s"${Constants.Emoji.proposal} ${p.title.value.take(67)}",
     description = p.description.toText.take(200),
     icon = e.logo.getOrElse(Constants.Gospeak.logo).value,
-    url = req.format(EventCtrl.proposalExt(e.id, p.id)),
+    url = req.toAbsolute(EventCtrl.proposalExt(e.id, p.id)),
     breadcrumb = b,
     organization = gospeakOrganization)
 }

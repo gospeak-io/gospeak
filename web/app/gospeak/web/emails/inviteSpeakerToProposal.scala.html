@@ -7,6 +7,6 @@
 @(invite: UserRequest.ProposalInvite, cfp: Cfp, event: Option[Event], proposal: Proposal, message: Markdown)(implicit req: UserReq[AnyContent])
 @if(message.nonEmpty) { @markdown(message)<br> } else { <p>Hi,</p> }
 <p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has invited you to speak about <b>@proposal.title.value</b> at <b>@event.map(_.name.value).getOrElse(cfp.name.value)</b>.</p>
-<p>You can <a href="@req.format(UserCtrl.answerRequest(invite.id))">accept or deny</a> this invitation.</p>
+<p>You can <a href="@req.toAbsolute(UserCtrl.answerRequest(invite.id))">accept or deny</a> this invitation.</p>
 <p>We wish you the best in your public speaking adventure!</p>
 <p>The Gospeak team</p>

@@ -11,5 +11,5 @@
 }
 <p><b>@req.user.name.value</b> left you a message about your <b>@proposal.title.value</b> proposal for <b>@cfp.name.value</b>:</p>
 <p style="white-space: pre-line;">@comment.text</p><br>
-<p>Answer it on <a href="@req.format(ProposalCtrl.detail(talk.slug, cfp.slug))">Gospeak</a> if you want.</p>
+<p>Answer it on <a href="@req.toAbsolute(ProposalCtrl.detail(talk.slug, cfp.slug))">Gospeak</a> if you want.</p>
 <p>The Gospeak team</p>

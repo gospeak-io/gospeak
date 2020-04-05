@@ -61,7 +61,7 @@ sealed abstract class BasicReq[A] protected(protected val request: Request[A],
 
   def nowLD: LocalDate = nowLDT.toLocalDate
 
-  def format(url: Call): String = url.absoluteURL(secure = !conf.app.env.isLocal)(request)
+  def toAbsolute(url: Call): String = url.absoluteURL(secure = !conf.app.env.isLocal)(request)
 
   def format(key: String, args: Seq[Any]): String = translate(key, args)
 
