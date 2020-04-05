@@ -1,3 +1,4 @@
+@import gospeak.core.domain.utils.Constants
 @import gospeak.core.services.upload.UploadConf
 @import gospeak.web.pages.partials.form.ImgConf
 @import gospeak.web.api.ui.routes.UtilsCtrl
@@ -7,7 +8,7 @@
 @req.conf.upload match {
     case _: UploadConf.Url => {
         <div class="input-imageurl">
-            @inputText(field, conf.args ++ Seq("placeholder" -> "ex: https://gospeak.io/logo.png"))
+            @inputText(field, conf.args ++ Seq("placeholder" -> s"ex: ${Constants.Gospeak.logo.value}"))
             <img class="preview" src="" style="height: 50px; margin-top: 5px; display: none;"/>
         </div>
     }

@@ -4,6 +4,7 @@ import com.vladsch.flexmark.ext.emoji.{EmojiExtension, EmojiImageType}
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.data.MutableDataSet
+import org.jsoup.Jsoup
 
 import scala.collection.JavaConverters._
 
@@ -12,7 +13,9 @@ final case class Markdown(value: String) extends AnyVal {
 
   def nonEmpty: Boolean = !isEmpty
 
-  def render: Html = Markdown.render(this)
+  def toHtml: Html = Markdown.toHtml(this)
+
+  def toText: String = Markdown.toText(this)
 }
 
 object Markdown {
@@ -23,9 +26,15 @@ object Markdown {
   private val parser = Parser.builder(options).build
   private val renderer = HtmlRenderer.builder(options).escapeHtml(true).build
 
-  def render(md: Markdown): Html = {
+  def toHtml(md: Markdown): Html = {
     val parsed = parser.parse(md.value)
     val content = renderer.render(parsed).trim
     Html(s"""<div class="markdown">$content</div>""")
+  }
+
+  def toText(md: Markdown): String = {
+    val parsed = parser.parse(md.value)
+    val html = renderer.render(parsed).trim
+    Jsoup.parse(html).text()
   }
 }

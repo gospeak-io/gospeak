@@ -33,7 +33,7 @@ final case class Group(id: Group.Id,
   def senders(user: User): Seq[EmailAddress.Contact] = Seq(
     contact.map(email => EmailAddress.Contact(email, Some(name.value))),
     Some(EmailAddress.Contact(user.email, Some(user.name.value))),
-    Some(Constants.Contact.noReply)).flatten
+    Some(Constants.Gospeak.noreplyEmail)).flatten
 
   def users: List[User.Id] = (owners.toList ++ info.users).distinct
 }

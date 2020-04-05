@@ -11,14 +11,17 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta name="request-id" content="@req.customId">
 
+        @Constants.devMessage.split("\n").map { l => <!-- @Html(l) --> }
+
         <title>@if(!req.conf.app.env.isProd){[@req.conf.app.env] }@title@if(!title.startsWith(s"${Constants.Emoji.gospeak} Gospeak")){ @Constants.Emoji.gospeak Gospeak}</title>
         <meta name="description" content="@m.description">
         <meta name="author" content="Loïc Knuchel,Samir Bouaked">
         <meta name="keywords" content="speaking,public,cfp,conference,meetup,tech">
+        <meta name="robots" content="index, follow">
         <link rel="canonical" href="@m.url">
 
         <meta property="og:site_name" content="Gospeak">
-        <meta property="og:type" content="website">
+        <meta property="og:type" content="@m.kind">
         <meta property="og:locale" content="en_US">
         <meta property="og:title" content="@m.title">
         <meta property="og:description" content="@m.description">
@@ -30,15 +33,33 @@
         <meta name="twitter:title" content="@m.title">
         <meta name="twitter:description" content="@m.description">
         <meta name="twitter:url" content="@m.url">
-        <meta name="twitter:site" content="@Constants.Twitter.gospeakHandle">
-        <meta name="twitter:creator" content="@Constants.Twitter.gospeakHandle">
+        <meta name="twitter:site" content="@Constants.Gospeak.twitter.handle">
+        <meta name="twitter:creator" content="@Constants.Gospeak.twitter.handle">
+        @m.start.map { d =>
+            <meta name="twitter:label2" content="When">
+            <meta name="twitter:data2" content="@d.human">
+            <meta property="event:start_time" content="@d.iso">
+        }
+        @m.end.map { d =>
+            @if(m.start.isEmpty) {
+                <meta name="twitter:label2" content="Finish">
+                <meta name="twitter:data2" content="@d.human">
+            }
+            <meta property="event:end_time" content="@d.iso">
+        }
+        @m.location.map { l =>
+            <meta property="geo.placename" content="@l.name">
+            <meta property="geo.position" content="@l.coords.lat;@l.coords.lng">
+            <meta property="geo.region" content="@l.locality.getOrElse(l.country)">
+        }
 
         <script type="application/ld+json">
         {
             "@@context": "https://schema.org",
             "@@type": "Organization",
-            "url": "https://gospeak.io",
-            "logo": "https://gospeak.io/logo.png"
+            "name": "@m.organization.name",
+            "url": "@m.organization.url.value",
+            "logo": "@m.organization.logo.value"
         }
         </script>
         <script type="application/ld+json">
@@ -53,6 +74,32 @@
             ]
         }
         </script>
+        @m.event.map { e =>
+            <script type="application/ld+json">
+                {
+                    "@@context": "https://schema.org",
+                    "@@type": "Event",
+                    "name": "@e.name",
+                    "image": ["@e.icon"],
+                    @m.start.map { v => "startDate": "@v.iso", }
+                    @m.end.map { v => "endDate": "@v.iso", }
+                    @m.location.map { l =>
+                      "location": {
+                        "@@type": "Place",
+                        "name": "@l.name",
+                        "address": {
+                          "@@type": "PostalAddress",
+                          @l.street.map { v => "streetAddress": "@v", }
+                          @l.locality.map { v => "addressLocality": "@v", }
+                          @l.postalCode.map { v => "postalCode": "@v", }
+                          "addressCountry": "@l.country"
+                        }
+                      },
+                    }
+                    "description": "@m.description"
+                }
+            </script>
+        }
 
         <link rel="stylesheet" href="//use.fontawesome.com/releases/v5.6.3/css/all.css">
         <link rel="stylesheet" href="@routes.Assets.versioned("select2/dist/css/select2.min.css")">

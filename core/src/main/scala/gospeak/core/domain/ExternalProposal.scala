@@ -28,7 +28,7 @@ final case class ExternalProposal(id: ExternalProposal.Id,
 
   def tweet(users: Seq[User], url: String): Tweet = {
     val speakerNames = speakers.toList.flatMap(id => users.find(_.id == id)).map(u => u.social.twitter.map(_.handle).getOrElse(u.name.value)).mkString(" and ")
-    Tweet(s"""Presentation of "${title.value}" by $speakerNames via ${Constants.Twitter.gospeakHandle}""", Some(url), None)
+    Tweet(s"""Presentation of "${title.value}" by $speakerNames via ${Constants.Gospeak.twitter.handle}""", Some(url), None)
   }
 }
 

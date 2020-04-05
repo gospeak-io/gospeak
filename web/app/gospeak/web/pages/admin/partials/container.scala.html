@@ -1,4 +1,4 @@
-@import gospeak.core.domain.utils.Constants.Images
+@import gospeak.core.domain.utils.Constants.Gospeak
 @import gospeak.web.domain.PageMeta
 @import gospeak.web.pages.admin.routes.AdminCtrl
 @import gospeak.web.pages.partials.container.html.{flash, main}
@@ -9,7 +9,7 @@
 @(title: String)(style: Html = Html(""))(content: Html)(script: Html = Html(""))(implicit req: AdminReq[AnyContent])
 @main(title, PageMeta.default(HomeCtrl.index()), style, script) {
     <nav class="navbar navbar-light bg-light navbar-expand-sm">
-        <a class="navbar-brand admin" href="@HomeCtrl.index()"><img src="@Images.gospeakLogoText" alt="Gospeak logo"></a>
+        <a class="navbar-brand admin" href="@HomeCtrl.index()"><img src="@Gospeak.logoText.value" alt="Gospeak logo"></a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>

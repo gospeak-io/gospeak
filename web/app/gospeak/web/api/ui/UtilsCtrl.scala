@@ -64,7 +64,7 @@ class UtilsCtrl(cc: ControllerComponents,
   }
 
   def markdownToHtml(): Action[JsValue] = UserAwareActionJson[String, String] { implicit req =>
-    val html = Markdown(req.body).render
+    val html = Markdown(req.body).toHtml
     IO.pure(ApiResult.of(html.value))
   }
 
@@ -78,7 +78,7 @@ class UtilsCtrl(cc: ControllerComponents,
     val tmpl = req.body.template.render(data)
     val res = tmpl match {
       case Left(err) => TemplateResponse(None, Some(err.message))
-      case Right(tmpl) if req.body.markdown => TemplateResponse(Some(tmpl.render), None)
+      case Right(tmpl) if req.body.markdown => TemplateResponse(Some(tmpl.toHtml), None)
       case Right(tmpl) => TemplateResponse(Some(Html(s"<pre>${HtmlFormat.escape(tmpl.value)}</pre>")), None)
     }
     IO.pure(ApiResult.of(res))

@@ -55,9 +55,9 @@ class MessageHandler(appConf: ApplicationConf,
       (for {
         to <- email.to.render(data).left.map(e => CustomException(e.message)).flatMap(EmailAddress.from).map(EmailAddress.Contact(_))
         subject <- email.subject.render(data).left.map(e => CustomException(e.message))
-        content <- email.content.render(data).map(_.render).leftMap(e => CustomException(e.message))
+        content <- email.content.render(data).map(_.toHtml).leftMap(e => CustomException(e.message))
       } yield emailSrv.send(EmailSrv.Email(
-        from = Constants.Contact.noReply,
+        from = Constants.Gospeak.noreplyEmail,
         to = Seq(to),
         subject = subject,
         content = EmailSrv.HtmlContent(content.value)

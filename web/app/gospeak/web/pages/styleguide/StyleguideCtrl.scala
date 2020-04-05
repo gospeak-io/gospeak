@@ -7,7 +7,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.{LoginInfo, Silhouette}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import gospeak.core.domain._
-import gospeak.core.domain.utils.{Info, SocialAccounts}
+import gospeak.core.domain.utils.{Constants, Info, SocialAccounts}
 import gospeak.core.services.email.EmailSrv
 import gospeak.infra.services.AvatarSrv
 import gospeak.web.auth.domain.{AuthUser, CookieEnv}
@@ -149,7 +149,7 @@ class StyleguideCtrl(cc: ControllerComponents,
     name = Partner.Name("Zeenea"),
     notes = Markdown(""),
     description = None,
-    logo = Url.from("https://gospeak.io").map(Logo).get,
+    logo = Constants.Gospeak.logo,
     social = SocialAccounts.fromUrls(),
     info = Info(user.id, now))
   private val place = GMapPlace(

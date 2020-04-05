@@ -117,7 +117,7 @@ class AuthCtrl(cc: ControllerComponents,
       } else if (validation.deadline.isBefore(req.now)) {
         OptionT.liftF(IO.pure("error" -> "Expired deadline for email validation. Please ask to resend the validation email."))
       } else if (validation.acceptedAt.nonEmpty) {
-        OptionT.liftF(IO.pure("error" -> s"This validation was already used. Please contact <b>${Constants.Contact.admin.address.value}</b> if this is not expected."))
+        OptionT.liftF(IO.pure("error" -> s"This validation was already used. Please contact <b>${Constants.Gospeak.contactEmail.address.value}</b> if this is not expected."))
       } else {
         OptionT.liftF(IO.pure("error" -> "Can't validate your email, please ask to resend the validation email."))
       }

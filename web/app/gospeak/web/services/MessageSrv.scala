@@ -284,9 +284,9 @@ object MessageSrv {
       name = Partner.Name("Gospeak"),
       notes = Markdown("A *very good* partner (private note)"),
       description = Some(Markdown("A platform to **help** everyone to become a speaker")),
-      logo = Logo(Url.from("https://gospeak.io/logo.png").get),
+      logo = Constants.Gospeak.logo,
       social = SocialAccounts.fromUrls(
-        twitter = Some(Constants.Twitter.gospeakUrl)),
+        twitter = Some(Constants.Gospeak.twitter)),
       info = Info(user.id, now))
     private val contact: Contact = Contact(
       id = Contact.Id.generate(),

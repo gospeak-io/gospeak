@@ -1,4 +1,4 @@
-@import gospeak.core.domain.utils.Constants.{Images, Placeholders}
+@import gospeak.core.domain.utils.Constants.{Gospeak, Placeholders}
 @import gospeak.libs.scala.domain.Page
 @import gospeak.web.auth.routes.AuthCtrl
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
@@ -27,7 +27,7 @@
         <div id="logoAndNav" class="container-fluid">
             <nav class="navbar navbar-expand-md u-header__navbar u-header__navbar--no-space">
                 <a class="navbar-brand u-header__navbar-brand u-header__navbar-brand-center my-3" href="@HomeCtrl.index()" aria-label="Gospeak">
-                    <img class="img-fluid" src="@Images.gospeakLogoText" alt="Gospeak logo">
+                    <img class="img-fluid" src="@Gospeak.logoText.value" alt="Gospeak logo">
                 </a>
 
                 <button type="button" class="navbar-toggler btn u-hamburger" data-toggle="collapse" data-target="#navBar" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navBar">

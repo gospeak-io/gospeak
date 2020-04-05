@@ -16,8 +16,8 @@ import scala.concurrent.duration._
 
 object Formats {
   private val df = DateTimeFormatter.ofPattern("dd MMM YYYY").withZone(Constants.defaultZoneId.normalized()).withLocale(Locale.ENGLISH)
-  private val dtf = DateTimeFormatter.ofPattern("dd MMM YYYY 'at' HH:mm:ss.SSS '(UTC)'").withZone(Constants.defaultZoneId.normalized()).withLocale(Locale.ENGLISH)
-  private val ldtf = DateTimeFormatter.ofPattern("dd MMM YYYY 'at' HH:mm:ss").withLocale(Locale.ENGLISH)
+  private val dtf = DateTimeFormatter.ofPattern("dd MMM YYYY 'at' HH:mm '(UTC)'").withZone(Constants.defaultZoneId.normalized()).withLocale(Locale.ENGLISH)
+  private val ldtf = DateTimeFormatter.ofPattern("dd MMM YYYY 'at' HH:mm").withLocale(Locale.ENGLISH)
   private val dateFull = DateTimeFormatter.ofPattern("EEEE dd MMMM YYYY").withLocale(Locale.ENGLISH)
   private val time = DateTimeFormatter.ofPattern("HH:mm").withLocale(Locale.ENGLISH)
 

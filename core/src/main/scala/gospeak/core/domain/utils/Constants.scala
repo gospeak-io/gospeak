@@ -3,14 +3,28 @@ package gospeak.core.domain.utils
 import java.time.ZoneId
 
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{EmailAddress, Url}
+import gospeak.libs.scala.domain.{EmailAddress, Logo, Url}
 
 object Constants {
   val defaultZoneId: ZoneId = ZoneId.of("Europe/Paris")
 
-  object Images {
-    val gospeakLogoSquare = "https://gospeak.io/logo.png"
-    val gospeakLogoText = "https://res.cloudinary.com/gospeak/image/upload/gospeak/logo-text.svg"
+  object Gospeak {
+    val name = "Gospeak"
+    val url: Url = Url.from("https://gospeak.io").get
+    val logo: Logo = Logo(Url.from("https://gospeak.io/logo.png").get)
+    val logoText: Logo = Logo(Url.from("https://res.cloudinary.com/gospeak/image/upload/gospeak/logo-text.svg").get)
+    val contactEmail: EmailAddress.Contact = EmailAddress.Contact(EmailAddress.from("contact@gospeak.io").get, Some("Gospeak"))
+    val noreplyEmail: EmailAddress.Contact = EmailAddress.Contact(EmailAddress.from("noreply@gospeak.io").get, Some("Gospeak"))
+    val twitter: Url.Twitter = Url.Twitter.from("https://twitter.com/gospeak_io").get
+    val linkedIn: Url.LinkedIn = Url.LinkedIn.from("https://www.linkedin.com/company/gospeak").get
+  }
+
+  object Placeholders {
+    val groupLogo = "https://res.cloudinary.com/gospeak/image/upload/placeholders/group-logo.png" // FIXME find better image
+    val eventLogo = "https://res.cloudinary.com/gospeak/image/upload/placeholders/group-logo.png" // FIXME find better image
+    val unknownUser = "https://res.cloudinary.com/gospeak/image/upload/placeholders/unknown-user.png"
+    val unknownPartner = "https://res.cloudinary.com/gospeak/image/upload/placeholders/unknown-user.png" // FIXME find better image
+    val noVenueForEvent = "https://res.cloudinary.com/gospeak/image/upload/placeholders/no-venue-for-event.png"
   }
 
   object Emoji {
@@ -36,31 +50,14 @@ object Constants {
     val event: String = calendar
   }
 
-  object Placeholders {
-    val groupLogo = "https://res.cloudinary.com/gospeak/image/upload/placeholders/group-logo.png" // FIXME find better image
-    val eventLogo = "https://res.cloudinary.com/gospeak/image/upload/placeholders/group-logo.png" // FIXME find better image
-    val unknownUser = "https://res.cloudinary.com/gospeak/image/upload/placeholders/unknown-user.png"
-    val unknownPartner = "https://res.cloudinary.com/gospeak/image/upload/placeholders/unknown-user.png" // FIXME find better image
-    val noVenueForEvent = "https://res.cloudinary.com/gospeak/image/upload/placeholders/no-venue-for-event.png"
-  }
-
-  object Contact {
-    val admin: EmailAddress.Contact = EmailAddress.Contact(EmailAddress.from("contact@gospeak.io").right.get, Some("Gospeak"))
-    val noReply: EmailAddress.Contact = EmailAddress.Contact(EmailAddress.from("noreply@gospeak.io").right.get, Some("Gospeak"))
-  }
-
-  object Twitter {
-    val gospeakHandle = "@gospeak_io"
-    val gospeakUrl: Url.Twitter = Url.Twitter.from("https://twitter.com/gospeak_io").get
-  }
-
-  object LinkedIn {
-    val gospeakUrl: Url.LinkedIn = Url.LinkedIn.from("https://www.linkedin.com/company/gospeak").get
-  }
-
   object Slack {
     val defaultBotName = "Gospeak bot"
     val defaultBotAvatar = ""
   }
 
+  val devMessage: String =
+    """Hi! Nice to meet you ❤
+      |Did you know Gospeak is an open source project done in Scala FP: https://github.com/gospeak-io/gospeak ?
+      |If you like it, give us a cheer message on twitter @gospeak_io or in our issues ;)
+      |""".stripMargin
 }
