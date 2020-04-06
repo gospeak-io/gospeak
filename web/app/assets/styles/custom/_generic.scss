@@ -247,6 +247,27 @@ ul.no-padding, ol.no-padding {
   display: none;
 }
 
+.embed-display {
+  position: relative;
+  overflow: hidden;
+  background: #eee;
+  padding-top: 60.2%;
+
+  iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .no-embed {
+    display: block;
+    margin-top: -50%;
+  }
+}
+
 .bg-200 {
   background-color: $gray-200;
 }

@@ -1,0 +1,16 @@
+@import gospeak.web.domain.PageMeta
+@import gospeak.web.pages.partials.container.html.main
+@import gospeak.web.pages.partials.display.html.embed
+@import gospeak.web.utils.UserReq
+
+@(urls: Seq[(String, String)])(implicit req: UserReq[AnyContent])
+@main("Styleguide - Gospeak", PageMeta.noIndex, Html(""), Html("")) {
+    <div class="container">
+        <h1>Embed demo</h1>
+        <div class="row">
+            @urls.map { case (name, url) =>
+                <div class="col-lg-3"><b>@name</b>: @embed(url)</div>
+            }
+        </div>
+    </div>
+}

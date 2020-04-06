@@ -15,8 +15,6 @@
     <a href="@GroupCtrl.detail(group.slug)"><i class="fas fa-chevron-left"></i> @group.name.value</a>
     <h1>
         @proposal.title.value
-        @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
-        @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
         @tweetButton(tweet)
         @if(req.isSpeaker(proposal)) {
             <a href="@SpeakerProposalCtrl.detail(proposal.talk.slug, proposal.cfp.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
@@ -28,6 +26,13 @@
         }
     </h1>
     @proposal.event.map { event => <div class="text-muted mb-3">@Formats.date(event.start) at <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a></div> }
+    <div class="row">
+        @proposal.video.map { s => <div class="col-lg-6 mb-3">@embed(s.value)</div> }
+        @proposal.slides.map { s => <div class="col-lg-6 mb-3">@embed(s.value)</div> }
+    </div>
+    <div class="mb-3">
+        @duration(proposal.duration) @tags(proposal.tags)
+    </div>
     <ul class="list-inline mb-3">
         @proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
             <li class="list-inline-item">

@@ -31,7 +31,7 @@ object EmbedSrv {
 
   private def embedCodeDefault(url: Url): Html =
     Html(
-      s"""<div>
+      s"""<div class="no-embed">
          |  Not embeddable: <a href="${url.value}" target="_blank">${url.value}</a>
          |</div>
        """.stripMargin.trim)

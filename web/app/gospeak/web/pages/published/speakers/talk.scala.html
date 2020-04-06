@@ -1,5 +1,6 @@
 @import gospeak.core.domain.{CommonProposal, Talk, User}
 @import gospeak.core.domain.utils.Constants
+@import gospeak.libs.scala.domain.Tweet
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.partials.html.{container, speakingHistory}
@@ -12,13 +13,16 @@
     <a href="@SpeakerCtrl.detail(user.slug)"><i class="fas fa-chevron-left"></i> @user.name.value</a>
     <h1>
         @talk.title.value
-        @talk.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
-        @talk.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
+        @tweetButton(Some(Tweet(talk.title.value, Some(""), Some(""))))
         @if(req.isSpeaker(talk)) {
             <a href="@TalkCtrl.detail(talk.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
             <a href="@TalkCtrl.edit(talk.slug, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
         }
     </h1>
+    <div class="row">
+        @talk.video.map { s => <div class="col-lg-6 mb-3">@embed(s.value)</div> }
+        @talk.slides.map { s => <div class="col-lg-6 mb-3">@embed(s.value)</div> }
+    </div>
     <div class="mb-3">
         @duration(talk.duration) @tags(talk.tags)
     </div>

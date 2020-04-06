@@ -6,7 +6,7 @@ import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.{Proposal, Talk, User}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
-import gospeak.libs.scala.domain.Page
+import gospeak.libs.scala.domain.{Page, Tweet}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb

@@ -260,6 +260,58 @@ class StyleguideCtrl(cc: ControllerComponents,
     IO.pure(Ok(html.styleguide(user, userFull, group, groupFull, cfp, event, eventFull, talk, proposal, proposalFull, commonProposal, params)))
   }
 
+  def embed(): Action[AnyContent] = UserAction { implicit req =>
+    val urls = Seq(
+      "YouTube" -> "https://youtu.be/9J9ouo-VNao",
+      "YouTube" -> "https://www.youtube.com/watch?v=EAf41LZxoM8",
+      "YouTube" -> "https://www.youtube.com/watch?v=_TmJ8MuhAdI&feature=youtu.be",
+      "YouTube playlist video" -> "https://www.youtube.com/watch?v=aClcNdOqtsE&list=PLs13l-4BLe9cbVS-s9SRa5KScRc6dyXxe&index=3",
+      "YouTube playlist" -> "https://www.youtube.com/playlist?list=PLs13l-4BLe9cKAJEZJoh5u1UQMACty7Xi",
+
+      "Vimeo" -> "https://vimeo.com/showcase/6597308/video/374679107",
+      "Vimeo showcase" -> "https://vimeo.com/showcase/6597308",
+
+      "Dailymotion" -> "https://www.dailymotion.com/video/x16jxe2",
+
+      "GoogleSlides" -> "https://docs.google.com/presentation/d/1D714wW1VL4mvB3ptGvmuR-ZdtqCZtliyjz4Ui0fQeVo",
+      "GoogleSlides" -> "https://docs.google.com/presentation/d/1ktdMyYNZGOywRuqTwU5Op8gdItctatnHkzWuppqSncU/edit?usp=sharing",
+
+      "SlidesDotCom" -> "http://slides.com/krichtof/pourquoi-je-passe-au-business-model-open-source",
+      "SlidesDotCom" -> "https://slides.com/leoanesi/deck",
+      "SlidesDotCom" -> "https://slid.es/mcmoe/slack-devoxx-pl-2017",
+      "SlidesDotCom profil" -> "https://slides.com/antoinetoubhans-1",
+      "SlidesDotCom not found" -> "http://slides.com/mickaelandrieu/introduction-to-nightmarejs",
+
+      "SlideShare" -> "http://fr.slideshare.net/GaryMialaret/gagner-aux-tcg-grce-linformatique",
+      "SlideShare" -> "http://www.slideshare.net/christopherparola/elcurator-un-exemple-dintrapreneuriat-conduisant-la-cration-dune-entreprise",
+
+      "SpeakerDeck" -> "https://speakerdeck.com/mickaelandrieu/10-minutes-pour-choisir-sa-licence-open-source",
+      "SpeakerDeck" -> "https://speakerdeck.com/dwursteisen/rxjava-getting-started",
+
+      "HtmlSlides" -> "http://talks.pixelastic.com/slides/memory-humantalks-2015/#/",
+      "HtmlSlides" -> "http://lauterry.github.io/slides-prez-angular/",
+      "HtmlSlides" -> "http://pekelman.com/presentations/apidays/",
+      "HtmlSlides" -> "https://l-p.github.io/out-of-google/",
+      "HtmlSlides" -> "http://jacinthebusson.com/humantalks/index.html",
+      "HtmlSlides" -> "https://gitpitch.com/open-chords-charts/elm-europe-2017-talk",
+      "HtmlSlides unknown" -> "http://posva.net/slides/dvorak",
+      "HtmlSlides unknown" -> "http://files.catwell.info/presentations/2013-02-human-talks-lua/fr.html",
+      "HtmlSlides unknown" -> "http://files.catwell.info/presentations/2013-07-human-talks-mobile-perf/",
+
+      "Pdf" -> "http://loic.knuchel.org/blog/wp-content/uploads/2013/11/HumanTalks11_FPhaskell_by_nmassyl.pdf",
+      "Pdf not found" -> "http://konexio.eu/press-kit-fr.pdf",
+
+      "Drive pdf" -> "https://drive.google.com/file/d/0B6mG_GOCuoUIWXh0NEZQak1CVUU/view?usp=sharing",
+      "Drive pdf" -> "https://drive.google.com/open?id=0B8mCfAkWpUx0ZXNvV19mRDk4YzB5cmJIWFNCbmZYN3JuVkw4",
+      "Drive .key" -> "https://drive.google.com/file/d/0B60RywJ46aLOdDEyWW1QS0NrQnM/view",
+      "Drive not authorized" -> "https://drive.google.com/file/d/0B9jbd4WmNPaeOFMzczhQSmFHZE0/view",
+      "OneDrive" -> "https://onedrive.live.com/view.aspx?resid=E66DEE7C5AA54223!253901&ithint=file%2cpptx&authkey=!AO9InUz3yD6QHvg",
+      "OneDrive" -> "https://onedrive.live.com/view.aspx?resid=E66DEE7C5AA54223!42602&ithint=file%2cpptx&app=PowerPoint&authkey=!AFm6uCuoXSDMFMM",
+      "Autre" -> "https://www.dropbox.com/sh/5tsxjhj0o250xas/AAC23iu8L7J70GZejrieLcHHa?dl=0",
+    )
+    IO.pure(Ok(html.styleguideEmbed(urls)))
+  }
+
   def published(id: String): Action[AnyContent] = UserAction { implicit req =>
     implicit val userAware: UserAwareReq[AnyContent] = req.userAware
     val res = id match {

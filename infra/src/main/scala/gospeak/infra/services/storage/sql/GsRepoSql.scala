@@ -95,8 +95,8 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     def cfp(group: Group, slug: String, name: String, start: Option[String], end: Option[String], description: String, tags: Seq[String], by: User): Cfp =
       Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).get, Cfp.Name(name), start.map(d => LocalDateTime.parse(d + "T00:00:00")), end.map(d => LocalDateTime.parse(d + "T00:00:00")), Markdown(description), tags.map(Tag(_)), Info(by.id, now))
 
-    def talk(by: User, slug: String, title: String, status: Talk.Status = Talk.Status.Public, speakers: Seq[User] = Seq(), duration: Int = 10, slides: Option[Slides] = None, video: Option[Video] = None, description: String = "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", tags: Seq[String] = Seq()): Talk =
-      Talk(Talk.Id.generate(), Talk.Slug.from(slug).get, status, Talk.Title(title), Duration(duration, MINUTES), Markdown(description), Markdown(""), NonEmptyList.of(by.id) ++ speakers.map(_.id).toList, slides, video, tags.map(Tag(_)), Info(by.id, now))
+    def talk(by: User, slug: String, title: String, status: Talk.Status = Talk.Status.Public, speakers: Seq[User] = Seq(), duration: Int = 10, slides: Option[String] = None, video: Option[String] = None, description: String = "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", tags: Seq[String] = Seq()): Talk =
+      Talk(Talk.Id.generate(), Talk.Slug.from(slug).get, status, Talk.Title(title), Duration(duration, MINUTES), Markdown(description), Markdown(""), NonEmptyList.of(by.id) ++ speakers.map(_.id).toList, slides.map(Slides.from(_).get), video.map(Video.from(_).get), tags.map(Tag(_)), Info(by.id, now))
 
     def proposal(talk: Talk, cfp: Cfp, status: Proposal.Status = Proposal.Status.Pending, orgaTags: Seq[String] = Seq()): Proposal =
       Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, status, talk.title, talk.duration, talk.description, Markdown(""), talk.speakers, talk.slides, talk.video, talk.tags, orgaTags.map(Tag(_)), talk.info)
@@ -216,10 +216,12 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     val credentials = users.filterNot(_.slug.value == "exist").map(u => User.Credentials("credentials", u.email.value, "bcrypt", "$2a$10$5r9NrHNAtujdA.qPcQHDm.xPxxTL/TAXU85RnP.7rDd3DTVPLCCjC", None)) // pwd: demo
     val loginRefs = users.filterNot(_.slug.value == "exist").map(u => User.LoginRef("credentials", u.email.value, u.id))
 
-    val whyFP = talk(userDemo, "why-fp", "Why FP", status = Talk.Status.Public, tags = Seq("FP"))
+    val whyFP = talk(userDemo, "why-fp", "Why FP", status = Talk.Status.Public, tags = Seq("FP"),
+      slides = Some("https://docs.google.com/presentation/d/1wWRKbxz81AzhBJJqc505yUkileRPn5b-bNH1Th852f4"),
+      video = Some("https://www.youtube.com/watch?v=Tm-qyMukBq4"))
     val scalaBestPractices = talk(userDemo, "scala-best-practices", "Scala Best Practices", speakers = Seq(userSpeaker),
-      slides = Some(Slides.from("https://docs.google.com/presentation/d/1wWRKbxz81AzhBJJqc505yUkileRPn5b-bNH1Th852f4").get),
-      video = Some(Video.from("https://www.youtube.com/watch?v=Tm-qyMukBq4").get),
+      slides = Some("https://docs.google.com/presentation/d/1wWRKbxz81AzhBJJqc505yUkileRPn5b-bNH1Th852f4"),
+      video = Some("https://www.youtube.com/watch?v=Tm-qyMukBq4"),
       description =
         """I have seen a lot of people struggleing with Scala because they were lost in all the feature and did not know which one to use and *not to use*.
           |This talk is for everyone to discuss about **best practices**:

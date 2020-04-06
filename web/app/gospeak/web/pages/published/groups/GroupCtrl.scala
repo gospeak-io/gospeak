@@ -220,7 +220,7 @@ class GroupCtrl(cc: ControllerComponents,
       packs <- OptionT.liftF(sponsorPackRepo.listActives(groupElt.id))
       orgas <- OptionT.liftF(userRepo.list(groupElt.owners.toList))
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
-      res = Ok(html.talks(groupElt, speakerCount, proposalsWithTweet, cfps, speakers, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
+      res = Ok(html.proposals(groupElt, speakerCount, proposalsWithTweet, cfps, speakers, sponsors, packs, orgas, userMembership)(breadcrumbEvents(groupElt.group)))
     } yield res).value.map(_.getOrElse(publicGroupNotFound(group)))
   }
 
@@ -231,7 +231,7 @@ class GroupCtrl(cc: ControllerComponents,
       proposalElt <- OptionT(proposalRepo.findPublicFull(groupElt.id, proposal))
       tweet <- OptionT.liftF(ms.proposalInfo(proposalElt).map(i => Tweet.from(proposalTweetTmpl, i, req.toAbsolute(routes.GroupCtrl.talk(group, proposalElt.id))).toOption))
       speakers <- OptionT.liftF(userRepo.list(proposalElt.speakers.toList))
-      res = Ok(html.talk(groupElt, proposalElt, tweet, speakers)(breadcrumbTalk(groupElt, proposalElt)))
+      res = Ok(html.proposal(groupElt, proposalElt, tweet, speakers)(breadcrumbTalk(groupElt, proposalElt)))
     } yield res).value.map(_.getOrElse(publicProposalNotFound(group, proposal)))
   }
 

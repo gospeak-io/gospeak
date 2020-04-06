@@ -221,6 +221,7 @@ GET         /a                                                                  
 GET         /a/check-user-templates                                                        gospeak.web.pages.admin.AdminCtrl.checkUserTemplates(params: Page.Params ?= Page.Params.defaults)
 
 GET         /styleguide                                                                    gospeak.web.pages.styleguide.StyleguideCtrl.index(params: Page.Params ?= Page.Params.defaults)
+GET         /styleguide/embed                                                              gospeak.web.pages.styleguide.StyleguideCtrl.embed
 GET         /styleguide/published/:id                                                      gospeak.web.pages.styleguide.StyleguideCtrl.published(id: String)
 GET         /styleguide/speaker/:id                                                        gospeak.web.pages.styleguide.StyleguideCtrl.speaker(id: String)
 GET         /styleguide/orga/:id                                                           gospeak.web.pages.styleguide.StyleguideCtrl.orga(id: String)

@@ -6,22 +6,28 @@
 @import gospeak.web.pages.published.partials.html.container
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
-@import gospeak.web.utils.UserAwareReq
+@import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(proposal: ExternalProposal.Full, users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.proposal} ${proposal.title.value}", PageMeta.proposal(proposal.event, proposal.proposal, b), b)() {
     <a href="@EventCtrl.detailExt(proposal.event.id)"><i class="fas fa-chevron-left"></i> @proposal.event.name.value</a>
     <h1>
         @proposal.title.value
-        @proposal.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
-        @proposal.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
         @tweetButton(Some(proposal.tweet(users, req.toAbsolute(EventCtrl.proposalExt(proposal.event.id, proposal.id)))))
         @if(req.isSpeaker(proposal)) {
             <a href="@ProposalCtrl.detailExt(proposal.talk.slug, proposal.id)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
             <a href="@ProposalCtrl.editExt(proposal.talk.slug, proposal.id, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
         }
     </h1>
+    <div class="text-muted mb-3">@proposal.event.start.map(Formats.date) at <a href="@EventCtrl.detailExt(proposal.event.id)">@proposal.event.name.value</a></div>
     @proposal.url.map { u => <a href="@u" target="_blank">@u</a><br> }
+    <div class="row">
+        @proposal.video.map { s => <div class="col-lg-6 mb-3">@embed(s.value)</div> }
+        @proposal.slides.map { s => <div class="col-lg-6 mb-3">@embed(s.value)</div> }
+    </div>
+    <div class="mb-3">
+        @duration(proposal.duration) @tags(proposal.tags)
+    </div>
     <ul class="list-inline mb-3">
         @proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
             <li class="list-inline-item">
