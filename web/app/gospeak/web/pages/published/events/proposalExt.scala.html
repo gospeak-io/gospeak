@@ -1,6 +1,6 @@
 @import gospeak.core.domain.{ExternalProposal, User}
 @import gospeak.core.domain.utils.Constants
-@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.domain.{Breadcrumb, PageMeta, Shareable}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.partials.html.container
@@ -11,7 +11,7 @@
 @(proposal: ExternalProposal.Full, users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.proposal} ${proposal.title.value}", PageMeta.proposal(proposal.event, proposal.proposal, b), b)() {
     <a href="@EventCtrl.detailExt(proposal.event.id)"><i class="fas fa-chevron-left"></i> @proposal.event.name.value</a>
-    <div class="float-right">@socialShareButtons(EventCtrl.proposalExt(proposal.event.id, proposal.id), proposal.title.value, proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map(_.social).headOption)</div>
+    <div class="float-right">@socialShareButtons(Shareable(proposal.event, proposal.proposal, users))</div>
     <h1>
         @proposal.title.value
         @if(req.isSpeaker(proposal)) {
@@ -29,7 +29,7 @@
         @duration(proposal.duration) @tags(proposal.tags)
     </div>
     <ul class="list-inline mb-3">
-        @proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
+        @proposal.speakerUsers(users).map { u =>
             <li class="list-inline-item">
                 <a href="@SpeakerCtrl.detail(u.slug)"><img class="u-sm-avatar rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar"> @u.name.value</a>
             </li>

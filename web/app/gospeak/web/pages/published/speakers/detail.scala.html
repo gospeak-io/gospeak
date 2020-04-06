@@ -2,7 +2,7 @@
 @import gospeak.core.domain.utils.Constants
 @import gospeak.libs.scala.Extensions._
 @import gospeak.web.pages.partials.form.html._
-@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.domain.{Breadcrumb, PageMeta, Shareable}
 @import gospeak.web.pages.orga.routes.{GroupCtrl => OrgaGroupCtrl}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.events.routes.EventCtrl
@@ -83,6 +83,7 @@
         @if(!user.isPublic) {
             <div class="alert alert-primary" role="alert">You profile is <b>private</b>, only you can see it!</div>
         }
+        <div class="float-right">@socialShareButtons(Shareable(user.user))</div>
         <h2 class="h4" id="profile-info">@user.title.getOrElse(s"About ${user.name.value}")</h2>
         @user.bio.map { b => @markdown(b) }
         @user.mentoring.map { m =>
@@ -128,7 +129,7 @@
                                 </h4>
                                 @if(talk.speakers.length > 1) {
                                     <ul class="list-inline hover-grow ml-3 mb-0">
-                                    @talk.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
+                                    @talk.speakerUsers(users).map { u =>
                                         <li class="list-inline-item ml-n3 mr-0">
                                             <a href="@SpeakerCtrl.detail(u.slug)" title="@u.name.value" data-toggle="tooltip" data-placement="bottom">
                                                 <img class="u-sm-avatar u-sm-avatar--bordered rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar">

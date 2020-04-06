@@ -1,7 +1,7 @@
 @import gospeak.core.domain.{ExternalCfp, ExternalEvent, ExternalProposal, User}
 @import gospeak.core.domain.utils.Constants
 @import gospeak.libs.scala.domain.Page
-@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.domain.{Breadcrumb, PageMeta, Shareable}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.partials.html.{container, externalProposalItem}
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
@@ -26,6 +26,7 @@
                             </div>
                         </div>
                     </div>
+                    <div>@socialShareButtons(Shareable(event))</div>
                     @event.url.map { u => <a class="font-size-1" href="@u" target="_blank">@u</a><br> }
                     <span class="text-muted font-size-1">@event.kind.value</span> @tags(event.tags)
                 </div>

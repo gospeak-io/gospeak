@@ -1,10 +1,9 @@
 @import gospeak.core.domain.{Cfp, Event, Group, Sponsor, SponsorPack, User}
 @import gospeak.core.domain.utils.Constants
 @import gospeak.libs.scala.domain.Page
-@import gospeak.web.domain.{Breadcrumb, PageMeta}
-@import gospeak.web.pages.orga.routes.{GroupCtrl => OrgaGroupCtrl}
+@import gospeak.web.domain.{Breadcrumb, PageMeta, Shareable}
 @import gospeak.web.pages.orga.events.routes.{EventCtrl => OrgaEventCtrl}
-@import gospeak.web.pages.partials.display.html.markdown
+@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.partials.html.{container, eventItem, groupCard}
 @import gospeak.web.utils.UserAwareReq
@@ -17,6 +16,7 @@
     <div class="col-lg-8">
         <div class="pl-lg-4">
             <div class="mb-5">
+                <div class="float-right">@socialShareButtons(Shareable(group.group))</div>
                 <h2 class="h5 mb-3">About @group.name.value</h2>
                 @markdown(group.description)
             </div>

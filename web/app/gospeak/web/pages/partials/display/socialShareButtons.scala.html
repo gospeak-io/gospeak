@@ -1,14 +1,15 @@
-@import gospeak.core.domain.utils.{Constants, SocialAccounts}
+@import gospeak.core.domain.utils.Constants
+@import gospeak.web.domain.Shareable
 @import gospeak.web.utils.UserAwareReq
 
-@(url: Call, text: String, via: Option[SocialAccounts] = None)(implicit req: UserAwareReq[AnyContent])
+@(s: Shareable)(implicit req: UserAwareReq[AnyContent])
 <span class="social-share">
-    <a href="https://twitter.com/intent/tweet?text=@text&url=@req.toAbsolute(url)@via.flatMap(_.twitter).flatMap(_.url.username).map("&via=" + _)@Constants.Gospeak.twitter.username.map("&related=" + _)"
+    <a href="https://twitter.com/intent/tweet?text=@s.tweet@Constants.Gospeak.twitter.username.map("&related=" + _)"
         class="twitter" title="Share on Twitter" data-toggle="tooltip"><i class="fab fa-twitter"></i></a>
-    <a href="https://www.linkedin.com/shareArticle?url=@req.toAbsolute(url)&title=@text&source=@Constants.Gospeak.name"
+    <a href="https://www.linkedin.com/shareArticle?url=@s.url&title=@s.text&source=@Constants.Gospeak.name"
         onclick="window.open(this.href, 'pop-up', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;"
         class="linkedin" title="Share on LinkedIn" data-toggle="tooltip"><i class="fab fa-linkedin"></i></a>
-    <a href="https://www.facebook.com/sharer/sharer.php?u=@req.toAbsolute(url)"
+    <a href="https://www.facebook.com/sharer/sharer.php?u=@s.url"
         onclick="window.open(this.href, 'pop-up', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;"
         class="facebook" title="Share on Facebook" data-toggle="tooltip"><i class="fab fa-facebook-square"></i></a>
 </span>

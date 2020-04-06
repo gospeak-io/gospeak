@@ -1,6 +1,6 @@
 @import gospeak.core.domain.ExternalCfp
 @import gospeak.core.domain.utils.Constants
-@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.domain.{Breadcrumb, PageMeta, Shareable}
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.partials.html.container
 @import gospeak.web.pages.partials.display.html._
@@ -11,6 +11,7 @@
 @container(s"${Constants.Emoji.cfp} ${cfp.event.name.value}", PageMeta.cfp(cfp, b), b)() {
 <div class="w-lg-80 mx-lg-auto">
     <div class="card shadow-sm p-5 mb-5">
+        <div class="text-right">@socialShareButtons(Shareable(cfp.event, cfp.cfp))</div>
         <div class="text-center">
             <img class="u-lg-avatar rounded-circle" src="@cfp.event.logo.map(_.url.value).getOrElse(Constants.Placeholders.eventLogo)" alt="@cfp.event.name.value logo">
 

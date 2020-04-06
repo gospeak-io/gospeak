@@ -29,6 +29,8 @@ final case class Proposal(id: Proposal.Id,
 
   def hasSpeaker(user: User.Id): Boolean = speakers.toList.contains(user)
 
+  def speakerUsers(users: Seq[User]): List[User] = speakers.toList.flatMap(id => users.find(_.id == id))
+
   def users: List[User.Id] = (speakers.toList ++ info.users).distinct
 }
 
@@ -90,6 +92,8 @@ object Proposal {
     def duration: FiniteDuration = proposal.duration
 
     def speakers: NonEmptyList[User.Id] = proposal.speakers
+
+    def speakerUsers(users: Seq[User]): List[User] = proposal.speakerUsers(users)
 
     def slides: Option[Slides] = proposal.slides
 

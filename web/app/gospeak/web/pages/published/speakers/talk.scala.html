@@ -1,7 +1,6 @@
 @import gospeak.core.domain.{CommonProposal, Talk, User}
 @import gospeak.core.domain.utils.Constants
-@import gospeak.libs.scala.domain.Tweet
-@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.domain.{Breadcrumb, PageMeta, Shareable}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.partials.html.{container, speakingHistory}
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
@@ -11,7 +10,7 @@
 @(user: User.Full, talk: Talk, proposals: List[CommonProposal], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.talk} ${talk.title.value} by ${user.name.value}", PageMeta.talk(user.user, talk, b), b)() {
     <a href="@SpeakerCtrl.detail(user.slug)"><i class="fas fa-chevron-left"></i> @user.name.value</a>
-    <div class="float-right">@socialShareButtons(SpeakerCtrl.talk(user.slug, talk.slug), talk.title.value, Some(user.social))</div>
+    <div class="float-right">@socialShareButtons(Shareable(user.user, talk, users))</div>
     <h1>
         @talk.title.value
         @if(req.isSpeaker(talk)) {
@@ -27,7 +26,7 @@
         @duration(talk.duration) @tags(talk.tags)
     </div>
     <ul class="list-inline mb-3">
-        @talk.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
+        @talk.speakerUsers(users).map { u =>
             <li class="list-inline-item">
                 <a href="@SpeakerCtrl.detail(u.slug)"><img class="u-sm-avatar rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar"> @u.name.value</a>
             </li>

@@ -1,7 +1,7 @@
 @import gospeak.core.domain.{Group, Proposal, User}
 @import gospeak.core.domain.utils.Constants
 @import gospeak.libs.scala.domain.Tweet
-@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.domain.{Breadcrumb, PageMeta, Shareable}
 @import gospeak.web.pages.orga.cfps.proposals.routes.{ProposalCtrl => OrgaProposalCtrl}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
@@ -13,7 +13,7 @@
 @(group: Group, proposal: Proposal.Full, tweet: Option[Tweet], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.proposal} ${proposal.title.value} ${Constants.Emoji.group} ${group.name.value}", PageMeta.proposal(group, proposal.proposal, b), b)() {
     <a href="@GroupCtrl.detail(group.slug)"><i class="fas fa-chevron-left"></i> @group.name.value</a>
-    <div class="float-right">@socialShareButtons(GroupCtrl.talk(group.slug, proposal.id), proposal.title.value, proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map(_.social).headOption)</div>
+    <div class="float-right">@socialShareButtons(Shareable(group, proposal.proposal, users))</div>
     <h1>
         @proposal.title.value
         @if(req.isSpeaker(proposal)) {
@@ -34,7 +34,7 @@
         @duration(proposal.duration) @tags(proposal.tags)
     </div>
     <ul class="list-inline mb-3">
-        @proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map { u =>
+        @proposal.speakerUsers(users).map { u =>
             <li class="list-inline-item">
                 <a href="@SpeakerCtrl.detail(u.slug)"><img class="u-sm-avatar rounded-circle" src="@u.avatar.value" alt="@u.name.value avatar"> @u.name.value</a>
             </li>

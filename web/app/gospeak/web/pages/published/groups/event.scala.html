@@ -2,7 +2,7 @@
 @import gospeak.core.domain.utils.Constants
 @import gospeak.libs.scala.domain.{Markdown, Tweet}
 @import gospeak.web.auth.routes.AuthCtrl
-@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.web.domain.{Breadcrumb, PageMeta, Shareable}
 @import gospeak.web.pages.orga.events.routes.{EventCtrl => OrgaEventCtrl}
 @import gospeak.web.pages.orga.partners.routes.{PartnerCtrl => OrgaPartnerCtrl}
 @import gospeak.web.pages.partials.display.html._
@@ -24,12 +24,12 @@
                 <h1 class="h4 mb-1">
                     @event.name.value
                     @event.refs.meetup.map { ref => <a href="@ref.link" target="_blank"><i class="fab fa-meetup"></i></a> }
-                    @socialShareButtons(GroupCtrl.event(group.slug, event.slug), event.name.value, Some(group.social))
                     @if(req.isOrga(group)) {
                         <a href="@OrgaEventCtrl.detail(group.slug, event.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
                         <a href="@OrgaEventCtrl.edit(group.slug, event.slug, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
                     }
                 </h1>
+                <div>@socialShareButtons(Shareable(group, event.event))</div>
                 <span class="text-primary font-size-1">
                     <i class="fas fa-calendar-day"></i> @Formats.dateFull(event.start)<br>
                     <i class="fas fa-clock"></i> @Formats.time(event.start)

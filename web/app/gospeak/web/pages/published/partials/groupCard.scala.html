@@ -34,7 +34,7 @@
                 case Seq() => {}
                 case Seq(cfp) => {
                     <div class="mb-3">
-                        <a class="btn btn-soft-primary transition-3d-hover" href="@CfpCtrl.propose(cfp.slug)">Propose a talk</a>
+                        <a class="btn btn-soft-primary transition-3d-hover" href="@CfpCtrl.detail(cfp.slug)">Propose a talk</a>
                     </div>
                 }
                 case cfps => {
@@ -44,7 +44,7 @@
                                 Propose a talk
                             </button>
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                @cfps.map { cfp => <a class="dropdown-item" href="@CfpCtrl.propose(cfp.slug)">@cfp.name.value</a> }
+                                @cfps.map { cfp => <a class="dropdown-item" href="@CfpCtrl.detail(cfp.slug)">@cfp.name.value</a> }
                             </div>
                         </div>
                     </div>
