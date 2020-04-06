@@ -11,9 +11,9 @@
 @(proposal: ExternalProposal.Full, users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.proposal} ${proposal.title.value}", PageMeta.proposal(proposal.event, proposal.proposal, b), b)() {
     <a href="@EventCtrl.detailExt(proposal.event.id)"><i class="fas fa-chevron-left"></i> @proposal.event.name.value</a>
+    <div class="float-right">@socialShareButtons(EventCtrl.proposalExt(proposal.event.id, proposal.id), proposal.title.value, proposal.speakers.toList.flatMap(id => users.find(_.id == id)).map(_.social).headOption)</div>
     <h1>
         @proposal.title.value
-        @tweetButton(Some(proposal.tweet(users, req.toAbsolute(EventCtrl.proposalExt(proposal.event.id, proposal.id)))))
         @if(req.isSpeaker(proposal)) {
             <a href="@ProposalCtrl.detailExt(proposal.talk.slug, proposal.id)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
             <a href="@ProposalCtrl.editExt(proposal.talk.slug, proposal.id, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>

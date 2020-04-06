@@ -62,7 +62,7 @@ ul.no-padding, ol.no-padding {
   opacity: 1;
 }
 
-.hover-edit {
+.hover-edit, .hover-edit a {
   opacity: 0.4;
   position: absolute;
   top: 10px;
@@ -245,6 +245,10 @@ ul.no-padding, ol.no-padding {
 
 [data-toggle="html-popover"] .content {
   display: none;
+}
+
+.social-share a {
+  color: $gray-700;
 }
 
 .embed-display {

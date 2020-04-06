@@ -12,16 +12,18 @@
 @(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], users: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 <div class="col-lg-4 mb-3 mb-lg-0">
     <div class="card shadow-sm p-5">
+        @if(req.isOrga(group)) {
+            <span class="hover-edit">
+                <a href="@OrgaGroupCtrl.detail(group.slug)"><i class="fas fa-eye"></i></a>
+                <a href="@OrgaGroupCtrl.edit(group.slug, Some(req.uri))"><i class="fas fa-edit"></i></a>
+            </span>
+        }
         <div class="text-center">
             <a href="@GroupCtrl.detail(group.slug)">
                 <img class="u-lg-avatar rounded-circle mb-3" src="@group.logo.map(_.url.value).getOrElse(Constants.Placeholders.groupLogo)" alt="@group.name.value logo"/>
             </a>
             <h1 class="h5">
                 @group.name.value
-                @if(req.isOrga(group)) {
-                    <a href="@OrgaGroupCtrl.detail(group.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
-                    <a href="@OrgaGroupCtrl.edit(group.slug, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
-                }
             </h1>
             @group.website.map { u =>
                 <div class="mb-3">

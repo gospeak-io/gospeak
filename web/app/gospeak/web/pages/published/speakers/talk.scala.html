@@ -11,9 +11,9 @@
 @(user: User.Full, talk: Talk, proposals: List[CommonProposal], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.talk} ${talk.title.value} by ${user.name.value}", PageMeta.talk(user.user, talk, b), b)() {
     <a href="@SpeakerCtrl.detail(user.slug)"><i class="fas fa-chevron-left"></i> @user.name.value</a>
+    <div class="float-right">@socialShareButtons(SpeakerCtrl.talk(user.slug, talk.slug), talk.title.value, Some(user.social))</div>
     <h1>
         @talk.title.value
-        @tweetButton(Some(Tweet(talk.title.value, Some(""), Some(""))))
         @if(req.isSpeaker(talk)) {
             <a href="@TalkCtrl.detail(talk.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
             <a href="@TalkCtrl.edit(talk.slug, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>

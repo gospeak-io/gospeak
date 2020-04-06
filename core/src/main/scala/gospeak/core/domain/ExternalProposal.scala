@@ -25,11 +25,6 @@ final case class ExternalProposal(id: ExternalProposal.Id,
   def hasSpeaker(user: User.Id): Boolean = speakers.toList.contains(user)
 
   def users: List[User.Id] = (speakers.toList ++ info.users).distinct
-
-  def tweet(users: Seq[User], url: String): Tweet = {
-    val speakerNames = speakers.toList.flatMap(id => users.find(_.id == id)).map(u => u.social.twitter.map(_.handle).getOrElse(u.name.value)).mkString(" and ")
-    Tweet(s"""Presentation of "${title.value}" by $speakerNames via ${Constants.Gospeak.twitter.handle}""", Some(url), None)
-  }
 }
 
 object ExternalProposal {
@@ -68,8 +63,6 @@ object ExternalProposal {
     def hasSpeaker(user: User.Id): Boolean = proposal.hasSpeaker(user)
 
     def users: List[User.Id] = (proposal.users ++ talk.users ++ event.users).distinct
-
-    def tweet(users: Seq[User], url: String): Tweet = proposal.tweet(users, url)
   }
 
   final case class Data(status: Proposal.Status,

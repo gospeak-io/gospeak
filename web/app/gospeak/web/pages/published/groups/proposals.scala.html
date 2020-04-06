@@ -16,7 +16,6 @@
                 <a href="@GroupCtrl.talk(group.slug, talk.id)">@talk.title.value</a>
                 @talk.slides.map { s => <a href="@s.value" target="_blank"><i class="fab fa-slideshare text-muted"></i></a> }
                 @talk.video.map { s => <a href="@s.value" target="_blank"><i class="fab fa-youtube text-muted"></i></a> }
-                @tweetButton(tweet)
             </h5>
             <ul class="list-inline">
                 @talk.speakers.toList.flatMap(id => speakers.find(_.id == id)).filter(_.isPublic).map { u =>

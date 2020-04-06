@@ -17,13 +17,7 @@
     <div class="col-lg-8">
         <div class="pl-lg-4">
             <div class="mb-5">
-                <h2 class="h5 mb-3">
-                    About @group.name.value
-                    @if(req.isOrga(group)) {
-                        <a href="@OrgaGroupCtrl.detail(group.slug)" class="hover-edit-inline"><i class="fas fa-eye"></i></a>
-                        <a href="@OrgaGroupCtrl.edit(group.slug, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
-                    }
-                </h2>
+                <h2 class="h5 mb-3">About @group.name.value</h2>
                 @markdown(group.description)
             </div>
             <hr class="mb-5">

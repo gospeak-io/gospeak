@@ -26,7 +26,9 @@ object Url {
   }
 
   final class Twitter private(url: Url) extends Url(url.value, url.parsed) {
-    override def handle: String = ParsedUrl.from(value).toOption.flatMap(_.path.lastOption).map("@" + _).getOrElse(super.handle)
+    override def handle: String = username.map("@" + _).getOrElse(super.handle)
+
+    def username: Option[String] = parsed.path.lastOption
   }
 
   object Twitter {
@@ -41,7 +43,7 @@ object Url {
   }
 
   final class LinkedIn private(url: Url) extends Url(url.value, url.parsed) {
-    override def handle: String = ParsedUrl.from(value).toOption.flatMap(_.path.filter(_ != "admin").lastOption).getOrElse(super.handle)
+    override def handle: String = parsed.path.filter(_ != "admin").lastOption.getOrElse(super.handle)
   }
 
   object LinkedIn {
@@ -56,9 +58,11 @@ object Url {
   }
 
   final class YouTube private(url: Url) extends Url(url.value, url.parsed) {
-    override def handle: String = ParsedUrl.from(value).toOption.flatMap { u =>
-      u.parameters.get("v").orElse(u.parameters.get("list")).orElse(u.path.filter(_ != "videos").lastOption)
-    }.getOrElse(super.handle)
+    override def handle: String =
+      parsed.parameters.get("v")
+        .orElse(parsed.parameters.get("list"))
+        .orElse(parsed.path.filter(_ != "videos").lastOption)
+        .getOrElse(super.handle)
   }
 
   object YouTube {
@@ -75,7 +79,7 @@ object Url {
   }
 
   final class Meetup private(url: Url) extends Url(url.value, url.parsed) {
-    override def handle: String = ParsedUrl.from(value).toOption.flatMap(_.path.lastOption).getOrElse(super.handle)
+    override def handle: String = parsed.path.lastOption.getOrElse(super.handle)
   }
 
   object Meetup {
@@ -90,7 +94,7 @@ object Url {
   }
 
   final class Github private(url: Url) extends Url(url.value, url.parsed) {
-    override def handle: String = ParsedUrl.from(value).toOption.flatMap(_.path.lastOption).getOrElse(super.handle)
+    override def handle: String = parsed.path.lastOption.getOrElse(super.handle)
   }
 
   object Github {
