@@ -17,6 +17,7 @@ import scala.collection.JavaConverters._
 
 class YoutubeClientSpec extends FunSpec with Matchers {
 
+  // you should paste your key here for testing
   val secrets: String =
     """{
       |""".stripMargin
