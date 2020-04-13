@@ -22,8 +22,8 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
   // you should paste your key here for testing
   val secrets: String =
     """{
-    
-      |}
+       |
+       |}
       |""".stripMargin
   val SCOPES: Seq[String] = Seq("https://www.googleapis.com/auth/youtube.readonly")
   val HTTP_TRANSPORT: NetHttpTransport = GoogleNetHttpTransport.newTrustedTransport
@@ -110,12 +110,26 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
     it("should fail when id does not exist") {
       val value = youtubeClient.playlistItems("UCbyWrAbUv7dxGcZ1nDvjpQw").unsafeRunSync()
       value shouldBe Left(YoutubeErrors(404,
-        Seq(YError("youtube.playlistItem",
-          "playlistId",
-          "parameter",
-          "The playlist identified with the requests <code>playlistId</code> parameter cannot be found.",
-          "playlistNotFound",
-        )), "The playlist identified with the requests <code>playlistId</code> parameter cannot be found."))
+        List(
+          YError(Some("youtube.playlistItem"),
+            Some("playlistId"),
+            Some("parameter"),
+            Some("The playlist identified with the requests <code>playlistId</code> parameter cannot be found."),
+            Some("playlistNotFound"),
+          )),
+        Some(
+          """404 Not Found
+            |{
+            |  "code" : 404,
+            |  "errors" : [ {
+            |    "domain" : "youtube.playlistItem",
+            |    "location" : "playlistId",
+            |    "locationType" : "parameter",
+            |    "message" : "The playlist identified with the requests <code>playlistId</code> parameter cannot be found.",
+            |    "reason" : "playlistNotFound"
+            |  } ],
+            |  "message" : "The playlist identified with the requests <code>playlistId</code> parameter cannot be found."
+            |}""".stripMargin)))
     }
   }
 

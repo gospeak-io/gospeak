@@ -12,7 +12,7 @@ import scala.util.control.NonFatal
 class YoutubeClient(val underlying: YouTube) {
 
   def channelBy(channelId: String): IO[Either[YoutubeErrors, ChannelsResponse]] =
-    IO.pure(underlying
+    IO(underlying
       .channels()
       .list(contentDetails)
       .setId(channelId)
@@ -25,8 +25,8 @@ class YoutubeClient(val underlying: YouTube) {
           IO.raiseError(e)
       }
 
-  def playlistItems(playlistId: String): IO[Either[YoutubeErrors, PlaylistItems]] =
-    IO.pure(underlying
+  def playlistItems(playlistId: String): IO[Either[YoutubeErrors, PlaylistItems]] = {
+    IO(underlying
       .playlistItems()
       .list(contentDetails)
       .setPlaylistId(playlistId)
@@ -38,10 +38,11 @@ class YoutubeClient(val underlying: YouTube) {
         case NonFatal(e) =>
           IO.raiseError(e)
       }
+  }
 
 
   def search(channelId: String): IO[Either[YoutubeErrors, SearchResults]] = {
-    IO.pure(underlying
+    IO(underlying
       .search()
       .list(snippet)
       .setChannelId(channelId)

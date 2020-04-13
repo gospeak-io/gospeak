@@ -6,32 +6,33 @@ import com.google.api.client.googleapis.json.{GoogleJsonError, GoogleJsonRespons
 import scala.collection.JavaConverters._
 
 final case class YoutubeErrors(code: Int,
-                               errors: Seq[YError],
-                               message: String
-                             )
+                               errors: List[YError],
+                               message: Option[String]
+                              )
 
 object YoutubeErrors {
   def apply(ex: GoogleJsonResponseException) =
     new YoutubeErrors(ex.getStatusCode,
       YError.from(ex.getDetails),
-      ex.getMessage)
+      Option(ex.getMessage))
 }
 
-final case class YError(domain: String,
-                        location: String,
-                        locationType: String,
-                        message: String,
-                        reason: String)
+final case class YError(domain: Option[String],
+                        location: Option[String],
+                        locationType: Option[String],
+                        message: Option[String],
+                        reason: Option[String])
 
 object YError {
 
-  def from(error: GoogleJsonError): Seq[YError] =
-    error.getErrors.asScala.map(YError(_))
+  def from(error: GoogleJsonError): List[YError] =
+    error.getErrors.asScala.map(YError(_)).toList
 
   def apply(info: ErrorInfo) =
-    new YError(info.getDomain,
-      info.getLocation,
-      info.getLocationType,
-      info.getMessage,
-      info.getReason)
+    new YError(
+      Option(info.getDomain),
+      Option(info.getLocation),
+      Option(info.getLocationType),
+      Option(info.getMessage),
+      Option(info.getReason))
 }
