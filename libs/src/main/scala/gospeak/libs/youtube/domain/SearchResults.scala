@@ -15,12 +15,12 @@ final case class SearchResults(etag: String,
                                eventId: String,
                                items: Seq[SearchResult],
                                kind: String,
-                               nextPageToken: String,
-                               prevPageToken: String,
-                               pageInfo: PageInfo,
-                               tokenPagination: TokenPagination,
-                               regionCode: String,
-                               visitorId: String,
+                               nextPageToken: Option[String],
+                               prevPageToken: Option[String],
+                               pageInfo: Option[PageInfo],
+                               tokenPagination: Option[TokenPagination],
+                               regionCode: Option[String],
+                               visitorId: Option[String],
                               )
 
 object SearchResults {
@@ -32,15 +32,15 @@ object SearchResults {
       response.getEtag,
       response.getEventId,
       response.getItems.asScala
-//        .filter(_.getKind == kind)
+        //        .filter(_.getKind == kind)
         .map(SearchResult(_)),
       response.getKind,
-      response.getNextPageToken,
-      response.getPrevPageToken,
-      response.getPageInfo,
-      response.getTokenPagination,
-      response.getRegionCode,
-      response.getVisitorId)
+      Option(response.getNextPageToken),
+      Option(response.getPrevPageToken),
+      Option(response.getPageInfo),
+      Option(response.getTokenPagination),
+      Option(response.getRegionCode),
+      Option(response.getVisitorId))
 }
 
 final case class SearchResult(etag: String,

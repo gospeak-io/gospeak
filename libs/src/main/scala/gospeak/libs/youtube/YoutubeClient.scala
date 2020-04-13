@@ -40,7 +40,7 @@ class YoutubeClient(val underlying: YouTube) {
       }
 
 
-  def videos(channelId: String): IO[Either[YoutubeErrors, SearchResults]] = {
+  def search(channelId: String): IO[Either[YoutubeErrors, SearchResults]] = {
     IO.pure(underlying
       .search()
       .list(snippet)
