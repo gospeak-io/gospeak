@@ -1,6 +1,6 @@
 package gospeak.libs.youtube.domain
 
-import com.google.api.services.youtube.model.{ChannelAuditDetails, ChannelBrandingSettings, ChannelContentDetails, ChannelConversionPing, ChannelConversionPings, ChannelListResponse, ChannelLocalization, ChannelSnippet, ChannelStatistics, ChannelStatus, ChannelTopicDetails, InvideoPromotion, TokenPagination, Channel => YChannel}
+import com.google.api.services.youtube.{model => google}
 
 import scala.collection.JavaConverters._
 
@@ -10,56 +10,50 @@ final case class ChannelsResponse(etag: String,
                                   kind: String,
                                   nextPageToken: Option[String],
                                   prevPageToken: Option[String],
-                                  tokenPagination: Option[TokenPagination],
+                                  tokenPagination: Option[google.TokenPagination],
                                   visitorId: Option[String])
 
 object ChannelsResponse {
-
-  def apply(channelListResponse: ChannelListResponse): ChannelsResponse = {
+  def apply(channelListResponse: google.ChannelListResponse): ChannelsResponse =
     new ChannelsResponse(
-      channelListResponse.getEtag,
-      Option(channelListResponse.getEventId),
-      channelListResponse.getItems.asScala.map(Channel(_)).toList,
-      channelListResponse.getKind,
-      Option(channelListResponse.getNextPageToken),
-      Option(channelListResponse.getPrevPageToken),
-      Option(channelListResponse.getTokenPagination),
-      Option(channelListResponse.getVisitorId)
-    )
-  }
+      etag = channelListResponse.getEtag,
+      eventId = Option(channelListResponse.getEventId),
+      items = channelListResponse.getItems.asScala.map(Channel(_)).toList,
+      kind = channelListResponse.getKind,
+      nextPageToken = Option(channelListResponse.getNextPageToken),
+      prevPageToken = Option(channelListResponse.getPrevPageToken),
+      tokenPagination = Option(channelListResponse.getTokenPagination),
+      visitorId = Option(channelListResponse.getVisitorId))
 }
 
 final case class Channel(etag: String,
                          id: String,
                          kind: String,
-                         contentDetails: Option[ChannelContentDetails],
-                         conversionPings: Option[ChannelConversionPings],
-                         brandingSettings: Option[ChannelBrandingSettings],
-                         auditDetails: Option[ChannelAuditDetails],
-                         snippet: Option[ChannelSnippet],
-                         statistics: Option[ChannelStatistics],
-                         status: Option[ChannelStatus],
-                         invideoPromotion: Option[InvideoPromotion],
-                         topicDetails: Option[ChannelTopicDetails],
-                         localizations: Option[Map[String, ChannelLocalization]]
-                        )
+                         contentDetails: Option[google.ChannelContentDetails],
+                         conversionPings: Option[google.ChannelConversionPings],
+                         brandingSettings: Option[google.ChannelBrandingSettings],
+                         auditDetails: Option[google.ChannelAuditDetails],
+                         snippet: Option[google.ChannelSnippet],
+                         statistics: Option[google.ChannelStatistics],
+                         status: Option[google.ChannelStatus],
+                         invideoPromotion: Option[google.InvideoPromotion],
+                         topicDetails: Option[google.ChannelTopicDetails],
+                         localizations: Option[Map[String, google.ChannelLocalization]])
 
 object Channel {
-  def apply(channel: YChannel): Channel = {
+  def apply(channel: google.Channel): Channel =
     new Channel(
-      channel.getEtag,
-      channel.getId,
-      channel.getKind,
-      Option(channel.getContentDetails),
-      Option(channel.getConversionPings),
-      Option(channel.getBrandingSettings),
-      Option(channel.getAuditDetails),
-      Option(channel.getSnippet),
-      Option(channel.getStatistics),
-      Option(channel.getStatus),
-      Option(channel.getInvideoPromotion),
-      Option(channel.getTopicDetails),
-      Option(channel.getLocalizations).map(_.asScala.toMap),
-    )
-  }
+      etag = channel.getEtag,
+      id = channel.getId,
+      kind = channel.getKind,
+      contentDetails = Option(channel.getContentDetails),
+      conversionPings = Option(channel.getConversionPings),
+      brandingSettings = Option(channel.getBrandingSettings),
+      auditDetails = Option(channel.getAuditDetails),
+      snippet = Option(channel.getSnippet),
+      statistics = Option(channel.getStatistics),
+      status = Option(channel.getStatus),
+      invideoPromotion = Option(channel.getInvideoPromotion),
+      topicDetails = Option(channel.getTopicDetails),
+      localizations = Option(channel.getLocalizations).map(_.asScala.toMap))
 }

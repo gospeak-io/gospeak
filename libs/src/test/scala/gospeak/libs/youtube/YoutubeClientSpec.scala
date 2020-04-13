@@ -1,82 +1,55 @@
 package gospeak.libs.youtube
 
-import java.io.ByteArrayInputStream
 import java.time.Instant
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.JsonFactory
-import com.google.api.client.json.jackson2.JacksonFactory
-import com.google.api.services.youtube.YouTube
 import com.google.api.services.youtube.model.ChannelContentDetails
 import com.google.api.services.youtube.model.ChannelContentDetails.RelatedPlaylists
-import gospeak.libs.youtube.domain.{Channel, ChannelsResponse, ContentDetails, PlaylistItem, PlaylistItems, YError, YoutubeErrors}
+import gospeak.libs.scala.domain.Secret
+import gospeak.libs.youtube.domain._
 import org.scalatest.{FunSpec, Inside, Matchers}
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable
 
 class YoutubeClientSpec extends FunSpec with Matchers with Inside {
-
   // you should paste your key here for testing
-  val secrets: String =
-    """{}
-      |""".stripMargin
-  val SCOPES: Seq[String] = Seq("https://www.googleapis.com/auth/youtube.readonly")
-  val HTTP_TRANSPORT: NetHttpTransport = GoogleNetHttpTransport.newTrustedTransport
-  val JSON_FACTORY: JsonFactory = JacksonFactory.getDefaultInstance
-  val credential: GoogleCredential = GoogleCredential.fromStream(new ByteArrayInputStream(secrets.getBytes))
-    .createScoped(SCOPES.asJava);
-  val youtube: YouTube = new YouTube.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).build
-  val youtubeClient = new YoutubeClient(youtube)
+  val secret: String =
+    """""".stripMargin
+  private val youtubeClient = YoutubeClient.create(Secret(secret))
 
   ignore("channelBy") {
     it("should retrieve channel information") {
-
       val value = youtubeClient.channelBy("UCbyWrAbUv7dxGcZ1nDvjpQw").unsafeRunSync()
-
-
       inside(value) {
-        case Right(ChannelsResponse(etag,
-        None,
-        items,
-        kind,
-        None,
-        None,
-        None,
-        None))
-        =>
-
+        case Right(ChannelsResponse(etag, None, items, kind, None, None, None, None)) =>
           etag should startWith("\"tnVOtk4NeGU6nDncDTE5m9SmuHc")
           kind shouldBe "youtube#channelListResponse"
-          items should contain theSameElementsAs List(Channel("\"tnVOtk4NeGU6nDncDTE5m9SmuHc/4sJiFPiaRzdcfJE3HZnK--QAXXo\"",
-            "UCbyWrAbUv7dxGcZ1nDvjpQw",
-            "youtube#channel",
-            Some(new ChannelContentDetails()
-              .setRelatedPlaylists(new RelatedPlaylists()
-                .setUploads("UUbyWrAbUv7dxGcZ1nDvjpQw")
-                .setWatchHistory("HL")
-                .setWatchLater("WL"))),
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None))
+          items should contain theSameElementsAs List(
+            Channel(
+              "\"tnVOtk4NeGU6nDncDTE5m9SmuHc/4sJiFPiaRzdcfJE3HZnK--QAXXo\"",
+              "UCbyWrAbUv7dxGcZ1nDvjpQw",
+              "youtube#channel",
+              Some(new ChannelContentDetails()
+                .setRelatedPlaylists(new RelatedPlaylists()
+                  .setUploads("UUbyWrAbUv7dxGcZ1nDvjpQw")
+                  .setWatchHistory("HL")
+                  .setWatchLater("WL"))),
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None))
       }
     }
   }
-
   ignore("playListItems") {
     it("should retrieve items") {
       val value = youtubeClient.playlistItems("PL1d9UGnF3u-sMQ9SOAhv0oqgdG_dXzkRC").unsafeRunSync()
       inside(value) {
         case Right(PlaylistItems(etag, None, items: immutable.Seq[PlaylistItem], kind, nextPageToken, None, None, None)) =>
-
           etag should startWith("\"tnVOtk4NeGU6nDncDTE5m9SmuHc")
           // nextPage
           nextPageToken shouldBe Some("CAUQAA")
@@ -104,12 +77,11 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
               "youtube#playlistItem", None))
       }
     }
-
     it("should fail when id does not exist") {
       val value = youtubeClient.playlistItems("UCbyWrAbUv7dxGcZ1nDvjpQw").unsafeRunSync()
       value shouldBe Left(YoutubeErrors(404,
         List(
-          YError(Some("youtube.playlistItem"),
+          YoutubeError(Some("youtube.playlistItem"),
             Some("playlistId"),
             Some("parameter"),
             Some("The playlist identified with the requests <code>playlistId</code> parameter cannot be found."),
@@ -130,7 +102,6 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
             |}""".stripMargin)))
     }
   }
-
   ignore("videos") {
     it("should retrieve results") {
       val value = youtubeClient.search("UCbyWrAbUv7dxGcZ1nDvjpQw").unsafeRunSync()

@@ -2,8 +2,9 @@ package gospeak.libs.youtube.domain
 
 import java.time.Instant
 
+import com.google.api.services.youtube.{model => google}
+
 import scala.collection.JavaConverters._
-import com.google.api.services.youtube.model.{PlaylistItemContentDetails, PlaylistItemListResponse, PlaylistItemStatus, TokenPagination, PlaylistItem => GPlaylistItem}
 
 final case class PlaylistItems(etag: String,
                                eventId: Option[String],
@@ -11,38 +12,37 @@ final case class PlaylistItems(etag: String,
                                kind: String,
                                nextPageToken: Option[String],
                                prevPageToken: Option[String],
-                               tokenPagination: Option[TokenPagination],
+                               tokenPagination: Option[google.TokenPagination],
                                visitorId: Option[String])
 
 object PlaylistItems {
-  def apply(response: PlaylistItemListResponse): PlaylistItems =
-    new PlaylistItems(response.getEtag,
-      Option(response.getEventId),
-      response.getItems.asScala.map(PlaylistItem(_)).toList,
-      response.getKind,
-      Option(response.getNextPageToken),
-      Option(response.getPrevPageToken),
-      Option(response.getTokenPagination),
-      Option(response.getVisitorId))
+  def apply(response: google.PlaylistItemListResponse): PlaylistItems =
+    new PlaylistItems(
+      etag = response.getEtag,
+      eventId = Option(response.getEventId),
+      items = response.getItems.asScala.map(PlaylistItem(_)).toList,
+      kind = response.getKind,
+      nextPageToken = Option(response.getNextPageToken),
+      prevPageToken = Option(response.getPrevPageToken),
+      tokenPagination = Option(response.getTokenPagination),
+      visitorId = Option(response.getVisitorId))
 }
 
 final case class PlaylistItem(contentDetails: Option[ContentDetails],
                               etag: String,
                               id: String,
                               kind: String,
-                              status: Option[PlaylistItemStatus])
+                              status: Option[google.PlaylistItemStatus])
 
 object PlaylistItem {
-  def apply(playlist: GPlaylistItem): PlaylistItem = {
+  def apply(playlist: google.PlaylistItem): PlaylistItem =
     new PlaylistItem(
-      Option(playlist.getContentDetails).map(ContentDetails(_)),
-      playlist.getEtag,
-      playlist.getId,
-      playlist.getKind,
-      Option(playlist.getStatus))
-  }
+      contentDetails = Option(playlist.getContentDetails).map(ContentDetails(_)),
+      etag = playlist.getEtag,
+      id = playlist.getId,
+      kind = playlist.getKind,
+      status = Option(playlist.getStatus))
 }
-
 
 final case class ContentDetails(endAt: Option[String],
                                 note: Option[String],
@@ -51,11 +51,11 @@ final case class ContentDetails(endAt: Option[String],
                                 videoPublished: Option[Instant])
 
 object ContentDetails {
-
-  def apply(details: PlaylistItemContentDetails): ContentDetails =
-    new ContentDetails(Option(details.getEndAt),
-      Option(details.getNote),
-      Option(details.getStartAt),
-      Option(details.getVideoId),
-      Option(details.getVideoPublishedAt).map(d => Instant.ofEpochMilli(d.getValue)))
+  def apply(details: google.PlaylistItemContentDetails): ContentDetails =
+    new ContentDetails(
+      endAt = Option(details.getEndAt),
+      note = Option(details.getNote),
+      startAt = Option(details.getStartAt),
+      videoId = Option(details.getVideoId),
+      videoPublished = Option(details.getVideoPublishedAt).map(d => Instant.ofEpochMilli(d.getValue)))
 }

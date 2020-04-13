@@ -1,15 +1,7 @@
 package gospeak.web
 
-import java.io.ByteArrayInputStream
-import java.util
 import java.util.concurrent.TimeUnit
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.JsonFactory
-import com.google.api.client.json.jackson2.JacksonFactory
-import com.google.api.services.youtube.YouTube
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions._
 import com.mohiva.play.silhouette.api.crypto.{Crypter, CrypterAuthenticatorEncoder, Signer}
@@ -54,7 +46,6 @@ import play.api.{Environment => _, _}
 import play.filters.HttpFiltersComponents
 import router.Routes
 
-import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 
 class GsApplicationLoader extends ApplicationLoader {
@@ -105,6 +96,7 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val twitterSrv: Option[TwitterSrv] = conf.twitter.map(new TwitterSrvImpl(_, conf.app.env.isProd))
   lazy val meetupSrv: MeetupSrv = MeetupSrvImpl.from(conf.meetup, conf.app.baseUrl, conf.app.env.isProd)
   lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient())
+  lazy val youtubeClient: Option[YoutubeClient] = conf.youtube.secret.map(YoutubeClient.create)
   lazy val messageSrv: MessageSrv = wire[MessageSrv]
   lazy val messageBus: MessageBus[Message] = wire[BasicMessageBus[Message]]
   lazy val messageHandler: MessageHandler = wire[MessageHandler]
@@ -123,10 +115,6 @@ class GsComponents(context: ApplicationLoader.Context)
       sharedSecret = configuration.underlying.getString("silhouette.jwt.authenticator.sharedSecret"))
     new JWTAuthenticatorService(config, None, authenticatorDecoder, idGenerator, clock)
   } */
-  lazy val youtubeClient: YoutubeClient = {
-    YoutubeClient.create(conf.youtube.secret)
-  }
-
   val signer: Signer = new JcaSigner(conf.auth.cookie.signer)
   val crypter: Crypter = new JcaCrypter(conf.auth.cookie.crypter)
   lazy val cookieAuth: AuthenticatorService[CookieAuthenticator] = {
