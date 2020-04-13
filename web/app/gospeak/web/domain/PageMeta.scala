@@ -83,8 +83,8 @@ object PageMeta {
 
   val noIndex: PageMeta = PageMeta(
     kind = "website",
-    title = s"${Constants.Emoji.rocket} Helping people to become speaker with a welcoming community",
-    description = "Gospeak help people speak publicly. Find advices, mentoring and places to speak. Then publish your experiences and improve your personal branding.",
+    title = s"${Constants.Emoji.rocket} Gospeak - Public speaking community",
+    description = "Helping people to become speaker with a welcoming community. Find advices, mentoring, places to speak and boost your personal branding.",
     icon = Constants.Gospeak.logo.value,
     url = Constants.Gospeak.url.value,
     breadcrumb = Breadcrumb("Home", HomeCtrl.index()),
