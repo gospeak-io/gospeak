@@ -4,6 +4,12 @@ import java.io.ByteArrayInputStream
 import java.util
 import java.util.concurrent.TimeUnit
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.JsonFactory
+import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.services.youtube.YouTube
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions._
 import com.mohiva.play.silhouette.api.crypto.{Crypter, CrypterAuthenticatorEncoder, Signer}
