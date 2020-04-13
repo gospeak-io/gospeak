@@ -124,15 +124,9 @@ class GsComponents(context: ApplicationLoader.Context)
     new JWTAuthenticatorService(config, None, authenticatorDecoder, idGenerator, clock)
   } */
   lazy val youtubeClient: YoutubeClient = {
-    val scopes: util.List[String] = List("https://www.googleapis.com/auth/youtube.readonly").asJava
-    val httpTransport: NetHttpTransport = GoogleNetHttpTransport.newTrustedTransport
-    val jsonFactory: JsonFactory = JacksonFactory.getDefaultInstance
-    val credential: GoogleCredential = GoogleCredential
-      .fromStream(new ByteArrayInputStream(conf.youtube.secret.getBytes))
-      .createScoped(scopes)
-    val youtube: YouTube = new YouTube.Builder(httpTransport, jsonFactory, credential).build
-    new YoutubeClient(youtube)
+    YoutubeClient.create(conf.youtube.secret)
   }
+
   val signer: Signer = new JcaSigner(conf.auth.cookie.signer)
   val crypter: Crypter = new JcaCrypter(conf.auth.cookie.crypter)
   lazy val cookieAuth: AuthenticatorService[CookieAuthenticator] = {

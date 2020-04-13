@@ -21,9 +21,7 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
 
   // you should paste your key here for testing
   val secrets: String =
-    """{
-       |
-       |}
+    """{}
       |""".stripMargin
   val SCOPES: Seq[String] = Seq("https://www.googleapis.com/auth/youtube.readonly")
   val HTTP_TRANSPORT: NetHttpTransport = GoogleNetHttpTransport.newTrustedTransport
@@ -33,7 +31,7 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
   val youtube: YouTube = new YouTube.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).build
   val youtubeClient = new YoutubeClient(youtube)
 
-  describe("channelBy") {
+  ignore("channelBy") {
     it("should retrieve channel information") {
 
       val value = youtubeClient.channelBy("UCbyWrAbUv7dxGcZ1nDvjpQw").unsafeRunSync()
@@ -73,7 +71,7 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
     }
   }
 
-  describe("playListItems") {
+  ignore("playListItems") {
     it("should retrieve items") {
       val value = youtubeClient.playlistItems("PL1d9UGnF3u-sMQ9SOAhv0oqgdG_dXzkRC").unsafeRunSync()
       inside(value) {
@@ -133,7 +131,7 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
     }
   }
 
-  describe("videos") {
+  ignore("videos") {
     it("should retrieve results") {
       val value = youtubeClient.search("UCbyWrAbUv7dxGcZ1nDvjpQw").unsafeRunSync()
       val items = value.right.get.items

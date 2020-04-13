@@ -1,12 +1,20 @@
 package gospeak.libs.youtube
 
+import java.io.ByteArrayInputStream
+import java.util
+
 import cats.effect.IO
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.YouTube
+import gospeak.libs.scala.domain.Secret
 import gospeak.libs.youtube.YoutubeClient._
 import gospeak.libs.youtube.domain._
-
+import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 class YoutubeClient(val underlying: YouTube) {
@@ -64,5 +72,17 @@ object YoutubeClient {
   val snippet: String = "snippet"
   val contentDetails: String = "contentDetails"
   val JSON_FACTORY: JacksonFactory = JacksonFactory.getDefaultInstance
+
+
+  def create(secret: Secret): YoutubeClient = {
+    val scopes: util.List[String] = List("https://www.googleapis.com/auth/youtube.readonly").asJava
+    val httpTransport: NetHttpTransport = GoogleNetHttpTransport.newTrustedTransport
+    val jsonFactory: JsonFactory = JacksonFactory.getDefaultInstance
+    val credential: GoogleCredential = GoogleCredential
+      .fromStream(new ByteArrayInputStream(secret.decode.getBytes))
+      .createScoped(scopes)
+    val youtube: YouTube = new YouTube.Builder(httpTransport, jsonFactory, credential).build
+    new YoutubeClient(youtube)
+  }
 }
 
