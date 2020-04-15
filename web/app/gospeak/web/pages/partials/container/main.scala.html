@@ -35,6 +35,13 @@
         <meta name="twitter:url" content="@m.url">
         <meta name="twitter:site" content="@Constants.Gospeak.twitter.handle">
         <meta name="twitter:creator" content="@Constants.Gospeak.twitter.handle">
+        @m.location.map { l =>
+            <meta name="twitter:label1" content="Location">
+            <meta name="twitter:data1" content="@l.formatted">
+            <meta property="geo.placename" content="@l.name">
+            <meta property="geo.position" content="@l.coords.lat;@l.coords.lng">
+            <meta property="geo.region" content="@l.locality.getOrElse(l.country)">
+        }
         @m.start.map { d =>
             <meta name="twitter:label2" content="When">
             <meta name="twitter:data2" content="@d.human">
@@ -46,11 +53,6 @@
                 <meta name="twitter:data2" content="@d.human">
             }
             <meta property="event:end_time" content="@d.iso">
-        }
-        @m.location.map { l =>
-            <meta property="geo.placename" content="@l.name">
-            <meta property="geo.position" content="@l.coords.lat;@l.coords.lng">
-            <meta property="geo.region" content="@l.locality.getOrElse(l.country)">
         }
 
         <script type="application/ld+json">

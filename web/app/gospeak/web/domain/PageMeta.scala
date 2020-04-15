@@ -67,7 +67,8 @@ object PageMeta {
                                locality: Option[String],
                                postalCode: Option[String],
                                country: String,
-                               coords: Geo)
+                               coords: Geo,
+                               formatted: String)
 
   object SEOLocation {
     def apply(p: GMapPlace): SEOLocation = new SEOLocation(
@@ -76,7 +77,8 @@ object PageMeta {
       locality = p.locality,
       postalCode = p.postalCode,
       country = p.country,
-      coords = p.geo)
+      coords = p.geo,
+      formatted = p.formatted)
   }
 
   private val gospeakOrganization = SEOOrganization(Constants.Gospeak.name, Constants.Gospeak.url, Constants.Gospeak.logo)
