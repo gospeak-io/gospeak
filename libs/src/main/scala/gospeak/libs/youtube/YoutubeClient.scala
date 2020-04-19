@@ -11,7 +11,6 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.YouTube
-import com.google.api.services.youtube.model.SearchListResponse
 import gospeak.libs.scala.domain.Secret
 import gospeak.libs.youtube.YoutubeClient._
 import gospeak.libs.youtube.domain._
@@ -56,7 +55,7 @@ class YoutubeClient(val underlying: YouTube) {
       .setChannelId(channelId)
       .setMaxResults(maxResults)
       .execute())
-      .map(r => Right(SearchResults.create(r, itemType)))
+      .map(r => Right(SearchResults(r).filter(itemType)))
       .handleErrorWith {
         case NonFatal(e: GoogleJsonResponseException) =>
           IO.pure(Left(YoutubeErrors(e)))

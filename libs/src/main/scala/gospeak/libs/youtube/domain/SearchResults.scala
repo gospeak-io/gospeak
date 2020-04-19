@@ -13,17 +13,18 @@ final case class SearchResults(etag: String,
                                pageInfo: Option[PageInfo],
                                tokenPagination: Option[google.TokenPagination],
                                regionCode: Option[String],
-                               visitorId: Option[String])
+                               visitorId: Option[String]) {
+  def filter(itemType: String): SearchResults = this.copy(items = items.filter(i => i.id.getKind == itemType))
+}
 
 object SearchResults {
 
-  def create(response: google.SearchListResponse, itemType: String): SearchResults =
+  def apply(response: google.SearchListResponse): SearchResults =
     new SearchResults(
       etag = response.getEtag,
       eventId = response.getEventId,
       items = response.getItems
         .asScala
-        .filter(_.getId.getKind == itemType)
         .map(SearchResult(_)),
       kind = response.getKind,
       nextPageToken = Option(response.getNextPageToken),
