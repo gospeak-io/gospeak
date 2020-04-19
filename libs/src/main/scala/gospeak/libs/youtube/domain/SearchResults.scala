@@ -14,7 +14,7 @@ final case class SearchResults(etag: String,
                                tokenPagination: Option[google.TokenPagination],
                                regionCode: Option[String],
                                visitorId: Option[String]) {
-  def filter(itemType: String): SearchResults = this.copy(items = items.filter(i => i.id.getKind == itemType))
+  def filter(itemType: String): SearchResults = this.copy(items = items.filter(i => i.id.kind == itemType))
 }
 
 object SearchResults {
@@ -36,7 +36,7 @@ object SearchResults {
 }
 
 final case class SearchResult(etag: String,
-                              id: google.ResourceId,
+                              id: ResourceId,
                               kind: String,
                               snippet: google.SearchResultSnippet)
 
@@ -44,7 +44,19 @@ object SearchResult {
   def apply(result: google.SearchResult): SearchResult =
     new SearchResult(
       etag = result.getEtag,
-      id = result.getId,
+      id = ResourceId(result.getId),
       kind = result.getKind,
       snippet = result.getSnippet)
+}
+
+final case class ResourceId(kind: String, id: String)
+
+object ResourceId {
+
+  def apply(resourceId: google.ResourceId): ResourceId = {
+    val id = Option(resourceId.getChannelId)
+      .orElse(Option(resourceId.getPlaylistId))
+      .getOrElse(resourceId.getVideoId)
+    new ResourceId(resourceId.getKind, id)
+  }
 }

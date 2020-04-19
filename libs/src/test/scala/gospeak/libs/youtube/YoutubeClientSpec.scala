@@ -132,7 +132,7 @@ class YoutubeClientSpec extends FunSpec with Matchers with DiffMatcher with Insi
         "xZBrfxUo7kM",
         "ADSlYYjnnQE")
 
-      val ids = items.map(_.id.getVideoId)
+      val ids = items.map(_.id.id)
       ids should contain theSameElementsAs expected
     }
   }
@@ -150,7 +150,7 @@ class YoutubeClientSpec extends FunSpec with Matchers with DiffMatcher with Insi
       inside(result) { case VideosListResponse(kind, etag, info, items: Seq[VideoItem]) =>
         kind shouldBe "youtube#videoListResponse"
         etag should startWith("\"nxOHAKTVB7baOKsQgTtJIyGxcs8")
-        info shouldBe PageInfo(5, 5)
+        info shouldBe Some(PageInfo(5, 5))
         val expected: Seq[VideoItem] = List(VideoItem("youtube#video", "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/BXVdRCbX4lVPaLX6DSq33Tuql3E\"",
           "itGmiTS_IPw", Some(Instant.parse("2019-06-14T09:53:15Z")),
           Some("UCVelKVoLQIhwx9C2LWf-CDA"), Some("[SC] Entre industrialisation et artisanat, le métier de développeur - Arnaud Lemaire"),

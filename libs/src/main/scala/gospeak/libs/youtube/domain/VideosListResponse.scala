@@ -9,7 +9,7 @@ import scala.collection.JavaConverters._
 
 final case class VideosListResponse(kind: String,
                                     etag: String,
-                                    pageInfo: PageInfo,
+                                    pageInfo: Option[PageInfo],
                                     items: Seq[VideoItem]
                                    )
 
@@ -18,7 +18,7 @@ case object VideosListResponse {
 
     new VideosListResponse(videoListResponse.getKind,
       videoListResponse.getEtag,
-      PageInfo(videoListResponse.getPageInfo),
+      Option(videoListResponse.getPageInfo).map(PageInfo(_)),
       videoListResponse.getItems.asScala.map(VideoItem(_)))
 }
 
