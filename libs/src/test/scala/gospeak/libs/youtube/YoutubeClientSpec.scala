@@ -2,14 +2,13 @@ package gospeak.libs.youtube
 
 import java.time.Instant
 
-import com.softwaremill.diffx.scalatest.DiffMatcher
 import gospeak.libs.scala.domain.Secret
 import gospeak.libs.youtube.domain._
 import org.scalatest.{FunSpec, Inside, Matchers}
 
 import scala.collection.immutable
 
-class YoutubeClientSpec extends FunSpec with Matchers with DiffMatcher with Inside {
+class YoutubeClientSpec extends FunSpec with Matchers with Inside {
   // you should paste your key here for testing
   val secret: String =
     """
@@ -217,4 +216,5 @@ class YoutubeClientSpec extends FunSpec with Matchers with DiffMatcher with Insi
       }
     }
   }
+
 }

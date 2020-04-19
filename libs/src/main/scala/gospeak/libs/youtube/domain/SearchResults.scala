@@ -23,9 +23,7 @@ object SearchResults {
     new SearchResults(
       etag = response.getEtag,
       eventId = response.getEventId,
-      items = response.getItems
-        .asScala
-        .map(SearchResult(_)),
+      items = response.getItems.asScala.map(SearchResult(_)),
       kind = response.getKind,
       nextPageToken = Option(response.getNextPageToken),
       prevPageToken = Option(response.getPrevPageToken),
@@ -52,7 +50,6 @@ object SearchResult {
 final case class ResourceId(kind: String, id: String)
 
 object ResourceId {
-
   def apply(resourceId: google.ResourceId): ResourceId = {
     val id = Option(resourceId.getChannelId)
       .orElse(Option(resourceId.getPlaylistId))

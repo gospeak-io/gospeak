@@ -49,10 +49,15 @@ class YoutubeClient(val underlying: YouTube) {
   }
 
   def search(channelId: String, itemType: String): IO[Either[YoutubeErrors, SearchResults]] = {
+    search(channelId, itemType, "")
+  }
+
+  def search(channelId: String, itemType: String, pageToken: String): IO[Either[YoutubeErrors, SearchResults]] = {
     IO(underlying
       .search()
       .list(snippet)
       .setChannelId(channelId)
+      .setPageToken(pageToken)
       .setMaxResults(maxResults)
       .execute())
       .map(r => Right(SearchResults(r).filter(itemType)))
