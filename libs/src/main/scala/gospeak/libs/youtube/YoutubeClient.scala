@@ -84,7 +84,7 @@ class YoutubeClient(val underlying: YouTube) {
 
 object YoutubeClient {
   val maxResults: Long = 50L
-  val separator = ","
+  val separator: String = ","
   val snippet: String = "snippet"
   val contentDetails: String = "contentDetails"
   val statistics: String = "statistics"

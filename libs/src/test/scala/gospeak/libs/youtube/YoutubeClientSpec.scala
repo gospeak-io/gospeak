@@ -2,8 +2,6 @@ package gospeak.libs.youtube
 
 import java.time.Instant
 
-import com.google.api.services.youtube.model.ChannelContentDetails
-import com.google.api.services.youtube.model.ChannelContentDetails.RelatedPlaylists
 import com.softwaremill.diffx.scalatest.DiffMatcher
 import gospeak.libs.scala.domain.Secret
 import gospeak.libs.youtube.domain._
@@ -30,21 +28,7 @@ class YoutubeClientSpec extends FunSpec with Matchers with DiffMatcher with Insi
             Channel(
               "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/cd9b2xUCZ7rIS6n0LlbEZI4q3QE\"",
               "UCVelKVoLQIhwx9C2LWf-CDA",
-              "youtube#channel",
-              Some(new ChannelContentDetails()
-                .setRelatedPlaylists(new RelatedPlaylists()
-                  .setUploads("UUVelKVoLQIhwx9C2LWf-CDA")
-                  .setWatchHistory("HL")
-                  .setWatchLater("WL"))),
-              None,
-              None,
-              None,
-              None,
-              None,
-              None,
-              None,
-              None,
-              None))
+              "youtube#channel"))
       }
     }
   }
@@ -149,7 +133,7 @@ class YoutubeClientSpec extends FunSpec with Matchers with DiffMatcher with Insi
         "ADSlYYjnnQE")
 
       val ids = items.map(_.id.getVideoId)
-      ids should contain theSameElementsAs  expected
+      ids should contain theSameElementsAs expected
     }
   }
 
