@@ -4,33 +4,36 @@ import java.time.Instant
 
 import com.google.api.services.youtube.model.ChannelContentDetails
 import com.google.api.services.youtube.model.ChannelContentDetails.RelatedPlaylists
+import com.softwaremill.diffx.scalatest.DiffMatcher
 import gospeak.libs.scala.domain.Secret
 import gospeak.libs.youtube.domain._
 import org.scalatest.{FunSpec, Inside, Matchers}
 
 import scala.collection.immutable
 
-class YoutubeClientSpec extends FunSpec with Matchers with Inside {
+class YoutubeClientSpec extends FunSpec with Matchers with DiffMatcher with Inside {
   // you should paste your key here for testing
   val secret: String =
-    """""".stripMargin
+    """
+      |{}
+      |""".stripMargin
   private val youtubeClient = YoutubeClient.create(Secret(secret))
 
-  ignore("channelBy") {
+  describe("channelBy") {
     it("should retrieve channel information") {
-      val value = youtubeClient.channelBy("UCbyWrAbUv7dxGcZ1nDvjpQw").unsafeRunSync()
+      val value = youtubeClient.channelBy("UCVelKVoLQIhwx9C2LWf-CDA").unsafeRunSync()
       inside(value) {
         case Right(ChannelsResponse(etag, None, items, kind, None, None, None, None)) =>
-          etag should startWith("\"tnVOtk4NeGU6nDncDTE5m9SmuHc")
+          etag should startWith("\"nxOHAKTVB7baOKsQgTtJIyGxcs8")
           kind shouldBe "youtube#channelListResponse"
           items should contain theSameElementsAs List(
             Channel(
-              "\"tnVOtk4NeGU6nDncDTE5m9SmuHc/4sJiFPiaRzdcfJE3HZnK--QAXXo\"",
-              "UCbyWrAbUv7dxGcZ1nDvjpQw",
+              "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/cd9b2xUCZ7rIS6n0LlbEZI4q3QE\"",
+              "UCVelKVoLQIhwx9C2LWf-CDA",
               "youtube#channel",
               Some(new ChannelContentDetails()
                 .setRelatedPlaylists(new RelatedPlaylists()
-                  .setUploads("UUbyWrAbUv7dxGcZ1nDvjpQw")
+                  .setUploads("UUVelKVoLQIhwx9C2LWf-CDA")
                   .setWatchHistory("HL")
                   .setWatchLater("WL"))),
               None,
@@ -45,36 +48,30 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
       }
     }
   }
-  ignore("playListItems") {
+  describe("playListItems") {
     it("should retrieve items") {
-      val value = youtubeClient.playlistItems("PL1d9UGnF3u-sMQ9SOAhv0oqgdG_dXzkRC").unsafeRunSync()
+      val value = youtubeClient.playlistItems("PLv7xGPH0RMUTbzjcYSIMxGXA8RrQWdYGh").unsafeRunSync()
       inside(value) {
         case Right(PlaylistItems(etag, None, items: immutable.Seq[PlaylistItem], kind, nextPageToken, None, None, None)) =>
-          etag should startWith("\"tnVOtk4NeGU6nDncDTE5m9SmuHc")
+          etag should startWith("\"nxOHAKTVB7baOKsQgTtJIyGxcs8")
           // nextPage
-          nextPageToken shouldBe Some("CAUQAA")
+          nextPageToken shouldBe None
           //kind
           kind shouldBe "youtube#playlistItemListResponse"
           //items
           items should contain theSameElementsAs Seq(PlaylistItem(Some(ContentDetails(
-            None, None, None, Some("EJbP-4nU-Tk"),
-            Some(Instant.parse("2020-02-21T07:23:02Z")))),
-            "\"tnVOtk4NeGU6nDncDTE5m9SmuHc/pGBZncyw0r94aTtOhJ98_sjMh50\"",
-            "UEwxZDlVR25GM3Utc01ROVNPQWh2MG9xZ2RHX2RYemtSQy4yODlGNEE0NkRGMEEzMEQy", "youtube#playlistItem", None),
-            PlaylistItem(Some(ContentDetails(None, None, None, Some("I8CCgYlc6pk"), Some(Instant.parse("2020-02-21T07:23:27Z")))),
-              "\"tnVOtk4NeGU6nDncDTE5m9SmuHc/ZVMZ4GPP_BoWMxlQXXNN044rYwU\"",
-              "UEwxZDlVR25GM3Utc01ROVNPQWh2MG9xZ2RHX2RYemtSQy41NkI0NEY2RDEwNTU3Q0M2", "youtube#playlistItem", None),
-            PlaylistItem(Some(ContentDetails(None, None, None, Some("wbFpwSDhntc"), Some(Instant.parse("2020-02-21T07:23:28Z")))),
-              "\"tnVOtk4NeGU6nDncDTE5m9SmuHc/w5JU_iCFQfrK9N1TszpPdBM4M6M\"",
-              "UEwxZDlVR25GM3Utc01ROVNPQWh2MG9xZ2RHX2RYemtSQy4zMDg5MkQ5MEVDMEM1NTg2", "youtube#playlistItem",
-              None), PlaylistItem(Some(ContentDetails(None, None, None, Some("c1wTjVYtV2s"),
-              Some(Instant.parse("2020-02-21T07:23:02Z")))), "\"tnVOtk4NeGU6nDncDTE5m9SmuHc/XqTSF4hqXGf77951VqsU35c3glo\"",
-              "UEwxZDlVR25GM3Utc01ROVNPQWh2MG9xZ2RHX2RYemtSQy4wMTcyMDhGQUE4NTIzM0Y5",
-              "youtube#playlistItem", None),
-            PlaylistItem(Some(ContentDetails(None, None, None, Some("U2FJo-mesJU"), Some(Instant.parse("2020-02-21T07:23:12Z")))),
-              "\"tnVOtk4NeGU6nDncDTE5m9SmuHc/34y0j_eFE4GkoD09S1dLeaUI32c\"",
-              "UEwxZDlVR25GM3Utc01ROVNPQWh2MG9xZ2RHX2RYemtSQy5EMEEwRUY5M0RDRTU3NDJC",
-              "youtube#playlistItem", None))
+            None, None, None, Some("NkH9WNE0OJc"),
+            Some(Instant.parse("2018-11-08T11:28:57Z")))),
+            "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/n9JuVV-5TQNm4e5RTaVlQd11T7s\"",
+            "UEx2N3hHUEgwUk1VVGJ6amNZU0lNeEdYQThSclFXZFlHaC41NkI0NEY2RDEwNTU3Q0M2", "youtube#playlistItem", None),
+            PlaylistItem(Some(ContentDetails(None, None, None, Some("R60eYvVZ1q8"), Some(Instant.parse("2019-05-15T11:09:12Z")))),
+              "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/p3Afs8X9FP7qS8kYistOFeMqlOo\"",
+              "UEx2N3hHUEgwUk1VVGJ6amNZU0lNeEdYQThSclFXZFlHaC4yODlGNEE0NkRGMEEzMEQy", "youtube#playlistItem", None),
+            PlaylistItem(Some(ContentDetails(None, None, None, Some("s-7vdEXhxes"), Some(Instant.parse("2019-09-20T12:37:15Z")))),
+              "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/zXRkAXSqQ2yom_7zHaD97-m4TYk\"",
+              "UEx2N3hHUEgwUk1VVGJ6amNZU0lNeEdYQThSclFXZFlHaC4wMTcyMDhGQUE4NTIzM0Y5", "youtube#playlistItem",
+              None),
+          )
       }
     }
     it("should fail when id does not exist") {
@@ -102,61 +99,138 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
             |}""".stripMargin)))
     }
   }
-  ignore("videos") {
+  describe("search") {
     it("should retrieve results") {
-      val value = youtubeClient.search("UCbyWrAbUv7dxGcZ1nDvjpQw").unsafeRunSync()
-      val items = value.right.get.items
-      items.length shouldBe 50
-      items.map(_.id.getVideoId) shouldBe Seq("Vt91rBZ12ok",
-        "VlxaZ1jlYk0",
-        "ZzLVBNVe4IM",
-        "E7Moc8IwLf8",
-        "LpIiH-8qDBM",
-        "YJHvgJesjNc",
-        "iCGh3bbB1Zo",
-        "7dNFs_Zz9dM",
-        "mC_gj8E-fo4",
-        "jKXxTFAOb4A",
-        "71mKBF1mN48",
-        "fCju4SyxiyM",
-        "jpRrViAToRQ",
-        "FhStIlZi93o",
-        "1GSR9kGNYRg",
-        "QIkGNcr8dsY",
-        "MrFGGXoEHyI",
-        "BwSJxxVcjXc",
-        "U7DQ79RvFW8",
-        "KHGol2SocOo",
-        "EkISULjH2B4",
-        "cQ3cGxvXxoY",
-        "UxeY-EaTGIU",
-        "OTi-ixRo7K8",
-        "zTxWbAHZRas",
-        "H7jOLzK_mZo",
-        "G4rYNmBoHIg",
-        "BhtFSMJwoFU",
-        "f7EcHVTdf-0",
-        "diDmR9uvtSs",
-        "kMkudZyEOGU",
-        "XB6uxAZ3x_Q",
-        "CJJ0GH8ACA4",
-        "j3bq7_Bwb5o",
-        "twdm4ZIQuBQ",
-        "G3L7W7ohwD0",
-        "-fjsH-jJGJc",
-        "knPHV7Fvhno",
-        "Bsp712nECmg",
-        "Qzv5TAhoSK0",
-        "DG3WxbtDPeo",
-        "RcvlcHvRgrY",
-        "wo_WoY-V49A",
-        "5Kz9X10t3zQ",
-        "XClhHa5NPBc",
-        "g3kuTdZ0eN8",
-        "TGiE5PKQ6K8",
-        "upQvgpGWhnw",
-        "6wjlOCmjntE",
-        "ht9tAlQbEys")
+      val value = youtubeClient.search("UCVelKVoLQIhwx9C2LWf-CDA", "youtube#video").unsafeRunSync()
+      val items: Seq[SearchResult] = value.right.get.items
+      items.length shouldBe 43
+      val expected = Seq("F8C_iPGhHoI",
+        "IN8DeMfbWVs",
+        "i94gJ4-tvfU",
+        "KCgkFpt9dfk",
+        "d1rMYQZLVek",
+        "zVbIbqmHU-4",
+        "y1-Gh0bMsUo",
+        "mQhtADuqriA",
+        "VKe9EE4MUxk",
+        "K-tXEkGTzfE",
+        "jWhee5h5yJ0",
+        "h_exGbGGePI",
+        "Em4EgeD69oU",
+        "FO2YFmTB1Tw",
+        "0P6-r7_GIaQ",
+        "RZADfe_vPWo",
+        "AeTsLXGnbos",
+        "PjUsN6TU-3w",
+        "KpUHaMhYIUk",
+        "cbfFkAPFxY4",
+        "pXnYjCI33Mc",
+        "0AtyQ-F6jrw",
+        "E606Nxnxg14",
+        "1pXgqd064-4",
+        "vhJAHlKiFSI",
+        "Hza3U8QA9w0",
+        "Ot1tOyB0PPE",
+        "pRmwrp_99fA",
+        "8zFPLClf-Qw",
+        "MKQ8gUGdKGs",
+        "s-7vdEXhxes",
+        "eJb3xYNcTzw",
+        "vGO-h9qH0rw",
+        "UemFPnjvx44",
+        "Q3EKu_Eu5Gg",
+        "itGmiTS_IPw",
+        "NkH9WNE0OJc",
+        "xUudC8S8M6s",
+        "c6ZqYk01fbc",
+        "oOE36iJ7xFk",
+        "XQaFlNQuJjA",
+        "xZBrfxUo7kM",
+        "ADSlYYjnnQE")
+
+      val ids = items.map(_.id.getVideoId)
+      ids should contain theSameElementsAs  expected
+    }
+  }
+
+  describe("videos") {
+    it("should return selected videos") {
+
+      val result = youtubeClient.videos(Seq("itGmiTS_IPw",
+        "NkH9WNE0OJc",
+        "xUudC8S8M6s",
+        "c6ZqYk01fbc",
+        "oOE36iJ7xFk"))
+        .unsafeRunSync().right.get
+
+      inside(result) { case VideosListResponse(kind, etag, info, items: Seq[VideoItem]) =>
+        kind shouldBe "youtube#videoListResponse"
+        etag should startWith("\"nxOHAKTVB7baOKsQgTtJIyGxcs8")
+        info shouldBe PageInfo(5, 5)
+        val expected: Seq[VideoItem] = List(VideoItem("youtube#video", "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/BXVdRCbX4lVPaLX6DSq33Tuql3E\"",
+          "itGmiTS_IPw", Some(Instant.parse("2019-06-14T09:53:15Z")),
+          Some("UCVelKVoLQIhwx9C2LWf-CDA"), Some("[SC] Entre industrialisation et artisanat, le métier de développeur - Arnaud Lemaire"),
+          Some(
+            """Une conférence pour se poser la question de ce qu’est notre métier, et de pourquoi celui-ci est loin de se borner à la simple écriture de code source.
+              |
+              |De comment sortir de la posture du développeur en tant que simple exécutant, et pourquoi notre métier a une très forte dimension stratégique.
+              |
+              |Enfin en regardant nos pratiques, méthodes et outils, nous replacerons ceux-ci dans leurs contextes en posant la question de ce qu’est l’ingénierie logicielle.""".stripMargin),
+          Some(39), Some(1), Seq()),
+          VideoItem("youtube#video", "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/vHjI97OHigZf0pEoEahqsb8prus\"", "NkH9WNE0OJc", Some(Instant.parse("2018-11-08T11:28:57Z")), Some("UCVelKVoLQIhwx9C2LWf-CDA"), Some("[Rennes DevOps] Quels choix d'hébergement possibles pour des données de santé ?"
+          ), Some(
+            """Nicolas, Anas et Quentin nous ont proposé de parler de l'hébergement des données de santé.
+              |
+              |Certains dans le coin doivent bien travailler plus ou moins avec des données sensibles.Les données de santés en font partie.
+              |
+              |Peut-être que la radio de votre carie qui se retrouve sur Internet ne vous fait pas peur.Mais peut-être que certains spécialistes savent des choses un peu moins avouables sur vous :)
+              |
+              |Après, ils vont nous parler de trucs moins rigolos comme de la réglementation. Mais comme ils vont nous payer un apéro à la fin c'est plutôt cool :)
+              |
+              |#firebase, #vmware, #k8s, #docker, #objectstorage
+              |
+              |Si vous lisez encore ceci, vous vous dites que vous n'avez pas de données de santé. Mais si ça fonctionne pour la santé, ça va fonctionner aussi pour le reste.
+              |
+              |Détail du contenu :
+              |· Contraintes et liberté sur les données de santé
+              |· Solutions d'hébergement HDS existantes
+              |· Présentation de choix d'architecture hébergement de startups (problématiques et solutions)
+              |
+              |Par :
+              |- Nicolas Verdier (OVH)
+              |- Anas Ameziane (Follow)
+              |- Quentin Decré (Follow)""".stripMargin), Some(13), Some(0), null),
+          VideoItem("youtube#video", "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/Rz4_7B6zZsKs33a59YYH6sqV-Eg\"", "xUudC8S8M6s", Some(Instant.parse("2018-10-15T15:08:19Z")),
+            Some("UCVelKVoLQIhwx9C2LWf-CDA"), Some("[BreizhJUG] Au delà des brokers: un tour de l'environnement Kafka - Florent Ramière"),
+            Some(
+              """Apache Kafka ne se résume pas aux brokers, il y a tout un écosystème open-source qui gravite autour.Je vous propose ainsi de découvrir les principaux composants comme Kafka Streams, KSQL, Kafka Connect, Rest proxy, Schema Registry, MirrorMaker, etc.
+                |Venez avec vos questions, le plus la session sera interactive, le mieux elle sera!
+                |
+                |Slides:https://www.slideshare.net/FlorentRamiere/jug-ecosystem""".stripMargin
+            ), Some(13), Some(0), Seq()),
+          VideoItem("youtube#video", "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/qlmgvyUCvjQ64U4tv3tTNLbiMck\"",
+            "c6ZqYk01fbc", Some(Instant.parse("2018-03-15T22:57:36Z")),
+            Some("UCVelKVoLQIhwx9C2LWf-CDA"),
+            Some("[Docker MeetUp] Tour d'horizon de Kubernetes (David Gageot)"),
+            Some(
+              """Au travers de vrais exemples de code, nous allons faire un tour d'horizon de Kubernetes: Déploiement de services, Pattern Sidecar, Extension de la platforme, Introduction a Istio, Expérience développeur, Docker for Desktop, Google Kubernetes Engine.
+                |Bref, de quoi bien commencer avec Kubermetes!
+                |Speaker : David Gageot""".stripMargin), Some(15), Some(0), Seq("kubernetes", "istio")),
+          VideoItem("youtube#video", "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/_07_nRK2r_wdnyTn-UpsWMqwmvs\"",
+            "oOE36iJ7xFk", Some(Instant.parse("2018-04-18T12:31:10Z")),
+            Some("UCVelKVoLQIhwx9C2LWf-CDA"),
+            Some("Full-remote : guide de survie en environnement distant (Matthias Dugué)"),
+            Some(
+              """Travailler en équipe n'est jamais un défi simple. Travailler à distance est un enjeu encore plus complexe.
+                | Collaborer avec une équipe entièrement distribuée relève de l'exploit.
+                | Pourtant de plus de plus de projets (collaboratifs, associatifs, ou startups) choisissent ce mode de fonctionnement, qui offre aussi de nombreux avantages.
+                |
+                |Avant même que les concepts de full-remote, de co-working, et de BYOD ne deviennent populaires, les mouvements Open Source se sont attelés à la tâche difficile de faire travailler ensemble des gens en les reliant uniquement par le réseau.
+                |
+                |Après plusieurs années passées à collaborer avec des gens sur de nombreux projets, Open Source ou non, petit retour d'expérience du full-remote, ce qu'il engage, ce qu'il faut savoir, et les outils indispensables à un travail asynchrone efficace, ensemble.""".stripMargin
+            ), Some(19), Some(2), Seq()))
+        items shouldBe expected
+      }
     }
   }
 }

@@ -10,25 +10,25 @@ final case class SearchResults(etag: String,
                                kind: String,
                                nextPageToken: Option[String],
                                prevPageToken: Option[String],
-                               pageInfo: Option[google.PageInfo],
+                               pageInfo: Option[PageInfo],
                                tokenPagination: Option[google.TokenPagination],
                                regionCode: Option[String],
                                visitorId: Option[String])
 
 object SearchResults {
-  private val kind = "youtube#video"
 
-  def apply(response: google.SearchListResponse): SearchResults =
+  def create(response: google.SearchListResponse, itemType: String): SearchResults =
     new SearchResults(
       etag = response.getEtag,
       eventId = response.getEventId,
-      items = response.getItems.asScala
-        // .filter(_.getKind == kind)
+      items = response.getItems
+        .asScala
+        .filter(_.getId.getKind == itemType)
         .map(SearchResult(_)),
       kind = response.getKind,
       nextPageToken = Option(response.getNextPageToken),
       prevPageToken = Option(response.getPrevPageToken),
-      pageInfo = Option(response.getPageInfo),
+      pageInfo = Option(response.getPageInfo).map(PageInfo(_)),
       tokenPagination = Option(response.getTokenPagination),
       regionCode = Option(response.getRegionCode),
       visitorId = Option(response.getVisitorId))

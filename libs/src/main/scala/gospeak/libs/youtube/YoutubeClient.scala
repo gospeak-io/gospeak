@@ -11,6 +11,7 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.YouTube
+import com.google.api.services.youtube.model.SearchListResponse
 import gospeak.libs.scala.domain.Secret
 import gospeak.libs.youtube.YoutubeClient._
 import gospeak.libs.youtube.domain._
@@ -48,14 +49,29 @@ class YoutubeClient(val underlying: YouTube) {
       }
   }
 
-  def search(channelId: String): IO[Either[YoutubeErrors, SearchResults]] = {
+  def search(channelId: String, itemType: String): IO[Either[YoutubeErrors, SearchResults]] = {
     IO(underlying
       .search()
       .list(snippet)
       .setChannelId(channelId)
       .setMaxResults(maxResults)
       .execute())
-      .map(r => Right(SearchResults(r)))
+      .map(r => Right(SearchResults.create(r, itemType)))
+      .handleErrorWith {
+        case NonFatal(e: GoogleJsonResponseException) =>
+          IO.pure(Left(YoutubeErrors(e)))
+        case NonFatal(e) =>
+          IO.raiseError(e)
+      }
+  }
+
+  def videos(ids: Seq[String]): IO[Either[YoutubeErrors, VideosListResponse]] = {
+    IO(underlying
+      .videos()
+      .list(all.mkString(separator))
+      .setId(ids.mkString(separator))
+      .execute())
+      .map(r => Right(VideosListResponse(r)))
       .handleErrorWith {
         case NonFatal(e: GoogleJsonResponseException) =>
           IO.pure(Left(YoutubeErrors(e)))
@@ -65,10 +81,15 @@ class YoutubeClient(val underlying: YouTube) {
   }
 }
 
+
 object YoutubeClient {
   val maxResults: Long = 50L
+  val separator = ","
   val snippet: String = "snippet"
   val contentDetails: String = "contentDetails"
+  val statistics: String = "statistics"
+  val all: Seq[String] = Seq(snippet, contentDetails, statistics)
+
 
   def create(secret: Secret): YoutubeClient = {
     val scopes: util.List[String] = List("https://www.googleapis.com/auth/youtube.readonly").asJava
