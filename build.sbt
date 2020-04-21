@@ -48,7 +48,7 @@ val hammock = Seq(
   "com.pepegar" %% "hammock-apache-http").map(_ % "0.10.0")
 val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.11")
 val twitter = Seq("com.danielasfregola" %% "twitter4s" % "6.2") // https://github.com/DanielaSfregola/twitter4s
-val flyway = Seq("org.flywaydb" % "flyway-core" % "6.2.4")
+val flyway = Seq("org.flywaydb" % "flyway-core" % "6.4.0")
 val silhouetteVersion = "6.1.1"
 val silhouette = Seq(
   "com.mohiva" %% "play-silhouette",
