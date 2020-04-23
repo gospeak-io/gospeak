@@ -10,7 +10,7 @@ import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.MessageBus
-import gospeak.libs.scala.domain.{Page, Slides, Video}
+import gospeak.libs.scala.domain.{Page, SlidesUrl, VideoUrl}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb
@@ -139,7 +139,7 @@ class TalkCtrl(cc: ControllerComponents,
     val next = Redirect(routes.TalkCtrl.detail(talk))
     GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => Slides.from(data) match {
+      data => SlidesUrl.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(slides) => talkRepo.editSlides(talk, slides).map(_ => next)
       }
@@ -150,7 +150,7 @@ class TalkCtrl(cc: ControllerComponents,
     val next = Redirect(routes.TalkCtrl.detail(talk))
     GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => Video.from(data) match {
+      data => VideoUrl.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(video) => talkRepo.editVideo(talk, video).map(_ => next)
       }
