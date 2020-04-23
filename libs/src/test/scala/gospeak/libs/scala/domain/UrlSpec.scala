@@ -2,11 +2,11 @@ package gospeak.libs.scala.domain
 
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Url.ParsedUrl
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 
 import scala.util.Success
 
-class UrlSpec extends FunSpec with Matchers {
+class UrlSpec extends BaseSpec {
   describe("Url") {
     it("should build only valid url") {
       Url.from("") shouldBe a[Left[_, _]]

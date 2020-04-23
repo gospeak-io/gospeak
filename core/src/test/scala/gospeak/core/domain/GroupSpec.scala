@@ -1,9 +1,9 @@
 package gospeak.core.domain
 
 import gospeak.core.domain.Group.Settings.Action.Trigger.{OnEventCreated, OnEventPublish}
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.core.testingutils.BaseSpec
 
-class GroupSpec extends FunSpec with Matchers {
+class GroupSpec extends BaseSpec {
   describe("Group") {
     describe("Settings") {
       describe("Action") {

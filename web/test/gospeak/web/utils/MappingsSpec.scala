@@ -6,15 +6,15 @@ import java.util.concurrent.TimeUnit
 
 import gospeak.core.domain._
 import gospeak.core.testingutils.Generators._
-import gospeak.web.utils.Mappings._
 import gospeak.libs.scala.domain._
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.web.testingutils.BaseSpec
+import gospeak.web.utils.Mappings._
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.data.FormError
 
 import scala.concurrent.duration.FiniteDuration
 
-class MappingsSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
+class MappingsSpec extends BaseSpec with ScalaCheckPropertyChecks {
   describe("Mappings") {
     it("should bind & unbind a Double") {
       forAll { v: Double =>

@@ -1,11 +1,11 @@
 package gospeak.core.domain.utils
 
 import gospeak.core.domain.utils.SocialAccounts.SocialAccount.MeetupAccount
-import gospeak.libs.scala.domain.Url
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.core.testingutils.BaseSpec
 import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.Url
 
-class SocialAccountsSpec extends FunSpec with Matchers {
+class SocialAccountsSpec extends BaseSpec {
   describe("SocialAccounts") {
     describe("SocialAccount") {
       it("should ignore query params when build handle") {

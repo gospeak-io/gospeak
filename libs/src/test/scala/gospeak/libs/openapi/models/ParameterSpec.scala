@@ -2,10 +2,10 @@ package gospeak.libs.openapi.models
 
 import gospeak.libs.openapi.OpenApiFactory.Formats._
 import gospeak.libs.openapi.models.utils.Markdown
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 import play.api.libs.json.{JsSuccess, Json}
 
-class ParameterSpec extends FunSpec with Matchers {
+class ParameterSpec extends BaseSpec {
   describe("Parameter") {
     it("should parse and serialize") {
       val json = Json.parse(ParameterSpec.jsonStr)
@@ -24,7 +24,7 @@ object ParameterSpec {
        |  "required": true,
        |  "schema": ${SchemaSpec.jsonStr}
        |}""".stripMargin
-  val value = Parameter(
+  val value: Parameter = Parameter(
     name = "id",
     in = Parameter.Location.Path,
     deprecated = None,

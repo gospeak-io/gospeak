@@ -1,9 +1,9 @@
 package gospeak.web.utils
 
+import gospeak.web.testingutils.BaseSpec
 import gospeak.web.utils.HttpUtils._
-import org.scalatest.{FunSpec, Matchers}
 
-class HttpUtilsSpec extends FunSpec with Matchers {
+class HttpUtilsSpec extends BaseSpec {
   describe("HttpUtils") {
     describe("getUrlPath") {
       it("should return the path part of an url") {

@@ -3,9 +3,9 @@ package gospeak.libs.openapi.models
 import gospeak.libs.openapi.error.OpenApiError
 import gospeak.libs.openapi.error.OpenApiError.ErrorMessage
 import gospeak.libs.openapi.models.utils.Version
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 
-class OpenApiSpec extends FunSpec with Matchers {
+class OpenApiSpec extends BaseSpec {
   private val basicOpenApi = OpenApi(Version(1, 2, 3), Info("My api", None, None, None, None, Version(1), None), None, None, None, None, None, Map(), None)
 
   describe("OpenApi") {

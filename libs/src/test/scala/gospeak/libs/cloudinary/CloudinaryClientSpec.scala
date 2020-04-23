@@ -3,9 +3,9 @@ package gospeak.libs.cloudinary
 import gospeak.libs.cloudinary.domain.CloudinaryUploadRequest
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Creds, Secret}
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 
-class CloudinaryClientSpec extends FunSpec with Matchers {
+class CloudinaryClientSpec extends BaseSpec {
   private val conf = CloudinaryClient.Conf("cloud-name", Some("my-preset"), Some(Creds("123456", Secret("abcdef"))))
 
   describe("CloudinaryClient") {

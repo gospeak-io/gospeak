@@ -110,7 +110,7 @@ final class UserAwareReq[A] protected(override val request: Request[A],
     customId = customId,
     now = now,
     conf = conf,
-    underlying = UserAwareRequest(underlying.identity, underlying.authenticator, underlying.request.withBody(body)),
+    underlying = UserAwareRequest(underlying.identity, underlying.authenticator, underlying.withBody(body)),
     user = user,
     groups = groups)
 
@@ -129,8 +129,8 @@ final class UserAwareReq[A] protected(override val request: Request[A],
 object UserAwareReq {
   def from[A](conf: AppConf, messagesApi: MessagesApi, r: UserAwareRequest[CookieEnv, A]): UserAwareReq[A] =
     new UserAwareReq[A](
-      request = r.request,
-      messages = messagesApi.preferred(r.request),
+      request = r,
+      messages = messagesApi.preferred(r),
       customId = BasicReq.buildId(r),
       now = Instant.now(),
       conf = conf,
@@ -165,7 +165,7 @@ sealed class UserReq[A] protected(override val request: Request[A],
     customId = customId,
     now = now,
     conf = conf,
-    underlying = SecuredRequest(underlying.identity, underlying.authenticator, underlying.request.withBody(body)),
+    underlying = SecuredRequest(underlying.identity, underlying.authenticator, underlying.withBody(body)),
     user = user,
     groups = groups)
 
@@ -185,8 +185,8 @@ sealed class UserReq[A] protected(override val request: Request[A],
 object UserReq {
   def from[A](conf: AppConf, messagesApi: MessagesApi, r: SecuredRequest[CookieEnv, A]): UserReq[A] =
     new UserReq[A](
-      request = r.request,
-      messages = messagesApi.preferred(r.request),
+      request = r,
+      messages = messagesApi.preferred(r),
       customId = BasicReq.buildId(r),
       now = Instant.now(),
       conf = conf,
@@ -222,7 +222,7 @@ final class OrgaReq[A] protected(override val request: Request[A],
     customId = customId,
     now = now,
     conf = conf,
-    underlying = SecuredRequest(underlying.identity, underlying.authenticator, underlying.request.withBody(body)),
+    underlying = SecuredRequest(underlying.identity, underlying.authenticator, underlying.withBody(body)),
     user = user,
     groups = groups,
     group = group)

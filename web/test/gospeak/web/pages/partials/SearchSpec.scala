@@ -2,9 +2,9 @@ package gospeak.web.pages.partials
 
 import gospeak.libs.scala.domain.Page
 import gospeak.libs.scala.domain.Page._
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.web.testingutils.BaseSpec
 
-class SearchSpec extends FunSpec with Matchers {
+class SearchSpec extends BaseSpec {
   private val call = gospeak.web.pages.published.routes.HomeCtrl.index()
 
   describe("partials.search.scala.html") {

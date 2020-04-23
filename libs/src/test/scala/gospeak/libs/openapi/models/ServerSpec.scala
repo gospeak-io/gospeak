@@ -3,10 +3,10 @@ package gospeak.libs.openapi.models
 import gospeak.libs.openapi.OpenApiFactory.Formats._
 import gospeak.libs.openapi.error.OpenApiError
 import gospeak.libs.openapi.models.utils.{Markdown, TODO, Url}
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 import play.api.libs.json.{JsSuccess, Json}
 
-class ServerSpec extends FunSpec with Matchers {
+class ServerSpec extends BaseSpec {
   describe("Server") {
     it("should parse and serialize") {
       val json = Json.parse(ServerSpec.jsonStr)
@@ -44,7 +44,7 @@ object ServerSpec {
       |    }
       |  }
       |}""".stripMargin
-  val value = Server(
+  val value: Server = Server(
     Url("https://gospeak.io:{port}/api"),
     Some(Markdown("Prod")),
     Some(Map("port" -> Server.Variable("8443", Some(List("8443", "443")), Some(Markdown("The port to use")), Option.empty[TODO]))),

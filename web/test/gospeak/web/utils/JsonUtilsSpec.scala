@@ -1,9 +1,9 @@
 package gospeak.web.utils
 
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.web.testingutils.BaseSpec
 import play.api.libs.json._
 
-class JsonUtilsSpec extends FunSpec with Matchers {
+class JsonUtilsSpec extends BaseSpec {
   private val json1 = Json.obj(
     "id" -> JsNumber(1),
     "name" -> JsString("Loïc"),

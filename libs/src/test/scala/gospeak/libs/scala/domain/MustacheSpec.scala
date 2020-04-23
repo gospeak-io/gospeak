@@ -1,10 +1,10 @@
 package gospeak.libs.scala.domain
 
 import gospeak.libs.scala.Extensions._
+import gospeak.libs.testingutils.BaseSpec
 import io.circe.Json
-import org.scalatest.{FunSpec, Matchers}
 
-class MustacheSpec extends FunSpec with Matchers {
+class MustacheSpec extends BaseSpec {
   describe("Mustache") {
     describe("render") {
       it("should render a template") {

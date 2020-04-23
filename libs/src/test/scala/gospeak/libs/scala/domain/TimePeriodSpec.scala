@@ -1,12 +1,12 @@
 package gospeak.libs.scala.domain
 
 import gospeak.libs.scala.testingutils.Generators._
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.concurrent.duration.FiniteDuration
 
-class TimePeriodSpec extends FunSpec with Matchers with ScalaCheckPropertyChecks {
+class TimePeriodSpec extends BaseSpec with ScalaCheckPropertyChecks {
   describe("TimePeriod") {
     it("build and transform to FiniteDuration") {
       forAll { v: FiniteDuration =>

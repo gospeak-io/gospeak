@@ -4,11 +4,11 @@ import java.net.URLEncoder
 import java.time.{LocalDate, LocalDateTime}
 
 import gospeak.core.domain.UserRequest
-import gospeak.web.utils.QueryStringBindables._
 import gospeak.libs.scala.domain.{Page, Url}
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.web.testingutils.BaseSpec
+import gospeak.web.utils.QueryStringBindables._
 
-class QueryStringBindablesSpec extends FunSpec with Matchers {
+class QueryStringBindablesSpec extends BaseSpec {
   describe("QueryStringBindables") {
     describe("LocalDateTime") {
       it("should parse and format dates") {

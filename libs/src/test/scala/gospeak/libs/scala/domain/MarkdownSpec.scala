@@ -1,8 +1,8 @@
 package gospeak.libs.scala.domain
 
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 
-class MarkdownSpec extends FunSpec with Matchers {
+class MarkdownSpec extends BaseSpec {
   describe("MarkdownUtils") {
     it("should parse and render basic markdown") {
       Markdown(

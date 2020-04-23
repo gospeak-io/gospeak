@@ -13,12 +13,12 @@ import gospeak.core.domain.utils._
 import gospeak.core.testingutils.Generators._
 import gospeak.infra.services.storage.sql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
-import gospeak.infra.testingutils.Values
+import gospeak.infra.testingutils.{BaseSpec, Values}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Page, Slides, Tag, Video}
-import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
+import org.scalatest.BeforeAndAfterEach
 
-class RepoSpec extends FunSpec with Matchers with IOChecker with BeforeAndAfterEach with RandomDataGenerator {
+class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with RandomDataGenerator {
   protected val db: GsRepoSql = Values.db
   val transactor: doobie.Transactor[IO] = db.xa
   protected val userRepo: UserRepoSql = db.user

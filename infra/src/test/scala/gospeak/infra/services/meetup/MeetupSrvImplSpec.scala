@@ -1,10 +1,10 @@
 package gospeak.infra.services.meetup
 
 import gospeak.infra.services.meetup.MeetupSrvImpl._
+import gospeak.infra.testingutils.BaseSpec
 import gospeak.libs.scala.domain.Markdown
-import org.scalatest.{FunSpec, Matchers}
 
-class MeetupSrvImplSpec extends FunSpec with Matchers {
+class MeetupSrvImplSpec extends BaseSpec {
   describe("MeetupSrvImpl") {
     describe("toSimpleHtml") {
       it("should replace ** with <b>") {

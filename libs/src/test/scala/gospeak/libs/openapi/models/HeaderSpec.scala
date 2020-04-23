@@ -2,10 +2,10 @@ package gospeak.libs.openapi.models
 
 import gospeak.libs.openapi.OpenApiFactory.Formats._
 import gospeak.libs.openapi.models.utils.Markdown
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 import play.api.libs.json.{JsSuccess, Json}
 
-class HeaderSpec extends FunSpec with Matchers {
+class HeaderSpec extends BaseSpec {
   describe("Header") {
     it("should parse and serialize") {
       val json = Json.parse(HeaderSpec.jsonStr)
@@ -21,7 +21,7 @@ object HeaderSpec {
        |  "description": "Header desc",
        |  "schema": ${SchemaSpec.jsonStr}
        |}""".stripMargin
-  val value = Header(
+  val value: Header = Header(
     description = Some(Markdown("Header desc")),
     schema = Some(SchemaSpec.value))
 }

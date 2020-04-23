@@ -4,11 +4,11 @@ import cats.data.NonEmptyList
 import doobie.implicits._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import gospeak.infra.services.storage.sql.utils.DoobieUtilsSpec.Entity
+import gospeak.infra.testingutils.BaseSpec
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Page
-import org.scalatest.{FunSpec, Matchers}
 
-class DoobieUtilsSpec extends FunSpec with Matchers {
+class DoobieUtilsSpec extends BaseSpec {
   describe("DoobieUtils") {
     describe("Table") {
       val table1 = Table.from("table1", "t1", Seq("id", "name"), Sort("name", "t1"), Seq("name"), Seq()).get

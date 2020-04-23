@@ -1,8 +1,8 @@
 package gospeak.libs.scala.domain
 
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 
-class SecretSpec extends FunSpec with Matchers {
+class SecretSpec extends BaseSpec {
   describe("Password") {
     it("should not leak its value on toString") {
       Secret("aaa").toString should not include "aaa"

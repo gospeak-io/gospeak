@@ -1,9 +1,9 @@
 package gospeak.libs.scala.domain
 
 import gospeak.libs.scala.Crypto
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 
-class CryptedSpec extends FunSpec with Matchers {
+class CryptedSpec extends BaseSpec {
   describe("Crypted") {
     it("should not print its value in toString") {
       Crypted("test").toString shouldBe "*****"

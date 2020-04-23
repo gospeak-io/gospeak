@@ -1,9 +1,9 @@
 package gospeak.libs.openapi.models
 
 import gospeak.libs.openapi.models.utils.Markdown
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 
-class SchemasSpec extends FunSpec with Matchers {
+class SchemasSpec extends BaseSpec {
   private val schemas = Schemas(
     "Str" -> Schema.StringVal(Some("str"), None, None, None, None),
     "Int" -> Schema.IntegerVal(None, None, None, None, Some(Markdown("int")), None),

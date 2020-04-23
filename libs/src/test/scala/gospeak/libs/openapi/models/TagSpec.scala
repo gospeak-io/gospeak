@@ -2,10 +2,10 @@ package gospeak.libs.openapi.models
 
 import gospeak.libs.openapi.OpenApiFactory.Formats._
 import gospeak.libs.openapi.models.utils.{Markdown, TODO}
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 import play.api.libs.json.{JsSuccess, Json}
 
-class TagSpec extends FunSpec with Matchers {
+class TagSpec extends BaseSpec {
   describe("Tag") {
     it("should parse and serialize") {
       val json = Json.parse(TagSpec.jsonStr)
@@ -22,7 +22,7 @@ object TagSpec {
       |  "description": "Public API",
       |  "externalDocs": ${ExternalDocSpec.jsonStr}
       |}""".stripMargin
-  val value = Tag(
+  val value: Tag = Tag(
     name = "public",
     description = Some(Markdown("Public API")),
     externalDocs = Some(ExternalDocSpec.value),

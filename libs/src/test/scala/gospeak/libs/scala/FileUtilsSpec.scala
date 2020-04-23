@@ -1,8 +1,8 @@
 package gospeak.libs.scala
 
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 
-class FileUtilsSpec extends FunSpec with Matchers {
+class FileUtilsSpec extends BaseSpec {
   private val path = if (FileUtils.exists("libs")) "libs/target/test/test.txt" else "target/test/test.txt"
 
   describe("FileUtils") {

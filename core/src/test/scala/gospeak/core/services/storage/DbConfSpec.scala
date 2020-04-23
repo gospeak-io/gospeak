@@ -1,9 +1,9 @@
 package gospeak.core.services.storage
 
+import gospeak.core.testingutils.BaseSpec
 import gospeak.libs.scala.domain.Secret
-import org.scalatest.{FunSpec, Matchers}
 
-class DbConfSpec extends FunSpec with Matchers {
+class DbConfSpec extends BaseSpec {
   describe("DatabaseConf") {
     describe("from") {
       it("should parse a H2 url") {

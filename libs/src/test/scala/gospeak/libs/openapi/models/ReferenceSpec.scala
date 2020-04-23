@@ -1,9 +1,9 @@
 package gospeak.libs.openapi.models
 
 import gospeak.libs.openapi.error.OpenApiError
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 
-class ReferenceSpec extends FunSpec with Matchers {
+class ReferenceSpec extends BaseSpec {
   describe("Reference") {
     it("should validate correct References") {
       Reference.from("#/components/schemas/Pet") shouldBe Right(Reference.schema("Pet"))

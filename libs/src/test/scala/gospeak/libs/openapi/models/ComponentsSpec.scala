@@ -2,10 +2,10 @@ package gospeak.libs.openapi.models
 
 import gospeak.libs.openapi.OpenApiFactory.Formats._
 import gospeak.libs.openapi.models.utils.TODO
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 import play.api.libs.json.{JsSuccess, Json}
 
-class ComponentsSpec extends FunSpec with Matchers {
+class ComponentsSpec extends BaseSpec {
   describe("Components") {
     it("should parse and serialize") {
       val json = Json.parse(ExternalDocSpec.jsonStr)
@@ -22,7 +22,7 @@ object ComponentsSpec {
        |    "User": ${SchemaSpec.jsonStr}
        |  }
        |}""".stripMargin
-  val value = Components(
+  val value: Components = Components(
     schemas = Some(Schemas("User" -> SchemaSpec.value)),
     responses = Option.empty[TODO],
     parameters = Option.empty[TODO],

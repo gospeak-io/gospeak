@@ -1,11 +1,11 @@
 package gospeak.infra.services
 
 import gospeak.core.domain.User
-import gospeak.libs.scala.domain.EmailAddress
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.infra.testingutils.BaseSpec
 import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.EmailAddress
 
-class AvatarSrvSpec extends FunSpec with Matchers {
+class AvatarSrvSpec extends BaseSpec {
   private val srv = new AvatarSrv
 
   describe("AvatarSrv") {

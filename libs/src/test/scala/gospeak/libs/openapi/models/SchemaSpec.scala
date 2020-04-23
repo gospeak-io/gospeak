@@ -1,13 +1,13 @@
 package gospeak.libs.openapi.models
 
+import gospeak.libs.openapi.JsonUtils._
 import gospeak.libs.openapi.OpenApiFactory.Formats._
 import gospeak.libs.openapi.error.OpenApiError
 import gospeak.libs.openapi.models.utils.{Js, Markdown}
-import gospeak.libs.openapi.JsonUtils._
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 import play.api.libs.json.{JsError, JsSuccess, Json}
 
-class SchemaSpec extends FunSpec with Matchers {
+class SchemaSpec extends BaseSpec {
   describe("Schema") {
     it("should parse and serialize") {
       val json = Json.parse(HeaderSpec.jsonStr)
@@ -136,7 +136,7 @@ object SchemaSpec {
       |  "description": "A user",
       |  "required": ["id", "name"]
       |}""".stripMargin
-  val value = Schema.ObjectVal(Map(
+  val value: Schema.ObjectVal = Schema.ObjectVal(Map(
     "id" -> Schema.IntegerVal(Some("int64"), None, Some(1), Some(1), Some(Markdown("An id")), Some(0)),
     "name" -> Schema.StringVal(Some("username"), None, Some("lkn"), None, Some(Markdown("User name"))),
     "flags" -> Schema.ArrayVal(Schema.BooleanVal(None, None, None), Some(List(true, false).map(Js(_))), Some(Markdown("feature flags")))

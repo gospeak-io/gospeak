@@ -23,8 +23,8 @@ val commonSettings: Seq[Setting[_]] = Seq(
  */
 
 val cats = Seq(
-  "org.typelevel" %% "cats-core" % "2.1.0",
-  "org.typelevel" %% "cats-effect" % "2.1.1")
+  "org.typelevel" %% "cats-core" % "2.1.1",
+  "org.typelevel" %% "cats-effect" % "2.1.3")
 val circeVersion = "0.13.0"
 val circe = Seq(
   "io.circe" %% "circe-core" % circeVersion,
@@ -41,15 +41,15 @@ val doobie = Seq(
   "org.tpolecat" %% "doobie-hikari").map(_ % doobieVersion)
 val doobieTest = Seq(
   "org.tpolecat" %% "doobie-scalatest" % doobieVersion).map(_ % Test)
-val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.12.2")
+val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.12.3")
 val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
   "com.pepegar" %% "hammock-apache-http").map(_ % "0.10.0")
 val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.11")
 val twitter = Seq("com.danielasfregola" %% "twitter4s" % "6.2") // https://github.com/DanielaSfregola/twitter4s
-val flyway = Seq("org.flywaydb" % "flyway-core" % "6.2.4")
-val silhouetteVersion = "6.1.1"
+val flyway = Seq("org.flywaydb" % "flyway-core" % "6.4.0")
+val silhouetteVersion = "7.0.0"
 val silhouette = Seq(
   "com.mohiva" %% "play-silhouette",
   "com.mohiva" %% "play-silhouette-password-bcrypt",
@@ -64,11 +64,11 @@ val play = Seq(
   "com.softwaremill.macwire" %% "macrosakka" % macwireVersion % Provided)
 val playTest = Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0").map(_ % Test)
-val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.50.50")
+val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.61.16")
 val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.6.1")
-val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.4.5")
+val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.4.8")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
-  "org.webjars.npm" % "jquery" % "3.4.1",
+  "org.webjars.npm" % "jquery" % "3.5.0",
   "org.webjars.npm" % "bootstrap" % "4.4.1",
   "org.webjars.npm" % "autosize" % "4.0.2",
   // "org.webjars.npm" % "@fortawesome/fontawesome-free" % "5.6.3",
@@ -84,10 +84,11 @@ val logback = Seq(
   "org.slf4j" % "slf4j-api" % "1.7.30",
   "ch.qos.logback" % "logback-classic" % "1.2.3")
 val scalaTest = Seq(
-  "org.scalatest" %% "scalatest" % "3.0.8").map(_ % Test)
+  "org.scalatest" %% "scalatest" % "3.1.1",
+  "org.scalatestplus" %% "scalacheck-1-14" % "3.1.0.0").map(_ % Test)
 val scalaCheck = Seq(
   "org.scalacheck" %% "scalacheck" % "1.14.3",
-  "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.4",
+  "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5",
   "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
 
 val libsDependencies = hammock ++ flexmark ++ mustache ++ cats ++ playJson ++ scalaTest ++ scalaCheck

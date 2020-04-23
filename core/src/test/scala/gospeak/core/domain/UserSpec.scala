@@ -1,10 +1,10 @@
 package gospeak.core.domain
 
+import gospeak.core.testingutils.BaseSpec
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.EmailAddress
-import org.scalatest.{FunSpec, Matchers}
 
-class UserSpec extends FunSpec with Matchers {
+class UserSpec extends BaseSpec {
   describe("User") {
     describe("Name") {
       it("should merge firstName and lastName") {

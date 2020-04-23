@@ -1,10 +1,10 @@
 package gospeak.web.utils
 
 import gospeak.core.domain._
+import gospeak.web.testingutils.BaseSpec
 import gospeak.web.utils.PathBindables._
-import org.scalatest.{FunSpec, Matchers}
 
-class PathBindablesSpec extends FunSpec with Matchers {
+class PathBindablesSpec extends BaseSpec {
   describe("PathBindables") {
     it("should bind & unbind a Group.Slug") {
       val slug = Group.Slug.from("value").right.get

@@ -7,12 +7,12 @@ import gospeak.core.domain.messages.{Message, MsgExternalCfp, MsgExternalEvent, 
 import gospeak.core.domain.utils.SocialAccounts.SocialAccount.TwitterAccount
 import gospeak.core.domain.utils.{Constants, SocialAccounts}
 import gospeak.core.domain.{Event, User}
+import gospeak.core.testingutils.BaseSpec
 import gospeak.core.testingutils.Generators._
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
-import org.scalatest.{FunSpec, Matchers}
 
-class TwittsSpec extends FunSpec with Matchers with RandomDataGenerator {
+class TwittsSpec extends BaseSpec with RandomDataGenerator {
   protected val place: GMapPlace = random[GMapPlace]
   private val event = MsgExternalEvent(
     name = Event.Name("Devoxx"),

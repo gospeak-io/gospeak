@@ -2,10 +2,10 @@ package gospeak.libs.openapi.models
 
 import gospeak.libs.openapi.OpenApiFactory.Formats._
 import gospeak.libs.openapi.models.utils._
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 import play.api.libs.json.{JsSuccess, Json}
 
-class InfoSpec extends FunSpec with Matchers {
+class InfoSpec extends BaseSpec {
   describe("Info") {
     it("should parse and serialize") {
       val json = Json.parse(InfoSpec.jsonStr)
@@ -25,7 +25,7 @@ object InfoSpec {
       |  "license": {"name": "Apache 2.0", "url": "https://gospeak.io/license"},
       |  "version": "1.0.0"
       |}""".stripMargin
-  val value = Info(
+  val value: Info = Info(
     title = "My api",
     description = Some(Markdown("desc")),
     termsOfService = Some(Url("https://gospeak.io/tos")),

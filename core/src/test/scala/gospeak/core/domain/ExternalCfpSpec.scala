@@ -3,10 +3,10 @@ package gospeak.core.domain
 import java.time.LocalDateTime
 
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
+import gospeak.core.testingutils.BaseSpec
 import gospeak.core.testingutils.Generators._
-import org.scalatest.{FunSpec, Matchers}
 
-class ExternalCfpSpec extends FunSpec with Matchers with RandomDataGenerator {
+class ExternalCfpSpec extends BaseSpec with RandomDataGenerator {
   private val now = LocalDateTime.now()
   private val yesterday = now.minusDays(1)
   private val tomorrow = now.plusDays(1)

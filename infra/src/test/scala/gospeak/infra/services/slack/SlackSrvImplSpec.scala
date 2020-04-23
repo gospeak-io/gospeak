@@ -1,12 +1,12 @@
 package gospeak.infra.services.slack
 
 import gospeak.core.services.slack.domain.{SlackCredentials, SlackToken}
+import gospeak.infra.testingutils.BaseSpec
 import gospeak.libs.scala.domain.Crypted
 import gospeak.libs.slack.SlackClient
 import gospeak.libs.slack.domain.SlackError
-import org.scalatest.{FunSpec, Matchers}
 
-class SlackSrvImplSpec extends FunSpec with Matchers {
+class SlackSrvImplSpec extends BaseSpec {
   private val token = SlackToken(Crypted("..."))
   private val creds = SlackCredentials(token, "Gospeak test", None)
   private val client = new SlackClient

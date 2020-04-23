@@ -2,10 +2,10 @@ package gospeak.libs.openapi.models
 
 import gospeak.libs.openapi.OpenApiFactory.Formats._
 import gospeak.libs.openapi.models.utils.{Markdown, TODO}
-import org.scalatest.{FunSpec, Matchers}
+import gospeak.libs.testingutils.BaseSpec
 import play.api.libs.json.{JsSuccess, Json}
 
-class ResponseSpec extends FunSpec with Matchers {
+class ResponseSpec extends BaseSpec {
   describe("Response") {
     it("should parse and serialize") {
       val json = Json.parse(ResponseSpec.jsonStr)
@@ -29,7 +29,7 @@ object ResponseSpec {
        |    "ref": ${LinkSpec.jsonStr}
        |  }
        |}""".stripMargin
-  val value = Response(
+  val value: Response = Response(
     description = Markdown("desc"),
     headers = Some(Map("custom" -> HeaderSpec.value)),
     content = Some(Map("application/json" -> MediaTypeSpec.value)),
