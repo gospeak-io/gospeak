@@ -183,5 +183,13 @@ object Tables {
     search = Seq("id", "title", "status", "description", "message", "tags"),
     filters = Seq()).get
 
-  val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, groupSettings, groupMembers, cfps, partners, contacts, venues, events, eventRsvps, proposals, proposalRatings, sponsorPacks, sponsors, comments, userRequests, externalEvents, externalCfps, externalProposals)
+  val videos: Table = Table.from(
+    name = "videos",
+    prefix = "vi",
+    fields = Seq("platform", "url", "id", "channel_id", "channel_name", "playlist_id", "playlist_name", "title", "description", "tags", "published_at", "duration", "lang", "views", "likes", "dislikes", "comments", "updated_at"),
+    sort = Sort("title", Field("title", "vi"), Field("published_at", "vi")),
+    search = Seq("id", "channel_name", "playlist_name", "title", "description", "tags"),
+    filters = Seq()).get
+
+  val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, groupSettings, groupMembers, cfps, partners, contacts, venues, events, eventRsvps, proposals, proposalRatings, sponsorPacks, sponsors, comments, userRequests, externalEvents, externalCfps, externalProposals, videos)
 }
