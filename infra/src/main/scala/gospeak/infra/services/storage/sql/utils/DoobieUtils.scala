@@ -458,6 +458,7 @@ object DoobieUtils {
     implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Instant].timap(LocalDateTime.ofInstant(_, ZoneOffset.UTC))(_.toInstant(ZoneOffset.UTC))
     implicit val emailAddressMeta: Meta[EmailAddress] = Meta[String].timap(EmailAddress.from(_).get)(_.value)
     implicit val urlMeta: Meta[Url] = Meta[String].timap(Url.from(_).get)(_.value)
+    implicit val urlVideoMeta: Meta[Url.Video] = Meta[String].timap(Url.Video.from(_).get)(_.value)
     implicit val twitterUrlMeta: Meta[Url.Twitter] = Meta[String].timap(Url.Twitter.from(_).get)(_.value)
     implicit val linkedInUrlMeta: Meta[Url.LinkedIn] = Meta[String].timap(Url.LinkedIn.from(_).get)(_.value)
     implicit val youTubeUrlMeta: Meta[Url.YouTube] = Meta[String].timap(Url.YouTube.from(_).get)(_.value)
