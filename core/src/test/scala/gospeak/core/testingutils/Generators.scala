@@ -119,6 +119,7 @@ object Generators {
   implicit val aEvent = implicitly[Arbitrary[Event]]
   implicit val aProposal = implicitly[Arbitrary[Proposal]]
   implicit val aSponsor = implicitly[Arbitrary[Sponsor]]
+  implicit val aVideo = implicitly[Arbitrary[Video]]
   implicit val aAccountValidationRequest = implicitly[Arbitrary[AccountValidationRequest]]
   implicit val aPasswordResetRequest = implicitly[Arbitrary[PasswordResetRequest]]
   implicit val aUserAskToJoinAGroupRequest = implicitly[Arbitrary[UserAskToJoinAGroupRequest]]

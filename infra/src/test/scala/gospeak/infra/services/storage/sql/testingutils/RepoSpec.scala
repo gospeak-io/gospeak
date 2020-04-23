@@ -44,6 +44,7 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
   protected val rating: Proposal.Rating = random[Proposal.Rating]
   protected val partner: Partner = random[Partner]
   protected val venue: Venue = random[Venue]
+  protected val video: Video = random[Video]
   protected val sponsorPack: SponsorPack = random[SponsorPack]
   protected val sponsor: Sponsor = random[Sponsor]
   protected val slidesUrl: SlidesUrl = random[SlidesUrl]
