@@ -8,7 +8,7 @@ import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Done, Page, Slides, Video}
+import gospeak.libs.scala.domain.{Done, Page, SlidesUrl, VideoUrl}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb
@@ -153,7 +153,7 @@ class ProposalCtrl(cc: ControllerComponents,
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
     GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => Slides.from(data) match {
+      data => SlidesUrl.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(slides) => proposalRepo.editSlides(cfp, proposal, slides).map(_ => next)
       }
@@ -164,7 +164,7 @@ class ProposalCtrl(cc: ControllerComponents,
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
     GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => Video.from(data) match {
+      data => VideoUrl.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(video) => proposalRepo.editVideo(cfp, proposal, video).map(_ => next)
       }

@@ -23,11 +23,11 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
         check(q, s"UPDATE $table SET status=? WHERE ep.id=? AND ep.speakers LIKE ?")
       }
       it("should build updateSlides") {
-        val q = ExternalProposalRepoSql.updateSlides(externalProposal.id)(slides, user.id, now)
+        val q = ExternalProposalRepoSql.updateSlides(externalProposal.id)(slidesUrl, user.id, now)
         check(q, s"UPDATE $table SET slides=?, updated_at=?, updated_by=? WHERE ep.id=? AND ep.speakers LIKE ?")
       }
       it("should build updateVideo") {
-        val q = ExternalProposalRepoSql.updateVideo(externalProposal.id)(video, user.id, now)
+        val q = ExternalProposalRepoSql.updateVideo(externalProposal.id)(videoUrl, user.id, now)
         check(q, s"UPDATE $table SET video=?, updated_at=?, updated_by=? WHERE ep.id=? AND ep.speakers LIKE ?")
       }
       it("should build updateSpeakers") {

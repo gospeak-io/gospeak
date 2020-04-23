@@ -37,9 +37,9 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def editStatus(talk: Talk.Slug, status: Talk.Status)(implicit ctx: UserCtx): IO[Done] = updateStatus(talk)(status, ctx.user.id).run(xa)
 
-  override def editSlides(talk: Talk.Slug, slides: Slides)(implicit ctx: UserCtx): IO[Done] = updateSlides(talk)(slides, ctx.user.id, ctx.now).run(xa)
+  override def editSlides(talk: Talk.Slug, slides: SlidesUrl)(implicit ctx: UserCtx): IO[Done] = updateSlides(talk)(slides, ctx.user.id, ctx.now).run(xa)
 
-  override def editVideo(talk: Talk.Slug, video: Video)(implicit ctx: UserCtx): IO[Done] = updateVideo(talk)(video, ctx.user.id, ctx.now).run(xa)
+  override def editVideo(talk: Talk.Slug, video: VideoUrl)(implicit ctx: UserCtx): IO[Done] = updateVideo(talk)(video, ctx.user.id, ctx.now).run(xa)
 
   override def addSpeaker(talk: Talk.Id, by: User.Id)(implicit ctx: UserCtx): IO[Done] =
     find(talk).flatMap {
@@ -107,10 +107,10 @@ object TalkRepoSql {
   private[sql] def updateStatus(talk: Talk.Slug)(status: Talk.Status, by: User.Id): Update =
     table.update(fr0"status=$status", where(by, talk))
 
-  private[sql] def updateSlides(talk: Talk.Slug)(slides: Slides, by: User.Id, now: Instant): Update =
+  private[sql] def updateSlides(talk: Talk.Slug)(slides: SlidesUrl, by: User.Id, now: Instant): Update =
     table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by", where(by, talk))
 
-  private[sql] def updateVideo(talk: Talk.Slug)(video: Video, by: User.Id, now: Instant): Update =
+  private[sql] def updateVideo(talk: Talk.Slug)(video: VideoUrl, by: User.Id, now: Instant): Update =
     table.update(fr0"video=$video, updated_at=$now, updated_by=$by", where(by, talk))
 
   private[sql] def updateSpeakers(talk: Talk.Slug)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =

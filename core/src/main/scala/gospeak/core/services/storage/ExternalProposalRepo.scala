@@ -4,7 +4,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import gospeak.core.domain.utils.{UserAwareCtx, UserCtx}
 import gospeak.core.domain._
-import gospeak.libs.scala.domain.{Done, Page, Slides, Tag, Video}
+import gospeak.libs.scala.domain.{Done, Page, SlidesUrl, Tag, VideoUrl}
 
 trait ExternalProposalRepo extends SpeakerExternalProposalRepo with UserExternalProposalRepo with PublicExternalProposalRepo with SuggestExternalProposalRepo
 
@@ -15,9 +15,9 @@ trait SpeakerExternalProposalRepo {
 
   def editStatus(id: ExternalProposal.Id, status: Proposal.Status)(implicit ctx: UserCtx): IO[Done]
 
-  def editSlides(id: ExternalProposal.Id, slides: Slides)(implicit ctx: UserCtx): IO[Done]
+  def editSlides(id: ExternalProposal.Id, slides: SlidesUrl)(implicit ctx: UserCtx): IO[Done]
 
-  def editVideo(id: ExternalProposal.Id, video: Video)(implicit ctx: UserCtx): IO[Done]
+  def editVideo(id: ExternalProposal.Id, video: VideoUrl)(implicit ctx: UserCtx): IO[Done]
 
   def removeSpeaker(id: ExternalProposal.Id, speaker: User.Id)(implicit ctx: UserCtx): IO[Done]
 

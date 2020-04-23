@@ -1,17 +1,17 @@
 package gospeak.libs.scala.domain
 
-final class Video private(value: Url) extends DataClass(value.value) {
+final class VideoUrl private(value: Url) extends DataClass(value.value) {
   def url: Url = value
 }
 
-object Video {
-  def from(in: String): Either[CustomException, Video] =
-    Url.from(in).flatMap(from).left.map(_.copy(message = s"'$in' is an invalid Video"))
+object VideoUrl {
+  def from(in: String): Either[CustomException, VideoUrl] =
+    Url.from(in).flatMap(from).left.map(_.copy(message = s"'$in' is an invalid VideoUrl"))
 
-  def from(in: Url): Either[CustomException, Video] = {
+  def from(in: Url): Either[CustomException, VideoUrl] = {
     val errs = errors(in)
-    if (errs.isEmpty) Right(new Video(in))
-    else Left(CustomException(s"'$in' is an invalid Video", errs))
+    if (errs.isEmpty) Right(new VideoUrl(in))
+    else Left(CustomException(s"'$in' is an invalid VideoUrl", errs))
   }
 
   // FIXME: improve

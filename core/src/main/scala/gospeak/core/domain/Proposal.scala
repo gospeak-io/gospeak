@@ -18,8 +18,8 @@ final case class Proposal(id: Proposal.Id,
                           description: Markdown,
                           message: Markdown,
                           speakers: NonEmptyList[User.Id],
-                          slides: Option[Slides],
-                          video: Option[Video],
+                          slides: Option[SlidesUrl],
+                          video: Option[VideoUrl],
                           tags: Seq[Tag],
                           orgaTags: Seq[Tag],
                           info: Info) {
@@ -95,9 +95,9 @@ object Proposal {
 
     def speakerUsers(users: Seq[User]): List[User] = proposal.speakerUsers(users)
 
-    def slides: Option[Slides] = proposal.slides
+    def slides: Option[SlidesUrl] = proposal.slides
 
-    def video: Option[Video] = proposal.video
+    def video: Option[VideoUrl] = proposal.video
 
     def tags: Seq[Tag] = proposal.tags
 
@@ -157,8 +157,8 @@ object Proposal {
                         duration: FiniteDuration,
                         description: Markdown,
                         message: Markdown,
-                        slides: Option[Slides],
-                        video: Option[Video],
+                        slides: Option[SlidesUrl],
+                        video: Option[VideoUrl],
                         tags: Seq[Tag])
 
   object Data {
@@ -172,8 +172,8 @@ object Proposal {
   final case class DataOrga(title: Talk.Title,
                             duration: FiniteDuration,
                             description: Markdown,
-                            slides: Option[Slides],
-                            video: Option[Video],
+                            slides: Option[SlidesUrl],
+                            video: Option[VideoUrl],
                             tags: Seq[Tag],
                             orgaTags: Seq[Tag])
 

@@ -1,17 +1,17 @@
 package gospeak.libs.scala.domain
 
-final class Slides private(value: Url) extends DataClass(value.value) {
+final class SlidesUrl private(value: Url) extends DataClass(value.value) {
   def url: Url = value
 }
 
-object Slides {
-  def from(in: String): Either[CustomException, Slides] =
-    Url.from(in).flatMap(from).left.map(_.copy(message = s"'$in' is an invalid Slides"))
+object SlidesUrl {
+  def from(in: String): Either[CustomException, SlidesUrl] =
+    Url.from(in).flatMap(from).left.map(_.copy(message = s"'$in' is an invalid SlidesUrl"))
 
-  def from(in: Url): Either[CustomException, Slides] = {
+  def from(in: Url): Either[CustomException, SlidesUrl] = {
     val errs = errors(in)
-    if (errs.isEmpty) Right(new Slides(in))
-    else Left(CustomException(s"'$in' is an invalid Slides", errs))
+    if (errs.isEmpty) Right(new SlidesUrl(in))
+    else Left(CustomException(s"'$in' is an invalid SlidesUrl", errs))
   }
 
   // FIXME: improve

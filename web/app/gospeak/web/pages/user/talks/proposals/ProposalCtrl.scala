@@ -10,7 +10,7 @@ import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.MessageBus
-import gospeak.libs.scala.domain.{Page, Slides, Video}
+import gospeak.libs.scala.domain.{Page, SlidesUrl, VideoUrl}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb
@@ -123,7 +123,7 @@ class ProposalCtrl(cc: ControllerComponents,
     val next = Redirect(routes.ProposalCtrl.detailExt(talk, proposal))
     GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => Slides.from(data) match {
+      data => SlidesUrl.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(slides) => externalProposalRepo.editSlides(proposal, slides).map(_ => next)
       }
@@ -134,7 +134,7 @@ class ProposalCtrl(cc: ControllerComponents,
     val next = Redirect(routes.ProposalCtrl.detailExt(talk, proposal))
     GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => Video.from(data) match {
+      data => VideoUrl.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(video) => externalProposalRepo.editVideo(proposal, video).map(_ => next)
       }
@@ -267,7 +267,7 @@ class ProposalCtrl(cc: ControllerComponents,
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => Slides.from(data) match {
+      data => SlidesUrl.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(slides) => proposalRepo.editSlides(talk, cfp, slides).map(_ => next)
       }
@@ -278,7 +278,7 @@ class ProposalCtrl(cc: ControllerComponents,
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => Video.from(data) match {
+      data => VideoUrl.from(data) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(video) => proposalRepo.editVideo(talk, cfp, video).map(_ => next)
       }

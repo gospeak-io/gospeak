@@ -1,7 +1,7 @@
 package gospeak.core.domain
 
 import cats.data.NonEmptyList
-import gospeak.core.domain.utils.{Constants, Info}
+import gospeak.core.domain.utils.Info
 import gospeak.libs.scala.domain._
 
 import scala.concurrent.duration.FiniteDuration
@@ -15,8 +15,8 @@ final case class ExternalProposal(id: ExternalProposal.Id,
                                   description: Markdown,
                                   message: Markdown,
                                   speakers: NonEmptyList[User.Id],
-                                  slides: Option[Slides],
-                                  video: Option[Video],
+                                  slides: Option[SlidesUrl],
+                                  video: Option[VideoUrl],
                                   url: Option[Url],
                                   tags: Seq[Tag],
                                   info: Info) {
@@ -54,9 +54,9 @@ object ExternalProposal {
 
     def speakerUsers(users: Seq[User]): List[User] = speakers.toList.flatMap(id => users.find(_.id == id))
 
-    def slides: Option[Slides] = proposal.slides
+    def slides: Option[SlidesUrl] = proposal.slides
 
-    def video: Option[Video] = proposal.video
+    def video: Option[VideoUrl] = proposal.video
 
     def url: Option[Url] = proposal.url
 
@@ -74,8 +74,8 @@ object ExternalProposal {
                         duration: FiniteDuration,
                         description: Markdown,
                         message: Markdown,
-                        slides: Option[Slides],
-                        video: Option[Video],
+                        slides: Option[SlidesUrl],
+                        video: Option[VideoUrl],
                         url: Option[Url],
                         tags: Seq[Tag])
 
