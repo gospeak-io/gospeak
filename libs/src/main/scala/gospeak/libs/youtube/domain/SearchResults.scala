@@ -15,6 +15,10 @@ final case class SearchResults(etag: String,
                                regionCode: Option[String],
                                visitorId: Option[String]) {
   def filter(itemType: String): SearchResults = this.copy(items = items.filter(i => i.id.kind == itemType))
+
+  def hasNextPage: Boolean = nextPageToken.isDefined
+
+  def itemIds: Seq[String] = items.map(i => i.id.id)
 }
 
 object SearchResults {

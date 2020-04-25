@@ -1,8 +1,8 @@
 package gospeak.core.services.youtube
 
 import cats.effect.IO
-import gospeak.core.domain.Video
+import gospeak.core.domain.YoutubeVideo
 
 trait YoutubeSrv {
-  def search(channelId: String, itemType: String): IO[Seq[Video]]
+  def videos(channelId: String): IO[Seq[YoutubeVideo]]
 }

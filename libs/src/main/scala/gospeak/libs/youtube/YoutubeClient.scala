@@ -93,7 +93,7 @@ object YoutubeClient {
   val contentDetails: String = "contentDetails"
   val statistics: String = "statistics"
   val all: Seq[String] = Seq(snippet, contentDetails, statistics)
-
+  val videoType: String = "youtube#video"
 
   def create(secret: Secret): YoutubeClient = {
     val scopes: util.List[String] = List("https://www.googleapis.com/auth/youtube.readonly").asJava
