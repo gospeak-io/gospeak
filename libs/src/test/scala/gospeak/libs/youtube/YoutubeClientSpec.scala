@@ -7,6 +7,7 @@ import gospeak.libs.youtube.domain._
 import org.scalatest.{FunSpec, Inside, Matchers}
 
 import scala.collection.immutable
+import scala.concurrent.duration.{FiniteDuration, MICROSECONDS}
 
 class YoutubeClientSpec extends FunSpec with Matchers with Inside {
   // you should paste your key here for testing
@@ -146,21 +147,27 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
         "oOE36iJ7xFk"))
         .unsafeRunSync().right.get
 
-      inside(result) { case VideosListResponse(kind, etag, info, items: Seq[VideoItem]) =>
+      inside(result) { case VideosListResponse(kind, info, items: Seq[VideoItem]) =>
         kind shouldBe "youtube#videoListResponse"
-        etag should startWith("\"nxOHAKTVB7baOKsQgTtJIyGxcs8")
         info shouldBe Some(PageInfo(5, 5))
-        val expected: Seq[VideoItem] = List(VideoItem("youtube#video", "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/BXVdRCbX4lVPaLX6DSq33Tuql3E\"",
-          "itGmiTS_IPw", Some(Instant.parse("2019-06-14T09:53:15Z")),
-          Some("UCVelKVoLQIhwx9C2LWf-CDA"), Some("[SC] Entre industrialisation et artisanat, le métier de développeur - Arnaud Lemaire"),
+        val expected: Seq[VideoItem] = List(VideoItem("youtube#video",
+          "itGmiTS_IPw",
+          Some(Instant.parse("2019-06-14T09:53:15Z")),
+          Some("UCVelKVoLQIhwx9C2LWf-CDA"),
+          Some("[SC] Entre industrialisation et artisanat, le métier de développeur - Arnaud Lemaire"),
           Some(
             """Une conférence pour se poser la question de ce qu’est notre métier, et de pourquoi celui-ci est loin de se borner à la simple écriture de code source.
               |
               |De comment sortir de la posture du développeur en tant que simple exécutant, et pourquoi notre métier a une très forte dimension stratégique.
               |
               |Enfin en regardant nos pratiques, méthodes et outils, nous replacerons ceux-ci dans leurs contextes en posant la question de ce qu’est l’ingénierie logicielle.""".stripMargin),
-          Some(39), Some(1), Seq()),
-          VideoItem("youtube#video", "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/vHjI97OHigZf0pEoEahqsb8prus\"", "NkH9WNE0OJc", Some(Instant.parse("2018-11-08T11:28:57Z")), Some("UCVelKVoLQIhwx9C2LWf-CDA"), Some("[Rennes DevOps] Quels choix d'hébergement possibles pour des données de santé ?"
+          Some(39), Some(1),
+          Some(0),
+          Some("En"),
+          Some(10),
+          Some(FiniteDuration(199, MICROSECONDS))
+          , Seq()),
+          VideoItem("youtube#video", "NkH9WNE0OJc", Some(Instant.parse("2018-11-08T11:28:57Z")), Some("UCVelKVoLQIhwx9C2LWf-CDA"), Some("[Rennes DevOps] Quels choix d'hébergement possibles pour des données de santé ?"
           ), Some(
             """Nicolas, Anas et Quentin nous ont proposé de parler de l'hébergement des données de santé.
               |
@@ -182,24 +189,40 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
               |Par :
               |- Nicolas Verdier (OVH)
               |- Anas Ameziane (Follow)
-              |- Quentin Decré (Follow)""".stripMargin), Some(13), Some(0), null),
-          VideoItem("youtube#video", "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/Rz4_7B6zZsKs33a59YYH6sqV-Eg\"", "xUudC8S8M6s", Some(Instant.parse("2018-10-15T15:08:19Z")),
+              |- Quentin Decré (Follow)""".stripMargin),
+            Some(13), Some(0), Some(0),
+            Some("En"),
+            Some(10),
+            Some(FiniteDuration(199, MICROSECONDS))
+            , Seq()),
+          VideoItem("youtube#video", "xUudC8S8M6s", Some(Instant.parse("2018-10-15T15:08:19Z")),
             Some("UCVelKVoLQIhwx9C2LWf-CDA"), Some("[BreizhJUG] Au delà des brokers: un tour de l'environnement Kafka - Florent Ramière"),
             Some(
               """Apache Kafka ne se résume pas aux brokers, il y a tout un écosystème open-source qui gravite autour.Je vous propose ainsi de découvrir les principaux composants comme Kafka Streams, KSQL, Kafka Connect, Rest proxy, Schema Registry, MirrorMaker, etc.
                 |Venez avec vos questions, le plus la session sera interactive, le mieux elle sera!
                 |
                 |Slides:https://www.slideshare.net/FlorentRamiere/jug-ecosystem""".stripMargin
-            ), Some(13), Some(0), Seq()),
-          VideoItem("youtube#video", "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/qlmgvyUCvjQ64U4tv3tTNLbiMck\"",
+            ), Some(13), Some(0), Some(0),
+            Some("En"),
+            Some(10),
+            Some(FiniteDuration(199, MICROSECONDS))
+            , Seq()),
+          VideoItem("youtube#video",
             "c6ZqYk01fbc", Some(Instant.parse("2018-03-15T22:57:36Z")),
             Some("UCVelKVoLQIhwx9C2LWf-CDA"),
             Some("[Docker MeetUp] Tour d'horizon de Kubernetes (David Gageot)"),
             Some(
               """Au travers de vrais exemples de code, nous allons faire un tour d'horizon de Kubernetes: Déploiement de services, Pattern Sidecar, Extension de la platforme, Introduction a Istio, Expérience développeur, Docker for Desktop, Google Kubernetes Engine.
                 |Bref, de quoi bien commencer avec Kubermetes!
-                |Speaker : David Gageot""".stripMargin), Some(15), Some(0), Seq("kubernetes", "istio")),
-          VideoItem("youtube#video", "\"nxOHAKTVB7baOKsQgTtJIyGxcs8/_07_nRK2r_wdnyTn-UpsWMqwmvs\"",
+                |Speaker : David Gageot""".stripMargin),
+            Some(15),
+            Some(0),
+            Some(0),
+            Some("En"),
+            Some(10),
+            Some(FiniteDuration(199, MICROSECONDS)),
+            Seq("kubernetes", "istio")),
+          VideoItem("youtube#video",
             "oOE36iJ7xFk", Some(Instant.parse("2018-04-18T12:31:10Z")),
             Some("UCVelKVoLQIhwx9C2LWf-CDA"),
             Some("Full-remote : guide de survie en environnement distant (Matthias Dugué)"),
@@ -211,7 +234,11 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
                 |Avant même que les concepts de full-remote, de co-working, et de BYOD ne deviennent populaires, les mouvements Open Source se sont attelés à la tâche difficile de faire travailler ensemble des gens en les reliant uniquement par le réseau.
                 |
                 |Après plusieurs années passées à collaborer avec des gens sur de nombreux projets, Open Source ou non, petit retour d'expérience du full-remote, ce qu'il engage, ce qu'il faut savoir, et les outils indispensables à un travail asynchrone efficace, ensemble.""".stripMargin
-            ), Some(19), Some(2), Seq()))
+            ), Some(19), Some(2), Some(0),
+            Some("En"),
+            Some(10),
+            Some(FiniteDuration(199, MICROSECONDS))
+            , Seq()))
         items shouldBe expected
       }
     }

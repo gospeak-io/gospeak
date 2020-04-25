@@ -1,38 +1,47 @@
 package gospeak.infra.services.youtube
 
+import java.time.Instant
+
 import cats.effect.IO
-import gospeak.core.domain.YoutubeVideo
+import gospeak.core.domain.Video
 import gospeak.core.services.youtube.YoutubeSrv
+import gospeak.infra.services.youtube.YoutubeSrvImpl.format
+import gospeak.libs.scala.domain.CustomException
 import gospeak.libs.youtube.YoutubeClient
+import gospeak.libs.youtube.domain.{SearchResults, VideosListResponse, YoutubeErrors}
+import gospeak.libs.scala.Extensions._
 
 class YoutubeSrvImpl(youtubeClient: YoutubeClient) extends YoutubeSrv {
 
-  override def videos(channelId: String): IO[Seq[YoutubeVideo]] = videos(channelId, "")
+  override def videos(channelId: String)(now: Instant): IO[Either[CustomException, Seq[Video]]] =
+    videos(channelId, "")(now)
 
-  private def videos(channelId: String, pageToken: String): IO[Seq[YoutubeVideo]] = for {
-    response <- youtubeClient.search(channelId, YoutubeClient.videoType, pageToken)
-    all <- response match {
-      case Left(youtubeErrors) => IO.raiseError(YoutubeException(youtubeErrors.errors.mkString("\n")))
-      case Right(results) =>
-        if (results.hasNextPage) {
-          for {
-            next <- videos(channelId, results.nextPageToken.get)
-            videos <- from(results.itemIds)
-          } yield videos ++ next
-        } else from(results.itemIds)
-    }
+  private def videos(channelId: String, pageToken: String)(now: Instant): IO[Either[CustomException, Seq[Video]]] = for {
+    response <- youtubeClient.search(channelId, YoutubeClient.videoType, pageToken).flatMap(toIO)
+    all <- if (response.hasNextPage) {
+      for {
+        next <- videos(channelId, response.nextPageToken.get)(now)
+        result <- videos(response.itemIds)(now)
+      } yield result.flatMap(v => next.map(_ ++ v))
+    } else videos(response.itemIds)(now)
   } yield all
 
-  private def from(videoIds: Seq[String]): IO[Seq[YoutubeVideo]] = {
+  private def videos(videoIds: Seq[String])(now: Instant): IO[Either[CustomException, Seq[Video]]] = {
     for {
-      response <- youtubeClient.videos(videoIds)
-      videos <- response match {
-        case Left(youtubeErrors) => IO.raiseError(YoutubeException(youtubeErrors.errors.mkString("\n")))
-        case Right(results) => IO.pure(results.items.map(YoutubeVideo(_)))
-      }
+      response <- youtubeClient.videos(videoIds).flatMap(toIO)
+      videos <- IO.pure(toVideos(response, now))
     } yield videos
   }
+
+  private def toIO[A](e: Either[YoutubeErrors, A]): IO[A] =
+    e.toIO(e => CustomException(format(e)))
+
+  private def toVideos(result: VideosListResponse, now: Instant): Either[CustomException, Seq[Video]] =
+    result.items.map(i => Video.from(i, now)).sequence
 }
 
-final case class YoutubeException(message: String) extends RuntimeException(message)
+object YoutubeSrvImpl {
+  private[youtube] def format(errors: YoutubeErrors): String =
+    errors.errors.mkString("\n")
+}
 
