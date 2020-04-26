@@ -14,7 +14,7 @@ import gospeak.libs.youtube.domain.{VideosListResponse, YoutubeErrors}
 
 class YoutubeSrvImpl(client: YoutubeClient) extends YoutubeSrv {
 
-  override def videos(channel: ChannelRef)(now: Instant): IO[Either[CustomException, Seq[Video]]] =
+  override def channelVideos(channel: ChannelRef)(now: Instant): IO[Either[CustomException, Seq[Video]]] =
     getVideos(channel.id, "")(now)
 
   private def getVideos(channelId: String, pageToken: String)(now: Instant): IO[Either[CustomException, Seq[Video]]] = for {
@@ -37,7 +37,7 @@ class YoutubeSrvImpl(client: YoutubeClient) extends YoutubeSrv {
   private def toVideos(result: VideosListResponse, now: Instant): Either[CustomException, Seq[Video]] =
     result.items.map(i => Video.from(i, now)).sequence
 
-  override def videos(playlist: Video.PlaylistRef)(now: Instant): IO[Either[CustomException, Seq[Video]]] =
+  override def playlistVideos(playlist: Video.PlaylistRef)(now: Instant): IO[Either[CustomException, Seq[Video]]] =
     getPlaylistVideos(playlist.id, "")(now)
 
   private def getPlaylistVideos(playlist: String, pageToken: String)(now: Instant): IO[Either[CustomException, Seq[Video]]] = for {

@@ -8,7 +8,7 @@ import gospeak.core.domain.Video.{ChannelRef, PlaylistRef}
 import gospeak.libs.scala.domain.CustomException
 
 trait YoutubeSrv {
-  def videos(channel: ChannelRef)(now: Instant): IO[Either[CustomException, Seq[Video]]]
+  def channelVideos(channel: ChannelRef)(now: Instant): IO[Either[CustomException, Seq[Video]]]
 
-  def videos(channel: PlaylistRef)(now: Instant): IO[Either[CustomException, Seq[Video]]]
+  def playlistVideos(channel: PlaylistRef)(now: Instant): IO[Either[CustomException, Seq[Video]]]
 }
