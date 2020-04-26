@@ -33,7 +33,7 @@ final case class VideoItem(kind: String,
                            comments: Option[Long],
                            lang: Option[String],
                            views: Option[Long],
-                           duration: Option[FiniteDuration],
+                           duration: Option[String],
                            tags: Seq[String]
                           )
 
@@ -56,15 +56,11 @@ object VideoItem {
       maybeSnippet.map(_.getDefaultLanguage),
       maybeStats.map(_.getViewCount.longValue()),
       Option(video.getContentDetails)
-        .map(_.getDuration)
-        .flatMap(toFiniteDuration),
+        .map(_.getDuration),
       maybeSnippet.map(s => Option(s.getTags)
         .map(_.asScala)
         .getOrElse(Seq.empty))
         .getOrElse(Seq.empty)
     )
   }
-
-  def toFiniteDuration(duration: String): Option[FiniteDuration] =
-    Try(Duration.parse(duration)).map(v => FiniteDuration(v.toNanos, NANOSECONDS)).toOption
 }
