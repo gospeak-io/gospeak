@@ -4,16 +4,30 @@ import java.time.Instant
 
 import gospeak.libs.scala.domain.Secret
 import gospeak.libs.youtube.domain._
-import org.scalatest.{FunSpec, Inside, Matchers}
-
+import org.scalatest.Inside
+import org.scalatest.funspec.AnyFunSpec
 import scala.collection.immutable
 import scala.concurrent.duration.{FiniteDuration, MICROSECONDS}
+import org.scalatest.matchers.should.Matchers
 
-class YoutubeClientSpec extends FunSpec with Matchers with Inside {
+class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
   // you should paste your key here for testing
   val secret: String =
     """
-      |{}
+      |{
+      |    "type": "service_account",
+      |    "project_id": "gospeak-255017",
+      |    "private_key_id": "4b6bc550c2917086e9cc2ca1968afa13566b2fd0",
+      |    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDKr/W2o/W25yqN\ngIL6lyqUj8GkGiVXl9h0U8I4CUTu0i/Hq8WGj1khEdMw9T89LwQbAOj6Eg759xAO\n4DhRPh+6VsHQVxCfoxVNZhiZGoBcPvrwQRIyQMrm3rtn++ASvT44YHIxPQUs813V\nnVM9bkaQ3bWvFmBKUgoQXGbaqveGekHbUUDS+QIeCu4ao0PAxZA6l/3iDiYvoMVr\nhz5AFcWTX5WQ2wftom63Q/FEUqZPC00hplw885h1h3r3JZp5zyKY6rEFRdfJQb4H\n4XLw05mMBislG5WbNzp/18eHClJP/YFXHZiFYO+oMvjHsY43TRmI7CrE8vvYxJ6p\nEb0TCrq/AgMBAAECggEAEsBzJYT6kQPG0A75QmEFGd5JT/rxqxTrr0RAgU0T1fR9\nyL9MWvkDVsF+ngm44nQ2Sp+ruwo73UYApx+sL8TLmQ9Shwl6Pdd2SEVCnIeMvWJz\nEBJoS8K3nHxmyJjPT9LqR4grIgFya4ibppoTi89nMxsP8zVJKBcTwnrwZeXQJXfn\n8NABpg3bhejNYVBokKeOKv+2zJjADod89JPPTzc7ihEF2mO2GoVFpK/gLUroqj6O\nDwRDQGKGyVMRG6QLF/G3FqE5HaEBI/caDuZQHbvSwR7eYOL8gnyNxEqoI/zEtEvr\nDem6JPR2iMLt6qHlB8lEJPv9akkLdgICBovuJsnDIQKBgQDsXHDPScMJKhwRMsZH\nGCZpY97VftUkAYbohsYqy8F0pexY2OVL1jY7DWl1br7DLH2knQLJZTpqZZAegPa5\nOuKHZxxJUhgvvt6cb7ZCRZYo4kkYhYmRyQhydwGbR3+RXK9VqknzB2t6+f0aUwKN\nnwWce7iWRpVa9qv5XEHjD7FuuwKBgQDbh0F72jrwUM68l7N/EAse5P/P4JcVzS2+\n7hyvevGaaAn0usx4tl9TXY2rv8Mgfm1r9MiiFTDjhYkCMfAKHf2jHiJ0UEodgv8h\nvxCUyJhh5WwptCacZklAlavMLLCFhkdookFR2M/IF9asD7JcTCYnKV3Eqmi8LoGx\nRIV6Ts+9zQKBgQDEjzeNWvUkGO3Qa54yn2XKPTCh8WEFGXP8yZ/hFSNjg1yionVF\ndPYSc9vgueFQZB50l9Iqc9F5i86nX25OqiaanegLHYdZpWxxQgGa6U2v4EcTanH2\nV+17a3ZdkL8IvsBdCEmJHwGF+oE+tAuqhLVg5g6igj5QsFRiAhQU5QcUYwKBgEZ3\no0iLY7HybnpRQ9f8oWU4YvkqgbUI2K9aJbEaiOVkkhWRxMLW38CV3j0MYClVC/DE\ncYa9wKS4H6OpvgCxYdJzgOHPSAszGoyNlVf9EBUUnOTCJEa9+rOVl8EBc2RZFyD6\nPHd2XjQ/mrQ+kaVY+EJH4AaaIOaPEyiA80uwcrTdAoGAUQW34q7iVpOsmEtU4ohg\najOyeAkkloyL77kr/l4GyQzvDYyfZhbgA0YGh4SLfn8zcuAcAm/Ou804ypmo2qcQ\niO5iURfaff+Kcu4xFN/pnXm3TvBzgVkGfJBBIXaQzSW05sSy/Igzn1XrCAzOfHus\nusTmu10vOlGieGcqKKbi8Mg=\n-----END PRIVATE KEY-----\n",
+      |    "client_email": "gospeak-youtube@gospeak-255017.iam.gserviceaccount.com",
+      |    "client_id": "110317782940401292833",
+      |    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+      |    "token_uri": "https://oauth2.googleapis.com/token",
+      |    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+      |    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/gospeak-youtube%40gospeak-255017.iam.gserviceaccount.com"
+      |
+      |
+      |}
       |""".stripMargin
   private val youtubeClient = YoutubeClient.create(Secret(secret))
 
@@ -154,6 +168,7 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
           "itGmiTS_IPw",
           Some(Instant.parse("2019-06-14T09:53:15Z")),
           Some("UCVelKVoLQIhwx9C2LWf-CDA"),
+          Some("name"),
           Some("[SC] Entre industrialisation et artisanat, le métier de développeur - Arnaud Lemaire"),
           Some(
             """Une conférence pour se poser la question de ce qu’est notre métier, et de pourquoi celui-ci est loin de se borner à la simple écriture de code source.
@@ -167,36 +182,42 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
           Some(10),
           Some(FiniteDuration(199, MICROSECONDS))
           , Seq()),
-          VideoItem("youtube#video", "NkH9WNE0OJc", Some(Instant.parse("2018-11-08T11:28:57Z")), Some("UCVelKVoLQIhwx9C2LWf-CDA"), Some("[Rennes DevOps] Quels choix d'hébergement possibles pour des données de santé ?"
-          ), Some(
-            """Nicolas, Anas et Quentin nous ont proposé de parler de l'hébergement des données de santé.
-              |
-              |Certains dans le coin doivent bien travailler plus ou moins avec des données sensibles.Les données de santés en font partie.
-              |
-              |Peut-être que la radio de votre carie qui se retrouve sur Internet ne vous fait pas peur.Mais peut-être que certains spécialistes savent des choses un peu moins avouables sur vous :)
-              |
-              |Après, ils vont nous parler de trucs moins rigolos comme de la réglementation. Mais comme ils vont nous payer un apéro à la fin c'est plutôt cool :)
-              |
-              |#firebase, #vmware, #k8s, #docker, #objectstorage
-              |
-              |Si vous lisez encore ceci, vous vous dites que vous n'avez pas de données de santé. Mais si ça fonctionne pour la santé, ça va fonctionner aussi pour le reste.
-              |
-              |Détail du contenu :
-              |· Contraintes et liberté sur les données de santé
-              |· Solutions d'hébergement HDS existantes
-              |· Présentation de choix d'architecture hébergement de startups (problématiques et solutions)
-              |
-              |Par :
-              |- Nicolas Verdier (OVH)
-              |- Anas Ameziane (Follow)
-              |- Quentin Decré (Follow)""".stripMargin),
+          VideoItem("youtube#video", "NkH9WNE0OJc",
+            Some(Instant.parse("2018-11-08T11:28:57Z")),
+            Some("UCVelKVoLQIhwx9C2LWf-CDA"),
+            Some("name"),
+            Some("[Rennes DevOps] Quels choix d'hébergement possibles pour des données de santé ?"
+            ), Some(
+              """Nicolas, Anas et Quentin nous ont proposé de parler de l'hébergement des données de santé.
+                |
+                |Certains dans le coin doivent bien travailler plus ou moins avec des données sensibles.Les données de santés en font partie.
+                |
+                |Peut-être que la radio de votre carie qui se retrouve sur Internet ne vous fait pas peur.Mais peut-être que certains spécialistes savent des choses un peu moins avouables sur vous :)
+                |
+                |Après, ils vont nous parler de trucs moins rigolos comme de la réglementation. Mais comme ils vont nous payer un apéro à la fin c'est plutôt cool :)
+                |
+                |#firebase, #vmware, #k8s, #docker, #objectstorage
+                |
+                |Si vous lisez encore ceci, vous vous dites que vous n'avez pas de données de santé. Mais si ça fonctionne pour la santé, ça va fonctionner aussi pour le reste.
+                |
+                |Détail du contenu :
+                |· Contraintes et liberté sur les données de santé
+                |· Solutions d'hébergement HDS existantes
+                |· Présentation de choix d'architecture hébergement de startups (problématiques et solutions)
+                |
+                |Par :
+                |- Nicolas Verdier (OVH)
+                |- Anas Ameziane (Follow)
+                |- Quentin Decré (Follow)""".stripMargin),
             Some(13), Some(0), Some(0),
             Some("En"),
             Some(10),
             Some(FiniteDuration(199, MICROSECONDS))
             , Seq()),
           VideoItem("youtube#video", "xUudC8S8M6s", Some(Instant.parse("2018-10-15T15:08:19Z")),
-            Some("UCVelKVoLQIhwx9C2LWf-CDA"), Some("[BreizhJUG] Au delà des brokers: un tour de l'environnement Kafka - Florent Ramière"),
+            Some("UCVelKVoLQIhwx9C2LWf-CDA"),
+            Some("name"),
+            Some("[BreizhJUG] Au delà des brokers: un tour de l'environnement Kafka - Florent Ramière"),
             Some(
               """Apache Kafka ne se résume pas aux brokers, il y a tout un écosystème open-source qui gravite autour.Je vous propose ainsi de découvrir les principaux composants comme Kafka Streams, KSQL, Kafka Connect, Rest proxy, Schema Registry, MirrorMaker, etc.
                 |Venez avec vos questions, le plus la session sera interactive, le mieux elle sera!
@@ -210,6 +231,7 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
           VideoItem("youtube#video",
             "c6ZqYk01fbc", Some(Instant.parse("2018-03-15T22:57:36Z")),
             Some("UCVelKVoLQIhwx9C2LWf-CDA"),
+            Some("name"),
             Some("[Docker MeetUp] Tour d'horizon de Kubernetes (David Gageot)"),
             Some(
               """Au travers de vrais exemples de code, nous allons faire un tour d'horizon de Kubernetes: Déploiement de services, Pattern Sidecar, Extension de la platforme, Introduction a Istio, Expérience développeur, Docker for Desktop, Google Kubernetes Engine.
@@ -225,6 +247,7 @@ class YoutubeClientSpec extends FunSpec with Matchers with Inside {
           VideoItem("youtube#video",
             "oOE36iJ7xFk", Some(Instant.parse("2018-04-18T12:31:10Z")),
             Some("UCVelKVoLQIhwx9C2LWf-CDA"),
+            Some("name"),
             Some("Full-remote : guide de survie en environnement distant (Matthias Dugué)"),
             Some(
               """Travailler en équipe n'est jamais un défi simple. Travailler à distance est un enjeu encore plus complexe.

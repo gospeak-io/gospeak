@@ -13,7 +13,11 @@ final case class PlaylistItems(etag: String,
                                nextPageToken: Option[String],
                                prevPageToken: Option[String],
                                tokenPagination: Option[google.TokenPagination],
-                               visitorId: Option[String])
+                               visitorId: Option[String]) {
+  def hasNextPage: Boolean = nextPageToken.isDefined
+
+  def itemIds: Seq[String] = items.flatMap(_.contentDetails.flatMap(_.videoId))
+}
 
 object PlaylistItems {
   def apply(response: google.PlaylistItemListResponse): PlaylistItems =

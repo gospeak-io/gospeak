@@ -30,7 +30,7 @@ object VideoRepoSql {
   private val tableSelect = table.dropField(_.platform).get.dropField(_.id).get
 
   private[sql] def insert(e: Video): Insert[Video] = {
-    val values = fr0"${e.url.platform}, ${e.url}, ${e.url.videoId}, ${e.channel.map(_.id)}, ${e.channel.map(_.name)}, ${e.playlist.map(_.id)}, ${e.playlist.map(_.name)}, ${e.title}, ${e.description}, ${e.tags}, ${e.publishedAt}, ${e.duration}, ${e.lang}, ${e.views}, ${e.likes}, ${e.dislikes}, ${e.comments}, ${e.updatedAt}"
+    val values = fr0"${e.url.platform}, ${e.url}, ${e.url.videoId}, ${e.channel.id}, ${e.channel.name}, ${e.playlist.map(_.id)}, ${e.playlist.map(_.name)}, ${e.title}, ${e.description}, ${e.tags}, ${e.publishedAt}, ${e.duration}, ${e.lang}, ${e.views}, ${e.likes}, ${e.dislikes}, ${e.comments}, ${e.updatedAt}"
     table.insert[Video](e, _ => values)
   }
 

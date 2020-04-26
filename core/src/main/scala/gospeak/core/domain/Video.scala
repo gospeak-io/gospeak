@@ -2,20 +2,21 @@ package gospeak.core.domain
 
 import java.time.Instant
 
+import gospeak.core.domain.Video.{ChannelRef, PlaylistRef}
 import gospeak.libs.scala.domain.{CustomException, Tag, Url}
 import gospeak.libs.youtube.domain.VideoItem
 
 import scala.concurrent.duration.FiniteDuration
 
 final case class Video(url: Url.Video,
-                       channel: Option[Video.Ref],
-                       playlist: Option[Video.Ref],
+                       channel: ChannelRef,
+                       playlist: Option[PlaylistRef],
                        title: String,
                        description: String,
                        tags: Seq[Tag],
-                       publishedAt: Option[Instant],
+                       publishedAt: Instant,
                        duration: FiniteDuration,
-                       lang: Option[String],
+                       lang: String,
                        views: Long,
                        likes: Long,
                        dislikes: Long,
@@ -34,17 +35,23 @@ object Video {
   def from(videoItem: VideoItem, now: Instant): Either[CustomException, Video] =
     for {
       url <- Url.Video.from(videoItem.url)
+      channelId <- videoItem.channelId.toRight(CustomException("Missing channel Id."))
+      channelTitle <- videoItem.channelId.toRight(CustomException("Missing channel name."))
+      publishedAt <- videoItem.publishedAt.toRight(CustomException("Missing publication date."))
+      duration <- videoItem.duration.toRight(CustomException("Missing duration."))
+      title <- videoItem.title.toRight(CustomException("Missing title."))
+      description <- videoItem.title.toRight(CustomException("Missing description."))
     } yield
       new Video(
         url = url,
-        channel = videoItem.channelId.map(c => Ref(c, empty)),
+        channel = ChannelRef(channelId, channelTitle),
         playlist = None,
-        title = videoItem.title.getOrElse(empty),
-        description = videoItem.description.getOrElse(empty),
+        title = title,
+        description = description,
         tags = videoItem.tags.map(Tag(_)),
-        publishedAt = videoItem.publishedAt,
-        duration = videoItem.duration.get,
-        lang = videoItem.lang,
+        publishedAt = publishedAt,
+        duration = duration,
+        lang = videoItem.lang.getOrElse("EN"),
         views = videoItem.views.getOrElse(0),
         likes = videoItem.likes.getOrElse(0),
         dislikes = videoItem.dislikes.getOrElse(0),
@@ -52,17 +59,19 @@ object Video {
         updatedAt = now
       )
 
-  final case class Ref(id: String, name: String)
+  final case class ChannelRef(id: String, name: String)
+
+  final case class PlaylistRef(id: String, name: String)
 
   final case class Data(url: Url.Video,
-                        channel: Option[Ref],
-                        playlist: Option[Ref],
+                        channel: ChannelRef,
+                        playlist: Option[PlaylistRef],
                         title: String,
                         description: String,
                         tags: Seq[Tag],
-                        publishedAt: Option[Instant],
+                        publishedAt: Instant,
                         duration: FiniteDuration,
-                        lang: Option[String],
+                        lang: String,
                         views: Long,
                         likes: Long,
                         dislikes: Long,

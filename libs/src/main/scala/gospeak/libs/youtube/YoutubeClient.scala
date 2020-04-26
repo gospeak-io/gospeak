@@ -33,11 +33,13 @@ class YoutubeClient(val underlying: YouTube) {
           IO.raiseError(e)
       }
 
-  def playlistItems(playlistId: String): IO[Either[YoutubeErrors, PlaylistItems]] = {
+
+  def playlistItems(playlistId: String, pageToken: String): IO[Either[YoutubeErrors, PlaylistItems]] = {
     IO(underlying
       .playlistItems()
       .list(contentDetails)
       .setPlaylistId(playlistId)
+      .setPageToken(pageToken)
       .execute())
       .map(r => Right(PlaylistItems(r)))
       .handleErrorWith {
@@ -48,8 +50,16 @@ class YoutubeClient(val underlying: YouTube) {
       }
   }
 
+  def playlistItems(playlistId: String): IO[Either[YoutubeErrors, PlaylistItems]] = {
+    playlistItems(playlistId, "")
+  }
+
   def search(channelId: String, itemType: String): IO[Either[YoutubeErrors, SearchResults]] = {
     search(channelId, itemType, "")
+  }
+
+  def searchVideos(channelId: String, pageToken: String): IO[Either[YoutubeErrors, SearchResults]] = {
+    search(channelId, videoType, pageToken)
   }
 
   def search(channelId: String, itemType: String, pageToken: String): IO[Either[YoutubeErrors, SearchResults]] = {
