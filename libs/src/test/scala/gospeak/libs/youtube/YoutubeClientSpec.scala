@@ -6,9 +6,9 @@ import gospeak.libs.scala.domain.Secret
 import gospeak.libs.youtube.domain._
 import org.scalatest.Inside
 import org.scalatest.funspec.AnyFunSpec
-import scala.collection.immutable
-import scala.concurrent.duration.{FiniteDuration, MICROSECONDS}
 import org.scalatest.matchers.should.Matchers
+
+import scala.collection.immutable
 
 class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
   // you should paste your key here for testing
@@ -18,7 +18,7 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
       |""".stripMargin
   private val youtubeClient = YoutubeClient.create(Secret(secret))
 
-  describe("channelBy") {
+  ignore("channelBy") {
     it("should retrieve channel information") {
       val value = youtubeClient.channelBy("UCVelKVoLQIhwx9C2LWf-CDA").unsafeRunSync()
       inside(value) {
@@ -33,7 +33,7 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
       }
     }
   }
-  describe("playListItems") {
+  ignore("playListItems") {
     it("should retrieve items") {
       val value = youtubeClient.playlistItems("PLv7xGPH0RMUTbzjcYSIMxGXA8RrQWdYGh").unsafeRunSync()
       inside(value) {
@@ -84,7 +84,7 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
             |}""".stripMargin)))
     }
   }
-  describe("search") {
+  ignore("search") {
     it("should retrieve results") {
       val value = youtubeClient.search("UCVelKVoLQIhwx9C2LWf-CDA", "youtube#video").unsafeRunSync()
       val items: Seq[SearchResult] = value.right.get.items
@@ -138,7 +138,7 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
     }
   }
 
-  describe("videos") {
+  ignore("videos") {
     it("should return selected videos") {
 
       val result = youtubeClient.videos(Seq("itGmiTS_IPw",
@@ -148,10 +148,10 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
         "oOE36iJ7xFk"))
         .unsafeRunSync().right.get
 
-      inside(result) { case VideosListResponse(kind, info, items: Seq[VideoItem]) =>
+      inside(result) { case VideosListResponse(kind, info, items: Seq[YoutubeVideo]) =>
         kind shouldBe "youtube#videoListResponse"
         info shouldBe Some(PageInfo(5, 5))
-        val expected: Seq[VideoItem] = List(VideoItem("youtube#video",
+        val expected: Seq[YoutubeVideo] = List(YoutubeVideo("youtube#video",
           "itGmiTS_IPw",
           Some(Instant.parse("2019-06-14T09:53:15Z")),
           Some("UCVelKVoLQIhwx9C2LWf-CDA"),
@@ -169,7 +169,7 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
           Some(10),
           Some("")
           , Seq()),
-          VideoItem("youtube#video", "NkH9WNE0OJc",
+          YoutubeVideo("youtube#video", "NkH9WNE0OJc",
             Some(Instant.parse("2018-11-08T11:28:57Z")),
             Some("UCVelKVoLQIhwx9C2LWf-CDA"),
             Some("name"),
@@ -201,7 +201,7 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
             Some(10),
             Some("")
             , Seq()),
-          VideoItem("youtube#video", "xUudC8S8M6s", Some(Instant.parse("2018-10-15T15:08:19Z")),
+          YoutubeVideo("youtube#video", "xUudC8S8M6s", Some(Instant.parse("2018-10-15T15:08:19Z")),
             Some("UCVelKVoLQIhwx9C2LWf-CDA"),
             Some("name"),
             Some("[BreizhJUG] Au delà des brokers: un tour de l'environnement Kafka - Florent Ramière"),
@@ -215,7 +215,7 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
             Some(10),
             Some("")
             , Seq()),
-          VideoItem("youtube#video",
+          YoutubeVideo("youtube#video",
             "c6ZqYk01fbc", Some(Instant.parse("2018-03-15T22:57:36Z")),
             Some("UCVelKVoLQIhwx9C2LWf-CDA"),
             Some("name"),
@@ -231,7 +231,7 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
             Some(10),
             Some(""),
             Seq("kubernetes", "istio")),
-          VideoItem("youtube#video",
+          YoutubeVideo("youtube#video",
             "oOE36iJ7xFk", Some(Instant.parse("2018-04-18T12:31:10Z")),
             Some("UCVelKVoLQIhwx9C2LWf-CDA"),
             Some("name"),

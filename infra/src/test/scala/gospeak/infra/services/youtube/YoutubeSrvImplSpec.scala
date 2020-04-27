@@ -7,6 +7,7 @@ import gospeak.core.domain.Video.{ChannelRef, PlaylistRef}
 import gospeak.infra.testingutils.BaseSpec
 import gospeak.libs.scala.domain.{Secret, Url}
 import gospeak.libs.youtube.YoutubeClient
+import org.scalatest.Ignore
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -54,7 +55,7 @@ class YoutubeSrvImplSpec extends BaseSpec {
       List(), Instant.parse("2019-09-20T12:37:15Z"),
       FiniteDuration(5618000000000L, "nanoseconds"),
       "fr", 1589, 16, 1, 0, now))
-  describe("channelVideos") {
+  ignore("channelVideos") {
     it("should get all videos by channel id") {
 
       val res = youtubeSrvImpl.channelVideos(ChannelRef("UCVelKVoLQIhwx9C2LWf-CDA", ""))(now).unsafeRunSync()
@@ -64,7 +65,8 @@ class YoutubeSrvImplSpec extends BaseSpec {
     }
   }
 
-  describe("playlistVideos") {
+  // you may update your expectedVideos data, because likes/comments/dislikes are subjects to continual updates
+  ignore("playlistVideos") {
     it("should get all videos by playlist id") {
 
       val res = youtubeSrvImpl.playlistVideos(PlaylistRef("PLv7xGPH0RMUTbzjcYSIMxGXA8RrQWdYGh", ""))(now).unsafeRunSync()
