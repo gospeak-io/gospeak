@@ -4,8 +4,3 @@
 target/
 /node_modules/
 /local/
-web/conf/local.conf
-web/conf/env.local.conf
-web/conf/env.dev.conf
-web/conf/env.prod.conf
-run_coverage.sh
