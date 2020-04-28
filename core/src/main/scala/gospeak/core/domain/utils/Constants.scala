@@ -31,6 +31,7 @@ object Constants {
     // https://coolsymbol.com/emojis/emoji-for-copy-and-paste.html
     // https://unicode.org/emoji/charts/full-emoji-list.html
     val sparkles = "✨"
+    val partyPopper = "\uD83C\uDF89"
     val nerdFace = "\uD83E\uDD13"
     val grinningFace = "\uD83D\uDE00"
     val rocket = "\uD83D\uDE80"

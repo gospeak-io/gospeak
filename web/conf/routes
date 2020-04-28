@@ -1,5 +1,6 @@
 GET         /                                                                              gospeak.web.pages.published.HomeCtrl.index
 GET         /why                                                                           gospeak.web.pages.published.HomeCtrl.why
+GET         /video-newsletter                                                              gospeak.web.pages.published.HomeCtrl.videoNewsletter
 GET         /sitemap.xml                                                                   gospeak.web.pages.published.HomeCtrl.sitemap
 
 GET         /cfps                                                                          gospeak.web.pages.published.cfps.CfpCtrl.list(params: Page.Params ?= Page.Params.defaults)
