@@ -16,10 +16,10 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
     """
       |{}
       |""".stripMargin
-  private val youtubeClient = YoutubeClient.create(Secret(secret))
 
   ignore("channelBy") {
     it("should retrieve channel information") {
+      val youtubeClient: YoutubeClient = YoutubeClient.create(Secret(secret))
       val value = youtubeClient.channelBy("UCVelKVoLQIhwx9C2LWf-CDA").unsafeRunSync()
       inside(value) {
         case Right(ChannelsResponse(etag, None, items, kind, None, None, None, None)) =>
@@ -35,6 +35,7 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
   }
   ignore("playListItems") {
     it("should retrieve items") {
+      val youtubeClient: YoutubeClient = YoutubeClient.create(Secret(secret))
       val value = youtubeClient.playlistItems("PLv7xGPH0RMUTbzjcYSIMxGXA8RrQWdYGh").unsafeRunSync()
       inside(value) {
         case Right(PlaylistItems(etag, None, items: immutable.Seq[PlaylistItem], kind, nextPageToken, None, None, None)) =>
@@ -60,6 +61,7 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
       }
     }
     it("should fail when id does not exist") {
+      val youtubeClient: YoutubeClient = YoutubeClient.create(Secret(secret))
       val value = youtubeClient.playlistItems("UCbyWrAbUv7dxGcZ1nDvjpQw").unsafeRunSync()
       value shouldBe Left(YoutubeErrors(404,
         List(
@@ -86,6 +88,7 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
   }
   ignore("search") {
     it("should retrieve results") {
+      val youtubeClient: YoutubeClient = YoutubeClient.create(Secret(secret))
       val value = youtubeClient.search("UCVelKVoLQIhwx9C2LWf-CDA", "youtube#video").unsafeRunSync()
       val items: Seq[SearchResult] = value.right.get.items
       items.length shouldBe 43
@@ -140,7 +143,7 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
 
   ignore("videos") {
     it("should return selected videos") {
-
+      val youtubeClient: YoutubeClient = YoutubeClient.create(Secret(secret))
       val result = youtubeClient.videos(Seq("itGmiTS_IPw",
         "NkH9WNE0OJc",
         "xUudC8S8M6s",
