@@ -8,6 +8,7 @@ import gospeak.core.services.meetup.MeetupConf
 import gospeak.core.services.storage.DbConf
 import gospeak.core.services.twitter.TwitterConf
 import gospeak.core.services.upload.UploadConf
+import gospeak.core.services.youtube.YoutubeConf
 import gospeak.core.{ApplicationConf, GsConf}
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
@@ -26,6 +27,7 @@ final case class AppConf(app: ApplicationConf,
                          email: EmailConf,
                          upload: UploadConf,
                          meetup: MeetupConf,
+                         youtube: YoutubeConf,
                          twitter: Option[TwitterConf],
                          gospeak: GsConf)
 
@@ -111,6 +113,7 @@ object AppConf {
     private implicit val emailConfReader: ConfigReader[EmailConf] = deriveReader[EmailConf]
     private implicit val uploadConfReader: ConfigReader[UploadConf] = deriveReader[UploadConf]
     private implicit val meetupConfReader: ConfigReader[MeetupConf] = deriveReader[MeetupConf]
+    private implicit val youtubeConfReader: ConfigReader[YoutubeConf] = deriveReader[YoutubeConf]
     private implicit val twitterConfReader: ConfigReader[TwitterConf] = deriveReader[TwitterConf]
     private implicit val gsConfReader: ConfigReader[GsConf] = deriveReader[GsConf]
 

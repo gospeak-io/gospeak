@@ -31,6 +31,7 @@ import gospeak.infra.services.twitter.TwitterSrvImpl
 import gospeak.infra.services.upload.UploadSrvFactory
 import gospeak.libs.scala.{BasicMessageBus, MessageBus}
 import gospeak.libs.slack.SlackClient
+import gospeak.libs.youtube.YoutubeClient
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
 import gospeak.web.auth.{AuthConf, AuthCtrl}
@@ -95,6 +96,7 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val twitterSrv: Option[TwitterSrv] = conf.twitter.map(new TwitterSrvImpl(_, conf.app.env.isProd))
   lazy val meetupSrv: MeetupSrv = MeetupSrvImpl.from(conf.meetup, conf.app.baseUrl, conf.app.env.isProd)
   lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient())
+  lazy val youtubeClient: Option[YoutubeClient] = conf.youtube.secret.map(YoutubeClient.create)
   lazy val messageSrv: MessageSrv = wire[MessageSrv]
   lazy val messageBus: MessageBus[Message] = wire[BasicMessageBus[Message]]
   lazy val messageHandler: MessageHandler = wire[MessageHandler]
@@ -113,7 +115,6 @@ class GsComponents(context: ApplicationLoader.Context)
       sharedSecret = configuration.underlying.getString("silhouette.jwt.authenticator.sharedSecret"))
     new JWTAuthenticatorService(config, None, authenticatorDecoder, idGenerator, clock)
   } */
-
   val signer: Signer = new JcaSigner(conf.auth.cookie.signer)
   val crypter: Crypter = new JcaCrypter(conf.auth.cookie.crypter)
   lazy val cookieAuth: AuthenticatorService[CookieAuthenticator] = {
