@@ -54,10 +54,6 @@ class YoutubeClient(val underlying: YouTube) {
     playlistItems(playlistId, "")
   }
 
-  def search(channelId: String, itemType: String): IO[Either[YoutubeErrors, SearchResults]] = {
-    search(channelId, itemType, "")
-  }
-
   def searchVideos(channelId: String, pageToken: String): IO[Either[YoutubeErrors, SearchResults]] = {
     search(channelId, videoType, pageToken)
   }

@@ -89,7 +89,7 @@ class YoutubeClientSpec extends AnyFunSpec with Matchers with Inside {
   ignore("search") {
     it("should retrieve results") {
       val youtubeClient: YoutubeClient = YoutubeClient.create(Secret(secret))
-      val value = youtubeClient.search("UCVelKVoLQIhwx9C2LWf-CDA", "youtube#video").unsafeRunSync()
+      val value = youtubeClient.searchVideos("UCVelKVoLQIhwx9C2LWf-CDA", "").unsafeRunSync()
       val items: Seq[SearchResult] = value.right.get.items
       items.length shouldBe 43
       val expected = Seq("F8C_iPGhHoI",

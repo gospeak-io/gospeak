@@ -32,7 +32,9 @@ object Video {
   def apply(d: Data, now: Instant): Video =
     new Video(d.url, d.channel, d.playlist, d.title, d.description, d.tags, d.publishedAt, d.duration, d.lang, d.views, d.likes, d.dislikes, d.comments, now)
 
-  def from(video: YoutubeVideo, now: Instant): Either[CustomException, Video] =
+  def from(video: YoutubeVideo, now: Instant): Either[CustomException, Video] = from(video, now, None)
+
+  def from(video: YoutubeVideo, now: Instant, playlistRef: Option[PlaylistRef]): Either[CustomException, Video] =
     for {
       url <- Url.Video.from(video.url)
       channelId <- video.channelId.toRight(CustomException("Missing channel Id."))
