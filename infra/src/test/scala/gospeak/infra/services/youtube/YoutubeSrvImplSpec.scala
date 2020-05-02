@@ -11,7 +11,7 @@ import gospeak.libs.youtube.YoutubeClient
 import scala.concurrent.duration.FiniteDuration
 
 class YoutubeSrvImplSpec extends BaseSpec {
-  
+
   // Add your google api key here
   val secret: Secret = Secret(
     """{}"""

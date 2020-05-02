@@ -36,11 +36,11 @@ object Video {
     for {
       url <- Url.Video.from(video.url)
       channelId <- video.channelId.toRight(CustomException("Missing channel Id."))
-      channelTitle <- video.channelId.toRight(CustomException("Missing channel name."))
+      channelTitle <- video.channelTitle.toRight(CustomException("Missing channel name."))
       publishedAt <- video.publishedAt.toRight(CustomException("Missing publication date."))
       duration <- video.duration.flatMap(toFiniteDuration).toRight(CustomException("Missing duration."))
       title <- video.title.toRight(CustomException("Missing title."))
-      description <- video.title.toRight(CustomException("Missing description."))
+      description <- video.description.toRight(CustomException("Missing description."))
     } yield
       new Video(
         url = url,

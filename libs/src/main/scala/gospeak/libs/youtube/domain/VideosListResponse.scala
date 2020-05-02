@@ -9,8 +9,7 @@ import scala.collection.JavaConverters._
 
 final case class VideosListResponse(kind: String,
                                     pageInfo: Option[PageInfo],
-                                    items: Seq[YoutubeVideo]
-                                   )
+                                    items: Seq[YoutubeVideo])
 
 case object VideosListResponse {
   def apply(videoListResponse: google.VideoListResponse): VideosListResponse =
@@ -33,7 +32,7 @@ final case class YoutubeVideo(kind: String,
                               views: Option[Int],
                               duration: Option[String],
                               tags: Seq[String]
-                          )
+                             )
 
 object YoutubeVideo {
   val baseUrl: String = "https://www.youtube.com/watch?v="
