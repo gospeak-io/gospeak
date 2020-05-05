@@ -63,7 +63,7 @@ val silhouette = Seq(
 val silhouetteTest = Seq(
   "com.mohiva" %% "play-silhouette-testkit").map(_ % silhouetteVersion % "test")
 val playJson = Seq("com.typesafe.play" %% "play-json" % "2.8.1")
-val macwireVersion = "2.3.3"
+val macwireVersion = "2.3.4"
 val play = Seq(
   "com.softwaremill.macwire" %% "macros" % macwireVersion % Provided,
   "com.softwaremill.macwire" %% "macrosakka" % macwireVersion % Provided)
