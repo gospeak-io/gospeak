@@ -1,0 +1,19 @@
+@import gospeak.core.domain.ExternalEvent
+@import gospeak.libs.scala.domain.Page
+@import gospeak.web.pages.admin.partials.html.container
+@import gospeak.web.pages.admin.routes.AdminCtrl
+@import gospeak.web.utils.{AdminReq, Formats}
+
+@(extEvents: Page[(ExternalEvent, Long)])(implicit req: AdminReq[AnyContent])
+@videoListTemplate(e: (ExternalEvent, Long)) = {
+    @e._1.videos.map { v =>
+        <li><a href="@v.value" target="_blank">@e._1.name.value</a>: @e._2 videos</li>
+    }
+}
+@container(s"Admin")() {
+    <h1>Videos</h1>
+    <p>A list of video links available</p>
+    <ul>
+        @Formats.paginated(extEvents, AdminCtrl.fetchVideos, videoListTemplate)
+    </ul>
+}()

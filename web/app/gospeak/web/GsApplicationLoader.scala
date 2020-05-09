@@ -88,6 +88,7 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val externalEvent: ExternalEventRepo = db.externalEvent
   lazy val externalCfp: ExternalCfpRepo = db.externalCfp
   lazy val externalProposal: ExternalProposalRepo = db.externalProposal
+  lazy val video: VideoRepo = db.video
   lazy val authRepo: AuthRepo = wire[AuthRepo]
 
   lazy val avatarSrv: AvatarSrv = wire[AvatarSrv]

@@ -9,10 +9,10 @@ import gospeak.core.domain.utils.UserAwareCtx
 import gospeak.core.services.storage.VideoRepo
 import gospeak.infra.services.storage.sql.VideoRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Insert, Select, SelectPage, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Sort, Update}
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Done, Page}
+import gospeak.libs.scala.domain.{Done, Page, Url}
 
 class VideoRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with VideoRepo {
   override def create(video: Video.Data, now: Instant): IO[Video] = insert(Video(video, now)).run(xa)
@@ -22,6 +22,13 @@ class VideoRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def find(videoId: String): IO[Option[Video]] = selectOne(videoId).runOption(xa)
 
   override def list(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Video]] = selectPage(params).run(xa)
+
+  override def count(v: Url.Videos): IO[Long] = v match {
+    case c: Url.YouTube.Channel => countChannelId(c.containerId).runOption(xa).map(_.getOrElse(0))
+    case p: Url.YouTube.Playlist => countPlaylistId(p.containerId).runOption(xa).map(_.getOrElse(0))
+    case c: Url.Vimeo.Channel => countChannelId(c.containerId).runOption(xa).map(_.getOrElse(0))
+    case p: Url.Vimeo.Showcase => countPlaylistId(p.containerId).runOption(xa).map(_.getOrElse(0))
+  }
 }
 
 object VideoRepoSql {
@@ -44,4 +51,10 @@ object VideoRepoSql {
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Video, UserAwareCtx] =
     tableSelect.selectPage[Video, UserAwareCtx](params)
+
+  private[sql] def countChannelId(channelId: String): Select[Long] =
+    tableSelect.select[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE vi.channel_id=$channelId GROUP BY vi.channel_id", Sort("channel_id", "vi"))
+
+  private[sql] def countPlaylistId(playlistId: String): Select[Long] =
+    tableSelect.select[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE vi.playlist_id=$playlistId GROUP BY vi.playlist_id", Sort("playlist_id", "vi"))
 }

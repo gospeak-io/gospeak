@@ -141,7 +141,7 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
     check(q.query)
     if (checkCount) {
       // checkCount is here to avoid test errors with Timestamp type when in sub-query
-      // ex: SELECT count(*) FROM (SELECT e.id FROM events e WHERE e.group_id=? AND e.start > ?) as cnt
+      // ex: SELECT COUNT(*) FROM (SELECT e.id FROM events e WHERE e.group_id=? AND e.start > ?) as cnt
       // => ✕ P02 Timestamp  →  VARCHAR (VARCHAR)
       //    Timestamp is not coercible to VARCHAR (VARCHAR) according to the
       //    JDBC specification. Expected schema type was TIMESTAMP.

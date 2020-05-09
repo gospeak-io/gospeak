@@ -396,7 +396,7 @@ object GsForms {
     "location" -> optional(gMapPlace),
     "url" -> optional(url),
     "tickets" -> optional(url),
-    "videos" -> optional(url),
+    "videos" -> optional(videosUrl),
     "twitterAccount" -> optional(twitterAccount),
     "twitterHashtag" -> optional(twitterHashtag),
     "tags" -> tags

@@ -70,6 +70,7 @@ object Mappings {
   )(new FiniteDuration(_, _))(d => Some(d.length -> d.unit))
   val emailAddress: Mapping[EmailAddress] = WrappedMapping(nonEmptyText.verifying(Constraints.emailAddress(), Constraints.maxLength(Values.maxLength.email)), (s: String) => EmailAddress.from(s).get, _.value)
   val url: Mapping[Url] = stringEitherMapping[Url, CustomException](Url.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val videosUrl: Mapping[Url.Videos] = stringEitherMapping[Url.Videos, CustomException](Url.Videos.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
   val twitterUrl: Mapping[Url.Twitter] = stringEitherMapping[Url.Twitter, CustomException](Url.Twitter.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
   val linkedInUrl: Mapping[Url.LinkedIn] = stringEitherMapping[Url.LinkedIn, CustomException](Url.LinkedIn.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
   val youTubeUrl: Mapping[Url.YouTube] = stringEitherMapping[Url.YouTube, CustomException](Url.YouTube.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
