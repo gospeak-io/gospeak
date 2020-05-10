@@ -1,19 +1,11 @@
 package gospeak.core.services.storage
 
-import java.time.Instant
-
 import cats.effect.IO
 import gospeak.core.domain.Video
-import gospeak.core.domain.utils.UserAwareCtx
-import gospeak.libs.scala.domain.{Done, Page, Url}
+import gospeak.core.domain.utils.{AdminCtx, UserAwareCtx}
+import gospeak.libs.scala.domain.{Done, Page}
 
-trait VideoRepo extends BatchVideoRepo with PublicVideoRepo with AdminVideoRepo
-
-trait BatchVideoRepo {
-  def create(video: Video.Data, now: Instant): IO[Video]
-
-  def edit(video: Video.Data, now: Instant): IO[Done]
-}
+trait VideoRepo extends PublicVideoRepo with AdminVideoRepo
 
 trait PublicVideoRepo {
   def find(videoId: String): IO[Option[Video]]
@@ -22,5 +14,17 @@ trait PublicVideoRepo {
 }
 
 trait AdminVideoRepo {
-  def count(v: Url.Videos): IO[Long]
+  def create(video: Video.Data)(implicit ctx: AdminCtx): IO[Video]
+
+  def edit(video: Video.Data)(implicit ctx: AdminCtx): IO[Done]
+
+  def remove(video: Video.Data)(implicit ctx: AdminCtx): IO[Done]
+
+  def listAllForChannel(channelId: String): IO[List[Video]]
+
+  def listAllForPlaylist(playlistId: String): IO[List[Video]]
+
+  def countForChannel(channelId: String): IO[Long]
+
+  def countForPlaylist(playlistId: String): IO[Long]
 }

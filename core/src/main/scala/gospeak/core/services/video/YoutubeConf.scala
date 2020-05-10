@@ -1,4 +1,4 @@
-package gospeak.core.services.youtube
+package gospeak.core.services.video
 
 import gospeak.libs.scala.domain.Secret
 

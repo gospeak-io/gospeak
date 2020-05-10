@@ -40,10 +40,11 @@ class UrlSpec extends BaseSpec {
     it("should identify YouTube urls") {
       Seq(
         ("https://loicknuchel.fr", "", ""),
-        ("https://www.youtube.com/user/BreizhCamp", "channel", "BreizhCamp"),
+        ("https://www.youtube.com/HumanTalksParis", "channel", "HumanTalksParis"),
         ("https://www.youtube.com/c/HumanTalksParis", "channel", "HumanTalksParis"),
+        ("https://www.youtube.com/user/BreizhCamp", "channel", "BreizhCamp"),
         ("https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog", "channel", "UCKFAwlgWiAB4vUpgnS63qog"),
-        ("https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog//videos", "channel", "UCKFAwlgWiAB4vUpgnS63qog"),
+        ("https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog/videos", "channel", "UCKFAwlgWiAB4vUpgnS63qog"),
         ("https://www.youtube.com/playlist?list=PLjkHSzY9VuL96Z9gpNrlwztU3w72zccCx", "playlist", "PLjkHSzY9VuL96Z9gpNrlwztU3w72zccCx"),
         ("https://www.youtube.com/watch?v=QfmVc9c_8Po&list=PLjkHSzY9VuL96Z9gpNrlwztU3w72zccCx", "video", "QfmVc9c_8Po"),
         ("https://www.youtube.com/watch?v=QfmVc9c_8Po", "video", "QfmVc9c_8Po"),
@@ -54,7 +55,7 @@ class UrlSpec extends BaseSpec {
         case (u: Url.YouTube.Playlist, "playlist", handle) => u.handle shouldBe handle
         case (u: Url.YouTube.Video, "video", handle) => u.handle shouldBe handle
         case (u: Url.YouTube, "youtube", handle) => u.handle shouldBe handle
-        case (u, k, _) => if (k.nonEmpty) fail(s"Unexpected result for url: ${u.value}")
+        case (u, k, _) => if (k.nonEmpty) fail(s"Unexpected result for url: ${u.value} (${u.getClass.getTypeName})")
       }
     }
     it("should identify Vimeo urls") {

@@ -8,7 +8,7 @@ import gospeak.core.services.meetup.MeetupConf
 import gospeak.core.services.storage.DbConf
 import gospeak.core.services.twitter.TwitterConf
 import gospeak.core.services.upload.UploadConf
-import gospeak.core.services.youtube.YoutubeConf
+import gospeak.core.services.video.YoutubeConf
 import gospeak.core.{ApplicationConf, GsConf}
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._

@@ -15,6 +15,13 @@ object YoutubeErrors {
       code = ex.getStatusCode,
       errors = YoutubeError.from(ex.getDetails),
       message = Option(ex.getMessage))
+
+  // used for custom validations
+  def apply(message: String) =
+    new YoutubeErrors(
+      code = 0,
+      errors = List(),
+      message = Some(message))
 }
 
 final case class YoutubeError(domain: Option[String],

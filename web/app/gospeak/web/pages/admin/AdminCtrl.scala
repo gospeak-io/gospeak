@@ -3,18 +3,20 @@ package gospeak.web.pages.admin
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.messages.Message
-import gospeak.core.domain.{Event, Group}
+import gospeak.core.domain.{Event, Group, Video}
 import gospeak.core.services.slack.domain.SlackAction
 import gospeak.core.services.storage._
-import gospeak.libs.scala.domain.{Mustache, Page}
+import gospeak.core.services.video.VideoSrv
+import gospeak.libs.scala.Diff
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.{Mustache, Page, Url}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.pages.admin.AdminCtrl.UserTemplateReport
 import gospeak.web.services.MessageSrv
-import gospeak.web.utils.UICtrl
+import gospeak.web.utils.{AdminReq, UICtrl}
 import io.circe.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import gospeak.libs.scala.Extensions._
 
 class AdminCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
@@ -24,6 +26,7 @@ class AdminCtrl(cc: ControllerComponents,
                 eventRepo: AdminEventRepo,
                 extEventRepo: AdminExternalEventRepo,
                 videoRepo: AdminVideoRepo,
+                videoSrv: VideoSrv,
                 ms: MessageSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.AdminAction {
   def index(): Action[AnyContent] = AdminAction { implicit req =>
     IO.pure(Ok(html.index()))
@@ -44,8 +47,37 @@ class AdminCtrl(cc: ControllerComponents,
   def fetchVideos(params: Page.Params): Action[AnyContent] = AdminAction { implicit req =>
     for {
       extEvents <- extEventRepo.list(params.withFilter("video", "true"))
-      extEventsWithVideoCount <- extEvents.map(e => e.videos.map(v =>  videoRepo.count(v)).getOrElse(IO.pure(0L)).map(c => e -> c)).sequence
+      extEventsWithVideoCount <- extEvents.map(e => e.videos.map {
+        case u: Url.Videos.Channel => videoSrv.getChannelId(u).flatMap(videoRepo.countForChannel)
+        case u: Url.Videos.Playlist => videoRepo.countForPlaylist(u.playlistId)
+      }.getOrElse(IO.pure(0L)).map(c => e -> c)).sequence
     } yield Ok(html.fetchVideos(extEventsWithVideoCount))
+  }
+
+  def updateVideoChannel(url: Url.Videos.Channel): Action[AnyContent] = AdminAction { implicit req =>
+    for {
+      channelId <- videoSrv.getChannelId(url)
+      currentVideos <- videoSrv.listVideos(url)
+      gospeakVideos <- videoRepo.listAllForChannel(channelId).map(_.map(_.data))
+      _ <- updateVideos(gospeakVideos, currentVideos)
+    } yield redirectToPreviousPageOr(routes.AdminCtrl.fetchVideos())
+  }
+
+  def updateVideoPlaylist(url: Url.Videos.Playlist): Action[AnyContent] = AdminAction { implicit req: AdminReq[AnyContent] =>
+    for {
+      currentVideos <- videoSrv.listVideos(url)
+      gospeakVideos <- videoRepo.listAllForPlaylist(url.playlistId).map(_.map(_.data))
+      _ <- updateVideos(gospeakVideos, currentVideos)
+    } yield redirectToPreviousPageOr(routes.AdminCtrl.fetchVideos())
+  }
+
+  private def updateVideos(gospeakVideos: List[Video.Data], currentVideos: List[Video.Data])(implicit req: AdminReq[AnyContent]): IO[Unit] = {
+    val videosDiff = Diff.from[Video.Data](gospeakVideos, currentVideos, (a: Video.Data, b: Video.Data) => a.url == b.url)
+    for {
+      _ <- videosDiff.leftOnly.map(v => videoRepo.remove(v)).sequence
+      _ <- videosDiff.rightOnly.map(v => videoRepo.create(v)).sequence
+      _ <- videosDiff.both.map { case (_, v) => videoRepo.edit(v) }.sequence
+    } yield ()
   }
 }
 

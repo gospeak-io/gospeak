@@ -22,6 +22,7 @@ import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.storage._
 import gospeak.core.services.twitter.TwitterSrv
+import gospeak.core.services.video.VideoSrv
 import gospeak.infra.services.AvatarSrv
 import gospeak.infra.services.email.EmailSrvFactory
 import gospeak.infra.services.meetup.MeetupSrvImpl
@@ -29,9 +30,9 @@ import gospeak.infra.services.slack.SlackSrvImpl
 import gospeak.infra.services.storage.sql._
 import gospeak.infra.services.twitter.TwitterSrvImpl
 import gospeak.infra.services.upload.UploadSrvFactory
+import gospeak.infra.services.video.VideoSrvImpl
 import gospeak.libs.scala.{BasicMessageBus, MessageBus}
 import gospeak.libs.slack.SlackClient
-import gospeak.libs.youtube.YoutubeClient
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
 import gospeak.web.auth.{AuthConf, AuthCtrl}
@@ -97,7 +98,7 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val twitterSrv: Option[TwitterSrv] = conf.twitter.map(new TwitterSrvImpl(_, conf.app.env.isProd))
   lazy val meetupSrv: MeetupSrv = MeetupSrvImpl.from(conf.meetup, conf.app.baseUrl, conf.app.env.isProd)
   lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient())
-  lazy val youtubeClient: Option[YoutubeClient] = conf.youtube.secret.map(YoutubeClient.create)
+  lazy val videoSrv: VideoSrv = VideoSrvImpl.from(conf.youtube).get
   lazy val messageSrv: MessageSrv = wire[MessageSrv]
   lazy val messageBus: MessageBus[Message] = wire[BasicMessageBus[Message]]
   lazy val messageHandler: MessageHandler = wire[MessageHandler]

@@ -14,6 +14,10 @@ class VideoRepoSqlSpec extends RepoSpec {
         val q = VideoRepoSql.update(video.data, now)
         check(q, s"UPDATE $table SET title=?, description=?, tags=?, duration=?, lang=?, views=?, likes=?, dislikes=?, comments=?, updated_at=? WHERE id=?")
       }
+      it("should build delete") {
+        val q = VideoRepoSql.delete(video.data.url)
+        check(q, s"DELETE FROM $table WHERE id=?")
+      }
       it("should build selectOne by id") {
         val q = VideoRepoSql.selectOne(video.url.videoId)
         check(q, s"SELECT $fields FROM $table WHERE vi.id=? $orderBy")
@@ -21,6 +25,14 @@ class VideoRepoSqlSpec extends RepoSpec {
       it("should build selectPage") {
         val q = VideoRepoSql.selectPage(params)
         check(q, s"SELECT $fields FROM $table $orderBy LIMIT 20 OFFSET 0")
+      }
+      it("should build selectAllForChannel") {
+        val q = VideoRepoSql.selectAllForChannel("id")
+        check(q, s"SELECT $fields FROM $table WHERE vi.channel_id=? $orderBy")
+      }
+      it("should build selectAllForPlaylist") {
+        val q = VideoRepoSql.selectAllForPlaylist("id")
+        check(q, s"SELECT $fields FROM $table WHERE vi.playlist_id=? $orderBy")
       }
       it("should build countChannelId") {
         val q = VideoRepoSql.countChannelId("id")
