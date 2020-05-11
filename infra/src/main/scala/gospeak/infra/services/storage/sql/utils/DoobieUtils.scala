@@ -564,6 +564,7 @@ object DoobieUtils {
     implicit val externalCfpIdMeta: Meta[ExternalCfp.Id] = Meta[String].timap(ExternalCfp.Id.from(_).get)(_.value)
     implicit val externalProposalIdMeta: Meta[ExternalProposal.Id] = Meta[String].timap(ExternalProposal.Id.from(_).get)(_.value)
     implicit val voteMeta: Meta[Proposal.Rating.Grade] = Meta[Int].timap(Proposal.Rating.Grade.from(_).get)(_.value)
+    implicit val videoIdMeta: Meta[Video.Id] = Meta[String].timap(Video.Id.from(_).get)(_.value)
 
     implicit val userIdNelMeta: Meta[NonEmptyList[User.Id]] = Meta[String].timap(
       _.split(",").filter(_.nonEmpty).map(User.Id.from(_).get).toNelUnsafe)(

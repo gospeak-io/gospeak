@@ -9,9 +9,10 @@ import gospeak.core.domain.{Cfp, Event}
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Filter, Sort}
 import gospeak.libs.scala.domain.Page
 import gospeak.web.pages.partials.html
-import play.api.mvc.{AnyContent, Call}
+import play.api.mvc.{AnyContent, Call, Request}
 import play.twirl.api.Html
 
+import scala.annotation.tailrec
 import scala.concurrent.duration._
 
 object Formats {
@@ -72,6 +73,17 @@ object Formats {
     else Duration(d.toDays, DAYS)
   }
 
+  def duration(d: FiniteDuration): String = {
+    def pad(n: Long): String = padLeft(n.toString, 2, '0')
+
+    if (d > 1.hour) s"${d.toHours}:${pad(d.minus(d.toHours.hours).toMinutes)}:${pad(d.minus(d.toMinutes.minutes).toSeconds)}"
+    else s"${d.toMinutes}:${pad(d.minus(d.toMinutes.minutes).toSeconds)}"
+  }
+
+  @tailrec
+  def padLeft(str: String, size: Int, char: Char = ' '): String =
+    if (str.length < size) padLeft(char + str, size, char) else str
+
   def plural(n: Long, word: String, plural: String = ""): String =
     n match {
       case 0 => s"no $word"
@@ -123,7 +135,7 @@ object Formats {
          |  <div class="col-lg-6 col-md-12 mb-3">${html.search(page, link(Page.Params.defaults))}</div>
          |  <div class="col-lg-6 col-md-12 mb-3 d-flex justify-content-end">${html.pagination(page, link)}</div>
          |</div>
-         |<div class="mb-3"${if(filters.isEmpty && sorts.isEmpty) " style=\"display: none !important;\"" else ""}>
+         |<div class="mb-3"${if (filters.isEmpty && sorts.isEmpty) " style=\"display: none !important;\"" else ""}>
          |  ${html.filters(page, link, filters)}
          |  ${html.sorts(page, link, sorts)}
          |</div>
@@ -149,4 +161,10 @@ object Formats {
   def paginationFooter[A](page: Page[A], link: Page.Params => Call): Html = {
     Html(s"""<div class="d-flex justify-content-end mb-3"${if (page.hasManyPages || page.params.search.nonEmpty) "" else " style=\"display: none !important;\""}>${html.pagination(page, link)}</div>""")
   }
+
+  def redirectOr[A](redirect: Option[String], default: => Call)(implicit req: Request[A]): String =
+    redirect.filterNot(url => url.contains("login") || url.contains("signup")).getOrElse(default.toString)
+
+  def redirectToPreviousPageOr[A](default: => Call)(implicit req: Request[A]): String =
+    redirectOr(HttpUtils.getReferer(req.headers), default)
 }

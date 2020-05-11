@@ -133,6 +133,9 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     def proposalExt(talk: Talk, event: ExternalEvent, status: Proposal.Status = Proposal.Status.Accepted, url: Option[Url] = None): ExternalProposal =
       ExternalProposal(ExternalProposal.Id.generate(), talk.id, event.id, status, talk.title, talk.duration, talk.description, talk.message, talk.speakers, talk.slides, talk.video, url, talk.tags, talk.info)
 
+    def video(url: String, channel: (String, String), playlist: Option[(String, String)], title: String, description: String, tags: Seq[String], published: String, duration: Int, lang: String, views: Long, likes: Long, dislikes: Long, comments: Long): Video =
+      Video(Url.Video.from(url).get, Video.ChannelRef(channel._2, channel._1), playlist.map { case (name, id) => Video.PlaylistRef(id, name) }, title, description, tags.map(Tag(_)), Instant.parse(published + "T06:06:24.074Z"), duration.seconds, lang, views, likes, dislikes, comments, now)
+
     val groupDefaultSettings = gsConf.defaultGroupSettings
 
     val parisPlace = GMapPlace(
@@ -345,6 +348,29 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     val whyFPDevoxx2020 = proposalExt(whyFP, devoxx2020)
     val proposalExts = Seq(whyFPDevoxx2020)
 
+    val microservices = video(
+      url = "https://www.youtube.com/watch?v=212ZV9bTXxY", channel = "Codeurs en Seine" -> "UCWujmG5rANxJI0nHbMFs08w", playlist = Some("Codeurs en Seine 2018" -> "PLbbYL6fWx8Wzqh3eY4ENuxNCbQEgqLvvw"),
+      title = "Découvrir par l’exemple : Microservices et Event Sourcing avec Kafka et Kubernetes - Tugdual Grall", description = "", tags = Seq(),
+      published = "2019-01-15", duration = 2976, lang = "fr", views = 462, likes = 4, dislikes = 0, comments = 0)
+    val micode = video(
+      url = "https://www.youtube.com/watch?v=crnCudRa3wc", channel = "Micode" -> "UCYnvxJ-PKiGXo_tYXpWAC-w", playlist = None, title = "HACKER SHADOW EN 24H !", description =
+        """Ma marque : https://foreach.shop
+          |
+          |Nouvelles offres Shadow : https://shdw.me/micode (code promo PTDRTKI)
+          |
+          |
+          |► Twitter : https://twitter.com/micode
+          |► Instagram : https://instagram.com/micode
+          |
+          |Liens de parrainage pour soutenir mon travail :
+          |➜ Ma néobanque : https://n26.com/r/michaeld4673
+          |➜ Amazon : https://www.amazon.fr/?tag=tc0938-21
+          |➜ Les musiques que j’utilise : https://www.epidemicsound.com/referral/duoh5i
+          |""".stripMargin.trim,
+      tags = Seq("micode", "shadow pc", "shadow", "hacker", "hacker shadow", "24h", "en 24h", "mot de passe", "hack", "cloud gaming", "cloud computing"),
+      published = "2019-12-03", duration = 639, lang = "fr", views = 375859, likes = 21785, dislikes = 451, comments = 900)
+    val videos = Seq(microservices, micode)
+
     val generated = (1 to 25).map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
@@ -378,6 +404,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       _ <- eventExts.map(ExternalEventRepoSql.insert(_).run(xa)).sequence
       _ <- cfpExts.map(ExternalCfpRepoSql.insert(_).run(xa)).sequence
       _ <- proposalExts.map(ExternalProposalRepoSql.insert(_).run(xa)).sequence
+      _ <- videos.map(VideoRepoSql.insert(_).run(xa)).sequence
     } yield Done
   }
 

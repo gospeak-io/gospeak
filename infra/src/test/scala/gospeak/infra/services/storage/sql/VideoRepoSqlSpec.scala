@@ -19,7 +19,7 @@ class VideoRepoSqlSpec extends RepoSpec {
         check(q, s"DELETE FROM $table WHERE id=?")
       }
       it("should build selectOne by id") {
-        val q = VideoRepoSql.selectOne(video.url.videoId)
+        val q = VideoRepoSql.selectOne(video.id)
         check(q, s"SELECT $fields FROM $table WHERE vi.id=? $orderBy")
       }
       it("should build selectPage") {

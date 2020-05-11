@@ -85,6 +85,9 @@ object PathBindables {
   implicit def externalProposalPathBinder(implicit s: PathBindable[String]): PathBindable[ExternalProposal.Id] =
     stringBindable(ExternalProposal.Id.from, _.value)
 
+  implicit def videoPathBinder(implicit s: PathBindable[String]): PathBindable[Video.Id] =
+    stringBindable(Video.Id.from, _.value)
+
   private def stringBindable[A](from: String => Either[CustomException, A], to: A => String)(implicit s: PathBindable[String]): PathBindable[A] =
     new PathBindable[A] {
       override def bind(key: String, value: String): Either[String, A] = s.bind(key, value).flatMap(from(_).left.map(_.getMessage))

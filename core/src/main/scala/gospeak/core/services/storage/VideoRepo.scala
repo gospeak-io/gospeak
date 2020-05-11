@@ -8,9 +8,9 @@ import gospeak.libs.scala.domain.{Done, Page}
 trait VideoRepo extends PublicVideoRepo with AdminVideoRepo
 
 trait PublicVideoRepo {
-  def find(videoId: String): IO[Option[Video]]
-
   def list(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Video]]
+
+  def find(video: Video.Id): IO[Option[Video]]
 }
 
 trait AdminVideoRepo {

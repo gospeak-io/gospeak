@@ -21,7 +21,7 @@ class VideoRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def remove(video: Video.Data)(implicit ctx: AdminCtx): IO[Done] = delete(video.url).run(xa)
 
-  override def find(videoId: String): IO[Option[Video]] = selectOne(videoId).runOption(xa)
+  override def find(video: Video.Id): IO[Option[Video]] = selectOne(video).runOption(xa)
 
   override def list(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Video]] = selectPage(params).run(xa)
 
@@ -52,8 +52,8 @@ object VideoRepoSql {
   private[sql] def delete(url: Url.Video): Delete =
     table.delete(fr0"WHERE id=${url.videoId}")
 
-  private[sql] def selectOne(videoId: String): Select[Video] =
-    tableSelect.select[Video](fr0"WHERE vi.id=$videoId")
+  private[sql] def selectOne(video: Video.Id): Select[Video] =
+    tableSelect.select[Video](fr0"WHERE vi.id=$video")
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Video, UserAwareCtx] =
     tableSelect.selectPage[Video, UserAwareCtx](params)

@@ -178,6 +178,7 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val eventCtrl = wire[published.events.EventCtrl]
   lazy val groupCtrl = wire[published.groups.GroupCtrl]
   lazy val speakerCtrl = wire[published.speakers.SpeakerCtrl]
+  lazy val videoCtrl = wire[published.videos.VideoCtrl]
   lazy val authCtrl = wire[AuthCtrl]
   lazy val userCtrl = wire[user.UserCtrl]
   lazy val userTalkCtrl = wire[user.talks.TalkCtrl]

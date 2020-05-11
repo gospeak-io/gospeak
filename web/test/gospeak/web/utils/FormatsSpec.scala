@@ -53,5 +53,16 @@ class FormatsSpec extends BaseSpec {
         Formats.round(Duration(-3, DAYS).plus(Duration(1, HOURS))) shouldBe Duration(-2, DAYS)
       }
     }
+    describe("duration") {
+      it("should display durations") {
+        Formats.duration(3.millis) shouldBe "0:00"
+        Formats.duration(5.seconds) shouldBe "0:05"
+        Formats.duration(46.seconds) shouldBe "0:46"
+        Formats.duration(5.minutes.plus(16.seconds)) shouldBe "5:16"
+        Formats.duration(12.minutes.plus(2.seconds)) shouldBe "12:02"
+        Formats.duration(2.hours.plus(23.minutes).plus(18.seconds)) shouldBe "2:23:18"
+        Formats.duration(11.hours.plus(3.minutes).plus(7.seconds)) shouldBe "11:03:07"
+      }
+    }
   }
 }
