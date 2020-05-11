@@ -51,7 +51,7 @@ val youtubeApi = Seq(
   "com.google.api-client" % "google-api-client" % "1.23.0",
   "com.google.oauth-client" % "google-oauth-client-jetty" % "1.23.0"
 )
-val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.11")
+val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.12")
 val twitter = Seq("com.danielasfregola" %% "twitter4s" % "6.2") // https://github.com/DanielaSfregola/twitter4s
 val flyway = Seq("org.flywaydb" % "flyway-core" % "6.4.0")
 val silhouetteVersion = "7.0.0"
