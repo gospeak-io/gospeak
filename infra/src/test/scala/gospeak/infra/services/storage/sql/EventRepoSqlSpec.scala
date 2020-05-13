@@ -124,7 +124,7 @@ class EventRepoSqlSpec extends RepoSpec {
       describe("rsvp") {
         it("should build countRsvp") {
           val q = EventRepoSql.countRsvp(event.id, rsvp.answer)
-          check(q, s"SELECT count(*) FROM $rsvpTable WHERE er.event_id=? AND er.answer=? GROUP BY er.event_id, er.answer ORDER BY er.event_id IS NULL, er.event_id LIMIT 1")
+          check(q, s"SELECT COUNT(*) FROM $rsvpTable WHERE er.event_id=? AND er.answer=? GROUP BY er.event_id, er.answer ORDER BY er.event_id IS NULL, er.event_id LIMIT 1")
         }
         it("should build insertRsvp") {
           val q = EventRepoSql.insertRsvp(rsvp)

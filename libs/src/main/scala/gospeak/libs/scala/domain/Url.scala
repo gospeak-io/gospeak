@@ -26,6 +26,38 @@ object Url {
     }.toEither.left.map(e => CustomException(s"'$in' is an invalid Url", Seq(CustomError(e.getMessage))))
   }
 
+  sealed trait Videos extends Url {
+    val platform: String
+  }
+
+  object Videos {
+    def from(in: String): Either[CustomException, Url.Videos] = Url.from(in).flatMap {
+      case u: Url.Videos => Right(u)
+      case _ => Left(CustomException(s"'$in' is an invalid videos Url"))
+    }
+
+    sealed trait Channel extends Videos
+
+    object Channel {
+      def from(in: String): Either[CustomException, Url.Videos.Channel] = Url.from(in).flatMap {
+        case u: Url.Videos.Channel => Right(u)
+        case _ => Left(CustomException(s"'$in' is an invalid video channel Url"))
+      }
+    }
+
+    sealed trait Playlist extends Videos {
+      def playlistId: String
+    }
+
+    object Playlist {
+      def from(in: String): Either[CustomException, Url.Videos.Playlist] = Url.from(in).flatMap {
+        case u: Url.Videos.Playlist => Right(u)
+        case _ => Left(CustomException(s"'$in' is an invalid video playlist Url"))
+      }
+    }
+
+  }
+
   sealed trait Video extends Url {
     val platform: String
 
@@ -72,6 +104,8 @@ object Url {
   }
 
   sealed class YouTube private(url: Url) extends Url(url.value, url.parsed) {
+    val platform = "YouTube"
+
     override def handle: String =
       parsed.parameters.get("v")
         .orElse(parsed.parameters.get("list"))
@@ -87,13 +121,54 @@ object Url {
       case regex1() => Right(new YouTube(u))
       case regex2() => Right(new YouTube(u))
       case _ => Left(CustomException(s"'${u.value}' is not a YouTube url"))
-    }).map(y => Video.from(y).getOrElse(y))
+    }).map { y =>
+      Video.from(y).toOption
+        .orElse(Playlist.from(y).toOption)
+        .orElse(Channel.from(y).toOption)
+        .getOrElse(y)
+    }
 
     def from(in: String): Either[CustomException, YouTube] = Url.from(in).flatMap(from)
 
-    final class Video private(url: Url) extends YouTube(url) with Url.Video {
-      val platform: String = "YouTube"
+    final case class Channel private(url: Url) extends YouTube(url) with Url.Videos.Channel {
+      // this pattern matching is safe thanks to the Channel.from methods
+      def fold[T](channelId: String => T, username: String => T, customUrl: String => T): T = path match {
+        case List("channel", id, _*) => channelId(id)
+        case List("user", user, _*) => username(user)
+        case List("c", name) => customUrl(name)
+        case List(name) => customUrl(name)
+      }
+    }
 
+    object Channel {
+      def from(u: YouTube): Either[CustomException, Channel] = u.parsed.path match {
+        case List("channel", id, _*) => Right(new Channel(u))
+        case List("user", user, _*) => Right(new Channel(u))
+        case List("c", name) => Right(new Channel(u))
+        case List(name) if u.parsed.host != "youtu.be" && !Seq("playlist", "watch").contains(name) => Right(new Channel(u))
+        case _ => Left(CustomException(s"'${u.value}' is not a YouTube channel url"))
+      }
+
+      def from(u: Url): Either[CustomException, Channel] = YouTube.from(u).flatMap(from)
+
+      def from(u: String): Either[CustomException, Channel] = YouTube.from(u).flatMap(from)
+    }
+
+    final case class Playlist private(url: Url) extends YouTube(url) with Url.Videos.Playlist {
+      override def playlistId: String = handle
+    }
+
+    object Playlist {
+      def from(u: YouTube): Either[CustomException, Playlist] =
+        if (u.parsed.path == List("playlist")) Right(new Playlist(u))
+        else Left(CustomException(s"'${u.value}' is not a YouTube playlist url"))
+
+      def from(u: Url): Either[CustomException, Playlist] = YouTube.from(u).flatMap(from)
+
+      def from(u: String): Either[CustomException, Playlist] = YouTube.from(u).flatMap(from)
+    }
+
+    final class Video private(url: Url) extends YouTube(url) with Url.Video {
       def videoId: String = handle
     }
 
@@ -106,33 +181,67 @@ object Url {
       def from(u: Url): Either[CustomException, Video] = YouTube.from(u).flatMap(from)
 
       def from(u: String): Either[CustomException, Video] = YouTube.from(u).flatMap(from)
+
+      def fromId(id: String): Either[CustomException, Video] = from(s"https://www.youtube.com/watch?v=$id")
     }
 
   }
 
   sealed class Vimeo private(url: Url) extends Url(url.value, url.parsed) {
+    val platform: String = "Vimeo"
+
     override def handle: String = parsed.path.lastOption.getOrElse(super.handle)
   }
 
   object Vimeo {
+    private val onlyNumbers = "[0-9]+".r
     private val regex = "https?://(?:www\\.)?vimeo\\.com.*".r
 
     def from(u: Url): Either[CustomException, Vimeo] = (u.value match {
       case regex() => Right(new Vimeo(u))
       case _ => Left(CustomException(s"'${u.value}' is not a Vimeo url"))
-    }).map(v => Video.from(v).getOrElse(v))
+    }).map { v =>
+      Video.from(v).toOption
+        .orElse(Channel.from(v).toOption)
+        .orElse(Showcase.from(v).toOption)
+        .getOrElse(v)
+    }
 
     def from(in: String): Either[CustomException, Vimeo] = Url.from(in).flatMap(from)
 
-    final class Video private(url: Url) extends Vimeo(url) with Url.Video {
-      val platform: String = "Vimeo"
+    final case class Channel private(url: Url) extends Vimeo(url) with Url.Videos.Channel
 
+    object Channel {
+      def from(u: Vimeo): Either[CustomException, Channel] = u.parsed.path match {
+        case Seq(onlyNumbers()) => Left(CustomException(s"'${u.value}' is not a Vimeo channel url"))
+        case Seq(_) => Right(new Channel(u))
+        case _ => Left(CustomException(s"'${u.value}' is not a Vimeo channel url"))
+      }
+
+      def from(u: Url): Either[CustomException, Channel] = Vimeo.from(u).flatMap(from)
+
+      def from(u: String): Either[CustomException, Channel] = Vimeo.from(u).flatMap(from)
+    }
+
+    final case class Showcase private(url: Url) extends Vimeo(url) with Url.Videos.Playlist {
+      override def playlistId: String = handle
+    }
+
+    object Showcase {
+      def from(u: Vimeo): Either[CustomException, Showcase] =
+        if (u.parsed.path.length == 2 && u.parsed.path.headOption.contains("showcase")) Right(new Showcase(u))
+        else Left(CustomException(s"'${u.value}' is not a Vimeo showcase url"))
+
+      def from(u: Url): Either[CustomException, Showcase] = Vimeo.from(u).flatMap(from)
+
+      def from(u: String): Either[CustomException, Showcase] = Vimeo.from(u).flatMap(from)
+    }
+
+    final class Video private(url: Url) extends Vimeo(url) with Url.Video {
       def videoId: String = handle
     }
 
     object Video {
-      private val onlyNumbers = "[0-9]+".r
-
       def from(u: Vimeo): Either[CustomException, Video] = u.parsed.path match {
         case Seq(onlyNumbers()) => Right(new Video(u))
         case _ :+ "video" :+ onlyNumbers() => Right(new Video(u))

@@ -25,20 +25,23 @@ object Constants {
     val unknownUser = "https://res.cloudinary.com/gospeak/image/upload/placeholders/unknown-user.png"
     val unknownPartner = "https://res.cloudinary.com/gospeak/image/upload/placeholders/unknown-user.png" // FIXME find better image
     val noVenueForEvent = "https://res.cloudinary.com/gospeak/image/upload/placeholders/no-venue-for-event.png"
+    val videoCover = "/assets/web/img/placeholders/video-cover.jpg"
   }
 
   object Emoji {
     // https://coolsymbol.com/emojis/emoji-for-copy-and-paste.html
     // https://unicode.org/emoji/charts/full-emoji-list.html
     val sparkles = "✨"
+    val partyPopper = "\uD83C\uDF89"
     val nerdFace = "\uD83E\uDD13"
     val grinningFace = "\uD83D\uDE00"
     val rocket = "\uD83D\uDE80"
     val speakingHead = "\uD83D\uDDE3"
     val speechBalloon = "\uD83D\uDCAC"
     val directHit = "\uD83C\uDFAF"
-    val studioMicrophone = "\uD83C\uDF99"
     val loudSpeaker = "\uD83D\uDCE2"
+    val studioMicrophone = "\uD83C\uDF99"
+    val clapperBoard = "\uD83C\uDFAC"
     val calendar = "\uD83D\uDCC6"
 
     val gospeak: String = sparkles
@@ -48,6 +51,7 @@ object Constants {
     val cfp: String = loudSpeaker
     val proposal: String = studioMicrophone
     val event: String = calendar
+    val video: String = clapperBoard
   }
 
   object Slack {

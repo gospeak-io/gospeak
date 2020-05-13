@@ -46,6 +46,11 @@ val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
   "com.pepegar" %% "hammock-apache-http").map(_ % "0.10.0")
+val youtubeApi = Seq(
+  "com.google.apis" % "google-api-services-youtube" % "v3-rev222-1.25.0",
+  "com.google.api-client" % "google-api-client" % "1.23.0",
+  "com.google.oauth-client" % "google-oauth-client-jetty" % "1.23.0"
+)
 val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.11")
 val twitter = Seq("com.danielasfregola" %% "twitter4s" % "6.2") // https://github.com/DanielaSfregola/twitter4s
 val flyway = Seq("org.flywaydb" % "flyway-core" % "6.4.0")
@@ -85,13 +90,14 @@ val logback = Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3")
 val scalaTest = Seq(
   "org.scalatest" %% "scalatest" % "3.1.1",
-  "org.scalatestplus" %% "scalacheck-1-14" % "3.1.0.1").map(_ % Test)
+  "org.scalamock" %% "scalamock" % "4.4.0",
+  "org.scalatestplus" %% "scalacheck-1-14" % "3.1.0.0").map(_ % Test)
 val scalaCheck = Seq(
   "org.scalacheck" %% "scalacheck" % "1.14.3",
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5",
   "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
 
-val libsDependencies = hammock ++ flexmark ++ mustache ++ cats ++ playJson ++ scalaTest ++ scalaCheck
+val libsDependencies = hammock ++ flexmark ++ mustache ++ cats ++ playJson ++ scalaTest ++ scalaCheck ++ youtubeApi
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
 val infraDependencies = twitter ++ akka ++ flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
 val webDependencies = play ++ silhouette ++ pureconfig ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest

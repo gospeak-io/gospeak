@@ -5,23 +5,33 @@ import java.time.Instant
 import cats.effect.IO
 import doobie.implicits._
 import gospeak.core.domain._
-import gospeak.core.domain.utils.UserAwareCtx
+import gospeak.core.domain.utils.{AdminCtx, UserAwareCtx}
 import gospeak.core.services.storage.VideoRepo
 import gospeak.infra.services.storage.sql.VideoRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Insert, Select, SelectPage, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Sort, Update}
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Done, Page}
+import gospeak.libs.scala.domain.{Done, Page, Url}
 
 class VideoRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with VideoRepo {
-  override def create(video: Video.Data, now: Instant): IO[Video] = insert(Video(video, now)).run(xa)
+  override def create(video: Video.Data)(implicit ctx: AdminCtx): IO[Video] = insert(Video(video, ctx.now)).run(xa)
 
-  override def edit(video: Video.Data, now: Instant): IO[Done] = update(video, now).run(xa)
+  override def edit(video: Video.Data)(implicit ctx: AdminCtx): IO[Done] = update(video, ctx.now).run(xa)
 
-  override def find(videoId: String): IO[Option[Video]] = selectOne(videoId).runOption(xa)
+  override def remove(video: Video.Data)(implicit ctx: AdminCtx): IO[Done] = delete(video.url).run(xa)
+
+  override def find(video: Video.Id): IO[Option[Video]] = selectOne(video).runOption(xa)
 
   override def list(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Video]] = selectPage(params).run(xa)
+
+  override def listAllForChannel(channelId: String): IO[List[Video]] = selectAllForChannel(channelId).runList(xa)
+
+  override def listAllForPlaylist(playlistId: String): IO[List[Video]] = selectAllForPlaylist(playlistId).runList(xa)
+
+  override def countForChannel(channelId: String): IO[Long] = countChannelId(channelId).runOption(xa).map(_.getOrElse(0))
+
+  override def countForPlaylist(playlistId: String): IO[Long] = countPlaylistId(playlistId).runOption(xa).map(_.getOrElse(0))
 }
 
 object VideoRepoSql {
@@ -39,9 +49,24 @@ object VideoRepoSql {
     table.update(fields, fr0"WHERE id=${data.url.videoId}")
   }
 
-  private[sql] def selectOne(videoId: String): Select[Video] =
-    tableSelect.select[Video](fr0"WHERE vi.id=$videoId")
+  private[sql] def delete(url: Url.Video): Delete =
+    table.delete(fr0"WHERE id=${url.videoId}")
+
+  private[sql] def selectOne(video: Video.Id): Select[Video] =
+    tableSelect.select[Video](fr0"WHERE vi.id=$video")
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Video, UserAwareCtx] =
     tableSelect.selectPage[Video, UserAwareCtx](params)
+
+  private[sql] def selectAllForChannel(channelId: String): Select[Video] =
+    tableSelect.select[Video](fr0"WHERE vi.channel_id=$channelId")
+
+  private[sql] def selectAllForPlaylist(playlistId: String): Select[Video] =
+    tableSelect.select[Video](fr0"WHERE vi.playlist_id=$playlistId")
+
+  private[sql] def countChannelId(channelId: String): Select[Long] =
+    tableSelect.select[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE vi.channel_id=$channelId GROUP BY vi.channel_id", Sort("channel_id", "vi"))
+
+  private[sql] def countPlaylistId(playlistId: String): Select[Long] =
+    tableSelect.select[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE vi.playlist_id=$playlistId GROUP BY vi.playlist_id", Sort("playlist_id", "vi"))
 }

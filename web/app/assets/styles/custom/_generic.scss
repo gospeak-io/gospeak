@@ -182,6 +182,31 @@ ul.no-padding, ol.no-padding {
   }
 }
 
+// Video
+
+.video-card {
+  .card-title, .card-text {
+    margin-bottom: .5rem;
+  }
+
+  .description {
+    white-space: pre;
+    overflow: hidden;
+    max-height: 102px;
+    line-height: 1.3;
+  }
+}
+
+.video-detail {
+  h1 {
+    font-size: 20px;
+  }
+
+  .description {
+    white-space: pre;
+  }
+}
+
 // Other
 
 .no-margin {

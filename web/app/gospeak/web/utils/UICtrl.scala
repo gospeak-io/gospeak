@@ -157,6 +157,9 @@ abstract class UICtrl(cc: ControllerComponents,
   protected def publicTalkNotFound(user: User.Slug, talk: Talk.Slug): Result =
     Redirect(pages.published.speakers.routes.SpeakerCtrl.detail(user)).flashing("warning" -> s"Unable to find talk with slug '${talk.value}'")
 
+  protected def publicVideoNotFound(video: Video.Id): Result =
+    Redirect(pages.published.videos.routes.VideoCtrl.list()).flashing("warning" -> s"Unable to find video with id '${video.value}'")
+
   protected def notFound()(implicit req: UserAwareReq[AnyContent]): Result =
     NotFound("Not found :(")
 }

@@ -120,4 +120,14 @@ object ApiCtrl {
     }
   }
 
+  trait AdminAction {
+    self: ApiCtrl =>
+
+    protected def AdminAction[R](block: AdminReq[AnyContent] => IO[ApiResult[R]])(implicit w: Writes[R]): Action[AnyContent] = {
+      UserAction { implicit req =>
+        if (req.isAdmin) block(req.admin) else IO.pure(ApiResult.forbidden(s"You are not an admin"))
+      }
+    }
+  }
+
 }

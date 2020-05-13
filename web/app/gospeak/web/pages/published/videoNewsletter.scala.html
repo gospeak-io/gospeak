@@ -1,0 +1,10 @@
+@import gospeak.web.domain.{Breadcrumb, PageMeta}
+@import gospeak.core.domain.utils.Constants
+@import gospeak.web.pages.partials.container.html.main
+@import gospeak.web.pages.published.routes.HomeCtrl
+@import gospeak.web.utils.UserAwareReq
+
+@()(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@main(s"${Constants.Emoji.partyPopper} A video talk each morning in your inbox", PageMeta.default(HomeCtrl.videoNewsletter()), Html(""), Html("")) {
+    <h1>Video newsleter landing page</h1>
+}

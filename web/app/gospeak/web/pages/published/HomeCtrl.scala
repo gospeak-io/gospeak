@@ -30,6 +30,10 @@ class HomeCtrl(cc: ControllerComponents,
     IO.pure(Ok(html.why()(breadcrumb().add("Why use Gospeak" -> routes.HomeCtrl.why()))))
   }
 
+  def videoNewsletter(): Action[AnyContent] = UserAwareAction { implicit req =>
+    IO.pure(Ok(html.videoNewsletter()(breadcrumb().add("Video newsletter" -> routes.HomeCtrl.videoNewsletter()))))
+  }
+
   def sitemap(): Action[AnyContent] = UserAwareAction { implicit req =>
     for {
       users <- userRepo.listAllPublicSlugs().map(_.toMap)

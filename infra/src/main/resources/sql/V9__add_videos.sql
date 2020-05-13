@@ -13,10 +13,10 @@ CREATE TABLE videos
     published_at  TIMESTAMP     NOT NULL,
     duration      BIGINT        NOT NULL,
     lang          VARCHAR(2)    NOT NULL,
-    views         INT           NOT NULL,
-    likes         INT           NOT NULL,
-    dislikes      INT           NOT NULL,
-    comments      INT           NOT NULL,
+    views         BIGINT        NOT NULL,
+    likes         BIGINT        NOT NULL,
+    dislikes      BIGINT        NOT NULL,
+    comments      BIGINT        NOT NULL,
     updated_at    TIMESTAMP     NOT NULL, -- last time video data were updated
     UNIQUE (id),
     UNIQUE (url)
