@@ -4,7 +4,6 @@ import java.time.Instant
 
 import gospeak.core.domain.Video.{ChannelRef, PlaylistRef}
 import gospeak.core.domain.utils.Constants
-import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
 import gospeak.libs.youtube.domain.YoutubeVideo
 
@@ -24,7 +23,7 @@ final case class Video(url: Url.Video,
                        dislikes: Long,
                        comments: Long,
                        updatedAt: Instant) {
-  val id: Video.Id = Video.Id.from(url.videoId).get
+  val id: Url.Video.Id = url.videoId
 
   def data: Video.Data = Video.Data(this)
 
@@ -52,14 +51,14 @@ final case class Video(url: Url.Video,
   }
 
   def channelUrl: String = url match {
-    case _: Url.YouTube => s"https://www.youtube.com/channel/${channel.id}"
-    case _: Url.Vimeo => s"https://vimeo.com/${channel.id}"
+    case _: Url.YouTube => s"https://www.youtube.com/channel/${channel.id.value}"
+    case _: Url.Vimeo => s"https://vimeo.com/${channel.id.value}"
   }
 
   def playlistUrl: Option[(PlaylistRef, String)] = playlist.map { p =>
     url match {
-      case _: Url.YouTube => p -> s"https://www.youtube.com/playlist?list=${p.id}"
-      case _: Url.Vimeo => p -> s"https://vimeo.com/showcase/${p.id}"
+      case _: Url.YouTube => p -> s"https://www.youtube.com/playlist?list=${p.id.value}"
+      case _: Url.Vimeo => p -> s"https://vimeo.com/showcase/${p.id.value}"
     }
   }
 }
@@ -68,25 +67,9 @@ object Video {
   def apply(d: Data, now: Instant): Video =
     new Video(d.url, d.channel, d.playlist, d.title, d.description, d.tags, d.publishedAt, d.duration, d.lang, d.views, d.likes, d.dislikes, d.comments, now)
 
-  final class Id private(value: String) extends DataClass(value) with IId
+  final case class ChannelRef(id: Url.Videos.Channel.Id, name: String)
 
-  object Id {
-    def from(in: String): Either[CustomException, Id] = {
-      val errs = errors(in)
-      if (errs.isEmpty) Right(new Id(in))
-      else Left(CustomException(s"'$in' is an invalid Video.Id", errs))
-    }
-
-    private def errors(in: String): Seq[CustomError] = {
-      Seq(
-        if (in.isEmpty) Some("can't be empty") else None
-      ).flatten.map(CustomError)
-    }
-  }
-
-  final case class ChannelRef(id: String, name: String)
-
-  final case class PlaylistRef(id: String, name: String)
+  final case class PlaylistRef(id: Url.Videos.Playlist.Id, name: String)
 
   final case class Data(url: Url.Video,
                         channel: ChannelRef,

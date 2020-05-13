@@ -5,15 +5,16 @@ import java.time.Instant
 import com.google.api.services.youtube.{model => google}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.TimeUtils
+import gospeak.libs.scala.domain.Url
 import gospeak.libs.youtube.utils.YoutubeParser
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 
-final case class YoutubeVideo(id: String,
-                              channelId: String,
+final case class YoutubeVideo(id: Url.Video.Id,
+                              channelId: Url.Videos.Channel.Id,
                               channelTitle: String,
-                              playlistId: Option[String],
+                              playlistId: Option[Url.Videos.Playlist.Id],
                               playlistTitle: Option[String],
                               title: String,
                               description: Option[String],
@@ -44,8 +45,8 @@ object YoutubeVideo {
     publishedAt <- Option(snippet.getPublishedAt).map(YoutubeParser.toInstant).toRight(YoutubeErrors(s"Missing publishedAt for video ${v.getId}"))
     duration <- Option(contentDetails.getDuration).map(d => TimeUtils.toFiniteDuration(d).toEither.left.map(e => YoutubeErrors(s"Invalid duration ($d) for video ${v.getId}: ${e.getMessage}"))).sequence
   } yield new YoutubeVideo(
-    id = v.getId,
-    channelId = channelId,
+    id = Url.Video.Id(v.getId),
+    channelId = Url.Videos.Channel.Id(channelId),
     channelTitle = channelTitle,
     playlistId = None,
     playlistTitle = None,
@@ -69,8 +70,8 @@ object YoutubeVideo {
     title <- Option(snippet.getTitle).toRight(YoutubeErrors(s"Missing title for video ${v.getId}"))
     publishedAt <- Option(snippet.getPublishedAt).map(YoutubeParser.toInstant).toRight(YoutubeErrors(s"Missing publishedAt for video ${v.getId}"))
   } yield new YoutubeVideo(
-    id = id,
-    channelId = channelId,
+    id = Url.Video.Id(id),
+    channelId = Url.Videos.Channel.Id(channelId),
     channelTitle = channelTitle,
     playlistId = None,
     playlistTitle = None,
@@ -96,10 +97,10 @@ object YoutubeVideo {
     title <- Option(snippet.getTitle).toRight(YoutubeErrors(s"Missing title for video ${v.getId}"))
     publishedAt <- Option(contentDetails.getVideoPublishedAt).map(YoutubeParser.toInstant).toRight(YoutubeErrors(s"Missing publishedAt for video ${v.getId}"))
   } yield new YoutubeVideo(
-    id = id,
-    channelId = channelId,
+    id = Url.Video.Id(id),
+    channelId = Url.Videos.Channel.Id(channelId),
     channelTitle = channelTitle,
-    playlistId = Some(playlistId),
+    playlistId = Some(Url.Videos.Playlist.Id(playlistId)),
     playlistTitle = None,
     title = title,
     description = Option(snippet.getDescription).filter(_.nonEmpty),

@@ -21,17 +21,17 @@ class VideoRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def remove(video: Video.Data)(implicit ctx: AdminCtx): IO[Done] = delete(video.url).run(xa)
 
-  override def find(video: Video.Id): IO[Option[Video]] = selectOne(video).runOption(xa)
+  override def find(video: Url.Video.Id): IO[Option[Video]] = selectOne(video).runOption(xa)
 
   override def list(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Video]] = selectPage(params).run(xa)
 
-  override def listAllForChannel(channelId: String): IO[List[Video]] = selectAllForChannel(channelId).runList(xa)
+  override def listAllForChannel(channelId: Url.Videos.Channel.Id): IO[List[Video]] = selectAllForChannel(channelId).runList(xa)
 
-  override def listAllForPlaylist(playlistId: String): IO[List[Video]] = selectAllForPlaylist(playlistId).runList(xa)
+  override def listAllForPlaylist(playlistId: Url.Videos.Playlist.Id): IO[List[Video]] = selectAllForPlaylist(playlistId).runList(xa)
 
-  override def countForChannel(channelId: String): IO[Long] = countChannelId(channelId).runOption(xa).map(_.getOrElse(0))
+  override def countForChannel(channelId: Url.Videos.Channel.Id): IO[Long] = countChannelId(channelId).runOption(xa).map(_.getOrElse(0))
 
-  override def countForPlaylist(playlistId: String): IO[Long] = countPlaylistId(playlistId).runOption(xa).map(_.getOrElse(0))
+  override def countForPlaylist(playlistId: Url.Videos.Playlist.Id): IO[Long] = countPlaylistId(playlistId).runOption(xa).map(_.getOrElse(0))
 }
 
 object VideoRepoSql {
@@ -52,21 +52,21 @@ object VideoRepoSql {
   private[sql] def delete(url: Url.Video): Delete =
     table.delete(fr0"WHERE id=${url.videoId}")
 
-  private[sql] def selectOne(video: Video.Id): Select[Video] =
+  private[sql] def selectOne(video: Url.Video.Id): Select[Video] =
     tableSelect.select[Video](fr0"WHERE vi.id=$video")
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Video, UserAwareCtx] =
     tableSelect.selectPage[Video, UserAwareCtx](params)
 
-  private[sql] def selectAllForChannel(channelId: String): Select[Video] =
+  private[sql] def selectAllForChannel(channelId: Url.Videos.Channel.Id): Select[Video] =
     tableSelect.select[Video](fr0"WHERE vi.channel_id=$channelId")
 
-  private[sql] def selectAllForPlaylist(playlistId: String): Select[Video] =
+  private[sql] def selectAllForPlaylist(playlistId: Url.Videos.Playlist.Id): Select[Video] =
     tableSelect.select[Video](fr0"WHERE vi.playlist_id=$playlistId")
 
-  private[sql] def countChannelId(channelId: String): Select[Long] =
+  private[sql] def countChannelId(channelId: Url.Videos.Channel.Id): Select[Long] =
     tableSelect.select[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE vi.channel_id=$channelId GROUP BY vi.channel_id", Sort("channel_id", "vi"))
 
-  private[sql] def countPlaylistId(playlistId: String): Select[Long] =
+  private[sql] def countPlaylistId(playlistId: Url.Videos.Playlist.Id): Select[Long] =
     tableSelect.select[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE vi.playlist_id=$playlistId GROUP BY vi.playlist_id", Sort("playlist_id", "vi"))
 }

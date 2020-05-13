@@ -68,34 +68,34 @@ class YoutubeClientSpec extends BaseSpec {
     }
     describe("listChannelVideos") {
       it("should list channel videos") {
-        val videos = client.listChannelVideos("UCKFAwlgWiAB4vUpgnS63qog").unsafeRunSync().get
+        val videos = client.listChannelVideos(Url.Videos.Channel.Id("UCKFAwlgWiAB4vUpgnS63qog")).unsafeRunSync().get
         videos.items.length shouldBe 50
         videos.items.map(_.id) should contain allElementsOf List("JyNq_-OJ3dA", "5JjcxOfCSl0")
       }
       it("should fail on bad id") {
-        val error = client.listChannelVideos("abc").unsafeRunSync().left.get
+        val error = client.listChannelVideos(Url.Videos.Channel.Id("abc")).unsafeRunSync().left.get
         error.code shouldBe 400
       }
     }
     describe("listPlaylistVideos") {
       it("should list playlist videos") {
-        val videos = client.listPlaylistVideos("PLs13l-4BLe9cKAJEZJoh5u1UQMACty7Xi").unsafeRunSync().get
+        val videos = client.listPlaylistVideos(Url.Videos.Playlist.Id("PLs13l-4BLe9cKAJEZJoh5u1UQMACty7Xi")).unsafeRunSync().get
         videos.items.length shouldBe 4
         videos.items.map(_.id) shouldBe List("7wf3NDUq1jw", "9J9ouo-VNao", "r3xdCYP9mVs", "AoVFq4rqv5g")
       }
       it("should fail on bad id") {
-        val error = client.listPlaylistVideos("abc").unsafeRunSync().left.get
+        val error = client.listPlaylistVideos(Url.Videos.Playlist.Id("abc")).unsafeRunSync().left.get
         error.code shouldBe 404
       }
     }
     describe("getVideoDetails") {
       it("should get video details for ids") {
-        val videos = client.getVideoDetails(Seq("7wf3NDUq1jw", "9J9ouo-VNao", "r3xdCYP9mVs", "AoVFq4rqv5g")).unsafeRunSync().get
+        val videos = client.getVideoDetails(Seq("7wf3NDUq1jw", "9J9ouo-VNao", "r3xdCYP9mVs", "AoVFq4rqv5g").map(Url.Video.Id)).unsafeRunSync().get
         videos.length shouldBe 4
         videos.map(_.id) shouldBe List("7wf3NDUq1jw", "9J9ouo-VNao", "r3xdCYP9mVs", "AoVFq4rqv5g")
       }
       it("should ignore bad ids") {
-        val videos = client.getVideoDetails(Seq("7wf3NDUq1jw", "abc")).unsafeRunSync().get
+        val videos = client.getVideoDetails(Seq("7wf3NDUq1jw", "abc").map(Url.Video.Id)).unsafeRunSync().get
         videos.length shouldBe 1
         videos.map(_.id) shouldBe List("7wf3NDUq1jw")
       }

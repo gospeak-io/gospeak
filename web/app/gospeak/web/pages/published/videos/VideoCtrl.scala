@@ -5,7 +5,7 @@ import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.Video
 import gospeak.core.services.storage.PublicVideoRepo
 import gospeak.infra.services.EmbedSrv
-import gospeak.libs.scala.domain.{Html, Page}
+import gospeak.libs.scala.domain.{Html, Page, Url}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb
@@ -22,7 +22,7 @@ class VideoCtrl(cc: ControllerComponents,
     videoRepo.list(params).map(videos => Ok(html.list(videos)(listBreadcrumb())))
   }
 
-  def detail(video: Video.Id): Action[AnyContent] = UserAwareAction { implicit req =>
+  def detail(video: Url.Video.Id): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       videoElt <- OptionT(videoRepo.find(video))
       embed: Html <- OptionT.liftF(EmbedSrv.embedCode(videoElt.url))

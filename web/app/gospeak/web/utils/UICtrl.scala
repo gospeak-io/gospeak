@@ -5,6 +5,7 @@ import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain._
 import gospeak.core.services.storage.OrgaGroupRepo
 import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.Url
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.{AppConf, pages}
 import org.h2.jdbc.{JdbcSQLIntegrityConstraintViolationException, JdbcSQLSyntaxErrorException}
@@ -157,7 +158,7 @@ abstract class UICtrl(cc: ControllerComponents,
   protected def publicTalkNotFound(user: User.Slug, talk: Talk.Slug): Result =
     Redirect(pages.published.speakers.routes.SpeakerCtrl.detail(user)).flashing("warning" -> s"Unable to find talk with slug '${talk.value}'")
 
-  protected def publicVideoNotFound(video: Video.Id): Result =
+  protected def publicVideoNotFound(video: Url.Video.Id): Result =
     Redirect(pages.published.videos.routes.VideoCtrl.list()).flashing("warning" -> s"Unable to find video with id '${video.value}'")
 
   protected def notFound()(implicit req: UserAwareReq[AnyContent]): Result =

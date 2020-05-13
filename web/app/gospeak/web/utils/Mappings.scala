@@ -70,18 +70,18 @@ object Mappings {
   )(new FiniteDuration(_, _))(d => Some(d.length -> d.unit))
   val emailAddress: Mapping[EmailAddress] = WrappedMapping(nonEmptyText.verifying(Constraints.emailAddress(), Constraints.maxLength(Values.maxLength.email)), (s: String) => EmailAddress.from(s).get, _.value)
   val url: Mapping[Url] = stringEitherMapping[Url, CustomException](Url.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
-  val videosUrl: Mapping[Url.Videos] = stringEitherMapping[Url.Videos, CustomException](Url.Videos.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
-  val twitterUrl: Mapping[Url.Twitter] = stringEitherMapping[Url.Twitter, CustomException](Url.Twitter.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
-  val linkedInUrl: Mapping[Url.LinkedIn] = stringEitherMapping[Url.LinkedIn, CustomException](Url.LinkedIn.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
-  val youTubeUrl: Mapping[Url.YouTube] = stringEitherMapping[Url.YouTube, CustomException](Url.YouTube.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
-  val meetupUrl: Mapping[Url.Meetup] = stringEitherMapping[Url.Meetup, CustomException](Url.Meetup.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
-  val githubUrl: Mapping[Url.Github] = stringEitherMapping[Url.Github, CustomException](Url.Github.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val urlVideos: Mapping[Url.Videos] = stringEitherMapping[Url.Videos, CustomException](Url.Videos.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val urlTwitter: Mapping[Url.Twitter] = stringEitherMapping[Url.Twitter, CustomException](Url.Twitter.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val urlLinkedIn: Mapping[Url.LinkedIn] = stringEitherMapping[Url.LinkedIn, CustomException](Url.LinkedIn.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val urlYouTube: Mapping[Url.YouTube] = stringEitherMapping[Url.YouTube, CustomException](Url.YouTube.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val urlMeetup: Mapping[Url.Meetup] = stringEitherMapping[Url.Meetup, CustomException](Url.Meetup.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val urlGithub: Mapping[Url.Github] = stringEitherMapping[Url.Github, CustomException](Url.Github.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
   val avatar: Mapping[Avatar] = url.transform(Avatar, _.url)
   val logo: Mapping[Logo] = url.transform(Logo, _.url)
   val banner: Mapping[Banner] = url.transform(Banner, _.url)
   val slidesUrl: Mapping[SlidesUrl] = url.transform(SlidesUrl.from(_).get, _.url)
   val videoUrl: Mapping[VideoUrl] = url.transform(VideoUrl.from(_).get, _.url)
-  val twitterAccount: Mapping[TwitterAccount] = twitterUrl.transform(TwitterAccount, _.url)
+  val twitterAccount: Mapping[TwitterAccount] = urlTwitter.transform(TwitterAccount, _.url)
   val twitterHashtag: Mapping[TwitterHashtag] = stringEitherMapping[TwitterHashtag, CustomException](TwitterHashtag.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.title))
   val secret: Mapping[Secret] = textMapping(Secret, _.decode)
   val password: Mapping[Secret] = secret.verifying(Constraint[Secret](passwordConstraint) { o =>
@@ -137,14 +137,14 @@ object Mappings {
   val socialAccounts: Mapping[SocialAccounts] = mapping(
     "facebook" -> optional(url.transform[FacebookAccount](FacebookAccount, _.url)),
     "instagram" -> optional(url.transform[InstagramAccount](InstagramAccount, _.url)),
-    "twitter" -> optional(twitterUrl.transform[TwitterAccount](TwitterAccount, _.url)),
-    "linkedIn" -> optional(linkedInUrl.transform[LinkedInAccount](LinkedInAccount, _.url)),
-    "youtube" -> optional(youTubeUrl.transform[YoutubeAccount](YoutubeAccount, _.url)),
-    "meetup" -> optional(meetupUrl.transform[MeetupAccount](MeetupAccount, _.url)),
+    "twitter" -> optional(urlTwitter.transform[TwitterAccount](TwitterAccount, _.url)),
+    "linkedIn" -> optional(urlLinkedIn.transform[LinkedInAccount](LinkedInAccount, _.url)),
+    "youtube" -> optional(urlYouTube.transform[YoutubeAccount](YoutubeAccount, _.url)),
+    "meetup" -> optional(urlMeetup.transform[MeetupAccount](MeetupAccount, _.url)),
     "eventbrite" -> optional(url.transform[EventbriteAccount](EventbriteAccount, _.url)),
     "slack" -> optional(url.transform[SlackAccount](SlackAccount, _.url)),
     "discord" -> optional(url.transform[DiscordAccount](DiscordAccount, _.url)),
-    "github" -> optional(githubUrl.transform[GithubAccount](GithubAccount, _.url))
+    "github" -> optional(urlGithub.transform[GithubAccount](GithubAccount, _.url))
   )(SocialAccounts.apply)(SocialAccounts.unapply)
 
   private val tag: Mapping[Tag] = WrappedMapping[String, Tag](text(1, Tag.maxSize), s => Tag(s.trim), _.value)

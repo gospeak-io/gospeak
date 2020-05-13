@@ -2,6 +2,7 @@ package gospeak.infra.services.storage.sql
 
 import gospeak.infra.services.storage.sql.VideoRepoSqlSpec._
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
+import gospeak.libs.scala.domain.Url
 
 class VideoRepoSqlSpec extends RepoSpec {
   describe("VideoRepoSql") {
@@ -27,19 +28,19 @@ class VideoRepoSqlSpec extends RepoSpec {
         check(q, s"SELECT $fields FROM $table $orderBy LIMIT 20 OFFSET 0")
       }
       it("should build selectAllForChannel") {
-        val q = VideoRepoSql.selectAllForChannel("id")
+        val q = VideoRepoSql.selectAllForChannel(Url.Videos.Channel.Id("id"))
         check(q, s"SELECT $fields FROM $table WHERE vi.channel_id=? $orderBy")
       }
       it("should build selectAllForPlaylist") {
-        val q = VideoRepoSql.selectAllForPlaylist("id")
+        val q = VideoRepoSql.selectAllForPlaylist(Url.Videos.Playlist.Id("id"))
         check(q, s"SELECT $fields FROM $table WHERE vi.playlist_id=? $orderBy")
       }
       it("should build countChannelId") {
-        val q = VideoRepoSql.countChannelId("id")
+        val q = VideoRepoSql.countChannelId(Url.Videos.Channel.Id("id"))
         check(q, s"SELECT COUNT(*) FROM $table WHERE vi.channel_id=? GROUP BY vi.channel_id ORDER BY vi.channel_id IS NULL, vi.channel_id")
       }
       it("should build countPlaylistId") {
-        val q = VideoRepoSql.countPlaylistId("id")
+        val q = VideoRepoSql.countPlaylistId(Url.Videos.Playlist.Id("id"))
         check(q, s"SELECT COUNT(*) FROM $table WHERE vi.playlist_id=? GROUP BY vi.playlist_id ORDER BY vi.playlist_id IS NULL, vi.playlist_id")
       }
     }

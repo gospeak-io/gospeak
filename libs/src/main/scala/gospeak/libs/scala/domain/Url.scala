@@ -43,10 +43,12 @@ object Url {
         case u: Url.Videos.Channel => Right(u)
         case _ => Left(CustomException(s"'$in' is an invalid video channel Url"))
       }
+
+      final case class Id(value: String)
     }
 
     sealed trait Playlist extends Videos {
-      def playlistId: String
+      def playlistId: Playlist.Id
     }
 
     object Playlist {
@@ -54,6 +56,8 @@ object Url {
         case u: Url.Videos.Playlist => Right(u)
         case _ => Left(CustomException(s"'$in' is an invalid video playlist Url"))
       }
+
+      final case class Id(value: String)
     }
 
   }
@@ -61,7 +65,7 @@ object Url {
   sealed trait Video extends Url {
     val platform: String
 
-    def videoId: String
+    def videoId: Video.Id
   }
 
   object Video {
@@ -69,6 +73,8 @@ object Url {
       case u: Url.Video => Right(u)
       case _ => Left(CustomException(s"'$in' is an invalid video Url"))
     }
+
+    final case class Id(value: String)
   }
 
   final class Twitter private(url: Url) extends Url(url.value, url.parsed) {
@@ -132,8 +138,8 @@ object Url {
 
     final case class Channel private(url: Url) extends YouTube(url) with Url.Videos.Channel {
       // this pattern matching is safe thanks to the Channel.from methods
-      def fold[T](channelId: String => T, username: String => T, customUrl: String => T): T = path match {
-        case List("channel", id, _*) => channelId(id)
+      def fold[T](channelId: Url.Videos.Channel.Id => T, username: String => T, customUrl: String => T): T = path match {
+        case List("channel", id, _*) => channelId(Url.Videos.Channel.Id(id))
         case List("user", user, _*) => username(user)
         case List("c", name) => customUrl(name)
         case List(name) => customUrl(name)
@@ -155,7 +161,7 @@ object Url {
     }
 
     final case class Playlist private(url: Url) extends YouTube(url) with Url.Videos.Playlist {
-      override def playlistId: String = handle
+      override def playlistId: Url.Videos.Playlist.Id = Url.Videos.Playlist.Id(handle)
     }
 
     object Playlist {
@@ -169,7 +175,7 @@ object Url {
     }
 
     final class Video private(url: Url) extends YouTube(url) with Url.Video {
-      def videoId: String = handle
+      def videoId: Url.Video.Id = Url.Video.Id(handle)
     }
 
     object Video {
@@ -182,7 +188,7 @@ object Url {
 
       def from(u: String): Either[CustomException, Video] = YouTube.from(u).flatMap(from)
 
-      def fromId(id: String): Either[CustomException, Video] = from(s"https://www.youtube.com/watch?v=$id")
+      def fromId(id: Url.Video.Id): Either[CustomException, Video] = from(s"https://www.youtube.com/watch?v=${id.value}")
     }
 
   }
@@ -224,7 +230,7 @@ object Url {
     }
 
     final case class Showcase private(url: Url) extends Vimeo(url) with Url.Videos.Playlist {
-      override def playlistId: String = handle
+      override def playlistId: Url.Videos.Playlist.Id = Url.Videos.Playlist.Id(handle)
     }
 
     object Showcase {
@@ -238,7 +244,7 @@ object Url {
     }
 
     final class Video private(url: Url) extends Vimeo(url) with Url.Video {
-      def videoId: String = handle
+      def videoId: Url.Video.Id = Url.Video.Id(handle)
     }
 
     object Video {

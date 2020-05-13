@@ -134,7 +134,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       ExternalProposal(ExternalProposal.Id.generate(), talk.id, event.id, status, talk.title, talk.duration, talk.description, talk.message, talk.speakers, talk.slides, talk.video, url, talk.tags, talk.info)
 
     def video(url: String, channel: (String, String), playlist: Option[(String, String)], title: String, description: String, tags: Seq[String], published: String, duration: Int, lang: String, views: Long, likes: Long, dislikes: Long, comments: Long): Video =
-      Video(Url.Video.from(url).get, Video.ChannelRef(channel._2, channel._1), playlist.map { case (name, id) => Video.PlaylistRef(id, name) }, title, description, tags.map(Tag(_)), Instant.parse(published + "T06:06:24.074Z"), duration.seconds, lang, views, likes, dislikes, comments, now)
+      Video(Url.Video.from(url).get, Video.ChannelRef(Url.Videos.Channel.Id(channel._2), channel._1), playlist.map { case (name, id) => Video.PlaylistRef(Url.Videos.Playlist.Id(id), name) }, title, description, tags.map(Tag(_)), Instant.parse(published + "T06:06:24.074Z"), duration.seconds, lang, views, likes, dislikes, comments, now)
 
     val groupDefaultSettings = gsConf.defaultGroupSettings
 

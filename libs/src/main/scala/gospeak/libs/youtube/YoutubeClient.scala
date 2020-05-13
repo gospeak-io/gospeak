@@ -22,11 +22,11 @@ import scala.util.control.NonFatal
 
 // see https://developers.google.com/youtube/v3/getting-started
 class YoutubeClient(val underlying: YouTube) {
-  def getChannelId(url: Url.YouTube.Channel): IO[Either[YoutubeErrors, String]] = {
+  def getChannelId(url: Url.YouTube.Channel): IO[Either[YoutubeErrors, Url.Videos.Channel.Id]] = {
     url.fold(
       id => IO.pure(Right(id)),
       user => execute(underlying.channels().list(Settings.Channel.Part.id).setForUsername(user))
-        .map(_.flatMap(r => one(r.getItems, (i: google.Channel) => Option(i.getId).toRight(YoutubeErrors(s"Missing channel id"))))),
+        .map(_.flatMap(r => one(r.getItems, (i: google.Channel) => Option(i.getId).map(Url.Videos.Channel.Id).toRight(YoutubeErrors(s"Missing channel id"))))),
       customUrl => getChannelIdFromCustomUrl(customUrl)
     )
   }
@@ -38,8 +38,8 @@ class YoutubeClient(val underlying: YouTube) {
     def execListChannels(request: YouTube#Channels#List): IO[Either[YoutubeErrors, YoutubeChannel]] =
       execute(request).map(_.flatMap(r => one(r.getItems, YoutubeChannel.from)))
 
-    def getChannelFromId(channelId: String): IO[Either[YoutubeErrors, YoutubeChannel]] =
-      execListChannels(underlying.channels().list(parts).setId(channelId))
+    def getChannelFromId(channelId: Url.Videos.Channel.Id): IO[Either[YoutubeErrors, YoutubeChannel]] =
+      execListChannels(underlying.channels().list(parts).setId(channelId.value))
 
     def getChannelFromUser(username: String): IO[Either[YoutubeErrors, YoutubeChannel]] =
       execListChannels(underlying.channels().list(parts).setForUsername(username))
@@ -57,13 +57,13 @@ class YoutubeClient(val underlying: YouTube) {
   def getPlaylist(url: Url.YouTube.Playlist): IO[Either[YoutubeErrors, YoutubePlaylist]] = {
     import Settings.Channel.Part._
     val parts = List(snippet, contentDetails).mkString(separator)
-    execute(underlying.playlists().list(parts).setId(url.playlistId)).map(_.flatMap(r => one(r.getItems, YoutubePlaylist.from)))
+    execute(underlying.playlists().list(parts).setId(url.playlistId.value)).map(_.flatMap(r => one(r.getItems, YoutubePlaylist.from)))
   }
 
-  def listChannelVideos(channelId: String, pageToken: String = ""): IO[Either[YoutubeErrors, YoutubePage[YoutubeVideo]]] = {
+  def listChannelVideos(channelId: Url.Videos.Channel.Id, pageToken: String = ""): IO[Either[YoutubeErrors, YoutubePage[YoutubeVideo]]] = {
     execute(underlying.search()
       .list(Settings.Channel.Part.snippet)
-      .setChannelId(channelId)
+      .setChannelId(channelId.value)
       .setType(Settings.Type.video)
       .setOrder("date")
       .setPageToken(pageToken)
@@ -71,17 +71,17 @@ class YoutubeClient(val underlying: YouTube) {
       .map(_.flatMap(YoutubeVideo.page))
   }
 
-  def listPlaylistVideos(playlistId: String, pageToken: String = ""): IO[Either[YoutubeErrors, YoutubePage[YoutubeVideo]]] = {
+  def listPlaylistVideos(playlistId: Url.Videos.Playlist.Id, pageToken: String = ""): IO[Either[YoutubeErrors, YoutubePage[YoutubeVideo]]] = {
     import Settings.Channel.Part._
     execute(underlying.playlistItems()
       .list(Seq(snippet, contentDetails).mkString(separator))
-      .setPlaylistId(playlistId)
+      .setPlaylistId(playlistId.value)
       .setPageToken(pageToken)
       .setMaxResults(maxResults))
       .map(_.flatMap(YoutubeVideo.page))
   }
 
-  def getVideoDetails(videoIds: Seq[String]): IO[Either[YoutubeErrors, List[YoutubeVideo]]] = {
+  def getVideoDetails(videoIds: Seq[Url.Video.Id]): IO[Either[YoutubeErrors, List[YoutubeVideo]]] = {
     import Settings.Channel.Part._
     execute(underlying.videos()
       .list(Seq(snippet, contentDetails, statistics).mkString(separator))
@@ -91,9 +91,9 @@ class YoutubeClient(val underlying: YouTube) {
 
   // no way to get channel id from custom channel url :(
   // see https://stackoverflow.com/questions/37267324/how-to-get-youtube-channel-details-using-youtube-data-api-if-channel-has-custom
-  private def getChannelIdFromCustomUrl(customUrl: String): IO[Either[YoutubeErrors, String]] =
+  private def getChannelIdFromCustomUrl(customUrl: String): IO[Either[YoutubeErrors, Url.Videos.Channel.Id]] =
     execute(underlying.search().list(Settings.Channel.Part.id).setType(Settings.Type.channel).setQ(customUrl))
-      .map(_.flatMap(r => one(r.getItems, (i: google.SearchResult) => Option(i.getId).flatMap(id => Option(id.getChannelId)).toRight(YoutubeErrors(s"Missing channel id")))))
+      .map(_.flatMap(r => one(r.getItems, (i: google.SearchResult) => Option(i.getId).flatMap(id => Option(id.getChannelId)).map(Url.Videos.Channel.Id).toRight(YoutubeErrors(s"Missing channel id")))))
 
   private def execute[A](r: AbstractGoogleClientRequest[A]): IO[Either[YoutubeErrors, A]] =
     IO(r.execute()).map(Right(_)).handleErrorWith {

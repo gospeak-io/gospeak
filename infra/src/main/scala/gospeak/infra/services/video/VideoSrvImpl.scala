@@ -13,9 +13,9 @@ import scala.collection.mutable
 import scala.util.Try
 
 class VideoSrvImpl(youtubeOpt: Option[YoutubeClient]) extends VideoSrv {
-  private val channelIdCache = mutable.HashMap[Url.Videos.Channel, String]()
+  private val channelIdCache = mutable.HashMap[Url.Videos.Channel, Url.Videos.Channel.Id]()
 
-  override def getChannelId(url: Url.Videos.Channel): IO[String] = {
+  override def getChannelId(url: Url.Videos.Channel): IO[Url.Videos.Channel.Id] = {
     channelIdCache.get(url).map(IO.pure).getOrElse {
       val res = url match {
         case u: Url.YouTube.Channel => withYoutube(_.getChannelId(u).flatMap(formatError))
@@ -33,7 +33,7 @@ class VideoSrvImpl(youtubeOpt: Option[YoutubeClient]) extends VideoSrv {
     case _: Url.Vimeo.Showcase => withVimeo()
   }
 
-  private def listYoutubeChannelVideos(client: YoutubeClient, channelId: String, pageToken: String = ""): IO[List[Video.Data]] = for {
+  private def listYoutubeChannelVideos(client: YoutubeClient, channelId: Url.Videos.Channel.Id, pageToken: String = ""): IO[List[Video.Data]] = for {
     page <- client.listChannelVideos(channelId, pageToken).flatMap(formatError)
     videos <- getYoutubeVideoDetails(page.items.map(_.id), None)(client)
     allPages <- page.nextPageToken.map(listYoutubeChannelVideos(client, channelId, _).map(nextPage => videos ++ nextPage)).getOrElse(IO.pure(videos))
@@ -45,7 +45,7 @@ class VideoSrvImpl(youtubeOpt: Option[YoutubeClient]) extends VideoSrv {
     allPages <- videoPage.nextPageToken.map(listYoutubePlaylistVideos(client, playlist, _).map(nextPage => videoDetails ++ nextPage)).getOrElse(IO.pure(videoDetails))
   } yield allPages
 
-  private def getYoutubeVideoDetails(videoIds: Seq[String], playlist: Option[YoutubePlaylist])(client: YoutubeClient): IO[List[Video.Data]] =
+  private def getYoutubeVideoDetails(videoIds: Seq[Url.Video.Id], playlist: Option[YoutubePlaylist])(client: YoutubeClient): IO[List[Video.Data]] =
     client.getVideoDetails(videoIds).flatMap(formatError).map(_.map(Video.Data.from(_, playlist.map(p => PlaylistRef(p.id, p.title)))).sequence).flatMap(_.toIO)
 
   private def formatError[A](errors: Either[YoutubeErrors, A]): IO[A] = errors.toIO(e => CustomException(e.errors.mkString("\n")))

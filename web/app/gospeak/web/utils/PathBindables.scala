@@ -3,7 +3,7 @@ package gospeak.web.utils
 import gospeak.core.domain._
 import gospeak.core.domain.messages.Message
 import gospeak.core.services.meetup.domain.MeetupGroup
-import gospeak.libs.scala.domain.{CustomException, EmailAddress}
+import gospeak.libs.scala.domain.{CustomException, EmailAddress, Url}
 import play.api.mvc.PathBindable
 
 object PathBindables {
@@ -85,8 +85,8 @@ object PathBindables {
   implicit def externalProposalPathBinder(implicit s: PathBindable[String]): PathBindable[ExternalProposal.Id] =
     stringBindable(ExternalProposal.Id.from, _.value)
 
-  implicit def videoPathBinder(implicit s: PathBindable[String]): PathBindable[Video.Id] =
-    stringBindable(Video.Id.from, _.value)
+  implicit def urlVideoPathBinder(implicit s: PathBindable[String]): PathBindable[Url.Video.Id] =
+    stringBindable(id => Right(Url.Video.Id(id)), _.value)
 
   private def stringBindable[A](from: String => Either[CustomException, A], to: A => String)(implicit s: PathBindable[String]): PathBindable[A] =
     new PathBindable[A] {

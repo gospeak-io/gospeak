@@ -3,12 +3,13 @@ package gospeak.libs.youtube.domain
 import java.time.Instant
 
 import com.google.api.services.youtube.{model => google}
+import gospeak.libs.scala.domain.Url
 import gospeak.libs.youtube.utils.YoutubeParser
 
 import scala.collection.JavaConverters._
 
-final case class YoutubePlaylist(id: String,
-                                 channelId: String,
+final case class YoutubePlaylist(id: Url.Videos.Playlist.Id,
+                                 channelId: Url.Videos.Channel.Id,
                                  channelTitle: String,
                                  title: String,
                                  description: Option[String],
@@ -28,8 +29,8 @@ object YoutubePlaylist {
     publishedAt <- Option(snippet.getPublishedAt).map(YoutubeParser.toInstant).toRight(YoutubeErrors(s"Missing publishedAt for playlist ${p.getId}"))
     items <- Option(contentDetails.getItemCount).toRight(YoutubeErrors(s"Missing itemCount for playlist ${p.getId}"))
   } yield new YoutubePlaylist(
-    id = p.getId,
-    channelId = channelId,
+    id = Url.Videos.Playlist.Id(p.getId),
+    channelId = Url.Videos.Channel.Id(channelId),
     channelTitle = channelTitle,
     title = title,
     description = Option(snippet.getDescription).filter(_.nonEmpty),
