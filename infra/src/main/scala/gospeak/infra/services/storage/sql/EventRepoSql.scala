@@ -185,7 +185,7 @@ object EventRepoSql {
   private def where(group: Group.Id, event: Event.Slug): Fragment = fr0"WHERE e.group_id=$group AND e.slug=$event"
 
   private[sql] def countRsvp(event: Event.Id, answer: Event.Rsvp.Answer): Select[Long] =
-    rsvpTable.selectOne[Long](Seq(Field("count(*)", "")), fr0"WHERE er.event_id=$event AND er.answer=$answer GROUP BY er.event_id, er.answer", Sort("event_id", "er"))
+    rsvpTable.selectOne[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE er.event_id=$event AND er.answer=$answer GROUP BY er.event_id, er.answer", Sort("event_id", "er"))
 
   private[sql] def insertRsvp(e: Event.Rsvp): Insert[Event.Rsvp] =
     rsvpTable.insert[Event.Rsvp](e, _ => fr0"${e.event}, ${e.user.id}, ${e.answer}, ${e.answeredAt}")

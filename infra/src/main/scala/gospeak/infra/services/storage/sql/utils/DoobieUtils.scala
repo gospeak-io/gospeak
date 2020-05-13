@@ -402,7 +402,7 @@ object DoobieUtils {
     def countFr: Fragment = {
       val select = const0(s"SELECT ${fields.headOption.map(_.value).getOrElse("*")} FROM ") ++ table
       val where = whereFragment(filterClause(whereOpt, aggregation = false), params.search, searchFields).getOrElse(fr0"")
-      fr0"SELECT count(*) FROM (" ++ select ++ where ++ groupBy ++ having ++ fr0") as cnt"
+      fr0"SELECT COUNT(*) FROM (" ++ select ++ where ++ groupBy ++ having ++ fr0") as cnt"
     }
 
     def query: doobie.Query0[A] = fr.query[A]
@@ -459,6 +459,7 @@ object DoobieUtils {
     implicit val emailAddressMeta: Meta[EmailAddress] = Meta[String].timap(EmailAddress.from(_).get)(_.value)
     implicit val urlMeta: Meta[Url] = Meta[String].timap(Url.from(_).get)(_.value)
     implicit val urlVideoMeta: Meta[Url.Video] = Meta[String].timap(Url.Video.from(_).get)(_.value)
+    implicit val urlVideosMeta: Meta[Url.Videos] = Meta[String].timap(Url.Videos.from(_).get)(_.value)
     implicit val twitterUrlMeta: Meta[Url.Twitter] = Meta[String].timap(Url.Twitter.from(_).get)(_.value)
     implicit val linkedInUrlMeta: Meta[Url.LinkedIn] = Meta[String].timap(Url.LinkedIn.from(_).get)(_.value)
     implicit val youTubeUrlMeta: Meta[Url.YouTube] = Meta[String].timap(Url.YouTube.from(_).get)(_.value)
@@ -563,6 +564,7 @@ object DoobieUtils {
     implicit val externalCfpIdMeta: Meta[ExternalCfp.Id] = Meta[String].timap(ExternalCfp.Id.from(_).get)(_.value)
     implicit val externalProposalIdMeta: Meta[ExternalProposal.Id] = Meta[String].timap(ExternalProposal.Id.from(_).get)(_.value)
     implicit val voteMeta: Meta[Proposal.Rating.Grade] = Meta[Int].timap(Proposal.Rating.Grade.from(_).get)(_.value)
+    implicit val videoIdMeta: Meta[Video.Id] = Meta[String].timap(Video.Id.from(_).get)(_.value)
 
     implicit val userIdNelMeta: Meta[NonEmptyList[User.Id]] = Meta[String].timap(
       _.split(",").filter(_.nonEmpty).map(User.Id.from(_).get).toNelUnsafe)(

@@ -6,6 +6,7 @@ import gospeak.web.pages.published.cfps.routes.CfpCtrl
 import gospeak.web.pages.published.events.routes.EventCtrl
 import gospeak.web.pages.published.groups.routes.GroupCtrl
 import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
+import gospeak.web.pages.published.videos.routes.VideoCtrl
 import gospeak.web.utils.UserAwareReq
 import play.api.mvc.AnyContent
 
@@ -20,25 +21,6 @@ final case class Shareable(url: String,
 }
 
 object Shareable {
-
-  final case class Owner(name: String, twitterHandle: Option[String]) {
-    def twitterName: String = twitterHandle.getOrElse(name)
-  }
-
-  object Owner {
-    def apply(u: User): Owner = new Owner(
-      name = u.name.value,
-      twitterHandle = u.social.twitter.map(_.handle))
-
-    def apply(g: Group): Owner = new Owner(
-      name = g.name.value,
-      twitterHandle = g.social.twitter.map(_.handle))
-
-    def apply(e: ExternalEvent): Owner = new Owner(
-      name = e.name.value,
-      twitterHandle = e.twitterAccount.map(_.handle))
-  }
-
   def apply(u: User)(implicit req: UserAwareReq[AnyContent]): Shareable = new Shareable(
     url = req.toAbsolute(SpeakerCtrl.detail(u.slug)),
     text = u.name.value,
@@ -83,4 +65,28 @@ object Shareable {
     url = req.toAbsolute(EventCtrl.proposalExt(e.id, p.id)),
     text = s"Presentation of ${p.title.value}",
     owners = p.speakerUsers(users).map(Owner(_)))
+
+  def apply(v: Video)(implicit req: UserAwareReq[AnyContent]): Shareable = new Shareable(
+    url = req.toAbsolute(VideoCtrl.detail(v.id)),
+    text = v.title,
+    owners = List())
+
+  final case class Owner(name: String, twitterHandle: Option[String]) {
+    def twitterName: String = twitterHandle.getOrElse(name)
+  }
+
+  object Owner {
+    def apply(u: User): Owner = new Owner(
+      name = u.name.value,
+      twitterHandle = u.social.twitter.map(_.handle))
+
+    def apply(g: Group): Owner = new Owner(
+      name = g.name.value,
+      twitterHandle = g.social.twitter.map(_.handle))
+
+    def apply(e: ExternalEvent): Owner = new Owner(
+      name = e.name.value,
+      twitterHandle = e.twitterAccount.map(_.handle))
+  }
+
 }

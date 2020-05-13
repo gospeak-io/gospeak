@@ -53,6 +53,9 @@ GET         /speakers/:speaker                                                  
 GET         /speakers/:speaker/talks/:talk                                                 gospeak.web.pages.published.speakers.SpeakerCtrl.talk(speaker: User.Slug, talk: Talk.Slug)
 GET         /speakers/:speaker/contact                                                     gospeak.web.pages.published.speakers.SpeakerCtrl.contactSpeaker(speaker: User.Slug)
 
+GET         /videos                                                                        gospeak.web.pages.published.videos.VideoCtrl.list(params: Page.Params ?= Page.Params.defaults)
+GET         /videos/:video                                                                 gospeak.web.pages.published.videos.VideoCtrl.detail(video: Video.Id)
+
 GET         /signup                                                                        gospeak.web.auth.AuthCtrl.signup(redirect: Option[String] ?= None)
 POST        /signup                                                                        gospeak.web.auth.AuthCtrl.doSignup(redirect: Option[String] ?= None)
 GET         /login                                                                         gospeak.web.auth.AuthCtrl.login(redirect: Option[String] ?= None)
@@ -220,6 +223,9 @@ POST        /u/groups/:group/settings/orgas/:user/remove                        
 
 GET         /a                                                                             gospeak.web.pages.admin.AdminCtrl.index
 GET         /a/check-user-templates                                                        gospeak.web.pages.admin.AdminCtrl.checkUserTemplates(params: Page.Params ?= Page.Params.defaults)
+GET         /a/fetch-videos                                                                gospeak.web.pages.admin.AdminCtrl.fetchVideos(params: Page.Params ?= Page.Params.defaults)
+POST        /a/fetch-videos/channel                                                        gospeak.web.pages.admin.AdminCtrl.updateVideoChannel(url: Url.Videos.Channel)
+POST        /a/fetch-videos/playlist                                                       gospeak.web.pages.admin.AdminCtrl.updateVideoPlaylist(url: Url.Videos.Playlist)
 
 GET         /styleguide                                                                    gospeak.web.pages.styleguide.StyleguideCtrl.index(params: Page.Params ?= Page.Params.defaults)
 GET         /styleguide/embed                                                              gospeak.web.pages.styleguide.StyleguideCtrl.embed

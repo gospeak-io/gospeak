@@ -385,7 +385,7 @@ object MessageSrv {
       location = Some(paris),
       url = Some(Url.from("https://2019.sunny-tech.io").get),
       tickets = Some(Url.from("http://register.ncrafts.io").get),
-      videos = Some(Url.from("https://www.youtube.com/playlist?list=PLuZ_sYdawLiXq_8YaaROhaUazHQVPiELa").get),
+      videos = Some(Url.Videos.from("https://www.youtube.com/playlist?list=PLuZ_sYdawLiXq_8YaaROhaUazHQVPiELa").get),
       twitterAccount = Some(TwitterAccount(Url.Twitter.from("https://twitter.com/sunnytech_mtp").get)),
       twitterHashtag = Some(TwitterHashtag.from("#SunnyTech2019").get),
       tags = Seq(Tag("tech")),
