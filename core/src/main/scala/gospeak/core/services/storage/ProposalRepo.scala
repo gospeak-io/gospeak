@@ -27,9 +27,9 @@ trait OrgaProposalRepo {
 
   def rate(cfp: Cfp.Slug, id: Proposal.Id, grade: Proposal.Rating.Grade)(implicit ctx: OrgaCtx): IO[Done]
 
-  def editSlides(cfp: Cfp.Slug, id: Proposal.Id, slides: SlidesUrl)(implicit ctx: OrgaCtx): IO[Done]
+  def editSlides(cfp: Cfp.Slug, id: Proposal.Id, slides: Url.Slides)(implicit ctx: OrgaCtx): IO[Done]
 
-  def editVideo(cfp: Cfp.Slug, id: Proposal.Id, video: VideoUrl)(implicit ctx: OrgaCtx): IO[Done]
+  def editVideo(cfp: Cfp.Slug, id: Proposal.Id, video: Url.Video)(implicit ctx: OrgaCtx): IO[Done]
 
   def editOrgaTags(cfp: Cfp.Slug, id: Proposal.Id, orgaTags: Seq[Tag])(implicit ctx: OrgaCtx): IO[Done]
 
@@ -63,9 +63,9 @@ trait SpeakerProposalRepo {
 
   def edit(talk: Talk.Slug, cfp: Cfp.Slug, data: Proposal.Data)(implicit ctx: UserCtx): IO[Done]
 
-  def editSlides(talk: Talk.Slug, cfp: Cfp.Slug, slides: SlidesUrl)(implicit ctx: UserCtx): IO[Done]
+  def editSlides(talk: Talk.Slug, cfp: Cfp.Slug, slides: Url.Slides)(implicit ctx: UserCtx): IO[Done]
 
-  def editVideo(talk: Talk.Slug, cfp: Cfp.Slug, video: VideoUrl)(implicit ctx: UserCtx): IO[Done]
+  def editVideo(talk: Talk.Slug, cfp: Cfp.Slug, video: Url.Video)(implicit ctx: UserCtx): IO[Done]
 
   def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, speaker: User.Id)(implicit ctx: UserCtx): IO[Done]
 

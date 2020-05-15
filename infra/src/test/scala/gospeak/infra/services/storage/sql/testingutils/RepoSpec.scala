@@ -15,7 +15,7 @@ import gospeak.infra.services.storage.sql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
 import gospeak.infra.testingutils.{BaseSpec, Values}
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Page, SlidesUrl, Tag, Url, VideoUrl}
+import gospeak.libs.scala.domain.{Page, Tag, Url}
 import org.scalatest.BeforeAndAfterEach
 
 class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with RandomDataGenerator {
@@ -47,8 +47,6 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
   protected val video: Video = random[Video]
   protected val sponsorPack: SponsorPack = random[SponsorPack]
   protected val sponsor: Sponsor = random[Sponsor]
-  protected val slidesUrl: SlidesUrl = random[SlidesUrl]
-  protected val videoUrl: VideoUrl = random[VideoUrl]
   protected val contact: Contact = random[Contact]
   protected val comment: Comment = random[Comment]
   protected val externalEvent: ExternalEvent = random[ExternalEvent]
@@ -62,6 +60,7 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
   protected val rsvp: Event.Rsvp = random[Event.Rsvp]
   protected val tag: Tag = random[Tag]
 
+  protected val urlSlides: Url.Slides = random[Url.Slides]
   protected val urlVideo: Url.Video = random[Url.Video]
   protected val urlVideos: Url.Videos = random[Url.Videos]
 

@@ -1,6 +1,6 @@
-@import gospeak.libs.scala.domain.VideoUrl
+@import gospeak.libs.scala.domain.Url
 
-@(video: Option[VideoUrl] = None)
+@(video: Option[Url.Video] = None)
 @video.map { video =>
     <a href="@video.value" target="_blank" title="Video"><i class="fab fa-youtube"></i></a>
 }.getOrElse {

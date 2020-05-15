@@ -1,6 +1,6 @@
-@import gospeak.libs.scala.domain.SlidesUrl
+@import gospeak.libs.scala.domain.Url
 
-@(slides: Option[SlidesUrl] = None)
+@(slides: Option[Url.Slides] = None)
 @slides.map { slides =>
     <a href="@slides.value" target="_blank" title="Slides"><i class="fab fa-slideshare"></i></a>
 }.getOrElse {

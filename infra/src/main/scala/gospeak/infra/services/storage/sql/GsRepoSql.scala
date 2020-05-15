@@ -97,7 +97,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).get, Cfp.Name(name), start.map(d => LocalDateTime.parse(d + "T00:00:00")), end.map(d => LocalDateTime.parse(d + "T00:00:00")), Markdown(description), tags.map(Tag(_)), Info(by.id, now))
 
     def talk(by: User, slug: String, title: String, status: Talk.Status = Talk.Status.Public, speakers: Seq[User] = Seq(), duration: Int = 10, slides: Option[String] = None, video: Option[String] = None, description: String = "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", tags: Seq[String] = Seq()): Talk =
-      Talk(Talk.Id.generate(), Talk.Slug.from(slug).get, status, Talk.Title(title), Duration(duration, MINUTES), Markdown(description), Markdown(""), NonEmptyList.of(by.id) ++ speakers.map(_.id).toList, slides.map(SlidesUrl.from(_).get), video.map(VideoUrl.from(_).get), tags.map(Tag(_)), Info(by.id, now))
+      Talk(Talk.Id.generate(), Talk.Slug.from(slug).get, status, Talk.Title(title), Duration(duration, MINUTES), Markdown(description), Markdown(""), NonEmptyList.of(by.id) ++ speakers.map(_.id).toList, slides.map(Url.Slides.from(_).get), video.map(Url.Video.from(_).get), tags.map(Tag(_)), Info(by.id, now))
 
     def proposal(talk: Talk, cfp: Cfp, status: Proposal.Status = Proposal.Status.Pending, orgaTags: Seq[String] = Seq()): Proposal =
       Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, status, talk.title, talk.duration, talk.description, Markdown(""), talk.speakers, talk.slides, talk.video, talk.tags, orgaTags.map(Tag(_)), talk.info)

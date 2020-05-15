@@ -264,8 +264,8 @@ object GsForms {
     "duration" -> duration,
     "description" -> markdown,
     "message" -> markdown,
-    "slides" -> optional(slidesUrl),
-    "video" -> optional(videoUrl),
+    "slides" -> optional(urlSlides),
+    "video" -> optional(urlVideo),
     "tags" -> tags
   )(Talk.Data.apply)(Talk.Data.unapply)
   val talk: Form[Talk.Data] = Form(talkMapping)
@@ -301,8 +301,8 @@ object GsForms {
     "duration" -> duration,
     "description" -> markdown,
     "message" -> markdown,
-    "slides" -> optional(slidesUrl),
-    "video" -> optional(videoUrl),
+    "slides" -> optional(urlSlides),
+    "video" -> optional(urlVideo),
     "tags" -> tags
   )(Proposal.Data.apply)(Proposal.Data.unapply))
 
@@ -310,8 +310,8 @@ object GsForms {
     "title" -> talkTitle,
     "duration" -> duration,
     "description" -> markdown,
-    "slides" -> optional(slidesUrl),
-    "video" -> optional(videoUrl),
+    "slides" -> optional(urlSlides),
+    "video" -> optional(urlVideo),
     "tags" -> tags,
     "orgaTags" -> tags
   )(Proposal.DataOrga.apply)(Proposal.DataOrga.unapply))
@@ -424,8 +424,8 @@ object GsForms {
     "duration" -> duration,
     "description" -> markdown,
     "message" -> markdown,
-    "slides" -> optional(slidesUrl),
-    "video" -> optional(videoUrl),
+    "slides" -> optional(urlSlides),
+    "video" -> optional(urlVideo),
     "url" -> optional(url),
     "tags" -> tags
   )(ExternalProposal.Data.apply)(ExternalProposal.Data.unapply)

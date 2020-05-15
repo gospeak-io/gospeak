@@ -135,8 +135,8 @@ object MessageSrv {
     "minute" -> Json.fromString(leftPad(v.getMinute.toString, 2, '0')))
   private implicit val eInstant: Encoder[Instant] = (v: Instant) => eLocalDateTime.apply(v.atZone(Constants.defaultZoneId).toLocalDateTime)
   private implicit val eUrl: Encoder[Url] = (v: Url) => Json.fromString(v.value)
-  private implicit val eSlidesUrl: Encoder[SlidesUrl] = (v: SlidesUrl) => Json.fromString(v.value)
-  private implicit val eVideoUrl: Encoder[VideoUrl] = (v: VideoUrl) => Json.fromString(v.value)
+  private implicit val eUrlSlides: Encoder[Url.Slides] = (v: Url.Slides) => Json.fromString(v.value)
+  private implicit val eUrlVideo: Encoder[Url.Video] = (v: Url.Video) => Json.fromString(v.value)
   private implicit val eMarkdown: Encoder[Markdown] = (v: Markdown) => Json.obj(
     "full" -> Json.fromString(v.value),
     "short1" -> Json.fromString(v.value.split("\n").head.take(140)),
@@ -314,8 +314,8 @@ object MessageSrv {
       description = Markdown("The *best* talk about FP"),
       message = Markdown("Hi CFP committee, **take your chance** to have this talk!"),
       speakers = NonEmptyList.of(user.id),
-      slides = Some(SlidesUrl.from("https://www.slideshare.net/loicknuchel/comprendre-la-programmation-fonctionnelle-blend-web-mix-le-02112016").get),
-      video = Some(VideoUrl.from("https://www.youtube.com/watch?v=PH93yIhsG7k").get),
+      slides = Some(Url.Slides.from("https://www.slideshare.net/loicknuchel/comprendre-la-programmation-fonctionnelle-blend-web-mix-le-02112016").get),
+      video = Some(Url.Video.from("https://www.youtube.com/watch?v=PH93yIhsG7k").get),
       tags = Seq(Tag("FP")),
       info = Info(user.id, now))
     private val eventId: Event.Id = Event.Id.generate()
@@ -330,8 +330,8 @@ object MessageSrv {
       description = Markdown("The *best* talk about FP"),
       message = Markdown("Hi CFP committee, **take your chance** to have this talk!"),
       speakers = NonEmptyList.of(user.id),
-      slides = Some(SlidesUrl.from("https://www.slideshare.net/loicknuchel/comprendre-la-programmation-fonctionnelle-blend-web-mix-le-02112016").get),
-      video = Some(VideoUrl.from("https://www.youtube.com/watch?v=PH93yIhsG7k").get),
+      slides = Some(Url.Slides.from("https://www.slideshare.net/loicknuchel/comprendre-la-programmation-fonctionnelle-blend-web-mix-le-02112016").get),
+      video = Some(Url.Video.from("https://www.youtube.com/watch?v=PH93yIhsG7k").get),
       tags = Seq(Tag("FP")),
       orgaTags = Seq(Tag("selected")),
       info = Info(user.id, now))

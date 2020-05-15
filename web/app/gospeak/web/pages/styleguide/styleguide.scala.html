@@ -1,5 +1,5 @@
 @import gospeak.core.domain.{Cfp, CommonCfp, CommonProposal, Event, Group, Proposal, Talk, User}
-@import gospeak.libs.scala.domain.{Page, SlidesUrl, VideoUrl}
+@import gospeak.libs.scala.domain.{Page, Url}
 @import gospeak.web.domain.PageMeta
 @import gospeak.web.pages.orga.partials.{html => orga}
 @import gospeak.web.pages.partials.container.{html => container}
@@ -201,11 +201,11 @@
             }
             @component("slidesIcon", "@slidesIcon(talk.slides)") { name =>
                 @example(s"$name when empty") { _ => @display.slidesIcon(None) }
-                @example(s"$name when filled") { _ => @display.slidesIcon(Some(SlidesUrl.from("http://slides.com/here").right.get)) }
+                @example(s"$name when filled") { _ => @display.slidesIcon(Some(Url.Slides.from("http://slides.com/here").right.get)) }
             }
             @component("videoIcon", "@videoIcon(talk.video)") { name =>
                 @example(s"$name when empty") { _ => @display.videoIcon(None) }
-                @example(s"$name when filled") { _ => @display.videoIcon(Some(VideoUrl.from("http://video.com/here").right.get)) }
+                @example(s"$name when filled") { _ => @display.videoIcon(Some(Url.Video.from("http://video.com/here").right.get)) }
             }
             @component("speaker", "@speaker(users, user.id, u => Some(MyCtrl.detail(u.slug)))") { name =>
                 @example(s"$name") { _ => @display.speaker(Seq(user), user.id, _ => Some(StyleguideCtrl.index(params))) }

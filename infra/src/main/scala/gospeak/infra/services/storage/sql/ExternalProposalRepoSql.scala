@@ -15,7 +15,7 @@ import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils._
 import gospeak.infra.services.storage.sql.utils.{GenericQuery, GenericRepo}
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Done, Page, SlidesUrl, Tag, VideoUrl}
+import gospeak.libs.scala.domain._
 
 class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ExternalProposalRepo {
   override def create(talk: Talk.Id, event: ExternalEvent.Id, data: ExternalProposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[ExternalProposal] =
@@ -26,9 +26,9 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
 
   override def editStatus(id: ExternalProposal.Id, status: Proposal.Status)(implicit ctx: UserCtx): IO[Done] = updateStatus(id)(status, ctx.user.id).run(xa)
 
-  override def editSlides(id: ExternalProposal.Id, slides: SlidesUrl)(implicit ctx: UserCtx): IO[Done] = updateSlides(id)(slides, ctx.user.id, ctx.now).run(xa)
+  override def editSlides(id: ExternalProposal.Id, slides: Url.Slides)(implicit ctx: UserCtx): IO[Done] = updateSlides(id)(slides, ctx.user.id, ctx.now).run(xa)
 
-  override def editVideo(id: ExternalProposal.Id, video: VideoUrl)(implicit ctx: UserCtx): IO[Done] = updateVideo(id)(video, ctx.user.id, ctx.now).run(xa)
+  override def editVideo(id: ExternalProposal.Id, video: Url.Video)(implicit ctx: UserCtx): IO[Done] = updateVideo(id)(video, ctx.user.id, ctx.now).run(xa)
 
   override def addSpeaker(id: ExternalProposal.Id, by: User.Id)(implicit ctx: UserCtx): IO[Done] =
     find(id).flatMap {
@@ -124,10 +124,10 @@ object ExternalProposalRepoSql {
   private[sql] def updateStatus(id: ExternalProposal.Id)(status: Proposal.Status, by: User.Id): Update =
     table.update(fr0"status=$status", where(id, by))
 
-  private[sql] def updateSlides(id: ExternalProposal.Id)(slides: SlidesUrl, by: User.Id, now: Instant): Update =
+  private[sql] def updateSlides(id: ExternalProposal.Id)(slides: Url.Slides, by: User.Id, now: Instant): Update =
     table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by", where(id, by))
 
-  private[sql] def updateVideo(id: ExternalProposal.Id)(video: VideoUrl, by: User.Id, now: Instant): Update =
+  private[sql] def updateVideo(id: ExternalProposal.Id)(video: Url.Video, by: User.Id, now: Instant): Update =
     table.update(fr0"video=$video, updated_at=$now, updated_by=$by", where(id, by))
 
   private[sql] def updateSpeakers(id: ExternalProposal.Id)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =

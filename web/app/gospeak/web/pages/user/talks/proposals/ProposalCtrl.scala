@@ -10,7 +10,7 @@ import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.MessageBus
-import gospeak.libs.scala.domain.{Page, SlidesUrl, VideoUrl}
+import gospeak.libs.scala.domain.{Page, Url}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb
@@ -123,7 +123,7 @@ class ProposalCtrl(cc: ControllerComponents,
     val next = Redirect(routes.ProposalCtrl.detailExt(talk, proposal))
     GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => SlidesUrl.from(data) match {
+      data => Url.Slides.from(data.value) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(slides) => externalProposalRepo.editSlides(proposal, slides).map(_ => next)
       }
@@ -132,13 +132,10 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def doAddVideoExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detailExt(talk, proposal))
-    GsForms.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => VideoUrl.from(data) match {
-        case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
-        case Right(video) => externalProposalRepo.editVideo(proposal, video).map(_ => next)
-      }
-    )
+    GsForms.embed.bindFromRequest.fold(formWithErrors => IO.pure(next.flashing(formWithErrors.flash)), {
+      case video: Url.Video => externalProposalRepo.editVideo(proposal, video).map(_ => next)
+      case data => IO.pure(next.flashing("error" -> s"${data.value} is not a valid video url"))
+    })
   }
 
   def doRemoveExt(talk: Talk.Slug, proposal: ExternalProposal.Id): Action[AnyContent] = UserAction { implicit req =>
@@ -267,7 +264,7 @@ class ProposalCtrl(cc: ControllerComponents,
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
     GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => SlidesUrl.from(data) match {
+      data => Url.Slides.from(data.value) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(slides) => proposalRepo.editSlides(talk, cfp, slides).map(_ => next)
       }
@@ -276,13 +273,10 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def doAddVideo(talk: Talk.Slug, cfp: Cfp.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(talk, cfp))
-    GsForms.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => VideoUrl.from(data) match {
-        case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
-        case Right(video) => proposalRepo.editVideo(talk, cfp, video).map(_ => next)
-      }
-    )
+    GsForms.embed.bindFromRequest.fold(formWithErrors => IO.pure(next.flashing(formWithErrors.flash)), {
+      case video: Url.Video => proposalRepo.editVideo(talk, cfp, video).map(_ => next)
+      case data => IO.pure(next.flashing("error" -> s"${data.value} is not a valid video url"))
+    })
   }
 }
 

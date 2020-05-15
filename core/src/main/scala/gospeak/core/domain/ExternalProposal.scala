@@ -15,8 +15,8 @@ final case class ExternalProposal(id: ExternalProposal.Id,
                                   description: Markdown,
                                   message: Markdown,
                                   speakers: NonEmptyList[User.Id],
-                                  slides: Option[SlidesUrl],
-                                  video: Option[VideoUrl],
+                                  slides: Option[Url.Slides],
+                                  video: Option[Url.Video],
                                   url: Option[Url],
                                   tags: Seq[Tag],
                                   info: Info) {
@@ -54,9 +54,9 @@ object ExternalProposal {
 
     def speakerUsers(users: Seq[User]): List[User] = speakers.toList.flatMap(id => users.find(_.id == id))
 
-    def slides: Option[SlidesUrl] = proposal.slides
+    def slides: Option[Url.Slides] = proposal.slides
 
-    def video: Option[VideoUrl] = proposal.video
+    def video: Option[Url.Video] = proposal.video
 
     def url: Option[Url] = proposal.url
 
@@ -74,8 +74,8 @@ object ExternalProposal {
                         duration: FiniteDuration,
                         description: Markdown,
                         message: Markdown,
-                        slides: Option[SlidesUrl],
-                        video: Option[VideoUrl],
+                        slides: Option[Url.Slides],
+                        video: Option[Url.Video],
                         url: Option[Url],
                         tags: Seq[Tag])
 

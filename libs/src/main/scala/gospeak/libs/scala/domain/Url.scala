@@ -26,40 +26,12 @@ object Url {
     }.toEither.left.map(e => CustomException(s"'$in' is an invalid Url", Seq(CustomError(e.getMessage))))
   }
 
-  sealed trait Videos extends Url {
-    val platform: String
-  }
+  final class Slides private(url: Url) extends Url(url.value, url.parsed)
 
-  object Videos {
-    def from(in: String): Either[CustomException, Url.Videos] = Url.from(in).flatMap {
-      case u: Url.Videos => Right(u)
-      case _ => Left(CustomException(s"'$in' is an invalid videos Url"))
-    }
+  object Slides {
+    def from(url: Url): Either[CustomException, Url.Slides] = Right(new Slides(url))
 
-    sealed trait Channel extends Videos
-
-    object Channel {
-      def from(in: String): Either[CustomException, Url.Videos.Channel] = Url.from(in).flatMap {
-        case u: Url.Videos.Channel => Right(u)
-        case _ => Left(CustomException(s"'$in' is an invalid video channel Url"))
-      }
-
-      final case class Id(value: String)
-    }
-
-    sealed trait Playlist extends Videos {
-      def playlistId: Playlist.Id
-    }
-
-    object Playlist {
-      def from(in: String): Either[CustomException, Url.Videos.Playlist] = Url.from(in).flatMap {
-        case u: Url.Videos.Playlist => Right(u)
-        case _ => Left(CustomException(s"'$in' is an invalid video playlist Url"))
-      }
-
-      final case class Id(value: String)
-    }
-
+    def from(in: String): Either[CustomException, Url.Slides] = Url.from(in).flatMap(from)
   }
 
   sealed trait Video extends Url {
@@ -69,12 +41,59 @@ object Url {
   }
 
   object Video {
-    def from(in: String): Either[CustomException, Url.Video] = Url.from(in).flatMap {
+    def from(url: Url): Either[CustomException, Url.Video] = url match {
       case u: Url.Video => Right(u)
-      case _ => Left(CustomException(s"'$in' is an invalid video Url"))
+      case _ => Left(CustomException(s"'${url.value}' is an invalid video Url"))
     }
 
+    def from(in: String): Either[CustomException, Url.Video] = Url.from(in).flatMap(from)
+
     final case class Id(value: String)
+
+  }
+
+  sealed trait Videos extends Url {
+    val platform: String
+  }
+
+  object Videos {
+    def from(url: Url): Either[CustomException, Url.Videos] = url match {
+      case u: Url.Videos => Right(u)
+      case _ => Left(CustomException(s"'${url.value}' is an invalid videos Url"))
+    }
+
+    def from(in: String): Either[CustomException, Url.Videos] = Url.from(in).flatMap(from)
+
+    sealed trait Channel extends Videos
+
+    object Channel {
+      def from(url: Url): Either[CustomException, Url.Videos.Channel] = url match {
+        case u: Url.Videos.Channel => Right(u)
+        case _ => Left(CustomException(s"'${url.value}' is an invalid video channel Url"))
+      }
+
+      def from(in: String): Either[CustomException, Url.Videos.Channel] = Url.from(in).flatMap(from)
+
+      final case class Id(value: String)
+
+    }
+
+    sealed trait Playlist extends Videos {
+      def playlistId: Playlist.Id
+    }
+
+    object Playlist {
+      def from(url: Url): Either[CustomException, Url.Videos.Playlist] = url match {
+        case u: Url.Videos.Playlist => Right(u)
+        case _ => Left(CustomException(s"'${url.value}' is an invalid video playlist Url"))
+      }
+
+      def from(in: String): Either[CustomException, Url.Videos.Playlist] = Url.from(in).flatMap(from)
+
+      final case class Id(value: String)
+
+    }
+
   }
 
   final class Twitter private(url: Url) extends Url(url.value, url.parsed) {
