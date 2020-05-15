@@ -10,7 +10,14 @@ import gospeak.libs.scala.domain.{EmailAddress, EnumBuilder, Mustache, StringEnu
 final case class ApplicationConf(env: ApplicationConf.Env,
                                  baseUrl: String,
                                  aesKey: AesSecretKey,
-                                 admins: NonEmptyList[EmailAddress])
+                                 admins: NonEmptyList[EmailAddress]) {
+  def name: String = env match {
+    case ApplicationConf.Env.Local => "Gospeak Local"
+    case ApplicationConf.Env.Dev => "Gospeak Dev"
+    case ApplicationConf.Env.Staging => "Gospeak Staging"
+    case ApplicationConf.Env.Prod => "Gospeak"
+  }
+}
 
 object ApplicationConf {
 

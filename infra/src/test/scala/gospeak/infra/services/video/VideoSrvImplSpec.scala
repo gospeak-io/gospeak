@@ -12,7 +12,7 @@ class VideoSrvImplSpec extends BaseSpec {
       .stripMargin)
 
   ignore("YoutubeSrvImpl") {
-    val srv = VideoSrvImpl.from(YoutubeConf(Some(secret))).get
+    val srv = VideoSrvImpl.from(YoutubeConf(Some(secret)), "Gospeak VideoSrvImplSpec").get
 
     describe("getChannelId") {
       it("should get the channel id for youtube") {

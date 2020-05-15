@@ -98,7 +98,7 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val twitterSrv: Option[TwitterSrv] = conf.twitter.map(new TwitterSrvImpl(_, conf.app.env.isProd))
   lazy val meetupSrv: MeetupSrv = MeetupSrvImpl.from(conf.meetup, conf.app.baseUrl, conf.app.env.isProd)
   lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient())
-  lazy val videoSrv: VideoSrv = VideoSrvImpl.from(conf.youtube).get
+  lazy val videoSrv: VideoSrv = VideoSrvImpl.from(conf.youtube, conf.app.name).get
   lazy val messageSrv: MessageSrv = wire[MessageSrv]
   lazy val messageBus: MessageBus[Message] = wire[BasicMessageBus[Message]]
   lazy val messageHandler: MessageHandler = wire[MessageHandler]

@@ -10,7 +10,7 @@ class YoutubeClientSpec extends BaseSpec {
     """{}""".stripMargin)
 
   ignore("YoutubeClient") {
-    val client: YoutubeClient = YoutubeClient.create(secret).get
+    val client: YoutubeClient = YoutubeClient.create(secret, "Gospeak YoutubeClientSpec").get
 
     describe("getChannelId") {
       it("should get channel id with user name") {

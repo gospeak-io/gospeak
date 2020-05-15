@@ -109,13 +109,13 @@ object YoutubeClient {
   private val maxResults: Long = 50L
   private val separator: String = ","
 
-  def create(secret: Secret): Try[YoutubeClient] = {
+  def create(secret: Secret, appName: String): Try[YoutubeClient] = {
     Try(GoogleCredential.fromStream(new ByteArrayInputStream(secret.decode.getBytes)))
       .map(_.createScoped(List("https://www.googleapis.com/auth/youtube.readonly").asJava))
       .map { credential =>
         val httpTransport: NetHttpTransport = GoogleNetHttpTransport.newTrustedTransport
         val jsonFactory: JsonFactory = JacksonFactory.getDefaultInstance
-        val youtube: YouTube = new YouTube.Builder(httpTransport, jsonFactory, credential).setApplicationName("Gospeak").build
+        val youtube: YouTube = new YouTube.Builder(httpTransport, jsonFactory, credential).setApplicationName(appName).build
         new YoutubeClient(youtube)
       }
   }

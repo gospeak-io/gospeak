@@ -4,27 +4,21 @@ import cats.effect.IO
 import gospeak.core.domain.Video
 import gospeak.core.domain.Video.PlaylistRef
 import gospeak.core.services.video.{VideoSrv, YoutubeConf}
+import gospeak.libs.scala.Cache
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{CustomException, Url}
 import gospeak.libs.youtube.YoutubeClient
 import gospeak.libs.youtube.domain.{YoutubeErrors, YoutubePlaylist}
 
-import scala.collection.mutable
 import scala.util.Try
 
 class VideoSrvImpl(youtubeOpt: Option[YoutubeClient]) extends VideoSrv {
-  private val channelIdCache = mutable.HashMap[Url.Videos.Channel, Url.Videos.Channel.Id]()
-
-  override def getChannelId(url: Url.Videos.Channel): IO[Url.Videos.Channel.Id] = {
-    channelIdCache.get(url).map(IO.pure).getOrElse {
-      val res = url match {
-        case u: Url.YouTube.Channel => withYoutube(_.getChannelId(u).flatMap(formatError))
-        case _: Url.Vimeo.Channel => withVimeo()
-      }
-      res.map(id => channelIdCache.put(url, id))
-      res
-    }
+  private val getChannelIdCache: Url.Videos.Channel => IO[Url.Videos.Channel.Id] = Cache.memoizeIO {
+    case u: Url.YouTube.Channel => withYoutube(_.getChannelId(u).flatMap(formatError))
+    case _: Url.Vimeo.Channel => withVimeo()
   }
+
+  override def getChannelId(url: Url.Videos.Channel): IO[Url.Videos.Channel.Id] = getChannelIdCache(url)
 
   override def listVideos(url: Url.Videos): IO[List[Video.Data]] = url match {
     case u: Url.YouTube.Channel => withYoutube(c => c.getChannelId(u).flatMap(formatError).flatMap(id => listYoutubeChannelVideos(c, id)))
@@ -56,7 +50,7 @@ class VideoSrvImpl(youtubeOpt: Option[YoutubeClient]) extends VideoSrv {
 }
 
 object VideoSrvImpl {
-  def from(youtubeConf: YoutubeConf): Try[VideoSrvImpl] = for {
-    youtubeClient <- youtubeConf.secret.map(YoutubeClient.create).sequence
+  def from(youtubeConf: YoutubeConf, appName: String): Try[VideoSrvImpl] = for {
+    youtubeClient <- youtubeConf.secret.map(YoutubeClient.create(_, appName)).sequence
   } yield new VideoSrvImpl(youtubeClient)
 }
