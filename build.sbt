@@ -45,7 +45,7 @@ val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.12.3")
 val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
-  "com.pepegar" %% "hammock-apache-http").map(_ % "0.10.0")
+  "com.pepegar" %% "hammock-apache-http").map(_ % "0.11.0")
 val youtubeApi = Seq(
   "com.google.apis" % "google-api-services-youtube" % "v3-rev222-1.25.0",
   "com.google.api-client" % "google-api-client" % "1.23.0",
