@@ -53,7 +53,7 @@ val youtubeApi = Seq(
 )
 val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.11")
 val twitter = Seq("com.danielasfregola" %% "twitter4s" % "6.2") // https://github.com/DanielaSfregola/twitter4s
-val flyway = Seq("org.flywaydb" % "flyway-core" % "6.4.0")
+val flyway = Seq("org.flywaydb" % "flyway-core" % "6.4.3")
 val silhouetteVersion = "7.0.0"
 val silhouette = Seq(
   "com.mohiva" %% "play-silhouette",
