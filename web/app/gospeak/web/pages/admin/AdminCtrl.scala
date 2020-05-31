@@ -3,18 +3,18 @@ package gospeak.web.pages.admin
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.messages.Message
-import gospeak.core.domain.{Event, Group, Video}
+import gospeak.core.domain.{Event, ExternalEvent, Group, Video}
 import gospeak.core.services.slack.domain.SlackAction
 import gospeak.core.services.storage._
 import gospeak.core.services.video.VideoSrv
 import gospeak.libs.scala.Diff
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Mustache, Page, Url}
+import gospeak.libs.scala.domain.{CustomException, Mustache, Page, Url}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.pages.admin.AdminCtrl.UserTemplateReport
 import gospeak.web.services.{MessageSrv, SchedulerSrv}
-import gospeak.web.utils.{AdminReq, UICtrl}
+import gospeak.web.utils.UICtrl
 import io.circe.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
@@ -65,6 +65,9 @@ class AdminCtrl(cc: ControllerComponents,
 
   def fetchVideos(params: Page.Params): Action[AnyContent] = AdminAction { implicit req =>
     for {
+      // TODO talks with video
+      // TODO proposals with video
+      // TODO external proposals with video
       extEvents <- extEventRepo.list(params.withFilter("video", "true"))
       extEventsWithVideoCount <- extEvents.map(e => e.videos.map {
         case u: Url.Videos.Channel => videoSrv.getChannelId(u).flatMap(videoRepo.countForChannel)
@@ -73,30 +76,20 @@ class AdminCtrl(cc: ControllerComponents,
     } yield Ok(html.fetchVideos(extEventsWithVideoCount))
   }
 
-  def updateVideoChannel(url: Url.Videos.Channel): Action[AnyContent] = AdminAction { implicit req =>
+  def updateExtEventVideos(event: ExternalEvent.Id): Action[AnyContent] = AdminAction { implicit req =>
     for {
-      channelId <- videoSrv.getChannelId(url)
+      eventElt <- extEventRepo.find(event).flatMap(_.toIO(CustomException(s"No external event for id $event")))
+      url <- eventElt.videos.toIO(CustomException(s"No videos for external event ${eventElt.name.value}"))
+      gospeakVideos <- url match {
+        case c: Url.Videos.Channel => videoSrv.getChannelId(c).flatMap(videoRepo.listAllForChannel)
+        case p: Url.Videos.Playlist => videoRepo.listAllForPlaylist(p.playlistId)
+      }
       currentVideos <- videoSrv.listVideos(url)
-      gospeakVideos <- videoRepo.listAllForChannel(channelId).map(_.map(_.data))
-      _ <- updateVideos(gospeakVideos, currentVideos)
+      videosDiff = Diff.from[Video.Data](gospeakVideos.map(_.data), currentVideos, (a: Video.Data, b: Video.Data) => a.url == b.url)
+      _ <- videosDiff.leftOnly.map(v => videoRepo.remove(v, event)).sequence
+      _ <- videosDiff.rightOnly.map(v => videoRepo.create(v, event)).sequence
+      _ <- videosDiff.both.map { case (_, v) => videoRepo.edit(v, event) }.sequence
     } yield redirectToPreviousPageOr(routes.AdminCtrl.fetchVideos())
-  }
-
-  def updateVideoPlaylist(url: Url.Videos.Playlist): Action[AnyContent] = AdminAction { implicit req: AdminReq[AnyContent] =>
-    for {
-      currentVideos <- videoSrv.listVideos(url)
-      gospeakVideos <- videoRepo.listAllForPlaylist(url.playlistId).map(_.map(_.data))
-      _ <- updateVideos(gospeakVideos, currentVideos)
-    } yield redirectToPreviousPageOr(routes.AdminCtrl.fetchVideos())
-  }
-
-  private def updateVideos(gospeakVideos: List[Video.Data], currentVideos: List[Video.Data])(implicit req: AdminReq[AnyContent]): IO[Unit] = {
-    val videosDiff = Diff.from[Video.Data](gospeakVideos, currentVideos, (a: Video.Data, b: Video.Data) => a.url == b.url)
-    for {
-      _ <- videosDiff.leftOnly.map(v => videoRepo.remove(v)).sequence
-      _ <- videosDiff.rightOnly.map(v => videoRepo.create(v)).sequence
-      _ <- videosDiff.both.map { case (_, v) => videoRepo.edit(v) }.sequence
-    } yield ()
   }
 }
 

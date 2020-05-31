@@ -27,3 +27,16 @@ CREATE INDEX videos_channel_id_idx ON videos (channel_id);
 CREATE INDEX videos_channel_name_idx ON videos (channel_name);
 CREATE INDEX videos_playlist_id_idx ON videos (playlist_id);
 CREATE INDEX videos_playlist_name_idx ON videos (playlist_name);
+
+CREATE TABLE video_sources
+(
+    video_id             VARCHAR(15) NOT NULL REFERENCES videos (id),
+    talk_id              CHAR(36) REFERENCES talks (id),
+    proposal_id          CHAR(36) REFERENCES proposals (id),
+    external_proposal_id CHAR(36) REFERENCES external_proposals (id),
+    external_event_id    CHAR(36) REFERENCES external_events (id),
+    UNIQUE (video_id, talk_id),
+    UNIQUE (video_id, proposal_id),
+    UNIQUE (video_id, external_proposal_id),
+    UNIQUE (video_id, external_event_id)
+);

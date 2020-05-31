@@ -71,6 +71,12 @@ object Video {
 
   final case class PlaylistRef(id: Url.Videos.Playlist.Id, name: String)
 
+  final case class Sources(videoId: Url.Video.Id,
+                           talk_id: Option[Talk.Id],
+                           proposal_id: Option[Proposal.Id],
+                           external_proposal_id: Option[ExternalProposal.Id],
+                           external_event_id: Option[ExternalEvent.Id])
+
   final case class Data(url: Url.Video,
                         channel: ChannelRef,
                         playlist: Option[PlaylistRef],
