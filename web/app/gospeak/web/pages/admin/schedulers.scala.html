@@ -1,0 +1,47 @@
+@import gospeak.web.pages.admin.partials.html.container
+@import gospeak.web.services.SchedulerSrv
+@import gospeak.web.pages.admin.routes.AdminCtrl
+@import gospeak.web.utils.AdminReq
+
+@(schedulers: List[SchedulerSrv.Scheduler], execs: List[SchedulerSrv.Exec])(implicit req: AdminReq[AnyContent])
+@container(s"Admin")() {
+    <h1>Schedulers</h1>
+
+    @if(schedulers.nonEmpty) {
+        <p>Started schedulers:</p>
+        <ul>
+            @schedulers.map { scheduler =>
+                <li>
+                    <b>@scheduler.name</b>
+                    @scheduler.started.map { s => started since @s }.getOrElse {stopped}
+                    with schedule @scheduler.schedule
+                    <a href="@AdminCtrl.schedulerExec(scheduler.name)" confirm="Want to run '@scheduler.name' scheduler ?">exec</a>
+                </li>
+            }
+        </ul>
+    }
+
+    <p>Launched executions (saved in memory):</p>
+    <table class="table table-sm table-hover">
+        <thead>
+            <th scope="col">#</th>
+            <th scope="col">date</th>
+            <th scope="col">duration</th>
+            <th scope="col">scheduler</th>
+            <th scope="col">result</th>
+            <th scope="col">error</th>
+        </thead>
+        <tbody>
+        @execs.sortBy(-_.started.toEpochMilli).zipWithIndex.map { case (exec, i) =>
+            <tr @if(exec.error.isDefined){class="table-danger"}>
+                <th scope="row">@{execs.length - i}</th>
+                <td><span title="source: @exec.source" data-toggle="tooltip">@exec.started</span></td>
+                <td>@exec.duration</td>
+                <td><b>@exec.name</b></td>
+                <td>@exec.result</td>
+                <td>@exec.error</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}()

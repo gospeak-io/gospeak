@@ -14,9 +14,11 @@ import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Creds, EmailAddress, Mustache, Secret}
 import gospeak.web.auth.AuthConf
+import gospeak.web.services.SchedulerSrv
 import play.api.Configuration
 import play.api.mvc.Cookie.SameSite
 import pureconfig.error.{CannotConvert, ConfigReaderFailure, ConfigReaderFailures, ConvertFailure}
+import pureconfig.module.cron4s.cronExprConfigConvert
 import pureconfig.{ConfigCursor, ConfigReader, ConfigSource, Derivation}
 
 import scala.util.{Failure, Success, Try}
@@ -29,7 +31,8 @@ final case class AppConf(app: ApplicationConf,
                          meetup: MeetupConf,
                          youtube: YoutubeConf,
                          twitter: Option[TwitterConf],
-                         gospeak: GsConf)
+                         gospeak: GsConf,
+                         scheduler: SchedulerSrv.Conf)
 
 object AppConf {
   def load(conf: Config): Try[AppConf] = {
@@ -46,6 +49,8 @@ object AppConf {
   private object Readers {
 
     import pureconfig.generic.semiauto._
+
+    val _ = cronExprConfigConvert // to keep import for deriveReader[SchedulerSrv.Conf]
 
     private def convertErr(cur: ConfigCursor, toType: String, because: String): ConfigReaderFailures =
       ConfigReaderFailures(ConvertFailure(CannotConvert(cur.toString, toType, because), cur.location, cur.path))
@@ -116,6 +121,7 @@ object AppConf {
     private implicit val youtubeConfReader: ConfigReader[YoutubeConf] = deriveReader[YoutubeConf]
     private implicit val twitterConfReader: ConfigReader[TwitterConf] = deriveReader[TwitterConf]
     private implicit val gsConfReader: ConfigReader[GsConf] = deriveReader[GsConf]
+    private implicit val schedulerConfReader: ConfigReader[SchedulerSrv.Conf] = deriveReader[SchedulerSrv.Conf]
 
     private implicit val appConfReader: ConfigReader[AppConf] = deriveReader[AppConf]
 

@@ -20,6 +20,8 @@ trait AdminVideoRepo {
 
   def remove(video: Video.Data)(implicit ctx: AdminCtx): IO[Done]
 
+  def findRandom(): IO[Option[Video]]
+
   def listAllForChannel(channelId: Url.Videos.Channel.Id): IO[List[Video]]
 
   def listAllForPlaylist(playlistId: Url.Videos.Playlist.Id): IO[List[Video]]

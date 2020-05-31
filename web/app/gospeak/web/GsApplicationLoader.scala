@@ -37,7 +37,7 @@ import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
 import gospeak.web.auth.{AuthConf, AuthCtrl}
 import gospeak.web.pages._
-import gospeak.web.services.{MessageHandler, MessageSrv}
+import gospeak.web.services.{MessageHandler, MessageSrv, SchedulerSrv}
 import org.slf4j.LoggerFactory
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.Cookie.SameSite
@@ -47,6 +47,7 @@ import play.api.{Environment => _, _}
 import play.filters.HttpFiltersComponents
 import router.Routes
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 
 class GsApplicationLoader extends ApplicationLoader {
@@ -102,6 +103,7 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val messageSrv: MessageSrv = wire[MessageSrv]
   lazy val messageBus: MessageBus[Message] = wire[BasicMessageBus[Message]]
   lazy val messageHandler: MessageHandler = wire[MessageHandler]
+  lazy val schedulerSrv: SchedulerSrv = new SchedulerSrv(video, twitterSrv)(ExecutionContext.global)
 
   // start:Silhouette conf
   lazy val clock: Clock = Clock()
@@ -234,6 +236,7 @@ class GsComponents(context: ApplicationLoader.Context)
     messageBus.subscribe(messageHandler.logHandler)
     messageBus.subscribe(messageHandler.gospeakHandler)
     messageBus.subscribe(messageHandler.groupActionHandler)
+    schedulerSrv.init(conf.scheduler)
 
     logger.info("Application initialized")
   }

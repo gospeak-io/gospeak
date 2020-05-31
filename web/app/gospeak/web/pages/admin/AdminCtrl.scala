@@ -13,7 +13,7 @@ import gospeak.libs.scala.domain.{Mustache, Page, Url}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.pages.admin.AdminCtrl.UserTemplateReport
-import gospeak.web.services.MessageSrv
+import gospeak.web.services.{MessageSrv, SchedulerSrv}
 import gospeak.web.utils.{AdminReq, UICtrl}
 import io.circe.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -27,9 +27,28 @@ class AdminCtrl(cc: ControllerComponents,
                 extEventRepo: AdminExternalEventRepo,
                 videoRepo: AdminVideoRepo,
                 videoSrv: VideoSrv,
+                schedulerSrv: SchedulerSrv,
                 ms: MessageSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.AdminAction {
   def index(): Action[AnyContent] = AdminAction { implicit req =>
     IO.pure(Ok(html.index()))
+  }
+
+  def schedulers(): Action[AnyContent] = AdminAction { implicit req =>
+    val schedulers = schedulerSrv.getSchedulers
+    val execs = schedulerSrv.getExecs
+    IO(Ok(html.schedulers(schedulers, execs)))
+  }
+
+  def schedulerExec(scheduler: String): Action[AnyContent] = AdminAction { implicit req =>
+    val next = Redirect(routes.AdminCtrl.schedulers())
+    schedulerSrv.exec(scheduler).map {
+      case Some(SchedulerSrv.Exec(name, _, _, _, res, None)) =>
+        next.flashing("success" -> s"Scheduler '$name' executed: $res")
+      case Some(SchedulerSrv.Exec(name, _, _, _, res, Some(err))) =>
+        next.flashing("error" -> s"Scheduler '$name' had an error: <b>$err</b><br>Result: $res")
+      case None =>
+        next.flashing("error" -> s"No scheduler with name '$scheduler'")
+    }
   }
 
   def checkUserTemplates(params: Page.Params): Action[AnyContent] = AdminAction { implicit req =>

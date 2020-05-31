@@ -23,6 +23,8 @@ class VideoRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def find(video: Url.Video.Id): IO[Option[Video]] = selectOne(video).runOption(xa)
 
+  def findRandom(): IO[Option[Video]] = selectOneRandom().runOption(xa)
+
   override def list(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Video]] = selectPage(params).run(xa)
 
   override def listAllForChannel(channelId: Url.Videos.Channel.Id): IO[List[Video]] = selectAllForChannel(channelId).runList(xa)
@@ -53,7 +55,10 @@ object VideoRepoSql {
     table.delete(fr0"WHERE id=${url.videoId}")
 
   private[sql] def selectOne(video: Url.Video.Id): Select[Video] =
-    tableSelect.select[Video](fr0"WHERE vi.id=$video")
+    tableSelect.selectOne[Video](fr0"WHERE vi.id=$video")
+
+  private[sql] def selectOneRandom(): Select[Video] =
+    tableSelect.selectOne[Video](fr0"", offset = fr0"FLOOR(RANDOM() * (SELECT COUNT(*) FROM videos))")
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Video, UserAwareCtx] =
     tableSelect.selectPage[Video, UserAwareCtx](params)

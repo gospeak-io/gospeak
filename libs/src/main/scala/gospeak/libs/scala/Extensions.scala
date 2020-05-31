@@ -345,6 +345,8 @@ object Extensions {
 
   implicit class InstantExtension(val in: Instant) extends AnyVal {
     def plus(d: FiniteDuration): Instant = in.plusMillis(d.toMillis)
+
+    def getYear(zone: ZoneId): Int = in.atZone(zone).getYear
   }
 
   implicit class LocalDateTimeExtension(val in: LocalDateTime) extends AnyVal {
