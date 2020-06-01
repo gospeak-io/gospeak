@@ -38,27 +38,32 @@ final case class Video(url: Url.Video,
   def thumbnail: String = url match {
     case _: Url.YouTube => s"https://i.ytimg.com/vi/${id.value}/default.jpg" // 120x90
     case _: Url.Vimeo => Constants.Placeholders.videoCover
+    case _: Url.Infoq => Constants.Placeholders.videoCover
   }
 
   def thumbnailMedium: String = url match {
     case _: Url.YouTube => s"https://i.ytimg.com/vi/${id.value}/mqdefault.jpg" // 320x180
     case _: Url.Vimeo => Constants.Placeholders.videoCover
+    case _: Url.Infoq => Constants.Placeholders.videoCover
   }
 
   def thumbnailHigh: String = url match {
     case _: Url.YouTube => s"https://i.ytimg.com/vi/${id.value}/hqdefault.jpg" // 480x360
     case _: Url.Vimeo => Constants.Placeholders.videoCover
+    case _: Url.Infoq => Constants.Placeholders.videoCover
   }
 
   def channelUrl: String = url match {
     case _: Url.YouTube => s"https://www.youtube.com/channel/${channel.id.value}"
     case _: Url.Vimeo => s"https://vimeo.com/${channel.id.value}"
+    case _: Url.Infoq => s"https://www.infoq.com/${channel.id.value}"
   }
 
   def playlistUrl: Option[(PlaylistRef, String)] = playlist.map { p =>
     url match {
       case _: Url.YouTube => p -> s"https://www.youtube.com/playlist?list=${p.id.value}"
       case _: Url.Vimeo => p -> s"https://vimeo.com/showcase/${p.id.value}"
+      case _: Url.Infoq => p -> s"https://www.infoq.com/${p.id.value}"
     }
   }
 }

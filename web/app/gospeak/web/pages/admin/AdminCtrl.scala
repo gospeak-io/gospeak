@@ -72,6 +72,7 @@ class AdminCtrl(cc: ControllerComponents,
       extEventsWithVideoCount <- extEvents.map(e => e.videos.map {
         case u: Url.Videos.Channel => videoSrv.getChannelId(u).flatMap(videoRepo.countForChannel)
         case u: Url.Videos.Playlist => videoRepo.countForPlaylist(u.playlistId)
+        case _: Url.Videos.Other => IO.pure(0L)
       }.getOrElse(IO.pure(0L)).map(c => e -> c)).sequence
     } yield Ok(html.fetchVideos(extEventsWithVideoCount))
   }
@@ -83,6 +84,7 @@ class AdminCtrl(cc: ControllerComponents,
       gospeakVideos <- url match {
         case c: Url.Videos.Channel => videoSrv.getChannelId(c).flatMap(videoRepo.listAllForChannel)
         case p: Url.Videos.Playlist => videoRepo.listAllForPlaylist(p.playlistId)
+        case _: Url.Videos.Other => IO.pure(List())
       }
       currentVideos <- videoSrv.listVideos(url)
       videosDiff = Diff.from[Video.Data](gospeakVideos.map(_.data), currentVideos, (a: Video.Data, b: Video.Data) => a.url == b.url)

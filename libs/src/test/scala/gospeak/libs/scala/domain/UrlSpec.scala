@@ -51,10 +51,10 @@ class UrlSpec extends BaseSpec {
         ("https://youtu.be/QfmVc9c_8Po", "video", "QfmVc9c_8Po"),
         ("https://www.youtube.com/feed/subscriptions", "youtube", "subscriptions"),
       ).map { case (u, t, h) => (Url.from(u).get, t, h) }.foreach {
-        case (u: Url.YouTube.Channel, "channel", handle) => u.handle shouldBe handle
-        case (u: Url.YouTube.Playlist, "playlist", handle) => u.handle shouldBe handle
-        case (u: Url.YouTube.Video, "video", handle) => u.handle shouldBe handle
-        case (u: Url.YouTube, "youtube", handle) => u.handle shouldBe handle
+        case (u: Url.YouTube.Channel, kind, handle) => kind shouldBe "channel"; u.handle shouldBe handle
+        case (u: Url.YouTube.Playlist, kind, handle) => kind shouldBe "playlist"; u.handle shouldBe handle
+        case (u: Url.YouTube.Video, kind, handle) => kind shouldBe "video"; u.handle shouldBe handle
+        case (u: Url.YouTube, kind, handle) => kind shouldBe "youtube"; u.handle shouldBe handle
         case (u, k, _) => if (k.nonEmpty) fail(s"Unexpected result for url: ${u.value} (${u.getClass.getTypeName})")
       }
     }
@@ -68,10 +68,25 @@ class UrlSpec extends BaseSpec {
         ("https://vimeo.com/380320538#t=10s", "video", "380320538"),
         ("https://vimeo.com/fr/upgrade", "vimeo", "upgrade"),
       ).map { case (u, t, h) => (Url.from(u).get, t, h) }.foreach {
-        case (u: Url.Vimeo.Channel, "channel", handle) => u.handle shouldBe handle
-        case (u: Url.Vimeo.Showcase, "showcase", handle) => u.handle shouldBe handle
-        case (u: Url.Vimeo.Video, "video", handle) => u.handle shouldBe handle
-        case (u: Url.Vimeo, "vimeo", handle) => u.handle shouldBe handle
+        case (u: Url.Vimeo.Channel, kind, handle) => kind shouldBe "channel"; u.handle shouldBe handle
+        case (u: Url.Vimeo.Showcase, kind, handle) => kind shouldBe "showcase"; u.handle shouldBe handle
+        case (u: Url.Vimeo.Video, kind, handle) => kind shouldBe "video"; u.handle shouldBe handle
+        case (u: Url.Vimeo, kind, handle) => kind shouldBe "vimeo"; u.handle shouldBe handle
+        case (u, k, _) => if (k.nonEmpty) fail(s"Unexpected result for url: ${u.value}")
+      }
+    }
+    it("should identify Infoq urls") {
+      Seq(
+        ("https://loicknuchel.fr", "", ""),
+        ("https://www.infoq.com/scala/", "topic", "scala"),
+        ("https://www.infoq.com/fr/mixit16", "topic", "mixit16"),
+        ("https://www.infoq.com/fr/codeurs-en-seine/", "topic", "codeurs-en-seine"),
+        ("https://www.infoq.com/fr/presentations/mix-it-pierre-yves-ricau-crash-fast-and-furious/", "presentation", "mix-it-pierre-yves-ricau-crash-fast-and-furious"),
+        ("https://www.infoq.com/fr/search.action?queryString=scala", "infoq", "search.action"),
+      ).map { case (u, t, h) => (Url.from(u).get, t, h) }.foreach {
+        case (u: Url.Infoq.Topic, kind, handle) => kind shouldBe "topic"; u.handle shouldBe handle
+        case (u: Url.Infoq.Presentation, kind, handle) => kind shouldBe "presentation"; u.handle shouldBe handle
+        case (u: Url.Infoq, kind, handle) => kind shouldBe "infoq"; u.handle shouldBe handle
         case (u, k, _) => if (k.nonEmpty) fail(s"Unexpected result for url: ${u.value}")
       }
     }

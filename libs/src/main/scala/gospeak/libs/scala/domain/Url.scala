@@ -19,6 +19,7 @@ object Url {
       Twitter.from(url).toOption
         .orElse(YouTube.from(url).toOption)
         .orElse(Vimeo.from(url).toOption)
+        .orElse(Infoq.from(url).toOption)
         .orElse(LinkedIn.from(url).toOption)
         .orElse(Meetup.from(url).toOption)
         .orElse(Github.from(url).toOption)
@@ -54,6 +55,7 @@ object Url {
 
   sealed trait Videos extends Url {
     val platform: String
+    val kind: String
   }
 
   object Videos {
@@ -64,7 +66,9 @@ object Url {
 
     def from(in: String): Either[CustomException, Url.Videos] = Url.from(in).flatMap(from)
 
-    sealed trait Channel extends Videos
+    sealed trait Channel extends Videos {
+      val kind = "Channel"
+    }
 
     object Channel {
       def from(url: Url): Either[CustomException, Url.Videos.Channel] = url match {
@@ -79,6 +83,8 @@ object Url {
     }
 
     sealed trait Playlist extends Videos {
+      val kind = "Playlist"
+
       def playlistId: Playlist.Id
     }
 
@@ -92,6 +98,10 @@ object Url {
 
       final case class Id(value: String)
 
+    }
+
+    sealed trait Other extends Videos {
+      val kind = "Other"
     }
 
   }
@@ -276,6 +286,58 @@ object Url {
       def from(u: Url): Either[CustomException, Video] = Vimeo.from(u).flatMap(from)
 
       def from(u: String): Either[CustomException, Video] = Vimeo.from(u).flatMap(from)
+    }
+
+  }
+
+  sealed class Infoq private(url: Url) extends Url(url.value, url.parsed) {
+    val platform: String = "Infoq"
+
+    override def handle: String = parsed.path.lastOption.getOrElse(super.handle)
+  }
+
+  object Infoq {
+    private val regex = "https?://www\\.infoq\\.com.*".r
+
+    def from(u: Url): Either[CustomException, Infoq] = (u.value match {
+      case regex() => Right(new Infoq(u))
+      case _ => Left(CustomException(s"'${u.value}' is not an Infoq url"))
+    }).map { v =>
+      Presentation.from(v).toOption
+        .orElse(Topic.from(v).toOption)
+        .getOrElse(v)
+    }
+
+    def from(in: String): Either[CustomException, Infoq] = Url.from(in).flatMap(from)
+
+    final case class Topic private(url: Url) extends Infoq(url) with Url.Videos.Other
+
+    object Topic {
+      def from(u: Infoq): Either[CustomException, Topic] = u.parsed.path match {
+        case List(topic) if topic != "search.action" => Right(new Topic(u))
+        case List(lang, topic) if lang.length == 2 && topic != "search.action" => Right(new Topic(u))
+        case _ => Left(CustomException(s"'${u.value}' is not a Infoq topic url"))
+      }
+
+      def from(u: Url): Either[CustomException, Topic] = Infoq.from(u).flatMap(from)
+
+      def from(u: String): Either[CustomException, Topic] = Infoq.from(u).flatMap(from)
+    }
+
+    final class Presentation private(url: Url) extends Infoq(url) with Url.Video {
+      def videoId: Url.Video.Id = Url.Video.Id(handle)
+    }
+
+    object Presentation {
+      def from(u: Infoq): Either[CustomException, Presentation] = u.parsed.path match {
+        case Seq("presentations", prez) => Right(new Presentation(u))
+        case Seq(lang, "presentations", prez) if lang.length == 2 => Right(new Presentation(u))
+        case _ => Left(CustomException(s"'${u.value}' is not a Infoq presentation url"))
+      }
+
+      def from(u: Url): Either[CustomException, Presentation] = Infoq.from(u).flatMap(from)
+
+      def from(u: String): Either[CustomException, Presentation] = Infoq.from(u).flatMap(from)
     }
 
   }

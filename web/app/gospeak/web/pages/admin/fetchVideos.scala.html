@@ -3,22 +3,30 @@
 @import gospeak.web.pages.admin.partials.html.container
 @import gospeak.web.pages.admin.routes.AdminCtrl
 @import gospeak.web.pages.partials.form.html.formBtn
+@import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.utils.{AdminReq, Formats}
 
 @(extEvents: Page[(ExternalEvent, Long)])(implicit req: AdminReq[AnyContent])
 @videoListTemplate(e: (ExternalEvent, Long)) = {
-    @e._1.videos.map { v =>
-        <li>
-            <a href="@v.value" target="_blank">@e._1.name.value</a>:
-            @e._2 videos
-            @formBtn(AdminCtrl.updateExtEventVideos(e._1.id), Seq("class" -> "btn-success btn-xs")){Update videos}
-        </li>
-    }
+    <tr @if(e._1.videos.isEmpty){class="table-danger"} else {@if(e._2 == 0){class="table-primary"}}>
+        <td>@e._1.name.value <a href="@EventCtrl.detailExt(e._1.id)" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
+        <td>@e._2 videos</td>
+        <td>@e._1.videos.map { u => <a href="@u.value" target="_blank">@u.platform @u.kind</a> }.getOrElse{No video link}</td>
+        <td>@formBtn(AdminCtrl.updateExtEventVideos(e._1.id), Seq("class" -> "btn-success btn-xs")){Update videos}</td>
+    </tr>
 }
 @container(s"Admin")() {
     <h1>Videos</h1>
     <p>A list of video links available</p>
-    <ul>
-        @Formats.paginated(extEvents, AdminCtrl.fetchVideos, videoListTemplate)
-    </ul>
+    <table class="table table-sm table-hover">
+        <thead>
+            <th scope="col">Event</th>
+            <th scope="col">Videos</th>
+            <th scope="col">Link</th>
+            <th scope="col">Actions</th>
+        </thead>
+        <tbody>
+            @Formats.paginated(extEvents, AdminCtrl.fetchVideos, videoListTemplate)
+        </tbody>
+    </table>
 }()

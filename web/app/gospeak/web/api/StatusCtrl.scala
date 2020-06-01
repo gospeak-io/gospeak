@@ -49,7 +49,8 @@ object StatusCtrl {
                              meetup: String,
                              slack: String,
                              youtube: String,
-                             vimeo: String)
+                             vimeo: String,
+                             infoq: String)
 
   final case class GitStatus(subject: String,
                              branch: String,
@@ -91,7 +92,8 @@ object StatusCtrl {
           meetup = if (meetupSrv.performWriteOps) "read/write" else "read only",
           slack = "read/write", // only mode with slackSrv for now
           youtube = if (videoSrv.youtube) "available" else "not available",
-          vimeo = if (videoSrv.vimeo) "available" else "not available"),
+          vimeo = if (videoSrv.vimeo) "available" else "not available",
+          infoq = if (videoSrv.infoq) "available" else "not available"),
         lastCommit = GitStatus(
           subject = info.gitSubject,
           branch = info.gitBranch,

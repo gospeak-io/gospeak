@@ -17,10 +17,9 @@ class VideoSrvImpl(youtubeOpt: Option[YoutubeClient]) extends VideoSrv {
     case u: Url.YouTube.Channel => withYoutube(_.getChannelId(u).flatMap(formatError))
     case _: Url.Vimeo.Channel => withVimeo()
   }
-
-  override def youtube: Boolean = youtubeOpt.isDefined
-
-  override def vimeo: Boolean = false
+  override val youtube: Boolean = youtubeOpt.isDefined
+  override val vimeo: Boolean = false
+  override val infoq: Boolean = false
 
   override def getChannelId(url: Url.Videos.Channel): IO[Url.Videos.Channel.Id] = getChannelIdCache(url)
 
@@ -29,6 +28,7 @@ class VideoSrvImpl(youtubeOpt: Option[YoutubeClient]) extends VideoSrv {
     case u: Url.YouTube.Playlist => withYoutube(c => c.getPlaylist(u).flatMap(formatError).flatMap(p => listYoutubePlaylistVideos(c, p)))
     case _: Url.Vimeo.Channel => withVimeo()
     case _: Url.Vimeo.Showcase => withVimeo()
+    case _: Url.Infoq.Topic => withInfoq()
   }
 
   private def listYoutubeChannelVideos(client: YoutubeClient, channelId: Url.Videos.Channel.Id, pageToken: String = ""): IO[List[Video.Data]] = for {
@@ -51,6 +51,8 @@ class VideoSrvImpl(youtubeOpt: Option[YoutubeClient]) extends VideoSrv {
   private def withYoutube[T](f: YoutubeClient => IO[T]): IO[T] = youtubeOpt.map(f).getOrElse(IO.raiseError(CustomException("YoutubeClient not available")))
 
   private def withVimeo[T](): IO[T] = IO.raiseError(CustomException("VimeoClient not available"))
+
+  private def withInfoq[T](): IO[T] = IO.raiseError(CustomException("InfoqClient not available"))
 }
 
 object VideoSrvImpl {
