@@ -94,7 +94,9 @@ object Video {
                         views: Long,
                         likes: Long,
                         dislikes: Long,
-                        comments: Long)
+                        comments: Long) {
+    val id: Url.Video.Id = url.videoId
+  }
 
   object Data {
     def apply(v: Video): Data =

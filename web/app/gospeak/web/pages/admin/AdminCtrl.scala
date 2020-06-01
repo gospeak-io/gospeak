@@ -1,5 +1,7 @@
 package gospeak.web.pages.admin
 
+import java.time.Instant
+
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.messages.Message
@@ -12,11 +14,15 @@ import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{CustomException, Mustache, Page, Url}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
-import gospeak.web.pages.admin.AdminCtrl.UserTemplateReport
+import gospeak.web.pages.admin.AdminCtrl.{UpdateExtEventVideoJob, UserTemplateReport}
 import gospeak.web.services.{MessageSrv, SchedulerSrv}
-import gospeak.web.utils.UICtrl
+import gospeak.web.utils.{AdminReq, UICtrl}
 import io.circe.Json
+
+import collection.mutable
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+
+import scala.util.control.NonFatal
 
 class AdminCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
@@ -63,6 +69,8 @@ class AdminCtrl(cc: ControllerComponents,
     } yield Ok(html.checkUserTemplates(reports, defaultEventDescription))
   }
 
+  private val updateExtEventVideosJobs = mutable.HashMap[ExternalEvent.Id, UpdateExtEventVideoJob]()
+
   def fetchVideos(params: Page.Params): Action[AnyContent] = AdminAction { implicit req =>
     for {
       // TODO talks with video
@@ -74,25 +82,48 @@ class AdminCtrl(cc: ControllerComponents,
         case u: Url.Videos.Playlist => videoRepo.countForPlaylist(u.playlistId)
         case _: Url.Videos.Other => IO.pure(0L)
       }.getOrElse(IO.pure(0L)).map(c => e -> c)).sequence
-    } yield Ok(html.fetchVideos(extEventsWithVideoCount))
+      jobs = updateExtEventVideosJobs.values.toList
+      _ = updateExtEventVideosJobs.filter(_._2.finished.isDefined).foreach { case (id, _) => updateExtEventVideosJobs.remove(id) }
+    } yield Ok(html.fetchVideos(extEventsWithVideoCount, jobs))
   }
 
   def updateExtEventVideos(event: ExternalEvent.Id): Action[AnyContent] = AdminAction { implicit req =>
-    for {
-      eventElt <- extEventRepo.find(event).flatMap(_.toIO(CustomException(s"No external event for id $event")))
-      url <- eventElt.videos.toIO(CustomException(s"No videos for external event ${eventElt.name.value}"))
+    val next = redirectToPreviousPageOr(routes.AdminCtrl.fetchVideos())
+    extEventRepo.find(event).flatMap(_.toIO(CustomException(s"No external event for id $event"))).map { eventElt =>
+      if (updateExtEventVideosJobs.contains(event)) {
+        next.flashing("error" -> s"Job for ${eventElt.name.value} already started.")
+      } else {
+        updateExtEventVideosJob(eventElt).unsafeRunAsyncAndForget()
+        next.flashing("success" -> s"Start job for ${eventElt.name.value}.")
+      }
+    }
+  }
+
+  private def updateExtEventVideosJob(event: ExternalEvent)(implicit req: AdminReq[AnyContent]): IO[Unit] = {
+    val job = UpdateExtEventVideoJob(event, Instant.now())
+    updateExtEventVideosJobs.put(event.id, job)
+    (for {
+      url <- event.videos.toIO(CustomException(s"No videos for external event ${event.name.value}"))
       gospeakVideos <- url match {
         case c: Url.Videos.Channel => videoSrv.getChannelId(c).flatMap(videoRepo.listAllForChannel)
         case p: Url.Videos.Playlist => videoRepo.listAllForPlaylist(p.playlistId)
         case _: Url.Videos.Other => IO.pure(List())
       }
-      currentVideos <- videoSrv.listVideos(url)
-      videosDiff = Diff.from[Video.Data](gospeakVideos.map(_.data), currentVideos, (a: Video.Data, b: Video.Data) => a.url == b.url)
-      _ <- videosDiff.leftOnly.map(v => videoRepo.remove(v, event)).sequence
-      _ <- videosDiff.rightOnly.map(v => videoRepo.create(v, event)).sequence
-      _ <- videosDiff.both.map { case (_, v) => videoRepo.edit(v, event) }.sequence
-    } yield redirectToPreviousPageOr(routes.AdminCtrl.fetchVideos()).flashing(
-      "success" -> s"<b>${eventElt.name.value}</b> videos updated: ${videosDiff.rightOnly.length} new, ${videosDiff.both.length} updated and ${videosDiff.leftOnly.length} removed")
+      _ = job.gospeakVideos = Some(gospeakVideos)
+      remoteVideos <- videoSrv.listVideos(url)
+      _ = job.remoteVideos = Some(remoteVideos)
+      videosDiff = Diff.from[Video.Data](gospeakVideos.map(_.data), remoteVideos, (a: Video.Data, b: Video.Data) => a.url == b.url)
+      _ = job.diff = Some(videosDiff)
+      _ <- videosDiff.rightOnly.map(v => videoRepo.create(v, event.id)).sequence
+      _ = job.created = Some(Instant.now())
+      _ <- videosDiff.both.map { case (_, v) => videoRepo.edit(v, event.id) }.sequence
+      _ = job.updated = Some(Instant.now())
+      _ <- videosDiff.leftOnly.map(v => videoRepo.remove(v, event.id)).sequence
+      _ = job.finished = Some(Instant.now())
+    } yield ()).recover { case NonFatal(e) =>
+      job.error = Some(e)
+      job.finished = Some(Instant.now())
+    }
   }
 }
 
@@ -132,5 +163,15 @@ object AdminCtrl {
       new UserTemplateReport(group, templateCount, errorCount, groupSettingsActionsErrors, groupSettingsEventErrors, eventErrors)
     }
   }
+
+  final case class UpdateExtEventVideoJob(event: ExternalEvent,
+                                          started: Instant,
+                                          var gospeakVideos: Option[List[Video]] = None,
+                                          var remoteVideos: Option[List[Video.Data]] = None,
+                                          var diff: Option[Diff[Video.Data]] = None,
+                                          var created: Option[Instant] = None,
+                                          var updated: Option[Instant] = None,
+                                          var finished: Option[Instant] = None,
+                                          var error: Option[Throwable] = None)
 
 }

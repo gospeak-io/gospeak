@@ -17,22 +17,23 @@ import gospeak.libs.scala.domain.{Done, Page, Url}
 import scala.util.control.NonFatal
 
 class VideoRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with VideoRepo {
-  override def create(video: Video.Data, event: ExternalEvent.Id)(implicit ctx: AdminCtx): IO[Video] = for {
-    v <- insert(Video(video, ctx.now)).run(xa)
-    _ <- insert(v.url.videoId, event).run(xa)
-  } yield v
+  override def create(video: Video.Data, event: ExternalEvent.Id)(implicit ctx: AdminCtx): IO[Done] = for {
+    exists <- selectOne(video.id).runOption(xa)
+    _ <- exists.map(v => update(video, ctx.now).run(xa)).getOrElse(insert(Video(video, ctx.now)).run(xa))
+    _ <- insert(video.id, event).run(xa)
+  } yield Done
 
   override def edit(video: Video.Data, event: ExternalEvent.Id)(implicit ctx: AdminCtx): IO[Done] =
     for {
       _ <- update(video, ctx.now).run(xa)
-      exists <- selectOne(video.url.videoId, event).runExists(xa)
-      _ <- if (exists) IO.pure((video.url.videoId, event)) else insert(video.url.videoId, event).run(xa)
+      exists <- selectOne(video.id, event).runExists(xa)
+      _ <- if (exists) IO.pure((video.id, event)) else insert(video.id, event).run(xa)
     } yield Done
 
   // true if deleted, false otherwise (other links referencing the video)
   override def remove(video: Video.Data, event: ExternalEvent.Id)(implicit ctx: AdminCtx): IO[Boolean] = for {
-    _ <- delete(video.url.videoId, event).run(xa).recover { case NonFatal(_) => Done }
-    c <- count(video.url.videoId).runOption(xa).map(_.getOrElse(0))
+    _ <- delete(video.id, event).run(xa).recover { case NonFatal(_) => Done }
+    c <- count(video.id).runOption(xa).map(_.getOrElse(0))
     r <- if (c == 0) delete(video.url).run(xa).map(_ => true) else IO.pure(false)
   } yield r
 
@@ -70,13 +71,13 @@ object VideoRepoSql {
     tableSources.selectOne[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE video_id=$v GROUP BY vis.video_id")
 
   private[sql] def insert(e: Video): Insert[Video] = {
-    val values = fr0"${e.url.platform}, ${e.url}, ${e.url.videoId}, ${e.channel.id}, ${e.channel.name}, ${e.playlist.map(_.id)}, ${e.playlist.map(_.name)}, ${e.title}, ${e.description}, ${e.tags}, ${e.publishedAt}, ${e.duration}, ${e.lang}, ${e.views}, ${e.likes}, ${e.dislikes}, ${e.comments}, ${e.updatedAt}"
+    val values = fr0"${e.url.platform}, ${e.url}, ${e.id}, ${e.channel.id}, ${e.channel.name}, ${e.playlist.map(_.id)}, ${e.playlist.map(_.name)}, ${e.title}, ${e.description}, ${e.tags}, ${e.publishedAt}, ${e.duration}, ${e.lang}, ${e.views}, ${e.likes}, ${e.dislikes}, ${e.comments}, ${e.updatedAt}"
     table.insert[Video](e, _ => values)
   }
 
   private[sql] def update(data: Video.Data, now: Instant): Update = {
     val fields = fr0"title=${data.title}, description=${data.description}, tags=${data.tags}, duration=${data.duration}, lang=${data.lang}, views=${data.views}, likes=${data.likes}, dislikes=${data.dislikes}, comments=${data.comments}, updated_at=$now"
-    table.update(fields, fr0"WHERE id=${data.url.videoId}")
+    table.update(fields, fr0"WHERE id=${data.id}")
   }
 
   private[sql] def delete(url: Url.Video): Delete =

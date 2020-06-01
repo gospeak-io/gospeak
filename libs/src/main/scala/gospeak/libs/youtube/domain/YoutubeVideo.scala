@@ -64,11 +64,11 @@ object YoutubeVideo {
   // see https://developers.google.com/youtube/v3/docs/search#resource-representation
   def from(v: google.SearchResult): Either[YoutubeErrors, YoutubeVideo] = for {
     id <- Option(v.getId).flatMap(id => Option(id.getVideoId)).toRight(YoutubeErrors(s"Missing id for video $v"))
-    snippet <- Option(v.getSnippet).toRight(YoutubeErrors(s"Missing snippet for video ${v.getId}"))
-    channelId <- Option(snippet.getChannelId).toRight(YoutubeErrors(s"Missing channelId for video ${v.getId}"))
-    channelTitle <- Option(snippet.getChannelTitle).toRight(YoutubeErrors(s"Missing channelTitle for video ${v.getId}"))
-    title <- Option(snippet.getTitle).toRight(YoutubeErrors(s"Missing title for video ${v.getId}"))
-    publishedAt <- Option(snippet.getPublishedAt).map(YoutubeParser.toInstant).toRight(YoutubeErrors(s"Missing publishedAt for video ${v.getId}"))
+    snippet <- Option(v.getSnippet).toRight(YoutubeErrors(s"Missing snippet for video $id"))
+    channelId <- Option(snippet.getChannelId).toRight(YoutubeErrors(s"Missing channelId for video $id"))
+    channelTitle <- Option(snippet.getChannelTitle).toRight(YoutubeErrors(s"Missing channelTitle for video $id"))
+    title <- Option(snippet.getTitle).toRight(YoutubeErrors(s"Missing title for video $id"))
+    publishedAt <- Option(snippet.getPublishedAt).map(YoutubeParser.toInstant).toRight(YoutubeErrors(s"Missing publishedAt for video $id"))
   } yield new YoutubeVideo(
     id = Url.Video.Id(id),
     channelId = Url.Videos.Channel.Id(channelId),
@@ -91,11 +91,11 @@ object YoutubeVideo {
     snippet <- Option(v.getSnippet).toRight(YoutubeErrors(s"Missing snippet for video ${v.getId}"))
     contentDetails <- Option(v.getContentDetails).toRight(YoutubeErrors(s"Missing contentDetails for video ${v.getId}"))
     id <- Option(contentDetails.getVideoId).toRight(YoutubeErrors(s"Missing id for video $v"))
-    channelId <- Option(snippet.getChannelId).toRight(YoutubeErrors(s"Missing channelId for video ${v.getId}"))
-    channelTitle <- Option(snippet.getChannelTitle).toRight(YoutubeErrors(s"Missing channelTitle for video ${v.getId}"))
-    playlistId <- Option(snippet.getPlaylistId).toRight(YoutubeErrors(s"Missing playlistId for video ${v.getId}"))
-    title <- Option(snippet.getTitle).toRight(YoutubeErrors(s"Missing title for video ${v.getId}"))
-    publishedAt <- Option(contentDetails.getVideoPublishedAt).map(YoutubeParser.toInstant).toRight(YoutubeErrors(s"Missing publishedAt for video ${v.getId}"))
+    channelId <- Option(snippet.getChannelId).toRight(YoutubeErrors(s"Missing channelId for video $id"))
+    channelTitle <- Option(snippet.getChannelTitle).toRight(YoutubeErrors(s"Missing channelTitle for video $id"))
+    playlistId <- Option(snippet.getPlaylistId).toRight(YoutubeErrors(s"Missing playlistId for video $id"))
+    title <- Option(snippet.getTitle).toRight(YoutubeErrors(s"Missing title for video $id"))
+    publishedAt <- Option(contentDetails.getVideoPublishedAt).orElse(Option(snippet.getPublishedAt)).map(YoutubeParser.toInstant).toRight(YoutubeErrors(s"Missing publishedAt for video $id"))
   } yield new YoutubeVideo(
     id = Url.Video.Id(id),
     channelId = Url.Videos.Channel.Id(channelId),
