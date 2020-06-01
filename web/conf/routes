@@ -222,10 +222,11 @@ POST        /u/groups/:group/settings/orgas/cancel/:request                     
 POST        /u/groups/:group/settings/orgas/:user/remove                                   gospeak.web.pages.orga.settings.SettingsCtrl.doRemoveOrga(group: Group.Slug, user: User.Slug)
 
 GET         /a                                                                             gospeak.web.pages.admin.AdminCtrl.index
+GET         /a/schedulers                                                                  gospeak.web.pages.admin.AdminCtrl.schedulers()
+GET         /a/schedulers/exec/:scheduler                                                  gospeak.web.pages.admin.AdminCtrl.schedulerExec(scheduler: String)
 GET         /a/check-user-templates                                                        gospeak.web.pages.admin.AdminCtrl.checkUserTemplates(params: Page.Params ?= Page.Params.defaults)
 GET         /a/fetch-videos                                                                gospeak.web.pages.admin.AdminCtrl.fetchVideos(params: Page.Params ?= Page.Params.defaults)
-POST        /a/fetch-videos/channel                                                        gospeak.web.pages.admin.AdminCtrl.updateVideoChannel(url: Url.Videos.Channel)
-POST        /a/fetch-videos/playlist                                                       gospeak.web.pages.admin.AdminCtrl.updateVideoPlaylist(url: Url.Videos.Playlist)
+POST        /a/fetch-videos/ext-event/:event                                               gospeak.web.pages.admin.AdminCtrl.updateExtEventVideos(event: ExternalEvent.Id)
 
 GET         /styleguide                                                                    gospeak.web.pages.styleguide.StyleguideCtrl.index(params: Page.Params ?= Page.Params.defaults)
 GET         /styleguide/embed                                                              gospeak.web.pages.styleguide.StyleguideCtrl.embed

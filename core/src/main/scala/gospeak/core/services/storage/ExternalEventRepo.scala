@@ -31,6 +31,8 @@ trait SpeakerExternalEventRepo {
 
 trait AdminExternalEventRepo {
   def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[ExternalEvent]]
+
+  def find(id: ExternalEvent.Id): IO[Option[ExternalEvent]]
 }
 
 trait SuggestExternalEventRepo {

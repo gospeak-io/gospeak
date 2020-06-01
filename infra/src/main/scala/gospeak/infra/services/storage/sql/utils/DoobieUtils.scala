@@ -245,27 +245,31 @@ object DoobieUtils {
 
     def delete(where: Fragment): Delete = Delete(value, fr0" " ++ where)
 
-    def select[A: Read](): Select[A] = Select[A](value, fields, aggFields, customFields, None, sorts, None)
+    def select[A: Read](): Select[A] = Select[A](value, fields, aggFields, customFields, None, sorts, None, None)
 
-    def select[A: Read](where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, None)
+    def select[A: Read](where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, None, None)
 
-    def select[A: Read](where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), None)
+    def select[A: Read](where: Fragment, offset: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, Some(offset), None)
 
-    def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, customFields, None, sorts, None)
+    def select[A: Read](where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), None, None)
 
-    def select[A: Read](fields: Seq[Field], sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, None, Sorts(sort), None)
+    def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, customFields, None, sorts, None, None)
 
-    def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, None)
+    def select[A: Read](fields: Seq[Field], sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, None, Sorts(sort), None, None)
 
-    def select[A: Read](fields: Seq[Field], where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), None)
+    def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, None, None)
 
-    def selectOne[A: Read](where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, Some(1))
+    def select[A: Read](fields: Seq[Field], where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), None, None)
 
-    def selectOne[A: Read](where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), Some(1))
+    def selectOne[A: Read](where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, None, Some(1))
 
-    def selectOne[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, Some(1))
+    def selectOne[A: Read](where: Fragment, offset: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, Some(offset), Some(1))
 
-    def selectOne[A: Read](fields: Seq[Field], where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), Some(1))
+    def selectOne[A: Read](where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), None, Some(1))
+
+    def selectOne[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, None, Some(1))
+
+    def selectOne[A: Read](fields: Seq[Field], where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), None, Some(1))
 
     def selectPage[A: Read, C <: BasicCtx](params: Page.Params)(implicit ctx: C): SelectPage[A, C] = SelectPage[A, C](value, prefix, fields, aggFields, customFields, None, None, params, sorts, search, filters, ctx)
 
@@ -351,13 +355,16 @@ object DoobieUtils {
                                    customFields: Seq[CustomField],
                                    whereOpt: Option[Fragment],
                                    sorts: Sorts,
+                                   offset: Option[Fragment],
                                    limit: Option[Int]) {
     def fr: Fragment = {
       val select = const0(s"SELECT ${(fields.map(_.value) ++ aggFields.map(_.value)).mkString(", ")}") ++ customFields.map(fr0", " ++ _.value).foldLeft(fr0"")(_ ++ _) ++ fr0" FROM " ++ table
       val where = whereOpt.getOrElse(fr0"")
       val groupBy = aggFields.headOption.map(_ => const0(s" GROUP BY ${fields.map(_.label).mkString(", ")}")).getOrElse(fr0"")
       val orderBy = orderByFragment(sorts.default)
-      select ++ where ++ groupBy ++ orderBy ++ limit.map(l => const0(s" LIMIT $l")).getOrElse(fr0"")
+      select ++ where ++ groupBy ++ orderBy ++
+        limit.map(l => const0(s" LIMIT $l")).getOrElse(fr0"") ++
+        offset.map(o => const0(s" OFFSET ") ++ o).getOrElse(fr0"")
     }
 
     def query: doobie.Query0[A] = fr.query[A]

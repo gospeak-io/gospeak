@@ -1,7 +1,7 @@
 package gospeak.core.services.storage
 
 import cats.effect.IO
-import gospeak.core.domain.Video
+import gospeak.core.domain.{ExternalEvent, Video}
 import gospeak.core.domain.utils.{AdminCtx, UserAwareCtx}
 import gospeak.libs.scala.domain.{Done, Page, Url}
 
@@ -14,11 +14,14 @@ trait PublicVideoRepo {
 }
 
 trait AdminVideoRepo {
-  def create(video: Video.Data)(implicit ctx: AdminCtx): IO[Video]
+  def create(video: Video.Data, event: ExternalEvent.Id)(implicit ctx: AdminCtx): IO[Video]
 
-  def edit(video: Video.Data)(implicit ctx: AdminCtx): IO[Done]
+  def edit(video: Video.Data, event: ExternalEvent.Id)(implicit ctx: AdminCtx): IO[Done]
 
-  def remove(video: Video.Data)(implicit ctx: AdminCtx): IO[Done]
+  // true if deleted, false otherwise (other links referencing the video)
+  def remove(video: Video.Data, event: ExternalEvent.Id)(implicit ctx: AdminCtx): IO[Boolean]
+
+  def findRandom(): IO[Option[Video]]
 
   def listAllForChannel(channelId: Url.Videos.Channel.Id): IO[List[Video]]
 

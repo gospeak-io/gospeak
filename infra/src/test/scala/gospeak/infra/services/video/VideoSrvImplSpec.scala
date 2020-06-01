@@ -16,10 +16,10 @@ class VideoSrvImplSpec extends BaseSpec {
 
     describe("getChannelId") {
       it("should get the channel id for youtube") {
-        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/HumanTalksParis").get).unsafeRunSync() shouldBe "UCKFAwlgWiAB4vUpgnS63qog"
-        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/c/HumanTalksParis").get).unsafeRunSync() shouldBe "UCVelKVoLQIhwx9C2LWf-CDA"
-        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/user/BreizhCamp").get).unsafeRunSync() shouldBe "UCKFAwlgWiAB4vUpgnS63qog"
-        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog").get).unsafeRunSync() shouldBe "UCKFAwlgWiAB4vUpgnS63qog"
+        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/HumanTalksParis").get).unsafeRunSync().value shouldBe "UCKFAwlgWiAB4vUpgnS63qog"
+        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/c/HumanTalksParis").get).unsafeRunSync().value shouldBe "UCKFAwlgWiAB4vUpgnS63qog"
+        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/user/BreizhCamp").get).unsafeRunSync().value shouldBe "UCVelKVoLQIhwx9C2LWf-CDA"
+        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog").get).unsafeRunSync().value shouldBe "UCKFAwlgWiAB4vUpgnS63qog"
       }
     }
     describe("listVideos") {
@@ -58,12 +58,14 @@ class VideoSrvImplSpec extends BaseSpec {
       ignore("should list videos for Vimeo channel") {
         val url = Url.Videos.from("https://vimeo.com/parisweb").get
         val videos = srv.listVideos(url).unsafeRunSync()
-        videos.map(_.url) shouldBe Seq().map(Url.Video.from(_).get)
+        // videos.map(_.url) shouldBe Seq().map(Url.Video.from(_).get)
+        videos.map(_.url) shouldBe Seq.empty[Url.Video]
       }
       ignore("should list videos for Vimeo showcase") {
         val url = Url.Videos.from("https://vimeo.com/showcase/6597308").get
         val videos = srv.listVideos(url).unsafeRunSync()
-        videos.map(_.url) shouldBe Seq().map(Url.Video.from(_).get)
+        // videos.map(_.url) shouldBe Seq().map(Url.Video.from(_).get)
+        videos.map(_.url) shouldBe Seq.empty[Url.Video]
       }
     }
   }
