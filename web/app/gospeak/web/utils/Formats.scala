@@ -129,7 +129,7 @@ object Formats {
     Html(paginationHeader(page, link, filters, sorts).body + paginationBody(page, item).body + paginationFooter(page, link).body)
   }
 
-  def paginationHeader[A](page: Page[A], link: Page.Params => Call, filters: Seq[Filter], sorts: Seq[Sort]): Html = {
+  def paginationHeader[A](page: Page[A], link: Page.Params => Call, filters: Seq[Filter] = Seq(), sorts: Seq[Sort] = Seq()): Html = {
     Html(
       s"""<div class="row"${if (page.params.search.isEmpty && !page.hasManyPages) " style=\"display: none !important;\"" else ""}>
          |  <div class="col-lg-6 col-md-12 mb-3">${html.search(page, link(Page.Params.defaults))}</div>

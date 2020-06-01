@@ -7,26 +7,34 @@
 @import gospeak.web.utils.{AdminReq, Formats}
 
 @(extEvents: Page[(ExternalEvent, Long)])(implicit req: AdminReq[AnyContent])
-@videoListTemplate(e: (ExternalEvent, Long)) = {
-    <tr @if(e._1.videos.isEmpty){class="table-danger"} else {@if(e._2 == 0){class="table-primary"}}>
-        <td>@e._1.name.value <a href="@EventCtrl.detailExt(e._1.id)" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
-        <td>@e._2 videos</td>
-        <td>@e._1.videos.map { u => <a href="@u.value" target="_blank">@u.platform @u.kind</a> }.getOrElse{No video link}</td>
-        <td>@formBtn(AdminCtrl.updateExtEventVideos(e._1.id), Seq("class" -> "btn-success btn-xs")){Update videos}</td>
+@videoListTemplate(event: ExternalEvent, videoCount: Long) = {
+    <tr @if(event.videos.isEmpty){class="table-danger"} else {@if(videoCount == 0){class="table-primary"}}>
+        <td>@event.name.value <a href="@EventCtrl.detailExt(event.id)" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
+        <td>@videoCount videos</td>
+        <td>@event.videos.map { u => <a href="@u.value" target="_blank">@u.platform @u.kind</a> }.getOrElse{No video link}</td>
+        <td>@formBtn(AdminCtrl.updateExtEventVideos(event.id), Seq("class" -> "btn-success btn-xs")){Update videos}</td>
     </tr>
 }
 @container(s"Admin")() {
     <h1>Videos</h1>
     <p>A list of video links available</p>
+    @Formats.paginationHeader(extEvents, AdminCtrl.fetchVideos)
     <table class="table table-sm table-hover">
         <thead>
-            <th scope="col">Event</th>
-            <th scope="col">Videos</th>
-            <th scope="col">Link</th>
-            <th scope="col">Actions</th>
+            <tr>
+                <th scope="col">Event</th>
+                <th scope="col">Videos</th>
+                <th scope="col">Link</th>
+                <th scope="col">Actions</th>
+            </tr>
         </thead>
         <tbody>
-            @Formats.paginated(extEvents, AdminCtrl.fetchVideos, videoListTemplate)
+            @if(extEvents.items.isEmpty) {
+                <tr><td colspan="4" class="text-center p-5">No results <i class="far fa-sad-tear"></i></td></tr>
+            } else {
+                @extEvents.items.map { case (e, v) => @videoListTemplate(e, v) }
+            }
         </tbody>
     </table>
+    @Formats.paginationFooter(extEvents, AdminCtrl.fetchVideos)
 }()

@@ -496,7 +496,8 @@ object DoobieUtils {
 
     implicit def mustacheTextMeta[A: TypeTag]: Meta[Mustache.Text[A]] = Meta[String].timap(Mustache.Text[A])(_.value)
 
-    implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))
+    // "take(150)": I prefer truncated tags than failing request
+    implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(",").take(150))
     implicit val gMapPlaceMeta: Meta[GMapPlace] = {
       implicit val geoDecoder: Decoder[Geo] = deriveDecoder[Geo]
       implicit val geoEncoder: Encoder[Geo] = deriveEncoder[Geo]
