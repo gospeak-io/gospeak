@@ -72,7 +72,7 @@
     }
     <div class="container">
         <div class="container mt-7">
-            @Formats.paginated[User.Full](speakers, SpeakerCtrl.list, u => userItem(u.user))
+            @Formats.paginated[User.Full](speakers, SpeakerCtrl.list)(u => userItem(u.user))
         </div>
         <h2 class="text-center font-weight-medium" style="margin-bottom: 10rem">
             Want your speaker profile? <a class="btn btn-soft-success" href="@AuthCtrl.signup()">Create it now</a>

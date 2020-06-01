@@ -13,5 +13,5 @@
         <a class="btn btn-primary" href="@EventCtrl.create(req.group.slug)" data-hotkey="+">Create an event</a>
     </h1>
 
-   @Formats.paginated[Event.Full](events, EventCtrl.list(req.group.slug, _), e => eventItem(e, proposals, speakers))
+   @Formats.paginated[Event.Full](events, EventCtrl.list(req.group.slug, _))(eventItem(_, proposals, speakers))
 }()

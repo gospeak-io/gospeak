@@ -46,7 +46,7 @@ class VideoSrvImpl(youtubeOpt: Option[YoutubeClient]) extends VideoSrv {
   private def getYoutubeVideoDetails(videoIds: Seq[Url.Video.Id], playlist: Option[YoutubePlaylist])(client: YoutubeClient): IO[List[Video.Data]] =
     client.getVideoDetails(videoIds).flatMap(formatError).map(_.map(Video.Data.from(_, playlist.map(p => PlaylistRef(p.id, p.title)))).sequence).flatMap(_.toIO)
 
-  private def formatError[A](errors: Either[YoutubeErrors, A]): IO[A] = errors.toIO(e => CustomException(e.errors.mkString("\n")))
+  private def formatError[A](errors: Either[YoutubeErrors, A]): IO[A] = errors.toIO(e => CustomException("YouTube errors:\n" + e.errors.mkString("\n")))
 
   private def withYoutube[T](f: YoutubeClient => IO[T]): IO[T] = youtubeOpt.map(f).getOrElse(IO.raiseError(CustomException("YoutubeClient not available")))
 

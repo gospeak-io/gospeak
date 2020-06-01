@@ -13,7 +13,7 @@
 
     <div class="col-lg-8 m">
         <h3>@group.name.value has @Formats.plural(members.total.value, "member")</h3>
-        @Formats.paginated[Group.Member](members, GroupCtrl.members(group.slug, _), m => userItem(m.user))
+        @Formats.paginated[Group.Member](members, GroupCtrl.members(group.slug, _))(m => userItem(m.user))
     </div>
 </div>
 }()

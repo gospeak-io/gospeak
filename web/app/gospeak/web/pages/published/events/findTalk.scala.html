@@ -8,14 +8,6 @@
 @import gospeak.web.utils.{Formats, UserReq}
 
 @(event: ExternalEvent, talks: Page[Talk])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@talkItem(talk: Talk) = {
-    <a href="@EventCtrl.createExternalProposal(event.id, talk.slug)" class="list-group-item list-group-item-action">
-        <h5 class="mb-1">@talk.title.value</h5>
-        @talkStatus(talk.status)
-        @duration(talk.duration)
-        @tags(talk.tags)
-    </a>
-}
 @container(s"${Constants.Emoji.event} ${event.name.value}", PageMeta.event(event, b), b)() {
     <div class="d-flex justify-content-between align-items-center">
         <h1>Spoke at @event.name.value?</h1>
@@ -24,5 +16,12 @@
     <h3>Select your talk or create it</h3>
     <p class="text-muted">Talks are generics presentations, you can have small differences for the proposal to match the event schedule.</p>
 
-    @Formats.paginated[Talk](talks, EventCtrl.findTalk(event.id, _), talkItem)
+    @Formats.paginated[Talk](talks, EventCtrl.findTalk(event.id, _)) { talk =>
+        <a href="@EventCtrl.createExternalProposal(event.id, talk.slug)" class="list-group-item list-group-item-action">
+            <h5 class="mb-1">@talk.title.value</h5>
+            @talkStatus(talk.status)
+            @duration(talk.duration)
+            @tags(talk.tags)
+        </a>
+    }
 }()(req.userAware)

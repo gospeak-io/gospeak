@@ -16,8 +16,7 @@
             <h2 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h2>
             @Formats.paginated[Proposal.Full](
                 proposals,
-                SpeakerCtrl.detail(req.group.slug, speaker.slug, _),
-                proposalItem(_, speakers, userRatings, proposals.params, SpeakerCtrl.detail(req.group.slug, speaker.slug, _)))
+                SpeakerCtrl.detail(req.group.slug, speaker.slug, _))(proposalItem(_, speakers, userRatings, proposals.params, SpeakerCtrl.detail(req.group.slug, speaker.slug, _)))
         </div>
     </div>
 }()

@@ -111,7 +111,7 @@
     @if(proposals.nonEmpty) {
         <div class="mb-3">
             <h3 class="h5 mb-3">Talks</h3>
-            @Formats.paginated[ExternalProposal](proposals, EventCtrl.detailExt(event.id, _), externalProposalItem(_, users))
+            @Formats.paginated[ExternalProposal](proposals, EventCtrl.detailExt(event.id, _))(externalProposalItem(_, users))
         </div>
         <h2 class="text-center font-weight-medium mt-5" style="margin-bottom: 10rem">
             Spoke at @event.name.value?

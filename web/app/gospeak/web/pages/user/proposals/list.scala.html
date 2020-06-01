@@ -23,6 +23,6 @@
             <span class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</span>
             <a class="btn btn-primary" href="@CfpCtrl.list()">Find a CFP</a>
         </h1>
-        @Formats.paginated[CommonProposal](proposals, ProposalCtrl.list, commonProposalItem(_))
+        @Formats.paginated[CommonProposal](proposals, ProposalCtrl.list)(commonProposalItem(_))
     }
 }()

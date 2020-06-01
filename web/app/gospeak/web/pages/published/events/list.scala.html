@@ -16,5 +16,5 @@
             <a class="btn btn-text btn-text-success" href="@EventCtrl.create()">Add a missing event</a>
         </p>
     </div>
-    @Formats.paginated[CommonEvent](events, EventCtrl.list, commonEventItem(_), ExternalEventRepoSql.commonTable.filters)
+    @Formats.paginated[CommonEvent](events, EventCtrl.list, ExternalEventRepoSql.commonTable.filters)(commonEventItem(_))
 }()

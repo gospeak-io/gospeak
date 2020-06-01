@@ -14,6 +14,6 @@
         </div>
     } else {
         <h1 class="text-capitalize">Submit proposal for @talk.title.value</h1>
-        @Formats.paginated[Cfp](cfps, CfpCtrl.list(talk.slug, _), cfpItem(talk, _))
+        @Formats.paginated[Cfp](cfps, CfpCtrl.list(talk.slug, _))(cfpItem(talk, _))
     }
 }()

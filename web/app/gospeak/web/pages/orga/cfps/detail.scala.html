@@ -35,7 +35,6 @@
     @Formats.paginated[Proposal.Full](
         proposals,
         CfpCtrl.detail(req.group.slug, cfp.slug, _),
-        proposalItem(_, speakers, userRatings, proposals.params, CfpCtrl.detail(req.group.slug, cfp.slug, _)),
         ProposalRepoSql.tableFullBase.filters,
-        ProposalRepoSql.tableFullBase.sorts.toList)
+        ProposalRepoSql.tableFullBase.sorts.toList)(proposalItem(_, speakers, userRatings, proposals.params, CfpCtrl.detail(req.group.slug, cfp.slug, _)))
 }()

@@ -13,7 +13,7 @@
 
     <div class="col-lg-8 m">
         <h3>@Formats.plural(speakers.total.value, "speaker") came to @group.name.value</h3>
-        @Formats.paginated[User.Full](speakers, GroupCtrl.speakers(group.slug, _), s => userItem(s.user))
+        @Formats.paginated[User.Full](speakers, GroupCtrl.speakers(group.slug, _))(s => userItem(s.user))
     </div>
 </div>
 }()

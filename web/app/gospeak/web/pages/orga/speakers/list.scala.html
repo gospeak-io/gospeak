@@ -13,7 +13,6 @@
     @Formats.paginated[User.Full](
         speakers,
         SpeakerCtrl.list(req.group.slug, _),
-        speakerItem(_),
         UserRepoSql.tableFull.filters,
-        UserRepoSql.tableFull.sorts.toList)
+        UserRepoSql.tableFull.sorts.toList)(speakerItem(_))
 }()

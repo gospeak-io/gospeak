@@ -7,24 +7,23 @@
 @import gospeak.web.utils.{Formats, UserAwareReq}
 
 @(videos: Page[Video])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@videoItem(v: Video) = {
-    <a href="@VideoCtrl.detail(v.id)" class="card video-card mb-3">
-        <div class="row no-gutters">
-            <div class="col-md-3">
-                <img src="@v.thumbnailHigh" class="card-img" alt="">
-            </div>
-            <div class="col-md-9">
-                <div class="card-body">
-                    <h5 class="card-title">@v.title</h5>
-                    <p class="card-text"><small class="text-muted">
-                        @v.channel.name - @Formats.duration(v.duration) - @Formats.date(v.publishedAt)
-                    </small></p>
-                    <p class="card-text description">@v.description</p>
+@container(s"${Constants.Emoji.gospeak} Gospeak videos", PageMeta.default(VideoCtrl.list()), b)() {
+    @Formats.paginated[Video](videos, VideoCtrl.list) { v =>
+        <a href="@VideoCtrl.detail(v.id)" class="card video-card mb-3">
+            <div class="row no-gutters">
+                <div class="col-md-3">
+                    <img src="@v.thumbnailHigh" class="card-img" alt="">
+                </div>
+                <div class="col-md-9">
+                    <div class="card-body">
+                        <h5 class="card-title">@v.title</h5>
+                        <p class="card-text"><small class="text-muted">
+                            @v.channel.name - @Formats.duration(v.duration) - @Formats.date(v.publishedAt)
+                        </small></p>
+                        <p class="card-text description">@v.description</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    </a>
-}
-@container(s"${Constants.Emoji.gospeak} Gospeak videos", PageMeta.default(VideoCtrl.list()), b)() {
-    @Formats.paginated[Video](videos, VideoCtrl.list, videoItem)
+        </a>
+    }
 }()

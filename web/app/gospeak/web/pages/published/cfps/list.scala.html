@@ -16,5 +16,5 @@
             A Conference is missing? <a class="btn btn-text btn-text-success" href="@CfpCtrl.findExternalEvent()"> You can add it here</a>
         </p>
     </div>
-    @Formats.paginated[CommonCfp](cfps, CfpCtrl.list, cfpItem(_))
+    @Formats.paginated[CommonCfp](cfps, CfpCtrl.list)(cfpItem(_))
 }()

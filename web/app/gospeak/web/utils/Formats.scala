@@ -125,8 +125,24 @@ object Formats {
     case Seq(head, tail@_*) => Html(tail.foldLeft(new StringBuilder(head.body.trim))((b, html) => b.append(sep.body + html.body.trim)).toString())
   }
 
-  def paginated[A](page: Page[A], link: Page.Params => Call, item: A => Html, filters: Seq[Filter] = Seq(), sorts: Seq[Sort] = Seq()): Html = {
-    Html(paginationHeader(page, link, filters, sorts).body + paginationBody(page, item).body + paginationFooter(page, link).body)
+  def paginated[A](page: Page[A], link: Page.Params => Call, filters: Seq[Filter] = Seq(), sorts: Seq[Sort] = Seq())(item: A => Html): Html = {
+    Html(Seq(
+      paginationHeader(page, link, filters, sorts),
+      paginationBody(page, item),
+      paginationFooter(page, link)).map(_.body).mkString)
+  }
+
+  def paginatedCustom[A](page: Page[A], link: Page.Params => Call, filters: Seq[Filter] = Seq(), sorts: Seq[Sort] = Seq())
+                        (header: Page[A] => Html)
+                        (empty: Html)
+                        (item: A => Html)
+                        (footer: Page[A] => Html): Html = {
+    Html(Seq(
+      paginationHeader(page, link, filters, sorts),
+      header(page),
+      if (page.isEmpty) empty else Html(page.items.map(item).mkString("\n")),
+      footer(page),
+      paginationFooter(page, link)).map(_.body).mkString)
   }
 
   def paginationHeader[A](page: Page[A], link: Page.Params => Call, filters: Seq[Filter] = Seq(), sorts: Seq[Sort] = Seq()): Html = {

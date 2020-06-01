@@ -18,23 +18,21 @@
 @container(s"Admin")() {
     <h1>Videos</h1>
     <p>A list of video links available</p>
-    @Formats.paginationHeader(extEvents, AdminCtrl.fetchVideos)
-    <table class="table table-sm table-hover">
-        <thead>
-            <tr>
-                <th scope="col">Event</th>
-                <th scope="col">Videos</th>
-                <th scope="col">Link</th>
-                <th scope="col">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if(extEvents.items.isEmpty) {
-                <tr><td colspan="4" class="text-center p-5">No results <i class="far fa-sad-tear"></i></td></tr>
-            } else {
-                @extEvents.items.map { case (e, v) => @videoListTemplate(e, v) }
-            }
-        </tbody>
-    </table>
-    @Formats.paginationFooter(extEvents, AdminCtrl.fetchVideos)
+    @Formats.paginatedCustom[(ExternalEvent, Long)](extEvents, AdminCtrl.fetchVideos) { p =>
+        <table class="table table-sm table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">Event</th>
+                    <th scope="col">Videos</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    } { <tr><td colspan="4" class="text-center p-5">No results <i class="far fa-sad-tear"></i></td></tr> } { case (e, v) =>
+        @videoListTemplate(e, v)
+    } { p =>
+            </tbody>
+        </table>
+    }
 }()

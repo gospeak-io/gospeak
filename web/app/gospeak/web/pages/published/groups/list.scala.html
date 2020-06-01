@@ -15,5 +15,5 @@
             <a class="btn btn-text btn-text-success" href="mailto:contact@@gospeak.io?subject=Would like to create a group!&body=Don't be shy, email us :p">Create your group!</a>
         </p>
     </div>
-    @Formats.paginated[Group.Full](groups, GroupCtrl.list, groupItem(_, orgas))
+    @Formats.paginated[Group.Full](groups, GroupCtrl.list)(groupItem(_, orgas))
 }()

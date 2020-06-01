@@ -12,5 +12,5 @@
         <span class="text-capitalize">@Formats.plural(cfps.total.value, "Call For Paper")</span>
         <a class="btn btn-primary" href="@CfpCtrl.create(req.group.slug)" data-hotkey="+">Create a CFP</a>
     </h1>
-    @Formats.paginated[Cfp](cfps, CfpCtrl.list(req.group.slug, _), cfpItem(_))
+    @Formats.paginated[Cfp](cfps, CfpCtrl.list(req.group.slug, _))(cfpItem(_))
 }()
