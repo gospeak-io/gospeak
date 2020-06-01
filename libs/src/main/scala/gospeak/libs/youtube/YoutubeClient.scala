@@ -85,7 +85,7 @@ class YoutubeClient(val underlying: YouTube) {
     import Settings.Channel.Part._
     execute(underlying.videos()
       .list(Seq(snippet, contentDetails, statistics).mkString(separator))
-      .setId(videoIds.mkString(separator)))
+      .setId(videoIds.map(_.value).mkString(separator)))
       .map(_.flatMap(_.getItems.asScala.toList.map(YoutubeVideo.from).sequence))
   }
 

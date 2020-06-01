@@ -16,10 +16,10 @@ class VideoSrvImplSpec extends BaseSpec {
 
     describe("getChannelId") {
       it("should get the channel id for youtube") {
-        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/HumanTalksParis").get).unsafeRunSync() shouldBe "UCKFAwlgWiAB4vUpgnS63qog"
-        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/c/HumanTalksParis").get).unsafeRunSync() shouldBe "UCVelKVoLQIhwx9C2LWf-CDA"
-        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/user/BreizhCamp").get).unsafeRunSync() shouldBe "UCKFAwlgWiAB4vUpgnS63qog"
-        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog").get).unsafeRunSync() shouldBe "UCKFAwlgWiAB4vUpgnS63qog"
+        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/HumanTalksParis").get).unsafeRunSync().value shouldBe "UCKFAwlgWiAB4vUpgnS63qog"
+        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/c/HumanTalksParis").get).unsafeRunSync().value shouldBe "UCKFAwlgWiAB4vUpgnS63qog"
+        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/user/BreizhCamp").get).unsafeRunSync().value shouldBe "UCVelKVoLQIhwx9C2LWf-CDA"
+        srv.getChannelId(Url.Videos.Channel.from("https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog").get).unsafeRunSync().value shouldBe "UCKFAwlgWiAB4vUpgnS63qog"
       }
     }
     describe("listVideos") {

@@ -89,7 +89,8 @@ class AdminCtrl(cc: ControllerComponents,
       _ <- videosDiff.leftOnly.map(v => videoRepo.remove(v, event)).sequence
       _ <- videosDiff.rightOnly.map(v => videoRepo.create(v, event)).sequence
       _ <- videosDiff.both.map { case (_, v) => videoRepo.edit(v, event) }.sequence
-    } yield redirectToPreviousPageOr(routes.AdminCtrl.fetchVideos())
+    } yield redirectToPreviousPageOr(routes.AdminCtrl.fetchVideos()).flashing(
+      "success" -> s"<b>${eventElt.name.value}</b> videos updated: ${videosDiff.rightOnly.length} new, ${videosDiff.both.length} updated and ${videosDiff.leftOnly.length} removed")
   }
 }
 
