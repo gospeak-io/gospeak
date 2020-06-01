@@ -27,7 +27,7 @@ class MessageHandler(appConf: ApplicationConf,
                      groupSettingsRepo: OrgaGroupSettingsRepo,
                      emailSrv: EmailSrv,
                      slackSrv: SlackSrv,
-                     twitterSrv: Option[TwitterSrv]) {
+                     twitterSrv: TwitterSrv) {
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   def groupActionHandler(msg: Message): IO[Unit] = (msg match {
@@ -67,9 +67,10 @@ class MessageHandler(appConf: ApplicationConf,
   }
 
   private def gospeakTwitt(msg: Message.ExternalCfpCreated): IO[Int] = {
-    twitterSrv
-      .filter(_ => msg.cfp.isActive(LocalDateTime.now()))
-      .map(srv => srv.tweet(Tweets.externalCfpCreated(msg))).sequence
-      .map(_.map(_ => 1).getOrElse(0))
+    if (msg.cfp.isActive(LocalDateTime.now())) {
+      twitterSrv.tweet(Tweets.externalCfpCreated(msg)).map(_ => 1)
+    } else {
+      IO.pure(0)
+    }
   }
 }

@@ -18,6 +18,10 @@ class VideoSrvImpl(youtubeOpt: Option[YoutubeClient]) extends VideoSrv {
     case _: Url.Vimeo.Channel => withVimeo()
   }
 
+  override def youtube: Boolean = youtubeOpt.isDefined
+
+  override def vimeo: Boolean = false
+
   override def getChannelId(url: Url.Videos.Channel): IO[Url.Videos.Channel.Id] = getChannelIdCache(url)
 
   override def listVideos(url: Url.Videos): IO[List[Video.Data]] = url match {
@@ -50,7 +54,7 @@ class VideoSrvImpl(youtubeOpt: Option[YoutubeClient]) extends VideoSrv {
 }
 
 object VideoSrvImpl {
-  def from(youtubeConf: YoutubeConf, appName: String): Try[VideoSrvImpl] = for {
+  def from(appName: String, youtubeConf: YoutubeConf): Try[VideoSrvImpl] = for {
     youtubeClient <- youtubeConf.secret.map(YoutubeClient.create(_, appName)).sequence
   } yield new VideoSrvImpl(youtubeClient)
 }

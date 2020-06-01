@@ -19,7 +19,7 @@ import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
 
 class SchedulerSrv(videoRepo: AdminVideoRepo,
-                   twitterSrv: Option[TwitterSrv])(implicit ec: ExecutionContext) {
+                   twitterSrv: TwitterSrv)(implicit ec: ExecutionContext) {
   implicit private val timer: Timer[IO] = IO.timer(ec)
   private val schedulers = mutable.ListBuffer[Scheduler]()
   private val execs: mutable.ListBuffer[Exec] = mutable.ListBuffer[Exec]()
@@ -38,9 +38,8 @@ class SchedulerSrv(videoRepo: AdminVideoRepo,
   private def tweetRandomVideo(): IO[(String, Option[String])] = for {
     video <- videoRepo.findRandom()
     tweet <- (for {
-      srv <- twitterSrv.toRight("Twitter service not available")
       v <- video.toRight("No video available")
-    } yield srv.tweet(s"#OneDayOneTalk [${v.lang}] ${v.title} on ${v.channel.name} in ${v.publishedAt.getYear(Constants.defaultZoneId)} ${v.url.value}")).sequence
+    } yield twitterSrv.tweet(s"#OneDayOneTalk [${v.lang}] ${v.title} on ${v.channel.name} in ${v.publishedAt.getYear(Constants.defaultZoneId)} ${v.url.value}")).sequence
   } yield (tweet.map(t => s"Tweet sent: ${t.text}").getOrElse("Tweet not sent"), tweet.swap.toOption)
 
   // TODO be able to stop/start a scheduler

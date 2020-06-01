@@ -9,6 +9,8 @@ import gospeak.libs.scala.domain.{Markdown, Url}
 import scala.util.Try
 
 trait MeetupSrv {
+  def performWriteOps: Boolean
+
   def hasSecureCallback: Boolean
 
   def buildAuthorizationUrl(redirectUri: String): Try[Url]
