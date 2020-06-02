@@ -4,15 +4,13 @@
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import gospeak.web.pages.orga.partials.html.{container, proposalItem}
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.OrgaReq
+@import gospeak.web.utils._
 
 @(cfp: Cfp, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${cfp.name.value} proposals", b)() {
-    <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h1>
-    <p class="mt-2 mb-0">You voted on @Formats.plural(userRatings.length, "proposal") on a total of @proposals.total.value</p>
-    @Formats.paginated[Proposal.Full](
-        proposals,
+    <h1 class="text-capitalize">@proposals.plural("proposal")</h1>
+    <p class="mt-2 mb-0">You voted on @userRatings.plural("proposal") on a total of @proposals.total.value</p>
+    @proposals.render(
         ProposalCtrl.list(req.group.slug, cfp.slug, _),
         ProposalRepoSql.tableFullBase.filters,
         ProposalRepoSql.tableFullBase.sorts.toList)(proposalItem(_, speakers, userRatings, proposals.params, ProposalCtrl.list(req.group.slug, cfp.slug, _)))

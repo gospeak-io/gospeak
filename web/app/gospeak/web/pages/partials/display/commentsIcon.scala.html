@@ -1,5 +1,5 @@
 @import java.time.Instant
-@import gospeak.web.utils.Formats
+@import gospeak.web.utils._
 
-@(commentCount: Long, lastComment: Option[Instant], commentKind: String)
-<span class="text-muted" title="@lastComment.map { d => Last @commentKind comment on @Formats.date(d) }.getOrElse{@Formats.plural(commentCount, s"$commentKind comment")}" data-toggle="tooltip">@commentCount <i class="fas fa-comments"></i></span>
+@(commentCount: Long, lastComment: Option[Instant], commentKind: String)(implicit req: BasicReq[AnyContent])
+<span class="text-muted" title="@lastComment.map { d => Last @commentKind comment on @d.asDate }.getOrElse{@commentCount.plural(s"$commentKind comment")}" data-toggle="tooltip">@commentCount <i class="fas fa-comments"></i></span>

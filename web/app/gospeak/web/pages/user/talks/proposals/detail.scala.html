@@ -7,7 +7,7 @@
 @import gospeak.web.pages.user.partials.html.container
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
-@import gospeak.web.utils.{Formats, UserReq}
+@import gospeak.web.utils._
 
 @(proposal: Proposal.Full, speakers: Seq[User], comments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(proposal.title.value, b)() {
@@ -23,7 +23,7 @@
             </span>
         </span>
     </div>
-    <h2>@proposalStatusIcon(proposal.status) @proposal.event.map { e => @e.name.value - @Formats.date(e.start) }.getOrElse { @proposal.cfp.name.value }</h2>
+    <h2>@proposalStatusIcon(proposal.status) @proposal.event.map { e => @e.name.value - @e.start.asDate }.getOrElse { @proposal.cfp.name.value }</h2>
 
     <p class="mb-0">@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video)</p>
     @if(proposal.tags.nonEmpty) { <p class="mb-0">@tags(proposal.tags)</p> }

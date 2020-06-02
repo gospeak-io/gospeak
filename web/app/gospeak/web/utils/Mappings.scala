@@ -14,7 +14,6 @@ import gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
-import gospeak.web.utils.Extensions._
 import gospeak.web.utils.Mappings.Utils._
 import play.api.data.Forms._
 import play.api.data.format.Formats._
@@ -106,12 +105,12 @@ object Mappings {
       data.eitherGet(s"$key.country").toValidatedNec,
       data.eitherGet(s"$key.formatted").toValidatedNec,
       data.eitherGet(s"$key.input").toValidatedNec,
-      data.eitherGetAndParse(s"$key.lat", _.tryDouble, numberError).toValidatedNec,
-      data.eitherGetAndParse(s"$key.lng", _.tryDouble, numberError).toValidatedNec,
+      data.eitherGet(s"$key.lat", _.tryDouble, numberError).toValidatedNec,
+      data.eitherGet(s"$key.lng", _.tryDouble, numberError).toValidatedNec,
       data.eitherGet(s"$key.url").toValidatedNec,
       data.get(s"$key.website").validNec[FormError],
       data.get(s"$key.phone").validNec[FormError],
-      data.eitherGetAndParse(s"$key.utcOffset", _.tryInt, numberError).toValidatedNec
+      data.eitherGet(s"$key.utcOffset", _.tryInt, numberError).toValidatedNec
       ).mapN(GMapPlace.apply).toEither.left.map(_.toList)
 
     override def unbind(key: String, value: GMapPlace): Map[String, String] =
@@ -224,7 +223,7 @@ object Mappings {
 
   val groupSettingsEvent: Mapping[Group.Settings.Action.Trigger] = of(new Formatter[Group.Settings.Action.Trigger] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action.Trigger] =
-      data.eitherGetAndParse(key, v => Group.Settings.Action.Trigger.from(v).asTry(identity), formatError).left.map(Seq(_))
+      data.eitherGet(key, v => Group.Settings.Action.Trigger.from(v).asTry(identity), formatError).left.map(Seq(_))
 
     override def unbind(key: String, trigger: Group.Settings.Action.Trigger): Map[String, String] = Map(key -> trigger.value)
   })

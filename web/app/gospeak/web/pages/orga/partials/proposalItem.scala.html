@@ -4,7 +4,7 @@
 @import gospeak.web.pages.orga.events.routes.EventCtrl
 @import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.partials.display.html._
-@import gospeak.web.utils.{Formats, OrgaReq}
+@import gospeak.web.utils._
 
 @(proposal: Proposal.Full, speakers: Seq[User], userRatings: Seq[Proposal.Rating], params: Page.Params, link: Page.Params => Call)(implicit req: OrgaReq[AnyContent])
 <div class="list-group-item d-flex justify-content-between align-items-center pl-5">
@@ -16,7 +16,7 @@
             </div>
             <h5 class="mb-1">
                 <a class="ml-2" href="@ProposalCtrl.detail(req.group.slug, proposal.cfp.slug, proposal.id)">@proposal.title.value</a>
-                @proposal.event.map { event => <small>given at <a href="@EventCtrl.detail(req.group.slug, event.slug)" title="on @Formats.date(event.start)">@event.name.value</a></small> }
+                @proposal.event.map { event => <small>given at <a href="@EventCtrl.detail(req.group.slug, event.slug)" title="on @event.start.asDate">@event.name.value</a></small> }
             </h5>
         </div>
 
@@ -29,7 +29,7 @@
 
             @tags(proposal.tags, link = Some(t => link(params.withFilter("tags", t.value))))
             @tags(proposal.orgaTags, link = Some(t => link(params.withFilter("orga-tags", t.value))), color="info", title="orga tag")
-            <small>Proposed on @Formats.date(proposal.info.createdAt)</small>
+            <small>Proposed on @proposal.info.createdAt.asDate</small>
         </div>
     </div>
     @avatars(proposal.speakers, speakers, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug)), "u-avatar")

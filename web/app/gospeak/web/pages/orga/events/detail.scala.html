@@ -13,7 +13,7 @@
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.pages.partials.html.{pagination, search}
 @import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
-@import gospeak.web.utils.{Formats, GsForms, OrgaReq}
+@import gospeak.web.utils._
 
 @(event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, Mustache.Text[Message.EventInfo]], notesForm: Form[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(event.name.value, b)() {
@@ -33,7 +33,7 @@
 
     <h1 class="d-flex justify-content-between align-items-center">
         <span>
-            @Formats.icon(event.kind)
+            @event.kind.icon
             @event.name.value
             @if(event.isPublic) { <a href="@PublicGroupCtrl.event(req.group.slug, event.slug)" target="_blank" title="View public page"><i class="fas fa-eye"></i></a> }
             @event.refs.meetup.map { ref => <a href="@ref.link" target="_blank" title="View meetup page"><i class="fab fa-meetup"></i></a> }
@@ -75,9 +75,9 @@
                 <a href="@EventCtrl.setVenue(req.group.slug, event.slug)"><i class="fas fa-edit"></i></a>
             </span>
         }
-        @Formats.datetime(event.start)
+        @event.start.asDatetime
         @tags(event.tags)
-        @event.maxAttendee.map { max =>  @Formats.plural(max, "place") }
+        @event.maxAttendee.map(_.plural("place"))
         @(event.allowRsvp, event.isPublic, event.isPast(req.now)) match {
             case (true, true, true) => {<span class="badge badge-secondary" title="RSVP disabled because event is past" data-toggle="tooltip" data-placement="top">RSVP active</span>}
             case (true, true, false) => {<span class="badge badge-success" title="Users will be able to RSVP when event is published and before it starts" data-toggle="tooltip" data-placement="top">RSVP active</span>}
@@ -95,7 +95,7 @@
             @inputTextarea(notesForm("notes"), Seq("placeholder" -> "Notes and reminders about your event...", "optional" -> ""))
             <small class="form-text text-muted d-flex justify-content-between align-items-center">
                 <span>Use theses not as a reminder between orgas</span>
-                <span>Last update: @timeAgo(event.orgaNotes.updatedAt)</span>
+                <span>Last update: @event.orgaNotes.updatedAt.asTimeAgoHtml</span>
             </small>
         </div>
     }
@@ -107,7 +107,7 @@
     } else {
         <div class="card mb-3">
             <h5 class="card-header d-flex justify-content-between align-items-center">
-                <span class="text-capitalize">@Formats.plural(event.talks.length, "planned talk")</span>
+                <span class="text-capitalize">@event.talks.plural("planned talk")</span>
             </h5>
             <div class="list-group list-group-flush">
             @event.talks.map { tId =>
@@ -143,7 +143,7 @@
         } else {
             <div class="card">
                 <h5 class="card-header d-flex justify-content-between align-items-center">
-                    <span><b>@cfp.name.value</b> CFP: @Formats.plural(proposals.total.value, "pending talk")</span>
+                    <span><b>@cfp.name.value</b> CFP: @proposals.plural("pending talk")</span>
                     @search(proposals, EventCtrl.detail(req.group.slug, event.slug), "input-group-sm")
                 </h5>
                 <div class="list-group list-group-flush">
@@ -161,7 +161,7 @@
                             <a href="@ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
                             @tags(proposal.tags, link = Some(t => EventCtrl.detail(req.group.slug, event.slug, proposals.params.withFilter("tags", t.value))))
                             @tags(proposal.orgaTags, link = Some(t => EventCtrl.detail(req.group.slug, event.slug, proposals.params.withFilter("orga-tags", t.value))), color="info", title="orga tag")
-                            <small title="Proposal date">(since @Formats.date(proposal.info.createdAt))</small>
+                            <small title="Proposal date">(since @proposal.info.createdAt.asDate)</small>
                         </div>
                         @avatars(proposal.speakers, speakers, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug)))
                     </div>

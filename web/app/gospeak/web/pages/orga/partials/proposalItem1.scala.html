@@ -1,8 +1,7 @@
 @import gospeak.core.domain.{Cfp, Event, Proposal, User}
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.OrgaReq
+@import gospeak.web.utils._
 
 @(cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event])(implicit req: OrgaReq[AnyContent])
 <a class="list-group-item list-group-item-action" href="@ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id)">
@@ -16,6 +15,6 @@
             @proposal.speakers.toList.map { id => @speaker(speakers, id) }
             @proposal.event.map { id => @event(events, id) }
         </span>
-        <small title="Proposal date">@Formats.date(proposal.info.createdAt)</small>
+        <small title="Proposal date">@proposal.info.createdAt.asDate</small>
     </div>
 </a>

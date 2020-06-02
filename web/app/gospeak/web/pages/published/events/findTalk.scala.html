@@ -5,7 +5,7 @@
 @import gospeak.web.pages.partials.display.html.{duration, tags, talkStatus}
 @import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.partials.html.container
-@import gospeak.web.utils.{Formats, UserReq}
+@import gospeak.web.utils._
 
 @(event: ExternalEvent, talks: Page[Talk])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"${Constants.Emoji.event} ${event.name.value}", PageMeta.event(event, b), b)() {
@@ -16,7 +16,7 @@
     <h3>Select your talk or create it</h3>
     <p class="text-muted">Talks are generics presentations, you can have small differences for the proposal to match the event schedule.</p>
 
-    @Formats.paginated[Talk](talks, EventCtrl.findTalk(event.id, _)) { talk =>
+    @talks.render(EventCtrl.findTalk(event.id, _)) { talk =>
         <a href="@EventCtrl.createExternalProposal(event.id, talk.slug)" class="list-group-item list-group-item-action">
             <h5 class="mb-1">@talk.title.value</h5>
             @talkStatus(talk.status)

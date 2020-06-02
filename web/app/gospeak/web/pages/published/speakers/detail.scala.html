@@ -11,7 +11,7 @@
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.user.profile.routes.ProfileCtrl
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
-@import gospeak.web.utils.{Formats, GsForms, UserAwareReq}
+@import gospeak.web.utils._
 
 @(user: User.Full, userGroups: Seq[Group.Full], userTalks: Seq[Talk], userProposals: Map[Talk.Id, Seq[CommonProposal]], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @eventLink(p: CommonProposal) = @{
@@ -152,9 +152,9 @@
                                 </a>
                                 <div>
                                     <small class="d-block text-secondary">
-                                        @Formats.plural(group.memberCount, "member"),
-                                        @Formats.plural(group.eventCount, "event"),
-                                        @Formats.plural(group.talkCount, "talk")
+                                        @group.memberCount.plural("member"),
+                                        @group.eventCount.plural("event"),
+                                        @group.talkCount.plural("talk")
                                     </small>
                                     <h4 class="h6 mb-0">
                                         <a href="@GroupCtrl.detail(group.slug)">@group.name.value</a>
@@ -175,7 +175,7 @@
             <h3 id="speaking-history" class="h5 mb-0">Speaking history</h3>
             <div class="text-muted mb-3">
                 @userProposals.values.flatten.toList.groupBy(_.eventKind).map { case (kind, proposals) =>
-                    <span class="badge badge-pill badge-@Formats.color(kind)">@Formats.icon(kind) @Formats.plural(proposals.length, kind.map(_.label).getOrElse("Undefined event"))</span>
+                    <span class="badge badge-pill badge-@kind.color">@kind.icon @proposals.plural(kind.map(_.label).getOrElse("Undefined event"))</span>
                 }
             </div>
             @speakingHistory(user, userProposals.values.flatten.toList)

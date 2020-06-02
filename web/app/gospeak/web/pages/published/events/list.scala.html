@@ -5,7 +5,7 @@
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.partials.html.{container, commonEventItem}
-@import gospeak.web.utils.{Formats, UserAwareReq}
+@import gospeak.web.utils._
 
 @(events: Page[CommonEvent], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.gospeak} Gospeak events", PageMeta.default(EventCtrl.list()), b)() {
@@ -16,5 +16,5 @@
             <a class="btn btn-text btn-text-success" href="@EventCtrl.create()">Add a missing event</a>
         </p>
     </div>
-    @Formats.paginated[CommonEvent](events, EventCtrl.list, ExternalEventRepoSql.commonTable.filters)(commonEventItem(_))
+    @events.render(EventCtrl.list, ExternalEventRepoSql.commonTable.filters)(commonEventItem(_))
 }()

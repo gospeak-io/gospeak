@@ -8,7 +8,7 @@
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
 @import gospeak.web.pages.published.speakers.routes.{SpeakerCtrl => PublicSpeakerCtrl}
 @import gospeak.web.pages.published.events.routes.{EventCtrl => PublicEventCtrl}
-@import gospeak.web.utils.{Formats, UserReq}
+@import gospeak.web.utils._
 
 @(proposal: ExternalProposal.Full, invites: Seq[UserRequest.ExternalProposalInvite], speakers: Seq[User])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(proposal.title.value, b)() {
@@ -28,7 +28,7 @@
     <h2>
         @proposalStatusIcon(proposal.status)
         <a href="@PublicEventCtrl.detailExt(proposal.event.id)">@proposal.event.name.value</a>
-        @proposal.event.start.map { s => - @Formats.date(s) }
+        @proposal.event.start.map { s => - @s.asDate }
     </h2>
 
     <p class="mb-0">@duration(proposal.duration) @slidesIcon(proposal.slides) @videoIcon(proposal.video) @websiteIcon(proposal.url)</p>

@@ -15,8 +15,7 @@ import gospeak.web.domain.Breadcrumb
 import gospeak.web.emails.Emails
 import gospeak.web.pages.orga.cfps.CfpCtrl
 import gospeak.web.pages.orga.cfps.proposals.ProposalCtrl._
-import gospeak.web.utils.Extensions._
-import gospeak.web.utils.{GsForms, OrgaReq, UICtrl}
+import gospeak.web.utils._
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 

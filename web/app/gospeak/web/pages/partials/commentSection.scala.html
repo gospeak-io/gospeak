@@ -1,8 +1,7 @@
 @import gospeak.core.domain.{Comment, User}
 @import gospeak.web.auth.routes.AuthCtrl
-@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
-@import gospeak.web.utils.{GsForms, UserAwareReq}
+@import gospeak.web.utils._
 
 @(comments: Seq[Comment.Full], sendComment: Call, pageUrl: Call, userProfile: User => Option[Call], tabindex: Int = 10)(implicit req: UserAwareReq[AnyContent])
 <div class="comment-section">
@@ -39,7 +38,7 @@
                         }.getOrElse {
                             @comment.createdBy.name.value
                         }
-                        <small class="text-muted">@timeAgo(comment.createdAt)</small>
+                        <small class="text-muted">@comment.createdAt.asTimeAgoHtml</small>
                     </div>
                     <p class="mb-0" style="white-space: pre-line;">@comment.text</p>
                 </div>

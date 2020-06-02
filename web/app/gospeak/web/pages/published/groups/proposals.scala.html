@@ -5,7 +5,7 @@
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.published.partials.html.{container, groupCard}
-@import gospeak.web.utils.{Formats, UserAwareReq}
+@import gospeak.web.utils._
 
 @(group: Group.Full, speakerCount: Long, talks: Page[(Proposal.Full, Option[Tweet])], cfps: Seq[Cfp], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.group} ${group.name.value} talks", PageMeta.group(group.group, b), b)() {
@@ -13,8 +13,8 @@
     @groupCard(group, speakerCount, cfps, sponsors, packs, orgas, userMembership)(b)
 
     <div class="col-lg-8 m">
-        <h3>@Formats.plural(talks.total.value, "talk") given at @group.name.value</h3>
-        @Formats.paginated[(Proposal.Full, Option[Tweet])](talks, GroupCtrl.talks(group.slug, _)) { case (talk, tweet) =>
+        <h3>@talks.plural("talk") given at @group.name.value</h3>
+        @talks.render(GroupCtrl.talks(group.slug, _)) { case (talk, tweet) =>
             <div class="card mb-3">
                 <div class="card-body">
                     <h5 class="card-title mb-0">
@@ -29,7 +29,7 @@
                             </li>
                         }
                     </ul>
-                    @talk.event.map { event => <p class="mb-0">At <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a> on @Formats.date(event.start)</p> }
+                    @talk.event.map { event => <p class="mb-0">At <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a> on @event.start.asDate</p> }
                 </div>
             </div>
         }

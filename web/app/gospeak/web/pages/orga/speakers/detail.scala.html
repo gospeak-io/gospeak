@@ -1,10 +1,9 @@
 @import gospeak.core.domain.{Proposal, User}
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.partials.html.{container, proposalItem, speakerCard}
 @import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.OrgaReq
-@import gospeak.libs.scala.domain.Page
+@import gospeak.web.utils._
 
 @(speaker: User, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(speaker.name.value, b)() {
@@ -13,10 +12,8 @@
             @speakerCard(speaker)
         </div>
         <div class="col-8">
-            <h2 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal")</h2>
-            @Formats.paginated[Proposal.Full](
-                proposals,
-                SpeakerCtrl.detail(req.group.slug, speaker.slug, _))(proposalItem(_, speakers, userRatings, proposals.params, SpeakerCtrl.detail(req.group.slug, speaker.slug, _)))
+            <h2 class="text-capitalize">@proposals.plural("proposal")</h2>
+            @proposals.render(SpeakerCtrl.detail(req.group.slug, speaker.slug, _))(proposalItem(_, speakers, userRatings, proposals.params, SpeakerCtrl.detail(req.group.slug, speaker.slug, _)))
         </div>
     </div>
 }()

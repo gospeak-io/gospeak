@@ -4,7 +4,7 @@
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.partials.html.{cfpItem, container}
-@import gospeak.web.utils.{Formats, UserAwareReq}
+@import gospeak.web.utils._
 
 @(cfps: Page[CommonCfp])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.gospeak} Gospeak CFPs", PageMeta.default(CfpCtrl.list()), b)() {
@@ -16,5 +16,5 @@
             A Conference is missing? <a class="btn btn-text btn-text-success" href="@CfpCtrl.findExternalEvent()"> You can add it here</a>
         </p>
     </div>
-    @Formats.paginated[CommonCfp](cfps, CfpCtrl.list)(cfpItem(_))
+    @cfps.render(CfpCtrl.list)(cfpItem(_))
 }()

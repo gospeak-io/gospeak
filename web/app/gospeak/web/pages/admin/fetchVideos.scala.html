@@ -6,7 +6,7 @@
 @import gospeak.web.pages.admin.routes.AdminCtrl
 @import gospeak.web.pages.partials.form.html.formBtn
 @import gospeak.web.pages.published.events.routes.EventCtrl
-@import gospeak.web.utils.{AdminReq, Formats}
+@import gospeak.web.utils._
 
 @(extEvents: Page[(ExternalEvent, Long)], jobs: List[UpdateExtEventVideoJob])(implicit req: AdminReq[AnyContent])
 @container(s"Admin")() {
@@ -64,7 +64,7 @@
         </div>
     }
     <p>A list of video links available</p>
-    @Formats.paginatedCustom[(ExternalEvent, Long)](extEvents, AdminCtrl.fetchVideos) { p =>
+    @extEvents.renderCustom(AdminCtrl.fetchVideos) { p =>
         <table class="table table-sm table-hover">
             <thead>
                 <tr>

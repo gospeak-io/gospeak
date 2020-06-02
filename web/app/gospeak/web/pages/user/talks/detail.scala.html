@@ -8,7 +8,7 @@
 @import gospeak.web.pages.user.partials.html.{container, commonProposalItem}
 @import gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
-@import gospeak.web.utils.{Formats, UserReq}
+@import gospeak.web.utils._
 
 @(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Seq[CommonProposal])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(talk.title.value, b)() {
@@ -90,7 +90,7 @@
     } else {
         <div class="card">
             <h5 class="card-header d-flex justify-content-between align-items-center">
-                <span>Talk proposed to @Formats.plural(proposals.length, "CFP")</span>
+                <span>Talk proposed to @proposals.plural("CFP")</span>
                 <span>
                     <a class="btn btn-primary btn-sm" href="@TalkCtrl.findExternalEvent(talk.slug, Page.Params.defaults.withFilters("type" -> "conference"))">Show where you gave this talk</a>
                     <a class="btn btn-primary btn-sm" href="@CfpCtrl.list(talk.slug)">Propose your talk to a CFP</a>

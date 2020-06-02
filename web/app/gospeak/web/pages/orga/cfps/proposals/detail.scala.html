@@ -7,7 +7,7 @@
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.pages.partials.html._
-@import gospeak.web.utils.{Formats, OrgaReq}
+@import gospeak.web.utils._
 
 @(proposal: Proposal.Full, speakers: Seq[User], ratings: Seq[Proposal.Rating.Full], comments: Seq[Comment.Full], orgaComments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite], events: Seq[Event])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(proposal.title.value, b)() {
@@ -32,7 +32,7 @@
         </span>
     </div>
 
-    <h2>@proposalStatusIcon(proposal.status) @proposal.event.map { e => @event(events, e.id, Some(e => EventCtrl.detail(req.group.slug, e.slug))) - @Formats.date(e.start) }.getOrElse { @proposal.cfp.name.value }</h2>
+    <h2>@proposalStatusIcon(proposal.status) @proposal.event.map { e => @event(events, e.id, Some(e => EventCtrl.detail(req.group.slug, e.slug))) - @e.start.asDate }.getOrElse { @proposal.cfp.name.value }</h2>
 
     <div class="row">
         <div class="col-lg-7">

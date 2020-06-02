@@ -1,16 +1,15 @@
 @import gospeak.core.domain.{Sponsor, SponsorPack}
 @import gospeak.infra.services.storage.sql.SponsorRepoSql
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.partials.html.{container, sponsorItem, sponsorPackItem}
 @import gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.OrgaReq
-@import gospeak.libs.scala.domain.Page
+@import gospeak.web.utils._
 
 @(sponsorPacks: Seq[SponsorPack], sponsors: Page[Sponsor.Full])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${req.group.name.value} sponsors", b)() {
     <h1 class="d-flex justify-content-between align-items-center">
-        <span class="text-capitalize">@Formats.plural(sponsorPacks.length, "sponsor pack")</span>
+        <span class="text-capitalize">@sponsorPacks.plural("sponsor pack")</span>
         <a class="btn btn-primary" href="@SponsorCtrl.createPack(req.group.slug)" data-hotkey="+">Create a sponsor pack</a>
     </h1>
     @if(sponsorPacks.isEmpty) {
@@ -23,7 +22,7 @@
             @sponsorPacks.map { sp => @sponsorPackItem(sp) }
         </div>
 
-        <h1 class="text-capitalize">@Formats.plural(sponsors.total.value, "sponsor")</h1>
-        @Formats.paginated[Sponsor.Full](sponsors, SponsorCtrl.list(req.group.slug, _), SponsorRepoSql.tableFull.filters, SponsorRepoSql.tableFull.sorts.toList)(sponsorItem(_))
+        <h1 class="text-capitalize">@sponsors.plural("sponsor")</h1>
+        @sponsors.render(SponsorCtrl.list(req.group.slug, _), SponsorRepoSql.tableFull.filters, SponsorRepoSql.tableFull.sorts.toList)(sponsorItem(_))
     }
 }()

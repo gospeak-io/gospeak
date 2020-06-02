@@ -6,7 +6,7 @@
 @import gospeak.web.pages.published.partials.html.container
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
-@import gospeak.web.utils.{Formats, UserAwareReq}
+@import gospeak.web.utils._
 
 @(proposal: ExternalProposal.Full, users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.proposal} ${proposal.title.value}", PageMeta.proposal(proposal.event, proposal.proposal, b), b)() {
@@ -20,7 +20,7 @@
             <a href="@ProposalCtrl.editExt(proposal.talk.slug, proposal.id, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
         }
     </h1>
-    <div class="text-muted mb-3">@proposal.event.start.map(Formats.date) at <a href="@EventCtrl.detailExt(proposal.event.id)">@proposal.event.name.value</a></div>
+    <div class="text-muted mb-3">@proposal.event.start.map(_.asDate) at <a href="@EventCtrl.detailExt(proposal.event.id)">@proposal.event.name.value</a></div>
     <div class="row">
         @proposal.video.map { s => <div class="col-lg-6 mb-3">@embed(s.value)</div> }
         @proposal.slides.map { s => <div class="col-lg-6 mb-3">@embed(s.value)</div> }

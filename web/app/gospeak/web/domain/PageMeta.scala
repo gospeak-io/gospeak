@@ -2,16 +2,16 @@ package gospeak.web.domain
 
 import java.time.LocalDateTime
 
-import gospeak.core.domain.utils.Constants
 import gospeak.core.domain._
-import gospeak.libs.scala.domain.{GMapPlace, Geo, Logo, Markdown, Url}
-import gospeak.web.pages.published.routes.HomeCtrl
+import gospeak.core.domain.utils.Constants
+import gospeak.libs.scala.domain._
 import gospeak.web.pages.published.cfps.routes.CfpCtrl
 import gospeak.web.pages.published.events.routes.EventCtrl
 import gospeak.web.pages.published.groups.routes.GroupCtrl
+import gospeak.web.pages.published.routes.HomeCtrl
 import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 import gospeak.web.pages.published.videos.routes.VideoCtrl
-import gospeak.web.utils.{BasicReq, Formats}
+import gospeak.web.utils._
 import play.api.mvc.{AnyContent, Call}
 
 // https://search.google.com/structured-data/testing-tool
@@ -56,7 +56,7 @@ object PageMeta {
   }
 
   final case class SEODate(private val value: LocalDateTime) {
-    def human: String = if (hasTime) Formats.datetime(value) else Formats.date(value)
+    def human(implicit req: BasicReq[AnyContent]): String = if (hasTime) value.asDatetime else value.asDate
 
     def iso: String = if (hasTime) value.toString else value.toLocalDate.toString
 

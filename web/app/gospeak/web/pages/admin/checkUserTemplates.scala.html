@@ -2,7 +2,7 @@
 @import gospeak.web.pages.admin.AdminCtrl.UserTemplateReport
 @import gospeak.web.pages.admin.partials.html.container
 @import gospeak.web.pages.admin.routes.AdminCtrl
-@import gospeak.web.utils.{AdminReq, Formats}
+@import gospeak.web.utils._
 
 @(groupReports: Page[UserTemplateReport], defaultEventDescription: Either[Mustache.Error, Markdown])(implicit req: AdminReq[AnyContent])
 @container(s"Admin")() {
@@ -12,7 +12,7 @@
             <b>@err.message</b> for default event description (cf application.conf) :(
         </div>
     }
-    @Formats.paginated[UserTemplateReport](groupReports, AdminCtrl.checkUserTemplates) { r =>
+    @groupReports.render(AdminCtrl.checkUserTemplates) { r =>
         <div class="card mb-3">
             <div class="card-body">
                 @if(r.errorCount > 0) {

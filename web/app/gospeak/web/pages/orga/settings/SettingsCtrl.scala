@@ -21,8 +21,7 @@ import gospeak.web.emails.Emails
 import gospeak.web.pages.orga.GroupCtrl
 import gospeak.web.pages.orga.settings.SettingsCtrl._
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import gospeak.web.utils.Extensions._
-import gospeak.web.utils.{GsForms, OrgaReq, UICtrl}
+import gospeak.web.utils._
 import play.api.data.Form
 import play.api.mvc._
 import play.twirl.api.HtmlFormat

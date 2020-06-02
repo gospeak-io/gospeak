@@ -1,17 +1,15 @@
 @import gospeak.core.domain.User
 @import gospeak.infra.services.storage.sql.UserRepoSql
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.partials.html.{container, speakerItem}
 @import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.OrgaReq
-@import gospeak.libs.scala.domain.Page
+@import gospeak.web.utils._
 
 @(speakers: Page[User.Full])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${req.group.name.value} speakers", b)() {
-    <h1 class="text-capitalize">@Formats.plural(speakers.total.value, "speaker")</h1>
-    @Formats.paginated[User.Full](
-        speakers,
+    <h1 class="text-capitalize">@speakers.plural("speaker")</h1>
+    @speakers.render(
         SpeakerCtrl.list(req.group.slug, _),
         UserRepoSql.tableFull.filters,
         UserRepoSql.tableFull.sorts.toList)(speakerItem(_))

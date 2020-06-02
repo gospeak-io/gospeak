@@ -1,12 +1,11 @@
 @import gospeak.core.domain.{Event, Venue}
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.partials.html.container
 @import gospeak.web.pages.orga.events.routes.EventCtrl
 @import gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import gospeak.web.pages.partials.form.html.formBtn
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.OrgaReq
-@import gospeak.libs.scala.domain.Page
+@import gospeak.web.utils._
 
 @(event: Event, venueOpt: Option[Venue.Full], venues: Page[Venue.Common], groupVenues: Seq[Venue.Full])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"Set venue for ${event.name.value}", b)() {
@@ -24,7 +23,7 @@
         <div>No venue yet for @event.name.value</div>
     }
 
-    @Formats.paginated[Venue.Common](venues, EventCtrl.setVenue(req.group.slug, event.slug, _)) { venue =>
+    @venues.render(EventCtrl.setVenue(req.group.slug, event.slug, _)) { venue =>
         @if(venue.public) {
             @groupVenues.find(_.address.id == venue.address.id).map { v =>
                 <div style="display: none">@venue.name.value (@venue.address.value)</div>

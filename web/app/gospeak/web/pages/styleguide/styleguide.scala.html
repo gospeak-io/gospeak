@@ -170,13 +170,10 @@
                 @example(s"$name") { _ => @display.duration(talk.duration) }
                 @example(s"$name with title") { _ => @display.duration(talk.duration, Some("Talk duration")) }
             }
-            @component("timeAgo", "@timeAgo(talk.info.created)") { name =>
-                @example(s"$name") { _ => @display.timeAgo(talk.info.createdAt)(userReq) }
-            }
             @component("event", "@event(talk.duration, Some(e => MyCtrl.detail(e.slug)))") { name =>
-                @example(s"$name") { _ => @display.event(Seq(event), event.id, Some(_ => StyleguideCtrl.index(params))) }
-                @example(s"$name without link") { _ => @display.event(Seq(event), event.id) }
-                @example(s"$name not found") { _ => @display.event(Seq(), event.id) }
+                @example(s"$name") { _ => @display.event(Seq(event), event.id, Some(_ => StyleguideCtrl.index(params)))(userAwareReq) }
+                @example(s"$name without link") { _ => @display.event(Seq(event), event.id)(userAwareReq) }
+                @example(s"$name not found") { _ => @display.event(Seq(), event.id)(userAwareReq) }
             }
             @component("info", "@info(talk.info, users, Some(u => MyCtrl.detail(u.slug)))") { name =>
                 @example(s"$name") { _ => @display.info(talk.info, Seq(user), Some(_ => StyleguideCtrl.index(params))) }
@@ -246,7 +243,7 @@
 
         @section("published", "Published components", "@import gospeak.web.pages.published.partials.html._") { _ =>
             @component("groupItem", "@groupItem(group)") { name =>
-                @example(s"$name") { _ => @published.groupItem(groupFull, Seq()) }
+                @example(s"$name") { _ => @published.groupItem(groupFull, Seq())(userAwareReq) }
             }
             @component("cfpItem", "@cfpItem(cfp)") { name =>
                 @example(s"$name") { _ => @published.cfpItem(CommonCfp(group, cfp)) }
@@ -261,9 +258,9 @@
                 @example(s"$name") { _ => @speaker.talkItem(talk) }
             }
             @component("proposalItem", "@commonProposalItem(proposalFull)") { name =>
-                @example(s"$name pending") { _ => @speaker.commonProposalItem(commonProposal.copy(status = Proposal.Status.Pending)) }
-                @example(s"$name accepted") { _ => @speaker.commonProposalItem(commonProposal.copy(status = Proposal.Status.Accepted)) }
-                @example(s"$name declined") { _ => @speaker.commonProposalItem(commonProposal.copy(status = Proposal.Status.Declined)) }
+                @example(s"$name pending") { _ => @speaker.commonProposalItem(commonProposal.copy(status = Proposal.Status.Pending))(userReq) }
+                @example(s"$name accepted") { _ => @speaker.commonProposalItem(commonProposal.copy(status = Proposal.Status.Accepted))(userReq) }
+                @example(s"$name declined") { _ => @speaker.commonProposalItem(commonProposal.copy(status = Proposal.Status.Declined))(userReq) }
             }
         }
 

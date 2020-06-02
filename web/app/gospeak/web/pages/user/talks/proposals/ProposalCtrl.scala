@@ -22,8 +22,7 @@ import gospeak.web.pages.user.talks.cfps.routes.{CfpCtrl => CfpRoutes}
 import gospeak.web.pages.user.talks.proposals.ProposalCtrl._
 import gospeak.web.pages.user.talks.routes.{TalkCtrl => TalkRoutes}
 import gospeak.web.services.MessageSrv
-import gospeak.web.utils.Extensions._
-import gospeak.web.utils.{GsForms, UICtrl, UserReq}
+import gospeak.web.utils._
 import play.api.data.Form
 import play.api.mvc._
 

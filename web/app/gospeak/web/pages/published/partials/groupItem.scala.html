@@ -3,9 +3,9 @@
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
-@import gospeak.web.utils.Formats
+@import gospeak.web.utils._
 
-@(group: Group.Full, orgas: Seq[User])
+@(group: Group.Full, orgas: Seq[User])(implicit req: BasicReq[AnyContent])
 <div class="card mb-3">
     <div class="card-body p-3">
         <div class="media">
@@ -17,7 +17,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <small class="text-muted">@group.location.map { l => @l.valueShort }.getOrElse{ &nbsp; }</small><br>
-                        <small class="text-dark">@Formats.plural(group.eventCount, "event")</small> @tags(group.tags)
+                        <small class="text-dark">@group.eventCount.plural("event")</small> @tags(group.tags)
                     </div>
                     @avatars(group.owners, orgas, Some(u => SpeakerCtrl.detail(u.slug)))
                 </div>

@@ -1,5 +1,4 @@
-@import gospeak.web.utils.Extensions._
-@import gospeak.web.utils.UserReq
+@import gospeak.web.utils._
 
 @(field: Field, args: Seq[(String, String)] = Seq())(implicit req: UserReq[AnyContent])
 @defining(Seq("id", "name", "streetNo", "street", "postalCode", "locality", "country", "formatted", "lat", "lng", "url", "website", "phone", "utcOffset")) { hiddenFields: Seq[String] =>

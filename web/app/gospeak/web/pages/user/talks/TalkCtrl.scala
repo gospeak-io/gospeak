@@ -19,8 +19,7 @@ import gospeak.web.pages.user.UserCtrl
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import gospeak.web.pages.user.talks.TalkCtrl._
 import gospeak.web.services.MessageSrv
-import gospeak.web.utils.Extensions._
-import gospeak.web.utils.{GsForms, UICtrl, UserReq}
+import gospeak.web.utils._
 import play.api.data.Form
 import play.api.mvc._
 
@@ -31,9 +30,7 @@ class TalkCtrl(cc: ControllerComponents,
                conf: AppConf,
                userRepo: SpeakerUserRepo,
                userRequestRepo: SpeakerUserRequestRepo,
-               eventRepo: SpeakerEventRepo,
                talkRepo: SpeakerTalkRepo,
-               proposalRepo: SpeakerProposalRepo,
                externalEventRepo: SpeakerExternalEventRepo,
                externalProposalRepo: SpeakerExternalProposalRepo,
                emailSrv: EmailSrv,

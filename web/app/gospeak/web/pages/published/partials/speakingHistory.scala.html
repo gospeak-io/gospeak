@@ -3,7 +3,7 @@
 @import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.user.talks.proposals.routes.{ProposalCtrl => SpeakerProposalCtrl}
-@import gospeak.web.utils.{Formats, UserAwareReq}
+@import gospeak.web.utils._
 
 @(user: User.Full, proposals: List[CommonProposal])(implicit req: UserAwareReq[AnyContent])
 @eventLink(p: CommonProposal) = @{
@@ -15,8 +15,8 @@
 <ul class="list-unstyled u-indicator-vertical-dashed">
     @proposals.sortBy(-_.date.getEpochSecond).map { proposal =>
         <li class="media u-indicator-vertical-dashed-item">
-            <span class="btn btn-xs btn-icon btn-@Formats.color(proposal.eventKind) rounded-circle mr-3">
-                <span class="btn-icon__inner">@Formats.icon(proposal.eventKind)</span>
+            <span class="btn btn-xs btn-icon btn-@proposal.eventKind.color rounded-circle mr-3">
+                <span class="btn-icon__inner">@proposal.eventKind.icon</span>
             </span>
             <div class="media-body">
                 <h5 class="font-size-1 mb-1">
@@ -40,7 +40,7 @@
                     }
                 </h5>
                 <p class="small mb-1">
-                    At <a href="@eventLink(proposal)" class="no-style">@proposal.eventName</a>, @Formats.date(proposal.date)
+                    At <a href="@eventLink(proposal)" class="no-style">@proposal.eventName</a>, @proposal.date.asDate
                 </p>
             </div>
         </li>

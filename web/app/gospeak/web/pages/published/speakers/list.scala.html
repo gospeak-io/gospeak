@@ -5,7 +5,7 @@
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.published.partials.html.{container, userItem}
-@import gospeak.web.utils.{Formats, UserAwareReq}
+@import gospeak.web.utils._
 
 @(speakers: Page[User.Full])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.gospeak} Gospeak speakers", PageMeta.default(SpeakerCtrl.list()), b, full = true)() {
@@ -72,7 +72,7 @@
     }
     <div class="container">
         <div class="container mt-7">
-            @Formats.paginated[User.Full](speakers, SpeakerCtrl.list)(u => userItem(u.user))
+            @speakers.render(SpeakerCtrl.list)(u => userItem(u.user))
         </div>
         <h2 class="text-center font-weight-medium" style="margin-bottom: 10rem">
             Want your speaker profile? <a class="btn btn-soft-success" href="@AuthCtrl.signup()">Create it now</a>

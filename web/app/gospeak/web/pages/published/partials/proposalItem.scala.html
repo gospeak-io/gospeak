@@ -1,7 +1,7 @@
 @import gospeak.core.domain.Proposal
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
-@import gospeak.web.utils.{Formats, UserAwareReq}
+@import gospeak.web.utils._
 
 @(proposal: Proposal.Full)(implicit req: UserAwareReq[AnyContent])
 <div class="list-group-item list-group-item-action">
@@ -11,5 +11,5 @@
     @slidesIcon(proposal.slides)
     @videoIcon(proposal.video)
     @tags(proposal.tags)
-    @proposal.event.map { e => <small>@if(e.isPast(req.now)) {Was held} else {Will be hold} on @Formats.date(e.start)</small> }
+    @proposal.event.map { e => <small>@if(e.isPast(req.now)) {Was held} else {Will be hold} on @e.start.asDate</small> }
 </div>
