@@ -26,7 +26,7 @@
         @proposal.slides.map { s => <div class="col-lg-6 mb-3">@embed(s.value)</div> }
     </div>
     <div class="mb-3">
-        @duration(proposal.duration) @tags(proposal.tags)
+        @proposal.duration.asBadge @proposal.tags.asBadges
     </div>
     <ul class="list-inline mb-3">
         @proposal.speakerUsers(users).map { u =>
@@ -35,5 +35,5 @@
             </li>
         }
     </ul>
-    <div class="mb-3">@markdown(proposal.description)</div>
+    <div class="mb-3">@proposal.description.render</div>
 }()

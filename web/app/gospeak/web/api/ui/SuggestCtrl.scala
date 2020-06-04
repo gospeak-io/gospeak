@@ -56,7 +56,7 @@ class SuggestCtrl(cc: ControllerComponents,
   }
 
   def suggestCfps(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    makeSuggest[Cfp](cfpRepo.list, c => SuggestedItem(c.id.value, c.name.value + " - " + c.dates))(group)
+    makeSuggest[Cfp](cfpRepo.list, c => SuggestedItem(c.id.value, c.name.value + " - " + c.asDates))(group)
   }
 
   def suggestPartners(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>

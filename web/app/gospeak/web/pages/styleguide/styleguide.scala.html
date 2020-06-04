@@ -1,5 +1,5 @@
 @import gospeak.core.domain.{Cfp, CommonCfp, CommonProposal, Event, Group, Proposal, Talk, User}
-@import gospeak.libs.scala.domain.{Page, Url}
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.PageMeta
 @import gospeak.web.pages.orga.partials.{html => orga}
 @import gospeak.web.pages.partials.container.{html => container}
@@ -163,51 +163,11 @@
         }
 
         @section("global-display", "Global display components", "@import gospeak.web.pages.partials.display.html._") { _ =>
-            @component("tags", "@tags(cfp.tags)") { name =>
-                @example(s"$name") { _ => @display.tags(cfp.tags) }
-            }
-            @component("duration", "@duration(talk.duration)") { name =>
-                @example(s"$name") { _ => @display.duration(talk.duration) }
-                @example(s"$name with title") { _ => @display.duration(talk.duration, Some("Talk duration")) }
-            }
-            @component("event", "@event(talk.duration, Some(e => MyCtrl.detail(e.slug)))") { name =>
-                @example(s"$name") { _ => @display.event(Seq(event), event.id, Some(_ => StyleguideCtrl.index(params)))(userAwareReq) }
-                @example(s"$name without link") { _ => @display.event(Seq(event), event.id)(userAwareReq) }
-                @example(s"$name not found") { _ => @display.event(Seq(), event.id)(userAwareReq) }
-            }
             @component("info", "@info(talk.info, users, Some(u => MyCtrl.detail(u.slug)))") { name =>
                 @example(s"$name") { _ => @display.info(talk.info, Seq(user), Some(_ => StyleguideCtrl.index(params))) }
                 @example(s"$name without link") { _ => @display.info(talk.info, Seq(user)) }
                 @example(s"$name not found") { _ => @display.info(talk.info, Seq()) }
                 @example(s"$name with different update date") { _ => @display.info(talk.info.copy(updatedAt = talk.info.updatedAt.plusSeconds(60)), Seq(user)) }
-            }
-            @component("talkStatus", "@talkStatus(talk.status)") { name =>
-                @Talk.Status.all.map { status =>
-                    @example(s"$name $status") { _ => @display.talkStatus(status) }
-                }
-            }
-            @component("proposalStatus", "@proposalStatus(proposal.status)") { name =>
-                @Proposal.Status.all.map { status =>
-                    @example(s"$name $status") { _ => @display.proposalStatus(status) }
-                }
-            }
-            @component("proposalStatusIcon", "@proposalStatusIcon(proposal.status)") { name =>
-                @Proposal.Status.all.map { status =>
-                    @example(s"$name $status") { _ => @display.proposalStatusIcon(status) }
-                }
-            }
-            @component("slidesIcon", "@slidesIcon(talk.slides)") { name =>
-                @example(s"$name when empty") { _ => @display.slidesIcon(None) }
-                @example(s"$name when filled") { _ => @display.slidesIcon(Some(Url.Slides.from("http://slides.com/here").right.get)) }
-            }
-            @component("videoIcon", "@videoIcon(talk.video)") { name =>
-                @example(s"$name when empty") { _ => @display.videoIcon(None) }
-                @example(s"$name when filled") { _ => @display.videoIcon(Some(Url.Video.from("http://video.com/here").right.get)) }
-            }
-            @component("speaker", "@speaker(users, user.id, u => Some(MyCtrl.detail(u.slug)))") { name =>
-                @example(s"$name") { _ => @display.speaker(Seq(user), user.id, _ => Some(StyleguideCtrl.index(params))) }
-                @example(s"$name without link") { _ => @display.speaker(Seq(user), user.id) }
-                @example(s"$name not found") { _ => @display.speaker(Seq(), user.id) }
             }
             @component("avatar", "@avatars(NonEmptyList.of(user.id), users, Some(u => MyCtrl.detail(u.slug)))") { name =>
                 @example(s"$name") { _ => @display.avatars(talk.speakers, Seq(user), Some(_ => StyleguideCtrl.index(params))) }
@@ -255,7 +215,7 @@
                 @example(s"$name") { _ => @speaker.cfpItem(talk, cfp) }
             }
             @component("talkItem", "@talkItem(talk)") { name =>
-                @example(s"$name") { _ => @speaker.talkItem(talk) }
+                @example(s"$name") { _ => @speaker.talkItem(talk)(userReq) }
             }
             @component("proposalItem", "@commonProposalItem(proposalFull)") { name =>
                 @example(s"$name pending") { _ => @speaker.commonProposalItem(commonProposal.copy(status = Proposal.Status.Pending))(userReq) }

@@ -2,7 +2,6 @@
 @import gospeak.core.domain.utils.Constants
 @import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
-@import gospeak.web.pages.partials.display.html.{duration, tags, talkStatus}
 @import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.partials.html.container
 @import gospeak.web.utils._
@@ -19,9 +18,9 @@
     @talks.render(EventCtrl.findTalk(event.id, _)) { talk =>
         <a href="@EventCtrl.createExternalProposal(event.id, talk.slug)" class="list-group-item list-group-item-action">
             <h5 class="mb-1">@talk.title.value</h5>
-            @talkStatus(talk.status)
-            @duration(talk.duration)
-            @tags(talk.tags)
+            @talk.status.asBadge
+            @talk.duration.asBadge
+            @talk.tags.asBadges
         </a>
     }
 }()(req.userAware)

@@ -1,18 +1,17 @@
 @import gospeak.core.domain.{Talk, User, UserRequest}
 @import gospeak.core.domain.utils.Constants
 @import gospeak.web.domain.Breadcrumb
-@import gospeak.web.pages.partials.display.html.markdown
 @import gospeak.web.pages.partials.form.html.formBtn
 @import gospeak.web.pages.user.partials.html.container
 @import gospeak.web.pages.user.routes.UserCtrl
-@import gospeak.web.utils.UserReq
+@import gospeak.web.utils._
 
 @(invite: UserRequest.TalkInvite, talk: Talk, speaker: User)(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"Invitation for '${talk.title.value}' talk", b, hideAlert = true)() {
     @if(invite.isPending(req.now)) {
         <h1>Nice!!! You have been invited to join a talk <i class="far fa-thumbs-up"></i></h1>
         <h3>@talk.title.value</h3>
-        @markdown(talk.description)
+        @talk.description.render
         @formBtn(UserCtrl.rejectRequest(invite.id), Seq("class" -> "btn-danger")) {Do not join}
         @formBtn(UserCtrl.acceptRequest(invite.id), Seq("class" -> "btn-success")) {Join <b>@speaker.name.value</b> for talk <b>@talk.title.value</b>}
     } else {

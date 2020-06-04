@@ -4,7 +4,6 @@
 @import gospeak.web.pages.orga.events.routes.EventCtrl
 @import gospeak.web.pages.orga.partials.html.container
 @import gospeak.web.pages.partials.form.html._
-@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.utils._
 
 @(event: Event, description: Markdown, form: Form[GsForms.PublishOptions], hasMeetupAccount: Boolean)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
@@ -29,7 +28,7 @@
         }
 
         <h4 class="mt-3">Description</h4>
-        @markdown(description)
+        @description.render
 
         @actionsVertical() {
             @btnCancel(EventCtrl.detail(req.group.slug, event.slug))

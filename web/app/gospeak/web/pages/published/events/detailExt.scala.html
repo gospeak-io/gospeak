@@ -28,10 +28,10 @@
                     </div>
                     <div>@socialShareButtons(Shareable(event))</div>
                     @event.url.map { u => <a class="font-size-1" href="@u" target="_blank">@u</a><br> }
-                    <span class="text-muted font-size-1">@event.kind.value</span> @tags(event.tags)
+                    <span class="text-muted font-size-1">@event.kind.value</span> @event.tags.asBadges
                 </div>
             </div>
-            <div class="mb-3">@markdown(event.description)</div>
+            <div class="mb-3">@event.description.render</div>
         </div>
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm mb-3">
@@ -41,7 +41,7 @@
                             <div class="min-width-4 text-center text-primary mr-3"><span class="fas fa-map-marked-alt"></span></div>
                             <div class="media-body">
                                 <span class="d-block font-weight-medium">@location.name</span>
-                                <small class="d-block text-secondary"> @address(location)</small>
+                                <small class="d-block text-secondary"> @location.asLink</small>
                             </div>
                         </div>
                     }

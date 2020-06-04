@@ -2,7 +2,6 @@
 @import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.routes.{GroupCtrl => OrgaGroupCtrl}
-@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
 @import gospeak.web.pages.user.partials.html.container
@@ -100,7 +99,7 @@
                 @currentTalks.items.map { t =>
                     <a href="@TalkCtrl.detail(t.slug)" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         @t.title.value
-                        @talkStatus(t.status)
+                        @t.status.asBadge
                     </a>
                 }
             </div>

@@ -4,7 +4,6 @@
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.cfps.routes.CfpCtrl
 @import gospeak.web.pages.orga.partials.html.{container, proposalItem}
-@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.cfps.routes.{CfpCtrl => PublicCfpCtrl}
 @import gospeak.web.utils._
 
@@ -27,7 +26,7 @@
         </span>
     </h1>
 
-    <p>@cfp.dates.capitalize @tags(cfp.tags)</p>
+    <p>@cfp.asDates.capitalize @cfp.tags.asBadges</p>
 
     <h2 class="text-capitalize">@proposals.plural("proposal")</h2>
     <p class="mt-2 mb-0">You voted on @userRatings.plural("proposal") on a total of @proposals.total.value</p>

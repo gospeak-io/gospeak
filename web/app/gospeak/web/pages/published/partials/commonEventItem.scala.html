@@ -13,7 +13,7 @@
         <div class="media-body">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0"><a href="@event.fold(e => EventCtrl.detailExt(e.id))(i => GroupCtrl.event(i.group.slug, i.slug))">
-                    <small class="text-muted">@event.kind.icon</small> @event.name.value
+                    <small class="text-muted">@event.kind.asIcon</small> @event.name.value
                 </a></h5>
                 @event.location.map { l => <small class="text-muted">@l.valueShort</small> }
             </div>

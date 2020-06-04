@@ -1,3 +1,0 @@
-@import scala.concurrent.duration.FiniteDuration
-@(d: FiniteDuration, title: Option[String] = None)
-<span class="badge badge-primary" @title.map { t => title="@t" }>@d.toString</span>

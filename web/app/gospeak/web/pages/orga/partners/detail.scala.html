@@ -33,7 +33,7 @@
             </span>
         </span>
     </div>
-    @markdown(partner.notes)
+    @partner.notes.render
 
     @if(venues.isEmpty) {
         <div class="card mb-3">
@@ -54,7 +54,7 @@
                     <div>
                         @if(venue.notes.nonEmpty) {
                             <span data-toggle="html-popover" data-placement="top" data-trigger="hover">
-                                <div class="content">@markdown(venue.notes)</div>
+                                <div class="content">@venue.notes.render</div>
                                 @venue.address.value
                             </span>
                         } else {
@@ -160,11 +160,11 @@
                                 @contact.name.value
                             } else {
                                 <span data-toggle="html-popover" data-placement="top" data-trigger="hover">
-                                    <div class="content">@markdown(contact.notes)</div>
+                                    <div class="content">@contact.notes.render</div>
                                     @contact.name.value
                                 </span>
                             }
-                            (@emailLink(contact.email))
+                            (@contact.email.asItemLink)
                         </div>
                         <div>
                             @if(venues.exists(_.hasContact(contact.id)) || sponsors.exists(_.hasContact(contact.id))) {

@@ -33,7 +33,7 @@
 
     <h1 class="d-flex justify-content-between align-items-center">
         <span>
-            @event.kind.icon
+            @event.kind.asIcon
             @event.name.value
             @if(event.isPublic) { <a href="@PublicGroupCtrl.event(req.group.slug, event.slug)" target="_blank" title="View public page"><i class="fas fa-eye"></i></a> }
             @event.refs.meetup.map { ref => <a href="@ref.link" target="_blank" title="View meetup page"><i class="fab fa-meetup"></i></a> }
@@ -76,7 +76,7 @@
             </span>
         }
         @event.start.asDatetime
-        @tags(event.tags)
+        @event.tags.asBadges
         @event.maxAttendee.map(_.plural("place"))
         @(event.allowRsvp, event.isPublic, event.isPast(req.now)) match {
             case (true, true, true) => {<span class="badge badge-secondary" title="RSVP disabled because event is past" data-toggle="tooltip" data-placement="top">RSVP active</span>}
@@ -95,7 +95,7 @@
             @inputTextarea(notesForm("notes"), Seq("placeholder" -> "Notes and reminders about your event...", "optional" -> ""))
             <small class="form-text text-muted d-flex justify-content-between align-items-center">
                 <span>Use theses not as a reminder between orgas</span>
-                <span>Last update: @event.orgaNotes.updatedAt.asTimeAgoHtml</span>
+                <span>Last update: @event.orgaNotes.updatedAt.asTimeAgo</span>
             </small>
         </div>
     }
@@ -117,12 +117,12 @@
                             @formBtn(EventCtrl.cancelTalk(req.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Remove this talk from the event")) { <i class="fas fa-minus"></i> }
                             @formBtn(EventCtrl.moveTalk(req.group.slug, event.slug, proposal.id, true, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Move this talk up")) { <i class="fas fa-arrow-up"></i> }
                             @formBtn(EventCtrl.moveTalk(req.group.slug, event.slug, proposal.id, false, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Move this talk down")) { <i class="fas fa-arrow-down"></i> }
-                            @duration(proposal.duration)
-                            @slidesIcon(proposal.slides)
-                            @videoIcon(proposal.video)
+                            @proposal.duration.asBadge
+                            @proposal.slides.asIconLink
+                            @proposal.video.asIconLink
                             @cfpOpt.map { cfp => <a href="@ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id)">@proposal.title.value</a> }.getOrElse { <span>@proposal.title.value</span> }
-                            @tags(proposal.tags)
-                            @tags(proposal.orgaTags, color="info", title="orga tag")
+                            @proposal.tags.asBadges
+                            @proposal.orgaTags.asBadges(color = "info", title = "orga tag")
                         </div>
                         @avatars(proposal.speakers, speakers, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug)))
                     }.getOrElse { Unknown (@tId.value) }
@@ -152,15 +152,15 @@
                         <div>
                             @formBtn(EventCtrl.addToTalks(req.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Add this proposal to the event", "data-toggle" -> "tooltip")){<i class="fas fa-plus"></i>}
                             @formBtn(EventCtrl.rejectProposal(req.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link badge text-danger", "title" -> "Reject this proposal", "data-toggle" -> "tooltip", "confirm" -> s"Reject proposal: ${proposal.title.value}?")){<i class="fas fa-comment-slash"></i>}
-                            @duration(proposal.duration)
-                            @slidesIcon(proposal.slides)
-                            @videoIcon(proposal.video)
+                            @proposal.duration.asBadge
+                            @proposal.slides.asIconLink
+                            @proposal.video.asIconLink
                             @commentsIcon(proposal.speakerCommentCount, proposal.speakerLastComment, "speaker")
                             @commentsIcon(proposal.orgaCommentCount, proposal.orgaLastComment, "orga")
                             @proposalRating(proposal, userRatings.find(_.proposal == proposal.id).map(_.grade), "badge")
                             <a href="@ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
-                            @tags(proposal.tags, link = Some(t => EventCtrl.detail(req.group.slug, event.slug, proposals.params.withFilter("tags", t.value))))
-                            @tags(proposal.orgaTags, link = Some(t => EventCtrl.detail(req.group.slug, event.slug, proposals.params.withFilter("orga-tags", t.value))), color="info", title="orga tag")
+                            @proposal.tags.asBadgeLinks(t => EventCtrl.detail(req.group.slug, event.slug, proposals.params.withFilter("tags", t.value)))
+                            @proposal.orgaTags.asBadgeLinks(t => EventCtrl.detail(req.group.slug, event.slug, proposals.params.withFilter("orga-tags", t.value)), color = "info", title = "orga tag")
                             <small title="Proposal date">(since @proposal.info.createdAt.asDate)</small>
                         </div>
                         @avatars(proposal.speakers, speakers, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug)))

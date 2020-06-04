@@ -5,9 +5,9 @@ import java.time.{Instant, LocalDate, LocalDateTime}
 import java.util.Locale
 
 import gospeak.core.domain.utils.Constants
-import gospeak.core.domain.{Cfp, Event}
+import gospeak.core.domain._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Filter, Sort}
-import gospeak.libs.scala.domain.Page
+import gospeak.libs.scala.domain._
 import play.api.data.{Form, FormError}
 import play.api.mvc.{AnyContent, Call, Flash}
 import play.twirl.api.Html
@@ -27,17 +27,19 @@ package object utils {
   private val dateFull = DateTimeFormatter.ofPattern("EEEE dd MMMM YYYY").withLocale(Locale.ENGLISH)
   private val time = DateTimeFormatter.ofPattern("HH:mm").withLocale(Locale.ENGLISH)
 
+  /**
+   * Formatters for basic Scala/Play classes
+   */
+
   implicit class RichInstant(val i: Instant) extends AnyVal {
     def asDate(implicit req: BasicReq[AnyContent]): String = df.format(i)
 
     def asDatetime(implicit req: BasicReq[AnyContent]): String = dtf.format(i)
 
-    def asTimeAgo(implicit req: BasicReq[AnyContent]): String = {
-      val diffMilli = i.toEpochMilli - req.now.toEpochMilli
-      timeAgo(Duration.fromNanos(1000000 * diffMilli))
+    def asTimeAgo(implicit req: BasicReq[AnyContent]): Html = {
+      val duration = Duration.fromNanos(1000000 * (i.toEpochMilli - req.now.toEpochMilli))
+      Html(s"""<span title="${i.asDatetime}" data-toggle="tooltip">${timeAgo(duration)}</span>""")
     }
-
-    def asTimeAgoHtml(implicit req: BasicReq[AnyContent]): Html = Html(s"""<span title="${i.asDatetime}" data-toggle="tooltip">${i.asTimeAgo}</span>""")
   }
 
   implicit class RichLocalDate(val d: LocalDate) extends AnyVal {
@@ -65,16 +67,28 @@ package object utils {
       else FiniteDuration(d.toDays, DAYS)
     }
 
-    def format: String = {
+    def asTime(implicit req: BasicReq[AnyContent]): String = {
       if (d > 1.hour) s"${d.toHours}:${pad(d.minus(d.toHours.hours).toMinutes)}:${pad(d.minus(d.toMinutes.minutes).toSeconds)}"
       else s"${d.toMinutes}:${pad(d.minus(d.toMinutes.minutes).toSeconds)}"
     }
+
+    def asBadge(implicit req: BasicReq[AnyContent]): Html = Html(s"""<span class="badge badge-primary">${d.toString}</span>""")
+
+    def asBadge(title: String)(implicit req: BasicReq[AnyContent]): Html = Html(s"""<span class="badge badge-primary" title="$title">${d.toString}</span>""")
 
     private def pad(n: Long): String = padLeft(n.toString, 2, '0')
 
     @tailrec
     private def padLeft(str: String, size: Int, char: Char = ' '): String =
       if (str.length < size) padLeft(char + str, size, char) else str
+  }
+
+  implicit class RichString(val s: String) extends AnyVal {
+    def asCompanyItem: Html = Html(s"""<span class="company-link"><i class="fas fa-sitemap" title="Company"></i> $s</span>""")
+
+    def asLocationItem: Html = Html(s"""<span class="location-link"><i class="fas fa-map-marker-alt" title="Location"></i> $s</span>""")
+
+    def asPhoneItemLink: Html = Html(s"""<span class="phone-link"><i class="fas fa-phone" title="Phone"></i> <a href="tel:$s" class="no-style" target="_blank">$s</a></span>""")
   }
 
   implicit class RichLong(val l: Long) extends AnyVal {
@@ -104,6 +118,69 @@ package object utils {
     def mkHtml(sep: String): Html = mkHtml(Html(sep))
 
     def mkHtml: Html = mkHtml(Html(""))
+  }
+
+  implicit class RichCall(val c: Call) extends AnyVal {
+    def previousPageOrThis(implicit req: BasicReq[AnyContent]): String = redirectOr(HttpUtils.getReferer(req.headers), c)
+
+    private def redirectOr(redirect: Option[String], default: => Call)(implicit req: BasicReq[AnyContent]): String =
+      redirect.filterNot(url => url.contains("login") || url.contains("signup")).getOrElse(default.toString)
+  }
+
+  implicit class RichForm[A](val in: Form[A]) extends AnyVal {
+    def flash(implicit req: BasicReq[AnyContent]): Flash = Flash(in.data ++ in.errors.headOption.map(_ => "error" -> errors))
+
+    private def errors(implicit req: BasicReq[AnyContent]): String = in.errors.map(e => s"${e.key}: ${req.format(e)}<br>").mkString("\n")
+  }
+
+  implicit class RichFormMap[V](val in: Map[String, V]) extends AnyVal {
+    def eitherGet(key: String): Either[FormError, V] =
+      in.get(key).map(Right(_)).getOrElse(Left(FormError(key, Mappings.requiredError)))
+
+    def eitherGet[A](key: String, parse: V => Try[A], err: => String): Either[FormError, A] =
+      eitherGet(key).flatMap(v => parse(v).toEither.left.map(e => FormError(key, err, e.getMessage)))
+  }
+
+  /**
+   * Formatters for utils classes
+   */
+
+  implicit class RichUrl(val u: Url) extends AnyVal {
+    def asWebsiteItemLink: Html = Html(s"""<span class="website-link"><i class="fas fa-globe" title="Website"></i> <a href="${u.value}" class="no-style" target="_blank">${u.value}</a></span>""")
+  }
+
+  implicit class RichUrlOpt(val ou: Option[Url]) extends AnyVal {
+    def asWebsiteIconLink: Html = ou.map(u => Html(s"""<a href="${u.value}" target="_blank" title="Site"><i class="fas fa-link"></i></a>""")).getOrElse(Html("""<i class="fas fa-link text-muted"></i>"""))
+  }
+
+  implicit class RichUrlVideoOpt(val ou: Option[Url.Video]) extends AnyVal {
+    def asIconLink: Html = ou.map(u => Html(s"""<a href="${u.value}" target="_blank" title="Video"><i class="fab fa-youtube"></i></a>""")).getOrElse(Html("""<i class="fab fa-youtube text-muted"></i>"""))
+  }
+
+  implicit class RichUrlSlidesOpt(val ou: Option[Url.Slides]) extends AnyVal {
+    def asIconLink: Html = ou.map(u => Html(s"""<a href="${u.value}" target="_blank" title="Slides"><i class="fab fa-slideshare"></i></a>""")).getOrElse(Html("""<i class="fab fa-slideshare text-muted"></i>"""))
+  }
+
+  implicit class RichEmailAddress(val e: EmailAddress) extends AnyVal {
+    def asItemLink: Html = Html(s"""<span class="email-link"><i class="fas fa-envelope" title="Email"></i> <a href="mailto:${e.value}" class="no-style" target="_blank">${e.value}</a></span>""")
+  }
+
+  implicit class RichGMapPlace(val p: GMapPlace) extends AnyVal {
+    def asLink: Html = Html(s"""<a href="${p.url}" target="_blank">${p.formatted}</a>""")
+  }
+
+  implicit class RichSeqTag(val l: Seq[Tag]) extends AnyVal {
+    def asBadges: Html = asBadges()
+
+    def asBadges(color: String = "primary", title: String = "tag"): Html =
+      Html(l.map(t => s"""<span class="badge badge-$color" title="$title">${t.value}</span>""").mkString(" "))
+
+    def asBadgeLinks(link: Tag => Call, color: String = "primary", title: String = "tag"): Html =
+      Html(l.map(t => s"""<a href="${link(t)}" class="badge badge-$color" title="$title">${t.value}</a>""").mkString(" "))
+  }
+
+  implicit class RichMarkdown(val m: Markdown) {
+    def render: Html = Html(m.toHtml.value)
   }
 
   implicit class RichPage[A](val p: Page[A]) extends AnyVal {
@@ -159,29 +236,25 @@ package object utils {
     }
   }
 
-  implicit class RichCall(val c: Call) extends AnyVal {
-    def previousPageOrThis(implicit req: BasicReq[AnyContent]): String = redirectOr(HttpUtils.getReferer(req.headers), c)
+  /**
+   * Formatters for domain classes
+   */
 
-    private def redirectOr(redirect: Option[String], default: => Call)(implicit req: BasicReq[AnyContent]): String =
-      redirect.filterNot(url => url.contains("login") || url.contains("signup")).getOrElse(default.toString)
-  }
+  implicit class RichUserId(val id: User.Id) extends AnyVal {
+    def asBadge(users: Seq[User]): Html = users.find(_.id == id) match {
+      case Some(u) => Html(s"""<span class="badge badge-pill badge-primary">${u.name.value}</span>""")
+      case None => Html(s"""<span class="badge badge-pill badge-primary">Unknown user (${id.value})</span>""")
+    }
 
-  implicit class RichForm[A](val in: Form[A]) extends AnyVal {
-    def flash(implicit req: BasicReq[AnyContent]): Flash = Flash(in.data ++ in.errors.headOption.map(_ => "error" -> errors))
-
-    private def errors(implicit req: BasicReq[AnyContent]): String = in.errors.map(e => s"${e.key}: ${req.format(e)}<br>").mkString("\n")
-  }
-
-  implicit class RichFormMap[V](val in: Map[String, V]) extends AnyVal {
-    def eitherGet(key: String): Either[FormError, V] =
-      in.get(key).map(Right(_)).getOrElse(Left(FormError(key, Mappings.requiredError)))
-
-    def eitherGet[A](key: String, parse: V => Try[A], err: => String): Either[FormError, A] =
-      eitherGet(key).flatMap(v => parse(v).toEither.left.map(e => FormError(key, err, e.getMessage)))
+    def asBadgeLink(users: Seq[User], link: User => Option[Call] = _ => None): Html = users.find(_.id == id).map(u => (u, link(u))) match {
+      case Some((u, Some(url))) => Html(s"""<a href="$url" class="badge badge-pill badge-primary">${u.name.value}</a>""")
+      case Some((u, None)) => Html(s"""<span class="badge badge-pill badge-primary">${u.name.value}</span>""")
+      case None => Html(s"""<span class="badge badge-pill badge-primary">Unknown user (${id.value})</span>""")
+    }
   }
 
   implicit class RichCfp(val c: Cfp) extends AnyVal {
-    def dates(implicit req: UserReq[AnyContent]): String = (c.begin, c.close) match {
+    def asDates(implicit req: UserReq[AnyContent]): String = (c.begin, c.close) match {
       case (Some(start), Some(end)) => s"from ${start.asDate} to ${end.asDate}"
       case (Some(start), None) if start.isAfter(req.nowLDT) => s"starting ${start.asDate}"
       case (Some(start), None) => s"started ${start.asDate}"
@@ -191,15 +264,27 @@ package object utils {
     }
   }
 
+  implicit class RichEventId(val id: Event.Id) extends AnyVal {
+    def asName(events: Seq[Event]): Html = events.find(_.id == id) match {
+      case Some(e) => Html(s"""<span>${e.name.value}</span>""")
+      case None => Html(s"""<span>Unknown (${id.value})</span>""")
+    }
+
+    def asLink(events: Seq[Event], link: Event => Call)(implicit req: UserReq[AnyContent]): Html = events.find(_.id == id) match {
+      case Some(e) => Html(s"""<a href="${link(e)}" title="on ${e.start.asDate}">${e.name.value}</a>""")
+      case None => Html(s"""<span>Unknown (${id.value})</span>""")
+    }
+  }
+
   implicit class RichEventKind(val k: Event.Kind) extends AnyVal {
-    def color: String = k match {
+    def asColor: String = k match {
       case Event.Kind.Conference => "danger"
       case Event.Kind.Meetup => "success"
       case Event.Kind.Training => "primary"
       case Event.Kind.PrivateEvent => "secondary"
     }
 
-    def icon: Html = k match {
+    def asIcon: Html = k match {
       case Event.Kind.Conference => Html("<i class=\"fas fa-bullhorn\" title=\"Conference\"></i>")
       case Event.Kind.Meetup => Html("<i class=\"fas fa-calendar-day\" title=\"Meetup\"></i>")
       case Event.Kind.Training => Html("<i class=\"fas fa-book-reader\" title=\"Training\"></i>")
@@ -208,12 +293,38 @@ package object utils {
   }
 
   implicit class RichEventKindOpt(val k: Option[Event.Kind]) extends AnyVal {
-    def color: String = k.map(_.color).getOrElse("dark")
+    def asColor: String = k.map(_.asColor).getOrElse("dark")
 
-    def icon: Html = k.map(_.icon).getOrElse(Html("<i class=\"fas fa-question\" title=\"Undefined event\"></i>"))
+    def asIcon(implicit req: BasicReq[AnyContent]): Html = k.map(_.asIcon).getOrElse(Html("<i class=\"fas fa-question\" title=\"Undefined event\"></i>"))
   }
 
-  private[utils] def timeAgo(d: Duration): String = {
+  implicit class RichTalkStatus(val s: Talk.Status) extends AnyVal {
+    def asBadge(implicit req: BasicReq[AnyContent]): Html = s match {
+      case Talk.Status.Public => Html(s"""<span class="badge badge-primary">${s.value}</span>""")
+      case Talk.Status.Private => Html(s"""<span class="badge badge-secondary">${s.value}</span>""")
+      case Talk.Status.Archived => Html(s"""<span class="badge badge-danger">${s.value}</span>""")
+    }
+  }
+
+  implicit class RichProposalStatus(val s: Proposal.Status) extends AnyVal {
+    def asBadge(implicit req: BasicReq[AnyContent]): Html = s match {
+      case Proposal.Status.Pending => Html(s"""<span class="badge badge-primary">${s.value}</span>""")
+      case Proposal.Status.Accepted => Html(s"""<span class="badge badge-success">${s.value}</span>""")
+      case Proposal.Status.Declined => Html(s"""<span class="badge badge-danger">${s.value}</span>""")
+    }
+
+    def asIcon(implicit req: BasicReq[AnyContent]): Html = s match {
+      case Proposal.Status.Pending => Html(s"""<span class="text-primary" title="${s.value}"><i class="fas fa-clock"></i></span>""")
+      case Proposal.Status.Accepted => Html(s"""<span class="text-success" title="${s.value}"><i class="fas fa-check"></i></span>""")
+      case Proposal.Status.Declined => Html(s"""<span class="text-danger" title="${s.value}"><i class="far fa-times-circle"></i></span>""")
+    }
+  }
+
+  /**
+   * Private functions used in formatters
+   */
+
+  private[utils] def timeAgo(d: Duration)(implicit req: BasicReq[AnyContent]): String = {
     def displayDuration(amount: Long, unit: String): String = {
       val plural = if (math.abs(amount) == 1) "" else "s"
       s"$amount $unit$plural"

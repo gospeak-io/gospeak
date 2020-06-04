@@ -25,7 +25,7 @@
             <div class="media-body align-self-center ml-3">
                 <h6 class="mb-0">
                     <a href="@EventCtrl.detail(req.group.slug, event.slug)" class="text-primary"><b>@event.name.value</b></a>
-                    <span class="text-muted">@event.kind.icon</span>
+                    <span class="text-muted">@event.kind.asIcon</span>
                     @if(event.orgaNotes.isDefined) {
                         <span class="text-muted" data-toggle="html-popover" data-trigger="hover">
                             <span class="content" style="white-space: pre-line;">@event.orgaNotes.text</span>

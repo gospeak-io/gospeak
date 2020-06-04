@@ -17,7 +17,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <small class="text-muted">@group.location.map { l => @l.valueShort }.getOrElse{ &nbsp; }</small><br>
-                        <small class="text-dark">@group.eventCount.plural("event")</small> @tags(group.tags)
+                        <small class="text-dark">@group.eventCount.plural("event")</small> @group.tags.asBadges
                     </div>
                     @avatars(group.owners, orgas, Some(u => SpeakerCtrl.detail(u.slug)))
                 </div>

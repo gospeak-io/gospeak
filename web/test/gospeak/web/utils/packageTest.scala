@@ -29,13 +29,13 @@ class packageTest extends BaseSpec {
         Duration(-3, DAYS).plus(Duration(1, HOURS)).round shouldBe Duration(-2, DAYS)
       }
       it("should display durations") {
-        3.millis.format shouldBe "0:00"
-        5.seconds.format shouldBe "0:05"
-        46.seconds.format shouldBe "0:46"
-        5.minutes.plus(16.seconds).format shouldBe "5:16"
-        12.minutes.plus(2.seconds).format shouldBe "12:02"
-        2.hours.plus(23.minutes).plus(18.seconds).format shouldBe "2:23:18"
-        11.hours.plus(3.minutes).plus(7.seconds).format shouldBe "11:03:07"
+        3.millis.asTime shouldBe "0:00"
+        5.seconds.asTime shouldBe "0:05"
+        46.seconds.asTime shouldBe "0:46"
+        5.minutes.plus(16.seconds).asTime shouldBe "5:16"
+        12.minutes.plus(2.seconds).asTime shouldBe "12:02"
+        2.hours.plus(23.minutes).plus(18.seconds).asTime shouldBe "2:23:18"
+        11.hours.plus(3.minutes).plus(7.seconds).asTime shouldBe "11:03:07"
       }
     }
     describe("private functions") {

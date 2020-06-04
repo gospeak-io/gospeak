@@ -1,5 +1,4 @@
 @import gospeak.core.domain.{Cfp, Event, Proposal, User}
-@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import gospeak.web.utils._
 
@@ -7,13 +6,13 @@
 <a class="list-group-item list-group-item-action" href="@ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id)">
     <div class="d-flex w-100 justify-content-between align-items-center">
         <h5 class="mb-1">@proposal.title.value</h5>
-        <div>@proposalStatus(proposal.status)</div>
+        <div>@proposal.status.asBadge</div>
     </div>
     <div class="d-flex w-100 justify-content-between align-items-center">
         <span>
-            @duration(proposal.duration)
-            @proposal.speakers.toList.map { id => @speaker(speakers, id) }
-            @proposal.event.map { id => @event(events, id) }
+            @proposal.duration.asBadge
+            @proposal.speakers.map(_.asBadge(speakers)).toList
+            @proposal.event.map(_.asName(events))
         </span>
         <small title="Proposal date">@proposal.info.createdAt.asDate</small>
     </div>

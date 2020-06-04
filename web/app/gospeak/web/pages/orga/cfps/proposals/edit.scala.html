@@ -1,10 +1,9 @@
 @import gospeak.core.domain.{Cfp, Proposal}
 @import gospeak.web.domain.Breadcrumb
-@import gospeak.web.pages.partials.display.html._
-@import gospeak.web.pages.partials.form.html._
 @import gospeak.web.pages.orga.partials.html.{container, proposalFields}
 @import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
-@import gospeak.web.utils.OrgaReq
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils._
 
 @(cfp: Cfp, proposal: Proposal, form: Form[Proposal.DataOrga], redirect: Option[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"Edit '${proposal.title.value}'", b)() {
@@ -16,7 +15,7 @@
                 @btnSubmit("Edit Speaker's Proposal")
             </div>
         </div>
-        <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
+        <blockquote class="blockquote">@cfp.description.render</blockquote>
         @proposalFields(form)
     }
 }()

@@ -21,7 +21,7 @@
             </div>
             <div>
                 <a href="@cfp.event.url" class="font-size-1" target="_blank">@cfp.event.url</a><br/>
-                @tags(cfp.event.tags)
+                @cfp.event.tags.asBadges
             </div>
             @if(cfp.isActive(req.nowLDT)) {
                 <div class="mt-3">
@@ -31,7 +31,7 @@
             @cfp.close.map { c => <div class="text-muted small mt-3"><i class="fas fa-flag mr-1"></i> Close the @c.toLocalDate.asDate</div> }
         </div>
 
-        <div class="mt-5 mb-4">@markdown(cfp.description)</div>
+        <div class="mt-5 mb-4">@cfp.description.render</div>
 
         <div class="text-center mb-5">
             <h4 class="h6 mb-3">Interested?</h4>

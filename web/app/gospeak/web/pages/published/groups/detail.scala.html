@@ -6,7 +6,7 @@
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.partials.html.{container, eventItem, groupCard}
-@import gospeak.web.utils.UserAwareReq
+@import gospeak.web.utils._
 
 @(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], events: Page[Event.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.group} ${group.name.value}", PageMeta.group(group.group, b), b)() {
@@ -18,7 +18,7 @@
             <div class="mb-5">
                 <div class="float-right">@socialShareButtons(Shareable(group.group))</div>
                 <h2 class="h5 mb-3">About @group.name.value</h2>
-                @markdown(group.description)
+                @group.description.render
             </div>
             <hr class="mb-5">
 

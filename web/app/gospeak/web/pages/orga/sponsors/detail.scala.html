@@ -2,9 +2,8 @@
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.partials.html.container
 @import gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
-@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
-@import gospeak.web.utils.OrgaReq
+@import gospeak.web.utils._
 
 @(pack: SponsorPack)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${pack.name.value} sponsor pack", b)() {
@@ -30,5 +29,5 @@
     </h1>
     <p>@pack.price.value for @pack.duration.value</p>
 
-    @markdown(pack.description)
+    @pack.description.render
 }()

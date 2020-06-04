@@ -15,8 +15,8 @@
 <ul class="list-unstyled u-indicator-vertical-dashed">
     @proposals.sortBy(-_.date.getEpochSecond).map { proposal =>
         <li class="media u-indicator-vertical-dashed-item">
-            <span class="btn btn-xs btn-icon btn-@proposal.eventKind.color rounded-circle mr-3">
-                <span class="btn-icon__inner">@proposal.eventKind.icon</span>
+            <span class="btn btn-xs btn-icon btn-@proposal.eventKind.asColor rounded-circle mr-3">
+                <span class="btn-icon__inner">@proposal.eventKind.asIcon</span>
             </span>
             <div class="media-body">
                 <h5 class="font-size-1 mb-1">

@@ -5,7 +5,7 @@
 @import gospeak.web.pages.published.partials.html.{container, speakingHistory}
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
-@import gospeak.web.utils.UserAwareReq
+@import gospeak.web.utils._
 
 @(user: User.Full, talk: Talk, proposals: List[CommonProposal], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.talk} ${talk.title.value} by ${user.name.value}", PageMeta.talk(user.user, talk, b), b)() {
@@ -23,7 +23,7 @@
         @talk.slides.map { s => <div class="col-lg-6 mb-3">@embed(s.value)</div> }
     </div>
     <div class="mb-3">
-        @duration(talk.duration) @tags(talk.tags)
+        @talk.duration.asBadge @talk.tags.asBadges
     </div>
     <ul class="list-inline mb-3">
         @talk.speakerUsers(users).map { u =>
@@ -32,7 +32,7 @@
             </li>
         }
     </ul>
-    <div class="mb-3">@markdown(talk.description)</div>
+    <div class="mb-3">@talk.description.render</div>
     @if(proposals.nonEmpty) {
         <hr class="my-7">
         <h3 class="h5 mb-3">Speaking history</h3>

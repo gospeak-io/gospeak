@@ -1,9 +1,0 @@
-@import gospeak.core.domain.Event
-@import gospeak.web.utils._
-
-@(events: Seq[Event], id: Event.Id, call: Option[Event => Call] = None)(implicit req: BasicReq[AnyContent])
-@(events.find(_.id == id), call) match {
-    case (Some(event), Some(url)) => {<a href="@url(event)" title="on @event.start.asDate">@event.name.value</a>}
-    case (Some(event), None) => {<span>@event.name.value</span>}
-    case (None, _) => {<span>Unknown (@id.value)</span>}
-}

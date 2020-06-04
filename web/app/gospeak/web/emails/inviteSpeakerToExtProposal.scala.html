@@ -1,11 +1,10 @@
 @import gospeak.core.domain.{ExternalProposal, UserRequest}
 @import gospeak.libs.scala.domain.Markdown
-@import gospeak.web.pages.partials.display.html.markdown
 @import gospeak.web.pages.user.routes.UserCtrl
-@import gospeak.web.utils.UserReq
+@import gospeak.web.utils._
 
 @(invite: UserRequest.ExternalProposalInvite, proposal: ExternalProposal.Full, message: Markdown)(implicit req: UserReq[AnyContent])
-@if(message.nonEmpty) { @markdown(message)<br> } else { <p>Hi,</p> }
+@if(message.nonEmpty) { @message.render<br> } else { <p>Hi,</p> }
 <p><a href="mailto:@req.user.email.value">@req.user.name.value</a> has added you to <b>@proposal.title.value</b> at <b>@proposal.event.name.value</b>.</p>
 <p>You can <a href="@req.toAbsolute(UserCtrl.answerRequest(invite.id))">accept or deny</a> this invitation.</p>
 <p>We wish you the best in your public speaking adventure!</p>
