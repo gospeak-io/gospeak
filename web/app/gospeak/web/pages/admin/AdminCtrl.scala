@@ -11,17 +11,16 @@ import gospeak.core.services.storage._
 import gospeak.core.services.video.VideoSrv
 import gospeak.libs.scala.Diff
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{CustomException, Mustache, Page, Url}
+import gospeak.libs.scala.domain.{CustomException, Mustache, Page}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.pages.admin.AdminCtrl.{UpdateExtEventVideoJob, UserTemplateReport}
 import gospeak.web.services.{MessageSrv, SchedulerSrv}
 import gospeak.web.utils.{AdminReq, UICtrl}
 import io.circe.Json
-
-import collection.mutable
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
+import scala.collection.mutable
 import scala.util.control.NonFatal
 
 class AdminCtrl(cc: ControllerComponents,
@@ -77,11 +76,7 @@ class AdminCtrl(cc: ControllerComponents,
       // TODO proposals with video
       // TODO external proposals with video
       extEvents <- extEventRepo.list(params.withFilter("video", "true"))
-      extEventsWithVideoCount <- extEvents.map(e => e.videos.map {
-        case u: Url.Videos.Channel => videoSrv.getChannelId(u).flatMap(videoRepo.countForChannel)
-        case u: Url.Videos.Playlist => videoRepo.countForPlaylist(u.playlistId)
-        case _: Url.Videos.Other => IO.pure(0L)
-      }.getOrElse(IO.pure(0L)).map(c => e -> c)).sequence
+      extEventsWithVideoCount <- extEvents.map(e => videoRepo.count(e.id).map(c => e -> c)).sequence
       jobs = updateExtEventVideosJobs.values.toList
       _ = updateExtEventVideosJobs.filter(_._2.finished.isDefined).foreach { case (id, _) => updateExtEventVideosJobs.remove(id) }
     } yield Ok(html.fetchVideos(extEventsWithVideoCount, jobs))
@@ -104,11 +99,7 @@ class AdminCtrl(cc: ControllerComponents,
     updateExtEventVideosJobs.put(event.id, job)
     (for {
       url <- event.videos.toIO(CustomException(s"No videos for external event ${event.name.value}"))
-      gospeakVideos <- url match {
-        case c: Url.Videos.Channel => videoSrv.getChannelId(c).flatMap(videoRepo.listAllForChannel)
-        case p: Url.Videos.Playlist => videoRepo.listAllForPlaylist(p.playlistId)
-        case _: Url.Videos.Other => IO.pure(List())
-      }
+      gospeakVideos <- videoRepo.listAll(event.id)
       _ = job.gospeakVideos = Some(gospeakVideos)
       remoteVideos <- videoSrv.listVideos(url)
       _ = job.remoteVideos = Some(remoteVideos)

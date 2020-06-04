@@ -23,9 +23,13 @@ trait AdminVideoRepo {
 
   def findRandom(): IO[Option[Video]]
 
+  def listAll(event: ExternalEvent.Id): IO[List[Video]]
+
   def listAllForChannel(channelId: Url.Videos.Channel.Id): IO[List[Video]]
 
   def listAllForPlaylist(playlistId: Url.Videos.Playlist.Id): IO[List[Video]]
+
+  def count(event: ExternalEvent.Id): IO[Long]
 
   def countForChannel(channelId: Url.Videos.Channel.Id): IO[Long]
 

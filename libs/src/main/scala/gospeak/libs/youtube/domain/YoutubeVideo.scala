@@ -53,7 +53,7 @@ object YoutubeVideo {
     title = title,
     description = Option(snippet.getDescription).filter(_.nonEmpty),
     publishedAt = publishedAt,
-    lang = Option(snippet.getDefaultLanguage),
+    lang = Option(snippet.getDefaultLanguage).map(_.split('-').head), // because of "en-GB", "en-US"
     tags = Option(snippet.getTags).map(_.asScala.toList).getOrElse(List()),
     duration = duration,
     views = Option(statistics.getViewCount).map(_.longValue()),

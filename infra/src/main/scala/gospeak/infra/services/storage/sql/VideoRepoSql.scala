@@ -33,7 +33,7 @@ class VideoRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   // true if deleted, false otherwise (other links referencing the video)
   override def remove(video: Video.Data, event: ExternalEvent.Id)(implicit ctx: AdminCtx): IO[Boolean] = for {
     _ <- delete(video.id, event).run(xa).recover { case NonFatal(_) => Done }
-    c <- count(video.id).runOption(xa).map(_.getOrElse(0))
+    c <- sum(video.id).runOption(xa).map(_.getOrElse(0))
     r <- if (c == 0) delete(video.url).run(xa).map(_ => true) else IO.pure(false)
   } yield r
 
@@ -43,9 +43,13 @@ class VideoRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def list(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Video]] = selectPage(params).run(xa)
 
+  override def listAll(event: ExternalEvent.Id): IO[List[Video]] = selectAll(event).runList(xa)
+
   override def listAllForChannel(channelId: Url.Videos.Channel.Id): IO[List[Video]] = selectAllForChannel(channelId).runList(xa)
 
   override def listAllForPlaylist(playlistId: Url.Videos.Playlist.Id): IO[List[Video]] = selectAllForPlaylist(playlistId).runList(xa)
+
+  override def count(event: ExternalEvent.Id): IO[Long] = sum(event).runOption(xa).map(_.getOrElse(0))
 
   override def countForChannel(channelId: Url.Videos.Channel.Id): IO[Long] = countChannelId(channelId).runOption(xa).map(_.getOrElse(0))
 
@@ -57,6 +61,11 @@ object VideoRepoSql {
   private val tableSources = Tables.videoSources
   private val table = Tables.videos
   private val tableSelect = table.dropField(_.platform).get.dropField(_.id).get
+  private val tableWithSources = table
+    .join(tableSources, _.id -> _.video_id).get
+    .dropFields(_.prefix != table.prefix)
+    .dropField(_.platform).get
+    .dropField(_.id).get
 
   private[sql] def insert(v: Url.Video.Id, e: ExternalEvent.Id): Insert[(Url.Video.Id, ExternalEvent.Id)] =
     tableSources.insert[(Url.Video.Id, ExternalEvent.Id)](v -> e, _ => fr0"$v, NULL, NULL, NULL, $e")
@@ -67,8 +76,11 @@ object VideoRepoSql {
   private[sql] def selectOne(v: Url.Video.Id, e: ExternalEvent.Id): Select[Video.Sources] =
     tableSources.select[Video.Sources](fr0"WHERE video_id=$v AND external_event_id=$e")
 
-  private[sql] def count(v: Url.Video.Id): Select[Long] =
+  private[sql] def sum(v: Url.Video.Id): Select[Long] =
     tableSources.selectOne[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE video_id=$v GROUP BY vis.video_id")
+
+  private[sql] def sum(event: ExternalEvent.Id): Select[Long] =
+    tableSources.selectOne[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE external_event_id=$event GROUP BY vis.external_event_id", Sort("external_event_id", "vis"))
 
   private[sql] def insert(e: Video): Insert[Video] = {
     val values = fr0"${e.url.platform}, ${e.url}, ${e.id}, ${e.channel.id}, ${e.channel.name}, ${e.playlist.map(_.id)}, ${e.playlist.map(_.name)}, ${e.title}, ${e.description}, ${e.tags}, ${e.publishedAt}, ${e.duration}, ${e.lang}, ${e.views}, ${e.likes}, ${e.dislikes}, ${e.comments}, ${e.updatedAt}"
@@ -91,6 +103,9 @@ object VideoRepoSql {
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Video, UserAwareCtx] =
     tableSelect.selectPage[Video, UserAwareCtx](params)
+
+  private[sql] def selectAll(event: ExternalEvent.Id): Select[Video] =
+    tableWithSources.select[Video](fr0"WHERE vis.external_event_id=$event")
 
   private[sql] def selectAllForChannel(channelId: Url.Videos.Channel.Id): Select[Video] =
     tableSelect.select[Video](fr0"WHERE vi.channel_id=$channelId")

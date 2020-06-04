@@ -19,13 +19,11 @@ import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.StringUtils
 import gospeak.libs.scala.domain.TimePeriod._
 import gospeak.libs.scala.domain._
-import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
-  private val logger = LoggerFactory.getLogger(this.getClass)
   private val flyway = FlywayUtils.build(dbConf)
   private[sql] val xa: doobie.Transactor[IO] = DoobieUtils.transactor(dbConf)
 
@@ -371,6 +369,8 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       published = "2019-12-03", duration = 639, lang = "fr", views = 375859, likes = 21785, dislikes = 451, comments = 900)
     val videos = Seq(microservices, micode)
 
+    val extEventVideos = Seq(codeursenseine2018.id -> Seq(microservices.id))
+
     val generated = (1 to 25).map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
@@ -405,6 +405,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       _ <- cfpExts.map(ExternalCfpRepoSql.insert(_).run(xa)).sequence
       _ <- proposalExts.map(ExternalProposalRepoSql.insert(_).run(xa)).sequence
       _ <- videos.map(VideoRepoSql.insert(_).run(xa)).sequence
+      _ <- extEventVideos.flatMap { case (e, v) => v.map(VideoRepoSql.insert(_, e).run(xa)) }.sequence
     } yield Done
   }
 
