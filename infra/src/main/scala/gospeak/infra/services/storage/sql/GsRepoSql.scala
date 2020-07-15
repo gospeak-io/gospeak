@@ -100,7 +100,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     def proposal(talk: Talk, cfp: Cfp, status: Proposal.Status = Proposal.Status.Pending, orgaTags: Seq[String] = Seq()): Proposal =
       Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, status, talk.title, talk.duration, talk.description, Markdown(""), talk.speakers, talk.slides, talk.video, talk.tags, orgaTags.map(Tag(_)), talk.info)
 
-    def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, maxAttendee: Option[Int], allowRsvp: Boolean = false, venue: Option[Venue] = None, description: Mustache.Markdown[Message.EventInfo] = Mustache.Markdown[Message.EventInfo](""), tags: Seq[String] = Seq(), published: Boolean = true): Event =
+    def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, maxAttendee: Option[Int], allowRsvp: Boolean = false, venue: Option[Venue] = None, description: MustacheMarkdown[Message.EventInfo] = MustacheMarkdown[Message.EventInfo](""), tags: Seq[String] = Seq(), published: Boolean = true): Event =
       Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), Event.Kind.Meetup, LocalDateTime.parse(s"${date}T19:00:00"), maxAttendee, allowRsvp, description, Event.Notes("", now, by.id), venue.map(_.id), Seq(), tags.map(Tag(_)), if (published) Some(Instant.parse(date + "T06:06:24.074Z")) else None, Event.ExtRefs(), Info(by.id, now))
 
     def partner(g: Group, name: String, notes: String, description: Option[String], logo: Int, by: User, social: SocialAccounts = SocialAccounts.fromUrls()): Partner =
@@ -263,13 +263,13 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       actions = Map(
         Group.Settings.Action.Trigger.OnEventCreated -> Seq(
           Group.Settings.Action.Slack(SlackAction.PostMessage(
-            Mustache.Text("{{event.start.year}}_{{event.start.month}}"),
-            Mustache.Markdown("Meetup [{{event.name}}]({{event.orgaLink}}) créé !"),
+            Mustache("{{event.start.year}}_{{event.start.month}}"),
+            MustacheMarkdown("Meetup [{{event.name}}]({{event.orgaLink}}) créé !"),
             createdChannelIfNotExist = true,
             inviteEverybody = true)))),
       event = groupDefaultSettings.event.copy(
         templates = Map(
-          "ROTI" -> Mustache.Text[Message.EventInfo](humanTalksRoti))))
+          "ROTI" -> Mustache[Message.EventInfo](humanTalksRoti))))
 
     val cfp1 = cfp(humanTalks, "ht-paris", "HumanTalks Paris", None, None, "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq("tag1", "tag2"), userDemo)
     val cfp2 = cfp(humanTalks, "ht-paris-day-1", "HumanTalks Paris Day - Edition 1", None, Some("2018-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
@@ -376,7 +376,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       val cfpId = Cfp.Id.generate()
       val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), None, None, None, None, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), None, NonEmptyList.of(userOrga.id), SocialAccounts.fromUrls(), Seq(), Group.Status.Active, Info(userOrga.id, now))
       val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), None, None, Markdown("Only your best talks !"), Seq(), Info(userOrga.id, now))
-      val e = Event(Event.Id.generate(), bigGroup.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), Event.Kind.Meetup, LocalDateTime.parse("2019-03-12T19:00:00"), Some(100), allowRsvp = false, Mustache.Markdown(""), Event.Notes("", now, userOrga.id), None, Seq(), Seq(), Some(now), Event.ExtRefs(), Info(userOrga.id, now))
+      val e = Event(Event.Id.generate(), bigGroup.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), Event.Kind.Meetup, LocalDateTime.parse("2019-03-12T19:00:00"), Some(100), allowRsvp = false, MustacheMarkdown(""), Event.Notes("", now, userOrga.id), None, Seq(), Seq(), Some(now), Event.ExtRefs(), Info(userOrga.id, now))
       val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Status.Public, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), Markdown(""), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Info(userSpeaker.id, now))
       val p = Proposal(Proposal.Id.generate(), bigTalk.id, cfpId, None, Proposal.Status.Pending, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Markdown("temporary description"), Markdown(""), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Seq(), Info(userSpeaker.id, now))
       val pa = Partner(Partner.Id.generate(), bigGroup.id, Partner.Slug.from(s"z-partner-$i").get, Partner.Name(s"Z Partner $i"), Markdown(""), None, Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-3.png").map(Logo).get, SocialAccounts.fromUrls(), Info(userOrga.id, now))

@@ -74,7 +74,8 @@ val playTest = Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0").map(_ % Test)
 val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.61.16")
 val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.6.1")
-val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.6.1")
+val liquid = Seq("nl.big-o" % "liqp" % "0.7.9")
+val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.4.8")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
   "org.webjars.npm" % "jquery" % "3.5.0",
   "org.webjars.npm" % "bootstrap" % "4.4.1",
@@ -100,9 +101,9 @@ val scalaCheck = Seq(
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5",
   "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
 
-val libsDependencies = hammock ++ flexmark ++ mustache ++ cats ++ playJson ++ scalaTest ++ scalaCheck ++ youtubeApi
+val libsDependencies = hammock ++ flexmark ++ mustache ++ liquid ++ cats ++ playJson ++ scalaTest ++ scalaCheck ++ youtubeApi
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
-val infraDependencies = twitter ++ akka ++ flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
+val infraDependencies = twitter ++ akka ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
 val webDependencies = play ++ silhouette ++ pureconfig ++ cron ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
 
 

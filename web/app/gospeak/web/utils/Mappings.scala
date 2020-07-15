@@ -192,34 +192,29 @@ object Mappings {
 
   def slackToken(key: AesSecretKey): Mapping[SlackToken] = stringEitherMapping[SlackToken, Throwable](SlackToken.from(_, key).toEither, _.decode(key).get, formatError, _.getMessage :: Nil, Constraints.nonEmpty)
 
-  private def templateFormatter[A]: Formatter[Mustache.Markdown[A]] = new Formatter[Mustache.Markdown[A]] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Mustache.Markdown[A]] =
+  private def mustacheFormatter[A]: Formatter[Mustache[A]] = new Formatter[Mustache[A]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Mustache[A]] =
       data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
-        case "Mustache" => data.get(s"$key.value").map(v => Right(Mustache.Markdown[A](v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
+        case "Mustache" => data.get(s"$key.value").map(v => Right(Mustache[A](v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
         case v => Left(Seq(FormError(s"$key.kind", s"Invalid value '$v' for key '$key.kind'")))
       }
 
-    override def unbind(key: String, value: Mustache.Markdown[A]): Map[String, String] = value match {
-      case Mustache.Markdown(v) => Map(s"$key.kind" -> "Mustache", s"$key.value" -> v)
-    }
+    override def unbind(key: String, value: Mustache[A]): Map[String, String] = Map(s"$key.kind" -> "Mustache", s"$key.value" -> value.value)
   }
 
-  def template[A]: Mapping[Mustache.Markdown[A]] = of(templateFormatter)
+  def mustache[A]: Mapping[Mustache[A]] = of(mustacheFormatter)
 
-
-  private def templateTextFormatter[A]: Formatter[Mustache.Text[A]] = new Formatter[Mustache.Text[A]] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Mustache.Text[A]] =
+  private def mustacheMarkdownFormatter[A]: Formatter[MustacheMarkdown[A]] = new Formatter[MustacheMarkdown[A]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], MustacheMarkdown[A]] =
       data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
-        case "Mustache" => data.get(s"$key.value").map(v => Right(Mustache.Text[A](v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
+        case "Mustache" => data.get(s"$key.value").map(v => Right(MustacheMarkdown[A](v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
         case v => Left(Seq(FormError(s"$key.kind", s"Invalid value '$v' for key '$key.kind'")))
       }
 
-    override def unbind(key: String, value: Mustache.Text[A]): Map[String, String] = value match {
-      case Mustache.Text(v) => Map(s"$key.kind" -> "Mustache", s"$key.value" -> v)
-    }
+    override def unbind(key: String, value: MustacheMarkdown[A]): Map[String, String] = Map(s"$key.kind" -> "Mustache", s"$key.value" -> value.value)
   }
 
-  def templateText[A]: Mapping[Mustache.Text[A]] = of(templateTextFormatter)
+  def mustacheMarkdown[A]: Mapping[MustacheMarkdown[A]] = of(mustacheMarkdownFormatter)
 
   val groupSettingsEvent: Mapping[Group.Settings.Action.Trigger] = of(new Formatter[Group.Settings.Action.Trigger] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action.Trigger] =
@@ -232,13 +227,13 @@ object Mappings {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action] = {
       data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
         case "Email.Send" => (
-          templateTextFormatter[Any].bind(s"$key.to", data),
-          templateTextFormatter[Any].bind(s"$key.subject", data),
-          templateFormatter[Any].bind(s"$key.content", data)
+          mustacheFormatter[Any].bind(s"$key.to", data),
+          mustacheFormatter[Any].bind(s"$key.subject", data),
+          mustacheMarkdownFormatter[Any].bind(s"$key.content", data)
           ).mapN(Group.Settings.Action.Email.apply)
         case "Slack.PostMessage" => (
-          templateTextFormatter[Any].bind(s"$key.channel", data),
-          templateFormatter[Any].bind(s"$key.message", data),
+          mustacheFormatter[Any].bind(s"$key.channel", data),
+          mustacheMarkdownFormatter[Any].bind(s"$key.message", data),
           implicitly[Formatter[Boolean]].bind(s"$key.createdChannelIfNotExist", data),
           implicitly[Formatter[Boolean]].bind(s"$key.inviteEverybody", data)
           ).mapN(SlackAction.PostMessage.apply).map(Group.Settings.Action.Slack)
@@ -249,13 +244,13 @@ object Mappings {
     override def unbind(key: String, value: Group.Settings.Action): Map[String, String] = value match {
       case a: Group.Settings.Action.Email =>
         Map(s"$key.kind" -> "Email.Send") ++
-          templateTextFormatter.unbind(s"$key.to", a.to) ++
-          templateTextFormatter.unbind(s"$key.subject", a.subject) ++
-          templateFormatter.unbind(s"$key.content", a.content)
+          mustacheFormatter.unbind(s"$key.to", a.to) ++
+          mustacheFormatter.unbind(s"$key.subject", a.subject) ++
+          mustacheMarkdownFormatter.unbind(s"$key.content", a.content)
       case Group.Settings.Action.Slack(p: SlackAction.PostMessage) =>
         Map(s"$key.kind" -> "Slack.PostMessage") ++
-          templateTextFormatter.unbind(s"$key.channel", p.channel) ++
-          templateFormatter.unbind(s"$key.message", p.message) ++
+          mustacheFormatter.unbind(s"$key.channel", p.channel) ++
+          mustacheMarkdownFormatter.unbind(s"$key.message", p.message) ++
           implicitly[Formatter[Boolean]].unbind(s"$key.createdChannelIfNotExist", p.createdChannelIfNotExist) ++
           implicitly[Formatter[Boolean]].unbind(s"$key.inviteEverybody", p.inviteEverybody)
     }

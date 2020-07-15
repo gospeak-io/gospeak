@@ -5,9 +5,9 @@
 @import gospeak.web.pages.orga.settings.routes.SettingsCtrl
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
-@import gospeak.web.utils.{GsForms, OrgaReq}
+@import gospeak.web.utils.OrgaReq
 
-@(name: String, form: Form[Mustache.Text[Nothing]], templateRef: Message.Ref, update: Call, markdown: Boolean = true)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(name: String, form: Form[Mustache[Nothing]], templateRef: Message.Ref, update: Call, markdown: Boolean = true)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"Edit $name template", b)() {
     <h1>Update @name template</h1>
 

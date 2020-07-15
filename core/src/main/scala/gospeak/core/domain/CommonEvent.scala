@@ -44,7 +44,7 @@ object CommonEvent {
 
   final case class Internal(id: Event.Id,
                             slug: Event.Slug,
-                            description: Mustache.Markdown[Message.EventInfo],
+                            description: MustacheMarkdown[Message.EventInfo],
                             group: InternalGroup,
                             cfp: Option[InternalCfp],
                             venue: Option[InternalVenue])

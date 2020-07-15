@@ -142,7 +142,7 @@ object MessageSrv {
     "short1" -> Json.fromString(v.value.split("\n").head.take(140)),
     "short2" -> Json.fromString(v.value.split("\n").head.take(280)),
     "short3" -> Json.fromString(v.value.take(280)))
-  private implicit val eMustacheMarkdown: Encoder[Mustache.Markdown[Message.EventInfo]] = (v: Mustache.Markdown[Message.EventInfo]) => Json.obj(
+  private implicit val eMustacheMarkdown: Encoder[MustacheMarkdown[Message.EventInfo]] = (v: MustacheMarkdown[Message.EventInfo]) => Json.obj(
     "full" -> Json.fromString(v.value),
     "short1" -> Json.fromString(v.value.split("\n").head.take(140)),
     "short2" -> Json.fromString(v.value.split("\n").head.take(280)),
@@ -345,7 +345,7 @@ object MessageSrv {
       start = nowLDT,
       maxAttendee = Some(100),
       allowRsvp = false,
-      description = Mustache.Markdown[Message.EventInfo]("Thanks to **{{venue.name}}** for hosting"),
+      description = MustacheMarkdown[Message.EventInfo]("Thanks to **{{venue.name}}** for hosting"),
       orgaNotes = Event.Notes("We should add *more* talks", now, user.id),
       venue = Some(venue.id),
       talks = Seq(proposal.id),
