@@ -24,7 +24,7 @@ val commonSettings: Seq[Setting[_]] = Seq(
 
 val cats = Seq(
   "org.typelevel" %% "cats-core" % "2.1.1",
-  "org.typelevel" %% "cats-effect" % "2.1.3")
+  "org.typelevel" %% "cats-effect" % "2.1.4")
 val circeVersion = "0.13.0"
 val circe = Seq(
   "io.circe" %% "circe-core" % circeVersion,
