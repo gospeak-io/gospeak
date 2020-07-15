@@ -10,12 +10,6 @@ class LiquidSpec extends BaseSpec {
     it("should render a basic template") {
       Liquid.render("Hello {{name}}", Json.obj("name" -> Json.fromString("world"))) shouldBe Right("Hello world")
     }
-    it("should handle bad template") {
-      Liquid.render("Hello {{name}", Json.obj()) shouldBe Left(Liquid.Error.InvalidTemplate(1, 13, "<EOF>", List("OutEnd", "Pipe")))
-    }
-    it("should handle missing values") {
-      Liquid.render("Hello {{name}}", Json.obj()) shouldBe Left(Liquid.Error.MissingVariable("name"))
-    }
     it("should render for and if") {
       val tmpl =
         """Users:
@@ -60,6 +54,15 @@ class LiquidSpec extends BaseSpec {
       Liquid[User]("Hello {{name}}").render(User("Loic")) shouldBe Right("Hello Loic")
       LiquidHtml[User]("Hello {{name}}").render(User("Loic")) shouldBe Right(Html("Hello Loic"))
       LiquidMarkdown[User]("Hello {{name}}").render(User("Loic")) shouldBe Right(Markdown("Hello Loic"))
+    }
+    it("should handle missing values") {
+      Liquid.render("Hello {{name}}", Json.obj()) shouldBe Left(Liquid.Error.MissingVariable("name"))
+      Liquid.render("Hello {{user}}, are you {{name}}?", Json.obj()) shouldBe Left(Liquid.Error.MissingVariable("user"))
+    }
+    it("should handle bad template") {
+      Liquid.render("Hello {{name}", Json.obj()) shouldBe Left(Liquid.Error.InvalidTemplate(1, 13, "<EOF>", List("OutEnd", "Pipe")))
+      Liquid.render("Hello {% if 'a' === 1 %}{% endif %}", Json.obj()) shouldBe Left(Liquid.Error.LiquidError(1, 18, "parser error \"extraneous input '=' expecting {Str, '(', '[', DoubleNum, LongNum, 'capture', 'endcapture', 'comment', 'endcomment', RawStart, 'if', 'elsif', 'endif', 'unless', 'endunless', 'else', 'contains', 'case', 'endcase', 'when', 'cycle', 'for', 'endfor', 'in', 'and', 'or', 'tablerow', 'endtablerow', 'assign', 'true', 'false', Nil, 'include', 'with', 'empty', 'blank', EndId, Id, RawEnd}\" on line 1, index 18"))
+      Liquid.render("Hello {% aa %}{% endaa %}", Json.obj()) shouldBe Left(Liquid.Error.Unknown("Unknown liquid error without message"))
     }
   }
 }

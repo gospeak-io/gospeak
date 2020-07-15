@@ -38,25 +38,37 @@ object Liquid {
       case e: VariableNotExistException => MissingVariable(e.getVariableName)
       case e: LiquidException => e.getCause match {
         case c: InputMismatchException => InvalidTemplate(e.line, e.charPositionInLine, c.getOffendingToken.getText, c.getExpectedTokens.toList.asScala.toList.map(tokenName(_)))
-        case c: FailedPredicateException => Unknown(e.getMessage) // TODO
-        case c: NoViableAltException => Unknown(e.getMessage) // TODO
-        case c: LexerNoViableAltException => Unknown(e.getMessage) // TODO
-        case _ => Unknown(e.getMessage) // TODO
+        case c: FailedPredicateException => LiquidError(e.line, e.charPositionInLine, e.getMessage)
+        case c: NoViableAltException => LiquidError(e.line, e.charPositionInLine, e.getMessage)
+        case c: LexerNoViableAltException => LiquidError(e.line, e.charPositionInLine, e.getMessage)
+        case _ => LiquidError(e.line, e.charPositionInLine, e.getMessage)
       }
-      case e: ExceededMaxIterationsException => Unknown(e.getMessage) // TODO
+      case e: ExceededMaxIterationsException => TooManyIterations(Try(e.getMessage.split(": ")(1).toInt).getOrElse(-1))
       case _ => e.getMessage match {
-        case "problem with evaluating include" => Unknown("Invalid include") // TODO
-        case msg: String if msg.nonEmpty => Unknown(msg)
-        case _ => Unknown("Error without message")
+        case "problem with evaluating include" => BadInclude()
+        case msg: String if msg.nonEmpty => Unknown("Liquid error: " + msg)
+        case _ => Unknown("Unknown liquid error without message")
       }
-    }
-
-    final case class InvalidTemplate(line: Int, char: Int, invalidToken: String, expectedTokens: List[String]) extends Error {
-      def message = s"Invalid template at line $line:$char, found token '$invalidToken' but expect one among ${expectedTokens.map(t => s"'$t'").mkString(", ")}"
     }
 
     final case class MissingVariable(name: String) extends Error {
-      def message = s"Missing '$name' variable"
+      override def message = s"Missing '$name' variable"
+    }
+
+    final case class InvalidTemplate(line: Int, char: Int, invalidToken: String, expectedTokens: List[String]) extends Error {
+      override def message = s"Invalid template at line $line:$char, found token '$invalidToken' but expect one among ${expectedTokens.map(t => s"'$t'").mkString(", ")}"
+    }
+
+    final case class LiquidError(line: Int, char: Int, err: String) extends Error {
+      override def message: String = s"Invalid template at line $line:$char, $err"
+    }
+
+    final case class BadInclude() extends Error {
+      override def message: String = "Invalid include"
+    }
+
+    final case class TooManyIterations(maxIterations: Int) extends Error {
+      override def message: String = s"Exceeded $maxIterations iterations"
     }
 
     final case class Unknown(message: String) extends Error
