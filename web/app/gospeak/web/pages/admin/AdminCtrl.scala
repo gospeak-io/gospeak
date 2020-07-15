@@ -143,7 +143,7 @@ object AdminCtrl {
       })
       val groupSettingsActionsErrors = groupSettingsActionsTemplates.collect { case (trigger, index, action, attr, Left(err)) => (trigger, index, action, attr, err) }
 
-      val groupSettingsEventTemplates = settings.flatMap(_.event.allTemplates.map { case (name, _, tmpl) => (name, tmpl.asText.render(eventInfo)) })
+      val groupSettingsEventTemplates = settings.flatMap(_.event.allTemplates.map { case (name, _, tmpl) => (name, tmpl.render(eventInfo)) })
       val groupSettingsEventErrors = groupSettingsEventTemplates.collect { case (name, Left(err)) => (name, err) }
 
       val eventTemplates = events.map(e => (e, e.description.render(eventInfo)))

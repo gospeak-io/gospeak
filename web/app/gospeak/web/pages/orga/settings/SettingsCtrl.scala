@@ -149,7 +149,7 @@ class SettingsCtrl(cc: ControllerComponents,
   def updateEventTemplate(group: Group.Slug, templateId: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       settings <- OptionT.liftF(groupSettingsRepo.find)
-      template <- templateId.map(id => OptionT.fromOption[IO](settings.event.getTemplate(id)).map(t => Some(GsForms.GroupEventTemplateItem(id, t.asMarkdown))))
+      template <- templateId.map(id => OptionT.fromOption[IO](settings.event.getTemplate(id)).map(t => Some(GsForms.GroupEventTemplateItem(id, t))))
         .getOrElse(OptionT.pure[IO](None))
       form = template.map(GsForms.groupEventTemplateItem.fill).getOrElse(GsForms.groupEventTemplateItem)
     } yield updateEventTemplateView(templateId, settings, form))
@@ -161,7 +161,7 @@ class SettingsCtrl(cc: ControllerComponents,
       settings <- groupSettingsRepo.find
       res <- GsForms.groupEventTemplateItem.bindFromRequest.fold(
         formWithErrors => IO.pure(updateEventTemplateView(templateId, settings, formWithErrors)),
-        data => templateId.map(id => settings.updateEventTemplate(id, data.id, data.template)).getOrElse(settings.addEventTemplate(data.id, data.template.asText)).fold(
+        data => templateId.map(id => settings.updateEventTemplate(id, data.id, data.template)).getOrElse(settings.addEventTemplate(data.id, data.template)).fold(
           e => IO.pure(updateEventTemplateView(templateId, settings, GsForms.groupEventTemplateItem.bindFromRequest.withGlobalError(e.getMessage))),
           updated => groupSettingsRepo.set(updated)
             .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Template '${data.id}' updated for events"))
@@ -251,7 +251,7 @@ class SettingsCtrl(cc: ControllerComponents,
     Ok(html.updateEventTemplate(templateId, settings, form)(b))
   }
 
-  private def updateEventTemplateView(group: Group.Slug, form: Form[Mustache.Text[Nothing]])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
+  private def updateEventTemplateView(group: Group.Slug, form: Form[Mustache[Nothing]])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
     for {
       tweet <- groupSettingsRepo.findProposalTweet(req.group.id)
       filledForm = if (form.hasErrors) form else form.fill(tweet.as[Nothing])

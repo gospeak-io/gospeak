@@ -15,24 +15,16 @@ import scala.util.Try
  *  - https://github.com/edadma/liquescent
  */
 
-final case class Liquid[A](value: String) {
+final case class Liquid[A](value: String) extends AnyVal {
   def render(data: A)(implicit e: Encoder[A]): Either[Liquid.Error, String] = Liquid.render(value, e.apply(data))
 }
 
-final case class LiquidHtml[A](value: Liquid[A]) extends AnyVal {
-  def render(data: A)(implicit e: Encoder[A]): Either[Liquid.Error, Html] = value.render(data).map(Html)
+final case class LiquidHtml[A](value: String) extends AnyVal {
+  def render(data: A)(implicit e: Encoder[A]): Either[Liquid.Error, Html] = Liquid.render(value, e.apply(data)).map(Html)
 }
 
-object LiquidHtml {
-  def apply[A](value: String): LiquidHtml[A] = new LiquidHtml(Liquid[A](value))
-}
-
-final case class LiquidMarkdown[A](value: Liquid[A]) extends AnyVal {
-  def render(data: A)(implicit e: Encoder[A]): Either[Liquid.Error, Markdown] = value.render(data).map(Markdown(_))
-}
-
-object LiquidMarkdown {
-  def apply[A](value: String): LiquidMarkdown[A] = new LiquidMarkdown(Liquid[A](value))
+final case class LiquidMarkdown[A](value: String) extends AnyVal {
+  def render(data: A)(implicit e: Encoder[A]): Either[Liquid.Error, Markdown] = Liquid.render(value, e.apply(data)).map(Markdown(_))
 }
 
 object Liquid {

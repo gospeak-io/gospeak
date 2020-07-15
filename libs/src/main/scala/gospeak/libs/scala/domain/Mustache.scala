@@ -1,6 +1,5 @@
 package gospeak.libs.scala.domain
 
-import gospeak.libs.scala.domain.{Markdown => Md}
 import io.circe.{Encoder, Json, JsonNumber, JsonObject}
 import yamusca.context._
 import yamusca.imports.{Context, mustache}
@@ -8,51 +7,55 @@ import yamusca.parser.ParseInput
 
 import scala.collection.mutable
 
-sealed trait Mustache[A] {
-  val value: String
+final case class Mustache[A](value: String) extends AnyVal {
+  def render(data: A)(implicit e: Encoder[A]): Either[Mustache.Error, String] = render(e.apply(data))
 
-  def as[B]: Mustache[B]
+  def render(data: Json): Either[Mustache.Error, String] = Mustache.render(value, data)
 
-  def asText: Mustache.Text[A] = Mustache.Text[A](value)
+  def as[B]: Mustache[B] = Mustache[B](value)
 
-  def asMarkdown: Mustache.Markdown[A] = Mustache.Markdown[A](value)
+  def asMarkdown: MustacheMarkdown[A] = MustacheMarkdown[A](value)
+}
+
+final case class MustacheHtml[A](value: String) extends AnyVal {
+  def render(data: A)(implicit e: Encoder[A]): Either[Mustache.Error, Html] = Mustache.render(value, e.apply(data)).map(Html)
+}
+
+final case class MustacheMarkdown[A](value: String) extends AnyVal {
+  def render(data: A)(implicit e: Encoder[A]): Either[Mustache.Error, Markdown] = render(e.apply(data))
+
+  def render(data: Json): Either[Mustache.Error, Markdown] = Mustache.render(value, data).map(Markdown(_))
+
+  def asText: Mustache[A] = Mustache[A](value)
 }
 
 object Mustache {
 
-  final case class Text[A](value: String) extends Mustache[A] {
-    def as[B]: Text[B] = Text[B](value)
-
-    def render(data: Json): Either[Error, String] = Mustache.render(value, data)
-
-    def render(data: A)(implicit e: Encoder[A]): Either[Error, String] = Mustache.render(value, e.apply(data))
+  sealed trait Error {
+    def message: String
   }
 
-  final case class Markdown[A](value: String) extends Mustache[A] {
-    def as[B]: Markdown[B] = Markdown[B](value)
+  object Error {
+    def apply(err: (ParseInput, String)): Error = Unknown(err._2)
 
-    def render(data: Json): Either[Error, Md] = Mustache.render(value, data).map(Md(_))
+    final case class MissingVariables(names: List[String]) extends Error {
+      def message = s"Missing variable: ${names.map(n => s"'$n'").mkString(", ")}"
+    }
 
-    def render(data: A)(implicit e: Encoder[A]): Either[Error, Md] = Mustache.render(value, e.apply(data)).map(Md(_))
+    final case class Unknown(message: String) extends Error
+
   }
 
-
-  def render(tmpl: String, json: Json): Either[Error, String] =
+  def render(tmpl: String, data: Json): Either[Error, String] =
     mustache.parse(tmpl).left.map(Error(_)).flatMap { t =>
-      val ctx = ContextWrapper(json)
+      val ctx = ContextWrapper(data)
       val res = mustache.render(t)(ctx)
       if (ctx.missingKeys.isEmpty) {
         Right(res)
       } else {
-        Left(Error(s"Missing keys: ${ctx.missingKeys.mkString(", ")}"))
+        Left(Error.MissingVariables(ctx.missingKeys.toList))
       }
     }
-
-  final case class Error(message: String)
-
-  object Error {
-    def apply(parseErr: (ParseInput, String)): Error = Error(parseErr._2)
-  }
 
   private final case class ContextWrapper(parentKeys: List[String], ctx: Context, usedKeys: mutable.HashSet[String], missingKeys: mutable.ListBuffer[String]) extends Context {
     private val specialKeys = Set("-first", "-last", "-index")

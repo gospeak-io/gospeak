@@ -29,8 +29,8 @@ object Markdown {
 
   def toHtml(md: Markdown): Html = {
     val parsed = parser.parse(md.value)
-    val content = renderer.render(parsed).trim
-    Html(s"""<div class="markdown">$content</div>""")
+    val html = renderer.render(parsed).trim
+    Html(s"""<div class="markdown">$html</div>""")
   }
 
   def toText(md: Markdown): String = {

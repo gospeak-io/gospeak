@@ -166,13 +166,13 @@ object Group {
       case _ => Failure(new IllegalArgumentException(s"Account '$kind' does not exists"))
     }
 
-    def addEventTemplate(id: String, tmpl: Mustache.Text[Message.EventInfo]): Try[Settings] =
+    def addEventTemplate(id: String, tmpl: Mustache[Message.EventInfo]): Try[Settings] =
       event.addTemplate(id, tmpl).map(e => copy(event = e))
 
     def removeEventTemplate(id: String): Try[Settings] =
       event.removeTemplate(id).map(e => copy(event = e))
 
-    def updateEventTemplate(oldId: String, newId: String, tmpl: Mustache.Markdown[Message.EventInfo]): Try[Settings] =
+    def updateEventTemplate(oldId: String, newId: String, tmpl: Mustache[Message.EventInfo]): Try[Settings] =
       event.updateTemplate(oldId, newId, tmpl).map(e => copy(event = e))
   }
 
@@ -204,40 +204,40 @@ object Group {
         val all: Seq[Trigger] = Seq(OnEventCreated, OnEventPublish, OnProposalCreated, OnEventAddTalk, OnEventRemoveTalk)
       }
 
-      final case class Email(to: Mustache.Text[Any],
-                             subject: Mustache.Text[Any],
-                             content: Mustache.Markdown[Any]) extends Action
+      final case class Email(to: Mustache[Any],
+                             subject: Mustache[Any],
+                             content: MustacheMarkdown[Any]) extends Action
 
       final case class Slack(value: SlackAction) extends Action
 
     }
 
-    final case class Event(description: Mustache.Markdown[Message.EventInfo],
-                           templates: Map[String, Mustache.Text[Message.EventInfo]]) {
-      private def defaultTemplates: Map[String, Mustache.Markdown[Message.EventInfo]] = Map(
+    final case class Event(description: MustacheMarkdown[Message.EventInfo],
+                           templates: Map[String, Mustache[Message.EventInfo]]) {
+      private def defaultTemplates: Map[String, MustacheMarkdown[Message.EventInfo]] = Map(
         Event.descriptionTmplId -> Some(description),
       ).collect { case (id, Some(tmpl)) => (id, tmpl) }
 
       def allTemplates: Seq[(String, Boolean, Mustache[Message.EventInfo])] =
-        defaultTemplates.toSeq.map { case (id, t) => (id, true, t) } ++
+        defaultTemplates.toSeq.map { case (id, t) => (id, true, t.asText) } ++
           templates.toSeq.map { case (id, t) => (id, false, t) }.sortBy(_._1)
 
       def getTemplate(id: String): Option[Mustache[Message.EventInfo]] =
-        defaultTemplates.get(id).orElse(templates.get(id))
+        defaultTemplates.get(id).map(_.asText).orElse(templates.get(id))
 
       def removeTemplate(id: String): Try[Event] =
         if (templates.contains(id)) Success(copy(templates = templates - id))
         else if (Event.defaultTmplIds.contains(id)) Failure(new IllegalArgumentException(s"Template '$id' is a default one, unable to remove it"))
         else Failure(new IllegalArgumentException(s"Template '$id' does not exists, unable to remove it"))
 
-      def addTemplate(id: String, tmpl: Mustache.Text[Message.EventInfo]): Try[Event] =
+      def addTemplate(id: String, tmpl: Mustache[Message.EventInfo]): Try[Event] =
         if (templates.contains(id) || Event.defaultTmplIds.contains(id)) Failure(new IllegalArgumentException(s"Template '$id' already exists, unable to add it"))
         else Success(copy(templates = templates ++ Map(id -> tmpl)))
 
       def updateTemplate(oldId: String, newId: String, tmpl: Mustache[Message.EventInfo]): Try[Event] =
         if (newId == Event.descriptionTmplId) Success(copy(description = tmpl.asMarkdown))
         else removeTemplate(oldId).mapFailure(e => new IllegalArgumentException(s"Template '$oldId' does not exists, unable to update it", e))
-          .flatMap(_.addTemplate(newId, tmpl.asText).mapFailure(e => new IllegalArgumentException(s"Template '$newId' already exists, unable to rename to it", e)))
+          .flatMap(_.addTemplate(newId, tmpl).mapFailure(e => new IllegalArgumentException(s"Template '$newId' already exists, unable to rename to it", e)))
     }
 
     object Event {
@@ -246,7 +246,7 @@ object Group {
       val defaultTmplIds: Seq[String] = Seq(descriptionTmplId)
     }
 
-    final case class Proposal(tweet: Mustache.Text[Message.ProposalInfo])
+    final case class Proposal(tweet: Mustache[Message.ProposalInfo])
 
   }
 

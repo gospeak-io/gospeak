@@ -19,7 +19,7 @@ final case class Event(id: Event.Id,
                        maxAttendee: Option[Int],
                        allowRsvp: Boolean,
                        // duration: Option[Duration]
-                       description: Mustache.Markdown[Message.EventInfo],
+                       description: MustacheMarkdown[Message.EventInfo],
                        orgaNotes: Notes,
                        venue: Option[Venue.Id],
                        talks: Seq[Proposal.Id],
@@ -127,7 +127,7 @@ object Event {
 
     def kind: Kind = event.kind
 
-    def description: Mustache.Markdown[Message.EventInfo] = event.description
+    def description: MustacheMarkdown[Message.EventInfo] = event.description
 
     def orgaNotes: Notes = event.orgaNotes
 
@@ -164,7 +164,7 @@ object Event {
                         maxAttendee: Option[Int],
                         allowRsvp: Boolean,
                         venue: Option[Venue.Id],
-                        description: Mustache.Markdown[Message.EventInfo],
+                        description: MustacheMarkdown[Message.EventInfo],
                         tags: Seq[Tag],
                         refs: Event.ExtRefs)
 
