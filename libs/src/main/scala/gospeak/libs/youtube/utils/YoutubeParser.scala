@@ -6,4 +6,6 @@ import com.google.api.client.util.DateTime
 
 object YoutubeParser {
   def toInstant(d: DateTime): Instant = Instant.parse(d.toStringRfc3339)
+
+  def toInstant(d: String): Instant = Instant.parse(d)
 }

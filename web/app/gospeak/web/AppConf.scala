@@ -44,7 +44,7 @@ object AppConf {
 
   def load(conf: Configuration): Try[AppConf] = load(conf.underlying)
 
-  private def format(f: ConfigReaderFailure): String = "  - " + f.description + f.location.map(" " + _.description).getOrElse("")
+  private def format(f: ConfigReaderFailure): String = "  - " + f.description + f.description
 
   private object Readers {
 
@@ -53,7 +53,7 @@ object AppConf {
     val _ = cronExprConfigConvert // to keep import for deriveReader[SchedulerSrv.Conf]
 
     private def convertErr(cur: ConfigCursor, toType: String, because: String): ConfigReaderFailures =
-      ConfigReaderFailures(ConvertFailure(CannotConvert(cur.toString, toType, because), cur.location, cur.path))
+      ConfigReaderFailures(ConvertFailure(CannotConvert(cur.toString, toType, because), cur.origin, cur.path))
 
     private implicit val secretReader: ConfigReader[Secret] = deriveReader[Secret]
     private implicit val credsReader: ConfigReader[Creds] = deriveReader[Creds]

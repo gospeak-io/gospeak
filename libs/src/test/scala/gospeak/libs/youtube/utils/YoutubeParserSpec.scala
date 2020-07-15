@@ -13,6 +13,11 @@ class YoutubeParserSpec extends BaseSpec {
         val instant = Instant.parse("2013-06-17T08:51:45.000Z")
         YoutubeParser.toInstant(date) shouldBe instant
       }
+      it("should parse google date String") {
+        val date = "2013-06-17T08:51:45Z"
+        val instant = Instant.parse("2013-06-17T08:51:45.000Z")
+        YoutubeParser.toInstant(date) shouldBe instant
+      }
     }
   }
 }

@@ -24,7 +24,7 @@ val commonSettings: Seq[Setting[_]] = Seq(
 
 val cats = Seq(
   "org.typelevel" %% "cats-core" % "2.1.1",
-  "org.typelevel" %% "cats-effect" % "2.1.3")
+  "org.typelevel" %% "cats-effect" % "2.1.4")
 val circeVersion = "0.13.0"
 val circe = Seq(
   "io.circe" %% "circe-core" % circeVersion,
@@ -33,7 +33,7 @@ val circe = Seq(
   "io.circe" %% "circe-literal" % circeVersion,
   "io.circe" %% "circe-generic-extras" % circeVersion,
   "io.circe" %% "circe-java8" % "0.11.1")
-val doobieVersion = "0.8.6" // "0.8.7" version causes: Can't infer the SQL type to use for an instance of java.time.Instant. Use setObject() with an explicit Types value to specify the type to use.
+val doobieVersion = "0.8.6" // "0.8.7" & "0.8.8" versions causes: Can't infer the SQL type to use for an instance of java.time.Instant. Use setObject() with an explicit Types value to specify the type to use.
 val doobie = Seq(
   "org.tpolecat" %% "doobie-core",
   "org.tpolecat" %% "doobie-h2",
@@ -41,22 +41,22 @@ val doobie = Seq(
   "org.tpolecat" %% "doobie-hikari").map(_ % doobieVersion)
 val doobieTest = Seq(
   "org.tpolecat" %% "doobie-scalatest" % doobieVersion).map(_ % Test)
-val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.12.3")
+val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.13.0")
 val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
-  "com.pepegar" %% "hammock-apache-http").map(_ % "0.10.0")
+  "com.pepegar" %% "hammock-apache-http").map(_ % "0.11.0")
 val youtubeApi = Seq(
-  "com.google.apis" % "google-api-services-youtube" % "v3-rev222-1.25.0",
-  "com.google.api-client" % "google-api-client" % "1.23.0",
-  "com.google.oauth-client" % "google-oauth-client-jetty" % "1.23.0"
+  "com.google.apis" % "google-api-services-youtube" % "v3-rev20200618-1.30.9",
+  "com.google.api-client" % "google-api-client" % "1.23.1",
+  "com.google.oauth-client" % "google-oauth-client-jetty" % "1.31.0"
 )
-val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.11")
+val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.12")
 val twitter = Seq("com.danielasfregola" %% "twitter4s" % "6.2") // https://github.com/DanielaSfregola/twitter4s
-val flyway = Seq("org.flywaydb" % "flyway-core" % "6.4.0")
+val flyway = Seq("org.flywaydb" % "flyway-core" % "6.4.4")
 val cron = Seq(
   "eu.timepit" %% "fs2-cron-core" % "0.2.2",
-  "com.github.pureconfig" %% "pureconfig-cron4s" % "0.12.3")
+  "com.github.pureconfig" %% "pureconfig-cron4s" % "0.13.0")
 val silhouetteVersion = "7.0.0"
 val silhouette = Seq(
   "com.mohiva" %% "play-silhouette",
@@ -65,17 +65,17 @@ val silhouette = Seq(
   "com.mohiva" %% "play-silhouette-persistence").map(_ % silhouetteVersion)
 val silhouetteTest = Seq(
   "com.mohiva" %% "play-silhouette-testkit").map(_ % silhouetteVersion % "test")
-val playJson = Seq("com.typesafe.play" %% "play-json" % "2.8.1")
-val macwireVersion = "2.3.3"
+val playJson = Seq("com.typesafe.play" %% "play-json" % "2.9.0")
+val macwireVersion = "2.3.7"
 val play = Seq(
   "com.softwaremill.macwire" %% "macros" % macwireVersion % Provided,
   "com.softwaremill.macwire" %% "macrosakka" % macwireVersion % Provided)
 val playTest = Seq(
-  "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0").map(_ % Test)
-val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.61.16")
-val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.6.1")
+  "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0").map(_ % Test)
+val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.61.34")
+val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.6.2")
 val liquid = Seq("nl.big-o" % "liqp" % "0.7.9")
-val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.4.8")
+val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.6.1")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
   "org.webjars.npm" % "jquery" % "3.5.1",
   "org.webjars.npm" % "bootstrap" % "4.5.0",
@@ -84,18 +84,18 @@ val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib f
   "org.webjars.npm" % "select2" % "4.0.13",
   "org.webjars.npm" % "select2-bootstrap-theme" % "0.1.0-beta.10",
   "org.webjars.npm" % "bootstrap-datepicker" % "1.9.0",
-  "org.webjars.npm" % "imask" % "5.2.1",
+  "org.webjars.npm" % "imask" % "6.0.5",
   "org.webjars.npm" % "github-com-twitter-typeahead-js" % "0.11.1",
   "org.webjars.npm" % "typeahead.js-bootstrap4-css" % "1.0.0",
   "org.webjars.npm" % "mousetrap" % "1.6.5",
-  "org.webjars.npm" % "swagger-ui-dist" % "3.25.0")
+  "org.webjars.npm" % "swagger-ui-dist" % "3.25.5")
 val logback = Seq(
   "org.slf4j" % "slf4j-api" % "1.7.30",
   "ch.qos.logback" % "logback-classic" % "1.2.3")
 val scalaTest = Seq(
-  "org.scalatest" %% "scalatest" % "3.1.1",
+  "org.scalatest" %% "scalatest" % "3.1.2",
   "org.scalamock" %% "scalamock" % "4.4.0",
-  "org.scalatestplus" %% "scalacheck-1-14" % "3.1.0.0").map(_ % Test)
+  "org.scalatestplus" %% "scalacheck-1-14" % "3.1.0.1").map(_ % Test)
 val scalaCheck = Seq(
   "org.scalacheck" %% "scalacheck" % "1.14.3",
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5",
