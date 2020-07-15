@@ -10,7 +10,7 @@ import gospeak.core.services.slack.domain.SlackToken
 import gospeak.core.services.storage.PublicExternalCfpRepo
 import gospeak.infra.services.EmbedSrv
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Html, Markdown, Mustache, Url}
+import gospeak.libs.scala.domain.{Html, Markdown, MustacheMarkdown, Url}
 import gospeak.web.AppConf
 import gospeak.web.api.domain.ApiExternalCfp
 import gospeak.web.api.domain.utils.ApiResult
@@ -28,7 +28,7 @@ case class ValidationResult(valid: Boolean, message: String)
 
 case class TemplateDataResponse(data: JsValue)
 
-case class TemplateRequest(template: Mustache.Markdown[Any], ref: Option[Message.Ref], markdown: Boolean)
+case class TemplateRequest(template: MustacheMarkdown[Any], ref: Option[Message.Ref], markdown: Boolean)
 
 case class TemplateResponse(result: Option[Html], error: Option[String])
 
@@ -36,15 +36,14 @@ class UtilsCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
                 conf: AppConf,
                 externalCfpRepo: PublicExternalCfpRepo,
-                cloudinarySrv: Option[CloudinarySrv],
+                cloudinarySrv: CloudinarySrv,
                 slackSrv: SlackSrv,
                 ms: MessageSrv) extends ApiCtrl(cc, silhouette, conf) {
   def cloudinarySignature(): Action[AnyContent] = UserAction[String] { implicit req =>
     val queryParams = req.queryString.flatMap { case (key, values) => values.headOption.map(value => (key, value)) }
-    IO.pure(cloudinarySrv.map(_.signRequest(queryParams)) match {
-      case Some(Right(signature)) => ApiResult.of(signature)
-      case Some(Left(error)) => ApiResult.badRequest(error)
-      case None => ApiResult.badRequest("Missing CloudinarySrv")
+    IO.pure(cloudinarySrv.signRequest(queryParams) match {
+      case Right(signature) => ApiResult.of(signature)
+      case Left(error) => ApiResult.badRequest(error)
     })
   }
 

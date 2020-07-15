@@ -14,8 +14,8 @@ final case class Talk(id: Talk.Id,
                       description: Markdown,
                       message: Markdown,
                       speakers: NonEmptyList[User.Id],
-                      slides: Option[SlidesUrl],
-                      video: Option[VideoUrl],
+                      slides: Option[Url.Slides],
+                      video: Option[Url.Video],
                       tags: Seq[Tag],
                       info: Info) {
   def data: Talk.Data = Talk.Data(this)
@@ -71,8 +71,8 @@ object Talk {
                         duration: FiniteDuration,
                         description: Markdown,
                         message: Markdown,
-                        slides: Option[SlidesUrl],
-                        video: Option[VideoUrl],
+                        slides: Option[Url.Slides],
+                        video: Option[Url.Video],
                         tags: Seq[Tag])
 
   object Data {

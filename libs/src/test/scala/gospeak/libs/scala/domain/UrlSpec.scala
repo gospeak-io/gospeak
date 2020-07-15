@@ -39,38 +39,55 @@ class UrlSpec extends BaseSpec {
     }
     it("should identify YouTube urls") {
       Seq(
-        (Url.from("https://loicknuchel.fr").get, None, false),
-        (Url.from("https://www.youtube.com/c/HumanTalksParis").get, Some("HumanTalksParis"), false),
-        (Url.from("https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog").get, Some("UCKFAwlgWiAB4vUpgnS63qog"), false),
-        (Url.from("https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog/videos").get, Some("UCKFAwlgWiAB4vUpgnS63qog"), false),
-        (Url.from("https://www.youtube.com/playlist?list=PLjkHSzY9VuL96Z9gpNrlwztU3w72zccCx").get, Some("PLjkHSzY9VuL96Z9gpNrlwztU3w72zccCx"), false),
-        (Url.from("https://www.youtube.com/watch?v=QfmVc9c_8Po&list=PLjkHSzY9VuL96Z9gpNrlwztU3w72zccCx").get, Some("QfmVc9c_8Po"), true),
-        (Url.from("https://www.youtube.com/watch?v=QfmVc9c_8Po").get, Some("QfmVc9c_8Po"), true),
-        (Url.from("https://youtu.be/QfmVc9c_8Po").get, Some("QfmVc9c_8Po"), true),
-      ).foreach {
-        case (u: Url.YouTube.Video, handle, isVideo) =>
-          if (isVideo) Some(u.videoId) shouldBe handle else fail(s"${u.value} is not a YouTube video url")
-        case (u: Url.YouTube, handle, isVideo) =>
-          if (isVideo) fail(s"${u.value} is a YouTube video url") else Some(u.handle) shouldBe handle
-        case (u, handle, _) =>
-          if (handle.nonEmpty) fail(s"${u.value} is a YouTube url")
+        ("https://loicknuchel.fr", "", ""),
+        ("https://www.youtube.com/HumanTalksParis", "channel", "HumanTalksParis"),
+        ("https://www.youtube.com/c/HumanTalksParis", "channel", "HumanTalksParis"),
+        ("https://www.youtube.com/user/BreizhCamp", "channel", "BreizhCamp"),
+        ("https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog", "channel", "UCKFAwlgWiAB4vUpgnS63qog"),
+        ("https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog/videos", "channel", "UCKFAwlgWiAB4vUpgnS63qog"),
+        ("https://www.youtube.com/playlist?list=PLjkHSzY9VuL96Z9gpNrlwztU3w72zccCx", "playlist", "PLjkHSzY9VuL96Z9gpNrlwztU3w72zccCx"),
+        ("https://www.youtube.com/watch?v=QfmVc9c_8Po&list=PLjkHSzY9VuL96Z9gpNrlwztU3w72zccCx", "video", "QfmVc9c_8Po"),
+        ("https://www.youtube.com/watch?v=QfmVc9c_8Po", "video", "QfmVc9c_8Po"),
+        ("https://youtu.be/QfmVc9c_8Po", "video", "QfmVc9c_8Po"),
+        ("https://www.youtube.com/feed/subscriptions", "youtube", "subscriptions"),
+      ).map { case (u, t, h) => (Url.from(u).get, t, h) }.foreach {
+        case (u: Url.YouTube.Channel, kind, handle) => kind shouldBe "channel"; u.handle shouldBe handle
+        case (u: Url.YouTube.Playlist, kind, handle) => kind shouldBe "playlist"; u.handle shouldBe handle
+        case (u: Url.YouTube.Video, kind, handle) => kind shouldBe "video"; u.handle shouldBe handle
+        case (u: Url.YouTube, kind, handle) => kind shouldBe "youtube"; u.handle shouldBe handle
+        case (u, k, _) => if (k.nonEmpty) fail(s"Unexpected result for url: ${u.value} (${u.getClass.getTypeName})")
       }
     }
     it("should identify Vimeo urls") {
       Seq(
-        (Url.from("https://loicknuchel.fr").get, None, false),
-        (Url.from("https://vimeo.com/parisweb").get, Some("parisweb"), false),
-        (Url.from("https://vimeo.com/showcase/6597308").get, Some("6597308"), false),
-        (Url.from("https://vimeo.com/showcase/6597308/video/380320538").get, Some("380320538"), true),
-        (Url.from("https://vimeo.com/380320538").get, Some("380320538"), true),
-        (Url.from("https://vimeo.com/380320538#t=10s").get, Some("380320538"), true)
-      ).foreach {
-        case (u: Url.Vimeo.Video, handle, isVideo) =>
-          if (isVideo) Some(u.videoId) shouldBe handle else fail(s"${u.value} is not a Vimeo video url")
-        case (u: Url.Vimeo, handle, isVideo) =>
-          if (isVideo) fail(s"${u.value} is a Vimeo video url") else Some(u.handle) shouldBe handle
-        case (u, handle, _) =>
-          if (handle.nonEmpty) fail(s"${u.value} is a Vimeo url")
+        ("https://loicknuchel.fr", "", ""),
+        ("https://vimeo.com/parisweb", "channel", "parisweb"),
+        ("https://vimeo.com/showcase/6597308", "showcase", "6597308"),
+        ("https://vimeo.com/showcase/6597308/video/380320538", "video", "380320538"),
+        ("https://vimeo.com/380320538", "video", "380320538"),
+        ("https://vimeo.com/380320538#t=10s", "video", "380320538"),
+        ("https://vimeo.com/fr/upgrade", "vimeo", "upgrade"),
+      ).map { case (u, t, h) => (Url.from(u).get, t, h) }.foreach {
+        case (u: Url.Vimeo.Channel, kind, handle) => kind shouldBe "channel"; u.handle shouldBe handle
+        case (u: Url.Vimeo.Showcase, kind, handle) => kind shouldBe "showcase"; u.handle shouldBe handle
+        case (u: Url.Vimeo.Video, kind, handle) => kind shouldBe "video"; u.handle shouldBe handle
+        case (u: Url.Vimeo, kind, handle) => kind shouldBe "vimeo"; u.handle shouldBe handle
+        case (u, k, _) => if (k.nonEmpty) fail(s"Unexpected result for url: ${u.value}")
+      }
+    }
+    it("should identify Infoq urls") {
+      Seq(
+        ("https://loicknuchel.fr", "", ""),
+        ("https://www.infoq.com/scala/", "topic", "scala"),
+        ("https://www.infoq.com/fr/mixit16", "topic", "mixit16"),
+        ("https://www.infoq.com/fr/codeurs-en-seine/", "topic", "codeurs-en-seine"),
+        ("https://www.infoq.com/fr/presentations/mix-it-pierre-yves-ricau-crash-fast-and-furious/", "presentation", "mix-it-pierre-yves-ricau-crash-fast-and-furious"),
+        ("https://www.infoq.com/fr/search.action?queryString=scala", "infoq", "search.action"),
+      ).map { case (u, t, h) => (Url.from(u).get, t, h) }.foreach {
+        case (u: Url.Infoq.Topic, kind, handle) => kind shouldBe "topic"; u.handle shouldBe handle
+        case (u: Url.Infoq.Presentation, kind, handle) => kind shouldBe "presentation"; u.handle shouldBe handle
+        case (u: Url.Infoq, kind, handle) => kind shouldBe "infoq"; u.handle shouldBe handle
+        case (u, k, _) => if (k.nonEmpty) fail(s"Unexpected result for url: ${u.value}")
       }
     }
     it("should identify Meetup urls") {

@@ -135,14 +135,14 @@ object MessageSrv {
     "minute" -> Json.fromString(leftPad(v.getMinute.toString, 2, '0')))
   private implicit val eInstant: Encoder[Instant] = (v: Instant) => eLocalDateTime.apply(v.atZone(Constants.defaultZoneId).toLocalDateTime)
   private implicit val eUrl: Encoder[Url] = (v: Url) => Json.fromString(v.value)
-  private implicit val eSlidesUrl: Encoder[SlidesUrl] = (v: SlidesUrl) => Json.fromString(v.value)
-  private implicit val eVideoUrl: Encoder[VideoUrl] = (v: VideoUrl) => Json.fromString(v.value)
+  private implicit val eUrlSlides: Encoder[Url.Slides] = (v: Url.Slides) => Json.fromString(v.value)
+  private implicit val eUrlVideo: Encoder[Url.Video] = (v: Url.Video) => Json.fromString(v.value)
   private implicit val eMarkdown: Encoder[Markdown] = (v: Markdown) => Json.obj(
     "full" -> Json.fromString(v.value),
     "short1" -> Json.fromString(v.value.split("\n").head.take(140)),
     "short2" -> Json.fromString(v.value.split("\n").head.take(280)),
     "short3" -> Json.fromString(v.value.take(280)))
-  private implicit val eMustacheMarkdown: Encoder[Mustache.Markdown[Message.EventInfo]] = (v: Mustache.Markdown[Message.EventInfo]) => Json.obj(
+  private implicit val eMustacheMarkdown: Encoder[MustacheMarkdown[Message.EventInfo]] = (v: MustacheMarkdown[Message.EventInfo]) => Json.obj(
     "full" -> Json.fromString(v.value),
     "short1" -> Json.fromString(v.value.split("\n").head.take(140)),
     "short2" -> Json.fromString(v.value.split("\n").head.take(280)),
@@ -314,8 +314,8 @@ object MessageSrv {
       description = Markdown("The *best* talk about FP"),
       message = Markdown("Hi CFP committee, **take your chance** to have this talk!"),
       speakers = NonEmptyList.of(user.id),
-      slides = Some(SlidesUrl.from("https://www.slideshare.net/loicknuchel/comprendre-la-programmation-fonctionnelle-blend-web-mix-le-02112016").get),
-      video = Some(VideoUrl.from("https://www.youtube.com/watch?v=PH93yIhsG7k").get),
+      slides = Some(Url.Slides.from("https://www.slideshare.net/loicknuchel/comprendre-la-programmation-fonctionnelle-blend-web-mix-le-02112016").get),
+      video = Some(Url.Video.from("https://www.youtube.com/watch?v=PH93yIhsG7k").get),
       tags = Seq(Tag("FP")),
       info = Info(user.id, now))
     private val eventId: Event.Id = Event.Id.generate()
@@ -330,8 +330,8 @@ object MessageSrv {
       description = Markdown("The *best* talk about FP"),
       message = Markdown("Hi CFP committee, **take your chance** to have this talk!"),
       speakers = NonEmptyList.of(user.id),
-      slides = Some(SlidesUrl.from("https://www.slideshare.net/loicknuchel/comprendre-la-programmation-fonctionnelle-blend-web-mix-le-02112016").get),
-      video = Some(VideoUrl.from("https://www.youtube.com/watch?v=PH93yIhsG7k").get),
+      slides = Some(Url.Slides.from("https://www.slideshare.net/loicknuchel/comprendre-la-programmation-fonctionnelle-blend-web-mix-le-02112016").get),
+      video = Some(Url.Video.from("https://www.youtube.com/watch?v=PH93yIhsG7k").get),
       tags = Seq(Tag("FP")),
       orgaTags = Seq(Tag("selected")),
       info = Info(user.id, now))
@@ -345,7 +345,7 @@ object MessageSrv {
       start = nowLDT,
       maxAttendee = Some(100),
       allowRsvp = false,
-      description = Mustache.Markdown[Message.EventInfo]("Thanks to **{{venue.name}}** for hosting"),
+      description = MustacheMarkdown[Message.EventInfo]("Thanks to **{{venue.name}}** for hosting"),
       orgaNotes = Event.Notes("We should add *more* talks", now, user.id),
       venue = Some(venue.id),
       talks = Seq(proposal.id),
@@ -385,7 +385,7 @@ object MessageSrv {
       location = Some(paris),
       url = Some(Url.from("https://2019.sunny-tech.io").get),
       tickets = Some(Url.from("http://register.ncrafts.io").get),
-      videos = Some(Url.from("https://www.youtube.com/playlist?list=PLuZ_sYdawLiXq_8YaaROhaUazHQVPiELa").get),
+      videos = Some(Url.Videos.from("https://www.youtube.com/playlist?list=PLuZ_sYdawLiXq_8YaaROhaUazHQVPiELa").get),
       twitterAccount = Some(TwitterAccount(Url.Twitter.from("https://twitter.com/sunnytech_mtp").get)),
       twitterHashtag = Some(TwitterHashtag.from("#SunnyTech2019").get),
       tags = Seq(Tag("tech")),

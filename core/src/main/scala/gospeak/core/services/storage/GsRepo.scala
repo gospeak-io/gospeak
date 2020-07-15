@@ -18,4 +18,5 @@ trait GsRepo {
   val externalEvent: ExternalEventRepo
   val externalCfp: ExternalCfpRepo
   val externalProposal: ExternalProposalRepo
+  val video: VideoRepo
 }

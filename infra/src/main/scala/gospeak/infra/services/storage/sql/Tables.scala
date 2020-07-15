@@ -191,5 +191,13 @@ object Tables {
     search = Seq("id", "channel_name", "playlist_name", "title", "description", "tags"),
     filters = Seq()).get
 
-  val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, groupSettings, groupMembers, cfps, partners, contacts, venues, events, eventRsvps, proposals, proposalRatings, sponsorPacks, sponsors, comments, userRequests, externalEvents, externalCfps, externalProposals, videos)
+  val videoSources: Table = Table.from(
+    name = "video_sources",
+    prefix = "vis",
+    fields = Seq("video_id", "talk_id", "proposal_id", "external_proposal_id", "external_event_id"),
+    sort = Sort("video", Field("video_id", "vis")),
+    search = Seq("video_id"),
+    filters = Seq()).get
+
+  val all: Seq[Table] = Seq(users, credentials, logins, talks, groups, groupSettings, groupMembers, cfps, partners, contacts, venues, events, eventRsvps, proposals, proposalRatings, sponsorPacks, sponsors, comments, userRequests, externalEvents, externalCfps, externalProposals, videos, videoSources)
 }

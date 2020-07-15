@@ -17,7 +17,7 @@ import scala.util.{Failure, Try}
  *
  * `groupSlug` is `urlname` in API, this name change in parameters is for better clariry
  */
-class MeetupClient(conf: MeetupClient.Conf, appBaseUrl: String, performWriteOps: Boolean) {
+class MeetupClient(conf: MeetupClient.Conf, appBaseUrl: String, val performWriteOps: Boolean) {
   private val baseUrl = "https://api.meetup.com"
 
   def hasSecureCallback: Boolean = appBaseUrl.startsWith("https")

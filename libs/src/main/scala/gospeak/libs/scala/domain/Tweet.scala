@@ -7,6 +7,6 @@ final case class Tweet(text: String,
                        related: Option[String])
 
 object Tweet {
-  def from[A](tmpl: Mustache.Text[A], data: A, url: String)(implicit e: Encoder[A]): Either[Mustache.Error, Tweet] =
+  def from[A](tmpl: Mustache[A], data: A, url: String)(implicit e: Encoder[A]): Either[Mustache.Error, Tweet] =
     tmpl.render(data).map(new Tweet(_, Some(url), None))
 }

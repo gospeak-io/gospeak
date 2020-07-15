@@ -7,8 +7,7 @@
 @import gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.OrgaReq
+@import gospeak.web.utils._
 
 @(partner: Partner, venues: Seq[Venue.Full], contacts: Seq[Contact], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], events: Seq[(Event, Venue)])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(partner.name.value, b)() {
@@ -34,7 +33,7 @@
             </span>
         </span>
     </div>
-    @markdown(partner.notes)
+    @partner.notes.render
 
     @if(venues.isEmpty) {
         <div class="card mb-3">
@@ -46,7 +45,7 @@
     } else {
         <div class="card mb-3">
             <h5 class="card-header d-flex justify-content-between align-items-center">
-                <span>@Formats.plural(venues.length, "venue") for @partner.name.value</span>
+                <span>@venues.plural("venue") for @partner.name.value</span>
                 <a class="btn btn-primary btn-xs" href="@PartnerCtrl.createVenue(req.group.slug, partner.slug)">Create a venue</a>
             </h5>
             <div class="list-group list-group-flush">
@@ -55,7 +54,7 @@
                     <div>
                         @if(venue.notes.nonEmpty) {
                             <span data-toggle="html-popover" data-placement="top" data-trigger="hover">
-                                <div class="content">@markdown(venue.notes)</div>
+                                <div class="content">@venue.notes.render</div>
                                 @venue.address.value
                             </span>
                         } else {
@@ -102,7 +101,7 @@
     } else {
         <div class="card mb-3">
             <h5 class="card-header d-flex justify-content-between align-items-center">
-                <span>@partner.name.value has sponsored @Formats.plural(sponsors.length, "time") @req.group.name.value</span>
+                <span>@partner.name.value has sponsored @sponsors.plural("time") @req.group.name.value</span>
                 <span class="btn-group">
                     <button type="button" class="btn btn-primary btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Add sponsoring
@@ -124,8 +123,8 @@
                             <b><a href="@SponsorCtrl.detail(req.group.slug, sponsor.pack.slug)"><s class="text-muted">@sponsor.pack.name.value pack</s></a></b>
                         }
                         @sponsor.contact.map { c => (contact: @c.name.value) }
-                        from @Formats.date(sponsor.start) to @Formats.date(sponsor.finish)
-                        @sponsor.paid.map { p => (@sponsor.price.value paid on @Formats.date(p)) }.getOrElse {(@sponsor.price.value, not paid)}
+                        from @sponsor.start.asDate to @sponsor.finish.asDate
+                        @sponsor.paid.map { p => (@sponsor.price.value paid on @p.asDate) }.getOrElse {(@sponsor.price.value, not paid)}
                     </span>
                     <span>
                         @if(sponsor.paid.isEmpty) {
@@ -150,7 +149,7 @@
     } else {
         <div class="card mb-3">
             <h5 class="card-header d-flex justify-content-between align-items-center">
-                <span>@Formats.plural(contacts.length, "contact") for @partner.name.value</span>
+                <span>@contacts.plural("contact") for @partner.name.value</span>
                 <a class="btn btn-primary btn-xs" href="@PartnerCtrl.createContact(req.group.slug, partner.slug)">Create a contact</a>
             </h5>
             <div class="list-group list-group-flush">
@@ -161,11 +160,11 @@
                                 @contact.name.value
                             } else {
                                 <span data-toggle="html-popover" data-placement="top" data-trigger="hover">
-                                    <div class="content">@markdown(contact.notes)</div>
+                                    <div class="content">@contact.notes.render</div>
                                     @contact.name.value
                                 </span>
                             }
-                            (@emailLink(contact.email))
+                            (@contact.email.asItemLink)
                         </div>
                         <div>
                             @if(venues.exists(_.hasContact(contact.id)) || sponsors.exists(_.hasContact(contact.id))) {
@@ -188,7 +187,7 @@
 
     @if(events.nonEmpty) {
         <div class="card mb-3">
-            <h5 class="card-header">Hosted @Formats.plural(events.length, "event")</h5>
+            <h5 class="card-header">Hosted @events.plural("event")</h5>
             <div class="list-group list-group-flush">
             @events.map { case (event, venue) =>
                 <span class="list-group-item px-3">

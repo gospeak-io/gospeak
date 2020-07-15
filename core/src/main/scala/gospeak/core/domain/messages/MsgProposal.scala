@@ -3,7 +3,7 @@ package gospeak.core.domain.messages
 import cats.data.NonEmptyList
 import gospeak.core.domain.{Proposal, Talk, User}
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Markdown, SlidesUrl, Tag, VideoUrl}
+import gospeak.libs.scala.domain._
 
 import scala.concurrent.duration._
 
@@ -12,8 +12,8 @@ final case class MsgProposal(id: Proposal.Id,
                              duration: FiniteDuration,
                              description: Markdown,
                              speakers: NonEmptyList[MsgUser.Embed],
-                             slides: Option[SlidesUrl],
-                             video: Option[VideoUrl],
+                             slides: Option[Url.Slides],
+                             video: Option[Url.Video],
                              tags: Seq[Tag],
                              publicLink: String,
                              orgaLink: String)
@@ -25,8 +25,8 @@ object MsgProposal {
                          duration: FiniteDuration,
                          description: Markdown,
                          speakers: NonEmptyList[MsgUser.Embed],
-                         slides: Option[SlidesUrl],
-                         video: Option[VideoUrl],
+                         slides: Option[Url.Slides],
+                         video: Option[Url.Video],
                          tags: Seq[Tag],
                          publicLink: String,
                          orgaLink: String)

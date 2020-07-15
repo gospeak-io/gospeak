@@ -4,6 +4,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain._
 import gospeak.core.services.storage._
+import gospeak.libs.scala.domain.Page
 import gospeak.web.AppConf
 import gospeak.web.api.domain.utils.ApiResult
 import gospeak.web.api.ui.helpers.JsonFormats._
@@ -13,7 +14,6 @@ import gospeak.web.pages.orga.events.routes.EventCtrl
 import gospeak.web.pages.orga.partners.routes.PartnerCtrl
 import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 import gospeak.web.utils._
-import gospeak.libs.scala.domain.Page
 import play.api.mvc._
 
 case class SuggestedItem(id: String, text: String)
@@ -56,7 +56,7 @@ class SuggestCtrl(cc: ControllerComponents,
   }
 
   def suggestCfps(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    makeSuggest[Cfp](cfpRepo.list, c => SuggestedItem(c.id.value, c.name.value + " - " + Formats.cfpDates(c)))(group)
+    makeSuggest[Cfp](cfpRepo.list, c => SuggestedItem(c.id.value, c.name.value + " - " + c.asDates))(group)
   }
 
   def suggestPartners(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>

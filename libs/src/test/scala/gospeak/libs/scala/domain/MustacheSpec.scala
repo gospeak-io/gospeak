@@ -11,15 +11,15 @@ class MustacheSpec extends BaseSpec {
         Mustache.render("Hello {{name}}", obj("name" -> js("Loïc"))) shouldBe Right("Hello Loïc")
       }
       it("should fail on missing keys") {
-        Mustache.render("Hello {{name}}", obj()) shouldBe Left(Mustache.Error("Missing keys: .name"))
-        Mustache.render("Hello {{user.name}}", obj()) shouldBe Left(Mustache.Error("Missing keys: .user"))
-        // Mustache.render("Hello {{user.name}}", js("user" -> js())) shouldBe Left(Mustache.Error("Missing keys: .user"))
-        Mustache.render("Hello {{user.name}}", obj("user" -> obj("id" -> js("1")))) shouldBe Left(Mustache.Error("Missing keys: .user.name, .name"))
-        // Mustache.render("Hello {{#user}}{{name}}{{/user}}", js("user" -> js())) shouldBe Left(Mustache.Error("Missing keys: .user.name"))
-        Mustache.render("Hello {{#user}}{{name}}{{/user}}", obj("user" -> obj("id" -> js("1")))) shouldBe Left(Mustache.Error("Missing keys: .user.name, .name"))
+        Mustache.render("Hello {{name}}", obj()) shouldBe Left(Mustache.Error.MissingVariables(List(".name")))
+        Mustache.render("Hello {{user.name}}", obj()) shouldBe Left(Mustache.Error.MissingVariables(List(".user")))
+        // Mustache.render("Hello {{user.name}}", obj("user" -> obj())) shouldBe Left(Mustache.Error.MissingVariables(List(".user.name")))
+        Mustache.render("Hello {{user.name}}", obj("user" -> obj("id" -> js("1")))) shouldBe Left(Mustache.Error.MissingVariables(List(".user.name", ".name")))
+        // Mustache.render("Hello {{#user}}{{name}}{{/user}}", obj("user" -> obj())) shouldBe Left(Mustache.Error.MissingVariables(List(".user.name")))
+        Mustache.render("Hello {{#user}}{{name}}{{/user}}", obj("user" -> obj("id" -> js("1")))) shouldBe Left(Mustache.Error.MissingVariables(List(".user.name", ".name")))
       }
       it("should fail on invalid template") {
-        Mustache.render("Hello {{name}", obj()) shouldBe Left(Mustache.Error("Error in template near 8: name}"))
+        Mustache.render("Hello {{name}", obj()) shouldBe Left(Mustache.Error.Unknown("Error in template near 8: name}"))
       }
       it("should handle special keys") {
         Mustache.render("Hello {{#users}}{{name}}{{^-last}}, {{/-last}}{{/users}}", obj(

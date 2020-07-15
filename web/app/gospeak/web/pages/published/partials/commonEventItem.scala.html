@@ -2,9 +2,9 @@
 @import gospeak.core.domain.utils.Constants
 @import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
-@import gospeak.web.utils.Formats
+@import gospeak.web.utils._
 
-@(event: CommonEvent)
+@(event: CommonEvent)(implicit req: BasicReq[AnyContent])
 <div class="card mb-3 p-3">
     <div class="media">
         <a href="@event.fold(e => EventCtrl.detailExt(e.id))(i => GroupCtrl.event(i.group.slug, i.slug))">
@@ -13,7 +13,7 @@
         <div class="media-body">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0"><a href="@event.fold(e => EventCtrl.detailExt(e.id))(i => GroupCtrl.event(i.group.slug, i.slug))">
-                    <small class="text-muted">@Formats.icon(event.kind)</small> @event.name.value
+                    <small class="text-muted">@event.kind.asIcon</small> @event.name.value
                 </a></h5>
                 @event.location.map { l => <small class="text-muted">@l.valueShort</small> }
             </div>
@@ -25,7 +25,7 @@
                         @e.tickets.map { u => <a class="badge badge-outline-primary mr-2" href="@u" target="_blank">Tickets <i class="fas fa-external-link-alt"></i></a> }
                     </span>
                 }
-                @event.start.map { d => <small class="text-muted"><b>@Formats.date(d)</b></small> }
+                @event.start.map { d => <small class="text-muted"><b>@d.asDate</b></small> }
             </div>
         </div>
     </div>

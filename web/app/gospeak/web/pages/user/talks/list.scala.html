@@ -3,8 +3,7 @@
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.user.partials.html.{container, talkItem}
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.UserReq
+@import gospeak.web.utils._
 
 @(talks: Page[Talk])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("My talks", b)() {
@@ -20,9 +19,9 @@
         </div>
     } else {
         <h1 class="d-flex justify-content-between align-items-center">
-            <span class="text-capitalize">@Formats.plural(talks.total.value, "talk")</span>
+            <span class="text-capitalize">@talks.plural("talk")</span>
             <a class="btn btn-primary" href="@TalkCtrl.create()">Create talk</a>
         </h1>
-        @Formats.paginated[Talk](talks, TalkCtrl.list, talkItem(_))
+        @talks.render(TalkCtrl.list)(talkItem(_))
     }
 }()

@@ -1,10 +1,9 @@
 @import gospeak.core.domain.{Cfp, Talk}
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
 @import gospeak.web.pages.user.partials.html.{cfpItem, container}
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.UserReq
-@import gospeak.libs.scala.domain.Page
+@import gospeak.web.utils._
 
 @(talk: Talk, cfps: Page[Cfp])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"Find CFPs for '${talk.title.value}'", b)() {
@@ -14,6 +13,6 @@
         </div>
     } else {
         <h1 class="text-capitalize">Submit proposal for @talk.title.value</h1>
-        @Formats.paginated[Cfp](cfps, CfpCtrl.list(talk.slug, _), cfpItem(talk, _))
+        @cfps.render(CfpCtrl.list(talk.slug, _))(cfpItem(talk, _))
     }
 }()

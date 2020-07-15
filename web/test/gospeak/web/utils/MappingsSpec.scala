@@ -102,24 +102,6 @@ class MappingsSpec extends BaseSpec with ScalaCheckPropertyChecks {
       url.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq("'' is an invalid Url: no protocol: "))))
       url.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq("'wrong' is an invalid Url: no protocol: wrong"))))
     }
-    it("should bind & unbind a SlidesUrl") {
-      forAll { v: SlidesUrl =>
-        val data = slidesUrl.unbind(v)
-        slidesUrl.bind(data) shouldBe Right(v)
-      }
-      slidesUrl.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
-      slidesUrl.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq("'' is an invalid Url: no protocol: "))))
-      slidesUrl.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq("'wrong' is an invalid Url: no protocol: wrong"))))
-    }
-    it("should bind & unbind a VideoUrl") {
-      forAll { v: VideoUrl =>
-        val data = videoUrl.unbind(v)
-        videoUrl.bind(data) shouldBe Right(v)
-      }
-      videoUrl.bind(Map()) shouldBe Left(Seq(FormError("", Seq("error.required"), Seq())))
-      videoUrl.bind(Map("" -> "")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq("'' is an invalid Url: no protocol: "))))
-      videoUrl.bind(Map("" -> "wrong")) shouldBe Left(Seq(FormError("", Seq("error.format"), Seq("'wrong' is an invalid Url: no protocol: wrong"))))
-    }
     it("should bind & unbind a Secret") {
       forAll { v: Secret =>
         val data = secret.unbind(v)
@@ -210,9 +192,9 @@ class MappingsSpec extends BaseSpec with ScalaCheckPropertyChecks {
       }
     }
     it("should bind & unbind a Template") {
-      forAll { v: Mustache.Markdown[Any] =>
-        val data = template.unbind(v)
-        template.bind(data) shouldBe Right(v)
+      forAll { v: MustacheMarkdown[Any] =>
+        val data = mustacheMarkdown.unbind(v)
+        mustacheMarkdown.bind(data) shouldBe Right(v)
       }
     }
     it("should bind & unbind a Group.Settings.Events.Event") {

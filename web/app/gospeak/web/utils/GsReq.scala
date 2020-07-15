@@ -19,10 +19,10 @@ import scala.collection.Seq
 import scala.util.matching.Regex
 
 sealed abstract class BasicReq[A] protected(protected val request: Request[A],
-                                   protected val messages: Messages,
-                                   val customId: String,
-                                   val now: Instant,
-                                   val conf: AppConf) extends WrappedRequest[A](request) with BasicCtx {
+                                            val messages: Messages,
+                                            val customId: String,
+                                            val now: Instant,
+                                            val conf: AppConf) extends WrappedRequest[A](request) with BasicCtx {
   def userOpt: Option[User]
 
   def groupsOpt: Option[Seq[Group]]

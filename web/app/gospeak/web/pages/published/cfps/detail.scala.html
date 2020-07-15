@@ -6,8 +6,7 @@
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.partials.display.html._
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.UserAwareReq
+@import gospeak.web.utils._
 
 @(group: Group, cfp: Cfp)(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.cfp} ${cfp.name.value}", PageMeta.cfp(group, cfp, b), b)() {
@@ -27,22 +26,22 @@
                 }
             </h1>
             <div>
-                @cfp.begin.map { o => @if(o.isBefore(req.nowLDT)) { Opened } else { Will open } the @Formats.date(o.toLocalDate)<br/> }
+                @cfp.begin.map { o => @if(o.isBefore(req.nowLDT)) { Opened } else { Will open } the @o.toLocalDate.asDate<br/> }
                 by <a href="@GroupCtrl.detail(group.slug)">@group.name.value</a>
             </div>
             <div>
                 @group.website.map { u => <a class="font-size-1" href="@u.value">View site web</a><br> }
-                @tags(cfp.tags)
+                @cfp.tags.asBadges
             </div>
             @if(cfp.isActive(req.nowLDT)) {
                 <div class="mt-3">
                     <a class="btn btn-soft-success transition-3d-hover" href="@CfpCtrl.propose(cfp.slug)">Propose a talk</a>
                 </div>
             }
-            @cfp.close.map { c => <div class="text-muted small mt-3"><i class="fas fa-flag mr-1"></i> Close the @Formats.date(c.toLocalDate)</div> }
+            @cfp.close.map { c => <div class="text-muted small mt-3"><i class="fas fa-flag mr-1"></i> Close the @c.toLocalDate.asDate</div> }
         </div>
 
-        <div class="mt-5 mb-4">@markdown(cfp.description)</div>
+        <div class="mt-5 mb-4">@cfp.description.render</div>
 
         <div class="row">
             <div class="col-lg-6 u-ver-divider u-ver-divider--none-lg">

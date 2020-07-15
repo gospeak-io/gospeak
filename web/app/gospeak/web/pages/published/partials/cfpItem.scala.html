@@ -1,6 +1,6 @@
 @import gospeak.core.domain.CommonCfp
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
-@import gospeak.web.utils.{Formats, UserAwareReq}
+@import gospeak.web.utils._
 
 @(cfp: CommonCfp)(implicit req: UserAwareReq[AnyContent])
 <div class="mb-2">
@@ -10,20 +10,20 @@
                 <span class="col-sm-2 mb-2 mb-sm-0">
                     @cfp.close match {
                         case Some(d) if cfp.closesInDays(10, req.now) => {
-                            <span class="btn btn-xs btn-soft-danger btn-block">Closes @Formats.date(d)</span>
+                            <span class="btn btn-xs btn-soft-danger btn-block">Closes @d.asDate</span>
                         }
                         case Some(d) if cfp.closesInDays(30, req.now) => {
-                            <span class="btn btn-xs btn-soft-warning btn-block">Closes @Formats.date(d)</span>
+                            <span class="btn btn-xs btn-soft-warning btn-block">Closes @d.asDate</span>
                         }
                         case Some(d) => {
-                            <span class="btn btn-xs btn-soft-primary btn-block">Closes @Formats.date(d)</span>
+                            <span class="btn btn-xs btn-soft-primary btn-block">Closes @d.asDate</span>
                         }
                         case None => {
                             <span class="btn btn-xs btn-soft-success btn-block">Always open</span>
                         }
                     }
                 </span>
-                <span class="col-sm-4">@cfp.name @cfp.external.flatMap(_.event.start).map { s => (@Formats.date(s)) }</span>
+                <span class="col-sm-4">@cfp.name @cfp.external.flatMap(_.event.start).map { s => (@s.asDate) }</span>
 
                 <span class="col-sm-6 text-primary text-sm-right">
                     @cfp.location.map { l => @l.locality.map(_+",") @l.country }
@@ -31,7 +31,7 @@
                 </span>
             </span>
         </span>
-        @* @tags(cfp.tags) *@
+        @* @cfp.tags.asBadges *@
         @* TODO event location, event date (if available), isBeginnerFriendly *@
     </a>
 </div>

@@ -4,17 +4,9 @@
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.partials.html.container
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.UserReq
+@import gospeak.web.utils._
 
 @(events: Page[ExternalEvent])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
-@eventItem(event: ExternalEvent) = {
-    <a href="@CfpCtrl.createExternalCfp(event.id)" class="list-group-item list-group-item-action">
-        <h5 class="mb-1">@event.name.value</h5>
-        @event.start.map { s => <span class="badge badge-primary">@Formats.date(s)</span> }
-        @event.location.map { l => <span class="badge badge-primary">@l.valueShort</span> }
-    </a>
-}
 @container(s"${Constants.Emoji.cfp} Add a CFP", PageMeta.noIndex, b)() {
     <div class="d-flex justify-content-between align-items-center">
         <h1>Thanks for adding a CFP</h1>
@@ -22,5 +14,11 @@
     </div>
     <h3>Select the CFP event, or add it if needed</h3>
 
-    @Formats.paginated[ExternalEvent](events, CfpCtrl.findExternalEvent, eventItem)
+    @events.render(CfpCtrl.findExternalEvent) { event =>
+        <a href="@CfpCtrl.createExternalCfp(event.id)" class="list-group-item list-group-item-action">
+            <h5 class="mb-1">@event.name.value</h5>
+            @event.start.map { s => <span class="badge badge-primary">@s.asDate</span> }
+            @event.location.map { l => <span class="badge badge-primary">@l.valueShort</span> }
+        </a>
+    }
 }()(req.userAware)

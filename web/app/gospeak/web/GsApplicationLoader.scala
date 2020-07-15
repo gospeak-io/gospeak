@@ -22,21 +22,22 @@ import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.storage._
 import gospeak.core.services.twitter.TwitterSrv
+import gospeak.core.services.video.VideoSrv
 import gospeak.infra.services.AvatarSrv
 import gospeak.infra.services.email.EmailSrvFactory
 import gospeak.infra.services.meetup.MeetupSrvImpl
 import gospeak.infra.services.slack.SlackSrvImpl
 import gospeak.infra.services.storage.sql._
-import gospeak.infra.services.twitter.TwitterSrvImpl
+import gospeak.infra.services.twitter.{TwitterConsoleSrv, TwitterSrvImpl}
 import gospeak.infra.services.upload.UploadSrvFactory
+import gospeak.infra.services.video.VideoSrvImpl
 import gospeak.libs.scala.{BasicMessageBus, MessageBus}
 import gospeak.libs.slack.SlackClient
-import gospeak.libs.youtube.YoutubeClient
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.auth.services.{AuthRepo, AuthSrv, CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
 import gospeak.web.auth.{AuthConf, AuthCtrl}
 import gospeak.web.pages._
-import gospeak.web.services.{MessageHandler, MessageSrv}
+import gospeak.web.services.{MessageHandler, MessageSrv, SchedulerSrv}
 import org.slf4j.LoggerFactory
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.Cookie.SameSite
@@ -46,6 +47,7 @@ import play.api.{Environment => _, _}
 import play.filters.HttpFiltersComponents
 import router.Routes
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 
 class GsApplicationLoader extends ApplicationLoader {
@@ -88,18 +90,20 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val externalEvent: ExternalEventRepo = db.externalEvent
   lazy val externalCfp: ExternalCfpRepo = db.externalCfp
   lazy val externalProposal: ExternalProposalRepo = db.externalProposal
+  lazy val video: VideoRepo = db.video
   lazy val authRepo: AuthRepo = wire[AuthRepo]
 
   lazy val avatarSrv: AvatarSrv = wire[AvatarSrv]
   lazy val emailSrv: EmailSrv = EmailSrvFactory.from(conf.email)
-  lazy val cloudinarySrv: Option[CloudinarySrv] = UploadSrvFactory.from(conf.upload)
-  lazy val twitterSrv: Option[TwitterSrv] = conf.twitter.map(new TwitterSrvImpl(_, conf.app.env.isProd))
+  lazy val cloudinarySrv: CloudinarySrv = UploadSrvFactory.from(conf.upload)
+  lazy val twitterSrv: TwitterSrv = conf.twitter.filter(_ => conf.app.env.isProd).map(new TwitterSrvImpl(_)).getOrElse(new TwitterConsoleSrv())
   lazy val meetupSrv: MeetupSrv = MeetupSrvImpl.from(conf.meetup, conf.app.baseUrl, conf.app.env.isProd)
   lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient())
-  lazy val youtubeClient: Option[YoutubeClient] = conf.youtube.secret.map(YoutubeClient.create)
+  lazy val videoSrv: VideoSrv = VideoSrvImpl.from(conf.app.name, conf.youtube).get
   lazy val messageSrv: MessageSrv = wire[MessageSrv]
   lazy val messageBus: MessageBus[Message] = wire[BasicMessageBus[Message]]
   lazy val messageHandler: MessageHandler = wire[MessageHandler]
+  lazy val schedulerSrv: SchedulerSrv = new SchedulerSrv(video, twitterSrv)(ExecutionContext.global)
 
   // start:Silhouette conf
   lazy val clock: Clock = Clock()
@@ -176,6 +180,7 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val eventCtrl = wire[published.events.EventCtrl]
   lazy val groupCtrl = wire[published.groups.GroupCtrl]
   lazy val speakerCtrl = wire[published.speakers.SpeakerCtrl]
+  lazy val videoCtrl = wire[published.videos.VideoCtrl]
   lazy val authCtrl = wire[AuthCtrl]
   lazy val userCtrl = wire[user.UserCtrl]
   lazy val userTalkCtrl = wire[user.talks.TalkCtrl]
@@ -231,6 +236,7 @@ class GsComponents(context: ApplicationLoader.Context)
     messageBus.subscribe(messageHandler.logHandler)
     messageBus.subscribe(messageHandler.gospeakHandler)
     messageBus.subscribe(messageHandler.groupActionHandler)
+    schedulerSrv.init(conf.scheduler)
 
     logger.info("Application initialized")
   }

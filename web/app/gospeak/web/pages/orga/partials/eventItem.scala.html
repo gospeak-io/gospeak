@@ -5,7 +5,7 @@
 @import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import gospeak.web.pages.partials.display.html._
-@import gospeak.web.utils.{Formats, OrgaReq}
+@import gospeak.web.utils._
 
 @(event: Event.Full, proposals: Seq[Proposal], speakers: Seq[User])(implicit req: OrgaReq[AnyContent])
 <div class="card mb-3" @if(event.isPast(req.now)){style="opacity: 0.6;"}>
@@ -25,7 +25,7 @@
             <div class="media-body align-self-center ml-3">
                 <h6 class="mb-0">
                     <a href="@EventCtrl.detail(req.group.slug, event.slug)" class="text-primary"><b>@event.name.value</b></a>
-                    <span class="text-muted">@Formats.icon(event.kind)</span>
+                    <span class="text-muted">@event.kind.asIcon</span>
                     @if(event.orgaNotes.isDefined) {
                         <span class="text-muted" data-toggle="html-popover" data-trigger="hover">
                             <span class="content" style="white-space: pre-line;">@event.orgaNotes.text</span>
@@ -36,12 +36,12 @@
                 </h6>
                 <p class="font-size-1 mb-0">
                     @if(event.isPast(req.now)) {
-                        <s class="text-primary">@Formats.date(event.start)</s>
+                        <s class="text-primary">@event.start.asDate</s>
                     } else {
-                        <span class="text-primary">@Formats.date(event.start)</span>
+                        <span class="text-primary">@event.start.asDate</span>
                     }
                     @if(event.allowRsvp) {
-                        @event.maxAttendee.map { max => <span class="text-primary">@Formats.plural(max, "place")</span> }
+                        @event.maxAttendee.map { max => <span class="text-primary">@max.plural("place")</span> }
                     }
                     @if(!event.isPublic) {
                         <span class="badge badge-pill badge-secondary">Draft</span>

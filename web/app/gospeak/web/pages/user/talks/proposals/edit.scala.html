@@ -1,10 +1,9 @@
 @import gospeak.core.domain.Proposal
 @import gospeak.web.domain.Breadcrumb
-@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.pages.user.partials.html.{container, proposalFields}
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
-@import gospeak.web.utils.UserReq
+@import gospeak.web.utils._
 
 @(form: Form[Proposal.Data], proposal: Proposal.Full, redirect: Option[String])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"Edit '${proposal.title.value}'", b)() {
@@ -17,7 +16,7 @@
             </div>
         </div>
         <h2>@proposal.title.value</h2>
-        <blockquote class="blockquote">@markdown(proposal.cfp.description)</blockquote>
+        <blockquote class="blockquote">@proposal.cfp.description.render</blockquote>
         @proposalFields(form)
     }
 }()

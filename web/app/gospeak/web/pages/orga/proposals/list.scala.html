@@ -1,19 +1,16 @@
 @import gospeak.core.domain.{Proposal, User}
 @import gospeak.infra.services.storage.sql.ProposalRepoSql
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.partials.html.{container, proposalItem}
 @import gospeak.web.pages.orga.proposals.routes.ProposalCtrl
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.OrgaReq
-@import gospeak.libs.scala.domain.Page
+@import gospeak.web.utils._
 
 @(proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${req.group.name.value} proposals", b)() {
-    <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") <small>(from any CFP)</small></h1>
-    @Formats.paginated[Proposal.Full](
-        proposals,
+    <h1 class="text-capitalize">@proposals.plural("proposal") <small>(from any CFP)</small></h1>
+    @proposals.render(
         ProposalCtrl.list(req.group.slug, _),
-        proposalItem(_, speakers, userRatings, proposals.params, ProposalCtrl.list(req.group.slug, _)),
         ProposalRepoSql.tableFullBase.filters,
-        ProposalRepoSql.tableFullBase.sorts.toList)
+        ProposalRepoSql.tableFullBase.sorts.toList)(proposalItem(_, speakers, userRatings, proposals.params, ProposalCtrl.list(req.group.slug, _)))
 }()

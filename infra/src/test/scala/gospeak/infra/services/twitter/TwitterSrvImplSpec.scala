@@ -9,7 +9,7 @@ class TwitterSrvImplSpec extends BaseSpec {
     consumerKey = "...",
     consumerSecret = Secret("..."),
     accessKey = "...",
-    accessSecret = Secret("...")), performWriteOps = false)
+    accessSecret = Secret("...")))
 
   ignore("TwitterSrvImpl") {
     it("should twitt") {

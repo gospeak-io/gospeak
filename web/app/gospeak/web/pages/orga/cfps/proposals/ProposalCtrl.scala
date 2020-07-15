@@ -8,15 +8,14 @@ import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Done, Page, SlidesUrl, VideoUrl}
+import gospeak.libs.scala.domain.{Done, Page, Url}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb
 import gospeak.web.emails.Emails
 import gospeak.web.pages.orga.cfps.CfpCtrl
 import gospeak.web.pages.orga.cfps.proposals.ProposalCtrl._
-import gospeak.web.utils.Extensions._
-import gospeak.web.utils.{GsForms, OrgaReq, UICtrl}
+import gospeak.web.utils._
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 
@@ -153,7 +152,7 @@ class ProposalCtrl(cc: ControllerComponents,
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
     GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => SlidesUrl.from(data) match {
+      data => Url.Slides.from(data.value) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(slides) => proposalRepo.editSlides(cfp, proposal, slides).map(_ => next)
       }
@@ -162,13 +161,10 @@ class ProposalCtrl(cc: ControllerComponents,
 
   def doAddVideo(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>
     val next = Redirect(routes.ProposalCtrl.detail(group, cfp, proposal))
-    GsForms.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => VideoUrl.from(data) match {
-        case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
-        case Right(video) => proposalRepo.editVideo(cfp, proposal, video).map(_ => next)
-      }
-    )
+    GsForms.embed.bindFromRequest.fold(formWithErrors => IO.pure(next.flashing(formWithErrors.flash)), {
+      case video: Url.Video => proposalRepo.editVideo(cfp, proposal, video).map(_ => next)
+      case data => IO.pure(next.flashing("error" -> s"${data.value} is not a valid video url"))
+    })
   }
 
   def reject(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction(group) { implicit req =>

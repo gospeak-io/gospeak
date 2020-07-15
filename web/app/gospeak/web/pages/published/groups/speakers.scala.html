@@ -4,7 +4,7 @@
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
 @import gospeak.web.pages.published.partials.html.{container, groupCard, userItem}
-@import gospeak.web.utils.{Formats, UserAwareReq}
+@import gospeak.web.utils._
 
 @(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], speakers: Page[User.Full], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], orgas: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.group} ${group.name.value} speakers", PageMeta.group(group.group, b), b)() {
@@ -12,8 +12,8 @@
     @groupCard(group, speakerCount, cfps, sponsors, packs, orgas, userMembership)(b)
 
     <div class="col-lg-8 m">
-        <h3>@Formats.plural(speakers.total.value, "speaker") came to @group.name.value</h3>
-        @Formats.paginated[User.Full](speakers, GroupCtrl.speakers(group.slug, _), s => userItem(s.user))
+        <h3>@speakers.plural("speaker") came to @group.name.value</h3>
+        @speakers.render(GroupCtrl.speakers(group.slug, _))(s => userItem(s.user))
     </div>
 </div>
 }()

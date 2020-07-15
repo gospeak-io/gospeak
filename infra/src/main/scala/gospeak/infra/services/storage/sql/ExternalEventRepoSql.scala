@@ -43,7 +43,8 @@ object ExternalEventRepoSql {
       "conference" -> Event.Kind.Conference.value,
       "meetup" -> Event.Kind.Meetup.value,
       "training" -> Event.Kind.Training.value,
-      "private event" -> Event.Kind.PrivateEvent.value))))
+      "private event" -> Event.Kind.PrivateEvent.value)),
+    Filter.Bool.fromNullable("video", "With video", "ee.videos_url")))
   private val tableSelect = table.dropFields(_.name.startsWith("location_"))
   val commonTable: Table = Table(
     name = "((SELECT e.name, e.kind, e.start, v.address as location, g.social_twitter as twitter_account, null as twitter_hashtag, e.tags, null as ext_id, null   as ext_logo, null          as ext_description, null  as ext_url, null          as ext_tickets, null         as ext_videos, e.id as int_id, e.slug as int_slug, e.description as int_description, g.id as int_group_id, g.slug as int_group_slug, g.name as int_group_name, g.logo as int_group_logo, c.id as int_cfp_id, c.slug as int_cfp_slug, c.name as int_cfp_name, v.id as int_venue_id, p.name as int_venue_name, p.logo as int_venue_logo, e.created_at, e.created_by, e.updated_at, e.updated_by FROM events e INNER JOIN groups g ON e.group_id=g.id LEFT OUTER JOIN cfps c ON e.cfp_id=c.id LEFT OUTER JOIN venues v ON e.venue=v.id LEFT OUTER JOIN partners p ON v.partner_id=p.id WHERE e.published IS NOT NULL) " +

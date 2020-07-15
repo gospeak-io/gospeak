@@ -6,15 +6,14 @@ import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.{Proposal, Talk, User}
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
-import gospeak.libs.scala.domain.{Page, Tweet}
+import gospeak.libs.scala.domain.Page
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb
 import gospeak.web.emails.Emails
 import gospeak.web.pages.published.HomeCtrl
 import gospeak.web.pages.published.speakers.SpeakerCtrl._
-import gospeak.web.utils.Extensions._
-import gospeak.web.utils.{GsForms, UICtrl}
+import gospeak.web.utils._
 import play.api.mvc._
 
 class SpeakerCtrl(cc: ControllerComponents,
@@ -22,7 +21,6 @@ class SpeakerCtrl(cc: ControllerComponents,
                   conf: AppConf,
                   userRepo: PublicUserRepo,
                   talkRepo: PublicTalkRepo,
-                  proposalRepo: PublicProposalRepo,
                   externalProposalRepo: PublicExternalProposalRepo,
                   groupRepo: PublicGroupRepo,
                   emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) {

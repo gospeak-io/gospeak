@@ -6,7 +6,7 @@
 @import gospeak.web.pages.published.partials.html.{container, externalProposalItem}
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.events.routes.EventCtrl
-@import gospeak.web.utils.{Formats, UserAwareReq}
+@import gospeak.web.utils._
 
 @(event: ExternalEvent, cfps: Seq[ExternalCfp], proposals: Page[ExternalProposal], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.event} ${event.name.value}", PageMeta.event(event, b), b)() {
@@ -28,10 +28,10 @@
                     </div>
                     <div>@socialShareButtons(Shareable(event))</div>
                     @event.url.map { u => <a class="font-size-1" href="@u" target="_blank">@u</a><br> }
-                    <span class="text-muted font-size-1">@event.kind.value</span> @tags(event.tags)
+                    <span class="text-muted font-size-1">@event.kind.value</span> @event.tags.asBadges
                 </div>
             </div>
-            <div class="mb-3">@markdown(event.description)</div>
+            <div class="mb-3">@event.description.render</div>
         </div>
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm mb-3">
@@ -41,7 +41,7 @@
                             <div class="min-width-4 text-center text-primary mr-3"><span class="fas fa-map-marked-alt"></span></div>
                             <div class="media-body">
                                 <span class="d-block font-weight-medium">@location.name</span>
-                                <small class="d-block text-secondary"> @address(location)</small>
+                                <small class="d-block text-secondary"> @location.asLink</small>
                             </div>
                         </div>
                     }
@@ -49,8 +49,8 @@
                         <div class="media mb-3">
                             <div class="min-width-4 text-center text-primary mr-3"><span class="fas fa-clock"></span></div>
                             <div class="media-body">
-                                <span class="d-block font-weight-medium">@Formats.date(start)</span>
-                                @if(start.getHour != 0 && start.getMinute != 0) { <small class="d-block text-secondary">@Formats.time(start)</small> }
+                                <span class="d-block font-weight-medium">@start.asDate</span>
+                                @if(start.getHour != 0 && start.getMinute != 0) { <small class="d-block text-secondary">@start.asTime</small> }
                             </div>
                         </div>
                     }
@@ -65,16 +65,16 @@
                         case Seq(cfp) => {
                             <div class="text-center mt-5">
                                 @if(cfp.isPast(req.nowLDT)) {
-                                    <a href="@CfpCtrl.detailExt(cfp.id)" class="btn btn-sm btn-soft-secondary" @cfp.close.map { d => title="closed on @Formats.date(d)" data-toggle="tooltip" }>
+                                    <a href="@CfpCtrl.detailExt(cfp.id)" class="btn btn-sm btn-soft-secondary" @cfp.close.map { d => title="closed on @d.asDate" data-toggle="tooltip" }>
                                         <span class="far fa-envelope mr-2"></span> CFP closed
                                     </a>
                                 } else {
                                     @if(cfp.isFuture(req.nowLDT)) {
-                                        <a href="@CfpCtrl.detailExt(cfp.id)" class="btn btn-sm btn-soft-secondary" @cfp.begin.map { d => title="will open on @Formats.date(d)" data-toggle="tooltip" }>
+                                        <a href="@CfpCtrl.detailExt(cfp.id)" class="btn btn-sm btn-soft-secondary" @cfp.begin.map { d => title="will open on @d.asDate" data-toggle="tooltip" }>
                                             <span class="far fa-envelope mr-2"></span> CFP not open yet
                                         </a>
                                     } else {
-                                        <a href="@CfpCtrl.detailExt(cfp.id)" class="btn btn-sm btn-soft-primary transition-3d-hover" @cfp.close.map { d => title="closes on @Formats.date(d)" data-toggle="tooltip" }>
+                                        <a href="@CfpCtrl.detailExt(cfp.id)" class="btn btn-sm btn-soft-primary transition-3d-hover" @cfp.close.map { d => title="closes on @d.asDate" data-toggle="tooltip" }>
                                             <span class="far fa-envelope mr-2"></span> Propose a talk
                                         </a>
                                     }
@@ -90,12 +90,12 @@
                                     @cfps.map { cfp =>
                                         <a class="dropdown-item" href="@CfpCtrl.detailExt(cfp.id)">
                                             @if(cfp.isPast(req.nowLDT)) {
-                                                Closed CFP @cfp.close.map { d => - since @Formats.date(d) }
+                                                Closed CFP @cfp.close.map { d => - since @d.asDate }
                                             } else {
                                                 @if(cfp.isFuture(req.nowLDT)) {
-                                                    CFP will open @cfp.begin.map { d => on @Formats.date(d) }
+                                                    CFP will open @cfp.begin.map { d => on @d.asDate }
                                                 } else {
-                                                    CFP open @cfp.close.map { d => until @Formats.date(d) }
+                                                    CFP open @cfp.close.map { d => until @d.asDate }
                                                 }
                                             }
                                         </a>
@@ -111,7 +111,7 @@
     @if(proposals.nonEmpty) {
         <div class="mb-3">
             <h3 class="h5 mb-3">Talks</h3>
-            @Formats.paginated[ExternalProposal](proposals, EventCtrl.detailExt(event.id, _), externalProposalItem(_, users))
+            @proposals.render(EventCtrl.detailExt(event.id, _))(externalProposalItem(_, users))
         </div>
         <h2 class="text-center font-weight-medium mt-5" style="margin-bottom: 10rem">
             Spoke at @event.name.value?

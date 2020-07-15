@@ -6,16 +6,16 @@ import gospeak.core.domain.messages.Message
 import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx}
 import gospeak.core.services.meetup.domain.MeetupCredentials
 import gospeak.core.services.slack.domain.SlackCredentials
-import gospeak.libs.scala.domain.{Done, Mustache}
+import gospeak.libs.scala.domain.{Done, Mustache, MustacheMarkdown}
 
 trait GroupSettingsRepo extends PublicGroupSettingsRepo with OrgaGroupSettingsRepo with AdminGroupSettingsRepo
 
 trait PublicGroupSettingsRepo {
   def findMeetup(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Option[MeetupCredentials]]
 
-  def findEventTemplates(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Map[String, Mustache.Text[Message.EventInfo]]]
+  def findEventTemplates(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Map[String, Mustache[Message.EventInfo]]]
 
-  def findProposalTweet(group: Group.Id): IO[Mustache.Text[Message.ProposalInfo]]
+  def findProposalTweet(group: Group.Id): IO[Mustache[Message.ProposalInfo]]
 }
 
 trait OrgaGroupSettingsRepo {
@@ -27,11 +27,11 @@ trait OrgaGroupSettingsRepo {
 
   def findSlack(group: Group.Id): IO[Option[SlackCredentials]]
 
-  def findEventDescription(implicit ctx: OrgaCtx): IO[Mustache.Markdown[Message.EventInfo]]
+  def findEventDescription(implicit ctx: OrgaCtx): IO[MustacheMarkdown[Message.EventInfo]]
 
-  def findEventTemplates(implicit ctx: OrgaCtx): IO[Map[String, Mustache.Text[Message.EventInfo]]]
+  def findEventTemplates(implicit ctx: OrgaCtx): IO[Map[String, Mustache[Message.EventInfo]]]
 
-  def findProposalTweet(group: Group.Id): IO[Mustache.Text[Message.ProposalInfo]]
+  def findProposalTweet(group: Group.Id): IO[Mustache[Message.ProposalInfo]]
 
   def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]]
 

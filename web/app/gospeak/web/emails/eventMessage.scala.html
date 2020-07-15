@@ -1,12 +1,9 @@
 @import gospeak.core.domain.Event
-@import gospeak.web.pages.partials.display.html.markdown
-@import gospeak.web.utils.OrgaReq
 @import gospeak.libs.scala.domain.Markdown
+@import gospeak.web.utils._
 
 @(event: Event, text: Markdown, rsvp: Event.Rsvp)(implicit req: OrgaReq[AnyContent])
 <p>Hi @rsvp.user.firstName,</p>
 <p>Here is a message from <b>@event.name.value</b> organizer:</p>
-<div>
-    @markdown(text)
-</div>
+<div>@text.render</div>
 <p>The Gospeak team</p>

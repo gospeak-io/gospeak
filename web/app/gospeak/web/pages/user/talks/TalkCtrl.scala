@@ -10,7 +10,7 @@ import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.MessageBus
-import gospeak.libs.scala.domain.{Page, SlidesUrl, VideoUrl}
+import gospeak.libs.scala.domain.{Page, Url}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb
@@ -19,8 +19,7 @@ import gospeak.web.pages.user.UserCtrl
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import gospeak.web.pages.user.talks.TalkCtrl._
 import gospeak.web.services.MessageSrv
-import gospeak.web.utils.Extensions._
-import gospeak.web.utils.{GsForms, UICtrl, UserReq}
+import gospeak.web.utils._
 import play.api.data.Form
 import play.api.mvc._
 
@@ -31,9 +30,7 @@ class TalkCtrl(cc: ControllerComponents,
                conf: AppConf,
                userRepo: SpeakerUserRepo,
                userRequestRepo: SpeakerUserRequestRepo,
-               eventRepo: SpeakerEventRepo,
                talkRepo: SpeakerTalkRepo,
-               proposalRepo: SpeakerProposalRepo,
                externalEventRepo: SpeakerExternalEventRepo,
                externalProposalRepo: SpeakerExternalProposalRepo,
                emailSrv: EmailSrv,
@@ -139,7 +136,7 @@ class TalkCtrl(cc: ControllerComponents,
     val next = Redirect(routes.TalkCtrl.detail(talk))
     GsForms.embed.bindFromRequest.fold(
       formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => SlidesUrl.from(data) match {
+      data => Url.Slides.from(data.value) match {
         case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
         case Right(slides) => talkRepo.editSlides(talk, slides).map(_ => next)
       }
@@ -148,13 +145,10 @@ class TalkCtrl(cc: ControllerComponents,
 
   def doAddVideo(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
     val next = Redirect(routes.TalkCtrl.detail(talk))
-    GsForms.embed.bindFromRequest.fold(
-      formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
-      data => VideoUrl.from(data) match {
-        case Left(err) => IO.pure(next.flashing("error" -> err.getMessage))
-        case Right(video) => talkRepo.editVideo(talk, video).map(_ => next)
-      }
-    )
+    GsForms.embed.bindFromRequest.fold(formWithErrors => IO.pure(next.flashing(formWithErrors.flash)), {
+      case video: Url.Video => talkRepo.editVideo(talk, video).map(_ => next)
+      case data => IO.pure(next.flashing("error" -> s"${data.value} is not a valid video url"))
+    })
   }
 
   def changeStatus(talk: Talk.Slug, status: Talk.Status): Action[AnyContent] = UserAction { implicit req =>

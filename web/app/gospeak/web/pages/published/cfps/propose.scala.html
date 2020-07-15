@@ -3,30 +3,28 @@
 @import gospeak.libs.scala.domain.Page
 @import gospeak.web.auth.routes.AuthCtrl
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
-@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.partials.html.container
 @import gospeak.web.pages.user.partials.html.talkFields
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
-@import gospeak.web.utils.{Formats, GsForms, UserAwareReq}
+@import gospeak.web.utils._
 
 @(group: Group, cfp: Cfp, talks: Page[Talk], form: Form[GsForms.TalkLogged])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
-@talkItem(talk: Talk) = {
-    <a href="@ProposalCtrl.create(talk.slug, cfp.slug)" class="list-group-item list-group-item-action">
-        <h5 class="mb-0">@talk.title.value</h5>
-        <span>@talkStatus(talk.status) @duration(talk.duration)</span>
-    </a>
-}
 @container(s"${Constants.Emoji.cfp} Propose a talk for ${cfp.name.value}", PageMeta.cfp(group, cfp, b), b)() {
     <h1>Propose a talk to @cfp.name.value</h1>
-    <blockquote class="blockquote">@markdown(cfp.description)</blockquote>
+    <blockquote class="blockquote">@cfp.description.render</blockquote>
 
     @req.user.map { _ =>
         @if(talks.nonEmpty) {
             <h3>Choose an existing one</h3>
 
-            @Formats.paginated[Talk](talks, CfpCtrl.propose(cfp.slug, _), talkItem)
+            @talks.render(CfpCtrl.propose(cfp.slug, _)) { talk =>
+                <a href="@ProposalCtrl.create(talk.slug, cfp.slug)" class="list-group-item list-group-item-action">
+                    <h5 class="mb-0">@talk.title.value</h5>
+                    <span>@talk.status.asBadge @talk.duration.asBadge</span>
+                </a>
+            }
 
             <h3>Or create a new one</h3>
         }

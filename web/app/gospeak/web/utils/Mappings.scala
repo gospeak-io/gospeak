@@ -14,7 +14,6 @@ import gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
-import gospeak.web.utils.Extensions._
 import gospeak.web.utils.Mappings.Utils._
 import play.api.data.Forms._
 import play.api.data.format.Formats._
@@ -70,17 +69,18 @@ object Mappings {
   )(new FiniteDuration(_, _))(d => Some(d.length -> d.unit))
   val emailAddress: Mapping[EmailAddress] = WrappedMapping(nonEmptyText.verifying(Constraints.emailAddress(), Constraints.maxLength(Values.maxLength.email)), (s: String) => EmailAddress.from(s).get, _.value)
   val url: Mapping[Url] = stringEitherMapping[Url, CustomException](Url.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
-  val twitterUrl: Mapping[Url.Twitter] = stringEitherMapping[Url.Twitter, CustomException](Url.Twitter.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
-  val linkedInUrl: Mapping[Url.LinkedIn] = stringEitherMapping[Url.LinkedIn, CustomException](Url.LinkedIn.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
-  val youTubeUrl: Mapping[Url.YouTube] = stringEitherMapping[Url.YouTube, CustomException](Url.YouTube.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
-  val meetupUrl: Mapping[Url.Meetup] = stringEitherMapping[Url.Meetup, CustomException](Url.Meetup.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
-  val githubUrl: Mapping[Url.Github] = stringEitherMapping[Url.Github, CustomException](Url.Github.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val urlSlides: Mapping[Url.Slides] = stringEitherMapping[Url.Slides, CustomException](Url.Slides.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val urlVideo: Mapping[Url.Video] = stringEitherMapping[Url.Video, CustomException](Url.Video.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val urlVideos: Mapping[Url.Videos] = stringEitherMapping[Url.Videos, CustomException](Url.Videos.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val urlTwitter: Mapping[Url.Twitter] = stringEitherMapping[Url.Twitter, CustomException](Url.Twitter.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val urlLinkedIn: Mapping[Url.LinkedIn] = stringEitherMapping[Url.LinkedIn, CustomException](Url.LinkedIn.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val urlYouTube: Mapping[Url.YouTube] = stringEitherMapping[Url.YouTube, CustomException](Url.YouTube.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val urlMeetup: Mapping[Url.Meetup] = stringEitherMapping[Url.Meetup, CustomException](Url.Meetup.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
+  val urlGithub: Mapping[Url.Github] = stringEitherMapping[Url.Github, CustomException](Url.Github.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.url))
   val avatar: Mapping[Avatar] = url.transform(Avatar, _.url)
   val logo: Mapping[Logo] = url.transform(Logo, _.url)
   val banner: Mapping[Banner] = url.transform(Banner, _.url)
-  val slidesUrl: Mapping[SlidesUrl] = url.transform(SlidesUrl.from(_).get, _.url)
-  val videoUrl: Mapping[VideoUrl] = url.transform(VideoUrl.from(_).get, _.url)
-  val twitterAccount: Mapping[TwitterAccount] = twitterUrl.transform(TwitterAccount, _.url)
+  val twitterAccount: Mapping[TwitterAccount] = urlTwitter.transform(TwitterAccount, _.url)
   val twitterHashtag: Mapping[TwitterHashtag] = stringEitherMapping[TwitterHashtag, CustomException](TwitterHashtag.from, _.value, formatError, _.getMessage :: Nil, Constraints.maxLength(Values.maxLength.title))
   val secret: Mapping[Secret] = textMapping(Secret, _.decode)
   val password: Mapping[Secret] = secret.verifying(Constraint[Secret](passwordConstraint) { o =>
@@ -105,12 +105,12 @@ object Mappings {
       data.eitherGet(s"$key.country").toValidatedNec,
       data.eitherGet(s"$key.formatted").toValidatedNec,
       data.eitherGet(s"$key.input").toValidatedNec,
-      data.eitherGetAndParse(s"$key.lat", _.tryDouble, numberError).toValidatedNec,
-      data.eitherGetAndParse(s"$key.lng", _.tryDouble, numberError).toValidatedNec,
+      data.eitherGet(s"$key.lat", _.tryDouble, numberError).toValidatedNec,
+      data.eitherGet(s"$key.lng", _.tryDouble, numberError).toValidatedNec,
       data.eitherGet(s"$key.url").toValidatedNec,
       data.get(s"$key.website").validNec[FormError],
       data.get(s"$key.phone").validNec[FormError],
-      data.eitherGetAndParse(s"$key.utcOffset", _.tryInt, numberError).toValidatedNec
+      data.eitherGet(s"$key.utcOffset", _.tryInt, numberError).toValidatedNec
       ).mapN(GMapPlace.apply).toEither.left.map(_.toList)
 
     override def unbind(key: String, value: GMapPlace): Map[String, String] =
@@ -136,14 +136,14 @@ object Mappings {
   val socialAccounts: Mapping[SocialAccounts] = mapping(
     "facebook" -> optional(url.transform[FacebookAccount](FacebookAccount, _.url)),
     "instagram" -> optional(url.transform[InstagramAccount](InstagramAccount, _.url)),
-    "twitter" -> optional(twitterUrl.transform[TwitterAccount](TwitterAccount, _.url)),
-    "linkedIn" -> optional(linkedInUrl.transform[LinkedInAccount](LinkedInAccount, _.url)),
-    "youtube" -> optional(youTubeUrl.transform[YoutubeAccount](YoutubeAccount, _.url)),
-    "meetup" -> optional(meetupUrl.transform[MeetupAccount](MeetupAccount, _.url)),
+    "twitter" -> optional(urlTwitter.transform[TwitterAccount](TwitterAccount, _.url)),
+    "linkedIn" -> optional(urlLinkedIn.transform[LinkedInAccount](LinkedInAccount, _.url)),
+    "youtube" -> optional(urlYouTube.transform[YoutubeAccount](YoutubeAccount, _.url)),
+    "meetup" -> optional(urlMeetup.transform[MeetupAccount](MeetupAccount, _.url)),
     "eventbrite" -> optional(url.transform[EventbriteAccount](EventbriteAccount, _.url)),
     "slack" -> optional(url.transform[SlackAccount](SlackAccount, _.url)),
     "discord" -> optional(url.transform[DiscordAccount](DiscordAccount, _.url)),
-    "github" -> optional(githubUrl.transform[GithubAccount](GithubAccount, _.url))
+    "github" -> optional(urlGithub.transform[GithubAccount](GithubAccount, _.url))
   )(SocialAccounts.apply)(SocialAccounts.unapply)
 
   private val tag: Mapping[Tag] = WrappedMapping[String, Tag](text(1, Tag.maxSize), s => Tag(s.trim), _.value)
@@ -192,38 +192,33 @@ object Mappings {
 
   def slackToken(key: AesSecretKey): Mapping[SlackToken] = stringEitherMapping[SlackToken, Throwable](SlackToken.from(_, key).toEither, _.decode(key).get, formatError, _.getMessage :: Nil, Constraints.nonEmpty)
 
-  private def templateFormatter[A]: Formatter[Mustache.Markdown[A]] = new Formatter[Mustache.Markdown[A]] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Mustache.Markdown[A]] =
+  private def mustacheFormatter[A]: Formatter[Mustache[A]] = new Formatter[Mustache[A]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Mustache[A]] =
       data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
-        case "Mustache" => data.get(s"$key.value").map(v => Right(Mustache.Markdown[A](v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
+        case "Mustache" => data.get(s"$key.value").map(v => Right(Mustache[A](v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
         case v => Left(Seq(FormError(s"$key.kind", s"Invalid value '$v' for key '$key.kind'")))
       }
 
-    override def unbind(key: String, value: Mustache.Markdown[A]): Map[String, String] = value match {
-      case Mustache.Markdown(v) => Map(s"$key.kind" -> "Mustache", s"$key.value" -> v)
-    }
+    override def unbind(key: String, value: Mustache[A]): Map[String, String] = Map(s"$key.kind" -> "Mustache", s"$key.value" -> value.value)
   }
 
-  def template[A]: Mapping[Mustache.Markdown[A]] = of(templateFormatter)
+  def mustache[A]: Mapping[Mustache[A]] = of(mustacheFormatter)
 
-
-  private def templateTextFormatter[A]: Formatter[Mustache.Text[A]] = new Formatter[Mustache.Text[A]] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Mustache.Text[A]] =
+  private def mustacheMarkdownFormatter[A]: Formatter[MustacheMarkdown[A]] = new Formatter[MustacheMarkdown[A]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], MustacheMarkdown[A]] =
       data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
-        case "Mustache" => data.get(s"$key.value").map(v => Right(Mustache.Text[A](v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
+        case "Mustache" => data.get(s"$key.value").map(v => Right(MustacheMarkdown[A](v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
         case v => Left(Seq(FormError(s"$key.kind", s"Invalid value '$v' for key '$key.kind'")))
       }
 
-    override def unbind(key: String, value: Mustache.Text[A]): Map[String, String] = value match {
-      case Mustache.Text(v) => Map(s"$key.kind" -> "Mustache", s"$key.value" -> v)
-    }
+    override def unbind(key: String, value: MustacheMarkdown[A]): Map[String, String] = Map(s"$key.kind" -> "Mustache", s"$key.value" -> value.value)
   }
 
-  def templateText[A]: Mapping[Mustache.Text[A]] = of(templateTextFormatter)
+  def mustacheMarkdown[A]: Mapping[MustacheMarkdown[A]] = of(mustacheMarkdownFormatter)
 
   val groupSettingsEvent: Mapping[Group.Settings.Action.Trigger] = of(new Formatter[Group.Settings.Action.Trigger] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action.Trigger] =
-      data.eitherGetAndParse(key, v => Group.Settings.Action.Trigger.from(v).asTry(identity), formatError).left.map(Seq(_))
+      data.eitherGet(key, v => Group.Settings.Action.Trigger.from(v).asTry(identity), formatError).left.map(Seq(_))
 
     override def unbind(key: String, trigger: Group.Settings.Action.Trigger): Map[String, String] = Map(key -> trigger.value)
   })
@@ -232,13 +227,13 @@ object Mappings {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action] = {
       data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
         case "Email.Send" => (
-          templateTextFormatter[Any].bind(s"$key.to", data),
-          templateTextFormatter[Any].bind(s"$key.subject", data),
-          templateFormatter[Any].bind(s"$key.content", data)
+          mustacheFormatter[Any].bind(s"$key.to", data),
+          mustacheFormatter[Any].bind(s"$key.subject", data),
+          mustacheMarkdownFormatter[Any].bind(s"$key.content", data)
           ).mapN(Group.Settings.Action.Email.apply)
         case "Slack.PostMessage" => (
-          templateTextFormatter[Any].bind(s"$key.channel", data),
-          templateFormatter[Any].bind(s"$key.message", data),
+          mustacheFormatter[Any].bind(s"$key.channel", data),
+          mustacheMarkdownFormatter[Any].bind(s"$key.message", data),
           implicitly[Formatter[Boolean]].bind(s"$key.createdChannelIfNotExist", data),
           implicitly[Formatter[Boolean]].bind(s"$key.inviteEverybody", data)
           ).mapN(SlackAction.PostMessage.apply).map(Group.Settings.Action.Slack)
@@ -249,13 +244,13 @@ object Mappings {
     override def unbind(key: String, value: Group.Settings.Action): Map[String, String] = value match {
       case a: Group.Settings.Action.Email =>
         Map(s"$key.kind" -> "Email.Send") ++
-          templateTextFormatter.unbind(s"$key.to", a.to) ++
-          templateTextFormatter.unbind(s"$key.subject", a.subject) ++
-          templateFormatter.unbind(s"$key.content", a.content)
+          mustacheFormatter.unbind(s"$key.to", a.to) ++
+          mustacheFormatter.unbind(s"$key.subject", a.subject) ++
+          mustacheMarkdownFormatter.unbind(s"$key.content", a.content)
       case Group.Settings.Action.Slack(p: SlackAction.PostMessage) =>
         Map(s"$key.kind" -> "Slack.PostMessage") ++
-          templateTextFormatter.unbind(s"$key.channel", p.channel) ++
-          templateFormatter.unbind(s"$key.message", p.message) ++
+          mustacheFormatter.unbind(s"$key.channel", p.channel) ++
+          mustacheMarkdownFormatter.unbind(s"$key.message", p.message) ++
           implicitly[Formatter[Boolean]].unbind(s"$key.createdChannelIfNotExist", p.createdChannelIfNotExist) ++
           implicitly[Formatter[Boolean]].unbind(s"$key.inviteEverybody", p.inviteEverybody)
     }

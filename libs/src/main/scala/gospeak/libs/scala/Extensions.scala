@@ -6,7 +6,7 @@ import java.util.Optional
 import cats.MonadError
 import cats.data.{NonEmptyList, OptionT}
 import cats.effect.IO
-import gospeak.libs.scala.domain.{CustomException, MultiException}
+import gospeak.libs.scala.domain.{CustomException, MultiException, Page}
 
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
@@ -345,6 +345,8 @@ object Extensions {
 
   implicit class InstantExtension(val in: Instant) extends AnyVal {
     def plus(d: FiniteDuration): Instant = in.plusMillis(d.toMillis)
+
+    def getYear(zone: ZoneId): Int = in.atZone(zone).getYear
   }
 
   implicit class LocalDateTimeExtension(val in: LocalDateTime) extends AnyVal {
@@ -373,6 +375,10 @@ object Extensions {
       case Some(io) => io.map(Some(_))
       case None => IO.pure(None)
     }
+  }
+
+  implicit class PageIOExtension[A](val in: Page[IO[A]]) extends AnyVal {
+    def sequence: IO[Page[A]] = in.items.sequence.map(items => in.copy(items = items))
   }
 
   private def sequenceResult[A, M[X] <: TraversableOnce[X]](in: (mutable.Builder[A, M[A]], Seq[Throwable])): Try[M[A]] = {

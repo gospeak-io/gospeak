@@ -8,7 +8,7 @@
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.published.partials.html.container
 @import gospeak.web.pages.user.talks.proposals.routes.{ProposalCtrl => SpeakerProposalCtrl}
-@import gospeak.web.utils.{Formats, UserAwareReq}
+@import gospeak.web.utils._
 
 @(group: Group, proposal: Proposal.Full, tweet: Option[Tweet], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.proposal} ${proposal.title.value} ${Constants.Emoji.group} ${group.name.value}", PageMeta.proposal(group, proposal.proposal, b), b)() {
@@ -25,13 +25,13 @@
             <a href="@OrgaProposalCtrl.edit(proposal.group.slug, proposal.cfp.slug, proposal.id, Some(req.uri))" class="hover-edit-inline"><i class="fas fa-edit"></i></a>
         }
     </h1>
-    @proposal.event.map { event => <div class="text-muted mb-3">@Formats.date(event.start) at <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a></div> }
+    @proposal.event.map { event => <div class="text-muted mb-3">@event.start.asDate at <a href="@GroupCtrl.event(group.slug, event.slug)">@event.name.value</a></div> }
     <div class="row">
         @proposal.video.map { s => <div class="col-lg-6 mb-3">@embed(s.value)</div> }
         @proposal.slides.map { s => <div class="col-lg-6 mb-3">@embed(s.value)</div> }
     </div>
     <div class="mb-3">
-        @duration(proposal.duration) @tags(proposal.tags)
+        @proposal.duration.asBadge @proposal.tags.asBadges
     </div>
     <ul class="list-inline mb-3">
         @proposal.speakerUsers(users).map { u =>
@@ -40,5 +40,5 @@
             </li>
         }
     </ul>
-    <div class="mb-3">@markdown(proposal.description)</div>
+    <div class="mb-3">@proposal.description.render</div>
 }()

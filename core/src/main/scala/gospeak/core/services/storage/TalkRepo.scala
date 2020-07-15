@@ -17,9 +17,9 @@ trait SpeakerTalkRepo {
 
   def editStatus(talk: Talk.Slug, status: Talk.Status)(implicit ctx: UserCtx): IO[Done]
 
-  def editSlides(talk: Talk.Slug, slides: SlidesUrl)(implicit ctx: UserCtx): IO[Done]
+  def editSlides(talk: Talk.Slug, slides: Url.Slides)(implicit ctx: UserCtx): IO[Done]
 
-  def editVideo(talk: Talk.Slug, video: VideoUrl)(implicit ctx: UserCtx): IO[Done]
+  def editVideo(talk: Talk.Slug, video: Url.Video)(implicit ctx: UserCtx): IO[Done]
 
   def removeSpeaker(talk: Talk.Slug, speaker: User.Id)(implicit ctx: UserCtx): IO[Done]
 

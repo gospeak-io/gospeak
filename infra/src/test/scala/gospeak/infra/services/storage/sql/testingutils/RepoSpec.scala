@@ -15,7 +15,7 @@ import gospeak.infra.services.storage.sql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
 import gospeak.infra.testingutils.{BaseSpec, Values}
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Page, SlidesUrl, Tag, VideoUrl}
+import gospeak.libs.scala.domain.{Page, Tag, Url}
 import org.scalatest.BeforeAndAfterEach
 
 class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with RandomDataGenerator {
@@ -47,8 +47,6 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
   protected val video: Video = random[Video]
   protected val sponsorPack: SponsorPack = random[SponsorPack]
   protected val sponsor: Sponsor = random[Sponsor]
-  protected val slidesUrl: SlidesUrl = random[SlidesUrl]
-  protected val videoUrl: VideoUrl = random[VideoUrl]
   protected val contact: Contact = random[Contact]
   protected val comment: Comment = random[Comment]
   protected val externalEvent: ExternalEvent = random[ExternalEvent]
@@ -61,6 +59,10 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
   protected val member: Group.Member = random[Group.Member]
   protected val rsvp: Event.Rsvp = random[Event.Rsvp]
   protected val tag: Tag = random[Tag]
+
+  protected val urlSlides: Url.Slides = random[Url.Slides]
+  protected val urlVideo: Url.Video = random[Url.Video]
+  protected val urlVideos: Url.Videos = random[Url.Videos]
 
   protected val Seq(userData1, userData2, userData3) = random[User.Data](10).distinctBy(_.email).take(3)
   protected val Seq(groupData1, groupData2) = random[Group.Data](2)
@@ -141,7 +143,7 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
     check(q.query)
     if (checkCount) {
       // checkCount is here to avoid test errors with Timestamp type when in sub-query
-      // ex: SELECT count(*) FROM (SELECT e.id FROM events e WHERE e.group_id=? AND e.start > ?) as cnt
+      // ex: SELECT COUNT(*) FROM (SELECT e.id FROM events e WHERE e.group_id=? AND e.start > ?) as cnt
       // => ✕ P02 Timestamp  →  VARCHAR (VARCHAR)
       //    Timestamp is not coercible to VARCHAR (VARCHAR) according to the
       //    JDBC specification. Expected schema type was TIMESTAMP.

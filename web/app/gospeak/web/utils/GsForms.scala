@@ -81,8 +81,8 @@ object GsForms {
   val updateTags: Form[Seq[Tag]] = Form(single(
     "tags" -> tags))
 
-  val templateForm: Form[Mustache.Text[Nothing]] = Form(single(
-    "template" -> templateText))
+  val templateForm: Form[Mustache[Nothing]] = Form(single(
+    "template" -> mustache))
 
 
   /**
@@ -166,11 +166,11 @@ object GsForms {
     "action" -> groupSettingsAction
   )(GroupAction.apply)(GroupAction.unapply))
 
-  final case class GroupEventTemplateItem(id: String, template: Mustache.Markdown[Message.EventInfo])
+  final case class GroupEventTemplateItem(id: String, template: Mustache[Message.EventInfo])
 
   val groupEventTemplateItem: Form[GroupEventTemplateItem] = Form(mapping(
     "id" -> nonEmptyText,
-    "template" -> template[Message.EventInfo]
+    "template" -> mustache[Message.EventInfo]
   )(GroupEventTemplateItem.apply)(GroupEventTemplateItem.unapply))
 
   val event: Form[Event.Data] = Form(mapping(
@@ -182,7 +182,7 @@ object GsForms {
     "max-attendee" -> optional(number),
     "allow-rsvp" -> boolean,
     "venue" -> optional(venueId),
-    "description" -> template[Message.EventInfo],
+    "description" -> mustacheMarkdown[Message.EventInfo],
     "tags" -> tags,
     "refs" -> eventRefs
   )(Event.Data.apply)(Event.Data.unapply))
@@ -264,8 +264,8 @@ object GsForms {
     "duration" -> duration,
     "description" -> markdown,
     "message" -> markdown,
-    "slides" -> optional(slidesUrl),
-    "video" -> optional(videoUrl),
+    "slides" -> optional(urlSlides),
+    "video" -> optional(urlVideo),
     "tags" -> tags
   )(Talk.Data.apply)(Talk.Data.unapply)
   val talk: Form[Talk.Data] = Form(talkMapping)
@@ -301,8 +301,8 @@ object GsForms {
     "duration" -> duration,
     "description" -> markdown,
     "message" -> markdown,
-    "slides" -> optional(slidesUrl),
-    "video" -> optional(videoUrl),
+    "slides" -> optional(urlSlides),
+    "video" -> optional(urlVideo),
     "tags" -> tags
   )(Proposal.Data.apply)(Proposal.Data.unapply))
 
@@ -310,8 +310,8 @@ object GsForms {
     "title" -> talkTitle,
     "duration" -> duration,
     "description" -> markdown,
-    "slides" -> optional(slidesUrl),
-    "video" -> optional(videoUrl),
+    "slides" -> optional(urlSlides),
+    "video" -> optional(urlVideo),
     "tags" -> tags,
     "orgaTags" -> tags
   )(Proposal.DataOrga.apply)(Proposal.DataOrga.unapply))
@@ -396,7 +396,7 @@ object GsForms {
     "location" -> optional(gMapPlace),
     "url" -> optional(url),
     "tickets" -> optional(url),
-    "videos" -> optional(url),
+    "videos" -> optional(urlVideos),
     "twitterAccount" -> optional(twitterAccount),
     "twitterHashtag" -> optional(twitterHashtag),
     "tags" -> tags
@@ -424,8 +424,8 @@ object GsForms {
     "duration" -> duration,
     "description" -> markdown,
     "message" -> markdown,
-    "slides" -> optional(slidesUrl),
-    "video" -> optional(videoUrl),
+    "slides" -> optional(urlSlides),
+    "video" -> optional(urlVideo),
     "url" -> optional(url),
     "tags" -> tags
   )(ExternalProposal.Data.apply)(ExternalProposal.Data.unapply)

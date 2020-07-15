@@ -1,41 +1,40 @@
 @import gospeak.core.domain.CommonProposal
-@import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
-@import gospeak.web.utils.Formats
+@import gospeak.web.utils._
 
-@(p: CommonProposal)
+@(p: CommonProposal)(implicit req: BasicReq[AnyContent])
 @p.fold { e =>
     <a href="@ProposalCtrl.detailExt(p.talk.slug, e.id)" class="list-group-item list-group-item-action">
         <div class="d-flex w-100 justify-content-between align-items-center">
-            <h5 class="mb-1">@e.event.name.value @e.event.start.map { s => - @Formats.date(s) }</h5>
-            <div><span class="badge badge-dark">External</span> @proposalStatus(p.status)</div>
+            <h5 class="mb-1">@e.event.name.value @e.event.start.map { s => - @s.asDate }</h5>
+            <div><span class="badge badge-dark">External</span> @p.status.asBadge</div>
         </div>
         <div class="d-flex w-100 justify-content-between align-items-center">
             <p class="mb-1">
                 Title: @p.title.value
                 @if(p.duration != p.talk.duration) {
-                    @duration(p.duration, Some("Proposal duration"))
+                    @p.duration.asBadge("Proposal duration")
                 }
-                @tags(p.tags)
+                @p.tags.asBadges
             </p>
-            <small title="Proposal date">@Formats.date(p.info.createdAt)</small>
+            <small title="Proposal date">@p.info.createdAt.asDate</small>
         </div>
     </a>
 } { i =>
     <a href="@ProposalCtrl.detail(p.talk.slug, i.cfp.slug)" class="list-group-item list-group-item-action">
         <div class="d-flex w-100 justify-content-between align-items-center">
-            <h5 class="mb-1">@i.event.map { e => @e.name.value - @Formats.date(e.start) }.getOrElse { @i.cfp.name.value }</h5>
-            <div>@proposalStatus(p.status)</div>
+            <h5 class="mb-1">@i.event.map { e => @e.name.value - @e.start.asDate }.getOrElse { @i.cfp.name.value }</h5>
+            <div>@p.status.asBadge</div>
         </div>
         <div class="d-flex w-100 justify-content-between align-items-center">
             <p class="mb-1">
                 Title: @p.title.value
                 @if(p.duration != p.talk.duration) {
-                    @duration(p.duration, Some("Proposal duration"))
+                    @p.duration.asBadge("Proposal duration")
                 }
-                @tags(p.tags)
+                @p.tags.asBadges
             </p>
-            <small title="Proposal date">@Formats.date(p.info.createdAt)</small>
+            <small title="Proposal date">@p.info.createdAt.asDate</small>
         </div>
     </a>
 }

@@ -41,9 +41,9 @@ object Generators {
   implicit val aZoneId: Arbitrary[ZoneId] = Arbitrary(Gen.oneOf(ZoneId.getAvailableZoneIds.asScala.toSeq.map(ZoneId.of)))
   implicit val aMarkdown: Arbitrary[Markdown] = Arbitrary(stringGen.map(str => Markdown(str)))
   implicit val aSecret: Arbitrary[Secret] = Arbitrary(stringGen.map(str => Secret(str)))
-  implicit val aSlidesUrl: Arbitrary[SlidesUrl] = Arbitrary(slugGen.map(slug => SlidesUrl.from(s"http://docs.google.com/presentation/d/${slug.take(82)}").get))
-  implicit val aVideoUrl: Arbitrary[VideoUrl] = Arbitrary(slugGen.map(slug => VideoUrl.from(s"http://youtu.be/${slug.take(104)}").get))
+  implicit val aUrlSlides: Arbitrary[Url.Slides] = Arbitrary(slugGen.map(slug => Url.Slides.from(s"http://docs.google.com/presentation/d/${slug.take(82)}").get))
   implicit val aUrlVideo: Arbitrary[Url.Video] = Arbitrary(slugGen.map(slug => Url.YouTube.Video.from(s"http://youtu.be/${slug.take(104)}").get))
+  implicit val aUrlVideos: Arbitrary[Url.Videos] = Arbitrary(slugGen.map(slug => Url.YouTube.Channel.from(s"https://www.youtube.com/channel/${slug.take(104)}").get))
   implicit val aEmailAddress: Arbitrary[EmailAddress] = Arbitrary(nonEmptyStringGen.map(slug => EmailAddress.from(slug.take(110) + "e@mail.com").get)) // TODO improve
   implicit val aUrl: Arbitrary[Url] = Arbitrary(stringGen.map(u => Url.from(s"https://loicknuchel.fr#$u").get)) // TODO improve
   implicit val aTwitterUrl: Arbitrary[Url.Twitter] = Arbitrary(stringGen.map(u => Url.Twitter.from(s"https://twitter.com/gospeak_io#$u").get)) // TODO improve
@@ -126,7 +126,7 @@ object Generators {
   implicit val aUserRequest = implicitly[Arbitrary[UserRequest]]
   implicit val aExternalCfp = implicitly[Arbitrary[ExternalCfp]]
 
-  implicit val aTemplate = implicitly[Arbitrary[Mustache.Markdown[Any]]]
+  implicit val aMustacheMarkdown = implicitly[Arbitrary[MustacheMarkdown[Any]]]
   implicit val aGroupSettingsActionTrigger = implicitly[Arbitrary[Group.Settings.Action.Trigger]]
   implicit val aGroupSettingsAction = implicitly[Arbitrary[Group.Settings.Action]]
 }

@@ -1,0 +1,24 @@
+@import gospeak.libs.scala.domain
+@import gospeak.core.domain.Video
+@import gospeak.core.domain.utils.Constants
+@import gospeak.web.domain.{Breadcrumb, PageMeta, Shareable}
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.published.partials.html.container
+@import gospeak.web.pages.published.videos.routes.VideoCtrl
+@import gospeak.web.utils._
+
+@(video: Video, embedCode: domain.Html)(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@container(s"${Constants.Emoji.video} ${video.title}", PageMeta.video(video, b), b)() {
+    <a href="@VideoCtrl.list().previousPageOrThis"><i class="fas fa-chevron-left"></i> Back</a>
+    <div class="float-right">@socialShareButtons(Shareable(video))</div>
+    <div class="video-detail">
+        <div class="mt-5 embed-display">@Html(embedCode.value)</div>
+        <h1 class="mt-3">@video.title</h1>
+        <div class="mt-3">
+            <a href="@video.channelUrl" target="_blank">@video.channel.name</a> -
+            @video.playlistUrl.map { case (p, url) => <a href="@url" target="_blank">@p.name</a> - }
+            @video.publishedAt.asDate
+        </div>
+        <div class="mt-3 mb-10 description text-muted">@video.description</div>
+    </div>
+}()

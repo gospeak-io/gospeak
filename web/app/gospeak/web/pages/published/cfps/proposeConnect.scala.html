@@ -3,12 +3,10 @@
 @import gospeak.libs.scala.domain.Markdown
 @import gospeak.web.auth.partials.html._
 @import gospeak.web.domain.{Breadcrumb, PageMeta}
-@import gospeak.web.pages.partials.display.html.markdown
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.partials.html.container
-@import gospeak.web.utils.GsForms
-@import gospeak.web.utils.UserAwareReq
+@import gospeak.web.utils._
 
 @(group: Group, cfp: Cfp, signupForm: Form[GsForms.TalkSignup], loginForm: Form[GsForms.TalkLogin])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @displayField(key: String, label: String)(display: String => Html) = {
@@ -29,7 +27,7 @@
 
     <div class="mb-3">
         @displayField("talk.title", "Title") { value => @value }
-        @displayField("talk.description", "Description") { value => @markdown(Markdown(value)) }
+        @displayField("talk.description", "Description") { value => @Markdown(value).render }
         @displayField("talk.duration", "Duration") { value => @value minutes }
         @displayField("talk.slides", "Slides") { value => <a href="@value" target="_blank">@value</a> }
         @displayField("talk.video", "Video") { value => <a href="@value" target="_blank">@value</a> }

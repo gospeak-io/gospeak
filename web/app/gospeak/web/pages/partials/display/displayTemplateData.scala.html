@@ -7,5 +7,5 @@
 @(ref: Option[Message.Ref] = None, target: Option[String] = None)
 <div class="template-data" @ref.map { r => data-ref="@r.value" }@target.map { t => data-target="@t" }style="display: none">
     Sample of available data for the template:
-@displayJson()
+    @displayJson()
 </div>

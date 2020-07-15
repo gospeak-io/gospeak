@@ -2,8 +2,7 @@
 @import gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import gospeak.web.pages.partials.form.html._
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.OrgaReq
+@import gospeak.web.utils._
 
 @(sponsor: Sponsor.Full)(implicit req: OrgaReq[AnyContent])
 <div class="list-group-item d-flex justify-content-between align-items-center">
@@ -13,10 +12,10 @@
                 @if(sponsor.isCurrent(req.now)) { @sponsor.partner.name.value } else { <s class="text-muted">@sponsor.partner.name.value</s> }
             </a>
         </h5>
-        <p class="mb-0">Pack <b>@sponsor.pack.name.value</b>, from @Formats.date(sponsor.start) to @Formats.date(sponsor.finish)</p>
+        <p class="mb-0">Pack <b>@sponsor.pack.name.value</b>, from @sponsor.start.asDate to @sponsor.finish.asDate</p>
     </div>
     <div class="d-flex">
         <a href="@SponsorCtrl.edit(req.group.slug, sponsor.id, None)" class="btn btn-primary btn-xs mr-2">Update</a>
-        @formBtn(SponsorCtrl.remove(req.group.slug, sponsor.id), Seq("class" -> "btn-danger btn-xs", "confirm" -> s"Remove ${sponsor.partner.name.value} sponsoring starting ${Formats.date(sponsor.start)}?")) {Remove}
+        @formBtn(SponsorCtrl.remove(req.group.slug, sponsor.id), Seq("class" -> "btn-danger btn-xs", "confirm" -> s"Remove ${sponsor.partner.name.value} sponsoring starting ${sponsor.start.asDate}?")) {Remove}
     </div>
 </div>

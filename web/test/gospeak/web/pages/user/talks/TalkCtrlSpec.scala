@@ -13,7 +13,7 @@ class TalkCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
   private val params = Page.Params()
   private val messageSrv = new MessageSrv(db.group, db.cfp, db.venue, db.proposal, db.sponsor, db.user)
   private val messageBus = new BasicMessageBus[Message]()
-  private val ctrl = new TalkCtrl(cc, silhouette, conf, db.user, db.userRequest, db.event, db.talk, db.proposal, db.externalEvent, db.externalProposal, emailSrv, messageSrv, messageBus)
+  private val ctrl = new TalkCtrl(cc, silhouette, conf, db.user, db.userRequest, db.talk, db.externalEvent, db.externalProposal, emailSrv, messageSrv, messageBus)
 
   override def beforeEach(): Unit = db.migrate().unsafeRunSync()
 

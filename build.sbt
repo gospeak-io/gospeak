@@ -54,6 +54,9 @@ val youtubeApi = Seq(
 val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.11")
 val twitter = Seq("com.danielasfregola" %% "twitter4s" % "6.2") // https://github.com/DanielaSfregola/twitter4s
 val flyway = Seq("org.flywaydb" % "flyway-core" % "6.4.0")
+val cron = Seq(
+  "eu.timepit" %% "fs2-cron-core" % "0.2.2",
+  "com.github.pureconfig" %% "pureconfig-cron4s" % "0.12.3")
 val silhouetteVersion = "7.0.0"
 val silhouette = Seq(
   "com.mohiva" %% "play-silhouette",
@@ -70,7 +73,8 @@ val play = Seq(
 val playTest = Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0").map(_ % Test)
 val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.61.16")
-val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.6.2")
+val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.6.1")
+val liquid = Seq("nl.big-o" % "liqp" % "0.7.9")
 val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.4.8")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
   "org.webjars.npm" % "jquery" % "3.5.0",
@@ -90,16 +94,17 @@ val logback = Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3")
 val scalaTest = Seq(
   "org.scalatest" %% "scalatest" % "3.1.1",
+  "org.scalamock" %% "scalamock" % "4.4.0",
   "org.scalatestplus" %% "scalacheck-1-14" % "3.1.0.0").map(_ % Test)
 val scalaCheck = Seq(
   "org.scalacheck" %% "scalacheck" % "1.14.3",
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5",
   "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
 
-val libsDependencies = hammock ++ flexmark ++ mustache ++ cats ++ playJson ++ scalaTest ++ scalaCheck ++ youtubeApi
+val libsDependencies = hammock ++ flexmark ++ mustache ++ liquid ++ cats ++ playJson ++ scalaTest ++ scalaCheck ++ youtubeApi
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
-val infraDependencies = twitter ++ akka ++ flexmark ++ mustache ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
-val webDependencies = play ++ silhouette ++ pureconfig ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
+val infraDependencies = twitter ++ akka ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
+val webDependencies = play ++ silhouette ++ pureconfig ++ cron ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
 
 
 /**

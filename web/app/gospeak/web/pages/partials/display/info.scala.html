@@ -1,7 +1,6 @@
-@import gospeak.core.domain.utils.Info
 @import gospeak.core.domain.User
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.UserReq
+@import gospeak.core.domain.utils.Info
+@import gospeak.web.utils._
 
 @(info: Info, users: Seq[User], call: Option[User => Call] = None)(implicit req: UserReq[AnyContent])
 @username(id: User.Id) = @{
@@ -21,8 +20,8 @@
 }
 <span>
     <span @if(info.updatedAt != info.createdAt) {
-        title="Updated by @username(info.updatedBy) on @Formats.date(info.updatedAt)"}>
+        title="Updated by @username(info.updatedBy) on @info.updatedAt.asDate"}>
         Created by @userlink(info.createdBy)
     </span>
-    @timeAgo(info.createdAt)
+    @info.createdAt.asTimeAgo
 </span>

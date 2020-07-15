@@ -16,6 +16,8 @@ import gospeak.libs.scala.domain._
 import scala.util.Try
 
 class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
+  override def performWriteOps: Boolean = client.performWriteOps
+
   override def hasSecureCallback: Boolean = client.hasSecureCallback
 
   override def buildAuthorizationUrl(redirectUri: String): Try[Url] = client.buildAuthorizationUrl(redirectUri)

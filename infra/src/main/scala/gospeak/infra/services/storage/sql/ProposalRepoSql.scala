@@ -27,16 +27,16 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def edit(talk: Talk.Slug, cfp: Cfp.Slug, data: Proposal.Data)(implicit ctx: UserCtx): IO[Done] =
     update(ctx.user.id, talk, cfp)(data, ctx.now).run(xa)
 
-  override def editSlides(cfp: Cfp.Slug, id: Proposal.Id, slides: SlidesUrl)(implicit ctx: OrgaCtx): IO[Done] =
+  override def editSlides(cfp: Cfp.Slug, id: Proposal.Id, slides: Url.Slides)(implicit ctx: OrgaCtx): IO[Done] =
     updateSlides(cfp, id)(slides, ctx.user.id, ctx.now).run(xa)
 
-  override def editSlides(talk: Talk.Slug, cfp: Cfp.Slug, slides: SlidesUrl)(implicit ctx: UserCtx): IO[Done] =
+  override def editSlides(talk: Talk.Slug, cfp: Cfp.Slug, slides: Url.Slides)(implicit ctx: UserCtx): IO[Done] =
     updateSlides(ctx.user.id, talk, cfp)(slides, ctx.user.id, ctx.now).run(xa)
 
-  override def editVideo(cfp: Cfp.Slug, id: Proposal.Id, video: VideoUrl)(implicit ctx: OrgaCtx): IO[Done] =
+  override def editVideo(cfp: Cfp.Slug, id: Proposal.Id, video: Url.Video)(implicit ctx: OrgaCtx): IO[Done] =
     updateVideo(cfp, id)(video, ctx.user.id, ctx.now).run(xa)
 
-  override def editVideo(talk: Talk.Slug, cfp: Cfp.Slug, video: VideoUrl)(implicit ctx: UserCtx): IO[Done] =
+  override def editVideo(talk: Talk.Slug, cfp: Cfp.Slug, video: Url.Video)(implicit ctx: UserCtx): IO[Done] =
     updateVideo(ctx.user.id, talk, cfp)(video, ctx.user.id, ctx.now).run(xa)
 
   override def editOrgaTags(cfp: Cfp.Slug, id: Proposal.Id, orgaTags: Seq[Tag])(implicit ctx: OrgaCtx): IO[Done] =
@@ -231,16 +231,16 @@ object ProposalRepoSql {
   private[sql] def updateStatus(cfp: Cfp.Slug, id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): Update =
     table.update(fr0"status=$status, event_id=$event", where(cfp, id))
 
-  private[sql] def updateSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: SlidesUrl, by: User.Id, now: Instant): Update =
+  private[sql] def updateSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Url.Slides, by: User.Id, now: Instant): Update =
     table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by", where(cfp, id))
 
-  private[sql] def updateSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: SlidesUrl, by: User.Id, now: Instant): Update =
+  private[sql] def updateSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Url.Slides, by: User.Id, now: Instant): Update =
     table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by", where(speaker, talk, cfp))
 
-  private[sql] def updateVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: VideoUrl, by: User.Id, now: Instant): Update =
+  private[sql] def updateVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Url.Video, by: User.Id, now: Instant): Update =
     table.update(fr0"video=$video, updated_at=$now, updated_by=$by", where(cfp, id))
 
-  private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: VideoUrl, by: User.Id, now: Instant): Update =
+  private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Url.Video, by: User.Id, now: Instant): Update =
     table.update(fr0"video=$video, updated_at=$now, updated_by=$by", where(speaker, talk, cfp))
 
   private[sql] def updateOrgaTags(cfp: Cfp.Slug, id: Proposal.Id)(orgaTags: Seq[Tag], by: User.Id, now: Instant): Update =

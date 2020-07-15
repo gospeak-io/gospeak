@@ -1,8 +1,0 @@
-@import gospeak.libs.scala.domain.Url
-
-@(url: Option[Url] = None)
-@url.map { url =>
-    <a href="@url.value" target="_blank" title="Site"><i class="fas fa-link"></i></a>
-}.getOrElse {
-    <i class="fas fa-link text-muted"></i>
-}

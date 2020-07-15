@@ -1,5 +1,5 @@
-@import gospeak.web.pages.partials.display.html.markdown
 @import gospeak.libs.scala.domain.Markdown
+@import gospeak.web.utils._
 
 @(text: Markdown)
-@markdown(text)
+@text.render

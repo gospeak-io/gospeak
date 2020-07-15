@@ -1,11 +1,10 @@
 @import gospeak.core.domain.{CommonProposal, Talk}
+@import gospeak.libs.scala.domain.Page
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.user.partials.html.{container, commonProposalItem}
 @import gospeak.web.pages.user.talks.cfps.routes.CfpCtrl
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.UserReq
-@import gospeak.libs.scala.domain.Page
+@import gospeak.web.utils._
 
 @(talk: Talk, proposals: Page[CommonProposal])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(s"${talk.title.value} proposals", b)() {
@@ -18,7 +17,7 @@
             </p>
         </div>
     } else {
-        <h1 class="text-capitalize">@Formats.plural(proposals.total.value, "proposal") for @talk.title.value</h1>
-        @Formats.paginated[CommonProposal](proposals, ProposalCtrl.list(talk.slug, _), commonProposalItem(_))
+        <h1 class="text-capitalize">@proposals.plural("proposal") for @talk.title.value</h1>
+        @proposals.render(ProposalCtrl.list(talk.slug, _))(commonProposalItem(_))
     }
 }()

@@ -1,0 +1,89 @@
+@import gospeak.core.domain.ExternalEvent
+@import gospeak.libs.scala.domain.Page
+@import gospeak.libs.scala.TimeUtils
+@import gospeak.web.pages.admin.AdminCtrl.UpdateExtEventVideoJob
+@import gospeak.web.pages.admin.partials.html.container
+@import gospeak.web.pages.admin.routes.AdminCtrl
+@import gospeak.web.pages.partials.form.html.formBtn
+@import gospeak.web.pages.published.events.routes.EventCtrl
+@import gospeak.web.utils._
+
+@(extEvents: Page[(ExternalEvent, Long)], jobs: List[UpdateExtEventVideoJob])(implicit req: AdminReq[AnyContent])
+@container(s"Admin")() {
+    <h1>Videos</h1>
+    @if(jobs.nonEmpty) {
+        <div class="alert alert-primary" role="alert">
+            Running video import job:
+            <ul>
+                @jobs.sortBy(_.started.toEpochMilli).map {
+                    case UpdateExtEventVideoJob(event, started, gospeakVideos, remoteVideos, diff, created, updated, Some(finished), Some(error)) => {
+                        <li class="text-danger">
+                            [ERROR] <b>@event.name.value</b> (@TimeUtils.toFiniteDuration(started, finished)): @error.getMessage.
+                            @gospeakVideos.map{v => @v.length Gospeak videos.}
+                            @remoteVideos.map{v => @v.length remove videos.}
+                            @diff.map{d => @d.rightOnly.length videos to create, @d.both.length to update and @d.leftOnly.length to delete.}
+                            @created.map{_ => Videos created.}
+                            @updated.map{_ => Videos updated.}
+                        </li>
+                    }
+                    case UpdateExtEventVideoJob(event, started, _, _, Some(diff), _, _, Some(finished), None) => {
+                        <li class="text-success">[FINISHED] <b>@event.name.value</b> (@TimeUtils.toFiniteDuration(started, finished)): created @diff.rightOnly.length videos, updated @diff.both.length and deleted @diff.leftOnly.length</li>
+                    }
+                    case UpdateExtEventVideoJob(event, started, _, _, Some(diff), _, Some(updated), None, None) => {
+                        <li>[DELETING] <b>@event.name.value</b> (@TimeUtils.toFiniteDuration(started, req.now)): created @diff.rightOnly.length videos and updated @diff.both.length. Now deleting @diff.leftOnly.length</li>
+                    }
+                    case UpdateExtEventVideoJob(event, started, _, _, Some(diff), Some(created), None, None, None) => {
+                        <li>[UPDATING] <b>@event.name.value</b> (@TimeUtils.toFiniteDuration(started, req.now)): created @diff.rightOnly.length videos. Now updating @diff.both.length. Will delete @diff.leftOnly.length after</li>
+                    }
+                    case UpdateExtEventVideoJob(event, started, _, _, Some(diff), None, None, None, None) => {
+                        <li>[CREATING] <b>@event.name.value</b> (@TimeUtils.toFiniteDuration(started, req.now)): creating @diff.rightOnly.length videos. Will update @diff.both.length and delete @diff.leftOnly.length after</li>
+                    }
+                    case UpdateExtEventVideoJob(event, started, Some(gospeakVideos), Some(remoteVideos), None, None, None, None, None) => {
+                        <li>[DIFFING] <b>@event.name.value</b> (@TimeUtils.toFiniteDuration(started, req.now)): building diff with @gospeakVideos.length Gospeak videos and @remoteVideos.length remote ones</li>
+                    }
+                    case UpdateExtEventVideoJob(event, started, Some(gospeakVideos), None, None, None, None, None, None) => {
+                        <li>[FETCHING] <b>@event.name.value</b> (@TimeUtils.toFiniteDuration(started, req.now)): found @gospeakVideos.length videos on Gospeak. Fetching remote ones</li>
+                    }
+                    case UpdateExtEventVideoJob(event, started, None, None, None, None, None, None, None) => {
+                        <li>[LOADING] <b>@event.name.value</b> (@TimeUtils.toFiniteDuration(started, req.now)): loading Gospeak videos</li>
+                    }
+                    case UpdateExtEventVideoJob(event, started, gospeakVideos, remoteVideos, diff, created, updated, finished, error) => {
+                        <li class="text-danger">
+                            [UNKNOWN] <b>@event.name.value</b> (@TimeUtils.toFiniteDuration(started, req.now)):
+                            @gospeakVideos.map{v => @v.length Gospeak videos.}
+                            @remoteVideos.map{v => @v.length remove videos.}
+                            @diff.map{d => @d.rightOnly.length videos to create, @d.both.length to update and @d.leftOnly.length to delete.}
+                            @created.map{_ => Videos created.}
+                            @updated.map{_ => Videos updated.}
+                            @finished.map{_ => Videos deleted.}
+                            @error.map{e => Error: @e.getMessage.}
+                        </li>
+                    }
+                }
+            </ul>
+        </div>
+    }
+    <p>A list of video links available</p>
+    @extEvents.renderCustom(AdminCtrl.fetchVideos) { p =>
+        <table class="table table-sm table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">Event</th>
+                    <th scope="col">Videos</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    } { <tr><td colspan="4" class="text-center p-5">No results <i class="far fa-sad-tear"></i></td></tr> } { case (event, videoCount) =>
+        <tr @if(event.videos.isEmpty){class="table-danger"} else {@if(videoCount == 0){class="table-primary"}}>
+            <td>@event.name.value <a href="@EventCtrl.detailExt(event.id)" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
+            <td>@videoCount videos</td>
+            <td>@event.videos.map { u => <a href="@u.value" target="_blank">@u.platform @u.kind</a> }.getOrElse{No video link}</td>
+            <td>@formBtn(AdminCtrl.updateExtEventVideos(event.id), Seq("class" -> "btn-success btn-xs")){Update videos}</td>
+        </tr>
+    } { p =>
+            </tbody>
+        </table>
+    }
+}()

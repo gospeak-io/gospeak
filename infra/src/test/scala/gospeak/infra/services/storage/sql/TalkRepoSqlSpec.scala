@@ -73,11 +73,11 @@ class TalkRepoSqlSpec extends RepoSpec {
         check(q, s"UPDATE $table SET status=? WHERE t.speakers LIKE ? AND t.slug=?")
       }
       it("should build updateSlides") {
-        val q = TalkRepoSql.updateSlides(talk.slug)(slidesUrl, user.id, now)
+        val q = TalkRepoSql.updateSlides(talk.slug)(urlSlides, user.id, now)
         check(q, s"UPDATE $table SET slides=?, updated_at=?, updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
       }
       it("should build updateVideo") {
-        val q = TalkRepoSql.updateVideo(talk.slug)(videoUrl, user.id, now)
+        val q = TalkRepoSql.updateVideo(talk.slug)(urlVideo, user.id, now)
         check(q, s"UPDATE $table SET video=?, updated_at=?, updated_by=? WHERE t.speakers LIKE ? AND t.slug=?")
       }
       it("should build updateSpeakers") {

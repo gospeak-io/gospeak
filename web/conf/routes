@@ -53,6 +53,9 @@ GET         /speakers/:speaker                                                  
 GET         /speakers/:speaker/talks/:talk                                                 gospeak.web.pages.published.speakers.SpeakerCtrl.talk(speaker: User.Slug, talk: Talk.Slug)
 GET         /speakers/:speaker/contact                                                     gospeak.web.pages.published.speakers.SpeakerCtrl.contactSpeaker(speaker: User.Slug)
 
+GET         /videos                                                                        gospeak.web.pages.published.videos.VideoCtrl.list(params: Page.Params ?= Page.Params.defaults)
+GET         /videos/:video                                                                 gospeak.web.pages.published.videos.VideoCtrl.detail(video: Url.Video.Id)
+
 GET         /signup                                                                        gospeak.web.auth.AuthCtrl.signup(redirect: Option[String] ?= None)
 POST        /signup                                                                        gospeak.web.auth.AuthCtrl.doSignup(redirect: Option[String] ?= None)
 GET         /login                                                                         gospeak.web.auth.AuthCtrl.login(redirect: Option[String] ?= None)
@@ -219,7 +222,11 @@ POST        /u/groups/:group/settings/orgas/cancel/:request                     
 POST        /u/groups/:group/settings/orgas/:user/remove                                   gospeak.web.pages.orga.settings.SettingsCtrl.doRemoveOrga(group: Group.Slug, user: User.Slug)
 
 GET         /a                                                                             gospeak.web.pages.admin.AdminCtrl.index
+GET         /a/schedulers                                                                  gospeak.web.pages.admin.AdminCtrl.schedulers()
+GET         /a/schedulers/exec/:scheduler                                                  gospeak.web.pages.admin.AdminCtrl.schedulerExec(scheduler: String)
 GET         /a/check-user-templates                                                        gospeak.web.pages.admin.AdminCtrl.checkUserTemplates(params: Page.Params ?= Page.Params.defaults)
+GET         /a/fetch-videos                                                                gospeak.web.pages.admin.AdminCtrl.fetchVideos(params: Page.Params ?= Page.Params.defaults)
+POST        /a/fetch-videos/ext-event/:event                                               gospeak.web.pages.admin.AdminCtrl.updateExtEventVideos(event: ExternalEvent.Id)
 
 GET         /styleguide                                                                    gospeak.web.pages.styleguide.StyleguideCtrl.index(params: Page.Params ?= Page.Params.defaults)
 GET         /styleguide/embed                                                              gospeak.web.pages.styleguide.StyleguideCtrl.embed

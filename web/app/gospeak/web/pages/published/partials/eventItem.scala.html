@@ -1,7 +1,7 @@
 @import gospeak.core.domain.Event
 @import gospeak.core.domain.utils.Constants
 @import gospeak.web.pages.published.groups.routes.GroupCtrl
-@import gospeak.web.utils.{Formats, UserAwareReq}
+@import gospeak.web.utils._
 
 @(e: Event.Full)(implicit req: UserAwareReq[AnyContent])
 <div class="card mb-3">
@@ -19,7 +19,7 @@
                     <a href="@GroupCtrl.event(e.group.slug, e.slug)">@e.name.value</a>
                 </h5>
                 <p class="card-text d-flex justify-content-between align-items-center">
-                    <small class="text-muted">@Formats.date(e.start)</small>
+                    <small class="text-muted">@e.start.asDate</small>
                     @e.venue.map { v => <small class="text-muted">at @v.partner.name.value</small> }
                 </p>
             </div>

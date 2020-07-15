@@ -4,14 +4,13 @@
 @import gospeak.web.pages.orga.sponsors.routes.SponsorCtrl
 @import gospeak.web.pages.orga.partners.routes.PartnerCtrl
 @import gospeak.web.pages.partials.form.html._
-@import gospeak.web.utils.Formats
-@import gospeak.web.utils.OrgaReq
+@import gospeak.web.utils._
 
 @(partner: Partner, sponsor: Sponsor, form: Form[Sponsor.Data], slug: Option[Partner.Slug])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container("Edit sponsor", b)() {
     @formElt(form, SponsorCtrl.doEdit(req.group.slug, sponsor.id, slug)) {
         <div class="d-flex justify-content-between align-items-center">
-            <h1>Update @partner.name.value from @Formats.date(sponsor.start) to @Formats.date(sponsor.finish)</h1>
+            <h1>Update @partner.name.value from @sponsor.start.asDate to @sponsor.finish.asDate</h1>
             <div>
                 @btnCancel(slug.map(s => PartnerCtrl.detail(req.group.slug, s)).getOrElse(SponsorCtrl.list(req.group.slug)))
                 @btnSubmit("Update")

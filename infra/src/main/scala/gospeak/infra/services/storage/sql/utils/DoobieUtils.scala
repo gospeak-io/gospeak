@@ -245,27 +245,31 @@ object DoobieUtils {
 
     def delete(where: Fragment): Delete = Delete(value, fr0" " ++ where)
 
-    def select[A: Read](): Select[A] = Select[A](value, fields, aggFields, customFields, None, sorts, None)
+    def select[A: Read](): Select[A] = Select[A](value, fields, aggFields, customFields, None, sorts, None, None)
 
-    def select[A: Read](where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, None)
+    def select[A: Read](where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, None, None)
 
-    def select[A: Read](where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), None)
+    def select[A: Read](where: Fragment, offset: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, Some(offset), None)
 
-    def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, customFields, None, sorts, None)
+    def select[A: Read](where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), None, None)
 
-    def select[A: Read](fields: Seq[Field], sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, None, Sorts(sort), None)
+    def select[A: Read](fields: Seq[Field]): Select[A] = Select[A](value, fields, aggFields, customFields, None, sorts, None, None)
 
-    def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, None)
+    def select[A: Read](fields: Seq[Field], sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, None, Sorts(sort), None, None)
 
-    def select[A: Read](fields: Seq[Field], where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), None)
+    def select[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, None, None)
 
-    def selectOne[A: Read](where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, Some(1))
+    def select[A: Read](fields: Seq[Field], where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), None, None)
 
-    def selectOne[A: Read](where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), Some(1))
+    def selectOne[A: Read](where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, None, Some(1))
 
-    def selectOne[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, Some(1))
+    def selectOne[A: Read](where: Fragment, offset: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, Some(offset), Some(1))
 
-    def selectOne[A: Read](fields: Seq[Field], where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), Some(1))
+    def selectOne[A: Read](where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), None, Some(1))
+
+    def selectOne[A: Read](fields: Seq[Field], where: Fragment): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), sorts, None, Some(1))
+
+    def selectOne[A: Read](fields: Seq[Field], where: Fragment, sort: Sort): Select[A] = Select[A](value, fields, aggFields, customFields, Some(fr0" " ++ where), Sorts(sort), None, Some(1))
 
     def selectPage[A: Read, C <: BasicCtx](params: Page.Params)(implicit ctx: C): SelectPage[A, C] = SelectPage[A, C](value, prefix, fields, aggFields, customFields, None, None, params, sorts, search, filters, ctx)
 
@@ -351,13 +355,16 @@ object DoobieUtils {
                                    customFields: Seq[CustomField],
                                    whereOpt: Option[Fragment],
                                    sorts: Sorts,
+                                   offset: Option[Fragment],
                                    limit: Option[Int]) {
     def fr: Fragment = {
       val select = const0(s"SELECT ${(fields.map(_.value) ++ aggFields.map(_.value)).mkString(", ")}") ++ customFields.map(fr0", " ++ _.value).foldLeft(fr0"")(_ ++ _) ++ fr0" FROM " ++ table
       val where = whereOpt.getOrElse(fr0"")
       val groupBy = aggFields.headOption.map(_ => const0(s" GROUP BY ${fields.map(_.label).mkString(", ")}")).getOrElse(fr0"")
       val orderBy = orderByFragment(sorts.default)
-      select ++ where ++ groupBy ++ orderBy ++ limit.map(l => const0(s" LIMIT $l")).getOrElse(fr0"")
+      select ++ where ++ groupBy ++ orderBy ++
+        limit.map(l => const0(s" LIMIT $l")).getOrElse(fr0"") ++
+        offset.map(o => const0(s" OFFSET ") ++ o).getOrElse(fr0"")
     }
 
     def query: doobie.Query0[A] = fr.query[A]
@@ -402,7 +409,7 @@ object DoobieUtils {
     def countFr: Fragment = {
       val select = const0(s"SELECT ${fields.headOption.map(_.value).getOrElse("*")} FROM ") ++ table
       val where = whereFragment(filterClause(whereOpt, aggregation = false), params.search, searchFields).getOrElse(fr0"")
-      fr0"SELECT count(*) FROM (" ++ select ++ where ++ groupBy ++ having ++ fr0") as cnt"
+      fr0"SELECT COUNT(*) FROM (" ++ select ++ where ++ groupBy ++ having ++ fr0") as cnt"
     }
 
     def query: doobie.Query0[A] = fr.query[A]
@@ -458,35 +465,39 @@ object DoobieUtils {
     implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Instant].timap(LocalDateTime.ofInstant(_, ZoneOffset.UTC))(_.toInstant(ZoneOffset.UTC))
     implicit val emailAddressMeta: Meta[EmailAddress] = Meta[String].timap(EmailAddress.from(_).get)(_.value)
     implicit val urlMeta: Meta[Url] = Meta[String].timap(Url.from(_).get)(_.value)
+    implicit val urlSlidesMeta: Meta[Url.Slides] = Meta[String].timap(Url.Slides.from(_).get)(_.value)
     implicit val urlVideoMeta: Meta[Url.Video] = Meta[String].timap(Url.Video.from(_).get)(_.value)
-    implicit val twitterUrlMeta: Meta[Url.Twitter] = Meta[String].timap(Url.Twitter.from(_).get)(_.value)
-    implicit val linkedInUrlMeta: Meta[Url.LinkedIn] = Meta[String].timap(Url.LinkedIn.from(_).get)(_.value)
-    implicit val youTubeUrlMeta: Meta[Url.YouTube] = Meta[String].timap(Url.YouTube.from(_).get)(_.value)
-    implicit val meetupUrlMeta: Meta[Url.Meetup] = Meta[String].timap(Url.Meetup.from(_).get)(_.value)
-    implicit val githubUrlMeta: Meta[Url.Github] = Meta[String].timap(Url.Github.from(_).get)(_.value)
+    implicit val urlVideoIdMeta: Meta[Url.Video.Id] = Meta[String].timap(Url.Video.Id)(_.value)
+    implicit val urlVideosMeta: Meta[Url.Videos] = Meta[String].timap(Url.Videos.from(_).get)(_.value)
+    implicit val urlVideosChannelIdMeta: Meta[Url.Videos.Channel.Id] = Meta[String].timap(Url.Videos.Channel.Id)(_.value)
+    implicit val urlVideosPlaylistIdMeta: Meta[Url.Videos.Playlist.Id] = Meta[String].timap(Url.Videos.Playlist.Id)(_.value)
+    implicit val urlTwitterMeta: Meta[Url.Twitter] = Meta[String].timap(Url.Twitter.from(_).get)(_.value)
+    implicit val urlLinkedInMeta: Meta[Url.LinkedIn] = Meta[String].timap(Url.LinkedIn.from(_).get)(_.value)
+    implicit val urlYouTubeMeta: Meta[Url.YouTube] = Meta[String].timap(Url.YouTube.from(_).get)(_.value)
+    implicit val urlMeetupMeta: Meta[Url.Meetup] = Meta[String].timap(Url.Meetup.from(_).get)(_.value)
+    implicit val urlGithubMeta: Meta[Url.Github] = Meta[String].timap(Url.Github.from(_).get)(_.value)
     implicit val logoMeta: Meta[Logo] = urlMeta.timap(Logo)(_.url)
     implicit val bannerMeta: Meta[Banner] = urlMeta.timap(Banner)(_.url)
     implicit val facebookAccountMeta: Meta[FacebookAccount] = urlMeta.timap(FacebookAccount)(_.url)
     implicit val instagramAccountMeta: Meta[InstagramAccount] = urlMeta.timap(InstagramAccount)(_.url)
-    implicit val twitterAccountMeta: Meta[TwitterAccount] = twitterUrlMeta.timap(TwitterAccount)(_.url)
-    implicit val linkedInAccountMeta: Meta[LinkedInAccount] = linkedInUrlMeta.timap(LinkedInAccount)(_.url)
-    implicit val youtubeAccountMeta: Meta[YoutubeAccount] = youTubeUrlMeta.timap(YoutubeAccount)(_.url)
-    implicit val meetupAccountMeta: Meta[MeetupAccount] = meetupUrlMeta.timap(MeetupAccount)(_.url)
+    implicit val twitterAccountMeta: Meta[TwitterAccount] = urlTwitterMeta.timap(TwitterAccount)(_.url)
+    implicit val linkedInAccountMeta: Meta[LinkedInAccount] = urlLinkedInMeta.timap(LinkedInAccount)(_.url)
+    implicit val youtubeAccountMeta: Meta[YoutubeAccount] = urlYouTubeMeta.timap(YoutubeAccount)(_.url)
+    implicit val meetupAccountMeta: Meta[MeetupAccount] = urlMeetupMeta.timap(MeetupAccount)(_.url)
     implicit val eventbriteAccountMeta: Meta[EventbriteAccount] = urlMeta.timap(EventbriteAccount)(_.url)
     implicit val slackAccountMeta: Meta[SlackAccount] = urlMeta.timap(SlackAccount)(_.url)
     implicit val discordAccountMeta: Meta[DiscordAccount] = urlMeta.timap(DiscordAccount)(_.url)
-    implicit val githubAccountMeta: Meta[GithubAccount] = githubUrlMeta.timap(GithubAccount)(_.url)
-    implicit val slidesUrlMeta: Meta[SlidesUrl] = urlMeta.timap(SlidesUrl.from(_).get)(_.url)
-    implicit val videoUrlMeta: Meta[VideoUrl] = urlMeta.timap(VideoUrl.from(_).get)(_.url)
+    implicit val githubAccountMeta: Meta[GithubAccount] = urlGithubMeta.timap(GithubAccount)(_.url)
     implicit val twitterHashtagMeta: Meta[TwitterHashtag] = Meta[String].timap(TwitterHashtag.from(_).get)(_.value)
     implicit val currencyMeta: Meta[Price.Currency] = Meta[String].timap(Price.Currency.from(_).get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown(_))(_.value)
 
-    implicit def mustacheMarkdownMeta[A: TypeTag]: Meta[Mustache.Markdown[A]] = Meta[String].timap(Mustache.Markdown[A])(_.value)
+    implicit def mustacheMeta[A: TypeTag]: Meta[Mustache[A]] = Meta[String].timap(Mustache[A])(_.value)
 
-    implicit def mustacheTextMeta[A: TypeTag]: Meta[Mustache.Text[A]] = Meta[String].timap(Mustache.Text[A])(_.value)
+    implicit def mustacheMarkdownMeta[A: TypeTag]: Meta[MustacheMarkdown[A]] = Meta[String].timap(MustacheMarkdown[A])(_.value)
 
-    implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(","))
+    // "take(150)": I prefer truncated tags than failing request
+    implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(",").take(150))
     implicit val gMapPlaceMeta: Meta[GMapPlace] = {
       implicit val geoDecoder: Decoder[Geo] = deriveDecoder[Geo]
       implicit val geoEncoder: Encoder[Geo] = deriveEncoder[Geo]
@@ -494,16 +505,16 @@ object DoobieUtils {
       implicit val gMapPlaceEncoder: Encoder[GMapPlace] = deriveEncoder[GMapPlace]
       Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
     }
-    implicit val groupSettingsEventTemplatesMeta: Meta[Map[String, Mustache.Text[Message.EventInfo]]] = {
-      implicit val textTemplateDecoder: Decoder[Mustache.Text[Message.EventInfo]] = deriveDecoder[Mustache.Text[Message.EventInfo]]
-      implicit val textTemplateEncoder: Encoder[Mustache.Text[Message.EventInfo]] = deriveEncoder[Mustache.Text[Message.EventInfo]]
-      Meta[String].timap(fromJson[Map[String, Mustache.Text[Message.EventInfo]]](_).get)(toJson)
+    implicit val groupSettingsEventTemplatesMeta: Meta[Map[String, Mustache[Message.EventInfo]]] = {
+      implicit val mustacheDecoder: Decoder[Mustache[Message.EventInfo]] = deriveDecoder[Mustache[Message.EventInfo]]
+      implicit val mustacheEncoder: Encoder[Mustache[Message.EventInfo]] = deriveEncoder[Mustache[Message.EventInfo]]
+      Meta[String].timap(fromJson[Map[String, Mustache[Message.EventInfo]]](_).get)(toJson)
     }
     implicit val groupSettingsActionsMeta: Meta[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]] = {
-      implicit val mustacheTextDecoder: Decoder[Mustache.Text[Any]] = deriveDecoder[Mustache.Text[Any]]
-      implicit val mustacheTextEncoder: Encoder[Mustache.Text[Any]] = deriveEncoder[Mustache.Text[Any]]
-      implicit val mustacheMarkdownDecoder: Decoder[Mustache.Markdown[Any]] = deriveDecoder[Mustache.Markdown[Any]]
-      implicit val mustacheMarkdownEncoder: Encoder[Mustache.Markdown[Any]] = deriveEncoder[Mustache.Markdown[Any]]
+      implicit val mustacheDecoder: Decoder[Mustache[Any]] = deriveDecoder[Mustache[Any]]
+      implicit val mustacheEncoder: Encoder[Mustache[Any]] = deriveEncoder[Mustache[Any]]
+      implicit val mustacheMarkdownDecoder: Decoder[MustacheMarkdown[Any]] = deriveDecoder[MustacheMarkdown[Any]]
+      implicit val mustacheMarkdownEncoder: Encoder[MustacheMarkdown[Any]] = deriveEncoder[MustacheMarkdown[Any]]
       implicit val slackActionPostMessageDecoder: Decoder[SlackAction.PostMessage] = deriveDecoder[SlackAction.PostMessage]
       implicit val slackActionPostMessageEncoder: Encoder[SlackAction.PostMessage] = deriveEncoder[SlackAction.PostMessage]
       implicit val slackActionDecoder: Decoder[SlackAction] = deriveDecoder[SlackAction]

@@ -19,13 +19,11 @@ import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.StringUtils
 import gospeak.libs.scala.domain.TimePeriod._
 import gospeak.libs.scala.domain._
-import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
-  private val logger = LoggerFactory.getLogger(this.getClass)
   private val flyway = FlywayUtils.build(dbConf)
   private[sql] val xa: doobie.Transactor[IO] = DoobieUtils.transactor(dbConf)
 
@@ -70,6 +68,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
   override val externalCfp = new ExternalCfpRepoSql(xa)
   override val externalProposal = new ExternalProposalRepoSql(xa)
   override val userRequest = new UserRequestRepoSql(xa, group, talk, proposal, externalProposal)
+  override val video = new VideoRepoSql(xa)
 
   def insertMockData(): IO[Done] = {
     val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
@@ -96,12 +95,12 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       Cfp(Cfp.Id.generate(), group.id, Cfp.Slug.from(slug).get, Cfp.Name(name), start.map(d => LocalDateTime.parse(d + "T00:00:00")), end.map(d => LocalDateTime.parse(d + "T00:00:00")), Markdown(description), tags.map(Tag(_)), Info(by.id, now))
 
     def talk(by: User, slug: String, title: String, status: Talk.Status = Talk.Status.Public, speakers: Seq[User] = Seq(), duration: Int = 10, slides: Option[String] = None, video: Option[String] = None, description: String = "Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin.", tags: Seq[String] = Seq()): Talk =
-      Talk(Talk.Id.generate(), Talk.Slug.from(slug).get, status, Talk.Title(title), Duration(duration, MINUTES), Markdown(description), Markdown(""), NonEmptyList.of(by.id) ++ speakers.map(_.id).toList, slides.map(SlidesUrl.from(_).get), video.map(VideoUrl.from(_).get), tags.map(Tag(_)), Info(by.id, now))
+      Talk(Talk.Id.generate(), Talk.Slug.from(slug).get, status, Talk.Title(title), Duration(duration, MINUTES), Markdown(description), Markdown(""), NonEmptyList.of(by.id) ++ speakers.map(_.id).toList, slides.map(Url.Slides.from(_).get), video.map(Url.Video.from(_).get), tags.map(Tag(_)), Info(by.id, now))
 
     def proposal(talk: Talk, cfp: Cfp, status: Proposal.Status = Proposal.Status.Pending, orgaTags: Seq[String] = Seq()): Proposal =
       Proposal(Proposal.Id.generate(), talk.id, cfp.id, None, status, talk.title, talk.duration, talk.description, Markdown(""), talk.speakers, talk.slides, talk.video, talk.tags, orgaTags.map(Tag(_)), talk.info)
 
-    def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, maxAttendee: Option[Int], allowRsvp: Boolean = false, venue: Option[Venue] = None, description: Mustache.Markdown[Message.EventInfo] = Mustache.Markdown[Message.EventInfo](""), tags: Seq[String] = Seq(), published: Boolean = true): Event =
+    def event(group: Group, cfp: Option[Cfp], slug: String, name: String, date: String, by: User, maxAttendee: Option[Int], allowRsvp: Boolean = false, venue: Option[Venue] = None, description: MustacheMarkdown[Message.EventInfo] = MustacheMarkdown[Message.EventInfo](""), tags: Seq[String] = Seq(), published: Boolean = true): Event =
       Event(Event.Id.generate(), group.id, cfp.map(_.id), Event.Slug.from(slug).get, Event.Name(name), Event.Kind.Meetup, LocalDateTime.parse(s"${date}T19:00:00"), maxAttendee, allowRsvp, description, Event.Notes("", now, by.id), venue.map(_.id), Seq(), tags.map(Tag(_)), if (published) Some(Instant.parse(date + "T06:06:24.074Z")) else None, Event.ExtRefs(), Info(by.id, now))
 
     def partner(g: Group, name: String, notes: String, description: Option[String], logo: Int, by: User, social: SocialAccounts = SocialAccounts.fromUrls()): Partner =
@@ -124,13 +123,16 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     def rsvp(event: Event, user: User, answer: Event.Rsvp.Answer = Event.Rsvp.Answer.Yes): Event.Rsvp = Event.Rsvp(event.id, answer, now, user)
 
     def eventExt(name: String, start: Option[String], url: Option[String] = None, logo: Option[String] = None, description: String = "", finish: Option[String] = None, location: Option[GMapPlace] = None, ticketsUrl: Option[String] = None, videosUrl: Option[String] = None, twitterAccount: Option[String] = None, twitterHashtag: Option[String] = None, tags: Seq[String] = Seq(), by: User): ExternalEvent =
-      ExternalEvent(ExternalEvent.Id.generate(), Event.Name(name), Event.Kind.Conference, logo.map(Url.from(_).get).map(Logo), Markdown(description), start.map(s => LocalDateTime.parse(s + "T00:00:00")), finish.map(d => LocalDateTime.parse(d + "T00:00:00")), location, url.map(Url.from(_).get), ticketsUrl.map(Url.from(_).get), videosUrl.map(Url.from(_).get), twitterAccount.map(a => Url.Twitter.from("https://twitter.com/" + a).get).map(TwitterAccount), twitterHashtag.map(TwitterHashtag.from(_).get), tags.map(Tag(_)), Info(by.id, now))
+      ExternalEvent(ExternalEvent.Id.generate(), Event.Name(name), Event.Kind.Conference, logo.map(Url.from(_).get).map(Logo), Markdown(description), start.map(s => LocalDateTime.parse(s + "T00:00:00")), finish.map(d => LocalDateTime.parse(d + "T00:00:00")), location, url.map(Url.from(_).get), ticketsUrl.map(Url.from(_).get), videosUrl.map(Url.Videos.from(_).get), twitterAccount.map(a => Url.Twitter.from("https://twitter.com/" + a).get).map(TwitterAccount), twitterHashtag.map(TwitterHashtag.from(_).get), tags.map(Tag(_)), Info(by.id, now))
 
     def cfpExt(event: ExternalEvent, url: String, begin: Option[String] = None, close: Option[String] = None, description: String = "", by: User): ExternalCfp =
       ExternalCfp(ExternalCfp.Id.generate(), event.id, Markdown(description), begin.map(d => LocalDateTime.parse(d + "T00:00:00")), close.map(d => LocalDateTime.parse(d + "T00:00:00")), Url.from(url).get, Info(by.id, now))
 
     def proposalExt(talk: Talk, event: ExternalEvent, status: Proposal.Status = Proposal.Status.Accepted, url: Option[Url] = None): ExternalProposal =
       ExternalProposal(ExternalProposal.Id.generate(), talk.id, event.id, status, talk.title, talk.duration, talk.description, talk.message, talk.speakers, talk.slides, talk.video, url, talk.tags, talk.info)
+
+    def video(url: String, channel: (String, String), playlist: Option[(String, String)], title: String, description: String, tags: Seq[String], published: String, duration: Int, lang: String, views: Long, likes: Long, dislikes: Long, comments: Long): Video =
+      Video(Url.Video.from(url).get, Video.ChannelRef(Url.Videos.Channel.Id(channel._2), channel._1), playlist.map { case (name, id) => Video.PlaylistRef(Url.Videos.Playlist.Id(id), name) }, title, description, tags.map(Tag(_)), Instant.parse(published + "T06:06:24.074Z"), duration.seconds, lang, views, likes, dislikes, comments, now)
 
     val groupDefaultSettings = gsConf.defaultGroupSettings
 
@@ -178,6 +180,21 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       url = "https://maps.google.com/?cid=3528112312775038061",
       website = None,
       phone = None,
+      utcOffset = 60)
+    val kindarena = GMapPlace(
+      id = "ChIJjX9sQvnd4EcRVasR5KQJBiw",
+      name = "Kindarena Métropole Rouen Normandie",
+      streetNo = Some("40"),
+      street = Some("Rue de Lillebonne"),
+      postalCode = Some("76000"),
+      locality = Some("Rouen"),
+      country = "France",
+      formatted = "40 Rue de Lillebonne, 76000 Rouen, France",
+      input = "Kindarena, Rue de Lillebonne, Rouen, France",
+      geo = Geo(49.4470008, 1.0651289),
+      url = "https://maps.google.com/?cid=3172233591334742869",
+      website = Some("http://www.kindarena.fr/"),
+      phone = Some("+33 2 32 10 73 73"),
       utcOffset = 60)
 
     val social = SocialAccounts.fromStrings(
@@ -246,13 +263,13 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       actions = Map(
         Group.Settings.Action.Trigger.OnEventCreated -> Seq(
           Group.Settings.Action.Slack(SlackAction.PostMessage(
-            Mustache.Text("{{event.start.year}}_{{event.start.month}}"),
-            Mustache.Markdown("Meetup [{{event.name}}]({{event.orgaLink}}) créé !"),
+            Mustache("{{event.start.year}}_{{event.start.month}}"),
+            MustacheMarkdown("Meetup [{{event.name}}]({{event.orgaLink}}) créé !"),
             createdChannelIfNotExist = true,
             inviteEverybody = true)))),
       event = groupDefaultSettings.event.copy(
         templates = Map(
-          "ROTI" -> Mustache.Text[Message.EventInfo](humanTalksRoti))))
+          "ROTI" -> Mustache[Message.EventInfo](humanTalksRoti))))
 
     val cfp1 = cfp(humanTalks, "ht-paris", "HumanTalks Paris", None, None, "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq("tag1", "tag2"), userDemo)
     val cfp2 = cfp(humanTalks, "ht-paris-day-1", "HumanTalks Paris Day - Edition 1", None, Some("2018-07-01"), "Les HumanTalks Paris c'est 4 talks de 10 min...", Seq(), userDemo)
@@ -319,8 +336,9 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
 
     val eventRsvps = Seq(rsvp(event4, userDemo))
 
-    val devoxx2020 = eventExt("Devoxx France 2020", Some("2020-04-15"), Some("https://www.devoxx.fr"), Some("https://www.devoxx.fr/wp-content/uploads/2019/09/favicon.ico"), "A super event", Some("2020-04-17"), Some(palaisDesCongres), Some("https://www.devoxx.fr/tickets/"), Some("https://www.youtube.com/channel/UCsVPQfo5RZErDL41LoWvk0A"), Some("DevoxxFR"), Some("DevoxxFR"), Seq("Tech", "Java"), userDemo)
-    val eventExts = Seq(devoxx2020)
+    val codeursenseine2018 = eventExt(name = "Codeurs en Seine 2018", start = Some("2018-11-22"), url = Some("https://www.codeursenseine.com/2018"), logo = Some("https://res.cloudinary.com/gospeak/image/upload/ar_1,c_crop/v1584453368/ext-events/codeurs-en-seine.jpg"), description = "Une journée par la communauté pour la communauté", finish = Some("2018-11-22"), location = Some(kindarena), ticketsUrl = None, videosUrl = Some("https://www.youtube.com/playlist?list=PLbbYL6fWx8Wzqh3eY4ENuxNCbQEgqLvvw"), twitterAccount = Some("codeursenseine"), twitterHashtag = Some("Codeurs2018"), tags = Seq("Tech"), by = userDemo)
+    val devoxx2020 = eventExt(name = "Devoxx France 2020", start = Some("2020-04-15"), url = Some("https://www.devoxx.fr"), logo = Some("https://www.devoxx.fr/wp-content/uploads/2019/09/favicon.ico"), description = "A super event", finish = Some("2020-04-17"), location = Some(palaisDesCongres), ticketsUrl = Some("https://www.devoxx.fr/tickets/"), videosUrl = Some("https://www.youtube.com/channel/UCsVPQfo5RZErDL41LoWvk0A"), twitterAccount = Some("DevoxxFR"), twitterHashtag = Some("DevoxxFR"), tags = Seq("Tech", "Java"), by = userDemo)
+    val eventExts = Seq(codeursenseine2018, devoxx2020)
 
     val cfpDevoxx2020 = cfpExt(devoxx2020, "https://cfp.devoxx.fr", Some("2019-11-01"), Some("2020-04-16"), "Initialement très orienté Java, Devoxx France est maintenant une conférence généraliste", userDemo)
     val cfpExts = Seq(cfpDevoxx2020)
@@ -328,12 +346,37 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     val whyFPDevoxx2020 = proposalExt(whyFP, devoxx2020)
     val proposalExts = Seq(whyFPDevoxx2020)
 
+    val microservices = video(
+      url = "https://www.youtube.com/watch?v=212ZV9bTXxY", channel = "Codeurs en Seine" -> "UCWujmG5rANxJI0nHbMFs08w", playlist = Some("Codeurs en Seine 2018" -> "PLbbYL6fWx8Wzqh3eY4ENuxNCbQEgqLvvw"),
+      title = "Découvrir par l’exemple : Microservices et Event Sourcing avec Kafka et Kubernetes - Tugdual Grall", description = "", tags = Seq(),
+      published = "2019-01-15", duration = 2976, lang = "fr", views = 462, likes = 4, dislikes = 0, comments = 0)
+    val micode = video(
+      url = "https://www.youtube.com/watch?v=crnCudRa3wc", channel = "Micode" -> "UCYnvxJ-PKiGXo_tYXpWAC-w", playlist = None, title = "HACKER SHADOW EN 24H !", description =
+        """Ma marque : https://foreach.shop
+          |
+          |Nouvelles offres Shadow : https://shdw.me/micode (code promo PTDRTKI)
+          |
+          |
+          |► Twitter : https://twitter.com/micode
+          |► Instagram : https://instagram.com/micode
+          |
+          |Liens de parrainage pour soutenir mon travail :
+          |➜ Ma néobanque : https://n26.com/r/michaeld4673
+          |➜ Amazon : https://www.amazon.fr/?tag=tc0938-21
+          |➜ Les musiques que j’utilise : https://www.epidemicsound.com/referral/duoh5i
+          |""".stripMargin.trim,
+      tags = Seq("micode", "shadow pc", "shadow", "hacker", "hacker shadow", "24h", "en 24h", "mot de passe", "hack", "cloud gaming", "cloud computing"),
+      published = "2019-12-03", duration = 639, lang = "fr", views = 375859, likes = 21785, dislikes = 451, comments = 900)
+    val videos = Seq(microservices, micode)
+
+    val extEventVideos = Seq(codeursenseine2018.id -> Seq(microservices.id))
+
     val generated = (1 to 25).map { i =>
       val groupId = Group.Id.generate()
       val cfpId = Cfp.Id.generate()
       val g = Group(groupId, Group.Slug.from(s"z-group-$i").get, Group.Name(s"Z Group $i"), None, None, None, None, Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), None, NonEmptyList.of(userOrga.id), SocialAccounts.fromUrls(), Seq(), Group.Status.Active, Info(userOrga.id, now))
       val c = Cfp(cfpId, groupId, Cfp.Slug.from(s"z-cfp-$i").get, Cfp.Name(s"Z CFP $i"), None, None, Markdown("Only your best talks !"), Seq(), Info(userOrga.id, now))
-      val e = Event(Event.Id.generate(), bigGroup.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), Event.Kind.Meetup, LocalDateTime.parse("2019-03-12T19:00:00"), Some(100), allowRsvp = false, Mustache.Markdown(""), Event.Notes("", now, userOrga.id), None, Seq(), Seq(), Some(now), Event.ExtRefs(), Info(userOrga.id, now))
+      val e = Event(Event.Id.generate(), bigGroup.id, None, Event.Slug.from(s"z-event-$i").get, Event.Name(s"Z Event $i"), Event.Kind.Meetup, LocalDateTime.parse("2019-03-12T19:00:00"), Some(100), allowRsvp = false, MustacheMarkdown(""), Event.Notes("", now, userOrga.id), None, Seq(), Seq(), Some(now), Event.ExtRefs(), Info(userOrga.id, now))
       val t = Talk(Talk.Id.generate(), Talk.Slug.from(s"z-talk-$i").get, Talk.Status.Public, Talk.Title(s"Z Talk $i"), Duration(10, MINUTES), Markdown("Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin."), Markdown(""), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Info(userSpeaker.id, now))
       val p = Proposal(Proposal.Id.generate(), bigTalk.id, cfpId, None, Proposal.Status.Pending, Talk.Title(s"Z Proposal $i"), Duration(10, MINUTES), Markdown("temporary description"), Markdown(""), NonEmptyList.of(userSpeaker.id), None, None, Seq(), Seq(), Info(userSpeaker.id, now))
       val pa = Partner(Partner.Id.generate(), bigGroup.id, Partner.Slug.from(s"z-partner-$i").get, Partner.Name(s"Z Partner $i"), Markdown(""), None, Url.from(s"https://www.freelogodesign.org/Content/img/logo-ex-3.png").map(Logo).get, SocialAccounts.fromUrls(), Info(userOrga.id, now))
@@ -361,6 +404,8 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
       _ <- eventExts.map(ExternalEventRepoSql.insert(_).run(xa)).sequence
       _ <- cfpExts.map(ExternalCfpRepoSql.insert(_).run(xa)).sequence
       _ <- proposalExts.map(ExternalProposalRepoSql.insert(_).run(xa)).sequence
+      _ <- videos.map(VideoRepoSql.insert(_).run(xa)).sequence
+      _ <- extEventVideos.flatMap { case (e, v) => v.map(VideoRepoSql.insert(_, e).run(xa)) }.sequence
     } yield Done
   }
 
