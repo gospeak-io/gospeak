@@ -15,7 +15,7 @@ import gospeak.libs.scala.domain.CustomException
  *
  * WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
  * WARNING                                                                 WARNING
- * WARNING     Theses classes are used in user templating (mustache)       WARNING
+ * WARNING     Theses classes are used in user templating (liquid)         WARNING
  * WARNING     Be careful updating them as it may break user templates     WARNING
  * WARNING                                                                 WARNING
  * WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING

@@ -5,7 +5,7 @@ import gospeak.core.GsConf.{EventConf, ProposalConf}
 import gospeak.core.domain.Group
 import gospeak.core.domain.messages.Message
 import gospeak.libs.scala.Crypto.AesSecretKey
-import gospeak.libs.scala.domain.{EmailAddress, EnumBuilder, Mustache, MustacheMarkdown, StringEnum}
+import gospeak.libs.scala.domain._
 
 final case class ApplicationConf(env: ApplicationConf.Env,
                                  baseUrl: String,
@@ -73,8 +73,8 @@ final case class GsConf(event: EventConf, proposal: ProposalConf) {
 
 object GsConf {
 
-  final case class EventConf(description: MustacheMarkdown[Message.EventInfo])
+  final case class EventConf(description: LiquidMarkdown[Message.EventInfo])
 
-  final case class ProposalConf(tweet: Mustache[Message.ProposalInfo])
+  final case class ProposalConf(tweet: Liquid[Message.ProposalInfo])
 
 }

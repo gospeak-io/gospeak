@@ -1,5 +1,5 @@
 @import gospeak.core.domain.messages.Message
-@import gospeak.libs.scala.domain.Mustache
+@import gospeak.libs.scala.domain.Liquid
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.partials.html.container
 @import gospeak.web.pages.orga.settings.routes.SettingsCtrl
@@ -7,7 +7,7 @@
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.utils.OrgaReq
 
-@(name: String, form: Form[Mustache[Nothing]], templateRef: Message.Ref, update: Call, markdown: Boolean = true)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(name: String, form: Form[Liquid[Nothing]], templateRef: Message.Ref, update: Call, markdown: Boolean = true)(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"Edit $name template", b)() {
     <h1>Update @name template</h1>
 

@@ -192,9 +192,9 @@ class MappingsSpec extends BaseSpec with ScalaCheckPropertyChecks {
       }
     }
     it("should bind & unbind a Template") {
-      forAll { v: MustacheMarkdown[Any] =>
-        val data = mustacheMarkdown.unbind(v)
-        mustacheMarkdown.bind(data) shouldBe Right(v)
+      forAll { v: LiquidMarkdown[Any] =>
+        val data = liquidMarkdown.unbind(v)
+        liquidMarkdown.bind(data) shouldBe Right(v)
       }
     }
     it("should bind & unbind a Group.Settings.Events.Event") {

@@ -13,14 +13,14 @@ class SlackSrvImplSpec extends BaseSpec {
   private val srv = new SlackSrvImpl(client)
 
   describe("SlackSrvImpl") {
-    describe("exec") {
+    /* describe("exec") {
       describe("PostMessage") {
-        /* it("should") {
-          val action = SlackAction.PostMessage(Template.Mustache("test1"), Template.Mustache("test"), createdChannelIfNotExist = true, inviteEverybody = true)
+        it("should") {
+          val action = SlackAction.PostMessage(Liquid("test1"), LiquidMarkdown("test"), createdChannelIfNotExist = true, inviteEverybody = true)
           srv.exec(creds, action, TemplateData.EventPublished()).unsafeRunSync()
-        } */
+        }
       }
-    }
+    } */
     describe("format") {
       it("should format channel not found error") {
         val err = SlackError(ok = false, "channel_not_found", needed = None, provided = None)

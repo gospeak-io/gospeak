@@ -16,7 +16,13 @@ import scala.util.Try
  */
 
 final case class Liquid[A](value: String) extends AnyVal {
-  def render(data: A)(implicit e: Encoder[A]): Either[Liquid.Error, String] = Liquid.render(value, e.apply(data))
+  def render(data: A)(implicit e: Encoder[A]): Either[Liquid.Error, String] = render(e.apply(data))
+
+  def render(data: Json): Either[Liquid.Error, String] = Liquid.render(value, data)
+
+  def as[B]: Liquid[B] = Liquid[B](value)
+
+  def asMarkdown: LiquidMarkdown[A] = LiquidMarkdown[A](value)
 }
 
 final case class LiquidHtml[A](value: String) extends AnyVal {
@@ -24,7 +30,11 @@ final case class LiquidHtml[A](value: String) extends AnyVal {
 }
 
 final case class LiquidMarkdown[A](value: String) extends AnyVal {
-  def render(data: A)(implicit e: Encoder[A]): Either[Liquid.Error, Markdown] = Liquid.render(value, e.apply(data)).map(Markdown(_))
+  def render(data: A)(implicit e: Encoder[A]): Either[Liquid.Error, Markdown] = render(e.apply(data))
+
+  def render(data: Json): Either[Liquid.Error, Markdown] = Liquid.render(value, data).map(Markdown(_))
+
+  def asText: Liquid[A] = Liquid[A](value)
 }
 
 object Liquid {
@@ -77,8 +87,12 @@ object Liquid {
 
   def render(tmpl: String, data: Json): Either[Error, String] = for {
     parsed <- Try(Template.parse(tmpl)).toEither.left.map(Error(_))
-    renderSettings = new RenderSettings.Builder().withStrictVariables(true).withShowExceptionsFromInclude(true).build()
-    protectionSettings = new ProtectionSettings.Builder() /*.withMaxRenderTimeMillis(1000)*/ .build()
+    renderSettings = new RenderSettings.Builder()
+      // .withStrictVariables(true) // do not work with optional values :(
+      .withShowExceptionsFromInclude(true).build()
+    protectionSettings = new ProtectionSettings.Builder()
+      // .withMaxRenderTimeMillis(1000)
+      .build()
     res <- Try(parsed.withRenderSettings(renderSettings).withProtectionSettings(protectionSettings).render(data.noSpaces)).toEither.left.map(Error(_))
   } yield res
 

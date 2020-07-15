@@ -10,7 +10,7 @@ import gospeak.core.services.slack.domain.SlackToken
 import gospeak.core.services.storage.PublicExternalCfpRepo
 import gospeak.infra.services.EmbedSrv
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Html, Markdown, MustacheMarkdown, Url}
+import gospeak.libs.scala.domain.{Html, Markdown, LiquidMarkdown, Url}
 import gospeak.web.AppConf
 import gospeak.web.api.domain.ApiExternalCfp
 import gospeak.web.api.domain.utils.ApiResult
@@ -28,7 +28,7 @@ case class ValidationResult(valid: Boolean, message: String)
 
 case class TemplateDataResponse(data: JsValue)
 
-case class TemplateRequest(template: MustacheMarkdown[Any], ref: Option[Message.Ref], markdown: Boolean)
+case class TemplateRequest(template: LiquidMarkdown[Any], ref: Option[Message.Ref], markdown: Boolean)
 
 case class TemplateResponse(result: Option[Html], error: Option[String])
 

@@ -13,7 +13,7 @@ import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.slack.domain.SlackCredentials
 import gospeak.core.services.storage.{OrgaGroupRepo, OrgaGroupSettingsRepo, OrgaUserRepo, OrgaUserRequestRepo}
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.Mustache
+import gospeak.libs.scala.domain.Liquid
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb
@@ -251,7 +251,7 @@ class SettingsCtrl(cc: ControllerComponents,
     Ok(html.updateEventTemplate(templateId, settings, form)(b))
   }
 
-  private def updateEventTemplateView(group: Group.Slug, form: Form[Mustache[Nothing]])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
+  private def updateEventTemplateView(group: Group.Slug, form: Form[Liquid[Nothing]])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
     for {
       tweet <- groupSettingsRepo.findProposalTweet(req.group.id)
       filledForm = if (form.hasErrors) form else form.fill(tweet.as[Nothing])

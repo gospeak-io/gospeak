@@ -19,7 +19,7 @@ import gospeak.infra.services.storage.sql.GroupSettingsRepoSql._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, Update}
 import gospeak.infra.services.storage.sql.utils.GenericRepo
-import gospeak.libs.scala.domain.{Done, Mustache, MustacheMarkdown}
+import gospeak.libs.scala.domain.{Done, Liquid, LiquidMarkdown}
 
 class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: GsConf) extends GenericRepo with GroupSettingsRepo {
   override def set(settings: Group.Settings)(implicit ctx: OrgaCtx): IO[Done] =
@@ -48,16 +48,16 @@ class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: G
   override def findSlack(group: Group.Id): IO[Option[SlackCredentials]] =
     selectOneSlack(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.accounts.slack))
 
-  override def findEventDescription(implicit ctx: OrgaCtx): IO[MustacheMarkdown[Message.EventInfo]] =
+  override def findEventDescription(implicit ctx: OrgaCtx): IO[LiquidMarkdown[Message.EventInfo]] =
     selectOneEventDescription(ctx.group.id).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.event.description))
 
-  override def findEventTemplates(implicit ctx: OrgaCtx): IO[Map[String, Mustache[Message.EventInfo]]] =
+  override def findEventTemplates(implicit ctx: OrgaCtx): IO[Map[String, Liquid[Message.EventInfo]]] =
     selectOneEventTemplates(ctx.group.id).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.event.templates))
 
-  override def findEventTemplates(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Map[String, Mustache[Message.EventInfo]]] =
+  override def findEventTemplates(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Map[String, Liquid[Message.EventInfo]]] =
     selectOneEventTemplates(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.event.templates))
 
-  override def findProposalTweet(group: Group.Id): IO[Mustache[Message.ProposalInfo]] =
+  override def findProposalTweet(group: Group.Id): IO[Liquid[Message.ProposalInfo]] =
     selectOneProposalTweet(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.proposal.tweet))
 
   override def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]] =
@@ -101,14 +101,14 @@ object GroupSettingsRepoSql {
   private[sql] def selectOneSlack(group: Group.Id): Select[Option[SlackCredentials]] =
     table.select[Option[SlackCredentials]](slackFields, where(group))
 
-  private[sql] def selectOneEventDescription(group: Group.Id): Select[MustacheMarkdown[Message.EventInfo]] =
-    table.select[MustacheMarkdown[Message.EventInfo]](Seq(Field("event_description", "gs")), where(group))
+  private[sql] def selectOneEventDescription(group: Group.Id): Select[LiquidMarkdown[Message.EventInfo]] =
+    table.select[LiquidMarkdown[Message.EventInfo]](Seq(Field("event_description", "gs")), where(group))
 
-  private[sql] def selectOneEventTemplates(group: Group.Id): Select[Map[String, Mustache[Message.EventInfo]]] =
-    table.select[Map[String, Mustache[Message.EventInfo]]](Seq(Field("event_templates", "gs")), where(group))
+  private[sql] def selectOneEventTemplates(group: Group.Id): Select[Map[String, Liquid[Message.EventInfo]]] =
+    table.select[Map[String, Liquid[Message.EventInfo]]](Seq(Field("event_templates", "gs")), where(group))
 
-  private[sql] def selectOneProposalTweet(group: Group.Id): Select[Mustache[Message.ProposalInfo]] =
-    table.select[Mustache[Message.ProposalInfo]](Seq(Field("proposal_tweet", "gs")), where(group))
+  private[sql] def selectOneProposalTweet(group: Group.Id): Select[Liquid[Message.ProposalInfo]] =
+    table.select[Liquid[Message.ProposalInfo]](Seq(Field("proposal_tweet", "gs")), where(group))
 
   private[sql] def selectOneActions(group: Group.Id): Select[Map[Action.Trigger, Seq[Settings.Action]]] =
     table.select[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]](Seq(Field("actions", "gs")), where(group))

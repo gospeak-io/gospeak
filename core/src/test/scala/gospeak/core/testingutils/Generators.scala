@@ -126,7 +126,7 @@ object Generators {
   implicit val aUserRequest = implicitly[Arbitrary[UserRequest]]
   implicit val aExternalCfp = implicitly[Arbitrary[ExternalCfp]]
 
-  implicit val aMustacheMarkdown = implicitly[Arbitrary[MustacheMarkdown[Any]]]
+  implicit val aLiquidMarkdown = implicitly[Arbitrary[LiquidMarkdown[Any]]]
   implicit val aGroupSettingsActionTrigger = implicitly[Arbitrary[Group.Settings.Action.Trigger]]
   implicit val aGroupSettingsAction = implicitly[Arbitrary[Group.Settings.Action]]
 }

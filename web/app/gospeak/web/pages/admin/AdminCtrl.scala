@@ -11,7 +11,7 @@ import gospeak.core.services.storage._
 import gospeak.core.services.video.VideoSrv
 import gospeak.libs.scala.Diff
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{CustomException, Mustache, Page}
+import gospeak.libs.scala.domain.{CustomException, Liquid, Page}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.pages.admin.AdminCtrl.{UpdateExtEventVideoJob, UserTemplateReport}
@@ -62,10 +62,14 @@ class AdminCtrl(cc: ControllerComponents,
       settings <- groupSettingsRepo.list(groups.items.map(_.id)).map(_.groupBy(_._1).mapValues(_.map(_._2)))
       events <- eventRepo.listAllFromGroups(groups.items.map(_.id)).map(_.groupBy(_.group))
       eventInfo = ms.sample(Some(Message.Ref.eventInfo))
+      proposalInfo = ms.sample(Some(Message.Ref.proposalInfo))
       triggerData = Group.Settings.Action.Trigger.all.map(t => (t, ms.sample(Some(t.message)))).toMap
       reports = groups.map(g => UserTemplateReport(g, settings.getOrElse(g.id, List()), events.getOrElse(g.id, List()), eventInfo, triggerData))
-      defaultEventDescription = req.conf.gospeak.event.description.render(eventInfo)
-    } yield Ok(html.checkUserTemplates(reports, defaultEventDescription))
+      defaultTemplates = Map(
+        "gospeak.event.description" -> req.conf.gospeak.event.description.render(eventInfo),
+        "gospeak.proposal.tweet" -> req.conf.gospeak.proposal.tweet.render(proposalInfo)
+      ).collect { case (k,Left(e)) => (k, e) }
+    } yield Ok(html.checkUserTemplates(reports, defaultTemplates))
   }
 
   private val updateExtEventVideosJobs = mutable.HashMap[ExternalEvent.Id, UpdateExtEventVideoJob]()
@@ -123,9 +127,9 @@ object AdminCtrl {
   final case class UserTemplateReport(group: Group,
                                       templateCount: Int,
                                       errorCount: Int,
-                                      groupSettingsActionsErrors: List[(Group.Settings.Action.Trigger, Int, String, String, Mustache.Error)],
-                                      groupSettingsEventErrors: List[(String, Mustache.Error)],
-                                      eventErrors: List[(Event, Mustache.Error)])
+                                      groupSettingsActionsErrors: List[(Group.Settings.Action.Trigger, Int, String, String, Liquid.Error)],
+                                      groupSettingsEventErrors: List[(String, Liquid.Error)],
+                                      eventErrors: List[(Event, Liquid.Error)])
 
   object UserTemplateReport {
     def apply(group: Group,

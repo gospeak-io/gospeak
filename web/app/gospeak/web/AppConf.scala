@@ -12,7 +12,7 @@ import gospeak.core.services.video.YoutubeConf
 import gospeak.core.{ApplicationConf, GsConf}
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Creds, EmailAddress, Mustache, MustacheMarkdown, Secret}
+import gospeak.libs.scala.domain.{Creds, EmailAddress, Liquid, LiquidMarkdown, Secret}
 import gospeak.web.auth.AuthConf
 import gospeak.web.services.SchedulerSrv
 import play.api.Configuration
@@ -106,9 +106,9 @@ object AppConf {
     private implicit val uploadConfUrlReader: ConfigReader[UploadConf.Url] = deriveReader[UploadConf.Url]
     private implicit val uploadConfCloudinaryReader: ConfigReader[UploadConf.Cloudinary] = deriveReader[UploadConf.Cloudinary]
 
-    private implicit def mustacheReader[A]: ConfigReader[Mustache[A]] = (cur: ConfigCursor) => cur.asString.map(_.stripPrefix("\n")).map(Mustache[A])
+    private implicit def liquidReader[A]: ConfigReader[Liquid[A]] = (cur: ConfigCursor) => cur.asString.map(_.stripPrefix("\n")).map(Liquid[A])
 
-    private implicit def mustacheMarkdownReader[A]: ConfigReader[MustacheMarkdown[A]] = (cur: ConfigCursor) => cur.asString.map(_.stripPrefix("\n")).map(MustacheMarkdown[A])
+    private implicit def liquidMarkdownReader[A]: ConfigReader[LiquidMarkdown[A]] = (cur: ConfigCursor) => cur.asString.map(_.stripPrefix("\n")).map(LiquidMarkdown[A])
 
     private implicit val gospeakEventConfReader: ConfigReader[GsConf.EventConf] = deriveReader[GsConf.EventConf]
     private implicit val gospeakProposalConfReader: ConfigReader[GsConf.ProposalConf] = deriveReader[GsConf.ProposalConf]

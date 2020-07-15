@@ -492,9 +492,9 @@ object DoobieUtils {
     implicit val currencyMeta: Meta[Price.Currency] = Meta[String].timap(Price.Currency.from(_).get)(_.value)
     implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown(_))(_.value)
 
-    implicit def mustacheMeta[A: TypeTag]: Meta[Mustache[A]] = Meta[String].timap(Mustache[A])(_.value)
+    implicit def liquidMeta[A: TypeTag]: Meta[Liquid[A]] = Meta[String].timap(Liquid[A])(_.value)
 
-    implicit def mustacheMarkdownMeta[A: TypeTag]: Meta[MustacheMarkdown[A]] = Meta[String].timap(MustacheMarkdown[A])(_.value)
+    implicit def liquidMarkdownMeta[A: TypeTag]: Meta[LiquidMarkdown[A]] = Meta[String].timap(LiquidMarkdown[A])(_.value)
 
     // "take(150)": I prefer truncated tags than failing request
     implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(",").take(150))
@@ -505,16 +505,16 @@ object DoobieUtils {
       implicit val gMapPlaceEncoder: Encoder[GMapPlace] = deriveEncoder[GMapPlace]
       Meta[String].timap(fromJson[GMapPlace](_).get)(toJson)
     }
-    implicit val groupSettingsEventTemplatesMeta: Meta[Map[String, Mustache[Message.EventInfo]]] = {
-      implicit val mustacheDecoder: Decoder[Mustache[Message.EventInfo]] = deriveDecoder[Mustache[Message.EventInfo]]
-      implicit val mustacheEncoder: Encoder[Mustache[Message.EventInfo]] = deriveEncoder[Mustache[Message.EventInfo]]
-      Meta[String].timap(fromJson[Map[String, Mustache[Message.EventInfo]]](_).get)(toJson)
+    implicit val groupSettingsEventTemplatesMeta: Meta[Map[String, Liquid[Message.EventInfo]]] = {
+      implicit val liquidDecoder: Decoder[Liquid[Message.EventInfo]] = deriveDecoder[Liquid[Message.EventInfo]]
+      implicit val liquidEncoder: Encoder[Liquid[Message.EventInfo]] = deriveEncoder[Liquid[Message.EventInfo]]
+      Meta[String].timap(fromJson[Map[String, Liquid[Message.EventInfo]]](_).get)(toJson)
     }
     implicit val groupSettingsActionsMeta: Meta[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]] = {
-      implicit val mustacheDecoder: Decoder[Mustache[Any]] = deriveDecoder[Mustache[Any]]
-      implicit val mustacheEncoder: Encoder[Mustache[Any]] = deriveEncoder[Mustache[Any]]
-      implicit val mustacheMarkdownDecoder: Decoder[MustacheMarkdown[Any]] = deriveDecoder[MustacheMarkdown[Any]]
-      implicit val mustacheMarkdownEncoder: Encoder[MustacheMarkdown[Any]] = deriveEncoder[MustacheMarkdown[Any]]
+      implicit val liquidDecoder: Decoder[Liquid[Any]] = deriveDecoder[Liquid[Any]]
+      implicit val liquidEncoder: Encoder[Liquid[Any]] = deriveEncoder[Liquid[Any]]
+      implicit val liquidMarkdownDecoder: Decoder[LiquidMarkdown[Any]] = deriveDecoder[LiquidMarkdown[Any]]
+      implicit val liquidMarkdownEncoder: Encoder[LiquidMarkdown[Any]] = deriveEncoder[LiquidMarkdown[Any]]
       implicit val slackActionPostMessageDecoder: Decoder[SlackAction.PostMessage] = deriveDecoder[SlackAction.PostMessage]
       implicit val slackActionPostMessageEncoder: Encoder[SlackAction.PostMessage] = deriveEncoder[SlackAction.PostMessage]
       implicit val slackActionDecoder: Decoder[SlackAction] = deriveDecoder[SlackAction]

@@ -1,5 +1,6 @@
 package gospeak.web.services
 
+import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate, LocalDateTime}
 
 import cats.data.{NonEmptyList, OptionT}
@@ -12,7 +13,6 @@ import gospeak.core.domain.utils.{Constants, Info, SocialAccounts}
 import gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup, MeetupVenue}
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.StringUtils.leftPad
 import gospeak.libs.scala.domain._
 import gospeak.web.services.MessageSrv._
 import gospeak.web.utils.{BasicReq, OrgaReq, UserAwareReq, UserReq}
@@ -118,6 +118,7 @@ class MessageSrv(groupRepo: OrgaGroupRepo,
 }
 
 object MessageSrv {
+  private val liquidDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
   private implicit val configuration: Configuration = Configuration.default.withDiscriminator("type")
 
   private implicit val eLogo: Encoder[Logo] = (v: Logo) => Json.fromString(v.value)
@@ -125,28 +126,13 @@ object MessageSrv {
   private implicit val eAvatar: Encoder[Avatar] = (v: Avatar) => Json.fromString(v.value)
   private implicit val eEmailAddress: Encoder[EmailAddress] = (v: EmailAddress) => Json.fromString(v.value)
   private implicit val eFiniteDuration: Encoder[FiniteDuration] = (v: FiniteDuration) => Json.fromString(v.toString)
-  private implicit val eLocalDateTime: Encoder[LocalDateTime] = (v: LocalDateTime) => Json.obj(
-    "year" -> Json.fromString(leftPad(v.getYear.toString, 4, '0')),
-    "month" -> Json.fromString(leftPad(v.getMonthValue.toString, 2, '0')),
-    "monthStr" -> Json.fromString(v.getMonth.name().toLowerCase.capitalize),
-    "day" -> Json.fromString(leftPad(v.getDayOfMonth.toString, 2, '0')),
-    "dayStr" -> Json.fromString(v.getDayOfWeek.name().toLowerCase.capitalize),
-    "hour" -> Json.fromString(leftPad(v.getHour.toString, 2, '0')),
-    "minute" -> Json.fromString(leftPad(v.getMinute.toString, 2, '0')))
+  private implicit val eLocalDateTime: Encoder[LocalDateTime] = (v: LocalDateTime) => Json.fromString(v.format(liquidDateFormat))
   private implicit val eInstant: Encoder[Instant] = (v: Instant) => eLocalDateTime.apply(v.atZone(Constants.defaultZoneId).toLocalDateTime)
   private implicit val eUrl: Encoder[Url] = (v: Url) => Json.fromString(v.value)
   private implicit val eUrlSlides: Encoder[Url.Slides] = (v: Url.Slides) => Json.fromString(v.value)
   private implicit val eUrlVideo: Encoder[Url.Video] = (v: Url.Video) => Json.fromString(v.value)
-  private implicit val eMarkdown: Encoder[Markdown] = (v: Markdown) => Json.obj(
-    "full" -> Json.fromString(v.value),
-    "short1" -> Json.fromString(v.value.split("\n").head.take(140)),
-    "short2" -> Json.fromString(v.value.split("\n").head.take(280)),
-    "short3" -> Json.fromString(v.value.take(280)))
-  private implicit val eMustacheMarkdown: Encoder[MustacheMarkdown[Message.EventInfo]] = (v: MustacheMarkdown[Message.EventInfo]) => Json.obj(
-    "full" -> Json.fromString(v.value),
-    "short1" -> Json.fromString(v.value.split("\n").head.take(140)),
-    "short2" -> Json.fromString(v.value.split("\n").head.take(280)),
-    "short3" -> Json.fromString(v.value.take(280)))
+  private implicit val eMarkdown: Encoder[Markdown] = (v: Markdown) => Json.fromString(v.value)
+  private implicit val eLiquidMarkdown: Encoder[LiquidMarkdown[Message.EventInfo]] = (v: LiquidMarkdown[Message.EventInfo]) => Json.fromString(v.value)
   private implicit val eGeo: Encoder[Geo] = deriveConfiguredEncoder[Geo]
   private implicit val eGMapPlace: Encoder[GMapPlace] = (v: GMapPlace) => Json.obj(
     "full" -> Json.fromString(v.value),
@@ -272,8 +258,8 @@ object MessageSrv {
       group = group.id,
       slug = Cfp.Slug.from("ht-paris").get,
       name = Cfp.Name("HumanTalks Paris"),
-      begin = Some(nowLDT),
-      close = Some(nowLDT),
+      begin = Some(nowLDT.minusDays(1)),
+      close = Some(nowLDT.plusDays(1)),
       description = Markdown("Submit a talk you are **passionated** about!"),
       tags = Seq(Tag("tech")),
       info = Info(user.id, now))
@@ -345,7 +331,7 @@ object MessageSrv {
       start = nowLDT,
       maxAttendee = Some(100),
       allowRsvp = false,
-      description = MustacheMarkdown[Message.EventInfo]("Thanks to **{{venue.name}}** for hosting"),
+      description = LiquidMarkdown[Message.EventInfo]("Thanks to **{{venue.name}}** for hosting"),
       orgaNotes = Event.Notes("We should add *more* talks", now, user.id),
       venue = Some(venue.id),
       talks = Seq(proposal.id),

@@ -81,8 +81,8 @@ object GsForms {
   val updateTags: Form[Seq[Tag]] = Form(single(
     "tags" -> tags))
 
-  val templateForm: Form[Mustache[Nothing]] = Form(single(
-    "template" -> mustache))
+  val templateForm: Form[Liquid[Nothing]] = Form(single(
+    "template" -> liquid))
 
 
   /**
@@ -166,11 +166,11 @@ object GsForms {
     "action" -> groupSettingsAction
   )(GroupAction.apply)(GroupAction.unapply))
 
-  final case class GroupEventTemplateItem(id: String, template: Mustache[Message.EventInfo])
+  final case class GroupEventTemplateItem(id: String, template: Liquid[Message.EventInfo])
 
   val groupEventTemplateItem: Form[GroupEventTemplateItem] = Form(mapping(
     "id" -> nonEmptyText,
-    "template" -> mustache[Message.EventInfo]
+    "template" -> liquid[Message.EventInfo]
   )(GroupEventTemplateItem.apply)(GroupEventTemplateItem.unapply))
 
   val event: Form[Event.Data] = Form(mapping(
@@ -182,7 +182,7 @@ object GsForms {
     "max-attendee" -> optional(number),
     "allow-rsvp" -> boolean,
     "venue" -> optional(venueId),
-    "description" -> mustacheMarkdown[Message.EventInfo],
+    "description" -> liquidMarkdown[Message.EventInfo],
     "tags" -> tags,
     "refs" -> eventRefs
   )(Event.Data.apply)(Event.Data.unapply))

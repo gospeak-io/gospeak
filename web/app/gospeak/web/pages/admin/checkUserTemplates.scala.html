@@ -1,15 +1,15 @@
-@import gospeak.libs.scala.domain.{Markdown, Mustache, Page}
+@import gospeak.libs.scala.domain.{Liquid, Page}
 @import gospeak.web.pages.admin.AdminCtrl.UserTemplateReport
 @import gospeak.web.pages.admin.partials.html.container
 @import gospeak.web.pages.admin.routes.AdminCtrl
 @import gospeak.web.utils._
 
-@(groupReports: Page[UserTemplateReport], defaultEventDescription: Either[Mustache.Error, Markdown])(implicit req: AdminReq[AnyContent])
+@(groupReports: Page[UserTemplateReport], defaultTemplates: Map[String, Liquid.Error])(implicit req: AdminReq[AnyContent])
 @container(s"Admin")() {
     <h1>User templates</h1>
-    @defaultEventDescription.swap.toOption.map { err =>
+    @defaultTemplates.map { case (key, err) =>
         <div class="alert alert-danger" role="alert">
-            <b>@err.message</b> for default event description (cf application.conf) :(
+            Error in default value for <b>@key</b> (cf application.conf):<br><b>@err.message</b>
         </div>
     }
     @groupReports.render(AdminCtrl.checkUserTemplates) { r =>

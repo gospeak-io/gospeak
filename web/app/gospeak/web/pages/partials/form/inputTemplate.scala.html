@@ -16,7 +16,7 @@
     </ul>
     <div class="tab-content" id="@Utils.id(field, args)-content">
         <div class="tab-pane write fade show active" id="@Utils.id(field, args)-write" role="tabpanel" aria-labelledby="@Utils.id(field, args)-write-tab">
-            @inputHidden(field("kind"), Seq("value" -> "Mustache"))
+            @inputHidden(field("kind"), Seq("value" -> "Liquid"))
             @if(multiline) {
                 @inputTextarea(field("value"), args, html = true)
             } else {
@@ -31,17 +31,13 @@
             </div>
         </div>
     </div>
-    @if(markdown) {
-        <small class="form-text text-muted">
-            You can use <a href="https://mustache.github.io/mustache.5.html" target="_blank" tabindex="-1">mustache</a>
-            (<a href="https://github.com/eikek/yamusca" target="_blank" tabindex="-1">yamusca</a>) templating with
-            <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet" target="_blank" tabindex="-1">markdown</a>
+
+    <small class="form-text text-muted">
+        You can use <a href="https://shopify.github.io/liquid" target="_blank" tabindex="-1">Liquid</a>
+        (<a href="https://github.com/bkiers/Liqp" target="_blank" tabindex="-1">Liqp</a>) templating
+        @if(markdown) {
+            with <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet" target="_blank" tabindex="-1">markdown</a>
             (<a href="https://github.com/vsch/flexmark-java" target="_blank" tabindex="-1">flexmark</a>) formatting.
-        </small>
-    } else {
-        <small class="form-text text-muted">
-            You can use <a href="https://mustache.github.io/mustache.5.html" target="_blank" tabindex="-1">mustache</a>
-            (<a href="https://github.com/eikek/yamusca" target="_blank" tabindex="-1">yamusca</a>) templating.
-        </small>
-    }
+        }
+    </small>
 </div>

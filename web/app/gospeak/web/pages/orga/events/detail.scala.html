@@ -1,6 +1,6 @@
 @import gospeak.core.domain.{Cfp, Event, Proposal, User, Venue}
 @import gospeak.core.domain.messages.Message
-@import gospeak.libs.scala.domain.{Markdown, Mustache, Page}
+@import gospeak.libs.scala.domain.{Markdown, Liquid, Page}
 @import gospeak.web.api.ui.routes.SuggestCtrl
 @import gospeak.web.domain.Breadcrumb
 @import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
@@ -15,7 +15,7 @@
 @import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
 @import gospeak.web.utils._
 
-@(event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, Mustache[Message.EventInfo]], notesForm: Form[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, Liquid[Message.EventInfo]], notesForm: Form[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(event.name.value, b)() {
     @if(!event.isPublic) {
         <div class="alert alert-info" role="alert">
